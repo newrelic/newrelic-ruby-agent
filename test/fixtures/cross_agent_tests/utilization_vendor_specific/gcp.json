@@ -1,0 +1,288 @@
+[
+  {
+    "testname": "gcp api times out, no vendor hash or supportability metric reported",
+    "uri": {
+      "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true": {
+        "response": {
+          "id": null,
+          "machineType": null,
+          "name": null,
+          "zone": null
+        },
+        "timeout": true
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/gcp/error": {
+        "call_count": 0
+      }
+    }
+  },
+  {
+    "testname": "machine type, id, zone, name are all happy",
+    "uri": {
+      "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true": {
+        "response": {
+          "id": 3161347020215157000,
+          "machineType": "projects/492690098729/machineTypes/custom-1-1024",
+          "name": "aef-default-20170501t160547-7gh8",
+          "zone": "projects/492690098729/zones/us-central1-c"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": {
+      "gcp": {
+        "id": "3161347020215157000",
+        "machineType": "custom-1-1024",
+        "name": "aef-default-20170501t160547-7gh8",
+        "zone": "us-central1-c"
+      }
+    }
+  },
+  {
+    "testname": "machine type with invalid characters",
+    "uri": {
+      "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true": {
+        "response": {
+          "id": 3161347020215157000,
+          "machineType": "<script>lol</script>",
+          "name": "aef-default-20170501t160547-7gh8",
+          "zone": "projects/492690098729/zones/us-central1-c"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/gcp/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "machine type too long",
+    "uri": {
+      "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true": {
+        "response": {
+          "id": 3161347020215157000,
+          "machineType": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+          "name": "aef-default-20170501t160547-7gh8",
+          "zone": "projects/492690098729/zones/us-central1-c"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/gcp/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "id with invalid characters",
+    "uri": {
+      "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true": {
+        "response": {
+          "id": "<script>lol</script>",
+          "machineType": "projects/492690098729/machineTypes/custom-1-1024",
+          "name": "aef-default-20170501t160547-7gh8",
+          "zone": "projects/492690098729/zones/us-central1-c"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/gcp/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "id too long",
+    "uri": {
+      "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true": {
+        "response": {
+          "id": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+          "machineType": "projects/492690098729/machineTypes/custom-1-1024",
+          "name": "aef-default-20170501t160547-7gh8",
+          "zone": "projects/492690098729/zones/us-central1-c"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/gcp/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "zone with invalid characters",
+    "uri": {
+      "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true": {
+        "response": {
+          "id": 3161347020215157000,
+          "machineType": "projects/492690098729/machineTypes/custom-1-1024",
+          "name": "aef-default-20170501t160547-7gh8",
+          "zone": "<script>lol</script>"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/gcp/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "zone too long",
+    "uri": {
+      "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true": {
+        "response": {
+          "id": 3161347020215157000,
+          "machineType": "projects/492690098729/machineTypes/custom-1-1024",
+          "name": "aef-default-20170501t160547-7gh8",
+          "zone": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/gcp/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "name with invalid characters",
+    "uri": {
+      "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true": {
+        "response": {
+          "id": 3161347020215157000,
+          "machineType": "projects/492690098729/machineTypes/custom-1-1024",
+          "name": "<script>lol</script>",
+          "zone": "projects/492690098729/zones/us-central1-c"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/gcp/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "name too long",
+    "uri": {
+      "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true": {
+        "response": {
+          "id": 3161347020215157000,
+          "machineType": "projects/492690098729/machineTypes/custom-1-1024",
+          "name": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+          "zone": "projects/492690098729/zones/us-central1-c"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/gcp/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "UTF-8 high codepoints",
+    "uri": {
+      "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true": {
+        "response": {
+          "id": 3161347020215157000,
+          "machineType": "projects/492690098729/machineTypes/custom-1-1024",
+          "name": "滈 橀槶澉 鞻饙騴 鱙鷭黂 甗糲 紁羑 嗂 蛶觢豥 餤駰鬳 釂鱞鸄",
+          "zone": "projects/492690098729/zones/us-central1-c"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": {
+      "gcp": {
+        "id": "3161347020215157000",
+        "machineType": "custom-1-1024",
+        "name": "滈 橀槶澉 鞻饙騴 鱙鷭黂 甗糲 紁羑 嗂 蛶觢豥 餤駰鬳 釂鱞鸄",
+        "zone": "us-central1-c"
+      }
+    }
+  },
+  {
+    "testname": "comma with multibyte characters",
+    "uri": {
+      "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true": {
+        "response": {
+          "id": 3161347020215157000,
+          "machineType": "projects/492690098729/machineTypes/custom-1-1024",
+          "name": "滈 橀槶澉 鞻饙騴 鱙鷭黂 甗糲, 紁羑 嗂 蛶觢豥 餤駰鬳 釂鱞鸄",
+          "zone": "projects/492690098729/zones/us-central1-c"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/gcp/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "Exclamation point in response",
+    "uri": {
+      "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true": {
+        "response": {
+          "id": 3161347020215157000,
+          "machineType": "projects/492690098729/machineTypes/custom-1-1024",
+          "name": "Bang!",
+          "zone": "projects/492690098729/zones/us-central1-c"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/gcp/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "Valid punctuation in response",
+    "uri": {
+      "http://metadata.google.internal/computeMetadata/v1/instance/?recursive=true": {
+        "response": {
+          "id": 3161347020215157000,
+          "machineType": "projects/492690098729/machineTypes/custom-1-1024",
+          "name": "a-b_c.3... and/or 503 867-5309",
+          "zone": "projects/492690098729/zones/us-central1-c"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": {
+      "gcp": {
+        "id": "3161347020215157000",
+        "machineType": "custom-1-1024",
+        "name": "a-b_c.3... and/or 503 867-5309",
+        "zone": "us-central1-c"
+      }
+    }
+  }
+]
