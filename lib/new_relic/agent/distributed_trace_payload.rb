@@ -92,7 +92,7 @@ module NewRelic
         end
 
         def from_http_safe http_safe_payload
-          decoded_payload = Base64.decode64 http_safe_payload
+          decoded_payload = Base64.strict_decode64 http_safe_payload
           from_json decoded_payload
         end
 
@@ -157,7 +157,7 @@ module NewRelic
       alias_method :text, :to_json
 
       def http_safe
-        Base64.encode64 to_json
+        Base64.strict_encode64 to_json
       end
 
       CALLER_TYPE_INTRINSIC_KEY                = "caller.type".freeze
