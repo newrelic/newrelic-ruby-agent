@@ -9,21 +9,6 @@ require 'new_relic/agent/utilization/aws'
 module NewRelic::Agent
   class UtilizationDataTest < Minitest::Test
 
-    # recurses through hashes and arrays and symbolizes keys
-    def self.symbolize_keys_in_object(object)
-      case object
-      when Hash
-        object.inject({}) do |memo, (k, v)|
-          memo[k.to_sym] = symbolize_keys_in_object(v)
-          memo
-        end
-      when Array
-        object.map {|o| symbolize_keys_in_object(o)}
-      else
-        object
-      end
-    end
-
     def setup
       stub_aws_info response_code: '404'
       stub_gcp_info response_code: '404'
@@ -304,7 +289,7 @@ module NewRelic::Agent
 
     load_cross_agent_test("utilization/utilization_json").each do |test_case|
 
-      test_case = NewRelic::Agent::UtilizationDataTest.symbolize_keys_in_object test_case
+      test_case = symbolize_keys_in_object test_case
       define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
         setup_cross_agent_test_stubs test_case
 
