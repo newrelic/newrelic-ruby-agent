@@ -8,6 +8,7 @@
 # the transaction event aggregator and the synthetics container.
 
 require 'new_relic/agent/payload_metric_mapping'
+require 'new_relic/agent/distributed_trace_payload'
 
 module NewRelic
   module Agent
@@ -27,16 +28,6 @@ module NewRelic
       SYNTHETICS_RESOURCE_ID_KEY     = "nr.syntheticsResourceId".freeze
       SYNTHETICS_JOB_ID_KEY          = "nr.syntheticsJobId".freeze
       SYNTHETICS_MONITOR_ID_KEY      = "nr.syntheticsMonitorId".freeze
-
-      # distributed tracing keys
-      CALLER_TYPE                    = "caller.type".freeze
-      CALLER_APP_ID                  = "caller.app".freeze
-      CALLER_ACCOUNT_ID              = "caller.account".freeze
-      CALLER_TRANSPORT_TYPE          = "caller.transportType".freeze
-      CALLER_TRANSPORT_DURATION      = "caller.transportDuration".freeze
-      CALLER_HOST                    = "caller.host".freeze
-      DEPTH                          = "nr.depth".freeze
-      ORDER                          = "nr.order".freeze
 
       def create noticed_error, payload
         [
@@ -79,16 +70,17 @@ module NewRelic
         sample[REFERRING_TRANSACTION_GUID_KEY] = payload[:referring_transaction_guid] if payload[:referring_transaction_guid]
       end
 
+      OTHER_GUID_KEY = "nr.guid".freeze
+
       def append_distributed_trace_intrinsics payload, sample
-        sample[CALLER_TYPE] = payload[:caller_type] if payload[:caller_type]
-        sample[CALLER_TRANSPORT_TYPE] = payload[:caller_transport_type] if payload[:caller_transport_type]
-        sample[CALLER_APP_ID] = payload[:caller_app_id] if payload[:caller_app_id]
-        sample[CALLER_ACCOUNT_ID] = payload[:caller_account_id] if payload[:caller_account_id]
-        sample[CALLER_TRANSPORT_TYPE] = payload[:caller_transport_type] if payload[:caller_transport_type]
-        sample[CALLER_TRANSPORT_DURATION] = payload[:caller_transport_duration] if payload[:caller_transport_duration]
-        sample[CALLER_HOST] = payload[:host] if payload[:host]
-        sample[DEPTH] = payload[:depth] if payload[:depth]
-        sample[ORDER] = payload[:order] if payload[:order]
+        DistributedTracePayload::INTRINSIC_KEYS.each do |key|
+          next unless value = payload[key]
+          sample[key] = value
+        end
+        # guid has a different name for transaction events
+        if sample.key? OTHER_GUID_KEY
+          sample[GUID_KEY] = sample.delete OTHER_GUID_KEY
+        end
       end
     end
   end

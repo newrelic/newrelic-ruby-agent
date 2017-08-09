@@ -517,6 +517,8 @@ module NewRelic
       end
 
       def commit!(state, end_time, outermost_node_name)
+        generate_payload(state, start_time, end_time)
+
         assign_agent_attributes
         assign_intrinsics(state)
 
@@ -528,8 +530,6 @@ module NewRelic
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time
         record_client_application_metric state
-
-        generate_payload(state, start_time, end_time)
 
         record_exceptions
         record_transaction_event
@@ -583,6 +583,8 @@ module NewRelic
           attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)
           attributes.add_intrinsic_attribute(:path_hash, cat_path_hash)
         end
+
+        assign_distributed_tracing_intrinsics
       end
 
       def calculate_gc_time

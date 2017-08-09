@@ -111,6 +111,7 @@ module NewRelic
           assert_equal inbound_payload.id, referring_transaction.guid
           assert_equal inbound_payload.trip_id, intrinsics["nr.tripId"]
           assert_equal transaction.guid, intrinsics["nr.guid"]
+          assert_equal inbound_payload.parent_ids.first, intrinsics["nr.parentIds"]
         end
 
         def test_instrinsics_assigned_to_error_event_from_disributed_trace
@@ -143,6 +144,8 @@ module NewRelic
           assert_equal referring_transaction.guid, intrinsics["nr.referringTransactionGuid"]
           assert_equal inbound_payload.id, referring_transaction.guid
           assert_equal transaction.guid, intrinsics["nr.transactionGuid"]
+          assert_equal inbound_payload.trip_id, intrinsics["nr.tripId"]
+          assert_equal inbound_payload.parent_ids.first, intrinsics["nr.parentIds"]
         end
       end
     end

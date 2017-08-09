@@ -81,12 +81,22 @@ module NewRelic
 
         attr_writer :order
 
-        def append_distributed_tracing_info(payload)
-          if inbound_distributed_trace_payload
-            inbound_distributed_trace_payload.assign_intrinsics payload
-            payload[:guid] = guid
-            payload[:caller_transport_duration] = start_time.to_f - inbound_distributed_trace_payload.timestamp
+        def append_distributed_tracing_info payload
+          return unless inbound_distributed_trace_payload
+          inbound_distributed_trace_payload.assign_intrinsics self, payload
+        end
+
+        def assign_distributed_tracing_intrinsics
+          return unless inbound_distributed_trace_payload
+          DistributedTracePayload::INTRINSIC_KEYS.each do |key|
+            next unless value = @payload[key]
+            attributes.add_intrinsic_attribute key, value
           end
+        end
+
+        def transport_duration
+          return unless inbound_distributed_trace_payload
+          start_time.to_f - inbound_distributed_trace_payload.timestamp
         end
       end
     end

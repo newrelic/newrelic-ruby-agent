@@ -160,17 +160,49 @@ module NewRelic
         Base64.encode64 to_json
       end
 
-      def assign_intrinsics payload
-        payload[:caller_type] = caller_type
-        payload[:caller_transport_type] = caller_transport_type
-        payload[:caller_app_id]  = caller_app_id
-        payload[:caller_account_id] = caller_account_id
-        payload[:host] = host
-        payload[:depth] = depth
-        payload[:order] = order
-        payload[:referring_transaction_guid] = id
-        payload[:cat_trip_id] = trip_id
+      CALLER_TYPE_INTRINSIC_KEY                = "caller.type".freeze
+      CALLER_APP_INTRINSIC_KEY                 = "caller.app".freeze
+      CALLER_ACCOUNT_ID_INTRINSIC_KEY          = "caller.account".freeze
+      CALLER_TRANSPORT_TYPE_INTRINSIC_KEY      = "caller.transportType".freeze
+      CALLER_TRANSPORT_DURATION_INTRINSIC_KEY  = "caller.transportDuration".freeze
+      CALLER_HOST_INTRINSIC_KEY                = "caller.host".freeze
+      DEPTH_INTRINSIC_KEY                      = "nr.depth".freeze
+      ORDER_INTRINSIC_KEY                      = "nr.order".freeze
+      GUID_INTRINSIC_KEY                       = "nr.guid".freeze
+      REFERRING_TRANSACTION_GUID_INTRINSIC_KEY = "nr.referringTransactionGuid".freeze
+      TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
+      PARENT_IDS_INTRINSIC_KEY                 = "nr.parentIds".freeze
+      COMMA                                    = ",".freeze
+
+      def assign_intrinsics transaction, payload
+        payload[CALLER_TYPE_INTRINSIC_KEY] = caller_type
+        payload[CALLER_APP_INTRINSIC_KEY] = caller_app_id
+        payload[CALLER_ACCOUNT_ID_INTRINSIC_KEY] = caller_account_id
+        payload[CALLER_TRANSPORT_TYPE_INTRINSIC_KEY] = caller_transport_type
+        payload[CALLER_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration
+        payload[CALLER_HOST_INTRINSIC_KEY] = host
+        payload[DEPTH_INTRINSIC_KEY] = depth
+        payload[ORDER_INTRINSIC_KEY] = order
+        payload[GUID_INTRINSIC_KEY] = transaction.guid
+        payload[REFERRING_TRANSACTION_GUID_INTRINSIC_KEY] = id
+        payload[TRIP_ID_INTRINSIC_KEY] = trip_id
+        payload[PARENT_IDS_INTRINSIC_KEY] = parent_ids.join COMMA
       end
+
+      INTRINSIC_KEYS = [
+        CALLER_TYPE_INTRINSIC_KEY,
+        CALLER_APP_INTRINSIC_KEY,
+        CALLER_ACCOUNT_ID_INTRINSIC_KEY,
+        CALLER_TRANSPORT_TYPE_INTRINSIC_KEY,
+        CALLER_TRANSPORT_DURATION_INTRINSIC_KEY,
+        CALLER_HOST_INTRINSIC_KEY,
+        DEPTH_INTRINSIC_KEY,
+        ORDER_INTRINSIC_KEY,
+        GUID_INTRINSIC_KEY,
+        REFERRING_TRANSACTION_GUID_INTRINSIC_KEY,
+        TRIP_ID_INTRINSIC_KEY,
+        PARENT_IDS_INTRINSIC_KEY
+      ].freeze
     end
   end
 end
