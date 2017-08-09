@@ -17,6 +17,8 @@ module NewRelic
           NewRelic::Agent.drop_buffered_data
         end
 
+        # ---
+
         def test_generates_expected_collector_hash_for_valid_response
           fixture = File.read File.join(aws_fixture_path, "valid.json")
 
@@ -63,9 +65,54 @@ module NewRelic
           refute_metrics_recorded "Supportability/utilization/aws/error"
         end
 
+        # ---
+
         def aws_fixture_path
           File.expand_path('../../../../fixtures/utilization/aws', __FILE__)
         end
+
+        # ---
+
+        load_cross_agent_test("utilization_vendor_specific/aws").each do |test_case|
+          test_case = symbolize_keys_in_object test_case
+
+          define_method("test_#{test_case[:testname]}".gsub(" ", "_")) do
+            uri_obj = test_case[:uri][:'http://169.254.169.254/2016-09-02/dynamic/instance-identity/document']
+            if uri_obj[:timeout]
+              @vendor.stubs(:request_metadata).returns(nil)
+            else
+              response = mock code: '200', body: ::JSON.dump(uri_obj[:response])
+              @vendor.stubs(:request_metadata).returns(response)
+            end
+
+            # TravisCI may run these tests in a docker environment, which means we get an unexpected docker
+            # id in the vendors hash.
+            with_config :'utilization.detect_docker' => false do
+              detection = @vendor.detect
+
+              expected = test_case[:expected_vendors_hash].nil? ? {aws: {}} : test_case[:expected_vendors_hash]
+              assert_equal expected, {aws: @vendor.metadata}
+
+              if test_case[:expected_metrics]
+                test_case[:expected_metrics].each do |metric,v|
+                  if v[:call_count] == 0
+                    if uri_obj[:timeout]
+                      refute detection, '@vendor.detect should have returned false'
+                    else
+                      assert detection, '@vendor.detect should have returned truthy'
+                    end
+                    assert_metrics_not_recorded [metric.to_s]
+                  else
+                    refute detection, '@vendor.detect should have returned false'
+                    assert_metrics_recorded [metric.to_s]
+                  end
+                end
+              end
+            end
+          end
+
+        end
+
       end
     end
   end
