@@ -112,6 +112,38 @@ module NewRelic
           assert_equal inbound_payload.trip_id, intrinsics["nr.tripId"]
           assert_equal transaction.guid, intrinsics["nr.guid"]
         end
+
+        def test_instrinsics_assigned_to_error_event_from_disributed_trace
+          payload = nil
+          referring_transaction = nil
+
+          with_config application_id: "46954", cross_process_id: "190#222" do
+            in_transaction "test_txn" do |txn|
+              referring_transaction = txn
+              payload = referring_transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            end
+          end
+
+          transaction = in_transaction "text_txn2" do |txn|
+            txn.accept_distributed_trace_payload "HTTP", payload.to_json
+            NewRelic::Agent.notice_error StandardError.new "Nooo!"
+          end
+
+          intrinsics, _, _ = last_error_event
+
+          inbound_payload = transaction.inbound_distributed_trace_payload
+
+          assert_equal inbound_payload.caller_type, intrinsics["caller.type"]
+          assert_equal inbound_payload.caller_transport_type, intrinsics["caller.transportType"]
+          assert_equal inbound_payload.caller_app_id, intrinsics["caller.app"]
+          assert_equal inbound_payload.caller_account_id, intrinsics["caller.account"]
+          assert_equal inbound_payload.host, intrinsics["caller.host"]
+          assert_equal inbound_payload.depth, intrinsics["nr.depth"]
+          assert_equal inbound_payload.order, intrinsics["nr.order"]
+          assert_equal referring_transaction.guid, intrinsics["nr.referringTransactionGuid"]
+          assert_equal inbound_payload.id, referring_transaction.guid
+          assert_equal transaction.guid, intrinsics["nr.transactionGuid"]
+        end
       end
     end
   end
