@@ -1,0 +1,281 @@
+[
+  {
+    "testname": "routine failure to retrieve environment variables, no vendor hash or supportability metric reported",
+    "env_vars": {
+      "CF_INSTANCE_GUID": {
+        "response": null,
+        "timeout": true
+      },
+      "CF_INSTANCE_IP": {
+        "response": null,
+        "timeout": true
+      },
+      "MEMORY_LIMIT": {
+        "response": null,
+        "timeout": true
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/pcf/error": {
+        "call_count": 0
+      }
+    }
+  },
+  {
+    "testname": "cf_instance_guid, cf_instance_ip, memory_limit are all happy",
+    "env_vars": {
+      "CF_INSTANCE_GUID": {
+        "response": "fd326c0e-847e-47a1-65cc-45f6",
+        "timeout": false
+      },
+      "CF_INSTANCE_IP": {
+        "response": "10.10.149.48",
+        "timeout": false
+      },
+      "MEMORY_LIMIT": {
+        "response": "1024m",
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": {
+      "pcf": {
+        "cf_instance_guid": "fd326c0e-847e-47a1-65cc-45f6",
+        "cf_instance_ip": "10.10.149.48",
+        "memory_limit": "1024m"
+      }
+    }
+  },
+  {
+    "testname": "cf_instance_guid with invalid characters",
+    "env_vars": {
+      "CF_INSTANCE_GUID": {
+        "response": "<script>lol</script>",
+        "timeout": false
+      },
+      "CF_INSTANCE_IP": {
+        "response": "10.10.149.48",
+        "timeout": false
+      },
+      "MEMORY_LIMIT": {
+        "response": "1024m",
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/pcf/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "cf_instance_guid too long",
+    "env_vars": {
+      "CF_INSTANCE_GUID": {
+        "response": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+        "timeout": false
+      },
+      "CF_INSTANCE_IP": {
+        "response": "10.10.149.48",
+        "timeout": false
+      },
+      "MEMORY_LIMIT": {
+        "response": "1024m",
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/pcf/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "cf_instance_ip with invalid characters",
+    "env_vars": {
+      "CF_INSTANCE_GUID": {
+        "response": "fd326c0e-847e-47a1-65cc-45f6",
+        "timeout": false
+      },
+      "CF_INSTANCE_IP": {
+        "response": "<script>lol</script>",
+        "timeout": false
+      },
+      "MEMORY_LIMIT": {
+        "response": "1024m",
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/pcf/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "cf_instance_ip too long",
+    "env_vars": {
+      "CF_INSTANCE_GUID": {
+        "response": "fd326c0e-847e-47a1-65cc-45f6",
+        "timeout": false
+      },
+      "CF_INSTANCE_IP": {
+        "response": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+        "timeout": false
+      },
+      "MEMORY_LIMIT": {
+        "response": "1024m",
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/pcf/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "memory_limit with invalid characters",
+    "env_vars": {
+      "CF_INSTANCE_GUID": {
+        "response": "fd326c0e-847e-47a1-65cc-45f6",
+        "timeout": false
+      },
+      "CF_INSTANCE_IP": {
+        "response": "10.10.149.48",
+        "timeout": false
+      },
+      "MEMORY_LIMIT": {
+        "response": "<script>lol</script>",
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/pcf/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "memory_limit too long",
+    "env_vars": {
+      "CF_INSTANCE_GUID": {
+        "response": "fd326c0e-847e-47a1-65cc-45f6",
+        "timeout": false
+      },
+      "CF_INSTANCE_IP": {
+        "response": "10.10.149.48",
+        "timeout": false
+      },
+      "MEMORY_LIMIT": {
+        "response": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/pcf/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "UTF-8 high codepoints",
+    "env_vars": {
+      "CF_INSTANCE_GUID": {
+        "response": "滈 橀槶澉 鞻饙騴 鱙鷭黂 甗糲 紁羑 嗂 蛶觢豥 餤駰鬳 釂鱞鸄",
+        "timeout": false
+      },
+      "CF_INSTANCE_IP": {
+        "response": "10.10.149.48",
+        "timeout": false
+      },
+      "MEMORY_LIMIT": {
+        "response": "1024m",
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": {
+      "pcf": {
+        "cf_instance_guid": "滈 橀槶澉 鞻饙騴 鱙鷭黂 甗糲 紁羑 嗂 蛶觢豥 餤駰鬳 釂鱞鸄",
+        "cf_instance_ip": "10.10.149.48",
+        "memory_limit": "1024m"
+      }
+    }
+  },
+  {
+    "testname": "comma with multibyte characters",
+    "env_vars": {
+      "CF_INSTANCE_GUID": {
+        "response": "滈 橀槶澉 鞻饙騴 鱙鷭黂 甗糲, 紁羑 嗂 蛶觢豥 餤駰鬳 釂鱞鸄",
+        "timeout": false
+      },
+      "CF_INSTANCE_IP": {
+        "response": "10.10.149.48",
+        "timeout": false
+      },
+      "MEMORY_LIMIT": {
+        "response": "1024m",
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/pcf/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "Exclamation point in response",
+    "env_vars": {
+      "CF_INSTANCE_GUID": {
+        "response": "Bang!",
+        "timeout": false
+      },
+      "CF_INSTANCE_IP": {
+        "response": "10.10.149.48",
+        "timeout": false
+      },
+      "MEMORY_LIMIT": {
+        "response": "1024m",
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/pcf/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "Valid punctuation in response",
+    "env_vars": {
+      "CF_INSTANCE_GUID": {
+        "response": "a-b_c.3... and/or 503 867-5309",
+        "timeout": false
+      },
+      "CF_INSTANCE_IP": {
+        "response": "10.10.149.48",
+        "timeout": false
+      },
+      "MEMORY_LIMIT": {
+        "response": "1024m",
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": {
+      "pcf": {
+        "cf_instance_guid": "a-b_c.3... and/or 503 867-5309",
+        "cf_instance_ip": "10.10.149.48",
+        "memory_limit": "1024m"
+      }
+    }
+  }
+]

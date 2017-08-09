@@ -1,0 +1,233 @@
+[
+  {
+    "testname": "aws api times out, no vendor hash or supportability metric reported",
+    "uri": {
+      "http://169.254.169.254/2016-09-02/dynamic/instance-identity/document": {
+        "response": {
+          "instanceId": null,      
+          "instanceType": null,        
+          "availabilityZone": null
+        },
+        "timeout": true
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/aws/error": {
+        "call_count": 0
+      }
+    }
+  },
+  {
+    "testname": "instance type, instance-id, availability-zone are all happy",
+    "uri": {
+      "http://169.254.169.254/2016-09-02/dynamic/instance-identity/document": {
+        "response": {
+          "instanceId": "i-test.19characters",
+          "instanceType": "test.type",          
+          "availabilityZone": "us-west-2b"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": {
+      "aws": {
+        "instanceId": "i-test.19characters",
+        "instanceType": "test.type",
+        "availabilityZone": "us-west-2b"
+      }
+    }
+  },
+  {
+    "testname": "instance type with invalid characters",
+    "uri": {
+      "http://169.254.169.254/2016-09-02/dynamic/instance-identity/document": {
+        "response": {
+          "instanceId": "test.id",      
+          "instanceType": "<script>lol</script>",        
+          "availabilityZone": "us-west-2b"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/aws/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "instance type too long",
+    "uri": {
+      "http://169.254.169.254/2016-09-02/dynamic/instance-identity/document": {
+        "response": {
+          "instanceId": "test.id",      
+          "instanceType": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",        
+          "availabilityZone": "us-west-2b"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/aws/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "instance id with invalid characters",
+    "uri": {
+      "http://169.254.169.254/2016-09-02/dynamic/instance-identity/document": {
+        "response": {
+          "instanceId": "<script>lol</script>",      
+          "instanceType": "test.type",        
+          "availabilityZone": "us-west-2b"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/aws/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "instance id too long",
+    "uri": {
+      "http://169.254.169.254/2016-09-02/dynamic/instance-identity/document": {
+        "response": {
+          "instanceId": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",      
+          "instanceType": "test.type",        
+          "availabilityZone": "us-west-2b"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/aws/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "availability zone with invalid characters",
+    "uri": {
+      "http://169.254.169.254/2016-09-02/dynamic/instance-identity/document": {
+        "response": {
+          "instanceId": "test.id",      
+          "instanceType": "test.type",        
+          "availabilityZone": "<script>lol</script>"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/aws/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "availability zone too long",
+    "uri": {
+      "http://169.254.169.254/2016-09-02/dynamic/instance-identity/document": {
+        "response": {
+          "instanceId": "test.id",      
+          "instanceType": "test.type",        
+          "availabilityZone": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/aws/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "UTF-8 high codepoints",
+    "uri": {
+      "http://169.254.169.254/2016-09-02/dynamic/instance-identity/document": {
+        "response": {
+          "instanceId": "滈 橀槶澉 鞻饙騴 鱙鷭黂 甗糲 紁羑 嗂 蛶觢豥 餤駰鬳 釂鱞鸄",      
+          "instanceType": "test.type",        
+          "availabilityZone": "us-west-2b"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": {
+      "aws": {
+        "instanceId": "滈 橀槶澉 鞻饙騴 鱙鷭黂 甗糲 紁羑 嗂 蛶觢豥 餤駰鬳 釂鱞鸄",
+        "instanceType": "test.type",
+        "availabilityZone": "us-west-2b"
+      }
+    }
+  },
+  {
+    "testname": "comma with multibyte characters",
+    "uri": {
+      "http://169.254.169.254/2016-09-02/dynamic/instance-identity/document": {
+        "response": {
+          "instanceId": "滈 橀槶澉 鞻饙騴 鱙鷭黂 甗糲, 紁羑 嗂 蛶觢豥 餤駰鬳 釂鱞鸄",      
+          "instanceType": "test.type",        
+          "availabilityZone": "us-west-2b"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/aws/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "Exclamation point response",
+    "uri": {
+      "http://169.254.169.254/2016-09-02/dynamic/instance-identity/document": {
+        "response": {
+          "instanceId": "bang!",      
+          "instanceType": "test.type",        
+          "availabilityZone": "us-west-2b"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": null,
+    "expected_metrics": {
+      "Supportability/utilization/aws/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "Valid punctuation in response",
+    "uri": {
+      "http://169.254.169.254/2016-09-02/dynamic/instance-identity/document": {
+        "response": {
+          "instanceId": "test.id",      
+          "instanceType": "a-b_c.3... and/or 503 867-5309",        
+          "availabilityZone": "us-west-2b"
+        },
+        "timeout": false
+      }
+    },
+    "expected_vendors_hash": {
+      "aws": {
+        "instanceId": "test.id",      
+        "instanceType": "a-b_c.3... and/or 503 867-5309",        
+        "availabilityZone": "us-west-2b"
+      }
+    }
+  }
+]
