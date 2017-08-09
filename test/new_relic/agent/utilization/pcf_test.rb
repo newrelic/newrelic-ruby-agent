@@ -17,6 +17,8 @@ module NewRelic
           NewRelic::Agent.drop_buffered_data
         end
 
+        # ---
+
         def test_generate_expected_vendors_hash_when_expected_env_vars_present
           with_pcf_env "CF_INSTANCE_GUID" => "fd326c0e-847e-47a1-65cc-45f6",
                        "CF_INSTANCE_IP" => "10.10.149.48",
@@ -50,10 +52,55 @@ module NewRelic
           end
         end
 
+        # ---
+
         def with_pcf_env vars, &blk
           vars.each_pair { |k,v| ENV[k] = v }
           blk.call
           vars.keys.each { |k| ENV.delete k }
+        end
+
+        # ---
+
+        load_cross_agent_test("utilization_vendor_specific/pcf").each do |test_case|
+          test_case = symbolize_keys_in_object test_case
+
+          define_method("test_#{test_case[:testname]}".gsub(" ", "_")) do
+            timeout = false
+            pcf_env = test_case[:env_vars].reduce({}) do |h,(k,v)|
+              h[k.to_s] = v[:response] if v[:response]
+              timeout = v[:timeout]
+              h
+            end
+
+            # TravisCI may run these tests in a docker environment, which means we get an unexpected docker
+            # id in the vendors hash.
+            with_config :'utilization.detect_docker' => false do
+              with_pcf_env pcf_env do
+                detection = @vendor.detect
+
+                expected = test_case[:expected_vendors_hash].nil? ? {pcf: {}} : test_case[:expected_vendors_hash]
+                assert_equal expected, {pcf: @vendor.metadata}
+
+                if test_case[:expected_metrics]
+                  test_case[:expected_metrics].each do |metric,v|
+                    if v[:call_count] == 0
+                      if timeout
+                        refute detection, '@vendor.detect should have returned false'
+                      else
+                        assert detection, '@vendor.detect should have returned truthy'
+                      end
+                      assert_metrics_not_recorded [metric.to_s]
+                    else
+                      refute detection, '@vendor.detect should have returned false'
+                      assert_metrics_recorded [metric.to_s]
+                    end
+                  end
+                end
+              end
+            end
+          end
+
         end
       end
     end
