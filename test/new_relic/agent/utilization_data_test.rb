@@ -298,6 +298,14 @@ module NewRelic::Agent
         # cross agent tests expect docker ids in the vendors hash we can safely turn off
         # docker detection.
         options = convert_env_to_config_options(test_case).merge(:'utilization.detect_docker' => false)
+
+        # additionally, boot_id will be picked up on linux/inside docker containers. so let's
+        # add the local boot_id to the expected hash on linux.
+        if RUBY_PLATFORM =~ /linux/
+          refute test_case[:expected_output_json][:boot_id]
+          test_case[:expected_output_json][:boot_id] = NewRelic::Agent::SystemInfo.proc_try_read('/proc/sys/kernel/random/boot_id').chomp
+        end
+
         with_config options do
           test = ->{ assert_equal test_case[:expected_output_json], UtilizationData.new.to_collector_hash }
           if PCF_INPUTS.keys.all? {|k| test_case.key? k}
