@@ -249,13 +249,15 @@ module NewRelic
 
         def record_distributed_tracing_metrics
           add_caller_by_duration_metrics
+          record_transport_duration_metrics
+          record_errors_by_caller_metrics
         end
 
-        DURATION_BY_CALLER_UNKOWN_PREFIX = "DurationByCaller/Unknown/Unknown/Unknown/Unknown"
+        DURATION_BY_CALLER_UNKOWN_PREFIX = "DurationByCaller/Unknown/Unknown/Unknown/Unknown".freeze
 
         def add_caller_by_duration_metrics
           prefix = if transaction.distributed_trace?
-            payload = transaction.distributed_tracing_payload
+            payload = transaction.inbound_distributed_trace_payload
             "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport"
           else
             DURATION_BY_CALLER_UNKOWN_PREFIX
@@ -263,6 +265,29 @@ module NewRelic
 
           @unscoped_metrics << "#{prefix}/#{ALL_SUFFIX}"
           @unscoped_metrics << "#{prefix}/#{transaction_type_suffix}"
+        end
+
+        def record_transport_duration_metrics
+          return unless transaction.distributed_trace?
+          payload = transaction.inbound_distributed_trace_payload
+          prefix = "TransportDuration/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport"
+          metric_cache.record_unscoped "#{prefix}/#{ALL_SUFFIX}", transaction.transport_duration
+          metric_cache.record_unscoped "#{prefix}/#{transaction_type_suffix}", transaction.transport_duration
+        end
+
+        ERRORS_BY_CALLER_UNKOWN_PREFIX = "ErrorsByCaller/Unknown/Unknown/Unknown/Unknown".freeze
+
+        def record_errors_by_caller_metrics
+          return unless transaction.exceptions.size > 0
+          prefix = if transaction.distributed_trace?
+            payload = transaction.inbound_distributed_trace_payload
+            "ErrorsByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport"
+          else
+            ERRORS_BY_CALLER_UNKOWN_PREFIX
+          end
+
+          NewRelic::Agent.increment_metric "#{prefix}/#{ALL_SUFFIX}"
+          NewRelic::Agent.increment_metric "#{prefix}/#{transaction_type_suffix}"
         end
 
         def update_segment_name
