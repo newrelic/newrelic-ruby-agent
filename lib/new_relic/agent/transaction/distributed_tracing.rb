@@ -44,6 +44,10 @@ module NewRelic
           @inbound_distributed_trace_payload ||= nil
         end
 
+        def distributed_trace?
+          !!inbound_distributed_trace_payload
+        end
+
         attr_writer :inbound_distributed_trace_payload
 
         def distributed_tracing_trip_id

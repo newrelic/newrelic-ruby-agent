@@ -77,6 +77,8 @@ module NewRelic
             "External/all",
             "External/remotehost.com/all",
             "External/allWeb",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb",
             ["External/remotehost.com/Net::HTTP/GET", "test"]
           ]
 
@@ -103,6 +105,8 @@ module NewRelic
             "External/all",
             "External/remotehost.com/all",
             "External/allWeb",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb",
             ["External/remotehost.com/Net::HTTP/GET", "test"]
           ]
 
@@ -129,6 +133,8 @@ module NewRelic
             "External/all",
             "External/remotehost.com/all",
             "External/allWeb",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb",
             ["External/remotehost.com/Net::HTTP/GET", "test"]
           ]
 
@@ -156,6 +162,8 @@ module NewRelic
             "External/all",
             "External/remotehost.com/all",
             "External/allWeb",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb",
             ["External/remotehost.com/Net::HTTP/GET", "test"]
           ]
 
@@ -181,6 +189,8 @@ module NewRelic
             "External/all",
             "External/newrelic.com/all",
             "External/allWeb",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb",
             ["ExternalTransaction/newrelic.com/1#1884/txn-name", "test"]
           ]
 

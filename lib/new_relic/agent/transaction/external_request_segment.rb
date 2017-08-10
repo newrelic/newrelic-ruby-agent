@@ -176,6 +176,11 @@ module NewRelic
           nil
         rescue => e
           NewRelic::Agent.logger.error "error during process_response_metadata", e
+
+        def record_metrics
+          add_unscoped_metrics
+          record_distributed_tracing_metrics
+          super
         end
 
         private
@@ -208,17 +213,15 @@ module NewRelic
 
         EXTERNAL_ALL = "External/all".freeze
 
-        def unscoped_metrics
-          metrics = [ EXTERNAL_ALL,
+        def add_unscoped_metrics
+          @unscoped_metrics = [ EXTERNAL_ALL,
             "External/#{host}/all",
             suffixed_rollup_metric
           ]
 
           if cross_app_request?
-            metrics << "ExternalApp/#{host}/#{cross_process_id}/all"
+            @unscoped_metrics << "ExternalApp/#{host}/#{cross_process_id}/all"
           end
-
-          metrics
         end
 
         EXTERNAL_ALL_WEB = "External/allWeb".freeze
@@ -230,6 +233,36 @@ module NewRelic
           else
             EXTERNAL_ALL_OTHER
           end
+        end
+
+        ALL_SUFFIX = "all".freeze
+        ALL_WEB_SUFFIX = "allWeb".freeze
+        ALL_OTHER_SUFFIX = "allOther".freeze
+
+        def transaction_type_suffix
+          if Transaction.recording_web_transaction?
+            ALL_WEB_SUFFIX
+          else
+            ALL_OTHER_SUFFIX
+          end
+        end
+
+        def record_distributed_tracing_metrics
+          add_caller_by_duration_metrics
+        end
+
+        DURATION_BY_CALLER_UNKOWN_PREFIX = "DurationByCaller/Unknown/Unknown/Unknown/Unknown"
+
+        def add_caller_by_duration_metrics
+          prefix = if transaction.distributed_trace?
+            payload = transaction.distributed_tracing_payload
+            "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport"
+          else
+            DURATION_BY_CALLER_UNKOWN_PREFIX
+          end
+
+          @unscoped_metrics << "#{prefix}/#{ALL_SUFFIX}"
+          @unscoped_metrics << "#{prefix}/#{transaction_type_suffix}"
         end
 
         def update_segment_name
