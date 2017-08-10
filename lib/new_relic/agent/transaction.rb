@@ -579,12 +579,12 @@ module NewRelic
           attributes.add_intrinsic_attribute(:synthetics_monitor_id, synthetics_monitor_id)
         end
 
-        if state.is_cross_app?
+        if inbound_distributed_trace_payload
+          assign_distributed_tracing_intrinsics
+        elsif state.is_cross_app?
           attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)
           attributes.add_intrinsic_attribute(:path_hash, cat_path_hash)
         end
-
-        assign_distributed_tracing_intrinsics
       end
 
       def calculate_gc_time

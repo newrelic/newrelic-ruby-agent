@@ -87,11 +87,11 @@ module NewRelic
         end
 
         def assign_distributed_tracing_intrinsics
-          return unless inbound_distributed_trace_payload
           DistributedTracePayload::INTRINSIC_KEYS.each do |key|
             next unless value = @payload[key]
             attributes.add_intrinsic_attribute key, value
           end
+          nil
         end
 
         def transport_duration
