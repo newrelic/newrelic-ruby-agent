@@ -1,4 +1,13 @@
 # New Relic Ruby Agent Release Notes #
+
+## v4.4.0 ##
+
+  * Include test helper for 3rd party use
+
+  In 4.2.0, all test files were excluded from being packaged in the gem. An
+  agent class method `NewRelic::Agent.require_test_helper` was used by 3rd
+  party gem authors to test extensions to the agent. The required file is now
+  included in the gem.
   
   * Collect cloud metadata from Azure, GCP, PCF, and AWS cloud platform
 
@@ -14,8 +23,8 @@
 
   * User/Utilization and System/Utilization metrics not recorded after Resque forks
 
-  The agent now doesn't record User/Utilization and System/Utilization metrics after
-  Resque process forks (so values won't be negative).
+  The agent no longer records invalid User/Utilization and System/Utilization
+  metrics, which can lead to negative values, in forks of Resque processes.
   
   * Add `identifier` field to agent connect settings
 

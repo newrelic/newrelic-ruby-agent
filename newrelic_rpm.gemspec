@@ -31,7 +31,7 @@ EOS
     "newrelic.yml"
   ]
 
-  file_list = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  file_list = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/(?!agent_helper.rb)}) }
   build_file_path = 'lib/new_relic/build.rb'
   file_list << build_file_path if File.exist?(build_file_path)
   s.files = file_list
