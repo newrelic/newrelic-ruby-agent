@@ -7,7 +7,7 @@ require 'base64'
 module NewRelic
   module Agent
     class DistributedTracePayload
-      VERSION =[2, 0].freeze
+      VERSION =[0, 0].freeze
       CALLER_TYPE = "App".freeze
       POUND = '#'.freeze
 
@@ -140,7 +140,7 @@ module NewRelic
           DEPTH_KEY          => depth,
           ORDER_KEY          => order,
           HOST_KEY           => host,
-          TIMESTAMP_KEY      => timestamp,
+          TIMESTAMP_KEY      => timestamp.round,
         }
 
         if synthetics?
