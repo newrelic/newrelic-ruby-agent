@@ -37,7 +37,7 @@
   The agent waits to connect until the first web request when it detects it's
   running in a forking dispatcher. When clearing the transaction state in this
   situation we lose the first frame of the transaction and the subsequent
-  trace becomes corrupted. We've made this feature opt-in and is turned off be
+  trace becomes corrupted. We've made this feature opt-in and is turned off by
   default. This behavior only affects the first transaction after a dispatcher
   forks.
 
