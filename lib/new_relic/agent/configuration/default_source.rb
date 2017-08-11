@@ -1632,6 +1632,13 @@ module NewRelic
           :type        => Boolean,
           :allowed_from_server => false,
           :description => 'If <code>false</code>, the agent will not add <code>database_name</code> parameter to transaction or slow sql traces.'
+        },
+        :'clear_transaction_state_after_fork' => {
+          :default     => false,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'If <code>true</code>, the agent will clear <code>TransactionState</code> in <code>Agent.drop_buffered_data</code>.'
         }
       }.freeze
     end
