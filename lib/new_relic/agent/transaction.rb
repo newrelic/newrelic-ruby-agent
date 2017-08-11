@@ -279,6 +279,8 @@ module NewRelic
         @ignore_enduser = options.fetch(:ignore_enduser, false)
         @ignore_trace = false
 
+        @collect_sample = NewRelic::Agent.instance.throughput_monitor.collect_sample?
+
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
         merge_request_parameters(@filtered_params)
@@ -288,6 +290,10 @@ module NewRelic
         else
           @request_attributes = nil
         end
+      end
+
+      def collect_sample?
+        @collect_sample
       end
 
       def referer

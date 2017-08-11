@@ -5,7 +5,8 @@
 module NewRelic
   module Agent
     class ThroughputMonitor
-      def initialize target_samples
+
+      def initialize target_samples = 10
         @target = target_samples
         @seen = 0
         @seen_last = 0

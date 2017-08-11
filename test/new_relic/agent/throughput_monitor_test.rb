@@ -20,6 +20,16 @@ module NewRelic
         assert_equal 10000, stats[:seen_last]
         assert_equal 10001, stats[:seen]
       end
+
+      def test_throughput_monitor_samples_first_10_txns
+        sample_count = 0
+        20.times do |i|
+          in_transaction "test_txn_#{i}" do |txn|
+            sample_count += 1 if txn.collect_sample?
+          end
+        end
+        assert_equal 10, sample_count
+      end
     end
   end
 end
