@@ -9,7 +9,10 @@ module NewRelic
 
       include MultiverseHelpers
 
-      setup_and_teardown_agent
+      setup_and_teardown_agent do
+        #hard reset on the throughput monitor
+        NewRelic::Agent.instance.instance_variable_set :@throughput_monitor, ThroughputMonitor.new
+      end
 
       def test_throughput_monitor_valid_stats_and_reset_after_harvest
         sampled_count = 0
