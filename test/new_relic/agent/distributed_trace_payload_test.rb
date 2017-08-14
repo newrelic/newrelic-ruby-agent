@@ -30,7 +30,7 @@ module NewRelic
 
           assert_equal "46954", payload.caller_app_id
           assert_equal "190", payload.caller_account_id
-          assert_equal [2, 0], payload.version
+          assert_equal [0, 0], payload.version
           assert_equal "App", payload.caller_type
           assert_equal created_at, payload.timestamp
         end
@@ -111,7 +111,7 @@ module NewRelic
 
         payload = DistributedTracePayload.from_json incoming_payload.to_json
 
-        assert_equal [2, 0], payload.version
+        assert_equal [0, 0], payload.version
         assert_equal "App", payload.caller_type
         assert_equal "46954", payload.caller_app_id
         assert_equal "190", payload.caller_account_id
@@ -120,7 +120,7 @@ module NewRelic
         assert_equal referring_transaction.parent_ids, payload.parent_ids
         assert_equal referring_transaction.depth, payload.depth
         assert_equal referring_transaction.order, payload.order
-        assert_equal created_at, payload.timestamp
+        assert_equal created_at.round, payload.timestamp
         assert_equal "newrelic.com", payload.host
         assert_equal 100, payload.synthetics_resource
         assert_equal 200, payload.synthetics_job
@@ -144,7 +144,7 @@ module NewRelic
 
         payload = DistributedTracePayload.from_http_safe incoming_payload.http_safe
 
-        assert_equal [2, 0], payload.version
+        assert_equal [0, 0], payload.version
         assert_equal "App", payload.caller_type
         assert_equal "46954", payload.caller_app_id
         assert_equal "190", payload.caller_account_id
@@ -153,7 +153,7 @@ module NewRelic
         assert_equal referring_transaction.parent_ids, payload.parent_ids
         assert_equal referring_transaction.depth, payload.depth
         assert_equal referring_transaction.order, payload.order
-        assert_equal created_at, payload.timestamp
+        assert_equal created_at.round, payload.timestamp
         assert_equal "newrelic.com", payload.host
         assert_equal 100, payload.synthetics_resource
         assert_equal 200, payload.synthetics_job
