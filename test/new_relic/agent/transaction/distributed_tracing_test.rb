@@ -101,7 +101,7 @@ module NewRelic
           end
         end
 
-        def test_sampled_flag_propagated_when_false_in_incoming_payload
+        def test_sampled_flag_respects_upstreams_decision_when_sampled_is_false
           payload = nil
 
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
@@ -112,8 +112,10 @@ module NewRelic
             end
           end
 
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+
           in_transaction "test_txn2" do |txn|
-            refute txn.sampled?
+            assert txn.sampled?
             txn.accept_distributed_trace_payload "HTTP", payload.to_json
             refute txn.sampled?
           end
