@@ -1,0 +1,109 @@
+[
+  {
+    "testname": "boot_id file not found",
+    "input_total_ram_mib": 1024,
+    "input_logical_processors": 8,
+    "input_hostname": "myhost",
+    "input_boot_id": null,
+    "expected_output_json": {
+      "metadata_version": 3,
+      "logical_processors": 8,
+      "total_ram_mib": 1024,
+      "hostname": "myhost"
+    },
+    "expected_metrics": {
+      "Supportability/utilization/boot_id/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "valid boot_id, should be 36 characters",
+    "input_total_ram_mib": 1024,
+    "input_logical_processors": 8,
+    "input_hostname": "myhost",
+    "input_boot_id": "8e84c4ab-943d-46c2-8675-fdf0ab61e1c4",
+    "expected_output_json": {
+      "metadata_version": 3,
+      "logical_processors": 8,
+      "total_ram_mib": 1024,
+      "hostname": "myhost",
+      "boot_id": "8e84c4ab-943d-46c2-8675-fdf0ab61e1c4"
+    }
+  },
+  {
+    "testname": "boot_id too long, should be truncated to 128 characters max",
+    "input_total_ram_mib": 1024,
+    "input_logical_processors": 8,
+    "input_hostname": "myhost",
+    "input_boot_id": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz",
+    "expected_output_json": {
+      "metadata_version": 3,
+      "logical_processors": 8,
+      "total_ram_mib": 1024,
+      "hostname": "myhost",
+      "boot_id": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+    },
+    "expected_metrics": {
+      "Supportability/utilization/boot_id/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "boot_id too short, should be reported as is",
+    "input_total_ram_mib": 1024,
+    "input_logical_processors": 8,
+    "input_hostname": "myhost",
+    "input_boot_id": "1234",
+    "expected_output_json": {
+      "metadata_version": 3,
+      "logical_processors": 8,
+      "total_ram_mib": 1024,
+      "hostname": "myhost",
+      "boot_id": "1234"
+    },
+    "expected_metrics": {
+      "Supportability/utilization/boot_id/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "boot_id too short with non-alphanumeric characters, should be reported as is",
+    "input_total_ram_mib": 1024,
+    "input_logical_processors": 8,
+    "input_hostname": "myhost",
+    "input_boot_id": "<script>lol</script>",
+    "expected_output_json": {
+      "metadata_version": 3,
+      "logical_processors": 8,
+      "total_ram_mib": 1024,
+      "hostname": "myhost",
+      "boot_id": "<script>lol</script>"
+    },
+    "expected_metrics": {
+      "Supportability/utilization/boot_id/error": {
+        "call_count": 1
+      }
+    }
+  },
+  {
+    "testname": "boot_id file empty",
+    "input_total_ram_mib": 1024,
+    "input_logical_processors": 8,
+    "input_hostname": "myhost",
+    "input_boot_id": "",
+    "expected_output_json": {
+      "metadata_version": 3,
+      "logical_processors": 8,
+      "total_ram_mib": 1024,
+      "hostname": "myhost"
+    },
+    "expected_metrics": {
+      "Supportability/utilization/boot_id/error": {
+        "call_count": 1
+      }
+    }
+  }
+]

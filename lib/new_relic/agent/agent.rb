@@ -377,7 +377,6 @@ module NewRelic
           def should_install_exit_handler?
             (
               Agent.config[:send_data_on_exit]  &&
-              !NewRelic::LanguageSupport.jruby? &&
               !sinatra_classic_app?
             )
           end
@@ -543,7 +542,9 @@ module NewRelic
           @transaction_event_recorder.drop_buffered_data
           @custom_event_aggregator.reset!
           @sql_sampler.reset!
-          TransactionState.tl_clear
+          if Agent.config[:clear_transaction_state_after_fork]
+            TransactionState.tl_clear
+          end
         end
 
         # Clear out state for any objects that we know lock from our parents
@@ -803,7 +804,8 @@ module NewRelic
               :environment   => @environment_report,
               :settings      => Agent.config.to_collector_hash,
               :high_security => Agent.config[:high_security],
-              :utilization   => UtilizationData.new.to_collector_hash
+              :utilization   => UtilizationData.new.to_collector_hash,
+              :identifier    => "ruby:#{local_host}:#{Agent.config.app_names.sort.join(',')}"
             }
           end
 

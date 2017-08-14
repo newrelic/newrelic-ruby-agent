@@ -388,7 +388,8 @@ module NewRelic
          :agent_version,
          :environment,
          :settings,
-         :high_security
+         :high_security,
+         :identifier
         ]
 
         expected.each do |expect_key|

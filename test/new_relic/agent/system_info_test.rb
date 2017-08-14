@@ -129,5 +129,57 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     end
     assert_metrics_recorded "Supportability/utilization/docker/error"
   end
+
+  VALID_UUID = 'eb26a240-5535-0135-e727-745c89b5accd'
+
+  def test_valid_boot_id
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
+    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(VALID_UUID)
+    assert_equal VALID_UUID, NewRelic::Agent::SystemInfo.boot_id
+    assert_metrics_not_recorded "Supportability/utilization/boot_id/error"
+  end
+
+  def test_invalid_length_ascii_boot_id
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
+    test_boot_id = VALID_UUID*2
+    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(test_boot_id)
+    assert_equal test_boot_id, NewRelic::Agent::SystemInfo.boot_id
+    assert_metrics_recorded "Supportability/utilization/boot_id/error"
+  end
+
+  def test_truncated_invalid_length_ascii_boot_id
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
+    test_boot_id = VALID_UUID*8
+    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(test_boot_id)
+    assert_equal test_boot_id[0,128], NewRelic::Agent::SystemInfo.boot_id
+    assert_metrics_recorded "Supportability/utilization/boot_id/error"
+  end
+
+  def test_non_ascii_boot_id
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
+    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns('🐼')
+    assert_nil NewRelic::Agent::SystemInfo.boot_id
+    assert_metrics_recorded "Supportability/utilization/boot_id/error"
+  end
+
+  def test_empty_boot_id
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
+    NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns('')
+    assert_nil NewRelic::Agent::SystemInfo.boot_id
+    assert_metrics_recorded "Supportability/utilization/boot_id/error"
+  end
+
+  def test_nil_boot_id_on_not_linux
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("darwin13")
+    assert_nil NewRelic::Agent::SystemInfo.boot_id
+
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("freebsd")
+    assert_nil NewRelic::Agent::SystemInfo.boot_id
+
+    NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("solaris")
+    assert_nil NewRelic::Agent::SystemInfo.boot_id
+
+    assert_metrics_not_recorded "Supportability/utilization/boot_id/error"
+  end
 end
 

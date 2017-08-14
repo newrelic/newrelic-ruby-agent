@@ -1561,7 +1561,32 @@ module NewRelic
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
+          :dynamic_name => true,
           :description => 'If <code>true</code>, the agent automatically detects that it is running in an AWS environment.'
+        },
+        :'utilization.detect_azure' => {
+          :default      => true,
+          :public       => true,
+          :type         => Boolean,
+          :allowed_from_server => false,
+          :dynamic_name => true,
+          :description  => 'If <code>true</code>, the agent automatically detects that it is running in an Azure environment.'
+        },
+        :'utilization.detect_gcp' => {
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :dynamic_name => true,
+          :description => 'If <code>true</code>, the agent automatically detects that it is running in an Google Cloud Platform environment.'
+        },
+        :'utilization.detect_pcf' => {
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :dynamic_name => true,
+          :description => 'If <code>true</code>, the agent automatically detects that it is running in a Pivotal Cloud Foundry environment.'
         },
         :'utilization.detect_docker' => {
           :default     => true,
@@ -1607,6 +1632,13 @@ module NewRelic
           :type        => Boolean,
           :allowed_from_server => false,
           :description => 'If <code>false</code>, the agent will not add <code>database_name</code> parameter to transaction or slow sql traces.'
+        },
+        :'clear_transaction_state_after_fork' => {
+          :default     => false,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'If <code>true</code>, the agent will clear <code>TransactionState</code> in <code>Agent.drop_buffered_data</code>.'
         }
       }.freeze
     end

@@ -50,7 +50,8 @@ module NewRelic
         def poll
           now = Time.now
           t = Process.times
-          if @last_time
+
+          if @last_time && t.utime != 0.0 && t.stime != 0.0
             elapsed = now - @last_time
             return if elapsed < 1 # Causing some kind of math underflow
 
@@ -62,10 +63,10 @@ module NewRelic
 
             # Calculate the true utilization by taking cpu times and dividing by
             # elapsed time X processor_count.
-
             record_user_util(usertime / (elapsed * @processor_count))
             record_system_util(systemtime / (elapsed * @processor_count))
           end
+
           @last_utime = t.utime
           @last_stime = t.stime
           @last_time = now

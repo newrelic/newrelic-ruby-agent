@@ -85,3 +85,17 @@ def dummy_mysql_explain_result(hash=nil)
   explain_result.stubs(:each_hash).yields(hash)
   explain_result
 end
+
+def symbolize_keys_in_object(object)
+  case object
+  when Hash
+   object.inject({}) do |memo, (k, v)|
+      memo[k.to_sym] = symbolize_keys_in_object(v)
+      memo
+    end
+  when Array
+    object.map {|o| symbolize_keys_in_object(o)}
+  else
+    object
+  end
+end
