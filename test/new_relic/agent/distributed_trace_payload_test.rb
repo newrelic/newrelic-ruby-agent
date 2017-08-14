@@ -69,13 +69,13 @@ module NewRelic
       def test_sampled_flag_is_copied_from_transaction
         with_config application_id: "46954", cross_process_id: "190#222" do
 
-          NewRelic::Agent.instance.throughput_monitor.stubs(:collect_sample?).returns(false)
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
           in_transaction "test_txn" do |txn|
             payload = DistributedTracePayload.for_transaction txn
             assert_equal false, payload.sampled
           end
 
-          NewRelic::Agent.instance.throughput_monitor.stubs(:collect_sample?).returns(true)
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
           in_transaction "test_txn2" do |txn|
             payload = DistributedTracePayload.for_transaction txn
             assert_equal true, payload.sampled
@@ -117,7 +117,7 @@ module NewRelic
         created_at = Time.now.to_f
 
         with_config application_id: "46954", cross_process_id: "190#222" do
-          NewRelic::Agent.instance.throughput_monitor.stubs(:collect_sample?).returns(true)
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
           state = TransactionState.tl_get
 
           referring_transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
@@ -152,7 +152,7 @@ module NewRelic
         created_at = Time.now.to_f
 
         with_config application_id: "46954", cross_process_id: "190#222" do
-          NewRelic::Agent.instance.throughput_monitor.stubs(:collect_sample?).returns(true)
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
           state = TransactionState.tl_get
 
           referring_transaction = Transaction.start state, :controller, :transaction_name => "test_txn"

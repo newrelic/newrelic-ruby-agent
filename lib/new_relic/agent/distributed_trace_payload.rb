@@ -52,7 +52,7 @@ module NewRelic
           payload.timestamp = Time.now.to_f
           payload.id = transaction.guid
           payload.trip_id = transaction.distributed_tracing_trip_id
-          payload.sampled = transaction.collect_sample?
+          payload.sampled = transaction.sampled?
           payload.parent_ids = transaction.parent_ids
           payload.depth = transaction.depth
           payload.order = transaction.order

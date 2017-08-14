@@ -10,12 +10,12 @@ module NewRelic
     class ThroughputMonitorTest < Minitest::Test
       def test_throughput
         monitor = ThroughputMonitor.new 10
-        10000.times { monitor.collect_sample? }
+        10000.times { monitor.sampled? }
         stats = monitor.stats
         assert_equal 10, stats[:sampled_count]
         assert_equal 10000, stats[:seen]
         monitor.reset!
-        10001.times { monitor.collect_sample? }
+        10001.times { monitor.sampled? }
         stats = monitor.stats
         assert_equal 10000, stats[:seen_last]
         assert_equal 10001, stats[:seen]

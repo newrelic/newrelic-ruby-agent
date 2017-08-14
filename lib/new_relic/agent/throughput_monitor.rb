@@ -18,9 +18,9 @@ module NewRelic
       # Called at the beginning of each transaction, increments seen and
       # returns a boolean indicating if we should mark the transaction as
       # sampled. This uses the adaptive sampling algorithm.
-      def collect_sample?
+      def sampled?
         @lock.synchronize do
-          collect_sample = if @first_cycle
+          sampled = if @first_cycle
             @sampled_count < 10
           elsif @sampled_count < @target
             rand(@seen_last) < @target
@@ -28,10 +28,10 @@ module NewRelic
             rand(@seen) < @target
           end
 
-          @sampled_count += 1 if collect_sample
+          @sampled_count += 1 if sampled
           @seen += 1
 
-          collect_sample
+          sampled
         end
       end
 

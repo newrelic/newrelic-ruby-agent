@@ -82,7 +82,7 @@ module NewRelic
         end
 
         def test_instrinsics_assigned_to_transaction_event_from_disributed_trace
-          NewRelic::Agent.instance.throughput_monitor.stubs(:collect_sample?).returns(true)
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
           payload = nil
           referring_transaction = nil
 
@@ -117,7 +117,7 @@ module NewRelic
         end
 
         def test_instrinsics_assigned_to_error_event_from_disributed_trace
-          NewRelic::Agent.instance.throughput_monitor.stubs(:collect_sample?).returns(true)
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
           payload = nil
           referring_transaction = nil
 

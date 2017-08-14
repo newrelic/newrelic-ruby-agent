@@ -18,7 +18,7 @@ module NewRelic
         sampled_count = 0
         20.times do |i|
           in_transaction("test_txn_#{i}") do |txn|
-            sampled_count += 1 if txn.collect_sample?
+            sampled_count += 1 if txn.sampled?
           end
         end
 

@@ -279,7 +279,7 @@ module NewRelic
         @ignore_enduser = options.fetch(:ignore_enduser, false)
         @ignore_trace = false
 
-        @collect_sample = NewRelic::Agent.instance.throughput_monitor.collect_sample?
+        @sampled = NewRelic::Agent.instance.throughput_monitor.sampled?
 
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
@@ -292,8 +292,8 @@ module NewRelic
         end
       end
 
-      def collect_sample?
-        @collect_sample
+      def sampled?
+        @sampled
       end
 
       def referer
