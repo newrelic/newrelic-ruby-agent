@@ -66,6 +66,23 @@ module NewRelic
         end
       end
 
+      def test_sampled_flag_is_copied_from_transaction
+        with_config application_id: "46954", cross_process_id: "190#222" do
+
+          NewRelic::Agent.instance.throughput_monitor.stubs(:collect_sample?).returns(false)
+          in_transaction "test_txn" do |txn|
+            payload = DistributedTracePayload.for_transaction txn
+            assert_equal false, payload.sampled
+          end
+
+          NewRelic::Agent.instance.throughput_monitor.stubs(:collect_sample?).returns(true)
+          in_transaction "test_txn2" do |txn|
+            payload = DistributedTracePayload.for_transaction txn
+            assert_equal true, payload.sampled
+          end
+        end
+      end
+
       def test_attributes_synthetics_attributes_are_copied_when_present
         with_config application_id: "46954", cross_process_id: "190#222" do
           state = TransactionState.tl_get
@@ -100,6 +117,7 @@ module NewRelic
         created_at = Time.now.to_f
 
         with_config application_id: "46954", cross_process_id: "190#222" do
+          NewRelic::Agent.instance.throughput_monitor.stubs(:collect_sample?).returns(true)
           state = TransactionState.tl_get
 
           referring_transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
@@ -117,6 +135,7 @@ module NewRelic
         assert_equal "190", payload.caller_account_id
         assert_equal referring_transaction.guid, payload.id
         assert_equal referring_transaction.distributed_tracing_trip_id, payload.trip_id
+        assert_equal true, payload.sampled?
         assert_equal referring_transaction.parent_ids, payload.parent_ids
         assert_equal referring_transaction.depth, payload.depth
         assert_equal referring_transaction.order, payload.order
@@ -133,6 +152,7 @@ module NewRelic
         created_at = Time.now.to_f
 
         with_config application_id: "46954", cross_process_id: "190#222" do
+          NewRelic::Agent.instance.throughput_monitor.stubs(:collect_sample?).returns(true)
           state = TransactionState.tl_get
 
           referring_transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
@@ -150,6 +170,7 @@ module NewRelic
         assert_equal "190", payload.caller_account_id
         assert_equal referring_transaction.guid, payload.id
         assert_equal referring_transaction.distributed_tracing_trip_id, payload.trip_id
+        assert_equal true, payload.sampled?
         assert_equal referring_transaction.parent_ids, payload.parent_ids
         assert_equal referring_transaction.depth, payload.depth
         assert_equal referring_transaction.order, payload.order

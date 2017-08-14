@@ -19,7 +19,8 @@ module NewRelic
       CALLER_APP_KEY          = 'ap'.freeze
       ID_KEY                  = 'id'.freeze
       TRIP_ID_KEY             = 'tr'.freeze
-      PARENT_IDS_KEY           = 'pa'.freeze
+      SAMPLED_KEY             = 'sa'.freeze
+      PARENT_IDS_KEY          = 'pa'.freeze
       DEPTH_KEY               = 'de'.freeze
       ORDER_KEY               = 'or'.freeze
       TIMESTAMP_KEY           = 'ti'.freeze
@@ -51,6 +52,7 @@ module NewRelic
           payload.timestamp = Time.now.to_f
           payload.id = transaction.guid
           payload.trip_id = transaction.distributed_tracing_trip_id
+          payload.sampled = transaction.collect_sample?
           payload.parent_ids = transaction.parent_ids
           payload.depth = transaction.depth
           payload.order = transaction.order
@@ -77,6 +79,7 @@ module NewRelic
           payload.timestamp         = payload_data[TIMESTAMP_KEY]
           payload.id                = payload_data[ID_KEY]
           payload.trip_id           = payload_data[TRIP_ID_KEY]
+          payload.sampled           = payload_data[SAMPLED_KEY]
           payload.parent_ids        = payload_data[PARENT_IDS_KEY]
           payload.depth             = payload_data[DEPTH_KEY]
           payload.order             = payload_data[ORDER_KEY]
@@ -112,6 +115,7 @@ module NewRelic
                     :caller_app_id,
                     :id,
                     :trip_id,
+                    :sampled,
                     :parent_ids,
                     :synthetics_resource,
                     :synthetics_job,
@@ -120,6 +124,8 @@ module NewRelic
                     :depth,
                     :timestamp,
                     :host
+
+      alias_method :sampled?, :sampled
 
       def synthetics?
         !!(synthetics_resource || synthetics_job || synthetics_monitor)
@@ -136,6 +142,7 @@ module NewRelic
           CALLER_APP_KEY     => caller_app_id,
           ID_KEY             => id,
           TRIP_ID_KEY        => trip_id,
+          SAMPLED_KEY        => sampled,
           PARENT_IDS_KEY     => parent_ids,
           DEPTH_KEY          => depth,
           ORDER_KEY          => order,
@@ -170,6 +177,7 @@ module NewRelic
       ORDER_INTRINSIC_KEY                      = "nr.order".freeze
       GUID_INTRINSIC_KEY                       = "nr.guid".freeze
       REFERRING_TRANSACTION_GUID_INTRINSIC_KEY = "nr.referringTransactionGuid".freeze
+      SAMPLED_INTRINSIC_KEY                    = "nr.sampled".freeze
       TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
       PARENT_IDS_INTRINSIC_KEY                 = "nr.parentIds".freeze
       COMMA                                    = ",".freeze
@@ -186,6 +194,7 @@ module NewRelic
         payload[GUID_INTRINSIC_KEY] = transaction.guid
         payload[REFERRING_TRANSACTION_GUID_INTRINSIC_KEY] = id
         payload[TRIP_ID_INTRINSIC_KEY] = trip_id
+        payload[SAMPLED_INTRINSIC_KEY] = sampled
         payload[PARENT_IDS_INTRINSIC_KEY] = parent_ids.join COMMA
       end
 
@@ -201,7 +210,8 @@ module NewRelic
         GUID_INTRINSIC_KEY,
         REFERRING_TRANSACTION_GUID_INTRINSIC_KEY,
         TRIP_ID_INTRINSIC_KEY,
-        PARENT_IDS_INTRINSIC_KEY
+        PARENT_IDS_INTRINSIC_KEY,
+        SAMPLED_INTRINSIC_KEY
       ].freeze
     end
   end

@@ -28,7 +28,7 @@ module NewRelic
             assert_equal 1, transaction.order
             assert_equal "46954", payload.caller_app_id
             assert_equal "190", payload.caller_account_id
-            assert_equal [2, 0], payload.version
+            assert_equal [0, 0], payload.version
             assert_equal "App", payload.caller_type
             assert_equal transaction.guid, payload.id
             assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
@@ -82,6 +82,7 @@ module NewRelic
         end
 
         def test_instrinsics_assigned_to_transaction_event_from_disributed_trace
+          NewRelic::Agent.instance.throughput_monitor.stubs(:collect_sample?).returns(true)
           payload = nil
           referring_transaction = nil
 
@@ -111,10 +112,12 @@ module NewRelic
           assert_equal inbound_payload.id, referring_transaction.guid
           assert_equal inbound_payload.trip_id, intrinsics["nr.tripId"]
           assert_equal transaction.guid, intrinsics["nr.guid"]
+          assert_equal true, intrinsics["nr.sampled"]
           assert_equal inbound_payload.parent_ids.first, intrinsics["nr.parentIds"]
         end
 
         def test_instrinsics_assigned_to_error_event_from_disributed_trace
+          NewRelic::Agent.instance.throughput_monitor.stubs(:collect_sample?).returns(true)
           payload = nil
           referring_transaction = nil
 
@@ -145,6 +148,7 @@ module NewRelic
           assert_equal inbound_payload.id, referring_transaction.guid
           assert_equal transaction.guid, intrinsics["nr.transactionGuid"]
           assert_equal inbound_payload.trip_id, intrinsics["nr.tripId"]
+          assert_equal true, intrinsics["nr.sampled"]
           assert_equal inbound_payload.parent_ids.first, intrinsics["nr.parentIds"]
         end
       end
