@@ -81,6 +81,44 @@ module NewRelic
           assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
         end
 
+        def test_sampled_flag_propagated_when_true_in_incoming_payload
+          payload = nil
+
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+
+          with_config application_id: "46954", cross_process_id: "190#222" do
+            in_transaction do |txn|
+              payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            end
+          end
+
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
+
+          in_transaction "test_txn2" do |txn|
+            refute txn.sampled?
+            txn.accept_distributed_trace_payload "HTTP", payload.to_json
+            assert txn.sampled?
+          end
+        end
+
+        def test_sampled_flag_propagated_when_false_in_incoming_payload
+          payload = nil
+
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
+
+          with_config application_id: "46954", cross_process_id: "190#222" do
+            in_transaction do |txn|
+              payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            end
+          end
+
+          in_transaction "test_txn2" do |txn|
+            refute txn.sampled?
+            txn.accept_distributed_trace_payload "HTTP", payload.to_json
+            refute txn.sampled?
+          end
+        end
+
         def test_instrinsics_assigned_to_transaction_event_from_disributed_trace
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
           payload = nil

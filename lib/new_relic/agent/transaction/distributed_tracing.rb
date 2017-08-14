@@ -34,6 +34,11 @@ module NewRelic
 
           payload.caller_transport_type = transport_type
           self.inbound_distributed_trace_payload = payload
+
+          if !sampled? && !payload.sampled.nil?
+            self.sampled = payload.sampled
+          end
+
           true
         rescue => e
           NewRelic::Agent.logger.warn "Failed to accept distributed trace payload", e

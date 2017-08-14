@@ -57,7 +57,8 @@ module NewRelic
                     :process_cpu_start,
                     :http_response_code,
                     :response_content_length,
-                    :response_content_type
+                    :response_content_type,
+                    :sampled
 
       attr_reader :guid,
                   :metrics,
