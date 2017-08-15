@@ -16,17 +16,23 @@ module NewRelic
         super
       end
 
-      def append_sampled(x = nil)
+      def append_sampled(x = nil, &blk)
+        raise ArgumentError, "Expected argument or block, but received both" if x && blk
+
         @seen += 1
         @seen_lifetime += 1
         if @items.size < @capacity
-          x = yield if block_given?
+          x = blk.call if block_given?
           insert_high_priority x
-        elsif !@low_priority_indices.empty?
+          @captured_lifetime += 1
+          return x
+        elsif !@low_priority_indices.empty? # overwite random low priority sample
           m = rand(@low_priority_indices.size)
           insert_high_priority x, @low_priority_indices.delete_at(m)
+          return x
         else
           # the buffer is full, we should record a supportability metric
+          return nil
         end
       end
 
@@ -40,7 +46,7 @@ module NewRelic
           return x
         else
           m = rand(@seen) # [0, @seen)
-          if m < @capacity
+          if m < @capacity && !@high_priority_indices.include?(m)
             x = blk.call if block_given?
             insert_low_priority x, m
             return x

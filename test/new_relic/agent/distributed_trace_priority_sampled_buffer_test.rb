@@ -29,17 +29,29 @@ module NewRelic
         assert_equal (0..4).to_set, high_priority_indices(buffer)
       end
 
-      def test_low_priority_slots_are_discarded_in_favor_of_high_priority_slots
+      def test_low_priority_items_are_discarded_in_favor_of_high_priority_items
         buffer = buffer_class.new(5)
         5.times { |i| buffer.append i }
 
         assert_equal (0..4).to_a, low_priority_indices(buffer)
 
-        5.upto(9) { |i| buffer.append_sampled i }
+        5.upto(9) { |i| assert buffer.append_sampled(i) }
 
         assert_equal [], low_priority_indices(buffer)
         assert_equal (0..4).to_set, high_priority_indices(buffer)
         assert_equal (5..9).to_set, buffer.to_a.to_set
+      end
+
+      def test_sampled_items_not_discarded_in_favor_of_low_priority_items
+        buffer = buffer_class.new(5)
+        5.times { |i| buffer.append_sampled i }
+
+        assert_equal (0..4).to_set, high_priority_indices(buffer)
+
+        5.upto(9) { |i| refute buffer.append(i) }
+        assert_equal [], low_priority_indices(buffer)
+        assert_equal (0..4).to_set, high_priority_indices(buffer)
+        assert_equal (0..4).to_set, buffer.to_a.to_set
       end
 
       def high_priority_indices buffer
