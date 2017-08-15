@@ -31,7 +31,7 @@ module NewRelic
           insert_high_priority x, @low_priority_indices.delete_at(m)
           return x
         else
-          # the buffer is full, we should record a supportability metric
+          NewRelic::Agent.increment_metric "Supportability/DistributedTracing/SampledBufferFailure/BufferFull"
           return nil
         end
       end

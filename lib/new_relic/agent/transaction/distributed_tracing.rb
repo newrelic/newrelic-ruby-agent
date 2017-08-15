@@ -16,13 +16,15 @@ module NewRelic
 
         LBRACE = "{".freeze
 
-        # todo: check if browser agent has been injected
         def accept_distributed_trace_payload transport_type, payload
           if inbound_distributed_trace_payload
-            NewRelic::Agent.logger.debug "accepted_distributed_trace_payload called, but a payload has already been accepted"
+            NewRelic::Agent.increment_metric "Supportability/DistributedTracing/AcceptFailure/PayloadAlreadyAccepted"
             return false
           elsif self.order > 0
-            NewRelic::Agent.logger.warn "create_distributed_trace_payload called before accepted_distributed_trace_payload, ignoring call"
+            NewRelic::Agent.increment_metric "Supportability/DistributedTracing/AcceptFailure/CreateDistributedTracePayload-before-AcceptDistributedTracePayload"
+            return false
+          elsif name_frozen?
+            NewRelic::Agent.increment_metric "Supportability/DistributedTracing/AcceptFailure/BrowserAgentInjected"
             return false
           end
 
@@ -38,6 +40,7 @@ module NewRelic
 
           true
         rescue => e
+          NewRelic::Agent.increment_metric "Supportability/DistributedTracing/AcceptFailure/Unknown"
           NewRelic::Agent.logger.warn "Failed to accept distributed trace payload", e
           false
         end
