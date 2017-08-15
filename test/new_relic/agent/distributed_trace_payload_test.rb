@@ -24,7 +24,7 @@ module NewRelic
           state = TransactionState.tl_get
 
           transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
-          created_at = Time.now.to_f
+          created_at = (Time.now.to_f * 1000).round
           payload = DistributedTracePayload.for_transaction transaction
           Transaction.stop state
 
@@ -114,7 +114,7 @@ module NewRelic
       def test_payload_attributes_populated_from_serialized_version
         incoming_payload = nil
         referring_transaction = nil
-        created_at = Time.now.to_f
+        created_at = (Time.now.to_f * 1000).round
 
         with_config application_id: "46954", cross_process_id: "190#222" do
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
@@ -149,7 +149,7 @@ module NewRelic
       def test_payload_attributes_populated_from_html_safe_version
         incoming_payload = nil
         referring_transaction = nil
-        created_at = Time.now.to_f
+        created_at = (Time.now.to_f * 1000).round
 
         with_config application_id: "46954", cross_process_id: "190#222" do
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)

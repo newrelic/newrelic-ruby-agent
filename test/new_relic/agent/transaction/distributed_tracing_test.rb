@@ -18,7 +18,7 @@ module NewRelic
         def test_create_distributed_trace_payload_returns_payload_incrs_order
           with_config application_id: "46954", cross_process_id: "190#222" do
             freeze_time
-            created_at = Time.now.to_f
+            created_at = (Time.now.to_f * 1000).round
             state = TransactionState.tl_get
 
             transaction = Transaction.start state, :controller, :transaction_name => "test_txn"

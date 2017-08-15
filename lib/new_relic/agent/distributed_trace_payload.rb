@@ -49,7 +49,7 @@ module NewRelic
             Agent.config[:application_id]
           end
 
-          payload.timestamp = Time.now.to_f
+          payload.timestamp = (Time.now.to_f * 1000).round
           payload.id = transaction.guid
           payload.trip_id = transaction.distributed_tracing_trip_id
           payload.sampled = transaction.sampled?
@@ -147,7 +147,7 @@ module NewRelic
           DEPTH_KEY          => depth,
           ORDER_KEY          => order,
           HOST_KEY           => host,
-          TIMESTAMP_KEY      => timestamp.round,
+          TIMESTAMP_KEY      => timestamp,
         }
 
         if synthetics?

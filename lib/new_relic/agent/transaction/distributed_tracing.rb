@@ -100,9 +100,12 @@ module NewRelic
           nil
         end
 
+        # This method returns transport_duration in seconds. Transport duration
+        # is stored in milliseconds on the payload, but it needed in seconds for
+        # metrics and intrinsics.
         def transport_duration
           return unless inbound_distributed_trace_payload
-          start_time.to_f - inbound_distributed_trace_payload.timestamp
+          start_time.to_f - inbound_distributed_trace_payload.timestamp / 1000
         end
       end
     end
