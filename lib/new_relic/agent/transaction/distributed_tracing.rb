@@ -61,7 +61,9 @@ module NewRelic
         end
 
         def parent_ids
-          if inbound_distributed_trace_payload && inbound_distributed_trace_payload.parent_ids.last != guid
+          if inbound_distributed_trace_payload &&
+               inbound_distributed_trace_payload.parent_ids &&
+               inbound_distributed_trace_payload.parent_ids.last != guid
             inbound_ids = inbound_distributed_trace_payload.parent_ids.dup
             inbound_ids.push guid
             if inbound_ids.size > 3

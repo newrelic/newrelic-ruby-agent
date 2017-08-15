@@ -195,7 +195,7 @@ module NewRelic
         payload[REFERRING_TRANSACTION_GUID_INTRINSIC_KEY] = id
         payload[TRIP_ID_INTRINSIC_KEY] = trip_id
         payload[SAMPLED_INTRINSIC_KEY] = sampled
-        payload[PARENT_IDS_INTRINSIC_KEY] = parent_ids.join COMMA
+        payload[PARENT_IDS_INTRINSIC_KEY] = parent_ids.join COMMA if parent_ids
       end
 
       INTRINSIC_KEYS = [
