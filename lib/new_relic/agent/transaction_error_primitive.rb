@@ -74,8 +74,8 @@ module NewRelic
 
       def append_distributed_trace_intrinsics payload, sample
         DistributedTracePayload::INTRINSIC_KEYS.each do |key|
-          next unless value = payload[key]
-          sample[key] = value
+          value = payload[key]
+          sample[key] = value unless value.nil?
         end
         # guid has a different name for transaction events
         if sample.key? OTHER_GUID_KEY

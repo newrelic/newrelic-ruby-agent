@@ -156,6 +156,27 @@ module NewRelic
           assert_equal inbound_payload.parent_ids.first, intrinsics["nr.parentIds"]
         end
 
+        def test_sampled_is_false_in_transaction_event_when_indicated_by_upstream
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          payload = nil
+          referring_transaction = nil
+
+          with_config application_id: "46954", cross_process_id: "190#222" do
+            in_transaction "test_txn" do |txn|
+              referring_transaction = txn
+              payload = referring_transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
+              payload.sampled = false
+            end
+          end
+
+          in_transaction "text_txn2" do |txn|
+            txn.accept_distributed_trace_payload "HTTP", payload.to_json
+          end
+
+          intrinsics, _, _ = last_transaction_event
+          assert_equal false, intrinsics["nr.sampled"]
+        end
+
         def test_instrinsics_assigned_to_error_event_from_disributed_trace
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
           payload = nil
@@ -190,6 +211,28 @@ module NewRelic
           assert_equal inbound_payload.trip_id, intrinsics["nr.tripId"]
           assert_equal true, intrinsics["nr.sampled"]
           assert_equal inbound_payload.parent_ids.first, intrinsics["nr.parentIds"]
+        end
+
+        def test_sampled_is_false_in_error_event_when_indicated_by_upstream
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          payload = nil
+          referring_transaction = nil
+
+          with_config application_id: "46954", cross_process_id: "190#222" do
+            in_transaction "test_txn" do |txn|
+              referring_transaction = txn
+              payload = referring_transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
+              payload.sampled = false
+            end
+          end
+
+          in_transaction "text_txn2" do |txn|
+            txn.accept_distributed_trace_payload "HTTP", payload.to_json
+            NewRelic::Agent.notice_error StandardError.new "Nooo!"
+          end
+
+          intrinsics, _, _ = last_error_event
+          assert_equal false, intrinsics["nr.sampled"]
         end
       end
     end

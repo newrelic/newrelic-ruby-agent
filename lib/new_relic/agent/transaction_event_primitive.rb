@@ -83,8 +83,8 @@ module NewRelic
 
       def append_distributed_trace_intrinsics(sample, payload)
         DistributedTracePayload::INTRINSIC_KEYS.each do |key|
-          next unless value = payload[key]
-          sample[key] = value
+          value = payload[key]
+          sample[key] = value unless value.nil?
         end
       end
 
