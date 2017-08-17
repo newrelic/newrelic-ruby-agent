@@ -25,7 +25,7 @@ module NewRelic
           elsif @sampled_count < @target
             rand(@seen_last) < @target
           else
-            rand(@seen) < @target
+            rand(@seen) < (@target ** (@target / @sampled_count) - @target ** 0.51)
           end
 
           @sampled_count += 1 if sampled
