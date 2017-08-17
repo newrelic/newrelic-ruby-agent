@@ -25,5 +25,12 @@ DependencyDetection.defer do
     # enumerate the specific events we want so that we do not get unexpected additions in the future
     ActiveSupport::Notifications.subscribe(/(perform_action|transmit)\.action_cable/,
       NewRelic::Agent::Instrumentation::ActionCableSubscriber.new)
+
+    count = 0
+    [::ActionCable::Engine, ::ActionCable::RemoteConnections].each do |klass|
+      count += klass.ancestors.index(klass)
+    end
+
+    NewRelic::Agent.record_metric('Supportability/ActionCable/PrependedModules/count', count)
   end
 end

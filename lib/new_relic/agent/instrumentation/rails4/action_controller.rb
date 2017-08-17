@@ -26,4 +26,8 @@ DependencyDetection.defer do
     NewRelic::Agent::Instrumentation::ActionControllerSubscriber \
       .subscribe(/^process_action.action_controller$/)
   end
+
+  count = ::ActionController::Base.ancestors.index(::ActionController::Base)
+
+  ::NewRelic::Agent.record_metric('Supportability/ActionController/PrependedModules/count', count)
 end
