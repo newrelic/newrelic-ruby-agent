@@ -1,4 +1,13 @@
 # New Relic Ruby Agent Release Notes #
+
+  * Collect supportability metrics on `Module#prepend`
+
+  The agent now collects Supportability/{Module}/PrependedModules/count metrics
+  for ActiveRecord 4 and 5, ActionController 4 and 5, ActionView 4 and 5, and
+  ActionCable 5. These help track the adoption of the `Module#prepend` method so
+  we can maintain compatibility with newer versions of Ruby and Rails.
+
+## v4.4.0 ##
   
   * Collect cloud metadata from Azure, GCP, PCF, and AWS cloud platform
 
