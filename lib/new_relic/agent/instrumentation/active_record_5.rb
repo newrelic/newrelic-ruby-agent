@@ -78,17 +78,17 @@ DependencyDetection.defer do
   end
 
   executes do
+    count = 0
+    [::ActiveRecord::Base, ::ActiveRecord::Relation].each {|klass| count += klass.send(:ancestors).index(klass) }
+
+    ::NewRelic::Agent.record_metric('Supportability/PrependedModules/ActiveRecord', count)
+
     ActiveSupport::Notifications.subscribe('sql.active_record',
       NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.new)
 
     ActiveSupport.on_load(:active_record) do
       ::ActiveRecord::Base.prepend ::NewRelic::Agent::Instrumentation::ActiveRecord::BaseExtensions
       ::ActiveRecord::Relation.prepend ::NewRelic::Agent::Instrumentation::ActiveRecord::RelationExtensions
-
-      count = 0
-      [::ActiveRecord::Base, ::ActiveRecord::Relation].each {|klass| count += klass.send(:ancestors).index(klass) }
-
-      ::NewRelic::Agent.record_metric('Supportability/PrependedModules/ActiveRecord', count)
     end
   end
 end
