@@ -27,6 +27,6 @@ DependencyDetection.defer do
       count += klass.ancestors.index(klass)
     end
 
-    NewRelic::Agent.record_metric('Supportability/ActionView/PrependedModules/count', count)
+    NewRelic::Agent.record_metric('Supportability/PrependedModules/ActionView', count)
   end
 end

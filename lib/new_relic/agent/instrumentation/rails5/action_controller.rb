@@ -31,5 +31,5 @@ DependencyDetection.defer do
   count = 0
   [::ActionController::Base, ::ActionController::API].each {|klass| count += klass.ancestors.index(klass) }
 
-  NewRelic::Agent.record_metric('Supportability/ActionController/PrependedModules/count', count)
+  NewRelic::Agent.record_metric('Supportability/PrependedModules/ActionController', count)
 end

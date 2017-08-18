@@ -88,7 +88,7 @@ DependencyDetection.defer do
       count = 0
       [::ActiveRecord::Base, ::ActiveRecord::Relation].each {|klass| count += klass.send(:ancestors).index(klass) }
 
-      ::NewRelic::Agent.record_metric('Supportability/ActiveRecord/PrependedModules/count', count)
+      ::NewRelic::Agent.record_metric('Supportability/PrependedModules/ActiveRecord', count)
     end
   end
 end
