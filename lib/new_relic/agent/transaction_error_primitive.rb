@@ -23,6 +23,7 @@ module NewRelic
       PORT_KEY                       = 'port'.freeze
       NAME_KEY                       = 'transactionName'.freeze
       DURATION_KEY                   = 'duration'.freeze
+      SAMPLED_KEY                    = 'nr.sampled'.freeze
       GUID_KEY                       = 'nr.transactionGuid'.freeze
       REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'.freeze
       SYNTHETICS_RESOURCE_ID_KEY     = "nr.syntheticsResourceId".freeze
@@ -50,6 +51,7 @@ module NewRelic
         if payload
           attrs[NAME_KEY] = payload[:name]
           attrs[DURATION_KEY] = payload[:duration]
+          attrs[SAMPLED_KEY] = payload[:'nr.sampled']
           append_synthetics payload, attrs
           append_cat payload, attrs
           append_distributed_trace_intrinsics payload, attrs

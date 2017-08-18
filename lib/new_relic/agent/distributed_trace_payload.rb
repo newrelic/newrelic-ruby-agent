@@ -177,7 +177,6 @@ module NewRelic
       ORDER_INTRINSIC_KEY                      = "nr.order".freeze
       GUID_INTRINSIC_KEY                       = "nr.guid".freeze
       REFERRING_TRANSACTION_GUID_INTRINSIC_KEY = "nr.referringTransactionGuid".freeze
-      SAMPLED_INTRINSIC_KEY                    = "nr.sampled".freeze
       TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
       PARENT_IDS_INTRINSIC_KEY                 = "nr.parentIds".freeze
       COMMA                                    = ",".freeze
@@ -194,7 +193,6 @@ module NewRelic
         payload[GUID_INTRINSIC_KEY] = transaction.guid
         payload[REFERRING_TRANSACTION_GUID_INTRINSIC_KEY] = id
         payload[TRIP_ID_INTRINSIC_KEY] = trip_id
-        payload[SAMPLED_INTRINSIC_KEY] = sampled
         payload[PARENT_IDS_INTRINSIC_KEY] = parent_ids.join COMMA if parent_ids
       end
 
@@ -210,8 +208,7 @@ module NewRelic
         GUID_INTRINSIC_KEY,
         REFERRING_TRANSACTION_GUID_INTRINSIC_KEY,
         TRIP_ID_INTRINSIC_KEY,
-        PARENT_IDS_INTRINSIC_KEY,
-        SAMPLED_INTRINSIC_KEY
+        PARENT_IDS_INTRINSIC_KEY
       ].freeze
     end
   end

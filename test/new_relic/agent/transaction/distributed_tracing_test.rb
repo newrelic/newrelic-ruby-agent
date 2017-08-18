@@ -257,6 +257,35 @@ module NewRelic
           assert_equal true, intrinsics["nr.sampled"]
         end
 
+        def test_sampled_flag_added_to_intrinsics_without_distributed_trace_when_true
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+
+          transaction = in_transaction("test_txn") do
+            NewRelic::Agent.notice_error StandardError.new("Sorry!")
+          end
+
+          txn_intrinsics, _, _ = last_transaction_event
+          err_intrinsics, _, _ = last_error_event
+
+          assert_equal true, transaction.sampled?
+          assert_equal true, txn_intrinsics["nr.sampled"]
+          assert_equal true, err_intrinsics["nr.sampled"]
+        end
+
+        def test_sampled_flag_added_to_intrinsics_without_distributed_trace_when_false
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
+
+          transaction = in_transaction("test_txn") do
+            NewRelic::Agent.notice_error StandardError.new("Sorry!")
+          end
+
+          txn_intrinsics, _, _ = last_transaction_event
+          err_intrinsics, _, _ = last_error_event
+
+          assert_equal false, transaction.sampled?
+          assert_equal false, txn_intrinsics["nr.sampled"]
+          assert_equal false, err_intrinsics["nr.sampled"]
+        end
       end
     end
   end

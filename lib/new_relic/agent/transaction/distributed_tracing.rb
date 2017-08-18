@@ -37,11 +37,7 @@ module NewRelic
           payload.caller_transport_type = transport_type
           self.inbound_distributed_trace_payload = payload
 
-          if payload.sampled.nil?
-            payload.sampled = self.sampled
-          else
-            self.sampled = payload.sampled
-          end
+          self.sampled = payload.sampled unless payload.sampled.nil?
 
           true
         rescue => e

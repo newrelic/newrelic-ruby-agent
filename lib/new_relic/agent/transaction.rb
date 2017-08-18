@@ -572,6 +572,8 @@ module NewRelic
       end
 
       def assign_intrinsics(state)
+        attributes.add_intrinsic_attribute :'nr.sampled', sampled?
+
         if gc_time = calculate_gc_time
           attributes.add_intrinsic_attribute(:gc_time, gc_time)
         end
@@ -620,6 +622,7 @@ module NewRelic
           :bucket               => recording_web_transaction? ? :request : :background,
           :start_timestamp      => start_time.to_f,
           :duration             => duration,
+          :'nr.sampled'         => sampled?,
           :metrics              => @metrics,
           :attributes           => @attributes,
           :error                => false
