@@ -234,6 +234,29 @@ module NewRelic
           intrinsics, _, _ = last_error_event
           assert_equal false, intrinsics["nr.sampled"]
         end
+
+        def test_distributed_trace_does_not_propagate_nil_sampled_flags
+          payload = nil
+
+          with_config application_id: "46954", cross_process_id: "190#222" do
+            in_transaction do |txn|
+              payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            end
+          end
+
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          payload.sampled = nil
+
+          transaction = in_transaction "test_txn2" do |txn|
+            txn.accept_distributed_trace_payload "HTTP", payload.to_json
+          end
+
+          intrinsics, _, _ = last_transaction_event
+
+          assert_equal true, transaction.sampled?
+          assert_equal true, intrinsics["nr.sampled"]
+        end
+
       end
     end
   end
