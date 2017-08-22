@@ -69,25 +69,27 @@ class StartUpTest < Minitest::Test
 
   if RUBY_PLATFORM != 'java'
     def test_after_fork_clears_existing_transactions
-      read, write = IO.pipe
+      with_config clear_transaction_state_after_fork: true do
+        read, write = IO.pipe
 
-      NewRelic::Agent.manual_start(:app_name => 'my great app')
+        NewRelic::Agent.manual_start(:app_name => 'my great app')
 
-      in_transaction "outer txn" do
-        pid = Process.fork do
-          read.close
-          NewRelic::Agent.after_fork
+        in_transaction "outer txn" do
+          pid = Process.fork do
+            read.close
+            NewRelic::Agent.after_fork
 
-          txn_name = NewRelic::Agent::TransactionState.tl_get.transaction_name
-          Marshal.dump(txn_name, write)
+            txn_name = NewRelic::Agent::TransactionState.tl_get.transaction_name
+            Marshal.dump(txn_name, write)
+          end
+          write.close
+          result = read.read
+          Process.wait(pid)
+
+          inner_txn_name = Marshal.load(result)
+
+          assert_nil inner_txn_name
         end
-        write.close
-        result = read.read
-        Process.wait(pid)
-
-        inner_txn_name = Marshal.load(result)
-
-        assert_nil inner_txn_name
       end
     end
   end
