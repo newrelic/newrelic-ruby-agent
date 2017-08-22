@@ -26,11 +26,7 @@ DependencyDetection.defer do
       NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.new)
 
     ActiveSupport.on_load(:active_record) do
-      count = 0
-      [::ActiveRecord::Base, ::ActiveRecord::Relation].each {|klass| count += klass.send(:ancestors).index(klass) }
-
-      ::NewRelic::Agent.record_metric('Supportability/PrependedModules/ActiveRecord', count)
-
+      ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActiveRecord::Base, ::ActiveRecord::Relation)
       ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
     end
   end

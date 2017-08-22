@@ -16,17 +16,11 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails 5 view instrumentation'
+    NewRelic::Agent.logger.info 'Installing Rails 5 view instrumentation'
   end
 
   executes do
     NewRelic::Agent::Instrumentation::ActionViewSubscriber.subscribe(/render_.+\.action_view$/)
-
-    count = 0
-    [::ActionView::Base, ::ActionView::Template, ::ActionView::Renderer].each do |klass|
-      count += klass.ancestors.index(klass)
-    end
-
-    NewRelic::Agent.record_metric('Supportability/PrependedModules/ActionView', count)
+    NewRelic::Agent::PrependedModules.record_metrics_for(::ActionView::Base, ::ActionView::Template, ::ActionView::Renderer)
   end
 end

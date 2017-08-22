@@ -26,10 +26,7 @@ DependencyDetection.defer do
 
     NewRelic::Agent::Instrumentation::ActionControllerSubscriber \
       .subscribe(/^process_action.action_controller$/)
+
+    NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionController::Base, ::ActionController::API)
   end
-
-  count = 0
-  [::ActionController::Base, ::ActionController::API].each {|klass| count += klass.ancestors.index(klass) }
-
-  NewRelic::Agent.record_metric('Supportability/PrependedModules/ActionController', count)
 end

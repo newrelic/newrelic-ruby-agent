@@ -21,12 +21,6 @@ DependencyDetection.defer do
 
   executes do
     NewRelic::Agent::Instrumentation::ActionViewSubscriber.subscribe(/render_.+\.action_view$/)
-
-    count = 0
-    [::ActionView::Base, ::ActionView::Template, ::ActionView::Renderer].each do |klass|
-      count += klass.ancestors.index(klass)
-    end
-
-    NewRelic::Agent.record_metric('Supportability/PrependedModules/ActionView', count)
+    NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionView::Base, ::ActionView::Template, ::ActionView::Renderer)
   end
 end
