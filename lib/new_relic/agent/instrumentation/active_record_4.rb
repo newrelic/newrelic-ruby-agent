@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/active_record_subscriber'
+require 'new_relic/agent/prepend_supportability'
 
 DependencyDetection.defer do
   named :active_record_4
