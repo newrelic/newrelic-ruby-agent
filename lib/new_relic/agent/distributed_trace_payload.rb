@@ -84,7 +84,7 @@ module NewRelic
           payload.trip_id = transaction.distributed_tracing_trip_id
           payload.sampled = transaction.sampled?
           payload.parent_ids = transaction.parent_ids
-          payload.depth = transaction.depth
+          payload.depth = transaction.depth + 1
           payload.order = transaction.order
           payload.host = uri.host if uri
 

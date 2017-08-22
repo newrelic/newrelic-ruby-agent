@@ -44,7 +44,6 @@ module NewRelic
             payload = DistributedTracePayload.for_transaction txn
           end
 
-
           assert_equal "46954", payload.caller_app_id
         end
       end
@@ -61,7 +60,7 @@ module NewRelic
           assert_equal transaction.guid, payload.id
           assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
           assert_equal transaction.parent_ids, payload.parent_ids
-          assert_equal transaction.depth, payload.depth
+          assert_equal transaction.depth + 1, payload.depth
           assert_equal transaction.order, payload.order
         end
       end
@@ -137,7 +136,7 @@ module NewRelic
         assert_equal referring_transaction.distributed_tracing_trip_id, payload.trip_id
         assert_equal true, payload.sampled?
         assert_equal referring_transaction.parent_ids, payload.parent_ids
-        assert_equal referring_transaction.depth, payload.depth
+        assert_equal referring_transaction.depth + 1, payload.depth
         assert_equal referring_transaction.order, payload.order
         assert_equal created_at.round, payload.timestamp
         assert_equal "newrelic.com", payload.host
@@ -172,7 +171,7 @@ module NewRelic
         assert_equal referring_transaction.distributed_tracing_trip_id, payload.trip_id
         assert_equal true, payload.sampled?
         assert_equal referring_transaction.parent_ids, payload.parent_ids
-        assert_equal referring_transaction.depth, payload.depth
+        assert_equal referring_transaction.depth + 1, payload.depth
         assert_equal referring_transaction.order, payload.order
         assert_equal created_at.round, payload.timestamp
         assert_equal "newrelic.com", payload.host

@@ -33,7 +33,7 @@ module NewRelic
             assert_equal transaction.guid, payload.id
             assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
             assert_equal transaction.parent_ids, payload.parent_ids
-            assert_equal transaction.depth, payload.depth
+            assert_equal transaction.depth + 1, payload.depth
             assert_equal transaction.order, payload.order
             assert_equal "newrelic.com", payload.host
             assert_equal created_at, payload.timestamp
@@ -58,7 +58,7 @@ module NewRelic
 
           refute_nil transaction.inbound_distributed_trace_payload
 
-          assert_equal transaction.depth, payload.depth + 1
+          assert_equal transaction.depth, payload.depth
           assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
         end
 
@@ -77,7 +77,7 @@ module NewRelic
 
           refute_nil transaction.inbound_distributed_trace_payload
 
-          assert_equal transaction.depth, payload.depth + 1
+          assert_equal transaction.depth, payload.depth
           assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
         end
 

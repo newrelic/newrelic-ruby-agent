@@ -81,7 +81,7 @@ module NewRelic
 
         def depth
           if inbound_distributed_trace_payload
-            inbound_distributed_trace_payload.depth + 1
+            inbound_distributed_trace_payload.depth
           else
             1
           end
