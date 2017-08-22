@@ -588,7 +588,7 @@ module NewRelic
           attributes.add_intrinsic_attribute(:synthetics_monitor_id, synthetics_monitor_id)
         end
 
-        if inbound_distributed_trace_payload
+        if inbound_distributed_trace_payload || order > 0
           assign_distributed_tracing_intrinsics
         elsif state.is_cross_app?
           attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)

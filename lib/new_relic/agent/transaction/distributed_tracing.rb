@@ -94,8 +94,11 @@ module NewRelic
         attr_writer :order
 
         def append_distributed_tracing_info payload
-          return unless inbound_distributed_trace_payload
-          inbound_distributed_trace_payload.assign_intrinsics self, payload
+          if inbound_distributed_trace_payload
+            inbound_distributed_trace_payload.assign_intrinsics self, payload
+          elsif order > 0
+            DistributedTracePayload.assign_initial_intrinsics self, payload
+          end
         end
 
         def assign_distributed_tracing_intrinsics

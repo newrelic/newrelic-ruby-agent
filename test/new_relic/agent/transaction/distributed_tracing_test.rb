@@ -121,6 +121,61 @@ module NewRelic
           end
         end
 
+        def test_proper_intrinsics_assigned_for_first_app_in_distributed_trace
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          guid = nil
+          payload = nil
+          transaction = nil
+
+          with_config application_id: "46954", cross_process_id: "190#222" do
+            transaction = in_transaction "test_txn" do |txn|
+              guid = txn.guid
+              payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            end
+          end
+
+          intrinsics, _, _ = last_transaction_event
+
+          assert_equal guid, intrinsics['nr.tripId']
+          assert_equal [guid], intrinsics['nr.parentIds']
+          assert_equal 1, intrinsics['nr.depth']
+          assert_equal 1, intrinsics['nr.order']
+          assert intrinsics['nr.sampled']
+
+          txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
+
+          assert_equal guid, txn_intrinsics['nr.tripId']
+          assert_equal [guid], txn_intrinsics['nr.parentIds']
+          assert_equal 1, txn_intrinsics['nr.depth']
+          assert_equal 1, txn_intrinsics['nr.order']
+          assert txn_intrinsics[:'nr.sampled']
+        end
+
+        def test_initial_legacy_cat_request_trip_id_overwritten_by_first_distributed_trace_guid
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          transaction = nil
+
+          with_config application_id: "46954", cross_process_id: "190#222" do
+            transaction = in_transaction "test_txn" do |txn|
+              #simulate legacy cat
+              state = TransactionState.tl_get
+              state.referring_transaction_info = [
+                "b854df4feb2b1f06",
+                false,
+                "7e249074f277923d",
+                "5d2957be"
+              ]
+              txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            end
+          end
+
+          intrinsics, _, _ = last_transaction_event
+          assert_equal transaction.guid, intrinsics['nr.tripId']
+
+          txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
+          assert_equal transaction.guid, txn_intrinsics['nr.tripId']
+        end
+
         def test_instrinsics_assigned_to_transaction_event_from_disributed_trace
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
           payload = nil

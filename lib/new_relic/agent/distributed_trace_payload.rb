@@ -30,6 +30,36 @@ module NewRelic
       SYNTHETICS_JOB_KEY      = 'j'.freeze
       SYNTHETICS_MONITOR_KEY  = 'm'.freeze
 
+      # Intrinsic Keys
+      CALLER_TYPE_INTRINSIC_KEY                = "caller.type".freeze
+      CALLER_APP_INTRINSIC_KEY                 = "caller.app".freeze
+      CALLER_ACCOUNT_ID_INTRINSIC_KEY          = "caller.account".freeze
+      CALLER_TRANSPORT_TYPE_INTRINSIC_KEY      = "caller.transportType".freeze
+      CALLER_TRANSPORT_DURATION_INTRINSIC_KEY  = "caller.transportDuration".freeze
+      CALLER_HOST_INTRINSIC_KEY                = "caller.host".freeze
+      DEPTH_INTRINSIC_KEY                      = "nr.depth".freeze
+      ORDER_INTRINSIC_KEY                      = "nr.order".freeze
+      GUID_INTRINSIC_KEY                       = "nr.guid".freeze
+      REFERRING_TRANSACTION_GUID_INTRINSIC_KEY = "nr.referringTransactionGuid".freeze
+      TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
+      PARENT_IDS_INTRINSIC_KEY                 = "nr.parentIds".freeze
+      COMMA                                    = ",".freeze
+
+      INTRINSIC_KEYS = [
+        CALLER_TYPE_INTRINSIC_KEY,
+        CALLER_APP_INTRINSIC_KEY,
+        CALLER_ACCOUNT_ID_INTRINSIC_KEY,
+        CALLER_TRANSPORT_TYPE_INTRINSIC_KEY,
+        CALLER_TRANSPORT_DURATION_INTRINSIC_KEY,
+        CALLER_HOST_INTRINSIC_KEY,
+        DEPTH_INTRINSIC_KEY,
+        ORDER_INTRINSIC_KEY,
+        GUID_INTRINSIC_KEY,
+        REFERRING_TRANSACTION_GUID_INTRINSIC_KEY,
+        TRIP_ID_INTRINSIC_KEY,
+        PARENT_IDS_INTRINSIC_KEY
+      ].freeze
+
       class << self
         def for_transaction transaction, uri=nil
           payload = new
@@ -97,6 +127,14 @@ module NewRelic
         def from_http_safe http_safe_payload
           decoded_payload = Base64.strict_decode64 http_safe_payload
           from_json decoded_payload
+        end
+
+        #assigns intrinsics for the first distributed trace in a trip
+        def assign_initial_intrinsics transaction, payload
+          payload[TRIP_ID_INTRINSIC_KEY] = transaction.distributed_tracing_trip_id
+          payload[DEPTH_INTRINSIC_KEY] = transaction.depth
+          payload[ORDER_INTRINSIC_KEY] = transaction.order
+          payload[PARENT_IDS_INTRINSIC_KEY] = transaction.parent_ids
         end
 
         private
@@ -167,20 +205,6 @@ module NewRelic
         Base64.strict_encode64 to_json
       end
 
-      CALLER_TYPE_INTRINSIC_KEY                = "caller.type".freeze
-      CALLER_APP_INTRINSIC_KEY                 = "caller.app".freeze
-      CALLER_ACCOUNT_ID_INTRINSIC_KEY          = "caller.account".freeze
-      CALLER_TRANSPORT_TYPE_INTRINSIC_KEY      = "caller.transportType".freeze
-      CALLER_TRANSPORT_DURATION_INTRINSIC_KEY  = "caller.transportDuration".freeze
-      CALLER_HOST_INTRINSIC_KEY                = "caller.host".freeze
-      DEPTH_INTRINSIC_KEY                      = "nr.depth".freeze
-      ORDER_INTRINSIC_KEY                      = "nr.order".freeze
-      GUID_INTRINSIC_KEY                       = "nr.guid".freeze
-      REFERRING_TRANSACTION_GUID_INTRINSIC_KEY = "nr.referringTransactionGuid".freeze
-      TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
-      PARENT_IDS_INTRINSIC_KEY                 = "nr.parentIds".freeze
-      COMMA                                    = ",".freeze
-
       def assign_intrinsics transaction, payload
         payload[CALLER_TYPE_INTRINSIC_KEY] = caller_type
         payload[CALLER_APP_INTRINSIC_KEY] = caller_app_id
@@ -195,21 +219,6 @@ module NewRelic
         payload[TRIP_ID_INTRINSIC_KEY] = trip_id
         payload[PARENT_IDS_INTRINSIC_KEY] = parent_ids.join COMMA if parent_ids
       end
-
-      INTRINSIC_KEYS = [
-        CALLER_TYPE_INTRINSIC_KEY,
-        CALLER_APP_INTRINSIC_KEY,
-        CALLER_ACCOUNT_ID_INTRINSIC_KEY,
-        CALLER_TRANSPORT_TYPE_INTRINSIC_KEY,
-        CALLER_TRANSPORT_DURATION_INTRINSIC_KEY,
-        CALLER_HOST_INTRINSIC_KEY,
-        DEPTH_INTRINSIC_KEY,
-        ORDER_INTRINSIC_KEY,
-        GUID_INTRINSIC_KEY,
-        REFERRING_TRANSACTION_GUID_INTRINSIC_KEY,
-        TRIP_ID_INTRINSIC_KEY,
-        PARENT_IDS_INTRINSIC_KEY
-      ].freeze
     end
   end
 end
