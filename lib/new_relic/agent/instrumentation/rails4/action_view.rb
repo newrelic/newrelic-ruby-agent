@@ -21,5 +21,6 @@ DependencyDetection.defer do
 
   executes do
     NewRelic::Agent::Instrumentation::ActionViewSubscriber.subscribe(/render_.+\.action_view$/)
+    NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionView::Base, ::ActionView::Template, ::ActionView::Renderer)
   end
 end

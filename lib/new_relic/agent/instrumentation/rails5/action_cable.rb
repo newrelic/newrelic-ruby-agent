@@ -25,5 +25,7 @@ DependencyDetection.defer do
     # enumerate the specific events we want so that we do not get unexpected additions in the future
     ActiveSupport::Notifications.subscribe(/(perform_action|transmit)\.action_cable/,
       NewRelic::Agent::Instrumentation::ActionCableSubscriber.new)
+
+    ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionCable::Engine, ::ActionCable::RemoteConnections)
   end
 end

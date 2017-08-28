@@ -25,5 +25,7 @@ DependencyDetection.defer do
     end
     NewRelic::Agent::Instrumentation::ActionControllerSubscriber \
       .subscribe(/^process_action.action_controller$/)
+
+    ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionController::Base)
   end
 end

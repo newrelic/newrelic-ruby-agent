@@ -78,6 +78,8 @@ DependencyDetection.defer do
   end
 
   executes do
+    ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActiveRecord::Base, ::ActiveRecord::Relation)
+
     ActiveSupport::Notifications.subscribe('sql.active_record',
       NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.new)
 
