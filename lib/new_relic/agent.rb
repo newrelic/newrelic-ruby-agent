@@ -155,9 +155,9 @@ module NewRelic
     #
     # @api public
     def record_metric(metric_name, value) #THREAD_LOCAL_ACCESS
-      return unless agent
-
       record_supportability_metric(agent, :record_metric)
+
+      return unless agent
 
       if value.is_a?(Hash)
         stats = NewRelic::Agent::Stats.new

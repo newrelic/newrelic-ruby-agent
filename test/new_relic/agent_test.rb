@@ -23,8 +23,13 @@ module NewRelic
     end
 
     def test_shutdown
-      mock_agent = mocked_agent
+      mock_agent  = mocked_agent
+      mock_engine = mock
+      mock_stats  = mock
       mock_agent.expects(:shutdown)
+      mock_agent.expects(:stats_engine).returns(mock_engine)
+      mock_engine.expects(:tl_record_unscoped_metrics).with('Supportability/API/shutdown').yields(mock_stats)
+      mock_stats.expects(:increment_count)
       NewRelic::Agent.shutdown
     end
 
@@ -58,8 +63,13 @@ module NewRelic
     end
 
     def test_after_fork
-      mock_agent = mocked_agent
+      mock_agent  = mocked_agent
+      mock_engine = mock
+      mock_stats  = mock
       mock_agent.expects(:after_fork).with({})
+      mock_agent.expects(:stats_engine).returns(mock_engine)
+      mock_engine.expects(:tl_record_unscoped_metrics).yields(mock_stats)
+      mock_stats.expects(:increment_count)
       NewRelic::Agent.after_fork
     end
 
@@ -179,6 +189,7 @@ module NewRelic
 
     def test_record_metric
       dummy_engine = NewRelic::Agent.agent.stats_engine
+      dummy_engine.expects(:tl_record_unscoped_metrics).with('Supportability/API/record_metric')
       dummy_engine.expects(:tl_record_unscoped_metrics).with('foo', 12)
       NewRelic::Agent.record_metric('foo', 12)
     end
@@ -199,6 +210,7 @@ module NewRelic
       expected_stats.min_call_time = 1
       expected_stats.max_call_time = 5
       expected_stats.sum_of_squares = 999
+      dummy_engine.expects(:tl_record_unscoped_metrics).with('Supportability/API/record_metric')
       dummy_engine.expects(:tl_record_unscoped_metrics).with('foo', expected_stats)
       NewRelic::Agent.record_metric('foo', stats_hash)
     end
@@ -219,6 +231,7 @@ module NewRelic
       expected_stats.max_call_time = 5
       expected_stats.sum_of_squares = 999
 
+      dummy_engine.expects(:tl_record_unscoped_metrics).with('Supportability/API/record_metric')
       dummy_engine.expects(:tl_record_unscoped_metrics).with('foo', expected_stats)
       NewRelic::Agent.record_metric('foo', incomplete_stats_hash)
     end
@@ -228,7 +241,7 @@ module NewRelic
       dummy_stats = mock
       dummy_stats.expects(:increment_count).with(1)
       dummy_stats.expects(:increment_count).with(12)
-      dummy_stats.expects(:tl_record_unscoped_metrics).with('Supportability/API/increment_metric').yields(dummy_stats)
+      dummy_engine.expects(:tl_record_unscoped_metrics).with('Supportability/API/increment_metric').yields(dummy_stats)
       dummy_engine.expects(:tl_record_unscoped_metrics).with('foo').yields(dummy_stats)
       NewRelic::Agent.increment_metric('foo', 12)
     end

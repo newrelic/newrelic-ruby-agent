@@ -216,7 +216,9 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     }
     assert_metrics_recorded_exclusive(
       'a' => expected,
-      'b' => expected
+      'b' => expected,
+      'Supportability/API/shutdown' => 1,
+      'Supportability/API/manual_start' => 1
     )
   end
 
