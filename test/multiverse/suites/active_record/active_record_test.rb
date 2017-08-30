@@ -451,14 +451,14 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
-  def test_no_metrics_recorded_with_disable_all_tracing
+  def test_only_supportability_metrics_recorded_with_disable_all_tracing
     NewRelic::Agent.disable_all_tracing do
       in_web_transaction('bogosity') do
         Order.first
       end
     end
     assert_nil NewRelic::Agent.instance.transaction_sampler.last_sample
-    assert_metrics_recorded_exclusive([])
+    assert_metrics_recorded_exclusive(["Supportability/API/disable_all_tracing"])
   end
 
   def test_records_transaction_trace_nodes

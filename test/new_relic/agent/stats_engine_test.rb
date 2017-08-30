@@ -214,11 +214,14 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
       :total_call_time      => 20,
       :total_exclusive_time => 10
     }
+
+    # The manual_start and shutdown methods are called during the setup
+    # and teardown methods for the tests.
     assert_metrics_recorded_exclusive(
       'a' => expected,
       'b' => expected,
-      'Supportability/API/shutdown' => 1,
-      'Supportability/API/manual_start' => 1
+      'Supportability/API/shutdown' => { call_count: 1 },
+      'Supportability/API/manual_start' => { call_count: 1 }
     )
   end
 
