@@ -4,7 +4,7 @@
 
 module NewRelic
   module SupportabilityHelper
-    def record_supportability_metric(agent, method_name)
+    def record_api_supportability_metric(agent, method_name)
       return if agent.nil?
 
       agent.stats_engine.tl_record_unscoped_metrics("Supportability/API/#{method_name}") do |stats|

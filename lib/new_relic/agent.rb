@@ -155,7 +155,7 @@ module NewRelic
     #
     # @api public
     def record_metric(metric_name, value) #THREAD_LOCAL_ACCESS
-      record_supportability_metric(agent, :record_metric)
+      record_api_supportability_metric(agent, :record_metric)
 
       return unless agent
 
@@ -205,7 +205,7 @@ module NewRelic
     # @api public
     #
     def ignore_error_filter(&block)
-      record_supportability_metric(agent, :ignore_error_filter)
+      record_api_supportability_metric(agent, :ignore_error_filter)
 
       if block
         NewRelic::Agent::ErrorCollector.ignore_error_filter = block
@@ -243,7 +243,7 @@ module NewRelic
     # @api public
     #
     def notice_error(exception, options={})
-      record_supportability_metric(agent, :notice_error)
+      record_api_supportability_metric(agent, :notice_error)
 
       if options.has_key?(:trace_only)
         NewRelic::Agent.logger.log_once(:warn, :trace_only_deprecated,
@@ -284,7 +284,7 @@ module NewRelic
     # @api public
     #
     def record_custom_event(event_type, event_attrs)
-      record_supportability_metric(agent, :record_custom_event)
+      record_api_supportability_metric(agent, :record_custom_event)
 
       if agent && NewRelic::Agent.config[:'custom_insights_events.enabled']
         agent.custom_event_aggregator.record(event_type, event_attrs)
@@ -315,7 +315,7 @@ module NewRelic
     # @api public
     #
     def manual_start(options={})
-      record_supportability_metric(agent, :manual_start)
+      record_api_supportability_metric(agent, :manual_start)
 
       raise "Options must be a hash" unless Hash === options
       NewRelic::Control.instance.init_plugin({ :agent_enabled => true, :sync_startup => true }.merge(options))
@@ -347,7 +347,7 @@ module NewRelic
     # @api public
     #
     def after_fork(options={})
-      record_supportability_metric(agent, :after_fork)
+      record_api_supportability_metric(agent, :after_fork)
       agent.after_fork(options) if agent
     end
 
@@ -359,7 +359,7 @@ module NewRelic
     # @api public
     #
     def shutdown(options={})
-      record_supportability_metric(agent, :shutdown)
+      record_api_supportability_metric(agent, :shutdown)
       agent.shutdown if agent
     end
 
@@ -368,8 +368,8 @@ module NewRelic
     #
     # @api public
     def drop_buffered_data
-      record_supportability_metric(agent, :drop_buffered_data)
       agent.drop_buffered_data if agent
+      record_api_supportability_metric(agent, :drop_buffered_data)
     end
 
     # Add instrumentation files to the agent.  The argument should be
@@ -382,7 +382,7 @@ module NewRelic
     # @api public
     #
     def add_instrumentation(file_pattern)
-      record_supportability_metric(agent, :add_instrumentation)
+      record_api_supportability_metric(agent, :add_instrumentation)
       NewRelic::Control.instance.add_instrumentation file_pattern
     end
 
@@ -390,7 +390,7 @@ module NewRelic
     #
     # @api public
     def require_test_helper
-      record_supportability_metric(agent, :require_test_helper)
+      record_api_supportability_metric(agent, :require_test_helper)
       require File.expand_path('../../../test/agent_helper', __FILE__)
     end
 
@@ -411,7 +411,7 @@ module NewRelic
     # @api public
     #
     def set_sql_obfuscator(type = :replace, &block)
-      record_supportability_metric(agent, :set_sql_obfuscator)
+      record_api_supportability_metric(agent, :set_sql_obfuscator)
       NewRelic::Agent::Database.set_sql_obfuscator(type, &block)
     end
 
@@ -426,7 +426,7 @@ module NewRelic
     # @api public
     #
     def ignore_transaction
-      record_supportability_metric(agent, :ignore_transaction)
+      record_api_supportability_metric(agent, :ignore_transaction)
       txn = NewRelic::Agent::Transaction.tl_current
       txn.ignore! if txn
     end
@@ -437,7 +437,7 @@ module NewRelic
     # @api public
     #
     def ignore_apdex
-      record_supportability_metric(agent, :ignore_apdex)
+      record_api_supportability_metric(agent, :ignore_apdex)
       txn = NewRelic::Agent::Transaction.tl_current
       txn.ignore_apdex! if txn
     end
@@ -448,7 +448,7 @@ module NewRelic
     # @api public
     #
     def ignore_enduser
-      record_supportability_metric(agent, :ignore_enduser)
+      record_api_supportability_metric(agent, :ignore_enduser)
       txn = NewRelic::Agent::Transaction.tl_current
       txn.ignore_enduser! if txn
     end
@@ -461,7 +461,7 @@ module NewRelic
     # @api public
     #
     def disable_all_tracing
-      record_supportability_metric(agent, :disable_all_tracing)
+      record_api_supportability_metric(agent, :disable_all_tracing)
 
       return yield unless agent
 
@@ -479,7 +479,7 @@ module NewRelic
     # @api public
     #
     def disable_transaction_tracing
-      record_supportability_metric(agent, :disable_transaction_tracing)
+      record_api_supportability_metric(agent, :disable_transaction_tracing)
 
       return yield unless agent
 
@@ -503,7 +503,7 @@ module NewRelic
     # @api public
     #
     def disable_sql_recording
-      record_supportability_metric(agent, :disable_sql_recording)
+      record_api_supportability_metric(agent, :disable_sql_recording)
 
       return yield unless agent
 
@@ -547,7 +547,7 @@ module NewRelic
     # @api public
     #
     def add_custom_attributes(params) #THREAD_LOCAL_ACCESS
-      record_supportability_metric(agent, :add_custom_attributes)
+      record_api_supportability_metric(agent, :add_custom_attributes)
 
       if params.is_a? Hash
         txn = Transaction.tl_current
@@ -585,7 +585,7 @@ module NewRelic
     # @api public
     #
     def set_transaction_name(name, options={})
-      record_supportability_metric(agent, :set_transaction_name)
+      record_api_supportability_metric(agent, :set_transaction_name)
       Transaction.set_overriding_transaction_name(name, options[:category])
     end
 
@@ -595,7 +595,7 @@ module NewRelic
     # @api public
     #
     def get_transaction_name #THREAD_LOCAL_ACCESS
-      record_supportability_metric(agent, :get_transaction_name)
+      record_api_supportability_metric(agent, :get_transaction_name)
 
       txn = Transaction.tl_current
       if txn
@@ -654,7 +654,7 @@ module NewRelic
     # @api public
     #
     def browser_timing_header
-      record_supportability_metric(agent, :browser_timing_header)
+      record_api_supportability_metric(agent, :browser_timing_header)
       
       return "" unless agent
       agent.javascript_instrumentor.browser_timing_header
