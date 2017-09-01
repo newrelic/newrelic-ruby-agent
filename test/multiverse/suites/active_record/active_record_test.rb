@@ -458,7 +458,10 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       end
     end
     assert_nil NewRelic::Agent.instance.transaction_sampler.last_sample
-    assert_metrics_recorded_exclusive(["Supportability/API/disable_all_tracing"])
+    assert_metrics_recorded_exclusive([
+      "Supportability/API/disable_all_tracing",
+      "Supportability/API/drop_buffered_data"
+      ])
   end
 
   def test_records_transaction_trace_nodes

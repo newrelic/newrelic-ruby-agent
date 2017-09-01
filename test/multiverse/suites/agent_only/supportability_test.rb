@@ -7,14 +7,7 @@ require 'newrelic_rpm'
 class SupportabilityTest < Minitest::Test
   include MultiverseHelpers
 
-  def setup
-    NewRelic::Agent.manual_start
-    NewRelic::Agent.agent.stats_engine.reset!
-  end
-
-  def teardown
-    NewRelic::Agent.shutdown
-  end
+  setup_and_teardown_agent
 
   def assert_api_supportability_metric_recorded(method_name)
     assert_metrics_recorded(["Supportability/API/#{method_name}"])
@@ -76,8 +69,10 @@ class SupportabilityTest < Minitest::Test
   end
 
   def test_shutdown_records_supportability_metric
+    NewRelic::Agent.instance.stubs(:harvest_and_send_timeslice_data).returns(nil)
     NewRelic::Agent.shutdown
     assert_api_supportability_metric_recorded(:shutdown)
+    NewRelic::Agent.instance.unstub(:harvest_and_send_timeslice_data)
   end
 
   def test_disable_all_tracing_records_supportability_metric

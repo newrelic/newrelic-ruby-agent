@@ -196,7 +196,7 @@ class SinatraIgnoreItAllTest < SinatraTestCase
     NewRelic::Agent.drop_buffered_data
 
     get_and_assert_ok '/'
-    assert_metrics_recorded_exclusive([])
+    assert_metrics_recorded_exclusive(['Supportability/API/drop_buffered_data'])
   end
 end
 
