@@ -5,7 +5,7 @@
 module NewRelic
   module SupportabilityHelper
     def record_api_supportability_metric(agent, method_name)
-      return if agent.nil?
+      return if agent.nil? || caller.first =~ /\/newrelic_rpm\//
 
       agent.stats_engine.tl_record_unscoped_metrics("Supportability/API/#{method_name}") do |stats|
         stats.increment_count
