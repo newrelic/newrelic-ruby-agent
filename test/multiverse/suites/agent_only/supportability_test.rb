@@ -7,6 +7,14 @@ require 'newrelic_rpm'
 class SupportabilityTest < Minitest::Test
   include MultiverseHelpers
 
+  class FakeController
+    include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+    include NewRelic::Agent::MethodTracer
+
+    def foo
+    end
+  end
+
   setup_and_teardown_agent
 
   def assert_api_supportability_metric_recorded(method_name)
@@ -118,5 +126,60 @@ class SupportabilityTest < Minitest::Test
   def test_set_transaction_name_records_supportability_metric
     NewRelic::Agent.set_transaction_name('foo')
     assert_api_supportability_metric_recorded(:set_transaction_name)
+  end
+
+  def test_trace_records_supportability_metric
+    NewRelic::Agent::Datastores.trace(FakeController, :foo, 'Redis')
+    assert_api_supportability_metric_recorded(:trace)
+  end
+
+  def test_wrap_records_supportability_metric
+    NewRelic::Agent::Datastores.wrap('FauxDB', 'select') {}
+    assert_api_supportability_metric_recorded(:wrap)
+  end
+
+  def test_notice_sql_records_supportability_metric
+    NewRelic::Agent::Datastores.notice_sql('SELECT * FROM users', 'Foo/Bar', 0.05)
+    assert_api_supportability_metric_recorded(:notice_sql)
+  end
+
+  def test_notice_statement_records_supportability_metric
+    NewRelic::Agent::Datastores.notice_statement('key', 0.05)
+    assert_api_supportability_metric_recorded(:notice_statement)
+  end
+
+  def test_perform_action_with_newrelic_trace_records_supportability_metric
+    FakeController.new.perform_action_with_newrelic_trace {}
+    assert_api_supportability_metric_recorded(:perform_action_with_newrelic_trace)
+  end
+
+  def test_add_transaction_tracer_records_supportability_metric
+    FakeController.add_transaction_tracer(:foo)
+    assert_api_supportability_metric_recorded(:add_transaction_tracer)
+  end
+
+  def test_newrelic_ignore_records_supportability_metric
+    FakeController.newrelic_ignore
+    assert_api_supportability_metric_recorded(:newrelic_ignore)
+  end
+
+  def test_newrelic_ignore_apdex_records_supportability_metric
+    FakeController.newrelic_ignore_apdex
+    assert_api_supportability_metric_recorded(:newrelic_ignore_apdex)
+  end
+
+  def test_newrelic_ignore_enduser_records_supportability_metric
+    FakeController.newrelic_ignore_enduser
+    assert_api_supportability_metric_recorded(:newrelic_ignore_enduser)
+  end
+
+  def test_add_method_tracer_records_supportability_metric
+    FakeController.add_method_tracer(:foo)
+    assert_api_supportability_metric_recorded(:add_method_tracer)
+  end
+
+  def test_recording_web_transaction_records_supportability_metric
+    NewRelic::Agent::Transaction.recording_web_transaction?
+    assert_api_supportability_metric_recorded(:recording_web_transaction?)
   end
 end
