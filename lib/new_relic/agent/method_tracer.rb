@@ -290,6 +290,8 @@ module NewRelic
         # @api public
         #
         def add_method_tracer(method_name, metric_name_code=nil, options = {})
+          NewRelic::Agent.record_api_supportability_metric(NewRelic::Agent.agent, :add_method_tracer)
+          
           return unless newrelic_method_exists?(method_name)
           metric_name_code ||= default_metric_name_code(method_name)
           return if traced_method_exists?(method_name, metric_name_code)

@@ -194,6 +194,8 @@ module NewRelic
       # @api public
       #
       def self.recording_web_transaction? #THREAD_LOCAL_ACCESS
+        NewRelic::Agent.record_api_supportability_metric(NewRelic::Agent.agent, :recording_web_transaction?)
+        
         txn = tl_current
         txn && txn.recording_web_transaction?
       end
