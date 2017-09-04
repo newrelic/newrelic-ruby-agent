@@ -28,7 +28,7 @@ module Sequel
             begin
               NewRelic::Agent.disable_all_tracing { super(*args, &block) }
             ensure
-              segment.finish
+              segment.finish if segment
             end
           end
         end

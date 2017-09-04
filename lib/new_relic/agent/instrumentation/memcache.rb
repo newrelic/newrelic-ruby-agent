@@ -48,7 +48,7 @@ module NewRelic
                   if NewRelic::Agent.config[:capture_memcache_keys]
                     segment.notice_nosql_statement "#{method_name} #{args.first.inspect}"
                   end
-                  segment.finish
+                  segment.finish if segment
                 end
               end
 

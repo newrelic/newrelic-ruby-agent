@@ -24,7 +24,7 @@ module NewRelic
             state = NewRelic::Agent::TransactionState.tl_get
             return unless state.is_execution_traced?
             segment = segments.delete(event.operation_id)
-            segment.finish
+            segment.finish if segment
           rescue Exception => e
             log_notification_error('completed', e)
           end

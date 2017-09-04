@@ -166,7 +166,7 @@ class BunnyTest < Minitest::Test
         queue.publish("test_msg")
          #this segment should be fine
         segment = NewRelic::Agent::Transaction.start_segment "Custom/blah/method"
-        segment.finish
+        segment.finish if segment
       end
 
       assert_metrics_recorded ["Custom/blah/method"]

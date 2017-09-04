@@ -44,7 +44,7 @@ DependencyDetection.defer do
 
           response
         ensure
-          segment.finish
+          segment.finish if segment
         end
       end
 

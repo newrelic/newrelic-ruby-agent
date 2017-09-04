@@ -164,7 +164,7 @@ module NewRelic
 
               raise
             ensure
-              segment.finish
+              segment.finish if segment
             end
           end
         end

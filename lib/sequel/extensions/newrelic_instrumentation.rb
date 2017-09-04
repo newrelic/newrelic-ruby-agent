@@ -53,7 +53,7 @@ module Sequel
         super(*args, &blk)
       ensure
         notice_sql(sql)
-        segment.finish
+        segment.finish if segment
       end
     end
 

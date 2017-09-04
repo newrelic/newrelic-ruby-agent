@@ -49,7 +49,7 @@ module NewRelic
               begin
                 send(method_name_without_newrelic, *args, &blk)
               ensure
-                segment.finish
+                segment.finish if segment
               end
             end
 
@@ -114,7 +114,7 @@ module NewRelic
             elapsed_time = (Time.now - segment.start_time).to_f
             callback.call(result, segment.name, elapsed_time)
           end
-          segment.finish
+          segment.finish if segment
         end
       end
 
