@@ -139,7 +139,7 @@ module NewRelic
           assert_equal guid, intrinsics['nr.tripId']
           assert_equal [guid], intrinsics['nr.parentIds']
           assert_equal 1, intrinsics['nr.depth']
-          assert_equal 1, intrinsics['nr.order']
+          assert_nil intrinsics['nr.order']
           assert intrinsics['nr.sampled']
 
           txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
@@ -147,7 +147,7 @@ module NewRelic
           assert_equal guid, txn_intrinsics['nr.tripId']
           assert_equal [guid], txn_intrinsics['nr.parentIds']
           assert_equal 1, txn_intrinsics['nr.depth']
-          assert_equal 1, txn_intrinsics['nr.order']
+          assert_nil txn_intrinsics['nr.order']
           assert txn_intrinsics[:'nr.sampled']
         end
 

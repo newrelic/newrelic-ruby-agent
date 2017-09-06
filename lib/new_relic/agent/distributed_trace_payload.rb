@@ -133,7 +133,6 @@ module NewRelic
         def assign_initial_intrinsics transaction, payload
           payload[TRIP_ID_INTRINSIC_KEY] = transaction.distributed_tracing_trip_id
           payload[DEPTH_INTRINSIC_KEY] = transaction.depth
-          payload[ORDER_INTRINSIC_KEY] = transaction.order
           payload[PARENT_IDS_INTRINSIC_KEY] = transaction.parent_ids
         end
 
