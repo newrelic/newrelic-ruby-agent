@@ -341,6 +341,39 @@ module NewRelic
           assert_equal false, txn_intrinsics["nr.sampled"]
           assert_equal false, err_intrinsics["nr.sampled"]
         end
+
+        def test_order_sent_in_payloads_reflects_counter_on_transaction
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
+
+          in_transaction("test_txn") do |txn|
+            1.upto(3) do |i|
+              payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+              assert_equal i, payload.order
+            end
+          end
+        end
+
+        def test_order_sent_on_txn_event_reflects_order_on_incoming_payload
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
+          payload = nil
+
+          with_config application_id: "46954", cross_process_id: "190#222" do
+            in_transaction do |txn|
+              payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            end
+          end
+
+          payload.order = 5
+
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+
+          in_transaction "test_txn2" do |txn|
+            txn.accept_distributed_trace_payload "HTTP", payload.to_json
+          end
+
+          intrinsics, _, _ = last_transaction_event
+          assert_equal 5, intrinsics['nr.order']
+        end
       end
     end
   end
