@@ -34,7 +34,7 @@ module NewRelic
       # @api public
       #
       def self.trace(clazz, method_name, product, operation = method_name)
-        NewRelic::Agent.record_api_supportability_metric(NewRelic::Agent.agent, :trace)
+        NewRelic::Agent.record_api_supportability_metric(:trace)
 
         clazz.class_eval do
           method_name_without_newrelic = "#{method_name}_without_newrelic"
@@ -105,7 +105,7 @@ module NewRelic
       # @api public
       #
       def self.wrap(product, operation, collection = nil, callback = nil)
-        NewRelic::Agent.record_api_supportability_metric(NewRelic::Agent.agent, :wrap)
+        NewRelic::Agent.record_api_supportability_metric(:wrap)
 
         return yield unless operation
 
@@ -151,7 +151,7 @@ module NewRelic
       # @api public
       #
       def self.notice_sql(query, scoped_metric, elapsed)
-        NewRelic::Agent.record_api_supportability_metric(NewRelic::Agent.agent, :notice_sql)
+        NewRelic::Agent.record_api_supportability_metric(:notice_sql)
 
         state = TransactionState.tl_get
         if (txn = state.current_transaction) && (segment = txn.current_segment) && segment.respond_to?(:notice_sql)
@@ -184,8 +184,8 @@ module NewRelic
       # @api public
       #
       def self.notice_statement(statement, elapsed)
-        NewRelic::Agent.record_api_supportability_metric(NewRelic::Agent.agent, :notice_statement)
-        
+        NewRelic::Agent.record_api_supportability_metric(:notice_statement)
+
         # Settings may change eventually, but for now we follow the same
         # capture rules as SQL for non-SQL statements.
         state = TransactionState.tl_get
