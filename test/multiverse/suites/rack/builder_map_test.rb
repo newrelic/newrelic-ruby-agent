@@ -97,6 +97,7 @@ class BuilderMapTest < Minitest::Test
       'Middleware/Rack/BuilderMapTest::MiddlewareOne/call',
       'Middleware/Rack/BuilderMapTest::MiddlewareTwo/call',
       'Nested/Controller/Rack/BuilderMapTest::PrefixAppOne/call',
+      'Supportability/API/drop_buffered_data',
       ['Middleware/Rack/BuilderMapTest::MiddlewareOne/call', 'Controller/Rack/BuilderMapTest::PrefixAppOne/call'],
       ['Middleware/Rack/BuilderMapTest::MiddlewareTwo/call', 'Controller/Rack/BuilderMapTest::PrefixAppOne/call'],
       ['Nested/Controller/Rack/BuilderMapTest::PrefixAppOne/call', 'Controller/Rack/BuilderMapTest::PrefixAppOne/call']
@@ -117,6 +118,7 @@ class BuilderMapTest < Minitest::Test
       'Middleware/Rack/BuilderMapTest::MiddlewareTwo/call',
       'Middleware/Rack/BuilderMapTest::MiddlewareThree/call',
       'Nested/Controller/Rack/BuilderMapTest::PrefixAppTwo/call',
+      'Supportability/API/drop_buffered_data',
       ['Middleware/Rack/BuilderMapTest::MiddlewareOne/call', 'Controller/Rack/BuilderMapTest::PrefixAppTwo/call'],
       ['Middleware/Rack/BuilderMapTest::MiddlewareTwo/call', 'Controller/Rack/BuilderMapTest::PrefixAppTwo/call'],
       ['Middleware/Rack/BuilderMapTest::MiddlewareThree/call', 'Controller/Rack/BuilderMapTest::PrefixAppTwo/call'],

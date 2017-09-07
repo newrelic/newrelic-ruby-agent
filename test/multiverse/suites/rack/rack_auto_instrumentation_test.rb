@@ -79,7 +79,7 @@ class RackAutoInstrumentationTest < Minitest::Test
   end
 
   def test_middlewares_record_metrics
-    NewRelic::Agent.drop_buffered_data
+    NewRelic::Agent.agent.stats_engine.reset!
     get '/'
     assert_metrics_recorded_exclusive(
       [
@@ -94,6 +94,7 @@ class RackAutoInstrumentationTest < Minitest::Test
         "Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call",
         "Middleware/Rack/NewRelic::Rack::AgentHooks/call",
         "Nested/Controller/Rack/ExampleApp/call",
+        "Supportability/API/browser_timing_header",
         ["Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Rack/ExampleApp/call"],
         ["Middleware/Rack/NewRelic::Rack::AgentHooks/call",        "Controller/Rack/ExampleApp/call"],
         ["Middleware/Rack/MiddlewareOne/call", "Controller/Rack/ExampleApp/call"],
