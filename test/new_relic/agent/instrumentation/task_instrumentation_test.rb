@@ -47,6 +47,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
   def test_should_run
     run_task_inner(0)
     assert_metrics_recorded_exclusive([
+      'Supportability/API/perform_action_with_newrelic_trace',
       'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
       'Apdex/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
       'HttpDispatcher',

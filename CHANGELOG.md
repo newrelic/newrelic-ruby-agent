@@ -1,4 +1,9 @@
 # New Relic Ruby Agent Release Notes #
+  * Collect supportability metrics for public API
+
+  The agent now collects Supportability/API/{method} metrics to track usage of
+  all methods in the agent's public API.
+  
   * Collect supportability metrics on `Module#prepend`
 
   The agent now collects Supportability/{Module}/PrependedModules/count metrics
