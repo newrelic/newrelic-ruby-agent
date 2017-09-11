@@ -2,10 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'newrelic_rpm'
+require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 
-class SupportabilityTest < Minitest::Test
-  include MultiverseHelpers
+class APISupportabilityMetricsTest < Minitest::Test
 
   class FakeController
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
@@ -15,7 +14,14 @@ class SupportabilityTest < Minitest::Test
     end
   end
 
-  setup_and_teardown_agent
+  def setup
+    NewRelic::Agent.manual_start
+    NewRelic::Agent.drop_buffered_data
+  end
+
+  def teardown
+    NewRelic::Agent.shutdown
+  end
 
   def assert_api_supportability_metric_recorded(method_name)
     assert_metrics_recorded(["Supportability/API/#{method_name}"])
@@ -74,6 +80,7 @@ class SupportabilityTest < Minitest::Test
   def test_set_sql_obfuscator_records_supportability_metric
     NewRelic::Agent.set_sql_obfuscator {}
     assert_api_supportability_metric_recorded(:set_sql_obfuscator)
+    NewRelic::Agent::Database::Obfuscator.instance.reset
   end
 
   def test_shutdown_records_supportability_metric
