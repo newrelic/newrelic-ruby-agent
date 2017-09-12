@@ -134,7 +134,7 @@ module NewRelic
             if txn = state.current_transaction
               txn.add_segment @segment
             end
-            @segment.finish
+            @segment.finish if @segment
           end
 
           def state

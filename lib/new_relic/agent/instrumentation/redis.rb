@@ -68,7 +68,7 @@ DependencyDetection.defer do
           segment.notice_nosql_statement(statement) if statement
           call_without_new_relic(*args, &block)
         ensure
-          segment.finish
+          segment.finish if segment
         end
       end
 
@@ -88,7 +88,7 @@ DependencyDetection.defer do
           segment.notice_nosql_statement(statement)
           call_pipeline_without_new_relic(*args, &block)
         ensure
-          segment.finish
+          segment.finish if segment
         end
       end
 
@@ -104,7 +104,7 @@ DependencyDetection.defer do
         begin
           connect_without_new_relic(*args, &block)
         ensure
-          segment.finish
+          segment.finish if segment
         end
       end
     end

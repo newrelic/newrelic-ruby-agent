@@ -53,7 +53,7 @@ module ::Excon
               segment.read_response_headers wrapped_response
             end
           ensure
-            segment.finish
+            segment.finish if segment
           end
         end
       end
