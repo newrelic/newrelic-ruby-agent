@@ -4,44 +4,34 @@
 
 require "newrelic_prepender/version"
 
-module NewRelic
-  module Prepender
-    def self.do_prepend base
-      if RUBY_VERSION >= '2.1.0'
-        base.prepend NewRelic::Prepender
-      else
-        base.__send__ :prepend, NewRelic::Prepender
-      end
-    end
-  end
-end
+module NewRelic; module Prepender; end; end
 
 require 'action_controller'
 
-NewRelic::Prepender.do_prepend ::ActionController::Base
+::ActionController::Base.__send__ :prepend, NewRelic::Prepender
 
 if ::Rails::VERSION::MAJOR.to_i == 5
-  NewRelic::Prepender.do_prepend ::ActionController::API
+  ::ActionController::API.__send__ :prepend, NewRelic::Prepender
 end
 
 require 'action_view'
 
-NewRelic::Prepender.do_prepend ::ActionView::Base
-NewRelic::Prepender.do_prepend ::ActionView::Template
-NewRelic::Prepender.do_prepend ::ActionView::Renderer
+::ActionView::Base.__send__ :prepend, NewRelic::Prepender
+::ActionView::Template.__send__ :prepend, NewRelic::Prepender
+::ActionView::Renderer.__send__ :prepend, NewRelic::Prepender
 
 if ::Rails::VERSION::MAJOR.to_i == 5
   require 'action_cable/engine'
 
-  NewRelic::Prepender.do_prepend ::ActionCable::Engine
-  NewRelic::Prepender.do_prepend ::ActionCable::RemoteConnections
+  ::ActionCable::Engine.__send__ :prepend, NewRelic::Prepender
+  ::ActionCable::RemoteConnections.__send__ :prepend, NewRelic::Prepender
 
   require 'active_job'
 
-  NewRelic::Prepender.do_prepend ::ActiveJob::Base
+  ::ActiveJob::Base.__send__ :prepend, NewRelic::Prepender
 end
 
 require 'active_record'
 
-NewRelic::Prepender.do_prepend ::ActiveRecord::Base
-NewRelic::Prepender.do_prepend ::ActiveRecord::Relation
+::ActiveRecord::Base.__send__ :prepend, NewRelic::Prepender
+::ActiveRecord::Relation.__send__ :prepend, NewRelic::Prepender
