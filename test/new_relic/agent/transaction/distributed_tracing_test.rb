@@ -12,7 +12,11 @@ module NewRelic
     class Transaction
       class DistributedTracingTest < Minitest::Test
         def setup
-          NewRelic::Agent.config.add_config_for_testing :'distributed_tracing.enabled' => true
+          NewRelic::Agent.config.add_config_for_testing(
+            :'distributed_tracing.enabled' => true,
+            :application_id => "46954",
+            :cross_process_id => "190#222"
+          )
         end
 
         def teardown
@@ -21,40 +25,36 @@ module NewRelic
         end
 
         def test_create_distributed_trace_payload_returns_payload_incrs_order
-          with_config application_id: "46954", cross_process_id: "190#222" do
-            freeze_time
-            created_at = (Time.now.to_f * 1000).round
-            state = TransactionState.tl_get
+          freeze_time
+          created_at = (Time.now.to_f * 1000).round
+          state = TransactionState.tl_get
 
-            transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
-            payload = transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
-            Transaction.stop(state)
+          transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
+          payload = transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
+          Transaction.stop(state)
 
-            assert_equal 1, transaction.order
-            assert_equal "46954", payload.caller_app_id
-            assert_equal "190", payload.caller_account_id
-            assert_equal [0, 0], payload.version
-            assert_equal "App", payload.caller_type
-            assert_equal transaction.guid, payload.id
-            assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
-            assert_equal transaction.parent_ids, payload.parent_ids
-            assert_equal transaction.depth + 1, payload.depth
-            assert_equal transaction.order, payload.order
-            assert_equal "newrelic.com", payload.host
-            assert_equal created_at, payload.timestamp
+          assert_equal 1, transaction.order
+          assert_equal "46954", payload.caller_app_id
+          assert_equal "190", payload.caller_account_id
+          assert_equal [0, 0], payload.version
+          assert_equal "App", payload.caller_type
+          assert_equal transaction.guid, payload.id
+          assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
+          assert_equal transaction.parent_ids, payload.parent_ids
+          assert_equal transaction.depth + 1, payload.depth
+          assert_equal transaction.order, payload.order
+          assert_equal "newrelic.com", payload.host
+          assert_equal created_at, payload.timestamp
 
-            transaction.create_distributed_trace_payload
-            assert_equal 2, transaction.order
-          end
+          transaction.create_distributed_trace_payload
+          assert_equal 2, transaction.order
         end
 
         def test_accept_distributed_trace_payload_assigns_json_payload
           payload = nil
 
-          with_config application_id: "46954", cross_process_id: "190#222" do
-            in_transaction do |txn|
-              payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
-            end
+          in_transaction do |txn|
+            payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
           end
 
           transaction = in_transaction "test_txn2" do |txn|
@@ -70,10 +70,8 @@ module NewRelic
         def test_accept_distributed_trace_payload_assigns_http_safe_payload
           payload = nil
 
-          with_config application_id: "46954", cross_process_id: "190#222" do
-            in_transaction do |txn|
-              payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
-            end
+          in_transaction do |txn|
+            payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
           end
 
           transaction = in_transaction "test_txn2" do |txn|
@@ -91,10 +89,8 @@ module NewRelic
 
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
 
-          with_config application_id: "46954", cross_process_id: "190#222" do
-            in_transaction do |txn|
-              payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
-            end
+          in_transaction do |txn|
+            payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
           end
 
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
@@ -111,10 +107,8 @@ module NewRelic
 
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
 
-          with_config application_id: "46954", cross_process_id: "190#222" do
-            in_transaction do |txn|
-              payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
-            end
+          in_transaction do |txn|
+            payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
           end
 
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
@@ -132,11 +126,9 @@ module NewRelic
           payload = nil
           transaction = nil
 
-          with_config application_id: "46954", cross_process_id: "190#222" do
-            transaction = in_transaction "test_txn" do |txn|
-              guid = txn.guid
-              payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
-            end
+          transaction = in_transaction "test_txn" do |txn|
+            guid = txn.guid
+            payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
           end
 
           intrinsics, _, _ = last_transaction_event
@@ -160,18 +152,16 @@ module NewRelic
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
           transaction = nil
 
-          with_config application_id: "46954", cross_process_id: "190#222" do
-            transaction = in_transaction "test_txn" do |txn|
-              #simulate legacy cat
-              state = TransactionState.tl_get
-              state.referring_transaction_info = [
-                "b854df4feb2b1f06",
-                false,
-                "7e249074f277923d",
-                "5d2957be"
-              ]
-              txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
-            end
+          transaction = in_transaction "test_txn" do |txn|
+            #simulate legacy cat
+            state = TransactionState.tl_get
+            state.referring_transaction_info = [
+              "b854df4feb2b1f06",
+              false,
+              "7e249074f277923d",
+              "5d2957be"
+            ]
+            txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
           end
 
           intrinsics, _, _ = last_transaction_event
@@ -186,11 +176,9 @@ module NewRelic
           payload = nil
           referring_transaction = nil
 
-          with_config application_id: "46954", cross_process_id: "190#222" do
-            in_transaction "test_txn" do |txn|
-              referring_transaction = txn
-              payload = referring_transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
-            end
+          in_transaction "test_txn" do |txn|
+            referring_transaction = txn
+            payload = referring_transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
           end
 
           transaction = in_transaction "text_txn2" do |txn|
@@ -221,12 +209,10 @@ module NewRelic
           payload = nil
           referring_transaction = nil
 
-          with_config application_id: "46954", cross_process_id: "190#222" do
-            in_transaction "test_txn" do |txn|
-              referring_transaction = txn
-              payload = referring_transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
-              payload.sampled = false
-            end
+          in_transaction "test_txn" do |txn|
+            referring_transaction = txn
+            payload = referring_transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            payload.sampled = false
           end
 
           in_transaction "text_txn2" do |txn|
@@ -242,11 +228,9 @@ module NewRelic
           payload = nil
           referring_transaction = nil
 
-          with_config application_id: "46954", cross_process_id: "190#222" do
-            in_transaction "test_txn" do |txn|
-              referring_transaction = txn
-              payload = referring_transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
-            end
+          in_transaction "test_txn" do |txn|
+            referring_transaction = txn
+            payload = referring_transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
           end
 
           transaction = in_transaction "text_txn2" do |txn|
@@ -278,12 +262,10 @@ module NewRelic
           payload = nil
           referring_transaction = nil
 
-          with_config application_id: "46954", cross_process_id: "190#222" do
-            in_transaction "test_txn" do |txn|
-              referring_transaction = txn
-              payload = referring_transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
-              payload.sampled = false
-            end
+          in_transaction "test_txn" do |txn|
+            referring_transaction = txn
+            payload = referring_transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            payload.sampled = false
           end
 
           in_transaction "text_txn2" do |txn|
@@ -298,10 +280,8 @@ module NewRelic
         def test_distributed_trace_does_not_propagate_nil_sampled_flags
           payload = nil
 
-          with_config application_id: "46954", cross_process_id: "190#222" do
-            in_transaction do |txn|
-              payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
-            end
+          in_transaction do |txn|
+            payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
           end
 
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
@@ -362,10 +342,8 @@ module NewRelic
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
           payload = nil
 
-          with_config application_id: "46954", cross_process_id: "190#222" do
-            in_transaction do |txn|
-              payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
-            end
+          in_transaction do |txn|
+            payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
           end
 
           payload.order = 5
