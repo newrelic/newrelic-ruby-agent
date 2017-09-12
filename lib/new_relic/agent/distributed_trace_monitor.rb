@@ -12,6 +12,7 @@ module NewRelic
       HTTP_TRANSPORT_TYPE = 'HTTP'.freeze
 
       def on_finished_configuring(events)
+        return unless NewRelic::Agent.config[:'distributed_tracing.enabled']
         events.subscribe(:before_call, &method(:on_before_call))
       end
 
