@@ -11,6 +11,11 @@
   ActionCable 5. These help track the adoption of the `Module#prepend` method so
   we can maintain compatibility with newer versions of Ruby and Rails.
 
+  * Collect explain plans when using PostGIS ActiveRecord adapter
+
+  The agent will now collect slow SQL explain plans, if configured to, on
+  connections using the PostGIS adapter. Thanks Ari Pollak for the contribution!
+
 ## v4.4.0 ##
 
   * Include test helper for 3rd party use
