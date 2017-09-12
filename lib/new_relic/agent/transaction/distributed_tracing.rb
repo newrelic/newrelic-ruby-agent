@@ -94,6 +94,7 @@ module NewRelic
         attr_writer :order
 
         def append_distributed_tracing_info payload
+          return unless Agent.config[:'distributed_tracing.enabled']
           if inbound_distributed_trace_payload
             inbound_distributed_trace_payload.assign_intrinsics self, payload
           elsif order > 0
@@ -102,6 +103,7 @@ module NewRelic
         end
 
         def assign_distributed_tracing_intrinsics
+          return unless Agent.config[:'distributed_tracing.enabled']
           DistributedTracePayload::INTRINSIC_KEYS.each do |key|
             next unless value = @payload[key]
             attributes.add_intrinsic_attribute key, value

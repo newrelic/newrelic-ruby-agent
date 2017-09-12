@@ -622,11 +622,13 @@ module NewRelic
           :bucket               => recording_web_transaction? ? :request : :background,
           :start_timestamp      => start_time.to_f,
           :duration             => duration,
-          :'nr.sampled'         => sampled?,
           :metrics              => @metrics,
           :attributes           => @attributes,
           :error                => false
         }
+
+        @payload[:'nr.sampled'] = sampled? if Agent.config[:'distributed_tracing.enabled']
+
         append_cat_info(state, duration, @payload)
         append_distributed_tracing_info(@payload)
         append_apdex_perf_zone(duration, @payload)
