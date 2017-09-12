@@ -1639,6 +1639,13 @@ module NewRelic
           :type        => Boolean,
           :allowed_from_server => false,
           :description => 'If <code>true</code>, the agent will clear <code>TransactionState</code> in <code>Agent.drop_buffered_data</code>.'
+        },
+        :'distributed_tracing.enabled' => {
+          :default     => false,
+          :public      => false,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'If <code>true</code> enables experimental distributed tracing feature.'
         }
       }.freeze
     end

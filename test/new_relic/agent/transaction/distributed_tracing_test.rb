@@ -11,7 +11,12 @@ module NewRelic
   module Agent
     class Transaction
       class DistributedTracingTest < Minitest::Test
+        def setup
+          NewRelic::Agent.config.add_config_for_testing :'distributed_tracing.enabled' => true
+        end
+
         def teardown
+          NewRelic::Agent.config.reset_to_defaults
           NewRelic::Agent.drop_buffered_data
         end
 

@@ -14,17 +14,20 @@ module NewRelic
       def setup
         @events  = EventListener.new
         @monitor = DistributedTraceMonitor.new(@events)
-
-        NewRelic::Agent.reset_config
         @config = {
-          :encoding_key        => "\0",
-          :application_id      => "46954",
-          :cross_process_id    => "190#46954"
+          :'distributed_tracing.enabled' => true,
+          :encoding_key                  => "\0",
+          :application_id                => "46954",
+          :cross_process_id              => "190#46954"
 
         }
-        NewRelic::Agent.config.add_config_for_testing(@config)
 
+        NewRelic::Agent.config.add_config_for_testing(@config)
         @events.notify(:finished_configuring)
+      end
+
+      def teardown
+        NewRelic::Agent.config.reset_to_defaults
       end
 
       def test_accepts_inbound_distributed_trace_payload
