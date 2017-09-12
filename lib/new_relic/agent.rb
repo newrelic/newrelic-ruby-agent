@@ -655,7 +655,7 @@ module NewRelic
     #
     def browser_timing_header
       record_api_supportability_metric(:browser_timing_header)
-      
+
       return "" unless agent
       agent.javascript_instrumentor.browser_timing_header
     end
