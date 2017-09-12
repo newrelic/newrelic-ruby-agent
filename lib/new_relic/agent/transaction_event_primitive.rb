@@ -47,9 +47,10 @@ module NewRelic
         NAME_KEY      => string(payload[:name]),
         DURATION_KEY  => float(payload[:duration]),
         TYPE_KEY      => SAMPLE_TYPE,
-        ERROR_KEY     => payload[:error],
-        SAMPLED_KEY   => payload[:'nr.sampled']
+        ERROR_KEY     => payload[:error]
         }
+
+        intrinsics[SAMPLED_KEY] = payload[:'nr.sampled'] if Agent.config[:'distributed_tracing.enabled']
 
         NewRelic::Agent::PayloadMetricMapping.append_mapped_metrics(payload[:metrics], intrinsics)
         append_optional_attributes(intrinsics, payload)
@@ -84,6 +85,7 @@ module NewRelic
       end
 
       def append_distributed_trace_intrinsics(sample, payload)
+        return unless Agent.config[:'distributed_tracing.enabled']
         DistributedTracePayload::INTRINSIC_KEYS.each do |key|
           value = payload[key]
           sample[key] = value unless value.nil?

@@ -51,7 +51,7 @@ module NewRelic
         if payload
           attrs[NAME_KEY] = payload[:name]
           attrs[DURATION_KEY] = payload[:duration]
-          attrs[SAMPLED_KEY] = payload[:'nr.sampled']
+          attrs[SAMPLED_KEY] = payload[:'nr.sampled'] if Agent.config[:'distributed_tracing.enabled']
           append_synthetics payload, attrs
           append_cat payload, attrs
           append_distributed_trace_intrinsics payload, attrs
@@ -75,6 +75,7 @@ module NewRelic
       OTHER_GUID_KEY = "nr.guid".freeze
 
       def append_distributed_trace_intrinsics payload, sample
+        return unless Agent.config[:'distributed_tracing.enabled']
         DistributedTracePayload::INTRINSIC_KEYS.each do |key|
           value = payload[key]
           sample[key] = value unless value.nil?
