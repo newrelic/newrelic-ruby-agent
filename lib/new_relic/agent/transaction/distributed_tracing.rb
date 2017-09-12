@@ -10,6 +10,7 @@ module NewRelic
       module DistributedTracing
 
         def create_distributed_trace_payload url = nil
+          return unless Agent.config[:'distributed_tracing.enabled']
           self.order += 1
           DistributedTracePayload.for_transaction self, url
         end
@@ -17,6 +18,7 @@ module NewRelic
         LBRACE = "{".freeze
 
         def accept_distributed_trace_payload transport_type, payload
+          return unless Agent.config[:'distributed_tracing.enabled']
           if inbound_distributed_trace_payload
             NewRelic::Agent.increment_metric "Supportability/DistributedTracing/AcceptFailure/PayloadAlreadyAccepted"
             return false
