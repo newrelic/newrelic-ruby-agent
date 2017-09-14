@@ -11,6 +11,8 @@ module NewRelic
       class ExternalRequestSegment < Segment
         attr_reader :library, :uri, :procedure
 
+        NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'.freeze
+
         def initialize library, uri, procedure
           @library = library
           @uri = HTTPClients::URIUtil.parse_and_normalize_url(uri)
@@ -85,6 +87,10 @@ module NewRelic
         end
 
         private
+
+        def insert_synthetics_header request, header
+          request[NR_SYNTHETICS_HEADER] = header
+        end
 
         def segment_complete
           params[:uri] = HTTPClients::URIUtil.filter_uri(uri)

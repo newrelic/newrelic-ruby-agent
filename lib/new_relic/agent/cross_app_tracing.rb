@@ -18,9 +18,6 @@ module NewRelic
       # The cross app transaction header for "outgoing" calls
       NR_TXN_HEADER = 'X-NewRelic-Transaction'.freeze
 
-      # The cross app synthetics header
-      NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'.freeze
-
       NR_MESSAGE_BROKER_ID_HEADER  = 'NewRelicID'.freeze
       NR_MESSAGE_BROKER_TXN_HEADER = 'NewRelicTransaction'.freeze
       NR_MESSAGE_BROKER_SYNTHETICS_HEADER = 'NewRelicSynthetics'.freeze
@@ -59,10 +56,6 @@ module NewRelic
 
       def obfuscator
         @obfuscator ||= NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:encoding_key])
-      end
-
-      def insert_synthetics_header request, header
-        request[NR_SYNTHETICS_HEADER] = header
       end
 
       def insert_request_headers request, txn_guid, trip_id, path_hash
