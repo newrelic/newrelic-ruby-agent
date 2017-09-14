@@ -1,4 +1,8 @@
 # New Relic Ruby Agent Release Notes #
+  * Send synthetics headers even when CAT disabled
+
+  The agent now sends synthetics headers whenever they are received from an
+  external request, even if cross-application tracing is disabled.
 
   * Collect supportability metrics for public API
 
