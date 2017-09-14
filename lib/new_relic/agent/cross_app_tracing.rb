@@ -61,15 +61,16 @@ module NewRelic
         @obfuscator ||= NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:encoding_key])
       end
 
-      def insert_request_headers(request, txn_guid, trip_id, path_hash, synthetics_header)
+      def insert_synthetics_header request, header
+        request[NR_SYNTHETICS_HEADER] = header
+      end
+
+      def insert_request_headers request, txn_guid, trip_id, path_hash
         cross_app_id = NewRelic::Agent.config[:cross_process_id]
         txn_data  = ::JSON.dump([txn_guid, false, trip_id, path_hash])
 
         request[NR_ID_HEADER]  = obfuscator.obfuscate(cross_app_id)
         request[NR_TXN_HEADER] = obfuscator.obfuscate(txn_data)
-        if synthetics_header
-          request[NR_SYNTHETICS_HEADER] = synthetics_header
-        end
       end
 
       def response_has_crossapp_header?(response)
