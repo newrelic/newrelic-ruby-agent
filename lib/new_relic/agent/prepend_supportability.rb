@@ -8,7 +8,7 @@ module NewRelic
       def self.record_metrics_for *classes
         classes.each do |klass|
           count = klass.send(:ancestors).index(klass)
-          ::NewRelic::Agent.record_metric("Supportability/PrependedModules/#{klass}", count)
+          ::NewRelic::Agent.record_metric("Supportability/PrependedModules/#{klass}", count) if count > 0
         end
       end
     end
