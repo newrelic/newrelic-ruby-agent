@@ -39,8 +39,7 @@ module NewRelic
           synthetics_header = transaction && transaction.raw_synthetics_header
           insert_synthetics_header request, synthetics_header if synthetics_header
 
-          return unless record_metrics? 
-          return request unless CrossAppTracing.cross_app_enabled?
+          return unless record_metrics? && CrossAppTracing.cross_app_enabled?
 
           transaction_state.is_cross_app_caller = true
           txn_guid = transaction_state.request_guid
