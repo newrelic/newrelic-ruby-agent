@@ -74,7 +74,8 @@ module NewRelic
         @waited_on_connect  = nil
         @connected_pid      = nil
 
-        @wait_on_connect_reader, @wait_on_connect_writer = IO.pipe
+        @wait_on_connect_mutex = Mutex.new
+        @wait_on_connect_condition = ConditionVariable.new
 
         setup_attribute_filter
       end
@@ -862,7 +863,9 @@ module NewRelic
           end
 
           def signal_connected
-            @wait_on_connect_writer << "."
+            @wait_on_connect_mutex.synchronize do
+              @wait_on_connect_condition.signal
+            end
           end
 
           def wait_on_connect(timeout)
@@ -870,7 +873,10 @@ module NewRelic
 
             @waited_on_connect = true
             NewRelic::Agent.logger.debug("Waiting on connect to complete.")
-            IO.select([@wait_on_connect_reader], nil, nil, timeout)
+
+            @wait_on_connect_mutex.synchronize do
+              @wait_on_connect_condition.wait(@wait_on_connect_mutex, timeout)
+            end
 
             unless connected?
               raise WaitOnConnectTimeout, "Agent was unable to connect in #{timeout} seconds."
