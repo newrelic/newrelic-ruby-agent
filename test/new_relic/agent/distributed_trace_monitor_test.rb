@@ -30,7 +30,7 @@ module NewRelic
         NewRelic::Agent.config.reset_to_defaults
       end
 
-      def test_accepts_inbound_distributed_trace_payload
+      def test_accepts_distributed_trace_payload
         payload = nil
 
         in_transaction "referring_txn" do |txn|
@@ -41,7 +41,7 @@ module NewRelic
 
         in_transaction "receiving_txn" do |txn|
           @events.notify(:before_call, env)
-          refute_nil txn.inbound_distributed_trace_payload
+          refute_nil txn.distributed_trace_payload
         end
       end
     end

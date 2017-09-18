@@ -61,7 +61,7 @@ module NewRelic
             txn.accept_distributed_trace_payload "HTTP", payload.to_json
           end
 
-          refute_nil transaction.inbound_distributed_trace_payload
+          refute_nil transaction.distributed_trace_payload
 
           assert_equal transaction.depth, payload.depth
           assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
@@ -78,7 +78,7 @@ module NewRelic
             txn.accept_distributed_trace_payload "HTTP", payload.http_safe
           end
 
-          refute_nil transaction.inbound_distributed_trace_payload
+          refute_nil transaction.distributed_trace_payload
 
           assert_equal transaction.depth, payload.depth
           assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
@@ -187,7 +187,7 @@ module NewRelic
 
           intrinsics, _, _ = last_transaction_event
 
-          inbound_payload = transaction.inbound_distributed_trace_payload
+          inbound_payload = transaction.distributed_trace_payload
 
           assert_equal inbound_payload.caller_type, intrinsics["caller.type"]
           assert_equal inbound_payload.caller_transport_type, intrinsics["caller.transportType"]
@@ -240,7 +240,7 @@ module NewRelic
 
           intrinsics, _, _ = last_error_event
 
-          inbound_payload = transaction.inbound_distributed_trace_payload
+          inbound_payload = transaction.distributed_trace_payload
 
           assert_equal inbound_payload.caller_type, intrinsics["caller.type"]
           assert_equal inbound_payload.caller_transport_type, intrinsics["caller.transportType"]

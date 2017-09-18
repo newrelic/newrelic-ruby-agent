@@ -19,7 +19,7 @@ module NewRelic
 
         def accept_distributed_trace_payload transport_type, payload
           return unless Agent.config[:'distributed_tracing.enabled']
-          if inbound_distributed_trace_payload
+          if distributed_trace_payload
             NewRelic::Agent.increment_metric "Supportability/DistributedTracing/AcceptFailure/PayloadAlreadyAccepted"
             return false
           elsif self.order > 0
@@ -37,7 +37,7 @@ module NewRelic
           end
 
           payload.caller_transport_type = transport_type
-          self.inbound_distributed_trace_payload = payload
+          self.distributed_trace_payload = payload
 
           self.sampled = payload.sampled unless payload.sampled.nil?
 
@@ -48,29 +48,29 @@ module NewRelic
           false
         end
 
-        def inbound_distributed_trace_payload
-          @inbound_distributed_trace_payload ||= nil
+        def distributed_trace_payload
+          @distributed_trace_payload ||= nil
         end
 
         def distributed_trace?
-          !!inbound_distributed_trace_payload
+          !!distributed_trace_payload
         end
 
-        attr_writer :inbound_distributed_trace_payload
+        attr_writer :distributed_trace_payload
 
         def distributed_tracing_trip_id
-          if inbound_distributed_trace_payload
-            inbound_distributed_trace_payload.trip_id
+          if distributed_trace_payload
+            distributed_trace_payload.trip_id
           else
             guid
           end
         end
 
         def parent_ids
-          if inbound_distributed_trace_payload &&
-               inbound_distributed_trace_payload.parent_ids &&
-               inbound_distributed_trace_payload.parent_ids.last != guid
-            inbound_ids = inbound_distributed_trace_payload.parent_ids.dup
+          if distributed_trace_payload &&
+               distributed_trace_payload.parent_ids &&
+               distributed_trace_payload.parent_ids.last != guid
+            inbound_ids = distributed_trace_payload.parent_ids.dup
             inbound_ids.push guid
             if inbound_ids.size > 3
               inbound_ids.shift
@@ -82,8 +82,8 @@ module NewRelic
         end
 
         def depth
-          if inbound_distributed_trace_payload
-            inbound_distributed_trace_payload.depth
+          if distributed_trace_payload
+            distributed_trace_payload.depth
           else
             1
           end
@@ -97,8 +97,8 @@ module NewRelic
 
         def append_distributed_tracing_info payload
           return unless Agent.config[:'distributed_tracing.enabled']
-          if inbound_distributed_trace_payload
-            inbound_distributed_trace_payload.assign_intrinsics self, payload
+          if distributed_trace_payload
+            distributed_trace_payload.assign_intrinsics self, payload
           elsif order > 0
             DistributedTracePayload.assign_initial_intrinsics self, payload
           end
@@ -117,8 +117,8 @@ module NewRelic
         # is stored in milliseconds on the payload, but it needed in seconds for
         # metrics and intrinsics.
         def transport_duration
-          return unless inbound_distributed_trace_payload
-          (start_time.to_f * 1000 - inbound_distributed_trace_payload.timestamp) / 1000
+          return unless distributed_trace_payload
+          (start_time.to_f * 1000 - distributed_trace_payload.timestamp) / 1000
         end
       end
     end
