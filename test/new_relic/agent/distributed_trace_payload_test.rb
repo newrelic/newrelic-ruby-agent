@@ -12,32 +12,36 @@ module NewRelic
     class DistributedTracePayloadTest < Minitest::Test
 
       def setup
-        freeze_time
+      freeze_time
+        NewRelic::Agent.config.add_config_for_testing(
+          :application_id => "46954",
+          :cross_process_id => "190#222"
+        )
       end
 
       def teardown
+        NewRelic::Agent.config.reset_to_defaults
         NewRelic::Agent.drop_buffered_data
       end
 
       def test_payload_is_created_if_connected
-        with_config application_id: "46954", cross_process_id: "190#222" do
-          state = TransactionState.tl_get
+        created_at, payload = nil, nil
 
-          transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
+        in_transaction "test_txn" do |txn|
           created_at = (Time.now.to_f * 1000).round
-          payload = DistributedTracePayload.for_transaction transaction
-          Transaction.stop state
-
-          assert_equal "46954", payload.caller_app_id
-          assert_equal "190", payload.caller_account_id
-          assert_equal [0, 0], payload.version
-          assert_equal "App", payload.caller_type
-          assert_equal created_at, payload.timestamp
+          payload = DistributedTracePayload.for_transaction txn
         end
+
+
+        assert_equal "46954", payload.caller_app_id
+        assert_equal "190", payload.caller_account_id
+        assert_equal [0, 0], payload.version
+        assert_equal "App", payload.caller_type
+        assert_equal created_at, payload.timestamp
       end
 
       def test_app_id_uses_fallback_if_not_explicity_set
-        with_config cross_process_id: "190#46954" do
+        with_config cross_process_id: "190#46954", application_id: "" do
           payload = nil
 
           in_transaction "test_txn" do |txn|
@@ -50,64 +54,54 @@ module NewRelic
 
 
       def test_attributes_are_copied_from_transaction
-        with_config application_id: "46954", cross_process_id: "190#222" do
-          state = TransactionState.tl_get
+        payload = nil
 
-          transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
-          payload = DistributedTracePayload.for_transaction transaction
-          Transaction.stop state
-
-          assert_equal transaction.guid, payload.id
-          assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
-          assert_equal transaction.parent_ids, payload.parent_ids
-          assert_equal transaction.depth + 1, payload.depth
-          assert_equal transaction.order, payload.order
+        transaction = in_transaction "test_txn" do |txn|
+          payload = DistributedTracePayload.for_transaction txn
         end
+
+        assert_equal transaction.guid, payload.id
+        assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
+        assert_equal transaction.parent_ids, payload.parent_ids
+        assert_equal transaction.depth + 1, payload.depth
+        assert_equal transaction.order, payload.order
       end
 
       def test_sampled_flag_is_copied_from_transaction
-        with_config application_id: "46954", cross_process_id: "190#222" do
+        NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
+        in_transaction "test_txn" do |txn|
+          payload = DistributedTracePayload.for_transaction txn
+          assert_equal false, payload.sampled
+        end
 
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
-          in_transaction "test_txn" do |txn|
-            payload = DistributedTracePayload.for_transaction txn
-            assert_equal false, payload.sampled
-          end
-
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
-          in_transaction "test_txn2" do |txn|
-            payload = DistributedTracePayload.for_transaction txn
-            assert_equal true, payload.sampled
-          end
+        NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+        in_transaction "test_txn2" do |txn|
+          payload = DistributedTracePayload.for_transaction txn
+          assert_equal true, payload.sampled
         end
       end
 
       def test_attributes_synthetics_attributes_are_copied_when_present
-        with_config application_id: "46954", cross_process_id: "190#222" do
-          state = TransactionState.tl_get
+        payload = nil
 
-          transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
-          transaction.synthetics_payload = [1, 1, 100, 200, 300]
-
-          payload = DistributedTracePayload.for_transaction transaction
-          Transaction.stop state
-
-          assert_equal 100, payload.synthetics_resource
-          assert_equal 200, payload.synthetics_job
-          assert_equal 300, payload.synthetics_monitor
+        in_transaction "test_txn" do |txn|
+          txn.synthetics_payload = [1, 1, 100, 200, 300]
+          payload = DistributedTracePayload.for_transaction txn
         end
+
+        assert_equal 100, payload.synthetics_resource
+        assert_equal 200, payload.synthetics_job
+        assert_equal 300, payload.synthetics_monitor
       end
 
       def test_host_copied_from_uri
-        with_config application_id: "46954", cross_process_id: "190#222" do
-          state = TransactionState.tl_get
+        payload = nil
 
-          transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
-          payload = DistributedTracePayload.for_transaction transaction, URI("http://newrelic.com/blog")
-          Transaction.stop state
-
-          assert_equal "newrelic.com", payload.host
+        in_transaction "test_txn" do |txn|
+          payload = DistributedTracePayload.for_transaction txn, URI("http://newrelic.com/blog")
         end
+
+        assert_equal "newrelic.com", payload.host
       end
 
       def test_payload_attributes_populated_from_serialized_version
@@ -115,17 +109,14 @@ module NewRelic
         referring_transaction = nil
         created_at = (Time.now.to_f * 1000).round
 
-        with_config application_id: "46954", cross_process_id: "190#222" do
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
-          state = TransactionState.tl_get
+        NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
 
-          referring_transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
-          referring_transaction.synthetics_payload = [1, 1, 100, 200, 300]
-          Transaction.stop state
 
-          incoming_payload = DistributedTracePayload.for_transaction referring_transaction, URI("http://newrelic.com/blog")
+        referring_transaction = in_transaction "test_txn" do |txn|
+          txn.synthetics_payload = [1, 1, 100, 200, 300]
         end
 
+        incoming_payload = DistributedTracePayload.for_transaction referring_transaction, URI("http://newrelic.com/blog")
         payload = DistributedTracePayload.from_json incoming_payload.to_json
 
         assert_equal [0, 0], payload.version
@@ -150,17 +141,13 @@ module NewRelic
         referring_transaction = nil
         created_at = (Time.now.to_f * 1000).round
 
-        with_config application_id: "46954", cross_process_id: "190#222" do
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
-          state = TransactionState.tl_get
+        NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
 
-          referring_transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
-          referring_transaction.synthetics_payload = [1, 1, 100, 200, 300]
-          Transaction.stop state
-
-          incoming_payload = DistributedTracePayload.for_transaction referring_transaction, URI("http://newrelic.com/blog")
+        referring_transaction = in_transaction "test_txn" do |txn|
+          txn.synthetics_payload = [1, 1, 100, 200, 300]
         end
 
+        incoming_payload = DistributedTracePayload.for_transaction referring_transaction, URI("http://newrelic.com/blog")
         payload = DistributedTracePayload.from_http_safe incoming_payload.http_safe
 
         assert_equal [0, 0], payload.version
