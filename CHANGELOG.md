@@ -1,10 +1,17 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Bugfix for DelayedJob Daemonization
+
+  Customers using the delayed_job script that ships with the gem may encounter
+  an IOError with a message indicating the stream was closed. This was due to
+  the agent attempting to write a byte into a Pipe that was closed during the
+  deamonization of the delayed_job script. This issue has been fixed.
+
   * Collect supportability metrics for public API
 
   The agent now collects Supportability/API/{method} metrics to track usage of
   all methods in the agent's public API.
-  
+
   * Collect supportability metrics on `Module#prepend`
 
   The agent now collects Supportability/PrependedModules/{Module} metrics
