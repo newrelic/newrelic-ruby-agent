@@ -514,6 +514,19 @@ module HttpClientTestCases
     end
   end
 
+  def test_raw_synthetics_header_is_passed_along_when_cat_disabled
+    with_config(:"cross_application_tracer.enabled" => false) do
+      in_transaction do
+        state = NewRelic::Agent::TransactionState.tl_get
+        state.current_transaction.raw_synthetics_header = "boo"
+
+        get_response
+
+        assert_equal "boo", server.requests.last["HTTP_X_NEWRELIC_SYNTHETICS"]
+      end
+    end
+  end
+
   load_cross_agent_test("cat_map").each do |test_case|
     # Test cases that don't involve outgoing calls are done elsewhere
     if test_case['outboundRequests']

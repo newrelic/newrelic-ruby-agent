@@ -11,6 +11,8 @@ module NewRelic
       class ExternalRequestSegment < Segment
         attr_reader :library, :uri, :procedure
 
+        NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'.freeze
+
         def initialize library, uri, procedure
           @library = library
           @uri = HTTPClients::URIUtil.parse_and_normalize_url(uri)
@@ -33,19 +35,22 @@ module NewRelic
         # header is used it will update the segment name to reflect the host header.
         def add_request_headers request
           process_host_header request
+
+          synthetics_header = transaction && transaction.raw_synthetics_header
+          insert_synthetics_header request, synthetics_header if synthetics_header
+
           return unless record_metrics? && CrossAppTracing.cross_app_enabled?
 
           transaction_state.is_cross_app_caller = true
           txn_guid = transaction_state.request_guid
           trip_id   = transaction && transaction.cat_trip_id(transaction_state)
           path_hash = transaction && transaction.cat_path_hash(transaction_state)
-          synthetics_header = transaction && transaction.raw_synthetics_header
 
-          CrossAppTracing.insert_request_headers request, txn_guid, trip_id, path_hash, synthetics_header
+          CrossAppTracing.insert_request_headers request, txn_guid, trip_id, path_hash
         rescue => e
           NewRelic::Agent.logger.error "Error in add_request_headers", e
         end
-
+        
         def read_response_headers response
           return unless record_metrics? && CrossAppTracing.cross_app_enabled?
           return unless CrossAppTracing.response_has_crossapp_header?(response)
@@ -81,6 +86,10 @@ module NewRelic
         end
 
         private
+
+        def insert_synthetics_header request, header
+          request[NR_SYNTHETICS_HEADER] = header
+        end
 
         def segment_complete
           params[:uri] = HTTPClients::URIUtil.filter_uri(uri)
