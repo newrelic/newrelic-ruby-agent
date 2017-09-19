@@ -1,4 +1,7 @@
 # New Relic Ruby Agent Release Notes #
+
+## v4.5.0 ##
+
   * Send synthetics headers even when CAT disabled
 
   The agent now sends synthetics headers whenever they are received from an
