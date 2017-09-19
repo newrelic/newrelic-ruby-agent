@@ -179,7 +179,7 @@ module NewRelic
 
         def record_metrics
           add_unscoped_metrics
-          record_distributed_tracing_metrics
+          record_distributed_tracing_metrics if Agent.config[:'distributed_tracing.enabled']
           super
         end
 
