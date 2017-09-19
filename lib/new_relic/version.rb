@@ -17,7 +17,7 @@ module NewRelic
     begin
       require File.join(File.dirname(__FILE__), 'build')
     rescue LoadError
-      BUILD = 'demo.alpha1'
+      BUILD = nil
     end
 
     STRING = build_version_string(MAJOR, MINOR, TINY, BUILD)
