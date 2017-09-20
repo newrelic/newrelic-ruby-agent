@@ -4,7 +4,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'json'
-require 'new_relic/agent/cross_app_tracing/non_http'
 
 module NewRelic
   module Agent

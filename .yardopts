@@ -15,7 +15,6 @@ lib/new_relic/rack/agent_hooks.rb
 lib/new_relic/rack/browser_monitoring.rb
 lib/new_relic/rack/error_collector.rb
 lib/new_relic/rack.rb
-lib/new_relic/agent/cross_app_tracing/non_http.rb
 -
 LICENSE
 CHANGELOG

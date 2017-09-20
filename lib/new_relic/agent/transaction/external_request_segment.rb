@@ -85,6 +85,133 @@ module NewRelic
           @app_data && @app_data[1]
         end
 
+        EXTERNAL_TRANSACTION_PREFIX = 'ExternalTransaction/'.freeze
+        SLASH = '/'.freeze
+        APP_DATA_KEY = 'NewRelicAppData'.freeze
+
+        NON_HTTP_CAT_ID_HEADER  = 'NewRelicID'.freeze
+        NON_HTTP_CAT_TXN_HEADER = 'NewRelicTransaction'.freeze
+        NON_HTTP_CAT_SYNTHETICS_HEADER = 'NewRelicSynthetics'.freeze
+
+        # obtain an obfuscated string suitable for delivery across public networks that identifies this application
+        # and transaction to another application which is also running a New Relic agent.
+        #
+        # TODO: more doc
+        #
+        def get_request_metadata
+          if transaction
+
+            # build hash of CAT metadata
+            #
+            rmd = {
+              NewRelicID: NewRelic::Agent.config[:cross_process_id],
+              NewRelicTransaction: [
+                transaction.guid,
+                false,
+                transaction.cat_trip_id,
+                transaction.cat_path_hash
+              ]
+            }
+
+            # add Synthetics header if we have it
+            #
+            rmd[:NewRelicSynthetics] = transaction.raw_synthetics_header if transaction.raw_synthetics_header
+
+            # obfuscate the generated request metadata JSON
+            #
+            obfuscator.obfuscate ::JSON.dump(rmd)
+
+          end
+        rescue => e
+          NewRelic::Agent.logger.error "error during get_request_metadata", e
+        end
+
+        # process obfuscated string indentifying a calling application and transaction that is also running a
+        # New Relic agent and save information in current transaction for inclusion in a trace.
+        #
+        # TODO: more doc
+        #
+        def process_request_metadata request_metadata
+          if transaction
+            rmd = ::JSON.parse obfuscator.deobfuscate(request_metadata)
+
+            # handle ID
+            #
+            if id = rmd[NON_HTTP_CAT_ID_HEADER]
+              transaction.state.client_cross_app_id = id
+            end
+
+            # handle transaction info
+            #
+            if txn_info = rmd[NON_HTTP_CAT_TXN_HEADER]
+              transaction.state.referring_transaction_info = txn_info
+            end
+
+            # handle synthetics
+            #
+            if synth = rmd[NON_HTTP_CAT_SYNTHETICS_HEADER]
+              transaction.synthetics_payload = synth
+              transaction.raw_synthetics_header = obfuscator.obfuscate ::JSON.dump(synth)
+            end
+
+            nil
+          end
+        rescue => e
+          NewRelic::Agent.logger.error "error during process_request_metadata", e
+        end
+
+        # obtain an obfuscated string suitable for delivery across public networks that carries transaction
+        # information from this application to a calling application which is also running a New Relic agent.
+        #
+        # TODO: more doc
+        #
+        def get_response_metadata
+          if transaction
+
+            # must freeze the name since we're responding with it
+            #
+            transaction.freeze_name_and_execute_if_not_ignored do
+
+              # build response payload
+              #
+              rmd = {
+                NewRelicAppData: [
+                  NewRelic::Agent.config[:cross_process_id],
+                  transaction.state.timings.transaction_name,
+                  transaction.state.timings.queue_time_in_seconds.to_f,
+                  transaction.state.timings.app_time_in_seconds.to_f,
+                  -1, # we will have no idea of the response content length at this point
+                  transaction.state.request_guid
+                ]
+              }
+
+              # obfuscate the generated response metadata JSON
+              #
+              obfuscator.obfuscate ::JSON.dump(rmd)
+
+            end
+          end
+        rescue => e
+          NewRelic::Agent.logger.error "error during get_response_metadata", e
+        end
+
+        # process obfuscated string sent from a called application that is also running a New Relic agent and
+        # save information in current transaction for inclusion in a trace.
+        #
+        # TODO: more doc
+        #
+        def process_response_metadata response_metadata
+          if transaction
+            @app_data = ::JSON.parse(obfuscator.deobfuscate(response_metadata))[APP_DATA_KEY]
+
+            # validate cross app id
+            #
+            update_segment_name if CrossAppTracing.valid_cross_app_id? cross_process_id
+          end
+
+          nil
+        end
+
         private
 
         def insert_synthetics_header request, header
@@ -138,6 +265,10 @@ module NewRelic
           else
             @name = "External/#{host}/#{library}/#{procedure}"
           end
+        end
+
+        def obfuscator
+          CrossAppTracing.obfuscator
         end
       end
     end
