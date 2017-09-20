@@ -28,15 +28,11 @@ module NewRelic
         raise ArgumentError, 'Argument `uri` is required' if uri.nil?
         raise ArgumentError, 'Argument `procedure` is required' if procedure.nil?
 
-        @segment = ::NewRelic::Agent::Transaction::ExternalRequestSegment.new(
-          library:   library,
-          uri:       uri,
-          procedure: procedure
-          )
-
-        @segment.transaction = NewRelic::Agent::TransactionState.tl_get.current_transaction
-
-        @segment.start
+        ::NewRelic::Agent::Transaction::Tracing.start_external_request_segment(
+                                                                                library,
+                                                                                uri,
+                                                                                procedure
+                                                                              )
       end
 
       # This method adds New Relic request headers to a given request made to an 
