@@ -23,7 +23,7 @@ module NewRelic
       # request as a string, for example, 'GET'.
       #
       # @api public
-      def self.start_external_segment(library: nil, uri: nil, procedure: nil)
+      def self.start_segment(library: nil, uri: nil, procedure: nil)
         raise ArgumentError, 'Argument `library` is required' if library.nil?
         raise ArgumentError, 'Argument `uri` is required' if uri.nil?
         raise ArgumentError, 'Argument `procedure` is required' if procedure.nil?
