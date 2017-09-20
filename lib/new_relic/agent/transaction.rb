@@ -578,8 +578,8 @@ module NewRelic
         end
 
         if state.is_cross_app?
-          attributes.add_intrinsic_attribute(:trip_id, cat_trip_id(state))
-          attributes.add_intrinsic_attribute(:path_hash, cat_path_hash(state))
+          attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)
+          attributes.add_intrinsic_attribute(:path_hash, cat_path_hash)
         end
       end
 
@@ -623,11 +623,11 @@ module NewRelic
         state.is_cross_app? || is_synthetics_request?
       end
 
-      def cat_trip_id(state)
+      def cat_trip_id
         NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_trip_id(state) || guid
       end
 
-      def cat_path_hash(state)
+      def cat_path_hash
         referring_path_hash = cat_referring_path_hash(state) || '0'
         seed = referring_path_hash.to_i(16)
         result = NewRelic::Agent.instance.cross_app_monitor.path_hash(best_name, seed)
@@ -702,8 +702,8 @@ module NewRelic
         payload[:guid] = guid
 
         return unless state.is_cross_app?
-        trip_id             = cat_trip_id(state)
-        path_hash           = cat_path_hash(state)
+        trip_id             = cat_trip_id
+        path_hash           = cat_path_hash
         referring_path_hash = cat_referring_path_hash(state)
 
         payload[:cat_trip_id]             = trip_id             if trip_id
@@ -925,8 +925,8 @@ module NewRelic
         state.is_cross_app_caller = true
         CrossAppTracing.insert_message_headers headers,
                                                guid,
-                                               cat_trip_id(state),
-                                               cat_path_hash(state),
+                                               cat_trip_id,
+                                               cat_path_hash,
                                                raw_synthetics_header
       end
 

@@ -31,8 +31,8 @@ module NewRelic::Agent
           assert_equal txn.guid, rmd['NewRelicTransaction'][0]
           refute rmd['NewRelicTransaction'][1]
 
-          assert_equal txn.cat_trip_id(txn.state), rmd['NewRelicTransaction'][2]
-          assert_equal txn.cat_path_hash(txn.state), rmd['NewRelicTransaction'][3]
+          assert_equal txn.cat_trip_id, rmd['NewRelicTransaction'][2]
+          assert_equal txn.cat_path_hash, rmd['NewRelicTransaction'][3]
 
           refute rmd.key? 'NewRelicSynthetics'
         end
