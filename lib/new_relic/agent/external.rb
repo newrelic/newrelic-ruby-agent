@@ -34,33 +34,6 @@ module NewRelic
                                                                                 procedure
                                                                               )
       end
-
-      # This method adds New Relic request headers to a given request made to an 
-      # external API and checks to see if a host header is used for the request.
-      # If a host header is used, it updates the segment name to match the host
-      # header.
-      #
-      # +request+ should be a NewRelic::Agent::HTTPClients::NetHTTPRequest object
-      #
-      # @api public
-      def self.add_request_headers(request: nil)
-        raise ArgumentError, 'Argument `request` is required' if request.nil?
-
-        @segment.add_request_headers(request) if @segment
-      end
-
-      # This method extracts app data from an external response if present. If
-      # a valid cross-app ID is found, the name of the segment is updated to
-      # reflect the cross-process ID and transaction name.
-      #
-      # +response+ should be a hash of headers.
-      #
-      # @api public
-      def self.read_response_headers(response: nil)
-        raise ArgumentError, 'Argument `response` is required' if response.nil?
-
-        @segment.read_response_headers(response) if @segment
-      end
     end
   end
 end
