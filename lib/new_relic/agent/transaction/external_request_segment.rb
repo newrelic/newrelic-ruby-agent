@@ -107,6 +107,7 @@ module NewRelic
         # @api public
         #
         def get_request_metadata
+          NewRelic::Agent.record_api_supportability_metric(:get_request_metadata)
           if transaction
 
             # build hash of CAT metadata
@@ -143,6 +144,7 @@ module NewRelic
         # @api public
         #
         def process_request_metadata request_metadata
+          NewRelic::Agent.record_api_supportability_metric(:process_request_metadata)
           if transaction
             rmd = ::JSON.parse obfuscator.deobfuscate(request_metadata)
 
@@ -180,6 +182,7 @@ module NewRelic
         # @api public
         #
         def get_response_metadata
+          NewRelic::Agent.record_api_supportability_metric(:get_response_metadata)
           if transaction
 
             # must freeze the name since we're responding with it
@@ -218,6 +221,7 @@ module NewRelic
         # @api public
         #
         def process_response_metadata response_metadata
+          NewRelic::Agent.record_api_supportability_metric(:process_response_metadata)
           if transaction
             @app_data = ::JSON.parse(obfuscator.deobfuscate(response_metadata))[APP_DATA_KEY]
 
