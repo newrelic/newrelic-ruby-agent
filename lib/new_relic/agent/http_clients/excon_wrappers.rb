@@ -26,7 +26,7 @@ module NewRelic
         end
       end
 
-      class ExconHTTPRequest
+      class ExconHTTPRequest < AbstractRequest
         attr_reader :method
 
         EXCON = "Excon".freeze

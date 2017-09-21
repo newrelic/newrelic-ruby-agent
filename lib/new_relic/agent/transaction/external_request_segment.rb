@@ -35,7 +35,8 @@ module NewRelic
         # If a host header is used, it updates the segment name to match the host
         # header.
         #
-        # +request+ should be a NewRelic::Agent::HTTPClients::NetHTTPRequest object
+        # @param [NewRelic::Agent::HTTPClients::AbstractRequest] request the request
+        # object (must belong to a subclass of NewRelic::Agent::HTTPClients::AbstractRequest)
         #
         # @api public
         def add_request_headers request
@@ -60,7 +61,7 @@ module NewRelic
         # a valid cross-app ID is found, the name of the segment is updated to
         # reflect the cross-process ID and transaction name.
         #
-        # +response+ should be a hash of headers.
+        # @param [Hash] response a hash of response headers
         #
         # @api public
         def read_response_headers response

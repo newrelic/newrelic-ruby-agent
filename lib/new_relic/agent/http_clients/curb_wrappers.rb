@@ -45,7 +45,7 @@ module NewRelic
       end
 
 
-      class CurbResponse
+      class CurbResponse < AbstractRequest
 
         def initialize(curlobj)
           @headers = {}

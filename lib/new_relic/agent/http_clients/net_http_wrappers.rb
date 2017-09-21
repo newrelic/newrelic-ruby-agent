@@ -5,7 +5,7 @@
 module NewRelic
   module Agent
     module HTTPClients
-      class NetHTTPRequest
+      class NetHTTPRequest < AbstractRequest
         def initialize(connection, request)
           @connection = connection
           @request = request

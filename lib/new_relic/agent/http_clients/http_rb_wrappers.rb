@@ -22,7 +22,7 @@ module NewRelic
         end
       end
 
-      class HTTPRequest
+      class HTTPRequest < AbstractRequest
         HTTP_RB = 'http.rb'.freeze
         HOST    = 'host'.freeze
         COLON   = ':'.freeze

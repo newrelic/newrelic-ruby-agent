@@ -26,7 +26,7 @@ module NewRelic
         end
       end
 
-      class HTTPClientRequest
+      class HTTPClientRequest < AbstractRequest
         attr_reader :request, :uri
 
         HTTP_CLIENT = "HTTPClient".freeze

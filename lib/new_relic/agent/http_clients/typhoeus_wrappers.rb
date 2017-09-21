@@ -35,7 +35,7 @@ module NewRelic
         end
       end
 
-      class TyphoeusHTTPRequest
+      class TyphoeusHTTPRequest < AbstractRequest
         def initialize(request)
           @request = request
           @uri = case request.url
