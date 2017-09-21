@@ -32,6 +32,12 @@
   The agent will now collect slow SQL explain plans, if configured to, on
   connections using the PostGIS adapter. Thanks Ari Pollak for the contribution!
 
+  * Lazily intialize New Relic Config
+
+  The agent will lazily initialize the New Relic config. This allows the agent
+  to pickup configuration from environment variables set by dotenv and similar
+  tools.
+
 ## v4.4.0 ##
 
   * Include test helper for 3rd party use

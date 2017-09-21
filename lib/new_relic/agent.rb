@@ -123,17 +123,14 @@ module NewRelic
       @logger = log
     end
 
-    # This needs to come after the definition of the logger method above, since
-    # instantiating the config writes to the Logger.
-
-    @config = NewRelic::Agent::Configuration::Manager.new
-
-    attr_reader :config
+    def config
+      @config ||= Configuration::Manager.new
+    end
 
     # For testing
     # Important that we don't change the instance or we orphan callbacks
     def reset_config
-      @config.reset_to_defaults
+      config.reset_to_defaults
     end
 
     # @!group Recording custom metrics
