@@ -12,14 +12,14 @@ module NewRelic
       # given library, URI, and procedure. This is used to time external calls
       # made over HTTP.
       #
-      # +library+ should be a string of the class name of the library used to
+      # @param [String] library a string of the class name of the library used to
       # make the external call, for example, 'Net::HTTP'.
       #
-      # +uri+ should be a URI object or a string indicating the URI to which the
+      # @param [String, URI] uri indicates the URI to which the
       # external request is being made. The URI should begin with the protocol, 
       # for example, 'https://github.com'.
       #
-      # +procedure+ should be the HTTP method being used for the external
+      # @param [String] procedure the HTTP method being used for the external
       # request as a string, for example, 'GET'.
       #
       # @api public
