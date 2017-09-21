@@ -59,6 +59,7 @@ class UtilizationDataCollectionTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns(nil)
     NewRelic::Agent::SystemInfo.stubs(:boot_id).returns(nil)
     NewRelic::Agent::Utilization::AWS.any_instance.stubs(:detect).returns(false)
+    NewRelic::Agent::Utilization::GCP.any_instance.stubs(:detect).returns(false)
 
     # this will trigger the agent to connect and send utilization data
     setup_agent
