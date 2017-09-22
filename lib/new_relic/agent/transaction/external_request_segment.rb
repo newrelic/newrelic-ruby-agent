@@ -35,9 +35,15 @@ module NewRelic
           @host_header || uri.host
         end
 
-        # This method will add NewRelic headers for cross application tracing and
-        # will check to see if a host header is used for the request. If a host
-        # header is used it will update the segment name to reflect the host header.
+        # This method adds New Relic request headers to a given request made to an 
+        # external API and checks to see if a host header is used for the request.
+        # If a host header is used, it updates the segment name to match the host
+        # header.
+        #
+        # @param [NewRelic::Agent::HTTPClients::AbstractRequest] request the request
+        # object (must belong to a subclass of NewRelic::Agent::HTTPClients::AbstractRequest)
+        #
+        # @api public
         def add_request_headers request
           process_host_header request
 
@@ -56,6 +62,13 @@ module NewRelic
           NewRelic::Agent.logger.error "Error in add_request_headers", e
         end
 
+        # This method extracts app data from an external response if present. If
+        # a valid cross-app ID is found, the name of the segment is updated to
+        # reflect the cross-process ID and transaction name.
+        #
+        # @param [Hash] response a hash of response headers
+        #
+        # @api public
         def read_response_headers response
           return unless record_metrics? && CrossAppTracing.cross_app_enabled?
           return unless CrossAppTracing.response_has_crossapp_header?(response)
