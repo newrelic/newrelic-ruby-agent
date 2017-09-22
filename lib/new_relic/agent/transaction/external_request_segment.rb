@@ -207,6 +207,7 @@ module NewRelic
         X_NEWRELIC_TRACE_HEADER = "X-NewRelic-Trace".freeze
 
         def insert_distributed_trace_header request
+          return unless Agent.config[:'distributed_tracing.enabled']
           payload = transaction.create_distributed_trace_payload uri
           request[X_NEWRELIC_TRACE_HEADER] = payload.http_safe
         end
