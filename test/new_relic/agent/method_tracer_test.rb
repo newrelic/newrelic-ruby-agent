@@ -120,7 +120,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       advance_time 0.05
     end
 
-    assert_metrics_recorded_exclusive([])
+    assert_metrics_recorded_exclusive(['Supportability/API/trace_execution_scoped'])
   end
 
   def test_trace_execution_scoped_pushes_transaction_scope

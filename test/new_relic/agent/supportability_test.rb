@@ -189,4 +189,14 @@ class APISupportabilityMetricsTest < Minitest::Test
     NewRelic::Agent::Transaction.recording_web_transaction?
     assert_api_supportability_metric_recorded(:recording_web_transaction?)
   end
+
+  def test_trace_execution_scoped_records_supportability_metric
+    FakeController.trace_execution_scoped('test'){}
+    assert_api_supportability_metric_recorded(:trace_execution_scoped)
+  end
+
+  def test_trace_execution_unscoped_records_supportability_metric
+    FakeController.trace_execution_unscoped('test'){}
+    assert_api_supportability_metric_recorded(:trace_execution_unscoped)
+  end
 end

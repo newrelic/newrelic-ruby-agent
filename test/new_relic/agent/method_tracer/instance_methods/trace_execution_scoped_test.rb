@@ -23,7 +23,8 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       ['foo', 'outer'] => expected_values,
       'foo'            => expected_values,
       'bar'            => expected_values,
-      'outer'          => expected_values
+      'outer'          => expected_values,
+      'Supportability/API/trace_execution_scoped' => expected_values
     )
   end
 
@@ -48,7 +49,8 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
       ['foo'                    , 'Controller/inner_txn'] => expected_values,
       'foo'                                               => expected_values,
-      'bar'                                               => expected_values
+      'bar'                                               => expected_values,
+      'Supportability/API/trace_execution_scoped' => expected_values
     )
   end
 
@@ -81,7 +83,8 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       'outer'          => expected_values,
       'foo'            => expected_values,
       ['foo', 'outer'] => expected_values,
-      'bar'            => expected_values
+      'bar'            => expected_values,
+      'Supportability/API/trace_execution_scoped' => expected_values
     )
   end
 
@@ -95,7 +98,9 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     end
 
     expected_values = { :call_count => 1 }
-    assert_metrics_recorded_exclusive('outer' => expected_values)
+    assert_metrics_recorded_exclusive(
+      'outer' => expected_values,
+      'Supportability/API/trace_execution_scoped' => expected_values)
   end
 
   def test_trace_execution_scoped_calculates_exclusive_time
@@ -132,7 +137,8 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
         :call_count           =>  1,
         :total_call_time      => 10,
         :total_exclusive_time => 10,
-      }
+      },
+      'Supportability/API/trace_execution_scoped' => { call_count: 2 }
     )
   end
 

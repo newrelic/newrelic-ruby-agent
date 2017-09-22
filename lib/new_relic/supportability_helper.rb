@@ -43,6 +43,8 @@ module NewRelic
       :set_transaction_name,
       :shutdown,
       :trace,
+      :trace_execution_scoped,
+      :trace_execution_unscoped,
       :wrap
     ].reduce({}) do |h,o|
       h[o] = API_SUPPORTABILITY_PREFIX + o.to_s
