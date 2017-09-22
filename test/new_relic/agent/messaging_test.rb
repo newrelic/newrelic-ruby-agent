@@ -416,7 +416,7 @@ module NewRelic
 
           in_transaction do |txn|
             obfuscated_id       = obfuscator.obfuscate cross_process_id
-            raw_txn_info        = [guid, false, guid, txn.cat_path_hash(txn.state)]
+            raw_txn_info        = [guid, false, guid, txn.cat_path_hash]
             obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
           end
 
@@ -455,7 +455,7 @@ module NewRelic
 
           in_transaction "test_txn" do |txn|
             obfuscated_id = obfuscator.obfuscate cross_process_id
-            raw_txn_info = [guid, false, guid, txn.cat_path_hash(txn.state)]
+            raw_txn_info = [guid, false, guid, txn.cat_path_hash]
             obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
             synthetics_header = obfuscator.obfuscate synthetics_payload.to_json
           end
@@ -494,7 +494,7 @@ module NewRelic
 
           in_transaction "test_txn" do |txn|
             obfuscated_id = obfuscator.obfuscate cross_process_id
-            raw_txn_info = [guid, false, guid, txn.cat_path_hash(txn.state)]
+            raw_txn_info = [guid, false, guid, txn.cat_path_hash]
             obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
           end
 
