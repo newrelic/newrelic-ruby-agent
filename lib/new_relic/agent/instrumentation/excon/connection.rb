@@ -31,7 +31,7 @@ module ::Excon
 
         response
       ensure
-        segment.finish
+        segment.finish if segment
       end
     end
 

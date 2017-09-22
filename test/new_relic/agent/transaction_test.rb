@@ -1515,6 +1515,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       "Nested/Controller/Framework/inner_1",
       "Nested/Controller/RackFramework/action",
       "Ruby/my_lib/my_meth",
+      "Supportability/API/set_transaction_name",
       ["Nested/Controller/Framework/webby", "Controller/RackFramework/action"],
       ["Nested/Controller/Framework/inner_1", "Controller/RackFramework/action"],
       ["Nested/Controller/RackFramework/action", "Controller/RackFramework/action"],

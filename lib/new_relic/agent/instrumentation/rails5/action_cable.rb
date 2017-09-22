@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/action_cable_subscriber'
+require 'new_relic/agent/prepend_supportability'
 
 DependencyDetection.defer do
   @name = :rails5_action_cable
@@ -25,5 +26,7 @@ DependencyDetection.defer do
     # enumerate the specific events we want so that we do not get unexpected additions in the future
     ActiveSupport::Notifications.subscribe(/(perform_action|transmit)\.action_cable/,
       NewRelic::Agent::Instrumentation::ActionCableSubscriber.new)
+
+    ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionCable::Engine, ::ActionCable::RemoteConnections)
   end
 end

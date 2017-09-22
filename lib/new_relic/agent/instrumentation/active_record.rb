@@ -66,7 +66,7 @@ module NewRelic
           begin
             log_without_newrelic_instrumentation(*args, &block)
           ensure
-            segment.finish
+            segment.finish if segment
           end
         end
       end

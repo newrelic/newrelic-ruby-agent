@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/prepend_supportability'
+
 DependencyDetection.defer do
   named :activejob
 
@@ -19,6 +21,8 @@ DependencyDetection.defer do
     ::ActiveJob::Base.around_perform do |job, block|
       ::NewRelic::Agent::Instrumentation::ActiveJobHelper.perform(job, block)
     end
+
+    ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActiveJob::Base)
   end
 end
 

@@ -55,6 +55,7 @@ module NewRelic
           # @api public
           #
           def newrelic_ignore(specifiers={})
+            NewRelic::Agent.record_api_supportability_metric(:newrelic_ignore)
             newrelic_ignore_aspect(NR_DO_NOT_TRACE_KEY, specifiers)
           end
           # Have NewRelic omit apdex measurements on the given actions.  Typically used for
@@ -64,11 +65,13 @@ module NewRelic
           # @api public
           #
           def newrelic_ignore_apdex(specifiers={})
+            NewRelic::Agent.record_api_supportability_metric(:newrelic_ignore_apdex)
             newrelic_ignore_aspect(NR_IGNORE_APDEX_KEY, specifiers)
           end
 
           # @api public
           def newrelic_ignore_enduser(specifiers={})
+            NewRelic::Agent.record_api_supportability_metric(:newrelic_ignore_enduser)
             newrelic_ignore_aspect(NR_IGNORE_ENDUSER_KEY, specifiers)
           end
 
@@ -156,6 +159,8 @@ module NewRelic
           # @api public
           #
           def add_transaction_tracer(method, options={})
+            NewRelic::Agent.record_api_supportability_metric(:add_transaction_tracer)
+
             # The metric path:
             options[:name] ||= method.to_s
 
@@ -337,6 +342,7 @@ module NewRelic
         # @api public
         #
         def perform_action_with_newrelic_trace(*args, &block) #THREAD_LOCAL_ACCESS
+          NewRelic::Agent.record_api_supportability_metric(:perform_action_with_newrelic_trace)
           state = NewRelic::Agent::TransactionState.tl_get
           state.request = newrelic_request(args)
 

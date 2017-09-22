@@ -68,7 +68,7 @@ module NewRelic
                   if ::NewRelic::Agent.config[:capture_memcache_keys]
                     segment.notice_nosql_statement "#{SEND_MULTIGET_METRIC_NAME} #{keys.inspect}"
                   end
-                  segment.finish
+                  segment.finish if segment
                 end
               end
             end
@@ -86,7 +86,7 @@ module NewRelic
                 begin
                   __send__ method_name_without, *args, &block
                 ensure
-                  segment.finish
+                  segment.finish if segment
                 end
               end
 

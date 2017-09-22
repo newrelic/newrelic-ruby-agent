@@ -68,6 +68,7 @@ module NewRelic
       # @api public
       #
       def trace_execution_scoped(metric_names, options={}) #THREAD_LOCAL_ACCESS
+        NewRelic::Agent.record_api_supportability_metric :trace_execution_scoped
         NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped(metric_names, options) do
           # Using an implicit block avoids object allocation for a &block param
           yield
@@ -83,6 +84,7 @@ module NewRelic
       # @api public
       #
       def trace_execution_unscoped(metric_names, options={}) #THREAD_LOCAL_ACCESS
+        NewRelic::Agent.record_api_supportability_metric :trace_execution_unscoped
         return yield unless NewRelic::Agent.tl_is_execution_traced?
         t0 = Time.now
         begin
@@ -290,6 +292,8 @@ module NewRelic
         # @api public
         #
         def add_method_tracer(method_name, metric_name_code=nil, options = {})
+          NewRelic::Agent.record_api_supportability_metric(:add_method_tracer)
+
           return unless newrelic_method_exists?(method_name)
           metric_name_code ||= default_metric_name_code(method_name)
           return if traced_method_exists?(method_name, metric_name_code)

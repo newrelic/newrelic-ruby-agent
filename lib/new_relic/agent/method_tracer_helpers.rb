@@ -25,7 +25,7 @@ module NewRelic
         begin
           yield
         ensure
-          segment.finish
+          segment.finish if segment
         end
       end
     end

@@ -46,7 +46,7 @@ module MultiverseHelpers
     # (the test case instance itself)
     self.instance_exec($collector, &block) if block_given? && self.respond_to?(:instance_exec)
 
-    # It's important that this is called after the insance_exec above, so that
+    # It's important that this be called after the instance_exec above, so that
     # test cases have the chance to change settings on the fake collector first
     start_fake_collector unless omit_collector?
 

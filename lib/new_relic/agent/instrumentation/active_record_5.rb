@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/active_record_subscriber'
+require 'new_relic/agent/prepend_supportability'
 
 module NewRelic
   module Agent
@@ -78,6 +79,8 @@ DependencyDetection.defer do
   end
 
   executes do
+    ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActiveRecord::Base, ::ActiveRecord::Relation)
+
     ActiveSupport::Notifications.subscribe('sql.active_record',
       NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.new)
 

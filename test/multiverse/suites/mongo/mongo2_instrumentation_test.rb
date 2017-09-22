@@ -275,7 +275,8 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               "Datastore/MongoDB/allWeb" => {:call_count=>3},
               "Datastore/MongoDB/all" => {:call_count=>3},
               "Datastore/allWeb" => { :call_count=>3},
-              "Datastore/all" => {:call_count=>3}
+              "Datastore/all" => {:call_count=>3},
+              "Supportability/API/drop_buffered_data" => { :call_count => 1 }
             }
             assert_metrics_recorded_exclusive expected
           end

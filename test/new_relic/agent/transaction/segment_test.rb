@@ -61,7 +61,8 @@ module NewRelic
             "test",
             ["Custom/simple/segment", "test"],
             "Custom/simple/segment",
-            "Segment/all"
+            "Segment/all",
+            "Supportability/API/drop_buffered_data"
           ]
         end
 
@@ -87,7 +88,12 @@ module NewRelic
             segment.finish
           end
 
-          assert_metrics_recorded_exclusive ["test", "Custom/simple/segment", "Segment/all"]
+          assert_metrics_recorded_exclusive [
+            "test", 
+            "Custom/simple/segment", 
+            "Segment/all",
+            "Supportability/API/drop_buffered_data"
+          ]
         end
 
         def test_segment_can_disable_scoped_metric_recording_with_unscoped_as_frozen_array
@@ -104,7 +110,8 @@ module NewRelic
             "test",
             "Custom/simple/segment",
             "Segment/all",
-            "Segment/allOther"
+            "Segment/allOther",
+            "Supportability/API/drop_buffered_data"
           ]
         end
 

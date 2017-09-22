@@ -172,7 +172,7 @@ DependencyDetection.defer do
           begin
             segment.read_response_headers wrapped_response
           ensure
-            segment.finish
+            segment.finish if segment
             # Make sure the existing completion callback is run, and restore the
             # on_complete callback to how it was before.
             original_callback.call(finished_request) if original_callback

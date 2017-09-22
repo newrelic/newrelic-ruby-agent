@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/action_view_subscriber'
+require 'new_relic/agent/prepend_supportability'
 
 DependencyDetection.defer do
   @name = :rails5_view
@@ -16,10 +17,11 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails 5 view instrumentation'
+    NewRelic::Agent.logger.info 'Installing Rails 5 view instrumentation'
   end
 
   executes do
     NewRelic::Agent::Instrumentation::ActionViewSubscriber.subscribe(/render_.+\.action_view$/)
+    NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionView::Base, ::ActionView::Template, ::ActionView::Renderer)
   end
 end

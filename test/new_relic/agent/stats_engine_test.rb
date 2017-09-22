@@ -9,6 +9,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   def setup
     NewRelic::Agent.manual_start
     @engine = NewRelic::Agent.instance.stats_engine
+    @engine.reset!
   rescue => e
     puts e
     puts e.backtrace.join("\n")
@@ -33,7 +34,6 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   end
 
   include NewRelic::DataContainerTests
-
 
   def test_record_unscoped_metrics_records_to_transaction_stats_if_in_txn
     in_transaction do
@@ -214,6 +214,9 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
       :total_call_time      => 20,
       :total_exclusive_time => 10
     }
+
+    # The manual_start and shutdown methods are called during the setup
+    # and teardown methods for the tests.
     assert_metrics_recorded_exclusive(
       'a' => expected,
       'b' => expected
