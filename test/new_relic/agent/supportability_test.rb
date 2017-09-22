@@ -226,12 +226,12 @@ class ExternalAPISupportabilityMetricsTest < Minitest::Test
   end
 
   def test_process_request_metadata_records_supportability_metric
-    @segment.process_request_metadata ''
+    NewRelic::Agent::External.process_request_metadata ''
     assert_api_supportability_metric_recorded(:process_request_metadata)
   end
 
   def test_get_response_metadata_records_supportability_metric
-    @segment.get_response_metadata
+    NewRelic::Agent::External.get_response_metadata
     assert_api_supportability_metric_recorded(:get_response_metadata)
   end
 

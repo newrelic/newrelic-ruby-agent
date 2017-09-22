@@ -340,6 +340,8 @@ module NewRelic
               assert_equal txn.cat_path_hash, rmd['NewRelicTransaction'][3]
 
               refute rmd.key? 'NewRelicSynthetics'
+
+              assert txn.state.is_cross_app_caller?
             end
           end
         end
@@ -362,81 +364,6 @@ module NewRelic
         def test_get_request_metadata_not_in_transaction
           with_config cat_config do
             refute external_request_segment {|s| s.get_request_metadata}
-          end
-        end
-
-        # --- process_request_metadata
-
-        def test_process_request_metadata
-          rmd = @obfuscator.obfuscate ::JSON.dump({
-            NewRelicID: cat_config[:cross_process_id],
-            NewRelicTransaction: ['abc', false, 'def', 'ghi']
-          })
-
-          in_transaction do |txn|
-            external_request_segment {|s| s.process_request_metadata rmd}
-
-            assert_equal cat_config[:cross_process_id], txn.state.client_cross_app_id
-            assert_equal ['abc', false, 'def', 'ghi'], txn.state.referring_transaction_info
-          end
-        end
-
-        def test_process_request_metadata_with_synthetics
-          raw_synth = @obfuscator.obfuscate ::JSON.dump('raw_synth')
-
-          rmd = @obfuscator.obfuscate ::JSON.dump({
-            NewRelicID: cat_config[:cross_process_id],
-            NewRelicTransaction: ['abc', false, 'def', 'ghi'],
-            NewRelicSynthetics: 'raw_synth'
-          })
-
-          in_transaction do |txn|
-            external_request_segment {|s| s.process_request_metadata rmd}
-
-            assert_equal raw_synth, txn.raw_synthetics_header
-            assert_equal 'raw_synth', txn.synthetics_payload
-          end
-        end
-
-        def test_process_request_metadata_not_in_transaction
-          rmd = @obfuscator.obfuscate ::JSON.dump({
-            NewRelicID: cat_config[:cross_process_id],
-            NewRelicTransaction: ['abc', false, 'def', 'ghi'],
-            NewRelicSynthetics: 'raw_synth'
-          })
-
-          external_request_segment {|s| s.process_request_metadata rmd}
-          state = NewRelic::Agent::TransactionState.tl_get
-          refute state.client_cross_app_id
-          refute state.referring_transaction_info
-          refute state.current_transaction
-        end
-
-        # --- get_response_metadata
-
-        def test_get_response_metadata
-          with_config cat_config do
-            in_transaction do |txn|
-              rmd = external_request_segment {|s| s.get_response_metadata}
-              assert_instance_of String, rmd
-              rmd = @obfuscator.deobfuscate rmd
-              rmd = JSON.parse rmd
-              assert_instance_of Hash, rmd
-              assert_instance_of Array, rmd['NewRelicAppData']
-
-              assert_equal '269975#22824', rmd['NewRelicAppData'][0]
-              assert_equal 'dummy', rmd['NewRelicAppData'][1]
-              assert_instance_of Float, rmd['NewRelicAppData'][2]
-              assert_instance_of Float, rmd['NewRelicAppData'][3]
-              assert_equal -1, rmd['NewRelicAppData'][4]
-              assert_equal txn.state.request_guid, rmd['NewRelicAppData'][5]
-            end
-          end
-        end
-
-        def test_get_response_metadata_not_in_transaction
-          with_config cat_config do
-            refute external_request_segment {|s| s.get_response_metadata}
           end
         end
 
