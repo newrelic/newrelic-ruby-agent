@@ -30,6 +30,8 @@ module NewRelic
         raise ArgumentError, 'Argument `uri` is required' if uri.nil?
         raise ArgumentError, 'Argument `procedure` is required' if procedure.nil?
 
+        ::NewRelic::Agent.record_api_supportability_metric(:start_segment)
+
         ::NewRelic::Agent::Transaction.start_external_request_segment(library, uri, procedure)
       end
 
