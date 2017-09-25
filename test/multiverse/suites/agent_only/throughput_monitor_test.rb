@@ -10,6 +10,7 @@ module NewRelic
       include MultiverseHelpers
 
       setup_and_teardown_agent do
+        NewRelic::Agent.config.add_config_for_testing :'distributed_tracing.enabled' => true
         #hard reset on the throughput monitor
         NewRelic::Agent.instance.instance_variable_set :@throughput_monitor, ThroughputMonitor.new
       end

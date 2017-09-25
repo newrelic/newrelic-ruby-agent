@@ -280,7 +280,11 @@ module NewRelic
         @ignore_enduser = options.fetch(:ignore_enduser, false)
         @ignore_trace = false
 
-        @sampled = NewRelic::Agent.instance.throughput_monitor.sampled?
+        if Agent.config[:'distributed_tracing.enabled']
+          @sampled = NewRelic::Agent.instance.throughput_monitor.sampled?
+        else
+          @sampled = nil
+        end
 
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 

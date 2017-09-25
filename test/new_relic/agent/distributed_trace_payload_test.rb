@@ -14,6 +14,7 @@ module NewRelic
       def setup
       freeze_time
         NewRelic::Agent.config.add_config_for_testing(
+          :'distributed_tracing.enabled' => true,
           :application_id => "46954",
           :cross_process_id => "190#222"
         )
