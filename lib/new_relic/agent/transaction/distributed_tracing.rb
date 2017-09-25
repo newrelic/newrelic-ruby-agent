@@ -8,6 +8,11 @@ module NewRelic
   module Agent
     class Transaction
       module DistributedTracing
+        attr_accessor :distributed_trace_payload
+
+        def distributed_trace?
+          !!distributed_trace_payload
+        end
 
         def create_distributed_trace_payload url = nil
           return unless Agent.config[:'distributed_tracing.enabled']
@@ -47,16 +52,6 @@ module NewRelic
           NewRelic::Agent.logger.warn "Failed to accept distributed trace payload", e
           false
         end
-
-        def distributed_trace_payload
-          @distributed_trace_payload ||= nil
-        end
-
-        def distributed_trace?
-          !!distributed_trace_payload
-        end
-
-        attr_writer :distributed_trace_payload
 
         def distributed_tracing_trip_id
           if distributed_trace_payload
