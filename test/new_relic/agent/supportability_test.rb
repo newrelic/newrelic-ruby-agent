@@ -220,6 +220,11 @@ class ExternalAPISupportabilityMetricsTest < Minitest::Test
     assert_metrics_recorded(["Supportability/API/#{method_name}"])
   end
 
+  def test_start_segment_records_supportability_metric
+    NewRelic::Agent::External.start_segment(library: 'Net::HTTP', uri: 'http://example.com/root/index', procedure: 'GET')
+    assert_api_supportability_metric_recorded(:start_segment)
+  end
+
   def test_get_request_metadata_records_supportability_metric
     @segment.get_request_metadata
     assert_api_supportability_metric_recorded(:get_request_metadata)
