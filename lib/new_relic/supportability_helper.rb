@@ -46,6 +46,7 @@ module NewRelic
       :set_sql_obfuscator,
       :set_transaction_name,
       :shutdown,
+      :start_segment,
       :trace,
       :trace_execution_scoped,
       :trace_execution_unscoped,
