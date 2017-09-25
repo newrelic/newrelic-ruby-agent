@@ -97,35 +97,6 @@ module NewRelic
         end
       end
 
-      def test_get_response_metadata_with_content_length
-        with_config cat_config do
-          in_transaction do |txn|
-            rmd = NewRelic::Agent::External.get_response_metadata 666
-            assert_instance_of String, rmd
-            rmd = @obfuscator.deobfuscate rmd
-            rmd = JSON.parse rmd
-            assert_instance_of Hash, rmd
-            assert_instance_of Array, rmd['NewRelicAppData']
-
-            assert_equal '269975#22824', rmd['NewRelicAppData'][0]
-            assert_equal 'dummy', rmd['NewRelicAppData'][1]
-            assert_instance_of Float, rmd['NewRelicAppData'][2]
-            assert_instance_of Float, rmd['NewRelicAppData'][3]
-            assert_equal 666, rmd['NewRelicAppData'][4]
-            assert_equal txn.state.request_guid, rmd['NewRelicAppData'][5]
-          end
-        end
-      end
-
-      def test_get_response_metadata_with_invalid_content_length
-        with_config cat_config do
-          in_transaction do |txn|
-            rmd = NewRelic::Agent::External.get_response_metadata 'steve'
-            refute rmd, 'expected nil return value'
-          end
-        end
-      end
-
       def test_get_response_metadata_not_in_transaction
         with_config cat_config do
           refute NewRelic::Agent::External.get_response_metadata

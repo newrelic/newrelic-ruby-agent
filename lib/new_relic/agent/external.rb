@@ -84,13 +84,11 @@ module NewRelic
       # information from this application to a calling application which is also running a New Relic agent.
       # This +String+ can be processed by +process_response_metadata+ on the calling application.
       #
-      # @param content_length [Integer] *optional* if given, response metadata will include the value
-      #
       # @return [String] obfuscated response metadata to send
       #
       # @api public
       #
-      def get_response_metadata content_length = nil
+      def get_response_metadata
         NewRelic::Agent.record_api_supportability_metric(:get_response_metadata)
 
         state = NewRelic::Agent::TransactionState.tl_get
@@ -108,11 +106,7 @@ module NewRelic
                 state.timings.transaction_name,
                 state.timings.queue_time_in_seconds.to_f,
                 state.timings.app_time_in_seconds.to_f,
-
-                # we have no idea of the response content length at this point, unless
-                # given by caller...
-                content_length.nil? ? -1 : Integer(content_length),
-
+                -1, # per non-HTTP CAT spec
                 state.request_guid
               ]
             }
