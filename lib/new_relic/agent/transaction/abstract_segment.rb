@@ -55,8 +55,8 @@ module NewRelic
           @record_on_finish
         end
 
-        def record_metrics
-          raise NotImplementedError, "Subclasses must implement record_metrics"
+        def finalize
+          record_metrics if record_metrics?
         end
 
         def params
@@ -77,6 +77,10 @@ module NewRelic
         end
 
         protected
+
+        def record_metrics
+          raise NotImplementedError, "Subclasses must implement record_metrics"
+        end
 
         def child_complete segment
           if segment.record_metrics?

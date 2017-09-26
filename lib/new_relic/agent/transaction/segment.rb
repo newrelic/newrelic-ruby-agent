@@ -18,6 +18,8 @@ module NewRelic
           super name, start_time
         end
 
+        private
+
         def record_metrics
           if record_scoped_metric?
             metric_cache.record_scoped_and_unscoped name, duration, exclusive_duration
@@ -28,8 +30,6 @@ module NewRelic
             metric_cache.record_unscoped unscoped_metrics, duration, exclusive_duration
           end
         end
-
-        private
 
         def append_unscoped_metric metric
           if @unscoped_metrics
