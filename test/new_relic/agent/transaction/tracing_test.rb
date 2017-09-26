@@ -252,7 +252,8 @@ module NewRelic
           limit = Agent.config[:'transaction_tracer.limit_segments']
           txn = in_transaction do
             (limit + 10).times do |n|
-              NewRelic::Agent::Transaction.start_segment "MyCustom/segment#{n}"
+              segment = NewRelic::Agent::Transaction.start_segment "MyCustom/segment#{n}"
+              segment.finish
             end
           end
           assert_equal limit, txn.segments.size
@@ -302,6 +303,40 @@ module NewRelic
           end
         end
 
+        # The test below documents a failure case. When a transaction has
+        # completed, and a segment has not been finished, we will forcibly
+        # finish the segment at the end of the transaction. This will cause the
+        # exclusive time to be off for the parent of the unfinished segment.
+        # This behavior may change over time and there is not reason to preserve
+        # it as is. The point of this test is to ensure that the transaction
+        # isn't lost entirely. We will log a message at warn level when this
+        # unexpected conditon arises.
+
+        def test_unfinished_segment_is_truncated_at_transaction_end_exclusive_times_incorrect
+          segment_a, segment_b, segment_c = nil, nil, nil
+          in_transaction do
+            advance_time(1)
+            segment_a = NewRelic::Agent::Transaction.start_segment 'metric_a'
+            advance_time(2)
+            segment_b = NewRelic::Agent::Transaction.start_segment 'metric_b'
+            advance_time(3)
+            segment_c = NewRelic::Agent::Transaction.start_segment 'metric_c'
+            advance_time(4)
+            segment_c.finish
+            segment_a.finish
+          end
+
+          # the parent has incorrect exclusive_duration since it's child,
+          # segment_b, wasn't properly finished
+          assert_equal 9, segment_a.exclusive_duration
+          assert_equal 9, segment_a.duration
+
+          assert_equal 3, segment_b.exclusive_duration
+          assert_equal 7, segment_b.duration
+
+          assert_equal 4, segment_c.exclusive_duration
+          assert_equal 4, segment_c.duration
+        end
       end
     end
   end

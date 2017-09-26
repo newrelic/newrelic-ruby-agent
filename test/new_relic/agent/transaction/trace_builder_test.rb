@@ -60,6 +60,35 @@ module NewRelic
           assert_equal 4.0, segment_c.entry_timestamp
           assert_equal 7.0, segment_c.exit_timestamp
         end
+
+        def test_trace_built_if_segment_left_unfinished
+          txn = nil
+          state = TransactionState.tl_get
+          Transaction.wrap state, "test_txn", :controller do
+            txn = state.current_transaction
+            advance_time 1
+            Transaction.start_segment "segment_a"
+            advance_time 1
+          end
+
+          trace = TraceBuilder.build_trace txn
+
+          root = trace.root_node
+          assert_equal "ROOT", root.metric_name
+          assert_equal 0.0, root.entry_timestamp
+          assert_equal 2.0, root.exit_timestamp
+
+          txn_segment = root.children[0]
+          assert_equal "test_txn", txn_segment.metric_name
+          assert_equal 0.0, txn_segment.entry_timestamp
+          assert_equal 2.0, txn_segment.exit_timestamp
+
+
+          segment_a = txn_segment.children[0]
+          assert_equal "segment_a", segment_a.metric_name
+          assert_equal 1.0, segment_a.entry_timestamp
+          assert_equal 2.0, segment_a.exit_timestamp
+        end
       end
     end
   end

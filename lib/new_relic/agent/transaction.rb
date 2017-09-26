@@ -521,10 +521,10 @@ module NewRelic
         assign_agent_attributes
         assign_intrinsics(state)
 
+        segments.each { |s| s.finalize }
+
         @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
-
-        segments.each { |s| s.finalize }
 
         record_summary_metrics(outermost_node_name, end_time)
         record_apdex(state, end_time) unless ignore_apdex?
