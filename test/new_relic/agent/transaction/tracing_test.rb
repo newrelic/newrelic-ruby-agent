@@ -348,6 +348,23 @@ module NewRelic
 
           assert_nil last_transaction_trace
         end
+
+        def test_trace_should_log_segment_limit_reached_once
+          with_config(:'transaction_tracer.limit_segments' => 3) do
+            in_transaction do |txn|
+              expects_logging(:debug, includes("Segment limit"))
+              8.times {|i| NewRelic::Agent::Transaction.start_segment "segment_#{i}" }
+            end
+          end
+        end
+
+        def test_threshold_recorded_for_trace
+          with_config :'transaction_tracer.transaction_threshold' => 2.0 do
+            in_transaction {}
+            trace = last_transaction_trace
+            assert_equal 2.0, trace.threshold
+          end
+        end
       end
     end
   end

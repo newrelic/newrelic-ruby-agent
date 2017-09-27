@@ -88,15 +88,20 @@ module NewRelic
           segment.transaction = self
           segment.parent = current_segment
           @current_segment = segment
-          if @segments.length < Agent.config[:'transaction_tracer.limit_segments']
+          if @segments.length < segment_limit
             @segments << segment
           else
             segment.record_on_finish = true
+            ::NewRelic::Agent.logger.debug("Segment limit of #{segment_limit} reached, ceasing collection.")
           end
         end
 
         def segment_complete segment
           @current_segment = segment.parent
+        end
+
+        def segment_limit
+          Agent.config[:'transaction_tracer.limit_segments']
         end
       end
     end
