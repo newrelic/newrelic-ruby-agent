@@ -31,48 +31,113 @@ module NewRelic
       # --- process_request_metadata
 
       def test_process_request_metadata
-        rmd = @obfuscator.obfuscate ::JSON.dump({
-          NewRelicID: cat_config[:cross_process_id],
-          NewRelicTransaction: ['abc', false, 'def', 'ghi']
-        })
+        with_config cat_config do
+          rmd = @obfuscator.obfuscate ::JSON.dump({
+            NewRelicID: cat_config[:cross_process_id],
+            NewRelicTransaction: ['abc', false, 'def', 'ghi']
+          })
 
-        in_transaction do |txn|
-          NewRelic::Agent::External.process_request_metadata rmd
-
-          assert_equal cat_config[:cross_process_id], txn.state.client_cross_app_id
-          assert_equal ['abc', false, 'def', 'ghi'], txn.state.referring_transaction_info
+          in_transaction do |txn|
+            NewRelic::Agent::External.process_request_metadata rmd
+            assert_equal cat_config[:cross_process_id], txn.state.client_cross_app_id
+            assert_equal ['abc', false, 'def', 'ghi'], txn.state.referring_transaction_info
+          end
         end
       end
 
       def test_process_request_metadata_with_synthetics
-        raw_synth = @obfuscator.obfuscate ::JSON.dump('raw_synth')
+        with_config cat_config do
+          raw_synth = @obfuscator.obfuscate ::JSON.dump('raw_synth')
 
-        rmd = @obfuscator.obfuscate ::JSON.dump({
-          NewRelicID: cat_config[:cross_process_id],
-          NewRelicTransaction: ['abc', false, 'def', 'ghi'],
-          NewRelicSynthetics: 'raw_synth'
-        })
+          rmd = @obfuscator.obfuscate ::JSON.dump({
+            NewRelicID: cat_config[:cross_process_id],
+            NewRelicTransaction: ['abc', false, 'def', 'ghi'],
+            NewRelicSynthetics: 'raw_synth'
+          })
 
-        in_transaction do |txn|
-          NewRelic::Agent::External.process_request_metadata rmd
+          in_transaction do |txn|
+            NewRelic::Agent::External.process_request_metadata rmd
 
-          assert_equal raw_synth, txn.raw_synthetics_header
-          assert_equal 'raw_synth', txn.synthetics_payload
+            assert_equal raw_synth, txn.raw_synthetics_header
+            assert_equal 'raw_synth', txn.synthetics_payload
+          end
         end
       end
 
       def test_process_request_metadata_not_in_transaction
-        rmd = @obfuscator.obfuscate ::JSON.dump({
-          NewRelicID: cat_config[:cross_process_id],
-          NewRelicTransaction: ['abc', false, 'def', 'ghi'],
-          NewRelicSynthetics: 'raw_synth'
-        })
+        with_config cat_config do
+          rmd = @obfuscator.obfuscate ::JSON.dump({
+            NewRelicID: cat_config[:cross_process_id],
+            NewRelicTransaction: ['abc', false, 'def', 'ghi'],
+            NewRelicSynthetics: 'raw_synth'
+          })
 
-        NewRelic::Agent::External.process_request_metadata rmd
-        state = NewRelic::Agent::TransactionState.tl_get
-        refute state.client_cross_app_id
-        refute state.referring_transaction_info
-        refute state.current_transaction
+          l = with_array_logger { NewRelic::Agent::External.process_request_metadata rmd }
+          assert l.array.empty?, "process_request_metadata should not log errors without a current transaction"
+
+          state = NewRelic::Agent::TransactionState.tl_get
+          refute state.client_cross_app_id
+          refute state.referring_transaction_info
+          refute state.current_transaction
+        end
+      end
+
+      def test_process_request_metadata_with_invalid_id
+        with_config cat_config do
+          rmd = @obfuscator.obfuscate ::JSON.dump({
+            NewRelicID: 'bugz',
+            NewRelicTransaction: ['abc', false, 'def', 'ghi'],
+            NewRelicSynthetics: 'raw_synth'
+          })
+
+          in_transaction do
+            l = with_array_logger { NewRelic::Agent::External.process_request_metadata rmd }
+            refute l.array.empty?, "process_request_metadata should log error on invalid ID"
+            assert l.array.first =~ %r{invalid/non-trusted ID}
+
+            state = NewRelic::Agent::TransactionState.tl_get
+            refute state.client_cross_app_id
+            refute state.referring_transaction_info
+          end
+        end
+      end
+
+      def test_process_request_metadata_with_non_trusted_id
+        with_config cat_config do
+          rmd = @obfuscator.obfuscate ::JSON.dump({
+            NewRelicID: '190#666',
+            NewRelicTransaction: ['abc', false, 'def', 'ghi'],
+            NewRelicSynthetics: 'raw_synth'
+          })
+
+          in_transaction do
+            l = with_array_logger { NewRelic::Agent::External.process_request_metadata rmd }
+            refute l.array.empty?, "process_request_metadata should log error on invalid ID"
+            assert l.array.first =~ %r{invalid/non-trusted ID}
+
+            state = NewRelic::Agent::TransactionState.tl_get
+            refute state.client_cross_app_id
+            refute state.referring_transaction_info
+          end
+        end
+      end
+
+      def test_process_request_metadata_cross_app_disabled
+        with_config cat_config.merge(:'cross_application_tracer.enabled' => false) do
+          rmd = @obfuscator.obfuscate ::JSON.dump({
+            NewRelicID: cat_config[:cross_process_id],
+            NewRelicTransaction: ['abc', false, 'def', 'ghi']
+          })
+
+          in_transaction do
+            l = with_array_logger { NewRelic::Agent::External.process_request_metadata rmd }
+            assert l.array.empty?, "process_request_metadata should not log errors when cross app tracing is disabled"
+
+            state = NewRelic::Agent::TransactionState.tl_get
+            refute state.client_cross_app_id
+            refute state.referring_transaction_info
+          end
+        end
       end
 
       # --- get_response_metadata
@@ -80,6 +145,10 @@ module NewRelic
       def test_get_response_metadata
         with_config cat_config do
           in_transaction do |txn|
+
+            # simulate valid processed request metadata
+            txn.state.client_cross_app_id = "1#666"
+
             rmd = NewRelic::Agent::External.get_response_metadata
             assert_instance_of String, rmd
             rmd = @obfuscator.deobfuscate rmd
@@ -103,11 +172,20 @@ module NewRelic
         end
       end
 
+      def test_get_response_metadata_without_valid_id
+        with_config cat_config do
+          in_transaction do |txn|
+            refute NewRelic::Agent::External.get_response_metadata
+          end
+        end
+      end
+
       # ---
 
       def cat_config
         {
-          :cross_process_id    => "269975#22824",
+          :'cross_app_tracing.enabled' => true,
+          :cross_process_id => "269975#22824",
           :trusted_account_ids => [1,269975]
         }
       end

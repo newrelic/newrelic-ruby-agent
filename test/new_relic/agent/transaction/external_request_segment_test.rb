@@ -322,7 +322,7 @@ module NewRelic
         # --- get_request_metadata
 
         def test_get_request_metadata
-          with_config cat_config do
+          with_config cat_config.merge(:'cross_application_tracer.enabled' => true) do
             in_transaction do |txn|
               rmd = external_request_segment {|s| s.get_request_metadata}
               assert_instance_of String, rmd
@@ -342,6 +342,15 @@ module NewRelic
               refute rmd.key? 'NewRelicSynthetics'
 
               assert txn.state.is_cross_app_caller?
+            end
+          end
+        end
+
+        def test_get_request_metadata_with_cross_app_tracing_disabled
+          with_config cat_config.merge(:'cross_application_tracer.enabled' => false) do
+            in_transaction do |txn|
+              rmd = external_request_segment {|s| s.get_request_metadata}
+              refute rmd, "`get_request_metadata` should return nil with cross app tracing disabled"
             end
           end
         end
@@ -406,6 +415,60 @@ module NewRelic
 
             segment = external_request_segment {|s| s.process_response_metadata rmd; s}
             assert_equal 'External/example.com/foo/get', segment.name
+          end
+        end
+
+        def test_process_response_metadata_with_invalid_cross_app_id
+          with_config cat_config do
+            in_transaction do |txn|
+
+              rmd = @obfuscator.obfuscate ::JSON.dump({
+                NewRelicAppData: [
+                  'bugz',
+                  'Controller/root/index',
+                  0.001,
+                  0.5,
+                  60,
+                  txn.guid
+                ]
+              })
+
+              segment = nil
+              l = with_array_logger do
+                segment = external_request_segment {|s| s.process_response_metadata rmd; s}
+              end
+              refute l.array.empty?, "process_response_metadata should log error on invalid ID"
+              assert l.array.first =~ %r{invalid/non-trusted ID}
+
+              assert_equal 'External/example.com/foo/get', segment.name
+            end
+          end
+        end
+
+        def test_process_response_metadata_with_untrusted_cross_app_id
+          with_config cat_config do
+            in_transaction do |txn|
+
+              rmd = @obfuscator.obfuscate ::JSON.dump({
+                NewRelicAppData: [
+                  '190#666',
+                  'Controller/root/index',
+                  0.001,
+                  0.5,
+                  60,
+                  txn.guid
+                ]
+              })
+
+              segment = nil
+              l = with_array_logger do
+                segment = external_request_segment {|s| s.process_response_metadata rmd; s}
+              end
+              refute l.array.empty?, "process_response_metadata should log error on invalid ID"
+              assert l.array.first =~ %r{invalid/non-trusted ID}
+
+              assert_equal 'External/example.com/foo/get', segment.name
+            end
           end
         end
 

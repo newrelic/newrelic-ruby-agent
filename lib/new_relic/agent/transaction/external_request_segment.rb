@@ -35,7 +35,7 @@ module NewRelic
           @host_header || uri.host
         end
 
-        # This method adds New Relic request headers to a given request made to an 
+        # This method adds New Relic request headers to a given request made to an
         # external API and checks to see if a host header is used for the request.
         # If a host header is used, it updates the segment name to match the host
         # header.
@@ -117,6 +117,8 @@ module NewRelic
         #
         def get_request_metadata
           NewRelic::Agent.record_api_supportability_metric(:get_request_metadata)
+          return unless CrossAppTracing.cross_app_enabled?
+
           if transaction
 
             # build hash of CAT metadata
@@ -159,14 +161,21 @@ module NewRelic
         def process_response_metadata response_metadata
           NewRelic::Agent.record_api_supportability_metric(:process_response_metadata)
           if transaction
-            @app_data = ::JSON.parse(obfuscator.deobfuscate(response_metadata))[APP_DATA_KEY]
+            app_data = ::JSON.parse(obfuscator.deobfuscate(response_metadata))[APP_DATA_KEY]
 
             # validate cross app id
             #
-            update_segment_name if CrossAppTracing.valid_cross_app_id? cross_process_id
+            if Array === app_data and CrossAppTracing.trusted_valid_cross_app_id? app_data[0]
+              @app_data = app_data
+              update_segment_name
+            else
+              NewRelic::Agent.logger.error "error processing response metadata: invalid/non-trusted ID"
+            end
           end
 
           nil
+        rescue => e
+          NewRelic::Agent.logger.error "error during process_response_metadata", e
         end
 
         private

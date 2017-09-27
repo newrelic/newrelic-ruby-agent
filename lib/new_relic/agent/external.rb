@@ -49,35 +49,39 @@ module NewRelic
       #
       def process_request_metadata request_metadata
         NewRelic::Agent.record_api_supportability_metric(:process_request_metadata)
+        return unless CrossAppTracing.cross_app_enabled?
 
         state = NewRelic::Agent::TransactionState.tl_get
         if transaction = state.current_transaction
           rmd = ::JSON.parse obfuscator.deobfuscate(request_metadata)
 
-          # handle ID
+          # handle/check ID
           #
-          if id = rmd[NON_HTTP_CAT_ID_HEADER]
+          if id = rmd[NON_HTTP_CAT_ID_HEADER] and CrossAppTracing.trusted_valid_cross_app_id?(id)
             state.client_cross_app_id = id
-          end
 
-          # handle transaction info
-          #
-          if txn_info = rmd[NON_HTTP_CAT_TXN_HEADER]
-            state.referring_transaction_info = txn_info
-            CrossAppTracing.assign_intrinsic_transaction_attributes state
-          end
+            # handle transaction info
+            #
+            if txn_info = rmd[NON_HTTP_CAT_TXN_HEADER]
+              state.referring_transaction_info = txn_info
+              CrossAppTracing.assign_intrinsic_transaction_attributes state
+            end
 
-          # handle synthetics
-          #
-          if synth = rmd[NON_HTTP_CAT_SYNTHETICS_HEADER]
-            transaction.synthetics_payload = synth
-            transaction.raw_synthetics_header = obfuscator.obfuscate ::JSON.dump(synth)
+            # handle synthetics
+            #
+            if synth = rmd[NON_HTTP_CAT_SYNTHETICS_HEADER]
+              transaction.synthetics_payload = synth
+              transaction.raw_synthetics_header = obfuscator.obfuscate ::JSON.dump(synth)
+            end
+
+          else
+            NewRelic::Agent.logger.error "error processing request metadata: invalid/non-trusted ID: '#{id}'"
           end
 
           nil
         end
       rescue => e
-        NewRelic::Agent.logger.error "error during process_request_metadata", e
+        NewRelic::Agent.logger.error 'error during process_request_metadata', e
       end
 
       # Obtain an obfuscated +String+ suitable for delivery across public networks that carries transaction
@@ -90,9 +94,10 @@ module NewRelic
       #
       def get_response_metadata
         NewRelic::Agent.record_api_supportability_metric(:get_response_metadata)
+        return unless CrossAppTracing.cross_app_enabled?
 
         state = NewRelic::Agent::TransactionState.tl_get
-        if transaction = state.current_transaction
+        if transaction = state.current_transaction and state.client_cross_app_id
 
           # must freeze the name since we're responding with it
           #
