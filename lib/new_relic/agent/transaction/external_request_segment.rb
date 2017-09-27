@@ -176,6 +176,7 @@ module NewRelic
           nil
         rescue => e
           NewRelic::Agent.logger.error "error during process_response_metadata", e
+        end
 
         def record_metrics
           add_unscoped_metrics
