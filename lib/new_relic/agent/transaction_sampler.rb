@@ -55,23 +55,6 @@ module NewRelic
         Agent.config[:'transaction_tracer.enabled']
       end
 
-      # This delegates to the builder to create a new open transaction node
-      # for the frame, beginning at the optionally specified time.
-      def notice_push_frame(state, time=Time.now)
-        builder = state.transaction_sample_builder
-        return unless builder
-
-        builder.trace_entry(time.to_f)
-      end
-
-      # Informs the transaction sample builder about the end of a traced frame
-      def notice_pop_frame(state, frame, time = Time.now)
-        builder = state.transaction_sample_builder
-        return unless builder
-        raise "finished already???" if builder.sample.finished
-        builder.trace_exit(frame, time.to_f)
-      end
-
       # This is called when we are done with the transaction.  We've
       # unwound the stack to the top level. It also clears the
       # transaction sample builder so that it won't continue to have
@@ -102,13 +85,6 @@ module NewRelic
         @sample_buffers.each do |sample_buffer|
           sample_buffer.store(sample)
         end
-      end
-
-      # Set parameters on the current node.
-      def add_node_parameters(params) #THREAD_LOCAL_ACCESS
-        builder = tl_builder
-        return unless builder
-        params.each { |k,v| builder.current_node[k] = v }
       end
 
       # Gather transaction traces that we'd like to transmit to the server.

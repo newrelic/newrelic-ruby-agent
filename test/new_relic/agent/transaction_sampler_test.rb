@@ -75,43 +75,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   # Tests
 
-  # def test_on_start_transaction_default
-  #   @sampler.expects(:start_builder).with(@state, 100.0)
-  #   @sampler.on_start_transaction(@state, Time.at(100))
-  # end
-
-  # def test_on_start_transaction_disabled
-  #   with_config(:'transaction_tracer.enabled' => false) do
-  #     @sampler.expects(:start_builder).never
-  #     @sampler.on_start_transaction(@state, Time.at(100))
-  #   end
-  # end
-
-  def test_notice_push_frame_no_builder
-    assert_equal(nil, @sampler.notice_push_frame(@state))
-  end
-
-  def test_notice_pop_frame_no_builder
-    assert_equal(nil, @sampler.notice_pop_frame(@state, 'a frame', Time.at(100)))
-  end
-
-  def test_notice_pop_frame_with_finished_sample
-    builder = mock('builder')
-    sample  = mock('sample')
-    builder.expects(:sample).returns(sample)
-    sample.expects(:finished).returns(true)
-    @state.expects(:transaction_sample_builder).returns(builder)
-
-    assert_raises(RuntimeError) do
-      @sampler.notice_pop_frame(@state, 'a frame', Time.at(100))
-    end
-  end
-
-  # def test_on_finishing_transaction_no_builder
-  #   @state.transaction_sample_builder = nil
-  #   assert_equal(nil, @sampler.on_finishing_transaction(@state, @txn))
-  # end
-
   def test_captures_correct_transaction_duration
     freeze_time
     in_transaction do |txn|
@@ -486,20 +449,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   #     assert_equal(expected_sql, deepest_node[:sql].sql)
   #   end
   # end
-
-  def test_renaming_current_node_midflight
-    @sampler.start_builder(@state)
-    node = @sampler.notice_push_frame(@state)
-    node.metric_name = 'External/www.google.com/Net::HTTP/GET'
-    @sampler.notice_pop_frame(@state, 'External/www.google.com/Net::HTTP/GET')
-  end
-
-  def test_adding_node_parameters
-    @sampler.start_builder(@state)
-    @sampler.notice_push_frame(@state)
-    @sampler.add_node_parameters(:transaction_guid => '97612F92E6194080')
-    assert_equal '97612F92E6194080', @sampler.tl_builder.current_node[:transaction_guid]
-  end
 
   # def test_large_transaction_trace_harvest
   #   config = {
