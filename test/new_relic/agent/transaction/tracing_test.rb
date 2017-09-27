@@ -337,6 +337,17 @@ module NewRelic
           assert_equal 4, segment_c.exclusive_duration
           assert_equal 4, segment_c.duration
         end
+
+        def test_txn_not_recorded_when_tracing_is_disabled
+          with_config :'transaction_tracer.enabled' => false do
+            in_transaction 'dont_trace_this' do
+              segment = NewRelic::Agent::Transaction.start_segment 'seg'
+              segment.finish
+            end
+          end
+
+          assert_nil last_transaction_trace
+        end
       end
     end
   end
