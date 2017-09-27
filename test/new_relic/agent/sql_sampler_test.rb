@@ -194,12 +194,9 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_sql_trace_should_include_transaction_guid
-    txn_sampler = NewRelic::Agent::TransactionSampler.new
-    txn_sampler.start_builder(@state, Time.now)
-    @sampler.on_start_transaction(@state, Time.now, 'a uri')
-
-    assert_equal(NewRelic::Agent.instance.transaction_sampler.tl_builder.sample.guid,
-                 NewRelic::Agent.instance.sql_sampler.tl_transaction_data.guid)
+    in_transaction do |txn|
+      assert_equal(txn.guid, NewRelic::Agent.instance.sql_sampler.tl_transaction_data.guid)
+    end
   end
 
   def test_should_not_collect_explain_plans_when_disabled

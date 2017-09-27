@@ -230,38 +230,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     assert_equal NewRelic::Agent::Transaction::TransactionSampleBuffer::SINGLE_BUFFER_MAX, result.length
   end
 
-  def test_start_builder_default
-    @state.expects(:is_execution_traced?).returns(true)
-    @sampler.send(:start_builder, @state)
-    assert(@state.transaction_sample_builder.is_a?(NewRelic::Agent::TransactionSampleBuilder),
-           "should set up a new builder by default")
-  end
-
-  def test_start_builder_disabled
-    @state.transaction_sample_builder = 'not nil.'
-    with_config(:'transaction_tracer.enabled' => false) do
-      @sampler.send(:start_builder, @state)
-      assert_equal(nil, @state.transaction_sample_builder,
-                   "should clear the transaction builder when disabled")
-    end
-  end
-
-  def test_start_builder_dont_replace_existing_builder
-    fake_builder = mock('transaction sample builder')
-    @state.transaction_sample_builder = fake_builder
-    @sampler.send(:start_builder, @state)
-    assert_equal(fake_builder, @state.transaction_sample_builder,
-                 "should not overwrite an existing transaction sample builder")
-    @state.transaction_sample_builder = nil
-  end
-
-  def test_builder
-    @state.transaction_sample_builder = 'shamalamadingdong, brother.'
-    assert_equal('shamalamadingdong, brother.', @sampler.send(:tl_builder),
-                 'should return the value from the thread local variable')
-    @state.transaction_sample_builder = nil
-  end
-
   # Tests below this line are functional tests for the sampler, not
   # unit tests per se - some overlap with the tests above, but
   # generally usefully so

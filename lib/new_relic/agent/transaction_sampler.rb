@@ -142,25 +142,6 @@ module NewRelic
           @sample_buffers.each { |sample_buffer| sample_buffer.reset! }
         end
       end
-
-      # Checks to see if the transaction sampler is disabled, if
-      # transaction trace recording is disabled by a thread local, or
-      # if execution is untraced - if so it clears the transaction
-      # sample builder from the thread local, otherwise it generates a
-      # new transaction sample builder with the stated time as a
-      # starting point and saves it in the thread local variable
-      def start_builder(state, time=nil)
-        if !enabled? || !state.is_transaction_traced? || !state.is_execution_traced?
-          state.transaction_sample_builder = nil
-        else
-          state.transaction_sample_builder ||= TransactionSampleBuilder.new(time)
-        end
-      end
-
-      # The current thread-local transaction sample builder
-      def tl_builder
-        TransactionState.tl_get.transaction_sample_builder
-      end
     end
   end
 end
