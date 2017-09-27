@@ -66,13 +66,6 @@ module NewRelic
 
         last_sample = NewRelic::Agent::Transaction::TraceBuilder.build_trace txn
 
-        last_sample.transaction_name = txn.best_name
-        last_sample.uri = txn.request_path
-        last_sample.guid = txn.guid
-        last_sample.attributes = txn.attributes
-        last_sample.threshold = txn.threshold
-        last_sample.finished = true
-
         @samples_lock.synchronize do
           @last_sample = last_sample
           store_sample(@last_sample)

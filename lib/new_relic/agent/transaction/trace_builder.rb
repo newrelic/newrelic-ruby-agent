@@ -15,6 +15,7 @@ module NewRelic
         def build_trace transaction
           trace = Trace.new transaction.start_time
           trace.root_node.exit_timestamp = transaction.end_time - transaction.start_time
+          copy_attributes transaction, trace
           first, *rest = transaction.segments
           relationship_map = rest.group_by { |s| s.parent }
           trace.root_node.children << process_segments(transaction, first, trace.root_node, relationship_map)
@@ -40,6 +41,15 @@ module NewRelic
           relative_start = segment.start_time - transaction.start_time
           relative_end = segment.end_time - transaction.start_time
           TraceNode.new segment.name, relative_start, relative_end, segment.params, parent
+        end
+
+        def copy_attributes transaction, trace
+          trace.transaction_name = transaction.best_name
+          trace.uri = transaction.request_path
+          trace.guid = transaction.guid
+          trace.attributes = transaction.attributes
+          trace.threshold = transaction.threshold
+          trace.finished = true
         end
       end
     end
