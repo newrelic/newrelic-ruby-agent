@@ -580,7 +580,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       in_transaction do |transaction|
         state = NewRelic::Agent::TransactionState.tl_get
         state.is_cross_app_caller = true
-        path_hash = transaction.cat_path_hash(state)
+        path_hash = transaction.cat_path_hash
       end
     end
 

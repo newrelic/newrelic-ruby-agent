@@ -8,12 +8,17 @@ require 'new_relic/agent/http_clients/uri_util'
 module NewRelic
   module Agent
     class Transaction
+
+      #
+      # This class represents an external segment in a transaction trace.
+      #
+      # @api public
       class ExternalRequestSegment < Segment
         attr_reader :library, :uri, :procedure
 
         NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'.freeze
 
-        def initialize library, uri, procedure
+        def initialize library, uri, procedure # :nodoc:
           @library = library
           @uri = HTTPClients::URIUtil.parse_and_normalize_url(uri)
           @procedure = procedure
@@ -22,17 +27,23 @@ module NewRelic
           super()
         end
 
-        def name
+        def name # :nodoc:
           @name ||= "External/#{host}/#{library}/#{procedure}"
         end
 
-        def host
+        def host # :nodoc:
           @host_header || uri.host
         end
 
-        # This method will add NewRelic headers for cross application tracing and
-        # will check to see if a host header is used for the request. If a host
-        # header is used it will update the segment name to reflect the host header.
+        # This method adds New Relic request headers to a given request made to an
+        # external API and checks to see if a host header is used for the request.
+        # If a host header is used, it updates the segment name to match the host
+        # header.
+        #
+        # @param [NewRelic::Agent::HTTPClients::AbstractRequest] request the request
+        # object (must belong to a subclass of NewRelic::Agent::HTTPClients::AbstractRequest)
+        #
+        # @api public
         def add_request_headers request
           process_host_header request
 
@@ -43,14 +54,21 @@ module NewRelic
 
           transaction_state.is_cross_app_caller = true
           txn_guid = transaction_state.request_guid
-          trip_id   = transaction && transaction.cat_trip_id(transaction_state)
-          path_hash = transaction && transaction.cat_path_hash(transaction_state)
+          trip_id   = transaction && transaction.cat_trip_id
+          path_hash = transaction && transaction.cat_path_hash
 
           CrossAppTracing.insert_request_headers request, txn_guid, trip_id, path_hash
         rescue => e
           NewRelic::Agent.logger.error "Error in add_request_headers", e
         end
-        
+
+        # This method extracts app data from an external response if present. If
+        # a valid cross-app ID is found, the name of the segment is updated to
+        # reflect the cross-process ID and transaction name.
+        #
+        # @param [Hash] response a hash of response headers
+        #
+        # @api public
         def read_response_headers response
           return unless record_metrics? && CrossAppTracing.cross_app_enabled?
           return unless CrossAppTracing.response_has_crossapp_header?(response)
@@ -69,20 +87,95 @@ module NewRelic
           NewRelic::Agent.logger.error "Error in read_response_headers", e
         end
 
-        def cross_app_request?
+        def cross_app_request? # :nodoc:
           !!@app_data
         end
 
-        def cross_process_id
+        def cross_process_id # :nodoc:
           @app_data && @app_data[0]
         end
 
-        def transaction_guid
+        def transaction_guid # :nodoc:
           @app_data && @app_data[5]
         end
 
-        def cross_process_transaction_name
+        def cross_process_transaction_name # :nodoc:
           @app_data && @app_data[1]
+        end
+
+        EXTERNAL_TRANSACTION_PREFIX = 'ExternalTransaction/'.freeze
+        SLASH = '/'.freeze
+        APP_DATA_KEY = 'NewRelicAppData'.freeze
+
+        # Obtain an obfuscated +String+ suitable for delivery across public networks that identifies this application
+        # and transaction to another application which is also running a New Relic agent. This +String+ can be processed
+        # by +process_request_metadata+ on the receiving application.
+        #
+        # @return [String] obfuscated request metadata to send
+        #
+        # @api public
+        #
+        def get_request_metadata
+          NewRelic::Agent.record_api_supportability_metric(:get_request_metadata)
+          return unless CrossAppTracing.cross_app_enabled?
+
+          if transaction
+
+            # build hash of CAT metadata
+            #
+            rmd = {
+              NewRelicID: NewRelic::Agent.config[:cross_process_id],
+              NewRelicTransaction: [
+                transaction.guid,
+                false,
+                transaction.cat_trip_id,
+                transaction.cat_path_hash
+              ]
+            }
+
+            # flag cross app in the state so transaction knows to add bits to paylaod
+            #
+            transaction.state.is_cross_app_caller = true
+
+            # add Synthetics header if we have it
+            #
+            rmd[:NewRelicSynthetics] = transaction.raw_synthetics_header if transaction.raw_synthetics_header
+
+            # obfuscate the generated request metadata JSON
+            #
+            obfuscator.obfuscate ::JSON.dump(rmd)
+
+          end
+        rescue => e
+          NewRelic::Agent.logger.error "error during get_request_metadata", e
+        end
+
+        # Process obfuscated +String+ sent from a called application that is also running a New Relic agent and
+        # save information in current transaction for inclusion in a trace. This +String+ is generated by
+        # +get_response_metadata+ on the receiving application.
+        #
+        # @param response_metadata [String] received obfuscated response metadata
+        #
+        # @api public
+        #
+        def process_response_metadata response_metadata
+          NewRelic::Agent.record_api_supportability_metric(:process_response_metadata)
+          if transaction
+            app_data = ::JSON.parse(obfuscator.deobfuscate(response_metadata))[APP_DATA_KEY]
+
+            # validate cross app id
+            #
+            if Array === app_data and CrossAppTracing.trusted_valid_cross_app_id? app_data[0]
+              @app_data = app_data
+              update_segment_name
+            else
+              NewRelic::Agent.logger.error "error processing response metadata: invalid/non-trusted ID"
+            end
+          end
+
+          nil
+        rescue => e
+          NewRelic::Agent.logger.error "error during process_response_metadata", e
         end
 
         private
@@ -138,6 +231,10 @@ module NewRelic
           else
             @name = "External/#{host}/#{library}/#{procedure}"
           end
+        end
+
+        def obfuscator
+          CrossAppTracing.obfuscator
         end
       end
     end

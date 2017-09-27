@@ -1340,7 +1340,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     txn = in_transaction do |t|
       state = NewRelic::Agent::TransactionState.tl_get
       state.is_cross_app_caller = true
-      path_hash = t.cat_path_hash(state)
+      path_hash = t.cat_path_hash
     end
 
     result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
