@@ -97,7 +97,6 @@ module NewRelic::Agent
       state.referring_transaction_info = :referring_transaction_info
       state.busy_entries = 1
       state.sql_sampler_transaction_data = Object.new
-      state.transaction_sample_builder = Object.new
       state.push_traced(true)
 
       state.reset
