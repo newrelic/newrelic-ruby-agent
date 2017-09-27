@@ -71,7 +71,7 @@ module NewRelic
         last_sample.uri = txn.request_path
         last_sample.guid = txn.guid
         last_sample.attributes = txn.attributes
-        last_sample.threshold = transaction_trace_threshold
+        last_sample.threshold = txn.threshold
         last_sample.finished = true
 
         @samples_lock.synchronize do
@@ -160,18 +160,6 @@ module NewRelic
       # The current thread-local transaction sample builder
       def tl_builder
         TransactionState.tl_get.transaction_sample_builder
-      end
-
-      TT_THRESHOLD_KEY = :'transaction_tracer.transaction_threshold'
-
-      def transaction_trace_threshold #THREAD_LOCAL_ACCESS
-        state = TransactionState.tl_get
-        source_class = Agent.config.source(TT_THRESHOLD_KEY).class
-        if source_class == Configuration::DefaultSource && state.current_transaction
-          state.current_transaction.apdex_t * 4
-        else
-          Agent.config[TT_THRESHOLD_KEY]
-        end
       end
     end
   end

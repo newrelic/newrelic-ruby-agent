@@ -851,6 +851,15 @@ module NewRelic
         Agent.config[key] && Agent.config[key][best_name]
       end
 
+      def threshold
+         source_class = Agent.config.source(:'transaction_tracer.transaction_threshold').class
+        if source_class == Configuration::DefaultSource
+          apdex_t * 4
+        else
+          Agent.config[:'transaction_tracer.transaction_threshold']
+        end
+      end
+
       def with_database_metric_name(model, method, product=nil)
         previous = self.instrumentation_state[:datastore_override]
         model_name = case model
