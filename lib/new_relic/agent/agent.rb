@@ -19,6 +19,7 @@ require 'new_relic/agent/database'
 require 'new_relic/agent/commands/agent_command_router'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
+require 'new_relic/agent/distributed_trace_monitor'
 require 'new_relic/agent/synthetics_monitor'
 require 'new_relic/agent/synthetics_event_buffer'
 require 'new_relic/agent/transaction_event_recorder'
@@ -29,6 +30,7 @@ require 'new_relic/agent/vm/monotonic_gc_profiler'
 require 'new_relic/agent/utilization_data'
 require 'new_relic/environment_report'
 require 'new_relic/agent/attribute_filter'
+require 'new_relic/agent/throughput_monitor'
 
 module NewRelic
   module Agent
@@ -48,18 +50,20 @@ module NewRelic
 
         @service = NewRelicService.new
 
-        @events                = NewRelic::Agent::EventListener.new
-        @stats_engine          = NewRelic::Agent::StatsEngine.new
-        @transaction_sampler   = NewRelic::Agent::TransactionSampler.new
-        @sql_sampler           = NewRelic::Agent::SqlSampler.new
-        @agent_command_router  = NewRelic::Agent::Commands::AgentCommandRouter.new(@events)
-        @cross_app_monitor     = NewRelic::Agent::CrossAppMonitor.new(@events)
-        @synthetics_monitor    = NewRelic::Agent::SyntheticsMonitor.new(@events)
-        @error_collector       = NewRelic::Agent::ErrorCollector.new
-        @transaction_rules     = NewRelic::Agent::RulesEngine.new
-        @harvest_samplers      = NewRelic::Agent::SamplerCollection.new(@events)
-        @monotonic_gc_profiler = NewRelic::Agent::VM::MonotonicGCProfiler.new
-        @javascript_instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(@events)
+        @events                    = NewRelic::Agent::EventListener.new
+        @stats_engine              = NewRelic::Agent::StatsEngine.new
+        @transaction_sampler       = NewRelic::Agent::TransactionSampler.new
+        @sql_sampler               = NewRelic::Agent::SqlSampler.new
+        @agent_command_router      = NewRelic::Agent::Commands::AgentCommandRouter.new(@events)
+        @cross_app_monitor         = NewRelic::Agent::CrossAppMonitor.new(@events)
+        @distributed_trace_monitor = NewRelic::Agent::DistributedTraceMonitor.new(@events)
+        @synthetics_monitor        = NewRelic::Agent::SyntheticsMonitor.new(@events)
+        @error_collector           = NewRelic::Agent::ErrorCollector.new
+        @transaction_rules         = NewRelic::Agent::RulesEngine.new
+        @harvest_samplers          = NewRelic::Agent::SamplerCollection.new(@events)
+        @monotonic_gc_profiler     = NewRelic::Agent::VM::MonotonicGCProfiler.new
+        @javascript_instrumentor   = NewRelic::Agent::JavascriptInstrumentor.new(@events)
+        @throughput_monitor        = NewRelic::Agent::ThroughputMonitor.new
 
         @harvester       = NewRelic::Agent::Harvester.new(@events)
         @after_fork_lock = Mutex.new
@@ -140,6 +144,7 @@ module NewRelic
         attr_reader :custom_event_aggregator
         attr_reader :transaction_event_recorder
         attr_reader :attribute_filter
+        attr_reader :throughput_monitor
 
         def transaction_event_aggregator
           @transaction_event_recorder.transaction_event_aggregator
@@ -543,6 +548,7 @@ module NewRelic
           @transaction_event_recorder.drop_buffered_data
           @custom_event_aggregator.reset!
           @sql_sampler.reset!
+
           if Agent.config[:clear_transaction_state_after_fork]
             TransactionState.tl_clear
           end
@@ -1148,6 +1154,7 @@ module NewRelic
             harvest_and_send_for_agent_commands
           end
         ensure
+          throughput_monitor.reset!
           NewRelic::Agent::Database.close_connections
           duration = (Time.now - now).to_f
           NewRelic::Agent.record_metric('Supportability/Harvest', duration)

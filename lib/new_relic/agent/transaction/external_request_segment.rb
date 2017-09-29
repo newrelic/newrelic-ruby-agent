@@ -46,7 +46,6 @@ module NewRelic
         # @api public
         def add_request_headers request
           process_host_header request
-
           synthetics_header = transaction && transaction.raw_synthetics_header
           insert_synthetics_header request, synthetics_header if synthetics_header
 
@@ -58,6 +57,7 @@ module NewRelic
           path_hash = transaction && transaction.cat_path_hash
 
           CrossAppTracing.insert_request_headers request, txn_guid, trip_id, path_hash
+          insert_distributed_trace_header request
         rescue => e
           NewRelic::Agent.logger.error "Error in add_request_headers", e
         end
@@ -178,6 +178,12 @@ module NewRelic
           NewRelic::Agent.logger.error "error during process_response_metadata", e
         end
 
+        def record_metrics
+          add_unscoped_metrics
+          record_distributed_tracing_metrics if Agent.config[:'distributed_tracing.enabled']
+          super
+        end
+
         private
 
         def insert_synthetics_header request, header
@@ -199,19 +205,25 @@ module NewRelic
           end
         end
 
+        X_NEWRELIC_TRACE_HEADER = "X-NewRelic-Trace".freeze
+
+        def insert_distributed_trace_header request
+          return unless Agent.config[:'distributed_tracing.enabled']
+          payload = transaction.create_distributed_trace_payload uri
+          request[X_NEWRELIC_TRACE_HEADER] = payload.http_safe
+        end
+
         EXTERNAL_ALL = "External/all".freeze
 
-        def unscoped_metrics
-          metrics = [ EXTERNAL_ALL,
+        def add_unscoped_metrics
+          @unscoped_metrics = [ EXTERNAL_ALL,
             "External/#{host}/all",
             suffixed_rollup_metric
           ]
 
           if cross_app_request?
-            metrics << "ExternalApp/#{host}/#{cross_process_id}/all"
+            @unscoped_metrics << "ExternalApp/#{host}/#{cross_process_id}/all"
           end
-
-          metrics
         end
 
         EXTERNAL_ALL_WEB = "External/allWeb".freeze
@@ -223,6 +235,61 @@ module NewRelic
           else
             EXTERNAL_ALL_OTHER
           end
+        end
+
+        ALL_SUFFIX = "all".freeze
+        ALL_WEB_SUFFIX = "allWeb".freeze
+        ALL_OTHER_SUFFIX = "allOther".freeze
+
+        def transaction_type_suffix
+          if Transaction.recording_web_transaction?
+            ALL_WEB_SUFFIX
+          else
+            ALL_OTHER_SUFFIX
+          end
+        end
+
+        def record_distributed_tracing_metrics
+          add_caller_by_duration_metrics
+          record_transport_duration_metrics
+          record_errors_by_caller_metrics
+        end
+
+        DURATION_BY_CALLER_UNKOWN_PREFIX = "DurationByCaller/Unknown/Unknown/Unknown/Unknown".freeze
+
+        def add_caller_by_duration_metrics
+          prefix = if transaction.distributed_trace?
+            payload = transaction.distributed_trace_payload
+            "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport"
+          else
+            DURATION_BY_CALLER_UNKOWN_PREFIX
+          end
+
+          @unscoped_metrics << "#{prefix}/#{ALL_SUFFIX}"
+          @unscoped_metrics << "#{prefix}/#{transaction_type_suffix}"
+        end
+
+        def record_transport_duration_metrics
+          return unless transaction.distributed_trace?
+          payload = transaction.distributed_trace_payload
+          prefix = "TransportDuration/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport"
+          metric_cache.record_unscoped "#{prefix}/#{ALL_SUFFIX}", transaction.transport_duration
+          metric_cache.record_unscoped "#{prefix}/#{transaction_type_suffix}", transaction.transport_duration
+        end
+
+        ERRORS_BY_CALLER_UNKOWN_PREFIX = "ErrorsByCaller/Unknown/Unknown/Unknown/Unknown".freeze
+
+        def record_errors_by_caller_metrics
+          return unless transaction.exceptions.size > 0
+          prefix = if transaction.distributed_trace?
+            payload = transaction.distributed_trace_payload
+            "ErrorsByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport"
+          else
+            ERRORS_BY_CALLER_UNKOWN_PREFIX
+          end
+
+          NewRelic::Agent.increment_metric "#{prefix}/#{ALL_SUFFIX}"
+          NewRelic::Agent.increment_metric "#{prefix}/#{transaction_type_suffix}"
         end
 
         def update_segment_name

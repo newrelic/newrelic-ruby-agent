@@ -8,6 +8,7 @@
 # the transaction event aggregator and the synthetics container.
 
 require 'new_relic/agent/payload_metric_mapping'
+require 'new_relic/agent/distributed_trace_payload'
 
 module NewRelic
   module Agent
@@ -22,6 +23,7 @@ module NewRelic
       PORT_KEY                       = 'port'.freeze
       NAME_KEY                       = 'transactionName'.freeze
       DURATION_KEY                   = 'duration'.freeze
+      SAMPLED_KEY                    = 'nr.sampled'.freeze
       GUID_KEY                       = 'nr.transactionGuid'.freeze
       REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'.freeze
       SYNTHETICS_RESOURCE_ID_KEY     = "nr.syntheticsResourceId".freeze
@@ -49,8 +51,10 @@ module NewRelic
         if payload
           attrs[NAME_KEY] = payload[:name]
           attrs[DURATION_KEY] = payload[:duration]
+          attrs[SAMPLED_KEY] = payload[:'nr.sampled'] if Agent.config[:'distributed_tracing.enabled']
           append_synthetics payload, attrs
           append_cat payload, attrs
+          append_distributed_trace_intrinsics payload, attrs
           PayloadMetricMapping.append_mapped_metrics payload[:metrics], attrs
         end
 
@@ -66,6 +70,20 @@ module NewRelic
       def append_cat payload, sample
         sample[GUID_KEY] = payload[:guid] if payload[:guid]
         sample[REFERRING_TRANSACTION_GUID_KEY] = payload[:referring_transaction_guid] if payload[:referring_transaction_guid]
+      end
+
+      OTHER_GUID_KEY = "nr.guid".freeze
+
+      def append_distributed_trace_intrinsics payload, sample
+        return unless Agent.config[:'distributed_tracing.enabled']
+        DistributedTracePayload::INTRINSIC_KEYS.each do |key|
+          value = payload[key]
+          sample[key] = value unless value.nil?
+        end
+        # guid has a different name for transaction events
+        if sample.key? OTHER_GUID_KEY
+          sample[GUID_KEY] = sample.delete OTHER_GUID_KEY
+        end
       end
     end
   end
