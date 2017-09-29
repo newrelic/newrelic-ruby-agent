@@ -372,6 +372,16 @@ module NewRelic
           @default_name || NewRelic::Agent::UNKNOWN_METRIC
       end
 
+      # For common interface with Trace
+      alias_method :transaction_name, :best_name
+
+      attr_accessor :xray_session_id
+
+      def duration
+        (@end_time - @start_time).to_f
+      end
+      # End common interface
+
       def name_set?
         (@overridden_name || @default_name) ? true : false
       end

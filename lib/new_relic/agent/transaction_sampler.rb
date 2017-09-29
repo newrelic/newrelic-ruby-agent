@@ -64,11 +64,9 @@ module NewRelic
       def on_finishing_transaction(state, txn, time=Time.now)
         return if !enabled? || txn.ignore_trace?
 
-        last_sample = NewRelic::Agent::Transaction::TraceBuilder.build_trace txn
-
         @samples_lock.synchronize do
-          @last_sample = last_sample
-          store_sample(@last_sample)
+          @last_sample = txn
+          store_sample(txn)
           @last_sample
         end
       end
@@ -124,7 +122,7 @@ module NewRelic
         # know, Ruby 1.8.6 :/
         result = []
         @sample_buffers.each { |buffer| result.concat(buffer.harvest_samples) }
-        result.uniq
+        result.uniq { |r| r.guid }
       end
 
       # reset samples without rebooting the web server (used by dev mode)

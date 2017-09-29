@@ -36,9 +36,9 @@ module NewRelic
           @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
 
           assert_equal('Controller/ActionCable/TestChannel/test_action',
-                       NewRelic::Agent.instance.transaction_sampler.last_sample.transaction_name)
+                       last_transaction_trace.transaction_name)
           assert_equal('Controller/ActionCable/TestChannel/test_action',
-                       NewRelic::Agent.instance.transaction_sampler.last_sample.root_node.called_nodes[0].metric_name)
+                       last_transaction_trace.root_node.called_nodes[0].metric_name)
         end
 
         def test_records_apdex_metrics
@@ -91,7 +91,7 @@ module NewRelic
           @subscriber.finish('transmit.action_cable', :id, payload_for_transmit)
           @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
 
-          sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+          sample = last_transaction_trace
 
           assert_equal('Controller/ActionCable/TestChannel/test_action', sample.transaction_name)
           metric_name = 'Ruby/ActionCable/TestChannel/transmit'
@@ -103,7 +103,7 @@ module NewRelic
           advance_time(1.0)
           @subscriber.finish('transmit.action_cable', :id, payload_for_transmit)
 
-          sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+          sample = last_transaction_trace
 
           assert_nil sample, "Did not expect a transaction to be created for transmit"
           refute_metrics_recorded ['Ruby/ActionCable/TestChannel/transmit']
