@@ -362,7 +362,8 @@ def refute_contains_request_params(attributes)
 end
 
 def last_transaction_trace
-  NewRelic::Agent.agent.transaction_sampler.last_sample
+  return unless last_sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+  NewRelic::Agent::Transaction::TraceBuilder.build_trace(last_sample)
 end
 
 def last_transaction_trace_request_params
@@ -387,7 +388,7 @@ def find_last_transaction_node(transaction_sample=nil)
   if transaction_sample
     root_node = transaction_sample.root_node
   else
-    root_node = NewRelic::Agent.instance.transaction_sampler.last_sample.root_node
+    root_node = last_transaction_trace.root_node
   end
 
   last_node = nil

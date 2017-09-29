@@ -52,7 +52,7 @@ include MultiverseHelpers
   def test_creates_trace
     @channel.perform_action({ 'action' => :test_action, 'content' => 'hello' })
 
-    last_sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    last_sample = last_transaction_trace
     assert_equal('Controller/ActionCable/ActionCableTest::TestChannel/test_action', last_sample.transaction_name)
   end
 

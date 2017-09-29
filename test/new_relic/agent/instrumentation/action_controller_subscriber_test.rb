@@ -269,7 +269,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
       @subscriber.finish('process_action.action_controller', :id, @exit_payload)
     end
 
-    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    sample = last_transaction_trace
     assert_equal('666', attributes_for(sample, :agent)['request.parameters.number'])
   end
 
@@ -280,7 +280,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
       @subscriber.finish('process_action.action_controller', :id, @exit_payload)
     end
 
-    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    sample = last_transaction_trace
     assert_equal('[FILTERED]', attributes_for(sample, :agent)['request.parameters.password'])
   end
 
@@ -289,7 +289,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     NewRelic::Agent.add_custom_attributes('number' => '666')
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    sample = last_transaction_trace
     assert_equal('666', attributes_for(sample, :custom)['number'])
   end
 end if ::Rails::VERSION::MAJOR.to_i >= 4

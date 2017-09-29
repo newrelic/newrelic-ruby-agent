@@ -227,7 +227,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               ]).to_a
             end
 
-            sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+            sample = last_transaction_trace
             metric = "Datastore/statement/MongoDB/#{@collection_name}/aggregate"
             node = find_node_with_name(sample, metric)
 
@@ -244,7 +244,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               @collection.find("name" => "Wes Mantooth", "count" => {"$gte" => 1}).to_a
             end
 
-            sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+            sample = last_transaction_trace
             metric = "Datastore/statement/MongoDB/#{@collection_name}/find"
             node = find_node_with_name(sample, metric)
 

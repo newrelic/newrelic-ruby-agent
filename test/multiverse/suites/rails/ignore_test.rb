@@ -61,7 +61,7 @@ class IgnoredActionsTest < ActionDispatch::IntegrationTest
     get '/ignored/action_to_ignore'
     get '/request_stats/stats_action'
 
-    trace = NewRelic::Agent.instance.transaction_sampler.last_sample
+    trace = last_transaction_trace
     assert_equal 1, trace.root_node.called_nodes.count
   end
 

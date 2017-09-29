@@ -112,7 +112,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     with_config('datastore_tracer.database_name_reporting.enabled' => false) do
       in_transaction { simulate_query(2) }
     end
-    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    sample = last_transaction_trace
     node = find_node_with_name_matching sample, /Datastore\//
     refute node.params.key?(:database_name)
   end

@@ -59,7 +59,7 @@ class ExconTest < Minitest::Test
       end
     end
 
-    tt = NewRelic::Agent.agent.transaction_sampler.last_sample
+    tt = last_transaction_trace
     node = tt.root_node.called_nodes.first.called_nodes.first
     assert_equal("External/localhost/Excon/GET", node.metric_name)
     assert_equal(target_url, node.params[:uri])

@@ -110,7 +110,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
 
     def test_should_count_all_the_template_and_partial_nodes
       get '/views/template_render_with_3_partial_renders'
-      sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+      sample = last_transaction_trace
       nodes = find_all_nodes_with_name_matching(sample, ['^Nested/Controller/views', '^View'])
       nodes_list = "Found these nodes:\n  #{nodes.map(&:metric_name).join("\n  ")}"
       assert_equal 5, nodes.length, "Should be a node for the controller action, the template, and 3 partials (5). #{nodes_list}"
@@ -119,7 +119,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     def test_should_have_3_nodes_with_the_correct_metric_name
       get '/views/template_render_with_3_partial_renders'
 
-      sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+      sample = last_transaction_trace
       partial_nodes = find_all_nodes_with_name_matching(sample, 'View/views/_a_partial.html.erb/Partial')
 
       assert_equal 3, partial_nodes.size, "sanity check"
@@ -129,7 +129,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     def test_should_create_a_metric_for_the_rendered_inline_template
       get '/views/inline_render'
 
-      sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+      sample = last_transaction_trace
       text_node = find_node_with_name(sample, 'View/inline template/Rendering')
 
       assert text_node, "Failed to find a node named View/inline template/Rendering"
@@ -140,14 +140,14 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     if Rails::VERSION::MAJOR.to_i == 3 && Rails::VERSION::MINOR.to_i == 0
       def test_should_not_instrument_rendering_of_text
         get '/views/text_render'
-        sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+        sample = last_transaction_trace
         refute find_node_with_name(sample, 'View/text template/Rendering')
       end
     else
       def test_should_create_a_metric_for_the_rendered_text
         get '/views/text_render'
 
-        sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+        sample = last_transaction_trace
         text_node = find_node_with_name(sample, 'View/text template/Rendering')
 
         assert text_node, "Failed to find a node named View/text template/Rendering"
@@ -158,7 +158,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     def test_should_create_a_metric_for_the_rendered_haml_template
       get '/views/haml_render'
 
-      sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+      sample = last_transaction_trace
       text_node = find_node_with_name(sample, 'View/views/haml_view.html.haml/Rendering')
 
       assert text_node, "Failed to find a node named View/views/haml_view.html.haml/Rendering"
@@ -167,7 +167,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
 
     def test_should_create_a_proper_metric_when_the_template_is_unknown
       get '/views/no_template'
-      sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+      sample = last_transaction_trace
 
       # Different versions have significant difference in handling, but we're
       # happy enough with what each of them does in the unknown case
@@ -182,14 +182,14 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
 
     def test_should_create_a_proper_metric_when_we_render_a_collection
       get '/views/collection_render'
-      sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+      sample = last_transaction_trace
       assert find_node_with_name(sample, "View/foos/_foo.html.haml/Partial")
     end
 
     [:js_render, :xml_render, :proc_render, :json_render ].each do |action|
       define_method("test_should_not_instrument_rendering_of_#{action}") do
         get "/views/#{action}"
-        sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+        sample = last_transaction_trace
         view_node = find_node_with_name_matching(sample, /^View\//)
         refute view_node, "Should not instrument rendering of #{action}, found #{view_node}."
       end
@@ -197,7 +197,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
 
     def test_should_create_a_metric_for_rendered_file_that_does_not_include_the_filename_so_it_doesnt_metric_explode
       get '/views/file_render'
-      sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+      sample = last_transaction_trace
       assert find_node_with_name(sample, 'View/file/Rendering')
       refute find_node_with_name_matching(sample, 'dummy')
     end

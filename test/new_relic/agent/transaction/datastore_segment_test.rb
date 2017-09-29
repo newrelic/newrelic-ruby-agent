@@ -167,7 +167,7 @@ module NewRelic
             segment.finish
           end
 
-          sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+          sample = last_transaction_trace
           node = find_node_with_name(sample, segment.name)
 
           assert_equal "jonan-01", node.params[:host]
@@ -195,7 +195,7 @@ module NewRelic
               segment.finish
             end
 
-            sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+            sample = last_transaction_trace
             node = find_node_with_name(sample, segment.name)
 
             refute node.params.key? :host
@@ -212,7 +212,7 @@ module NewRelic
             segment.finish
           end
 
-          sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+          sample = last_transaction_trace
           node = find_node_with_name(sample, segment.name)
 
           assert_equal node.params[:database_name], "pizza_cube"
@@ -228,7 +228,7 @@ module NewRelic
               segment.finish
             end
 
-            sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+            sample = last_transaction_trace
             node = find_node_with_name(sample, segment.name)
 
             refute node.params.key? :database_name

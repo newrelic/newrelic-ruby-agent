@@ -25,7 +25,7 @@ class MarshalingTest < Minitest::Test
       end
     end
 
-    expected_sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    expected_sample = last_transaction_trace
 
     agent.service.connect
     agent.send(:harvest_and_send_transaction_traces)
