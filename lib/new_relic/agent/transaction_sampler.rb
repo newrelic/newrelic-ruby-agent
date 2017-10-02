@@ -122,7 +122,14 @@ module NewRelic
         # know, Ruby 1.8.6 :/
         result = []
         @sample_buffers.each { |buffer| result.concat(buffer.harvest_samples) }
-        result.uniq { |r| r.guid }
+        result.uniq!
+        result.map! do |sample|
+          if Transaction === sample
+            Transaction::TraceBuilder.build_trace sample
+          else
+            sample
+          end
+        end
       end
 
       # reset samples without rebooting the web server (used by dev mode)

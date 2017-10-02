@@ -1,7 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
-require 'new_relic/agent/transaction/trace_builder'
 
 module NewRelic
   module Agent
@@ -25,13 +24,7 @@ module NewRelic
         end
 
         def harvest_samples
-          @samples.map do |s|
-            if Transaction === s
-              TraceBuilder.build_trace s
-            else
-              s
-            end
-          end
+          @samples
         ensure
           reset!
         end
