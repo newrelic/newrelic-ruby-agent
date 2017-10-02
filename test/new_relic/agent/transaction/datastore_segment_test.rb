@@ -399,6 +399,20 @@ module NewRelic
           node = find_node_with_name_matching(sample, /^Datastore/)
           refute_nil node.params[:backtrace]
         end
+
+         def test_node_obfuscated
+            orig_sql = "SELECT * from Jim where id=66"
+
+            in_transaction do
+              s = NewRelic::Agent::Transaction.start_datastore_segment
+              s.notice_sql(orig_sql)
+              s.finish
+            end
+
+            node = find_last_transaction_node(last_transaction_trace)
+            assert_equal orig_sql, node[:sql].sql
+            assert_equal "SELECT * from Jim where id=?", node.obfuscated_sql
+          end
       end
     end
   end

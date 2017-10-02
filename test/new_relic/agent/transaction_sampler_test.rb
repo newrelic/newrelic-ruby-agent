@@ -234,53 +234,30 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   # unit tests per se - some overlap with the tests above, but
   # generally usefully so
 
-  # def test_sample_tree
-  #   with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-  #     @sampler.on_start_transaction(@state, Time.now)
-  #     @sampler.notice_push_frame(@state)
+  def test_sample__gc_stats
+    GC.extend MockGCStats
+    # These are effectively Garbage Collects, detected each time GC.time is
+    # called by the transaction sampler.  One time value in seconds for each call.
+    MockGCStats.mock_values = [0,0,0,1,0,0,1,0,0,0,0,0,0,0,0]
 
-  #     @sampler.notice_push_frame(@state)
-  #     @sampler.notice_pop_frame(@state, "b")
+    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
 
-  #     @sampler.notice_push_frame(@state)
-  #     @sampler.notice_push_frame(@state)
-  #     @sampler.notice_pop_frame(@state, "d")
-  #     @sampler.notice_pop_frame(@state, "c")
+      in_transaction 'a' do
+        segment_b = NewRelic::Agent::Transaction.start_segment "b"
+        segment_b.finish
 
-  #     @sampler.notice_pop_frame(@state, "a")
-  #     @sampler.on_finishing_transaction(@state, @txn)
-  #     sample = @sampler.harvest!.first
-  #     assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
-  #   end
-  # end
+        segment_c = NewRelic::Agent::Transaction.start_segment "c"
+        segment_d = NewRelic::Agent::Transaction.start_segment "d"
+        segment_d.finish
+        segment_c.finish
+      end
 
-  # def test_sample__gc_stats
-  #   GC.extend MockGCStats
-  #   # These are effectively Garbage Collects, detected each time GC.time is
-  #   # called by the transaction sampler.  One time value in seconds for each call.
-  #   MockGCStats.mock_values = [0,0,0,1,0,0,1,0,0,0,0,0,0,0,0]
-
-  #   with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-  #     @sampler.on_start_transaction(@state, Time.now)
-  #     @sampler.notice_push_frame(@state)
-
-  #     @sampler.notice_push_frame(@state)
-  #     @sampler.notice_pop_frame(@state, "b")
-
-  #     @sampler.notice_push_frame(@state)
-  #     @sampler.notice_push_frame(@state)
-  #     @sampler.notice_pop_frame(@state, "d")
-  #     @sampler.notice_pop_frame(@state, "c")
-
-  #     @sampler.notice_pop_frame(@state, "a")
-  #     @sampler.on_finishing_transaction(@state, @txn)
-
-  #     sample = @sampler.harvest!.first
-  #     assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
-  #   end
-  # ensure
-  #   MockGCStats.mock_values = []
-  # end
+      sample = last_transaction_trace
+      assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
+    end
+  ensure
+    MockGCStats.mock_values = []
+  end
 
   # NB this test occasionally fails due to a GC during one of the
   # sample traces, for example. It's unfortunate, but we can't
@@ -346,94 +323,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     end
     unfreeze_time
   end
-
-  # def test_sample_with_parallel_paths
-  #   with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-  #     @sampler.on_start_transaction(@state, Time.now)
-  #     @sampler.notice_push_frame(@state)
-
-  #     assert_equal 1, @sampler.tl_builder.scope_depth
-
-  #     @sampler.notice_pop_frame(@state, "a")
-  #     @sampler.on_finishing_transaction(@state, @txn)
-
-  #     assert_nil @sampler.tl_builder
-
-  #     @sampler.on_start_transaction(@state, Time.now)
-  #     @sampler.notice_push_frame(@state)
-  #     @sampler.notice_pop_frame(@state, "a")
-  #     @sampler.on_finishing_transaction(@state, @txn)
-
-  #     assert_nil @sampler.tl_builder
-
-  #     assert_equal "ROOT{a}", @sampler.last_sample.to_s_compact
-  #   end
-  # end
-
-  # def test_double_traced_method_stack_empty
-  #   with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-  #     @sampler.on_start_transaction(@state, Time.now)
-  #     @sampler.notice_push_frame(@state)
-  #     @sampler.notice_pop_frame(@state, "a")
-  #     @sampler.on_finishing_transaction(@state, @txn)
-  #     @sampler.on_finishing_transaction(@state, @txn)
-  #     @sampler.on_finishing_transaction(@state, @txn)
-  #     @sampler.on_finishing_transaction(@state, @txn)
-
-  #     refute_nil @sampler.harvest![0]
-  #   end
-  # end
-
-  # def test_node_obfuscated
-  #   @sampler.on_start_transaction(@state, Time.now.to_f)
-  #   orig_sql = "SELECT * from Jim where id=66"
-
-  #   in_transaction do
-  #     s = NewRelic::Agent::Transaction.start_datastore_segment
-  #     s.notice_sql(orig_sql)
-  #     s.finish
-  #   end
-
-  #   node = find_last_transaction_node(@sampler.last_sample)
-  #   assert_equal orig_sql, node[:sql].sql
-  #   assert_equal "SELECT * from Jim where id=?", node.obfuscated_sql
-  # end
-
-  # def test_should_not_collect_nodes_beyond_limit
-  #   with_config(:'transaction_tracer.limit_segments' => 3) do
-  #     in_transaction do
-  #       %w[ wheat challah semolina ].each do |bread|
-  #         s = NewRelic::Agent::Transaction.start_datastore_segment
-  #         s.notice_sql("SELECT * FROM sandwiches WHERE bread = '#{bread}'")
-  #         s.finish
-  #       end
-  #     end
-
-  #     assert_equal 3, @sampler.last_sample.count_nodes
-
-  #     expected_sql = "SELECT * FROM sandwiches WHERE bread = 'challah'"
-  #     deepest_node = find_last_transaction_node(@sampler.last_sample)
-  #     assert_equal([], deepest_node.called_nodes)
-  #     assert_equal(expected_sql, deepest_node[:sql].sql)
-  #   end
-  # end
-
-  # def test_large_transaction_trace_harvest
-  #   config = {
-  #     :'transaction_tracer.enabled' => true,
-  #     :'transaction_tracer.transaction_threshold' => 0,
-  #     :'transaction_tracer.limit_segments' => 100
-  #   }
-  #   with_config(config) do
-  #     run_long_sample_trace(110)
-
-  #     samples = @sampler.harvest!
-  #     assert_equal(1, samples.size)
-
-  #     # Verify that the TT stopped recording after 100 nodes
-  #     assert_equal(100, samples.first.count_nodes)
-  #   end
-  # end
 
   def test_harvest_prepare_samples
     samples = [mock('TT0'), mock('TT1')]

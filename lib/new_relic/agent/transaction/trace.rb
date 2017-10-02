@@ -29,7 +29,12 @@ module NewRelic
         end
 
         def count_nodes
-          self.node_count
+          node_count = 0
+          each_node do |node|
+            next if node == root_node
+            node_count +=1
+          end
+          node_count
         end
 
         def duration

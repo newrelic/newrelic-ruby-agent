@@ -303,6 +303,27 @@ module NewRelic
           end
         end
 
+        def test_should_not_collect_nodes_beyond_limit
+          with_config(:'transaction_tracer.limit_segments' => 3) do
+            in_transaction do
+              %w[ wheat challah semolina ].each do |bread|
+                s = NewRelic::Agent::Transaction.start_datastore_segment
+                s.notice_sql("SELECT * FROM sandwiches WHERE bread = '#{bread}'")
+                s.finish
+              end
+            end
+
+            last_sample = last_transaction_trace
+
+            assert_equal 3, last_sample.count_nodes
+
+            expected_sql = "SELECT * FROM sandwiches WHERE bread = 'challah'"
+            deepest_node = find_last_transaction_node(last_sample)
+            assert_equal([], deepest_node.called_nodes)
+            assert_equal(expected_sql, deepest_node[:sql].sql)
+          end
+        end
+
         # The test below documents a failure case. When a transaction has
         # completed, and a segment has not been finished, we will forcibly
         # finish the segment at the end of the transaction. This will cause the
@@ -336,6 +357,28 @@ module NewRelic
 
           assert_equal 4, segment_c.exclusive_duration
           assert_equal 4, segment_c.duration
+        end
+
+        def test_large_transaction_trace
+          config = {
+            :'transaction_tracer.enabled' => true,
+            :'transaction_tracer.transaction_threshold' => 0,
+            :'transaction_tracer.limit_segments' => 100
+          }
+          with_config(config) do
+
+            in_transaction 'test_txn' do
+              110.times do |i|
+                segment = NewRelic::Agent::Transaction.start_segment "segment_#{i}"
+                segment.finish
+              end
+            end
+
+            sample = last_transaction_trace
+
+            # Verify that the TT stopped recording after 100 nodes
+            assert_equal(100, sample.count_nodes)
+          end
         end
 
         def test_txn_not_recorded_when_tracing_is_disabled
