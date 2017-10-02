@@ -196,12 +196,12 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
+    last_sample = last_transaction_trace
+
     assert_equal('Controller/test/index',
-                 NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.transaction_name)
+                 last_sample.transaction_name)
     assert_equal('Controller/test/index',
-                 NewRelic::Agent.instance.transaction_sampler \
-                   .last_sample.root_node.called_nodes[0].metric_name)
+                 last_sample.root_node.called_nodes[0].metric_name)
   end
 
   def test_applies_txn_name_rules
