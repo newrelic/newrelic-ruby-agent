@@ -62,7 +62,7 @@ class IgnoredActionsTest < ActionDispatch::IntegrationTest
     get '/request_stats/stats_action'
 
     trace = last_transaction_trace
-    assert_equal 1, trace.root_node.called_nodes.count
+    assert_equal 1, trace.root_node.children.count
   end
 
   def test_should_not_write_cat_response_headers_for_ignored_transactions

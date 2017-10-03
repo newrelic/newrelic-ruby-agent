@@ -103,7 +103,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     node.stubs(:explain_sql).returns('')
     node[:sql] = ''
 
-    @trace.root_node.add_called_node(node)
+    @trace.root_node.children << node
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.prepare_to_send!
@@ -118,7 +118,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     node = @trace.create_node(0.0, 'has_sql')
     node.stubs(:duration).returns(2)
     node[:sql] = "select * from pelicans where name = '1337807';"
-    @trace.root_node.add_called_node(node)
+    @trace.root_node.children << node
 
     @trace.prepare_to_send!
     assert_equal "select * from pelicans where name = ?;", node[:sql]
@@ -131,7 +131,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     node.stubs(:explain_sql).returns('')
     node[:sql] = 'select * from pelicans;'
 
-    @trace.root_node.add_called_node(node)
+    @trace.root_node.children << node
     @trace.prepare_to_send!
 
     refute node[:sql]
@@ -143,7 +143,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     node.stubs(:explain_sql).returns('')
     node[:sql] = ''
 
-    @trace.root_node.add_called_node(node)
+    @trace.root_node.children << node
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.collect_explain_plans!
@@ -158,7 +158,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     node.stubs(:explain_sql).returns('')
     node[:sql] = ''
 
-    @trace.root_node.add_called_node(node)
+    @trace.root_node.children << node
 
     with_config(:'transaction_tracer.explain_threshold' => 2) do
       @trace.collect_explain_plans!
@@ -173,7 +173,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     node.stubs(:explain_sql).returns('')
     node[:sql] = nil
 
-    @trace.root_node.add_called_node(node)
+    @trace.root_node.children << node
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.collect_explain_plans!
@@ -190,7 +190,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     NewRelic::Agent::Database.stubs(:should_collect_explain_plans?).returns(false)
 
-    @trace.root_node.add_called_node(node)
+    @trace.root_node.children << node
 
     with_config(:'transaction_tracer.explain_threshold' => 1) do
       @trace.collect_explain_plans!
@@ -204,7 +204,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     node = @trace.create_node(0.0, 'has_sql')
     node[:sql] = "select * from pelicans where name = '1337807';"
-    @trace.root_node.add_called_node(node)
+    @trace.root_node.children << node
 
     @trace.prepare_sql_for_transmission!
     assert_equal "select * from pelicans where name = ?;", node[:sql]
@@ -215,7 +215,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     node = @trace.create_node(0.0, 'has_sql')
     node[:sql] = NewRelic::Agent::Database::Statement.new "select * from pelicans where name = '1337807';"
-    @trace.root_node.add_called_node(node)
+    @trace.root_node.children << node
 
     @trace.prepare_sql_for_transmission!
     assert_equal "select * from pelicans where name = '1337807';", node[:sql]
@@ -226,7 +226,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     node = @trace.create_node(0.0, 'has_sql')
     node[:sql] = "select * from pelicans where name = '1337807';"
-    @trace.root_node.add_called_node(node)
+    @trace.root_node.children << node
 
     @trace.prepare_sql_for_transmission!
     refute node[:sql]
@@ -238,7 +238,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     node.stubs(:explain_sql).returns('')
     node[:sql] = 'select * from pelicans;'
 
-    @trace.root_node.add_called_node(node)
+    @trace.root_node.children << node
     @trace.strip_sql!
 
     refute node[:sql]

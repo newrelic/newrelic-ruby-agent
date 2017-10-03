@@ -55,10 +55,10 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
     tt = last_transaction_trace
 
-    get_node = tt.root_node.called_nodes[0].called_nodes[0]
+    get_node = tt.root_node.children[0].children[0]
     assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
 
-    connect_node = get_node.called_nodes[0]
+    connect_node = get_node.children[0]
     assert_equal('Datastore/operation/Redis/connect', connect_node.metric_name)
   end
 
@@ -116,7 +116,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     end
 
     tt = last_transaction_trace
-    get_node = tt.root_node.called_nodes[0].called_nodes[0]
+    get_node = tt.root_node.children[0].children[0]
     assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
   end
 
@@ -126,7 +126,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     end
 
     tt = last_transaction_trace
-    get_node = tt.root_node.called_nodes[0].called_nodes[0]
+    get_node = tt.root_node.children[0].children[0]
 
     assert_equal('Datastore/operation/Redis/get', get_node.metric_name)
     refute get_node[:statement]
@@ -178,7 +178,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     end
 
     tt = last_transaction_trace
-    pipeline_node = tt.root_node.called_nodes[0].called_nodes[0]
+    pipeline_node = tt.root_node.children[0].children[0]
 
     assert_equal "set ?\nget ?", pipeline_node[:statement]
   end
@@ -213,7 +213,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     end
 
     tt = last_transaction_trace
-    pipeline_node = tt.root_node.called_nodes[0].called_nodes[0]
+    pipeline_node = tt.root_node.children[0].children[0]
 
     assert_equal("multi\nset ?\nget ?\nexec", pipeline_node[:statement])
   end
@@ -229,7 +229,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     end
 
     tt = last_transaction_trace
-    pipeline_node = tt.root_node.called_nodes[0].called_nodes[0]
+    pipeline_node = tt.root_node.children[0].children[0]
 
     assert_equal("multi\nset \"darkpact\" \"sorcery\"\nget \"chaos orb\"\nexec", pipeline_node[:statement])
   end
@@ -241,7 +241,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
     tt = last_transaction_trace
 
-    get_node = tt.root_node.called_nodes[0].called_nodes[0]
+    get_node = tt.root_node.children[0].children[0]
     assert_equal(NewRelic::Agent::Hostname.get, get_node[:host])
     assert_equal('6379', get_node[:port_path_or_id])
     assert_equal('0', get_node[:database_name])
@@ -257,7 +257,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
     tt = last_transaction_trace
 
-    node = tt.root_node.called_nodes[0].called_nodes[0]
+    node = tt.root_node.children[0].children[0]
     assert_equal(NewRelic::Agent::Hostname.get, node[:host])
     assert_equal('/tmp/redis.sock', node[:port_path_or_id])
   end
@@ -271,7 +271,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
     tt = last_transaction_trace
 
-    node = tt.root_node.called_nodes[0].called_nodes[0]
+    node = tt.root_node.children[0].children[0]
     assert_equal(NewRelic::Agent::Hostname.get, node[:host])
     assert_equal('6379', node[:port_path_or_id])
     assert_equal('0', node[:database_name])
@@ -289,7 +289,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
     tt = last_transaction_trace
 
-    node = tt.root_node.called_nodes[0].called_nodes[0]
+    node = tt.root_node.children[0].children[0]
     assert_equal(NewRelic::Agent::Hostname.get, node[:host])
     assert_equal('/tmp/redis.sock', node[:port_path_or_id])
   end

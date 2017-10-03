@@ -319,7 +319,7 @@ module NewRelic
 
             expected_sql = "SELECT * FROM sandwiches WHERE bread = 'challah'"
             deepest_node = find_last_transaction_node(last_sample)
-            assert_equal([], deepest_node.called_nodes)
+            assert_equal([], deepest_node.children)
             assert_equal(expected_sql, deepest_node[:sql].sql)
           end
         end

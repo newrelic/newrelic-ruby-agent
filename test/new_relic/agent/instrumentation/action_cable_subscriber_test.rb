@@ -38,7 +38,7 @@ module NewRelic
           assert_equal('Controller/ActionCable/TestChannel/test_action',
                        last_transaction_trace.transaction_name)
           assert_equal('Controller/ActionCable/TestChannel/test_action',
-                       last_transaction_trace.root_node.called_nodes[0].metric_name)
+                       last_transaction_trace.root_node.children[0].metric_name)
         end
 
         def test_records_apdex_metrics

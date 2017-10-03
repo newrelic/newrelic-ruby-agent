@@ -60,7 +60,7 @@ class ExconTest < Minitest::Test
     end
 
     tt = last_transaction_trace
-    node = tt.root_node.called_nodes.first.called_nodes.first
+    node = tt.root_node.children.first.children.first
     assert_equal("External/localhost/Excon/GET", node.metric_name)
     assert_equal(target_url, node.params[:uri])
   end
