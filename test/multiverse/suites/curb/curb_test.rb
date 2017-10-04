@@ -127,10 +127,10 @@ class CurbTest < Minitest::Test
       results.each do |res|
         assert_match %r/<head>/i, res
       end
-
-      last_node = find_last_transaction_node()
-      assert_equal "External/Multiple/Curb::Multi/perform", last_node.metric_name
     end
+
+    last_node = find_last_transaction_node()
+    assert_equal "External/Multiple/Curb::Multi/perform", last_node.metric_name
   end
 
   def test_block_passed_to_multi_perform_should_be_called
@@ -152,9 +152,10 @@ class CurbTest < Minitest::Test
 
       assert_equal(num_requests, successes)
       assert(perform_block_called, "Block passed to Curl::Multi.perform should have been called")
-      last_node = find_last_transaction_node()
-      assert_equal "External/Multiple/Curb::Multi/perform", last_node.metric_name
     end
+
+    last_node = find_last_transaction_node()
+    assert_equal "External/Multiple/Curb::Multi/perform", last_node.metric_name
   end
 
   #

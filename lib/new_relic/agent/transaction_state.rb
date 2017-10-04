@@ -53,7 +53,6 @@ module NewRelic
         @client_cross_app_id = nil
         @referring_transaction_info = nil
 
-        @transaction_sample_builder = nil
         @sql_sampler_transaction_data = nil
 
         @busy_entries = 0
@@ -87,9 +86,8 @@ module NewRelic
         current_transaction.guid
       end
 
-      # Current transaction stack and sample building
+      # Current transaction stack
       attr_reader   :current_transaction
-      attr_accessor :transaction_sample_builder
 
       def transaction_start_time
         current_transaction.start_time if current_transaction

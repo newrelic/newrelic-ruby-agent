@@ -191,10 +191,10 @@ module HttpClientTestCases
   def test_transactional_traces_nodes
     perform_action_with_newrelic_trace(:name => "task") do
       get_response
-
-      last_node = find_last_transaction_node()
-      assert_equal "External/localhost/#{client_name}/GET", last_node.metric_name
     end
+
+    last_node = find_last_transaction_node()
+    assert_equal "External/localhost/#{client_name}/GET", last_node.metric_name
   end
 
   def test_ignore
@@ -331,12 +331,12 @@ module HttpClientTestCases
     with_config(:"cross_application_tracer.enabled" => true) do
       in_transaction("test") do
         get_response
-
-        last_node = find_last_transaction_node()
-        assert_includes last_node.params.keys, :transaction_guid
-        assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
       end
     end
+
+    last_node = find_last_transaction_node()
+    assert_includes last_node.params.keys, :transaction_guid
+    assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
 
     assert_metrics_recorded([
       "External/all",
@@ -355,12 +355,12 @@ module HttpClientTestCases
     with_config(:"cross_application_tracer.enabled" => true) do
       in_transaction("test") do
         get_response
-
-        last_node = find_last_transaction_node()
-        assert_includes last_node.params.keys, :transaction_guid
-        assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
       end
     end
+
+    last_node = find_last_transaction_node()
+    assert_includes last_node.params.keys, :transaction_guid
+    assert_equal TRANSACTION_GUID, last_node.params[:transaction_guid]
 
     assert_metrics_recorded([
       "External/all",
@@ -428,10 +428,11 @@ module HttpClientTestCases
     full_url = "#{default_url}?foo=bar#fragment"
     in_transaction do
       get_response(full_url)
-      last_node = find_last_transaction_node()
-      filtered_uri = default_url
-      assert_equal filtered_uri, last_node.params[:uri]
     end
+
+    last_node = find_last_transaction_node()
+    filtered_uri = default_url
+    assert_equal filtered_uri, last_node.params[:uri]
   end
 
   # https://newrelic.atlassian.net/browse/RUBY-1244
@@ -454,12 +455,12 @@ module HttpClientTestCases
     in_transaction do
       with_config(:"cross_application_tracer.enabled" => true) do
         get_response
-
-        last_node = find_last_transaction_node()
-        unless last_node.metric_name.start_with? "External"
-          refute last_node.params.key?(:uri)
-        end
       end
+    end
+
+    last_node = find_last_transaction_node()
+    unless last_node.metric_name.start_with? "External"
+      refute last_node.params.key?(:uri)
     end
   end
 
@@ -483,10 +484,10 @@ module HttpClientTestCases
           # Net::HTTP). we unfortunately don't know the exact exception class
           # across all libraries
         end
-
-        last_node = find_last_transaction_node()
-        assert_equal("External/localhost/#{client_name}/GET", last_node.metric_name)
       end
+
+      last_node = find_last_transaction_node()
+      assert_equal("External/localhost/#{client_name}/GET", last_node.metric_name)
 
       evil_server.stop
     end

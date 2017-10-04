@@ -69,7 +69,8 @@ module NewRelic
                   :attributes,
                   :payload,
                   :nesting_max_depth,
-                  :segments
+                  :segments,
+                  :end_time
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -264,6 +265,7 @@ module NewRelic
 
         @category = category
         @start_time = Time.now
+        @end_time = nil
         @apdex_start = options[:apdex_start_time] || @start_time
         @jruby_cpu_start = jruby_cpu_time
         @process_cpu_start = process_cpu
@@ -383,6 +385,16 @@ module NewRelic
           @default_name || NewRelic::Agent::UNKNOWN_METRIC
       end
 
+      # For common interface with Trace
+      alias_method :transaction_name, :best_name
+
+      attr_accessor :xray_session_id
+
+      def duration
+        (@end_time - @start_time).to_f
+      end
+      # End common interface
+
       def name_set?
         (@overridden_name || @default_name) ? true : false
       end
@@ -421,7 +433,6 @@ module NewRelic
       def start(state)
         return if !state.is_execution_traced?
 
-        transaction_sampler.on_start_transaction(state, start_time)
         sql_sampler.on_start_transaction(state, start_time, request_path)
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
@@ -505,6 +516,8 @@ module NewRelic
 
       def stop(state, end_time, outermost_frame)
         return if !state.is_execution_traced?
+
+        @end_time = end_time
         freeze_name_and_execute_if_not_ignored
 
         if nesting_max_depth == 1
@@ -533,10 +546,11 @@ module NewRelic
         assign_agent_attributes
         assign_intrinsics(state)
 
+        segments.each { |s| s.finalize }
+
         @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
-        segments.each { |s| s.record_metrics if s.record_metrics? }
         record_summary_metrics(outermost_node_name, end_time)
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time
@@ -866,6 +880,15 @@ module NewRelic
       def transaction_specific_apdex_t
         key = :web_transactions_apdex
         Agent.config[key] && Agent.config[key][best_name]
+      end
+
+      def threshold
+         source_class = Agent.config.source(:'transaction_tracer.transaction_threshold').class
+        if source_class == Configuration::DefaultSource
+          apdex_t * 4
+        else
+          Agent.config[:'transaction_tracer.transaction_threshold']
+        end
       end
 
       def with_database_metric_name(model, method, product=nil)

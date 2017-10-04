@@ -390,7 +390,7 @@ module NewRelic
             segment.finish
           end
 
-          sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+          sample = last_transaction_trace
           node = find_node_with_name(sample, segment.name)
 
           assert_equal uri, node.params[:uri]
@@ -411,7 +411,7 @@ module NewRelic
             end
           end
 
-          sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+          sample = last_transaction_trace
           node = find_node_with_name(sample, segment.name)
 
           assert_equal TRANSACTION_GUID, node.params[:transaction_guid]

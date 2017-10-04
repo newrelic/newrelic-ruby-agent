@@ -37,10 +37,11 @@ module NewRelic
             transaction.segment_complete self
           end
         rescue => e
-          # This rescue block was added for the benefit of this test:
-          # test/multiverse/suites/bare/standalone_instrumentation_test.rb
-          # See the top of the test for details.
           NewRelic::Agent.logger.error "Exception finishing segment: #{name}", e
+        end
+
+        def finished?
+          !!@end_time
         end
 
         def record_metrics?
@@ -55,8 +56,15 @@ module NewRelic
           @record_on_finish
         end
 
-        def record_metrics
-          raise NotImplementedError, "Subclasses must implement record_metrics"
+        def finalize
+          unless finished?
+            finish
+            NewRelic::Agent.logger.warn "Segment: #{name} was unfinished at " \
+              "the end of transaction. Timing information for " \
+              "#{transaction.best_name} may be inaccurate."
+            # @todo: we should record a supportability metric here
+          end
+          record_metrics if record_metrics?
         end
 
         def params
@@ -77,6 +85,10 @@ module NewRelic
         end
 
         protected
+
+        def record_metrics
+          raise NotImplementedError, "Subclasses must implement record_metrics"
+        end
 
         def child_complete segment
           if segment.record_metrics?

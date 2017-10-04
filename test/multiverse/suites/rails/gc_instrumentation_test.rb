@@ -60,7 +60,7 @@ class GCRailsInstrumentationTest < ActionController::TestCase
     get :gc_action
     elapsed = Time.now.to_f - start
 
-    trace = NewRelic::Agent.instance.transaction_sampler.last_sample
+    trace = last_transaction_trace
     assert_in_range(elapsed, attributes_for(trace, :intrinsic)[:gc_time])
   end
 

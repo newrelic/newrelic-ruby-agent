@@ -252,7 +252,8 @@ module NewRelic
           limit = Agent.config[:'transaction_tracer.limit_segments']
           txn = in_transaction do
             (limit + 10).times do |n|
-              NewRelic::Agent::Transaction.start_segment "MyCustom/segment#{n}"
+              segment = NewRelic::Agent::Transaction.start_segment "MyCustom/segment#{n}"
+              segment.finish
             end
           end
           assert_equal limit, txn.segments.size
@@ -302,6 +303,111 @@ module NewRelic
           end
         end
 
+        def test_should_not_collect_nodes_beyond_limit
+          with_config(:'transaction_tracer.limit_segments' => 3) do
+            in_transaction do
+              %w[ wheat challah semolina ].each do |bread|
+                s = NewRelic::Agent::Transaction.start_datastore_segment
+                s.notice_sql("SELECT * FROM sandwiches WHERE bread = '#{bread}'")
+                s.finish
+              end
+            end
+
+            last_sample = last_transaction_trace
+
+            assert_equal 3, last_sample.count_nodes
+
+            expected_sql = "SELECT * FROM sandwiches WHERE bread = 'challah'"
+            deepest_node = find_last_transaction_node(last_sample)
+            assert_equal([], deepest_node.children)
+            assert_equal(expected_sql, deepest_node[:sql].sql)
+          end
+        end
+
+        # The test below documents a failure case. When a transaction has
+        # completed, and a segment has not been finished, we will forcibly
+        # finish the segment at the end of the transaction. This will cause the
+        # exclusive time to be off for the parent of the unfinished segment.
+        # This behavior may change over time and there is not reason to preserve
+        # it as is. The point of this test is to ensure that the transaction
+        # isn't lost entirely. We will log a message at warn level when this
+        # unexpected conditon arises.
+
+        def test_unfinished_segment_is_truncated_at_transaction_end_exclusive_times_incorrect
+          segment_a, segment_b, segment_c = nil, nil, nil
+          in_transaction do
+            advance_time(1)
+            segment_a = NewRelic::Agent::Transaction.start_segment 'metric_a'
+            advance_time(2)
+            segment_b = NewRelic::Agent::Transaction.start_segment 'metric_b'
+            advance_time(3)
+            segment_c = NewRelic::Agent::Transaction.start_segment 'metric_c'
+            advance_time(4)
+            segment_c.finish
+            segment_a.finish
+          end
+
+          # the parent has incorrect exclusive_duration since it's child,
+          # segment_b, wasn't properly finished
+          assert_equal 9, segment_a.exclusive_duration
+          assert_equal 9, segment_a.duration
+
+          assert_equal 3, segment_b.exclusive_duration
+          assert_equal 7, segment_b.duration
+
+          assert_equal 4, segment_c.exclusive_duration
+          assert_equal 4, segment_c.duration
+        end
+
+        def test_large_transaction_trace
+          config = {
+            :'transaction_tracer.enabled' => true,
+            :'transaction_tracer.transaction_threshold' => 0,
+            :'transaction_tracer.limit_segments' => 100
+          }
+          with_config(config) do
+
+            in_transaction 'test_txn' do
+              110.times do |i|
+                segment = NewRelic::Agent::Transaction.start_segment "segment_#{i}"
+                segment.finish
+              end
+            end
+
+            sample = last_transaction_trace
+
+            # Verify that the TT stopped recording after 100 nodes
+            assert_equal(100, sample.count_nodes)
+          end
+        end
+
+        def test_txn_not_recorded_when_tracing_is_disabled
+          with_config :'transaction_tracer.enabled' => false do
+            in_transaction 'dont_trace_this' do
+              segment = NewRelic::Agent::Transaction.start_segment 'seg'
+              segment.finish
+            end
+          end
+
+          assert_nil last_transaction_trace
+        end
+
+        def test_trace_should_log_segment_limit_reached_once
+          with_config(:'transaction_tracer.limit_segments' => 3) do
+            in_transaction do |txn|
+              expects_logging(:debug, includes("Segment limit"))
+              8.times {|i| NewRelic::Agent::Transaction.start_segment "segment_#{i}" }
+            end
+          end
+        end
+
+        def test_threshold_recorded_for_trace
+          with_config :'transaction_tracer.transaction_threshold' => 2.0 do
+            in_transaction {}
+            trace = last_transaction_trace
+            assert_equal 2.0, trace.threshold
+          end
+        end
       end
     end
   end
