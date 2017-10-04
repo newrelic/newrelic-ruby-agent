@@ -89,8 +89,8 @@ module NewRelic
           end
 
           assert_metrics_recorded_exclusive [
-            "test", 
-            "Custom/simple/segment", 
+            "test",
+            "Custom/simple/segment",
             "Segment/all",
             "Supportability/API/drop_buffered_data"
           ]

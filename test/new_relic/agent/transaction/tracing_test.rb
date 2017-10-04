@@ -21,7 +21,10 @@ module NewRelic
 
         def test_segment_bound_to_transaction_records_metrics
           in_transaction "test_txn" do
-            segment = Transaction.start_segment  "Custom/simple/segment", "Segment/all"
+            segment = Transaction.start_segment(
+              name: "Custom/simple/segment",
+              unscoped_metrics: "Segment/all"
+            )
             segment.start
             advance_time 1.0
             segment.finish
@@ -34,7 +37,10 @@ module NewRelic
 
         def test_segment_bound_to_transaction_invokes_complete_callback_when_finished
           in_transaction "test_txn" do |txn|
-            segment = Transaction.start_segment  "Custom/simple/segment", "Segment/all"
+            segment = Transaction.start_segment(
+              name: "Custom/simple/segment",
+              unscoped_metrics: "Segment/all"
+            )
             txn.expects(:segment_complete).with(segment)
             segment.start
             advance_time 1.0
@@ -50,7 +56,10 @@ module NewRelic
           segment = nil
           segment_name = "Custom/simple/segment"
           in_transaction "test_txn" do
-            segment = Transaction.start_segment  segment_name, "Segment/all"
+            segment = Transaction.start_segment(
+              name: segment_name,
+              unscoped_metrics: "Segment/all"
+            )
             segment.start
             advance_time 1.0
             segment.finish
@@ -65,13 +74,30 @@ module NewRelic
 
         def test_start_segment
           in_transaction "test_txn" do |txn|
-            segment = Transaction.start_segment "Custom/segment/method"
+            segment = Transaction.start_segment name: "Custom/segment/method"
             assert_equal Time.now, segment.start_time
             assert_equal txn, segment.transaction
 
             advance_time 1
             segment.finish
             assert_equal Time.now, segment.end_time
+          end
+        end
+
+        def test_start_segment_with_time_override
+          start_time = Time.now
+          advance_time 2
+
+          in_transaction "test_txn" do |txn|
+            segment = Transaction.start_segment(
+              name: "Custom/segment/method",
+              start_time: start_time
+            )
+
+            advance_time 1
+            segment.finish
+
+            assert_equal start_time, segment.start_time
           end
         end
 
@@ -116,7 +142,10 @@ module NewRelic
           segment = nil
           in_transaction "test_txn" do |txn|
             NewRelic::Agent.disable_all_tracing do
-              segment = Transaction.start_segment "Custom/segment/method", "Custom/all"
+              segment = Transaction.start_segment(
+                name:"Custom/segment/method",
+                unscoped_metrics: "Custom/all"
+              )
               advance_time 1
               segment.finish
             end
@@ -132,7 +161,7 @@ module NewRelic
             ds_segment = Transaction.start_datastore_segment "SQLite", "insert", "Blog"
             assert_equal ds_segment, txn.current_segment
 
-            segment = Transaction.start_segment "Custom/basic/segment"
+            segment = Transaction.start_segment name: "Custom/basic/segment"
             assert_equal segment, txn.current_segment
 
             segment.finish
@@ -150,7 +179,7 @@ module NewRelic
             ds_segment = Transaction.start_datastore_segment "SQLite", "insert", "Blog"
             assert_equal txn.initial_segment, ds_segment.parent
 
-            segment = Transaction.start_segment "Custom/basic/segment"
+            segment = Transaction.start_segment name: "Custom/basic/segment"
             assert_equal ds_segment, segment.parent
 
             segment.finish
@@ -159,7 +188,10 @@ module NewRelic
         end
 
         def test_segment_started_oustide_txn_does_not_record_metrics
-          segment = Transaction.start_segment "Custom/segment/method", "Custom/all"
+          segment = Transaction.start_segment(
+            name:"Custom/segment/method",
+            unscoped_metrics: "Custom/all"
+          )
           advance_time 1
           segment.finish
 
@@ -197,20 +229,20 @@ module NewRelic
 
         def test_children_time
           in_transaction "test" do
-            segment_a = NewRelic::Agent::Transaction.start_segment "metric a"
+            segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
             advance_time(0.001)
 
-            segment_b = NewRelic::Agent::Transaction.start_segment "metric b"
+            segment_b = NewRelic::Agent::Transaction.start_segment name: "metric b"
             advance_time(0.002)
 
-            segment_c = NewRelic::Agent::Transaction::start_segment "metric c"
+            segment_c = NewRelic::Agent::Transaction::start_segment name: "metric c"
             advance_time(0.003)
             segment_c.finish
             assert_equal 0, segment_c.children_time
 
             advance_time(0.001)
 
-            segment_d = NewRelic::Agent::Transaction.start_segment "metric d"
+            segment_d = NewRelic::Agent::Transaction.start_segment name: "metric d"
             advance_time(0.002)
             segment_d.finish
             assert_equal 0, segment_d.children_time
@@ -225,14 +257,14 @@ module NewRelic
 
         def test_timing_correct_with_record_metrics_false
           in_transaction "test" do
-            segment_a = NewRelic::Agent::Transaction.start_segment "metric a"
+            segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
             advance_time(0.001)
 
-            segment_b = NewRelic::Agent::Transaction.start_segment "metric b"
+            segment_b = NewRelic::Agent::Transaction.start_segment name: "metric b"
             segment_b.record_metrics = false
             advance_time(0.002)
 
-            segment_c = NewRelic::Agent::Transaction::start_segment "metric c"
+            segment_c = NewRelic::Agent::Transaction::start_segment name: "metric c"
             advance_time(0.003)
             segment_c.finish
             assert_equal 0, segment_c.children_time
@@ -252,7 +284,7 @@ module NewRelic
           limit = Agent.config[:'transaction_tracer.limit_segments']
           txn = in_transaction do
             (limit + 10).times do |n|
-              segment = NewRelic::Agent::Transaction.start_segment "MyCustom/segment#{n}"
+              segment = NewRelic::Agent::Transaction.start_segment name: "MyCustom/segment#{n}"
               segment.finish
             end
           end
@@ -264,11 +296,11 @@ module NewRelic
             segment_a, segment_b, segment_c = nil, nil, nil
             in_transaction do
               advance_time(1)
-              segment_a = NewRelic::Agent::Transaction.start_segment 'metric_a'
+              segment_a = NewRelic::Agent::Transaction.start_segment name: 'metric_a'
               advance_time(2)
-              segment_b = NewRelic::Agent::Transaction.start_segment 'metric_b'
+              segment_b = NewRelic::Agent::Transaction.start_segment name: 'metric_b'
               advance_time(3)
-              segment_c = NewRelic::Agent::Transaction.start_segment 'metric_c'
+              segment_c = NewRelic::Agent::Transaction.start_segment name: 'metric_c'
               advance_time(4)
               segment_c.finish
               segment_b.finish
@@ -288,11 +320,11 @@ module NewRelic
             segment_a, segment_b, segment_c = nil, nil, nil
             in_transaction do
               advance_time(1)
-              segment_a = NewRelic::Agent::Transaction.start_segment 'metric_a'
+              segment_a = NewRelic::Agent::Transaction.start_segment name: 'metric_a'
               advance_time(2)
-              segment_b = NewRelic::Agent::Transaction.start_segment 'metric_b'
+              segment_b = NewRelic::Agent::Transaction.start_segment name: 'metric_b'
               advance_time(3)
-              segment_c = NewRelic::Agent::Transaction.start_segment 'metric_c'
+              segment_c = NewRelic::Agent::Transaction.start_segment name: 'metric_c'
               advance_time(4)
               segment_c.finish
               segment_b.finish
@@ -337,11 +369,11 @@ module NewRelic
           segment_a, segment_b, segment_c = nil, nil, nil
           in_transaction do
             advance_time(1)
-            segment_a = NewRelic::Agent::Transaction.start_segment 'metric_a'
+            segment_a = NewRelic::Agent::Transaction.start_segment name: 'metric_a'
             advance_time(2)
-            segment_b = NewRelic::Agent::Transaction.start_segment 'metric_b'
+            segment_b = NewRelic::Agent::Transaction.start_segment name: 'metric_b'
             advance_time(3)
-            segment_c = NewRelic::Agent::Transaction.start_segment 'metric_c'
+            segment_c = NewRelic::Agent::Transaction.start_segment name: 'metric_c'
             advance_time(4)
             segment_c.finish
             segment_a.finish
@@ -369,7 +401,7 @@ module NewRelic
 
             in_transaction 'test_txn' do
               110.times do |i|
-                segment = NewRelic::Agent::Transaction.start_segment "segment_#{i}"
+                segment = NewRelic::Agent::Transaction.start_segment name: "segment_#{i}"
                 segment.finish
               end
             end
@@ -384,7 +416,7 @@ module NewRelic
         def test_txn_not_recorded_when_tracing_is_disabled
           with_config :'transaction_tracer.enabled' => false do
             in_transaction 'dont_trace_this' do
-              segment = NewRelic::Agent::Transaction.start_segment 'seg'
+              segment = NewRelic::Agent::Transaction.start_segment name: 'seg'
               segment.finish
             end
           end
@@ -396,7 +428,7 @@ module NewRelic
           with_config(:'transaction_tracer.limit_segments' => 3) do
             in_transaction do |txn|
               expects_logging(:debug, includes("Segment limit"))
-              8.times {|i| NewRelic::Agent::Transaction.start_segment "segment_#{i}" }
+              8.times {|i| NewRelic::Agent::Transaction.start_segment name: "segment_#{i}" }
             end
           end
         end

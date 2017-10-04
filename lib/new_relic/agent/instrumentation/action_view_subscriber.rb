@@ -14,7 +14,7 @@ module NewRelic
           event = RenderEvent.new(name, Time.now, nil, id, payload)
           push_event(event)
           if state.is_execution_traced? && event.recordable?
-            event.segment = NewRelic::Agent::Transaction.start_segment event.metric_name
+            event.segment = NewRelic::Agent::Transaction.start_segment name: event.metric_name
           end
         rescue => e
           log_notification_error(e, name, 'start')

@@ -12,8 +12,14 @@ module NewRelic
     class Transaction
       module Tracing
         module ClassMethods
-          def start_segment name, unscoped_metrics=nil
-            segment = Segment.new name, unscoped_metrics
+          def start_segment(name:nil,
+                            unscoped_metrics:nil,
+                            start_time: nil)
+
+            raise ArgumentError, 'missing required argument: name' if name.nil?
+
+            segment = Segment.new name, unscoped_metrics, start_time
+
             start_and_add_segment segment
           end
 
