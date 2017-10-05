@@ -85,7 +85,7 @@ module NewRelic
               alias_method method_name_without, method_name
 
               define_method method_name do |*args, &block|
-                segment = NewRelic::Agent::Transaction.start_segment "Ruby/Memcached/Dalli/#{method_name}"
+                segment = NewRelic::Agent::Transaction.start_segment name: "Ruby/Memcached/Dalli/#{method_name}"
                 begin
                   __send__ method_name_without, *args, &block
                 ensure
