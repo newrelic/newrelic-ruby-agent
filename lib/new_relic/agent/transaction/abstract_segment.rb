@@ -10,7 +10,7 @@ module NewRelic
         attr_accessor :name, :parent, :children_time, :transaction
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
 
-        def initialize name=nil, start_time=nil
+        def initialize(name: nil, start_time: nil)
           @name = name
           @children_time = 0.0
           @record_metrics = true
