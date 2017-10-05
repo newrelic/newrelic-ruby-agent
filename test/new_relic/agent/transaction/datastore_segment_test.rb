@@ -19,18 +19,29 @@ module NewRelic
         end
 
         def test_datastore_segment_name_with_collection
-          segment = DatastoreSegment.new "SQLite", "insert", "Blog"
+          segment = DatastoreSegment.new(
+            product: "SQLite",
+            operation: "insert",
+            collection: "Blog"
+          )
           assert_equal "Datastore/statement/SQLite/Blog/insert", segment.name
         end
 
         def test_datastore_segment_name_with_operation
-          segment = DatastoreSegment.new "SQLite", "select"
+          segment = DatastoreSegment.new(
+            product: "SQLite",
+            operation: "select"
+          )
           assert_equal "Datastore/operation/SQLite/select", segment.name
         end
 
 
         def test_segment_does_not_record_metrics_outside_of_txn
-          segment = DatastoreSegment.new "SQLite", "insert", "Blog"
+          segment = DatastoreSegment.new(
+            product: "SQLite",
+            operation: "insert",
+            collection: "Blog"
+          )
           segment.start
           advance_time 1
           segment.finish
@@ -412,28 +423,40 @@ module NewRelic
         end
 
         def test_set_instance_info_with_valid_data
-          segment = DatastoreSegment.new "SQLite", "select", nil
+          segment = DatastoreSegment.new(
+            product: "SQLite",
+            operation: "select"
+          )
           segment.set_instance_info 'jonan.gummy_planet', 1337807
           assert_equal 'jonan.gummy_planet', segment.host
           assert_equal '1337807', segment.port_path_or_id
         end
 
         def test_set_instance_info_with_empty_host
-          segment = DatastoreSegment.new "SQLite", "select", nil
+          segment = DatastoreSegment.new(
+            product: "SQLite",
+            operation: "select"
+          )
           segment.set_instance_info nil, 1337807
           assert_equal 'unknown', segment.host
           assert_equal '1337807', segment.port_path_or_id
         end
 
         def test_set_instance_info_with_empty_port_path_or_id
-          segment = DatastoreSegment.new "SQLite", "select", nil
+          segment = DatastoreSegment.new(
+            product: "SQLite",
+            operation: "select"
+          )
           segment.set_instance_info 'jonan.gummy_planet', nil
           assert_equal 'jonan.gummy_planet', segment.host
           assert_equal 'unknown', segment.port_path_or_id
         end
 
         def test_set_instance_info_with_empty_data
-          segment = DatastoreSegment.new "SQLite", "select", nil
+          segment = DatastoreSegment.new(
+            product: "SQLite",
+            operation: "select"
+          )
           segment.set_instance_info nil, nil
           assert_nil segment.host
           assert_nil segment.port_path_or_id
@@ -487,19 +510,19 @@ module NewRelic
           refute_nil node.params[:backtrace]
         end
 
-         def test_node_obfuscated
-            orig_sql = "SELECT * from Jim where id=66"
+        def test_node_obfuscated
+          orig_sql = "SELECT * from Jim where id=66"
 
-            in_transaction do
-              s = NewRelic::Agent::Transaction.start_datastore_segment
-              s.notice_sql(orig_sql)
-              s.finish
-            end
-
-            node = find_last_transaction_node(last_transaction_trace)
-            assert_equal orig_sql, node[:sql].sql
-            assert_equal "SELECT * from Jim where id=?", node.obfuscated_sql
+          in_transaction do
+            s = NewRelic::Agent::Transaction.start_datastore_segment
+            s.notice_sql(orig_sql)
+            s.finish
           end
+
+          node = find_last_transaction_node(last_transaction_trace)
+          assert_equal orig_sql, node[:sql].sql
+          assert_equal "SELECT * from Jim where id=?", node.obfuscated_sql
+        end
       end
     end
   end

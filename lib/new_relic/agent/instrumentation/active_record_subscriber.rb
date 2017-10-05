@@ -119,7 +119,14 @@ module NewRelic
               database = @config && @config[:database]
             end
 
-            segment = NewRelic::Agent::Transaction::DatastoreSegment.new product, operation, collection, host, port_path_or_id, database
+            segment = NewRelic::Agent::Transaction::DatastoreSegment.new(
+              product: product,
+              operation: operation,
+              collection: collection,
+              host: host,
+              port_path_or_id: port_path_or_id,
+              database_name: database
+            )
             if txn = state.current_transaction
               segment.transaction = txn
             end

@@ -14,10 +14,22 @@ module NewRelic
 
         UNKNOWN = 'unknown'.freeze
 
-        attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :host, :port_path_or_id
+        attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement,
+                    :host, :port_path_or_id
+
         attr_accessor :database_name
 
-        def initialize product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name = nil
+        def initialize(product: nil,
+                       operation:nil ,
+                       collection: nil,
+                       host: nil,
+                       port_path_or_id: nil,
+                       database_name: nil)
+
+          # ruby 2.0.0 does not support required kwargs
+          raise ArgumentError, 'missing required argument: product' if product.nil?
+          raise ArgumentError, 'missing required argument: operation' if operation.nil?
+
           @product = product
           @operation = operation
           @collection = collection
