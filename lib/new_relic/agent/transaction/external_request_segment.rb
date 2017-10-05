@@ -18,7 +18,15 @@ module NewRelic
 
         NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'.freeze
 
-        def initialize library, uri, procedure # :nodoc:
+        def initialize(library: nil,
+                       uri: nil,
+                       procedure: nil) # :nodoc:
+
+          # ruby 2.0.0 does not support required kwargs
+          raise ArgumentError, 'missing required argument: library' if library.nil?
+          raise ArgumentError, 'missing required argument: uri' if uri.nil?
+          raise ArgumentError, 'missing required argument: procedure' if procedure.nil?
+
           @library = library
           @uri = HTTPClients::URIUtil.parse_and_normalize_url(uri)
           @procedure = procedure
@@ -69,6 +77,7 @@ module NewRelic
         # @param [Hash] response a hash of response headers
         #
         # @api public
+
         def read_response_headers response
           return unless record_metrics? && CrossAppTracing.cross_app_enabled?
           return unless CrossAppTracing.response_has_crossapp_header?(response)

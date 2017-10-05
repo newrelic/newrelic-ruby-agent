@@ -44,17 +44,29 @@ module NewRelic
         end
 
         def test_generates_expected_name
-          segment = ExternalRequestSegment.new "Typhoeus", "http://remotehost.com/blogs/index", "GET"
+          segment = ExternalRequestSegment.new(
+            library: "Typhoeus",
+            uri: "http://remotehost.com/blogs/index",
+            procedure: "GET"
+          )
           assert_equal "External/remotehost.com/Typhoeus/GET", segment.name
         end
 
         def test_downcases_hostname
-          segment = ExternalRequestSegment.new "Typhoeus", "http://ReMoTeHoSt.Com/blogs/index", "GET"
+          segment = ExternalRequestSegment.new(
+            library: "Typhoeus",
+            uri: "http://ReMoTeHoSt.Com/blogs/index",
+            procedure: "GET"
+          )
           assert_equal "External/remotehost.com/Typhoeus/GET", segment.name
         end
 
         def test_segment_does_not_record_metrics_outside_of_txn
-          segment = ExternalRequestSegment.new "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
+          segment = ExternalRequestSegment.new(
+            library: "Net::HTTP",
+            uri: "http://remotehost.com/blogs/index",
+            procedure: "GET"
+          )
           segment.finish
 
           refute_metrics_recorded [
