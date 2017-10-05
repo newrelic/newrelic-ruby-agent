@@ -26,9 +26,16 @@ module NewRelic
           UNKNOWN_PRODUCT = "Unknown".freeze
           UNKNOWN_OPERATION = "other".freeze
 
-          def start_datastore_segment product=nil, operation=nil, collection=nil, host=nil, port_path_or_id=nil, database_name=nil
+          def start_datastore_segment(product: nil,
+                                      operation: nil,
+                                      collection: nil,
+                                      host: nil,
+                                      port_path_or_id: nil,
+                                      database_name: nil)
+
             product ||= UNKNOWN_PRODUCT
             operation ||= UNKNOWN_OPERATION
+
             segment = DatastoreSegment.new product, operation, collection, host, port_path_or_id, database_name
             start_and_add_segment segment
           end

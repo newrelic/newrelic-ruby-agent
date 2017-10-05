@@ -141,7 +141,11 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
     in_transaction do |txn|
       freeze_time
-      segment = NewRelic::Agent::Transaction.start_datastore_segment("MyFirstDatabase", "find", "SomeThing")
+      segment = NewRelic::Agent::Transaction.start_datastore_segment(
+        product: "MyFirstDatabase",
+        operation: "find",
+        collection: "SomeThing"
+      )
       NewRelic::Agent::Datastores.notice_sql(query, metric, elapsed)
       advance_time elapsed
       assert_equal segment, txn.current_segment
@@ -158,7 +162,11 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
     in_transaction do |txn|
       freeze_time
-      segment = NewRelic::Agent::Transaction.start_datastore_segment("MyFirstDatastore", "get", "key")
+      segment = NewRelic::Agent::Transaction.start_datastore_segment(
+        product: "MyFirstDatastore",
+        operation: "get",
+        collection: "key"
+      )
       NewRelic::Agent::Datastores.notice_statement(query, elapsed)
       advance_time elapsed
       assert_equal segment, txn.current_segment

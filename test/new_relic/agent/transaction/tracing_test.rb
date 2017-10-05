@@ -103,7 +103,11 @@ module NewRelic
 
         def test_start_datastore_segment
           in_transaction "test_txn" do |txn|
-            segment = Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+            segment = Transaction.start_datastore_segment(
+              product: "SQLite",
+              operation: "insert",
+              collection: "Blog"
+            )
             assert_equal Time.now, segment.start_time
             assert_equal txn, segment.transaction
 
@@ -123,7 +127,11 @@ module NewRelic
         end
 
         def test_start_datastore_segment_does_not_record_metrics_outside_of_txn
-          segment = Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+          segment = Transaction.start_datastore_segment(
+              product: "SQLite",
+              operation: "insert",
+              collection: "Blog"
+          )
           segment.start
           advance_time 1
           segment.finish
@@ -158,7 +166,11 @@ module NewRelic
         def test_current_segment_in_transaction
           in_transaction "test_txn" do |txn|
             assert_equal txn.initial_segment, txn.current_segment
-            ds_segment = Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+            ds_segment = Transaction.start_datastore_segment(
+              product: "SQLite",
+              operation: "insert",
+              collection: "Blog"
+            )
             assert_equal ds_segment, txn.current_segment
 
             segment = Transaction.start_segment name: "Custom/basic/segment"
@@ -176,7 +188,11 @@ module NewRelic
           in_transaction "test_txn" do |txn|
             assert_equal nil, txn.initial_segment.parent
 
-            ds_segment = Transaction.start_datastore_segment "SQLite", "insert", "Blog"
+            ds_segment = Transaction.start_datastore_segment(
+              product: "SQLite",
+              operation: "insert",
+              collection: "Blog"
+            )
             assert_equal txn.initial_segment, ds_segment.parent
 
             segment = Transaction.start_segment name: "Custom/basic/segment"
