@@ -217,7 +217,11 @@ module NewRelic
 
         def test_start_external_request_segment
           in_transaction "test_txn" do |txn|
-            segment = Transaction.start_external_request_segment "Net::HTTP", "http://site.com/endpoint", "GET"
+            segment = Transaction.start_external_request_segment(
+              library: "Net::HTTP",
+              uri: "http://site.com/endpoint",
+              procedure: "GET"
+            )
             assert_equal Time.now, segment.start_time
             assert_equal txn, segment.transaction
             assert_equal "Net::HTTP", segment.library
@@ -231,7 +235,11 @@ module NewRelic
         end
 
         def test_segment_does_not_record_metrics_outside_of_txn
-          segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
+          segment = Transaction.start_external_request_segment(
+            library: "Net::HTTP",
+            uri: "http://remotehost.com/blogs/index",
+            procedure: "GET"
+          )
           segment.finish
 
           refute_metrics_recorded [

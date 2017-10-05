@@ -16,6 +16,7 @@ module NewRelic
                             unscoped_metrics:nil,
                             start_time: nil)
 
+            # ruby 2.0.0 does not support required kwargs
             raise ArgumentError, 'missing required argument: name' if name.nil?
 
             segment = Segment.new name, unscoped_metrics, start_time
@@ -40,7 +41,15 @@ module NewRelic
             start_and_add_segment segment
           end
 
-          def start_external_request_segment library, uri, procedure
+          def start_external_request_segment(library: nil,
+                                             uri: nil,
+                                             procedure: nil)
+
+            # ruby 2.0.0 does not support required kwargs
+            raise ArgumentError, 'missing required argument: library' if library.nil?
+            raise ArgumentError, 'missing required argument: uri' if uri.nil?
+            raise ArgumentError, 'missing required argument: procedure' if procedure.nil?
+
             segment = ExternalRequestSegment.new library, uri, procedure
             start_and_add_segment segment
           end
