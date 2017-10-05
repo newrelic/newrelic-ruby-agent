@@ -19,19 +19,28 @@ module NewRelic
         end
 
         def test_assigns_unscoped_metrics
-          segment = Segment.new  "Custom/simple/segment", "Segment/all"
+          segment = Segment.new(
+            name: "Custom/simple/segment",
+            unscoped_metrics: "Segment/all"
+          )
           assert_equal "Custom/simple/segment", segment.name
           assert_equal "Segment/all", segment.unscoped_metrics
         end
 
         def test_assigns_unscoped_metrics_as_array
-          segment = Segment.new  "Custom/simple/segment", ["Segment/all", "Other/all"]
+          segment = Segment.new(
+            name: "Custom/simple/segment",
+            unscoped_metrics: ["Segment/all", "Other/all"]
+          )
           assert_equal "Custom/simple/segment", segment.name
           assert_equal ["Segment/all", "Other/all"], segment.unscoped_metrics
         end
 
         def test_segment_does_not_record_metrics_outside_of_txn
-          segment = Segment.new  "Custom/simple/segment", "Segment/all"
+          segment = Segment.new(
+            name: "Custom/simple/segment",
+            unscoped_metrics: "Segment/all"
+          )
           segment.start
           advance_time 1.0
           segment.finish
@@ -40,7 +49,10 @@ module NewRelic
         end
 
         def test_segment_does_not_record_metrics_outside_of_txn
-          segment = Segment.new  "Custom/simple/segment", "Segment/all"
+          segment = Segment.new(
+            name: "Custom/simple/segment",
+            unscoped_metrics: "Segment/all"
+          )
           segment.start
           advance_time 1.0
           segment.finish
@@ -50,7 +62,10 @@ module NewRelic
 
         def test_segment_records_metrics
           in_transaction "test" do |txn|
-            segment = Segment.new  "Custom/simple/segment", "Segment/all"
+            segment = Segment.new(
+              name: "Custom/simple/segment",
+              unscoped_metrics: "Segment/all"
+            )
             txn.add_segment segment
             segment.start
             advance_time 1.0
@@ -68,7 +83,10 @@ module NewRelic
 
         def test_segment_records_metrics_when_given_as_array
           in_transaction do |txn|
-            segment = Segment.new  "Custom/simple/segment", ["Segment/all", "Other/all"]
+            segment = Segment.new(
+              name: "Custom/simple/segment",
+              unscoped_metrics: ["Segment/all", "Other/all"]
+            )
             txn.add_segment segment
             segment.start
             advance_time 1.0
@@ -80,7 +98,10 @@ module NewRelic
 
         def test_segment_can_disable_scoped_metric_recording
           in_transaction('test') do |txn|
-            segment = Segment.new  "Custom/simple/segment", "Segment/all"
+            segment = Segment.new(
+              name: "Custom/simple/segment",
+              unscoped_metrics: "Segment/all"
+            )
             segment.record_scoped_metric = false
             txn.add_segment segment
             segment.start
@@ -98,7 +119,10 @@ module NewRelic
 
         def test_segment_can_disable_scoped_metric_recording_with_unscoped_as_frozen_array
           in_transaction('test') do |txn|
-            segment = Segment.new  "Custom/simple/segment", ["Segment/all", "Segment/allOther"].freeze
+            segment = Segment.new(
+              name: "Custom/simple/segment",
+              unscoped_metrics: ["Segment/all", "Segment/allOther"].freeze
+            )
             segment.record_scoped_metric = false
             txn.add_segment segment
             segment.start
@@ -117,7 +141,10 @@ module NewRelic
 
         def test_sets_start_time_from_constructor
           t = Time.now
-          segment = Segment.new nil, nil, t
+          segment = Segment.new(
+            name: nil,
+            unscoped_metrics: nil,
+            start_time: t)
           assert_equal t, segment.start_time
         end
       end

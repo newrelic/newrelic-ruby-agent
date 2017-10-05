@@ -464,6 +464,21 @@ module NewRelic
             assert_equal 2.0, trace.threshold
           end
         end
+
+        def test_sets_start_time_from_api
+          t = Time.now
+
+          in_transaction do |txn|
+
+            segment = NewRelic::Agent::Transaction.start_segment(
+              name: "segment_a",
+              start_time: t
+            )
+            segment.finish
+
+            assert_equal t, segment.start_time
+          end
+        end
       end
     end
   end

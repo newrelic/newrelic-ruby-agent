@@ -37,7 +37,7 @@ module NewRelic
           @nosql_statement = nil
           set_instance_info host, port_path_or_id
           @database_name = database_name ? database_name.to_s : nil
-          super Datastores::MetricHelper.scoped_metric_for(product, operation, collection)
+          super name: Datastores::MetricHelper.scoped_metric_for(product, operation, collection)
         end
 
         def set_instance_info host = nil, port_path_or_id = nil
