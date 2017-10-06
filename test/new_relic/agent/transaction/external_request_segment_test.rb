@@ -481,6 +481,7 @@ module NewRelic
           assert_equal TRANSACTION_GUID, node.params[:transaction_guid]
         end
 
+<<<<<<< HEAD
         # --- get_request_metadata
 
         def test_get_request_metadata
@@ -647,6 +648,23 @@ module NewRelic
               end
             end
             assert request.headers.key?("X-NewRelic-Trace"), "Expected to find X-NewRelic-Trace header"
+          end
+        end
+
+        def test_sets_start_time_from_api
+          t = Time.now
+
+          in_transaction do |txn|
+
+            segment = Transaction.start_external_request_segment(
+              library: "Net::HTTP",
+              uri: "http://remotehost.com/blogs/index",
+              procedure: "GET",
+              start_time: t
+            )
+            segment.finish
+
+            assert_equal t, segment.start_time
           end
         end
 

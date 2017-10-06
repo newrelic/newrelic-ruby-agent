@@ -38,6 +38,7 @@ module NewRelic
                                       host: nil,
                                       port_path_or_id: nil,
                                       database_name: nil,
+                                      start_time: nil,
                                       parent: nil)
 
             product ||= UNKNOWN_PRODUCT
@@ -49,7 +50,8 @@ module NewRelic
               collection: collection,
               host: host,
               port_path_or_id: port_path_or_id,
-              database_name: database_name
+              database_name: database_name,
+              start_time: start_time
             )
 
             start_and_add_segment segment, parent
@@ -58,6 +60,7 @@ module NewRelic
           def start_external_request_segment(library: nil,
                                              uri: nil,
                                              procedure: nil,
+                                             start_time: nil,
                                              parent: nil)
 
             # ruby 2.0.0 does not support required kwargs
@@ -68,7 +71,8 @@ module NewRelic
             segment = ExternalRequestSegment.new(
               library: library,
               uri: uri,
-              procedure: procedure
+              procedure: procedure,
+              start_time: start_time
             )
 
             start_and_add_segment segment, parent

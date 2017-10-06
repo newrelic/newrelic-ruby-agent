@@ -24,7 +24,8 @@ module NewRelic
                        collection: nil,
                        host: nil,
                        port_path_or_id: nil,
-                       database_name: nil)
+                       database_name: nil,
+                       start_time: nil)
 
           # ruby 2.0.0 does not support required kwargs
           raise ArgumentError, 'missing required argument: product' if product.nil?
@@ -37,7 +38,8 @@ module NewRelic
           @nosql_statement = nil
           set_instance_info host, port_path_or_id
           @database_name = database_name ? database_name.to_s : nil
-          super name: Datastores::MetricHelper.scoped_metric_for(product, operation, collection)
+          super name: Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
+                start_time: start_time
         end
 
         def set_instance_info host = nil, port_path_or_id = nil

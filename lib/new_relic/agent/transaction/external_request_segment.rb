@@ -20,7 +20,8 @@ module NewRelic
 
         def initialize(library: nil,
                        uri: nil,
-                       procedure: nil) # :nodoc:
+                       procedure: nil,
+                       start_time: nil) # :nodoc:
 
           # ruby 2.0.0 does not support required kwargs
           raise ArgumentError, 'missing required argument: library' if library.nil?
@@ -32,7 +33,7 @@ module NewRelic
           @procedure = procedure
           @host_header = nil
           @app_data = nil
-          super()
+          super(start_time: start_time)
         end
 
         def name # :nodoc:

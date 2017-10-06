@@ -523,6 +523,24 @@ module NewRelic
           assert_equal orig_sql, node[:sql].sql
           assert_equal "SELECT * from Jim where id=?", node.obfuscated_sql
         end
+
+        def test_sets_start_time_from_api
+          t = Time.now
+
+          in_transaction do |txn|
+
+            segment = Transaction.start_datastore_segment(
+              product: "SQLite",
+              operation: "insert",
+              collection: "Blog",
+              start_time: t
+            )
+            segment.finish
+
+            assert_equal t, segment.start_time
+          end
+        end
+
       end
     end
   end
