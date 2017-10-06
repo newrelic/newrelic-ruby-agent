@@ -259,7 +259,11 @@ module NewRelic
 
             in_transaction "test_txn2", :category => :controller do |txn|
               txn.accept_distributed_trace_payload "HTTP", payload.to_json
-              segment = Transaction.start_external_request_segment "Net::HTTP", "http://newrelic.com/blogs/index", "GET"
+              segment = Transaction.start_external_request_segment(
+                library: "Net::HTTP",
+                uri: "http://newrelic.com/blogs/index",
+                procedure: "GET"
+              )
               segment.add_request_headers request
               segment.finish
             end
@@ -294,7 +298,11 @@ module NewRelic
 
             in_transaction "test_txn2", :category => :controller do |txn|
               txn.accept_distributed_trace_payload "HTTP", payload.to_json
-              segment = Transaction.start_external_request_segment "Net::HTTP", "http://newrelic.com/blogs/index", "GET"
+              segment = Transaction.start_external_request_segment(
+                library: "Net::HTTP",
+                uri: "http://newrelic.com/blogs/index",
+                procedure: "GET"
+              )
               segment.add_request_headers request
               segment.finish
               NewRelic::Agent.notice_error StandardError.new("Sorry!")
@@ -481,7 +489,6 @@ module NewRelic
           assert_equal TRANSACTION_GUID, node.params[:transaction_guid]
         end
 
-<<<<<<< HEAD
         # --- get_request_metadata
 
         def test_get_request_metadata
@@ -642,7 +649,11 @@ module NewRelic
             request = RequestWrapper.new
             with_config cat_config do
               in_transaction :category => :controller do |txn|
-                segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
+                segment = Transaction.start_external_request_segment(
+                  library: "Net::HTTP",
+                  uri: "http://remotehost.com/blogs/index",
+                  procedure: "GET"
+                )
                 segment.add_request_headers request
                 segment.finish
               end
@@ -680,7 +691,11 @@ module NewRelic
         end
 
         def external_request_segment
-          segment = NewRelic::Agent::Transaction.start_external_request_segment :foo, 'http://example.com/root/index', :get
+          segment = NewRelic::Agent::Transaction.start_external_request_segment(
+            library: :foo,
+            uri: 'http://example.com/root/index',
+            procedure: :get
+          )
           v = yield segment
           segment.finish
           v
