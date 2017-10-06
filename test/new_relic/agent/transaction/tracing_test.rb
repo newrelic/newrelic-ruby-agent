@@ -479,6 +479,88 @@ module NewRelic
             assert_equal t, segment.start_time
           end
         end
+
+        # The following three tests will build the following trace
+        #          test_txn
+        #              |
+        #            segment_a
+        #            /     \
+        #      segment_b  segment_c
+
+        def test_flexible_parenting_segment
+          in_transaction 'test_txn' do
+            segment_a = NewRelic::Agent::Transaction.start_segment name: 'segment_a'
+            segment_b = NewRelic::Agent::Transaction.start_segment name: 'segment_b'
+            segment_c = NewRelic::Agent::Transaction.start_segment(
+              name: 'segment_a',
+              parent: segment_a
+            )
+            segment_c.finish
+            segment_b.finish
+            segment_a.finish
+
+            assert_equal segment_a, segment_b.parent
+            assert_equal segment_a, segment_c.parent
+          end
+        end
+
+        def test_flexible_parenting_datastore_segment
+          in_transaction 'test_txn' do
+            segment_a = NewRelic::Agent::Transaction.start_segment name: 'segment_a'
+            segment_b = NewRelic::Agent::Transaction.start_segment name: 'segment_b'
+            segment_c = NewRelic::Agent::Transaction.start_datastore_segment(
+              product: "SQLite",
+              operation: "Select",
+              collection: "blogs",
+              parent: segment_a
+            )
+            segment_c.finish
+            segment_b.finish
+            segment_a.finish
+
+            assert_equal segment_a, segment_b.parent
+            assert_equal segment_a, segment_c.parent
+          end
+        end
+
+        def test_flexible_parenting_external_request_segment
+          in_transaction 'test_txn' do
+            segment_a = NewRelic::Agent::Transaction.start_segment name: 'segment_a'
+            segment_b = NewRelic::Agent::Transaction.start_segment name: 'segment_b'
+            segment_c = NewRelic::Agent::Transaction.start_external_request_segment(
+              library: "MyLib",
+              uri: "https://blog.newrelic.com",
+              procedure: "GET",
+              parent: segment_a
+            )
+            segment_c.finish
+            segment_b.finish
+            segment_a.finish
+
+            assert_equal segment_a, segment_b.parent
+            assert_equal segment_a, segment_c.parent
+          end
+        end
+
+        def test_flexible_parenting_message_broker_segment
+          in_transaction 'test_txn' do
+            segment_a = NewRelic::Agent::Transaction.start_segment name: 'segment_a'
+            segment_b = NewRelic::Agent::Transaction.start_segment name: 'segment_b'
+            segment_c = NewRelic::Agent::Transaction.start_message_broker_segment(
+              action: :produce,
+              library: "RabbitMQ",
+              destination_type: :exchange,
+              destination_name: "Default",
+              parent: segment_a
+            )
+            segment_c.finish
+            segment_b.finish
+            segment_a.finish
+
+            assert_equal segment_a, segment_b.parent
+            assert_equal segment_a, segment_c.parent
+          end
+        end
       end
     end
   end
