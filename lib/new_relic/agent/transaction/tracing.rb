@@ -20,11 +20,7 @@ module NewRelic
             # ruby 2.0.0 does not support required kwargs
             raise ArgumentError, 'missing required argument: name' if name.nil?
 
-            segment = Segment.new(
-              name: name,
-              unscoped_metrics: unscoped_metrics,
-              start_time: start_time
-            )
+            segment = Segment.new name, unscoped_metrics, start_time
 
             start_and_add_segment segment, parent
           end

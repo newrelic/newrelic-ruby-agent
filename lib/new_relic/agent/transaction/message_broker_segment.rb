@@ -71,7 +71,7 @@ module NewRelic
           @destination_type = destination_type
           @destination_name = destination_name
           @headers = headers
-          super(start_time: start_time)
+          super(nil, nil, start_time)
           params.merge! parameters if parameters
         end
 
