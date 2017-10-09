@@ -18,26 +18,14 @@ module NewRelic
 
         NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'.freeze
 
-<<<<<<< HEAD
-        def initialize(library: nil,
-                       uri: nil,
-                       procedure: nil,
-                       start_time: nil) # :nodoc:
 
-          # ruby 2.0.0 does not support required kwargs
-          raise ArgumentError, 'missing required argument: library' if library.nil?
-          raise ArgumentError, 'missing required argument: uri' if uri.nil?
-          raise ArgumentError, 'missing required argument: procedure' if procedure.nil?
-
-=======
-        def initialize library, uri, procedure # :nodoc:
->>>>>>> parent of c48e98d... RUBY-1732 Kwargify ExternalRequestSegment constructor
+        def initialize library, uri, procedure, start_time = nil # :nodoc:
           @library = library
           @uri = HTTPClients::URIUtil.parse_and_normalize_url(uri)
           @procedure = procedure
           @host_header = nil
           @app_data = nil
-          super(start_time: start_time)
+          super(nil, nil, start_time)
         end
 
         def name # :nodoc:
