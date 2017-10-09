@@ -17,10 +17,7 @@ module NewRelic
                        unscoped_metrics: nil,
                        start_time: nil)
           @unscoped_metrics = unscoped_metrics
-          super(
-            name: name,
-            start_time: start_time
-          )
+          super name, start_time
         end
 
         private

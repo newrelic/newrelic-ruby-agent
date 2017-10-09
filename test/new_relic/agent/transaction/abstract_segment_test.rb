@@ -29,12 +29,12 @@ module NewRelic
         end
 
         def test_segment_is_nameable
-          segment = BasicSegment.new name: "Custom/basic/segment"
+          segment = BasicSegment.new  "Custom/basic/segment"
           assert_equal "Custom/basic/segment", segment.name
         end
 
         def test_segment_tracks_timing_information
-          segment = BasicSegment.new name: "Custom/basic/segment"
+          segment = BasicSegment.new "Custom/basic/segment"
           segment.start
           assert_equal Time.now, segment.start_time
 
@@ -48,7 +48,7 @@ module NewRelic
 
         def test_segment_records_metrics
           in_transaction do |txn|
-            segment = BasicSegment.new name: "Custom/basic/segment"
+            segment = BasicSegment.new "Custom/basic/segment"
             txn.add_segment segment
             segment.start
             advance_time 1.0
@@ -59,7 +59,7 @@ module NewRelic
         end
 
         def test_segment_records_metrics_in_local_cache_if_part_of_transaction
-          segment = BasicSegment.new name: "Custom/basic/segment"
+          segment = BasicSegment.new "Custom/basic/segment"
           in_transaction "test_transaction" do |txn|
             txn.add_segment segment
             segment.start
@@ -78,7 +78,7 @@ module NewRelic
         # metrics
         def test_segments_will_not_record_metrics_when_turned_off
           in_transaction do |txn|
-            segment = BasicSegment.new name: "Custom/basic/segment"
+            segment = BasicSegment.new "Custom/basic/segment"
             txn.add_segment segment
             segment.record_metrics = false
             segment.start
@@ -91,7 +91,7 @@ module NewRelic
 
         def test_segment_complete_callback_executes_when_segment_finished
           in_transaction do |txn|
-            segment = BasicSegment.new name: "Custom/basic/segment"
+            segment = BasicSegment.new "Custom/basic/segment"
             txn.add_segment segment
             segment.expects(:segment_complete)
             segment.start
@@ -102,7 +102,7 @@ module NewRelic
 
         def test_segment_records_metrics_on_finish
           in_transaction do |txn|
-            segment = BasicSegment.new name: "Custom/basic/segment"
+            segment = BasicSegment.new "Custom/basic/segment"
             txn.add_segment segment
             segment.start
             advance_time 1.0
@@ -114,7 +114,7 @@ module NewRelic
         end
 
         def test_params_are_checkable_and_lazy_initializable
-          segment = BasicSegment.new name: "Custom/basic/segment"
+          segment = BasicSegment.new "Custom/basic/segment"
           refute segment.params?
           assert_nil segment.instance_variable_get :@params
 
@@ -125,7 +125,7 @@ module NewRelic
 
         def test_sets_start_time_from_constructor
           t = Time.now
-          segment = BasicSegment.new start_time: t
+          segment = BasicSegment.new nil, t
           assert_equal t, segment.start_time
         end
 
@@ -138,7 +138,7 @@ module NewRelic
 
         def test_does_not_override_construction_start_time_when_started
           t = Time.now
-          segment = BasicSegment.new start_time: t
+          segment = BasicSegment.new nil, t
           assert_equal t, segment.start_time
           advance_time 1
           segment.start
