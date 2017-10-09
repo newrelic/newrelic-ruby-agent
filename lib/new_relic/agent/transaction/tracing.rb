@@ -68,13 +68,7 @@ module NewRelic
             raise ArgumentError, 'missing required argument: uri' if uri.nil?
             raise ArgumentError, 'missing required argument: procedure' if procedure.nil?
 
-            segment = ExternalRequestSegment.new(
-              library: library,
-              uri: uri,
-              procedure: procedure,
-              start_time: start_time
-            )
-
+            segment = ExternalRequestSegment.new library, uri, procedure
             start_and_add_segment segment, parent
           end
 

@@ -18,6 +18,7 @@ module NewRelic
 
         NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'.freeze
 
+<<<<<<< HEAD
         def initialize(library: nil,
                        uri: nil,
                        procedure: nil,
@@ -28,6 +29,9 @@ module NewRelic
           raise ArgumentError, 'missing required argument: uri' if uri.nil?
           raise ArgumentError, 'missing required argument: procedure' if procedure.nil?
 
+=======
+        def initialize library, uri, procedure # :nodoc:
+>>>>>>> parent of c48e98d... RUBY-1732 Kwargify ExternalRequestSegment constructor
           @library = library
           @uri = HTTPClients::URIUtil.parse_and_normalize_url(uri)
           @procedure = procedure
@@ -78,7 +82,6 @@ module NewRelic
         # @param [Hash] response a hash of response headers
         #
         # @api public
-
         def read_response_headers response
           return unless record_metrics? && CrossAppTracing.cross_app_enabled?
           return unless CrossAppTracing.response_has_crossapp_header?(response)
