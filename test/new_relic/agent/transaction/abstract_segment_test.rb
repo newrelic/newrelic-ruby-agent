@@ -144,6 +144,35 @@ module NewRelic
           segment.start
           assert_equal t, segment.start_time
         end
+
+        def test_parent_notified_of_child_start
+          segment_a = BasicSegment.new "segment_a"
+          segment_a.start
+          segment_b = BasicSegment.new "segment_b"
+          segment_a.expects(:child_start).with(segment_b)
+          segment_b.parent = segment_a
+          segment_b.start
+          segment_b.finish
+          segment_a.finish
+        end
+
+        def test_parent_detects_concurrent_children
+          segment_a = BasicSegment.new "segment_a"
+          segment_a.start
+          segment_b = BasicSegment.new "segment_b"
+          segment_b.parent = segment_a
+          segment_b.start
+          segment_c = BasicSegment.new "segment_c"
+          segment_c.parent = segment_a
+          segment_c.start
+          segment_b.finish
+          segment_c.finish
+          segment_a.finish
+
+          assert segment_a.concurrent_children?
+          refute segment_b.concurrent_children?
+          refute segment_c.concurrent_children?
+        end
       end
     end
   end

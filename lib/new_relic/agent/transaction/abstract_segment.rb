@@ -13,6 +13,8 @@ module NewRelic
         def initialize name=nil, start_time=nil
           @name = name
           @children_time = 0.0
+          @running_children = 0
+          @concurrent_children = false
           @record_metrics = true
           @record_scoped_metric = true
           @transaction = nil
@@ -24,6 +26,7 @@ module NewRelic
 
         def start
           @start_time ||= Time.now
+          parent.child_start self if parent
         end
 
         def finish
@@ -75,6 +78,10 @@ module NewRelic
           !!@params
         end
 
+        def concurrent_children?
+          @concurrent_children
+        end
+
         INSPECT_IGNORE = [:@transaction, :@transaction_state].freeze
 
         def inspect
@@ -90,7 +97,13 @@ module NewRelic
           raise NotImplementedError, "Subclasses must implement record_metrics"
         end
 
+        def child_start segment
+          @running_children += 1
+          @concurrent_children = @concurrent_children || @running_children > 1
+        end
+
         def child_complete segment
+          @running_children -= 1
           if segment.record_metrics?
             self.children_time += segment.duration
           else

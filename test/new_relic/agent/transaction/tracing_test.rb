@@ -562,6 +562,43 @@ module NewRelic
             assert_equal segment_a, segment_c.parent
           end
         end
+
+
+        # The following three tests will build the following trace.
+        # Segments b and c are disjoint, but segments e and f overlap.
+        #                       test_txn
+        #                     /          \
+        #            segment_a            segment_d
+        #            /     \                /      \
+        #      segment_b  segment_c     segment_e segment_f
+
+        def test_parent_identifies_concurrent_children
+          in_transaction 'test_txn' do
+            segment_a = NewRelic::Agent::Transaction.start_segment name: 'segment_a'
+            segment_b = NewRelic::Agent::Transaction.start_segment name: 'segment_b'
+            segment_b.finish
+            segment_c = NewRelic::Agent::Transaction.start_segment name: 'segment_c'
+            segment_c.finish
+            segment_a.finish
+
+            segment_d = NewRelic::Agent::Transaction.start_segment name: 'segment_d'
+            segment_e = NewRelic::Agent::Transaction.start_segment name: 'segment_e'
+            segment_f = NewRelic::Agent::Transaction.start_segment(
+              name: 'segment_f',
+              parent: segment_d
+            )
+            segment_d.finish
+            segment_f.finish
+            segment_e.finish
+
+            refute segment_a.concurrent_children?
+            refute segment_b.concurrent_children?
+            refute segment_c.concurrent_children?
+            assert segment_d.concurrent_children?
+            refute segment_e.concurrent_children?
+            refute segment_f.concurrent_children?
+          end
+        end
       end
     end
   end
