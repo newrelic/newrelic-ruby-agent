@@ -44,16 +44,7 @@ module NewRelic
             product ||= UNKNOWN_PRODUCT
             operation ||= UNKNOWN_OPERATION
 
-            segment = DatastoreSegment.new(
-              product: product,
-              operation: operation,
-              collection: collection,
-              host: host,
-              port_path_or_id: port_path_or_id,
-              database_name: database_name,
-              start_time: start_time
-            )
-
+            segment = DatastoreSegment.new product, operation, collection, host, port_path_or_id, database_name
             start_and_add_segment segment, parent
           end
 
