@@ -34,12 +34,17 @@ module NewRelic
         end
 
         def test_segment_tracks_timing_information
-          segment = BasicSegment.new "Custom/basic/segment"
-          segment.start
-          assert_equal Time.now, segment.start_time
+          segment = nil
 
-          advance_time 1.0
-          segment.finish
+          in_transaction do |txn|
+            segment = BasicSegment.new "Custom/basic/segment"
+            txn.add_segment segment
+            segment.start
+            assert_equal Time.now, segment.start_time
+
+            advance_time 1.0
+            segment.finish
+          end
 
           assert_equal Time.now, segment.end_time
           assert_equal 1.0, segment.duration

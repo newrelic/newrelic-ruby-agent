@@ -32,9 +32,9 @@ module NewRelic
         def finish
           @end_time = Time.now
           @duration = end_time.to_f - start_time.to_f
-          @exclusive_duration = duration - children_time
+
           if transaction
-            record_metrics if record_metrics? && record_on_finish?
+            finalize_early if record_on_finish?
             segment_complete
             parent.child_complete self if parent
             transaction.segment_complete self
@@ -59,14 +59,24 @@ module NewRelic
           @record_on_finish
         end
 
-        def finalize
+        def before_finalize
           unless finished?
             finish
             NewRelic::Agent.logger.warn "Segment: #{name} was unfinished at " \
               "the end of transaction. Timing information for " \
               "#{transaction.best_name} may be inaccurate."
-            # @todo: we should record a supportability metric here
           end
+          if parent
+            if record_metrics?
+              parent.children_time += duration
+            else
+              parent.children_time += children_time
+            end
+          end
+        end
+
+        def finalize
+          @exclusive_duration = duration - children_time
           record_metrics if record_metrics?
         end
 
@@ -104,14 +114,17 @@ module NewRelic
 
         def child_complete segment
           @running_children -= 1
-          if segment.record_metrics?
-            self.children_time += segment.duration
-          else
-            self.children_time += segment.children_time
-          end
         end
 
         private
+
+        # When a trace reaches the segment limit we will call this method to
+        # record its data early.
+        def finalize_early
+          @exclusive_duration = duration - children_time
+          parent.children_time += duration if parent
+          record_metrics if record_metrics?
+        end
 
         # callback for subclasses to override
         def segment_complete
