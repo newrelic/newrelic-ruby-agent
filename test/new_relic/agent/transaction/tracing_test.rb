@@ -282,33 +282,6 @@ module NewRelic
           assert_in_delta(segment_b.duration, segment_a.children_time, 0.0001)
         end
 
-        # def test_timing_correct_with_record_metrics_false
-        #   segment_a, segment_b, segment_c = nil, nil, nil
-
-        #   in_transaction "test" do
-        #     segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
-        #     advance_time(0.001)
-
-        #     segment_b = NewRelic::Agent::Transaction.start_segment name: "metric b"
-        #     segment_b.record_metrics = false
-        #     advance_time(0.002)
-
-        #     segment_c = NewRelic::Agent::Transaction::start_segment name: "metric c"
-        #     advance_time(0.003)
-        #     segment_c.finish
-
-        #     advance_time(0.001)
-
-        #     segment_b.finish
-        #     segment_a.finish
-        #   end
-
-        #   assert_equal 0, segment_c.children_time
-        #   assert_in_delta(segment_c.duration, segment_b.children_time, 0.0001)
-        #   assert_in_delta(segment_c.duration, segment_a.children_time, 0.0001)
-        #   assert_in_delta(0.001 + segment_b.exclusive_duration, segment_a.exclusive_duration, 0.0001)
-        # end
-
         def test_segments_abides_by_limit_configuration
           limit = Agent.config[:'transaction_tracer.limit_segments']
           txn = in_transaction do

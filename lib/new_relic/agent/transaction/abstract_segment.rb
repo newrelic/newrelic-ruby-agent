@@ -66,12 +66,8 @@ module NewRelic
               "the end of transaction. Timing information for " \
               "#{transaction.best_name} may be inaccurate."
           end
-          if parent
-            if record_metrics?
-              parent.children_time += duration
-            else
-              parent.children_time += children_time
-            end
+          if parent && record_metrics?
+            parent.children_time += duration
           end
         end
 
