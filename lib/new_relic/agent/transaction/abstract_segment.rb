@@ -99,10 +99,6 @@ module NewRelic
 
         protected
 
-        def record_metrics
-          raise NotImplementedError, "Subclasses must implement record_metrics"
-        end
-
         def child_start segment
           @running_children += 1
           @concurrent_children = @concurrent_children || @running_children > 1
@@ -114,17 +110,21 @@ module NewRelic
 
         private
 
+        def record_metrics
+          raise NotImplementedError, "Subclasses must implement record_metrics"
+        end
+
+        # callback for subclasses to override
+        def segment_complete
+          raise NotImplementedError
+        end
+
         # When a trace reaches the segment limit we will call this method to
         # record its data early.
         def finalize_early
           @exclusive_duration = duration - children_time
           parent.children_time += duration if parent
           record_metrics if record_metrics?
-        end
-
-        # callback for subclasses to override
-        def segment_complete
-          raise NotImplementedError
         end
 
         def metric_cache
