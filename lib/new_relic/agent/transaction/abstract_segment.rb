@@ -26,19 +26,19 @@ module NewRelic
 
         def start
           @start_time ||= Time.now
+          return unless transaction
+
           parent.child_start self if parent
         end
 
         def finish
           @end_time = Time.now
           @duration = end_time.to_f - start_time.to_f
+          return unless transaction
 
-          if transaction
-            finalize_early if record_on_finish?
-            segment_complete
-            parent.child_complete self if parent
-            transaction.segment_complete self
-          end
+          parent.children_time += duration if parent
+          run_complete_callbacks
+          finalize if record_on_finish?
         rescue => e
           NewRelic::Agent.logger.error "Exception finishing segment: #{name}", e
         end
@@ -65,9 +65,6 @@ module NewRelic
             NewRelic::Agent.logger.warn "Segment: #{name} was unfinished at " \
               "the end of transaction. Timing information for " \
               "#{transaction.best_name} may be inaccurate."
-          end
-          if parent && record_metrics?
-            parent.children_time += duration
           end
         end
 
@@ -110,6 +107,12 @@ module NewRelic
 
         private
 
+        def run_complete_callbacks
+          segment_complete
+          parent.child_complete self if parent
+          transaction.segment_complete self
+        end
+
         def record_metrics
           raise NotImplementedError, "Subclasses must implement record_metrics"
         end
@@ -117,14 +120,6 @@ module NewRelic
         # callback for subclasses to override
         def segment_complete
           raise NotImplementedError
-        end
-
-        # When a trace reaches the segment limit we will call this method to
-        # record its data early.
-        def finalize_early
-          @exclusive_duration = duration - children_time
-          parent.children_time += duration if parent
-          record_metrics if record_metrics?
         end
 
         def metric_cache
