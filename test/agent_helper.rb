@@ -408,7 +408,8 @@ def find_all_nodes_with_name_matching(transaction_sample, regexes)
 end
 
 def with_config(config_hash, at_start=true)
-  config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
+  defaults = { :monitor_mode => true }
+  config = NewRelic::Agent::Configuration::DottedHash.new(defaults.merge(config_hash), true)
   NewRelic::Agent.config.add_config_for_testing(config, at_start)
   NewRelic::Agent.instance.refresh_attribute_filter
   begin

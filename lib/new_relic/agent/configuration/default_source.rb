@@ -273,7 +273,8 @@ module NewRelic
         },
         :monitor_mode => {
           :default => Proc.new {
-            NewRelic::Agent.config[:enabled] ? NewRelic::Control.instance.env != 'test' : false
+            development_or_test =  %w(test development).include?(NewRelic::Control.instance.env)
+            NewRelic::Agent.config[:enabled] ? !development_or_test : false
           },
           :public => true,
           :type => Boolean,
