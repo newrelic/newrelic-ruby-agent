@@ -22,21 +22,27 @@ class AgentLoggerTest < Minitest::Test
     NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
   end
 
+  def with_monitoring_enabled
+    with_config({ :monitor_mode => true }) { yield }
+  end
+
 
   #
   # Tests
   #
 
   def test_initalizes_from_config
-    logger = NewRelic::Agent::AgentLogger.new
+    with_monitoring_enabled do
+      logger = NewRelic::Agent::AgentLogger.new
 
-    wrapped_logger = logger.instance_variable_get( :@log )
-    logdev = wrapped_logger.instance_variable_get( :@logdev )
-    expected_logpath = File.expand_path( NewRelic::Agent.config[:log_file_path] + NewRelic::Agent.config[:log_file_name] )
+      wrapped_logger = logger.instance_variable_get( :@log )
+      logdev = wrapped_logger.instance_variable_get( :@logdev )
+      expected_logpath = File.expand_path( NewRelic::Agent.config[:log_file_path] + NewRelic::Agent.config[:log_file_name] )
 
-    assert_kind_of( Logger, wrapped_logger )
-    assert_kind_of( File, logdev.dev )
-    assert_equal( expected_logpath, logdev.filename )
+      assert_kind_of( Logger, wrapped_logger )
+      assert_kind_of( File, logdev.dev )
+      assert_equal( expected_logpath, logdev.filename )
+    end
   end
 
   def test_initalizes_from_override
@@ -98,8 +104,10 @@ class AgentLoggerTest < Minitest::Test
   end
 
   def test_consider_any_other_logger_not_a_startup_logger
-    logger = NewRelic::Agent::AgentLogger.new
-    refute logger.is_startup_logger?
+    with_monitoring_enabled do
+      logger = NewRelic::Agent::AgentLogger.new
+      refute logger.is_startup_logger?
+    end
   end
 
   def test_does_not_touch_dev_null
@@ -264,16 +272,18 @@ class AgentLoggerTest < Minitest::Test
   end
 
   def test_logs_to_stdout_if_fails_on_file
-    Logger::LogDevice.any_instance.stubs(:open).raises(Errno::EACCES)
+    with_monitoring_enabled do
+      Logger::LogDevice.any_instance.stubs(:open).raises(Errno::EACCES)
 
-    logger = with_squelched_stdout do
-      NewRelic::Agent::AgentLogger.new
+      logger = with_squelched_stdout do
+        NewRelic::Agent::AgentLogger.new
+      end
+
+      wrapped_logger = logger.instance_variable_get(:@log)
+      logdev = wrapped_logger.instance_variable_get(:@logdev)
+
+      assert_equal $stdout, logdev.dev
     end
-
-    wrapped_logger = logger.instance_variable_get(:@log)
-    logdev = wrapped_logger.instance_variable_get(:@logdev)
-
-    assert_equal $stdout, logdev.dev
   end
 
   def test_null_logger_works_with_impolite_gems_that_add_stuff_to_kernel

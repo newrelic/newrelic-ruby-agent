@@ -4,6 +4,7 @@ common: &default_settings
   port: <%= $collector && $collector.port %>
   app_name: Rails multiverse test app
   enabled: true
+  monitor_mode: true
   ssl: false
   apdex_t: 1.0
   capture_params: true
