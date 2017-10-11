@@ -59,16 +59,8 @@ module NewRelic
           @record_on_finish
         end
 
-        def before_finalize
-          unless finished?
-            finish
-            NewRelic::Agent.logger.warn "Segment: #{name} was unfinished at " \
-              "the end of transaction. Timing information for " \
-              "#{transaction.best_name} may be inaccurate."
-          end
-        end
-
         def finalize
+          force_finish unless finished?
           @exclusive_duration = duration - children_time
           record_metrics if record_metrics?
         end
@@ -106,6 +98,13 @@ module NewRelic
         end
 
         private
+
+        def force_finish
+          finish
+          NewRelic::Agent.logger.warn "Segment: #{name} was unfinished at " \
+            "the end of transaction. Timing information for this segment's" \
+            "parent #{parent.name} in #{transaction.best_name} may be inaccurate."
+        end
 
         def run_complete_callbacks
           segment_complete

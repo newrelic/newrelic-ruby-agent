@@ -130,12 +130,7 @@ module NewRelic
 
         private
 
-        # Finalizing segments is done in two passes. During the first pass any
-        # unfinished segments will be finished and all segments will copy their
-        # durations to their parents. On the second pass exclusive times are
-        # calculated and metrics will be recorded.
         def finalize_segments
-          segments.each { |s| s.before_finalize }
           segments.each { |s| s.finalize }
         end
       end

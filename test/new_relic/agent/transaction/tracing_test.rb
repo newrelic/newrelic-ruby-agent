@@ -358,7 +358,16 @@ module NewRelic
           end
         end
 
-        def test_unfinished_segment_is_truncated_at_transaction_end
+        # The test below documents a failure case. When a transaction has
+        # completed, and a segment has not been finished, we will forcibly
+        # finish the segment at the end of the transaction. This will cause the
+        # exclusive time to be off for the parent of the unfinished segment.
+        # This behavior may change over time and there is no reason to preserve
+        # it as is. The point of this test is to ensure that the transaction
+        # isn't lost entirely. We will log a message at warn level when this
+        # unexpected conditon arises.
+
+        def test_unfinished_segment_is_truncated_at_transaction_end_exclusive_times_incorrect
           segment_a, segment_b, segment_c = nil, nil, nil
           in_transaction do
             advance_time(1)
@@ -372,7 +381,9 @@ module NewRelic
             segment_a.finish
           end
 
-          assert_equal 2, segment_a.exclusive_duration
+          # the parent has incorrect exclusive_duration since it's child,
+          # segment_b, wasn't properly finished
+          assert_equal 9, segment_a.exclusive_duration
           assert_equal 9, segment_a.duration
 
           assert_equal 3, segment_b.exclusive_duration
