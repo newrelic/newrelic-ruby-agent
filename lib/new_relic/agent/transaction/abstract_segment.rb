@@ -49,10 +49,6 @@ module NewRelic
           !!@end_time
         end
 
-        def children_time_ranges
-          @children_time_ranges ||= []
-        end
-
         def record_metrics?
           @record_metrics
         end
@@ -79,6 +75,14 @@ module NewRelic
           !!@params
         end
 
+        def children_time_ranges
+          @children_time_ranges ||= []
+        end
+
+        def children_time_ranges?
+          !!@children_time_ranges
+        end
+
         def concurrent_children?
           @concurrent_children
         end
@@ -101,7 +105,7 @@ module NewRelic
 
         def child_complete segment
           @running_children -= 1
-          process_child_time segment
+          record_child_time segment
         end
 
         private
@@ -128,8 +132,8 @@ module NewRelic
           raise NotImplementedError
         end
 
-        def process_child_time child
-          if concurrent_children?
+        def record_child_time child
+          if concurrent_children? || finished? && end_time < child.end_time
             RangeExtensions.merge_or_append child.start_time..child.end_time,
                                             children_time_ranges
           else
@@ -138,13 +142,12 @@ module NewRelic
         end
 
         def calculate_exclusive_duration
-          if concurrent_children?
-            overlapping_duration = RangeExtensions.compute_overlap start_time..end_time,
-                                                                   children_time_ranges
-            @exclusive_duration = duration - overlapping_duration
+          overlapping_duration = if children_time_ranges?
+            RangeExtensions.compute_overlap start_time..end_time, children_time_ranges
           else
-            @exclusive_duration = duration - children_time
+            0.0
           end
+          @exclusive_duration = duration - children_time - overlapping_duration
         end
 
         def metric_cache
