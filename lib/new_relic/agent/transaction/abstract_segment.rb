@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/range_extensions'
+
 module NewRelic
   module Agent
     class Transaction
@@ -13,6 +15,7 @@ module NewRelic
         def initialize name=nil, start_time=nil
           @name = name
           @children_time = 0.0
+          @children_time_ranges = nil
           @running_children = 0
           @concurrent_children = false
           @record_metrics = true
@@ -36,7 +39,6 @@ module NewRelic
           @duration = end_time.to_f - start_time.to_f
           return unless transaction
 
-          parent.children_time += duration if parent
           run_complete_callbacks
           finalize if record_on_finish?
         rescue => e
@@ -45,6 +47,10 @@ module NewRelic
 
         def finished?
           !!@end_time
+        end
+
+        def children_time_ranges
+          @children_time_ranges ||= []
         end
 
         def record_metrics?
@@ -61,7 +67,7 @@ module NewRelic
 
         def finalize
           force_finish unless finished?
-          @exclusive_duration = duration - children_time
+          calculate_exclusive_duration
           record_metrics if record_metrics?
         end
 
@@ -95,6 +101,7 @@ module NewRelic
 
         def child_complete segment
           @running_children -= 1
+          process_child_time segment
         end
 
         private
@@ -119,6 +126,25 @@ module NewRelic
         # callback for subclasses to override
         def segment_complete
           raise NotImplementedError
+        end
+
+        def process_child_time child
+          if concurrent_children?
+            RangeExtensions.merge_or_append child.start_time..child.end_time,
+                                            children_time_ranges
+          else
+            self.children_time += child.duration
+          end
+        end
+
+        def calculate_exclusive_duration
+          if concurrent_children?
+            overlapping_duration = RangeExtensions.compute_overlap start_time..end_time,
+                                                                   children_time_ranges
+            @exclusive_duration = duration - overlapping_duration
+          else
+            @exclusive_duration = duration - children_time
+          end
         end
 
         def metric_cache

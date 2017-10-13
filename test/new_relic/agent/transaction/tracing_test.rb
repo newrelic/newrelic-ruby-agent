@@ -576,6 +576,64 @@ module NewRelic
             refute segment_f.concurrent_children?
           end
         end
+
+        # B, C, D are children of A and are running concurrently. D ends after
+        # A finishes. Here is a timeline to illustrate the situation:
+        # 0  1  2  3  4  5  6  7  8  9  10 11 12
+        #  _________________
+        # |        A        |
+        #        ________
+        #       |    B   |
+        #           ________
+        #          |    C   |
+        #              _______________________
+        #             |     D                 |
+
+        def test_concurrent_durations
+          segment_a, segment_b, segment_c, segment_d = nil, nil, nil, nil
+
+          in_transaction "test" do
+            segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
+            advance_time 2
+
+            segment_b = NewRelic::Agent::Transaction.start_segment name: "metric b"
+            advance_time 1
+
+            segment_c = NewRelic::Agent::Transaction.start_segment(
+              name: "metric c",
+              parent: segment_a
+            )
+
+            advance_time 1
+
+            segment_d = NewRelic::Agent::Transaction.start_segment(
+              name: "metric d",
+              parent: segment_a
+            )
+
+            advance_time 1
+            segment_b.finish
+
+            advance_time 1
+            segment_c.finish
+            segment_a.finish
+
+            advance_time 6
+            segment_d.finish
+          end
+
+          assert_equal 6.0, segment_a.duration
+          assert_equal 2.0, segment_a.exclusive_duration
+
+          assert_equal 3.0, segment_b.duration
+          assert_equal 3.0, segment_b.exclusive_duration
+
+          assert_equal 3.0, segment_c.duration
+          assert_equal 3.0, segment_c.exclusive_duration
+
+          assert_equal 8.0, segment_d.duration
+          assert_equal 8.0, segment_d.exclusive_duration
+        end
       end
     end
   end
