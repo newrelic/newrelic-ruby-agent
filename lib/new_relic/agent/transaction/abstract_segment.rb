@@ -14,23 +14,25 @@ module NewRelic
 
         def initialize name=nil, start_time=nil
           @name = name
+          @transaction = nil
+          @parent = nil
+          @params = nil
+          @start_time = start_time if start_time
+          @end_time = nil
+          @duration = 0.0
+          @exclusive_duration = 0.0
           @children_time = 0.0
           @children_time_ranges = nil
           @running_children = 0
           @concurrent_children = false
           @record_metrics = true
           @record_scoped_metric = true
-          @transaction = nil
-          @parent = nil
           @record_on_finish = false
-          @params = nil
-          @start_time = start_time if start_time
         end
 
         def start
           @start_time ||= Time.now
           return unless transaction
-
           parent.child_start self if parent
         end
 
@@ -38,7 +40,6 @@ module NewRelic
           @end_time = Time.now
           @duration = end_time.to_f - start_time.to_f
           return unless transaction
-
           run_complete_callbacks
           finalize if record_on_finish?
         rescue => e
