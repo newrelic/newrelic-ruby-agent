@@ -130,7 +130,6 @@ module NewRelic
 
         # callback for subclasses to override
         def segment_complete
-          raise NotImplementedError
         end
 
         def record_child_time child
