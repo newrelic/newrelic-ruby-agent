@@ -23,7 +23,7 @@ module NewRelic
           @exclusive_duration = 0.0
           @children_time = 0.0
           @children_time_ranges = nil
-          @running_children = 0
+          @active_children = 0
           @concurrent_children = false
           @record_metrics = true
           @record_scoped_metric = true
@@ -100,12 +100,12 @@ module NewRelic
         protected
 
         def child_start segment
-          @running_children += 1
-          @concurrent_children = @concurrent_children || @running_children > 1
+          @active_children += 1
+          @concurrent_children = @concurrent_children || @active_children > 1
         end
 
         def child_complete segment
-          @running_children -= 1
+          @active_children -= 1
           record_child_time segment
         end
 
