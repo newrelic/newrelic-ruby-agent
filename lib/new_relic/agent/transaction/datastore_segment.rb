@@ -17,8 +17,7 @@ module NewRelic
         attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :host, :port_path_or_id
         attr_accessor :database_name
 
-
-        def initialize product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name = nil, start_time = nil
+        def initialize product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name = nil
           @product = product
           @operation = operation
           @collection = collection
@@ -26,9 +25,7 @@ module NewRelic
           @nosql_statement = nil
           set_instance_info host, port_path_or_id
           @database_name = database_name ? database_name.to_s : nil
-          super Datastores::MetricHelper.scoped_metric_for(product, operation, collection),
-                nil,
-                start_time
+          super Datastores::MetricHelper.scoped_metric_for(product, operation, collection)
         end
 
         def set_instance_info host = nil, port_path_or_id = nil

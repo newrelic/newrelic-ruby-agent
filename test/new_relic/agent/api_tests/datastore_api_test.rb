@@ -23,12 +23,8 @@ module NewRelic
           with_config config do
             send(txn_helper_method) do
               segment = NewRelic::Agent::Transaction.start_datastore_segment(
-                product: params['product'],
-                operation: params['operation'],
-                collection: params['collection'],
-                host: params['host'],
-                port_path_or_id: params['port_path_or_id'],
-                database_name: params['database_name']
+                params['product'], params['operation'], params['collection'],
+                params['host'], params['port_path_or_id'], params['database_name']
               )
               segment.notice_sql "select * from foo"
               advance_time 2.0

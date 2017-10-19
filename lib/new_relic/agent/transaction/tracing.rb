@@ -12,51 +12,24 @@ module NewRelic
     class Transaction
       module Tracing
         module ClassMethods
-          def start_segment(name:nil,
-                            unscoped_metrics:nil,
-                            start_time: nil,
-                            parent: nil)
-
-            # ruby 2.0.0 does not support required kwargs
-            raise ArgumentError, 'missing required argument: name' if name.nil?
-
-            segment = Segment.new name, unscoped_metrics, start_time
-
-            start_and_add_segment segment, parent
+          def start_segment name, unscoped_metrics=nil
+            segment = Segment.new name, unscoped_metrics
+            start_and_add_segment segment
           end
 
           UNKNOWN_PRODUCT = "Unknown".freeze
           UNKNOWN_OPERATION = "other".freeze
 
-          def start_datastore_segment(product: nil,
-                                      operation: nil,
-                                      collection: nil,
-                                      host: nil,
-                                      port_path_or_id: nil,
-                                      database_name: nil,
-                                      start_time: nil,
-                                      parent: nil)
-
+          def start_datastore_segment product=nil, operation=nil, collection=nil, host=nil, port_path_or_id=nil, database_name=nil
             product ||= UNKNOWN_PRODUCT
             operation ||= UNKNOWN_OPERATION
-
             segment = DatastoreSegment.new product, operation, collection, host, port_path_or_id, database_name
-            start_and_add_segment segment, parent
+            start_and_add_segment segment
           end
 
-          def start_external_request_segment(library: nil,
-                                             uri: nil,
-                                             procedure: nil,
-                                             start_time: nil,
-                                             parent: nil)
-
-            # ruby 2.0.0 does not support required kwargs
-            raise ArgumentError, 'missing required argument: library' if library.nil?
-            raise ArgumentError, 'missing required argument: uri' if uri.nil?
-            raise ArgumentError, 'missing required argument: procedure' if procedure.nil?
-
-            segment = ExternalRequestSegment.new library, uri, procedure, start_time
-            start_and_add_segment segment, parent
+          def start_external_request_segment library, uri, procedure
+            segment = ExternalRequestSegment.new library, uri, procedure
+            start_and_add_segment segment
           end
 
           # @api private
@@ -67,8 +40,7 @@ module NewRelic
                                            destination_name: nil,
                                            headers: nil,
                                            parameters: nil,
-                                           start_time: nil,
-                                           parent: nil)
+                                           start_time: nil)
 
             # ruby 2.0.0 does not support required kwargs
             raise ArgumentError, 'missing required argument: action' if action.nil?
@@ -85,21 +57,21 @@ module NewRelic
               parameters: parameters,
               start_time: start_time
             )
-            start_and_add_segment segment, parent
+            start_and_add_segment segment
           end
 
           private
 
-          def start_and_add_segment segment, parent
+          def start_and_add_segment segment
             segment.start
-            add_segment segment, parent
+            add_segment segment
             segment
           end
 
-          def add_segment segment, parent = nil
+          def add_segment segment
             state = NewRelic::Agent::TransactionState.tl_get
             if (txn = state.current_transaction) && state.is_execution_traced?
-              txn.add_segment segment, parent
+              txn.add_segment segment
             else
               segment.record_metrics = false
             end
@@ -112,9 +84,9 @@ module NewRelic
 
         attr_reader :current_segment
 
-        def add_segment segment, parent = nil
+        def add_segment segment
           segment.transaction = self
-          segment.parent = parent || current_segment
+          segment.parent = current_segment
           @current_segment = segment
           if @segments.length < segment_limit
             @segments << segment

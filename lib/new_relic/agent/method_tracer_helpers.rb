@@ -17,11 +17,7 @@ module NewRelic
         first_name   = metric_names.shift
         return yield unless first_name
 
-        segment = NewRelic::Agent::Transaction.start_segment(
-          name: first_name,
-          unscoped_metrics: metric_names
-        )
-
+        segment = NewRelic::Agent::Transaction.start_segment first_name, metric_names
         if options[:metric] == false
           segment.record_metrics = false
         end

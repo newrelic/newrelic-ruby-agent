@@ -459,12 +459,7 @@ module NewRelic
         end
 
         @nesting_max_depth += 1
-
-        segment = self.class.start_segment(
-          name: name,
-          unscoped_metrics: summary_metrics
-        )
-
+        segment = self.class.start_segment name, summary_metrics
         frame_stack.push segment
         segment
       end

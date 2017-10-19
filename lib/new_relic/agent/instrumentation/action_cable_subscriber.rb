@@ -46,7 +46,7 @@ module NewRelic
         end
 
         def start_recording_metrics event
-          event.payload[:segment] = Transaction.start_segment name: metric_name_from_event(event)
+          event.payload[:segment] = Transaction.start_segment metric_name_from_event(event)
         end
 
         def stop_recording_metrics event
