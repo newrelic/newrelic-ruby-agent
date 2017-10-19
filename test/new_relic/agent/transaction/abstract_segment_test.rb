@@ -155,10 +155,12 @@ module NewRelic
             segment_a.start
             segment_b = BasicSegment.new "segment_b"
             txn.add_segment segment_b
-            segment_a.expects(:child_start).with(segment_b)
             segment_b.parent = segment_a
+            assert_equal 0, segment_a.instance_variable_get(:@active_children)
             segment_b.start
+            assert_equal 1, segment_a.instance_variable_get(:@active_children)
             segment_b.finish
+            assert_equal 0, segment_a.instance_variable_get(:@active_children)
             segment_a.finish
           end
         end
