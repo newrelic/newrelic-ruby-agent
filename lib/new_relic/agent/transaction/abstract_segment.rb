@@ -76,6 +76,10 @@ module NewRelic
           !!@params
         end
 
+        def time_range
+          @start_time.to_f .. @end_time.to_f
+        end
+
         def children_time_ranges
           @children_time_ranges ||= []
         end
@@ -134,7 +138,7 @@ module NewRelic
 
         def record_child_time child
           if concurrent_children? || finished? && end_time < child.end_time
-            RangeExtensions.merge_or_append child.start_time..child.end_time,
+            RangeExtensions.merge_or_append child.time_range,
                                             children_time_ranges
           else
             self.children_time += child.duration
@@ -143,7 +147,7 @@ module NewRelic
 
         def calculate_exclusive_duration
           overlapping_duration = if children_time_ranges?
-            RangeExtensions.compute_overlap start_time..end_time, children_time_ranges
+            RangeExtensions.compute_overlap time_range, children_time_ranges
           else
             0.0
           end
