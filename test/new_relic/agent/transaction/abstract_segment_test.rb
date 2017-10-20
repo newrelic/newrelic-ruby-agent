@@ -148,23 +148,6 @@ module NewRelic
           assert_equal t, segment.start_time
         end
 
-        def test_parent_notified_of_child_start
-          in_transaction do |txn|
-            segment_a = BasicSegment.new "segment_a"
-            txn.add_segment segment_a
-            segment_a.start
-            segment_b = BasicSegment.new "segment_b"
-            txn.add_segment segment_b
-            segment_b.parent = segment_a
-            assert_equal 0, segment_a.instance_variable_get(:@active_children)
-            segment_b.start
-            assert_equal 1, segment_a.instance_variable_get(:@active_children)
-            segment_b.finish
-            assert_equal 0, segment_a.instance_variable_get(:@active_children)
-            segment_a.finish
-          end
-        end
-
         def test_parent_detects_concurrent_children
           in_transaction do |txn|
             segment_a = BasicSegment.new "segment_a"
