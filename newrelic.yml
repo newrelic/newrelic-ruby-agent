@@ -1,6 +1,6 @@
 #
 # This file configures the New Relic Agent.  New Relic monitors Ruby, Java,
-# .NET, PHP, Python and Node applications with deep visibility and low
+# .NET, PHP, Python, Node, and Go applications with deep visibility and low
 # overhead.  For more information, visit www.newrelic.com.
 #
 # Generated <%= Time.now.strftime('%B %d, %Y') %><%= ", for version #{@agent_version}" if @agent_version %>
