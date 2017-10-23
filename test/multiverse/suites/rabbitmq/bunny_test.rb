@@ -158,7 +158,7 @@ class BunnyTest < Minitest::Test
   end
 
   def test_error_starting_amqp_segment_does_not_interfere_with_transaction
-    NewRelic::Agent::Transaction::MessageBrokerSegment.any_instance.stubs(:start).raises(StandardError.new("Boo"))
+    NewRelic::Agent::Messaging.stubs(:start_amqp_publish_segment).raises(StandardError.new("Boo"))
 
     with_queue do |queue|
       in_transaction "test_txn" do
@@ -256,7 +256,7 @@ class BunnyTest < Minitest::Test
 
   def test_error_starting_message_broker_segment_does_not_interfere_with_transaction
     with_queue do |queue|
-      NewRelic::Agent::Transaction::MessageBrokerSegment.any_instance.stubs(:start).raises(StandardError.new("Boo"))
+      NewRelic::Agent::Transaction.stubs(:start_message_broker_segment).raises(StandardError.new("Boo"))
 
       in_transaction "test_txn" do
         # This should error
