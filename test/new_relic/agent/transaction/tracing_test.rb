@@ -12,6 +12,7 @@ module NewRelic
       class TracingTest < Minitest::Test
         def setup
           freeze_time
+          NewRelic::Agent.drop_buffered_data
         end
 
         def teardown
