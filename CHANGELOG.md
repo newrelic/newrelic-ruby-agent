@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+## v4.6.0 ##
+
+  * Public API for External Requests
+
+  The agent now has public API for instrumenting external requests and linking
+  up transactions via cross application tracing. See the `NewRelic::Agent::External`
+  module for more details this new functionality.
+
 ## v4.5.0 ##
 
   * Send synthetics headers even when CAT disabled
