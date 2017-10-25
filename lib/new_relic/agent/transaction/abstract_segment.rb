@@ -64,7 +64,7 @@ module NewRelic
 
         def finalize
           force_finish unless finished?
-          calculate_exclusive_duration
+          record_exclusive_duration
           record_metrics if record_metrics?
         end
 
@@ -149,13 +149,15 @@ module NewRelic
           end
         end
 
-        def calculate_exclusive_duration
+        def record_exclusive_duration
           overlapping_duration = if children_time_ranges?
             RangeExtensions.compute_overlap time_range, children_time_ranges
           else
             0.0
           end
           @exclusive_duration = duration - children_time - overlapping_duration
+
+          params[:exclusive_duration_millis] = @exclusive_duration if transaction.async?
         end
 
         def metric_cache

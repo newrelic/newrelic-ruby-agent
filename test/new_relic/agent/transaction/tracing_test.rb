@@ -783,6 +783,34 @@ module NewRelic
             assert txn.async?, "Expected transaction to be asynchronous"
           end
         end
+
+        def test_transaction_records_exclusive_duration_millis_segment_param_when_transaction_async
+          segment_a, segment_b, segment_c = nil, nil, nil
+
+          in_transaction "test" do
+            segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
+            advance_time 2
+
+            segment_b = NewRelic::Agent::Transaction.start_segment name: "metric b"
+            advance_time 1
+
+            segment_c = NewRelic::Agent::Transaction.start_segment(
+              name: "metric c",
+              parent: segment_a
+            )
+
+            advance_time 2
+            segment_b.finish
+
+            advance_time 1
+            segment_c.finish
+            segment_a.finish
+          end
+
+          assert_equal 2.0, segment_a.params[:exclusive_duration_millis]
+          assert_equal 3.0, segment_b.params[:exclusive_duration_millis]
+          assert_equal 3.0, segment_c.params[:exclusive_duration_millis]
+        end
       end
     end
   end
