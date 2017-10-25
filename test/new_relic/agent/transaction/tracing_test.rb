@@ -727,6 +727,62 @@ module NewRelic
           assert_equal 8.0, segment_d.duration
           assert_equal 8.0, segment_d.exclusive_duration
         end
+
+        def test_transaction_detects_async_when_there_are_concurrent_children
+          segment_a, segment_b, segment_c = nil, nil, nil
+
+          in_transaction "test" do |txn|
+            segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
+            advance_time 2
+
+            segment_b = NewRelic::Agent::Transaction.start_segment name: "metric b"
+            advance_time 1
+
+            refute txn.async?
+
+            segment_c = NewRelic::Agent::Transaction.start_segment(
+              name: "metric c",
+              parent: segment_a
+            )
+
+            assert txn.async?
+
+            advance_time 1
+
+            advance_time 1
+            segment_b.finish
+
+            advance_time 1
+            segment_c.finish
+            segment_a.finish
+          end
+        end
+
+        def test_transaction_detects_async_when_child_ends_after_parent
+          segment_a, segment_b, segment_c = nil, nil, nil
+
+          in_transaction "test" do |txn|
+            segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
+            advance_time 1
+
+            segment_b = NewRelic::Agent::Transaction.start_segment name: "metric b"
+            advance_time 2
+
+            segment_b.finish
+
+            refute txn.async?, "Expected transaction not to be asynchronous"
+
+            segment_c = NewRelic::Agent::Transaction.start_segment name: "metric c"
+
+            advance_time 3
+            segment_a.finish
+
+            advance_time 4
+            segment_c.finish
+
+            assert txn.async?, "Expected transaction to be asynchronous"
+          end
+        end
       end
     end
   end
