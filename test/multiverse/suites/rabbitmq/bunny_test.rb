@@ -165,7 +165,7 @@ class BunnyTest < Minitest::Test
         #our instrumentation should error here, but not interfere with bunny
         queue.publish("test_msg")
          #this segment should be fine
-        segment = NewRelic::Agent::Transaction.start_segment name: "Custom/blah/method"
+        segment = NewRelic::Agent::Transaction.start_segment "Custom/blah/method"
         segment.finish if segment
       end
 
@@ -263,7 +263,7 @@ class BunnyTest < Minitest::Test
         queue.publish "test_msg"
 
         #this segment should be fine
-        segment = NewRelic::Agent::Transaction.start_segment name: "Custom/blah/method"
+        segment = NewRelic::Agent::Transaction.start_segment "Custom/blah/method"
         segment.finish
       end
 

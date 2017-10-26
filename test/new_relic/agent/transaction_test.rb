@@ -1498,7 +1498,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     in_web_transaction "Controller/Framework/webby" do |t|
       NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "Controller/Framework/inner_1"
       NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "Controller/Framework/inner_2"
-      segment = NewRelic::Agent::Transaction.start_segment name: "Ruby/my_lib/my_meth"
+      segment = NewRelic::Agent::Transaction.start_segment "Ruby/my_lib/my_meth"
       NewRelic::Agent.set_transaction_name "RackFramework/action"
       segment.finish
       NewRelic::Agent::Transaction.stop(state)

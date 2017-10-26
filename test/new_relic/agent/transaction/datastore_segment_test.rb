@@ -47,11 +47,7 @@ module NewRelic
 
         def test_segment_records_expected_metrics
           in_web_transaction "text_txn" do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "insert",
-              collection: "Blog"
-            )
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "insert", "Blog"
             segment.start
             advance_time 1
             segment.finish
@@ -69,10 +65,7 @@ module NewRelic
 
         def test_segment_records_expected_metrics_without_collection
           in_web_transaction "text_txn" do
-            segment = Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select"
-            )
+            segment = Transaction.start_datastore_segment "SQLite", "select"
             segment.start
             advance_time 1
             segment.finish
@@ -89,12 +82,7 @@ module NewRelic
 
         def test_segment_records_expected_metrics_with_instance_identifier
           in_web_transaction "text_txn" do
-            segment = Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select",
-              host: "jonan-01",
-              port_path_or_id: "1337807"
-            )
+            segment = Transaction.start_datastore_segment "SQLite", "select", nil, "jonan-01", "1337807"
             segment.start
             advance_time 1
             segment.finish
@@ -112,11 +100,7 @@ module NewRelic
 
         def test_segment_records_expected_metrics_with_instance_identifier_host_only
           in_web_transaction "text_txn" do
-            segment = Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select",
-              host: "jonan-01"
-            )
+            segment = Transaction.start_datastore_segment "SQLite", "select", nil, "jonan-01"
             segment.start
             advance_time 1
             segment.finish
@@ -134,11 +118,7 @@ module NewRelic
 
         def test_segment_records_expected_metrics_with_instance_identifier_port_only
           in_web_transaction "text_txn" do
-            segment = Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select",
-              port_path_or_id: 1337807
-            )
+            segment = Transaction.start_datastore_segment "SQLite", "select", nil, nil, 1337807
             segment.start
             advance_time 1
             segment.finish
@@ -156,10 +136,7 @@ module NewRelic
 
         def test_segment_does_not_record_expected_metrics_with_empty_data
           in_web_transaction "text_txn" do
-            segment = Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select"
-            )
+            segment = Transaction.start_datastore_segment "SQLite", "select", nil
             segment.start
             advance_time 1
             segment.finish
@@ -171,12 +148,7 @@ module NewRelic
         def test_segment_does_not_record_instance_id_metrics_when_disabled
           with_config(:'datastore_tracer.instance_reporting.enabled' => false) do
             in_web_transaction "text_txn" do
-              segment = Transaction.start_datastore_segment(
-                product: "SQLite",
-                operation: "select",
-                collection: "jonan-01",
-                port_path_or_id: "1337807"
-              )
+              segment = Transaction.start_datastore_segment "SQLite", "select", nil, "jonan-01", "1337807"
               segment.start
               advance_time 1
               segment.finish
@@ -190,12 +162,7 @@ module NewRelic
           segment = nil
 
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select",
-              host: "jonan-01",
-              port_path_or_id: "1337807"
-            )
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, "jonan-01", "1337807"
             advance_time 1
             segment.finish
           end
@@ -211,13 +178,7 @@ module NewRelic
           NewRelic::Agent::Hostname.stubs(:get).returns("jonan.gummy_planet")
 
           %w[localhost 0.0.0.0 127.0.0.1 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:0 ::1 ::].each do |host|
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select",
-              collection: "blogs",
-              host: host,
-              port_path_or_id: "1337"
-            )
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", "blogs", host, "1337"
             segment.finish
 
             assert_equal "jonan.gummy_planet", segment.host
@@ -229,12 +190,7 @@ module NewRelic
             segment = nil
 
             in_transaction do
-              segment = NewRelic::Agent::Transaction.start_datastore_segment(
-                product: "SQLite",
-                operation: "select",
-                host: "localhost",
-                port_path_or_id: "1337807"
-              )
+              segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, "localhost", "1337807"
               advance_time 1
               segment.finish
             end
@@ -251,11 +207,7 @@ module NewRelic
           segment = nil
 
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select",
-              database_name: "pizza_cube"
-            )
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, nil, nil, "pizza_cube"
             advance_time 1
             segment.finish
           end
@@ -271,11 +223,7 @@ module NewRelic
             segment = nil
 
             in_transaction do
-              segment = NewRelic::Agent::Transaction.start_datastore_segment(
-                product: "SQLite",
-                operation: "select",
-                database_name: "pizza_cube"
-              )
+              segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, nil, nil, "pizza_cube"
               advance_time 1
               segment.finish
             end
@@ -289,10 +237,7 @@ module NewRelic
 
         def test_notice_sql
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select"
-            )
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
             segment.notice_sql "select * from blogs"
             advance_time 2.0
             Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
@@ -309,10 +254,7 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
           state.record_sql = false
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select"
-            )
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
             segment.notice_sql "select * from blogs"
             assert_nil segment.sql_statement
             segment.finish
@@ -322,12 +264,7 @@ module NewRelic
 
         def test_notice_sql_creates_database_statement_with_identifier
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select",
-              host: "jonan.gummy_planet",
-              port_path_or_id: "1337"
-            )
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, "jonan.gummy_planet", "1337"
             segment.notice_sql "select * from blogs"
             segment.finish
 
@@ -338,11 +275,7 @@ module NewRelic
 
         def test_notice_sql_creates_database_statement_with_database_name
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select",
-              database_name: "pizza_cube"
-            )
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select", nil, nil, nil, "pizza_cube"
             segment.notice_sql "select * from blogs"
             segment.finish
 
@@ -352,10 +285,7 @@ module NewRelic
 
         def test_notice_sql_truncates_long_queries
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select"
-            )
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
             segment.notice_sql "select * from blogs where " + ("something is nothing" * 16_384)
             segment.finish
             assert_equal segment.params[:sql].sql.length, 16_384
@@ -365,10 +295,7 @@ module NewRelic
         def test_internal_notice_sql
           explainer = stub(:explainer)
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select"
-            )
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
             segment._notice_sql "select * from blogs", {:adapter => :sqlite}, explainer
             advance_time 2.0
             Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
@@ -384,10 +311,7 @@ module NewRelic
         def test_notice_nosql_statement
           statement = "set mykey 123"
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
-              product: "Redis",
-              operation: "set"
-            )
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "Redis", "set"
             segment.notice_nosql_statement statement
             advance_time 2.0
 
@@ -400,10 +324,7 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
           state.record_sql = false
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select"
-            )
+            segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "select"
             segment.notice_nosql_statement "hgetall somehash"
             assert_nil segment.nosql_statement
             segment.finish
@@ -447,11 +368,7 @@ module NewRelic
           segment = nil
           with_config :'transaction_tracer.stack_trace_threshold' => 2.0 do
             in_web_transaction "test_txn" do
-              segment = NewRelic::Agent::Transaction.start_datastore_segment(
-                product: "SQLite",
-                operation: "insert",
-                collection: "Blog"
-              )
+              segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "insert", "Blog"
               segment.start
               advance_time 1.0
               segment.finish
@@ -469,11 +386,7 @@ module NewRelic
           segment = nil
           with_config :'transaction_tracer.stack_trace_threshold' => 1.0 do
             in_web_transaction "test_txn" do
-              segment = NewRelic::Agent::Transaction.start_datastore_segment(
-                product: "SQLite",
-                operation: "insert",
-                collection: "Blog"
-              )
+              segment = NewRelic::Agent::Transaction.start_datastore_segment "SQLite", "insert", "Blog"
               segment.start
               advance_time 2.0
               segment.finish
@@ -487,35 +400,19 @@ module NewRelic
           refute_nil node.params[:backtrace]
         end
 
-        def test_node_obfuscated
-          orig_sql = "SELECT * from Jim where id=66"
+         def test_node_obfuscated
+            orig_sql = "SELECT * from Jim where id=66"
 
-          in_transaction do
-            s = NewRelic::Agent::Transaction.start_datastore_segment
-            s.notice_sql(orig_sql)
-            s.finish
+            in_transaction do
+              s = NewRelic::Agent::Transaction.start_datastore_segment
+              s.notice_sql(orig_sql)
+              s.finish
+            end
+
+            node = find_last_transaction_node(last_transaction_trace)
+            assert_equal orig_sql, node[:sql].sql
+            assert_equal "SELECT * from Jim where id=?", node.obfuscated_sql
           end
-          node = find_last_transaction_node(last_transaction_trace)
-          assert_equal orig_sql, node[:sql].sql
-          assert_equal "SELECT * from Jim where id=?", node.obfuscated_sql
-        end
-
-        def test_sets_start_time_from_api
-          t = Time.now
-
-          in_transaction do |txn|
-
-            segment = Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "insert",
-              collection: "Blog",
-              start_time: t
-            )
-            segment.finish
-
-            assert_equal t, segment.start_time
-          end
-        end
       end
     end
   end

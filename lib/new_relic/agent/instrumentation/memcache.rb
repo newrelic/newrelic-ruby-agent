@@ -41,10 +41,7 @@ module NewRelic
               alias_method method_name_without, method_name
 
               define_method method_name do |*args, &block|
-                segment = NewRelic::Agent::Transaction.start_datastore_segment(
-                  product: "Memcached",
-                  operation: method_name
-                )
+                segment = NewRelic::Agent::Transaction.start_datastore_segment "Memcached", method_name
                 begin
                   send method_name_without, *args, &block
                 ensure

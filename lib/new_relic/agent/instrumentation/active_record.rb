@@ -60,14 +60,7 @@ module NewRelic
             database = @config && @config[:database]
           end
 
-          segment = NewRelic::Agent::Transaction.start_datastore_segment(
-            product: product,
-            operation: operation,
-            collection: collection,
-            host: host,
-            port_path_or_id: port_path_or_id,
-            database_name: database
-          )
+          segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation, collection, host, port_path_or_id, database)
           segment._notice_sql(sql, @config, EXPLAINER)
 
           begin

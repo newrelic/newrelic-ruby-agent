@@ -39,12 +39,7 @@ module NewRelic
           host = host_from_address event.address
           port_path_or_id = port_path_or_id_from_address event.address
           segment = NewRelic::Agent::Transaction.start_datastore_segment(
-            product: MONGODB,
-            operation: event.command_name,
-            collection: collection(event),
-            host: host,
-            port_path_or_id: port_path_or_id,
-            database_name: event.database_name
+            MONGODB, event.command_name, collection(event), host, port_path_or_id, event.database_name
           )
           segment.notice_nosql_statement(generate_statement(event))
           segment
