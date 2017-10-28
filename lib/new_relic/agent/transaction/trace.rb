@@ -15,10 +15,12 @@ module NewRelic
                       :attributes, :node_count, :finished, :threshold,
                       :profile
 
+        ROOT = "ROOT".freeze
+
         def initialize(start_time)
           @start_time = start_time
           @node_count = 0
-          @root_node = NewRelic::Agent::Transaction::TraceNode.new(0.0, "ROOT")
+          @root_node = NewRelic::Agent::Transaction::TraceNode.new(ROOT, 0.0, nil, nil, nil)
           @prepared = false
         end
 
@@ -27,7 +29,12 @@ module NewRelic
         end
 
         def count_nodes
-          self.node_count
+          node_count = 0
+          each_node do |node|
+            next if node == root_node
+            node_count +=1
+          end
+          node_count
         end
 
         def duration
@@ -51,7 +58,7 @@ module NewRelic
         def create_node(time_since_start, metric_name = nil)
           raise FinishedTraceError.new "Can't create additional node for finished trace." if self.finished
           self.node_count += 1
-          NewRelic::Agent::Transaction::TraceNode.new(time_since_start, metric_name)
+          NewRelic::Agent::Transaction::TraceNode.new(metric_name, time_since_start)
         end
 
         def each_node(&block)
@@ -111,6 +118,8 @@ module NewRelic
           @root_node.each_node_with_nest_tracking(&block)
         end
 
+        EMPTY_HASH = {}.freeze
+
         def trace_tree
           destination = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER
 
@@ -120,8 +129,8 @@ module NewRelic
 
           [
             NewRelic::Coerce.float(self.start_time),
-            {},
-            {},
+            EMPTY_HASH,
+            EMPTY_HASH,
             self.root_node.to_array,
             {
               'agentAttributes' => agent_attributes,

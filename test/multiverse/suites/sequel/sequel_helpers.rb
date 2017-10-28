@@ -35,7 +35,7 @@ module SequelHelpers
       in_transaction('sandwiches/index') do
         yield
       end
-      sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+      sample = last_transaction_trace
       sample.prepare_to_send!
       last_node(sample)
   end

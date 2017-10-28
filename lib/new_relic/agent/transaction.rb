@@ -9,6 +9,7 @@ require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/transaction/attributes'
 require 'new_relic/agent/transaction/request_attributes'
 require 'new_relic/agent/transaction/tracing'
+require 'new_relic/agent/transaction/distributed_tracing'
 require 'new_relic/agent/cross_app_tracing'
 
 module NewRelic
@@ -19,6 +20,7 @@ module NewRelic
     # @api public
     class Transaction
       include Tracing
+      include DistributedTracing
 
       # for nested transactions
       SUBTRANSACTION_PREFIX        = 'Nested/'.freeze
@@ -55,7 +57,8 @@ module NewRelic
                     :process_cpu_start,
                     :http_response_code,
                     :response_content_length,
-                    :response_content_type
+                    :response_content_type,
+                    :sampled
 
       attr_reader :guid,
                   :metrics,
@@ -66,7 +69,8 @@ module NewRelic
                   :attributes,
                   :payload,
                   :nesting_max_depth,
-                  :segments
+                  :segments,
+                  :end_time
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -261,6 +265,7 @@ module NewRelic
 
         @category = category
         @start_time = Time.now
+        @end_time = nil
         @apdex_start = options[:apdex_start_time] || @start_time
         @jruby_cpu_start = jruby_cpu_time
         @process_cpu_start = process_cpu
@@ -277,6 +282,12 @@ module NewRelic
         @ignore_enduser = options.fetch(:ignore_enduser, false)
         @ignore_trace = false
 
+        if Agent.config[:'distributed_tracing.enabled']
+          @sampled = NewRelic::Agent.instance.throughput_monitor.sampled?
+        else
+          @sampled = nil
+        end
+
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
         merge_request_parameters(@filtered_params)
@@ -286,6 +297,10 @@ module NewRelic
         else
           @request_attributes = nil
         end
+      end
+
+      def sampled?
+        @sampled
       end
 
       def referer
@@ -370,6 +385,16 @@ module NewRelic
           @default_name || NewRelic::Agent::UNKNOWN_METRIC
       end
 
+      # For common interface with Trace
+      alias_method :transaction_name, :best_name
+
+      attr_accessor :xray_session_id
+
+      def duration
+        (@end_time - @start_time).to_f
+      end
+      # End common interface
+
       def name_set?
         (@overridden_name || @default_name) ? true : false
       end
@@ -408,7 +433,6 @@ module NewRelic
       def start(state)
         return if !state.is_execution_traced?
 
-        transaction_sampler.on_start_transaction(state, start_time)
         sql_sampler.on_start_transaction(state, start_time, request_path)
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
@@ -492,6 +516,8 @@ module NewRelic
 
       def stop(state, end_time, outermost_frame)
         return if !state.is_execution_traced?
+
+        @end_time = end_time
         freeze_name_and_execute_if_not_ignored
 
         if nesting_max_depth == 1
@@ -515,19 +541,20 @@ module NewRelic
       end
 
       def commit!(state, end_time, outermost_node_name)
+        generate_payload(state, start_time, end_time)
+
         assign_agent_attributes
         assign_intrinsics(state)
+
+        segments.each { |s| s.finalize }
 
         @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
-        segments.each { |s| s.record_metrics if s.record_metrics? }
         record_summary_metrics(outermost_node_name, end_time)
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time
         record_client_application_metric state
-
-        generate_payload(state, start_time, end_time)
 
         record_exceptions
         record_transaction_event
@@ -563,6 +590,8 @@ module NewRelic
       end
 
       def assign_intrinsics(state)
+        attributes.add_intrinsic_attribute :'nr.sampled', sampled?
+
         if gc_time = calculate_gc_time
           attributes.add_intrinsic_attribute(:gc_time, gc_time)
         end
@@ -577,9 +606,11 @@ module NewRelic
           attributes.add_intrinsic_attribute(:synthetics_monitor_id, synthetics_monitor_id)
         end
 
-        if state.is_cross_app?
-          attributes.add_intrinsic_attribute(:trip_id, cat_trip_id(state))
-          attributes.add_intrinsic_attribute(:path_hash, cat_path_hash(state))
+        if distributed_trace_payload || order > 0
+          assign_distributed_tracing_intrinsics
+        elsif state.is_cross_app?
+          attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)
+          attributes.add_intrinsic_attribute(:path_hash, cat_path_hash)
         end
       end
 
@@ -613,7 +644,11 @@ module NewRelic
           :attributes           => @attributes,
           :error                => false
         }
+
+        @payload[:'nr.sampled'] = sampled? if Agent.config[:'distributed_tracing.enabled']
+
         append_cat_info(state, duration, @payload)
+        append_distributed_tracing_info(@payload)
         append_apdex_perf_zone(duration, @payload)
         append_synthetics_to(state, @payload)
         append_referring_transaction_guid_to(state, @payload)
@@ -623,11 +658,11 @@ module NewRelic
         state.is_cross_app? || is_synthetics_request?
       end
 
-      def cat_trip_id(state)
+      def cat_trip_id
         NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_trip_id(state) || guid
       end
 
-      def cat_path_hash(state)
+      def cat_path_hash
         referring_path_hash = cat_referring_path_hash(state) || '0'
         seed = referring_path_hash.to_i(16)
         result = NewRelic::Agent.instance.cross_app_monitor.path_hash(best_name, seed)
@@ -702,8 +737,8 @@ module NewRelic
         payload[:guid] = guid
 
         return unless state.is_cross_app?
-        trip_id             = cat_trip_id(state)
-        path_hash           = cat_path_hash(state)
+        trip_id             = cat_trip_id
+        path_hash           = cat_path_hash
         referring_path_hash = cat_referring_path_hash(state)
 
         payload[:cat_trip_id]             = trip_id             if trip_id
@@ -847,6 +882,15 @@ module NewRelic
         Agent.config[key] && Agent.config[key][best_name]
       end
 
+      def threshold
+         source_class = Agent.config.source(:'transaction_tracer.transaction_threshold').class
+        if source_class == Configuration::DefaultSource
+          apdex_t * 4
+        else
+          Agent.config[:'transaction_tracer.transaction_threshold']
+        end
+      end
+
       def with_database_metric_name(model, method, product=nil)
         previous = self.instrumentation_state[:datastore_override]
         model_name = case model
@@ -925,8 +969,8 @@ module NewRelic
         state.is_cross_app_caller = true
         CrossAppTracing.insert_message_headers headers,
                                                guid,
-                                               cat_trip_id(state),
-                                               cat_path_hash(state),
+                                               cat_trip_id,
+                                               cat_path_hash,
                                                raw_synthetics_header
       end
 

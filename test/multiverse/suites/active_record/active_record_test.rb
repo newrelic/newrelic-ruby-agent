@@ -457,7 +457,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
         Order.first
       end
     end
-    assert_nil NewRelic::Agent.instance.transaction_sampler.last_sample
+    assert_nil last_transaction_trace
     assert_metrics_recorded_exclusive([
       "Supportability/API/disable_all_tracing",
       "Supportability/API/drop_buffered_data"
@@ -468,7 +468,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     in_web_transaction do
       Order.first
     end
-    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    sample = last_transaction_trace
     metric = "Datastore/statement/#{current_product}/Order/find"
     node = find_node_with_name(sample, metric)
     assert_equal(metric, node.metric_name)
@@ -487,7 +487,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
         Order.first
       end
 
-      sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+      sample = last_transaction_trace
       metric = "Datastore/statement/#{current_product}/Order/find"
       sql_node = find_node_with_name(sample, metric)
 

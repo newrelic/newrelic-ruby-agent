@@ -1340,7 +1340,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     txn = in_transaction do |t|
       state = NewRelic::Agent::TransactionState.tl_get
       state.is_cross_app_caller = true
-      path_hash = t.cat_path_hash(state)
+      path_hash = t.cat_path_hash
     end
 
     result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
@@ -1521,5 +1521,28 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       ["Nested/Controller/RackFramework/action", "Controller/RackFramework/action"],
       ["Ruby/my_lib/my_meth", "Controller/RackFramework/action"]
     ]
+  end
+
+  def test_has_correct_transaction_trace_threshold_when_default
+    in_transaction do |txn|
+      with_config(:apdex_t => 1.5) do
+        assert_equal 6.0, txn.threshold
+      end
+
+      with_config(:apdex_t => 2.0) do
+        assert_equal 8.0, txn.threshold
+      end
+    end
+  end
+
+  def test_has_correct_transaction_trace_threshold_when_explicitly_specified
+    config = { :'transaction_tracer.transaction_threshold' => 4.0 }
+
+    in_transaction do |txn|
+      with_config(config) do
+        txn.stubs(:apdex_t).returns(1.5)
+        assert_equal 4.0, txn.threshold
+      end
+    end
   end
 end

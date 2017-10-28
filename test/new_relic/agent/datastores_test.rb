@@ -188,7 +188,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
       db.boom
     end
   rescue
-    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    sample = last_transaction_trace
     refute_nil find_node_with_name(sample, "Datastore/operation/MyFirstDatabase/boom")
   end
 

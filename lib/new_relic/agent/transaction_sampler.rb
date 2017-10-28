@@ -2,10 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/transaction_sample_builder'
 require 'new_relic/agent/transaction/slowest_sample_buffer'
 require 'new_relic/agent/transaction/synthetics_sample_buffer'
 require 'new_relic/agent/transaction/xray_sample_buffer'
+require 'new_relic/agent/transaction/trace_builder'
 
 module NewRelic
   module Agent
@@ -54,29 +54,6 @@ module NewRelic
         Agent.config[:'transaction_tracer.enabled']
       end
 
-      def on_start_transaction(state, start_time)
-        if enabled?
-          start_builder(state, start_time.to_f)
-        end
-      end
-
-      # This delegates to the builder to create a new open transaction node
-      # for the frame, beginning at the optionally specified time.
-      def notice_push_frame(state, time=Time.now)
-        builder = state.transaction_sample_builder
-        return unless builder
-
-        builder.trace_entry(time.to_f)
-      end
-
-      # Informs the transaction sample builder about the end of a traced frame
-      def notice_pop_frame(state, frame, time = Time.now)
-        builder = state.transaction_sample_builder
-        return unless builder
-        raise "finished already???" if builder.sample.finished
-        builder.trace_exit(frame, time.to_f)
-      end
-
       # This is called when we are done with the transaction.  We've
       # unwound the stack to the top level. It also clears the
       # transaction sample builder so that it won't continue to have
@@ -85,23 +62,11 @@ module NewRelic
       # It sets various instance variables to the finished sample,
       # depending on which settings are active. See `store_sample`
       def on_finishing_transaction(state, txn, time=Time.now)
-        last_builder = state.transaction_sample_builder
-        return unless last_builder && enabled?
-
-        state.transaction_sample_builder = nil
-        return if txn.ignore_trace?
-
-        last_builder.finish_trace(time.to_f)
-
-        last_sample = last_builder.sample
-        last_sample.transaction_name = txn.best_name
-        last_sample.uri = txn.request_path
-        last_sample.guid = txn.guid
-        last_sample.attributes = txn.attributes
+        return if !enabled? || txn.ignore_trace?
 
         @samples_lock.synchronize do
-          @last_sample = last_sample
-          store_sample(@last_sample)
+          @last_sample = txn
+          store_sample(txn)
           @last_sample
         end
       end
@@ -110,13 +75,6 @@ module NewRelic
         @sample_buffers.each do |sample_buffer|
           sample_buffer.store(sample)
         end
-      end
-
-      # Set parameters on the current node.
-      def add_node_parameters(params) #THREAD_LOCAL_ACCESS
-        builder = tl_builder
-        return unless builder
-        params.each { |k,v| builder.current_node[k] = v }
       end
 
       # Gather transaction traces that we'd like to transmit to the server.
@@ -164,7 +122,14 @@ module NewRelic
         # know, Ruby 1.8.6 :/
         result = []
         @sample_buffers.each { |buffer| result.concat(buffer.harvest_samples) }
-        result.uniq
+        result.uniq!
+        result.map! do |sample|
+          if Transaction === sample
+            Transaction::TraceBuilder.build_trace sample
+          else
+            sample
+          end
+        end
       end
 
       # reset samples without rebooting the web server (used by dev mode)
@@ -173,25 +138,6 @@ module NewRelic
           @last_sample = nil
           @sample_buffers.each { |sample_buffer| sample_buffer.reset! }
         end
-      end
-
-      # Checks to see if the transaction sampler is disabled, if
-      # transaction trace recording is disabled by a thread local, or
-      # if execution is untraced - if so it clears the transaction
-      # sample builder from the thread local, otherwise it generates a
-      # new transaction sample builder with the stated time as a
-      # starting point and saves it in the thread local variable
-      def start_builder(state, time=nil)
-        if !enabled? || !state.is_transaction_traced? || !state.is_execution_traced?
-          state.transaction_sample_builder = nil
-        else
-          state.transaction_sample_builder ||= TransactionSampleBuilder.new(time)
-        end
-      end
-
-      # The current thread-local transaction sample builder
-      def tl_builder
-        TransactionState.tl_get.transaction_sample_builder
       end
     end
   end

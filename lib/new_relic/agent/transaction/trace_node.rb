@@ -9,20 +9,21 @@ module NewRelic
         attr_reader :entry_timestamp
         # The exit timestamp will be relative except for the outermost sample which will
         # have a timestamp.
-        attr_reader :exit_timestamp
+        attr_accessor :exit_timestamp
+
         attr_reader :parent_node
 
-        attr_accessor :metric_name, :params
+        attr_accessor :metric_name
 
         UNKNOWN_NODE_NAME = '<unknown>'.freeze
 
-        def initialize(timestamp, metric_name)
-          @entry_timestamp = timestamp
+        def initialize(metric_name, relative_start, relative_end=nil, params=nil, parent=nil)
+          @entry_timestamp = relative_start
           @metric_name     = metric_name || UNKNOWN_NODE_NAME
-          @exit_timestamp  = nil
-          @called_nodes    = nil
-          @params          = {}
-          @parent_node     = nil
+          @exit_timestamp  = relative_end
+          @children    = nil
+          @params          = params
+          @parent_node     = parent
         end
 
         # sets the final timestamp on a node to indicate the exit
@@ -31,33 +32,31 @@ module NewRelic
           @exit_timestamp = timestamp
         end
 
-        def add_called_node(s)
-          @called_nodes ||= []
-          @called_nodes << s
-          s.parent_node = self
-        end
-
         def to_s
           to_debug_str(0)
         end
 
+        EMPTY_HASH = {}.freeze
+        EMPTY_ARRAY = [].freeze
+
         def to_array
+          params = @params ? @params : EMPTY_HASH
           [ NewRelic::Helper.time_to_millis(@entry_timestamp),
             NewRelic::Helper.time_to_millis(@exit_timestamp),
             NewRelic::Coerce.string(@metric_name),
             params ] +
-            [ (@called_nodes ? @called_nodes.map{|s| s.to_array} : []) ]
+            [ (@children ? @children.map{|s| s.to_array} : EMPTY_ARRAY) ]
         end
 
         def path_string
-          "#{metric_name}[#{called_nodes.collect {|node| node.path_string }.join('')}]"
+          "#{metric_name}[#{children.collect {|node| node.path_string }.join('')}]"
         end
 
         def to_s_compact
           str = ""
           str << metric_name
-          if called_nodes.any?
-            str << "{#{called_nodes.map { | cs | cs.to_s_compact }.join(",")}}"
+          if children.any?
+            str << "{#{children.map { | cs | cs.to_s_compact }.join(",")}}"
           end
           str
         end
@@ -71,7 +70,7 @@ module NewRelic
               s << "#{tab}    -#{'%-16s' % k}: #{v.to_s[0..80]}\n"
             end
           end
-          called_nodes.each do |cs|
+          children.each do |cs|
             s << cs.to_debug_str(depth + 1)
           end
           s << tab + "<< "
@@ -83,9 +82,11 @@ module NewRelic
           s << " #{metric_name}\n"
         end
 
-        def called_nodes
-          @called_nodes || []
+        def children
+          @children ||= []
         end
+
+        attr_writer :children
 
         # return the total duration of this node
         def duration
@@ -97,7 +98,7 @@ module NewRelic
         def exclusive_duration
           d = duration
 
-          called_nodes.each do |node|
+          children.each do |node|
             d -= node.duration
           end
           d
@@ -105,9 +106,15 @@ module NewRelic
 
         def count_nodes
           count = 1
-          called_nodes.each { | node | count  += node.count_nodes }
+          children.each { | node | count  += node.count_nodes }
           count
         end
+
+        def params
+          @params ||= {}
+        end
+
+        attr_writer :params
 
         def []=(key, value)
           # only create a parameters field if a parameter is set; this will save
@@ -124,8 +131,8 @@ module NewRelic
         def each_node(&block)
           block.call self
 
-          if @called_nodes
-            @called_nodes.each do |node|
+          if @children
+            @children.each do |node|
               node.each_node(&block)
             end
           end
@@ -137,8 +144,8 @@ module NewRelic
           summary = block.call self
           summary.current_nest_count += 1 if summary
 
-          if @called_nodes
-            @called_nodes.each do |node|
+          if @children
+            @children.each do |node|
               node.each_node_with_nest_tracking(&block)
             end
           end
@@ -159,11 +166,6 @@ module NewRelic
           NewRelic::Agent::Database.obfuscate_sql(params[:sql].sql)
         end
 
-        def called_nodes=(nodes)
-          @called_nodes = nodes
-        end
-
-        protected
         def parent_node=(s)
           @parent_node = s
         end

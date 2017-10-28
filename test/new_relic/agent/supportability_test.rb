@@ -200,3 +200,49 @@ class APISupportabilityMetricsTest < Minitest::Test
     assert_api_supportability_metric_recorded(:trace_execution_unscoped)
   end
 end
+
+class ExternalAPISupportabilityMetricsTest < Minitest::Test
+
+  def setup
+    NewRelic::Agent.manual_start
+    NewRelic::Agent.drop_buffered_data
+    @segment = NewRelic::Agent::Transaction.start_external_request_segment :foo, 'http://example.com/root/index', :http
+    super
+  end
+
+  def teardown
+    @segment.finish
+    NewRelic::Agent.shutdown
+    super
+  end
+
+  def assert_api_supportability_metric_recorded(method_name)
+    assert_metrics_recorded(["Supportability/API/#{method_name}"])
+  end
+
+  def test_start_segment_records_supportability_metric
+    NewRelic::Agent::External.start_segment(library: 'Net::HTTP', uri: 'http://example.com/root/index', procedure: 'GET')
+    assert_api_supportability_metric_recorded(:start_segment)
+  end
+
+  def test_get_request_metadata_records_supportability_metric
+    @segment.get_request_metadata
+    assert_api_supportability_metric_recorded(:get_request_metadata)
+  end
+
+  def test_process_request_metadata_records_supportability_metric
+    NewRelic::Agent::External.process_request_metadata ''
+    assert_api_supportability_metric_recorded(:process_request_metadata)
+  end
+
+  def test_get_response_metadata_records_supportability_metric
+    NewRelic::Agent::External.get_response_metadata
+    assert_api_supportability_metric_recorded(:get_response_metadata)
+  end
+
+  def test_process_response_metadata_records_supportability_metric
+    @segment.process_response_metadata ''
+    assert_api_supportability_metric_recorded(:process_response_metadata)
+  end
+
+end

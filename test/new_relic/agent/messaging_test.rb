@@ -239,7 +239,7 @@ module NewRelic
           message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
           delivery_info      = {routing_key: "red", exchange_name: "foobar"}
 
-          NewRelic::Agent::Messaging.start_amqp_consume_segment(
+          segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
             library: "RabbitMQ",
             destination_name: "Default",
             delivery_info: delivery_info,
@@ -247,6 +247,8 @@ module NewRelic
             queue_name: "yellow",
             exchange_type: "direct"
           )
+
+          segment.finish
         end
 
         event = last_transaction_event
@@ -384,12 +386,13 @@ module NewRelic
 
       def test_segment_records_proper_metrics_for_consume
         in_transaction "test_txn" do |txn|
-          NewRelic::Agent::Messaging.start_message_broker_segment(
+          segment = NewRelic::Agent::Messaging.start_message_broker_segment(
             action: :consume,
             library: "RabbitMQ",
             destination_type: :exchange,
             destination_name: "Default"
           )
+          segment.finish
         end
 
         assert_metrics_recorded [
@@ -416,7 +419,7 @@ module NewRelic
 
           in_transaction do |txn|
             obfuscated_id       = obfuscator.obfuscate cross_process_id
-            raw_txn_info        = [guid, false, guid, txn.cat_path_hash(txn.state)]
+            raw_txn_info        = [guid, false, guid, txn.cat_path_hash]
             obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
           end
 
@@ -455,7 +458,7 @@ module NewRelic
 
           in_transaction "test_txn" do |txn|
             obfuscated_id = obfuscator.obfuscate cross_process_id
-            raw_txn_info = [guid, false, guid, txn.cat_path_hash(txn.state)]
+            raw_txn_info = [guid, false, guid, txn.cat_path_hash]
             obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
             synthetics_header = obfuscator.obfuscate synthetics_payload.to_json
           end
@@ -494,7 +497,7 @@ module NewRelic
 
           in_transaction "test_txn" do |txn|
             obfuscated_id = obfuscator.obfuscate cross_process_id
-            raw_txn_info = [guid, false, guid, txn.cat_path_hash(txn.state)]
+            raw_txn_info = [guid, false, guid, txn.cat_path_hash]
             obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
           end
 

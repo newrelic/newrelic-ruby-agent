@@ -51,8 +51,8 @@ module NewRelic
 
         state.sql_sampler_transaction_data = TransactionSqlData.new
 
-        if state.transaction_sample_builder
-          guid = state.transaction_sample_builder.sample.guid
+        if state.current_transaction
+          guid = state.current_transaction.guid
         end
 
         if Agent.config[:'slow_sql.enabled'] && state.sql_sampler_transaction_data

@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/http_clients/abstract_request'
+
 module NewRelic
   module Agent
     module HTTPClients
@@ -22,7 +24,7 @@ module NewRelic
         end
       end
 
-      class HTTPRequest
+      class HTTPRequest < AbstractRequest
         HTTP_RB = 'http.rb'.freeze
         HOST    = 'host'.freeze
         COLON   = ':'.freeze

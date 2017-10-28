@@ -55,6 +55,14 @@ def last_transaction_event
   harvest_transaction_events!.last.last
 end
 
+def harvest_error_events!
+  NewRelic::Agent.instance.error_collector.error_event_aggregator.harvest!
+end
+
+def last_error_event
+  harvest_error_events!.last.last
+end
+
 unless defined?( assert_block )
   def assert_block(*msgs)
     assert yield, *msgs
@@ -362,7 +370,8 @@ def refute_contains_request_params(attributes)
 end
 
 def last_transaction_trace
-  NewRelic::Agent.agent.transaction_sampler.last_sample
+  return unless last_sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+  NewRelic::Agent::Transaction::TraceBuilder.build_trace(last_sample)
 end
 
 def last_transaction_trace_request_params
@@ -387,8 +396,7 @@ def find_last_transaction_node(transaction_sample=nil)
   if transaction_sample
     root_node = transaction_sample.root_node
   else
-    builder = NewRelic::Agent.agent.transaction_sampler.tl_builder
-    root_node = builder.current_node
+    root_node = last_transaction_trace.root_node
   end
 
   last_node = nil

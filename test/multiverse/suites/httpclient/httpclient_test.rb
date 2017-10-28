@@ -67,9 +67,9 @@ class HTTPClientTest < Minitest::Test
       rescue => e
         raise e unless e == test_exception
       end
-
-      last_node = find_last_transaction_node()
-      assert_equal("External/localhost/HTTPClient/GET", last_node.metric_name)
     end
+
+    last_node = find_last_transaction_node()
+    assert_equal("External/localhost/HTTPClient/GET", last_node.metric_name)
   end
 end

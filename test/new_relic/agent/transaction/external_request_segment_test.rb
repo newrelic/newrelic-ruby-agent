@@ -80,6 +80,11 @@ module NewRelic
             ["External/remotehost.com/Net::HTTP/GET", "test"]
           ]
 
+          if Agent.config[:'distributed_tracing.enabled']
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
+          end
+
           assert_metrics_recorded expected_metrics
         end
 
@@ -106,6 +111,11 @@ module NewRelic
             ["External/remotehost.com/Net::HTTP/GET", "test"]
           ]
 
+          if Agent.config[:'distributed_tracing.enabled']
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
+          end
+
           assert_metrics_recorded expected_metrics
         end
 
@@ -131,6 +141,11 @@ module NewRelic
             "External/allWeb",
             ["External/remotehost.com/Net::HTTP/GET", "test"]
           ]
+
+          if Agent.config[:'distributed_tracing.enabled']
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
+          end
 
           assert_metrics_recorded expected_metrics
         end
@@ -159,6 +174,11 @@ module NewRelic
             ["External/remotehost.com/Net::HTTP/GET", "test"]
           ]
 
+          if Agent.config[:'distributed_tracing.enabled']
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
+          end
+
           assert_metrics_recorded expected_metrics
         end
 
@@ -184,7 +204,85 @@ module NewRelic
             ["ExternalTransaction/newrelic.com/1#1884/txn-name", "test"]
           ]
 
+          if Agent.config[:'distributed_tracing.enabled']
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
+          end
+
           assert_metrics_recorded expected_metrics
+        end
+
+        def test_proper_metrics_recorded_for_distributed_trace_on_receiver
+          with_config :'distributed_tracing.enabled' => true do
+            request = RequestWrapper.new
+            payload = nil
+
+            with_config application_id: "46954", cross_process_id: "190#222" do
+              in_transaction do |txn|
+                payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+              end
+            end
+
+            NewRelic::Agent.drop_buffered_data
+
+            in_transaction "test_txn2", :category => :controller do |txn|
+              txn.accept_distributed_trace_payload "HTTP", payload.to_json
+              segment = Transaction.start_external_request_segment "Net::HTTP", "http://newrelic.com/blogs/index", "GET"
+              segment.add_request_headers request
+              segment.finish
+            end
+
+            expected_metrics = [
+              "External/all",
+              "External/newrelic.com/all",
+              "External/allWeb",
+              "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
+              "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
+              "TransportDuration/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
+              "TransportDuration/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
+              ["External/newrelic.com/Net::HTTP/GET", "test_txn2"]
+            ]
+
+            assert_metrics_recorded expected_metrics
+          end
+        end
+
+        def test_proper_metrics_recorded_for_distributed_trace_on_receiver_when_error_occurs
+          with_config :'distributed_tracing.enabled' => true do
+            request = RequestWrapper.new
+            payload = nil
+
+            with_config application_id: "46954", cross_process_id: "190#222" do
+              in_transaction do |txn|
+                payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+              end
+            end
+
+            NewRelic::Agent.drop_buffered_data
+
+            in_transaction "test_txn2", :category => :controller do |txn|
+              txn.accept_distributed_trace_payload "HTTP", payload.to_json
+              segment = Transaction.start_external_request_segment "Net::HTTP", "http://newrelic.com/blogs/index", "GET"
+              segment.add_request_headers request
+              segment.finish
+              NewRelic::Agent.notice_error StandardError.new("Sorry!")
+            end
+
+            expected_metrics = [
+              "External/all",
+              "External/newrelic.com/all",
+              "External/allWeb",
+              "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
+              "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
+              "TransportDuration/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
+              "TransportDuration/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
+              "ErrorsByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
+              "ErrorsByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
+              ["External/newrelic.com/Net::HTTP/GET", "test_txn2"]
+            ]
+
+            assert_metrics_recorded expected_metrics
+          end
         end
 
         def test_segment_writes_outbound_request_headers
@@ -292,7 +390,7 @@ module NewRelic
             segment.finish
           end
 
-          sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+          sample = last_transaction_trace
           node = find_node_with_name(sample, segment.name)
 
           assert_equal uri, node.params[:uri]
@@ -313,10 +411,179 @@ module NewRelic
             end
           end
 
-          sample = NewRelic::Agent.agent.transaction_sampler.last_sample
+          sample = last_transaction_trace
           node = find_node_with_name(sample, segment.name)
 
           assert_equal TRANSACTION_GUID, node.params[:transaction_guid]
+        end
+
+        # --- get_request_metadata
+
+        def test_get_request_metadata
+          with_config cat_config.merge(:'cross_application_tracer.enabled' => true) do
+            in_transaction do |txn|
+              rmd = external_request_segment {|s| s.get_request_metadata}
+              assert_instance_of String, rmd
+              rmd = @obfuscator.deobfuscate rmd
+              rmd = JSON.parse rmd
+              assert_instance_of Hash, rmd
+
+              assert_equal '269975#22824', rmd['NewRelicID']
+
+              assert_instance_of Array, rmd['NewRelicTransaction']
+              assert_equal txn.guid, rmd['NewRelicTransaction'][0]
+              refute rmd['NewRelicTransaction'][1]
+
+              assert_equal txn.cat_trip_id, rmd['NewRelicTransaction'][2]
+              assert_equal txn.cat_path_hash, rmd['NewRelicTransaction'][3]
+
+              refute rmd.key? 'NewRelicSynthetics'
+
+              assert txn.state.is_cross_app_caller?
+            end
+          end
+        end
+
+        def test_get_request_metadata_with_cross_app_tracing_disabled
+          with_config cat_config.merge(:'cross_application_tracer.enabled' => false) do
+            in_transaction do |txn|
+              rmd = external_request_segment {|s| s.get_request_metadata}
+              refute rmd, "`get_request_metadata` should return nil with cross app tracing disabled"
+            end
+          end
+        end
+
+        def test_get_request_metadata_with_synthetics_header
+          with_config cat_config do
+            in_transaction do |txn|
+              txn.raw_synthetics_header = 'raw_synth'
+
+              rmd = external_request_segment {|s| s.get_request_metadata}
+
+              rmd = @obfuscator.deobfuscate rmd
+              rmd = JSON.parse rmd
+
+              assert_equal 'raw_synth', rmd['NewRelicSynthetics']
+            end
+          end
+        end
+
+        def test_get_request_metadata_not_in_transaction
+          with_config cat_config do
+            refute external_request_segment {|s| s.get_request_metadata}
+          end
+        end
+
+        # --- process_response_metadata
+
+        def test_process_response_metadata
+          with_config cat_config do
+            in_transaction do |txn|
+
+              rmd = @obfuscator.obfuscate ::JSON.dump({
+                NewRelicAppData: [
+                  NewRelic::Agent.config[:cross_process_id],
+                  'Controller/root/index',
+                  0.001,
+                  0.5,
+                  60,
+                  txn.guid
+                ]
+              })
+
+              segment = external_request_segment {|s| s.process_response_metadata rmd; s}
+              assert_equal 'ExternalTransaction/example.com/269975#22824/Controller/root/index', segment.name
+            end
+          end
+        end
+
+        def test_process_response_metadata_not_in_transaction
+          with_config cat_config do
+
+            rmd = @obfuscator.obfuscate ::JSON.dump({
+              NewRelicAppData: [
+                NewRelic::Agent.config[:cross_process_id],
+                'Controller/root/index',
+                0.001,
+                0.5,
+                60,
+                'abcdef'
+              ]
+            })
+
+            segment = external_request_segment {|s| s.process_response_metadata rmd; s}
+            assert_equal 'External/example.com/foo/get', segment.name
+          end
+        end
+
+        def test_process_response_metadata_with_invalid_cross_app_id
+          with_config cat_config do
+            in_transaction do |txn|
+
+              rmd = @obfuscator.obfuscate ::JSON.dump({
+                NewRelicAppData: [
+                  'bugz',
+                  'Controller/root/index',
+                  0.001,
+                  0.5,
+                  60,
+                  txn.guid
+                ]
+              })
+
+              segment = nil
+              l = with_array_logger do
+                segment = external_request_segment {|s| s.process_response_metadata rmd; s}
+              end
+              refute l.array.empty?, "process_response_metadata should log error on invalid ID"
+              assert l.array.first =~ %r{invalid/non-trusted ID}
+
+              assert_equal 'External/example.com/foo/get', segment.name
+            end
+          end
+        end
+
+        def test_process_response_metadata_with_untrusted_cross_app_id
+          with_config cat_config do
+            in_transaction do |txn|
+
+              rmd = @obfuscator.obfuscate ::JSON.dump({
+                NewRelicAppData: [
+                  '190#666',
+                  'Controller/root/index',
+                  0.001,
+                  0.5,
+                  60,
+                  txn.guid
+                ]
+              })
+
+              segment = nil
+              l = with_array_logger do
+                segment = external_request_segment {|s| s.process_response_metadata rmd; s}
+              end
+              refute l.array.empty?, "process_response_metadata should log error on invalid ID"
+              assert l.array.first =~ %r{invalid/non-trusted ID}
+
+              assert_equal 'External/example.com/foo/get', segment.name
+            end
+          end
+        end
+
+        # ---
+
+        def test_segment_adds_distributed_trace_header
+          with_config :'distributed_tracing.enabled' => true do
+            request = RequestWrapper.new
+            with_config cat_config do
+              in_transaction :category => :controller do |txn|
+                segment = Transaction.start_external_request_segment "Net::HTTP", "http://remotehost.com/blogs/index", "GET"
+                segment.add_request_headers request
+                segment.finish
+              end
+            end
+            assert request.headers.key?("X-NewRelic-Trace"), "Expected to find X-NewRelic-Trace header"
+          end
         end
 
         def cat_config
@@ -328,6 +595,13 @@ module NewRelic
 
         def make_app_data_payload( *args )
           @obfuscator.obfuscate( args.to_json ) + "\n"
+        end
+
+        def external_request_segment
+          segment = NewRelic::Agent::Transaction.start_external_request_segment :foo, 'http://example.com/root/index', :get
+          v = yield segment
+          segment.finish
+          v
         end
       end
     end

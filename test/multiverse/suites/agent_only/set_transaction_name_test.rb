@@ -72,7 +72,7 @@ class SetTransactionNameTest < Minitest::Test
 
   def test_apply_to_traced_transactions
     TestTransactor.new.parent_txn
-    sample = NewRelic::Agent.instance.transaction_sampler.last_sample
+    sample = last_transaction_trace
     assert_equal('Controller/TestTransactor/child', sample.transaction_name)
   end
 

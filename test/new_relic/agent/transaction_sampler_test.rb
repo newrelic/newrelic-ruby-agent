@@ -75,43 +75,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   # Tests
 
-  def test_on_start_transaction_default
-    @sampler.expects(:start_builder).with(@state, 100.0)
-    @sampler.on_start_transaction(@state, Time.at(100))
-  end
-
-  def test_on_start_transaction_disabled
-    with_config(:'transaction_tracer.enabled' => false) do
-      @sampler.expects(:start_builder).never
-      @sampler.on_start_transaction(@state, Time.at(100))
-    end
-  end
-
-  def test_notice_push_frame_no_builder
-    assert_equal(nil, @sampler.notice_push_frame(@state))
-  end
-
-  def test_notice_pop_frame_no_builder
-    assert_equal(nil, @sampler.notice_pop_frame(@state, 'a frame', Time.at(100)))
-  end
-
-  def test_notice_pop_frame_with_finished_sample
-    builder = mock('builder')
-    sample  = mock('sample')
-    builder.expects(:sample).returns(sample)
-    sample.expects(:finished).returns(true)
-    @state.expects(:transaction_sample_builder).returns(builder)
-
-    assert_raises(RuntimeError) do
-      @sampler.notice_pop_frame(@state, 'a frame', Time.at(100))
-    end
-  end
-
-  def test_on_finishing_transaction_no_builder
-    @state.transaction_sample_builder = nil
-    assert_equal(nil, @sampler.on_finishing_transaction(@state, @txn))
-  end
-
   def test_captures_correct_transaction_duration
     freeze_time
     in_transaction do |txn|
@@ -267,61 +230,9 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     assert_equal NewRelic::Agent::Transaction::TransactionSampleBuffer::SINGLE_BUFFER_MAX, result.length
   end
 
-  def test_start_builder_default
-    @state.expects(:is_execution_traced?).returns(true)
-    @sampler.send(:start_builder, @state)
-    assert(@state.transaction_sample_builder.is_a?(NewRelic::Agent::TransactionSampleBuilder),
-           "should set up a new builder by default")
-  end
-
-  def test_start_builder_disabled
-    @state.transaction_sample_builder = 'not nil.'
-    with_config(:'transaction_tracer.enabled' => false) do
-      @sampler.send(:start_builder, @state)
-      assert_equal(nil, @state.transaction_sample_builder,
-                   "should clear the transaction builder when disabled")
-    end
-  end
-
-  def test_start_builder_dont_replace_existing_builder
-    fake_builder = mock('transaction sample builder')
-    @state.transaction_sample_builder = fake_builder
-    @sampler.send(:start_builder, @state)
-    assert_equal(fake_builder, @state.transaction_sample_builder,
-                 "should not overwrite an existing transaction sample builder")
-    @state.transaction_sample_builder = nil
-  end
-
-  def test_builder
-    @state.transaction_sample_builder = 'shamalamadingdong, brother.'
-    assert_equal('shamalamadingdong, brother.', @sampler.send(:tl_builder),
-                 'should return the value from the thread local variable')
-    @state.transaction_sample_builder = nil
-  end
-
   # Tests below this line are functional tests for the sampler, not
   # unit tests per se - some overlap with the tests above, but
   # generally usefully so
-
-  def test_sample_tree
-    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now)
-      @sampler.notice_push_frame(@state)
-
-      @sampler.notice_push_frame(@state)
-      @sampler.notice_pop_frame(@state, "b")
-
-      @sampler.notice_push_frame(@state)
-      @sampler.notice_push_frame(@state)
-      @sampler.notice_pop_frame(@state, "d")
-      @sampler.notice_pop_frame(@state, "c")
-
-      @sampler.notice_pop_frame(@state, "a")
-      @sampler.on_finishing_transaction(@state, @txn)
-      sample = @sampler.harvest!.first
-      assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
-    end
-  end
 
   def test_sample__gc_stats
     GC.extend MockGCStats
@@ -330,21 +241,18 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     MockGCStats.mock_values = [0,0,0,1,0,0,1,0,0,0,0,0,0,0,0]
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now)
-      @sampler.notice_push_frame(@state)
 
-      @sampler.notice_push_frame(@state)
-      @sampler.notice_pop_frame(@state, "b")
+      in_transaction 'a' do
+        segment_b = NewRelic::Agent::Transaction.start_segment "b"
+        segment_b.finish
 
-      @sampler.notice_push_frame(@state)
-      @sampler.notice_push_frame(@state)
-      @sampler.notice_pop_frame(@state, "d")
-      @sampler.notice_pop_frame(@state, "c")
+        segment_c = NewRelic::Agent::Transaction.start_segment "c"
+        segment_d = NewRelic::Agent::Transaction.start_segment "d"
+        segment_d.finish
+        segment_c.finish
+      end
 
-      @sampler.notice_pop_frame(@state, "a")
-      @sampler.on_finishing_transaction(@state, @txn)
-
-      sample = @sampler.harvest!.first
+      sample = last_transaction_trace
       assert_equal "ROOT{a{b,c{d}}}", sample.to_s_compact
     end
   ensure
@@ -416,108 +324,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     unfreeze_time
   end
 
-  def test_sample_with_parallel_paths
-    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now)
-      @sampler.notice_push_frame(@state)
-
-      assert_equal 1, @sampler.tl_builder.scope_depth
-
-      @sampler.notice_pop_frame(@state, "a")
-      @sampler.on_finishing_transaction(@state, @txn)
-
-      assert_nil @sampler.tl_builder
-
-      @sampler.on_start_transaction(@state, Time.now)
-      @sampler.notice_push_frame(@state)
-      @sampler.notice_pop_frame(@state, "a")
-      @sampler.on_finishing_transaction(@state, @txn)
-
-      assert_nil @sampler.tl_builder
-
-      assert_equal "ROOT{a}", @sampler.last_sample.to_s_compact
-    end
-  end
-
-  def test_double_traced_method_stack_empty
-    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      @sampler.on_start_transaction(@state, Time.now)
-      @sampler.notice_push_frame(@state)
-      @sampler.notice_pop_frame(@state, "a")
-      @sampler.on_finishing_transaction(@state, @txn)
-      @sampler.on_finishing_transaction(@state, @txn)
-      @sampler.on_finishing_transaction(@state, @txn)
-      @sampler.on_finishing_transaction(@state, @txn)
-
-      refute_nil @sampler.harvest![0]
-    end
-  end
-
-  def test_node_obfuscated
-    @sampler.on_start_transaction(@state, Time.now.to_f)
-    orig_sql = "SELECT * from Jim where id=66"
-
-    in_transaction do
-      s = NewRelic::Agent::Transaction.start_datastore_segment
-      s.notice_sql(orig_sql)
-      s.finish
-    end
-
-    node = find_last_transaction_node(@sampler.last_sample)
-    assert_equal orig_sql, node[:sql].sql
-    assert_equal "SELECT * from Jim where id=?", node.obfuscated_sql
-  end
-
-  def test_should_not_collect_nodes_beyond_limit
-    with_config(:'transaction_tracer.limit_segments' => 3) do
-      in_transaction do
-        %w[ wheat challah semolina ].each do |bread|
-          s = NewRelic::Agent::Transaction.start_datastore_segment
-          s.notice_sql("SELECT * FROM sandwiches WHERE bread = '#{bread}'")
-          s.finish
-        end
-      end
-
-      assert_equal 3, @sampler.last_sample.count_nodes
-
-      expected_sql = "SELECT * FROM sandwiches WHERE bread = 'challah'"
-      deepest_node = find_last_transaction_node(@sampler.last_sample)
-      assert_equal([], deepest_node.called_nodes)
-      assert_equal(expected_sql, deepest_node[:sql].sql)
-    end
-  end
-
-  def test_renaming_current_node_midflight
-    @sampler.start_builder(@state)
-    node = @sampler.notice_push_frame(@state)
-    node.metric_name = 'External/www.google.com/Net::HTTP/GET'
-    @sampler.notice_pop_frame(@state, 'External/www.google.com/Net::HTTP/GET')
-  end
-
-  def test_adding_node_parameters
-    @sampler.start_builder(@state)
-    @sampler.notice_push_frame(@state)
-    @sampler.add_node_parameters(:transaction_guid => '97612F92E6194080')
-    assert_equal '97612F92E6194080', @sampler.tl_builder.current_node[:transaction_guid]
-  end
-
-  def test_large_transaction_trace_harvest
-    config = {
-      :'transaction_tracer.enabled' => true,
-      :'transaction_tracer.transaction_threshold' => 0,
-      :'transaction_tracer.limit_segments' => 100
-    }
-    with_config(config) do
-      run_long_sample_trace(110)
-
-      samples = @sampler.harvest!
-      assert_equal(1, samples.size)
-
-      # Verify that the TT stopped recording after 100 nodes
-      assert_equal(100, samples.first.count_nodes)
-    end
-  end
-
   def test_harvest_prepare_samples
     samples = [mock('TT0'), mock('TT1')]
     samples[0].expects(:prepare_to_send!)
@@ -580,7 +386,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       in_transaction do |transaction|
         state = NewRelic::Agent::TransactionState.tl_get
         state.is_cross_app_caller = true
-        path_hash = transaction.cat_path_hash(state)
+        path_hash = transaction.cat_path_hash
       end
     end
 
