@@ -155,8 +155,9 @@ module NewRelic
           else
             0.0
           end
-          @exclusive_duration = duration - children_time - overlapping_duration
 
+          @exclusive_duration = duration - children_time - overlapping_duration
+          transaction.total_time += @exclusive_duration
           params[:exclusive_duration_millis] = @exclusive_duration if transaction.async?
         end
 

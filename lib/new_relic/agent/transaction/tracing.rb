@@ -108,11 +108,17 @@ module NewRelic
 
         attr_reader :current_segment
 
-        attr_writer :async
-
         def async?
           @async ||= false
         end
+
+        attr_writer :async
+
+        def total_time
+          @total_time ||= 0.0
+        end
+
+        attr_writer :total_time
 
         def add_segment segment, parent = nil
           segment.transaction = self
