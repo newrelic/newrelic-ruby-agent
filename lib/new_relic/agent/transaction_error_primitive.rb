@@ -19,6 +19,7 @@ module NewRelic
       TYPE_KEY                       = 'type'.freeze
       ERROR_CLASS_KEY                = 'error.class'.freeze
       ERROR_MESSAGE_KEY              = 'error.message'.freeze
+      ERROR_EXPECTED_KEY             = 'error.expected'.freeze
       TIMESTAMP_KEY                  = 'timestamp'.freeze
       PORT_KEY                       = 'port'.freeze
       NAME_KEY                       = 'transactionName'.freeze
@@ -43,6 +44,7 @@ module NewRelic
           TYPE_KEY => SAMPLE_TYPE,
           ERROR_CLASS_KEY => noticed_error.exception_class_name,
           ERROR_MESSAGE_KEY => noticed_error.message,
+          ERROR_EXPECTED_KEY => noticed_error.expected,
           TIMESTAMP_KEY => noticed_error.timestamp.to_f
         }
 
