@@ -812,7 +812,7 @@ module NewRelic
           assert_equal 3.0, segment_c.params[:exclusive_duration_millis]
         end
 
-        def test_total_time_for_synchronous_txn
+        def test_total_time_metrics_for_synchronous_txn_non_web
           segment_a, segment_b, segment_c= nil, nil, nil
 
           transaction = in_transaction "test" do
@@ -834,6 +834,34 @@ module NewRelic
 
           assert_equal 6.0, transaction.duration
           assert_equal 6.0, transaction.total_time
+
+          refute_metrics_recorded ["OtherTransactionTotalTime", "OtherTransactionTotalTime/test"]
+        end
+
+        def test_total_time_metrics_for_synchronous_txn_web
+          segment_a, segment_b, segment_c= nil, nil, nil
+
+          transaction = in_web_transaction "test" do
+            segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
+            advance_time 2
+
+            segment_b = NewRelic::Agent::Transaction.start_segment name: "metric b"
+            advance_time 1
+
+            segment_c = NewRelic::Agent::Transaction.start_segment name: "metric c"
+
+            advance_time 2
+            segment_c.finish
+
+            advance_time 1
+            segment_b.finish
+            segment_a.finish
+          end
+
+          assert_equal 6.0, transaction.duration
+          assert_equal 6.0, transaction.total_time
+
+          refute_metrics_recorded ["WebTransactionTotalTime", "WebTransactionTotalTime/test"]
         end
 
         # B, C, D are children of A. C and D are running concurrently after B completes.
@@ -848,7 +876,7 @@ module NewRelic
         #              ________
         #             |     D  |
 
-        def test_total_time_async_sync_children
+        def test_total_time_metrics_async_sync_children_non_web
           segment_a, segment_b, segment_c, segment_d = nil, nil, nil, nil
 
           transaction = in_transaction "test" do
@@ -878,6 +906,68 @@ module NewRelic
 
           assert_equal 7.0, transaction.duration
           assert_equal 9.0, transaction.total_time
+
+          assert_metrics_recorded(
+            "OtherTransactionTotalTime" =>
+              {
+                :call_count => 1,
+                :total_call_time => 9.0,
+                :total_exclusive_time => 9.0
+              },
+            "OtherTransactionTotalTime/test" =>
+              {
+                :call_count => 1,
+                :total_call_time => 9.0,
+                :total_exclusive_time => 9.0
+              }
+          )
+        end
+
+        def test_total_time_metrics_async_sync_children_web
+          segment_a, segment_b, segment_c, segment_d = nil, nil, nil, nil
+
+          transaction = in_web_transaction "test" do
+            segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
+            advance_time 1
+
+            segment_b = NewRelic::Agent::Transaction.start_segment name: "metric b"
+            advance_time 2
+            segment_b.finish
+
+
+            segment_c = NewRelic::Agent::Transaction.start_segment name: "metric c"
+            advance_time 1
+
+            segment_d = NewRelic::Agent::Transaction.start_segment(
+              name: "metric d",
+              parent: segment_a
+            )
+
+            advance_time 2
+            segment_c.finish
+            advance_time 1
+
+            segment_a.finish
+            segment_d.finish
+          end
+
+          assert_equal 7.0, transaction.duration
+          assert_equal 9.0, transaction.total_time
+
+          assert_metrics_recorded(
+            "WebTransactionTotalTime" =>
+              {
+                :call_count => 1,
+                :total_call_time => 9.0,
+                :total_exclusive_time => 9.0
+              },
+            "WebTransactionTotalTime/test" =>
+              {
+                :call_count => 1,
+                :total_call_time => 9.0,
+                :total_exclusive_time => 9.0
+              }
+          )
         end
       end
     end

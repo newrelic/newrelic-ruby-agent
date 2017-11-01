@@ -557,6 +557,7 @@ module NewRelic
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
         record_summary_metrics(outermost_node_name, end_time)
+        record_total_time_metrics
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time
         record_client_application_metric state
