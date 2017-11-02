@@ -807,9 +807,9 @@ module NewRelic
             segment_a.finish
           end
 
-          assert_equal 2.0, segment_a.params[:exclusive_duration_millis]
-          assert_equal 3.0, segment_b.params[:exclusive_duration_millis]
-          assert_equal 3.0, segment_c.params[:exclusive_duration_millis]
+          assert_equal 2000.0, segment_a.params[:exclusive_duration_millis]
+          assert_equal 3000.0, segment_b.params[:exclusive_duration_millis]
+          assert_equal 3000.0, segment_c.params[:exclusive_duration_millis]
         end
 
         def test_total_time_metrics_for_synchronous_txn_non_web

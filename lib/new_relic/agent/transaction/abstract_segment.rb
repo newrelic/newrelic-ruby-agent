@@ -158,7 +158,7 @@ module NewRelic
 
           @exclusive_duration = duration - children_time - overlapping_duration
           transaction.total_time += @exclusive_duration
-          params[:exclusive_duration_millis] = @exclusive_duration if transaction.async?
+          params[:exclusive_duration_millis] = @exclusive_duration * 1000 if transaction.async?
         end
 
         def metric_cache
