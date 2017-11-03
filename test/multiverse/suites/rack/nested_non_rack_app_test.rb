@@ -50,6 +50,8 @@ class NestedNonRackAppTest < Minitest::Test
         "Apdex/NestedNonRackAppTest::RailsishApp/inner",
         "Controller/NestedNonRackAppTest::RailsishApp/inner",
         "HttpDispatcher",
+        "WebTransactionTotalTime",
+        "WebTransactionTotalTime/Controller/NestedNonRackAppTest::RailsishApp/inner",
         "Middleware/all",
         "Middleware/Rack/NestedNonRackAppTest::ExampleMiddleware/call",
         ["Middleware/Rack/NestedNonRackAppTest::ExampleMiddleware/call", "Controller/NestedNonRackAppTest::RailsishApp/inner"],

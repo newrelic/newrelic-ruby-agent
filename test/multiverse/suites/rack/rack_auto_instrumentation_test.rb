@@ -71,6 +71,8 @@ class RackAutoInstrumentationTest < Minitest::Test
         "Controller/Middleware/Rack/NewRelic::Rack::AgentHooks/call",
         "Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call",
         "Middleware/Rack/NewRelic::Rack::AgentHooks/call",
+        "WebTransactionTotalTime",
+        "WebTransactionTotalTime/Controller/Middleware/Rack/NewRelic::Rack::AgentHooks/call",
         ["Middleware/Rack/NewRelic::Rack::AgentHooks/call",    "Controller/Middleware/Rack/NewRelic::Rack::AgentHooks/call"],
         ["Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Middleware/Rack/NewRelic::Rack::AgentHooks/call"]
       ],
@@ -95,6 +97,8 @@ class RackAutoInstrumentationTest < Minitest::Test
         "Middleware/Rack/NewRelic::Rack::AgentHooks/call",
         "Nested/Controller/Rack/ExampleApp/call",
         "Supportability/API/browser_timing_header",
+        "WebTransactionTotalTime",
+        "WebTransactionTotalTime/Controller/Rack/ExampleApp/call",
         ["Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Rack/ExampleApp/call"],
         ["Middleware/Rack/NewRelic::Rack::AgentHooks/call",        "Controller/Rack/ExampleApp/call"],
         ["Middleware/Rack/MiddlewareOne/call", "Controller/Rack/ExampleApp/call"],
@@ -128,6 +132,8 @@ class RackAutoInstrumentationTest < Minitest::Test
         "Controller/Middleware/Rack/MiddlewareTwo/call",
         "Middleware/Rack/MiddlewareOne/call",
         "Middleware/Rack/MiddlewareTwo/call",
+        "WebTransactionTotalTime",
+        "WebTransactionTotalTime/Controller/Middleware/Rack/MiddlewareTwo/call",
         ["Middleware/Rack/MiddlewareOne/call", "Controller/Middleware/Rack/MiddlewareTwo/call"],
         ["Middleware/Rack/MiddlewareTwo/call", "Controller/Middleware/Rack/MiddlewareTwo/call"]
       ],

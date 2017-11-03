@@ -151,8 +151,6 @@ module NewRelic
         OTHER_TRANSACTION_TOTAL_TIME = "OtherTransactionTotalTime".freeze
 
         def record_total_time_metrics
-          return unless async?
-
           total_time_metric = if recording_web_transaction?
             WEB_TRANSACTION_TOTAL_TIME
           else

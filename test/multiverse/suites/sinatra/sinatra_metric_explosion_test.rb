@@ -88,7 +88,7 @@ class SinatraMetricExplosionTest < Minitest::Test
       name_beginnings_to_ignore.any? {|name| metric.start_with?(name)}
     end
 
-    assert_equal 6, metric_names.size, "Explosion detected in: #{metric_names.inspect}"
+    assert_equal 9, metric_names.size, "Explosion detected in: #{metric_names.inspect}"
   end
 
   def test_does_not_break_when_no_verb_matches
