@@ -29,7 +29,7 @@ module NewRelic
       end
 
       def enabled?
-        Agent.config[:'rum.enabled'] && !!Agent.config[:beacon]
+        Agent.config[:'browser_monitoring.auto_instrument'] && !!Agent.config[:beacon]
       end
 
       def obfuscator

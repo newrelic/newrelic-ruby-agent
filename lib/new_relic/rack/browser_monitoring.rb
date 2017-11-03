@@ -31,7 +31,7 @@ module NewRelic::Rack
     def traced_call(env)
       result = @app.call(env)   # [status, headers, response]
 
-      js_to_inject = NewRelic::Agent.browser_timing_header if NewRelic::Agent.config[:'browser_monitoring.auto_instrument']
+      js_to_inject = NewRelic::Agent.browser_timing_header
       if (js_to_inject != "") && should_instrument?(env, result[0], result[1])
         response_string = autoinstrument_source(result[2], result[1], js_to_inject)
 
