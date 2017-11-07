@@ -8,7 +8,7 @@ DependencyDetection.defer do
   @name = :rails5_action_cable
 
   depends_on do
-    defined?(::Rails) &&
+    defined?(::Rails::VERSION::MAJOR) &&
      ::Rails::VERSION::MAJOR.to_i == 5 &&
        defined?(::ActionCable)
   end

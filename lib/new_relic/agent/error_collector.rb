@@ -183,7 +183,7 @@ module NewRelic
 
       # extracts a stack trace from the exception for debugging purposes
       def extract_stack_trace(exception)
-        actual_exception = if defined?(Rails) && Rails::VERSION::MAJOR < 5
+        actual_exception = if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR < 5
                              sense_method(exception, :original_exception) || exception
                            else
                              exception
