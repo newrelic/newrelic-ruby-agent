@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i >= 5
+if defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i >= 5
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/action_cable_subscriber'
