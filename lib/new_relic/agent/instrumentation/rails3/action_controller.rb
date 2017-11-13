@@ -66,7 +66,7 @@ DependencyDetection.defer do
   @name = :rails3_controller
 
   depends_on do
-    defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3
+    defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i == 3
   end
 
   depends_on do
@@ -88,7 +88,7 @@ DependencyDetection.defer do
   @name = :rails30_view
 
   depends_on do
-    defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3 && ::Rails::VERSION::MINOR.to_i == 0
+    defined?(::Rails::VERSION) && ::Rails::VERSION::MAJOR.to_i == 3 && ::Rails::VERSION::MINOR.to_i == 0
   end
 
   depends_on do
@@ -127,7 +127,7 @@ DependencyDetection.defer do
   # We can't be sure that this will work with future versions of Rails 3.
   # Currently enabled for Rails 3.1 and 3.2
   depends_on do
-    defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3 && ([1,2].member?(::Rails::VERSION::MINOR.to_i))
+    defined?(::Rails::VERSION) && ::Rails::VERSION::MAJOR.to_i == 3 && ([1,2].member?(::Rails::VERSION::MINOR.to_i))
   end
 
   depends_on do

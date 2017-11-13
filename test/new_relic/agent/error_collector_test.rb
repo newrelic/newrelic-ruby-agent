@@ -248,7 +248,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_equal('<no stack trace>', @error_collector.extract_stack_trace(Exception.new))
   end
 
-  if defined?(Rails) && Rails::VERSION::MAJOR < 5
+  if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR < 5
     def test_extract_stack_trace_from_original_exception
       orig = mock('original', :backtrace => "STACK STACK STACK")
       exception = mock('exception', :original_exception => orig)

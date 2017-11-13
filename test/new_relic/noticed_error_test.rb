@@ -182,7 +182,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     assert_equal(error.message.to_s, 'Buffy FOREVER')
   end
 
-  if defined?(Rails) && Rails::VERSION::MAJOR < 5
+  if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR < 5
     def test_uses_original_exception_class_name
       orig = FooError.new
       e = mock('exception', original_exception: orig)
