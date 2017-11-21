@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Check that `Rails::VERSION` is defined instead of just `Rails`
+
+  The agent now checks that `Rails::VERSION` is defined since there are cases
+  where `Rails` is defined but `Rails::VERSION` is not. Thanks Alex Riedler
+  and nilsding for the contribution!
+
 ## v4.6.0 ##
 
   * Public API for External Requests
