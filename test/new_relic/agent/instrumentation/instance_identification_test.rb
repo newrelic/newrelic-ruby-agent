@@ -127,7 +127,13 @@ module NewRelic
                 host = ActiveRecordHelper::InstanceIdentification.host(config)
                 port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(config)
 
-                segment = NewRelic::Agent::Transaction.start_datastore_segment product, operation, collection, host, port_path_or_id
+                segment = NewRelic::Agent::Transaction.start_datastore_segment(
+                  product: product,
+                  operation: operation,
+                  collection: collection,
+                  host: host,
+                  port_path_or_id: port_path_or_id
+                )
                 segment.finish
               end
 

@@ -62,8 +62,13 @@ DependencyDetection.defer do
         hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
         port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
 
-        segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
-          operation, nil, hostname, port_path_or_id, db)
+        segment = NewRelic::Agent::Transaction.start_datastore_segment(
+          product: NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
+          operation: operation,
+          host: hostname,
+          port_path_or_id: port_path_or_id,
+          database_name: db
+        )
         begin
           segment.notice_nosql_statement(statement) if statement
           call_without_new_relic(*args, &block)
@@ -82,8 +87,13 @@ DependencyDetection.defer do
         hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
         port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
 
-        segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
-          operation, nil, hostname, port_path_or_id, db)
+        segment = NewRelic::Agent::Transaction.start_datastore_segment(
+          product: NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
+          operation: operation,
+          host: hostname,
+          port_path_or_id: port_path_or_id,
+          database_name: db
+        )
         begin
           segment.notice_nosql_statement(statement)
           call_pipeline_without_new_relic(*args, &block)
@@ -98,8 +108,13 @@ DependencyDetection.defer do
         hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
         port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
 
-        segment = NewRelic::Agent::Transaction.start_datastore_segment(NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
-          NewRelic::Agent::Datastores::Redis::CONNECT, nil, hostname, port_path_or_id, db)
+        segment = NewRelic::Agent::Transaction.start_datastore_segment(
+          product: NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
+          operation: NewRelic::Agent::Datastores::Redis::CONNECT,
+          host: hostname,
+          port_path_or_id: port_path_or_id,
+          database_name: db
+        )
 
         begin
           connect_without_new_relic(*args, &block)

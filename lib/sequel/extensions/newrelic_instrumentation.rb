@@ -47,7 +47,10 @@ module Sequel
 
       product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(self.class.adapter_scheme)
       operation = NewRelic::Agent::Datastores::MetricHelper.operation_from_sql(sql)
-      segment = NewRelic::Agent::Transaction.start_datastore_segment product, operation
+      segment = NewRelic::Agent::Transaction.start_datastore_segment(
+        product: product,
+        operation: operation
+      )
 
       begin
         super(*args, &blk)
