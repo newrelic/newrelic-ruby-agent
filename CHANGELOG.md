@@ -3,7 +3,7 @@
   * Check that `Rails::VERSION` is defined instead of just `Rails`
 
   The agent now checks that `Rails::VERSION` is defined since there are cases
-  where `Rails` is defined but `Rails::VERSION` is not. Thanks Alex Riedler
+  where `Rails` is defined but `Rails::VERSION` is not. Thanks to Alex Riedler
   and nilsding for the contribution!
 
 ## v4.6.0 ##
