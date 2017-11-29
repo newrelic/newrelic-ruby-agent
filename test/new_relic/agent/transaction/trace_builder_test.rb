@@ -19,13 +19,13 @@ module NewRelic
           Transaction.wrap state, "test_txn", :controller do
             txn = state.current_transaction
             advance_time 1
-            segment_a = Transaction.start_segment "segment_a"
+            segment_a = Transaction.start_segment name: "segment_a"
             segment_a.params[:foo] = "bar"
             advance_time 1
-            segment_b = Transaction.start_segment "segment_b"
+            segment_b = Transaction.start_segment name: "segment_b"
             advance_time 2
             segment_b.finish
-            segment_c = Transaction.start_segment "segment_c"
+            segment_c = Transaction.start_segment name:  "segment_c"
             advance_time 3
             segment_c.finish
             segment_a.finish
@@ -42,7 +42,6 @@ module NewRelic
           assert_equal "test_txn", txn_segment.metric_name
           assert_equal 0.0, txn_segment.entry_timestamp
           assert_equal 7.0, txn_segment.exit_timestamp
-
 
           segment_a = txn_segment.children[0]
           assert_equal "segment_a", segment_a.metric_name
@@ -67,7 +66,7 @@ module NewRelic
           Transaction.wrap state, "test_txn", :controller do
             txn = state.current_transaction
             advance_time 1
-            Transaction.start_segment "segment_a"
+            Transaction.start_segment name: "segment_a"
             advance_time 1
           end
 

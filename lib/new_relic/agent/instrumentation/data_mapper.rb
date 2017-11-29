@@ -133,7 +133,11 @@ module NewRelic
               name = self.class.name
             end
 
-            segment = NewRelic::Agent::Transaction.start_datastore_segment DATA_MAPPER, metric_operation, name
+            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+              product: DATA_MAPPER,
+              operation: metric_operation,
+              collection: name
+            )
 
             begin
               self.send("#{method_name}_without_newrelic", *args, &blk)

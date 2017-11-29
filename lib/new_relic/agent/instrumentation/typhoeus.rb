@@ -66,7 +66,10 @@ module NewRelic::Agent::Instrumentation::TyphoeusTracing
       wrapped_request = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(request)
 
       segment = NewRelic::Agent::Transaction.start_external_request_segment(
-          wrapped_request.type, wrapped_request.uri, wrapped_request.method)
+        library: wrapped_request.type,
+        uri: wrapped_request.uri,
+        procedure: wrapped_request.method
+      )
 
       segment.add_request_headers wrapped_request
 

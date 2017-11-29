@@ -47,7 +47,10 @@ module NewRelic
             alias_method method_name_without_newrelic, method_name
 
             define_method(method_name) do |*args, &blk|
-              segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation)
+              segment = NewRelic::Agent::Transaction.start_datastore_segment(
+                product: product,
+                operation: operation
+              )
               begin
                 send(method_name_without_newrelic, *args, &blk)
               ensure
@@ -109,7 +112,11 @@ module NewRelic
 
         return yield unless operation
 
-        segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation, collection)
+        segment = NewRelic::Agent::Transaction.start_datastore_segment(
+          product: product,
+          operation: operation,
+          collection: collection
+        )
 
         begin
           result = yield
