@@ -1,7 +1,7 @@
 boilerplate_gems = <<-SQLITE
   gem 'rack'
   if RUBY_PLATFORM == 'java'
-    gem 'activerecord-jdbcsqlite3-adapter'
+    gem 'activerecord-jdbcsqlite3-adapter', "~>1.3.0"
   else
     gem 'sqlite3'
   end
