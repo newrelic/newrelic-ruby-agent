@@ -23,13 +23,13 @@ module NewRelic
                                      "JS agent loader debug: #{NewRelic::Agent.config[:'browser_monitoring.debug']}",
                                      "JS agent loader version: #{NewRelic::Agent.config[:'browser_monitoring.loader_version']}")
 
-        if !NewRelic::Agent.config[:'rum.enabled']
+        if !NewRelic::Agent.config[:'browser_monitoring.auto_instrument']
           NewRelic::Agent.logger.debug("Real User Monitoring is disabled for this agent. Edit your configuration to change this.")
         end
       end
 
       def enabled?
-        Agent.config[:'rum.enabled'] && !!Agent.config[:beacon]
+        Agent.config[:'browser_monitoring.auto_instrument'] && !!Agent.config[:beacon]
       end
 
       def obfuscator

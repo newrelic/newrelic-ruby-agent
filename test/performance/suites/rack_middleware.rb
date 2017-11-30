@@ -61,13 +61,13 @@ class RackMiddleware < Performance::TestCase
     require 'new_relic/rack/browser_monitoring'
 
     @config = {
-      :beacon          => 'beacon',
-      :browser_key     => 'browserKey',
-      :js_agent_loader => 'loader',
-      :encoding_key    => 'lolz',
-      :application_id  => '5, 6', # collector can return app multiple ids
-      :'rum.enabled'   => true,
-      :license_key     => 'a' * 40
+      :beacon                               => 'beacon',
+      :browser_key                          => 'browserKey',
+      :js_agent_loader                      => 'loader',
+      :encoding_key                         => 'lolz',
+      :application_id                       => '5, 6', # collector can return app multiple ids
+      :'browser_monitoring.auto_instrument' => true,
+      :license_key                          => 'a' * 40
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
 
