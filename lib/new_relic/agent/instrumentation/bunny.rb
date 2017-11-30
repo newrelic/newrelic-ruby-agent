@@ -104,13 +104,15 @@ DependencyDetection.defer do
 
         def call *args
           delivery_info, message_properties, _ = args
+          queue_name = queue.respond_to?(:name) ? queue.name : queue
+
           NewRelic::Agent::Messaging.wrap_amqp_consume_transaction(
             library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
             destination_name: NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange),
             delivery_info: delivery_info,
             message_properties: message_properties,
             exchange_type: NewRelic::Agent::Instrumentation::Bunny.exchange_type(delivery_info, channel),
-            queue_name: queue.name) do
+            queue_name: queue_name) do
 
             call_without_new_relic(*args)
           end

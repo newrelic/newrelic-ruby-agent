@@ -6,6 +6,11 @@
   where `Rails` is defined but `Rails::VERSION` is not. Thanks to Alex Riedler
   and nilsding for the contribution!
 
+  * Support fast RPC/direct reply-to in RabbitMQ
+
+  The agent can now handle the pseudo-queue 'amq.rabbitmq.reply-to' in its
+  Bunny instrumentation.
+
 ## v4.6.0 ##
 
   * Public API for External Requests

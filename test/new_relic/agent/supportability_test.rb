@@ -206,7 +206,11 @@ class ExternalAPISupportabilityMetricsTest < Minitest::Test
   def setup
     NewRelic::Agent.manual_start
     NewRelic::Agent.drop_buffered_data
-    @segment = NewRelic::Agent::Transaction.start_external_request_segment :foo, 'http://example.com/root/index', :http
+    @segment = NewRelic::Agent::Transaction.start_external_request_segment(
+      library: :foo,
+      uri: 'http://example.com/root/index',
+      procedure: :http
+    )
     super
   end
 

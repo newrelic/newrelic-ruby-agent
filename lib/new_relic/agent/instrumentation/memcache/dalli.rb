@@ -59,7 +59,10 @@ module NewRelic
               alias_method :send_multiget_without_newrelic_trace, :send_multiget
 
               def send_multiget(keys)
-                segment = ::NewRelic::Agent::Transaction.start_datastore_segment(MEMCACHED, SEND_MULTIGET_METRIC_NAME)
+                segment = ::NewRelic::Agent::Transaction.start_datastore_segment(
+                  product: MEMCACHED,
+                  operation: SEND_MULTIGET_METRIC_NAME
+                )
                 ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, self)
 
                 begin
@@ -82,7 +85,7 @@ module NewRelic
               alias_method method_name_without, method_name
 
               define_method method_name do |*args, &block|
-                segment = NewRelic::Agent::Transaction.start_segment "Ruby/Memcached/Dalli/#{method_name}"
+                segment = NewRelic::Agent::Transaction.start_segment name: "Ruby/Memcached/Dalli/#{method_name}"
                 begin
                   __send__ method_name_without, *args, &block
                 ensure
