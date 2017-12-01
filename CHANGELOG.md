@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Check that `Rails::VERSION` is defined instead of just `Rails`
+
+  The agent now checks that `Rails::VERSION` is defined since there are cases
+  where `Rails` is defined but `Rails::VERSION` is not. Thanks to Alex Riedler
+  and nilsding for the contribution!
+
   * Support fast RPC/direct reply-to in RabbitMQ
 
   The agent can now handle the pseudo-queue 'amq.rabbitmq.reply-to' in its

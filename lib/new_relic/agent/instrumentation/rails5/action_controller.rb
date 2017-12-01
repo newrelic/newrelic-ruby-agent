@@ -9,7 +9,7 @@ DependencyDetection.defer do
   @name = :rails5_controller
 
   depends_on do
-    defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 5
+    defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i == 5
   end
 
   depends_on do
