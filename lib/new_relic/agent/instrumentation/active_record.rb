@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/instrumentation/active_record_prepend'
+
 module NewRelic
   module Agent
     module Instrumentation
@@ -18,7 +20,12 @@ module NewRelic
 
         def self.insert_instrumentation
           if defined?(::ActiveRecord::VERSION::MAJOR) && ::ActiveRecord::VERSION::MAJOR.to_i >= 3
-            ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
+            if ::NewRelic::Agent.config[:prepend_active_record_instrumentation]
+              ::ActiveRecord::Base.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions
+              ::ActiveRecord::Relation.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::RelationExtensions
+            else
+              ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
+            end
           end
 
           ::ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do

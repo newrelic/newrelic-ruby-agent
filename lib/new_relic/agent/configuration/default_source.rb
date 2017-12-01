@@ -676,6 +676,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, disables active record instrumentation.'
         },
+        :prepend_active_record_instrumentation => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If <code>true</code>, uses Module.prepend rather than alias_method for ActiveRecord instrumentation.'
+        }
         :disable_data_mapper => {
           :default => false,
           :public => true,
