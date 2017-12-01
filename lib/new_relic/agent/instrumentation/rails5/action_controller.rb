@@ -24,7 +24,6 @@ DependencyDetection.defer do
     ActiveSupport.on_load(:action_controller) do
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
-      require 'pry'; binding.pry
       NewRelic::Agent::PrependSupportability.record_metrics_for(self)
     end
 
