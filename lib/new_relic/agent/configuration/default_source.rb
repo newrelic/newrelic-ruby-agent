@@ -682,7 +682,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If <code>true</code>, uses Module.prepend rather than alias_method for ActiveRecord instrumentation.'
-        }
+        },
         :disable_data_mapper => {
           :default => false,
           :public => true,
