@@ -21,13 +21,13 @@ DependencyDetection.defer do
   end
 
   executes do
-    ActiveSupport.on_load(:action_controller) do |c|
-      c.include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+    ActiveSupport.on_load(:action_controller) do
+      include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+
+      NewRelic::Agent::PrependSupportability.record_metrics_for(self)
     end
 
     NewRelic::Agent::Instrumentation::ActionControllerSubscriber \
       .subscribe(/^process_action.action_controller$/)
-
-    NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionController::Base, ::ActionController::API)
   end
 end

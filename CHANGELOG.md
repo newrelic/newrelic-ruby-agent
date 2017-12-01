@@ -1,5 +1,10 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Lazy load hooks for ActionController::Base and ActionController::API
+
+  The agent now uses lazy load hooks to hook on ActionController::Base and
+  ActionController::API. Thanks Edouard Chin for the contribution!
+
   * Check that `Rails::VERSION` is defined instead of just `Rails`
 
   The agent now checks that `Rails::VERSION` is defined since there are cases
