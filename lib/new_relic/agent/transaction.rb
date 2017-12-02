@@ -551,7 +551,7 @@ module NewRelic
         assign_agent_attributes
         assign_intrinsics(state)
 
-        segments.each { |s| s.finalize }
+        finalize_segments
 
         @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
         sql_sampler.on_finishing_transaction(state, @frozen_name)

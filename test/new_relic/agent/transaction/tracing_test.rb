@@ -253,6 +253,8 @@ module NewRelic
         end
 
         def test_children_time
+          segment_a, segment_b, segment_c, segment_d = nil, nil, nil, nil
+
           in_transaction "test" do
             segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
             advance_time(0.001)
@@ -263,46 +265,21 @@ module NewRelic
             segment_c = NewRelic::Agent::Transaction::start_segment name: "metric c"
             advance_time(0.003)
             segment_c.finish
-            assert_equal 0, segment_c.children_time
 
             advance_time(0.001)
 
             segment_d = NewRelic::Agent::Transaction.start_segment name: "metric d"
             advance_time(0.002)
             segment_d.finish
-            assert_equal 0, segment_d.children_time
 
             segment_b.finish
-            assert_in_delta(segment_c.duration + segment_d.duration, segment_b.children_time, 0.0001)
-
             segment_a.finish
-            assert_in_delta(segment_b.duration, segment_a.children_time, 0.0001)
           end
-        end
 
-        def test_timing_correct_with_record_metrics_false
-          in_transaction "test" do
-            segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
-            advance_time(0.001)
-
-            segment_b = NewRelic::Agent::Transaction.start_segment name: "metric b"
-            segment_b.record_metrics = false
-            advance_time(0.002)
-
-            segment_c = NewRelic::Agent::Transaction::start_segment name: "metric c"
-            advance_time(0.003)
-            segment_c.finish
-            assert_equal 0, segment_c.children_time
-
-            advance_time(0.001)
-
-            segment_b.finish
-            assert_in_delta(segment_c.duration, segment_b.children_time, 0.0001)
-
-            segment_a.finish
-            assert_in_delta(segment_c.duration, segment_a.children_time, 0.0001)
-            assert_in_delta(0.001 + segment_b.exclusive_duration, segment_a.exclusive_duration, 0.0001)
-          end
+          assert_equal 0, segment_c.children_time
+          assert_equal 0, segment_d.children_time
+          assert_in_delta(segment_c.duration + segment_d.duration, segment_b.children_time, 0.0001)
+          assert_in_delta(segment_b.duration, segment_a.children_time, 0.0001)
         end
 
         def test_segments_abides_by_limit_configuration
@@ -385,7 +362,7 @@ module NewRelic
         # completed, and a segment has not been finished, we will forcibly
         # finish the segment at the end of the transaction. This will cause the
         # exclusive time to be off for the parent of the unfinished segment.
-        # This behavior may change over time and there is not reason to preserve
+        # This behavior may change over time and there is no reason to preserve
         # it as is. The point of this test is to ensure that the transaction
         # isn't lost entirely. We will log a message at warn level when this
         # unexpected conditon arises.
@@ -561,6 +538,194 @@ module NewRelic
             assert_equal segment_a, segment_b.parent
             assert_equal segment_a, segment_c.parent
           end
+        end
+
+
+        # The following three tests will build the following trace.
+        # Segments b and c are disjoint, but segments e and f overlap.
+        #                       test_txn
+        #                     /          \
+        #            segment_a            segment_d
+        #            /     \                /      \
+        #      segment_b  segment_c     segment_e segment_f
+
+        def test_parent_identifies_concurrent_children
+          in_transaction 'test_txn' do
+            segment_a = NewRelic::Agent::Transaction.start_segment name: 'segment_a'
+            segment_b = NewRelic::Agent::Transaction.start_segment name: 'segment_b'
+            segment_b.finish
+            segment_c = NewRelic::Agent::Transaction.start_segment name: 'segment_c'
+            segment_c.finish
+            segment_a.finish
+
+            segment_d = NewRelic::Agent::Transaction.start_segment name: 'segment_d'
+            segment_e = NewRelic::Agent::Transaction.start_segment name: 'segment_e'
+            segment_f = NewRelic::Agent::Transaction.start_segment(
+              name: 'segment_f',
+              parent: segment_d
+            )
+            segment_d.finish
+            segment_f.finish
+            segment_e.finish
+
+            refute segment_a.concurrent_children?
+            refute segment_b.concurrent_children?
+            refute segment_c.concurrent_children?
+            assert segment_d.concurrent_children?
+            refute segment_e.concurrent_children?
+            refute segment_f.concurrent_children?
+          end
+        end
+
+        # B, C, D are children of A and are running concurrently. D ends after
+        # A finishes. Here is a timeline to illustrate the situation:
+        # 0  1  2  3  4  5  6  7  8  9  10 11 12
+        #  _________________
+        # |        A        |
+        #        ________
+        #       |    B   |
+        #           ________
+        #          |    C   |
+        #              _______________________
+        #             |     D                 |
+
+        def test_concurrent_durations
+          segment_a, segment_b, segment_c, segment_d = nil, nil, nil, nil
+
+          in_transaction "test" do
+            segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
+            advance_time 2
+
+            segment_b = NewRelic::Agent::Transaction.start_segment name: "metric b"
+            advance_time 1
+
+            segment_c = NewRelic::Agent::Transaction.start_segment(
+              name: "metric c",
+              parent: segment_a
+            )
+
+            advance_time 1
+
+            segment_d = NewRelic::Agent::Transaction.start_segment(
+              name: "metric d",
+              parent: segment_a
+            )
+
+            advance_time 1
+            segment_b.finish
+
+            advance_time 1
+            segment_c.finish
+            segment_a.finish
+
+            advance_time 6
+            segment_d.finish
+          end
+
+          assert_equal 6.0, segment_a.duration
+          assert_equal 2.0, segment_a.exclusive_duration
+
+          assert_equal 3.0, segment_b.duration
+          assert_equal 3.0, segment_b.exclusive_duration
+
+          assert_equal 3.0, segment_c.duration
+          assert_equal 3.0, segment_c.exclusive_duration
+
+          assert_equal 8.0, segment_d.duration
+          assert_equal 8.0, segment_d.exclusive_duration
+        end
+
+        # B and C are children of A and are running serially. C ends after
+        # A finishes. Here is a timeline to illustrate the situation:
+        # 0  1  2  3  4  5  6  7  8  9  10
+        #  _________________
+        # |        A        |
+        #     _____
+        #    | B   |
+        #           ____________________
+        #          |    C               |
+
+        def test_child_segment_ends_after_parent_durations_correct
+          segment_a, segment_b, segment_c = nil, nil, nil
+
+          in_transaction "test" do
+            segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
+            advance_time 1
+
+            segment_b = NewRelic::Agent::Transaction.start_segment name: "metric b"
+            advance_time 2
+
+            segment_b.finish
+            segment_c = NewRelic::Agent::Transaction.start_segment name: "metric c"
+
+            advance_time 3
+            segment_a.finish
+
+            advance_time 4
+            segment_c.finish
+          end
+
+          assert_equal 6.0, segment_a.duration
+          assert_equal 1.0, segment_a.exclusive_duration
+
+          assert_equal 2.0, segment_b.duration
+          assert_equal 2.0, segment_b.exclusive_duration
+
+          assert_equal 7.0, segment_c.duration
+          assert_equal 7.0, segment_c.exclusive_duration
+        end
+
+        # B, C, D are children of A. C and D are running concurrently after B completes.
+        # D ends after A finishes. Here is a timeline to illustrate the situation:
+        # 0  1  2  3  4  5  6  7  8  9  10 11 12
+        #  _________________
+        # |        A        |
+        #     _____
+        #    | B   |
+        #           ________
+        #          |    C   |
+        #              _______________________
+        #             |     D                 |
+
+        def test_durations_correct_with_sync_child_followed_by_concurrent_children
+          segment_a, segment_b, segment_c, segment_d = nil, nil, nil, nil
+
+          in_transaction "test" do
+            segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
+            advance_time 1
+
+            segment_b = NewRelic::Agent::Transaction.start_segment name: "metric b"
+            advance_time 2
+            segment_b.finish
+
+
+            segment_c = NewRelic::Agent::Transaction.start_segment name: "metric c"
+            advance_time 1
+
+            segment_d = NewRelic::Agent::Transaction.start_segment(
+              name: "metric d",
+              parent: segment_a
+            )
+
+            advance_time 2
+            segment_c.finish
+            segment_a.finish
+
+            advance_time 6
+            segment_d.finish
+          end
+
+          assert_equal 6.0, segment_a.duration
+          assert_equal 1.0, segment_a.exclusive_duration
+
+          assert_equal 2.0, segment_b.duration
+          assert_equal 2.0, segment_b.exclusive_duration
+
+          assert_equal 3.0, segment_c.duration
+          assert_equal 3.0, segment_c.exclusive_duration
+
+          assert_equal 8.0, segment_d.duration
+          assert_equal 8.0, segment_d.exclusive_duration
         end
       end
     end

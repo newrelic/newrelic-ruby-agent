@@ -90,19 +90,15 @@ module NewRelic
 
           private
 
-          def start_and_add_segment segment, parent
-            segment.start
-            add_segment segment, parent
-            segment
-          end
-
-          def add_segment segment, parent = nil
+          def start_and_add_segment segment, parent = nil
             state = NewRelic::Agent::TransactionState.tl_get
             if (txn = state.current_transaction) && state.is_execution_traced?
               txn.add_segment segment, parent
             else
               segment.record_metrics = false
             end
+            segment.start
+            segment
           end
         end
 
@@ -130,6 +126,12 @@ module NewRelic
 
         def segment_limit
           Agent.config[:'transaction_tracer.limit_segments']
+        end
+
+        private
+
+        def finalize_segments
+          segments.each { |s| s.finalize }
         end
       end
     end

@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/range_extensions'
+
 module NewRelic
   module Agent
     class Transaction
@@ -12,30 +14,34 @@ module NewRelic
 
         def initialize name=nil, start_time=nil
           @name = name
-          @children_time = 0.0
-          @record_metrics = true
-          @record_scoped_metric = true
           @transaction = nil
           @parent = nil
-          @record_on_finish = false
           @params = nil
           @start_time = start_time if start_time
+          @end_time = nil
+          @duration = 0.0
+          @exclusive_duration = 0.0
+          @children_time = 0.0
+          @children_time_ranges = nil
+          @active_children = 0
+          @concurrent_children = false
+          @record_metrics = true
+          @record_scoped_metric = true
+          @record_on_finish = false
         end
 
         def start
           @start_time ||= Time.now
+          return unless transaction
+          parent.child_start self if parent
         end
 
         def finish
           @end_time = Time.now
           @duration = end_time.to_f - start_time.to_f
-          @exclusive_duration = duration - children_time
-          if transaction
-            record_metrics if record_metrics? && record_on_finish?
-            segment_complete
-            parent.child_complete self if parent
-            transaction.segment_complete self
-          end
+          return unless transaction
+          run_complete_callbacks
+          finalize if record_on_finish?
         rescue => e
           NewRelic::Agent.logger.error "Exception finishing segment: #{name}", e
         end
@@ -57,13 +63,8 @@ module NewRelic
         end
 
         def finalize
-          unless finished?
-            finish
-            NewRelic::Agent.logger.warn "Segment: #{name} was unfinished at " \
-              "the end of transaction. Timing information for " \
-              "#{transaction.best_name} may be inaccurate."
-            # @todo: we should record a supportability metric here
-          end
+          force_finish unless finished?
+          calculate_exclusive_duration
           record_metrics if record_metrics?
         end
 
@@ -73,6 +74,22 @@ module NewRelic
 
         def params?
           !!@params
+        end
+
+        def time_range
+          @start_time.to_f .. @end_time.to_f
+        end
+
+        def children_time_ranges
+          @children_time_ranges ||= []
+        end
+
+        def children_time_ranges?
+          !!@children_time_ranges
+        end
+
+        def concurrent_children?
+          @concurrent_children
         end
 
         INSPECT_IGNORE = [:@transaction, :@transaction_state].freeze
@@ -86,23 +103,55 @@ module NewRelic
 
         protected
 
-        def record_metrics
-          raise NotImplementedError, "Subclasses must implement record_metrics"
+        def child_start segment
+          @active_children += 1
+          @concurrent_children = @concurrent_children || @active_children > 1
         end
 
         def child_complete segment
-          if segment.record_metrics?
-            self.children_time += segment.duration
-          else
-            self.children_time += segment.children_time
-          end
+          @active_children -= 1
+          record_child_time segment
         end
 
         private
 
+        def force_finish
+          finish
+          NewRelic::Agent.logger.warn "Segment: #{name} was unfinished at " \
+            "the end of transaction. Timing information for this segment's" \
+            "parent #{parent.name} in #{transaction.best_name} may be inaccurate."
+        end
+
+        def run_complete_callbacks
+          segment_complete
+          parent.child_complete self if parent
+          transaction.segment_complete self
+        end
+
+        def record_metrics
+          raise NotImplementedError, "Subclasses must implement record_metrics"
+        end
+
         # callback for subclasses to override
         def segment_complete
-          raise NotImplementedError
+        end
+
+        def record_child_time child
+          if concurrent_children? || finished? && end_time < child.end_time
+            RangeExtensions.merge_or_append child.time_range,
+                                            children_time_ranges
+          else
+            self.children_time += child.duration
+          end
+        end
+
+        def calculate_exclusive_duration
+          overlapping_duration = if children_time_ranges?
+            RangeExtensions.compute_overlap time_range, children_time_ranges
+          else
+            0.0
+          end
+          @exclusive_duration = duration - children_time - overlapping_duration
         end
 
         def metric_cache

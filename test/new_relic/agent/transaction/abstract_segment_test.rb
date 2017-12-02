@@ -16,8 +16,6 @@ module NewRelic
             metric_cache.record_scoped_and_unscoped name, duration, exclusive_duration
             metric_cache.record_unscoped "Basic/all", duration, exclusive_duration
           end
-          def segment_complete
-          end
         end
 
         def setup
@@ -34,12 +32,17 @@ module NewRelic
         end
 
         def test_segment_tracks_timing_information
-          segment = BasicSegment.new "Custom/basic/segment"
-          segment.start
-          assert_equal Time.now, segment.start_time
+          segment = nil
 
-          advance_time 1.0
-          segment.finish
+          in_transaction do |txn|
+            segment = BasicSegment.new "Custom/basic/segment"
+            txn.add_segment segment
+            segment.start
+            assert_equal Time.now, segment.start_time
+
+            advance_time 1.0
+            segment.finish
+          end
 
           assert_equal Time.now, segment.end_time
           assert_equal 1.0, segment.duration
@@ -143,6 +146,28 @@ module NewRelic
           advance_time 1
           segment.start
           assert_equal t, segment.start_time
+        end
+
+        def test_parent_detects_concurrent_children
+          in_transaction do |txn|
+            segment_a = BasicSegment.new "segment_a"
+            txn.add_segment segment_a
+            segment_a.start
+            segment_b = BasicSegment.new "segment_b"
+            txn.add_segment segment_b
+            segment_b.parent = segment_a
+            segment_b.start
+            segment_c = BasicSegment.new "segment_c"
+            txn.add_segment segment_c, segment_a
+            segment_c.start
+            segment_b.finish
+            segment_c.finish
+            segment_a.finish
+
+            assert segment_a.concurrent_children?
+            refute segment_b.concurrent_children?
+            refute segment_c.concurrent_children?
+          end
         end
       end
     end
