@@ -209,6 +209,22 @@ module NewRelic::Agent::Instrumentation
                                      :name => 'action'))
     end
 
+    def test_transaction_namer_determines_prefix
+      in_transaction do |txn|
+        assert_equal @txn_namer.prefix_for_category(txn, :controller), 'Controller/'
+        assert_equal @txn_namer.prefix_for_category(txn, :task), 'OtherTransaction/Background/'
+        assert_equal @txn_namer.prefix_for_category(txn, :rack), 'Controller/Rack/'
+        assert_equal @txn_namer.prefix_for_category(txn, :sinatra), 'Controller/Sinatra/'
+        assert_equal @txn_namer.prefix_for_category(txn, :uri), 'Controller/'
+        assert_equal @txn_namer.prefix_for_category(txn, :middleware), 'Middleware/Rack/'
+        assert_equal @txn_namer.prefix_for_category(txn, :grape), 'Controller/Grape/'
+        assert_equal @txn_namer.prefix_for_category(txn, :rake), 'OtherTransaction/Rake/'
+        assert_equal @txn_namer.prefix_for_category(txn, :action_cable), 'Controller/ActionCable/'
+        assert_equal @txn_namer.prefix_for_category(txn, :message), 'OtherTransaction/Message/'
+        assert_equal @txn_namer.prefix_for_category(txn, :foo), 'foo/'
+      end
+    end
+
     def test_transaction_path_name
       result = @txn_namer.path_name(@object)
       assert_equal("NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject", result)
