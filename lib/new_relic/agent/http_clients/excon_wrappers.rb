@@ -70,7 +70,9 @@ module NewRelic
         end
 
         def uri
-          URI.parse("#{@scheme}://#{host}:#{@port}#{@path}")
+          ::NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(
+            "#{@scheme}://#{host}:#{@port}#{@path}"
+            )
         end
       end
     end
