@@ -848,8 +848,8 @@ module NewRelic
             segment_c.finish
             advance_time 1
 
-            segment_a.finish
             segment_d.finish
+            segment_a.finish
           end
 
           assert_equal 7.0, transaction.duration
@@ -895,8 +895,8 @@ module NewRelic
             segment_c.finish
             advance_time 1
 
-            segment_a.finish
             segment_d.finish
+            segment_a.finish
           end
 
           assert_equal 7.0, transaction.duration
@@ -916,6 +916,107 @@ module NewRelic
                 :total_exclusive_time => 9.0
               }
           )
+        end
+
+        # B, C, D are children of A. C, D are running concurrently..
+        # D ends after A finishes. Here is a timeline to illustrate the situation:
+        # 0  1  2  3  4  5  6  7  8  9  10 11 12
+        #  _________________
+        # |        A        |
+        #     _____
+        #    | B   |
+        #           ________
+        #          |    C   |
+        #              _______________________
+        #             |     D                 |
+        #
+        #
+
+        def test_times_accurate_when_child_finishes_after_parent
+          segment_a, segment_b, segment_c, segment_d = nil, nil, nil, nil
+
+          txn = in_transaction "test" do
+            segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
+            advance_time 1
+
+            segment_b = NewRelic::Agent::Transaction.start_segment name: "metric b"
+            advance_time 2
+            segment_b.finish
+
+
+            segment_c = NewRelic::Agent::Transaction.start_segment name: "metric c"
+            advance_time 1
+
+            segment_d = NewRelic::Agent::Transaction.start_segment(
+              name: "metric d",
+              parent: segment_a
+            )
+
+            advance_time 2
+            segment_c.finish
+            segment_a.finish
+
+            advance_time 6
+            segment_d.finish
+          end
+
+          assert_equal 12.0, txn.duration
+          assert_equal 14.0, txn.total_time
+        end
+
+        # C, D, E are children of B. C, D, E are running concurrently.
+        # E ends after B finishes. Here is a timeline to illustrate the situation:
+        # 0  1  2  3  4  5  6  7  8  9  10 11 12
+        #  _______________________
+        # |        A              |
+        #     ________________
+        #    |       B        |
+        #     ____
+        #    | C  |
+        #           ________
+        #          |    D   |
+        #              _______________________
+        #             |     E                 |
+        #
+        #
+
+        def test_times_accurate_when_child_finishes_after_parent_more_nesting
+          segment_a, segment_b, segment_c, segment_d, segment_e = nil, nil, nil, nil, nil
+
+          txn = in_transaction "test" do
+            segment_a = NewRelic::Agent::Transaction.start_segment name: "metric a"
+            advance_time 1
+
+            segment_b = NewRelic::Agent::Transaction.start_segment name: "metric b"
+
+            segment_c = NewRelic::Agent::Transaction.start_segment name: "metric c"
+            advance_time 2
+            segment_c.finish
+
+
+            segment_d = NewRelic::Agent::Transaction.start_segment name: "metric d"
+            advance_time 1
+
+            segment_e = NewRelic::Agent::Transaction.start_segment(
+              name: "metric e",
+              parent: segment_b
+            )
+
+            advance_time 2
+            segment_d.finish
+
+            advance_time 1
+            segment_b.finish
+
+            advance_time 1
+            segment_a.finish
+
+            advance_time 4
+            segment_e.finish
+          end
+
+          assert_equal 12.0, txn.duration
+          assert_equal 14.0, txn.total_time
         end
       end
     end

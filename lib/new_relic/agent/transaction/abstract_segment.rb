@@ -24,6 +24,7 @@ module NewRelic
           @children_time = 0.0
           @children_time_ranges = nil
           @active_children = 0
+          @range_recorded = false
           @concurrent_children = false
           @record_metrics = true
           @record_scoped_metric = true
@@ -103,6 +104,12 @@ module NewRelic
 
         protected
 
+        attr_writer :range_recorded
+
+        def range_recorded?
+          @range_recorded
+        end
+
         def child_start segment
           @active_children += 1
           @concurrent_children = @concurrent_children || @active_children > 1
@@ -114,7 +121,33 @@ module NewRelic
           @active_children -= 1
           record_child_time segment
 
-          transaction.async = true if finished?
+          if finished?
+            transaction.async = true
+            parent.descendant_complete self, segment
+          end
+        end
+
+        # When a child segment completes after its parent, we need to propagate
+        # the information about the descendant further up the tree so that
+        # ancestors can properly account for exclusive time. Once we've reached
+        # an ancestor whose end time is greater than or equal to the descendant's
+        # we can stop the propagation. We pass along the direct child so we can
+        # make any corrections needed for exclusive time calculation.
+
+        def descendant_complete child, descendant
+          RangeExtensions.merge_or_append descendant.time_range,
+                                            children_time_ranges
+          # If this child's time was previously added to this segment's
+          # aggregate children time, we need to re-record it using a time range
+          # for proper exclusive time calculation
+          unless child.range_recorded?
+            self.children_time -= child.duration
+            record_child_time_as_range child
+          end
+
+          if parent && finished? && descendant.end_time >= end_time
+            parent.descendant_complete self, descendant
+          end
         end
 
         private
@@ -142,11 +175,20 @@ module NewRelic
 
         def record_child_time child
           if concurrent_children? || finished? && end_time < child.end_time
-            RangeExtensions.merge_or_append child.time_range,
-                                            children_time_ranges
+            record_child_time_as_range child
           else
-            self.children_time += child.duration
+            record_child_time_as_number child
           end
+        end
+
+        def record_child_time_as_range child
+          RangeExtensions.merge_or_append child.time_range,
+                                          children_time_ranges
+          child.range_recorded = true
+        end
+
+        def record_child_time_as_number child
+          self.children_time += child.duration
         end
 
         def record_exclusive_duration
