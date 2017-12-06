@@ -8,6 +8,17 @@ module NewRelic
   module Agent
     class Transaction
       class AbstractSegment
+        # This class is the base class for all segments. It is reponsible for
+        # timing, naming, and defining lifecycle callbacks. One of the more
+        # complex responsibilites of this class is computing exclusive duration.
+        # One of the reasons for this complexity is that exclusive time will be
+        # computed using time ranges or by recording an aggregate value for
+        # a segments children time. The reason for this is that computing
+        # exclusive duration using time ranges is expensive and it's only
+        # necessary if a segment's children run concurrently, or a segment ends
+        # after it's parent. We will use the optimized exclusive duration
+        # calculation in all other cases.
+        #
         attr_reader :start_time, :end_time, :duration, :exclusive_duration
         attr_accessor :name, :parent, :children_time, :transaction
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
