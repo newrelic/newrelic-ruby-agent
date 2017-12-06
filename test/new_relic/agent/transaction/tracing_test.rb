@@ -931,6 +931,8 @@ module NewRelic
         #             |     D                 |
         #
         #
+        # Note that segment_d has components of exclusive time that need to be
+        # removed from the "test" wrapper segment
 
         def test_times_accurate_when_child_finishes_after_parent
           segment_a, segment_b, segment_c, segment_d = nil, nil, nil, nil
@@ -962,6 +964,23 @@ module NewRelic
 
           assert_equal 12.0, txn.duration
           assert_equal 14.0, txn.total_time
+
+          wrapper_segment = txn.segments.first
+
+          assert_equal 12.0, wrapper_segment.duration
+          assert_equal 0.0, wrapper_segment.exclusive_duration
+
+          assert_equal 6.0, segment_a.duration
+          assert_equal 1.0, segment_a.exclusive_duration
+
+          assert_equal 2.0, segment_b.duration
+          assert_equal 2.0, segment_b.exclusive_duration
+
+          assert_equal 3.0, segment_c.duration
+          assert_equal 3.0, segment_c.exclusive_duration
+
+          assert_equal 8.0, segment_d.duration
+          assert_equal 8.0, segment_d.exclusive_duration
         end
 
         # C, D, E are children of B. C, D, E are running concurrently.
@@ -979,6 +998,8 @@ module NewRelic
         #             |     E                 |
         #
         #
+        # Note that segment_e has components of exclusive time that need to be
+        # removed from segment_a and the "test" wrapper segment
 
         def test_times_accurate_when_child_finishes_after_parent_more_nesting
           segment_a, segment_b, segment_c, segment_d, segment_e = nil, nil, nil, nil, nil
@@ -1017,6 +1038,26 @@ module NewRelic
 
           assert_equal 12.0, txn.duration
           assert_equal 14.0, txn.total_time
+
+          wrapper_segment = txn.segments.first
+
+          assert_equal 12.0, wrapper_segment.duration
+          assert_equal 0.0, wrapper_segment.exclusive_duration
+
+          assert_equal 8.0, segment_a.duration
+          assert_equal 1.0, segment_a.exclusive_duration
+
+          assert_equal 6.0, segment_b.duration
+          assert_equal 0.0, segment_b.exclusive_duration
+
+          assert_equal 2.0, segment_c.duration
+          assert_equal 2.0, segment_c.exclusive_duration
+
+          assert_equal 3.0, segment_d.duration
+          assert_equal 3.0, segment_d.duration
+
+          assert_equal 8.0, segment_e.duration
+          assert_equal 8.0, segment_e.exclusive_duration
         end
       end
     end
