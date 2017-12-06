@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Create `:prepend_active_record_instrumentation` config option
+
+  Users may now set the `:prepend_active_record_instrumentation` option in
+  their agent config to install Active Record 3 or 4 instrumentation using
+  `Module.prepend` rather than `alias_method`.
+
   * Lazy load hooks for ActionController::Base and ActionController::API
 
   The agent now uses lazy load hooks to hook on ActionController::Base and

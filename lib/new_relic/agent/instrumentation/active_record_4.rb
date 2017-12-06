@@ -1,6 +1,8 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
+require 'new_relic/agent/instrumentation/active_record_prepend'
 require 'new_relic/agent/instrumentation/active_record_subscriber'
 require 'new_relic/agent/prepend_supportability'
 
@@ -28,7 +30,13 @@ DependencyDetection.defer do
 
     ActiveSupport.on_load(:active_record) do
       ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActiveRecord::Base, ::ActiveRecord::Relation)
-      ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
+
+      if NewRelic::Agent.config[:prepend_active_record_instrumentation]
+        ::ActiveRecord::Base.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions
+        ::ActiveRecord::Relation.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::RelationExtensions
+      else
+        ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
+      end
     end
   end
 end
