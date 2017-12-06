@@ -39,9 +39,7 @@ DependencyDetection.defer do
           name: NewRelic::Agent::Instrumentation::TyphoeusTracing::HYDRA_SEGMENT_NAME
         )
 
-        if txn = NewRelic::Agent::TransactionState.tl_get.current_transaction
-          txn.instrumentation_state[:current_hydra] = segment
-        end
+        instance_variable_set :@__newrelic_hydra_segment, segment
 
         begin
           run_without_newrelic(*args)
@@ -79,8 +77,9 @@ module NewRelic
           return unless state.is_execution_traced?
 
           wrapped_request = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(request)
-          txn = state.current_transaction
-          parent = request_is_hydra_enabled?(request) ? txn.instrumentation_state[:current_hydra] : nil
+
+          parent = request_is_hydra_enabled?(request) &&
+            request.hydra.instance_variable_get(:@__newrelic_hydra_segment)
 
           segment = NewRelic::Agent::Transaction.start_external_request_segment(
             library: wrapped_request.type,

@@ -128,6 +128,11 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
         assert_equal "External/localhost/Typhoeus/GET", child.metric_name
       end
 
+      trace.each_node do |node|
+        next if node.metric_name == "ROOT"
+        assert node.params.key?(:exclusive_duration_millis), "Expected all nodes (except ROOT) to have :exclusive_duration_millis"
+      end
+
       assert hydra.params[:exclusive_duration_millis] > 0, "Expected a positive exclusive duration"
     end
 
