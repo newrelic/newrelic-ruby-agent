@@ -32,8 +32,8 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
   setup_and_teardown_agent(:beacon => "beacon", :browser_key => "key", :js_agent_loader => "loader")
 
   def test_should_track_queue_time_metric
-    t0 = freeze_time
-    t1 = advance_time(2)
+    t0 = Time.__frozen_now = Time.now
+    t1 = Time.__frozen_now = Time.now + 2
     get_path('/queue/queued', t0)
 
     assert_metrics_recorded(
@@ -45,7 +45,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
   end
 
   def test_should_see_queue_time_in_rum
-    t0 = freeze_time
+    t0 = frozen_time
     t1 = advance_time(2)
     get_path('/queue/queued', t0)
     queue_time = extract_queue_time_from_response
@@ -53,7 +53,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
   end
 
   def test_should_not_track_queue_time_for_nested_transactions
-    t0 = freeze_time
+    t0 = frozen_time
     t1 = advance_time(2)
     get_path('/queue/nested', t0)
     assert_metrics_recorded(
