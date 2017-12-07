@@ -30,7 +30,7 @@ class CustomQueueTimeTest < Minitest::Test
   end
 
   def setup
-    freeze_time
+    frozen_time
     @headers = { 'HTTP_X_REQUEST_START' => "t=#{Time.now.to_f}" }
   end
 

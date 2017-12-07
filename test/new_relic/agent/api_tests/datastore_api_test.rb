@@ -8,7 +8,7 @@ module NewRelic
   module Agent
     class DatastoreApiTest < Minitest::Test
       def setup
-        freeze_time
+        frozen_time
         NewRelic::Agent.drop_buffered_data
       end
 

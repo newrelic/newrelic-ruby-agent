@@ -6,7 +6,7 @@ class ErrorEventsTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent do
-    freeze_time
+    frozen_time
   end
 
   def test_error_events_are_submitted

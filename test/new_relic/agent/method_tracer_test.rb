@@ -77,7 +77,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     @stats_engine.clear_stats
     @metric_name ||= nil
 
-    freeze_time
+    frozen_time
 
     super
   end

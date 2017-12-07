@@ -14,7 +14,7 @@ module NewRelic
     class TransactionEventAggregatorTest < Minitest::Test
 
       def setup
-        freeze_time
+        frozen_time
         @event_aggregator = TransactionEventAggregator.new
 
         @attributes = nil

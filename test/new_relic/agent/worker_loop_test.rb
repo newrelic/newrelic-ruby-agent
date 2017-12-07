@@ -19,7 +19,7 @@ class NewRelic::Agent::WorkerLoopTest < Minitest::Test
   end
 
   def test_with_duration
-    freeze_time
+    frozen_time
 
     period = 5.0
     worker_loop = NewRelic::Agent::WorkerLoop.new(:duration => 16.0)
@@ -83,7 +83,7 @@ class NewRelic::Agent::WorkerLoopTest < Minitest::Test
   end
 
   def test_dynamically_adjusts_the_period_once_the_loop_has_been_started
-    freeze_time
+    frozen_time
 
     worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 2)
 

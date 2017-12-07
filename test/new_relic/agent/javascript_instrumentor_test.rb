@@ -150,7 +150,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def test_config_data_for_js_agent
-    freeze_time
+    frozen_time
     with_config(CAPTURE_ATTRIBUTES => true) do
       in_transaction('most recent transaction') do
         txn = NewRelic::Agent::Transaction.tl_current
@@ -182,7 +182,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def test_config_data_for_js_agent_attributes
-    freeze_time
+    frozen_time
     with_config(CAPTURE_ATTRIBUTES => true) do
       in_transaction('most recent transaction') do
         NewRelic::Agent.add_custom_attributes(:user => "user")

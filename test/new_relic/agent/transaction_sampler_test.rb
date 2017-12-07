@@ -76,7 +76,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   # Tests
 
   def test_captures_correct_transaction_duration
-    freeze_time
+    frozen_time
     in_transaction do |txn|
       advance_time(10.0)
     end
@@ -263,7 +263,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   # sample traces, for example. It's unfortunate, but we can't
   # reliably turn off GC on all versions of ruby under test
   def test_harvest_slowest
-    freeze_time
+    frozen_time
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       in_transaction do
         s = NewRelic::Agent::Transaction.start_segment name: 'first'
@@ -321,7 +321,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       assert((new_slowest != slowest), "Should not harvest the same trace since the new one should be slower")
       assert_equal(new_slowest.duration.round, 10, "Slowest duration must be = 10, but was: #{new_slowest.duration.inspect}")
     end
-    unfreeze_time
+    unfrozen_time
   end
 
   def test_harvest_prepare_samples

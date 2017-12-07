@@ -11,7 +11,7 @@ module NewRelic
   module Agent
     class TransactionEventPrimitiveTest < Minitest::Test
       def setup
-        freeze_time
+        frozen_time
       end
 
       def test_creates_intrinsics

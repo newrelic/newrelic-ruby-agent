@@ -150,7 +150,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   }
 
   def test_update_apdex_records_correct_apdex_for_key_transaction
-    t0 = freeze_time
+    t0 = frozen_time
 
     with_config(KEY_TRANSACTION_CONFIG) do
       in_web_transaction('Controller/slow/txn') do
@@ -171,7 +171,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_update_apdex_records_correct_apdex_for_non_key_transaction
-    t0 = freeze_time
+    t0 = frozen_time
 
     with_config(KEY_TRANSACTION_CONFIG) do
       in_web_transaction('Controller/other/txn') do
@@ -192,7 +192,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_update_apdex_records_for_background_key_transaction
-    t0 = freeze_time
+    t0 = frozen_time
     with_config(KEY_TRANSACTION_CONFIG) do
       in_background_transaction('OtherTransaction/back/ground') do
         state = NewRelic::Agent::TransactionState.tl_get
@@ -211,7 +211,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_skips_apdex_records_for_background_non_key_transaction
-    t0 = freeze_time
+    t0 = frozen_time
     with_config(KEY_TRANSACTION_CONFIG) do
       in_background_transaction('OtherTransaction/other/task') do
         state = NewRelic::Agent::TransactionState.tl_get
@@ -243,7 +243,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_records_apdex_all_for_both_transaction_types
-    t0 = freeze_time
+    t0 = frozen_time
     with_config(KEY_TRANSACTION_CONFIG) do
       in_background_transaction('OtherTransaction/back/ground') do
         state = NewRelic::Agent::TransactionState.tl_get
@@ -382,7 +382,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       duration = payload[:duration]
     end
 
-    start_time = freeze_time
+    start_time = frozen_time
     in_web_transaction('Controller/foo/1/bar/22') do
       advance_time(5)
       NewRelic::Agent::Transaction.tl_current.freeze_name_and_execute_if_not_ignored
@@ -394,7 +394,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_end_fires_a_transaction_finished_event_with_overview_metrics
-    freeze_time
+    frozen_time
     options = nil
     NewRelic::Agent.subscribe(:transaction_finished) do |payload|
       options = payload[:metrics]
@@ -495,7 +495,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       apdex = payload[:apdex_perf_zone]
     end
 
-    freeze_time
+    frozen_time
 
     with_config(:apdex_t => 1.0) do
       in_web_transaction { advance_time 0.5 }
@@ -515,7 +515,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       apdex = payload[:apdex_perf_zone]
     end
 
-    freeze_time
+    frozen_time
 
     with_config(:apdex_t => 1.0) do
       in_background_transaction { advance_time 0.5 }
@@ -529,7 +529,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       apdex = payload[:apdex_perf_zone]
     end
 
-    freeze_time
+    frozen_time
 
     txn_name = 'OtherTransaction/back/ground'
     key_transactions = { txn_name => 1.0 }
@@ -583,7 +583,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       keys = payload.keys
     end
 
-    freeze_time
+    frozen_time
 
     in_transaction do
       advance_time(10)
@@ -1120,7 +1120,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_doesnt_record_scoped_queue_time_metric
-    t0 = freeze_time
+    t0 = frozen_time
     advance_time 10.0
     in_transaction('boo', :apdex_start_time => t0) do
       # nothing
@@ -1132,7 +1132,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_doesnt_record_crazy_high_queue_times
-    t0 = freeze_time(Time.at(10.0))
+    t0 = frozen_time(Time.at(10.0))
     advance_time(40 * 365 * 24 * 60 * 60) # 40 years
     in_transaction('boo', :apdex_start_time => t0) do
       # nothing

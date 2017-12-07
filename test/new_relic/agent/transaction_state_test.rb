@@ -38,7 +38,7 @@ module NewRelic::Agent
     end
 
     def test_timings_with_transaction
-      earliest_time = freeze_time
+      earliest_time = frozen_time
 
       in_transaction("Transaction/name") do |txn|
         txn.apdex_start = earliest_time

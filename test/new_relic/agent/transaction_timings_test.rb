@@ -9,7 +9,7 @@ module NewRelic::Agent
   class TransactionTimingsTest < Minitest::Test
 
     def setup
-      @start_time = freeze_time
+      @start_time = frozen_time
       @name = "Name"
     end
 

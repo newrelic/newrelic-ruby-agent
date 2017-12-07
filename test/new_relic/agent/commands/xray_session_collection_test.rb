@@ -227,7 +227,7 @@ module NewRelic::Agent::Commands
     end
 
     def test_before_harvest_event_prunes_finished_sessions
-      freeze_time
+      frozen_time
 
       handle_command_for(SECOND_ID)
       assert sessions.include?(SECOND_ID)

@@ -55,7 +55,7 @@ EOL
 
   def setup
     super
-    freeze_time
+    frozen_time
 
     @config = {
       :application_id                       => 5,

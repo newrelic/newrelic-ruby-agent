@@ -10,7 +10,7 @@ module NewRelic
   module Agent
     class ErrorEventAggregatorTest < Minitest::Test
       def setup
-        freeze_time
+        frozen_time
         @error_event_aggregator = ErrorEventAggregator.new
       end
 

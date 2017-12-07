@@ -10,7 +10,7 @@ module NewRelic
     class Transaction
       class TraceBuilderTest < Minitest::Test
         def setup
-          freeze_time
+          frozen_time
         end
 
         def test_builds_trace_for_transaction

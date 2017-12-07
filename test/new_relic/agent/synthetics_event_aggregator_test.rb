@@ -11,7 +11,7 @@ module NewRelic
   module Agent
     class SyntheticsEventAggregatorTest < Minitest::Test
       def setup
-        freeze_time
+        frozen_time
         @attributes = nil
         @synthetics_event_aggregator = SyntheticsEventAggregator.new
       end

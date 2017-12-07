@@ -484,16 +484,16 @@ unless Time.respond_to?(:__original_now)
   end
 end
 
-def freeze_time(now=Time.now)
+def frozen_time(now=Time.now)
   Time.__frozen_now = now
 end
 
-def unfreeze_time
+def unfrozen_time
   Time.__frozen_now = nil
 end
 
 def advance_time(seconds)
-  freeze_time(Time.now + seconds)
+  Time.__frozen_now = Time.now + seconds
 end
 
 def with_constant_defined(constant_symbol, implementation=Module.new)

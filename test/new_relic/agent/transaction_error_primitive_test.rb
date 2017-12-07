@@ -11,7 +11,7 @@ module NewRelic
   module Agent
     class TransactionErrorPrimitiveTest < Minitest::Test
       def setup
-        freeze_time
+        frozen_time
       end
 
 

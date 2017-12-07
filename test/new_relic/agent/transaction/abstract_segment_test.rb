@@ -19,7 +19,7 @@ module NewRelic
         end
 
         def setup
-          freeze_time
+          frozen_time
         end
 
         def teardown

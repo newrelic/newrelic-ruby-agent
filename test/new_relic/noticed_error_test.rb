@@ -13,7 +13,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   def setup
     @path = 'foo/bar/baz'
 
-    freeze_time
+    frozen_time
     @time = Time.now
 
     @attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)

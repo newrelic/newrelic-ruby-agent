@@ -60,7 +60,7 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
 
     elapsed = 10
 
-    freeze_time
+    frozen_time
     Process.stubs(:times).returns(timeinfo0, timeinfo1)
     NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(4)
 
@@ -87,7 +87,7 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
     timeinfo1.stubs(:utime).returns(0.0)
     timeinfo1.stubs(:stime).returns(0.0)
 
-    freeze_time
+    frozen_time
     Process.stubs(:times).returns(timeinfo0, timeinfo1)
 
     s = NewRelic::Agent::Samplers::CpuSampler.new # this calls poll
