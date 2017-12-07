@@ -1,4 +1,9 @@
 # New Relic Ruby Agent Release Notes #
+  
+  * Test against Rails 5.2.0.beta2
+
+  The agent now officially supports Rails 5.2.
+  
   * Typhoeus Hydra Instrumentation
 
   The agent now has request level visibility for HTTP requests made using
