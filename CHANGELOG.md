@@ -1,4 +1,8 @@
 # New Relic Ruby Agent Release Notes #
+  * Typhoeus Hydra Instrumentation
+
+  The agent now has request level visibility for HTTP requests made using
+  Typhoeus Hydra.
 
   * Lazy load hooks for ActionController::Base and ActionController::API
 
