@@ -4,6 +4,18 @@
   The agent now has request level visibility for HTTP requests made using
   Typhoeus Hydra.
 
+  * Total Time Metrics are Recorded
+
+  The agent now records Total Time metrics. In an application where segments
+  execute concurrently, the total time can exceed the wall-clock time for a
+  transaction. Users of the new Typhoeus Hydra instrumentation will notice
+  this as changes on the overview page. Immediately after upgrading there
+  will be an alert in the APM dashboard that states: "There are both old and
+  new time metrics for this time window". This indicates that during that time
+  window, some transactions report the total time metrics, while others do not.
+  The message will go away after waiting for enough to time to elapse and / or
+  updating the time window.
+
   * Lazy load hooks for ActionController::Base and ActionController::API
 
   The agent now uses lazy load hooks to hook on ActionController::Base and
