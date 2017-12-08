@@ -47,10 +47,12 @@ module NewRelic
         def uri
           case @request.path
           when /^https?:\/\//
-            URI(@request.path)
+            ::NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(@request.path)
           else
             scheme = @connection.use_ssl? ? 'https' : 'http'
-            URI("#{scheme}://#{@connection.address}:#{@connection.port}#{@request.path}")
+            ::NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(
+              "#{scheme}://#{@connection.address}:#{@connection.port}#{@request.path}"
+              )
           end
         end
       end
