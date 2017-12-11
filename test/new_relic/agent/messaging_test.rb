@@ -155,7 +155,8 @@ module NewRelic
           destination_name: "Default",
           routing_key: "red"
         ) do
-          assert_equal 'OtherTransaction/Message/AwesomeBunniez/Exchange/Named/Default', NewRelic::Agent.get_transaction_name
+          txn = NewRelic::Agent::TransactionState.tl_get.current_transaction
+          assert_equal 'OtherTransaction/Message/AwesomeBunniez/Exchange/Named/Default', txn.best_name
           tap.tap
         end
 
