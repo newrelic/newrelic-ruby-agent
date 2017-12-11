@@ -89,8 +89,8 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       ['foo', 'outer']                            => expected_values,
       'bar'                                       => expected_values,
       'Supportability/API/trace_execution_scoped' => expected_values,
-      'OtherTransactionTotalTime'                         => expected_values,
-      'OtherTransactionTotalTime/outer'    => expected_values
+      'OtherTransactionTotalTime'                 => expected_values,
+      'OtherTransactionTotalTime/outer'           => expected_values
     )
   end
 
