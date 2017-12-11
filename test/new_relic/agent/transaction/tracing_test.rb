@@ -16,7 +16,7 @@ module NewRelic
         end
 
         def teardown
-          unnr_freeze_time
+          nr_unfreeze_time
           NewRelic::Agent.drop_buffered_data
         end
 

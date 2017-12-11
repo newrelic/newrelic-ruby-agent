@@ -150,7 +150,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
       advance_time elapsed
       assert_equal segment, txn.current_segment
       segment.finish
-      unnr_freeze_time
+      nr_unfreeze_time
       assert_equal segment.sql_statement.sql, query
       assert_equal segment.duration, elapsed
     end
@@ -171,7 +171,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
       advance_time elapsed
       assert_equal segment, txn.current_segment
       segment.finish
-      unnr_freeze_time
+      nr_unfreeze_time
       assert_equal segment.nosql_statement, query
       assert_equal segment.duration, elapsed
     end

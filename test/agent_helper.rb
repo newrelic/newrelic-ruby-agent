@@ -488,7 +488,7 @@ def nr_freeze_time(now=Time.now)
   Time.__frozen_now = now
 end
 
-def unnr_freeze_time
+def nr_unfreeze_time
   Time.__frozen_now = nil
 end
 
