@@ -118,8 +118,22 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
         hydra.run
       end
 
-      last_node = find_last_transaction_node()
-      assert_equal "External/Multiple/Typhoeus::Hydra/run", last_node.metric_name
+      trace = last_transaction_trace
+
+      hydra = find_node_with_name trace, "External/Multiple/Typhoeus::Hydra/run"
+
+      assert_equal 5, hydra.children.size
+
+      hydra.children.each do |child|
+        assert_equal "External/localhost/Typhoeus/GET", child.metric_name
+      end
+
+      trace.each_node do |node|
+        next if node.metric_name == "ROOT"
+        assert node.params.key?(:exclusive_duration_millis), "Expected all nodes (except ROOT) to have :exclusive_duration_millis"
+      end
+
+      assert hydra.params[:exclusive_duration_millis] > 0, "Expected a positive exclusive duration"
     end
 
     if CURRENT_TYPHOEUS_VERSION >= SUPPORTS_URI_OBJECT_VERSION

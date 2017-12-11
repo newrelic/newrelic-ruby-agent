@@ -33,11 +33,18 @@ DependencyDetection.defer do
   # Apply single TT node for Hydra requests until async support
   executes do
     class Typhoeus::Hydra
-      include NewRelic::Agent::MethodTracer
 
       def run_with_newrelic(*args)
-        trace_execution_scoped("External/Multiple/Typhoeus::Hydra/run") do
+        segment = NewRelic::Agent::Transaction.start_segment(
+          name: NewRelic::Agent::Instrumentation::TyphoeusTracing::HYDRA_SEGMENT_NAME
+        )
+
+        instance_variable_set :@__newrelic_hydra_segment, segment
+
+        begin
           run_without_newrelic(*args)
+        ensure
+          segment.finish if segment
         end
       end
 
@@ -48,39 +55,53 @@ DependencyDetection.defer do
 end
 
 
-module NewRelic::Agent::Instrumentation::TyphoeusTracing
+module NewRelic
+  module Agent
+    module Instrumentation
+      module TyphoeusTracing
 
-  EARLIEST_VERSION = Gem::Version.new("0.5.3")
+        HYDRA_SEGMENT_NAME = "External/Multiple/Typhoeus::Hydra/run"
 
-  def self.is_supported_version?
-    Gem::Version.new(Typhoeus::VERSION) >= NewRelic::Agent::Instrumentation::TyphoeusTracing::EARLIEST_VERSION
-  end
+        EARLIEST_VERSION = Gem::Version.new("0.5.3")
 
-  def self.request_is_hydra_enabled?(request)
-    request.respond_to?(:hydra) && request.hydra
-  end
+        def self.is_supported_version?
+          Gem::Version.new(Typhoeus::VERSION) >= NewRelic::Agent::Instrumentation::TyphoeusTracing::EARLIEST_VERSION
+        end
 
-  def self.trace(request)
-    state = NewRelic::Agent::TransactionState.tl_get
-    if state.is_execution_traced? && !request_is_hydra_enabled?(request)
-      wrapped_request = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(request)
+        def self.request_is_hydra_enabled?(request)
+          request.respond_to?(:hydra) && request.hydra
+        end
 
-      segment = NewRelic::Agent::Transaction.start_external_request_segment(
-        library: wrapped_request.type,
-        uri: wrapped_request.uri,
-        procedure: wrapped_request.method
-      )
+        def self.trace(request)
+          state = NewRelic::Agent::TransactionState.tl_get
+          return unless state.is_execution_traced?
 
-      segment.add_request_headers wrapped_request
+          wrapped_request = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(request)
 
-      callback = Proc.new do
-        wrapped_response = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(request.response)
-        segment.read_response_headers wrapped_response
-        segment.finish if segment
+          parent = if request_is_hydra_enabled?(request)
+            request.hydra.instance_variable_get(:@__newrelic_hydra_segment)
+          end
+
+          segment = NewRelic::Agent::Transaction.start_external_request_segment(
+            library: wrapped_request.type,
+            uri: wrapped_request.uri,
+            procedure: wrapped_request.method,
+            parent: parent
+          )
+
+          segment.add_request_headers wrapped_request
+
+          callback = Proc.new do
+            wrapped_response = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(request.response)
+            segment.read_response_headers wrapped_response
+            segment.finish if segment
+          end
+          request.on_complete.unshift(callback)
+
+        rescue => e
+          NewRelic::Agent.logger.error("Exception during trace setup for Typhoeus request", e)
+        end
       end
-      request.on_complete.unshift(callback)
     end
-  rescue => e
-    NewRelic::Agent.logger.error("Exception during trace setup for Typhoeus request", e)
   end
 end
