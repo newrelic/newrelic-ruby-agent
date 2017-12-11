@@ -20,11 +20,13 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
-      ['foo', 'outer'] => expected_values,
-      'foo'            => expected_values,
-      'bar'            => expected_values,
-      'outer'          => expected_values,
-      'Supportability/API/trace_execution_scoped' => expected_values
+      ['foo', 'outer']                            => expected_values,
+      'foo'                                       => expected_values,
+      'bar'                                       => expected_values,
+      'outer'                                     => expected_values,
+      'Supportability/API/trace_execution_scoped' => expected_values,
+      'OtherTransactionTotalTime'                 => expected_values,
+      'OtherTransactionTotalTime/outer'           => expected_values
     )
   end
 
@@ -39,18 +41,20 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
-      'HttpDispatcher'                                    => expected_values,
-      'Controller/inner_txn'                              => expected_values,
+      'HttpDispatcher'                                        => expected_values,
+      'Controller/inner_txn'                                  => expected_values,
 
       'Nested/Controller/inner_txn'                           => expected_values,
       ['Nested/Controller/inner_txn', 'Controller/inner_txn'] => expected_values,
       'Nested/Controller/outer_txn'                           => expected_values,
       ['Nested/Controller/outer_txn', 'Controller/inner_txn'] => expected_values,
 
-      ['foo'                    , 'Controller/inner_txn'] => expected_values,
-      'foo'                                               => expected_values,
-      'bar'                                               => expected_values,
-      'Supportability/API/trace_execution_scoped' => expected_values
+      ['foo'                    , 'Controller/inner_txn']     => expected_values,
+      'foo'                                                   => expected_values,
+      'bar'                                                   => expected_values,
+      'Supportability/API/trace_execution_scoped'             => expected_values,
+      'OtherTransactionTotalTime'                             => expected_values,
+      'OtherTransactionTotalTime/Controller/inner_txn'        => expected_values
     )
   end
 
@@ -80,11 +84,13 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
-      'outer'          => expected_values,
-      'foo'            => expected_values,
-      ['foo', 'outer'] => expected_values,
-      'bar'            => expected_values,
-      'Supportability/API/trace_execution_scoped' => expected_values
+      'outer'                                     => expected_values,
+      'foo'                                       => expected_values,
+      ['foo', 'outer']                            => expected_values,
+      'bar'                                       => expected_values,
+      'Supportability/API/trace_execution_scoped' => expected_values,
+      'OtherTransactionTotalTime'                 => expected_values,
+      'OtherTransactionTotalTime/outer'           => expected_values
     )
   end
 
@@ -100,7 +106,10 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
       'outer' => expected_values,
-      'Supportability/API/trace_execution_scoped' => expected_values)
+      'Supportability/API/trace_execution_scoped' => expected_values,
+      'OtherTransactionTotalTime' => expected_values,
+      'OtherTransactionTotalTime/outer' => expected_values
+    )
   end
 
   def test_trace_execution_scoped_calculates_exclusive_time
@@ -138,7 +147,15 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
         :total_call_time      => 10,
         :total_exclusive_time => 10,
       },
-      'Supportability/API/trace_execution_scoped' => { call_count: 2 }
+      'Supportability/API/trace_execution_scoped' => {
+        call_count: 2
+      },
+      'OtherTransactionTotalTime' => {
+        :call_count           => 1
+      },
+      'OtherTransactionTotalTime/txn' => {
+        :call_count           => 1
+      }
     )
   end
 

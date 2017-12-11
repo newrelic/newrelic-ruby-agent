@@ -50,6 +50,8 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
       'Supportability/API/perform_action_with_newrelic_trace',
       'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
       'Apdex/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
+      'WebTransactionTotalTime',
+      'WebTransactionTotalTime/Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
       'HttpDispatcher',
       'ApdexAll',
       'Apdex'

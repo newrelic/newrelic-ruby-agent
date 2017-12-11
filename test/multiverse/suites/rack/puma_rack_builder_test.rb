@@ -73,6 +73,8 @@ class PumaRackBuilderTest < Minitest::Test
         "Middleware/Rack/PumaRackBuilderTest::MiddlewareOne/call",
         "Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call",
         "Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call",
+        "WebTransactionTotalTime",
+        "WebTransactionTotalTime/Controller/Rack/PumaRackBuilderTest::ExampleApp/call",
         ["Middleware/Rack/PumaRackBuilderTest::MiddlewareOne/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"],
         ["Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"],
         ["Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"]
