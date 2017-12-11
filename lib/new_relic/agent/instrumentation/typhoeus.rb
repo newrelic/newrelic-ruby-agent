@@ -78,8 +78,9 @@ module NewRelic
 
           wrapped_request = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(request)
 
-          parent = request_is_hydra_enabled?(request) &&
+          parent = if request_is_hydra_enabled?(request)
             request.hydra.instance_variable_get(:@__newrelic_hydra_segment)
+          end
 
           segment = NewRelic::Agent::Transaction.start_external_request_segment(
             library: wrapped_request.type,
