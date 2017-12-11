@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Add `:message` category to `:set_transaction_name` public API method
+
+  The agent now permits the `:message` category to be passed into the public
+  API method `:set_transaction_name`, generating the category prefix
+  `'OtherTransaction/Message/'`.
+
   * Create `:prepend_active_record_instrumentation` config option
 
   Users may now set the `:prepend_active_record_instrumentation` option in

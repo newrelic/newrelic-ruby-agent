@@ -129,7 +129,7 @@ module NewRelic
 
         begin
           txn_name = transaction_name library, destination_type, destination_name
-          txn = Transaction.start state, :background, transaction_name: txn_name
+          txn = Transaction.start state, :message, transaction_name: txn_name
           consume_message_headers headers, txn, state
 
           CrossAppTracing.reject_messaging_cat_headers(headers).each do |k, v|
