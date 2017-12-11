@@ -234,7 +234,7 @@ class AgentCommandRouterTest < Minitest::Test
   end
 
   def start_profile(args={})
-    frozen_time
+    nr_freeze_time
     agent_commands.backtrace_service.worker_loop.stubs(:run)
     agent_commands.thread_profiler_session.start(create_agent_command(args))
   end

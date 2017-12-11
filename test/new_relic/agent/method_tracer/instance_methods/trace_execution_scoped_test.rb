@@ -113,7 +113,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   end
 
   def test_trace_execution_scoped_calculates_exclusive_time
-    frozen_time
+    nr_freeze_time
     in_transaction('txn') do
       trace_execution_scoped(['parent']) do
         advance_time(10)

@@ -14,7 +14,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       include ThreadedTestCase
 
       def setup
-        frozen_time
+        nr_freeze_time
         NewRelic::Agent.instance.stats_engine.clear_stats
         @event_listener = NewRelic::Agent::EventListener.new
         @service = BacktraceService.new(@event_listener)
@@ -464,7 +464,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       end
 
       def test_dynamic_adjustment_drives_from_config
-        frozen_time
+        nr_freeze_time
         fake_worker_loop(@service)
 
         with_config(:'xray_session.max_profile_overhead' => 0.1) do

@@ -25,7 +25,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def setup
-    frozen_time
+    nr_freeze_time
     @subscriber = NewRelic::Agent::Instrumentation::ActionControllerSubscriber.new
     NewRelic::Agent.drop_buffered_data
     @entry_payload = {

@@ -15,7 +15,7 @@ class MarshalingTest < Minitest::Test
   end
 
   def test_transaction_trace_marshaling
-    frozen_time
+    nr_freeze_time
 
     in_transaction do
       trace_execution_scoped('a') do

@@ -45,7 +45,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
   end
 
   def test_should_see_queue_time_in_rum
-    t0 = frozen_time
+    t0 = nr_freeze_time
     t1 = advance_time(2)
     get_path('/queue/queued', t0)
     queue_time = extract_queue_time_from_response
@@ -53,7 +53,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
   end
 
   def test_should_not_track_queue_time_for_nested_transactions
-    t0 = frozen_time
+    t0 = nr_freeze_time
     t1 = advance_time(2)
     get_path('/queue/nested', t0)
     assert_metrics_recorded(

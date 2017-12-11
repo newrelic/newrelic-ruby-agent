@@ -14,7 +14,7 @@ module NewRelic
       class ActionCableSubscriberTest < Minitest::Test
 
         def setup
-          frozen_time
+          nr_freeze_time
           @subscriber = ActionCableSubscriber.new
 
           NewRelic::Agent.drop_buffered_data

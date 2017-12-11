@@ -484,11 +484,11 @@ unless Time.respond_to?(:__original_now)
   end
 end
 
-def frozen_time(now=Time.now)
+def nr_freeze_time(now=Time.now)
   Time.__frozen_now = now
 end
 
-def unfrozen_time
+def unnr_freeze_time
   Time.__frozen_now = nil
 end
 

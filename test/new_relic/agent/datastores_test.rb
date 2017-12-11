@@ -140,7 +140,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     elapsed = 1.0
 
     in_transaction do |txn|
-      frozen_time
+      nr_freeze_time
       segment = NewRelic::Agent::Transaction.start_datastore_segment(
         product: "MyFirstDatabase",
         operation: "find",
@@ -150,7 +150,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
       advance_time elapsed
       assert_equal segment, txn.current_segment
       segment.finish
-      unfrozen_time
+      unnr_freeze_time
       assert_equal segment.sql_statement.sql, query
       assert_equal segment.duration, elapsed
     end
@@ -161,7 +161,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     elapsed = 1.0
 
     in_transaction do |txn|
-      frozen_time
+      nr_freeze_time
       segment = NewRelic::Agent::Transaction.start_datastore_segment(
         product: "MyFirstDatastore",
         operation: "get",
@@ -171,7 +171,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
       advance_time elapsed
       assert_equal segment, txn.current_segment
       segment.finish
-      unfrozen_time
+      unnr_freeze_time
       assert_equal segment.nosql_statement, query
       assert_equal segment.duration, elapsed
     end

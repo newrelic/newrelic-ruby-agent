@@ -10,7 +10,7 @@ require 'new_relic/agent/custom_event_aggregator'
 module NewRelic::Agent
   class CustomEventAggregatorTest < Minitest::Test
     def setup
-      frozen_time
+      nr_freeze_time
       @aggregator = NewRelic::Agent::CustomEventAggregator.new
     end
 

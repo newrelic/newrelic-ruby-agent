@@ -185,7 +185,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       end
 
       def test_aggregate_updates_created_at_timestamp
-        expected = frozen_time
+        expected = nr_freeze_time
         @profile = ThreadProfile.new
 
         @profile.aggregate(@single_trace, :request, Thread.current)
