@@ -3,7 +3,7 @@
   * Expected Error API
 
   The agent now sends up `error.expected` as an intrinsic attribute on error
-  events and traces.
+  events and error traces.
   
   * Typhoeus Hydra Instrumentation
 
