@@ -130,11 +130,13 @@ module NewRelic
         begin
           txn_name = transaction_name library, destination_type, destination_name
           txn = Transaction.start state, :message, transaction_name: txn_name
-          consume_message_headers headers, txn, state
 
-          CrossAppTracing.reject_messaging_cat_headers(headers).each do |k, v|
-            txn.add_agent_attribute :"message.headers.#{k}", v, AttributeFilter::DST_NONE unless v.nil?
-          end if headers
+          if headers
+            consume_message_headers headers, txn, state
+            CrossAppTracing.reject_messaging_cat_headers(headers).each do |k, v|
+              txn.add_agent_attribute :"message.headers.#{k}", v, AttributeFilter::DST_NONE unless v.nil?
+            end
+          end
 
           txn.add_agent_attribute :'message.routingKey', routing_key, ATTR_DESTINATION if routing_key
           txn.add_agent_attribute :'message.exchangeType', exchange_type, AttributeFilter::DST_NONE if exchange_type
