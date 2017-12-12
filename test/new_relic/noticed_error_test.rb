@@ -36,7 +36,8 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
         :request_uri      => 'http://com.google',
         'userAttributes'  => { 'user' => 'params' },
         'agentAttributes' => {},
-        'intrinsics'      => {}
+        'intrinsics'      => {},
+       :'error.expected' => false
       }
     ]
     assert_equal expected, error.to_collector_array
@@ -56,7 +57,8 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
         'custom' => 'attribute'
       },
       'agentAttributes' => {},
-      'intrinsics'      => {}
+      'intrinsics'      => {},
+      :'error.expected' => false
     }
 
     assert_equal expected, actual
@@ -91,7 +93,8 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       {
         'userAttributes'  => {},
         'agentAttributes' => {},
-        'intrinsics'      => {}
+        'intrinsics'      => {},
+        :'error.expected' => false
       }
     ]
     assert_equal expected, error.to_collector_array
@@ -105,6 +108,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       "<no message>",
       "Error",
       {
+        :'error.expected' => false,
         'userAttributes'  => {},
         'agentAttributes' => {},
         'intrinsics'      => {}

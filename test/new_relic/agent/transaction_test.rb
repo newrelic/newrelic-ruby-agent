@@ -725,6 +725,21 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal "/here",  error.request_uri
   end
 
+  def test_notice_error_sets_expected_attribute
+    NewRelic::Agent::Transaction.notice_error(RuntimeError.new, expected: true)
+    errors = harvest_error_traces!
+    assert errors.first.expected, "Error should have had expected attribute set"
+  end
+
+  def test_notice_error_sets_expected_attribute_in_transaction
+    in_transaction do
+      NewRelic::Agent::Transaction.notice_error(RuntimeError.new, expected: true)
+    end
+
+    errors = harvest_error_traces!
+    assert errors.first.expected, "Error should have had expected attribute set"
+  end
+
   def test_records_gc_time
     gc_start = mock('gc start')
     gc_end   = mock('gc end')

@@ -19,8 +19,19 @@ class ErrorEventsTest < Minitest::Test
     assert_equal txn.best_name, intrinsics["transactionName"]
     assert_equal "RuntimeError", intrinsics["error.class"]
     assert_equal "Big Controller", intrinsics["error.message"]
+    assert_equal false, intrinsics["error.expected"]
     assert_equal "TransactionError", intrinsics["type"]
     assert_equal txn.payload[:duration], intrinsics["duration"]
+  end
+
+  def test_error_events_honor_expected_option
+    txn = generate_errors 1, expected: true
+
+    NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
+
+    intrinsics, _, _ = last_error_event
+
+    assert_equal true, intrinsics["error.expected"]
   end
 
   def test_records_supportability_metrics
@@ -80,9 +91,9 @@ class ErrorEventsTest < Minitest::Test
     assert_equal "No Txn", intrinsics["error.message"]
   end
 
-  def generate_errors num_errors = 1
+  def generate_errors num_errors = 1, options = {}
     in_transaction :transaction_name => "Controller/blogs/index" do |t|
-      num_errors.times { t.notice_error RuntimeError.new "Big Controller" }
+      num_errors.times { t.notice_error RuntimeError.new("Big Controller"), options }
     end
   end
 
