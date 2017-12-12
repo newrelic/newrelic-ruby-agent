@@ -515,6 +515,35 @@ module NewRelic
         end
       end
 
+      def test_wrap_message_broker_consume_transaction_tolerates_empty_headers
+        cross_process_id     = "321#123"
+
+        tap = mock 'tap'
+        tap.expects :tap
+
+        NewRelic::Agent::Messaging.expects(:consume_message_headers).never
+
+        with_config :"cross_application_tracer.enabled" => true,
+                    :cross_process_id => cross_process_id,
+                    :trusted_account_ids => [321],
+                    :encoding_key => "abc" do
+
+          NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
+            library: "RabbitMQ",
+            destination_type: :exchange,
+            destination_name: "Default",
+            routing_key: "my.queue",
+            headers: nil
+          ) do
+            tap.tap
+          end
+
+          assert_metrics_recorded "OtherTransaction/Message/RabbitMQ/Exchange/Named/Default"
+          # we do not expect cat to be linked up with empty headers
+          refute_metrics_recorded "ClientApplication/#{cross_process_id}/all"
+        end
+      end
+
       def obfuscator
         NewRelic::Agent::CrossAppTracing.obfuscator
       end
