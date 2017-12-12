@@ -1,4 +1,10 @@
 # New Relic Ruby Agent Release Notes #
+
+  * Expected Error API
+
+  The agent now sends up `error.expected` as an intrinsic attribute on error
+  events and error traces.
+  
   * Typhoeus Hydra Instrumentation
 
   The agent now has request level visibility for HTTP requests made using
