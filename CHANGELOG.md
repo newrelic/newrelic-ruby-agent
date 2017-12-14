@@ -41,7 +41,7 @@
   The agent now uses lazy load hooks to hook on ActionController::Base and
   ActionController::API. Thanks Edouard Chin for the contribution!
 
-  # Use Lazy load hooks for ActiveRecord::Base and ActiveRecord::Relation
+  * Use Lazy load hooks for ActiveRecord::Base and ActiveRecord::Relation
 
   The agent uses lazy load hooks when recording supportability metrics
   for ActiveRecord::Base and ActiveRecord::Relation. Thanks Joseph Haig
