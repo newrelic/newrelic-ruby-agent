@@ -1,12 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v4.7.0 ##
+
   * Expected Error API
 
   The agent now sends up `error.expected` as an intrinsic attribute on error
   events and error traces. This attribute is set to `false` by default; it
   can be set to `true` by passing `expected: true` to the `notice_error`
   method.
-  
   * Typhoeus Hydra Instrumentation
 
   The agent now has request level visibility for HTTP requests made using
@@ -36,10 +37,16 @@
   their agent config to install Active Record 3 or 4 instrumentation using
   `Module.prepend` rather than `alias_method`.
 
-  * Lazy load hooks for ActionController::Base and ActionController::API
+  * Use Lazy load hooks for ActionController::Base and ActionController::API
 
   The agent now uses lazy load hooks to hook on `ActionController::Base` and
   `ActionController::API`. Thanks Edouard Chin for the contribution!
+
+  * Use Lazy load hooks for ActiveRecord::Base and ActiveRecord::Relation
+
+  The agent uses lazy load hooks when recording supportability metrics
+  for ActiveRecord::Base and ActiveRecord::Relation. Thanks Joseph Haig
+  for the contribution!
 
   * Check that `Rails::VERSION` is defined instead of just `Rails`
 
