@@ -3,7 +3,9 @@
   * Expected Error API
 
   The agent now sends up `error.expected` as an intrinsic attribute on error
-  events and error traces.
+  events and error traces. This attribute is set to `false` by default; it
+  can be set to `true` by passing `expected: true` to the `notice_error`
+  method.
   
   * Typhoeus Hydra Instrumentation
 
@@ -19,25 +21,25 @@
   will be an alert in the APM dashboard that states: "There are both old and
   new time metrics for this time window". This indicates that during that time
   window, some transactions report the total time metrics, while others do not.
-  The message will go away after waiting for enough to time to elapse and / or
+  The message will go away after waiting for enough time to elapse and / or
   updating the time window.
 
   * Add `:message` category to `:set_transaction_name` public API method
 
   The agent now permits the `:message` category to be passed into the public
-  API method `:set_transaction_name`, generating the category prefix
-  `'OtherTransaction/Message/'`.
+  API method `set_transaction_name`, generating the category prefix
+  `OtherTransaction/Message/`.
 
-  * Create `:prepend_active_record_instrumentation` config option
+  * Create `prepend_active_record_instrumentation` config option
 
-  Users may now set the `:prepend_active_record_instrumentation` option in
+  Users may now set the `prepend_active_record_instrumentation` option in
   their agent config to install Active Record 3 or 4 instrumentation using
   `Module.prepend` rather than `alias_method`.
 
   * Lazy load hooks for ActionController::Base and ActionController::API
 
-  The agent now uses lazy load hooks to hook on ActionController::Base and
-  ActionController::API. Thanks Edouard Chin for the contribution!
+  The agent now uses lazy load hooks to hook on `ActionController::Base` and
+  `ActionController::API`. Thanks Edouard Chin for the contribution!
 
   * Check that `Rails::VERSION` is defined instead of just `Rails`
 
