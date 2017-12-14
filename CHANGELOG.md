@@ -1,5 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v4.7.0 ##
+
   * Expected Error API
 
   The agent now sends up `error.expected` as an intrinsic attribute on error
