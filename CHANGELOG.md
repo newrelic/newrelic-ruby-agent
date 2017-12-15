@@ -25,7 +25,7 @@
   The message will go away after waiting for enough time to elapse and / or
   updating the time window.
 
-  * Add `:message` category to `:set_transaction_name` public API method
+  * Add `:message` category to `set_transaction_name` public API method
 
   The agent now permits the `:message` category to be passed into the public
   API method `set_transaction_name`, which will enable the transaction to be
@@ -37,15 +37,15 @@
   their agent config to install Active Record 3 or 4 instrumentation using
   `Module.prepend` rather than `alias_method`.
 
-  * Use Lazy load hooks for ActionController::Base and ActionController::API
+  * Use Lazy load hooks for `ActionController::Base` and `ActionController::API`
 
   The agent now uses lazy load hooks to hook on `ActionController::Base` and
   `ActionController::API`. Thanks Edouard Chin for the contribution!
 
-  * Use Lazy load hooks for ActiveRecord::Base and ActiveRecord::Relation
+  * Use Lazy load hooks for `ActiveRecord::Base` and `ActiveRecord::Relation`
 
   The agent uses lazy load hooks when recording supportability metrics
-  for ActiveRecord::Base and ActiveRecord::Relation. Thanks Joseph Haig
+  for `ActiveRecord::Base` and `ActiveRecord::Relation`. Thanks Joseph Haig
   for the contribution!
 
   * Check that `Rails::VERSION` is defined instead of just `Rails`
