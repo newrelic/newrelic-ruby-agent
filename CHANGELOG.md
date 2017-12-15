@@ -5,9 +5,9 @@
   * Expected Error API
 
   The agent now sends up `error.expected` as an intrinsic attribute on error
-  events and error traces. This attribute is set to `false` by default; it
-  can be set to `true` by passing `expected: true` to the `notice_error`
-  method.
+  events and error traces. When you pass `expected: true` to the `notice_error`
+  method, both Insights and APM will indicate that the error is expected.
+
   * Typhoeus Hydra Instrumentation
 
   The agent now has request level visibility for HTTP requests made using
@@ -28,8 +28,8 @@
   * Add `:message` category to `:set_transaction_name` public API method
 
   The agent now permits the `:message` category to be passed into the public
-  API method `set_transaction_name`, generating the category prefix
-  `OtherTransaction/Message/`.
+  API method `set_transaction_name`, which will enable the transaction to be
+  displayed as a messaging transaction.
 
   * Create `prepend_active_record_instrumentation` config option
 
@@ -57,7 +57,9 @@
   * Support fast RPC/direct reply-to in RabbitMQ
 
   The agent can now handle the pseudo-queue 'amq.rabbitmq.reply-to' in its
-  Bunny instrumentation.
+  Bunny instrumentation. Previously, using fast RPC led to a `NoMethodError`
+  because the reply-to queue was expected to be a `Queue` object instead of
+  a string.
 
 ## v4.6.0 ##
 
