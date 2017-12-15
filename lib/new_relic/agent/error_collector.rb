@@ -183,7 +183,7 @@ module NewRelic
 
       # extracts a stack trace from the exception for debugging purposes
       def extract_stack_trace(exception)
-        actual_exception = if defined?(Rails) && Rails::VERSION::MAJOR < 5
+        actual_exception = if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR < 5
                              sense_method(exception, :original_exception) || exception
                            else
                              exception
@@ -199,7 +199,7 @@ module NewRelic
 
         state = ::NewRelic::Agent::TransactionState.tl_get
 
-        unless options.delete(:expected)
+        unless options[:expected]
           increment_error_count!(state, exception, options)
         end
 
@@ -226,6 +226,8 @@ module NewRelic
         noticed_error.file_name   = sense_method(exception, :file_name)
         noticed_error.line_number = sense_method(exception, :line_number)
         noticed_error.stack_trace = extract_stack_trace(exception)
+
+        noticed_error.expected = !! options.delete(:expected)
 
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
 

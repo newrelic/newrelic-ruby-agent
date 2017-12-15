@@ -459,7 +459,12 @@ module NewRelic
         end
 
         @nesting_max_depth += 1
-        segment = self.class.start_segment name, summary_metrics
+
+        segment = self.class.start_segment(
+          name: name,
+          unscoped_metrics: summary_metrics
+        )
+
         frame_stack.push segment
         segment
       end
@@ -546,12 +551,13 @@ module NewRelic
         assign_agent_attributes
         assign_intrinsics(state)
 
-        segments.each { |s| s.finalize }
+        finalize_segments
 
         @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
         record_summary_metrics(outermost_node_name, end_time)
+        record_total_time_metrics
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time
         record_client_application_metric state

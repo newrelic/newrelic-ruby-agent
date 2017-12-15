@@ -33,6 +33,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
     expected = {
       "test_txn" => { :call_count => 1 },
+      "OtherTransactionTotalTime" => { :call_count => 1 },
+      "OtherTransactionTotalTime/test_txn" => { :call_count => 1 },
       ["Datastore/operation/Redis/connect", "test_txn"] => { :call_count => 1 },
       "Datastore/operation/Redis/connect" => { :call_count => 1 },
       ["Datastore/operation/Redis/get", "test_txn"] => { :call_count => 1 },
@@ -158,6 +160,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
     expected = {
       "test_txn" => { :call_count => 1 },
+      "OtherTransactionTotalTime" => { :call_count => 1 },
+      "OtherTransactionTotalTime/test_txn" => { :call_count => 1 },
       ["Datastore/operation/Redis/pipeline", "test_txn"] => { :call_count => 1 },
       "Datastore/operation/Redis/pipeline" => { :call_count => 1 },
       "Datastore/Redis/allOther" => { :call_count => 1 },
@@ -193,6 +197,8 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
     expected = {
       "test_txn" => { :call_count => 1 },
+      "OtherTransactionTotalTime" => { :call_count => 1 },
+      "OtherTransactionTotalTime/test_txn" => { :call_count => 1 },
       ["Datastore/operation/Redis/multi", "test_txn"] => { :call_count => 1 },
       "Datastore/operation/Redis/multi" => { :call_count => 1 },
       "Datastore/Redis/allOther" => { :call_count => 1 },

@@ -12,7 +12,8 @@ class NewRelic::NoticedError
 
   attr_accessor :path, :timestamp, :message, :exception_class_name,
                 :request_uri, :request_port, :file_name, :line_number,
-                :stack_trace, :attributes_from_notice_error, :attributes
+                :stack_trace, :attributes_from_notice_error, :attributes,
+                :expected
 
   attr_reader   :exception_id, :is_internal
 
@@ -45,6 +46,7 @@ class NewRelic::NoticedError
     @attributes_from_notice_error = nil
     @attributes = nil
     @timestamp = timestamp
+    @expected = false
   end
 
   def ==(other)
@@ -94,10 +96,11 @@ class NewRelic::NoticedError
 
   def base_parameters
     params = {}
-    params[:request_uri] = request_uri if request_uri
-    params[:file_name]   = file_name   if file_name
-    params[:line_number] = line_number if line_number
-    params[:stack_trace] = stack_trace if stack_trace
+    params[:request_uri]      = request_uri if request_uri
+    params[:file_name]        = file_name   if file_name
+    params[:line_number]      = line_number if line_number
+    params[:stack_trace]      = stack_trace if stack_trace
+    params[:'error.expected'] = expected
     params
   end
 
@@ -165,7 +168,7 @@ class NewRelic::NoticedError
       @exception_class_name = UNKNOWN_ERROR_CLASS_NAME
       @message = NIL_ERROR_MESSAGE
     else
-      if defined?(Rails) && Rails::VERSION::MAJOR < 5 && exception.respond_to?(:original_exception)
+      if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR < 5 && exception.respond_to?(:original_exception)
         exception = exception.original_exception || exception
       end
       @exception_class_name = exception.is_a?(Exception) ? exception.class.name : UNKNOWN_ERROR_CLASS_NAME

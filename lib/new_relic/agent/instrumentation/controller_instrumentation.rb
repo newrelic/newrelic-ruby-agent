@@ -241,6 +241,7 @@ module NewRelic
             when :grape         then ::NewRelic::Agent::Transaction::GRAPE_PREFIX
             when :rake          then ::NewRelic::Agent::Transaction::RAKE_PREFIX
             when :action_cable  then ::NewRelic::Agent::Transaction::ACTION_CABLE_PREFIX
+            when :message       then ::NewRelic::Agent::Transaction::MESSAGE_PREFIX
             else "#{category.to_s}/" # for internal use only
             end
           end

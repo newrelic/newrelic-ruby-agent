@@ -265,6 +265,8 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
             expected = {
               "test_txn" => {:call_count=>1},
+              "OtherTransactionTotalTime" => {:call_count=>1},
+              "OtherTransactionTotalTime/test_txn" => {:call_count=>1},
               ["Datastore/statement/MongoDB/#{@collection_name}/find", "test_txn"] => {:call_count=>1},
               "Datastore/statement/MongoDB/#{@collection_name}/find" => {:call_count=>1},
               ["Datastore/statement/MongoDB/#{@collection_name}/getMore", "test_txn"] => {:call_count=>2},

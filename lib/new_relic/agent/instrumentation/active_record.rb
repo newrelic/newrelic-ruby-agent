@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/instrumentation/active_record_prepend'
+
 module NewRelic
   module Agent
     module Instrumentation
@@ -18,7 +20,12 @@ module NewRelic
 
         def self.insert_instrumentation
           if defined?(::ActiveRecord::VERSION::MAJOR) && ::ActiveRecord::VERSION::MAJOR.to_i >= 3
-            ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
+            if ::NewRelic::Agent.config[:prepend_active_record_instrumentation]
+              ::ActiveRecord::Base.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions
+              ::ActiveRecord::Relation.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::RelationExtensions
+            else
+              ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
+            end
           end
 
           ::ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
@@ -60,7 +67,14 @@ module NewRelic
             database = @config && @config[:database]
           end
 
-          segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation, collection, host, port_path_or_id, database)
+          segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            product: product,
+            operation: operation,
+            collection: collection,
+            host: host,
+            port_path_or_id: port_path_or_id,
+            database_name: database
+          )
           segment._notice_sql(sql, @config, EXPLAINER)
 
           begin
@@ -94,7 +108,7 @@ DependencyDetection.defer do
   executes do
     require 'new_relic/agent/instrumentation/active_record_helper'
 
-    if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i == 3
+    if defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i == 3
       ActiveSupport.on_load(:active_record) do
         ::NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation
       end

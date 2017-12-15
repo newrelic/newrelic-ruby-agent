@@ -46,9 +46,6 @@ module NewRelic
             @unscoped_metrics = metric
           end
         end
-
-        def segment_complete
-        end
       end
     end
   end

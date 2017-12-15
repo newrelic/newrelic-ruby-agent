@@ -58,13 +58,13 @@ EOL
     freeze_time
 
     @config = {
-      :application_id => 5,
-      :beacon => 'beacon',
-      :browser_key => 'some browser key',
-      :'rum.enabled' => true,
-      :license_key => 'a' * 40,
-      :js_agent_loader => 'loader',
-      :disable_harvest_thread => true
+      :application_id                       => 5,
+      :beacon                               => 'beacon',
+      :browser_key                          => 'some browser key',
+      :'browser_monitoring.auto_instrument' => true,
+      :license_key                          => 'a' * 40,
+      :js_agent_loader                      => 'loader',
+      :disable_harvest_thread               => true
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
   end

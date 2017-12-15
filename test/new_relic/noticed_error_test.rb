@@ -36,7 +36,8 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
         :request_uri      => 'http://com.google',
         'userAttributes'  => { 'user' => 'params' },
         'agentAttributes' => {},
-        'intrinsics'      => {}
+        'intrinsics'      => {},
+       :'error.expected' => false
       }
     ]
     assert_equal expected, error.to_collector_array
@@ -56,7 +57,8 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
         'custom' => 'attribute'
       },
       'agentAttributes' => {},
-      'intrinsics'      => {}
+      'intrinsics'      => {},
+      :'error.expected' => false
     }
 
     assert_equal expected, actual
@@ -91,7 +93,8 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       {
         'userAttributes'  => {},
         'agentAttributes' => {},
-        'intrinsics'      => {}
+        'intrinsics'      => {},
+        :'error.expected' => false
       }
     ]
     assert_equal expected, error.to_collector_array
@@ -105,6 +108,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       "<no message>",
       "Error",
       {
+        :'error.expected' => false,
         'userAttributes'  => {},
         'agentAttributes' => {},
         'intrinsics'      => {}
@@ -182,7 +186,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     assert_equal(error.message.to_s, 'Buffy FOREVER')
   end
 
-  if defined?(Rails) && Rails::VERSION::MAJOR < 5
+  if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR < 5
     def test_uses_original_exception_class_name
       orig = FooError.new
       e = mock('exception', original_exception: orig)

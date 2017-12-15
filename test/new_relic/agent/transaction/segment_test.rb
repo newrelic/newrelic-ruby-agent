@@ -62,7 +62,9 @@ module NewRelic
             ["Custom/simple/segment", "test"],
             "Custom/simple/segment",
             "Segment/all",
-            "Supportability/API/drop_buffered_data"
+            "Supportability/API/drop_buffered_data",
+            "OtherTransactionTotalTime",
+            "OtherTransactionTotalTime/test"
           ]
         end
 
@@ -89,10 +91,12 @@ module NewRelic
           end
 
           assert_metrics_recorded_exclusive [
-            "test", 
-            "Custom/simple/segment", 
+            "test",
+            "Custom/simple/segment",
             "Segment/all",
-            "Supportability/API/drop_buffered_data"
+            "Supportability/API/drop_buffered_data",
+            "OtherTransactionTotalTime",
+            "OtherTransactionTotalTime/test"
           ]
         end
 
@@ -111,7 +115,9 @@ module NewRelic
             "Custom/simple/segment",
             "Segment/all",
             "Segment/allOther",
-            "Supportability/API/drop_buffered_data"
+            "Supportability/API/drop_buffered_data",
+            "OtherTransactionTotalTime",
+            "OtherTransactionTotalTime/test"
           ]
         end
 

@@ -23,7 +23,11 @@ module Sequel
           define_method(method_name) do |*args, &block|
             klass = self.is_a?(Class) ? self : self.class
             product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(db.adapter_scheme)
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(product, operation_name, klass.name)
+            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+              product: product,
+              operation: operation_name,
+              collection: klass.name
+            )
 
             begin
               NewRelic::Agent.disable_all_tracing { super(*args, &block) }

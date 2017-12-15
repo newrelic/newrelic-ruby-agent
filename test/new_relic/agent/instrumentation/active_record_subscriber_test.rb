@@ -4,7 +4,7 @@
 
 MIN_RAILS_VERSION = 4
 
-if defined?(::Rails) && ::Rails::VERSION::MAJOR.to_i >= MIN_RAILS_VERSION && !NewRelic::LanguageSupport.jruby?
+if defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i >= MIN_RAILS_VERSION && !NewRelic::LanguageSupport.jruby?
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 require 'new_relic/agent/instrumentation/active_record_subscriber'

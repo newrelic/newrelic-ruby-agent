@@ -18,7 +18,10 @@ module ::Excon
       resolved_params = newrelic_resolved_request_params(params)
       wrapped_request = ::NewRelic::Agent::HTTPClients::ExconHTTPRequest.new(resolved_params)
       segment = NewRelic::Agent::Transaction.start_external_request_segment(
-                  wrapped_request.type, wrapped_request.uri, wrapped_request.method)
+        library: wrapped_request.type,
+        uri: wrapped_request.uri,
+        procedure: wrapped_request.method
+      )
 
       begin
         response = nil

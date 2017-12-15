@@ -2,7 +2,7 @@ boilerplate_gems = <<-BOILERPLATE
   gem 'rack'
 
   if RUBY_PLATFORM == 'java'
-    gem "activerecord-jdbcmysql-adapter"
+    gem "activerecord-jdbcmysql-adapter", "~>1.3.0"
   else
     gem 'mysql2', '~> 0.3.20'
   end

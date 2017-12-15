@@ -248,7 +248,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_equal('<no stack trace>', @error_collector.extract_stack_trace(Exception.new))
   end
 
-  if defined?(Rails) && Rails::VERSION::MAJOR < 5
+  if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR < 5
     def test_extract_stack_trace_from_original_exception
       orig = mock('original', :backtrace => "STACK STACK STACK")
       exception = mock('exception', :original_exception => orig)
@@ -358,6 +358,29 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
       @error_collector.notice_error(e)
       refute @error_collector.exception_tagged?(e)
     end
+  end
+
+  def test_expected_error_sets_expected_attribute_to_true
+    @error_collector.notice_error(StandardError.new, :expected => true)
+    traces = harvest_error_traces
+    events = harvest_error_events
+    event_attrs = events[0][0]
+    trace_attrs = traces[0].to_collector_array[4]
+
+    assert event_attrs['error.expected'], "Event attributes should have 'error.expected' set to true"
+    assert trace_attrs[:'error.expected'], "Trace attributes should have 'error.expected' set to true"
+  end
+
+  def test_unexpected_error_sets_expected_attribute_to_false
+    @error_collector.notice_error(StandardError.new)
+    traces = harvest_error_traces
+    events = harvest_error_events
+    event_attrs = events[0][0]
+    trace_attrs = traces[0].to_collector_array[4]
+
+    # nil isn't good enough!
+    assert_equal false, event_attrs['error.expected'], "Intrinsic attributes should have 'error.expected' set to false"
+    assert_equal false, trace_attrs[:'error.expected'], "Trace attributes should have 'error.expected' set to false"
   end
 
   def test_expected_error_does_not_increment_metrics

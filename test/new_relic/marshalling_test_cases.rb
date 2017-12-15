@@ -127,6 +127,7 @@ module MarshallingTestCases
         "type" => "TransactionError",
         "error.class" => "StandardError",
         "error.message" => "Sorry!",
+        "error.expected" => false,
         "timestamp" => t0.to_f,
         "transactionName" => "TestTransaction/break_it",
         "duration" => 0.0
