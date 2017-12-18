@@ -33,6 +33,7 @@ notifications:
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
   - jruby-9.1.13.0
+  - 2.5.0
   - 2.4.2
   - 2.3.5
   - 2.2.8
