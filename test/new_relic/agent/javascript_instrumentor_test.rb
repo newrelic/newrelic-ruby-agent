@@ -11,13 +11,13 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
   def setup
     @config = {
-      :application_id                       => '5, 6', # collector can return app multiple ids
-      :beacon                               => 'beacon',
-      :browser_key                          => 'browserKey',
-      :js_agent_loader                      => 'loader',
-      :license_key                          => "\0",  # no-op obfuscation key
-      :'browser_monitoring.auto_instrument' => true,
-      :disable_harvest_thread               => true
+      :application_id         => '5, 6', # collector can return app multiple ids
+      :beacon                 => 'beacon',
+      :browser_key            => 'browserKey',
+      :js_agent_loader        => 'loader',
+      :license_key            => "\0",  # no-op obfuscation key
+      :'rum.enabled'          => true,
+      :disable_harvest_thread => true
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
 
@@ -58,8 +58,8 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     assert_equal "", instrumentor.browser_timing_header
   end
 
-  def test_browser_timing_scripts_with_browser_auto_instrument_false
-    with_config(:'browser_monitoring.auto_instrument' => false) do
+  def test_browser_timing_scripts_with_rum_enabled_false
+    with_config(:'rum.enabled' => false) do
       in_transaction do
         assert_equal "", instrumentor.browser_timing_header
       end
