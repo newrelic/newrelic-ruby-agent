@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## 4.7.1 ##
+
+  * Bugfix for Manual Browser Instrumentation
+
+  There was a previous bug that required setting both `rum.enabled: false` and
+  `browser.auto_instrument: false` to completely disable browser monitoring. An
+  attempt to fix this in 4.7.0 resulted in breaking manual browser
+  instrumentation. Those changes have been reverted.
+
   ## v4.7.0 ##
 
   * Expected Error API
