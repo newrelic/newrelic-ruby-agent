@@ -7,7 +7,8 @@
   There was a previous bug that required setting both `rum.enabled: false` and
   `browser.auto_instrument: false` to completely disable browser monitoring. An
   attempt to fix this in 4.7.0 resulted in breaking manual browser
-  instrumentation. Those changes have been reverted.
+  instrumentation. Those changes have been reverted. We will revisit this issue
+  in an upcoming release.
 
   ## v4.7.0 ##
 
