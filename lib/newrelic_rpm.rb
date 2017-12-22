@@ -37,7 +37,7 @@ elsif defined?(Rails::VERSION)
     module NewRelic
       class Railtie < Rails::Railtie
 
-        initializer "newrelic_rpm.start_plugin" do |app|
+        initializer "newrelic_rpm.start_plugin", before: :load_config_initializers do |app|
           NewRelic::Control.instance.init_plugin(:config => app.config)
         end
       end
