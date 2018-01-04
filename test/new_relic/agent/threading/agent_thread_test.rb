@@ -120,10 +120,14 @@ module NewRelic::Agent::Threading
     end
 
     def with_thread_report_on_exception_disabled(&blk)
-      report_on_exception_original_value = Thread.report_on_exception
-      Thread.report_on_exception = false
+      if Thread.respond_to? :report_on_exception
+        report_on_exception_original_value = Thread.report_on_exception
+        Thread.report_on_exception = false
+      end
       blk.call
-      Thread.report_on_exception = report_on_exception_original_value
+      if Thread.respond_to? :report_on_exception
+        Thread.report_on_exception = report_on_exception_original_value
+      end
     end
 
     TRACE = [
