@@ -97,14 +97,16 @@ module NewRelic::Agent::Threading
     end
 
     def test_exception_is_reraised
-      expects_logging(:error, includes("exited"), any_parameters)
+      with_thread_report_on_exception_disabled do
+        expects_logging(:error, includes("exited"), any_parameters)
 
-      assert_raises(Exception) do
-        begin
-          t = AgentThread.create("fail") { raise Exception.new }
-          t.join
-        ensure
-          assert_thread_died_from_exception(t)
+        assert_raises(Exception) do
+          begin
+            t = AgentThread.create("fail") { raise Exception.new }
+            t.join
+          ensure
+            assert_thread_died_from_exception(t)
+          end
         end
       end
     end
@@ -115,6 +117,13 @@ module NewRelic::Agent::Threading
 
     def assert_thread_died_from_exception(t)
       assert_equal nil, t.status
+    end
+
+    def with_thread_report_on_exception_disabled(&blk)
+      report_on_exception_original_value = Thread.report_on_exception
+      Thread.report_on_exception = false
+      blk.call
+      Thread.report_on_exception = report_on_exception_original_value
     end
 
     TRACE = [
