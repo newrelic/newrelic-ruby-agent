@@ -99,8 +99,6 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails40
     - rvm: 2.5.0
       env: TYPE=UNIT ENVIRONMENT=rails41
-    - rvm: 2.5.0
-      env: TYPE=UNIT ENVIRONMENT=rails42
 
     # 2.4
     - rvm: 2.4.2
@@ -119,8 +117,6 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails40
     - rvm: 2.4.2
       env: TYPE=UNIT ENVIRONMENT=rails41
-    - rvm: 2.4.2
-      env: TYPE=UNIT ENVIRONMENT=rails42
 
     # 2.3
     - rvm: 2.3.5
