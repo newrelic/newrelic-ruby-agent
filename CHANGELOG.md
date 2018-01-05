@@ -1,5 +1,9 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Ruby 2.5 Support
+
+  The Ruby Agent has been verified against Ruby 2.5.
+
   ## 4.7.1 ##
 
   * Bugfix for Manual Browser Instrumentation

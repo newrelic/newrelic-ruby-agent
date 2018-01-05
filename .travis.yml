@@ -10,6 +10,7 @@ sudo: required
 
 before_install:
   - gem --version
+  - gem update --system
   - ./test/script/before_install/gemstash_mirror.sh
   - bundle --version
 
@@ -33,6 +34,7 @@ notifications:
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
   - jruby-9.1.13.0
+  - 2.5.0
   - 2.4.2
   - 2.3.5
   - 2.2.8
@@ -80,6 +82,24 @@ matrix:
   fast_finish: true
   exclude:
     # Unsupported Rails/Ruby combinations
+    # 2.5
+    - rvm: 2.5.0
+      env: TYPE=UNIT ENVIRONMENT=rails21
+    - rvm: 2.5.0
+      env: TYPE=UNIT ENVIRONMENT=rails22
+    - rvm: 2.5.0
+      env: TYPE=UNIT ENVIRONMENT=rails23
+    - rvm: 2.5.0
+      env: TYPE=UNIT ENVIRONMENT=rails30
+    - rvm: 2.5.0
+      env: TYPE=UNIT ENVIRONMENT=rails31
+    - rvm: 2.5.0
+      env: TYPE=UNIT ENVIRONMENT=rails32
+    - rvm: 2.5.0
+      env: TYPE=UNIT ENVIRONMENT=rails40
+    - rvm: 2.5.0
+      env: TYPE=UNIT ENVIRONMENT=rails41
+
     # 2.4
     - rvm: 2.4.2
       env: TYPE=UNIT ENVIRONMENT=rails21
@@ -97,8 +117,6 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails40
     - rvm: 2.4.2
       env: TYPE=UNIT ENVIRONMENT=rails41
-    - rvm: 2.4.2
-      env: TYPE=UNIT ENVIRONMENT=rails42
 
     # 2.3
     - rvm: 2.3.5
