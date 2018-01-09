@@ -11,9 +11,8 @@ module NewRelic
         class FinishedTraceError < StandardError; end
 
         attr_reader :start_time, :root_node
-        attr_accessor :transaction_name, :uri, :guid, :xray_session_id,
-                      :attributes, :node_count, :finished, :threshold,
-                      :profile
+        attr_accessor :transaction_name, :guid, :xray_session_id, :attributes,
+                      :node_count, :finished, :threshold, :profile
 
         ROOT = "ROOT".freeze
 

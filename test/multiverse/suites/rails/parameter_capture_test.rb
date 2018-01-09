@@ -102,12 +102,16 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
     with_config(:capture_params => false) do
       get '/parameter_capture/transaction?other=1234&secret=4567'
     end
-    assert_equal('/parameter_capture/transaction', last_transaction_trace.uri)
+
+    attributes = last_transaction_trace.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal('/parameter_capture/transaction', attributes[:request_uri])
 
     with_config(:capture_params => true) do
       get '/parameter_capture/transaction?other=1234&secret=4567'
     end
-    assert_equal('/parameter_capture/transaction', last_transaction_trace.uri)
+
+    attributes = last_transaction_trace.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal('/parameter_capture/transaction', attributes[:request_uri])
   end
 
   def test_filters_parameters_on_traced_errors
@@ -163,14 +167,16 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
     with_config(:capture_params => false) do
       get '/parameter_capture/transaction?param1=value1&param2=value2'
     end
-    assert_equal('/parameter_capture/transaction', last_transaction_trace.uri)
+    attributes = last_transaction_trace.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal('/parameter_capture/transaction', attributes[:request_uri])
   end
 
   def test_uri_on_tt_should_not_contain_query_string_with_capture_params_on
     with_config(:capture_params => true) do
       get '/parameter_capture/transaction?param1=value1&param2=value2'
     end
-    assert_equal('/parameter_capture/transaction', last_transaction_trace.uri)
+    attributes = last_transaction_trace.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal('/parameter_capture/transaction', attributes[:request_uri])
   end
 
   def test_uri_on_traced_error_should_not_contain_query_string_with_capture_params_off
