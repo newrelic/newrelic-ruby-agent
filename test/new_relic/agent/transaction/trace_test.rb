@@ -260,17 +260,21 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_collector_array_contains_uri
-    @trace.uri = 'http://windows95tips.com/'
+    @fake_attributes.add_agent_attribute(:request_uri,
+                                         'http://windows95tips.com/',
+                                         NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     assert_collector_array_contains(:uri, 'http://windows95tips.com/')
   end
 
   def test_uri_gets_coerced_into_a_string
-    @trace.uri = 95
+    @fake_attributes.add_agent_attribute(:request_uri,
+                                         95,
+                                         NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     assert_collector_array_contains(:uri, '95')
   end
 
   def test_collector_array_contains_trace_tree
-    assert_collector_array_contains(:trace_tree, @trace.trace_tree)
+    assert_collector_array_contains(:trace_tree, extract_trace_tree(@trace))
   end
 
   def test_collector_array_contains_guid
@@ -319,7 +323,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_to_collector_array_encodes_trace_tree_with_given_encoder
     fake_encoder = mock
-    fake_encoder.expects(:encode).with(@trace.trace_tree)
+    fake_encoder.expects(:encode).with(extract_trace_tree(@trace))
     @trace.to_collector_array(fake_encoder)
   end
 
@@ -329,7 +333,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_trace_tree_coerces_start_time_to_a_float
-    assert_kind_of Float, @trace.trace_tree.first
+    assert_kind_of Float, extract_trace_tree(@trace).first
   end
 
   def test_trace_tree_includes_start_time
@@ -362,6 +366,10 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_trace_tree_contains(:attributes, expected)
   end
 
+  def extract_trace_tree(trace)
+    trace.to_collector_array(NewRelic::Agent::NewRelicService::Encoders::Identity)[4]
+  end
+
   def assert_trace_tree_contains(key, expected)
     indices = [
       :start_time,
@@ -371,7 +379,9 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
       :attributes
     ]
 
-    assert_equal expected, @trace.trace_tree[indices.index(key)]
+    tree = extract_trace_tree(@trace)
+
+    assert_equal expected, tree[indices.index(key)]
   end
 
   def assert_collector_array_contains(key, expected)

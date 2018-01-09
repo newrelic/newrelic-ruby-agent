@@ -221,6 +221,9 @@ class AgentAttributesTest < Minitest::Test
     }
     run_transaction(config, txn_options)
 
+    last_transaction_trace = single_transaction_trace_posted
+    assert_equal "/foobar", last_transaction_trace.uri
+
     assert_transaction_trace_has_agent_attribute("request_uri", "/foobar")
     assert_error_has_agent_attribute("request_uri", "/foobar")
     refute_event_has_agent_attribute("request_uri")
@@ -233,6 +236,9 @@ class AgentAttributesTest < Minitest::Test
       :request => stub(:path => "/foobar")
     }
     run_transaction(config, txn_options)
+
+    last_transaction_trace = single_transaction_trace_posted
+    assert_nil last_transaction_trace.uri
 
     assert_error_has_agent_attribute("request_uri", "/foobar")
     refute_transaction_trace_has_agent_attribute("request_uri")

@@ -118,35 +118,44 @@ module NewRelic
           @root_node.each_node_with_nest_tracking(&block)
         end
 
-        EMPTY_HASH = {}.freeze
+        AGENT_ATTRIBUTES_KEY     = 'agentAttributes'.freeze
+        USER_ATTRIBUTES_KEY      = 'userAttributes'.freeze
+        INTRINSIC_ATTRIBUTES_KEY = 'intrinsics'.freeze
 
-        def trace_tree
+        def attributes_for_tracer_destination
           destination = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER
 
           agent_attributes     = self.attributes.agent_attributes_for(destination)
           custom_attributes    = self.attributes.custom_attributes_for(destination)
           intrinsic_attributes = self.attributes.intrinsic_attributes_for(destination)
 
+          {
+            AGENT_ATTRIBUTES_KEY     => agent_attributes,
+            USER_ATTRIBUTES_KEY      => custom_attributes,
+            INTRINSIC_ATTRIBUTES_KEY => intrinsic_attributes
+          }
+        end
+
+        EMPTY_HASH = {}.freeze
+
+        def trace_tree attributes_hash
           [
             NewRelic::Coerce.float(self.start_time),
             EMPTY_HASH,
             EMPTY_HASH,
             self.root_node.to_array,
-            {
-              'agentAttributes' => agent_attributes,
-              'userAttributes'  => custom_attributes,
-              'intrinsics'      => intrinsic_attributes
-            }
+            attributes_hash
           ]
         end
 
         def to_collector_array(encoder)
+          attributes_hash = attributes_for_tracer_destination
           [
             NewRelic::Helper.time_to_millis(self.start_time),
             NewRelic::Helper.time_to_millis(self.root_node.duration),
             NewRelic::Coerce.string(self.transaction_name),
-            NewRelic::Coerce.string(self.uri),
-            encoder.encode(trace_tree),
+            NewRelic::Coerce.string(attributes_hash[AGENT_ATTRIBUTES_KEY][:request_uri]),
+            encoder.encode(trace_tree(attributes_hash)),
             NewRelic::Coerce.string(self.guid),
             nil,
             forced?,
