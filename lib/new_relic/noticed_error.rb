@@ -81,6 +81,8 @@ class NewRelic::NoticedError
 
   DESTINATION = NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
+  AGENT_ATTRIBUTES_KEY = "agentAttributes".freeze
+
   # Note that we process attributes lazily and store the result. This is because
   # there is a possibility that a noticed error will be discarded and not sent back
   # as a traced error or TransactionError.
@@ -90,13 +92,13 @@ class NewRelic::NoticedError
       append_attributes(attributes, USER_ATTRIBUTES, merged_custom_attributes)
       append_attributes(attributes, AGENT_ATTRIBUTES, build_agent_attributes)
       append_attributes(attributes, INTRINSIC_ATTRIBUTES, build_intrinsic_attributes)
+      add_request_uri(attributes)
       attributes
     end
   end
 
   def base_parameters
     params = {}
-    params[:request_uri]      = request_uri if request_uri
     params[:file_name]        = file_name   if file_name
     params[:line_number]      = line_number if line_number
     params[:stack_trace]      = stack_trace if stack_trace
@@ -161,6 +163,12 @@ class NewRelic::NoticedError
 
   def intrinsic_attributes
     processed_attributes[INTRINSIC_ATTRIBUTES]
+  end
+
+  def add_request_uri(attributes)
+    if request_uri = attributes[AGENT_ATTRIBUTES_KEY][:request_uri]
+      attributes[:request_uri] = request_uri
+    end
   end
 
   def extract_class_name_and_message_from(exception)
