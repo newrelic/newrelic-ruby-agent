@@ -81,8 +81,6 @@ class NewRelic::NoticedError
 
   DESTINATION = NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
-  AGENT_ATTRIBUTES_KEY = "agentAttributes".freeze
-
   # Note that we process attributes lazily and store the result. This is because
   # there is a possibility that a noticed error will be discarded and not sent back
   # as a traced error or TransactionError.
@@ -93,7 +91,6 @@ class NewRelic::NoticedError
       append_attributes(attributes, USER_ATTRIBUTES, merged_custom_attributes(merged_attributes))
       append_attributes(attributes, AGENT_ATTRIBUTES, build_agent_attributes(merged_attributes))
       append_attributes(attributes, INTRINSIC_ATTRIBUTES, build_intrinsic_attributes)
-      copy_request_uri(attributes)
       attributes
     end
   end
@@ -172,12 +169,6 @@ class NewRelic::NoticedError
 
   def intrinsic_attributes
     processed_attributes[INTRINSIC_ATTRIBUTES]
-  end
-
-  def copy_request_uri(attributes)
-    if request_uri = attributes[AGENT_ATTRIBUTES_KEY][:request_uri]
-      attributes[:request_uri] = request_uri
-    end
   end
 
   def extract_class_name_and_message_from(exception)

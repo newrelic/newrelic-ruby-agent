@@ -35,7 +35,6 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       'test exception',
       'NewRelic::TestHelpers::Exceptions::TestError',
       {
-        :request_uri      => 'http://com.google',
         'userAttributes'  => { 'user' => 'params' },
         'agentAttributes' => {:request_uri => 'http://com.google'},
         'intrinsics'      => {},
