@@ -223,15 +223,15 @@ class AgentAttributesTest < Minitest::Test
 
     last_transaction_trace = single_transaction_trace_posted
     assert_equal "/foobar", last_transaction_trace.uri
-    assert_transaction_trace_has_agent_attribute("request_uri", "/foobar")
+    assert_transaction_trace_has_agent_attribute("request.uri", "/foobar")
 
-    assert_error_has_agent_attribute("request_uri", "/foobar")
-    refute_event_has_agent_attribute("request_uri")
-    refute_browser_monitoring_has_agent_attribute("request_uri")
+    assert_error_has_agent_attribute("request.uri", "/foobar")
+    refute_event_has_agent_attribute("request.uri")
+    refute_browser_monitoring_has_agent_attribute("request.uri")
   end
 
   def test_request_uri_can_be_disabled_on_tts
-    config = {:'transaction_tracer.attributes.exclude' => 'request_uri'}
+    config = {:'transaction_tracer.attributes.exclude' => 'request.uri'}
     txn_options = {
       :request => stub(:path => "/foobar")
     }
@@ -240,39 +240,39 @@ class AgentAttributesTest < Minitest::Test
     last_transaction_trace = single_transaction_trace_posted
     assert_nil last_transaction_trace.uri
 
-    assert_error_has_agent_attribute("request_uri", "/foobar")
-    refute_transaction_trace_has_agent_attribute("request_uri")
-    refute_event_has_agent_attribute("request_uri")
-    refute_browser_monitoring_has_agent_attribute("request_uri")
+    assert_error_has_agent_attribute("request.uri", "/foobar")
+    refute_transaction_trace_has_agent_attribute("request.uri")
+    refute_event_has_agent_attribute("request.uri")
+    refute_browser_monitoring_has_agent_attribute("request.uri")
   end
 
   def test_request_uri_can_be_disabled_on_error_traces
-    config = {:'error_collector.attributes.exclude' => 'request_uri'}
+    config = {:'error_collector.attributes.exclude' => 'request.uri'}
     txn_options = {
       :request => stub(:path => "/foobar")
     }
     run_transaction(config, txn_options)
 
     last_error_trace = single_error_posted
-    assert_nil last_error_trace.params["agentAttributes"]["request_uri"]
+    assert_nil last_error_trace.params["agentAttributes"]["request.uri"]
 
-    assert_transaction_trace_has_agent_attribute("request_uri", "/foobar")
-    refute_error_has_agent_attribute("request_uri")
-    refute_event_has_agent_attribute("request_uri")
-    refute_browser_monitoring_has_agent_attribute("request_uri")
+    assert_transaction_trace_has_agent_attribute("request.uri", "/foobar")
+    refute_error_has_agent_attribute("request.uri")
+    refute_event_has_agent_attribute("request.uri")
+    refute_browser_monitoring_has_agent_attribute("request.uri")
   end
 
   def test_request_uri_can_be_disabled_by_global_attributes_config
-    config = {:'attributes.exclude' => 'request_uri'}
+    config = {:'attributes.exclude' => 'request.uri'}
     txn_options = {
       :request => stub(:path => "/foobar")
     }
     run_transaction(config, txn_options)
 
-    refute_transaction_trace_has_agent_attribute("request_uri")
-    refute_error_has_agent_attribute("request_uri")
-    refute_event_has_agent_attribute("request_uri")
-    refute_browser_monitoring_has_agent_attribute("request_uri")
+    refute_transaction_trace_has_agent_attribute("request.uri")
+    refute_error_has_agent_attribute("request.uri")
+    refute_event_has_agent_attribute("request.uri")
+    refute_browser_monitoring_has_agent_attribute("request.uri")
   end
 
   def test_http_response_code_excluded_in_txn_events_when_disabled

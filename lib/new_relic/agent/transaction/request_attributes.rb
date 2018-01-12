@@ -37,7 +37,7 @@ module NewRelic
           end
 
           if request_path
-            txn.add_agent_attribute :request_uri,
+            txn.add_agent_attribute :'request.uri',
                                     request_path,
                                     AttributeFilter::DST_TRANSACTION_TRACER |
                                     AttributeFilter::DST_ERROR_COLLECTOR

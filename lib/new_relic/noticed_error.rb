@@ -140,7 +140,7 @@ class NewRelic::NoticedError
     # with a uri passed to notice_error. Add it to merged_attributes filter and
     # merge with the transaction attributes, possibly overriding the request_uri
     if request_uri
-      merged_attributes.add_agent_attribute(:request_uri, request_uri, DESTINATION)
+      merged_attributes.add_agent_attribute(:'request.uri', request_uri, DESTINATION)
       agent_attributes.merge(merged_attributes.agent_attributes_for(DESTINATION))
     end
 

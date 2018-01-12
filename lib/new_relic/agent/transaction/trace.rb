@@ -153,7 +153,7 @@ module NewRelic
             NewRelic::Helper.time_to_millis(self.start_time),
             NewRelic::Helper.time_to_millis(self.root_node.duration),
             NewRelic::Coerce.string(self.transaction_name),
-            NewRelic::Coerce.string(attributes_hash[AGENT_ATTRIBUTES_KEY][:request_uri]),
+            NewRelic::Coerce.string(attributes_hash[AGENT_ATTRIBUTES_KEY][:'request.uri']),
             encoder.encode(trace_tree(attributes_hash)),
             NewRelic::Coerce.string(self.guid),
             nil,

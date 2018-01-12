@@ -24,7 +24,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     e = TestError.new('test exception')
 
     error = create_error(e)
-    error.attributes.add_agent_attribute(:request_uri,
+    error.attributes.add_agent_attribute(:'request.uri',
                                          "http://com.google",
                                          NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
     error.attributes_from_notice_error = @attributes_from_notice_error
@@ -36,7 +36,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       'NewRelic::TestHelpers::Exceptions::TestError',
       {
         'userAttributes'  => { 'user' => 'params' },
-        'agentAttributes' => {:request_uri => 'http://com.google'},
+        'agentAttributes' => {:'request.uri' => 'http://com.google'},
         'intrinsics'      => {},
        :'error.expected' => false
       }
