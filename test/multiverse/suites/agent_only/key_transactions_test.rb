@@ -21,7 +21,7 @@ class KeyTransactionsTest < Minitest::Test
   end
 
   def after_setup
-    freeze_time
+    nr_freeze_time
   end
 
   class TestWidget

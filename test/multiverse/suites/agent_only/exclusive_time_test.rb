@@ -30,7 +30,7 @@ class ExclusiveTimeTest < Minitest::Test
       add_method_tracer :inner, 'inner'
     end
 
-    freeze_time
+    nr_freeze_time
     traced_class.new.outer_a
 
     txn_name = 'Controller/traced/outer_b'
@@ -75,7 +75,7 @@ class ExclusiveTimeTest < Minitest::Test
       add_method_tracer :inner, 'inner'
     end
 
-    freeze_time
+    nr_freeze_time
     traced_class.new.outer
 
     txn_name = 'Controller/traced/outer'

@@ -7,7 +7,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
   include NewRelic::Agent::Instrumentation
 
   def setup
-    freeze_time
+    nr_freeze_time
   end
 
   def teardown

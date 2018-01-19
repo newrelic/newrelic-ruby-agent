@@ -11,12 +11,12 @@ module NewRelic
     class Transaction
       class TracingTest < Minitest::Test
         def setup
-          freeze_time
+          nr_freeze_time
           NewRelic::Agent.drop_buffered_data
         end
 
         def teardown
-          unfreeze_time
+          nr_unfreeze_time
           NewRelic::Agent.drop_buffered_data
         end
 

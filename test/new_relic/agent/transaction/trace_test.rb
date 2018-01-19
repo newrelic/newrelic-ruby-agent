@@ -7,7 +7,7 @@ require 'new_relic/agent/transaction/trace'
 
 class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   def setup
-    freeze_time
+    nr_freeze_time
     @start_time = Time.now
     @trace = NewRelic::Agent::Transaction::Trace.new(@start_time)
     @trace.root_node.end_trace(@start_time)

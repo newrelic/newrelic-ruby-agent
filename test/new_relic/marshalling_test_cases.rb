@@ -46,7 +46,7 @@ module MarshallingTestCases
   end
 
   def test_sends_transaction_events
-    t0 = freeze_time(Time.at(Time.now.to_i))
+    t0 = nr_freeze_time(Time.at(Time.now.to_i))
 
     with_around_hook do
       Transactioner.new.do_it
@@ -80,7 +80,7 @@ module MarshallingTestCases
   end
 
   def test_sends_custom_events
-    t0 = freeze_time
+    t0 = nr_freeze_time
 
     with_around_hook do
       NewRelic::Agent.record_custom_event("CustomEventType", :foo => 'bar', :baz => 'qux')
@@ -108,7 +108,7 @@ module MarshallingTestCases
   end
 
   def test_sends_error_events
-    t0 = freeze_time(Time.at(Time.now.to_i))
+    t0 = nr_freeze_time(Time.at(Time.now.to_i))
 
     with_around_hook do
       Transactioner.new.break_it

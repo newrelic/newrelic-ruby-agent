@@ -20,7 +20,7 @@ module NewRelic::Agent::Commands
     end
 
     def test_not_finished
-      freeze_time
+      nr_freeze_time
 
       session = XraySession.new({})
       session.activate
@@ -29,7 +29,7 @@ module NewRelic::Agent::Commands
     end
 
     def test_finished
-      freeze_time
+      nr_freeze_time
 
       session = XraySession.new('duration' => 1.0)
       session.activate

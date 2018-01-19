@@ -10,7 +10,7 @@ class HarvestTimestampsTest < Minitest::Test
   setup_and_teardown_agent
 
   def test_resets_metric_data_timestamps_after_forking
-    freeze_time
+    nr_freeze_time
 
     t1 = advance_time 10
 
@@ -28,7 +28,7 @@ class HarvestTimestampsTest < Minitest::Test
   end
 
   def test_start_timestamp_maintained_on_harvest_failure
-    t0 = freeze_time.to_f
+    t0 = nr_freeze_time.to_f
 
     simulate_fork
     NewRelic::Agent.after_fork

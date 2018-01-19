@@ -110,7 +110,7 @@ class RackAutoInstrumentationTest < Minitest::Test
   end
 
   def test_middlewares_record_queue_time
-    t0 = freeze_time
+    t0 = nr_freeze_time
     advance_time(5.0)
     get '/', {}, { 'HTTP_X_REQUEST_START' => "t=#{t0.to_f}" }
 
@@ -142,7 +142,7 @@ class RackAutoInstrumentationTest < Minitest::Test
   end
 
   def test_middleware_that_returns_early_middleware_all_has_correct_call_times
-    freeze_time
+    nr_freeze_time
     get '/?return-early=true'
     assert_metrics_recorded('Middleware/all' => { :total_exclusive_time => 3.0, :call_count => 2 })
   end
