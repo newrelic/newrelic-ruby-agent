@@ -264,7 +264,7 @@ class AgentLoggerTest < Minitest::Test
   end
 
   def test_logs_to_stdout_if_fails_on_file
-    Logger::LogDevice.any_instance.stubs(:open).raises(Errno::EACCES)
+    Logger::LogDevice.any_instance.stubs(:open_logfile).raises(Errno::EACCES)
 
     logger = with_squelched_stdout do
       NewRelic::Agent::AgentLogger.new

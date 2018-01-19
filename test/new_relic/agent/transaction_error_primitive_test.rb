@@ -22,9 +22,18 @@ module NewRelic
         assert_in_delta Time.now.to_f, intrinsics['timestamp'], 0.001
         assert_equal "RuntimeError", intrinsics['error.class']
         assert_equal "Big Controller!", intrinsics['error.message']
+        refute intrinsics['error.expected']
         assert_equal "Controller/blogs/index", intrinsics['transactionName']
         assert_equal 0.1, intrinsics['duration']
         assert_equal 80, intrinsics['port']
+      end
+
+      def test_event_includes_expected_errors
+        intrinsics, *_ = create_event :error_options => {
+                                        :expected => true
+                                      }
+
+        assert intrinsics['error.expected']
       end
 
       def test_event_includes_synthetics
@@ -102,10 +111,12 @@ module NewRelic
 
       def create_noticed_error options = {}
         exception = options.delete(:exception) || RuntimeError.new("Big Controller!")
+        expected = options.fetch(:expected, false)
         txn_name = "Controller/blogs/index"
         noticed_error = NewRelic::NoticedError.new(txn_name, exception)
         noticed_error.request_uri = "http://site.com/blogs"
         noticed_error.request_port = 80
+        noticed_error.expected = expected
         noticed_error.attributes  = options.delete(:attributes)
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
         noticed_error.attributes_from_notice_error.merge!(options)

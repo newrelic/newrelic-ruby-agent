@@ -1,9 +1,27 @@
 # New Relic Ruby Agent Release Notes #
-  
-  * Test against Rails 5.2.0.beta2
 
-  The agent now officially supports Rails 5.2.
-  
+  * Ruby 2.5 Support
+
+  The Ruby Agent has been verified against Ruby 2.5.
+
+  ## 4.7.1 ##
+
+  * Bugfix for Manual Browser Instrumentation
+
+  There was a previous bug that required setting both `rum.enabled: false` and
+  `browser.auto_instrument: false` to completely disable browser monitoring. An
+  attempt to fix this in 4.7.0 resulted in breaking manual browser
+  instrumentation. Those changes have been reverted. We will revisit this issue
+  in an upcoming release.
+
+  ## v4.7.0 ##
+
+  * Expected Error API
+
+  The agent now sends up `error.expected` as an intrinsic attribute on error
+  events and error traces. When you pass `expected: true` to the `notice_error`
+  method, both Insights and APM will indicate that the error is expected.
+
   * Typhoeus Hydra Instrumentation
 
   The agent now has request level visibility for HTTP requests made using
@@ -18,25 +36,31 @@
   will be an alert in the APM dashboard that states: "There are both old and
   new time metrics for this time window". This indicates that during that time
   window, some transactions report the total time metrics, while others do not.
-  The message will go away after waiting for enough to time to elapse and / or
+  The message will go away after waiting for enough time to elapse and / or
   updating the time window.
 
-  * Add `:message` category to `:set_transaction_name` public API method
+  * Add `:message` category to `set_transaction_name` public API method
 
   The agent now permits the `:message` category to be passed into the public
-  API method `:set_transaction_name`, generating the category prefix
-  `'OtherTransaction/Message/'`.
+  API method `set_transaction_name`, which will enable the transaction to be
+  displayed as a messaging transaction.
 
-  * Create `:prepend_active_record_instrumentation` config option
+  * Create `prepend_active_record_instrumentation` config option
 
-  Users may now set the `:prepend_active_record_instrumentation` option in
+  Users may now set the `prepend_active_record_instrumentation` option in
   their agent config to install Active Record 3 or 4 instrumentation using
   `Module.prepend` rather than `alias_method`.
 
-  * Lazy load hooks for ActionController::Base and ActionController::API
+  * Use Lazy load hooks for `ActionController::Base` and `ActionController::API`
 
-  The agent now uses lazy load hooks to hook on ActionController::Base and
-  ActionController::API. Thanks Edouard Chin for the contribution!
+  The agent now uses lazy load hooks to hook on `ActionController::Base` and
+  `ActionController::API`. Thanks Edouard Chin for the contribution!
+
+  * Use Lazy load hooks for `ActiveRecord::Base` and `ActiveRecord::Relation`
+
+  The agent uses lazy load hooks when recording supportability metrics
+  for `ActiveRecord::Base` and `ActiveRecord::Relation`. Thanks Joseph Haig
+  for the contribution!
 
   * Check that `Rails::VERSION` is defined instead of just `Rails`
 
@@ -47,7 +71,9 @@
   * Support fast RPC/direct reply-to in RabbitMQ
 
   The agent can now handle the pseudo-queue 'amq.rabbitmq.reply-to' in its
-  Bunny instrumentation.
+  Bunny instrumentation. Previously, using fast RPC led to a `NoMethodError`
+  because the reply-to queue was expected to be a `Queue` object instead of
+  a string.
 
 ## v4.6.0 ##
 
