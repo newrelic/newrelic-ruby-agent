@@ -45,7 +45,6 @@ module NewRelic
 
         def copy_attributes transaction, trace
           trace.transaction_name = transaction.best_name
-          trace.uri = transaction.request_path
           trace.guid = transaction.guid
           trace.attributes = transaction.attributes
           trace.threshold = transaction.threshold

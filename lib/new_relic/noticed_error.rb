@@ -87,8 +87,9 @@ class NewRelic::NoticedError
   def processed_attributes
     @processed_attributes ||= begin
       attributes = base_parameters
-      append_attributes(attributes, USER_ATTRIBUTES, merged_custom_attributes)
-      append_attributes(attributes, AGENT_ATTRIBUTES, build_agent_attributes)
+      merged_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      append_attributes(attributes, USER_ATTRIBUTES, merged_custom_attributes(merged_attributes))
+      append_attributes(attributes, AGENT_ATTRIBUTES, build_agent_attributes(merged_attributes))
       append_attributes(attributes, INTRINSIC_ATTRIBUTES, build_intrinsic_attributes)
       attributes
     end
@@ -96,7 +97,6 @@ class NewRelic::NoticedError
 
   def base_parameters
     params = {}
-    params[:request_uri]      = request_uri if request_uri
     params[:file_name]        = file_name   if file_name
     params[:line_number]      = line_number if line_number
     params[:stack_trace]      = stack_trace if stack_trace
@@ -108,9 +108,7 @@ class NewRelic::NoticedError
   # hold in @attributes, or passed options to notice_error which show up in
   # @attributes_from_notice_error. Both need filtering, so merge them together
   # in our Attributes class for consistent handling
-  def merged_custom_attributes
-    merged_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-
+  def merged_custom_attributes(merged_attributes)
     merge_custom_attributes_from_transaction(merged_attributes)
     merge_custom_attributes_from_notice_error(merged_attributes)
 
@@ -131,12 +129,22 @@ class NewRelic::NoticedError
     end
   end
 
-  def build_agent_attributes
-    if @attributes
+  def build_agent_attributes(merged_attributes)
+    agent_attributes = if @attributes
       @attributes.agent_attributes_for(DESTINATION)
     else
       EMPTY_HASH
     end
+
+    # It's possible to override the request_uri from the transaction attributes
+    # with a uri passed to notice_error. Add it to merged_attributes filter and
+    # merge with the transaction attributes, possibly overriding the request_uri
+    if request_uri
+      merged_attributes.add_agent_attribute(:'request.uri', request_uri, DESTINATION)
+      agent_attributes.merge(merged_attributes.agent_attributes_for(DESTINATION))
+    end
+
+    agent_attributes
   end
 
   def build_intrinsic_attributes

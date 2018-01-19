@@ -4,6 +4,13 @@
 
   The Ruby Agent has been verified against Ruby 2.5.
 
+  * `request.uri` Collected as an Agent Attribute
+
+  Users can now control the collection of `request.uri` on errors and transaction
+  traces. Previously it was always collected without the ability to turn it off.
+  It is now an agent attribute that can be controlled via the attributes config.
+  For more information on agent attributes [see here](https://docs.newrelic.com/docs/agents/manage-apm-agents/agent-data/agent-attributes).
+
   ## 4.7.1 ##
 
   * Bugfix for Manual Browser Instrumentation
