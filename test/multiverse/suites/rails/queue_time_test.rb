@@ -32,8 +32,8 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
   setup_and_teardown_agent(:beacon => "beacon", :browser_key => "key", :js_agent_loader => "loader")
 
   def test_should_track_queue_time_metric
-    t0 = Time.__frozen_now = Time.now
-    t1 = Time.__frozen_now = Time.now + 2
+    t0 = nr_freeze_time
+    t1 = nr_freeze_time(Time.now + 2)
     get_path('/queue/queued', t0)
 
     assert_metrics_recorded(
