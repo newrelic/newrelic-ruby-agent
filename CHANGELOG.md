@@ -1,5 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v4.8.0 ##
+
   * Initialize New Relic Agent before config initializers
 
   When running in a Rails environment the agent registers an intializer that
