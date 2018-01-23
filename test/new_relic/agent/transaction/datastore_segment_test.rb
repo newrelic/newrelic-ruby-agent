@@ -11,7 +11,7 @@ module NewRelic
     class Transaction
       class DatastoreSegmentTest < Minitest::Test
         def setup
-          freeze_time
+          nr_freeze_time
         end
 
         def teardown

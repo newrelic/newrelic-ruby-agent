@@ -284,7 +284,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_metric_data_sends_harvest_timestamps
     @http_handle.respond_to(:metric_data, 'foo')
 
-    t0 = freeze_time
+    t0 = nr_freeze_time
     stats_hash = NewRelic::Agent::StatsHash.new
     stats_hash.harvested_at = Time.now
 
@@ -304,7 +304,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def test_metric_data_harvest_time_based_on_stats_hash_creation
-    t0 = freeze_time
+    t0 = nr_freeze_time
     dummy_rsp = 'met rick date uhh'
     @http_handle.respond_to(:metric_data, dummy_rsp)
 

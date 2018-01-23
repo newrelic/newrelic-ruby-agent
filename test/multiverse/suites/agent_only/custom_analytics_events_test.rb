@@ -8,7 +8,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
   setup_and_teardown_agent
 
   def test_custom_analytics_events_are_submitted
-    t0 = freeze_time
+    t0 = nr_freeze_time
     NewRelic::Agent.record_custom_event(:DummyType, :foo => :bar, :baz => :qux)
 
     NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)

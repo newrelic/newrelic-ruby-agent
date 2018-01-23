@@ -118,7 +118,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
   def test_should_capture_request_uri_and_params
     get '/error/controller_error?eat=static'
-    assert_equal('/error/controller_error', attributes_for_single_error_posted("request_uri"))
+    assert_equal('/error/controller_error', attributes_for_single_error_posted("agentAttributes")["request.uri"])
 
     expected_params = {
       'request.parameters.eat' => 'static',

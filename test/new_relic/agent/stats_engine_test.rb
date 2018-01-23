@@ -323,7 +323,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   end
 
   def test_harvest_adds_harvested_at_time
-    t0 = freeze_time
+    t0 = nr_freeze_time
     result = @engine.harvest!
     assert_equal(t0, result.harvested_at)
   end

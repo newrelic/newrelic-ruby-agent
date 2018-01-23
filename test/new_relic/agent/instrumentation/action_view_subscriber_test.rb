@@ -19,7 +19,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
 
   def test_records_metrics_for_simple_template
     params = { :identifier => '/root/app/views/model/index.html.erb' }
-    freeze_time
+    nr_freeze_time
     in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
@@ -35,7 +35,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
 
   def test_records_metrics_for_simple_file
     params = { :identifier => '/root/something.txt' }
-    freeze_time
+    nr_freeze_time
     in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
@@ -51,7 +51,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
 
   def test_records_metrics_for_simple_inline
     params = { :identifier => 'inline template' }
-    freeze_time
+    nr_freeze_time
     in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
@@ -67,7 +67,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
 
   def test_records_metrics_for_simple_text
     params = { :identifier => 'text template' }
-    freeze_time
+    nr_freeze_time
     in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
       advance_time 2.0
@@ -79,7 +79,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
 
   def test_records_metrics_for_simple_partial
     params = { :identifier => '/root/app/views/model/_form.html.erb' }
-    freeze_time
+    nr_freeze_time
     in_transaction do
       @subscriber.start('render_partial.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
@@ -95,7 +95,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
 
   def test_records_metrics_for_simple_collection
     params = { :identifier => '/root/app/views/model/_user.html.erb' }
-    freeze_time
+    nr_freeze_time
     in_transaction do
       @subscriber.start('render_collection.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
@@ -110,7 +110,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
   end
 
   def test_records_metrics_for_layout
-    freeze_time
+    nr_freeze_time
     in_transaction do
       @subscriber.start('!render_template.action_view', :id,
                         :virtual_path => 'layouts/application')

@@ -9,10 +9,18 @@ module NewRelic
     module Configuration
       class YamlSource < DottedHash
         attr_accessor :file_path, :failures
+        attr_reader :generated_for_user, :license_key
 
         def initialize(path, env)
           config    = {}
           @failures = []
+
+          # These are needed in process_erb for populating the newrelic.yml via
+          # erb binding, necessary when using the default newrelic.yml file. They
+          # are defined as ivars instead of local variables to prevent
+          # `assigned but unused variable` warnings when running with -W
+          @generated_for_user = ''
+          @license_key = ''
 
           begin
             @file_path = validate_config_file_path(path)
@@ -81,20 +89,10 @@ module NewRelic
             # ERB template commented at the YML level is fine. Leave the line,
             # though, so ERB line numbers remain correct.
             file.gsub!(/^\s*#.*$/, '#')
-
-            # Next two are for populating the newrelic.yml via erb binding, necessary
-            # when using the default newrelic.yml file
-            generated_for_user = ''
-            license_key = ''
-
             ERB.new(file).result(binding)
           rescue ScriptError, StandardError => e
             log_failure("Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.", e)
             nil
-          ensure
-            # Avoid warnings by using these again
-            generated_for_user = nil
-            license_key = nil
           end
         end
 

@@ -1,5 +1,27 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v4.8.0 ##
+
+  * Initialize New Relic Agent before config initializers
+
+  When running in a Rails environment, the agent registers an initializer that
+  starts the agent. This initializer is now defined to run before config/initializers.
+  Previously, the ordering was not specified for the initializer. This change
+  guarantees the agent will started by the time your initializers run, so you can
+  safely reference the Agent in your custom initializers. Thanks to Tony Ta for
+  the contribution.
+
+  * Ruby 2.5 Support
+
+  The Ruby Agent has been verified to run under Ruby 2.5.
+
+  * `request.uri` Collected as an Agent Attribute
+
+  Users can now control the collection of `request.uri` on errors and transaction
+  traces. Previously it was always collected without the ability to turn it off.
+  It is now an agent attribute that can be controlled via the attributes config.
+  For more information on agent attributes [see here](https://docs.newrelic.com/docs/agents/manage-apm-agents/agent-data/agent-attributes).
+
   ## 4.7.1 ##
 
   * Bugfix for Manual Browser Instrumentation
@@ -7,7 +29,8 @@
   There was a previous bug that required setting both `rum.enabled: false` and
   `browser.auto_instrument: false` to completely disable browser monitoring. An
   attempt to fix this in 4.7.0 resulted in breaking manual browser
-  instrumentation. Those changes have been reverted.
+  instrumentation. Those changes have been reverted. We will revisit this issue
+  in an upcoming release.
 
   ## v4.7.0 ##
 
