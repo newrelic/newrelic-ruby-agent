@@ -4,16 +4,16 @@
 
   * Initialize New Relic Agent before config initializers
 
-  When running in a Rails environment the agent registers an intializer that
+  When running in a Rails environment, the agent registers an initializer that
   starts the agent. This initializer is now defined to run before config/initializers.
   Previously, the ordering was not specified for the initializer. This change
   guarantees the agent will started by the time your initializers run, so you can
-  safely reference the Agent in your custom intializers. Thanks to Tony Ta for
+  safely reference the Agent in your custom initializers. Thanks to Tony Ta for
   the contribution.
 
   * Ruby 2.5 Support
 
-  The Ruby Agent has been verified against Ruby 2.5.
+  The Ruby Agent has been verified to run under Ruby 2.5.
 
   * `request.uri` Collected as an Agent Attribute
 
