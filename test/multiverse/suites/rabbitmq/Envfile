@@ -4,15 +4,27 @@ end
 
 amq_protocol_version = RUBY_VERSION < "2.2.0" ? "< 2.3.0" : ">= 2.3.0"
 
+if RUBY_VERSION >= '2.2'
+  gemfile <<-RB
+    gem 'rack'
+    gem 'bunny', '~>2.9.1'
+  RB
+end
+
 gemfile <<-RB
   gem 'rack'
-  gem 'bunny', '~>2.7.0'
+  gem 'bunny', '~>2.8.1'
+RB
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'bunny', '~>2.7.4'
   gem 'amq-protocol', '#{amq_protocol_version}'
 RB
 
 gemfile <<-RB
   gem 'rack'
-  gem 'bunny', '~>2.6.5'
+  gem 'bunny', '~>2.6.7'
   gem 'amq-protocol', '#{amq_protocol_version}'
 RB
 

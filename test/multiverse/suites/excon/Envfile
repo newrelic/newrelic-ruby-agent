@@ -1,7 +1,8 @@
 if RUBY_VERSION >= '2.2.0'
-  excon_versions = %w(0.45.3)
+  excon_versions = %w(0.60.0)
 else
-  excon_versions = %w(0.45.3
+  excon_versions = %w(0.60.0
+                      0.45.3
                       0.25.0
                       0.24.0
                       0.19.0
