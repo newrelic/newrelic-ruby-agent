@@ -7,9 +7,11 @@ development:
   agent_enabled: true
   monitor_mode: true
   license_key: bootstrap_newrelic_admin_license_key_000
+  ca_bundle_path: ../../../config/test.cert.crt
   app_name: test
-  host: 127.0.0.1
-  api_host: 127.0.0.1
+  host: localhost
+  api_host: localhost
+  port: <%= $collector && $collector.port %>
   api_port: <%= ENV["FAKE_RPM_SITE_PORT"] %>
   transaction_tracer:
     record_sql: obfuscated

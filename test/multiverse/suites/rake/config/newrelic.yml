@@ -6,12 +6,14 @@ development:
   rake:
     tasks:
       - "default"
-  ssl: false
+  ssl: true
   monitor_mode: true
   license_key: bootstrap_newrelic_admin_license_key_000
+  ca_bundle_path: ../../../config/test.cert.crt
   app_name: test
-  host: 127.0.0.1
-  port: <%= $collector ||= nil; $collector && $collector.port %>
+  host: localhost
+  api_host: localhost
+  port: <%= $collector && $collector.port %>
   transaction_tracer:
     transaction_threshold: -10
     enabled: true
