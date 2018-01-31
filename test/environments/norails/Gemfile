@@ -11,7 +11,11 @@ else
   gem 'rack'
 end
 
-gem 'rack-test'
+if RUBY_VERSION < "2.2.0"
+  gem 'rack-test', "< 0.8.0"
+else
+  gem 'rack-test'
+end
 
 gem "newrelic_rpm", :path => "../../.."
 
