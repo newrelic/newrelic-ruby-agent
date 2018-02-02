@@ -10,6 +10,7 @@ module NewRelic
   class FakeRpmSite < FakeServer
     def initialize(*_)
       super
+      @use_ssl = true
       @requests = []
     end
 

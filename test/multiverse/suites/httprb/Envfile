@@ -14,6 +14,7 @@ httprb_versions = %w(2.0.3
 httprb_versions.each do |httprb_version|
   gemfile <<-RB
     gem 'http', '~> #{httprb_version}'
+    gem 'public_suffix', '< 3.0.0' if RUBY_VERSION < "2.1.0"
     gem 'rack'
   RB
 end

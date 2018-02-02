@@ -16,6 +16,11 @@ before_install:
 
 install: bundle install
 
+addons:
+  apt:
+    packages:
+      - haveged
+
 before_script: ./test/script/before_script/install_mongodb.sh
 
 script: ./test/script/ci.sh

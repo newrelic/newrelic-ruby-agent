@@ -16,6 +16,10 @@ class StartUpTest < Minitest::Test
     %r{.*gems/bundler-1.12.5/lib/bundler/rubygems_integration.rb:468: warning: method redefined; discarding old find_spec_for_exe},
     %r{.*lib/ruby/site_ruby/2.3.0/rubygems.rb:261: warning: previous definition of find_spec_for_exe was here}
   ]
+  NET_HTTP_NOISE = [
+    %r{.*ruby-2\.[1-2]\.\d+/lib/ruby/2\.[1-2]\.\d+/net/http\.rb:895: warning: instance variable @npn_protocols not initialized},
+    %r{.*ruby-2\.[1-2]\.\d+/lib/ruby/2\.[1-2]\.\d+/net/http\.rb:895: warning: instance variable @npn_select_cb not initialized}
+  ]
 
   include MultiverseHelpers
 
@@ -32,7 +36,8 @@ class StartUpTest < Minitest::Test
       "JRuby limited openssl loaded. http://jruby.org/openssl\n",
       "gem install jruby-openssl for full support.\n",
       GIT_NOISE,
-      /Exception\: java\.lang.*\n/]
+      /Exception\: java\.lang.*\n/
+    ]
 
     expected_noise << JRUBY_9000_NOISE if jruby_9000
 
@@ -102,7 +107,7 @@ class StartUpTest < Minitest::Test
                        'NEW_RELIC_PORT' => $collector.port.to_s) do
 
         output = `bundle exec ruby -w script/warnings.rb 2>&1`
-        expected_noise = [GIT_NOISE]
+        expected_noise = [GIT_NOISE, NET_HTTP_NOISE]
 
         expected_noise << JRUBY_9000_NOISE if jruby_9000
         expected_noise << BUNDLER_NOISE if bundler_rubygem_conflicts?
