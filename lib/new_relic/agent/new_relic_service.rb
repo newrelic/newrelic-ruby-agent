@@ -16,6 +16,7 @@ module NewRelic
       # the NewRelic hosted site.
 
       PROTOCOL_VERSION = 14
+
       # 1f147a42: v10 (tag 3.5.3.17)
       # cf0d1ff1: v9 (tag 3.5.0)
       # 14105: v8 (tag 2.10.3)
@@ -30,8 +31,8 @@ module NewRelic
       # underlying TCP connection may be in a bad state.
       CONNECTION_ERRORS = [Timeout::Error, EOFError, SystemCallError, SocketError].freeze
 
-      attr_accessor :request_timeout, :agent_id
-      attr_reader :collector, :marshaller
+      attr_accessor :request_timeout
+      attr_reader :collector, :marshaller, :agent_id
 
       def initialize(license_key=nil, collector=control.server)
         @license_key = license_key
@@ -41,6 +42,7 @@ module NewRelic
         @in_session = nil
         @agent_id = nil
         @shared_tcp_connection = nil
+        reset_remote_method_uris
 
         @audit_logger = ::NewRelic::Agent::AuditLogger.new
         Agent.config.register_callback(:'audit_log.enabled') do |enabled|
@@ -63,12 +65,21 @@ module NewRelic
         end
       end
 
+      def agent_id=(id)
+        # Remote URIs have the agent run ID in them, so we need to
+        # clear out our cached values whenever the run ID changes.
+        #
+        reset_remote_method_uris
+
+        @agent_id = id
+      end
+
       def connect(settings={})
         if host = get_redirect_host
           @collector = NewRelic::Control.instance.server_from_host(host)
         end
         response = invoke_remote(:connect, [settings])
-        @agent_id = response['agent_run_id']
+        self.agent_id = response['agent_run_id']
         response
       end
 
@@ -335,11 +346,28 @@ module NewRelic
         NewRelic::Control.instance
       end
 
-      # The path on the server that we should post our data to
-      def remote_method_uri(method, format)
-        params = {'run_id' => @agent_id, 'marshal_format' => format}
-        uri = "/agent_listener/#{PROTOCOL_VERSION}/#{license_key}/#{method}"
-        uri << '?' + params.map do |k,v|
+      def remote_method_uri(method)
+        @remote_method_uris[method]
+      end
+
+      def reset_remote_method_uris
+        @remote_method_uris = Hash.new do |hash, remote_method|
+          hash[remote_method] = generate_remote_method_uri(remote_method)
+        end
+      end
+
+      def generate_remote_method_uri(method)
+        params = {
+          'protocol_version' => PROTOCOL_VERSION,
+          'license_key'      => license_key,
+          'run_id'           => @agent_id,
+          'method'           => method,
+          'marshal_format'   => 'json', # Other formats are explicitly
+                                        # ruled out; see the initializer
+        }
+
+        uri = "/agent_listener/invoke_raw_method?"
+        uri << params.map do |k,v|
           next unless v
           "#{k}=#{v}"
         end.compact.join('&')
@@ -368,7 +396,7 @@ module NewRelic
         data, encoding = compress_request_if_needed(data)
         size = data.size
 
-        uri = remote_method_uri(method, @marshaller.format)
+        uri = remote_method_uri(method)
         full_uri = "#{@collector}#{uri}"
 
         @audit_logger.log_request(full_uri, payload, @marshaller)
