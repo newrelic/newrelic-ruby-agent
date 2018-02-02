@@ -335,11 +335,17 @@ module NewRelic
         NewRelic::Control.instance
       end
 
-      # The path on the server that we should post our data to
       def remote_method_uri(method, format)
-        params = {'run_id' => @agent_id, 'marshal_format' => format}
-        uri = "/agent_listener/#{PROTOCOL_VERSION}/#{license_key}/#{method}"
-        uri << '?' + params.map do |k,v|
+        params = {
+          'protocol_version' => PROTOCOL_VERSION,
+          'license_key'      => license_key,
+          'run_id'           => @agent_id,
+          'marshal_format'   => format,
+          'method'           => method,
+        }
+
+        uri = "/agent_listener/invoke_raw_method?"
+        uri << params.map do |k,v|
           next unless v
           "#{k}=#{v}"
         end.compact.join('&')
