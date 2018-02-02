@@ -369,9 +369,21 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             }
 
             result = node.params[:statement]
-            # the writeConcern is added by some, but not all versions of the mongo driver,
-            # we don't care if it's present or not, just that the statement is noticed
+
+            # Depending on the Mongo DB version, we may get back
+            # strings instead of symbols.  Let's adjust our
+            # expectations accordingly.
+            #
+            if result[:operation].is_a?(String)
+              expected[:operation] = expected[:operation].to_s
+            end
+
+            # The writeConcern is added by some, but not all versions
+            # of the mongo driver, we don't care if it's present or
+            # not, just that the statement is noticed
+            #
             result.delete('writeConcern')
+
             assert_equal expected, result
           end
 
@@ -385,7 +397,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             node = find_last_transaction_node
             query = node.params[:statement]
 
-            assert_equal :insert, query[:operation]
+            assert_mongo_operation :insert, query
           end
 
           def test_noticed_nosql_includes_update_one_operation
@@ -398,7 +410,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             node = find_last_transaction_node
             query = node.params[:statement]
 
-            assert_equal :update, query[:operation]
+            assert_mongo_operation :update, query
           end
 
           def test_noticed_nosql_includes_find_operation
@@ -412,7 +424,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             node = find_last_transaction_node
             query = node.params[:statement]
 
-            assert_equal 'find', query[:operation]
+            assert_mongo_operation 'find', query
           end
 
           def test_noticed_nosql_does_not_contain_documents
@@ -486,6 +498,10 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           def statement_metric(action)
             metrics = build_test_metrics(action, true)
             metrics.select { |m| m.start_with?("Datastore/statement") }.first
+          end
+
+          def assert_mongo_operation(expected_value, query)
+            assert_equal expected_value.to_s, query[:operation].to_s
           end
         end
       end
