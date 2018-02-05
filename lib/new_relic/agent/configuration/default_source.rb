@@ -157,6 +157,17 @@ module NewRelic
           }
         end
 
+        def self.host
+          Proc.new do
+            regex = /(?<identifier>[a-z]{2,3}[0-9]{2})x{1,2}/
+            if matches = regex.match(NewRelic::Agent.config[:license_key])
+              "collector.#{matches['identifier']}.nr-data.net"
+            else
+              'collector.newrelic.com'
+            end
+          end
+        end
+
         def self.convert_to_regexp_list(raw_value)
           value_list = convert_to_list(raw_value)
           value_list.map do |value|
@@ -450,7 +461,7 @@ module NewRelic
           :description => 'Specify a whitelist of exceptions you do not want the agent to strip when <a href="#strip_exception_messages-enabled">strip_exception_messages</a> is <code>true</code>. Separate exceptions with a comma. For example, <code>"ImportantException,PreserveMessageException"</code>.'
         },
         :host => {
-          :default => 'collector.newrelic.com',
+          :default => DefaultSource.host,
           :public => false,
           :type => String,
           :allowed_from_server => false,
