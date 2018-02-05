@@ -160,7 +160,7 @@ module NewRelic
         def self.host
           Proc.new do
             regex = /\A(?<identifier>.+?)x/
-            if matches = regex.match(NewRelic::Agent.config[:license_key])
+            if matches = regex.match(String(NewRelic::Agent.config[:license_key]))
               "collector.#{matches['identifier']}.nr-data.net"
             else
               'collector.newrelic.com'
