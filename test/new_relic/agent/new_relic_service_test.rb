@@ -12,7 +12,7 @@ class NewRelicServiceTest < Minitest::Test
     @service = NewRelic::Agent::NewRelicService.new('license-key', @server)
 
     @http_handle = create_http_handle
-    @http_handle.respond_to(:get_redirect_host, 'localhost')
+    @http_handle.respond_to(:preconnect, 'localhost')
     connect_response = {
       'config' => 'some config directives',
       'agent_run_id' => 1
@@ -73,7 +73,7 @@ class NewRelicServiceTest < Minitest::Test
   # Calling start on a Net::HTTP instance results in connection keep-alive
   # being used, which means that the connection won't be automatically closed
   # once a request is issued. For calls to the service outside of a session
-  # block (/get_redirect_host and /connect, namely), we actually want the
+  # block (/preconnect and /connect, namely), we actually want the
   # connection to only be used for a single request.
   def test_connections_not_explicitly_started_outside_session_block
     @http_handle.respond_to(:foo, ['blah'])
@@ -237,7 +237,7 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_connect_uses_proxy_collector_if_no_redirect_host
     @http_handle.reset
-    @http_handle.respond_to(:get_redirect_host, nil)
+    @http_handle.respond_to(:preconnect, nil)
     @http_handle.respond_to(:connect, 'agent_run_id' => 1)
 
     @service.connect
@@ -246,15 +246,15 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_connect_sets_agent_id
     @http_handle.reset
-    @http_handle.respond_to(:get_redirect_host, 'localhost')
+    @http_handle.respond_to(:preconnect, 'localhost')
     @http_handle.respond_to(:connect, 'agent_run_id' => 666)
 
     @service.connect
     assert_equal 666, @service.agent_id
   end
 
-  def test_get_redirect_host
-    assert_equal 'localhost', @service.get_redirect_host
+  def test_preconnect
+    assert_equal 'localhost', @service.preconnect
   end
 
   def test_shutdown
@@ -399,7 +399,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def test_should_connect_to_proxy_only_once_per_run
-    @service.expects(:get_redirect_host).once
+    @service.expects(:preconnect).once
 
     @service.connect
     @http_handle.respond_to(:metric_data, 0)
@@ -417,9 +417,9 @@ class NewRelicServiceTest < Minitest::Test
   # for PRUBY proxy compatibility
   def test_should_raise_exception_on_401
     @http_handle.reset
-    @http_handle.respond_to(:get_redirect_host, 'bad license', :code => 401)
+    @http_handle.respond_to(:preconnect, 'bad license', :code => 401)
     assert_raises NewRelic::Agent::LicenseException do
-      @service.get_redirect_host
+      @service.preconnect
     end
   end
 

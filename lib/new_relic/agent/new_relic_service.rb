@@ -75,7 +75,7 @@ module NewRelic
       end
 
       def connect(settings={})
-        if host = get_redirect_host
+        if host = preconnect
           @collector = NewRelic::Control.instance.server_from_host(host)
         end
         response = invoke_remote(:connect, [settings])
@@ -83,8 +83,8 @@ module NewRelic
         response
       end
 
-      def get_redirect_host
-        invoke_remote(:get_redirect_host)
+      def preconnect
+        invoke_remote(:preconnect)
       end
 
       def shutdown(time)

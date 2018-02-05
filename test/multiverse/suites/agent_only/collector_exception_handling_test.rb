@@ -73,15 +73,15 @@ class CollectorExceptionHandlingTest < Minitest::Test
     assert_equal(2, $collector.calls_for('connect').size)
   end
 
-  def test_should_reconnect_on_get_redirect_host_exception
-    $collector.stub_exception('get_redirect_host', RUNTIME_ERROR_PAYLOAD).once
+  def test_should_reconnect_on_preconnect_exception
+    $collector.stub_exception('preconnect', RUNTIME_ERROR_PAYLOAD).once
     $collector.stub_exception('metric_data', DISCONNECT_PAYLOAD).once
 
     with_config(:data_report_period => 0) do
       NewRelic::Agent.agent.deferred_work!({})
     end
 
-    assert_equal(2, $collector.calls_for('get_redirect_host').size)
+    assert_equal(2, $collector.calls_for('preconnect').size)
     assert_equal(1, $collector.calls_for('connect').size)
   end
 end
