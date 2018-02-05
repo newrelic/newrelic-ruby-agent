@@ -159,7 +159,7 @@ module NewRelic
 
         def self.host
           Proc.new do
-            regex = /(?<identifier>[a-z]{2,3}[0-9]{2})x{1,2}/
+            regex = /\A(?<identifier>.+?)x/
             if matches = regex.match(NewRelic::Agent.config[:license_key])
               "collector.#{matches['identifier']}.nr-data.net"
             else
