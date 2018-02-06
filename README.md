@@ -130,9 +130,6 @@ If you can't find what you're looking for there, reach out to us on our [support
 site](http://support.newrelic.com/) or our [community forum](http://forum.newrelic.com)
 and we'll be happy to help you.
 
-Also available is community support on IRC: we generally use #newrelic
-on irc.freenode.net
-
 Find a bug? Contact us via [support.newrelic.com](http://support.newrelic.com/),
 or email support@newrelic.com.
 
