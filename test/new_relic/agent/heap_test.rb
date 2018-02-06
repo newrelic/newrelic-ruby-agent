@@ -9,36 +9,20 @@ module NewRelic
   module Agent
     class HeapTest < Minitest::Test
       def test_items_inserted_in_proper_order
-        heap = Heap.new
-
-        heap.push(12)
-        heap.push(5)
-        heap.push(4)
-        heap.push(8)
+        heap = Heap.new [12, 5, 4, 8]
 
         assert_equal [4, 8, 5, 12], heap.to_a
       end
 
       def test_tree_rebalanced_on_pop
-        heap = Heap.new
-
-        heap.push(12)
-        heap.push(5)
-        heap.push(4)
-        heap.push(8)
-
+        heap = Heap.new [12, 5, 4, 8]
         heap.pop
 
         assert_equal [5, 8, 12], heap.to_a
       end
 
       def test_items_can_be_modified_by_accessors
-        heap = Heap.new
-
-        heap.push(12)
-        heap.push(5)
-        heap.push(4)
-        heap.push(8)
+        heap = Heap.new [12, 5, 4, 8]
 
         assert_equal 5, heap[2]
 
@@ -48,13 +32,7 @@ module NewRelic
       end
 
       def test_fix_bubbles_up
-        heap = Heap.new
-        heap.push(12)
-        heap.push(5)
-        heap.push(4)
-        heap.push(8)
-        heap.push(30)
-        heap.push(7)
+        heap = Heap.new [12, 5, 4, 8, 30, 7]
 
         heap[1] = 1
         heap.fix(1)
@@ -70,9 +48,7 @@ module NewRelic
       end
 
       def test_fix_bubbles_up_large_heap
-        heap = Heap.new
-
-        (1..100).to_a.shuffle.each { |i| heap.push(i)}
+        heap = Heap.new((1..100).to_a.shuffle)
 
         replaced_value = heap[99]
         heap[99] = 0
@@ -89,13 +65,7 @@ module NewRelic
       end
 
       def test_fix_bubbles_down
-        heap = Heap.new
-        heap.push(12)
-        heap.push(5)
-        heap.push(4)
-        heap.push(8)
-        heap.push(30)
-        heap.push(7)
+        heap = Heap.new [12, 5, 4, 8, 30, 7]
 
         heap[1] = 50
         heap.fix(1)
@@ -111,9 +81,7 @@ module NewRelic
       end
 
       def test_fix_bubbles_down_large_heap
-        heap = Heap.new
-
-        (1..100).to_a.shuffle.each { |i| heap.push(i)}
+        heap = Heap.new((1..100).to_a.shuffle)
 
         heap[0] = 101
         heap.fix(0)
@@ -129,13 +97,7 @@ module NewRelic
       end
 
       def test_fix_leaves_item_if_heap_rule_satisfied
-        heap = Heap.new
-        heap.push(12)
-        heap.push(5)
-        heap.push(4)
-        heap.push(8)
-        heap.push(30)
-        heap.push(7)
+        heap = Heap.new [12, 5, 4, 8, 30, 7]
 
         heap[1] = 9
         heap.fix(1)
@@ -153,13 +115,7 @@ module NewRelic
       end
 
       def test_items_are_popped_in_ascending_order
-        heap = Heap.new
-        heap.push(12)
-        heap.push(5)
-        heap.push(4)
-        heap.push(8)
-        heap.push(30)
-        heap.push(7)
+        heap = Heap.new [12, 5, 4, 8, 30, 7]
 
         ordered_items = []
 
@@ -172,13 +128,16 @@ module NewRelic
       end
 
       def test_items_are_popped_in_ascending_order_with_priority_function
-        heap = Heap.new {|x| x[:priority] }
-        heap.push({priority: 12})
-        heap.push({priority: 5})
-        heap.push({priority: 4})
-        heap.push({priority: 8})
-        heap.push({priority: 30})
-        heap.push({priority: 7})
+        items = [
+          {priority: 12},
+          {priority: 5},
+          {priority: 4},
+          {priority: 8},
+          {priority: 30},
+          {priority: 7}
+        ]
+
+        heap = Heap.new(items) {|x| x[:priority] }
 
         ordered_items = []
 
@@ -200,28 +159,26 @@ module NewRelic
       end
 
       def test_large_heap_even_number_of_items
-        heap = Heap.new
-
-        input = (0..1000).to_a
-        input.shuffle.each { |i| heap.push(i) }
+        heap = Heap.new((0..100).to_a.shuffle)
 
         output = []
-        input.size.times { output << heap.pop }
+        until heap.empty?
+          output << heap.pop
+        end
 
-        assert_equal input, output
+        assert_equal (0..100).to_a, output
         assert_equal [], heap.to_a
       end
 
       def test_large_heap_odd_number_of_items
-        heap = Heap.new
-
-        input = (0..1001).to_a
-        input.shuffle.each { |i| heap.push(i) }
+       heap = Heap.new((0..101).to_a.shuffle)
 
         output = []
-        input.size.times { output << heap.pop }
+        until heap.empty?
+          output << heap.pop
+        end
 
-        assert_equal input, output
+        assert_equal (0..101).to_a, output
         assert_equal [], heap.to_a
       end
     end

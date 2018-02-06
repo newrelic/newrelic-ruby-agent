@@ -19,12 +19,15 @@ module NewRelic
 
     class Heap
 
+      # @param [Array] items an optional array of items to intialize the heap
+      #
       # @param [Callable] priority_fn an optional priority function used to
       #   to compute the priority for an item. If it's not supplied priority
       #   will be computed using Comparable.
-      def initialize(&priority_fn)
+      def initialize(items = nil, &priority_fn)
         @items = []
         @priority_fn = priority_fn || ->(x) { x }
+        items.each{ |item| push(item) } if items
       end
 
       def [](index)
