@@ -36,16 +36,16 @@ module NewRelic
       end
 
       def fix(index)
-        parent_index = (index - 1) / 2
+        parent_index = parent_index_for(index)
 
         if(parent_index >= 0 && priority(parent_index) > priority(index))
           heapify_up(index)
         else
-          child_index = index * 2 + 1
+          child_index = child_index_for(index)
 
-          return if child_index > @items.size - 1
+          return unless in_range?(child_index)
 
-          if(priority(child_index) > priority(child_index + 1))
+          if(sibling_smaller?(child_index))
             child_index += 1
           end
 
@@ -57,14 +57,18 @@ module NewRelic
 
       def push(item)
         @items << item
-        heapify_up(@items.size - 1)
+        heapify_up(size - 1)
       end
 
       def pop
-        swap(0, @items.size - 1)
+        swap(0, size - 1)
         item = @items.pop
         heapify_down(0)
         item
+      end
+
+      def size
+        @items.size
       end
 
       def empty?
@@ -81,10 +85,28 @@ module NewRelic
         @priority_fn.call(@items[index])
       end
 
+      def parent_index_for child_index
+        (child_index - 1) / 2
+      end
+
+      # the index of the left child
+      def child_index_for parent_index
+        2 * parent_index + 1
+      end
+
+      def in_range?(index)
+        index < size
+      end
+
+      # true if the right sibling is smaller than the left
+      def sibling_smaller?(child_index)
+        in_range?(child_index + 1) && priority(child_index) > priority(child_index + 1)
+      end
+
       def heapify_up(child_index)
         return if child_index == 0
 
-        parent_index = (child_index - 1) / 2
+        parent_index = parent_index_for(child_index)
 
         if priority(child_index) < priority(parent_index)
           swap(child_index, parent_index)
@@ -93,10 +115,10 @@ module NewRelic
       end
 
       def heapify_down(parent_index)
-        child_index = 2 * parent_index + 1
-        return if child_index > @items.size - 1
+        child_index = child_index_for(parent_index)
+        return unless in_range?(child_index)
 
-        if(child_index < @items.size - 1 && priority(child_index) > priority(child_index + 1))
+        if(sibling_smaller?(child_index))
           child_index += 1
         end
 
