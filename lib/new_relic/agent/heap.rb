@@ -41,11 +41,11 @@ module NewRelic
         if(parent_index >= 0 && priority(parent_index) > priority(index))
           heapify_up(index)
         else
-          child_index = child_index_for(index)
+          child_index = left_child_index_for(index)
 
           return unless in_range?(child_index)
 
-          if(sibling_smaller?(child_index))
+          if(right_sibling_smaller?(child_index))
             child_index += 1
           end
 
@@ -89,18 +89,16 @@ module NewRelic
         (child_index - 1) / 2
       end
 
-      # the index of the left child
-      def child_index_for parent_index
+      def left_child_index_for parent_index
         2 * parent_index + 1
+      end
+
+      def right_sibling_smaller?(lchild_index)
+        in_range?(lchild_index + 1) && priority(lchild_index) > priority(lchild_index + 1)
       end
 
       def in_range?(index)
         index < size
-      end
-
-      # true if the right sibling is smaller than the left
-      def sibling_smaller?(child_index)
-        in_range?(child_index + 1) && priority(child_index) > priority(child_index + 1)
       end
 
       def heapify_up(child_index)
@@ -115,10 +113,10 @@ module NewRelic
       end
 
       def heapify_down(parent_index)
-        child_index = child_index_for(parent_index)
+        child_index = left_child_index_for(parent_index)
         return unless in_range?(child_index)
 
-        if(sibling_smaller?(child_index))
+        if(right_sibling_smaller?(child_index))
           child_index += 1
         end
 
