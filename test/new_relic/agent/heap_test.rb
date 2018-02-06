@@ -8,6 +8,21 @@ require 'new_relic/agent/heap'
 module NewRelic
   module Agent
     class HeapTest < Minitest::Test
+      def test_items_can_be_modified_by_accessors
+        heap = Heap.new
+
+        heap.push(12)
+        heap.push(5)
+        heap.push(4)
+        heap.push(8)
+
+        assert_equal 5, heap[2]
+
+        heap[2] = 6
+
+        assert_equal 6, heap[2]
+      end
+
       def test_items_inserted_in_proper_order
         heap = Heap.new
 

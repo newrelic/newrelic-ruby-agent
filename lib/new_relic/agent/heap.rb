@@ -21,10 +21,18 @@ module NewRelic
 
       # @param [Callable] priority_fn an optional priority function used to
       #   to compute the priority for an item. If it's not supplied priority
-      #   will be computed using Comparable
+      #   will be computed using Comparable.
       def initialize(&priority_fn)
         @items = []
         @priority_fn = priority_fn || ->(x) { x }
+      end
+
+      def [](index)
+        @items[index]
+      end
+
+      def []=(index, value)
+        @items[index] = value
       end
 
       def push(item)
