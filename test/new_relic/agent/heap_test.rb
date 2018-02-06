@@ -61,7 +61,7 @@ module NewRelic
 
         ordered_items = []
 
-        6.times do
+        until heap.empty?
           ordered_items << heap.pop
         end
 
@@ -80,7 +80,7 @@ module NewRelic
 
         ordered_items = []
 
-        100.times do
+        until heap.empty?
           ordered_items << heap.pop
         end
 
@@ -102,7 +102,7 @@ module NewRelic
 
         ordered_items = []
 
-        6.times do
+        until heap.empty?
           ordered_items << heap.pop
         end
 
@@ -120,7 +120,7 @@ module NewRelic
 
         ordered_items = []
 
-        100.times do
+        until heap.empty?
           ordered_items << heap.pop
         end
 
@@ -144,7 +144,7 @@ module NewRelic
 
         ordered_items = []
 
-        6.times do
+        until heap.empty?
           ordered_items << heap.pop
         end
 
@@ -163,7 +163,7 @@ module NewRelic
 
         ordered_items = []
 
-        6.times do
+        until heap.empty?
           ordered_items << heap.pop
         end
 
@@ -182,7 +182,7 @@ module NewRelic
 
         ordered_items = []
 
-        6.times do
+        until heap.empty?
           ordered_items << heap.pop
         end
 

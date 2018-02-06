@@ -67,6 +67,10 @@ module NewRelic
         item
       end
 
+      def empty?
+        @items.empty?
+      end
+
       def to_a
         @items
       end
