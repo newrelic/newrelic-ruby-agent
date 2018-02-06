@@ -8,21 +8,6 @@ require 'new_relic/agent/heap'
 module NewRelic
   module Agent
     class HeapTest < Minitest::Test
-      def test_items_can_be_modified_by_accessors
-        heap = Heap.new
-
-        heap.push(12)
-        heap.push(5)
-        heap.push(4)
-        heap.push(8)
-
-        assert_equal 5, heap[2]
-
-        heap[2] = 6
-
-        assert_equal 6, heap[2]
-      end
-
       def test_items_inserted_in_proper_order
         heap = Heap.new
 
@@ -45,6 +30,126 @@ module NewRelic
         heap.pop
 
         assert_equal [5, 8, 12], heap.to_a
+      end
+
+      def test_items_can_be_modified_by_accessors
+        heap = Heap.new
+
+        heap.push(12)
+        heap.push(5)
+        heap.push(4)
+        heap.push(8)
+
+        assert_equal 5, heap[2]
+
+        heap[2] = 6
+
+        assert_equal 6, heap[2]
+      end
+
+      def test_fix_bubbles_up
+        heap = Heap.new
+        heap.push(12)
+        heap.push(5)
+        heap.push(4)
+        heap.push(8)
+        heap.push(30)
+        heap.push(7)
+
+        heap[1] = 1
+        heap.fix(1)
+
+        ordered_items = []
+
+        6.times do
+          ordered_items << heap.pop
+        end
+
+        assert_equal [1, 4, 5, 7, 12, 30], ordered_items
+        assert_equal [], heap.to_a
+      end
+
+      def test_fix_bubbles_up_large_heap
+        heap = Heap.new
+
+        (1..100).to_a.shuffle.each { |i| heap.push(i)}
+
+        replaced_value = heap[99]
+        heap[99] = 0
+        heap.fix(99)
+
+        ordered_items = []
+
+        100.times do
+          ordered_items << heap.pop
+        end
+
+        assert_equal (0..100).to_a - [replaced_value], ordered_items
+        assert_equal [], heap.to_a
+      end
+
+      def test_fix_bubbles_down
+        heap = Heap.new
+        heap.push(12)
+        heap.push(5)
+        heap.push(4)
+        heap.push(8)
+        heap.push(30)
+        heap.push(7)
+
+        heap[1] = 50
+        heap.fix(1)
+
+        ordered_items = []
+
+        6.times do
+          ordered_items << heap.pop
+        end
+
+        assert_equal [4, 5, 7, 12, 30, 50], ordered_items
+        assert_equal [], heap.to_a
+      end
+
+      def test_fix_bubbles_down_large_heap
+        heap = Heap.new
+
+        (1..100).to_a.shuffle.each { |i| heap.push(i)}
+
+        heap[0] = 101
+        heap.fix(0)
+
+        ordered_items = []
+
+        100.times do
+          ordered_items << heap.pop
+        end
+
+        assert_equal (2..101).to_a, ordered_items
+        assert_equal [], heap.to_a
+      end
+
+      def test_fix_leaves_item_if_heap_rule_satisfied
+        heap = Heap.new
+        heap.push(12)
+        heap.push(5)
+        heap.push(4)
+        heap.push(8)
+        heap.push(30)
+        heap.push(7)
+
+        heap[1] = 9
+        heap.fix(1)
+
+        assert_equal 9, heap[1]
+
+        ordered_items = []
+
+        6.times do
+          ordered_items << heap.pop
+        end
+
+        assert_equal [4, 5, 7, 9, 12, 30], ordered_items
+        assert_equal [], heap.to_a
       end
 
       def test_items_are_popped_in_ascending_order

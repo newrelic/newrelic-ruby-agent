@@ -35,6 +35,26 @@ module NewRelic
         @items[index] = value
       end
 
+      def fix(index)
+        parent_index = (index - 1) / 2
+
+        if(parent_index >= 0 && priority(parent_index) > priority(index))
+          heapify_up(index)
+        else
+          child_index = index * 2 + 1
+
+          return if child_index > @items.size - 1
+
+          if(priority(child_index) > priority(child_index + 1))
+            child_index += 1
+          end
+
+          if(priority(child_index) < priority(index))
+            heapify_down(index)
+          end
+        end
+      end
+
       def push(item)
         @items << item
         heapify_up(@items.size - 1)
