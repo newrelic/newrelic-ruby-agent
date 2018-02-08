@@ -235,7 +235,7 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal 'localhost', @service.collector.name
   end
 
-  def test_connect_uses_proxy_collector_if_no_redirect_host
+  def test_connect_uses_proxy_collector_if_preconnect_returns_no_redirect_host
     @http_handle.reset
     @http_handle.respond_to(:preconnect, nil)
     @http_handle.respond_to(:connect, 'agent_run_id' => 1)
