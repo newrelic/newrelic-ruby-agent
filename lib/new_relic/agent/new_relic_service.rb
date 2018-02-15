@@ -48,13 +48,6 @@ module NewRelic
         Agent.config.register_callback(:'audit_log.enabled') do |enabled|
           @audit_logger.enabled = enabled
         end
-        Agent.config.register_callback(:ssl) do |ssl|
-          if !ssl
-            ::NewRelic::Agent.logger.warn("Agent is configured not to use SSL when communicating with New Relic's servers")
-          else
-            ::NewRelic::Agent.logger.debug("Agent is configured to use SSL")
-          end
-        end
 
         Agent.config.register_callback(:marshaller) do |marshaller|
           if marshaller != 'json'
@@ -272,8 +265,7 @@ module NewRelic
         conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
         conn.cert_store  = ssl_cert_store
       rescue StandardError, LoadError
-        msg = "Agent is configured to use SSL, but SSL is not available in the environment. "
-        msg << "Either disable SSL in the agent configuration, or install SSL support."
+        msg = "SSL is not available in the environment; please install SSL support."
         raise UnrecoverableAgentException.new(msg)
       end
 
@@ -307,7 +299,7 @@ module NewRelic
           conn = Net::HTTP.new(@collector.name, @collector.port)
         end
 
-        setup_connection_for_ssl(conn) if Agent.config[:ssl]
+        setup_connection_for_ssl(conn)
         setup_connection_timeouts(conn)
 
         ::NewRelic::Agent.logger.debug("Created net/http handle to #{conn.address}:#{conn.port}")
