@@ -15,7 +15,7 @@ module NewRelic
       # Specifies the version of the agent's communication protocol with
       # the NewRelic hosted site.
 
-      PROTOCOL_VERSION = 14
+      PROTOCOL_VERSION = 15
 
       # 1f147a42: v10 (tag 3.5.3.17)
       # cf0d1ff1: v9 (tag 3.5.0)
@@ -75,7 +75,7 @@ module NewRelic
       end
 
       def connect(settings={})
-        if host = get_redirect_host
+        if host = preconnect
           @collector = NewRelic::Control.instance.server_from_host(host)
         end
         response = invoke_remote(:connect, [settings])
@@ -83,8 +83,8 @@ module NewRelic
         response
       end
 
-      def get_redirect_host
-        invoke_remote(:get_redirect_host)
+      def preconnect
+        invoke_remote(:preconnect)
       end
 
       def shutdown(time)
