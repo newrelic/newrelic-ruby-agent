@@ -4,7 +4,6 @@ development:
 
   # Settings known to be overridden by high security, purposefully set wrong
   # in local configuration for testing purposes!
-  ssl: false
   capture_params: true
 
   attributes:

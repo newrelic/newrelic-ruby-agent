@@ -6,7 +6,6 @@ common: &default_settings
   port: <%= $collector && $collector.port %>
   app_name: Rails multiverse test app
   enabled: true
-  ssl: true
   apdex_t: 1.0
   capture_params: true
   transaction_tracer:

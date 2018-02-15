@@ -10,8 +10,6 @@ module NewRelic
       class HighSecuritySource < DottedHash
         def initialize(local_settings)
           super({
-            :ssl => true,
-
             :capture_params           => false,
             :'resque.capture_params'  => false,
             :'sidekiq.capture_params' => false,

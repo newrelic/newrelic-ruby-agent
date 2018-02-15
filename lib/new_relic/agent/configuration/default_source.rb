@@ -142,10 +142,6 @@ module NewRelic
           Proc.new { NewRelic::Agent.config[:apdex_t] * 4 }
         end
 
-        def self.port
-          Proc.new { NewRelic::Agent.config[:ssl] ? 443 : 80 }
-        end
-
         def self.profiling_available
           Proc.new {
             begin
@@ -310,14 +306,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, enables <a href="https://docs.newrelic.com/docs/accounts-partnerships/accounts/security/high-security">high security mode</a>. Ensure you understand the implications of high security mode before enabling this setting.'
         },
-        :ssl => {
-          :default => true,
-          :allow_nil => true,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => 'If <code>true</code>, enables SSL for transmissions to the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>.'
-        },
         :proxy_host => {
           :default => nil,
           :allow_nil => true,
@@ -475,7 +463,7 @@ module NewRelic
           :description => 'API host for New Relic.'
         },
         :port => {
-          :default => DefaultSource.port,
+          :default => 443,
           :public => false,
           :type => Integer,
           :allowed_from_server => false,

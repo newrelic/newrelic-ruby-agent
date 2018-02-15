@@ -58,15 +58,6 @@ class LoggingTest < Minitest::Test
 
   end
 
-  def test_logs_ssl_warning
-    running_agent_writes_to_log(
-      {},
-      "Agent is configured not to use SSL when communicating with New Relic's servers") do
-      NewRelic::Agent.config.add_config_for_testing(:ssl => true )
-      NewRelic::Agent.config.add_config_for_testing(:ssl => false)
-    end
-  end
-
   def test_logs_if_sending_errors_on_change
     running_agent_writes_to_log(
       {:'error_collector.enabled' => false},
