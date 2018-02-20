@@ -25,10 +25,6 @@ module NewRelic
       ORDER_KEY               = 'or'.freeze
       TIMESTAMP_KEY           = 'ti'.freeze
       HOST_KEY                = 'ho'.freeze
-      SYNTHETICS_KEY          = 'sy'.freeze
-      SYNTHETICS_RESOURCE_KEY = 'r'.freeze
-      SYNTHETICS_JOB_KEY      = 'j'.freeze
-      SYNTHETICS_MONITOR_KEY  = 'm'.freeze
 
       # Intrinsic Keys
       CALLER_TYPE_INTRINSIC_KEY                = "caller.type".freeze
@@ -88,12 +84,6 @@ module NewRelic
           payload.order = transaction.order
           payload.host = uri.host if uri
 
-          if transaction.synthetics_payload
-            payload.synthetics_resource = transaction.synthetics_payload[2]
-            payload.synthetics_job = transaction.synthetics_payload[3]
-            payload.synthetics_monitor = transaction.synthetics_payload[4]
-          end
-
           payload
         end
 
@@ -114,12 +104,6 @@ module NewRelic
           payload.depth             = payload_data[DEPTH_KEY]
           payload.order             = payload_data[ORDER_KEY]
           payload.host              = payload_data[HOST_KEY]
-
-          if payload_synthetics = payload_data[SYNTHETICS_KEY]
-            payload.synthetics_resource = payload_synthetics[SYNTHETICS_RESOURCE_KEY]
-            payload.synthetics_job      = payload_synthetics[SYNTHETICS_JOB_KEY]
-            payload.synthetics_monitor  = payload_synthetics[SYNTHETICS_MONITOR_KEY]
-          end
 
           payload
         end
@@ -154,19 +138,12 @@ module NewRelic
                     :trip_id,
                     :sampled,
                     :parent_ids,
-                    :synthetics_resource,
-                    :synthetics_job,
-                    :synthetics_monitor,
                     :order,
                     :depth,
                     :timestamp,
                     :host
 
       alias_method :sampled?, :sampled
-
-      def synthetics?
-        !!(synthetics_resource || synthetics_job || synthetics_monitor)
-      end
 
       def to_json
         result = {
@@ -186,14 +163,6 @@ module NewRelic
           HOST_KEY           => host,
           TIMESTAMP_KEY      => timestamp,
         }
-
-        if synthetics?
-          result[DATA_KEY][SYNTHETICS_KEY] = {
-            SYNTHETICS_RESOURCE_KEY => synthetics_resource,
-            SYNTHETICS_JOB_KEY      => synthetics_job,
-            SYNTHETICS_MONITOR_KEY  => synthetics_monitor
-          }
-        end
 
         JSON.dump(result)
       end

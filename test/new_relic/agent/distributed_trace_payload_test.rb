@@ -82,19 +82,6 @@ module NewRelic
         end
       end
 
-      def test_attributes_synthetics_attributes_are_copied_when_present
-        payload = nil
-
-        in_transaction "test_txn" do |txn|
-          txn.synthetics_payload = [1, 1, 100, 200, 300]
-          payload = DistributedTracePayload.for_transaction txn
-        end
-
-        assert_equal 100, payload.synthetics_resource
-        assert_equal 200, payload.synthetics_job
-        assert_equal 300, payload.synthetics_monitor
-      end
-
       def test_host_copied_from_uri
         payload = nil
 
@@ -106,16 +93,12 @@ module NewRelic
       end
 
       def test_payload_attributes_populated_from_serialized_version
-        incoming_payload = nil
-        referring_transaction = nil
         created_at = (Time.now.to_f * 1000).round
 
         NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
 
 
-        referring_transaction = in_transaction "test_txn" do |txn|
-          txn.synthetics_payload = [1, 1, 100, 200, 300]
-        end
+        referring_transaction = in_transaction("test_txn") {}
 
         incoming_payload = DistributedTracePayload.for_transaction referring_transaction, URI("http://newrelic.com/blog")
         payload = DistributedTracePayload.from_json incoming_payload.to_json
@@ -132,21 +115,14 @@ module NewRelic
         assert_equal referring_transaction.order, payload.order
         assert_equal created_at.round, payload.timestamp
         assert_equal "newrelic.com", payload.host
-        assert_equal 100, payload.synthetics_resource
-        assert_equal 200, payload.synthetics_job
-        assert_equal 300, payload.synthetics_monitor
       end
 
       def test_payload_attributes_populated_from_html_safe_version
-        incoming_payload = nil
-        referring_transaction = nil
         created_at = (Time.now.to_f * 1000).round
 
         NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
 
-        referring_transaction = in_transaction "test_txn" do |txn|
-          txn.synthetics_payload = [1, 1, 100, 200, 300]
-        end
+        referring_transaction = in_transaction("test_txn") {}
 
         incoming_payload = DistributedTracePayload.for_transaction referring_transaction, URI("http://newrelic.com/blog")
         payload = DistributedTracePayload.from_http_safe incoming_payload.http_safe
@@ -163,9 +139,6 @@ module NewRelic
         assert_equal referring_transaction.order, payload.order
         assert_equal created_at.round, payload.timestamp
         assert_equal "newrelic.com", payload.host
-        assert_equal 100, payload.synthetics_resource
-        assert_equal 200, payload.synthetics_job
-        assert_equal 300, payload.synthetics_monitor
       end
     end
   end
