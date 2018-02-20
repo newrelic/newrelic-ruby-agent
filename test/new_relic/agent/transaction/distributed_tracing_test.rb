@@ -41,7 +41,6 @@ module NewRelic
           assert_equal transaction.guid, payload.id
           assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
           assert_equal transaction.parent_ids, payload.parent_ids
-          assert_equal transaction.depth + 1, payload.depth
           assert_equal transaction.order, payload.order
           assert_equal "newrelic.com", payload.host
           assert_equal created_at, payload.timestamp
@@ -63,7 +62,6 @@ module NewRelic
 
           refute_nil transaction.distributed_trace_payload
 
-          assert_equal transaction.depth, payload.depth
           assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
         end
 
@@ -80,7 +78,6 @@ module NewRelic
 
           refute_nil transaction.distributed_trace_payload
 
-          assert_equal transaction.depth, payload.depth
           assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
         end
 
@@ -135,7 +132,6 @@ module NewRelic
 
           assert_equal guid, intrinsics['nr.tripId']
           assert_equal [guid], intrinsics['nr.parentIds']
-          assert_equal 1, intrinsics['nr.depth']
           assert_nil intrinsics['nr.order']
           assert intrinsics['nr.sampled']
 
@@ -143,7 +139,6 @@ module NewRelic
 
           assert_equal guid, txn_intrinsics['nr.tripId']
           assert_equal [guid], txn_intrinsics['nr.parentIds']
-          assert_equal 1, txn_intrinsics['nr.depth']
           assert_nil txn_intrinsics['nr.order']
           assert txn_intrinsics[:'nr.sampled']
         end
@@ -194,7 +189,6 @@ module NewRelic
           assert_equal inbound_payload.caller_app_id, intrinsics["caller.app"]
           assert_equal inbound_payload.caller_account_id, intrinsics["caller.account"]
           assert_equal inbound_payload.host, intrinsics["caller.host"]
-          assert_equal inbound_payload.depth, intrinsics["nr.depth"]
           assert_equal inbound_payload.order, intrinsics["nr.order"]
           assert_equal referring_transaction.guid, intrinsics["nr.referringTransactionGuid"]
           assert_equal inbound_payload.id, referring_transaction.guid
@@ -247,7 +241,6 @@ module NewRelic
           assert_equal inbound_payload.caller_app_id, intrinsics["caller.app"]
           assert_equal inbound_payload.caller_account_id, intrinsics["caller.account"]
           assert_equal inbound_payload.host, intrinsics["caller.host"]
-          assert_equal inbound_payload.depth, intrinsics["nr.depth"]
           assert_equal inbound_payload.order, intrinsics["nr.order"]
           assert_equal referring_transaction.guid, intrinsics["nr.referringTransactionGuid"]
           assert_equal inbound_payload.id, referring_transaction.guid

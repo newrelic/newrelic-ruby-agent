@@ -76,14 +76,6 @@ module NewRelic
           end
         end
 
-        def depth
-          if distributed_trace_payload
-            distributed_trace_payload.depth
-          else
-            1
-          end
-        end
-
         def order
           @order ||= 0
         end
