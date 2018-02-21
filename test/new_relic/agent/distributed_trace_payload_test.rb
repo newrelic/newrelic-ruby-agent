@@ -63,7 +63,8 @@ module NewRelic
 
         assert_equal transaction.guid, payload.id
         assert_equal transaction.distributed_trace_trip_id, payload.trip_id
-        assert_equal transaction.parent_ids, payload.parent_ids
+        assert_equal transaction.parent_id, payload.parent_id
+        assert_equal transaction.grandparent_id, payload.grandparent_id
       end
 
       def test_sampled_flag_is_copied_from_transaction
@@ -95,7 +96,6 @@ module NewRelic
 
         NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
 
-
         referring_transaction = in_transaction("test_txn") {}
 
         incoming_payload = DistributedTracePayload.for_transaction referring_transaction, URI("http://newrelic.com/blog")
@@ -108,7 +108,8 @@ module NewRelic
         assert_equal referring_transaction.guid, payload.id
         assert_equal referring_transaction.distributed_trace_trip_id, payload.trip_id
         assert_equal true, payload.sampled?
-        assert_equal referring_transaction.parent_ids, payload.parent_ids
+        assert_equal referring_transaction.guid, payload.parent_id
+        assert_equal referring_transaction.parent_id, payload.grandparent_id
         assert_equal created_at.round, payload.timestamp
         assert_equal "newrelic.com", payload.host
       end
@@ -130,7 +131,8 @@ module NewRelic
         assert_equal referring_transaction.guid, payload.id
         assert_equal referring_transaction.distributed_trace_trip_id, payload.trip_id
         assert_equal true, payload.sampled?
-        assert_equal referring_transaction.parent_ids, payload.parent_ids
+        assert_equal referring_transaction.guid, payload.parent_id
+        assert_equal referring_transaction.parent_id, payload.grandparent_id
         assert_equal created_at.round, payload.timestamp
         assert_equal "newrelic.com", payload.host
       end

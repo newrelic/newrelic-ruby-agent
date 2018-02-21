@@ -61,19 +61,18 @@ module NewRelic
           end
         end
 
-        def parent_ids
-          if distributed_trace_payload &&
-               distributed_trace_payload.parent_ids &&
-               distributed_trace_payload.parent_ids.last != guid
-            inbound_ids = distributed_trace_payload.parent_ids.dup
-            inbound_ids.push guid
-            if inbound_ids.size > 3
-              inbound_ids.shift
-            end
-            inbound_ids
-          else
-            [guid]
-          end
+        def parent_id
+          # The payload comes from our parent transaction, so its ID
+          # is our parent ID.
+          #
+          distributed_trace_payload && distributed_trace_payload.id
+        end
+
+        def grandparent_id
+          # The payload comes from our parent transaction, so its
+          # parent ID is our grandparent ID.
+          #
+          distributed_trace_payload && distributed_trace_payload.parent_id
         end
 
         def distributed_trace_payload_created?
@@ -82,12 +81,12 @@ module NewRelic
 
         attr_writer :distributed_trace_payload_created
 
-        def append_distributed_trace_info payload
+        def append_distributed_trace_info transaction_payload
           return unless Agent.config[:'distributed_tracing.enabled']
           if distributed_trace_payload
-            distributed_trace_payload.assign_intrinsics self, payload
+            distributed_trace_payload.assign_intrinsics self, transaction_payload
           elsif distributed_trace_payload_created?
-            DistributedTracePayload.assign_initial_intrinsics self, payload
+            DistributedTracePayload.assign_intrinsics_for_first_trace self, transaction_payload
           end
         end
 

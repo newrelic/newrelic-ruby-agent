@@ -20,7 +20,7 @@ module NewRelic
       ID_KEY                  = 'id'.freeze
       TRIP_ID_KEY             = 'tr'.freeze
       SAMPLED_KEY             = 'sa'.freeze
-      PARENT_IDS_KEY          = 'pa'.freeze
+      PARENT_ID_KEY           = 'pa'.freeze
       TIMESTAMP_KEY           = 'ti'.freeze
       HOST_KEY                = 'ho'.freeze
 
@@ -34,7 +34,8 @@ module NewRelic
       GUID_INTRINSIC_KEY                       = "nr.guid".freeze
       REFERRING_TRANSACTION_GUID_INTRINSIC_KEY = "nr.referringTransactionGuid".freeze
       TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
-      PARENT_IDS_INTRINSIC_KEY                 = "nr.parentIds".freeze
+      PARENT_ID_INTRINSIC_KEY                  = "nr.parentId".freeze
+      GRANDPARENT_ID_INTRINSIC_KEY             = "nr.grandparentId".freeze
       COMMA                                    = ",".freeze
 
       INTRINSIC_KEYS = [
@@ -47,7 +48,8 @@ module NewRelic
         GUID_INTRINSIC_KEY,
         REFERRING_TRANSACTION_GUID_INTRINSIC_KEY,
         TRIP_ID_INTRINSIC_KEY,
-        PARENT_IDS_INTRINSIC_KEY
+        PARENT_ID_INTRINSIC_KEY,
+        GRANDPARENT_ID_INTRINSIC_KEY
       ].freeze
 
       class << self
@@ -73,7 +75,8 @@ module NewRelic
           payload.id = transaction.guid
           payload.trip_id = transaction.distributed_trace_trip_id
           payload.sampled = transaction.sampled?
-          payload.parent_ids = transaction.parent_ids
+          payload.parent_id = transaction.parent_id
+          payload.grandparent_id = transaction.grandparent_id
           payload.host = uri.host if uri
 
           payload
@@ -92,7 +95,8 @@ module NewRelic
           payload.id                = payload_data[ID_KEY]
           payload.trip_id           = payload_data[TRIP_ID_KEY]
           payload.sampled           = payload_data[SAMPLED_KEY]
-          payload.parent_ids        = payload_data[PARENT_IDS_KEY]
+          payload.parent_id         = payload_data[ID_KEY]        # Our parent ID is the caller's GUID
+          payload.grandparent_id    = payload_data[PARENT_ID_KEY] # Our grandparent ID is the caller's parent ID
           payload.host              = payload_data[HOST_KEY]
 
           payload
@@ -103,10 +107,9 @@ module NewRelic
           from_json decoded_payload
         end
 
-        #assigns intrinsics for the first distributed trace in a trip
-        def assign_initial_intrinsics transaction, payload
-          payload[TRIP_ID_INTRINSIC_KEY] = transaction.distributed_trace_trip_id
-          payload[PARENT_IDS_INTRINSIC_KEY] = transaction.parent_ids
+        # Assigns intrinsics for the first distributed trace in a trip
+        def assign_intrinsics_for_first_trace transaction, transaction_payload
+          transaction_payload[TRIP_ID_INTRINSIC_KEY] = transaction.distributed_trace_trip_id
         end
 
         private
@@ -126,7 +129,8 @@ module NewRelic
                     :id,
                     :trip_id,
                     :sampled,
-                    :parent_ids,
+                    :parent_id,
+                    :grandparent_id,
                     :timestamp,
                     :host
 
@@ -144,7 +148,9 @@ module NewRelic
           ID_KEY             => id,
           TRIP_ID_KEY        => trip_id,
           SAMPLED_KEY        => sampled,
-          PARENT_IDS_KEY     => parent_ids,
+          PARENT_ID_KEY      => parent_id,
+          # GRANDPARENT_ID_KEY does not go into the outbound JSON payload;
+          # the callee will take our parent ID as its grandparent ID
           HOST_KEY           => host,
           TIMESTAMP_KEY      => timestamp,
         }
@@ -158,17 +164,18 @@ module NewRelic
         Base64.strict_encode64 to_json
       end
 
-      def assign_intrinsics transaction, payload
-        payload[CALLER_TYPE_INTRINSIC_KEY] = caller_type
-        payload[CALLER_APP_INTRINSIC_KEY] = caller_app_id
-        payload[CALLER_ACCOUNT_ID_INTRINSIC_KEY] = caller_account_id
-        payload[CALLER_TRANSPORT_TYPE_INTRINSIC_KEY] = caller_transport_type
-        payload[CALLER_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration
-        payload[CALLER_HOST_INTRINSIC_KEY] = host
-        payload[GUID_INTRINSIC_KEY] = transaction.guid
-        payload[REFERRING_TRANSACTION_GUID_INTRINSIC_KEY] = id
-        payload[TRIP_ID_INTRINSIC_KEY] = trip_id
-        payload[PARENT_IDS_INTRINSIC_KEY] = parent_ids.join COMMA if parent_ids
+      def assign_intrinsics transaction, transaction_payload
+        transaction_payload[CALLER_TYPE_INTRINSIC_KEY] = caller_type
+        transaction_payload[CALLER_APP_INTRINSIC_KEY] = caller_app_id
+        transaction_payload[CALLER_ACCOUNT_ID_INTRINSIC_KEY] = caller_account_id
+        transaction_payload[CALLER_TRANSPORT_TYPE_INTRINSIC_KEY] = caller_transport_type
+        transaction_payload[CALLER_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration
+        transaction_payload[CALLER_HOST_INTRINSIC_KEY] = host
+        transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid
+        transaction_payload[REFERRING_TRANSACTION_GUID_INTRINSIC_KEY] = id
+        transaction_payload[TRIP_ID_INTRINSIC_KEY] = trip_id
+        transaction_payload[PARENT_ID_INTRINSIC_KEY] = parent_id if parent_id
+        transaction_payload[GRANDPARENT_ID_INTRINSIC_KEY] = grandparent_id if grandparent_id
       end
     end
   end

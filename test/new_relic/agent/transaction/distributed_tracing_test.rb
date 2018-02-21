@@ -39,7 +39,7 @@ module NewRelic
           assert_equal "App", payload.caller_type
           assert_equal transaction.guid, payload.id
           assert_equal transaction.distributed_trace_trip_id, payload.trip_id
-          assert_equal transaction.parent_ids, payload.parent_ids
+          assert_nil   payload.parent_id
           assert_equal "newrelic.com", payload.host
           assert_equal created_at, payload.timestamp
         end
@@ -114,26 +114,23 @@ module NewRelic
 
         def test_proper_intrinsics_assigned_for_first_app_in_distributed_trace
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
-          guid = nil
-          payload = nil
-          transaction = nil
 
-          transaction = in_transaction "test_txn" do |txn|
-            guid = txn.guid
-            payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
-          end
+          result      = create_distributed_transactions
+          transaction = result[:grandparent_transaction]
+          payload     = result[:grandparent_payload]
+          intrinsics  = result[:grandparent_intrinsics]
 
-          intrinsics, _, _ = last_transaction_event
-
-          assert_equal guid, intrinsics['nr.tripId']
-          assert_equal [guid], intrinsics['nr.parentIds']
-          assert intrinsics['nr.sampled']
+          assert_equal transaction.guid, intrinsics['nr.tripId']
+          assert_nil                     intrinsics['nr.parentId']
+          assert_nil                     intrinsics['nr.grandparentId']
+          assert                         intrinsics['nr.sampled']
 
           txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
 
-          assert_equal guid, txn_intrinsics['nr.tripId']
-          assert_equal [guid], txn_intrinsics['nr.parentIds']
-          assert txn_intrinsics[:'nr.sampled']
+          assert_equal transaction.guid, txn_intrinsics['nr.tripId']
+          assert_nil                     txn_intrinsics['nr.parentId']
+          assert_nil                     txn_intrinsics['nr.grandparentId']
+          assert                         txn_intrinsics[:'nr.sampled']
         end
 
         def test_initial_legacy_cat_request_trip_id_overwritten_by_first_distributed_trace_guid
@@ -159,35 +156,42 @@ module NewRelic
           assert_equal transaction.guid, txn_intrinsics['nr.tripId']
         end
 
-        def test_instrinsics_assigned_to_transaction_event_from_disributed_trace
+        def test_intrinsics_assigned_to_transaction_event_from_disributed_trace
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
-          payload = nil
-          referring_transaction = nil
 
-          in_transaction "test_txn" do |txn|
-            referring_transaction = txn
-            payload = referring_transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
-          end
+          result                  = create_distributed_transactions
+          grandparent_payload     = result[:grandparent_payload]
+          grandparent_transaction = result[:grandparent_transaction]
+          parent_payload          = result[:parent_payload]
+          parent_transaction      = result[:parent_transaction]
+          child_transaction       = result[:child_transaction]
+          child_intrinsics        = result[:child_intrinsics]
 
-          transaction = in_transaction "text_txn2" do |txn|
-            txn.accept_distributed_trace_payload "HTTP", payload.to_json
-          end
+          inbound_payload = child_transaction.distributed_trace_payload
 
-          intrinsics, _, _ = last_transaction_event
+          assert_equal inbound_payload.caller_type,           child_intrinsics["caller.type"]
+          assert_equal inbound_payload.caller_transport_type, child_intrinsics["caller.transportType"]
+          assert_equal inbound_payload.caller_app_id,         child_intrinsics["caller.app"]
+          assert_equal inbound_payload.caller_account_id,     child_intrinsics["caller.account"]
+          assert_equal inbound_payload.host,                  child_intrinsics["caller.host"]
 
-          inbound_payload = transaction.distributed_trace_payload
+          assert_equal parent_transaction.guid,               child_intrinsics["nr.referringTransactionGuid"]
+          assert_equal inbound_payload.trip_id,               child_intrinsics["nr.tripId"]
+          assert_equal child_transaction.guid,                child_intrinsics["nr.guid"]
+          assert_equal true,                                  child_intrinsics["nr.sampled"]
 
-          assert_equal inbound_payload.caller_type, intrinsics["caller.type"]
-          assert_equal inbound_payload.caller_transport_type, intrinsics["caller.transportType"]
-          assert_equal inbound_payload.caller_app_id, intrinsics["caller.app"]
-          assert_equal inbound_payload.caller_account_id, intrinsics["caller.account"]
-          assert_equal inbound_payload.host, intrinsics["caller.host"]
-          assert_equal referring_transaction.guid, intrinsics["nr.referringTransactionGuid"]
-          assert_equal inbound_payload.id, referring_transaction.guid
-          assert_equal inbound_payload.trip_id, intrinsics["nr.tripId"]
-          assert_equal transaction.guid, intrinsics["nr.guid"]
-          assert_equal true, intrinsics["nr.sampled"]
-          assert_equal inbound_payload.parent_ids.first, intrinsics["nr.parentIds"]
+          assert                                              child_intrinsics["nr.parentId"]
+          assert_equal inbound_payload.parent_id,             child_intrinsics["nr.parentId"]
+
+          assert                                              child_intrinsics["nr.grandparentId"]
+          assert_equal inbound_payload.grandparent_id,        child_intrinsics["nr.grandparentId"]
+
+          # Make sure the parent / grandparent links are connected all
+          # the way up.
+          #
+          assert_equal inbound_payload.id,                    parent_transaction.guid
+          assert_equal inbound_payload.grandparent_id,        parent_payload.parent_id
+          assert_equal inbound_payload.grandparent_id,        grandparent_payload.id
         end
 
         def test_sampled_is_false_in_transaction_event_when_indicated_by_upstream
@@ -209,7 +213,7 @@ module NewRelic
           assert_equal false, intrinsics["nr.sampled"]
         end
 
-        def test_instrinsics_assigned_to_error_event_from_disributed_trace
+        def test_intrinsics_assigned_to_error_event_from_disributed_trace
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
           payload = nil
           referring_transaction = nil
@@ -238,7 +242,8 @@ module NewRelic
           assert_equal transaction.guid, intrinsics["nr.transactionGuid"]
           assert_equal inbound_payload.trip_id, intrinsics["nr.tripId"]
           assert_equal true, intrinsics["nr.sampled"]
-          assert_equal inbound_payload.parent_ids.first, intrinsics["nr.parentIds"]
+          assert       intrinsics["nr.parentId"], "Child should be linked to parent transaction"
+          assert_equal inbound_payload.parent_id, intrinsics["nr.parentId"]
         end
 
         def test_sampled_is_false_in_error_event_when_indicated_by_upstream
@@ -309,6 +314,46 @@ module NewRelic
           assert_equal false, transaction.sampled?
           assert_equal false, txn_intrinsics["nr.sampled"]
           assert_equal false, err_intrinsics["nr.sampled"]
+        end
+
+        private
+
+        # Create a chain of transactions which pass distributed
+        # tracing information to one another; grandparent calls
+        # parent, which in turn calls child.
+        #
+        def create_distributed_transactions
+          result = {}
+
+          result[:grandparent_transaction] = in_transaction "test_txn" do |txn|
+            result[:grandparent_payload] =
+              txn.create_distributed_trace_payload(
+                URI("http://newrelic.com/blog"))
+          end
+
+          result[:grandparent_intrinsics], _, _ = last_transaction_event
+
+          result[:parent_transaction] = in_transaction "text_txn2" do |txn|
+            txn.accept_distributed_trace_payload(
+              "HTTP",
+              result[:grandparent_payload].to_json)
+
+            result[:parent_payload] =
+              txn.create_distributed_trace_payload(
+                URI("http://newrelic.com/fictional-comment-service"))
+          end
+
+          result[:parent_intrinsics], _, _ = last_transaction_event
+
+          result[:child_transaction] = in_transaction "text_txn3" do |txn|
+            txn.accept_distributed_trace_payload(
+              "HTTP",
+              result[:parent_payload].to_json)
+          end
+
+          result[:child_intrinsics], _, _ = last_transaction_event
+
+          result
         end
       end
     end
