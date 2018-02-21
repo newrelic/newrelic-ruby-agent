@@ -30,6 +30,7 @@ branches:
     - master
     - dev
     - release
+    - better_cat_integration
 
 notifications:
   webhooks: http://notifitron.herokuapp.com/
