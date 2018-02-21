@@ -21,7 +21,6 @@ module NewRelic
       TRIP_ID_KEY             = 'tr'.freeze
       SAMPLED_KEY             = 'sa'.freeze
       PARENT_IDS_KEY          = 'pa'.freeze
-      ORDER_KEY               = 'or'.freeze
       TIMESTAMP_KEY           = 'ti'.freeze
       HOST_KEY                = 'ho'.freeze
 
@@ -32,7 +31,6 @@ module NewRelic
       CALLER_TRANSPORT_TYPE_INTRINSIC_KEY      = "caller.transportType".freeze
       CALLER_TRANSPORT_DURATION_INTRINSIC_KEY  = "caller.transportDuration".freeze
       CALLER_HOST_INTRINSIC_KEY                = "caller.host".freeze
-      ORDER_INTRINSIC_KEY                      = "nr.order".freeze
       GUID_INTRINSIC_KEY                       = "nr.guid".freeze
       REFERRING_TRANSACTION_GUID_INTRINSIC_KEY = "nr.referringTransactionGuid".freeze
       TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
@@ -46,7 +44,6 @@ module NewRelic
         CALLER_TRANSPORT_TYPE_INTRINSIC_KEY,
         CALLER_TRANSPORT_DURATION_INTRINSIC_KEY,
         CALLER_HOST_INTRINSIC_KEY,
-        ORDER_INTRINSIC_KEY,
         GUID_INTRINSIC_KEY,
         REFERRING_TRANSACTION_GUID_INTRINSIC_KEY,
         TRIP_ID_INTRINSIC_KEY,
@@ -77,7 +74,6 @@ module NewRelic
           payload.trip_id = transaction.distributed_tracing_trip_id
           payload.sampled = transaction.sampled?
           payload.parent_ids = transaction.parent_ids
-          payload.order = transaction.order
           payload.host = uri.host if uri
 
           payload
@@ -97,7 +93,6 @@ module NewRelic
           payload.trip_id           = payload_data[TRIP_ID_KEY]
           payload.sampled           = payload_data[SAMPLED_KEY]
           payload.parent_ids        = payload_data[PARENT_IDS_KEY]
-          payload.order             = payload_data[ORDER_KEY]
           payload.host              = payload_data[HOST_KEY]
 
           payload
@@ -132,7 +127,6 @@ module NewRelic
                     :trip_id,
                     :sampled,
                     :parent_ids,
-                    :order,
                     :timestamp,
                     :host
 
@@ -151,7 +145,6 @@ module NewRelic
           TRIP_ID_KEY        => trip_id,
           SAMPLED_KEY        => sampled,
           PARENT_IDS_KEY     => parent_ids,
-          ORDER_KEY          => order,
           HOST_KEY           => host,
           TIMESTAMP_KEY      => timestamp,
         }
@@ -172,7 +165,6 @@ module NewRelic
         payload[CALLER_TRANSPORT_TYPE_INTRINSIC_KEY] = caller_transport_type
         payload[CALLER_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration
         payload[CALLER_HOST_INTRINSIC_KEY] = host
-        payload[ORDER_INTRINSIC_KEY] = order
         payload[GUID_INTRINSIC_KEY] = transaction.guid
         payload[REFERRING_TRANSACTION_GUID_INTRINSIC_KEY] = id
         payload[TRIP_ID_INTRINSIC_KEY] = trip_id

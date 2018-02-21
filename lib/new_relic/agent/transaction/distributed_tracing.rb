@@ -16,7 +16,7 @@ module NewRelic
 
         def create_distributed_trace_payload url = nil
           return unless Agent.config[:'distributed_tracing.enabled']
-          self.order += 1
+          self.distributed_trace_payload_created = true
           DistributedTracePayload.for_transaction self, url
         end
 
@@ -27,7 +27,7 @@ module NewRelic
           if distributed_trace_payload
             NewRelic::Agent.increment_metric "Supportability/DistributedTracing/AcceptFailure/PayloadAlreadyAccepted"
             return false
-          elsif self.order > 0
+          elsif distributed_trace_payload_created?
             NewRelic::Agent.increment_metric "Supportability/DistributedTracing/AcceptFailure/CreateDistributedTracePayload-before-AcceptDistributedTracePayload"
             return false
           elsif name_frozen?
@@ -76,17 +76,17 @@ module NewRelic
           end
         end
 
-        def order
-          @order ||= 0
+        def distributed_trace_payload_created?
+          @distributed_trace_payload_created ||=  false
         end
 
-        attr_writer :order
+        attr_writer :distributed_trace_payload_created
 
         def append_distributed_tracing_info payload
           return unless Agent.config[:'distributed_tracing.enabled']
           if distributed_trace_payload
             distributed_trace_payload.assign_intrinsics self, payload
-          elsif order > 0
+          elsif distributed_trace_payload_created?
             DistributedTracePayload.assign_initial_intrinsics self, payload
           end
         end
