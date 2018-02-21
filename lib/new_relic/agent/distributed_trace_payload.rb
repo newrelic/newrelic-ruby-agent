@@ -71,7 +71,7 @@ module NewRelic
 
           payload.timestamp = (Time.now.to_f * 1000).round
           payload.id = transaction.guid
-          payload.trip_id = transaction.distributed_tracing_trip_id
+          payload.trip_id = transaction.distributed_trace_trip_id
           payload.sampled = transaction.sampled?
           payload.parent_ids = transaction.parent_ids
           payload.host = uri.host if uri
@@ -105,7 +105,7 @@ module NewRelic
 
         #assigns intrinsics for the first distributed trace in a trip
         def assign_initial_intrinsics transaction, payload
-          payload[TRIP_ID_INTRINSIC_KEY] = transaction.distributed_tracing_trip_id
+          payload[TRIP_ID_INTRINSIC_KEY] = transaction.distributed_trace_trip_id
           payload[PARENT_IDS_INTRINSIC_KEY] = transaction.parent_ids
         end
 

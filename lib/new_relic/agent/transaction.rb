@@ -613,7 +613,7 @@ module NewRelic
         end
 
         if distributed_trace_payload || distributed_trace_payload_created?
-          assign_distributed_tracing_intrinsics
+          assign_distributed_trace_intrinsics
         elsif state.is_cross_app?
           attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)
           attributes.add_intrinsic_attribute(:path_hash, cat_path_hash)
@@ -654,7 +654,7 @@ module NewRelic
         @payload[:'nr.sampled'] = sampled? if Agent.config[:'distributed_tracing.enabled']
 
         append_cat_info(state, duration, @payload)
-        append_distributed_tracing_info(@payload)
+        append_distributed_trace_info(@payload)
         append_apdex_perf_zone(duration, @payload)
         append_synthetics_to(state, @payload)
         append_referring_transaction_guid_to(state, @payload)

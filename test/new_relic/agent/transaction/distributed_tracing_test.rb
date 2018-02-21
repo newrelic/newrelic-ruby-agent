@@ -38,7 +38,7 @@ module NewRelic
           assert_equal [0, 0], payload.version
           assert_equal "App", payload.caller_type
           assert_equal transaction.guid, payload.id
-          assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
+          assert_equal transaction.distributed_trace_trip_id, payload.trip_id
           assert_equal transaction.parent_ids, payload.parent_ids
           assert_equal "newrelic.com", payload.host
           assert_equal created_at, payload.timestamp
@@ -57,7 +57,7 @@ module NewRelic
 
           refute_nil transaction.distributed_trace_payload
 
-          assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
+          assert_equal transaction.distributed_trace_trip_id, payload.trip_id
         end
 
         def test_accept_distributed_trace_payload_assigns_http_safe_payload
@@ -73,7 +73,7 @@ module NewRelic
 
           refute_nil transaction.distributed_trace_payload
 
-          assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
+          assert_equal transaction.distributed_trace_trip_id, payload.trip_id
         end
 
         def test_sampled_flag_propagated_when_true_in_incoming_payload

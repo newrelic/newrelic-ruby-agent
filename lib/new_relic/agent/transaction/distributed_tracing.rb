@@ -53,7 +53,7 @@ module NewRelic
           false
         end
 
-        def distributed_tracing_trip_id
+        def distributed_trace_trip_id
           if distributed_trace_payload
             distributed_trace_payload.trip_id
           else
@@ -82,7 +82,7 @@ module NewRelic
 
         attr_writer :distributed_trace_payload_created
 
-        def append_distributed_tracing_info payload
+        def append_distributed_trace_info payload
           return unless Agent.config[:'distributed_tracing.enabled']
           if distributed_trace_payload
             distributed_trace_payload.assign_intrinsics self, payload
@@ -91,7 +91,7 @@ module NewRelic
           end
         end
 
-        def assign_distributed_tracing_intrinsics
+        def assign_distributed_trace_intrinsics
           return unless Agent.config[:'distributed_tracing.enabled']
           DistributedTracePayload::INTRINSIC_KEYS.each do |key|
             next unless value = @payload[key]

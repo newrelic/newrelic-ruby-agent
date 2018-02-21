@@ -62,7 +62,7 @@ module NewRelic
         end
 
         assert_equal transaction.guid, payload.id
-        assert_equal transaction.distributed_tracing_trip_id, payload.trip_id
+        assert_equal transaction.distributed_trace_trip_id, payload.trip_id
         assert_equal transaction.parent_ids, payload.parent_ids
       end
 
@@ -106,7 +106,7 @@ module NewRelic
         assert_equal "46954", payload.caller_app_id
         assert_equal "190", payload.caller_account_id
         assert_equal referring_transaction.guid, payload.id
-        assert_equal referring_transaction.distributed_tracing_trip_id, payload.trip_id
+        assert_equal referring_transaction.distributed_trace_trip_id, payload.trip_id
         assert_equal true, payload.sampled?
         assert_equal referring_transaction.parent_ids, payload.parent_ids
         assert_equal created_at.round, payload.timestamp
@@ -128,7 +128,7 @@ module NewRelic
         assert_equal "46954", payload.caller_app_id
         assert_equal "190", payload.caller_account_id
         assert_equal referring_transaction.guid, payload.id
-        assert_equal referring_transaction.distributed_tracing_trip_id, payload.trip_id
+        assert_equal referring_transaction.distributed_trace_trip_id, payload.trip_id
         assert_equal true, payload.sampled?
         assert_equal referring_transaction.parent_ids, payload.parent_ids
         assert_equal created_at.round, payload.timestamp
