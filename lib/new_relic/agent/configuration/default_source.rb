@@ -113,9 +113,15 @@ module NewRelic
           }
         end
 
+        DEFAULT_LOG_DIR = 'log/'.freeze
+
         def self.audit_log_path
           Proc.new {
-            File.join(NewRelic::Agent.config[:log_file_path], 'newrelic_audit.log')
+            log_file_path = NewRelic::Agent.config[:log_file_path]
+            wants_stdout  = (log_file_path.upcase == 'STDOUT')
+            audit_log_dir = wants_stdout ? DEFAULT_LOG_DIR : log_file_path
+
+            File.join(audit_log_dir, 'newrelic_audit.log')
           }
         end
 
@@ -577,7 +583,7 @@ module NewRelic
           :description => 'Defines a name for the log file.'
         },
         :log_file_path => {
-          :default => 'log/',
+          :default => DefaultSource::DEFAULT_LOG_DIR,
           :public => true,
           :type => String,
           :allowed_from_server => false,
