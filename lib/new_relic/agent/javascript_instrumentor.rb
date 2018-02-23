@@ -104,7 +104,7 @@ module NewRelic
       end
 
       def browser_timing_loader
-        html_safe_if_needed("\n<script type=\"text/javascript\">#{Agent.config[:js_agent_loader]}</script>")
+        html_safe_if_needed("\n<script>#{Agent.config[:js_agent_loader]}</script>")
       end
 
       def browser_timing_config(state)
@@ -114,7 +114,7 @@ module NewRelic
         txn.freeze_name_and_execute_if_not_ignored do
           data = data_for_js_agent(state)
           json = ::JSON.dump(data)
-          return html_safe_if_needed("\n<script type=\"text/javascript\">window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
+          return html_safe_if_needed("\n<script>window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
         end
 
         ''
