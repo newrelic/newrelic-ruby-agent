@@ -81,16 +81,6 @@ module NewRelic
         end
       end
 
-      def test_host_copied_from_uri
-        payload = nil
-
-        in_transaction "test_txn" do |txn|
-          payload = DistributedTracePayload.for_transaction txn, URI("http://newrelic.com/blog")
-        end
-
-        assert_equal "newrelic.com", payload.host
-      end
-
       def test_payload_attributes_populated_from_serialized_version
         created_at = (Time.now.to_f * 1000).round
 
@@ -98,7 +88,7 @@ module NewRelic
 
         referring_transaction = in_transaction("test_txn") {}
 
-        incoming_payload = DistributedTracePayload.for_transaction referring_transaction, URI("http://newrelic.com/blog")
+        incoming_payload = DistributedTracePayload.for_transaction referring_transaction
         payload = DistributedTracePayload.from_json incoming_payload.to_json
 
         assert_equal [0, 0], payload.version
@@ -111,7 +101,6 @@ module NewRelic
         assert_equal referring_transaction.guid, payload.parent_id
         assert_equal referring_transaction.parent_id, payload.grandparent_id
         assert_equal created_at.round, payload.timestamp
-        assert_equal "newrelic.com", payload.host
       end
 
       def test_payload_attributes_populated_from_html_safe_version
@@ -121,7 +110,7 @@ module NewRelic
 
         referring_transaction = in_transaction("test_txn") {}
 
-        incoming_payload = DistributedTracePayload.for_transaction referring_transaction, URI("http://newrelic.com/blog")
+        incoming_payload = DistributedTracePayload.for_transaction referring_transaction
         payload = DistributedTracePayload.from_http_safe incoming_payload.http_safe
 
         assert_equal [0, 0], payload.version
@@ -134,7 +123,6 @@ module NewRelic
         assert_equal referring_transaction.guid, payload.parent_id
         assert_equal referring_transaction.parent_id, payload.grandparent_id
         assert_equal created_at.round, payload.timestamp
-        assert_equal "newrelic.com", payload.host
       end
     end
   end

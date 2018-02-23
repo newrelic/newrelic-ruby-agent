@@ -22,7 +22,6 @@ module NewRelic
       SAMPLED_KEY             = 'sa'.freeze
       PARENT_ID_KEY           = 'pa'.freeze
       TIMESTAMP_KEY           = 'ti'.freeze
-      HOST_KEY                = 'ho'.freeze
 
       # Intrinsic Keys
       CALLER_TYPE_INTRINSIC_KEY                = "caller.type".freeze
@@ -30,7 +29,6 @@ module NewRelic
       CALLER_ACCOUNT_ID_INTRINSIC_KEY          = "caller.account".freeze
       CALLER_TRANSPORT_TYPE_INTRINSIC_KEY      = "caller.transportType".freeze
       CALLER_TRANSPORT_DURATION_INTRINSIC_KEY  = "caller.transportDuration".freeze
-      CALLER_HOST_INTRINSIC_KEY                = "caller.host".freeze
       GUID_INTRINSIC_KEY                       = "nr.guid".freeze
       REFERRING_TRANSACTION_GUID_INTRINSIC_KEY = "nr.referringTransactionGuid".freeze
       TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
@@ -44,7 +42,6 @@ module NewRelic
         CALLER_ACCOUNT_ID_INTRINSIC_KEY,
         CALLER_TRANSPORT_TYPE_INTRINSIC_KEY,
         CALLER_TRANSPORT_DURATION_INTRINSIC_KEY,
-        CALLER_HOST_INTRINSIC_KEY,
         GUID_INTRINSIC_KEY,
         REFERRING_TRANSACTION_GUID_INTRINSIC_KEY,
         TRIP_ID_INTRINSIC_KEY,
@@ -53,7 +50,7 @@ module NewRelic
       ].freeze
 
       class << self
-        def for_transaction transaction, uri=nil
+        def for_transaction transaction
           payload = new
           return payload unless connected?
 
@@ -77,7 +74,6 @@ module NewRelic
           payload.sampled = transaction.sampled?
           payload.parent_id = transaction.parent_id
           payload.grandparent_id = transaction.grandparent_id
-          payload.host = uri.host if uri
 
           payload
         end
@@ -97,7 +93,6 @@ module NewRelic
           payload.sampled           = payload_data[SAMPLED_KEY]
           payload.parent_id         = payload_data[ID_KEY]        # Our parent ID is the caller's GUID
           payload.grandparent_id    = payload_data[PARENT_ID_KEY] # Our grandparent ID is the caller's parent ID
-          payload.host              = payload_data[HOST_KEY]
 
           payload
         end
@@ -131,8 +126,7 @@ module NewRelic
                     :sampled,
                     :parent_id,
                     :grandparent_id,
-                    :timestamp,
-                    :host
+                    :timestamp
 
       alias_method :sampled?, :sampled
 
@@ -151,7 +145,6 @@ module NewRelic
           PARENT_ID_KEY      => parent_id,
           # GRANDPARENT_ID_KEY does not go into the outbound JSON payload;
           # the callee will take our parent ID as its grandparent ID
-          HOST_KEY           => host,
           TIMESTAMP_KEY      => timestamp,
         }
 
@@ -170,7 +163,6 @@ module NewRelic
         transaction_payload[CALLER_ACCOUNT_ID_INTRINSIC_KEY] = caller_account_id
         transaction_payload[CALLER_TRANSPORT_TYPE_INTRINSIC_KEY] = caller_transport_type
         transaction_payload[CALLER_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration
-        transaction_payload[CALLER_HOST_INTRINSIC_KEY] = host
         transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid
         transaction_payload[REFERRING_TRANSACTION_GUID_INTRINSIC_KEY] = id
         transaction_payload[TRIP_ID_INTRINSIC_KEY] = trip_id

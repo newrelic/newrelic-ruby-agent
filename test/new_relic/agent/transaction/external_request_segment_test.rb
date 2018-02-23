@@ -239,7 +239,7 @@ module NewRelic
 
             with_config application_id: "46954", cross_process_id: "190#222" do
               in_transaction do |txn|
-                payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+                payload = txn.create_distributed_trace_payload
               end
             end
 
@@ -278,7 +278,7 @@ module NewRelic
 
             with_config application_id: "46954", cross_process_id: "190#222" do
               in_transaction do |txn|
-                payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+                payload = txn.create_distributed_trace_payload
               end
             end
 

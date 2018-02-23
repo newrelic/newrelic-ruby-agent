@@ -14,10 +14,10 @@ module NewRelic
           !!distributed_trace_payload
         end
 
-        def create_distributed_trace_payload url = nil
+        def create_distributed_trace_payload
           return unless Agent.config[:'distributed_tracing.enabled']
           self.distributed_trace_payload_created = true
-          DistributedTracePayload.for_transaction self, url
+          DistributedTracePayload.for_transaction self
         end
 
         LBRACE = "{".freeze

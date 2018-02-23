@@ -30,7 +30,7 @@ module NewRelic
           state = TransactionState.tl_get
 
           transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
-          payload = transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
+          payload = transaction.create_distributed_trace_payload
           Transaction.stop(state)
 
           assert_equal "46954", payload.caller_app_id
@@ -40,7 +40,6 @@ module NewRelic
           assert_equal transaction.guid, payload.id
           assert_equal transaction.distributed_trace_trip_id, payload.trip_id
           assert_nil   payload.parent_id
-          assert_equal "newrelic.com", payload.host
           assert_equal created_at, payload.timestamp
         end
 
@@ -48,7 +47,7 @@ module NewRelic
           payload = nil
 
           in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            payload = txn.create_distributed_trace_payload
           end
 
           transaction = in_transaction "test_txn2" do |txn|
@@ -64,7 +63,7 @@ module NewRelic
           payload = nil
 
           in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            payload = txn.create_distributed_trace_payload
           end
 
           transaction = in_transaction "test_txn2" do |txn|
@@ -82,7 +81,7 @@ module NewRelic
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
 
           in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            payload = txn.create_distributed_trace_payload
           end
 
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
@@ -100,7 +99,7 @@ module NewRelic
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
 
           in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            payload = txn.create_distributed_trace_payload
           end
 
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
@@ -146,7 +145,7 @@ module NewRelic
               "7e249074f277923d",
               "5d2957be"
             ]
-            txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            txn.create_distributed_trace_payload
           end
 
           intrinsics, _, _ = last_transaction_event
@@ -173,7 +172,6 @@ module NewRelic
           assert_equal inbound_payload.caller_transport_type, child_intrinsics["caller.transportType"]
           assert_equal inbound_payload.caller_app_id,         child_intrinsics["caller.app"]
           assert_equal inbound_payload.caller_account_id,     child_intrinsics["caller.account"]
-          assert_equal inbound_payload.host,                  child_intrinsics["caller.host"]
 
           assert_equal parent_transaction.guid,               child_intrinsics["nr.referringTransactionGuid"]
           assert_equal inbound_payload.trip_id,               child_intrinsics["nr.tripId"]
@@ -201,7 +199,7 @@ module NewRelic
 
           in_transaction "test_txn" do |txn|
             referring_transaction = txn
-            payload = referring_transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            payload = referring_transaction.create_distributed_trace_payload
             payload.sampled = false
           end
 
@@ -220,7 +218,7 @@ module NewRelic
 
           in_transaction "test_txn" do |txn|
             referring_transaction = txn
-            payload = referring_transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            payload = referring_transaction.create_distributed_trace_payload
           end
 
           transaction = in_transaction "text_txn2" do |txn|
@@ -236,7 +234,6 @@ module NewRelic
           assert_equal inbound_payload.caller_transport_type, intrinsics["caller.transportType"]
           assert_equal inbound_payload.caller_app_id, intrinsics["caller.app"]
           assert_equal inbound_payload.caller_account_id, intrinsics["caller.account"]
-          assert_equal inbound_payload.host, intrinsics["caller.host"]
           assert_equal referring_transaction.guid, intrinsics["nr.referringTransactionGuid"]
           assert_equal inbound_payload.id, referring_transaction.guid
           assert_equal transaction.guid, intrinsics["nr.transactionGuid"]
@@ -253,7 +250,7 @@ module NewRelic
 
           in_transaction "test_txn" do |txn|
             referring_transaction = txn
-            payload = referring_transaction.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            payload = referring_transaction.create_distributed_trace_payload
             payload.sampled = false
           end
 
@@ -270,7 +267,7 @@ module NewRelic
           payload = nil
 
           in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+            payload = txn.create_distributed_trace_payload
           end
 
           NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
@@ -327,8 +324,7 @@ module NewRelic
 
           result[:grandparent_transaction] = in_transaction "test_txn" do |txn|
             result[:grandparent_payload] =
-              txn.create_distributed_trace_payload(
-                URI("http://newrelic.com/blog"))
+              txn.create_distributed_trace_payload
           end
 
           result[:grandparent_intrinsics], _, _ = last_transaction_event
@@ -339,8 +335,7 @@ module NewRelic
               result[:grandparent_payload].to_json)
 
             result[:parent_payload] =
-              txn.create_distributed_trace_payload(
-                URI("http://newrelic.com/fictional-comment-service"))
+              txn.create_distributed_trace_payload
           end
 
           result[:parent_intrinsics], _, _ = last_transaction_event

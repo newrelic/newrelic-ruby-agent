@@ -34,7 +34,7 @@ module NewRelic
         payload = nil
 
         in_transaction "referring_txn" do |txn|
-          payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+          payload = txn.create_distributed_trace_payload
         end
 
         env = { NEWRELIC_TRACE_KEY => payload.http_safe }
