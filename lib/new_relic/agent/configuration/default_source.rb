@@ -1087,7 +1087,7 @@ module NewRelic
           :description => 'List of trusted New Relic account IDs for the purposes of cross-application tracing. Inbound requests from applications including cross-application headers that do not come from an account in this list will be ignored.'
         },
         :"cross_application_tracer.enabled" => {
-          :default => true,
+          :default => !value_of(:'distributed_tracing.enabled'),
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,

@@ -93,7 +93,9 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
   end
 
   def test_request_should_include_referring_guid_if_needed
-    with_config(:'analytics_events.enabled' => true,
+    with_config(:'cross_application_tracer.enabled' => true,
+                :'distributed_tracing.enabled' => false,
+                :'analytics_events.enabled' => true,
                 :'cross_process_id' => 'boo',
                 :'encoding_key' => "\0",
                 :'trusted_account_ids' => [1]) do

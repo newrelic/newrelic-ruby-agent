@@ -15,11 +15,11 @@ module NewRelic
         @events  = EventListener.new
         @monitor = DistributedTraceMonitor.new(@events)
         @config = {
+          :'cross_application_tracer.enabled' => false,
           :'distributed_tracing.enabled' => true,
           :encoding_key                  => "\0",
           :application_id                => "46954",
-          :cross_process_id              => "190#46954"
-
+          :cross_process_id              => "190#46954",
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config)

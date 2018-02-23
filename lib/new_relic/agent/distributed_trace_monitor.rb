@@ -17,7 +17,7 @@ module NewRelic
       end
 
       def on_before_call(request)
-        return unless CrossAppTracing.cross_app_enabled?
+        return unless NewRelic::Agent.config[:'distributed_tracing.enabled']
         return unless payload = request[NEWRELIC_TRACE_KEY]
 
         state = NewRelic::Agent::TransactionState.tl_get

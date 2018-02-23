@@ -184,7 +184,8 @@ module NewRelic
 
       def cat_config
         {
-          :'cross_app_tracing.enabled' => true,
+          :'cross_application_tracer.enabled' => true,
+          :'distributed_tracing.enabled' => false,
           :cross_process_id => "269975#22824",
           :trusted_account_ids => [1,269975]
         }

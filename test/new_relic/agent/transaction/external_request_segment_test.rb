@@ -633,9 +633,14 @@ module NewRelic
         # ---
 
         def test_segment_adds_distributed_trace_header
-          with_config :'distributed_tracing.enabled' => true do
+          distributed_tracing_config = {
+            :'distributed_tracing.enabled'      => true,
+            :'cross_application_tracer.enabled' => false
+          }
+
+          with_config(distributed_tracing_config) do
             request = RequestWrapper.new
-            with_config cat_config do
+            with_config cat_config.merge(distributed_tracing_config) do
               in_transaction :category => :controller do |txn|
                 segment = Transaction.start_external_request_segment(
                   library: "Net::HTTP",
@@ -670,7 +675,9 @@ module NewRelic
         def cat_config
           {
             :cross_process_id    => "269975#22824",
-            :trusted_account_ids => [1,269975]
+            :trusted_account_ids => [1,269975],
+            :'cross_application_tracer.enabled' => true,
+            :'distributed_tracing.enabled' => false,
           }
         end
 
