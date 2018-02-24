@@ -128,6 +128,65 @@ module NewRelic::Agent
       assert_equal( 5, buffer.num_dropped)
     end
 
+    def test_num_seen_counts_all_seen_samples_since_last_reset
+      buffer = PrioritySampledBuffer.new(10)
+      assert_equal(0, buffer.num_seen)
+
+      20.times { |i| buffer.append(event: {priority: i }) }
+      assert_equal(20, buffer.num_seen)
+
+      buffer.reset!
+      assert_equal(0, buffer.num_seen)
+    end
+
+    def test_append_increments_drop_count_when_over_capacity
+      buffer = PrioritySampledBuffer.new(5)
+
+      5.times { |i| buffer.append(event: {priority: i}) }
+      assert_equal(0, buffer.num_dropped)
+
+      5.times { |i| buffer.append(event: {priority: i}) }
+      assert_equal(5, buffer.num_dropped)
+    end
+
+    def test_reset_resets_drop_count
+      buffer = PrioritySampledBuffer.new(5)
+
+      10.times { |i| buffer.append(event: {priority: i}) }
+      assert_equal(5, buffer.num_dropped)
+
+      buffer.reset!
+      assert_equal(0, buffer.num_dropped)
+    end
+
+    def test_sample_rate
+      buffer = PrioritySampledBuffer.new(10)
+      assert_equal(0, buffer.sample_rate)
+
+      10.times { |i| buffer.append(event: {priority: i }) }
+      assert_equal(1.0, buffer.sample_rate)
+
+      10.times { |i| buffer.append(event: {priority: i }) }
+      assert_equal(0.5, buffer.sample_rate)
+    end
+
+    def test_metadata
+      buffer = PrioritySampledBuffer.new(5)
+      7.times { |i| buffer.append(event: {priority: i}) }
+
+      expected = {
+        :capacity => 5,
+        :seen => 7,
+        :captured => 5
+      }
+
+      metadata = buffer.metadata
+      metadata.delete :captured_lifetime
+      metadata.delete :seen_lifetime
+
+      assert_equal expected, metadata
+    end
+
     def create_events(priorities)
       priorities.map do |i|
         {
