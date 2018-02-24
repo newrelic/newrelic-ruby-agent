@@ -63,6 +63,8 @@ module NewRelic
         heapify_up(size - 1)
       end
 
+      alias_method :<<, :push
+
       def pop
         swap(0, size - 1)
         item = @items.pop
