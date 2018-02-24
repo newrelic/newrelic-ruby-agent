@@ -44,7 +44,7 @@ module NewRelic
       end
 
       def to_a
-        @items.to_a
+        @items.to_a.dup
       end
 
       private
