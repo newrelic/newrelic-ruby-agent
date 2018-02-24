@@ -39,6 +39,7 @@ module NewRelic
         old_items = @items.to_a
         @items    = []
         old_seen  = @seen
+        @seen = 0
         old_items.each { |i| append(event: i) }
         @seen     = old_seen
       end

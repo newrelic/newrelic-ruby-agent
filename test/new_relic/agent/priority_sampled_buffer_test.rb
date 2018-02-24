@@ -87,6 +87,47 @@ module NewRelic::Agent
       assert_equal([], buffer.to_a)
     end
 
+    def test_buffer_full_works_properly
+      buffer = PrioritySampledBuffer.new(5)
+
+      4.times do |i|
+        buffer.append(event: {priority: i})
+        assert_equal(false, buffer.full?, "#PrioritySampledBuffer#append should return false until buffer is full")
+      end
+
+      4.times do |i|
+        buffer.append(event: {priority: i})
+        assert_equal(true, buffer.full?, "#PrioritySampledBuffer#append should return true once buffer is full")
+      end
+    end
+
+    def test_should_keep_all_samples_up_to_capacity
+      buffer = PrioritySampledBuffer.new(100)
+      all = []
+
+      create_events(1..100).each do |event|
+        buffer.append(event: event)
+        all << event
+      end
+
+      assert_equal(100, buffer.size)
+      assert_equal(all, buffer.to_a)
+    end
+
+    def test_should_discard_items_as_needed_when_capacity_is_reset
+      buffer = PrioritySampledBuffer.new(10)
+      10.times { |i| buffer.append(event: {priority: i}) }
+
+      buffer.capacity = 5
+      assert_equal(5, buffer.size)
+
+      expected = (5..9).map{ |i| {priority: i}}
+
+      assert_equal_unordered(expected, buffer.to_a)
+      assert_equal(10, buffer.num_seen   )
+      assert_equal( 5, buffer.num_dropped)
+    end
+
     def create_events(priorities)
       priorities.map do |i|
         {
