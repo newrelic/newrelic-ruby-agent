@@ -15,7 +15,6 @@ module NewRelic
         @seen_lifetime     = 0
       end
 
-
       # expects priority and a block, or an event as a hash with a `priority` key.
       def append(priority: nil, event: nil, &blk)
         increment_seen
@@ -33,6 +32,15 @@ module NewRelic
         else
           @items << (event || blk.call)
         end
+      end
+
+      def capacity=(new_capacity)
+        @capacity = new_capacity
+        old_items = @items.to_a
+        @items    = []
+        old_seen  = @seen
+        old_items.each { |i| append(event: i) }
+        @seen     = old_seen
       end
 
       def to_a
