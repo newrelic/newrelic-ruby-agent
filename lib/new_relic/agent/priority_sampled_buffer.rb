@@ -31,6 +31,7 @@ module NewRelic
           end
         else
           @items << (event || blk.call)
+          @captured_lifetime += 1
         end
       end
 
@@ -46,6 +47,10 @@ module NewRelic
 
       def to_a
         @items.to_a.dup
+      end
+
+      def sample_rate_lifetime
+        @captured_lifetime > 0 ? (@captured_lifetime.to_f / @seen_lifetime) : 0.0
       end
 
       private

@@ -187,6 +187,32 @@ module NewRelic::Agent
       assert_equal expected, metadata
     end
 
+    def test_seen_lifetime_should_persist_across_resets
+      buffer = PrioritySampledBuffer.new(10)
+
+      100.times { |i| buffer.append(event: {priority: i}) }
+      buffer.reset!
+      assert_equal(100, buffer.seen_lifetime)
+
+      100.times { |i| buffer.append(event: {priority: i}) }
+      buffer.reset!
+      assert_equal(200, buffer.seen_lifetime)
+    end
+
+    def test_sample_rate_lifetime
+      buffer = PrioritySampledBuffer.new(10)
+      assert_equal(0, buffer.sample_rate_lifetime)
+
+      10.times { |i| buffer.append(event: {priority: i}) }
+      buffer.reset!
+
+      assert_equal(1.0, buffer.sample_rate_lifetime)
+
+      30.times { |i| buffer.append(event: {priority: i}) }
+      buffer.reset!
+      assert_equal(0.5, buffer.sample_rate_lifetime)
+    end
+
     def create_events(priorities)
       priorities.map do |i|
         {
