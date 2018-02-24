@@ -22,7 +22,7 @@ module NewRelic
 
         LBRACE = "{".freeze
 
-        def accept_distributed_trace_payload transport_type, payload
+        def accept_distributed_trace_payload payload
           return unless Agent.config[:'distributed_tracing.enabled']
           if distributed_trace_payload
             NewRelic::Agent.increment_metric "Supportability/DistributedTracing/AcceptFailure/PayloadAlreadyAccepted"
@@ -41,7 +41,6 @@ module NewRelic
             DistributedTracePayload.from_http_safe payload
           end
 
-          payload.caller_transport_type = transport_type
           self.distributed_trace_payload = payload
 
           self.sampled = payload.sampled unless payload.sampled.nil?

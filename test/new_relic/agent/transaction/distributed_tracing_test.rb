@@ -51,7 +51,7 @@ module NewRelic
           end
 
           transaction = in_transaction "test_txn2" do |txn|
-            txn.accept_distributed_trace_payload "HTTP", payload.to_json
+            txn.accept_distributed_trace_payload payload.to_json
           end
 
           refute_nil transaction.distributed_trace_payload
@@ -67,7 +67,7 @@ module NewRelic
           end
 
           transaction = in_transaction "test_txn2" do |txn|
-            txn.accept_distributed_trace_payload "HTTP", payload.http_safe
+            txn.accept_distributed_trace_payload payload.http_safe
           end
 
           refute_nil transaction.distributed_trace_payload
@@ -88,7 +88,7 @@ module NewRelic
 
           in_transaction "test_txn2" do |txn|
             refute txn.sampled?
-            txn.accept_distributed_trace_payload "HTTP", payload.to_json
+            txn.accept_distributed_trace_payload payload.to_json
             assert txn.sampled?
           end
         end
@@ -106,7 +106,7 @@ module NewRelic
 
           in_transaction "test_txn2" do |txn|
             assert txn.sampled?
-            txn.accept_distributed_trace_payload "HTTP", payload.to_json
+            txn.accept_distributed_trace_payload payload.to_json
             refute txn.sampled?
           end
         end
@@ -204,7 +204,7 @@ module NewRelic
           end
 
           in_transaction "text_txn2" do |txn|
-            txn.accept_distributed_trace_payload "HTTP", payload.to_json
+            txn.accept_distributed_trace_payload payload.to_json
           end
 
           intrinsics, _, _ = last_transaction_event
@@ -222,7 +222,7 @@ module NewRelic
           end
 
           transaction = in_transaction "text_txn2" do |txn|
-            txn.accept_distributed_trace_payload "HTTP", payload.to_json
+            txn.accept_distributed_trace_payload payload.to_json
             NewRelic::Agent.notice_error StandardError.new "Nooo!"
           end
 
@@ -255,7 +255,7 @@ module NewRelic
           end
 
           in_transaction "text_txn2" do |txn|
-            txn.accept_distributed_trace_payload "HTTP", payload.to_json
+            txn.accept_distributed_trace_payload payload.to_json
             NewRelic::Agent.notice_error StandardError.new "Nooo!"
           end
 
@@ -274,7 +274,7 @@ module NewRelic
           payload.sampled = nil
 
           transaction = in_transaction "test_txn2" do |txn|
-            txn.accept_distributed_trace_payload "HTTP", payload.to_json
+            txn.accept_distributed_trace_payload payload.to_json
           end
 
           intrinsics, _, _ = last_transaction_event
@@ -331,7 +331,6 @@ module NewRelic
 
           result[:parent_transaction] = in_transaction "text_txn2" do |txn|
             txn.accept_distributed_trace_payload(
-              "HTTP",
               result[:grandparent_payload].to_json)
 
             result[:parent_payload] =
@@ -342,7 +341,6 @@ module NewRelic
 
           result[:child_transaction] = in_transaction "text_txn3" do |txn|
             txn.accept_distributed_trace_payload(
-              "HTTP",
               result[:parent_payload].to_json)
           end
 

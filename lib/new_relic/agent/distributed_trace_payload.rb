@@ -49,6 +49,9 @@ module NewRelic
         GRANDPARENT_ID_INTRINSIC_KEY
       ].freeze
 
+      # Intrinsic Values
+      CALLER_TRANSPORT_TYPE_UNKNOWN = 'unknown'.freeze
+
       class << self
         def for_transaction transaction
           payload = new
@@ -129,6 +132,10 @@ module NewRelic
                     :timestamp
 
       alias_method :sampled?, :sampled
+
+      def initialize
+        @caller_transport_type = CALLER_TRANSPORT_TYPE_UNKNOWN
+      end
 
       def to_json
         result = {

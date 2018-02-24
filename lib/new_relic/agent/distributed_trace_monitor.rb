@@ -22,7 +22,9 @@ module NewRelic
 
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
-        txn.accept_distributed_trace_payload HTTP_TRANSPORT_TYPE, payload
+        if txn.accept_distributed_trace_payload payload
+          txn.distributed_payload.caller_transport_type = HTTP_TRANSPORT_TYPE
+        end
       end
     end
   end
