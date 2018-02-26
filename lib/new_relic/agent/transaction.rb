@@ -288,6 +288,10 @@ module NewRelic
           @sampled = nil
         end
 
+        # we will eventually add this behavior into the AdaptiveSampler (ThroughputMontor)
+        @raw_priority = rand
+        @priority =  @sampled ? @raw_priority + 1 : @raw_priority
+
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
         merge_request_parameters(@filtered_params)
@@ -648,7 +652,8 @@ module NewRelic
           :duration             => duration,
           :metrics              => @metrics,
           :attributes           => @attributes,
-          :error                => false
+          :error                => false,
+          :priority             => @priority
         }
 
         @payload[:'nr.sampled'] = sampled? if Agent.config[:'distributed_tracing.enabled']

@@ -26,6 +26,7 @@ module NewRelic
       DURATION_KEY                   = 'duration'.freeze
       ERROR_KEY                      = 'error'.freeze
       SAMPLED_KEY                    = 'nr.sampled'.freeze
+      PRIORITY_KEY                   = 'priority'.freeze
       GUID_KEY                       = 'nr.guid'.freeze
       REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'.freeze
       CAT_TRIP_ID_KEY                = 'nr.tripId'.freeze
@@ -47,7 +48,8 @@ module NewRelic
         NAME_KEY      => string(payload[:name]),
         DURATION_KEY  => float(payload[:duration]),
         TYPE_KEY      => SAMPLE_TYPE,
-        ERROR_KEY     => payload[:error]
+        ERROR_KEY     => payload[:error],
+        PRIORITY_KEY  => payload[:priority]
         }
 
         intrinsics[SAMPLED_KEY] = payload[:'nr.sampled'] if Agent.config[:'distributed_tracing.enabled']
