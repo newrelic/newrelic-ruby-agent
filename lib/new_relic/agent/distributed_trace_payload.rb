@@ -22,6 +22,7 @@ module NewRelic
       SAMPLED_KEY             = 'sa'.freeze
       PARENT_ID_KEY           = 'pa'.freeze
       TIMESTAMP_KEY           = 'ti'.freeze
+      PRIORITY_KEY            = 'd.pr'.freeze
 
       # Intrinsic Keys
       CALLER_TYPE_INTRINSIC_KEY                = "caller.type".freeze
@@ -75,6 +76,7 @@ module NewRelic
           payload.id = transaction.guid
           payload.trip_id = transaction.distributed_trace_trip_id
           payload.sampled = transaction.sampled?
+          payload.priority = transaction.priority
           payload.parent_id = transaction.parent_id
           payload.grandparent_id = transaction.grandparent_id
 
@@ -94,6 +96,7 @@ module NewRelic
           payload.id                = payload_data[ID_KEY]
           payload.trip_id           = payload_data[TRIP_ID_KEY]
           payload.sampled           = payload_data[SAMPLED_KEY]
+          payload.priority          = payload_data[PRIORITY_KEY]
           payload.parent_id         = payload_data[ID_KEY]        # Our parent ID is the caller's GUID
           payload.grandparent_id    = payload_data[PARENT_ID_KEY] # Our grandparent ID is the caller's parent ID
 
@@ -127,6 +130,7 @@ module NewRelic
                     :id,
                     :trip_id,
                     :sampled,
+                    :priority,
                     :parent_id,
                     :grandparent_id,
                     :timestamp
@@ -149,6 +153,7 @@ module NewRelic
           ID_KEY             => id,
           TRIP_ID_KEY        => trip_id,
           SAMPLED_KEY        => sampled,
+          PRIORITY_KEY       => priority,
           PARENT_ID_KEY      => parent_id,
           # GRANDPARENT_ID_KEY does not go into the outbound JSON payload;
           # the callee will take our parent ID as its grandparent ID

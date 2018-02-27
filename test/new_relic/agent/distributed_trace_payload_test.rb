@@ -65,6 +65,7 @@ module NewRelic
         assert_equal transaction.distributed_trace_trip_id, payload.trip_id
         assert_equal transaction.parent_id, payload.parent_id
         assert_equal transaction.grandparent_id, payload.grandparent_id
+        assert_equal transaction.priority, payload.priority
       end
 
       def test_sampled_flag_is_copied_from_transaction
@@ -98,6 +99,7 @@ module NewRelic
         assert_equal referring_transaction.guid, payload.id
         assert_equal referring_transaction.distributed_trace_trip_id, payload.trip_id
         assert_equal true, payload.sampled?
+        assert_equal referring_transaction.priority, payload.priority
         assert_equal referring_transaction.guid, payload.parent_id
         assert_equal referring_transaction.parent_id, payload.grandparent_id
         assert_equal created_at.round, payload.timestamp
@@ -120,6 +122,7 @@ module NewRelic
         assert_equal referring_transaction.guid, payload.id
         assert_equal referring_transaction.distributed_trace_trip_id, payload.trip_id
         assert_equal true, payload.sampled?
+        assert_equal referring_transaction.priority, payload.priority
         assert_equal referring_transaction.guid, payload.parent_id
         assert_equal referring_transaction.parent_id, payload.grandparent_id
         assert_equal created_at.round, payload.timestamp

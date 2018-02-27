@@ -70,7 +70,8 @@ module NewRelic
                   :payload,
                   :nesting_max_depth,
                   :segments,
-                  :end_time
+                  :end_time,
+                  :priority
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -289,8 +290,8 @@ module NewRelic
         end
 
         # we will eventually add this behavior into the AdaptiveSampler (ThroughputMontor)
-        @raw_priority = rand
-        @priority =  @sampled ? @raw_priority + 1 : @raw_priority
+        @priority = rand
+        @priority +=1 if @sampled
 
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
