@@ -22,12 +22,12 @@ module NewRelic
         increment_seen
 
         if @seen == @capacity
-          @items = Heap.new(@items) { |x| x[PRIORITY_KEY] }
+          @items = Heap.new(@items) { |x| priority_for(x) }
         end
 
         if full?
-          priority ||= event[PRIORITY_KEY]
-          if @items[0][PRIORITY_KEY] < priority
+          priority ||= priority_for(event)
+          if priority_for(@items[0]) < priority
             @items[0] = event || blk.call
             @items.fix(0)
           end
@@ -50,8 +50,20 @@ module NewRelic
         @items.to_a.dup
       end
 
+      def decrement_lifetime_counts_by n
+        @captured_lifetime -= n
+        @seen_lifetime -= n
+      end
+
       def sample_rate_lifetime
         @captured_lifetime > 0 ? (@captured_lifetime.to_f / @seen_lifetime) : 0.0
+      end
+
+      def metadata
+        super.merge!(
+          :captured_lifetime => @captured_lifetime,
+          :seen_lifetime => @seen_lifetime
+        )
       end
 
       private
@@ -59,6 +71,10 @@ module NewRelic
       def increment_seen
         @seen += 1
         @seen_lifetime += 1
+      end
+
+      def priority_for(event)
+        event[0][PRIORITY_KEY]
       end
     end
   end

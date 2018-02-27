@@ -22,14 +22,12 @@ module NewRelic
       def record payload
         return unless NewRelic::Agent.config[:'analytics_events.enabled']
 
-        if sampled_event? payload
-          transaction_event_aggregator.append_sampled { create_event(payload) }
-        elsif synthetics_event? payload
+        if synthetics_event? payload
           event = create_event payload
           _, rejected = synthetics_event_aggregator.append_or_reject event
-          transaction_event_aggregator.append event if rejected
+          transaction_event_aggregator.append event: event if rejected
         else
-          transaction_event_aggregator.append { create_event(payload) }
+          transaction_event_aggregator.append priority: payload[:priority] { create_event(payload) }
         end
       end
 
@@ -39,12 +37,6 @@ module NewRelic
 
       def synthetics_event? payload
         payload.key? :synthetics_resource_id
-      end
-
-      SAMPLED_KEY = 'nr.sampled'
-
-      def sampled_event? payload
-        !!payload[SAMPLED_KEY]
       end
 
       def drop_buffered_data

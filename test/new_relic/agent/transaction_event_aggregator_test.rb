@@ -144,7 +144,7 @@ module NewRelic
 
       def test_append_accepts_a_block
         payload = generate_payload
-        @event_aggregator.append { TransactionEventPrimitive.create(payload) }
+        @event_aggregator.append(priority: 0.5) { TransactionEventPrimitive.create(payload) }
         assert_equal 1, last_transaction_events.size
       end
 
@@ -154,12 +154,8 @@ module NewRelic
         with_config :'analytics_events.max_samples_stored' => 5 do
           5.times { generate_request }
 
-          #cause sample to be discarded by the sampled buffer
-          buffer = @event_aggregator.instance_variable_get :@buffer
-          buffer.stubs(:rand).returns(6)
-
           payload = generate_payload
-          @event_aggregator.append do
+          @event_aggregator.append(priority: -1.0) do
             event = TransactionEventPrimitive.create(payload)
           end
         end
@@ -171,7 +167,7 @@ module NewRelic
       def test_normal_events_discarded_in_favor_sampled_events
         with_config :'analytics_events.max_samples_stored' => 5 do
           5.times { generate_request}
-          5.times { |i| generate_request "sampled_#{i}", 'nr.sampled' => true }
+          5.times { |i| generate_request "sampled_#{i}", :priority => rand + 1 }
 
           _, events = @event_aggregator.harvest!
 
@@ -183,14 +179,14 @@ module NewRelic
 
       def test_sampled_events_not_discarded_in_favor_of_normal_events
          with_config :'analytics_events.max_samples_stored' => 5 do
-          5.times { |i| generate_request "sampled_#{i}", 'nr.sampled' => true }
+          5.times { |i| generate_request "sampled_#{i}", :priority => rand + 1}
           5.times { generate_request}
 
           _, events = @event_aggregator.harvest!
 
           expected = (0..4).map { |i| "Controller/sampled_#{i}" }
 
-          assert_equal expected, events.map { |e| e[0]["name"] }
+          assert_equal_unordered expected, events.map { |e| e[0]["name"] }
         end
       end
 
@@ -203,7 +199,7 @@ module NewRelic
         if options['nr.sampled']
           @event_aggregator.append_sampled TransactionEventPrimitive.create(payload)
         else
-          @event_aggregator.append TransactionEventPrimitive.create(payload)
+          @event_aggregator.append event: TransactionEventPrimitive.create(payload)
         end
       end
 
@@ -214,7 +210,8 @@ module NewRelic
           :start_timestamp => options[:timestamp] || Time.now.to_f,
           :duration => 0.1,
           :attributes => attributes,
-          :error => false
+          :error => false,
+          :priority => options[:priority] || rand
         }.merge(options)
       end
 

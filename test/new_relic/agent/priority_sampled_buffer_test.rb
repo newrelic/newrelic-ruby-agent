@@ -11,9 +11,9 @@ module NewRelic::Agent
     def test_keeps_events_of_highest_priority_when_over_capacity
       buffer = PrioritySampledBuffer.new(5)
 
-      10.times { |i| buffer.append(event: {"priority" => i}) }
+      10.times { |i| buffer.append(event: create_event(priority: i)) }
 
-      expected = (5..9).map{ |i| {"priority" => i} }
+      expected = (5..9).map{ |i| create_event(priority: i) }
 
       assert_equal(5, buffer.size)
       assert_equal_unordered(expected, buffer.to_a)
@@ -25,7 +25,7 @@ module NewRelic::Agent
       events = create_events(5..9)
       events.each { |e| buffer.append(event: e) }
 
-      buffer.append(event: {"priority" => 4}) { raise "This should not be evaluated" }
+      buffer.append(event: create_event(priority: 4)) { raise "This should not be evaluated" }
 
       assert_equal(5, buffer.size)
       assert_equal_unordered(events, buffer.to_a)
@@ -34,7 +34,7 @@ module NewRelic::Agent
     def test_limits_itself_to_capacity
       buffer = PrioritySampledBuffer.new(10)
 
-      11.times { |i| buffer.append(event: {"priority" => i}) }
+      11.times { |i| buffer.append(event: create_event(priority: i)) }
 
       assert_equal(10, buffer.size       )
       assert_equal(11, buffer.num_seen   )
@@ -58,7 +58,7 @@ module NewRelic::Agent
 
     def test_reset_should_reset
       buffer = PrioritySampledBuffer.new(10)
-      100.times { |i| buffer.append(event: {"priority" => i}) }
+      100.times { |i| buffer.append(event: create_event(priority: i)) }
       buffer.reset!
       assert_equal(0, buffer.size)
       assert_equal([], buffer.to_a)
@@ -71,7 +71,7 @@ module NewRelic::Agent
       events.each { |e| buffer.append(event: e) }
 
       items = buffer.to_a
-      items << {"priority" => 'blarg'}
+      items << create_event(priority: "blarg")
 
       assert_equal(events, buffer.to_a)
     end
@@ -91,12 +91,12 @@ module NewRelic::Agent
       buffer = PrioritySampledBuffer.new(5)
 
       4.times do |i|
-        buffer.append(event: {"priority" => i})
+        buffer.append(event: create_event(priority: i))
         assert_equal(false, buffer.full?, "#PrioritySampledBuffer#append should return false until buffer is full")
       end
 
       4.times do |i|
-        buffer.append(event: {"priority" => i})
+        buffer.append(event: create_event(priority: i))
         assert_equal(true, buffer.full?, "#PrioritySampledBuffer#append should return true once buffer is full")
       end
     end
@@ -116,12 +116,12 @@ module NewRelic::Agent
 
     def test_should_discard_items_as_needed_when_capacity_is_reset
       buffer = PrioritySampledBuffer.new(10)
-      10.times { |i| buffer.append(event: {"priority" => i}) }
+      10.times { |i| buffer.append(event: create_event(priority: i)) }
 
       buffer.capacity = 5
       assert_equal(5, buffer.size)
 
-      expected = (5..9).map{ |i| {"priority" => i}}
+      expected = (5..9).map{ |i| create_event(priority: i)}
 
       assert_equal_unordered(expected, buffer.to_a)
       assert_equal(10, buffer.num_seen   )
@@ -132,7 +132,7 @@ module NewRelic::Agent
       buffer = PrioritySampledBuffer.new(10)
       assert_equal(0, buffer.num_seen)
 
-      20.times { |i| buffer.append(event: {"priority" => i }) }
+      20.times { |i| buffer.append(event: create_event(priority: i)) }
       assert_equal(20, buffer.num_seen)
 
       buffer.reset!
@@ -142,17 +142,17 @@ module NewRelic::Agent
     def test_append_increments_drop_count_when_over_capacity
       buffer = PrioritySampledBuffer.new(5)
 
-      5.times { |i| buffer.append(event: {"priority" => i}) }
+      5.times { |i| buffer.append(event: create_event(priority: i)) }
       assert_equal(0, buffer.num_dropped)
 
-      5.times { |i| buffer.append(event: {"priority" => i}) }
+      5.times { |i| buffer.append(event: create_event(priority: i)) }
       assert_equal(5, buffer.num_dropped)
     end
 
     def test_reset_resets_drop_count
       buffer = PrioritySampledBuffer.new(5)
 
-      10.times { |i| buffer.append(event: {"priority" => i}) }
+      10.times { |i| buffer.append(event: create_event(priority: i)) }
       assert_equal(5, buffer.num_dropped)
 
       buffer.reset!
@@ -163,16 +163,16 @@ module NewRelic::Agent
       buffer = PrioritySampledBuffer.new(10)
       assert_equal(0, buffer.sample_rate)
 
-      10.times { |i| buffer.append(event: {"priority" => i }) }
+      10.times { |i| buffer.append(event: create_event(priority: i)) }
       assert_equal(1.0, buffer.sample_rate)
 
-      10.times { |i| buffer.append(event: {"priority" => i }) }
+      10.times { |i| buffer.append(event: create_event(priority: i)) }
       assert_equal(0.5, buffer.sample_rate)
     end
 
     def test_metadata
       buffer = PrioritySampledBuffer.new(5)
-      7.times { |i| buffer.append(event: {"priority" => i}) }
+      7.times { |i| buffer.append(event: create_event(priority: i)) }
 
       expected = {
         :capacity => 5,
@@ -190,11 +190,11 @@ module NewRelic::Agent
     def test_seen_lifetime_should_persist_across_resets
       buffer = PrioritySampledBuffer.new(10)
 
-      100.times { |i| buffer.append(event: {"priority" => i}) }
+      100.times { |i| buffer.append(event: create_event(priority: i)) }
       buffer.reset!
       assert_equal(100, buffer.seen_lifetime)
 
-      100.times { |i| buffer.append(event: {"priority" => i}) }
+      100.times { |i| buffer.append(event: create_event(priority: i)) }
       buffer.reset!
       assert_equal(200, buffer.seen_lifetime)
     end
@@ -203,23 +203,26 @@ module NewRelic::Agent
       buffer = PrioritySampledBuffer.new(10)
       assert_equal(0, buffer.sample_rate_lifetime)
 
-      10.times { |i| buffer.append(event: {"priority" => i}) }
+      10.times { |i| buffer.append(event: create_event(priority: i)) }
       buffer.reset!
 
       assert_equal(1.0, buffer.sample_rate_lifetime)
 
-      30.times { |i| buffer.append(event: {"priority" => i}) }
+      30.times { |i| buffer.append(event: create_event(priority: i)) }
       buffer.reset!
       assert_equal(0.5, buffer.sample_rate_lifetime)
     end
 
+    # Our event types all are arrays of three hashes. This method creates
+    # a minimal representation of that structure that has the essentials
+    # for this test file.
+    def create_event(priority:, name: nil)
+      name ||= "event_#{priority}"
+      [{"priority" => priority, "name" => name}, {}, {}]
+    end
+
     def create_events(priorities)
-      priorities.map do |i|
-        {
-          "priority" => i,
-          "name" => "event_#{i}"
-        }
-      end
+      priorities.map { |i| create_event(priority: i)}
     end
   end
 end
