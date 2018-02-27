@@ -216,7 +216,7 @@ module NewRelic::Agent
     # Our event types all are arrays of three hashes. This method creates
     # a minimal representation of that structure that has the essentials
     # for this test file.
-    def create_event(priority:, name: nil)
+    def create_event(priority: nil, name: nil)
       name ||= "event_#{priority}"
       [{"priority" => priority, "name" => name}, {}, {}]
     end
