@@ -41,18 +41,18 @@ module NewRelic
       def fix(index)
         parent_index = parent_index_for(index)
 
-        if(parent_index >= 0 && priority(parent_index) > priority(index))
+        if in_range?(parent_index) && priority(parent_index) > priority(index)
           heapify_up(index)
         else
           child_index = left_child_index_for(index)
 
           return unless in_range?(child_index)
 
-          if(right_sibling_smaller?(child_index))
+          if right_sibling_smaller?(child_index)
             child_index += 1
           end
 
-          if(priority(child_index) < priority(index))
+          if priority(child_index) < priority(index)
             heapify_down(index)
           end
         end
@@ -103,7 +103,7 @@ module NewRelic
       end
 
       def in_range?(index)
-        index < size
+        index >= 0 && index < size
       end
 
       def heapify_up(child_index)
@@ -121,11 +121,11 @@ module NewRelic
         child_index = left_child_index_for(parent_index)
         return unless in_range?(child_index)
 
-        if(right_sibling_smaller?(child_index))
+        if right_sibling_smaller?(child_index)
           child_index += 1
         end
 
-        if(priority(child_index) < priority(parent_index))
+        if priority(child_index) < priority(parent_index)
           swap(parent_index, child_index)
           heapify_down(child_index)
         end
