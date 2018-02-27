@@ -7,6 +7,8 @@ require 'new_relic/agent/heap'
 module NewRelic
   module Agent
     class PrioritySampledBuffer < EventBuffer
+      PRIORITY_KEY = "priority".freeze
+
       attr_reader :seen_lifetime, :captured_lifetime
 
       def initialize(capacity)
@@ -20,12 +22,12 @@ module NewRelic
         increment_seen
 
         if @seen == @capacity
-          @items = Heap.new(@items) { |x| x[:priority] }
+          @items = Heap.new(@items) { |x| x[PRIORITY_KEY] }
         end
 
         if full?
-          priority ||= event[:priority]
-          if @items[0][:priority] < priority
+          priority ||= event[PRIORITY_KEY]
+          if @items[0][PRIORITY_KEY] < priority
             @items[0] = event || blk.call
             @items.fix(0)
           end
