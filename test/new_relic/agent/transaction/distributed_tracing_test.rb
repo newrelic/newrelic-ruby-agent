@@ -313,6 +313,58 @@ module NewRelic
           assert_equal false, err_intrinsics["nr.sampled"]
         end
 
+        def test_transaction_inherits_priority_from_distributed_trace_payload
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          payload = nil
+
+          in_transaction do |txn|
+            payload = txn.create_distributed_trace_payload
+          end
+
+          transaction = in_transaction "test_txn2" do |txn|
+            txn.accept_distributed_trace_payload payload.to_json
+          end
+
+          assert_equal transaction.priority, payload.priority
+        end
+
+        def test_transaction_doesnt_inherit_priority_from_distributed_trace_payload_when_nil
+          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          payload = nil
+
+          in_transaction do |txn|
+            payload = txn.create_distributed_trace_payload
+          end
+
+          payload.priority = nil
+
+          priority = nil
+          transaction = in_transaction "test_txn2" do |txn|
+            priority = txn.priority
+            txn.accept_distributed_trace_payload payload.to_json
+          end
+
+          assert_equal priority, transaction.priority
+        end
+
+        def test_transaction_doesnt_inherit_priority_from_distributed_without_sampled_flag
+          payload = nil
+
+          in_transaction do |txn|
+            payload = txn.create_distributed_trace_payload
+          end
+
+          payload.sampled = nil
+
+          priority = nil
+          transaction = in_transaction "test_txn2" do |txn|
+            priority = txn.priority
+            txn.accept_distributed_trace_payload payload.to_json
+          end
+
+          assert_equal priority, transaction.priority
+        end
+
         private
 
         # Create a chain of transactions which pass distributed

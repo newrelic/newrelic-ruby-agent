@@ -43,7 +43,10 @@ module NewRelic
 
           self.distributed_trace_payload = payload
 
-          self.sampled = payload.sampled unless payload.sampled.nil?
+          unless payload.sampled.nil?
+            self.sampled = payload.sampled
+            self.priority = payload.priority if payload.priority
+          end
 
           true
         rescue => e

@@ -58,7 +58,8 @@ module NewRelic
                     :http_response_code,
                     :response_content_length,
                     :response_content_type,
-                    :sampled
+                    :sampled,
+                    :priority
 
       attr_reader :guid,
                   :metrics,
@@ -70,8 +71,7 @@ module NewRelic
                   :payload,
                   :nesting_max_depth,
                   :segments,
-                  :end_time,
-                  :priority
+                  :end_time
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
