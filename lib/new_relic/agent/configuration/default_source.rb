@@ -251,7 +251,8 @@ module NewRelic
         'test:uncommitted',
         'time:zones:all',
         'tmp:clear',
-        'tmp:create'
+        'tmp:create',
+        'webpacker:compile'
       ].join(',').freeze
 
       DEFAULTS = {
