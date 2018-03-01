@@ -116,6 +116,25 @@ module NewRelic
           end
         end
 
+        def test_segment_adds_distributed_trace_headers_to_message_properties_for_produce
+          with_config :"distributed_tracing.enabled" => true do
+            transaction = in_transaction "test_txn" do |txn|
+              segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+                action: :produce,
+                library: "RabbitMQ",
+                destination_type: :exchange,
+                destination_name: "Default",
+                headers: {}
+              )
+
+              assert segment.headers.key?("NewRelicTrace"), "Expected message_properties to contain: NewRelicTrace"
+            end
+
+            intrinsics, _, _ = last_transaction_event
+            assert_equal transaction.guid, intrinsics['nr.tripId']
+          end
+        end
+
         def test_sets_start_time_from_constructor
           t = Time.now
 

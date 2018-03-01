@@ -24,7 +24,11 @@ DependencyDetection.defer do
         def publish payload, opts = {}
           begin
             destination = NewRelic::Agent::Instrumentation::Bunny.exchange_name(name)
-            opts[:headers] ||= {} if NewRelic::Agent::CrossAppTracing.cross_app_enabled?
+
+            tracing_enabled =
+              NewRelic::Agent::CrossAppTracing.cross_app_enabled? ||
+              NewRelic::Agent.config[:'distributed_tracing.enabled']
+            opts[:headers] ||= {} if tracing_enabled
 
             segment = NewRelic::Agent::Messaging.start_amqp_publish_segment(
               library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
