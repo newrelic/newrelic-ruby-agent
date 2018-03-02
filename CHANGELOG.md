@@ -1,5 +1,8 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Capistrano deployment notifications are now working with v3.7 and beyond.
+    Thanks to Jimmy Zhang for the contribution.
+
   ## v4.8.0 ##
 
   * Initialize New Relic Agent before config initializers

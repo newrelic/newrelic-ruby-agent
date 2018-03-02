@@ -34,7 +34,10 @@ namespace :newrelic do
       user        = fetch(:newrelic_user)
       license_key = fetch(:newrelic_license_key)
 
-      if (respond_to?(:scm_plugin_installed?) && scm_plugin_installed?) || (scm.present? && scm != :none)
+      has_scm_from_plugin = respond_to?(:scm_plugin_installed?) && scm_plugin_installed?
+      has_scm_from_config = defined?(scm) && !scm.nil? && scm != :none
+
+      if has_scm_from_plugin || has_scm_from_config
         changelog ||= lookup_changelog
         rev       ||= fetch(:current_revision)
       end
