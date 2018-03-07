@@ -83,7 +83,7 @@ module NewRelic
           if destination_type == :temporary_queue || destination_type == :temporary_topic
             @name << TEMP
           else
-            @name << NAMED << destination_name
+            @name << NAMED << destination_name.to_s
           end
 
           @name
