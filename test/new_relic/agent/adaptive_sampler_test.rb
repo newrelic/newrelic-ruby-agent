@@ -3,13 +3,13 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path('../../../test_helper', __FILE__)
-require 'new_relic/agent/throughput_monitor'
+require 'new_relic/agent/adaptive_sampler'
 
 module NewRelic
   module Agent
-    class ThroughputMonitorTest < Minitest::Test
-      def test_throughput
-        monitor = ThroughputMonitor.new 10
+    class AdaptiveSamplerTest < Minitest::Test
+      def test_adaptive_sampler
+        monitor = AdaptiveSampler.new 10
         10000.times { monitor.sampled? }
         stats = monitor.stats
         assert_equal 10, stats[:sampled_count]

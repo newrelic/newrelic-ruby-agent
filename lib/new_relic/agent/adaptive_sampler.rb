@@ -4,7 +4,7 @@
 
 module NewRelic
   module Agent
-    class ThroughputMonitor
+    class AdaptiveSampler
 
       def initialize target_samples = 10
         @target = target_samples

@@ -284,7 +284,7 @@ module NewRelic
         @ignore_trace = false
 
         if Agent.config[:'distributed_tracing.enabled']
-          @sampled = NewRelic::Agent.instance.throughput_monitor.sampled?
+          @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
         else
           @sampled = nil
         end

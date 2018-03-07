@@ -78,13 +78,13 @@ module NewRelic
         def test_sampled_flag_propagated_when_true_in_incoming_payload
           payload = nil
 
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
           in_transaction do |txn|
             payload = txn.create_distributed_trace_payload
           end
 
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
 
           in_transaction "test_txn2" do |txn|
             refute txn.sampled?
@@ -96,13 +96,13 @@ module NewRelic
         def test_sampled_flag_respects_upstreams_decision_when_sampled_is_false
           payload = nil
 
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
 
           in_transaction do |txn|
             payload = txn.create_distributed_trace_payload
           end
 
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
           in_transaction "test_txn2" do |txn|
             assert txn.sampled?
@@ -112,7 +112,7 @@ module NewRelic
         end
 
         def test_proper_intrinsics_assigned_for_first_app_in_distributed_trace
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
           result      = create_distributed_transactions
           transaction = result[:grandparent_transaction]
@@ -133,7 +133,7 @@ module NewRelic
         end
 
         def test_initial_legacy_cat_request_trip_id_overwritten_by_first_distributed_trace_guid
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
           transaction = nil
 
           transaction = in_transaction "test_txn" do |txn|
@@ -156,7 +156,7 @@ module NewRelic
         end
 
         def test_intrinsics_assigned_to_transaction_event_from_disributed_trace
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
           result                  = create_distributed_transactions
           grandparent_payload     = result[:grandparent_payload]
@@ -193,7 +193,7 @@ module NewRelic
         end
 
         def test_sampled_is_false_in_transaction_event_when_indicated_by_upstream
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
           payload = nil
           referring_transaction = nil
 
@@ -212,7 +212,7 @@ module NewRelic
         end
 
         def test_intrinsics_assigned_to_error_event_from_disributed_trace
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
           payload = nil
           referring_transaction = nil
 
@@ -244,7 +244,7 @@ module NewRelic
         end
 
         def test_sampled_is_false_in_error_event_when_indicated_by_upstream
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
           payload = nil
           referring_transaction = nil
 
@@ -270,7 +270,7 @@ module NewRelic
             payload = txn.create_distributed_trace_payload
           end
 
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
           payload.sampled = nil
 
           transaction = in_transaction "test_txn2" do |txn|
@@ -284,7 +284,7 @@ module NewRelic
         end
 
         def test_sampled_flag_added_to_intrinsics_without_distributed_trace_when_true
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
           transaction = in_transaction("test_txn") do
             NewRelic::Agent.notice_error StandardError.new("Sorry!")
@@ -299,7 +299,7 @@ module NewRelic
         end
 
         def test_sampled_flag_added_to_intrinsics_without_distributed_trace_when_false
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
 
           transaction = in_transaction("test_txn") do
             NewRelic::Agent.notice_error StandardError.new("Sorry!")
@@ -314,7 +314,7 @@ module NewRelic
         end
 
         def test_transaction_inherits_priority_from_distributed_trace_payload
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
           payload = nil
 
           in_transaction do |txn|
@@ -329,7 +329,7 @@ module NewRelic
         end
 
         def test_transaction_doesnt_inherit_priority_from_distributed_trace_payload_when_nil
-          NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
           payload = nil
 
           in_transaction do |txn|

@@ -69,13 +69,13 @@ module NewRelic
       end
 
       def test_sampled_flag_is_copied_from_transaction
-        NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(false)
+        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
         in_transaction "test_txn" do |txn|
           payload = DistributedTracePayload.for_transaction txn
           assert_equal false, payload.sampled
         end
 
-        NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
         in_transaction "test_txn2" do |txn|
           payload = DistributedTracePayload.for_transaction txn
           assert_equal true, payload.sampled
@@ -85,7 +85,7 @@ module NewRelic
       def test_payload_attributes_populated_from_serialized_version
         created_at = (Time.now.to_f * 1000).round
 
-        NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
         referring_transaction = in_transaction("test_txn") {}
 
@@ -108,7 +108,7 @@ module NewRelic
       def test_payload_attributes_populated_from_html_safe_version
         created_at = (Time.now.to_f * 1000).round
 
-        NewRelic::Agent.instance.throughput_monitor.stubs(:sampled?).returns(true)
+        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
         referring_transaction = in_transaction("test_txn") {}
 
