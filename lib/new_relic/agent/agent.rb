@@ -1154,7 +1154,6 @@ module NewRelic
             harvest_and_send_for_agent_commands
           end
         ensure
-          adaptive_sampler.reset!
           NewRelic::Agent::Database.close_connections
           duration = (Time.now - now).to_f
           NewRelic::Agent.record_metric('Supportability/Harvest', duration)

@@ -9,15 +9,29 @@ module NewRelic
   module Agent
     class AdaptiveSamplerTest < Minitest::Test
       def test_adaptive_sampler
-        monitor = AdaptiveSampler.new 10
-        10000.times { monitor.sampled? }
-        stats = monitor.stats
+        nr_freeze_time
+        sampler = AdaptiveSampler.new
+        10000.times { sampler.sampled? }
+        stats = sampler.stats
         assert_equal 10, stats[:sampled_count]
         assert_equal 10000, stats[:seen]
-        monitor.reset!
-        10001.times { monitor.sampled? }
-        stats = monitor.stats
+        advance_time(60)
+        10001.times { sampler.sampled? }
+        stats = sampler.stats
         assert_equal 10000, stats[:seen_last]
+        assert_equal 10001, stats[:seen]
+      end
+
+      def test_stats_accurate_when_interval_skipped
+        sampler = AdaptiveSampler.new
+        10000.times { sampler.sampled? }
+        stats = sampler.stats
+        assert_equal 10, stats[:sampled_count]
+        assert_equal 10000, stats[:seen]
+        advance_time(120)
+        10001.times { sampler.sampled? }
+        stats = sampler.stats
+        assert_equal 0, stats[:seen_last]
         assert_equal 10001, stats[:seen]
       end
     end
