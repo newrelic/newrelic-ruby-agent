@@ -15,7 +15,8 @@ module NewRelic
           NewRelic::Agent.config.add_config_for_testing(
             :'distributed_tracing.enabled' => true,
             :application_id => "46954",
-            :cross_process_id => "190#222"
+            :cross_process_id => "190#222",
+            :trusted_account_ids => [190],
           )
         end
 
@@ -73,6 +74,26 @@ module NewRelic
           refute_nil transaction.distributed_trace_payload
 
           assert_equal transaction.distributed_trace_trip_id, payload.trip_id
+        end
+
+        def test_accept_distributed_trace_payload_rejects_untrusted_account
+          payload = nil
+
+          in_transaction do |txn|
+            payload = txn.create_distributed_trace_payload
+          end
+
+          transaction = nil
+          accepted    = nil
+          with_config(trusted_account_ids: []) do
+            transaction = in_transaction "test_txn2" do |txn|
+              accepted = txn.accept_distributed_trace_payload payload.http_safe
+            end
+          end
+
+          assert_nil              transaction.distributed_trace_payload
+          assert_false            accepted
+          assert_metrics_recorded ['Supportability/DistributedTracing/AcceptPayload/UntrustedAccount']
         end
 
         def test_sampled_flag_propagated_when_true_in_incoming_payload

@@ -41,6 +41,14 @@ module NewRelic
             DistributedTracePayload.from_http_safe payload
           end
 
+          trusted_account_ids = NewRelic::Agent.config[:trusted_account_ids]
+          trusted = trusted_account_ids.include?(payload.caller_account_id.to_i)
+
+          unless trusted
+            NewRelic::Agent.increment_metric "Supportability/DistributedTracing/AcceptPayload/UntrustedAccount"
+            return false
+          end
+
           self.distributed_trace_payload = payload
 
           unless payload.sampled.nil?

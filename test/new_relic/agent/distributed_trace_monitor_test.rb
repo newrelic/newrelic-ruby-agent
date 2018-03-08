@@ -20,6 +20,7 @@ module NewRelic
           :encoding_key                  => "\0",
           :application_id                => "46954",
           :cross_process_id              => "190#46954",
+          :trusted_account_ids => [190],
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config)
