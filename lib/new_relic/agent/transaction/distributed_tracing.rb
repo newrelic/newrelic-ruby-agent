@@ -24,16 +24,7 @@ module NewRelic
 
         def accept_distributed_trace_payload payload
           return unless Agent.config[:'distributed_tracing.enabled']
-          if distributed_trace_payload
-            NewRelic::Agent.increment_metric "Supportability/DistributedTracing/AcceptFailure/PayloadAlreadyAccepted"
-            return false
-          elsif distributed_trace_payload_created?
-            NewRelic::Agent.increment_metric "Supportability/DistributedTracing/AcceptFailure/CreateDistributedTracePayload-before-AcceptDistributedTracePayload"
-            return false
-          elsif name_frozen?
-            NewRelic::Agent.increment_metric "Supportability/DistributedTracing/AcceptFailure/BrowserAgentInjected"
-            return false
-          end
+          return false if ignore_payload?(payload)
 
           payload = if payload.start_with? LBRACE
             DistributedTracePayload.from_json payload
@@ -116,7 +107,32 @@ module NewRelic
           return unless distributed_trace_payload
           (start_time.to_f * 1000 - distributed_trace_payload.timestamp) / 1000
         end
+
+        private
+
+        SUPPORTABILITY_CREATE_BEFORE_ACCEPT_PAYLOAD   = "Supportability/DistributedTrace/AcceptPayload/Ignored/CreateBeforeAccept".freeze
+        SUPPORTABILITY_MULTIPLE_ACCEPT_PAYLOAD        = "Supportability/DistributedTrace/AcceptPayload/Ignored/Multiple".freeze
+        SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_NULL    = "Supportability/DistributedTrace/AcceptPayload/Ignored/Null".freeze
+        SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_BROWSER = "Supportability/DistributedTrace/AcceptPayload/Ignored/BrowserAgentInjected".freeze
+
+        def ignore_payload?(payload)
+          if payload.nil?
+            NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_NULL
+            return true
+          elsif distributed_trace_payload
+            NewRelic::Agent.increment_metric SUPPORTABILITY_MULTIPLE_ACCEPT_PAYLOAD
+            return true
+          elsif distributed_trace_payload_created?
+            NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_BEFORE_ACCEPT_PAYLOAD
+            return true
+          elsif name_frozen?
+            NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_BROWSER
+            return true
+          end
+          false
+        end
       end
     end
   end
 end
+

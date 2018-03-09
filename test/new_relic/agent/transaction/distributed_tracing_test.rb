@@ -386,7 +386,56 @@ module NewRelic
           assert_equal priority, transaction.priority
         end
 
+        def test_payload_ignored_when_nil
+          in_transaction do |txn|
+            txn.accept_distributed_trace_payload(nil)
+          end
+
+          assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Ignored/Null"
+        end
+
+        def test_multiple_payload_accepts_ignored
+          payload1 = create_distributed_trace_payload
+          payload2 = create_distributed_trace_payload
+
+          in_transaction do |txn|
+            txn.accept_distributed_trace_payload(payload1)
+            txn.accept_distributed_trace_payload(payload2)
+          end
+
+          assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Ignored/Multiple"
+        end
+
+        def test_payload_rejected_when_accept_is_called_after_create
+          payload = create_distributed_trace_payload
+
+          in_transaction do |txn|
+            txn.create_distributed_trace_payload
+            txn.accept_distributed_trace_payload(payload)
+          end
+
+          assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Ignored/CreateBeforeAccept"
+        end
+
+        def test_payload_rejected_when_browser_agent_injected
+          payload = create_distributed_trace_payload
+
+          in_transaction do |txn|
+            # a frozen transaction name implies the browser agent has been injected
+            txn.freeze_name_and_execute_if_not_ignored
+            txn.accept_distributed_trace_payload(payload)
+          end
+
+          assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Ignored/BrowserAgentInjected"
+        end
+
         private
+
+        def create_distributed_trace_payload
+          in_transaction do |txn|
+            return txn.create_distributed_trace_payload.to_json
+          end
+        end
 
         # Create a chain of transactions which pass distributed
         # tracing information to one another; grandparent calls
