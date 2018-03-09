@@ -12,22 +12,22 @@ module NewRelic
       POUND = '#'.freeze
 
       # Key names for serialization
-      VERSION_KEY             = 'v'.freeze
-      DATA_KEY                = 'd'.freeze
-      PARENT_TYPE_KEY         = 'ty'.freeze
-      CALLER_ACCOUNT_KEY      = 'ac'.freeze
-      PARENT_APP_KEY          = 'ap'.freeze
-      ID_KEY                  = 'id'.freeze
-      TRIP_ID_KEY             = 'tr'.freeze
-      SAMPLED_KEY             = 'sa'.freeze
-      PARENT_ID_KEY           = 'pa'.freeze
-      TIMESTAMP_KEY           = 'ti'.freeze
-      PRIORITY_KEY            = 'd.pr'.freeze
+      VERSION_KEY                = 'v'.freeze
+      DATA_KEY                   = 'd'.freeze
+      PARENT_TYPE_KEY            = 'ty'.freeze
+      PARENT_ACCOUNT_ID_KEY      = 'ac'.freeze
+      PARENT_APP_KEY             = 'ap'.freeze
+      ID_KEY                     = 'id'.freeze
+      TRIP_ID_KEY                = 'tr'.freeze
+      SAMPLED_KEY                = 'sa'.freeze
+      PARENT_ID_KEY              = 'pa'.freeze
+      TIMESTAMP_KEY              = 'ti'.freeze
+      PRIORITY_KEY               = 'd.pr'.freeze
 
       # Intrinsic Keys
       PARENT_TYPE_INTRINSIC_KEY                = "parent.type".freeze
       PARENT_APP_INTRINSIC_KEY                 = "parent.app".freeze
-      CALLER_ACCOUNT_ID_INTRINSIC_KEY          = "caller.account".freeze
+      PARENT_ACCOUNT_ID_INTRINSIC_KEY          = "parent.account".freeze
       CALLER_TRANSPORT_TYPE_INTRINSIC_KEY      = "caller.transportType".freeze
       CALLER_TRANSPORT_DURATION_INTRINSIC_KEY  = "caller.transportDuration".freeze
       GUID_INTRINSIC_KEY                       = "nr.guid".freeze
@@ -40,7 +40,7 @@ module NewRelic
       INTRINSIC_KEYS = [
         PARENT_TYPE_INTRINSIC_KEY,
         PARENT_APP_INTRINSIC_KEY,
-        CALLER_ACCOUNT_ID_INTRINSIC_KEY,
+        PARENT_ACCOUNT_ID_INTRINSIC_KEY,
         CALLER_TRANSPORT_TYPE_INTRINSIC_KEY,
         CALLER_TRANSPORT_DURATION_INTRINSIC_KEY,
         GUID_INTRINSIC_KEY,
@@ -64,7 +64,7 @@ module NewRelic
           # We should not rely on the xp_id being formulated this way, but we have
           # seen nil account ids coming down in staging for some accounts
           account_id, fallback_app_id = Agent.config[:cross_process_id].split(POUND)
-          payload.caller_account_id = account_id
+          payload.parent_account_id = account_id
 
           payload.parent_app_id =  if Agent.config[:application_id].empty?
             fallback_app_id
@@ -90,7 +90,7 @@ module NewRelic
           payload = new
           payload.version           = raw_payload[VERSION_KEY]
           payload.parent_type       = payload_data[PARENT_TYPE_KEY]
-          payload.caller_account_id = payload_data[CALLER_ACCOUNT_KEY]
+          payload.parent_account_id = payload_data[PARENT_ACCOUNT_ID_KEY]
           payload.parent_app_id     = payload_data[PARENT_APP_KEY]
           payload.timestamp         = payload_data[TIMESTAMP_KEY]
           payload.id                = payload_data[ID_KEY]
@@ -129,7 +129,7 @@ module NewRelic
       attr_accessor :version,
                     :parent_type,
                     :caller_transport_type,
-                    :caller_account_id,
+                    :parent_account_id,
                     :parent_app_id,
                     :id,
                     :trip_id,
@@ -151,14 +151,14 @@ module NewRelic
         }
 
         result[DATA_KEY] = {
-          PARENT_TYPE_KEY    => parent_type,
-          CALLER_ACCOUNT_KEY => caller_account_id,
-          PARENT_APP_KEY     => parent_app_id,
-          ID_KEY             => id,
-          TRIP_ID_KEY        => trip_id,
-          SAMPLED_KEY        => sampled,
-          PRIORITY_KEY       => priority,
-          PARENT_ID_KEY      => parent_id,
+          PARENT_TYPE_KEY       => parent_type,
+          PARENT_ACCOUNT_ID_KEY => parent_account_id,
+          PARENT_APP_KEY        => parent_app_id,
+          ID_KEY                => id,
+          TRIP_ID_KEY           => trip_id,
+          SAMPLED_KEY           => sampled,
+          PRIORITY_KEY          => priority,
+          PARENT_ID_KEY         => parent_id,
           # GRANDPARENT_ID_KEY does not go into the outbound JSON payload;
           # the callee will take our parent ID as its grandparent ID
           TIMESTAMP_KEY      => timestamp,
@@ -176,7 +176,7 @@ module NewRelic
       def assign_intrinsics transaction, transaction_payload
         transaction_payload[PARENT_TYPE_INTRINSIC_KEY] = parent_type
         transaction_payload[PARENT_APP_INTRINSIC_KEY] = parent_app_id
-        transaction_payload[CALLER_ACCOUNT_ID_INTRINSIC_KEY] = caller_account_id
+        transaction_payload[PARENT_ACCOUNT_ID_INTRINSIC_KEY] = parent_account_id
         transaction_payload[CALLER_TRANSPORT_TYPE_INTRINSIC_KEY] = caller_transport_type
         transaction_payload[CALLER_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration
         transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid

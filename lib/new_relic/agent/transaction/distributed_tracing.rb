@@ -154,7 +154,7 @@ module NewRelic
 
         def check_trusted_account(payload)
           trusted_account_ids = NewRelic::Agent.config[:trusted_account_ids]
-          trusted = trusted_account_ids.include?(payload.caller_account_id.to_i)
+          trusted = trusted_account_ids.include?(payload.parent_account_id.to_i)
 
           unless trusted
             NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_UNTRUSTED_ACCOUNT
