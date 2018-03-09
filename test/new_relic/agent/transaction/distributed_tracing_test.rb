@@ -402,7 +402,7 @@ module NewRelic
           payload = create_distributed_trace_payload.to_json
 
           in_transaction do |txn|
-            txn.stubs(:valid_version?).raises(ArgumentError.new("oops!"))
+            txn.stubs(:check_valid_version).raises(ArgumentError.new("oops!"))
             refute txn.accept_distributed_trace_payload(payload)
           end
 

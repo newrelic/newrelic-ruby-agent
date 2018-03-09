@@ -34,10 +34,10 @@ module NewRelic
 
         def accept_distributed_trace_payload payload
           return unless Agent.config[:'distributed_tracing.enabled']
-          return false if ignore_payload?(payload)
+          return false if check_payload_ignored(payload)
           return false unless payload = decode_payload(payload)
-          return false unless valid_version?(payload)
-          return false unless trusted_account?(payload)
+          return false unless check_valid_version(payload)
+          return false unless check_trusted_account(payload)
 
           assign_payload_and_sampling_params(payload)
 
@@ -110,7 +110,7 @@ module NewRelic
         SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_NULL    = "Supportability/DistributedTrace/AcceptPayload/Ignored/Null".freeze
         SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_BROWSER = "Supportability/DistributedTrace/AcceptPayload/Ignored/BrowserAgentInjected".freeze
 
-        def ignore_payload?(payload)
+        def check_payload_ignored(payload)
           if payload.nil?
             NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_NULL
             return true
@@ -141,7 +141,7 @@ module NewRelic
 
         SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_MAJOR_VERSION = "Supportability/DistributedTrace/AcceptPayload/Ignored/MajorVersion".freeze
 
-        def valid_version?(payload)
+        def check_valid_version(payload)
           if DistributedTracePayload.major_version_matches?(payload)
             true
           else
@@ -152,7 +152,7 @@ module NewRelic
 
         SUPPORTABILITY_PAYLOAD_ACCEPT_UNTRUSTED_ACCOUNT = "Supportability/DistributedTracing/AcceptPayload/UntrustedAccount".freeze
 
-        def trusted_account?(payload)
+        def check_trusted_account(payload)
           trusted_account_ids = NewRelic::Agent.config[:trusted_account_ids]
           trusted = trusted_account_ids.include?(payload.caller_account_id.to_i)
 
