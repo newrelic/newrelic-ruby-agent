@@ -24,6 +24,7 @@ module NewRelic
           return unless Agent.config[:'distributed_tracing.enabled']
           return false if ignore_payload?(payload)
           return false unless payload = decode_payload(payload)
+          return false unless valid_version?(payload)
 
           trusted_account_ids = NewRelic::Agent.config[:trusted_account_ids]
           trusted = trusted_account_ids.include?(payload.caller_account_id.to_i)
@@ -33,12 +34,7 @@ module NewRelic
             return false
           end
 
-          self.distributed_trace_payload = payload
-
-          unless payload.sampled.nil?
-            self.sampled = payload.sampled
-            self.priority = payload.priority if payload.priority
-          end
+          assign_payload_and_sampling_params(payload)
 
           true
         rescue => e
@@ -139,7 +135,28 @@ module NewRelic
           NewRelic::Agent.logger.warn "Error parsing distributed trace payload", e
           nil
         end
+
+        SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_MAJOR_VERSION = "Supportability/DistributedTrace/AcceptPayload/Ignored/MajorVersion".freeze
+
+        def valid_version?(payload)
+          if DistributedTracePayload.major_version_matches?(payload)
+            true
+          else
+            NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_MAJOR_VERSION
+            false
+          end
+        end
+
+        def assign_payload_and_sampling_params(payload)
+          self.distributed_trace_payload = payload
+
+          unless payload.sampled.nil?
+            self.sampled = payload.sampled
+            self.priority = payload.priority if payload.priority
+          end
+        end
       end
     end
   end
 end
+

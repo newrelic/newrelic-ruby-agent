@@ -113,6 +113,10 @@ module NewRelic
           transaction_payload[TRIP_ID_INTRINSIC_KEY] = transaction.distributed_trace_trip_id
         end
 
+        def major_version_matches?(payload)
+          payload.version[0] == VERSION[0]
+        end
+
         private
 
         # We use the presence of the cross_process_id in the config to tell if we

@@ -439,6 +439,22 @@ module NewRelic
           assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/ParseException"
         end
 
+        def test_supportability_metric_recorded_on_major_version_mismatch
+          payload = nil
+          in_transaction do |txn|
+            payload = txn.create_distributed_trace_payload
+          end
+
+          # we will probably not hit a major version of 1e100
+          payload.version = [1e100, 0]
+
+          in_transaction do |txn2|
+            txn2.accept_distributed_trace_payload(payload.to_json)
+          end
+
+          assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Ignored/MajorVersion"
+        end
+
         private
 
         def create_distributed_trace_payload
