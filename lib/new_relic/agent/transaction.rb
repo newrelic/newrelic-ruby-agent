@@ -601,7 +601,7 @@ module NewRelic
       end
 
       def assign_intrinsics(state)
-        attributes.add_intrinsic_attribute :'nr.sampled', sampled?
+        attributes.add_intrinsic_attribute :'sampled', sampled?
 
         if gc_time = calculate_gc_time
           attributes.add_intrinsic_attribute(:gc_time, gc_time)
@@ -657,7 +657,7 @@ module NewRelic
           :priority             => @priority
         }
 
-        @payload[:'nr.sampled'] = sampled? if Agent.config[:'distributed_tracing.enabled']
+        @payload[:'sampled'] = sampled? if Agent.config[:'distributed_tracing.enabled']
 
         append_cat_info(state, duration, @payload)
         append_distributed_trace_info(@payload)

@@ -196,7 +196,7 @@ module NewRelic
 
       def generate_request(name='whatever', options={})
         payload = generate_payload name, options
-        if options['nr.sampled']
+        if options['sampled']
           @event_aggregator.append_sampled TransactionEventPrimitive.create(payload)
         else
           @event_aggregator.append event: TransactionEventPrimitive.create(payload)

@@ -119,14 +119,14 @@ module NewRelic
           assert_equal transaction.guid, intrinsics['nr.tripId']
           assert_nil                     intrinsics['nr.parentId']
           assert_nil                     intrinsics['nr.grandparentId']
-          assert                         intrinsics['nr.sampled']
+          assert                         intrinsics['sampled']
 
           txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
 
           assert_equal transaction.guid, txn_intrinsics['nr.tripId']
           assert_nil                     txn_intrinsics['nr.parentId']
           assert_nil                     txn_intrinsics['nr.grandparentId']
-          assert                         txn_intrinsics[:'nr.sampled']
+          assert                         txn_intrinsics[:'sampled']
         end
 
         def test_initial_legacy_cat_request_trip_id_overwritten_by_first_distributed_trace_guid
@@ -173,7 +173,7 @@ module NewRelic
           assert_equal parent_transaction.guid,               child_intrinsics["nr.referringTransactionGuid"]
           assert_equal inbound_payload.trip_id,               child_intrinsics["nr.tripId"]
           assert_equal child_transaction.guid,                child_intrinsics["nr.guid"]
-          assert_equal true,                                  child_intrinsics["nr.sampled"]
+          assert_equal true,                                  child_intrinsics["sampled"]
 
           assert                                              child_intrinsics["nr.parentId"]
           assert_equal inbound_payload.parent_id,             child_intrinsics["nr.parentId"]
@@ -197,7 +197,7 @@ module NewRelic
           end
 
           intrinsics, _, _ = last_transaction_event
-          assert_equal false, intrinsics["nr.sampled"]
+          assert_equal false, intrinsics["sampled"]
         end
 
         def test_intrinsics_assigned_to_error_event_from_disributed_trace
@@ -227,7 +227,7 @@ module NewRelic
           assert_equal inbound_payload.id, referring_transaction.guid
           assert_equal transaction.guid, intrinsics["nr.transactionGuid"]
           assert_equal inbound_payload.trip_id, intrinsics["nr.tripId"]
-          assert_equal true, intrinsics["nr.sampled"]
+          assert_equal true, intrinsics["sampled"]
           assert       intrinsics["nr.parentId"], "Child should be linked to parent transaction"
           assert_equal inbound_payload.parent_id, intrinsics["nr.parentId"]
         end
@@ -243,7 +243,7 @@ module NewRelic
           end
 
           intrinsics, _, _ = last_error_event
-          assert_equal false, intrinsics["nr.sampled"]
+          assert_equal false, intrinsics["sampled"]
         end
 
         def test_distributed_trace_does_not_propagate_nil_sampled_flags
@@ -259,7 +259,7 @@ module NewRelic
           intrinsics, _, _ = last_transaction_event
 
           assert_equal true, transaction.sampled?
-          assert_equal true, intrinsics["nr.sampled"]
+          assert_equal true, intrinsics["sampled"]
         end
 
         def test_sampled_flag_added_to_intrinsics_without_distributed_trace_when_true
@@ -273,8 +273,8 @@ module NewRelic
           err_intrinsics, _, _ = last_error_event
 
           assert_equal true, transaction.sampled?
-          assert_equal true, txn_intrinsics["nr.sampled"]
-          assert_equal true, err_intrinsics["nr.sampled"]
+          assert_equal true, txn_intrinsics["sampled"]
+          assert_equal true, err_intrinsics["sampled"]
         end
 
         def test_sampled_flag_added_to_intrinsics_without_distributed_trace_when_false
@@ -288,8 +288,8 @@ module NewRelic
           err_intrinsics, _, _ = last_error_event
 
           assert_equal false, transaction.sampled?
-          assert_equal false, txn_intrinsics["nr.sampled"]
-          assert_equal false, err_intrinsics["nr.sampled"]
+          assert_equal false, txn_intrinsics["sampled"]
+          assert_equal false, err_intrinsics["sampled"]
         end
 
         def test_transaction_inherits_priority_from_distributed_trace_payload

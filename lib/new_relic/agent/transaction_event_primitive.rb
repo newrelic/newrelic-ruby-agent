@@ -25,7 +25,7 @@ module NewRelic
       NAME_KEY                       = 'name'.freeze
       DURATION_KEY                   = 'duration'.freeze
       ERROR_KEY                      = 'error'.freeze
-      SAMPLED_KEY                    = 'nr.sampled'.freeze
+      SAMPLED_KEY                    = 'sampled'.freeze
       PRIORITY_KEY                   = 'priority'.freeze
       GUID_KEY                       = 'nr.guid'.freeze
       REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'.freeze
@@ -52,7 +52,7 @@ module NewRelic
         PRIORITY_KEY  => payload[:priority]
         }
 
-        intrinsics[SAMPLED_KEY] = payload[:'nr.sampled'] if Agent.config[:'distributed_tracing.enabled']
+        intrinsics[SAMPLED_KEY] = payload[:'sampled'] if Agent.config[:'distributed_tracing.enabled']
 
         NewRelic::Agent::PayloadMetricMapping.append_mapped_metrics(payload[:metrics], intrinsics)
         append_optional_attributes(intrinsics, payload)
