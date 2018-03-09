@@ -45,13 +45,9 @@ module NewRelic
         end
 
         def test_accept_distributed_trace_payload_assigns_json_payload
-          payload = nil
+          payload = create_distributed_trace_payload
 
-          in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload
-          end
-
-          transaction = in_transaction "test_txn2" do |txn|
+          transaction = in_transaction "test_txn" do |txn|
             txn.accept_distributed_trace_payload payload.to_json
           end
 
@@ -61,13 +57,9 @@ module NewRelic
         end
 
         def test_accept_distributed_trace_payload_assigns_http_safe_payload
-          payload = nil
+          payload = create_distributed_trace_payload
 
-          in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload
-          end
-
-          transaction = in_transaction "test_txn2" do |txn|
+          transaction = in_transaction "test_txn" do |txn|
             txn.accept_distributed_trace_payload payload.http_safe
           end
 
@@ -77,16 +69,12 @@ module NewRelic
         end
 
         def test_accept_distributed_trace_payload_rejects_untrusted_account
-          payload = nil
-
-          in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload
-          end
+          payload = create_distributed_trace_payload
 
           transaction = nil
           accepted    = nil
           with_config(trusted_account_ids: []) do
-            transaction = in_transaction "test_txn2" do |txn|
+            transaction = in_transaction "test_txn" do |txn|
               accepted = txn.accept_distributed_trace_payload payload.http_safe
             end
           end
@@ -97,17 +85,11 @@ module NewRelic
         end
 
         def test_sampled_flag_propagated_when_true_in_incoming_payload
-          payload = nil
-
-          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
-
-          in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload
-          end
+          payload = create_distributed_trace_payload(sampled: true)
 
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
 
-          in_transaction "test_txn2" do |txn|
+          in_transaction "test_txn" do |txn|
             refute txn.sampled?
             txn.accept_distributed_trace_payload payload.to_json
             assert txn.sampled?
@@ -115,17 +97,11 @@ module NewRelic
         end
 
         def test_sampled_flag_respects_upstreams_decision_when_sampled_is_false
-          payload = nil
-
-          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
-
-          in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload
-          end
+          payload = create_distributed_trace_payload(sampled: false)
 
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
-          in_transaction "test_txn2" do |txn|
+          in_transaction "test_txn" do |txn|
             assert txn.sampled?
             txn.accept_distributed_trace_payload payload.to_json
             refute txn.sampled?
@@ -214,17 +190,9 @@ module NewRelic
         end
 
         def test_sampled_is_false_in_transaction_event_when_indicated_by_upstream
-          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
-          payload = nil
-          referring_transaction = nil
+          payload = create_distributed_trace_payload(sampled: false)
 
-          in_transaction "test_txn" do |txn|
-            referring_transaction = txn
-            payload = referring_transaction.create_distributed_trace_payload
-            payload.sampled = false
-          end
-
-          in_transaction "text_txn2" do |txn|
+          in_transaction "text_txn" do |txn|
             txn.accept_distributed_trace_payload payload.to_json
           end
 
@@ -265,17 +233,11 @@ module NewRelic
         end
 
         def test_sampled_is_false_in_error_event_when_indicated_by_upstream
+          payload = create_distributed_trace_payload(sampled: false)
+
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
-          payload = nil
-          referring_transaction = nil
 
-          in_transaction "test_txn" do |txn|
-            referring_transaction = txn
-            payload = referring_transaction.create_distributed_trace_payload
-            payload.sampled = false
-          end
-
-          in_transaction "text_txn2" do |txn|
+          in_transaction "text_txn" do |txn|
             txn.accept_distributed_trace_payload payload.to_json
             NewRelic::Agent.notice_error StandardError.new "Nooo!"
           end
@@ -285,16 +247,12 @@ module NewRelic
         end
 
         def test_distributed_trace_does_not_propagate_nil_sampled_flags
-          payload = nil
-
-          in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload
-          end
-
-          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
+          payload = create_distributed_trace_payload
           payload.sampled = nil
 
-          transaction = in_transaction "test_txn2" do |txn|
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
+
+          transaction = in_transaction "test_txn" do |txn|
             txn.accept_distributed_trace_payload payload.to_json
           end
 
@@ -335,14 +293,9 @@ module NewRelic
         end
 
         def test_transaction_inherits_priority_from_distributed_trace_payload
-          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
-          payload = nil
+          payload = create_distributed_trace_payload(sampled: true)
 
-          in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload
-          end
-
-          transaction = in_transaction "test_txn2" do |txn|
+          transaction = in_transaction "test_txn" do |txn|
             txn.accept_distributed_trace_payload payload.to_json
           end
 
@@ -350,12 +303,7 @@ module NewRelic
         end
 
         def test_transaction_doesnt_inherit_priority_from_distributed_trace_payload_when_nil
-          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
-          payload = nil
-
-          in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload
-          end
+          payload = create_distributed_trace_payload
 
           payload.priority = nil
 
@@ -395,8 +343,8 @@ module NewRelic
         end
 
         def test_multiple_payload_accepts_ignored
-          payload1 = create_distributed_trace_payload
-          payload2 = create_distributed_trace_payload
+          payload1 = create_distributed_trace_payload.to_json
+          payload2 = create_distributed_trace_payload.to_json
 
           in_transaction do |txn|
             assert txn.accept_distributed_trace_payload(payload1)
@@ -407,7 +355,7 @@ module NewRelic
         end
 
         def test_payload_rejected_when_accept_is_called_after_create
-          payload = create_distributed_trace_payload
+          payload = create_distributed_trace_payload.to_json
 
           in_transaction do |txn|
             txn.create_distributed_trace_payload
@@ -428,10 +376,7 @@ module NewRelic
         end
 
         def test_supportability_metric_recorded_on_major_version_mismatch
-          payload = nil
-          in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload
-          end
+          payload = create_distributed_trace_payload
 
           # we will probably not hit a major version of 1e100
           payload.version = [1e100, 0]
@@ -444,7 +389,7 @@ module NewRelic
         end
 
         def test_supportability_metric_recorded_accept_successful
-          payload = create_distributed_trace_payload
+          payload = create_distributed_trace_payload.to_json
 
           in_transaction do |txn|
             assert txn.accept_distributed_trace_payload(payload)
@@ -454,7 +399,7 @@ module NewRelic
         end
 
         def test_supportability_metric_recorded_on_exception_during_accept
-          payload = create_distributed_trace_payload
+          payload = create_distributed_trace_payload.to_json
 
           in_transaction do |txn|
             txn.stubs(:valid_version?).raises(ArgumentError.new("oops!"))
@@ -485,9 +430,13 @@ module NewRelic
 
         private
 
-        def create_distributed_trace_payload
+        def create_distributed_trace_payload(sampled: nil)
+          unless sampled.nil?
+            NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(sampled)
+          end
+
           in_transaction do |txn|
-            return txn.create_distributed_trace_payload.to_json
+            return txn.create_distributed_trace_payload
           end
         end
 
