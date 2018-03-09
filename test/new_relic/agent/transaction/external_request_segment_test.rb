@@ -261,10 +261,10 @@ module NewRelic
               "External/all",
               "External/newrelic.com/all",
               "External/allWeb",
-              "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
-              "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
-              "TransportDuration/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
-              "TransportDuration/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
+              "DurationByCaller/#{payload.parent_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
+              "DurationByCaller/#{payload.parent_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
+              "TransportDuration/#{payload.parent_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
+              "TransportDuration/#{payload.parent_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
               ["External/newrelic.com/Net::HTTP/GET", "test_txn2"]
             ]
 
@@ -303,12 +303,12 @@ module NewRelic
               "External/all",
               "External/newrelic.com/all",
               "External/allWeb",
-              "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
-              "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
-              "TransportDuration/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
-              "TransportDuration/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
-              "ErrorsByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
-              "ErrorsByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
+              "DurationByCaller/#{payload.parent_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
+              "DurationByCaller/#{payload.parent_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
+              "TransportDuration/#{payload.parent_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
+              "TransportDuration/#{payload.parent_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
+              "ErrorsByCaller/#{payload.parent_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
+              "ErrorsByCaller/#{payload.parent_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
               ["External/newrelic.com/Net::HTTP/GET", "test_txn2"]
             ]
 

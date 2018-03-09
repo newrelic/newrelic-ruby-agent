@@ -8,13 +8,13 @@ module NewRelic
   module Agent
     class DistributedTracePayload
       VERSION =[0, 0].freeze
-      CALLER_TYPE = "App".freeze
+      PARENT_TYPE = "App".freeze
       POUND = '#'.freeze
 
       # Key names for serialization
       VERSION_KEY             = 'v'.freeze
       DATA_KEY                = 'd'.freeze
-      CALLER_TYPE_KEY         = 'ty'.freeze
+      PARENT_TYPE_KEY         = 'ty'.freeze
       CALLER_ACCOUNT_KEY      = 'ac'.freeze
       CALLER_APP_KEY          = 'ap'.freeze
       ID_KEY                  = 'id'.freeze
@@ -25,7 +25,7 @@ module NewRelic
       PRIORITY_KEY            = 'd.pr'.freeze
 
       # Intrinsic Keys
-      CALLER_TYPE_INTRINSIC_KEY                = "caller.type".freeze
+      PARENT_TYPE_INTRINSIC_KEY                = "parent.type".freeze
       CALLER_APP_INTRINSIC_KEY                 = "caller.app".freeze
       CALLER_ACCOUNT_ID_INTRINSIC_KEY          = "caller.account".freeze
       CALLER_TRANSPORT_TYPE_INTRINSIC_KEY      = "caller.transportType".freeze
@@ -38,7 +38,7 @@ module NewRelic
       COMMA                                    = ",".freeze
 
       INTRINSIC_KEYS = [
-        CALLER_TYPE_INTRINSIC_KEY,
+        PARENT_TYPE_INTRINSIC_KEY,
         CALLER_APP_INTRINSIC_KEY,
         CALLER_ACCOUNT_ID_INTRINSIC_KEY,
         CALLER_TRANSPORT_TYPE_INTRINSIC_KEY,
@@ -59,7 +59,7 @@ module NewRelic
           return payload unless connected?
 
           payload.version = VERSION
-          payload.caller_type = CALLER_TYPE
+          payload.parent_type = PARENT_TYPE
 
           # We should not rely on the xp_id being formulated this way, but we have
           # seen nil account ids coming down in staging for some accounts
@@ -89,7 +89,7 @@ module NewRelic
 
           payload = new
           payload.version           = raw_payload[VERSION_KEY]
-          payload.caller_type       = payload_data[CALLER_TYPE_KEY]
+          payload.parent_type       = payload_data[PARENT_TYPE_KEY]
           payload.caller_account_id = payload_data[CALLER_ACCOUNT_KEY]
           payload.caller_app_id     = payload_data[CALLER_APP_KEY]
           payload.timestamp         = payload_data[TIMESTAMP_KEY]
@@ -127,7 +127,7 @@ module NewRelic
       end
 
       attr_accessor :version,
-                    :caller_type,
+                    :parent_type,
                     :caller_transport_type,
                     :caller_account_id,
                     :caller_app_id,
@@ -151,7 +151,7 @@ module NewRelic
         }
 
         result[DATA_KEY] = {
-          CALLER_TYPE_KEY    => caller_type,
+          PARENT_TYPE_KEY    => parent_type,
           CALLER_ACCOUNT_KEY => caller_account_id,
           CALLER_APP_KEY     => caller_app_id,
           ID_KEY             => id,
@@ -174,7 +174,7 @@ module NewRelic
       end
 
       def assign_intrinsics transaction, transaction_payload
-        transaction_payload[CALLER_TYPE_INTRINSIC_KEY] = caller_type
+        transaction_payload[PARENT_TYPE_INTRINSIC_KEY] = parent_type
         transaction_payload[CALLER_APP_INTRINSIC_KEY] = caller_app_id
         transaction_payload[CALLER_ACCOUNT_ID_INTRINSIC_KEY] = caller_account_id
         transaction_payload[CALLER_TRANSPORT_TYPE_INTRINSIC_KEY] = caller_transport_type
