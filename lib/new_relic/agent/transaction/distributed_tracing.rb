@@ -120,9 +120,6 @@ module NewRelic
           elsif distributed_trace_payload_created?
             NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_BEFORE_ACCEPT_PAYLOAD
             return true
-          elsif name_frozen?
-            NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_BROWSER
-            return true
           end
           false
         end

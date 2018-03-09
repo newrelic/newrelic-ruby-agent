@@ -417,18 +417,6 @@ module NewRelic
           assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Ignored/CreateBeforeAccept"
         end
 
-        def test_payload_rejected_when_browser_agent_injected
-          payload = create_distributed_trace_payload
-
-          in_transaction do |txn|
-            # a frozen transaction name implies the browser agent has been injected
-            txn.freeze_name_and_execute_if_not_ignored
-            refute txn.accept_distributed_trace_payload(payload)
-          end
-
-          assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Ignored/BrowserAgentInjected"
-        end
-
         def test_supportability_metric_recorded_when_error_parsing_payload
           payload = "{thisisnotvalidjson"
 
