@@ -388,7 +388,7 @@ module NewRelic
 
         def test_payload_ignored_when_nil
           in_transaction do |txn|
-            txn.accept_distributed_trace_payload(nil)
+            refute txn.accept_distributed_trace_payload(nil)
           end
 
           assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Ignored/Null"
@@ -399,8 +399,8 @@ module NewRelic
           payload2 = create_distributed_trace_payload
 
           in_transaction do |txn|
-            txn.accept_distributed_trace_payload(payload1)
-            txn.accept_distributed_trace_payload(payload2)
+            assert txn.accept_distributed_trace_payload(payload1)
+            refute txn.accept_distributed_trace_payload(payload2)
           end
 
           assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Ignored/Multiple"
@@ -411,7 +411,7 @@ module NewRelic
 
           in_transaction do |txn|
             txn.create_distributed_trace_payload
-            txn.accept_distributed_trace_payload(payload)
+            refute txn.accept_distributed_trace_payload(payload)
           end
 
           assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Ignored/CreateBeforeAccept"
@@ -423,7 +423,7 @@ module NewRelic
           in_transaction do |txn|
             # a frozen transaction name implies the browser agent has been injected
             txn.freeze_name_and_execute_if_not_ignored
-            txn.accept_distributed_trace_payload(payload)
+            refute txn.accept_distributed_trace_payload(payload)
           end
 
           assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Ignored/BrowserAgentInjected"
@@ -433,7 +433,7 @@ module NewRelic
           payload = "{thisisnotvalidjson"
 
           in_transaction do |txn|
-            txn.accept_distributed_trace_payload(payload)
+            refute txn.accept_distributed_trace_payload(payload)
           end
 
           assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/ParseException"
@@ -449,7 +449,7 @@ module NewRelic
           payload.version = [1e100, 0]
 
           in_transaction do |txn2|
-            txn2.accept_distributed_trace_payload(payload.to_json)
+            refute txn2.accept_distributed_trace_payload(payload.to_json)
           end
 
           assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Ignored/MajorVersion"
@@ -459,7 +459,7 @@ module NewRelic
           payload = create_distributed_trace_payload
 
           in_transaction do |txn|
-            txn.accept_distributed_trace_payload(payload)
+            assert txn.accept_distributed_trace_payload(payload)
           end
 
           assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Success"
@@ -470,7 +470,7 @@ module NewRelic
 
           in_transaction do |txn|
             txn.stubs(:valid_version?).raises(ArgumentError.new("oops!"))
-            txn.accept_distributed_trace_payload(payload)
+            refute txn.accept_distributed_trace_payload(payload)
           end
 
           assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Exception"
