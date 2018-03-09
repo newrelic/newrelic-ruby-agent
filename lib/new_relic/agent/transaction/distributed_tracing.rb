@@ -20,17 +20,10 @@ module NewRelic
           DistributedTracePayload.for_transaction self
         end
 
-        LBRACE = "{".freeze
-
         def accept_distributed_trace_payload payload
           return unless Agent.config[:'distributed_tracing.enabled']
           return false if ignore_payload?(payload)
-
-          payload = if payload.start_with? LBRACE
-            DistributedTracePayload.from_json payload
-          else
-            DistributedTracePayload.from_http_safe payload
-          end
+          return false unless payload = decode_payload(payload)
 
           trusted_account_ids = NewRelic::Agent.config[:trusted_account_ids]
           trusted = trusted_account_ids.include?(payload.caller_account_id.to_i)
@@ -131,8 +124,22 @@ module NewRelic
           end
           false
         end
+
+        SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_PARSE_EXCEPTION = "Supportability/DistributedTrace/AcceptPayload/ParseException".freeze
+        LBRACE = "{".freeze
+
+        def decode_payload(payload)
+          if payload.start_with? LBRACE
+            DistributedTracePayload.from_json payload
+          else
+            DistributedTracePayload.from_http_safe payload
+          end
+        rescue => e
+          NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_PARSE_EXCEPTION
+          NewRelic::Agent.logger.warn "Error parsing distributed trace payload", e
+          nil
+        end
       end
     end
   end
 end
-

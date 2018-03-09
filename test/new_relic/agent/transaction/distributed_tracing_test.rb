@@ -429,6 +429,16 @@ module NewRelic
           assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Ignored/BrowserAgentInjected"
         end
 
+        def test_supportability_metric_recorded_when_error_parsing_payload
+          payload = "{thisisnotvalidjson"
+
+          in_transaction do |txn|
+            txn.accept_distributed_trace_payload(payload)
+          end
+
+          assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/ParseException"
+        end
+
         private
 
         def create_distributed_trace_payload
