@@ -14,10 +14,19 @@ module NewRelic
           !!distributed_trace_payload
         end
 
+        SUPPORTABILITY_CREATE_PAYLOAD_SUCCESS   = "Supportability/DistributedTrace/CreatePayload/Success".freeze
+        SUPPORTABILITY_CREATE_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/CreatePayload/Exception".freeze
+
         def create_distributed_trace_payload
           return unless Agent.config[:'distributed_tracing.enabled']
           self.distributed_trace_payload_created = true
-          DistributedTracePayload.for_transaction self
+          payload = DistributedTracePayload.for_transaction self
+          NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_PAYLOAD_SUCCESS
+          payload
+        rescue => e
+          NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_PAYLOAD_EXCEPTION
+          NewRelic::Agent.logger.warn "Failed to create distributed trace payload", e
+          nil
         end
 
         SUPPORTABILITY_ACCEPT_PAYLOAD_SUCCESS   = "Supportability/DistributedTrace/AcceptPayload/Success".freeze

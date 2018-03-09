@@ -476,6 +476,25 @@ module NewRelic
           assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Exception"
         end
 
+        def test_supportability_metric_recorded_when_payload_creation_successful
+          in_transaction do |txn|
+            payload = txn.create_distributed_trace_payload
+            refute_nil payload
+          end
+
+          assert_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success"
+        end
+
+        def test_supportability_metric_recorded_when_payload_creation_fails
+          in_transaction do |txn|
+            DistributedTracePayload.stubs(:for_transaction).raises(StandardError.new("oops!"))
+            txn.create_distributed_trace_payload
+          end
+
+          assert_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Exception"
+          refute_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success"
+        end
+
         private
 
         def create_distributed_trace_payload
