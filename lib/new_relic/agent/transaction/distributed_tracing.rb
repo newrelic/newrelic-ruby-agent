@@ -28,14 +28,7 @@ module NewRelic
           return false if ignore_payload?(payload)
           return false unless payload = decode_payload(payload)
           return false unless valid_version?(payload)
-
-          trusted_account_ids = NewRelic::Agent.config[:trusted_account_ids]
-          trusted = trusted_account_ids.include?(payload.caller_account_id.to_i)
-
-          unless trusted
-            NewRelic::Agent.increment_metric "Supportability/DistributedTracing/AcceptPayload/UntrustedAccount"
-            return false
-          end
+          return false unless trusted_account?(payload)
 
           assign_payload_and_sampling_params(payload)
 
@@ -149,6 +142,20 @@ module NewRelic
             NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_MAJOR_VERSION
             false
           end
+        end
+
+        SUPPORTABILITY_PAYLOAD_ACCEPT_UNTRUSTED_ACCOUNT = "Supportability/DistributedTracing/AcceptPayload/UntrustedAccount".freeze
+
+        def trusted_account?(payload)
+          trusted_account_ids = NewRelic::Agent.config[:trusted_account_ids]
+          trusted = trusted_account_ids.include?(payload.caller_account_id.to_i)
+
+          unless trusted
+            NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_UNTRUSTED_ACCOUNT
+            return false
+          end
+
+          true
         end
 
         def assign_payload_and_sampling_params(payload)
