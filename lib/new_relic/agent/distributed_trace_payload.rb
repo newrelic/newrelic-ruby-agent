@@ -28,7 +28,7 @@ module NewRelic
       PARENT_TYPE_INTRINSIC_KEY                = "parent.type".freeze
       PARENT_APP_INTRINSIC_KEY                 = "parent.app".freeze
       PARENT_ACCOUNT_ID_INTRINSIC_KEY          = "parent.account".freeze
-      CALLER_TRANSPORT_TYPE_INTRINSIC_KEY      = "caller.transportType".freeze
+      PARENT_TRANSPORT_TYPE_INTRINSIC_KEY      = "parent.transportType".freeze
       CALLER_TRANSPORT_DURATION_INTRINSIC_KEY  = "caller.transportDuration".freeze
       GUID_INTRINSIC_KEY                       = "nr.guid".freeze
       REFERRING_TRANSACTION_GUID_INTRINSIC_KEY = "nr.referringTransactionGuid".freeze
@@ -41,7 +41,7 @@ module NewRelic
         PARENT_TYPE_INTRINSIC_KEY,
         PARENT_APP_INTRINSIC_KEY,
         PARENT_ACCOUNT_ID_INTRINSIC_KEY,
-        CALLER_TRANSPORT_TYPE_INTRINSIC_KEY,
+        PARENT_TRANSPORT_TYPE_INTRINSIC_KEY,
         CALLER_TRANSPORT_DURATION_INTRINSIC_KEY,
         GUID_INTRINSIC_KEY,
         REFERRING_TRANSACTION_GUID_INTRINSIC_KEY,
@@ -51,7 +51,7 @@ module NewRelic
       ].freeze
 
       # Intrinsic Values
-      CALLER_TRANSPORT_TYPE_UNKNOWN = 'unknown'.freeze
+      PARENT_TRANSPORT_TYPE_UNKNOWN = 'unknown'.freeze
 
       class << self
         def for_transaction transaction
@@ -142,7 +142,7 @@ module NewRelic
       alias_method :sampled?, :sampled
 
       def initialize
-        @caller_transport_type = CALLER_TRANSPORT_TYPE_UNKNOWN
+        @caller_transport_type = PARENT_TRANSPORT_TYPE_UNKNOWN
       end
 
       def to_json
@@ -177,7 +177,7 @@ module NewRelic
         transaction_payload[PARENT_TYPE_INTRINSIC_KEY] = parent_type
         transaction_payload[PARENT_APP_INTRINSIC_KEY] = parent_app_id
         transaction_payload[PARENT_ACCOUNT_ID_INTRINSIC_KEY] = parent_account_id
-        transaction_payload[CALLER_TRANSPORT_TYPE_INTRINSIC_KEY] = caller_transport_type
+        transaction_payload[PARENT_TRANSPORT_TYPE_INTRINSIC_KEY] = caller_transport_type
         transaction_payload[CALLER_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration
         transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid
         transaction_payload[REFERRING_TRANSACTION_GUID_INTRINSIC_KEY] = id
