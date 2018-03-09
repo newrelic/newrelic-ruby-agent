@@ -20,6 +20,9 @@ module NewRelic
           DistributedTracePayload.for_transaction self
         end
 
+        SUPPORTABILITY_ACCEPT_PAYLOAD_SUCCESS   = "Supportability/DistributedTrace/AcceptPayload/Success".freeze
+        SUPPORTABILITY_ACCEPT_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/AcceptPayload/Exception".freeze
+
         def accept_distributed_trace_payload payload
           return unless Agent.config[:'distributed_tracing.enabled']
           return false if ignore_payload?(payload)
@@ -36,9 +39,10 @@ module NewRelic
 
           assign_payload_and_sampling_params(payload)
 
+          NewRelic::Agent.increment_metric SUPPORTABILITY_ACCEPT_PAYLOAD_SUCCESS
           true
         rescue => e
-          NewRelic::Agent.increment_metric "Supportability/DistributedTracing/AcceptFailure/Unknown"
+          NewRelic::Agent.increment_metric SUPPORTABILITY_ACCEPT_PAYLOAD_EXCEPTION
           NewRelic::Agent.logger.warn "Failed to accept distributed trace payload", e
           false
         end

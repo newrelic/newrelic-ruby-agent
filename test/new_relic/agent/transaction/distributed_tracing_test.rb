@@ -455,6 +455,27 @@ module NewRelic
           assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Ignored/MajorVersion"
         end
 
+        def test_supportability_metric_recorded_accept_successful
+          payload = create_distributed_trace_payload
+
+          in_transaction do |txn|
+            txn.accept_distributed_trace_payload(payload)
+          end
+
+          assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Success"
+        end
+
+        def test_supportability_metric_recorded_on_exception_during_accept
+          payload = create_distributed_trace_payload
+
+          in_transaction do |txn|
+            txn.stubs(:valid_version?).raises(ArgumentError.new("oops!"))
+            txn.accept_distributed_trace_payload(payload)
+          end
+
+          assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Exception"
+        end
+
         private
 
         def create_distributed_trace_payload
