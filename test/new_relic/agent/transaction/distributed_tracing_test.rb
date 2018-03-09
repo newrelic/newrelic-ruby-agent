@@ -34,7 +34,7 @@ module NewRelic
           payload = transaction.create_distributed_trace_payload
           Transaction.stop(state)
 
-          assert_equal "46954", payload.caller_app_id
+          assert_equal "46954", payload.parent_app_id
           assert_equal "190", payload.caller_account_id
           assert_equal [0, 0], payload.version
           assert_equal "App", payload.parent_type
@@ -167,7 +167,7 @@ module NewRelic
 
           assert_equal inbound_payload.parent_type,           child_intrinsics["parent.type"]
           assert_equal inbound_payload.caller_transport_type, child_intrinsics["caller.transportType"]
-          assert_equal inbound_payload.caller_app_id,         child_intrinsics["caller.app"]
+          assert_equal inbound_payload.parent_app_id,         child_intrinsics["parent.app"]
           assert_equal inbound_payload.caller_account_id,     child_intrinsics["caller.account"]
 
           assert_equal parent_transaction.guid,               child_intrinsics["nr.referringTransactionGuid"]
@@ -221,7 +221,7 @@ module NewRelic
 
           assert_equal inbound_payload.parent_type, intrinsics["parent.type"]
           assert_equal inbound_payload.caller_transport_type, intrinsics["caller.transportType"]
-          assert_equal inbound_payload.caller_app_id, intrinsics["caller.app"]
+          assert_equal inbound_payload.parent_app_id, intrinsics["parent.app"]
           assert_equal inbound_payload.caller_account_id, intrinsics["caller.account"]
           assert_equal referring_transaction.guid, intrinsics["nr.referringTransactionGuid"]
           assert_equal inbound_payload.id, referring_transaction.guid

@@ -16,7 +16,7 @@ module NewRelic
       DATA_KEY                = 'd'.freeze
       PARENT_TYPE_KEY         = 'ty'.freeze
       CALLER_ACCOUNT_KEY      = 'ac'.freeze
-      CALLER_APP_KEY          = 'ap'.freeze
+      PARENT_APP_KEY          = 'ap'.freeze
       ID_KEY                  = 'id'.freeze
       TRIP_ID_KEY             = 'tr'.freeze
       SAMPLED_KEY             = 'sa'.freeze
@@ -26,7 +26,7 @@ module NewRelic
 
       # Intrinsic Keys
       PARENT_TYPE_INTRINSIC_KEY                = "parent.type".freeze
-      CALLER_APP_INTRINSIC_KEY                 = "caller.app".freeze
+      PARENT_APP_INTRINSIC_KEY                 = "parent.app".freeze
       CALLER_ACCOUNT_ID_INTRINSIC_KEY          = "caller.account".freeze
       CALLER_TRANSPORT_TYPE_INTRINSIC_KEY      = "caller.transportType".freeze
       CALLER_TRANSPORT_DURATION_INTRINSIC_KEY  = "caller.transportDuration".freeze
@@ -39,7 +39,7 @@ module NewRelic
 
       INTRINSIC_KEYS = [
         PARENT_TYPE_INTRINSIC_KEY,
-        CALLER_APP_INTRINSIC_KEY,
+        PARENT_APP_INTRINSIC_KEY,
         CALLER_ACCOUNT_ID_INTRINSIC_KEY,
         CALLER_TRANSPORT_TYPE_INTRINSIC_KEY,
         CALLER_TRANSPORT_DURATION_INTRINSIC_KEY,
@@ -66,7 +66,7 @@ module NewRelic
           account_id, fallback_app_id = Agent.config[:cross_process_id].split(POUND)
           payload.caller_account_id = account_id
 
-          payload.caller_app_id =  if Agent.config[:application_id].empty?
+          payload.parent_app_id =  if Agent.config[:application_id].empty?
             fallback_app_id
           else
             Agent.config[:application_id]
@@ -91,7 +91,7 @@ module NewRelic
           payload.version           = raw_payload[VERSION_KEY]
           payload.parent_type       = payload_data[PARENT_TYPE_KEY]
           payload.caller_account_id = payload_data[CALLER_ACCOUNT_KEY]
-          payload.caller_app_id     = payload_data[CALLER_APP_KEY]
+          payload.parent_app_id     = payload_data[PARENT_APP_KEY]
           payload.timestamp         = payload_data[TIMESTAMP_KEY]
           payload.id                = payload_data[ID_KEY]
           payload.trip_id           = payload_data[TRIP_ID_KEY]
@@ -130,7 +130,7 @@ module NewRelic
                     :parent_type,
                     :caller_transport_type,
                     :caller_account_id,
-                    :caller_app_id,
+                    :parent_app_id,
                     :id,
                     :trip_id,
                     :sampled,
@@ -153,7 +153,7 @@ module NewRelic
         result[DATA_KEY] = {
           PARENT_TYPE_KEY    => parent_type,
           CALLER_ACCOUNT_KEY => caller_account_id,
-          CALLER_APP_KEY     => caller_app_id,
+          PARENT_APP_KEY     => parent_app_id,
           ID_KEY             => id,
           TRIP_ID_KEY        => trip_id,
           SAMPLED_KEY        => sampled,
@@ -175,7 +175,7 @@ module NewRelic
 
       def assign_intrinsics transaction, transaction_payload
         transaction_payload[PARENT_TYPE_INTRINSIC_KEY] = parent_type
-        transaction_payload[CALLER_APP_INTRINSIC_KEY] = caller_app_id
+        transaction_payload[PARENT_APP_INTRINSIC_KEY] = parent_app_id
         transaction_payload[CALLER_ACCOUNT_ID_INTRINSIC_KEY] = caller_account_id
         transaction_payload[CALLER_TRANSPORT_TYPE_INTRINSIC_KEY] = caller_transport_type
         transaction_payload[CALLER_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration

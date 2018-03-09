@@ -34,7 +34,7 @@ module NewRelic
         end
 
 
-        assert_equal "46954", payload.caller_app_id
+        assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.caller_account_id
         assert_equal [0, 0], payload.version
         assert_equal "App", payload.parent_type
@@ -49,7 +49,7 @@ module NewRelic
             payload = DistributedTracePayload.for_transaction txn
           end
 
-          assert_equal "46954", payload.caller_app_id
+          assert_equal "46954", payload.parent_app_id
         end
       end
 
@@ -94,7 +94,7 @@ module NewRelic
 
         assert_equal [0, 0], payload.version
         assert_equal "App", payload.parent_type
-        assert_equal "46954", payload.caller_app_id
+        assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.caller_account_id
         assert_equal referring_transaction.guid, payload.id
         assert_equal referring_transaction.distributed_trace_trip_id, payload.trip_id
@@ -117,7 +117,7 @@ module NewRelic
 
         assert_equal [0, 0], payload.version
         assert_equal "App", payload.parent_type
-        assert_equal "46954", payload.caller_app_id
+        assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.caller_account_id
         assert_equal referring_transaction.guid, payload.id
         assert_equal referring_transaction.distributed_trace_trip_id, payload.trip_id
