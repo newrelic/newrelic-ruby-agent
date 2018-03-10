@@ -81,7 +81,7 @@ module NewRelic
 
           assert_nil              transaction.distributed_trace_payload
           assert_false            accepted
-          assert_metrics_recorded ['Supportability/DistributedTracing/AcceptPayload/UntrustedAccount']
+          assert_metrics_recorded ['Supportability/DistributedTrace/AcceptPayload/Ignored/UntrustedAccount']
         end
 
         def test_sampled_flag_propagated_when_true_in_incoming_payload

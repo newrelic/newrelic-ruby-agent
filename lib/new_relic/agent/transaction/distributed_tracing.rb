@@ -150,7 +150,7 @@ module NewRelic
           end
         end
 
-        SUPPORTABILITY_PAYLOAD_ACCEPT_UNTRUSTED_ACCOUNT = "Supportability/DistributedTracing/AcceptPayload/UntrustedAccount".freeze
+        SUPPORTABILITY_PAYLOAD_ACCEPT_UNTRUSTED_ACCOUNT = "Supportability/DistributedTrace/AcceptPayload/Ignored/UntrustedAccount".freeze
 
         def check_trusted_account(payload)
           trusted_account_ids = NewRelic::Agent.config[:trusted_account_ids]
