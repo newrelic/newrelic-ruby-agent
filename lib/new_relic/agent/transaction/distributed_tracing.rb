@@ -49,9 +49,9 @@ module NewRelic
           false
         end
 
-        def distributed_trace_trip_id
+        def trace_id
           if distributed_trace_payload
-            distributed_trace_payload.trip_id
+            distributed_trace_payload.trace_id
           else
             guid
           end

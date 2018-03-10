@@ -39,7 +39,7 @@ module NewRelic
           assert_equal [0, 0], payload.version
           assert_equal "App", payload.parent_type
           assert_equal transaction.guid, payload.id
-          assert_equal transaction.distributed_trace_trip_id, payload.trip_id
+          assert_equal transaction.trace_id, payload.trace_id
           assert_nil   payload.parent_id
           assert_equal created_at, payload.timestamp
         end
@@ -53,7 +53,7 @@ module NewRelic
 
           refute_nil transaction.distributed_trace_payload
 
-          assert_equal transaction.distributed_trace_trip_id, payload.trip_id
+          assert_equal transaction.trace_id, payload.trace_id
         end
 
         def test_accept_distributed_trace_payload_assigns_http_safe_payload
@@ -65,7 +65,7 @@ module NewRelic
 
           refute_nil transaction.distributed_trace_payload
 
-          assert_equal transaction.distributed_trace_trip_id, payload.trip_id
+          assert_equal transaction.trace_id, payload.trace_id
         end
 
         def test_accept_distributed_trace_payload_rejects_untrusted_account
@@ -117,6 +117,7 @@ module NewRelic
           intrinsics  = result[:grandparent_intrinsics]
 
           assert_equal transaction.guid, intrinsics['nr.tripId']
+          assert_equal transaction.guid, intrinsics['traceId']
           assert_nil                     intrinsics['nr.parentId']
           assert_nil                     intrinsics['nr.grandparentId']
           assert                         intrinsics['sampled']
@@ -124,12 +125,13 @@ module NewRelic
           txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
 
           assert_equal transaction.guid, txn_intrinsics['nr.tripId']
+          assert_equal transaction.guid, intrinsics['traceId']
           assert_nil                     txn_intrinsics['nr.parentId']
           assert_nil                     txn_intrinsics['nr.grandparentId']
           assert                         txn_intrinsics[:'sampled']
         end
 
-        def test_initial_legacy_cat_request_trip_id_overwritten_by_first_distributed_trace_guid
+        def test_initial_legacy_cat_request_trace_id_overwritten_by_first_distributed_trace_guid
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
           transaction = nil
 
@@ -147,9 +149,11 @@ module NewRelic
 
           intrinsics, _, _ = last_transaction_event
           assert_equal transaction.guid, intrinsics['nr.tripId']
+          assert_equal transaction.guid, intrinsics['traceId']
 
           txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
           assert_equal transaction.guid, txn_intrinsics['nr.tripId']
+          assert_equal transaction.guid, intrinsics['traceId']
         end
 
         def test_intrinsics_assigned_to_transaction_event_from_disributed_trace
@@ -171,7 +175,8 @@ module NewRelic
           assert_equal inbound_payload.parent_account_id,     child_intrinsics["parent.account"]
 
           assert_equal parent_transaction.guid,               child_intrinsics["nr.referringTransactionGuid"]
-          assert_equal inbound_payload.trip_id,               child_intrinsics["nr.tripId"]
+          assert_equal inbound_payload.trace_id,              child_intrinsics["nr.tripId"]
+          assert_equal inbound_payload.trace_id,              child_intrinsics["traceId"]
           assert_equal child_transaction.guid,                child_intrinsics["nr.guid"]
           assert_equal true,                                  child_intrinsics["sampled"]
 
@@ -226,7 +231,8 @@ module NewRelic
           assert_equal referring_transaction.guid, intrinsics["nr.referringTransactionGuid"]
           assert_equal inbound_payload.id, referring_transaction.guid
           assert_equal transaction.guid, intrinsics["nr.transactionGuid"]
-          assert_equal inbound_payload.trip_id, intrinsics["nr.tripId"]
+          assert_equal inbound_payload.trace_id, intrinsics["nr.tripId"]
+          assert_equal inbound_payload.trace_id, intrinsics["traceId"]
           assert_equal true, intrinsics["sampled"]
           assert       intrinsics["nr.parentId"], "Child should be linked to parent transaction"
           assert_equal inbound_payload.parent_id, intrinsics["nr.parentId"]

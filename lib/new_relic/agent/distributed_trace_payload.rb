@@ -18,7 +18,7 @@ module NewRelic
       PARENT_ACCOUNT_ID_KEY      = 'ac'.freeze
       PARENT_APP_KEY             = 'ap'.freeze
       ID_KEY                     = 'id'.freeze
-      TRIP_ID_KEY                = 'tr'.freeze
+      TRACE_ID_KEY               = 'tr'.freeze
       SAMPLED_KEY                = 'sa'.freeze
       PARENT_ID_KEY              = 'pa'.freeze
       TIMESTAMP_KEY              = 'ti'.freeze
@@ -32,6 +32,7 @@ module NewRelic
       CALLER_TRANSPORT_DURATION_INTRINSIC_KEY  = "caller.transportDuration".freeze
       GUID_INTRINSIC_KEY                       = "nr.guid".freeze
       REFERRING_TRANSACTION_GUID_INTRINSIC_KEY = "nr.referringTransactionGuid".freeze
+      TRACE_ID_INTRINSIC_KEY                   = "traceId".freeze
       TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
       PARENT_ID_INTRINSIC_KEY                  = "nr.parentId".freeze
       GRANDPARENT_ID_INTRINSIC_KEY             = "nr.grandparentId".freeze
@@ -45,6 +46,7 @@ module NewRelic
         CALLER_TRANSPORT_DURATION_INTRINSIC_KEY,
         GUID_INTRINSIC_KEY,
         REFERRING_TRANSACTION_GUID_INTRINSIC_KEY,
+        TRACE_ID_INTRINSIC_KEY,
         TRIP_ID_INTRINSIC_KEY,
         PARENT_ID_INTRINSIC_KEY,
         GRANDPARENT_ID_INTRINSIC_KEY
@@ -74,7 +76,7 @@ module NewRelic
 
           payload.timestamp = (Time.now.to_f * 1000).round
           payload.id = transaction.guid
-          payload.trip_id = transaction.distributed_trace_trip_id
+          payload.trace_id = transaction.trace_id
           payload.sampled = transaction.sampled?
           payload.priority = transaction.priority
           payload.parent_id = transaction.parent_id
@@ -94,7 +96,7 @@ module NewRelic
           payload.parent_app_id     = payload_data[PARENT_APP_KEY]
           payload.timestamp         = payload_data[TIMESTAMP_KEY]
           payload.id                = payload_data[ID_KEY]
-          payload.trip_id           = payload_data[TRIP_ID_KEY]
+          payload.trace_id           = payload_data[TRACE_ID_KEY]
           payload.sampled           = payload_data[SAMPLED_KEY]
           payload.priority          = payload_data[PRIORITY_KEY]
           payload.parent_id         = payload_data[ID_KEY]        # Our parent ID is the caller's GUID
@@ -110,7 +112,8 @@ module NewRelic
 
         # Assigns intrinsics for the first distributed trace in a trip
         def assign_intrinsics_for_first_trace transaction, transaction_payload
-          transaction_payload[TRIP_ID_INTRINSIC_KEY] = transaction.distributed_trace_trip_id
+          transaction_payload[TRACE_ID_INTRINSIC_KEY] = transaction.trace_id
+          transaction_payload[TRIP_ID_INTRINSIC_KEY]  = transaction.trace_id
         end
 
         def major_version_matches?(payload)
@@ -132,7 +135,7 @@ module NewRelic
                     :parent_account_id,
                     :parent_app_id,
                     :id,
-                    :trip_id,
+                    :trace_id,
                     :sampled,
                     :priority,
                     :parent_id,
@@ -155,7 +158,7 @@ module NewRelic
           PARENT_ACCOUNT_ID_KEY => parent_account_id,
           PARENT_APP_KEY        => parent_app_id,
           ID_KEY                => id,
-          TRIP_ID_KEY           => trip_id,
+          TRACE_ID_KEY          => trace_id,
           SAMPLED_KEY           => sampled,
           PRIORITY_KEY          => priority,
           PARENT_ID_KEY         => parent_id,
@@ -181,7 +184,8 @@ module NewRelic
         transaction_payload[CALLER_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration
         transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid
         transaction_payload[REFERRING_TRANSACTION_GUID_INTRINSIC_KEY] = id
-        transaction_payload[TRIP_ID_INTRINSIC_KEY] = trip_id
+        transaction_payload[TRACE_ID_INTRINSIC_KEY] = trace_id
+        transaction_payload[TRIP_ID_INTRINSIC_KEY] = trace_id
         transaction_payload[PARENT_ID_INTRINSIC_KEY] = parent_id if parent_id
         transaction_payload[GRANDPARENT_ID_INTRINSIC_KEY] = grandparent_id if grandparent_id
       end
