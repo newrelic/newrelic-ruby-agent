@@ -31,7 +31,6 @@ module NewRelic
       PARENT_TRANSPORT_TYPE_INTRINSIC_KEY      = "parent.transportType".freeze
       CALLER_TRANSPORT_DURATION_INTRINSIC_KEY  = "caller.transportDuration".freeze
       GUID_INTRINSIC_KEY                       = "nr.guid".freeze
-      REFERRING_TRANSACTION_GUID_INTRINSIC_KEY = "nr.referringTransactionGuid".freeze
       TRACE_ID_INTRINSIC_KEY                   = "traceId".freeze
       TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
       PARENT_ID_INTRINSIC_KEY                  = "nr.parentId".freeze
@@ -45,7 +44,6 @@ module NewRelic
         PARENT_TRANSPORT_TYPE_INTRINSIC_KEY,
         CALLER_TRANSPORT_DURATION_INTRINSIC_KEY,
         GUID_INTRINSIC_KEY,
-        REFERRING_TRANSACTION_GUID_INTRINSIC_KEY,
         TRACE_ID_INTRINSIC_KEY,
         TRIP_ID_INTRINSIC_KEY,
         PARENT_ID_INTRINSIC_KEY,
@@ -183,7 +181,6 @@ module NewRelic
         transaction_payload[PARENT_TRANSPORT_TYPE_INTRINSIC_KEY] = caller_transport_type
         transaction_payload[CALLER_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration
         transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid
-        transaction_payload[REFERRING_TRANSACTION_GUID_INTRINSIC_KEY] = id
         transaction_payload[TRACE_ID_INTRINSIC_KEY] = trace_id
         transaction_payload[TRIP_ID_INTRINSIC_KEY] = trace_id
         transaction_payload[PARENT_ID_INTRINSIC_KEY] = parent_id if parent_id

@@ -174,7 +174,6 @@ module NewRelic
           assert_equal inbound_payload.parent_app_id,         child_intrinsics["parent.app"]
           assert_equal inbound_payload.parent_account_id,     child_intrinsics["parent.account"]
 
-          assert_equal parent_transaction.guid,               child_intrinsics["nr.referringTransactionGuid"]
           assert_equal inbound_payload.trace_id,              child_intrinsics["nr.tripId"]
           assert_equal inbound_payload.trace_id,              child_intrinsics["traceId"]
           assert_equal child_transaction.guid,                child_intrinsics["nr.guid"]
@@ -228,7 +227,6 @@ module NewRelic
           assert_equal inbound_payload.caller_transport_type, intrinsics["parent.transportType"]
           assert_equal inbound_payload.parent_app_id, intrinsics["parent.app"]
           assert_equal inbound_payload.parent_account_id, intrinsics["parent.account"]
-          assert_equal referring_transaction.guid, intrinsics["nr.referringTransactionGuid"]
           assert_equal inbound_payload.id, referring_transaction.guid
           assert_equal transaction.guid, intrinsics["nr.transactionGuid"]
           assert_equal inbound_payload.trace_id, intrinsics["nr.tripId"]
