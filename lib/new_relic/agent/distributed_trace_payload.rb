@@ -94,7 +94,7 @@ module NewRelic
           payload.parent_app_id     = payload_data[PARENT_APP_KEY]
           payload.timestamp         = payload_data[TIMESTAMP_KEY]
           payload.id                = payload_data[ID_KEY]
-          payload.trace_id           = payload_data[TRACE_ID_KEY]
+          payload.trace_id          = payload_data[TRACE_ID_KEY]
           payload.sampled           = payload_data[SAMPLED_KEY]
           payload.priority          = payload_data[PRIORITY_KEY]
           payload.parent_id         = payload_data[ID_KEY]        # Our parent ID is the caller's GUID
@@ -110,6 +110,7 @@ module NewRelic
 
         # Assigns intrinsics for the first distributed trace in a trip
         def assign_intrinsics_for_first_trace transaction, transaction_payload
+          transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid
           transaction_payload[TRACE_ID_INTRINSIC_KEY] = transaction.trace_id
           transaction_payload[TRIP_ID_INTRINSIC_KEY]  = transaction.trace_id
         end

@@ -116,6 +116,7 @@ module NewRelic
           payload     = result[:grandparent_payload]
           intrinsics  = result[:grandparent_intrinsics]
 
+          assert_equal transaction.guid, intrinsics['guid']
           assert_equal transaction.guid, intrinsics['nr.tripId']
           assert_equal transaction.guid, intrinsics['traceId']
           assert_nil                     intrinsics['nr.parentId']
@@ -124,6 +125,7 @@ module NewRelic
 
           txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
 
+          assert_equal transaction.guid, txn_intrinsics['guid']
           assert_equal transaction.guid, txn_intrinsics['nr.tripId']
           assert_equal transaction.guid, intrinsics['traceId']
           assert_nil                     txn_intrinsics['nr.parentId']
