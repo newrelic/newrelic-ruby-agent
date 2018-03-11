@@ -29,7 +29,7 @@ module NewRelic
       PARENT_APP_INTRINSIC_KEY                 = "parent.app".freeze
       PARENT_ACCOUNT_ID_INTRINSIC_KEY          = "parent.account".freeze
       PARENT_TRANSPORT_TYPE_INTRINSIC_KEY      = "parent.transportType".freeze
-      CALLER_TRANSPORT_DURATION_INTRINSIC_KEY  = "caller.transportDuration".freeze
+      CALLER_TRANSPORT_DURATION_INTRINSIC_KEY  = "parent.transportDuration".freeze
       GUID_INTRINSIC_KEY                       = "guid".freeze
       TRACE_ID_INTRINSIC_KEY                   = "traceId".freeze
       TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
