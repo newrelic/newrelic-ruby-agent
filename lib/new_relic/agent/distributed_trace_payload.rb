@@ -7,7 +7,7 @@ require 'base64'
 module NewRelic
   module Agent
     class DistributedTracePayload
-      VERSION =[0, 0].freeze
+      VERSION =[0, 1].freeze
       PARENT_TYPE = "App".freeze
       POUND = '#'.freeze
 

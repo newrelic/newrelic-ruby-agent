@@ -36,7 +36,7 @@ module NewRelic
 
           assert_equal "46954", payload.parent_app_id
           assert_equal "190", payload.parent_account_id
-          assert_equal [0, 0], payload.version
+          assert_equal DistributedTracePayload::VERSION, payload.version
           assert_equal "App", payload.parent_type
           assert_equal transaction.guid, payload.id
           assert_equal transaction.trace_id, payload.trace_id

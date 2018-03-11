@@ -33,10 +33,9 @@ module NewRelic
           payload = DistributedTracePayload.for_transaction txn
         end
 
-
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
-        assert_equal [0, 0], payload.version
+        assert_equal DistributedTracePayload::VERSION, payload.version
         assert_equal "App", payload.parent_type
         assert_equal created_at, payload.timestamp
       end
@@ -92,7 +91,7 @@ module NewRelic
         incoming_payload = DistributedTracePayload.for_transaction referring_transaction
         payload = DistributedTracePayload.from_json incoming_payload.to_json
 
-        assert_equal [0, 0], payload.version
+        assert_equal DistributedTracePayload::VERSION, payload.version
         assert_equal "App", payload.parent_type
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
@@ -115,7 +114,7 @@ module NewRelic
         incoming_payload = DistributedTracePayload.for_transaction referring_transaction
         payload = DistributedTracePayload.from_http_safe incoming_payload.http_safe
 
-        assert_equal [0, 0], payload.version
+        assert_equal DistributedTracePayload::VERSION, payload.version
         assert_equal "App", payload.parent_type
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
