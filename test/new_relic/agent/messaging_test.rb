@@ -571,7 +571,7 @@ module NewRelic
 
           intrinsics, _, _ = last_transaction_event
 
-          assert_equal parent.guid, intrinsics['nr.parentId']
+          assert_equal parent.guid, intrinsics['parentId']
         end
       end
 
