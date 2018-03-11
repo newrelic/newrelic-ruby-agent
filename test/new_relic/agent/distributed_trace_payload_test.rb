@@ -126,6 +126,16 @@ module NewRelic
         assert_equal referring_transaction.parent_id, payload.grandparent_id
         assert_equal created_at.round, payload.timestamp
       end
+
+      def test_serialized_payload_has_expected_keys
+        transaction = in_transaction("test_txn") {}
+        payload = DistributedTracePayload.for_transaction transaction
+
+        raw_payload = JSON.parse(payload.to_json)
+
+        assert_equal_unordered %w(v d), raw_payload.keys
+        assert_equal_unordered %w(ty ac ap pa id tr pr sa ti), raw_payload["d"].keys
+      end
     end
   end
 end

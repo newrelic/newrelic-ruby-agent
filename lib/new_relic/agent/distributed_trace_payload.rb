@@ -22,7 +22,7 @@ module NewRelic
       SAMPLED_KEY                = 'sa'.freeze
       PARENT_ID_KEY              = 'pa'.freeze
       TIMESTAMP_KEY              = 'ti'.freeze
-      PRIORITY_KEY               = 'd.pr'.freeze
+      PRIORITY_KEY               = 'pr'.freeze
 
       # Intrinsic Keys
       PARENT_TYPE_INTRINSIC_KEY                = "parent.type".freeze
