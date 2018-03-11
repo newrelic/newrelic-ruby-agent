@@ -29,12 +29,12 @@ module NewRelic
       PARENT_APP_INTRINSIC_KEY                 = "parent.app".freeze
       PARENT_ACCOUNT_ID_INTRINSIC_KEY          = "parent.account".freeze
       PARENT_TRANSPORT_TYPE_INTRINSIC_KEY      = "parent.transportType".freeze
-      CALLER_TRANSPORT_DURATION_INTRINSIC_KEY  = "parent.transportDuration".freeze
+      PARENT_TRANSPORT_DURATION_INTRINSIC_KEY  = "parent.transportDuration".freeze
       GUID_INTRINSIC_KEY                       = "guid".freeze
       TRACE_ID_INTRINSIC_KEY                   = "traceId".freeze
       TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
-      PARENT_ID_INTRINSIC_KEY                  = "nr.parentId".freeze
-      GRANDPARENT_ID_INTRINSIC_KEY             = "nr.grandparentId".freeze
+      PARENT_ID_INTRINSIC_KEY                  = "parentId".freeze
+      GRANDPARENT_ID_INTRINSIC_KEY             = "grandparentId".freeze
       COMMA                                    = ",".freeze
 
       INTRINSIC_KEYS = [
@@ -42,7 +42,7 @@ module NewRelic
         PARENT_APP_INTRINSIC_KEY,
         PARENT_ACCOUNT_ID_INTRINSIC_KEY,
         PARENT_TRANSPORT_TYPE_INTRINSIC_KEY,
-        CALLER_TRANSPORT_DURATION_INTRINSIC_KEY,
+        PARENT_TRANSPORT_DURATION_INTRINSIC_KEY,
         GUID_INTRINSIC_KEY,
         TRACE_ID_INTRINSIC_KEY,
         TRIP_ID_INTRINSIC_KEY,
@@ -180,7 +180,7 @@ module NewRelic
         transaction_payload[PARENT_APP_INTRINSIC_KEY] = parent_app_id
         transaction_payload[PARENT_ACCOUNT_ID_INTRINSIC_KEY] = parent_account_id
         transaction_payload[PARENT_TRANSPORT_TYPE_INTRINSIC_KEY] = caller_transport_type
-        transaction_payload[CALLER_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration
+        transaction_payload[PARENT_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration
         transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid
         transaction_payload[TRACE_ID_INTRINSIC_KEY] = trace_id
         transaction_payload[TRIP_ID_INTRINSIC_KEY] = trace_id

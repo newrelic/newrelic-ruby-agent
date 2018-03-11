@@ -119,8 +119,8 @@ module NewRelic
           assert_equal transaction.guid, intrinsics['guid']
           assert_equal transaction.guid, intrinsics['nr.tripId']
           assert_equal transaction.guid, intrinsics['traceId']
-          assert_nil                     intrinsics['nr.parentId']
-          assert_nil                     intrinsics['nr.grandparentId']
+          assert_nil                     intrinsics['parentId']
+          assert_nil                     intrinsics['grandparentId']
           assert                         intrinsics['sampled']
 
           txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
@@ -128,8 +128,8 @@ module NewRelic
           assert_equal transaction.guid, txn_intrinsics['guid']
           assert_equal transaction.guid, txn_intrinsics['nr.tripId']
           assert_equal transaction.guid, intrinsics['traceId']
-          assert_nil                     txn_intrinsics['nr.parentId']
-          assert_nil                     txn_intrinsics['nr.grandparentId']
+          assert_nil                     txn_intrinsics['parentId']
+          assert_nil                     txn_intrinsics['grandparentId']
           assert                         txn_intrinsics[:'sampled']
         end
 
@@ -181,11 +181,11 @@ module NewRelic
           assert_equal child_transaction.guid,                child_intrinsics["guid"]
           assert_equal true,                                  child_intrinsics["sampled"]
 
-          assert                                              child_intrinsics["nr.parentId"]
-          assert_equal inbound_payload.parent_id,             child_intrinsics["nr.parentId"]
+          assert                                              child_intrinsics["parentId"]
+          assert_equal inbound_payload.parent_id,             child_intrinsics["parentId"]
 
-          assert                                              child_intrinsics["nr.grandparentId"]
-          assert_equal inbound_payload.grandparent_id,        child_intrinsics["nr.grandparentId"]
+          assert                                              child_intrinsics["grandparentId"]
+          assert_equal inbound_payload.grandparent_id,        child_intrinsics["grandparentId"]
 
           # Make sure the parent / grandparent links are connected all
           # the way up.
@@ -234,8 +234,8 @@ module NewRelic
           assert_equal inbound_payload.trace_id, intrinsics["nr.tripId"]
           assert_equal inbound_payload.trace_id, intrinsics["traceId"]
           assert_equal true, intrinsics["sampled"]
-          assert       intrinsics["nr.parentId"], "Child should be linked to parent transaction"
-          assert_equal inbound_payload.parent_id, intrinsics["nr.parentId"]
+          assert       intrinsics["parentId"], "Child should be linked to parent transaction"
+          assert_equal inbound_payload.parent_id, intrinsics["parentId"]
         end
 
         def test_sampled_is_false_in_error_event_when_indicated_by_upstream
