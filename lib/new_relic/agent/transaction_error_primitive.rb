@@ -74,17 +74,11 @@ module NewRelic
         sample[REFERRING_TRANSACTION_GUID_KEY] = payload[:referring_transaction_guid] if payload[:referring_transaction_guid]
       end
 
-      OTHER_GUID_KEY = "nr.guid".freeze
-
       def append_distributed_trace_intrinsics payload, sample
         return unless Agent.config[:'distributed_tracing.enabled']
         DistributedTracePayload::INTRINSIC_KEYS.each do |key|
           value = payload[key]
           sample[key] = value unless value.nil?
-        end
-        # guid has a different name for transaction events
-        if sample.key? OTHER_GUID_KEY
-          sample[GUID_KEY] = sample.delete OTHER_GUID_KEY
         end
       end
     end
