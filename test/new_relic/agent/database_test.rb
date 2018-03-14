@@ -357,6 +357,15 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal [], NewRelic::Agent::Database.explain_sql(statement)
   end
 
+  def test_dont_collect_explain_for_multiple_queries
+    config = {:adapter => 'postgresql'}
+    sql = 'SELECT * FROM table; SELECT * FROM table'
+    statement = NewRelic::Agent::Database::Statement.new(sql, config, mock('explainer'))
+
+    expects_logging(:debug, 'Unable to collect explain plan for multiple queries.')
+    assert_equal [], NewRelic::Agent::Database.explain_sql(statement)
+  end
+
   def test_explain_sql_no_connection_config
     statement = NewRelic::Agent::Database::Statement.new('select foo', nil)
     assert_equal(nil, NewRelic::Agent::Database.explain_sql(statement))
