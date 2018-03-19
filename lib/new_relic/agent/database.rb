@@ -271,6 +271,11 @@ module NewRelic
             return false
           end
 
+          if multiple_queries?(@sql)
+            NewRelic::Agent.logger.debug('Unable to collect explain plan for multiple queries.')
+            return false
+          end
+
           true
         end
       end

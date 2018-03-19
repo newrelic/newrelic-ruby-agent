@@ -21,6 +21,17 @@ module NewRelic
           Obfuscator.instance.obfuscate_single_quote_literals(sql) =~ /\$\d+/
         end
 
+        # SQL containing a semicolon in the middle (with something
+        # other than whitespace after it) may contain two or more
+        # queries.  It's not safe to EXPLAIN this kind of expression,
+        # since it could lead to executing unwanted SQL.
+        #
+        MULTIPLE_QUERIES = Regexp.new(';\s*\S+')
+
+        def multiple_queries?(sql)
+          sql =~ MULTIPLE_QUERIES
+        end
+
         def handle_exception_in_explain
           yield
         rescue => e
