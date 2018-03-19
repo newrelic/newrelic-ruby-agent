@@ -1,8 +1,10 @@
+rack_test_version = RUBY_VERSION < "2.2.2" ? "< 0.8.0" : ">= 0.8.0"
+
 if RUBY_VERSION >= '2.2.0'
   gemfile <<-RB
     gem 'activesupport', '~> 3'
     gem 'padrino', '~> 0.14.0'
-    gem 'rack-test', :require => 'rack/test'
+    gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
   RB
 end
 
@@ -10,19 +12,19 @@ gemfile <<-RB
   gem 'activesupport', '~> 3'
   gem 'padrino', '~> 0.13.0'
   gem 'sinatra', '< 2' # there is an incompatibility between padrino 0.13.3.3 and Sinatra 2.0
-  gem 'rack-test', :require => 'rack/test'
+  gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
 RB
 
 gemfile <<-RB
   gem 'activesupport', '~> 3'
   gem 'padrino', '~> 0.11.0'
-  gem 'rack-test', :require => 'rack/test'
+  gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
 RB
 
 gemfile <<-RB
   gem 'activesupport', '~> 3'
   gem 'padrino', '~> 0.10.0'
-  gem 'rack-test', :require => 'rack/test'
+  gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
 RB
 
 # vim: ft=ruby

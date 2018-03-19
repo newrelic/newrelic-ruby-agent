@@ -1,10 +1,10 @@
-rack_test_version = RUBY_VERSION < "2.2.0" ? "< 0.8.0" : ">= 0.8.0"
+rack_test_version = RUBY_VERSION < "2.2.2" ? "< 0.8.0" : ">= 0.8.0"
 
 if RUBY_VERSION >= '2.2.0'
   gemfile <<-RB
     gem 'sinatra', '~> 2.0.0'
     gem 'rack',    '~> 2.0.0'
-    gem 'rack-test', :require => 'rack/test'
+    gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
   RB
 end
 
