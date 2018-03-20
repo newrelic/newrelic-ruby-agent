@@ -58,7 +58,8 @@ module NewRelic
                     :http_response_code,
                     :response_content_length,
                     :response_content_type,
-                    :sampled
+                    :sampled,
+                    :priority
 
       attr_reader :guid,
                   :metrics,
@@ -283,10 +284,14 @@ module NewRelic
         @ignore_trace = false
 
         if Agent.config[:'distributed_tracing.enabled']
-          @sampled = NewRelic::Agent.instance.throughput_monitor.sampled?
+          @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
         else
           @sampled = nil
         end
+
+        # we will eventually add this behavior into the AdaptiveSampler (ThroughputMontor)
+        @priority = rand
+        @priority +=1 if @sampled
 
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
@@ -596,7 +601,7 @@ module NewRelic
       end
 
       def assign_intrinsics(state)
-        attributes.add_intrinsic_attribute :'nr.sampled', sampled?
+        attributes.add_intrinsic_attribute :'sampled', sampled?
 
         if gc_time = calculate_gc_time
           attributes.add_intrinsic_attribute(:gc_time, gc_time)
@@ -612,8 +617,8 @@ module NewRelic
           attributes.add_intrinsic_attribute(:synthetics_monitor_id, synthetics_monitor_id)
         end
 
-        if distributed_trace_payload || order > 0
-          assign_distributed_tracing_intrinsics
+        if distributed_trace_payload || distributed_trace_payload_created?
+          assign_distributed_trace_intrinsics
         elsif state.is_cross_app?
           attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)
           attributes.add_intrinsic_attribute(:path_hash, cat_path_hash)
@@ -648,13 +653,14 @@ module NewRelic
           :duration             => duration,
           :metrics              => @metrics,
           :attributes           => @attributes,
-          :error                => false
+          :error                => false,
+          :priority             => @priority
         }
 
-        @payload[:'nr.sampled'] = sampled? if Agent.config[:'distributed_tracing.enabled']
+        @payload[:'sampled'] = sampled? if Agent.config[:'distributed_tracing.enabled']
 
         append_cat_info(state, duration, @payload)
-        append_distributed_tracing_info(@payload)
+        append_distributed_trace_info(@payload)
         append_apdex_perf_zone(duration, @payload)
         append_synthetics_to(state, @payload)
         append_referring_transaction_guid_to(state, @payload)

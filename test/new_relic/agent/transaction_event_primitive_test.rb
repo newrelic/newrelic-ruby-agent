@@ -22,6 +22,7 @@ module NewRelic
         assert_equal "Controller/whatever", intrinsics['name']
         assert_equal false, intrinsics['error']
         assert_equal 0.1, intrinsics['duration']
+        assert intrinsics["priority"].is_a?(Numeric)
       end
 
       def test_event_includes_synthetics
@@ -179,7 +180,8 @@ module NewRelic
           :start_timestamp => options[:timestamp] || Time.now.to_f,
           :duration => 0.1,
           :attributes => attributes,
-          :error => false
+          :error => false,
+          :priority => rand
         }.merge(options)
       end
 

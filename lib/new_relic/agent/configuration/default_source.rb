@@ -113,9 +113,15 @@ module NewRelic
           }
         end
 
+        DEFAULT_LOG_DIR = 'log/'.freeze
+
         def self.audit_log_path
           Proc.new {
-            File.join(NewRelic::Agent.config[:log_file_path], 'newrelic_audit.log')
+            log_file_path = NewRelic::Agent.config[:log_file_path]
+            wants_stdout  = (log_file_path.upcase == 'STDOUT')
+            audit_log_dir = wants_stdout ? DEFAULT_LOG_DIR : log_file_path
+
+            File.join(audit_log_dir, 'newrelic_audit.log')
           }
         end
 
@@ -142,10 +148,6 @@ module NewRelic
           Proc.new { NewRelic::Agent.config[:apdex_t] * 4 }
         end
 
-        def self.port
-          Proc.new { NewRelic::Agent.config[:ssl] ? 443 : 80 }
-        end
-
         def self.profiling_available
           Proc.new {
             begin
@@ -155,6 +157,17 @@ module NewRelic
               false
             end
           }
+        end
+
+        def self.host
+          Proc.new do
+            regex = /\A(?<identifier>.+?)x/
+            if matches = regex.match(String(NewRelic::Agent.config[:license_key]))
+              "collector.#{matches['identifier']}.nr-data.net"
+            else
+              'collector.newrelic.com'
+            end
+          end
         end
 
         def self.convert_to_regexp_list(raw_value)
@@ -299,14 +312,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, enables <a href="https://docs.newrelic.com/docs/accounts-partnerships/accounts/security/high-security">high security mode</a>. Ensure you understand the implications of high security mode before enabling this setting.'
         },
-        :ssl => {
-          :default => true,
-          :allow_nil => true,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => 'If <code>true</code>, enables SSL for transmissions to the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>.'
-        },
         :proxy_host => {
           :default => nil,
           :allow_nil => true,
@@ -450,7 +455,7 @@ module NewRelic
           :description => 'Specify a whitelist of exceptions you do not want the agent to strip when <a href="#strip_exception_messages-enabled">strip_exception_messages</a> is <code>true</code>. Separate exceptions with a comma. For example, <code>"ImportantException,PreserveMessageException"</code>.'
         },
         :host => {
-          :default => 'collector.newrelic.com',
+          :default => DefaultSource.host,
           :public => false,
           :type => String,
           :allowed_from_server => false,
@@ -464,7 +469,7 @@ module NewRelic
           :description => 'API host for New Relic.'
         },
         :port => {
-          :default => DefaultSource.port,
+          :default => 443,
           :public => false,
           :type => Integer,
           :allowed_from_server => false,
@@ -578,7 +583,7 @@ module NewRelic
           :description => 'Defines a name for the log file.'
         },
         :log_file_path => {
-          :default => 'log/',
+          :default => DefaultSource::DEFAULT_LOG_DIR,
           :public => true,
           :type => String,
           :allowed_from_server => false,
@@ -1082,7 +1087,7 @@ module NewRelic
           :description => 'List of trusted New Relic account IDs for the purposes of cross-application tracing. Inbound requests from applications including cross-application headers that do not come from an account in this list will be ignored.'
         },
         :"cross_application_tracer.enabled" => {
-          :default => true,
+          :default => Proc.new { !NewRelic::Agent.config[:'distributed_tracing.enabled'] },
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,

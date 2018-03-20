@@ -63,6 +63,21 @@ module NewRelic
           end
         end
 
+        def test_allows_symbol_exhange_names
+          in_transaction "test_txn" do
+            segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+              action: :produce,
+              library: "RabbitMQ",
+              destination_type: :exchange,
+              destination_name: :this_is_totally_a_symbol,
+              parameters: {routing_key: "my.key", correlation_id: "123"}
+            )
+
+            assert_equal "MessageBroker/RabbitMQ/Exchange/Produce/Named/this_is_totally_a_symbol",
+                         segment.name
+          end
+        end
+
         def test_segment_adds_cat_headers_to_message_properties_for_produce
           with_config :"cross_application_tracer.enabled" => true, :cross_process_id => "321#123", :encoding_key => "abc" do
             in_transaction "test_txn" do
@@ -98,6 +113,25 @@ module NewRelic
               assert segment.headers.key?("NewRelicTransaction"), "Expected message_properties to contain: NewRelicTransaction"
               assert segment.headers.key?("NewRelicSynthetics"), "Expected message_properties to contain: NewRelicSynthetics"
             end
+          end
+        end
+
+        def test_segment_adds_distributed_trace_headers_to_message_properties_for_produce
+          with_config :"distributed_tracing.enabled" => true do
+            transaction = in_transaction "test_txn" do |txn|
+              segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+                action: :produce,
+                library: "RabbitMQ",
+                destination_type: :exchange,
+                destination_name: "Default",
+                headers: {}
+              )
+
+              assert segment.headers.key?("NewRelicTrace"), "Expected message_properties to contain: NewRelicTrace"
+            end
+
+            intrinsics, _, _ = last_transaction_event
+            assert_equal transaction.guid, intrinsics['nr.tripId']
           end
         end
 

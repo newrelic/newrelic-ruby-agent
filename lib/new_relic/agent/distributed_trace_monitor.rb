@@ -17,12 +17,14 @@ module NewRelic
       end
 
       def on_before_call(request)
-        return unless CrossAppTracing.cross_app_enabled?
+        return unless NewRelic::Agent.config[:'distributed_tracing.enabled']
         return unless payload = request[NEWRELIC_TRACE_KEY]
 
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
-        txn.accept_distributed_trace_payload HTTP_TRANSPORT_TYPE, payload
+        if txn.accept_distributed_trace_payload payload
+          txn.distributed_trace_payload.caller_transport_type = HTTP_TRANSPORT_TYPE
+        end
       end
     end
   end

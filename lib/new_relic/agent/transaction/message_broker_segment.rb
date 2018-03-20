@@ -83,21 +83,29 @@ module NewRelic
           if destination_type == :temporary_queue || destination_type == :temporary_topic
             @name << TEMP
           else
-            @name << NAMED << destination_name
+            @name << NAMED << destination_name.to_s
           end
 
           @name
         end
 
+        NEWRELIC_TRACE_KEY = "NewRelicTrace".freeze
+
+        def insert_distributed_trace_header
+          return unless Agent.config[:'distributed_tracing.enabled']
+          payload = transaction.create_distributed_trace_payload
+          headers[NEWRELIC_TRACE_KEY] = payload.http_safe
+        end
+
         def transaction= t
           super
-          if headers && transaction && action == :produce && record_metrics? && CrossAppTracing.cross_app_enabled?
-            transaction.add_message_cat_headers headers
+          if headers && transaction && action == :produce && record_metrics?
+            insert_distributed_trace_header
+            transaction.add_message_cat_headers headers if CrossAppTracing.cross_app_enabled?
           end
         rescue => e
           NewRelic::Agent.logger.error "Error during message header processing", e
         end
-
       end
     end
   end

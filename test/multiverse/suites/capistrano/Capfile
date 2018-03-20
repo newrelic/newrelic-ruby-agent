@@ -4,6 +4,16 @@ require 'capistrano/setup'
 # Includes default deployment tasks
 require 'capistrano/deploy'
 
+# Newer Capistrano versions need us to load
+# Git SCM support explicitly
+if defined?(Capistrano::VERSION) &&
+   Gem::Version.new(Capistrano::VERSION) >=
+   Gem::Version.new('3.7.0')
+
+  require 'capistrano/scm/git'
+  install_plugin Capistrano::SCM::Git
+end
+
 # Includes tasks from other gems included in your Gemfile
 #
 # For documentation on these, see for example:

@@ -216,6 +216,21 @@ module NewRelic::Agent::Configuration
       assert bad_value_keys.empty?, "The following keys had incorrect :allowed_from_server values (only true or false are allowed): #{bad_value_keys.join(', ')}"
     end
 
+    def test_host_correct_when_license_key_matches_identifier
+      with_config(license_key: "eu01xx65c637a29c3982469a3fe8d1982d002c4b") do
+        assert_equal "collector.eu01.nr-data.net", DefaultSource.host.call
+      end
+      with_config(license_key: "gov01x69c637a29c3982469a3fe8d1982d002c4c") do
+        assert_equal "collector.gov01.nr-data.net", DefaultSource.host.call
+      end
+    end
+
+    def test_host_correct_with_license_key_not_matching_identifer
+      with_config(license_key: "08a2ad66c637a29c3982469a3fe8d1982d002c4a") do
+        assert_equal "collector.newrelic.com", DefaultSource.host.call
+      end
+    end
+
     def get_config_value_class(value)
       type = value.class
 

@@ -50,14 +50,9 @@ module NewRelic
           synthetics_header = transaction && transaction.raw_synthetics_header
           insert_synthetics_header request, synthetics_header if synthetics_header
 
-          return unless record_metrics? && CrossAppTracing.cross_app_enabled?
+          return unless record_metrics?
 
-          transaction_state.is_cross_app_caller = true
-          txn_guid = transaction_state.request_guid
-          trip_id   = transaction && transaction.cat_trip_id
-          path_hash = transaction && transaction.cat_path_hash
-
-          CrossAppTracing.insert_request_headers request, txn_guid, trip_id, path_hash
+          insert_cross_app_header         request
           insert_distributed_trace_header request
         rescue => e
           NewRelic::Agent.logger.error "Error in add_request_headers", e
@@ -206,11 +201,22 @@ module NewRelic
           end
         end
 
+        def insert_cross_app_header request
+          return unless CrossAppTracing.cross_app_enabled?
+
+          transaction_state.is_cross_app_caller = true
+          txn_guid = transaction_state.request_guid
+          trip_id   = transaction && transaction.cat_trip_id
+          path_hash = transaction && transaction.cat_path_hash
+
+          CrossAppTracing.insert_request_headers request, txn_guid, trip_id, path_hash
+        end
+
         X_NEWRELIC_TRACE_HEADER = "X-NewRelic-Trace".freeze
 
         def insert_distributed_trace_header request
           return unless Agent.config[:'distributed_tracing.enabled']
-          payload = transaction.create_distributed_trace_payload uri
+          payload = transaction.create_distributed_trace_payload
           request[X_NEWRELIC_TRACE_HEADER] = payload.http_safe
         end
 
@@ -261,7 +267,7 @@ module NewRelic
         def add_caller_by_duration_metrics
           prefix = if transaction.distributed_trace?
             payload = transaction.distributed_trace_payload
-            "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport"
+            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport"
           else
             DURATION_BY_CALLER_UNKOWN_PREFIX
           end
@@ -273,7 +279,7 @@ module NewRelic
         def record_transport_duration_metrics
           return unless transaction.distributed_trace?
           payload = transaction.distributed_trace_payload
-          prefix = "TransportDuration/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport"
+          prefix = "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport"
           metric_cache.record_unscoped "#{prefix}/#{ALL_SUFFIX}", transaction.transport_duration
           metric_cache.record_unscoped "#{prefix}/#{transaction_type_suffix}", transaction.transport_duration
         end
@@ -284,7 +290,7 @@ module NewRelic
           return unless transaction.exceptions.size > 0
           prefix = if transaction.distributed_trace?
             payload = transaction.distributed_trace_payload
-            "ErrorsByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport"
+            "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport"
           else
             ERRORS_BY_CALLER_UNKOWN_PREFIX
           end

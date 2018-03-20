@@ -115,6 +115,7 @@ module MultiverseHelpers
   def ensure_fake_collector
     require 'fake_collector'
     $collector ||= NewRelic::FakeCollector.new
+    $collector.use_ssl = true
     $collector.reset
   end
 

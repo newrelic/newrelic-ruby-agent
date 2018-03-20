@@ -196,6 +196,13 @@ class AuditLoggerTest < Minitest::Test
     end
   end
 
+  def test_stdout_does_not_create_a_directory_named_stdout
+    with_config(:'log_file_path' => 'stdout') do
+      logger = NewRelic::Agent::AuditLogger.new
+      refute_includes logger.ensure_log_path, 'stdout'
+    end
+  end
+
   def capturing_stdout
     orig = $stdout.dup
     output = ""

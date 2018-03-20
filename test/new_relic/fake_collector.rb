@@ -59,7 +59,7 @@ module NewRelic
       super(DEFAULT_PORT)
       @id_counter = 0
       @mock = {
-        'get_redirect_host'       => Response.new(200, {'return_value' => 'localhost'}),
+        'preconnect'              => Response.new(200, {'return_value' => 'localhost'}),
         'connect'                 => Response.new(200, Proc.new { {'return_value' => {"agent_run_id" => agent_run_id}} }),
         'get_agent_commands'      => Response.new(200, {'return_value' => []}),
         'agent_command_results'   => Response.new(200, {'return_value' => []}),
@@ -105,48 +105,56 @@ module NewRelic
       self.mock[method].override(status, Proc.new { sleep(wait_time); {'return_value' => ""}})
     end
 
+    def method_from_request(req)
+      case req.url
+      when %r{agent_listener/\d+/.+/(\w+)} then $1
+      when %r{agent_listener/invoke_raw_method\?} then req.params.fetch('method')
+      else
+        raise ArgumentError.new("FakeCollector does not recognize URI: #{uri}")
+      end
+    end
+
     def call(env)
       @last_socket = Thread.current[:WEBrickSocket]
 
-      req = ::Rack::Request.new(env)
-      res = ::Rack::Response.new
-      uri = URI.parse(req.url)
+      req    = ::Rack::Request.new(env)
+      res    = ::Rack::Response.new
+      uri    = URI.parse(req.url)
+      method = method_from_request(req)
 
-      if uri.path =~ /agent_listener\/\d+\/.+\/(\w+)/
-        method = $1
-        if @mock.keys.include? method
-          status, body = @mock[method].evaluate
-          res.status = status
-          res.write ::JSON.dump(body)
-        else
-          res.status = 500
-          res.write "Method not found"
-        end
-        run_id = uri.query =~ /run_id=(\d+)/ ? $1 : nil
-        req.body.rewind
-
-        begin
-          raw_body = req.body.read
-          raw_body = Zlib::Inflate.inflate(raw_body) if req.env["HTTP_CONTENT_ENCODING"] == "deflate"
-
-          body = ::JSON.load(raw_body)
-        rescue
-          body = "UNABLE TO DECODE BODY: #{raw_body}"
-
-          # Since this is for testing, output failure at this point. If we
-          # don't your only evidence of a problem is in obscure test failures
-          # from not receiving the data you expect.
-          puts body
-        end
-
-        query_params = req.GET
-
-        @agent_data << AgentPost.create(:action       => method,
-                                        :body         => body,
-                                        :run_id       => run_id,
-                                        :format       => :json,
-                                        :query_params => query_params)
+      if @mock.keys.include? method
+        status, body = @mock[method].evaluate
+        res.status = status
+        res.write ::JSON.dump(body)
+      else
+        res.status = 500
+        res.write "Method not found"
       end
+      run_id = uri.query =~ /run_id=(\d+)/ ? $1 : nil
+      req.body.rewind
+
+      begin
+        raw_body = req.body.read
+        raw_body = Zlib::Inflate.inflate(raw_body) if req.env["HTTP_CONTENT_ENCODING"] == "deflate"
+
+        body = ::JSON.load(raw_body)
+      rescue
+        body = "UNABLE TO DECODE BODY: #{raw_body}"
+
+        # Since this is for testing, output failure at this point. If we
+        # don't your only evidence of a problem is in obscure test failures
+        # from not receiving the data you expect.
+        puts body
+      end
+
+      query_params = req.GET
+
+      @agent_data << AgentPost.create(:action       => method,
+                                      :body         => body,
+                                      :run_id       => run_id,
+                                      :format       => :json,
+                                      :query_params => query_params)
+
       res.finish
     end
 

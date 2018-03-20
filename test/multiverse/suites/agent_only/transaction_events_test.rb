@@ -7,6 +7,16 @@ class TransactionEventsTest < Minitest::Test
 
   setup_and_teardown_agent
 
+  def test_transaction_event_has_priority
+    in_transaction(:transaction_name => "Controller/blogs/index") {}
+
+    NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+
+    intrinsics, _, _ = last_transaction_event
+
+    assert intrinsics["priority"].is_a?(Numeric), "Expected event to have priority"
+  end
+
   def test_transaction_event_error_flag_is_set
     in_transaction :transaction_name => "Controller/blogs/index" do |t|
       t.notice_error RuntimeError.new "Big Controller"

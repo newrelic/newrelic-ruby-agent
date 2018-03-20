@@ -15,11 +15,12 @@ module NewRelic
         @events  = EventListener.new
         @monitor = DistributedTraceMonitor.new(@events)
         @config = {
+          :'cross_application_tracer.enabled' => false,
           :'distributed_tracing.enabled' => true,
           :encoding_key                  => "\0",
           :application_id                => "46954",
-          :cross_process_id              => "190#46954"
-
+          :cross_process_id              => "190#46954",
+          :trusted_account_ids => [190],
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config)
@@ -34,7 +35,7 @@ module NewRelic
         payload = nil
 
         in_transaction "referring_txn" do |txn|
-          payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+          payload = txn.create_distributed_trace_payload
         end
 
         env = { NEWRELIC_TRACE_KEY => payload.http_safe }

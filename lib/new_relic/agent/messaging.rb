@@ -364,7 +364,17 @@ module NewRelic
         transaction_name
       end
 
+      NEWRELIC_TRACE_KEY      = "NewRelicTrace".freeze
+      RABBITMQ_TRANSPORT_TYPE = "RabbitMQ".freeze
+
       def consume_message_headers headers, transaction, state
+        if Agent.config[:'distributed_tracing.enabled']
+          payload = headers[NEWRELIC_TRACE_KEY]
+          if transaction.accept_distributed_trace_payload payload
+            transaction.distributed_trace_payload.caller_transport_type = RABBITMQ_TRANSPORT_TYPE
+          end
+        end
+
         if CrossAppTracing.cross_app_enabled? && CrossAppTracing.message_has_crossapp_request_header?(headers)
           decode_id headers[CrossAppTracing::NR_MESSAGE_BROKER_ID_HEADER], state
           decode_txn_info headers[CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER], state

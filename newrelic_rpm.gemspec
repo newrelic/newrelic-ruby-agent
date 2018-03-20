@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.version = NewRelic::VERSION::STRING
   s.required_ruby_version = '>= 2.0.0'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = [ "Matthew Wear", "Chris Pine", "Dana Scheider" ]
+  s.authors = [ "Matthew Wear", "Chris Pine", "Erin Dees" ]
   s.date = Time.now.strftime('%Y-%m-%d')
   s.licenses    = ['New Relic']
   s.description = <<-EOS
@@ -47,7 +47,8 @@ EOS
   s.add_development_dependency 'yard'
   s.add_development_dependency 'rails', '~> 3.2.13'
   s.add_development_dependency 'json', '>= 2.0.2' if RUBY_VERSION >= '2.4.0' # possible bundler issue?
-  s.add_development_dependency 'pry', '~> 0.9.12'
+  s.add_development_dependency 'pry-nav', '~> 0.2.4'
+  s.add_development_dependency 'pry-stack_explorer', '~> 0.4.9'
   s.add_development_dependency 'hometown', '~> 0.2.5'
 
   if RUBY_PLATFORM == 'java'
