@@ -4,14 +4,16 @@
 
 module NewRelic
   module Agent
-    class ThroughputMonitor
+    class AdaptiveSampler
 
-      def initialize target_samples = 10
+      def initialize target_samples = 10, interval_duration = 60
         @target = target_samples
         @seen = 0
         @seen_last = 0
         @sampled_count = 0
-        @first_cycle = true
+        @interval_duration = interval_duration
+        @first_interval = true
+        @interval_start = Time.now.to_f
         @lock = Mutex.new
       end
 
@@ -20,7 +22,8 @@ module NewRelic
       # sampled. This uses the adaptive sampling algorithm.
       def sampled?
         @lock.synchronize do
-          sampled = if @first_cycle
+          reset_if_interval_expired!
+          sampled = if @first_interval
             @sampled_count < 10
           elsif @sampled_count < @target
             rand(@seen_last) < @target
@@ -35,15 +38,6 @@ module NewRelic
         end
       end
 
-      def reset!
-        @lock.synchronize do
-          @first_cycle = false
-          @seen_last = @seen
-          @seen = 0
-          @sampled_count = 0
-        end
-      end
-
       def stats
         @lock.synchronize do
           {
@@ -53,6 +47,21 @@ module NewRelic
             sampled_count: @sampled_count
           }
         end
+      end
+
+      private
+
+      def reset_if_interval_expired!
+        now = Time.now.to_f
+        return unless @interval_start + @interval_duration <= now
+
+        elapsed_intervals = Integer((now - @interval_start) / @interval_duration)
+        @interval_start = @interval_start + elapsed_intervals * @interval_duration
+
+        @first_interval = false
+        @seen_last = elapsed_intervals > 1 ? 0 : @seen
+        @seen = 0
+        @sampled_count = 0
       end
     end
   end

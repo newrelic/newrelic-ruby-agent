@@ -5,17 +5,19 @@
 
 module NewRelic
   module Agent
-    class ThroughputMonitorTest < Minitest::Test
+    class AdaptiveSamplerTest < Minitest::Test
 
       include MultiverseHelpers
 
       setup_and_teardown_agent do
         NewRelic::Agent.config.add_config_for_testing :'distributed_tracing.enabled' => true
-        #hard reset on the throughput monitor
-        NewRelic::Agent.instance.instance_variable_set :@throughput_monitor, ThroughputMonitor.new
+        #hard reset on the adaptive_sampler
+        NewRelic::Agent.instance.instance_variable_set :@adaptive_sampler, AdaptiveSampler.new
       end
 
-      def test_throughput_monitor_valid_stats_and_reset_after_harvest
+      def test_adaptive_sampler_valid_stats_and_reset_after_harvest
+        nr_freeze_time
+
         sampled_count = 0
         20.times do |i|
           in_transaction("test_txn_#{i}") do |txn|
@@ -23,15 +25,17 @@ module NewRelic
           end
         end
 
-        stats = NewRelic::Agent.instance.throughput_monitor.stats
+        stats = NewRelic::Agent.instance.adaptive_sampler.stats
         assert_equal 0, stats[:seen_last]
         assert_equal 20, stats[:seen]
         assert_equal sampled_count, stats[:sampled_count]
 
-        run_harvest
+        advance_time(60)
 
-        stats = NewRelic::Agent.instance.throughput_monitor.stats
-        assert_equal 0, stats[:seen]
+        in_transaction("test_txn_20") {}
+
+        stats = NewRelic::Agent.instance.adaptive_sampler.stats
+        assert_equal 1, stats[:seen]
         assert_equal 20, stats[:seen_last]
       end
     end

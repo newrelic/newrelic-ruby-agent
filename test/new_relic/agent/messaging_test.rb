@@ -544,6 +544,37 @@ module NewRelic
         end
       end
 
+      def test_wrap_message_broker_consume_transaction_reads_distributed_trace_headers
+        tap = mock 'tap'
+        tap.expects :tap
+
+        with_config :"cross_application_tracer.enabled" => false,
+                    :"distributed_tracing.enabled" => true,
+                    :cross_process_id => "321#123",
+                    :trusted_account_ids => [321] do
+
+          payload = nil
+          parent = in_transaction do |txn|
+            payload = txn.create_distributed_trace_payload
+          end
+
+          transaction = nil
+          NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
+            library: "RabbitMQ",
+            destination_type: :exchange,
+            destination_name: 'Default',
+            headers: {'NewRelicTrace' => Base64.strict_encode64(payload.to_json)}
+          ) do
+            transaction = NewRelic::Agent::TransactionState.tl_get.current_transaction
+            tap.tap
+          end
+
+          intrinsics, _, _ = last_transaction_event
+
+          assert_equal parent.guid, intrinsics['parentId']
+        end
+      end
+
       def obfuscator
         NewRelic::Agent::CrossAppTracing.obfuscator
       end

@@ -39,7 +39,9 @@ module NewRelic::Agent
         :cross_process_id       => AGENT_CROSS_APP_ID,
         :encoding_key           => ENCODING_KEY_NOOP,
         :trusted_account_ids    => TRUSTED_ACCOUNT_IDS,
-        :disable_harvest_thread => true
+        :disable_harvest_thread => true,
+        :'cross_application_tracer.enabled' => true,
+        :'distributed_tracing.enabled' => false,
       }
 
       NewRelic::Agent.config.add_config_for_testing(@config)

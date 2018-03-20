@@ -75,6 +75,8 @@ module MarshallingTestCases
     # this is only present on REE, and we don't really care - the point of this
     # test is just to validate basic marshalling
     event[0].delete("gcCumulative")
+    # this value will be randomly assigned and not useful to compare
+    event[0].delete("priority")
 
     assert_equal(expected_event, event)
   end

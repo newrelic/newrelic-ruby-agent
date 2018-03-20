@@ -233,20 +233,21 @@ module NewRelic
         end
 
         def test_proper_metrics_recorded_for_distributed_trace_on_receiver
-          with_config :'distributed_tracing.enabled' => true do
+          with_config(:'distributed_tracing.enabled' => true,
+                      :trusted_account_ids => [190]) do
             request = RequestWrapper.new
             payload = nil
 
             with_config application_id: "46954", cross_process_id: "190#222" do
               in_transaction do |txn|
-                payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+                payload = txn.create_distributed_trace_payload
               end
             end
 
             NewRelic::Agent.drop_buffered_data
 
             in_transaction "test_txn2", :category => :controller do |txn|
-              txn.accept_distributed_trace_payload "HTTP", payload.to_json
+              txn.accept_distributed_trace_payload payload.to_json
               segment = Transaction.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://newrelic.com/blogs/index",
@@ -260,10 +261,10 @@ module NewRelic
               "External/all",
               "External/newrelic.com/all",
               "External/allWeb",
-              "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
-              "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
-              "TransportDuration/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
-              "TransportDuration/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
+              "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport/all",
+              "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport/allWeb",
+              "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport/all",
+              "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport/allWeb",
               ["External/newrelic.com/Net::HTTP/GET", "test_txn2"]
             ]
 
@@ -272,20 +273,22 @@ module NewRelic
         end
 
         def test_proper_metrics_recorded_for_distributed_trace_on_receiver_when_error_occurs
-          with_config :'distributed_tracing.enabled' => true do
+          with_config(
+            :'distributed_tracing.enabled' => true,
+            :trusted_account_ids => [190]) do
             request = RequestWrapper.new
             payload = nil
 
             with_config application_id: "46954", cross_process_id: "190#222" do
               in_transaction do |txn|
-                payload = txn.create_distributed_trace_payload URI("http://newrelic.com/blog")
+                payload = txn.create_distributed_trace_payload
               end
             end
 
             NewRelic::Agent.drop_buffered_data
 
             in_transaction "test_txn2", :category => :controller do |txn|
-              txn.accept_distributed_trace_payload "HTTP", payload.to_json
+              txn.accept_distributed_trace_payload payload.to_json
               segment = Transaction.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://newrelic.com/blogs/index",
@@ -300,12 +303,12 @@ module NewRelic
               "External/all",
               "External/newrelic.com/all",
               "External/allWeb",
-              "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
-              "DurationByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
-              "TransportDuration/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
-              "TransportDuration/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
-              "ErrorsByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/all",
-              "ErrorsByCaller/#{payload.caller_type}/#{payload.caller_account_id}/#{payload.caller_app_id}/transport/allWeb",
+              "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport/all",
+              "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport/allWeb",
+              "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport/all",
+              "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport/allWeb",
+              "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport/all",
+              "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport/allWeb",
               ["External/newrelic.com/Net::HTTP/GET", "test_txn2"]
             ]
 
@@ -633,9 +636,14 @@ module NewRelic
         # ---
 
         def test_segment_adds_distributed_trace_header
-          with_config :'distributed_tracing.enabled' => true do
+          distributed_tracing_config = {
+            :'distributed_tracing.enabled'      => true,
+            :'cross_application_tracer.enabled' => false
+          }
+
+          with_config(distributed_tracing_config) do
             request = RequestWrapper.new
-            with_config cat_config do
+            with_config cat_config.merge(distributed_tracing_config) do
               in_transaction :category => :controller do |txn|
                 segment = Transaction.start_external_request_segment(
                   library: "Net::HTTP",
@@ -670,7 +678,9 @@ module NewRelic
         def cat_config
           {
             :cross_process_id    => "269975#22824",
-            :trusted_account_ids => [1,269975]
+            :trusted_account_ids => [1,269975],
+            :'cross_application_tracer.enabled' => true,
+            :'distributed_tracing.enabled' => false,
           }
         end
 

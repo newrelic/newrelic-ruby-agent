@@ -6,7 +6,7 @@
 require 'newrelic_rpm' unless defined?( NewRelic )
 require 'new_relic/agent' unless defined?( NewRelic::Agent )
 require 'new_relic/agent/event_aggregator'
-require 'new_relic/agent/distributed_trace_priority_sampled_buffer'
+require 'new_relic/agent/priority_sampled_buffer'
 
 module NewRelic
   module Agent
@@ -15,27 +15,30 @@ module NewRelic
       named :TransactionEventAggregator
       capacity_key :'analytics_events.max_samples_stored'
       enabled_key :'analytics_events.enabled'
-      buffer_class DistributedTracePrioritySampledBuffer
+      buffer_class PrioritySampledBuffer
 
-      def append event=nil, &blk
-        raise ArgumentError, "Expected argument or block, but received both" if event && blk
+      def append priority: nil, event:nil, &blk
+        unless(event || priority && blk)
+          raise ArgumentError, "Expected priority and block, or event"
+        end
+
         return unless enabled?
 
         @lock.synchronize do
-          @buffer.append event, &blk
+          @buffer.append priority: priority, event: event, &blk
           notify_if_full
         end
       end
 
-      # events that are selected to be sampled have priority of other events (ie
-      # the ones passed to append)
-      def append_sampled event=nil, &blk
-        raise ArgumentError, "Expected argument or block, but received both" if event && blk
-        return unless enabled?
-
+      def merge! payload, adjust_count = true
         @lock.synchronize do
-          @buffer.append_sampled event, &blk
-          notify_if_full
+          _, samples = payload
+
+          if adjust_count
+            @buffer.decrement_lifetime_counts_by samples.count
+          end
+
+          samples.each { |s| @buffer.append event: s }
         end
       end
 

@@ -140,6 +140,14 @@ module NewRelic
         end
       end
 
+      def test_process_request_metadata_deprecated_for_distributed_tracing
+        with_config cat_config.merge(:'distributed_tracing.enabled' => true) do
+          l = with_array_logger { NewRelic::Agent::External.process_request_metadata({}) }
+          refute l.array.empty?, 'process_request_metadata should warn when distributed tracing is on'
+          assert l.array.first =~ %r{distributed tracing is enabled}
+        end
+      end
+
       # --- get_response_metadata
 
       def test_get_response_metadata
@@ -180,11 +188,20 @@ module NewRelic
         end
       end
 
+      def test_get_response_metadata_deprecated_for_distributed_tracing
+        with_config cat_config.merge(:'distributed_tracing.enabled' => true) do
+          l = with_array_logger { NewRelic::Agent::External.get_response_metadata }
+          refute l.array.empty?, 'get_response_metadata should warn when distributed tracing is on'
+          assert l.array.first =~ %r{distributed tracing is enabled}
+        end
+      end
+
       # ---
 
       def cat_config
         {
-          :'cross_app_tracing.enabled' => true,
+          :'cross_application_tracer.enabled' => true,
+          :'distributed_tracing.enabled' => false,
           :cross_process_id => "269975#22824",
           :trusted_account_ids => [1,269975]
         }
