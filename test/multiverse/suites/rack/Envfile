@@ -29,17 +29,17 @@ end
 
 gemfile <<-RB
   gem 'rack', '~>1.6.8'
-  gem 'rack-test'
+  gem 'rack-test', '#{rack_test_version}'
 RB
 
 gemfile <<-RB
   gem 'rack', '~>1.5.5'
-  gem 'rack-test'
+  gem 'rack-test', '#{rack_test_version}'
 RB
 
 gemfile <<-RB
   gem 'rack', '1.4.7'
-  gem 'rack-test'
+  gem 'rack-test', '#{rack_test_version}'
 RB
 
 gemfile <<-RB
@@ -54,7 +54,7 @@ RB
 
 gemfile <<-RB
   gem 'rack', '1.1.6'
-  gem 'rack-test'
+  gem 'rack-test', '#{rack_test_version}'
 RB
 
 # unsupported version
