@@ -15,6 +15,7 @@ end
 
 platforms :ruby do
   gem "mysql2"
+  gem "sqlite3"
 end
 
 gem "newrelic_rpm", :path => "../../.."
