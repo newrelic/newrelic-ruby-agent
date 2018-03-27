@@ -31,6 +31,7 @@ require 'new_relic/agent/utilization_data'
 require 'new_relic/environment_report'
 require 'new_relic/agent/attribute_filter'
 require 'new_relic/agent/adaptive_sampler'
+require 'new_relic/agent/deferred_method_tracing'
 
 module NewRelic
   module Agent
@@ -40,6 +41,8 @@ module NewRelic
     # in realtime as the application runs, and periodically sends that
     # data to the NewRelic server.
     class Agent
+      extend DeferredMethodTracing
+
       def self.config
         ::NewRelic::Agent.config
       end

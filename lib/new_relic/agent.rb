@@ -110,6 +110,7 @@ module NewRelic
 
     def agent=(new_instance)#:nodoc:
       @agent = new_instance
+      ::NewRelic::Agent::Agent.after_assign
     end
 
     alias instance agent #:nodoc:
