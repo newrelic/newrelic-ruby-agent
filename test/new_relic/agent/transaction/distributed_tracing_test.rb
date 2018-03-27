@@ -84,6 +84,37 @@ module NewRelic
           assert_metrics_recorded ['Supportability/DistributedTrace/AcceptPayload/Ignored/UntrustedAccount']
         end
 
+        def test_accept_distributed_trace_payload_records_duration_metrics
+          payload = create_distributed_trace_payload
+
+          transaction = in_transaction "test_txn" do |txn|
+            txn.accept_distributed_trace_payload payload.to_json
+          end
+
+          assert_metrics_recorded ['DurationByCaller/App/190/46954/transport/all',
+                                   'DurationByCaller/App/190/46954/transport/allOther']
+
+          assert_metrics_recorded ['TransportDuration/App/190/46954/transport/all',
+                                   'TransportDuration/App/190/46954/transport/allOther']
+
+          refute_metrics_recorded ['ErrorsByCaller/App/190/46954/transport/all',
+                                   'ErrorsByCaller/App/190/46954/transport/allOther']
+
+        end
+
+        def test_accept_distributed_trace_payload_with_error_records_error_metrics
+          payload = create_distributed_trace_payload
+
+          transaction = in_transaction "test_txn" do |txn|
+            txn.accept_distributed_trace_payload payload.to_json
+            NewRelic::Agent.notice_error StandardError.new "Nooo!"
+          end
+
+          assert_metrics_recorded ['ErrorsByCaller/App/190/46954/transport/all',
+                                   'ErrorsByCaller/App/190/46954/transport/allOther']
+
+        end
+
         def test_sampled_flag_propagated_when_true_in_incoming_payload
           payload = create_distributed_trace_payload(sampled: true)
 
