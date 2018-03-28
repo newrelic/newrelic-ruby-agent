@@ -7,6 +7,13 @@
 
   Thanks to Spharian for the contribution!
 
+  * Deferred `add_method_tracer` calls
+
+    If a third-party library calls `add_method_tracer` before the
+    agent has finished starting, we now queue these calls and run them
+    when it's safe to do so (rather than skipping them and logging a
+    warning).
+
   ## v5.0.0 ##
 
   * SSL connections to New Relic are now mandatory

@@ -292,7 +292,7 @@ module NewRelic
         # @api public
         #
         def add_method_tracer(method_name, metric_name_code = nil, options = {})
-          ::NewRelic::Agent::Agent.add_method_tracer(self, method_name, metric_name_code, options)
+          ::NewRelic::Agent.add_or_defer_method_tracer(self, method_name, metric_name_code, options)
         end
 
         # For tests only because tracers must be removed in reverse-order
