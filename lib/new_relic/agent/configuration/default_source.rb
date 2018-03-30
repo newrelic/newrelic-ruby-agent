@@ -1682,6 +1682,20 @@ module NewRelic
           :type        => Boolean,
           :allowed_from_server => false,
           :description => 'If <code>true</code> enables experimental distributed tracing feature.'
+        },
+        :'span_events.enabled' => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If <code>true</code>, enables span event sampling.'
+        },
+        :'span_events.max_samples_stored' => {
+          :default => 2000,
+          :public => false,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'Defines the maximum number of span events reported from a single harvest.'
         }
       }.freeze
     end
