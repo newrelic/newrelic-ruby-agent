@@ -71,7 +71,8 @@ module NewRelic
         'shutdown'                => Response.new(200, {'return_value' => nil}),
         'analytic_event_data'     => Response.new(200, {'return_value' => nil}),
         'custom_event_data'       => Response.new(200, {'return_value' => nil}),
-        'error_event_data'        => Response.new(200, {'return_value' => nil})
+        'error_event_data'        => Response.new(200, {'return_value' => nil}),
+        'span_event_data'        => Response.new(200, {'return_value' => nil})
       }
       reset
     end
@@ -205,6 +206,8 @@ module NewRelic
           ErrorDataPost.new(opts)
         when 'error_event_data'
           ErrorEventDataPost.new(opts)
+        when 'span_event_data'
+          SpanEventDataPost.new(opts)
         else
           new(opts)
         end
@@ -359,6 +362,7 @@ module NewRelic
     class AnalyticEventDataPost < ReservoirSampledContainerPost; end
     class CustomEventDataPost < ReservoirSampledContainerPost; end
     class ErrorEventDataPost < ReservoirSampledContainerPost; end
+    class SpanEventDataPost < ReservoirSampledContainerPost; end
 
     class ErrorDataPost < AgentPost
 
