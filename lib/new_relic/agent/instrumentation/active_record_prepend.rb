@@ -24,6 +24,19 @@ module NewRelic
           end
         end
 
+        module BaseExtensions516
+          # In ActiveRecord v5.0.0 through v5.1.5, touch() will call
+          # update_all() and cause us to record a transaction.
+          # Starting in v5.1.6, this call no longer happens. We'll
+          # have to set the database metrics explicitly now.
+          #
+          def touch(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+              super
+            end
+          end
+        end
+
         module RelationExtensions
           def update_all(*args, &blk)
             ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
