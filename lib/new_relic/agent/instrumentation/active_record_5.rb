@@ -31,6 +31,11 @@ DependencyDetection.defer do
       ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActiveRecord::Base, ::ActiveRecord::Relation)
       ::ActiveRecord::Base.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions
       ::ActiveRecord::Relation.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::RelationExtensions
+
+      if ::ActiveRecord::VERSION::MINOR.to_i == 1 &&
+         ::ActiveRecord::VERSION::TINY.to_i >= 6
+        ::ActiveRecord::Base.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions516
+      end
     end
   end
 end
