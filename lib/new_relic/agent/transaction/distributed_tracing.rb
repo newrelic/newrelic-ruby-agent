@@ -198,7 +198,7 @@ module NewRelic
         def record_caller_by_duration_metrics
           prefix = if distributed_trace?
             payload = distributed_trace_payload
-            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport"
+            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
           else
             DURATION_BY_CALLER_UNKOWN_PREFIX
           end
@@ -211,7 +211,7 @@ module NewRelic
           return unless distributed_trace?
 
           payload = distributed_trace_payload
-          prefix = "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport"
+          prefix = "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
 
           metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}",              transport_duration
           metrics.record_unscoped "#{prefix}/#{transaction_type_suffix}", transport_duration
@@ -224,7 +224,7 @@ module NewRelic
 
           prefix = if distributed_trace?
             payload = distributed_trace_payload
-            "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/transport"
+            "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
           else
             ERRORS_BY_CALLER_UNKOWN_PREFIX
           end
