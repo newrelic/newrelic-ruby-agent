@@ -9,7 +9,7 @@ if RUBY_VERSION >= '2.2.0'
 end
 
 gemfile <<-RB
-  gem 'sinatra', '~> 1.4.6'
+  gem 'sinatra', '~> 1.4.8'
   gem 'rack',    '~> 1.5.0'
   gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
 RB

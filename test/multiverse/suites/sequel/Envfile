@@ -39,3 +39,17 @@ gemfile <<-RB
   gem 'sqlite3', :platform => :ruby
   gem 'sequel', '4.35.0'
 RB
+
+gemfile <<-RB
+  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
+  gem 'jdbc-sqlite3', '3.7.2', :platform => :jruby
+  gem 'sqlite3', :platform => :ruby
+  gem 'sequel', '4.48.0'
+RB
+
+gemfile <<-RB
+  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
+  gem 'jdbc-sqlite3', '3.7.2', :platform => :jruby
+  gem 'sqlite3', :platform => :ruby
+  gem 'sequel', '5.5.0'
+RB

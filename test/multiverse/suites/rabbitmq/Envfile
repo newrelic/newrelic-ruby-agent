@@ -2,52 +2,66 @@ suite_condition("bunny not supported for JRuby") do
   RUBY_PLATFORM != 'java'
 end
 
-amq_protocol_version = RUBY_VERSION < "2.2.0" ? "< 2.3.0" : ">= 2.3.0"
+amq_protocol_version_str = RUBY_VERSION < "2.2.0" ? ", '< 2.3.0'" : ''
+
+if RUBY_VERSION >= '2.2'
+  gemfile <<-RB
+    gem 'rack'
+    gem 'bunny', '~>2.9.1'
+    gem 'amq-protocol'#{amq_protocol_version_str}
+  RB
+end
 
 gemfile <<-RB
   gem 'rack'
-  gem 'bunny', '~>2.7.0'
-  gem 'amq-protocol', '#{amq_protocol_version}'
+  gem 'bunny', '~>2.8.1'
+  gem 'amq-protocol'#{amq_protocol_version_str}
 RB
 
 gemfile <<-RB
   gem 'rack'
-  gem 'bunny', '~>2.6.5'
-  gem 'amq-protocol', '#{amq_protocol_version}'
+  gem 'bunny', '~>2.7.4'
+  gem 'amq-protocol'#{amq_protocol_version_str}
+RB
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'bunny', '~>2.6.7'
+  gem 'amq-protocol'#{amq_protocol_version_str}
 RB
 
 gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.5.1'
-  gem 'amq-protocol', '#{amq_protocol_version}'
+  gem 'amq-protocol'#{amq_protocol_version_str}
 RB
 
 gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.4.0'
-  gem 'amq-protocol', '#{amq_protocol_version}'
+  gem 'amq-protocol'#{amq_protocol_version_str}
 RB
 
 gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.3.1'
-  gem 'amq-protocol', '#{amq_protocol_version}'
+  gem 'amq-protocol'#{amq_protocol_version_str}
 RB
 
 gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.2.2'
-  gem 'amq-protocol', '#{amq_protocol_version}'
+  gem 'amq-protocol'#{amq_protocol_version_str}
 RB
 
 gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.1.0'
-  gem 'amq-protocol', '#{amq_protocol_version}'
+  gem 'amq-protocol'#{amq_protocol_version_str}
 RB
 
 gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.0.1'
-  gem 'amq-protocol', '#{amq_protocol_version}'
+  gem 'amq-protocol'#{amq_protocol_version_str}
 RB

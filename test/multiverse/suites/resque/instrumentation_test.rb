@@ -107,12 +107,11 @@ class ResqueTest < Minitest::Test
   def assert_metric_and_call_count(name, expected_call_count)
     metric_data = $collector.calls_for('metric_data')
     assert_equal(1, metric_data.size, "expected exactly one metric_data post from agent")
-
     metric = metric_data.first.metrics.find { |m| m[0]['name'] == name }
     assert(metric, "could not find metric named #{name}")
 
     call_count = metric[1][0]
-    assert_equal(expected_call_count, call_count)
+    assert_equal(expected_call_count, call_count, "expected #{expected_call_count} calls but got #{call_count}")
   end
 
   def assert_attributes_on_transaction_traces

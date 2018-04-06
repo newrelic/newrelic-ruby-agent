@@ -7,7 +7,7 @@ RB
 
 gemfile <<-RB
   gem 'redis', '< 4.0.0' if RUBY_VERSION < '2.2.0'
+  gem 'resque', '~>1.27.4'
   gem 'sinatra', '< 2.0' if RUBY_VERSION < '2.2.0'
-  gem 'resque', '~>1.25.1'
   gem 'json'
 RB

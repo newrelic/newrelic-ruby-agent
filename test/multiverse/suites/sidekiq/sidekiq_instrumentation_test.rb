@@ -66,17 +66,19 @@ class SidekiqTest < Minitest::Test
     run_harvest
   end
 
-  def test_delayed
-    run_delayed
-    assert_metric_and_call_count(ROLLUP_METRIC, JOB_COUNT)
-    assert_metric_and_call_count(DELAYED_TRANSACTION_NAME, JOB_COUNT)
-  end
+  if defined?(Sidekiq::VERSION) && Sidekiq::VERSION.split('.').first.to_i < 5
+    def test_delayed
+      run_delayed
+      assert_metric_and_call_count(ROLLUP_METRIC, JOB_COUNT)
+      assert_metric_and_call_count(DELAYED_TRANSACTION_NAME, JOB_COUNT)
+    end
 
-  def test_delayed_with_malformed_yaml
-    YAML.stubs(:load).raises(RuntimeError.new("Ouch"))
-    run_delayed
-    assert_metric_and_call_count(ROLLUP_METRIC, JOB_COUNT)
-    assert_metric_and_call_count(DELAYED_FAILED_TXN_NAME, JOB_COUNT)
+    def test_delayed_with_malformed_yaml
+      YAML.stubs(:load).raises(RuntimeError.new("Ouch"))
+      run_delayed
+      assert_metric_and_call_count(ROLLUP_METRIC, JOB_COUNT)
+      assert_metric_and_call_count(DELAYED_FAILED_TXN_NAME, JOB_COUNT)
+    end
   end
 
   def test_all_jobs_ran

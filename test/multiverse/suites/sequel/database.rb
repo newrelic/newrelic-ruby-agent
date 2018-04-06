@@ -51,4 +51,13 @@ if !defined?(DB)
   if defined?(Sequel::MAJOR) && Sequel::MAJOR >= 4
     Sequel::Model.plugin :blacklist_security
   end
+
+  # Version 5.0 of Sequel moved update_all and update_only to a plugin
+  # So we can test that we still instrument those methods, it needs to
+  # be included
+  if defined?(Sequel::MAJOR) && Sequel::MAJOR >= 5
+    Sequel::Model.plugin :whitelist_security
+  end
+
+  Post.strict_param_setting = false
 end

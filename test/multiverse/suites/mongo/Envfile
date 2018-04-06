@@ -1,5 +1,5 @@
 gemfile <<-RB
-  gem 'mongo', '~>2.2.0'
+  gem 'mongo', '~>2.4.3'
 RB
 gemfile <<-RB
   gem 'mongo', '~>2.1.0'
