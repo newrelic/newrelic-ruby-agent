@@ -292,11 +292,11 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
   # Helpers
 
-  BEGINNING_OF_FOOTER = '<script type="text/javascript">window.NREUM||(NREUM={});NREUM.info='
+  BEGINNING_OF_FOOTER = '<script>window.NREUM||(NREUM={});NREUM.info='
   END_OF_FOOTER = '}</script>'
 
   def assert_has_js_agent_loader(header)
-    assert_match(%Q[\n<script type=\"text/javascript\">loader</script>],
+    assert_match(%Q[\n<script>loader</script>],
                  header,
                  "expected new JS agent loader 'loader' but saw '#{header}'")
   end

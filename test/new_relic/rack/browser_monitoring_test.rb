@@ -192,7 +192,7 @@ EOL
       "Content-Type"   => "text/html"
     }
     headers = headers_from_request(original_headers, "<html><body></body></html>")
-    assert_equal "390", headers["Content-Length"]
+    assert_equal "344", headers["Content-Length"]
   end
 
   def headers_from_request(headers, content)

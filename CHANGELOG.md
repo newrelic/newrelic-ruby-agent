@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Make Browser Instrumentation W3C Compliant
+
+  `type="text/javascript"` is optional for the <script> tag under W3C. The `type`
+  attribute has now been removed from browser instrunmentation.
+
+  Thanks to Spharian for the contribution!
+
   ## v5.0.0 ##
 
   * SSL connections to New Relic are now mandatory
