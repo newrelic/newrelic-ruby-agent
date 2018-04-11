@@ -13,6 +13,9 @@ module NewRelic
       # made configurable in the future. This is a tradeoff between
       # memory and data retention
       MAX_ERROR_QUEUE_LENGTH = 20
+      # Maximum number of frames in backtraces. May be made configurable
+      # in the future.
+      MAX_BACKTRACE_FRAMES = 50
       EXCEPTION_TAG_IVAR = :'@__nr_seen_exception'
 
       attr_reader :error_trace_aggregator, :error_event_aggregator
@@ -213,6 +216,21 @@ module NewRelic
         nil
       end
 
+      def truncate_trace(trace, keep_frames=MAX_BACKTRACE_FRAMES)
+        return trace if trace.length < keep_frames || trace.length == 0
+
+        # If keep_frames is odd, we will split things up favoring the top of the trace
+        keep_top = (keep_frames / 2.0).ceil
+        keep_bottom = (keep_frames / 2.0).floor
+
+        truncate_frames = trace.length - keep_frames
+
+        truncated_trace = Array.new << trace[0...keep_top] << "<truncated #{truncate_frames.to_s} additional frames>" << trace[-keep_bottom..-1]
+        truncated_trace.flatten!
+        truncated_trace
+
+      end
+
       EMPTY_STRING = ''.freeze
 
       def create_noticed_error(exception, options)
@@ -225,7 +243,7 @@ module NewRelic
 
         noticed_error.file_name   = sense_method(exception, :file_name)
         noticed_error.line_number = sense_method(exception, :line_number)
-        noticed_error.stack_trace = extract_stack_trace(exception)
+        noticed_error.stack_trace = truncate_trace(extract_stack_trace(exception))
 
         noticed_error.expected = !! options.delete(:expected)
 
