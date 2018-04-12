@@ -1,9 +1,16 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Add `webpacker:compile` to blacklisted tasks
+
+    `webpacker:compile` is commonly used for compiling assets. It has been added to
+    AUTOSTART_BLACKLISTED_RAKE_TASKS in the default configuration.
+
+    Thanks to Claudio B. for the contribution!
+
   * Make Browser Instrumentation W3C Compliant
 
-  `type="text/javascript"` is optional for the <script> tag under W3C. The `type`
-  attribute has now been removed from browser instrunmentation.
+   `type="text/javascript"` is optional for the <script> tag under W3C. The `type`
+    attribute has now been removed from browser instrunmentation.
 
   Thanks to Spharian for the contribution!
 
