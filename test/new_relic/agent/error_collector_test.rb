@@ -248,6 +248,26 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_equal('<no stack trace>', @error_collector.extract_stack_trace(Exception.new))
   end
 
+  def test_short_trace_not_truncated
+    trace = @error_collector.truncate_trace(['error', 'error', 'error'], 6)
+    assert_equal trace.length, 3
+  end
+
+  def test_empty_trace_not_truncated
+    trace = @error_collector.truncate_trace([], 7)
+    assert_equal trace.length, 0
+  end
+
+  def test_keeps_correct_frames_if_keep_frames_is_even
+    trace = @error_collector.truncate_trace(['error1', 'error2', 'error3', 'error4'], 2)
+    assert_equal ['error1', '<truncated 2 additional frames>', 'error4'], trace
+  end
+
+  def test_keeps_correct_frames_if_keep_frames_is_odd
+    trace = @error_collector.truncate_trace(['error1', 'error2', 'error3', 'error4'], 3)
+    assert_equal ['error1', 'error2', '<truncated 1 additional frames>', 'error4'], trace
+  end
+
   if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR < 5
     def test_extract_stack_trace_from_original_exception
       orig = mock('original', :backtrace => "STACK STACK STACK")
