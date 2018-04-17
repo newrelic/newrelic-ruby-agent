@@ -63,7 +63,6 @@ module NewRelic
         assert_equal transaction.guid, payload.id
         assert_equal transaction.trace_id, payload.trace_id
         assert_equal transaction.parent_id, payload.parent_id
-        assert_equal transaction.grandparent_id, payload.grandparent_id
         assert_equal transaction.priority, payload.priority
       end
 
@@ -96,11 +95,11 @@ module NewRelic
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
         assert_equal referring_transaction.guid, payload.id
+        assert_equal referring_transaction.parent_id, payload.parent_id
         assert_equal referring_transaction.trace_id, payload.trace_id
         assert_equal true, payload.sampled?
         assert_equal referring_transaction.priority, payload.priority
-        assert_equal referring_transaction.guid, payload.parent_id
-        assert_equal referring_transaction.parent_id, payload.grandparent_id
+        assert_equal referring_transaction.guid, payload.id
         assert_equal created_at.round, payload.timestamp
       end
 
@@ -119,11 +118,10 @@ module NewRelic
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
         assert_equal referring_transaction.guid, payload.id
+        assert_equal referring_transaction.parent_id, payload.parent_id
         assert_equal referring_transaction.trace_id, payload.trace_id
         assert_equal true, payload.sampled?
         assert_equal referring_transaction.priority, payload.priority
-        assert_equal referring_transaction.guid, payload.parent_id
-        assert_equal referring_transaction.parent_id, payload.grandparent_id
         assert_equal created_at.round, payload.timestamp
       end
 
@@ -135,6 +133,17 @@ module NewRelic
 
         assert_equal_unordered %w(v d), raw_payload.keys
         assert_equal_unordered %w(ty ac ap pa id tr pr sa ti), raw_payload["d"].keys
+      end
+
+      def test_to_json_and_from_json_are_inverse_operations
+        transaction = in_transaction("test_txn") {}
+        payload1 = DistributedTracePayload.for_transaction(transaction)
+        payload2 = DistributedTracePayload.from_json(payload1.to_json)
+
+        payload1_ivars = payload1.instance_variables.map { |iv| payload1.instance_variable_get(iv) }
+        payload2_ivars = payload2.instance_variables.map { |iv| payload2.instance_variable_get(iv) }
+
+        assert_equal payload1_ivars, payload2_ivars
       end
     end
   end
