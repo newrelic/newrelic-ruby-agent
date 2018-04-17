@@ -439,6 +439,11 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_has_default
+      assert_equal true, @manager.has_default?(:security_policies_token)
+      assert_equal false, @manager.has_default?(:not_a_real_default)
+    end
+
     def assert_parsed_labels(expected)
       result = @manager.parsed_labels
       assert_equal expected, result
@@ -451,5 +456,6 @@ module NewRelic::Agent::Configuration
     def assert_parsing_error
       expects_logging(:error, includes(Manager::PARSING_LABELS_FAILURE), any_parameters)
     end
+
   end
 end

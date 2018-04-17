@@ -313,6 +313,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, enables <a href="https://docs.newrelic.com/docs/accounts-partnerships/accounts/security/high-security">high security mode</a>. Ensure you understand the implications of high security mode before enabling this setting.'
         },
+        :security_policies_token => {
+          :default => '',
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'Applies Language Agent Security Policy settings.'
+        },
         :proxy_host => {
           :default => nil,
           :allow_nil => true,
