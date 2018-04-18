@@ -99,6 +99,8 @@ module NewRelic
 
     @agent = nil
     @logger = nil
+    @tracer_lock = Mutex.new
+    @tracer_queue = []
 
     # The singleton Agent instance.  Used internally.
     def agent #:nodoc:
@@ -110,6 +112,7 @@ module NewRelic
 
     def agent=(new_instance)#:nodoc:
       @agent = new_instance
+      add_deferred_method_tracers_now
     end
 
     alias instance agent #:nodoc:
@@ -122,6 +125,30 @@ module NewRelic
 
     def logger=(log)
       @logger = log
+    end
+
+    # A third-party class may call add_method_tracer before the agent
+    # is initialized; these methods enable us to defer these calls
+    # until we have started up and can process them.
+    #
+    def add_or_defer_method_tracer(receiver, method_name, metric_name_code, options)
+      @tracer_lock.synchronize do
+        if @agent
+          receiver.send(:_add_method_tracer_now, method_name, metric_name_code, options)
+        else
+          @tracer_queue << [receiver, method_name, metric_name_code, options]
+        end
+      end
+    end
+
+    def add_deferred_method_tracers_now
+      @tracer_lock.synchronize do
+        @tracer_queue.each do |receiver, method_name, metric_name_code, options|
+          receiver.send(:_add_method_tracer_now, method_name, metric_name_code, options)
+        end
+
+        @tracer_queue = []
+      end
     end
 
     def config
