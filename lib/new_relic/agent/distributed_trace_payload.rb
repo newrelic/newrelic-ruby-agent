@@ -78,7 +78,6 @@ module NewRelic
           payload.sampled = transaction.sampled?
           payload.priority = transaction.priority
           payload.parent_id = transaction.parent_id
-          payload.grandparent_id = transaction.grandparent_id
 
           payload
         end
@@ -97,8 +96,7 @@ module NewRelic
           payload.trace_id          = payload_data[TRACE_ID_KEY]
           payload.sampled           = payload_data[SAMPLED_KEY]
           payload.priority          = payload_data[PRIORITY_KEY]
-          payload.parent_id         = payload_data[ID_KEY]        # Our parent ID is the caller's GUID
-          payload.grandparent_id    = payload_data[PARENT_ID_KEY] # Our grandparent ID is the caller's parent ID
+          payload.parent_id         = payload_data[PARENT_ID_KEY]
 
           payload
         end
@@ -138,7 +136,6 @@ module NewRelic
                     :sampled,
                     :priority,
                     :parent_id,
-                    :grandparent_id,
                     :timestamp
 
       alias_method :sampled?, :sampled
@@ -184,8 +181,8 @@ module NewRelic
         transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid
         transaction_payload[TRACE_ID_INTRINSIC_KEY] = trace_id
         transaction_payload[TRIP_ID_INTRINSIC_KEY] = trace_id
-        transaction_payload[PARENT_ID_INTRINSIC_KEY] = parent_id if parent_id
-        transaction_payload[GRANDPARENT_ID_INTRINSIC_KEY] = grandparent_id if grandparent_id
+        transaction_payload[PARENT_ID_INTRINSIC_KEY] = transaction.parent_id if transaction.parent_id
+        transaction_payload[GRANDPARENT_ID_INTRINSIC_KEY] = transaction.grandparent_id if transaction.grandparent_id
       end
     end
   end
