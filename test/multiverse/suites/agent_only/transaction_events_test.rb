@@ -29,6 +29,20 @@ class TransactionEventsTest < Minitest::Test
     assert intrinsics["error"], "Expected the error flag to be true"
   end
 
+  def test_transaction_events_abide_by_custom_attributes_config
+    with_config(:'custom_attributes.enabled' => false) do
+      in_transaction :transaction_name => "Controller/blogs/index" do |t|
+        t.add_custom_attributes(:foo => "bar")
+      end
+    end
+
+    NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+
+    _, custom_attributes, _ = last_transaction_event
+
+    assert_equal({}, custom_attributes)
+  end
+
   def last_transaction_event
     post = last_transaction_event_post
     assert_equal(1, post.events.size)
