@@ -91,6 +91,30 @@ class ErrorEventsTest < Minitest::Test
     assert_equal "No Txn", intrinsics["error.message"]
   end
 
+  def test_error_events_during_txn_abide_by_custom_attributes_config
+    with_config(:'custom_attributes.enabled' => false) do
+      generate_errors 1, {:foo => "bar"}
+    end
+
+    NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
+
+    _, custom_attributes, _ = last_error_event
+
+    assert_equal({}, custom_attributes)
+  end
+
+  def test_error_events_outside_txn_abide_by_custom_attributes_config
+    with_config(:'custom_attributes.enabled' => false) do
+      NewRelic::Agent.notice_error(RuntimeError.new("Big Controller"), {:foo => "bar"})
+    end
+
+    NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
+
+    _, custom_attributes, _ = last_error_event
+
+    assert_equal({}, custom_attributes)
+  end
+
   def generate_errors num_errors = 1, options = {}
     in_transaction :transaction_name => "Controller/blogs/index" do |t|
       num_errors.times { t.notice_error RuntimeError.new("Big Controller"), options }

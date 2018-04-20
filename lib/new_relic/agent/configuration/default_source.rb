@@ -1578,6 +1578,13 @@ module NewRelic
           :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in browser monitoring. Allows <code>*</code> as wildcard at end.'
         },
+        :'custom_attributes.enabled' => {
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'If <code>false</code>, custom attributes will not be sent on Insights events.'
+        },
         :'utilization.detect_aws' => {
           :default     => true,
           :public      => true,
