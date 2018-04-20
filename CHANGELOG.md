@@ -1,5 +1,10 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Add `custom_attributes.enabled` configuration option
+
+    This option is enabled by default. When disabled, custom attributes will not
+    be transmitted on transaction events or error events.
+
   * Add `webpacker:compile` to blacklisted tasks
 
     `webpacker:compile` is commonly used for compiling assets. It has been added to
