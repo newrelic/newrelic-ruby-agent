@@ -1,5 +1,9 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Rails 5.1 Support
+
+    The Ruby agent has been validated against the latest release of Ruby on Rails!
+
   * Add `custom_attributes.enabled` configuration option
 
     This option is enabled by default. When disabled, custom attributes will not
@@ -14,7 +18,7 @@
 
   * Make Browser Instrumentation W3C Compliant
 
-   `type="text/javascript"` is optional for the <script> tag under W3C. The `type`
+    `type="text/javascript"` is optional for the <script> tag under W3C. The `type`
     attribute has now been removed from browser instrunmentation.
 
   Thanks to Spharian for the contribution!
