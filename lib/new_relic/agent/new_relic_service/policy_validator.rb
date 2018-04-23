@@ -6,15 +6,15 @@ module NewRelic
   module Agent
     class NewRelicService
       class PolicyValidator
-        EXPECTED_SECURITY_POLICIES = [
-          "record_sql".freeze,
-          "attributes_include".freeze,
-          "allow_raw_exception_messages".freeze,
-          "custom_events".freeze,
-          "custom_parameters".freeze,
-          "custom_instrumentation_editor".freeze,
-          "message_parameters".freeze,
-          "job_arguments".freeze]
+        EXPECTED_SECURITY_POLICIES = %w(
+          record_sql
+          attributes_include
+          allow_raw_exception_messages
+          custom_events
+          custom_parameters
+          custom_instrumentation_editor
+          message_parameters
+          job_arguments).map(&:freeze)
 
         def initialize(preconnect_response)
           @preconnect_policies = preconnect_response['security_policies'] || {}
@@ -23,9 +23,10 @@ module NewRelic
         def validate_matching_agent_config!
           agent_keys = EXPECTED_SECURITY_POLICIES
           all_server_keys = @preconnect_policies.keys
-          required_server_keys = @preconnect_policies.select do |key, value|
-            value['required']
-          end.keys
+          required = 'required'
+          required_server_keys = @preconnect_policies.keys.select do |key|
+            key if @preconnect_policies[key][required]
+          end
 
           missing_from_agent = required_server_keys - agent_keys
           unless missing_from_agent.empty?
