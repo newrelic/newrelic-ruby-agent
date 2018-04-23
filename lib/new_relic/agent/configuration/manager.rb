@@ -321,10 +321,6 @@ module NewRelic
           make_label_hash(NewRelic::Agent.config[:labels])
         end
 
-        def has_default? config_option
-          @default_source && @default_source.has_key?(config_option)
-        end
-
         # Generally only useful during initial construction and tests
         def reset_to_defaults
           @high_security_source = nil
