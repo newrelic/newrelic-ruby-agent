@@ -30,35 +30,33 @@ module NewRelic
           Transaction.set_default_transaction_name(txn_name, :grape, node_name)
         end
 
-        if defined?(Grape::VERSION) && Gem::Version.new(::Grape::VERSION) >= Gem::Version.new("0.16.0")
-          def name_for_transaction(route, class_name, version)
-            action_name = route.path.sub(FORMAT_REGEX, EMPTY_STRING)
-            method_name = route.request_method
-            version ||= route.version
+        def name_for_transaction(route, class_name, version)
+          action_name = route.path.sub(FORMAT_REGEX, EMPTY_STRING)
+          method_name = route.request_method
+          version ||= route.version
 
-            # defaulting does not set rack.env['api.version'] and route.version may return Array
-            #
-            version = version.join(PIPE_STRING) if Array === version
+          # defaulting does not set rack.env['api.version'] and route.version may return Array
+          #
+          version = version.join(PIPE_STRING) if Array === version
 
-            if version
-              action_name = action_name.sub(VERSION_REGEX, EMPTY_STRING)
-              "#{class_name}-#{version}#{action_name} (#{method_name})"
-            else
-              "#{class_name}#{action_name} (#{method_name})"
-            end
+          if version
+            action_name = action_name.sub(VERSION_REGEX, EMPTY_STRING)
+            "#{class_name}-#{version}#{action_name} (#{method_name})"
+          else
+            "#{class_name}#{action_name} (#{method_name})"
           end
-        else
-          def name_for_transaction(route, class_name, version)
-            action_name = route.route_path.sub(FORMAT_REGEX, EMPTY_STRING)
-            method_name = route.route_method
-            version ||= route.route_version
+        end
 
-            if version
-              action_name = action_name.sub(VERSION_REGEX, EMPTY_STRING)
-              "#{class_name}-#{version}#{action_name} (#{method_name})"
-            else
-              "#{class_name}#{action_name} (#{method_name})"
-            end
+        def name_for_transaction_deprecated(route, class_name, version)
+          action_name = route.route_path.sub(FORMAT_REGEX, EMPTY_STRING)
+          method_name = route.route_method
+          version ||= route.route_version
+
+          if version
+            action_name = action_name.sub(VERSION_REGEX, EMPTY_STRING)
+            "#{class_name}-#{version}#{action_name} (#{method_name})"
+          else
+            "#{class_name}#{action_name} (#{method_name})"
           end
         end
 
@@ -109,6 +107,13 @@ DependencyDetection.defer do
   end
 
   def instrument_call
+    if defined?(Grape::VERSION) && Gem::Version.new(::Grape::VERSION) >= Gem::Version.new("0.16.0")
+      ::NewRelic::Agent::Instrumentation::GrapeInstrumentation.send :remove_method, :name_for_transaction_deprecated
+    else
+      ::NewRelic::Agent::Instrumentation::GrapeInstrumentation.send :remove_method, :name_for_transaction
+      ::NewRelic::Agent::Instrumentation::GrapeInstrumentation.send :alias_method, :name_for_transaction, :name_for_transaction_deprecated
+    end
+
     ::Grape::API.class_eval do
       def call_with_new_relic(env)
         begin
@@ -130,5 +135,4 @@ DependencyDetection.defer do
       alias_method :call, :call_with_new_relic
     end
   end
-
 end

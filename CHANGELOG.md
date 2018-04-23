@@ -9,6 +9,12 @@
     This option is enabled by default. When disabled, custom attributes will not
     be transmitted on transaction events or error events.
 
+  * Fix Grape load order dependency
+
+    The agent will now choose the correct name for Grape transactions even if
+    the customer's app loads the agent before Grape.  Thanks to Daniel Doubrovkine
+    for the contribution!
+
   * Add `webpacker:compile` to blacklisted tasks
 
     `webpacker:compile` is commonly used for compiling assets. It has been added to
