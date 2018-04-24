@@ -1,18 +1,28 @@
-if RUBY_VERSION > '2.2.2'
+if RUBY_VERSION >= '2.2.2'
   gemfile <<-RB
     gem 'rack'
-    gem 'redis', '~>4.0.0'
+    gem 'redis', '~>4.0.1'
   RB
 end
 
 gemfile <<-RB
   gem 'rack'
-  gem 'redis', '~>3.2.1'
+  gem 'redis', '~>3.3.5'
 RB
 
 gemfile <<-RB
   gem 'rack'
-  gem 'redis', '3.0.0' # oldest supported version
+  gem 'redis', '~>3.2.2'
+RB
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'redis', '~>3.1.0'
+RB
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'redis', '3.0.7' # oldest supported minor version
 RB
 
 gemfile <<-RB

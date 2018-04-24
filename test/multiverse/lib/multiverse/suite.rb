@@ -488,6 +488,7 @@ module Multiverse
       Dir.chdir directory
       ordered_ruby_files(directory).each do |file|
         puts yellow("Executing #{file.inspect}") if verbose?
+        next if exclude?(file)
         require "./" + File.basename(file, ".rb")
       end
     end
@@ -514,6 +515,23 @@ module Multiverse
 
     def verbose?
       ENV['VERBOSE'] == "1" || ENV['VERBOSE'] == "true"
+    end
+
+    # Sidekiq v4.2.0 and later will bail out at startup if we try to
+    # run (with the --require option) a file that we've already loaded
+    # ourselves; see https://github.com/mperham/sidekiq/pull/3114
+    #
+    # To work around this behavior, we'll configure our test framework
+    # not to load our TestWorker class; Sidekiq will load it for us.
+    #
+    # If we ever need to exclude other files from the test suite for
+    # similar reasons, we should change this hardcoded file name into
+    # a configuration option.
+    #
+    EXCLUDED_FILES = %w(test_worker.rb)
+
+    def exclude?(file)
+      EXCLUDED_FILES.include?(File.basename(file))
     end
   end
 end

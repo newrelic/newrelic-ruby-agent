@@ -20,7 +20,6 @@ class ResqueMarshallingTest < Minitest::Test
   end
 
   class DummyJob
-    extend Resque::Plugins::NewRelicInstrumentation
   end
 
   def invoke_hook(name, *args)
@@ -44,9 +43,7 @@ class ResqueMarshallingTest < Minitest::Test
       Process.wait(child_pid)
     else
       invoke_hook(:after_fork, job)
-      DummyJob.around_perform_with_monitoring do
-        yield
-      end
+      yield
 
       run_harvest
       exit

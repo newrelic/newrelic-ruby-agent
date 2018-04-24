@@ -20,7 +20,7 @@ development:
   <<: *sqlite3
 
 test:
-  <<: *mysql
+  <<: *sqlite3
 
 production:
-  <<: *mysql
+  <<: *sqlite3

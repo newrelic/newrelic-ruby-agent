@@ -291,7 +291,27 @@ module NewRelic
         #
         # @api public
         #
-        def add_method_tracer(method_name, metric_name_code=nil, options = {})
+        def add_method_tracer(method_name, metric_name_code = nil, options = {})
+          ::NewRelic::Agent.add_or_defer_method_tracer(self, method_name, metric_name_code, options)
+        end
+
+        # For tests only because tracers must be removed in reverse-order
+        # from when they were added, or else other tracers that were added to the same method
+        # may get removed as well.
+        def remove_method_tracer(method_name, metric_name_code) # :nodoc:
+          return unless Agent.config[:agent_enabled]
+          if method_defined? "#{_traced_method_name(method_name, metric_name_code)}"
+            alias_method method_name, "#{_untraced_method_name(method_name, metric_name_code)}"
+            undef_method "#{_traced_method_name(method_name, metric_name_code)}"
+            ::NewRelic::Agent.logger.debug("removed method tracer #{method_name} #{metric_name_code}\n")
+          else
+            raise "No tracer for '#{metric_name_code}' on method '#{method_name}'"
+          end
+        end
+
+        private
+
+        def _add_method_tracer_now(method_name, metric_name_code, options)
           NewRelic::Agent.record_api_supportability_metric(:add_method_tracer)
 
           return unless newrelic_method_exists?(method_name)
@@ -308,24 +328,9 @@ module NewRelic
           send visibility, method_name
           send visibility, _traced_method_name(method_name, metric_name_code)
           ::NewRelic::Agent.logger.debug("Traced method: class = #{derived_class_name},"+
-                    "method = #{method_name}, "+
-                    "metric = '#{metric_name_code}'")
+                                         "method = #{method_name}, "+
+                                         "metric = '#{metric_name_code}'")
         end
-
-        # For tests only because tracers must be removed in reverse-order
-        # from when they were added, or else other tracers that were added to the same method
-        # may get removed as well.
-        def remove_method_tracer(method_name, metric_name_code) # :nodoc:
-          return unless Agent.config[:agent_enabled]
-          if method_defined? "#{_traced_method_name(method_name, metric_name_code)}"
-            alias_method method_name, "#{_untraced_method_name(method_name, metric_name_code)}"
-            undef_method "#{_traced_method_name(method_name, metric_name_code)}"
-            ::NewRelic::Agent.logger.debug("removed method tracer #{method_name} #{metric_name_code}\n")
-          else
-            raise "No tracer for '#{metric_name_code}' on method '#{method_name}'"
-          end
-        end
-        private
 
         # given a method and a metric, this method returns the
         # untraced alias of the method name

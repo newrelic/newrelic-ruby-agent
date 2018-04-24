@@ -1,11 +1,36 @@
 gemfile <<-RB
   gem 'rack'
-  gem 'rake', '~> 12.0'
+  gem 'rake', '~> 12.3.0'
 RB
 
 gemfile <<-RB
   gem 'rack'
-  gem 'rake', '~> 11.1'
+  gem 'rake', '~> 12.2.1'
+RB
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'rake', '~> 12.1.0'
+RB
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'rake', '~> 12.0.0'
+RB
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'rake', '~> 11.3.0'
+RB
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'rake', '~> 11.2.2'
+RB
+
+gemfile <<-RB
+  gem 'rack'
+  gem 'rake', '~> 11.1.2'
 RB
 
 gemfile <<-RB

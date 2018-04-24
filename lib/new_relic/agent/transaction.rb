@@ -566,6 +566,7 @@ module NewRelic
         record_apdex(state, end_time) unless ignore_apdex?
         record_queue_time
         record_client_application_metric state
+        record_distributed_tracing_metrics
 
         record_exceptions
         record_transaction_event

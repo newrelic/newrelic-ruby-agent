@@ -22,49 +22,30 @@ DependencyDetection.defer do
   end
 
   executes do
-    module Resque
-      module Plugins
-        module NewRelicInstrumentation
-          include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+    module ::Resque
+      class Job
+        include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
-          def around_perform_with_monitoring(*args)
-            begin
-              perform_action_with_newrelic_trace(
-                :name => 'perform',
-                :class_name => self.name,
-                :category => 'OtherTransaction/ResqueJob') do
+        alias_method :perform_without_instrumentation, :perform
 
-                NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(args, :'job.resque.args',
-                  NewRelic::Agent::AttributeFilter::DST_NONE)
+        def perform
+          begin
+            perform_action_with_newrelic_trace(
+              :name => 'perform',
+              :class_name => self.payload_class,
+              :category => 'OtherTransaction/ResqueJob') do
 
-                yield(*args)
-              end
-            ensure
-              NewRelic::Agent.agent.flush_pipe_data
+              NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(
+                args,
+                :'job.resque.args',
+                NewRelic::Agent::AttributeFilter::DST_NONE)
+
+              perform_without_instrumentation
             end
+          ensure
+            NewRelic::Agent.agent.flush_pipe_data
           end
         end
-      end
-    end
-
-    module NewRelic
-      module Agent
-        module Instrumentation
-          module ResqueInstrumentationInstaller
-            def payload_class
-              klass = super
-              klass.instance_eval do
-                extend ::Resque::Plugins::NewRelicInstrumentation
-              end
-            end
-          end
-        end
-      end
-    end
-
-    ::Resque::Job.class_eval do
-      def self.new(*args)
-        super(*args).extend NewRelic::Agent::Instrumentation::ResqueInstrumentationInstaller
       end
     end
 

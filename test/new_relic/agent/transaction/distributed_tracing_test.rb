@@ -84,6 +84,37 @@ module NewRelic
           assert_metrics_recorded ['Supportability/DistributedTrace/AcceptPayload/Ignored/UntrustedAccount']
         end
 
+        def test_accept_distributed_trace_payload_records_duration_metrics
+          payload = create_distributed_trace_payload
+
+          transaction = in_transaction "test_txn" do |txn|
+            txn.accept_distributed_trace_payload payload.to_json
+          end
+
+          assert_metrics_recorded ['DurationByCaller/App/190/46954/unknown/all',
+                                   'DurationByCaller/App/190/46954/unknown/allOther']
+
+          assert_metrics_recorded ['TransportDuration/App/190/46954/unknown/all',
+                                   'TransportDuration/App/190/46954/unknown/allOther']
+
+          refute_metrics_recorded ['ErrorsByCaller/App/190/46954/unknown/all',
+                                   'ErrorsByCaller/App/190/46954/unknown/allOther']
+
+        end
+
+        def test_accept_distributed_trace_payload_with_error_records_error_metrics
+          payload = create_distributed_trace_payload
+
+          transaction = in_transaction "test_txn" do |txn|
+            txn.accept_distributed_trace_payload payload.to_json
+            NewRelic::Agent.notice_error StandardError.new "Nooo!"
+          end
+
+          assert_metrics_recorded ['ErrorsByCaller/App/190/46954/unknown/all',
+                                   'ErrorsByCaller/App/190/46954/unknown/allOther']
+
+        end
+
         def test_sampled_flag_propagated_when_true_in_incoming_payload
           payload = create_distributed_trace_payload(sampled: true)
 
@@ -158,7 +189,7 @@ module NewRelic
           assert_equal transaction.guid, intrinsics['traceId']
         end
 
-        def test_intrinsics_assigned_to_transaction_event_from_disributed_trace
+        def test_intrinsics_assigned_to_transaction_event_from_distributed_trace
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
           result                  = create_distributed_transactions
@@ -182,17 +213,16 @@ module NewRelic
           assert_equal true,                                  child_intrinsics["sampled"]
 
           assert                                              child_intrinsics["parentId"]
-          assert_equal inbound_payload.parent_id,             child_intrinsics["parentId"]
+          assert_equal parent_transaction.guid,               child_intrinsics["parentId"]
 
           assert                                              child_intrinsics["grandparentId"]
-          assert_equal inbound_payload.grandparent_id,        child_intrinsics["grandparentId"]
+          assert_equal grandparent_transaction.guid,          child_intrinsics["grandparentId"]
 
           # Make sure the parent / grandparent links are connected all
           # the way up.
           #
           assert_equal inbound_payload.id,                    parent_transaction.guid
-          assert_equal inbound_payload.grandparent_id,        parent_payload.parent_id
-          assert_equal inbound_payload.grandparent_id,        grandparent_payload.id
+          assert_equal inbound_payload.parent_id,             grandparent_payload.id
         end
 
         def test_sampled_is_false_in_transaction_event_when_indicated_by_upstream
@@ -206,7 +236,7 @@ module NewRelic
           assert_equal false, intrinsics["sampled"]
         end
 
-        def test_intrinsics_assigned_to_error_event_from_disributed_trace
+        def test_intrinsics_assigned_to_error_event_from_distributed_trace
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
           payload = nil
           referring_transaction = nil
@@ -235,7 +265,7 @@ module NewRelic
           assert_equal inbound_payload.trace_id, intrinsics["traceId"]
           assert_equal true, intrinsics["sampled"]
           assert       intrinsics["parentId"], "Child should be linked to parent transaction"
-          assert_equal inbound_payload.parent_id, intrinsics["parentId"]
+          assert_equal inbound_payload.id, intrinsics["parentId"]
         end
 
         def test_sampled_is_false_in_error_event_when_indicated_by_upstream

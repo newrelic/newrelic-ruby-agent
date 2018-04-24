@@ -251,7 +251,8 @@ module NewRelic
         'test:uncommitted',
         'time:zones:all',
         'tmp:clear',
-        'tmp:create'
+        'tmp:create',
+        'webpacker:compile'
       ].join(',').freeze
 
       DEFAULTS = {
@@ -804,7 +805,16 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :description => 'Obfuscation level for SQL queries reported in transaction trace nodes. Valid options are <code>obfuscated</code>, <code>raw</code>, or <code>none</code>.'
+          :description => 'Obfuscation level for SQL queries reported in transaction trace nodes.</p>
+
+  <p>By default, this is set to <code>obfuscated</code>, which strips out the numeric and string literals.</p>
+
+  <ul>
+    <li>If you do not want the agent to capture query information, set this to <code>none</code>.</li>
+    <li>If you want the agent to capture all query information in its original form, set this to <code>raw</code>.</li>
+    <li>When you enable <a href="/docs/agents/manage-apm-agents/configuration/high-security-mode">high security mode</a>, this is automatically set to <code>obfuscated</code>.</li>
+  </ul>
+  <p>' # Doc generator will wrap this in <p>...</p>
         },
         :'transaction_tracer.record_redis_arguments' => {
           :default => false,
@@ -1567,6 +1577,13 @@ module NewRelic
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in browser monitoring. Allows <code>*</code> as wildcard at end.'
+        },
+        :'custom_attributes.enabled' => {
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'If <code>false</code>, custom attributes will not be sent on Insights events.'
         },
         :'utilization.detect_aws' => {
           :default     => true,
