@@ -34,7 +34,7 @@
 
     `type="text/javascript"` is optional for the `<script>` tag under
     W3C. The `type` attribute has now been removed from browser
-    instrunmentation. Thanks to Spharian for the contribution!
+    instrumentation. Thanks to Spharian for the contribution!
 
   * Deferred `add_method_tracer` calls
 
