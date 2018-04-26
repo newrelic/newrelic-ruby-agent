@@ -68,6 +68,44 @@ module NewRelic
         @agent_id = id
       end
 
+      class SecurityPolicySettings
+        SECURITY_SETTINGS_MAP = {
+          "record_sql" => [
+            :'transaction_tracer.record_sql',
+            :'slow_sql.record_sql',
+            :'mongo.obfuscate_queries',
+            :'transaction_tracer.record_redis_arguments'],
+          "attributes_include" => [
+            :'attributes.include',
+            :'transaction_tracer.attributes.include',
+            :'transaction_events.attributes.include',
+            :'error_collector.attributes.include',
+            :'browser_monitoring.attributes.include'],
+          "allow_raw_exception_messages" => [
+            :'strip_exception_messages.enabled'],
+          "custom_events" => [
+            :'custom_insights_events.enabled'],
+          "custom_parameters" => [],
+          "custom_instrumentation_editor" => [],
+          "message_parameters" => [
+            :'message_tracer.segment_parameters.enabled'],
+          "job_arguments" => [
+            :'resque.capture_params',
+            :'sidekiq.capture_params']
+        }
+        def initialize(security_policies)
+          @security_policies = security_policies
+        end
+
+        def for_connect
+          enabled_key = "enabled".freeze
+          (@security_policies.keys & SECURITY_SETTINGS_MAP.keys).inject({}) do |memo, policy_name|
+            memo[policy_name] =  {enabled_key => @security_policies[policy_name][enabled_key]}
+            memo
+          end
+        end
+      end
+
       def connect(settings={})
         if host = preconnect
           @collector = NewRelic::Control.instance.server_from_host(host)
@@ -85,7 +123,7 @@ module NewRelic
 
           validator = PolicyValidator.new(response)
           validator.validate_matching_agent_config!
-
+          binding.pry
           response['redirect_host']
         else
           invoke_remote(:preconnect, [])['redirect_host']
