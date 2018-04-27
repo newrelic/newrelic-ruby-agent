@@ -4,7 +4,7 @@
 
 require File.expand_path('../../../../test_helper', __FILE__)
 require File.expand_path(File.join(File.dirname(__FILE__),'../../..','test_helper'))
-require 'new_relic/agent/new_relic_service'
+require 'new_relic/agent/new_relic_service/security_policy_settings'
 
 module NewRelic
   module Agent
