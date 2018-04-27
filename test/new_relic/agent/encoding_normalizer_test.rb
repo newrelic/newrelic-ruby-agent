@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
@@ -59,11 +61,11 @@ class EncodingNormalizerTest < Minitest::Test
     # Encoding::ConverterNotFoundError, which is what we're trying to
     # replicate for this test case.
     # The following UTF-7 string decodes to 'Jyväskylä', a city in Finland
-    string = "Jyv+AOQ-skyl+AOQ-".force_encoding("UTF-7")
+    string = "Jyv+AOQ-skyl+AOQ-".dup.force_encoding("UTF-7")
     assert string.valid_encoding?
     result = EncodingNormalizer.normalize_string(string)
     refute_same(result, string)
     assert_equal(Encoding.find('ISO-8859-1'), result.encoding)
-    assert_equal('Jyv+AOQ-skyl+AOQ-'.force_encoding('ISO-8859-1'), result)
+    assert_equal('Jyv+AOQ-skyl+AOQ-'.dup.force_encoding('ISO-8859-1'), result)
   end
 end

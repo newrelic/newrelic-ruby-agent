@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
@@ -160,7 +162,7 @@ EOL
   end
 
   def test_with_invalid_us_ascii_encoding
-    response = "<html><body>Jürgen</body></html>"
+    response = "<html><body>Jürgen</body></html>".dup
     response.force_encoding(Encoding.find("US-ASCII"))
     TestApp.next_response = Rack::Response.new(response)
 

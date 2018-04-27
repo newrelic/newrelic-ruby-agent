@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
@@ -312,7 +314,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_parse_labels_from_string_with_hard_failure
-      bad_string = "baaaad"
+      bad_string = "baaaad".dup
       bad_string.stubs(:strip).raises("Booom")
       @manager.add_config_for_testing(:labels => bad_string)
 

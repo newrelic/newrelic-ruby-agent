@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
@@ -19,9 +21,9 @@ module NewRelic::Agent::Threading
     end
 
     def assert_backtrace_trees_equal(a, b, original_a=a, original_b=b)
-      message = "Thread profiles did not match.\n\n"
-      message << "Expected tree:\n#{original_a.dump_string}\n\n"
-      message << "Actual tree:\n#{original_b.dump_string}\n"
+      message = "Thread profiles did not match.\n\n"\
+                "Expected tree:\n#{original_a.dump_string}\n\n"\
+                "Actual tree:\n#{original_b.dump_string}\n"
       assert_equal(a, b, message)
       assert_equal(a.children, b.children, message)
       a.children.zip(b.children) do |a_child, b_child|

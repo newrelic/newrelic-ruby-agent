@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :newrelic do
   namespace :config do
     desc "Describe available New Relic configuration settings."

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
@@ -358,12 +360,11 @@ module NewRelic
                                         # ruled out; see the initializer
         }
 
-        uri = "/agent_listener/invoke_raw_method?"
-        uri << params.map do |k,v|
+        mapped = params.map do |k,v|
           next unless v
           "#{k}=#{v}"
         end.compact.join('&')
-        uri
+        "/agent_listener/invoke_raw_method?#{mapped}"
       end
 
       def license_key
@@ -533,9 +534,9 @@ module NewRelic
       def user_agent
         ruby_description = ''
         # note the trailing space!
-        ruby_description << "(ruby #{::RUBY_VERSION} #{::RUBY_PLATFORM}) " if defined?(::RUBY_VERSION) && defined?(::RUBY_PLATFORM)
+        ruby_description = "(ruby #{::RUBY_VERSION} #{::RUBY_PLATFORM}) " if defined?(::RUBY_VERSION) && defined?(::RUBY_PLATFORM)
         zlib_version = ''
-        zlib_version << "zlib/#{Zlib.zlib_version}" if defined?(::Zlib) && Zlib.respond_to?(:zlib_version)
+        zlib_version = "zlib/#{Zlib.zlib_version}" if defined?(::Zlib) && Zlib.respond_to?(:zlib_version)
         "NewRelic-RubyAgent/#{NewRelic::VERSION::STRING} #{ruby_description}#{zlib_version}"
       end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
@@ -32,6 +34,14 @@ class LicenseTest < Minitest::Test
     ['/lib/new_relic/agent/system_info.rb', 'BSD'] => 4, # reference to BSD the operating system, not BSD the license
     ['/test/new_relic/agent/system_info_test.rb', 'BSD'] => 2 # reference to BSD the operating system, not BSD the license
   }
+
+  def frozen_string_literal
+    /^# frozen_string_literal: true/
+  end
+
+  def empty_line
+    /^/
+  end
 
   def shebang
     /^#!/
@@ -77,20 +87,25 @@ class LicenseTest < Minitest::Test
       first_thousand_bytes = File.read(filename, 1000)
       refute_nil first_thousand_bytes, "#{filename} is shorter than 1000 bytes."
 
-      first_four_lines = first_thousand_bytes.split("\n")[0...4]
+      lines = first_thousand_bytes.split("\n")
 
-      if first_four_lines.first =~ shebang
-        first_four_lines.shift # discard it
-      end
-      if first_four_lines.first =~ syntax_mark
-        first_four_lines.shift # discard it
-      end
-      if first_four_lines.first =~ encoding
-        first_four_lines.shift # discard it
+      if lines.first =~ frozen_string_literal
+        lines = lines[1..5]
+        [empty_line, shebang, frozen_string_literal, empty_line, syntax_mark, encoding].each do |discard|
+          if lines.first =~ discard
+            lines.shift # discard it
+          end
+        end
+      else
+        [shebang, frozen_string_literal, empty_line, syntax_mark, encoding].each do |discard|
+          if lines.first =~ discard
+            lines.shift # discard it
+          end
+        end
       end
 
-      assert_match(/This file is distributed under .+ license terms\./, first_four_lines[0], "#{filename} does not contain the proper license header.")
-      assert_match(%r"See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.", first_four_lines[1])
+      assert_match(/This file is distributed under .+ license terms\./, lines[0], "#{filename} does not contain the proper license header.")
+      assert_match(%r"See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.", lines[1])
     end
   end
 

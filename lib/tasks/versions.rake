@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :newrelic do
   desc "Lists information on supported versions of frameworks for this agent"
 

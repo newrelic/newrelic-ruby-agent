@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :newrelic do
   desc "Install a default config/newrelic.yml file"
   task :install do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
@@ -35,7 +37,7 @@ module NewRelic
         return text unless key_bytes
 
         encoded = ""
-        encoded.force_encoding('binary') if encoded.respond_to?( :force_encoding )
+        encoded = encoded.dup.force_encoding('binary') if encoded.respond_to?( :force_encoding )
         index = 0
         text.each_byte do |byte|
           encoded.concat((byte ^ key_bytes[index % key_bytes.length]))
