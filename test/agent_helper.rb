@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
@@ -158,16 +160,15 @@ def _normalize_metric_expectations(expectations)
 end
 
 def dump_stats(stats)
-  str =  "  Call count:           #{stats.call_count}\n"
-  str << "  Total call time:      #{stats.total_call_time}\n"
-  str << "  Total exclusive time: #{stats.total_exclusive_time}\n"
-  str << "  Min call time:        #{stats.min_call_time}\n"
-  str << "  Max call time:        #{stats.max_call_time}\n"
-  str << "  Sum of squares:       #{stats.sum_of_squares}\n"
-  str << "  Apdex S:              #{stats.apdex_s}\n"
-  str << "  Apdex T:              #{stats.apdex_t}\n"
-  str << "  Apdex F:              #{stats.apdex_f}\n"
-  str
+  "  Call count:           #{stats.call_count}\n"\
+  "  Total call time:      #{stats.total_call_time}\n"\
+  "  Total exclusive time: #{stats.total_exclusive_time}\n"\
+  "  Min call time:        #{stats.min_call_time}\n"\
+  "  Max call time:        #{stats.max_call_time}\n"\
+  "  Sum of squares:       #{stats.sum_of_squares}\n"\
+  "  Apdex S:              #{stats.apdex_s}\n"\
+  "  Apdex T:              #{stats.apdex_t}\n"\
+  "  Apdex F:              #{stats.apdex_f}\n"
 end
 
 def assert_stats_has_values(stats, expected_spec, expected_attrs)

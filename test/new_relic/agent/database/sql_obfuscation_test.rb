@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
@@ -13,17 +15,17 @@ module NewRelic::Agent::Database
     end
 
     def build_failure_message(statement, acceptable_outputs, actual_output)
-      msg = "Failed to obfuscate #{statement.adapter} query correctly.\n"
-      msg << "Input:    #{statement.inspect}\n"
+      msg = "Failed to obfuscate #{statement.adapter} query correctly.\n"\
+            "Input:    #{statement.inspect}\n"
       if acceptable_outputs.size == 1
-        msg << "Expected: #{acceptable_outputs.first}\n"
+        msg = "#{msg}Expected: #{acceptable_outputs.first}\n"
       else
-        msg << "Acceptable outputs:\n"
+        msg = "#{msg}Acceptable outputs:\n"
         acceptable_outputs.each do |output|
-          msg << "          #{output}\n"
+          msg = "#{msg}          #{output}\n"
         end
       end
-      msg << "Actual:   #{actual_output}\n"
+      msg = "#{msg}Actual:   #{actual_output}\n"
     end
 
     test_cases = load_cross_agent_test('sql_obfuscation/sql_obfuscation')

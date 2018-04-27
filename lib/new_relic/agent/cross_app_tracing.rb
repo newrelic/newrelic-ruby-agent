@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # -*- ruby -*-
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.

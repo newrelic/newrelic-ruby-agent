@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
@@ -73,8 +75,8 @@ module NewRelic
         def dump_string
           result = "#<BacktraceRoot:#{object_id}>"
           child_results = @children.map { |c| c.dump_string(2) }.join("\n")
-          result << "\n" unless child_results.empty?
-          result << child_results
+          result = "#{result}\n" unless child_results.empty?
+          result = "#{result}#{child_results}"
         end
       end
 
@@ -119,8 +121,8 @@ module NewRelic
           @file, @method, @line_no = parse_backtrace_frame(@raw_line)
           result = "#{" " * indent}#<BacktraceNode:#{object_id} [#{@runnable_count}] #{@file}:#{@line_no} in #{@method}>"
           child_results = @children.map { |c| c.dump_string(indent+2) }.join("\n")
-          result << "\n" unless child_results.empty?
-          result << child_results
+          result = "#{result}\n" unless child_results.empty?
+          result = "#{result}#{child_results}"
         end
 
         # Returns [filename, method, line number]

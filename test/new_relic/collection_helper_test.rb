@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
@@ -32,7 +34,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     assert_equal false, np['monitor_mode']
   end
   def test_string__singleton
-    val = "This String"
+    val = "This String".dup
     def val.hello; end
     assert_equal "This String", normalize_params(val)
     assert val.respond_to?(:hello)

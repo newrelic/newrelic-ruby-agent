@@ -458,7 +458,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal('a' * (NewRelic::Agent::Database::MAX_QUERY_LENGTH - 3) + '...', truncated_query)
   end
 
-  INVALID_UTF8_STRING = (''.respond_to?(:force_encoding) ? "select \x80".force_encoding('UTF-8') : "select \x80")
+  INVALID_UTF8_STRING = (''.respond_to?(:force_encoding) ? "select \x80".dup.force_encoding('UTF-8') : "select \x80")
 
   def test_capture_query_mis_encoded
     query = INVALID_UTF8_STRING
