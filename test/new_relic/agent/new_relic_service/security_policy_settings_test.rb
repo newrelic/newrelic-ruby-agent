@@ -32,16 +32,165 @@ module NewRelic
         def test_for_lasp_source_record_sql_enabled
           policies = generate_security_policies(default: false, enabled: ['record_sql'])
 
-          with_config(:'transaction_tracer.record_sql' => 'raw',
+          with_config :'transaction_tracer.record_sql' => 'raw',
                       :'slow_sql.record_sql'           => 'raw',
                       :'mongo.capture_queries'         => true,
-                      :'mongo.obfuscate_queries'       => false) do
+                      :'mongo.obfuscate_queries'       => false do
 
             settings = SecurityPolicySettings.new(policies).for_lasp_source
 
             assert_equal 'obfuscated', settings[:'transaction_tracer.record_sql']
             assert_equal 'obfuscated', settings[:'slow_sql.record_sql']
             assert_equal true, settings[:'mongo.obfuscate_queries']
+          end
+        end
+
+        def test_for_lasp_source_record_sql_disabled
+          policies = generate_security_policies(default: true, disabled: ['record_sql'])
+
+          with_config :'transaction_tracer.record_sql' => 'raw',
+                      :'slow_sql.record_sql'           => 'raw',
+                      :'mongo.capture_queries'         => true do
+
+            settings = SecurityPolicySettings.new(policies).for_lasp_source
+
+            assert_equal 'off', settings[:'transaction_tracer.record_sql']
+            assert_equal 'off', settings[:'slow_sql.record_sql']
+            assert_equal false, settings[:'mongo.capture_queries']
+          end
+        end
+
+        def test_for_lasp_source_attributes_include_enabled
+          policies = generate_security_policies(default: false, enabled: ['attributes_include'])
+          with_config :'attributes.include'                        => ['request.parameters.*'],
+                      :'transaction_tracer.attributes.include'     => ['request.uri'],
+                      :'transaction_events.attributes.include'     => ['request.headers.*'],
+                      :'error_collector.attributes.include'        => ['request.method'],
+                      :'browser_monitoring.attributes.include'     => ['httpResponseCode'] do
+
+            settings = SecurityPolicySettings.new(policies).for_lasp_source
+
+            refute_includes settings.keys, :'attributes.include'
+            refute_includes settings.keys, :'transaction_tracer.attributes.include'
+            refute_includes settings.keys, :'transaction_events.attributes.include'
+            refute_includes settings.keys, :'error_collector.attributes.include'
+            refute_includes settings.keys, :'browser_monitoring.attributes.include'
+          end
+        end
+
+        def test_for_lasp_source_attributes_include_disabled
+          policies = generate_security_policies(default: true, disabled: ['attributes_include'])
+          with_config :'attributes.include'                        => ['request.parameters.*'],
+                      :'transaction_tracer.attributes.include'     => ['request.uri'],
+                      :'transaction_events.attributes.include'     => ['request.headers.*'],
+                      :'error_collector.attributes.include'        => ['request.method'],
+                      :'browser_monitoring.attributes.include'     => ['httpResponseCode'] do
+
+            settings = SecurityPolicySettings.new(policies).for_lasp_source
+
+            assert_equal [], settings[:'attributes.include']
+            assert_equal [], settings[:'transaction_tracer.attributes.include']
+            assert_equal [], settings[:'transaction_events.attributes.include']
+            assert_equal [], settings[:'error_collector.attributes.include']
+            assert_equal [], settings[:'browser_monitoring.attributes.include']
+          end
+        end
+
+        def test_for_lasp_source_allow_raw_exception_messages_enabled
+          policies = generate_security_policies(default: false, enabled: ['allow_raw_exception_messages'])
+          with_config :'strip_exception_messages.enabled' => true do
+
+            settings = SecurityPolicySettings.new(policies).for_lasp_source
+
+            refute_includes settings, :'strip_exception_messages'
+          end
+        end
+
+        def test_for_lasp_source_allow_raw_exception_messages_disabled
+          policies = generate_security_policies(default: true, disabled: ['allow_raw_exception_messages'])
+          with_config :'strip_exception_messages.enabled' => true do
+
+            settings = SecurityPolicySettings.new(policies).for_lasp_source
+
+            assert_equal false, settings[:'strip_exception_messages.enabled']
+          end
+        end
+
+        def test_for_lasp_source_custom_events_enabled
+          policies = generate_security_policies(default: false, enabled: ['custom_events'])
+          with_config :'custom_insights_events.enabled' => true do
+
+            settings = SecurityPolicySettings.new(policies).for_lasp_source
+
+            refute_includes settings, :'custom_insights_events.enabled'
+          end
+        end
+
+        def test_for_lasp_source_custom_events_disabled
+          policies = generate_security_policies(default: true, disabled: ['custom_events'])
+          with_config :'custom_insights_events.enabled' => true do
+
+            settings = SecurityPolicySettings.new(policies).for_lasp_source
+
+            assert_equal false, settings[:'custom_insights_events.enabled']
+          end
+        end
+
+        def test_for_lasp_source_custom_instrumentation_editor_enabled
+          policies = generate_security_policies(default: false, enabled: ['custom_instrumentation_editor'])
+          settings = SecurityPolicySettings.new(policies).for_lasp_source
+
+          refute_includes settings, :'custom_instrumentation_editor.enabled'
+        end
+
+        def test_for_lasp_source_custom_instrumentation_editor_disabled
+          policies = generate_security_policies(default: true, disabled: ['custom_instrumentation_editor'])
+          settings = SecurityPolicySettings.new(policies).for_lasp_source
+
+          refute_includes settings, :'custom_instrumentation_editor.enabled'
+        end
+
+        def test_for_lasp_source_message_parameters_enabled
+          policies = generate_security_policies(default: false, enabled: ['message_parameters'])
+          with_config :'message_tracer.segment_parameters.enabled' => true do
+
+            settings = SecurityPolicySettings.new(policies).for_lasp_source
+
+            refute_includes settings, :'message_tracer.segment_parameters.enabled'
+          end
+        end
+
+        def test_for_lasp_source_message_parameters_disabled
+          policies = generate_security_policies(default: true, disabled: ['message_parameters'])
+          with_config :'message_tracer.segment_parameters.enabled' => true do
+
+            settings = SecurityPolicySettings.new(policies).for_lasp_source
+
+            assert_equal false, settings[:'message_tracer.segment_parameters.enabled']
+          end
+        end
+
+        def test_for_lasp_source_job_arguments_enabled
+          policies = generate_security_policies(default: false, enabled: ['job_arguments'])
+          with_config :'resque.capture_params'  => true,
+                      :'sidekiq.capture_params' => true do
+
+            settings = SecurityPolicySettings.new(policies).for_lasp_source
+
+            refute_includes settings, :'resque.capture_params'
+            refute_includes settings, :'sidekiq.capture_params'
+          end
+        end
+
+        def test_for_lasp_source_job_arguments_disabled
+          policies = generate_security_policies(default: true, disabled: ['job_arguments'])
+          with_config :'resque.capture_params'  => true,
+                      :'sidekiq.capture_params' => true do
+
+            settings = SecurityPolicySettings.new(policies).for_lasp_source
+
+            assert_equal false, settings[:'resque.capture_params']
+            assert_equal false, settings[:'sidekiq.capture_params']
           end
         end
 
