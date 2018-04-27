@@ -69,30 +69,153 @@ module NewRelic
       end
 
       class SecurityPolicySettings
+        ENABLED_PROC = proc { |option| Agent.config[option] }
+
+        RECORD_SQL_ENABLED_PROC = proc do |option|
+          Agent.config[option] == 'obfuscated' ||
+            Agent.config[option] == 'raw' ||
+            false
+        end
+
+        NOT_EMPTY_PROC = proc { |option| Agent.config[option].empty? }
+
         SECURITY_SETTINGS_MAP = {
           "record_sql" => [
-            :'transaction_tracer.record_sql',
-            :'slow_sql.record_sql',
-            :'mongo.obfuscate_queries',
-            :'transaction_tracer.record_redis_arguments'],
+            {
+              option:         :'transaction_tracer.record_sql',
+              supported:      true,
+              enabled_fn:     RECORD_SQL_ENABLED_PROC,
+              disabled_value: 'off',
+              permitted_fn:   proc { |lasp_config|
+                lasp_config[:'transaction_tracer.record_sql'] = 'obfuscated'
+              }
+            },
+            {
+              option:         :'slow_sql.record_sql',
+              supported:      true,
+              enabled_fn:     RECORD_SQL_ENABLED_PROC,
+              disabled_value: 'off',
+              permitted_fn:   proc { |lasp_config|
+                lasp_config[:'slow_sql.record_sql'] = 'obfuscated'
+              }
+            },
+            {
+              option:         :'mongo.capture_queries',
+              supported:      true,
+              enabled_fn:     ENABLED_PROC,
+              disabled_value: false,
+              permitted_fn:   proc{ |lasp_config|
+                lasp_config[:'mongo.obfuscate_queries'] = true
+              }
+            },
+            {
+              option:         :'transaction_tracer.record_redis_arguments',
+              supported:      true,
+              enabled_fn:     ENABLED_PROC,
+              disabled_value: false,
+              permitted_fn:   nil
+            }
+          ],
           "attributes_include" => [
-            :'attributes.include',
-            :'transaction_tracer.attributes.include',
-            :'transaction_events.attributes.include',
-            :'error_collector.attributes.include',
-            :'browser_monitoring.attributes.include'],
+            {
+              option:         :'attributes.include',
+              supported:      true,
+              enabled_fn:     NOT_EMPTY_PROC,
+              disabled_value: [],
+              permitted_fn:   nil
+            },
+            {
+              option:         :'transaction_tracer.attributes.include',
+              supported:      true,
+              enabled_fn:     NOT_EMPTY_PROC,
+              disabled_value: [],
+              permitted_fn:   nil
+            },
+            {
+              option:         :'transaction_events.attributes.include',
+              supported:      true,
+              enabled_fn:     NOT_EMPTY_PROC,
+              disabled_value: [],
+              permitted_fn:   nil
+            },
+            {
+              option:         :'error_collector.attributes.include',
+              supported:      true,
+              enabled_fn:     NOT_EMPTY_PROC,
+              disabled_value: [],
+              permitted_fn:   nil
+            },
+            {
+              option:         :'browser_monitoring.attributes.include',
+              supported:      true,
+              enabled_fn:     NOT_EMPTY_PROC,
+              disabled_value: [],
+              permitted_fn:   nil
+            }
+          ],
           "allow_raw_exception_messages" => [
-            :'strip_exception_messages.enabled'],
+            {
+              option:         :'strip_exception_messages.enabled',
+              supported:      true,
+              enabled_fn:     ENABLED_PROC,
+              disabled_value: false,
+              permitted_fn:   nil
+            }
+          ],
           "custom_events" => [
-            :'custom_insights_events.enabled'],
-          "custom_parameters" => [],
-          "custom_instrumentation_editor" => [],
+            {
+              option:         :'custom_insights_events.enabled',
+              supported:      true,
+              enabled_fn:     ENABLED_PROC,
+              disabled_value: false,
+              permitted_fn:   nil
+            }
+          ],
+          "custom_parameters" => [
+            {
+              option:         :'custom_attributes.enabled',
+              supported:      true,
+              enabled_fn:     ENABLED_PROC,
+              disabled_value: false,
+              permitted_fn:   nil
+            }
+          ],
+          "custom_instrumentation_editor" => [
+            {
+              option:         nil,
+              supported:      false,
+              enabled_fn:     nil,
+              disabled_value: nil,
+              permitted_fn:   nil
+            }
+          ],
           "message_parameters" => [
-            :'message_tracer.segment_parameters.enabled'],
+            {
+              option:         :'message_tracer.segment_parameters.enabled',
+              supported:      true,
+              enabled_fn:     ENABLED_PROC,
+              disabled_value: false,
+              permitted_fn:   nil
+            }
+          ],
           "job_arguments" => [
-            :'resque.capture_params',
-            :'sidekiq.capture_params']
+            {
+              option:         :'resque.capture_params',
+              supported:      true,
+              enabled_fn:     ENABLED_PROC,
+              disabled_value: false,
+              permitted_fn:   nil
+            },
+            {
+              option:         :'sidekiq.capture_params',
+              supported:      true,
+              enabled_fn:     ENABLED_PROC,
+              disabled_value: false,
+              permitted_fn:   nil
+            }
+          ]
         }
+
         def initialize(security_policies)
           @security_policies = security_policies
         end
@@ -103,6 +226,29 @@ module NewRelic
             memo[policy_name] =  {enabled_key => @security_policies[policy_name][enabled_key]}
             memo
           end
+        end
+
+        def for_lasp_source
+          settings = {}
+          @security_policies.each_pair do |policy_name, policy_settings|
+            SECURITY_SETTINGS_MAP[policy_name].each do |policy|
+              next unless policy[:supported]
+              if policy_settings["enabled"]
+                if policy[:enabled_fn].call(policy[:option])
+                  if permitted_fn = policy[:permitted_fn]
+                    permitted_fn.call(settings)
+                  end
+                else
+                  config_source = Agent.config.source(policy[:option]).class.name.split("::").last
+                  NewRelic::Agent.logger.debug %Q[Setting applied: {"#{policy[:option]}: policy[:disabled_value]"}. Source: #{config_source}]
+                end
+              else
+                settings[policy[:option]] =  policy[:disabled_value]
+                NewRelic::Agent.logger.debug %Q[Setting applied: {"#{policy[:option]}: policy[:disabled_value]"}. Source: SecurityPolicySource]
+              end
+            end
+          end
+          settings
         end
       end
 
@@ -123,7 +269,7 @@ module NewRelic
 
           validator = PolicyValidator.new(response)
           validator.validate_matching_agent_config!
-          binding.pry
+
           response['redirect_host']
         else
           invoke_remote(:preconnect, [])['redirect_host']
