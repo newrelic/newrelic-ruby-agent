@@ -2,10 +2,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/configuration/dotted_hash'
+
 module NewRelic
   module Agent
-    class NewRelicService
-      class SecurityPolicySettings
+    module Configuration
+      class SecurityPolicySource < DottedHash
         ENABLED_PROC = proc { |option| Agent.config[option] }
 
         RECORD_SQL_ENABLED_PROC = proc do |option|
@@ -154,15 +156,16 @@ module NewRelic
         }
 
         def initialize(security_policies)
-          @security_policies = security_policies
+          super(build_overrides(security_policies))
         end
 
-        def for_lasp_source
-          settings = {}
-          @security_policies.each_pair do |policy_name, policy_settings|
-            SECURITY_SETTINGS_MAP[policy_name].each do |policy|
+        ENABLED = "enabled".freeze
+
+        def build_overrides(security_policies)
+          security_policies.inject({}) do |settings, (policy_name, policy_settings)|
+            policy = SECURITY_SETTINGS_MAP[policy_name].each do |policy|
               next unless policy[:supported]
-              if policy_settings["enabled"]
+              if policy_settings[ENABLED]
                 if policy[:enabled_fn].call(policy[:option])
                   if permitted_fn = policy[:permitted_fn]
                     permitted_fn.call(settings)
@@ -176,8 +179,8 @@ module NewRelic
                 NewRelic::Agent.logger.debug %Q[Setting applied: {"#{policy[:option]}: policy[:disabled_value]"}. Source: SecurityPolicySource]
               end
             end
+            settings
           end
-          settings
         end
       end
     end
