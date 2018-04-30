@@ -9,7 +9,7 @@ require 'new_relic/agent/new_relic_service/security_policy_settings'
 module NewRelic
   module Agent
     class NewRelicService
-      class SecurityPolicyTest < Minitest::Test
+      class SecurityPolicySettingsTest < Minitest::Test
         def test_preliminary_settings
           policies = {
             "record_sql" => {"enabled" => false, "required" => false, "position" => 0},
@@ -33,9 +33,9 @@ module NewRelic
             "custom_instrumentation_editor" => {"enabled" => false}
           }
 
-          policies = SecurityPolicy.preliminary_settings(policies)
+          settings = SecurityPolicySettings.preliminary_settings(policies)
 
-          assert_equal expected, policies
+          assert_equal expected, settings
         end
       end
     end

@@ -870,7 +870,7 @@ class NewRelicServiceTest < Minitest::Test
     { 'redirect_host' => host }
   end
 
-  DEFAULT_PRECONNECT_POLICIES = NewRelic::Agent::NewRelicService::SecurityPolicy::EXPECTED_SECURITY_POLICIES.inject({}) do |policies, name|
+  DEFAULT_PRECONNECT_POLICIES = NewRelic::Agent::NewRelicService::SecurityPolicySettings::EXPECTED_SECURITY_POLICIES.inject({}) do |policies, name|
     policies[name] = { 'enabled' => false, 'required' => true }
     policies
   end

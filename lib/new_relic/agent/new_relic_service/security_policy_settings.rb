@@ -5,7 +5,7 @@
 module NewRelic
   module Agent
     class NewRelicService
-      module SecurityPolicy
+      module SecurityPolicySettings
         EXPECTED_SECURITY_POLICIES = %w(
           record_sql
           attributes_include
