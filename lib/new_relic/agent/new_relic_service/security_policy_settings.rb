@@ -157,14 +157,6 @@ module NewRelic
           @security_policies = security_policies
         end
 
-        def for_connect
-          enabled_key = "enabled".freeze
-          (@security_policies.keys & SECURITY_SETTINGS_MAP.keys).inject({}) do |memo, policy_name|
-            memo[policy_name] =  {enabled_key => @security_policies[policy_name][enabled_key]}
-            memo
-          end
-        end
-
         def for_lasp_source
           settings = {}
           @security_policies.each_pair do |policy_name, policy_settings|

@@ -6,17 +6,25 @@ module NewRelic
   module Agent
     class NewRelicService
       module SecurityPolicy
-        class Validator
-          EXPECTED_SECURITY_POLICIES = %w(
-            record_sql
-            attributes_include
-            allow_raw_exception_messages
-            custom_events
-            custom_parameters
-            custom_instrumentation_editor
-            message_parameters
-            job_arguments).map(&:freeze)
+        EXPECTED_SECURITY_POLICIES = %w(
+          record_sql
+          attributes_include
+          allow_raw_exception_messages
+          custom_events
+          custom_parameters
+          custom_instrumentation_editor
+          message_parameters
+          job_arguments).map(&:freeze)
 
+        def self.preliminary_settings(security_policies)
+          enabled_key = 'enabled'.freeze
+          (security_policies.keys & EXPECTED_SECURITY_POLICIES).inject({}) do |settings, policy_name|
+            settings[policy_name] =  {enabled_key => security_policies[policy_name][enabled_key]}
+            settings
+          end
+        end
+
+        class Validator
           def initialize(preconnect_response)
             @preconnect_policies = preconnect_response['security_policies'] || {}
           end

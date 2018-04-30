@@ -10,25 +10,6 @@ module NewRelic
   module Agent
     class NewRelicService
       class SecurityPolicySettingsTest < Minitest::Test
-        def test_security_policies_for_connect
-          policies = generate_security_policies(default: true)
-
-          expected = {
-            "record_sql" => {"enabled" => true},
-            "custom_events" => {"enabled" => true},
-            "job_arguments" => {"enabled" => true},
-            "custom_parameters" => {"enabled" => true},
-            "attributes_include" => {"enabled" => true},
-            "message_parameters" => {"enabled" => true},
-            "allow_raw_exception_messages" => {"enabled" => true},
-            "custom_instrumentation_editor" => {"enabled" => true}
-          }
-
-          policies = SecurityPolicySettings.new(policies)
-
-          assert_equal expected, policies.for_connect
-        end
-
         def test_for_lasp_source_record_sql_enabled
           policies = generate_security_policies(default: false, enabled: ['record_sql'])
 
