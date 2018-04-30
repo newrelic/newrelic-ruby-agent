@@ -8,7 +8,7 @@ require 'new_relic/agent/audit_logger'
 require 'new_relic/agent/new_relic_service/encoders'
 require 'new_relic/agent/new_relic_service/marshaller'
 require 'new_relic/agent/new_relic_service/json_marshaller'
-require 'new_relic/agent/new_relic_service/policy_validator'
+require 'new_relic/agent/new_relic_service/security_policy'
 require 'new_relic/agent/new_relic_service/security_policy_settings'
 
 module NewRelic
@@ -84,7 +84,7 @@ module NewRelic
         if token && !token.empty?
           response = invoke_remote(:preconnect, [{'security_policies_token' => token}])
 
-          validator = PolicyValidator.new(response)
+          validator = SecurityPolicy::Validator.new(response)
           validator.validate_matching_agent_config!
 
           response['redirect_host']
