@@ -23,14 +23,16 @@ module NewRelic
           }
 
           expected = {
-            "record_sql" => {"enabled" => false},
-            "custom_events" => {"enabled" => false},
-            "job_arguments" => {"enabled" => false},
-            "custom_parameters" => {"enabled" => false},
-            "attributes_include" => {"enabled" => false},
-            "message_parameters" => {"enabled" => false},
-            "allow_raw_exception_messages" => {"enabled" => false},
-            "custom_instrumentation_editor" => {"enabled" => false}
+            "security_policies" => {
+              "record_sql" => {"enabled" => false},
+              "custom_events" => {"enabled" => false},
+              "job_arguments" => {"enabled" => false},
+              "custom_parameters" => {"enabled" => false},
+              "attributes_include" => {"enabled" => false},
+              "message_parameters" => {"enabled" => false},
+              "allow_raw_exception_messages" => {"enabled" => false},
+              "custom_instrumentation_editor" => {"enabled" => false}
+            }
           }
 
           settings = SecurityPolicySettings.preliminary_settings(policies)

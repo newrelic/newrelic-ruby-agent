@@ -18,10 +18,11 @@ module NewRelic
 
         def self.preliminary_settings(security_policies)
           enabled_key = 'enabled'.freeze
-          (security_policies.keys & EXPECTED_SECURITY_POLICIES).inject({}) do |settings, policy_name|
-            settings[policy_name] =  {enabled_key => security_policies[policy_name][enabled_key]}
-            settings
+          settings = EXPECTED_SECURITY_POLICIES.inject({}) do |memo, policy_name|
+            memo[policy_name] =  {enabled_key => security_policies[policy_name][enabled_key]}
+            memo
           end
+          {'security_policies' => settings}
         end
 
         class Validator
