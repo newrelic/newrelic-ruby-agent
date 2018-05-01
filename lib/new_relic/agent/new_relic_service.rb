@@ -69,11 +69,19 @@ module NewRelic
       end
 
       def connect(settings={})
-        if host = preconnect
-          @collector = NewRelic::Control.instance.server_from_host(host)
+        security_policies = nil
+        if response = preconnect
+          if host = response['redirect_host']
+            @collector = NewRelic::Control.instance.server_from_host(host)
+          end
+          if policies = response['security_policies']
+            security_policies = SecurityPolicySettings.preliminary_settings(policies)
+            settings.merge!(security_policies)
+          end
         end
         response = invoke_remote(:connect, [settings])
         self.agent_id = response['agent_run_id']
+        response.merge!(security_policies) if security_policies
         response
       end
 
@@ -86,9 +94,9 @@ module NewRelic
           validator = SecurityPolicySettings::Validator.new(response)
           validator.validate_matching_agent_config!
 
-          response['redirect_host']
+          response
         else
-          invoke_remote(:preconnect, [])['redirect_host']
+          invoke_remote(:preconnect, [])
         end
       end
 
