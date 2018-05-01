@@ -31,9 +31,9 @@ module NewRelic
       end
 
       def merge! payload, adjust_count = true
-        @lock.synchronize do
-          _, samples = payload
+        _, samples = payload
 
+        @lock.synchronize do
           if adjust_count
             @buffer.decrement_lifetime_counts_by samples.count
           end
