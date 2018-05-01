@@ -9,6 +9,7 @@ require 'new_relic/agent/configuration/default_source'
 require 'new_relic/agent/configuration/server_source'
 require 'new_relic/agent/configuration/environment_source'
 require 'new_relic/agent/configuration/high_security_source'
+require 'new_relic/agent/configuration/security_policy_source'
 
 module NewRelic
   module Agent
@@ -44,12 +45,13 @@ module NewRelic
 
         def remove_config_type(sym)
           source = case sym
-          when :high_security then @high_security_source
-          when :environment   then @environment_source
-          when :server        then @server_source
-          when :manual        then @manual_source
-          when :yaml          then @yaml_source
-          when :default       then @default_source
+          when :security_policy then @security_policy_source
+          when :high_security   then @high_security_source
+          when :environment     then @environment_source
+          when :server          then @server_source
+          when :manual          then @manual_source
+          when :yaml            then @yaml_source
+          when :default         then @default_source
           end
 
           remove_config(source)
@@ -57,12 +59,13 @@ module NewRelic
 
         def remove_config(source)
           case source
-          when HighSecuritySource then @high_security_source = nil
-          when EnvironmentSource  then @environment_source   = nil
-          when ServerSource       then @server_source        = nil
-          when ManualSource       then @manual_source        = nil
-          when YamlSource         then @yaml_source          = nil
-          when DefaultSource      then @default_source       = nil
+          when SecurityPolicySource then @security_policy_source = nil
+          when HighSecuritySource   then @high_security_source   = nil
+          when EnvironmentSource    then @environment_source     = nil
+          when ServerSource         then @server_source          = nil
+          when ManualSource         then @manual_source          = nil
+          when YamlSource           then @yaml_source            = nil
+          when DefaultSource        then @default_source         = nil
           else
             @configs_for_testing.delete_if {|src,lvl| src == source}
           end
@@ -78,12 +81,13 @@ module NewRelic
 
           invoke_callbacks(:add, source)
           case source
-          when HighSecuritySource then @high_security_source = source
-          when EnvironmentSource  then @environment_source   = source
-          when ServerSource       then @server_source        = source
-          when ManualSource       then @manual_source        = source
-          when YamlSource         then @yaml_source          = source
-          when DefaultSource      then @default_source       = source
+          when SecurityPolicySource then @security_policy_source = source
+          when HighSecuritySource   then @high_security_source   = source
+          when EnvironmentSource    then @environment_source     = source
+          when ServerSource         then @server_source          = source
+          when ManualSource         then @manual_source          = source
+          when YamlSource           then @yaml_source            = source
+          when DefaultSource        then @default_source         = source
           else
             NewRelic::Agent.logger.warn("Invalid config format; config will be ignored: #{source}")
           end
@@ -323,14 +327,15 @@ module NewRelic
 
         # Generally only useful during initial construction and tests
         def reset_to_defaults
-          @high_security_source = nil
-          @environment_source   = EnvironmentSource.new
-          @server_source        = nil
-          @manual_source        = nil
-          @yaml_source          = nil
-          @default_source       = DefaultSource.new
+          @security_policy_source = nil
+          @high_security_source   = nil
+          @environment_source     = EnvironmentSource.new
+          @server_source          = nil
+          @manual_source          = nil
+          @yaml_source            = nil
+          @default_source         = DefaultSource.new
 
-          @configs_for_testing  = []
+          @configs_for_testing    = []
 
           reset_cache
         end
@@ -350,13 +355,14 @@ module NewRelic
         end
 
         def delete_all_configs_for_testing
-          @high_security_source = nil
-          @environment_source   = nil
-          @server_source        = nil
-          @manual_source        = nil
-          @yaml_source          = nil
-          @default_source       = nil
-          @configs_for_testing  = []
+          @security_policy_source = nil
+          @high_security_source   = nil
+          @environment_source     = nil
+          @server_source          = nil
+          @manual_source          = nil
+          @yaml_source            = nil
+          @default_source         = nil
+          @configs_for_testing    = []
         end
 
         def num_configs_for_testing
@@ -370,7 +376,8 @@ module NewRelic
         private
 
         def config_stack
-          stack = [@high_security_source,
+          stack = [@security_policy_source,
+                   @high_security_source,
                    @environment_source,
                    @server_source,
                    @manual_source,
