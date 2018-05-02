@@ -18,6 +18,16 @@ module NewRelic
 
         NOT_EMPTY_PROC = proc { |option| Agent.config[option].empty? }
 
+        CHANGE_SETTING_PROC = proc do |policies, option, new_value|
+          current_value = Agent.config[option]
+          unless current_value == new_value
+            NewRelic::Agent.logger.info \
+              "Setting changed: {#{option}: from #{current_value} " \
+              "to #{new_value}}. Source: SecurityPolicySource"
+          end
+          policies[option] = new_value
+        end
+
         SECURITY_SETTINGS_MAP = {
           "record_sql" => [
             {
@@ -25,8 +35,8 @@ module NewRelic
               supported:      true,
               enabled_fn:     RECORD_SQL_ENABLED_PROC,
               disabled_value: 'off',
-              permitted_fn:   proc { |lasp_config|
-                lasp_config[:'transaction_tracer.record_sql'] = 'obfuscated'
+              permitted_fn:   proc { |policies|
+                CHANGE_SETTING_PROC.call(policies, :'transaction_tracer.record_sql', 'obfuscated')
               }
             },
             {
@@ -34,8 +44,8 @@ module NewRelic
               supported:      true,
               enabled_fn:     RECORD_SQL_ENABLED_PROC,
               disabled_value: 'off',
-              permitted_fn:   proc { |lasp_config|
-                lasp_config[:'slow_sql.record_sql'] = 'obfuscated'
+              permitted_fn:   proc { |policies|
+                CHANGE_SETTING_PROC.call(policies, :'slow_sql.record_sql', 'obfuscated')
               }
             },
             {
@@ -43,8 +53,8 @@ module NewRelic
               supported:      true,
               enabled_fn:     ENABLED_PROC,
               disabled_value: false,
-              permitted_fn:   proc{ |lasp_config|
-                lasp_config[:'mongo.obfuscate_queries'] = true
+              permitted_fn:   proc{ |policies|
+                CHANGE_SETTING_PROC.call(policies, :'mongo.obfuscate_queries', true)
               }
             },
             {
@@ -160,6 +170,7 @@ module NewRelic
         end
 
         ENABLED = "enabled".freeze
+        COLON_COLON = "::".freeze
 
         def build_overrides(security_policies)
           security_policies.inject({}) do |settings, (policy_name, policy_settings)|
@@ -171,12 +182,16 @@ module NewRelic
                     permitted_fn.call(settings)
                   end
                 else
-                  config_source = Agent.config.source(policy[:option]).class.name.split("::").last
-                  NewRelic::Agent.logger.debug %Q[Setting applied: {"#{policy[:option]}: policy[:disabled_value]"}. Source: #{config_source}]
+                  config_source = Agent.config.source(policy[:option]).class.name.split(COLON_COLON).last
+                  NewRelic::Agent.logger.info \
+                    "Setting applied: {#{policy[:option]}: #{policy[:disabled_value]}}. " \
+                    "Source: #{config_source}"
                 end
               else
                 settings[policy[:option]] =  policy[:disabled_value]
-                NewRelic::Agent.logger.debug %Q[Setting applied: {"#{policy[:option]}: policy[:disabled_value]"}. Source: SecurityPolicySource]
+                NewRelic::Agent.logger.info \
+                  "Setting applied: {#{policy[:option]}: #{policy[:disabled_value]}}. " \
+                  "Source: SecurityPolicySource"
               end
             end
             settings
