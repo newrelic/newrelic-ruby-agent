@@ -8,24 +8,31 @@ module NewRelic
   module Agent
     module Configuration
       class SecurityPolicySource < DottedHash
-        ENABLED_PROC = proc { |option| Agent.config[option] }
 
-        RECORD_SQL_ENABLED_PROC = proc do |option|
-          Agent.config[option] == 'obfuscated' ||
-            Agent.config[option] == 'raw' ||
-            false
-        end
-
-        NOT_EMPTY_PROC = proc { |option| Agent.config[option].empty? }
-
-        CHANGE_SETTING_PROC = proc do |policies, option, new_value|
-          current_value = Agent.config[option]
-          unless current_value == new_value
-            NewRelic::Agent.logger.info \
-              "Setting changed: {#{option}: from #{current_value} " \
-              "to #{new_value}}. Source: SecurityPolicySource"
+        class << self
+          def enabled?(option)
+            Agent.config[option]
           end
-          policies[option] = new_value
+
+          def record_sql_enabled?(option)
+            Agent.config[option] == 'obfuscated' ||
+              Agent.config[option] == 'raw' ||
+              false
+          end
+
+          def not_empty?(option)
+            !Agent.config[option].empty?
+          end
+
+          def change_setting(policies, option, new_value)
+            current_value = Agent.config[option]
+            unless current_value == new_value
+              NewRelic::Agent.logger.info \
+                "Setting changed: {#{option}: from #{current_value} " \
+                "to #{new_value}}. Source: SecurityPolicySource"
+            end
+            policies[option] = new_value
+          end
         end
 
         SECURITY_SETTINGS_MAP = {
@@ -33,34 +40,34 @@ module NewRelic
             {
               option:         :'transaction_tracer.record_sql',
               supported:      true,
-              enabled_fn:     RECORD_SQL_ENABLED_PROC,
+              enabled_fn:     method(:record_sql_enabled?),
               disabled_value: 'off',
               permitted_fn:   proc { |policies|
-                CHANGE_SETTING_PROC.call(policies, :'transaction_tracer.record_sql', 'obfuscated')
+                change_setting(policies, :'transaction_tracer.record_sql', 'obfuscated')
               }
             },
             {
               option:         :'slow_sql.record_sql',
               supported:      true,
-              enabled_fn:     RECORD_SQL_ENABLED_PROC,
+              enabled_fn:     method(:record_sql_enabled?),
               disabled_value: 'off',
               permitted_fn:   proc { |policies|
-                CHANGE_SETTING_PROC.call(policies, :'slow_sql.record_sql', 'obfuscated')
+                change_setting(policies, :'slow_sql.record_sql', 'obfuscated')
               }
             },
             {
               option:         :'mongo.capture_queries',
               supported:      true,
-              enabled_fn:     ENABLED_PROC,
+              enabled_fn:     method(:enabled?),
               disabled_value: false,
               permitted_fn:   proc{ |policies|
-                CHANGE_SETTING_PROC.call(policies, :'mongo.obfuscate_queries', true)
+                change_setting(policies, :'mongo.obfuscate_queries', true)
               }
             },
             {
               option:         :'transaction_tracer.record_redis_arguments',
               supported:      true,
-              enabled_fn:     ENABLED_PROC,
+              enabled_fn:     method(:enabled?),
               disabled_value: false,
               permitted_fn:   nil
             }
@@ -69,35 +76,35 @@ module NewRelic
             {
               option:         :'attributes.include',
               supported:      true,
-              enabled_fn:     NOT_EMPTY_PROC,
+              enabled_fn:     method(:not_empty?),
               disabled_value: [],
               permitted_fn:   nil
             },
             {
               option:         :'transaction_tracer.attributes.include',
               supported:      true,
-              enabled_fn:     NOT_EMPTY_PROC,
+              enabled_fn:     method(:not_empty?),
               disabled_value: [],
               permitted_fn:   nil
             },
             {
               option:         :'transaction_events.attributes.include',
               supported:      true,
-              enabled_fn:     NOT_EMPTY_PROC,
+              enabled_fn:     method(:not_empty?),
               disabled_value: [],
               permitted_fn:   nil
             },
             {
               option:         :'error_collector.attributes.include',
               supported:      true,
-              enabled_fn:     NOT_EMPTY_PROC,
+              enabled_fn:     method(:not_empty?),
               disabled_value: [],
               permitted_fn:   nil
             },
             {
               option:         :'browser_monitoring.attributes.include',
               supported:      true,
-              enabled_fn:     NOT_EMPTY_PROC,
+              enabled_fn:     method(:not_empty?),
               disabled_value: [],
               permitted_fn:   nil
             }
@@ -106,7 +113,7 @@ module NewRelic
             {
               option:         :'strip_exception_messages.enabled',
               supported:      true,
-              enabled_fn:     ENABLED_PROC,
+              enabled_fn:     method(:enabled?),
               disabled_value: false,
               permitted_fn:   nil
             }
@@ -115,7 +122,7 @@ module NewRelic
             {
               option:         :'custom_insights_events.enabled',
               supported:      true,
-              enabled_fn:     ENABLED_PROC,
+              enabled_fn:     method(:enabled?),
               disabled_value: false,
               permitted_fn:   nil
             }
@@ -124,7 +131,7 @@ module NewRelic
             {
               option:         :'custom_attributes.enabled',
               supported:      true,
-              enabled_fn:     ENABLED_PROC,
+              enabled_fn:     method(:enabled?),
               disabled_value: false,
               permitted_fn:   nil
             }
@@ -142,7 +149,7 @@ module NewRelic
             {
               option:         :'message_tracer.segment_parameters.enabled',
               supported:      true,
-              enabled_fn:     ENABLED_PROC,
+              enabled_fn:     method(:enabled?),
               disabled_value: false,
               permitted_fn:   nil
             }
@@ -151,14 +158,14 @@ module NewRelic
             {
               option:         :'resque.capture_params',
               supported:      true,
-              enabled_fn:     ENABLED_PROC,
+              enabled_fn:     method(:enabled?),
               disabled_value: false,
               permitted_fn:   nil
             },
             {
               option:         :'sidekiq.capture_params',
               supported:      true,
-              enabled_fn:     ENABLED_PROC,
+              enabled_fn:     method(:enabled?),
               disabled_value: false,
               permitted_fn:   nil
             }
