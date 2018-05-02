@@ -181,7 +181,7 @@ module NewRelic
 
         def build_overrides(security_policies)
           security_policies.inject({}) do |settings, (policy_name, policy_settings)|
-            policy = SECURITY_SETTINGS_MAP[policy_name].each do |policy|
+            SECURITY_SETTINGS_MAP[policy_name].each do |policy|
               next unless policy[:supported]
               if policy_settings[ENABLED]
                 if policy[:enabled_fn].call(policy[:option])
