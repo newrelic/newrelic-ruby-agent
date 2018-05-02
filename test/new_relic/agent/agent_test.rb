@@ -377,6 +377,27 @@ module NewRelic
         refute old_rules == @agent.stats_engine.metric_rules, "#{@agent.stats_engine.metric_rules} should not be equal to\n#{old_rules}"
       end
 
+      def test_security_policies_added_when_received_from_connect
+        connect_response = {
+          'agent_config' => {},
+          'security_policies' => {'record_sql' => {'enabled' => false}}
+        }
+
+        @agent.service.expects(:connect).returns(connect_response)
+        @agent.expects(:add_security_policy_config).with(connect_reponse['security_policies'])
+        @agent.send(:connect)
+      end
+
+      def test_security_policies_not_added_when_not_received_from_connect
+        connect_response = {
+          'agent_config' => {}
+        }
+
+        @agent.service.expects(:connect).returns(connect_response)
+        @agent.expects(:add_security_policy_config).never
+        @agent.send(:connect)
+      end
+
       def test_connect_settings
         expected = [
          :pid,
