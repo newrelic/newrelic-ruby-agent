@@ -868,9 +868,11 @@ module NewRelic
           end
 
           def add_security_policy_config(security_policies)
-            ::NewRelic::Agent.logger.info "Installing security policies"
+            ::NewRelic::Agent.logger.info 'Installing security policies'
             security_policy_source = NewRelic::Agent::Configuration::SecurityPolicySource.new(security_policies)
             Agent.config.replace_or_add_config(security_policy_source)
+            # drop data collected before applying security policies
+            drop_buffered_data
           end
 
           class WaitOnConnectTimeout < StandardError

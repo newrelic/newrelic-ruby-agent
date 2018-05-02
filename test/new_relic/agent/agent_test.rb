@@ -384,7 +384,7 @@ module NewRelic
         }
 
         @agent.service.expects(:connect).returns(connect_response)
-        @agent.expects(:add_security_policy_config).with(connect_reponse['security_policies'])
+        @agent.expects(:add_security_policy_config).with(connect_response['security_policies'])
         @agent.send(:connect)
       end
 
@@ -395,6 +395,17 @@ module NewRelic
 
         @agent.service.expects(:connect).returns(connect_response)
         @agent.expects(:add_security_policy_config).never
+        @agent.send(:connect)
+      end
+
+      def test_data_dropped_when_security_policies_received_from_connect
+        connect_response = {
+          'agent_config' => {},
+          'security_policies' => {'record_sql' => {'enabled' => false}}
+        }
+
+        @agent.service.expects(:connect).returns(connect_response)
+        @agent.expects(:drop_buffered_data)
         @agent.send(:connect)
       end
 
