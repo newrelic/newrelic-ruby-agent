@@ -451,5 +451,6 @@ module NewRelic::Agent::Configuration
     def assert_parsing_error
       expects_logging(:error, includes(Manager::PARSING_LABELS_FAILURE), any_parameters)
     end
+
   end
 end

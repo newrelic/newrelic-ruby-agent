@@ -8,6 +8,7 @@ require 'new_relic/agent/audit_logger'
 require 'new_relic/agent/new_relic_service/encoders'
 require 'new_relic/agent/new_relic_service/marshaller'
 require 'new_relic/agent/new_relic_service/json_marshaller'
+require 'new_relic/agent/new_relic_service/policy_validator'
 
 module NewRelic
   module Agent
@@ -15,7 +16,7 @@ module NewRelic
       # Specifies the version of the agent's communication protocol with
       # the NewRelic hosted site.
 
-      PROTOCOL_VERSION = 15
+      PROTOCOL_VERSION = 16
 
       # 1f147a42: v10 (tag 3.5.3.17)
       # cf0d1ff1: v9 (tag 3.5.0)
@@ -77,7 +78,18 @@ module NewRelic
       end
 
       def preconnect
-        invoke_remote(:preconnect)
+        token = Agent.config[:security_policies_token]
+
+        if token && !token.empty?
+          response = invoke_remote(:preconnect, [{'security_policies_token' => token}])
+
+          validator = PolicyValidator.new(response)
+          validator.validate_matching_agent_config!
+
+          response['redirect_host']
+        else
+          invoke_remote(:preconnect, [])['redirect_host']
+        end
       end
 
       def shutdown(time)
