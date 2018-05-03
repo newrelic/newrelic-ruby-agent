@@ -68,7 +68,10 @@ module NewRelic
         Module.send :include, NewRelic::Agent::MethodTracer
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
-        if Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?
+
+        if !security_settings_valid?
+          handle_invalid_security_settings
+        elsif Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?
           start_agent
           install_instrumentation
         elsif !Agent.config[:agent_enabled]
@@ -100,10 +103,24 @@ module NewRelic
         config_file_path = @config_file_override || Agent.config[:config_path]
         Agent.config.replace_or_add_config(Agent::Configuration::YamlSource.new(config_file_path, env))
 
-        if Agent.config[:high_security]
+        if security_settings_valid? && Agent.config[:high_security]
           Agent.logger.info("Installing high security configuration based on local configuration")
           Agent.config.replace_or_add_config(Agent::Configuration::HighSecuritySource.new(Agent.config))
         end
+      end
+
+      def security_settings_valid?
+        !Agent.config[:high_security] &&
+          Agent.config[:security_policies_token]
+      end
+
+      def handle_invalid_security_settings
+        NewRelic::Agent.logger.error "Security Policies and High Security " \
+          "Mode cannot both be present in the agent configuration. If " \
+          "Security Policies have been set for your account, please " \
+          "ensure the security_policies_token is set but high_security is " \
+          "disabled (default)."
+        install_shim
       end
 
       # Install the real agent into the Agent module, and issue the start command.
