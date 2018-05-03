@@ -844,6 +844,20 @@ module NewRelic
 
             @service.agent_id = config_data['agent_run_id']
 
+            security_policies = config_data.delete('security_policies')
+
+            add_server_side_config(config_data)
+            add_security_policy_config(security_policies) if security_policies
+
+            log_connection!(config_data)
+            @transaction_rules = RulesEngine.create_transaction_rules(config_data)
+            @stats_engine.metric_rules = RulesEngine.create_metric_rules(config_data)
+
+            # If you're adding something else here to respond to the server-side config,
+            # use Agent.instance.events.subscribe(:finished_configuring) callback instead!
+          end
+
+          def add_server_side_config(config_data)
             if config_data['agent_config']
               ::NewRelic::Agent.logger.debug "Using config from server"
             end
@@ -851,13 +865,14 @@ module NewRelic
             ::NewRelic::Agent.logger.debug "Server provided config: #{config_data.inspect}"
             server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data, Agent.config)
             Agent.config.replace_or_add_config(server_config)
-            log_connection!(config_data)
+          end
 
-            @transaction_rules = RulesEngine.create_transaction_rules(config_data)
-            @stats_engine.metric_rules = RulesEngine.create_metric_rules(config_data)
-
-            # If you're adding something else here to respond to the server-side config,
-            # use Agent.instance.events.subscribe(:finished_configuring) callback instead!
+          def add_security_policy_config(security_policies)
+            ::NewRelic::Agent.logger.info 'Installing security policies'
+            security_policy_source = NewRelic::Agent::Configuration::SecurityPolicySource.new(security_policies)
+            Agent.config.replace_or_add_config(security_policy_source)
+            # drop data collected before applying security policies
+            drop_buffered_data
           end
 
           class WaitOnConnectTimeout < StandardError
