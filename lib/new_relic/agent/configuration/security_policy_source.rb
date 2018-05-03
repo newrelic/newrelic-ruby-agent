@@ -8,7 +8,6 @@ module NewRelic
   module Agent
     module Configuration
       class SecurityPolicySource < DottedHash
-
         class << self
           def enabled?(option)
             Agent.config[option]
@@ -34,6 +33,21 @@ module NewRelic
             policies[option] = new_value
           end
         end
+
+        # The keys of the security settings map are the names of security
+        # policies received from the server. They map to multiple configuration
+        # options in the local config. There is a hash of metadata that
+        # corresponds to each configuration option with the following keys:
+        #
+        # option: the configuration option name
+        # supported: true if the agent has one or more corresponding
+        #   configuration options
+        # enabled_fn: a callable that takes the configuration option and returns
+        #   true if the option is enabled, false otherwise
+        # disabled_value: the value of the configuration option when it is
+        #   disabled
+        # permitted_fn: a callable, that will be executed if an option is
+        #   permitted by the security policy and is also enabled by the config
 
         SECURITY_SETTINGS_MAP = {
           "record_sql" => [
