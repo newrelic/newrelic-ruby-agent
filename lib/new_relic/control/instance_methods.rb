@@ -110,8 +110,8 @@ module NewRelic
       end
 
       def security_settings_valid?
-        !Agent.config[:high_security] &&
-          Agent.config[:security_policies_token]
+        !Agent.config[:high_security] ||
+          Agent.config[:security_policies_token].empty?
       end
 
       def handle_invalid_security_settings
