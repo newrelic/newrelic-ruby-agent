@@ -183,7 +183,8 @@ module NewRelic
           return if !needs_restart ||
             !Agent.config[:agent_enabled] ||
             !Agent.config[:monitor_mode] ||
-            disconnected?
+            disconnected? ||
+            !control.security_settings_valid?
 
           ::NewRelic::Agent.logger.debug "Starting the worker thread in #{Process.pid} (parent #{Process.ppid}) after forking."
 
