@@ -39,6 +39,37 @@ module NewRelic
 
           assert_equal expected, settings
         end
+
+        load_cross_agent_test("language_agents_security_policies").each do |test_case|
+          define_method("test_#{test_case['name']}".tr(" ", "_")) do
+            with_redefined_policies(test_case['required_features']) do
+              policies = test_case['security_policies']
+              validator = SecurityPolicySettings::Validator.new(test_case)
+
+              if test_case['should_shutdown']
+                assert_raises(NewRelic::Agent::UnrecoverableAgentException) do
+                  validator.validate_matching_agent_config!
+                end
+              else
+                validator.validate_matching_agent_config!
+                settings = SecurityPolicySettings.preliminary_settings(policies)
+                assert_equal test_case['expected_connect_policies'], settings['security_policies']
+                test_case['validate_policies_not_in_connect'].keys.each do |key|
+                  refute_includes settings['security_policies'].keys, key
+                end
+              end
+            end
+          end
+        end
+
+        def with_redefined_policies(new_policies)
+          original_policies = SecurityPolicySettings::EXPECTED_SECURITY_POLICIES
+          SecurityPolicySettings.send(:remove_const, :EXPECTED_SECURITY_POLICIES)
+          SecurityPolicySettings.const_set(:EXPECTED_SECURITY_POLICIES, new_policies)
+          yield
+          SecurityPolicySettings.send(:remove_const, :EXPECTED_SECURITY_POLICIES)
+          SecurityPolicySettings.const_set(:EXPECTED_SECURITY_POLICIES, original_policies)
+        end
       end
     end
   end
