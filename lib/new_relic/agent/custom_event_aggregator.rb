@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/event_aggregator'
 require 'new_relic/agent/attribute_processing'
+require 'new_relic/agent/sampled_buffer'
 
 module NewRelic
   module Agent
@@ -12,16 +13,20 @@ module NewRelic
 
       TYPE             = 'type'.freeze
       TIMESTAMP        = 'timestamp'.freeze
+      PRIORITY         = 'priority'.freeze
       EVENT_TYPE_REGEX = /^[a-zA-Z0-9:_ ]+$/.freeze
 
       named :CustomEventAggregator
       capacity_key :'custom_insights_events.max_samples_stored'
       enabled_key :'custom_insights_events.enabled'
+      buffer_class PrioritySampledBuffer
 
       def record(type, attributes)
         unless attributes.is_a? Hash
           raise ArgumentError, "Expected Hash but got #{attributes.class}"
         end
+
+        return unless enabled?
 
         type = @type_strings[type]
         unless type =~ EVENT_TYPE_REGEX
@@ -29,15 +34,31 @@ module NewRelic
           return false
         end
 
+        priority = attributes[:priority] || rand
+
         event = [
-          { TYPE => type, TIMESTAMP => Time.now.to_i },
+          { TYPE => type, TIMESTAMP => Time.now.to_i,
+            PRIORITY => priority
+          },
           AttributeProcessing.flatten_and_coerce(attributes)
         ]
 
         stored = @lock.synchronize do
-          @buffer.append(event)
+          @buffer.append(event: event, priority: priority)
         end
         stored
+      end
+
+      def merge! payload, adjust_count = true
+        @lock.synchronize do
+          _, samples = payload
+
+          if adjust_count
+            @buffer.decrement_lifetime_counts_by samples.count
+          end
+
+          samples.each { |s| @buffer.append event: s }
+        end
       end
 
       private

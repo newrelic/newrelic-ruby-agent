@@ -13,6 +13,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
 
     NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
     events = last_posted_events
+    events.first[0].delete('priority')
 
     expected_event = [{'type' => 'DummyType', 'timestamp' => t0.to_i },
                       {'foo' => 'bar', 'baz' => 'qux'}]
