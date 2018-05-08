@@ -109,7 +109,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       NewRelic::Agent.agent.stubs(:connected?).returns(true)
       run_child(699) do
         NewRelic::Agent.after_fork(:report_to_channel => 699)
-        transaction_event_aggregator.append event: NewRelic::Agent::TransactionEventPrimitive.create({
+        transaction_event_aggregator.record event: NewRelic::Agent::TransactionEventPrimitive.create({
           :start_timestamp => Time.now,
           :name => 'whatever',
           :duration => 10,

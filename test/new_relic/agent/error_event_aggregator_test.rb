@@ -30,7 +30,7 @@ module NewRelic
         n.times do
           error = NewRelic::NoticedError.new "Controller/blogs/index", RuntimeError.new("Big Controller")
           payload = in_transaction{}.payload
-          @error_event_aggregator.append_event error, payload
+          @error_event_aggregator.record error, payload
         end
       end
 
@@ -59,7 +59,7 @@ module NewRelic
       # Tests specific to ErrorEventAggregator
 
       def test_generates_event_without_payload
-        aggregator.append_event create_noticed_error('blogs/index'), nil
+        aggregator.record create_noticed_error('blogs/index'), nil
 
         intrinsics, *_ = last_error_event
 
@@ -155,7 +155,7 @@ module NewRelic
         payload_options[:priority] = options[:priority] if options[:priority]
         payload = create_transaction_payload txn_name, payload_options
 
-        @error_event_aggregator.append_event error, payload
+        @error_event_aggregator.record error, payload
       end
     end
   end

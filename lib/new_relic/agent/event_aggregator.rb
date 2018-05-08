@@ -79,7 +79,7 @@ module NewRelic
             @buffer.decrement_lifetime_counts_by samples.count
           end
 
-          samples.each { |s| @buffer.append s }
+          samples.each { |s| @buffer.append event: s }
         end
       end
 

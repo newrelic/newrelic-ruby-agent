@@ -49,18 +49,6 @@ module NewRelic
         stored
       end
 
-      def merge! payload, adjust_count = true
-        @lock.synchronize do
-          _, samples = payload
-
-          if adjust_count
-            @buffer.decrement_lifetime_counts_by samples.count
-          end
-
-          samples.each { |s| @buffer.append event: s }
-        end
-      end
-
       private
 
       def after_initialize
