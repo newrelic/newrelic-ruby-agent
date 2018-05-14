@@ -4,30 +4,23 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/event_aggregator'
-require 'new_relic/agent/synthetics_event_buffer'
+require 'new_relic/agent/priority_sampled_buffer'
 
 module NewRelic
   module Agent
     class SyntheticsEventAggregator < EventAggregator
+      PRIORITY = 'priority'.freeze
 
       named :SyntheticsEventAggregator
       capacity_key :'synthetics.events_limit'
       enabled_key :'analytics_events.enabled'
-      buffer_class SyntheticsEventBuffer
+      buffer_class PrioritySampledBuffer
 
-      def append_or_reject event
+      def record event
         return unless enabled?
 
         @lock.synchronize do
-          @buffer.append_with_reject event
-        end
-      end
-
-      # slightly different semantics than the EventAggregator for merge
-      def merge! payload
-        _, events = payload
-        @lock.synchronize do
-          events.each { |e| @buffer.append_with_reject e}
+          @buffer.append event: event, priority: event[0][PRIORITY]
         end
       end
 
