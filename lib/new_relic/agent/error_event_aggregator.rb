@@ -16,7 +16,7 @@ module NewRelic
       enabled_key :'error_collector.capture_events'
       buffer_class PrioritySampledBuffer
 
-      def append_event noticed_error, transaction_payload = nil
+      def record noticed_error, transaction_payload = nil
         return unless enabled?
 
         priority = (transaction_payload && transaction_payload[:priority]) || rand
@@ -26,18 +26,6 @@ module NewRelic
             create_event(noticed_error, transaction_payload)
           end
           notify_if_full
-        end
-      end
-
-      def merge! payload, adjust_count = true
-        _, samples = payload
-
-        @lock.synchronize do
-          if adjust_count
-            @buffer.decrement_lifetime_counts_by samples.count
-          end
-
-          samples.each { |s| @buffer.append event: s }
         end
       end
 

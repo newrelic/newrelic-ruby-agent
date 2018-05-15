@@ -57,9 +57,9 @@ module NewRelic
 
       # Tests specific to TransactionEventAggregator
 
-      def test_append_accepts_a_block
+      def test_record_accepts_a_block
         payload = generate_payload
-        @event_aggregator.append(priority: 0.5) { TransactionEventPrimitive.create(payload) }
+        @event_aggregator.record(priority: 0.5) { TransactionEventPrimitive.create(payload) }
         assert_equal 1, last_transaction_events.size
       end
 
@@ -70,7 +70,7 @@ module NewRelic
           5.times { generate_request }
 
           payload = generate_payload
-          @event_aggregator.append(priority: -1.0) do
+          @event_aggregator.record(priority: -1.0) do
             event = TransactionEventPrimitive.create(payload)
           end
         end
@@ -85,11 +85,7 @@ module NewRelic
 
       def generate_request(name='whatever', options={})
         payload = generate_payload name, options
-        if options['sampled']
-          @event_aggregator.append_sampled TransactionEventPrimitive.create(payload)
-        else
-          @event_aggregator.append event: TransactionEventPrimitive.create(payload)
-        end
+        @event_aggregator.record event: TransactionEventPrimitive.create(payload)
       end
 
       def generate_payload(name='whatever', options={})
