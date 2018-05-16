@@ -28,12 +28,17 @@ module NewRelic
         if full?
           priority ||= priority_for(event)
           if priority_for(@items[0]) < priority
-            @items[0] = event || blk.call
+            incoming = event || blk.call
+            @items[0] = incoming
             @items.fix(0)
+            incoming
+          else
+            nil
           end
         else
           @items << (event || blk.call)
           @captured_lifetime += 1
+          @items[-1]
         end
       end
 

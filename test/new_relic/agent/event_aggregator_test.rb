@@ -115,17 +115,20 @@ module NewRelic
         assert_kind_of NewRelic::Agent::SampledBuffer, @aggregator.buffer
       end
 
+      class TestBuffer < NewRelic::Agent::EventBuffer
+      end
+
       def test_buffer_class_is_overridable
         klass = Class.new(EventAggregator) do
           named :TestAggregator2
           capacity_key :cap_key
           enabled_key :enabled_key
-          buffer_class NewRelic::Agent::SizedBuffer
+          buffer_class TestBuffer
           attr_reader :buffer
         end
         instance = klass.new
 
-        assert_kind_of NewRelic::Agent::SizedBuffer, instance.buffer
+        assert_kind_of TestBuffer, instance.buffer
       end
 
       def test_buffer_adjusts_count_by_default_on_merge
