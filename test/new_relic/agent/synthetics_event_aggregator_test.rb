@@ -91,6 +91,19 @@ module NewRelic
         end
       end
 
+      def test_normal_events_discarded_in_favor_sampled_events
+        with_config aggregator.class.capacity_key => 5 do
+          5.times { |i| generate_event "sampled_#{i}"             }
+          5.times { |i| generate_event "totally_not_sampled_#{i}" }
+
+          _, events = aggregator.harvest!
+
+          expected = (0..4).map { |i| "Controller/sampled_#{i}" }
+
+          assert_equal_unordered expected, events.map { |e| name_for(e) }
+        end
+      end
+
       def test_includes_agent_attributes
         attributes.add_agent_attribute :'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_TRANSACTION_EVENTS
         attributes.add_agent_attribute :httpResponseCode, "200", AttributeFilter::DST_TRANSACTION_EVENTS
