@@ -129,5 +129,13 @@ module NewRelic::Agent
         @aggregator.harvest!
       end
     end
+
+    def test_aggregator_defers_custom_event_creation
+      with_config aggregator.class.capacity_key => 5 do
+        5.times { generate_event }
+        aggregator.expects(:create_event).never
+        aggregator.record('ImpossibleEvent', { priority: -999.0 })
+      end
+    end
   end
 end
