@@ -14,6 +14,6 @@ module NewRelic
       def priority_for(event)
         -event[0][TIMESTAMP_KEY]
       end
-  	end
+    end
   end
 end
