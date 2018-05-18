@@ -87,7 +87,7 @@ module NewRelic
       end
     end
 
-    def test_normal_events_discarded_in_favor_sampled_events
+    def test_lower_priority_events_discarded_in_favor_higher_priority_events
       with_config aggregator.class.capacity_key => 5 do
         5.times { |i| generate_event "totally_not_sampled_#{i}", :priority => rand     }
         5.times { |i| generate_event "sampled_#{i}",             :priority => rand + 1 }
@@ -100,7 +100,7 @@ module NewRelic
       end
     end
 
-    def test_sampled_events_not_discarded_in_favor_of_normal_events
+    def test_higher_priority_events_not_discarded_in_favor_of_lower_priority_events
       with_config aggregator.class.capacity_key => 5 do
         5.times { |i| generate_event "sampled_#{i}",             :priority => rand + 1 }
         5.times { |i| generate_event "totally_not_sampled_#{i}", :priority => rand     }

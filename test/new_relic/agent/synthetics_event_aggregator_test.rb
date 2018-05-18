@@ -91,6 +91,20 @@ module NewRelic
         end
       end
 
+      def test_lower_priority_events_discarded_in_favor_higher_priority_events
+        with_config aggregator.class.capacity_key => 5 do
+          10.times { |i| generate_event "event_#{i}" }
+          # Each event gets a timestamp of Time.now, which is used to determine priority
+          # (older events are higher priority)
+
+          _, events = aggregator.harvest!
+
+          expected = (0..4).map { |i| "Controller/event_#{i}" }
+
+          assert_equal_unordered expected, events.map { |e| name_for(e) }
+        end
+      end
+
       def test_includes_agent_attributes
         attributes.add_agent_attribute :'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_TRANSACTION_EVENTS
         attributes.add_agent_attribute :httpResponseCode, "200", AttributeFilter::DST_TRANSACTION_EVENTS
