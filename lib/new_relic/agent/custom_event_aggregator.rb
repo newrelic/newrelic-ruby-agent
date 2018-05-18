@@ -4,7 +4,6 @@
 
 require 'new_relic/agent/event_aggregator'
 require 'new_relic/agent/attribute_processing'
-require 'new_relic/agent/sampled_buffer'
 
 module NewRelic
   module Agent
@@ -19,7 +18,6 @@ module NewRelic
       named :CustomEventAggregator
       capacity_key :'custom_insights_events.max_samples_stored'
       enabled_key :'custom_insights_events.enabled'
-      buffer_class PrioritySampledBuffer
 
       def record(type, attributes)
         unless attributes.is_a? Hash
