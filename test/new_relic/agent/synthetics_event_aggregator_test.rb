@@ -91,7 +91,7 @@ module NewRelic
         end
       end
 
-      def test_normal_events_discarded_in_favor_sampled_events
+      def test_lower_priority_events_discarded_in_favor_higher_priority_events
         with_config aggregator.class.capacity_key => 5 do
           10.times { |i| generate_event "event_#{i}" }
           # Each event gets a timestamp of Time.now, which is used to determine priority
