@@ -103,6 +103,20 @@ module NewRelic
         end
       end
 
+      class ImpossibleError < NoticedError
+        def initialize
+          super 'nowhere.rb', RuntimeError.new('Impossible')
+        end
+      end
+
+      def test_aggregator_defers_error_event_creation
+        with_config aggregator.class.capacity_key => 5 do
+          5.times { generate_event }
+          aggregator.expects(:create_event).never
+          aggregator.record(ImpossibleError.new, { priority: -999.0 })
+        end
+      end
+
       #
       # Helpers
       #

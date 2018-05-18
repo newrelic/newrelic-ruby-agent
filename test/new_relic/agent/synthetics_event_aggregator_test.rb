@@ -103,6 +103,21 @@ module NewRelic
         assert_equal expected, agent_attrs
       end
 
+      def test_aggregator_defers_synthetics_event_creation
+        with_config aggregator.class.capacity_key => 5 do
+          5.times { generate_event }
+          aggregator.expects(:create_event).never
+
+          payload = {
+            :name => "Doesnt/matter",
+            :synthetics_resource_id => 100,
+            :priority => 0.123
+          }
+
+          aggregator.record TransactionEventPrimitive.create(payload)
+        end
+      end
+
       def last_synthetics_events
         @synthetics_event_aggregator.harvest![1]
       end

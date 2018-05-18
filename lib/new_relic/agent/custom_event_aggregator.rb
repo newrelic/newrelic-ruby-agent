@@ -36,20 +36,24 @@ module NewRelic
 
         priority = attributes[:priority] || rand
 
-        event = [
-          { TYPE => type, TIMESTAMP => Time.now.to_i,
-            PRIORITY => priority
-          },
-          AttributeProcessing.flatten_and_coerce(attributes)
-        ]
-
         stored = @lock.synchronize do
-          @buffer.append(event: event, priority: priority)
+          @buffer.append(priority: priority) do
+            create_event(type, priority, attributes)
+          end
         end
         stored
       end
 
       private
+
+      def create_event(type, priority, attributes)
+        [
+          { TYPE => type, TIMESTAMP => Time.now.to_i,
+            PRIORITY => priority
+          },
+          AttributeProcessing.flatten_and_coerce(attributes)
+        ]
+      end
 
       def after_initialize
         @type_strings = Hash.new { |hash, key| hash[key] = key.to_s.freeze }
