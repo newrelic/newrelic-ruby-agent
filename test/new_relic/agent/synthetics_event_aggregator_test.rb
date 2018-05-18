@@ -93,12 +93,13 @@ module NewRelic
 
       def test_normal_events_discarded_in_favor_sampled_events
         with_config aggregator.class.capacity_key => 5 do
-          5.times { |i| generate_event "sampled_#{i}"             }
-          5.times { |i| generate_event "totally_not_sampled_#{i}" }
+          10.times { |i| generate_event "event_#{i}" }
+          # Each event gets a timestamp of Time.now, which is used to determine priority
+          # (older events are higher priority)
 
           _, events = aggregator.harvest!
 
-          expected = (0..4).map { |i| "Controller/sampled_#{i}" }
+          expected = (0..4).map { |i| "Controller/event_#{i}" }
 
           assert_equal_unordered expected, events.map { |e| name_for(e) }
         end
