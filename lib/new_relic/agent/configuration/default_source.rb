@@ -1691,7 +1691,7 @@ module NewRelic
           :description => 'If <code>true</code>, enables span event sampling.'
         },
         :'span_events.max_samples_stored' => {
-          :default => 2000,
+          :default => 1000,
           :public => false,
           :type => Integer,
           :allowed_from_server => true,
