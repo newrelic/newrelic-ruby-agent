@@ -2,8 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
+require File.expand_path('../../../test_helper', __FILE__)
+require File.expand_path('../../data_container_tests', __FILE__)
+require File.expand_path('../../common_aggregator_tests', __FILE__)
 require 'new_relic/agent/span_event_aggregator'
 require 'securerandom'
 
@@ -30,26 +31,42 @@ module NewRelic
 
       include NewRelic::DataContainerTests
 
-      def generate_event(name, options = {})
-        guid = generate_guid
+      # Helpers for CommonAggregatorTests
 
-        event = {
+      def generate_event(name='operation_name', options = {})
+        guid = SecureRandom.hex(16)
+
+        event = [
+          {
           'name' => name,
-          'priority' => rand,
+          'priority' => options[:priority] || rand,
           'sampled' => false,
           'guid'    => guid,
           'traceId' => guid,
           'timestamp' => (Time.now.to_f * 1000).round,
           'duration' => rand,
           'category' => 'custom'
-        }
+          },
+          {},
+          {}
+        ]
 
-        @event_aggregator.append event: event.merge(options)
+        @event_aggregator.record event: event
       end
 
-      def generate_guid
-        SecureRandom.hex(16)
+      def last_events
+        aggregator.harvest![1]
       end
+
+      def aggregator
+        @event_aggregator
+      end
+
+      def name_for(event)
+        event[0]["name"]
+      end
+
+      include NewRelic::CommonAggregatorTests
     end
   end
 end
