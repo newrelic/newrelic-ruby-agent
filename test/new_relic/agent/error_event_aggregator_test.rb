@@ -38,7 +38,7 @@ module NewRelic
 
       # Helpers for CommonAggregatorTests
 
-      def generate_event(name = 'blogs/index', options = {})
+      def generate_event(name = 'Controller/blogs/index', options = {})
         generate_error(name, options)
       end
 
@@ -159,15 +159,13 @@ module NewRelic
         }.update(options)
       end
 
-      def generate_error name = 'blogs/index', options = {}
-        txn_name = "Controller/#{name}"
-
+      def generate_error name = 'Controller/blogs/index', options = {}
         error_options = options[:error_options] || {}
-        error = create_noticed_error txn_name, error_options
+        error = create_noticed_error name, error_options
 
         payload_options = options[:payload_options] || {}
         payload_options[:priority] = options[:priority] if options[:priority]
-        payload = create_transaction_payload txn_name, payload_options
+        payload = create_transaction_payload name, payload_options
 
         @error_event_aggregator.record error, payload
       end

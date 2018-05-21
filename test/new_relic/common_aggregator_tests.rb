@@ -94,7 +94,7 @@ module NewRelic
 
         _, events = aggregator.harvest!
 
-        expected = (0..4).map { |i| "Controller/sampled_#{i}" }
+        expected = (0..4).map { |i| "sampled_#{i}" }
 
         assert_equal_unordered expected, events.map { |e| name_for(e) }
       end
@@ -107,7 +107,7 @@ module NewRelic
 
         _, events = aggregator.harvest!
 
-        expected = (0..4).map { |i| "Controller/sampled_#{i}" }
+        expected = (0..4).map { |i| "sampled_#{i}" }
 
         assert_equal_unordered expected, events.map { |e| name_for(e) }
       end
