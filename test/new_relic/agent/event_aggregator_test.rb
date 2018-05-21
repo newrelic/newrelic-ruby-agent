@@ -17,7 +17,8 @@ module NewRelic
         attr_reader :buffer
 
         def record item
-          @buffer.append item
+          event = { 'name' => "Event#{item}", 'priority' => rand }
+          @buffer.append(event: [event])
           notify_if_full
         end
       end
@@ -112,7 +113,7 @@ module NewRelic
       end
 
       def test_buffer_class_defaults_to_sampled_buffer
-        assert_kind_of NewRelic::Agent::SampledBuffer, @aggregator.buffer
+        assert_kind_of NewRelic::Agent::PrioritySampledBuffer, @aggregator.buffer
       end
 
       class TestBuffer < NewRelic::Agent::EventBuffer

@@ -3,10 +3,11 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/heap'
+require 'new_relic/agent/event_buffer'
 
 module NewRelic
   module Agent
-    class PrioritySampledBuffer < SampledBuffer
+    class PrioritySampledBuffer < EventBuffer
       PRIORITY_KEY = "priority".freeze
 
       attr_reader :seen_lifetime, :captured_lifetime
@@ -55,6 +56,22 @@ module NewRelic
 
       def to_a
         @items.to_a.dup
+      end
+
+      def decrement_lifetime_counts_by n
+        @captured_lifetime -= n
+        @seen_lifetime -= n
+      end
+
+      def sample_rate_lifetime
+        @captured_lifetime > 0 ? (@captured_lifetime.to_f / @seen_lifetime) : 0.0
+      end
+
+      def metadata
+        super.merge!(
+          :captured_lifetime => @captured_lifetime,
+          :seen_lifetime => @seen_lifetime
+        )
       end
 
       private
