@@ -10,7 +10,7 @@ class SpanEventsTest < Minitest::Test
 
   def test_span_events_are_submitted
     event = generate_event('test_event')
-    NewRelic::Agent.instance.span_event_aggregator.append(event: event)
+    NewRelic::Agent.instance.span_event_aggregator.record(event: event)
 
     NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
@@ -29,21 +29,20 @@ class SpanEventsTest < Minitest::Test
   end
 
   def generate_event(name, options = {})
-    guid = generate_guid
-
-    {
+    guid = SecureRandom.hex(16)
+    [
+      {
       'name' => name,
-      'priority' => rand,
+      'priority' => options[:priority] || rand,
       'sampled' => false,
       'guid'    => guid,
       'traceId' => guid,
       'timestamp' => (Time.now.to_f * 1000).round,
       'duration' => rand,
       'category' => 'custom'
-    }
-  end
-
-  def generate_guid
-    SecureRandom.hex(16)
+      },
+      {},
+      {}
+    ]
   end
 end
