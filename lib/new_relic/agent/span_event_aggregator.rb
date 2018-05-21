@@ -14,7 +14,6 @@ module NewRelic
       named :SpanEventAggregator
       capacity_key :'span_events.max_samples_stored'
       enabled_key :'span_events.enabled'
-      buffer_class PrioritySampledBuffer
 
       def record priority: nil, event:nil, &blk
         unless(event || priority && blk)
