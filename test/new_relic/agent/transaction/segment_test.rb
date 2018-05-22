@@ -121,6 +121,65 @@ module NewRelic
           ]
         end
 
+        def test_non_sampled_segment_does_not_record_span_event
+          in_transaction('wat') do |txn|
+            txn.sampled = false
+
+            segment = Segment.new 'Ummm'
+            txn.add_segment segment
+            segment.start
+            advance_time 1.0
+            segment.finish
+          end
+
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          assert_empty last_span_events
+        end
+
+        def test_sampled_segment_records_span_event
+          trace_id  = nil
+          txn_guid  = nil
+          sampled   = nil
+          priority  = nil
+          timestamp = nil
+
+          in_transaction('wat') do |txn|
+            txn.sampled = true
+
+            segment = Segment.new 'Ummm'
+            txn.add_segment segment
+            segment.start
+            advance_time 1.0
+            segment.finish
+
+            timestamp = Integer(segment.start_time.to_f * 1000.0)
+
+            trace_id = txn.trace_id
+            txn_guid = txn.guid
+            sampled  = txn.sampled?
+            priority = txn.priority
+          end
+
+          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          assert_equal 2, last_span_events.size
+          custom_span_event = last_span_events[0][0]
+          root_span_event   = last_span_events[1][0]
+          root_guid         = root_span_event['guid']
+
+          assert_equal 'Span',    custom_span_event.fetch('type')
+          assert_equal trace_id,  custom_span_event.fetch('traceId')
+          refute_nil              custom_span_event.fetch('guid')
+          assert_equal root_guid, custom_span_event.fetch('parentId')
+          assert_nil              custom_span_event.fetch('grandparentId')
+          assert_equal txn_guid,  custom_span_event.fetch('rootSpanId')
+          assert_equal sampled,   custom_span_event.fetch('sampled')
+          assert_equal priority,  custom_span_event.fetch('priority')
+          assert_equal timestamp, custom_span_event.fetch('timestamp')
+          assert_equal 1.0,       custom_span_event.fetch('duration')
+          assert_equal 'Ummm',    custom_span_event.fetch('name')
+          assert_equal 'generic', custom_span_event.fetch('category')
+        end
+
         def test_sets_start_time_from_constructor
           t = Time.now
           segment = Segment.new nil, nil, t

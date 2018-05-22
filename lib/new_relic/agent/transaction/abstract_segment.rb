@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/range_extensions'
+require 'securerandom'
 
 module NewRelic
   module Agent
@@ -16,16 +17,17 @@ module NewRelic
         # a segments children time. The reason for this is that computing
         # exclusive duration using time ranges is expensive and it's only
         # necessary if a segment's children run concurrently, or a segment ends
-        # after it's parent. We will use the optimized exclusive duration
+        # after its parent. We will use the optimized exclusive duration
         # calculation in all other cases.
         #
-        attr_reader :start_time, :end_time, :duration, :exclusive_duration
+        attr_reader :start_time, :end_time, :duration, :exclusive_duration, :guid
         attr_accessor :name, :parent, :children_time, :transaction
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
 
         def initialize name=nil, start_time=nil
           @name = name
           @transaction = nil
+          @guid = SecureRandom.hex(16)
           @parent = nil
           @params = nil
           @start_time = start_time if start_time

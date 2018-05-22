@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/transaction/abstract_segment'
+require 'new_relic/agent/span_event_primitive'
 
 module NewRelic
   module Agent
@@ -44,6 +45,19 @@ module NewRelic
             end
           else
             @unscoped_metrics = metric
+          end
+        end
+
+        def segment_complete
+          record_event if transaction.sampled?
+        end
+
+        def record_event
+          aggregator = ::NewRelic::Agent.agent.span_event_aggregator
+          priority   = self.transaction.priority
+
+          aggregator.record(priority: priority) do
+            SpanEventPrimitive.create(self)
           end
         end
       end
