@@ -1,5 +1,10 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Bugfix for wrapping datastore operations
+
+    The agent will now complete the process of wrapping datastore
+    operations even if an error occurs during execution of a callback.
+
   ## v5.1.0 ##
 
   * Rails 5.2 support
