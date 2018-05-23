@@ -548,6 +548,7 @@ module NewRelic
           @transaction_sampler.reset!
           @transaction_event_recorder.drop_buffered_data
           @custom_event_aggregator.reset!
+          @span_event_aggregator.reset!
           @sql_sampler.reset!
 
           if Agent.config[:clear_transaction_state_after_fork]
