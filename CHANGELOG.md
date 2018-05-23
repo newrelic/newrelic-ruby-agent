@@ -14,6 +14,11 @@
     The agent will now complete the process of wrapping datastore
     operations even if an error occurs during execution of a callback.
 
+  * Span Events
+
+  Finished segments whose `sampled` property is `true` will now post
+  Span events to Insights.
+
   ## v5.1.0 ##
 
   * Rails 5.2 support
