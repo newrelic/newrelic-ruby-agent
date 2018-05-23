@@ -290,6 +290,14 @@ module NewRelic::Agent::Configuration
       refute @manager.config_classes_for_testing.include?(ServerSource)
       refute @manager.config_classes_for_testing.include?(YamlSource)
       refute @manager.config_classes_for_testing.include?(HighSecuritySource)
+      refute @manager.config_classes_for_testing.include?(SecurityPolicySource)
+    end
+
+    def test_high_security_source_addable
+      refute @manager.config_classes_for_testing.include?(SecurityPolicySource)
+      security_policy_source = SecurityPolicySource.new({'record_sql' => {'enabled' => false}})
+      @manager.replace_or_add_config security_policy_source
+      assert @manager.config_classes_for_testing.include?(SecurityPolicySource)
     end
 
     load_cross_agent_test("labels").each do |testcase|
@@ -451,5 +459,6 @@ module NewRelic::Agent::Configuration
     def assert_parsing_error
       expects_logging(:error, includes(Manager::PARSING_LABELS_FAILURE), any_parameters)
     end
+
   end
 end

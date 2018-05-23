@@ -4,7 +4,6 @@
 
 require File.expand_path '../../../test_helper', __FILE__
 require 'new_relic/agent/priority_sampled_buffer'
-require 'new_relic/agent/event_buffer_test_cases'
 
 module NewRelic::Agent
   class PrioritySampledBufferTest < Minitest::Test

@@ -209,7 +209,7 @@ module NewRelic
         noticed_error = create_noticed_error(exception, options)
         error_trace_aggregator.add_to_error_queue(noticed_error)
         payload = state.current_transaction ? state.current_transaction.payload : nil
-        error_event_aggregator.append_event(noticed_error, payload)
+        error_event_aggregator.record(noticed_error, payload)
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing error '#{exception}':", e)

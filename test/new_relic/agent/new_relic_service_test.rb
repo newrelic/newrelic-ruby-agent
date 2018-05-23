@@ -12,7 +12,7 @@ class NewRelicServiceTest < Minitest::Test
     @service = NewRelic::Agent::NewRelicService.new('license-key', @server)
 
     @http_handle = create_http_handle
-    @http_handle.respond_to(:preconnect, 'localhost')
+    @http_handle.respond_to(:preconnect, preconnect_response('localhost'))
     connect_response = {
       'config' => 'some config directives',
       'agent_run_id' => 1
@@ -237,7 +237,7 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_connect_uses_proxy_collector_if_preconnect_returns_no_redirect_host
     @http_handle.reset
-    @http_handle.respond_to(:preconnect, nil)
+    @http_handle.respond_to(:preconnect, preconnect_response(nil))
     @http_handle.respond_to(:connect, 'agent_run_id' => 1)
 
     @service.connect
@@ -246,15 +246,100 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_connect_sets_agent_id
     @http_handle.reset
-    @http_handle.respond_to(:preconnect, 'localhost')
+    @http_handle.respond_to(:preconnect, preconnect_response('localhost'))
     @http_handle.respond_to(:connect, 'agent_run_id' => 666)
 
     @service.connect
     assert_equal 666, @service.agent_id
   end
 
-  def test_preconnect
-    assert_equal 'localhost', @service.preconnect
+  def test_preconnect_with_no_token_and_no_lasp
+    response = @service.preconnect
+    assert_equal 'localhost', response['redirect_host']
+    assert_nil response['security_policies']
+  end
+
+  def test_preconnect_with_token_and_lasp
+    policies = DEFAULT_PRECONNECT_POLICIES
+
+    @http_handle.respond_to(:preconnect, preconnect_response_for_policies('localhost', policies))
+
+    with_config(:security_policies_token => 'please-use-lasp') do
+      response = @service.preconnect
+      assert_equal 'localhost', response['redirect_host']
+      refute response['security_policies'].empty?
+    end
+  end
+
+  def test_preconnect_with_unexpected_required_server_policy
+    policies = DEFAULT_PRECONNECT_POLICIES.merge({
+      'super_whizbang_feature' => {
+        'enabled' => true,
+        'required' => true
+      }
+    })
+
+    @http_handle.respond_to(:preconnect, preconnect_response_for_policies('localhost', policies))
+
+    with_config(:security_policies_token => 'please-check-these-policies') do
+      assert_raises(NewRelic::Agent::UnrecoverableAgentException) do
+        @service.preconnect
+      end
+    end
+  end
+
+  def test_preconnect_with_unexpected_optional_server_policy
+    policies = DEFAULT_PRECONNECT_POLICIES.merge({
+      'super_whizbang_feature' => {
+        'enabled' => true,
+        'required' => false
+      }
+    })
+
+    @http_handle.respond_to(:preconnect, preconnect_response_for_policies('localhost', policies))
+
+    with_config(:security_policies_token => 'please-check-these-policies') do
+      assert_equal @service.preconnect['redirect_host'], 'localhost'
+    end
+  end
+
+  def test_preconnect_with_missing_server_policy
+    policies = DEFAULT_PRECONNECT_POLICIES.reject do |k, _|
+      k == 'record_sql'
+    end
+
+    @http_handle.respond_to(:preconnect, preconnect_response_for_policies('localhost', policies))
+
+    with_config(:security_policies_token => 'please-check-these-policies') do
+      assert_raises(NewRelic::Agent::UnrecoverableAgentException) do
+        @service.preconnect
+      end
+    end
+  end
+
+  def test_preliminary_security_policies_sent_on_connect
+    policies = DEFAULT_PRECONNECT_POLICIES
+
+    @http_handle.respond_to(:preconnect, preconnect_response_for_policies('localhost', policies))
+
+    with_config(:security_policies_token => 'please-use-lasp') do
+      @service.connect
+      payload = @http_handle.last_request_payload.first
+      refute payload['security_policies'].empty?
+      assert_equal policies.keys, payload['security_policies'].keys
+    end
+  end
+
+  def test_security_policies_merged_into_connect_response
+    policies = DEFAULT_PRECONNECT_POLICIES
+
+    @http_handle.respond_to(:preconnect, preconnect_response_for_policies('localhost', policies))
+
+    with_config(:security_policies_token => 'please-use-lasp') do
+      response = @service.connect
+      refute response['security_policies'].empty?
+      assert_equal policies.keys, response['security_policies'].keys
+    end
   end
 
   def test_shutdown
@@ -808,6 +893,22 @@ class NewRelicServiceTest < Minitest::Test
       @service.send(:invoke_remote, 'roundtrip', [data])
       @http_handle.last_request_payload[0]
     end
+  end
+
+  def preconnect_response(host)
+    { 'redirect_host' => host }
+  end
+
+  DEFAULT_PRECONNECT_POLICIES = NewRelic::Agent::NewRelicService::SecurityPolicySettings::EXPECTED_SECURITY_POLICIES.inject({}) do |policies, name|
+    policies[name] = { 'enabled' => false, 'required' => true }
+    policies
+  end
+
+  def preconnect_response_for_policies(host, policies)
+    {
+      'redirect_host'     => host,
+      'security_policies' => policies
+    }
   end
 
   class DummyDataClass

@@ -121,11 +121,14 @@ module NewRelic
         begin
           result = yield
         ensure
-          if callback
-            elapsed_time = (Time.now - segment.start_time).to_f
-            callback.call(result, segment.name, elapsed_time)
+          begin
+            if callback
+                elapsed_time = (Time.now - segment.start_time).to_f
+                callback.call(result, segment.name, elapsed_time)
+            end
+          ensure
+            segment.finish if segment
           end
-          segment.finish if segment
         end
       end
 

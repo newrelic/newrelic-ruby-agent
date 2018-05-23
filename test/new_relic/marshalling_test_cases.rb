@@ -106,6 +106,9 @@ module MarshallingTestCases
       }
     ]
 
+    # we don't care about the specific priority for this test
+    events.first[0].delete("priority")
+
     assert_equal(expected_event, events.first)
   end
 
@@ -139,9 +142,14 @@ module MarshallingTestCases
     ]
 
     event = events.first
+
     # this is only present on REE, and we don't really care - the point of this
     # test is just to validate basic marshalling
     event[0].delete("gcCumulative")
+
+    # we don't care about the specific priority for this test
+    event[0].delete("priority")
+
     assert_equal(expected_event, event)
   end
 

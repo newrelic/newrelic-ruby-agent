@@ -30,6 +30,7 @@ module NewRelic
       SYNTHETICS_RESOURCE_ID_KEY     = "nr.syntheticsResourceId".freeze
       SYNTHETICS_JOB_ID_KEY          = "nr.syntheticsJobId".freeze
       SYNTHETICS_MONITOR_ID_KEY      = "nr.syntheticsMonitorId".freeze
+      PRIORITY_KEY                   = "priority".freeze
 
       def create noticed_error, payload
         [
@@ -54,6 +55,7 @@ module NewRelic
           attrs[NAME_KEY] = payload[:name]
           attrs[DURATION_KEY] = payload[:duration]
           attrs[SAMPLED_KEY] = payload[:'sampled'] if Agent.config[:'distributed_tracing.enabled']
+          attrs[PRIORITY_KEY] = payload[:'priority']
           append_synthetics payload, attrs
           append_cat payload, attrs
           append_distributed_trace_intrinsics payload, attrs

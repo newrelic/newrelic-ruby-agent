@@ -4,6 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..','common_aggregator_tests'))
 
 require 'new_relic/agent/custom_event_aggregator'
 
@@ -27,6 +28,32 @@ module NewRelic::Agent
     end
 
     include NewRelic::DataContainerTests
+
+    # Helpers for CommonAggregatorTests
+
+    def generate_event(name = 'blogs/index', options = {})
+      generate_request(name, options)
+    end
+
+    def generate_request(name='whatever', options={})
+      payload = options.merge(:name => "Controller/#{name}")
+
+      @aggregator.record :custom, payload
+    end
+
+    def last_events
+      aggregator.harvest![1]
+    end
+
+    def aggregator
+      @aggregator
+    end
+
+    def name_for(event)
+      event[1]["name"]
+    end
+
+    include NewRelic::CommonAggregatorTests
 
     def test_record_by_default_limit
       max_samples = NewRelic::Agent.config[:'custom_insights_events.max_samples_stored']
@@ -85,31 +112,10 @@ module NewRelic::Agent
       assert_equal(1, events.size)
       event = events.first
 
+      event[0].delete('priority')
+
       assert_equal({ 'type' => 'type_a', 'timestamp' => t0.to_i }, event[0])
       assert_equal({ 'foo'  => 'bar'   , 'baz'       => 'qux'   }, event[1])
-    end
-
-    def test_sample_counts_are_correct_after_merge
-      with_config :'custom_insights_events.max_samples_stored' => 5 do
-        buffer = @aggregator.instance_variable_get :@buffer
-
-        4.times { @aggregator.record(:t, :foo => :bar) }
-        last_harvest = @aggregator.harvest!
-
-        assert_equal 4, buffer.seen_lifetime
-        assert_equal 4, buffer.captured_lifetime
-        assert_equal 4, last_harvest[0][:events_seen]
-
-        4.times { @aggregator.record(:t, :foo => :bar) }
-        @aggregator.merge! last_harvest
-
-        reservoir_stats, samples = @aggregator.harvest!
-
-        assert_equal 5, samples.size
-        assert_equal 8, reservoir_stats[:events_seen]
-        assert_equal 8, buffer.seen_lifetime
-        assert_equal 5, buffer.captured_lifetime
-      end
     end
 
     def test_records_supportability_metrics_after_harvest
@@ -121,6 +127,14 @@ module NewRelic::Agent
 
         9.times { @aggregator.record(:t, :foo => :bar) }
         @aggregator.harvest!
+      end
+    end
+
+    def test_aggregator_defers_custom_event_creation
+      with_config aggregator.class.capacity_key => 5 do
+        5.times { generate_event }
+        aggregator.expects(:create_event).never
+        aggregator.record('ImpossibleEvent', { priority: -999.0 })
       end
     end
   end

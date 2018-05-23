@@ -17,7 +17,7 @@ module NewRelic
       enabled_key :'analytics_events.enabled'
       buffer_class PrioritySampledBuffer
 
-      def append priority: nil, event:nil, &blk
+      def record priority: nil, event:nil, &blk
         unless(event || priority && blk)
           raise ArgumentError, "Expected priority and block, or event"
         end
@@ -27,18 +27,6 @@ module NewRelic
         @lock.synchronize do
           @buffer.append priority: priority, event: event, &blk
           notify_if_full
-        end
-      end
-
-      def merge! payload, adjust_count = true
-        @lock.synchronize do
-          _, samples = payload
-
-          if adjust_count
-            @buffer.decrement_lifetime_counts_by samples.count
-          end
-
-          samples.each { |s| @buffer.append event: s }
         end
       end
 

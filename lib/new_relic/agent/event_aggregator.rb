@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/sampled_buffer'
+require 'new_relic/agent/priority_sampled_buffer'
 
 module NewRelic
   module Agent
@@ -24,7 +24,7 @@ module NewRelic
           if klass
             @buffer_class = klass
           else
-            @buffer_class ||= SampledBuffer
+            @buffer_class ||= PrioritySampledBuffer
           end
         end
       end
@@ -79,7 +79,7 @@ module NewRelic
             @buffer.decrement_lifetime_counts_by samples.count
           end
 
-          samples.each { |s| @buffer.append s }
+          samples.each { |s| @buffer.append event: s }
         end
       end
 

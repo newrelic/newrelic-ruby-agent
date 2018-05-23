@@ -24,10 +24,10 @@ module NewRelic
 
         if synthetics_event? payload
           event = create_event payload
-          _, rejected = synthetics_event_aggregator.append_or_reject event
-          transaction_event_aggregator.append event: event if rejected
+          result = synthetics_event_aggregator.record event
+          transaction_event_aggregator.record event: event if result.nil?
         else
-          transaction_event_aggregator.append(priority: payload[:priority]) { create_event(payload) }
+          transaction_event_aggregator.record(priority: payload[:priority]) { create_event(payload) }
         end
       end
 

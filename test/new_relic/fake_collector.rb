@@ -59,7 +59,7 @@ module NewRelic
       super(DEFAULT_PORT)
       @id_counter = 0
       @mock = {
-        'preconnect'              => Response.new(200, {'return_value' => 'localhost'}),
+        'preconnect'              => Response.new(200, {'return_value' => {'redirect_host' => 'localhost'}}),
         'connect'                 => Response.new(200, Proc.new { {'return_value' => {"agent_run_id" => agent_run_id}} }),
         'get_agent_commands'      => Response.new(200, {'return_value' => []}),
         'agent_command_results'   => Response.new(200, {'return_value' => []}),

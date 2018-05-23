@@ -1,5 +1,19 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v5.2.0 ##
+
+  * Use priority sampling for errors and custom events
+
+    Priority sampling replaces the older reservoir event sampling method.
+    With this change, the agent will maintain randomness across a given
+    time period while improving coordination among transactions, errors,
+    and custom events.
+
+  * Bugfix for wrapping datastore operations
+
+    The agent will now complete the process of wrapping datastore
+    operations even if an error occurs during execution of a callback.
+
   ## v5.1.0 ##
 
   * Rails 5.2 support

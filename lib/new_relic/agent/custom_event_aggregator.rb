@@ -12,6 +12,7 @@ module NewRelic
 
       TYPE             = 'type'.freeze
       TIMESTAMP        = 'timestamp'.freeze
+      PRIORITY         = 'priority'.freeze
       EVENT_TYPE_REGEX = /^[a-zA-Z0-9:_ ]+$/.freeze
 
       named :CustomEventAggregator
@@ -23,24 +24,34 @@ module NewRelic
           raise ArgumentError, "Expected Hash but got #{attributes.class}"
         end
 
+        return unless enabled?
+
         type = @type_strings[type]
         unless type =~ EVENT_TYPE_REGEX
           note_dropped_event(type)
           return false
         end
 
-        event = [
-          { TYPE => type, TIMESTAMP => Time.now.to_i },
-          AttributeProcessing.flatten_and_coerce(attributes)
-        ]
+        priority = attributes[:priority] || rand
 
         stored = @lock.synchronize do
-          @buffer.append(event)
+          @buffer.append(priority: priority) do
+            create_event(type, priority, attributes)
+          end
         end
         stored
       end
 
       private
+
+      def create_event(type, priority, attributes)
+        [
+          { TYPE => type, TIMESTAMP => Time.now.to_i,
+            PRIORITY => priority
+          },
+          AttributeProcessing.flatten_and_coerce(attributes)
+        ]
+      end
 
       def after_initialize
         @type_strings = Hash.new { |hash, key| hash[key] = key.to_s.freeze }

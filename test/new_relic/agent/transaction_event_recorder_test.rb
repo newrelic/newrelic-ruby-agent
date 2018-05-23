@@ -17,7 +17,7 @@ module NewRelic
       def test_synthetics_events_overflow_to_transaction_buffer
         with_config :'synthetics.events_limit' => 10 do
           20.times do |i|
-            generate_request("syn_#{i}", :synthetics_resource_id => 100,)
+            generate_request("syn_#{i}", :synthetics_resource_id => 100)
           end
 
           _, txn_events = harvest_transaction_events!
@@ -31,16 +31,16 @@ module NewRelic
       def test_synthetics_events_timestamp_bumps_go_to_main_buffer
         with_config :'synthetics.events_limit' => 10 do
           10.times do |i|
-            generate_request("syn_#{i}", :timestamp => i + 10, :synthetics_resource_id => 100,)
+            generate_request("syn_#{i}", :timestamp => i + 10, :synthetics_resource_id => 100)
           end
 
-          generate_request("syn_10", :timestamp => 1, :synthetics_resource_id => 100,)
+          generate_request("syn_10", :timestamp => 20, :synthetics_resource_id => 100)
 
           _, txn_events = harvest_transaction_events!
           _, syn_events = harvest_synthetics_events!
 
           assert_equal 10, syn_events.size
-          assert_equal 10.0, syn_events[0][0]["timestamp"]
+          assert_equal_unordered (10..19).map(&:to_f), syn_events.map { |e| e[0]["timestamp"] }
           assert_equal 1, txn_events.size
         end
       end

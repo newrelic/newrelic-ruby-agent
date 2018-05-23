@@ -7,12 +7,17 @@ class CustomAnalyticsEventsTest < Minitest::Test
 
   setup_and_teardown_agent
 
+  def teardown
+    $collector.unstub('connect')
+  end
+
   def test_custom_analytics_events_are_submitted
     t0 = nr_freeze_time
     NewRelic::Agent.record_custom_event(:DummyType, :foo => :bar, :baz => :qux)
 
     NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
     events = last_posted_events
+    events.first[0].delete('priority')
 
     expected_event = [{'type' => 'DummyType', 'timestamp' => t0.to_i },
                       {'foo' => 'bar', 'baz' => 'qux'}]

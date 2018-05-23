@@ -4,6 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__),'..','common_aggregator_tests'))
 require 'new_relic/agent/synthetics_event_aggregator'
 require 'new_relic/agent/transaction_event_primitive'
 
@@ -32,68 +33,25 @@ module NewRelic
 
       include NewRelic::DataContainerTests
 
-      def test_synthetics_aggregation_limits
-        with_config :'synthetics.events_limit' => 10 do
-          20.times do
-            generate_request
-          end
+      # Helpers for CommonAggregatorTests
 
-          assert_equal 10, last_synthetics_events.size
-        end
+      def generate_event(name = 'blogs/index', options = {})
+        generate_request(name, options)
       end
 
-      def test_synthetics_events_kept_by_timestamp
-        with_config :'synthetics.events_limit' => 10 do
-          11.times do |i|
-            _, rejected = generate_request('whatever', :timestamp => i)
-            if i < 10
-              assert_nil rejected, "Expected event to be accepted"
-            else
-              refute_nil rejected, "Expected event to be rejected"
-              assert_equal 10.0, rejected.first["timestamp"]
-            end
-          end
-        end
+      def last_events
+        last_synthetics_events
       end
 
-      def test_sythetics_events_rejected_when_buffer_is_full_of_newer_events
-        with_config :'synthetics.events_limit' => 10 do
-          11.times do |i|
-            generate_request 'whatever', :timestamp => i + 10.0
-          end
-
-          generate_request 'whatever', :timestamp => 1
-          samples = last_synthetics_events
-          assert_equal 10, samples.size
-          timestamps = samples.map do |(main, _)|
-            main["timestamp"]
-          end.sort
-
-          assert_equal ([1] + (10..18).to_a), timestamps
-        end
+      def aggregator
+        @synthetics_event_aggregator
       end
 
-      def test_does_not_drop_samples_when_used_from_multiple_threads
-        with_config :'synthetics.events_limit' => 100 * 100 do
-          threads = []
-          25.times do
-            threads << Thread.new do
-              100.times{ generate_request }
-            end
-          end
-          threads.each { |t| t.join }
-
-          assert_equal(25 * 100, last_synthetics_events.size)
-        end
+      def name_for(event)
+        event[0]["name"]
       end
 
-      def test_events_not_recorded_when_disabled
-        with_config :'analytics_events.enabled' => false do
-          generate_request
-          errors = last_synthetics_events
-          assert_empty errors
-        end
-      end
+      include NewRelic::CommonAggregatorTests
 
       def test_includes_custom_attributes
         attrs = {"user" => "Wes Mantooth", "channel" => 9}
@@ -133,6 +91,20 @@ module NewRelic
         end
       end
 
+      def test_lower_priority_events_discarded_in_favor_higher_priority_events
+        with_config aggregator.class.capacity_key => 5 do
+          10.times { |i| generate_event "event_#{i}" }
+          # Each event gets a timestamp of Time.now, which is used to determine priority
+          # (older events are higher priority)
+
+          _, events = aggregator.harvest!
+
+          expected = (0..4).map { |i| "Controller/event_#{i}" }
+
+          assert_equal_unordered expected, events.map { |e| name_for(e) }
+        end
+      end
+
       def test_includes_agent_attributes
         attributes.add_agent_attribute :'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_TRANSACTION_EVENTS
         attributes.add_agent_attribute :httpResponseCode, "200", AttributeFilter::DST_TRANSACTION_EVENTS
@@ -145,6 +117,21 @@ module NewRelic
         assert_equal expected, agent_attrs
       end
 
+      def test_aggregator_defers_synthetics_event_creation
+        with_config aggregator.class.capacity_key => 5 do
+          5.times { generate_event }
+          aggregator.expects(:create_event).never
+
+          payload = {
+            :name => "Doesnt/matter",
+            :synthetics_resource_id => 100,
+            :priority => 0.123
+          }
+
+          aggregator.record TransactionEventPrimitive.create(payload)
+        end
+      end
+
       def last_synthetics_events
         @synthetics_event_aggregator.harvest![1]
       end
@@ -155,16 +142,17 @@ module NewRelic
 
       def generate_request name='whatever', options={}
         payload = {
-          :name => "Controller/blogs/index",
+          :name => "Controller/#{name}",
           :type => :controller,
           :start_timestamp => options[:timestamp] || Time.now.to_f,
           :duration => 0.1,
           :synthetics_resource_id => 100,
           :attributes => attributes,
-          :error => false
+          :error => false,
+          :priority => rand,
         }.merge(options)
 
-        @synthetics_event_aggregator.append_or_reject TransactionEventPrimitive.create(payload)
+        @synthetics_event_aggregator.record TransactionEventPrimitive.create(payload)
       end
 
       def attributes
