@@ -27,6 +27,18 @@ module NewRelic
           notify_if_full
         end
       end
+
+      private
+
+      # the spec limits max_samples to 1000 regardless of configuration
+      def update_capacity(max_samples)
+        if max_samples > 1000
+          NewRelic::Agent.logger.warn "#{self.class.capacity_key} set to " \
+                                      "#{max_samples}, but maximum is 1000"
+          max_samples = 1000
+        end
+        super
+      end
     end
   end
 end

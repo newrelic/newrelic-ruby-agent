@@ -100,10 +100,14 @@ module NewRelic
 
       def register_capacity_callback
         NewRelic::Agent.config.register_callback(self.class.capacity_key) do |max_samples|
-          NewRelic::Agent.logger.debug "#{self.class.named} max_samples set to #{max_samples}"
-          @lock.synchronize do
-            @buffer.capacity = max_samples
-          end
+          update_capacity(max_samples)
+        end
+      end
+
+      def update_capacity(max_samples)
+        NewRelic::Agent.logger.debug "#{self.class.named} max_samples set to #{max_samples}"
+        @lock.synchronize do
+          @buffer.capacity = max_samples
         end
       end
 
