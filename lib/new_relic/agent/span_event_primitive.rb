@@ -81,11 +81,7 @@ module NewRelic
       end
 
       def grandparent_guid(segment)
-        segment.parent ?
-          (segment.parent.parent ?
-            segment.parent.parent.guid :
-            nil) :
-          nil
+        segment.parent && segment.parent.parent && segment.parent.parent.guid
       end
 
       def milliseconds_since_epoch(segment)
