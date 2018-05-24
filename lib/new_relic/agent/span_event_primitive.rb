@@ -33,10 +33,19 @@ module NewRelic
       EXTERNAL_LIBRARY_KEY   = "externalLibrary".freeze
       EXTERNAL_PROCEDURE_KEY = "externalProcedure".freeze
 
+      # Datastores
+      DATASTORE_PRODUCT_KEY         = 'datastoreProduct'.freeze
+      DATASTORE_COLLECTION_KEY      = 'datastoreCollection'.freeze
+      DATASTORE_OPERATION_KEY       = 'datastoreOperation'.freeze
+      DATASTORE_HOST_KEY            = 'datastoreHost'.freeze
+      DATASTORE_PORT_PATH_OR_ID_KEY = 'datastorePortPathOrId'.freeze
+      DATASTORE_NAME_KEY            = 'datastoreName'.freeze
+
       # Strings for static values of the event structure
       EVENT_TYPE         = 'Span'.freeze
       GENERIC_CATEGORY   = 'generic'.freeze
       EXTERNAL_CATEGORY  = 'external'.freeze
+      DATASTORE_CATEGORY = 'datastore'.freeze
 
       # To avoid allocations when we have empty custom or agent attributes
       EMPTY_HASH = {}.freeze
@@ -50,10 +59,25 @@ module NewRelic
 
       def for_external_request_segment(segment)
         intrinsics = intrinsics_for(segment)
+
         intrinsics[EXTERNAL_URI_KEY]       = segment.uri
         intrinsics[EXTERNAL_LIBRARY_KEY]   = segment.library
         intrinsics[EXTERNAL_PROCEDURE_KEY] = segment.procedure
         intrinsics[CATEGORY_KEY]           = EXTERNAL_CATEGORY
+
+        [intrinsics, EMPTY_HASH, EMPTY_HASH]
+      end
+
+      def for_datastore_segment(segment)
+        intrinsics = intrinsics_for(segment)
+
+        intrinsics[DATASTORE_PRODUCT_KEY]         = segment.product
+        intrinsics[DATASTORE_COLLECTION_KEY]      = segment.collection
+        intrinsics[DATASTORE_OPERATION_KEY]       = segment.operation
+        intrinsics[DATASTORE_HOST_KEY]            = segment.host
+        intrinsics[DATASTORE_PORT_PATH_OR_ID_KEY] = segment.port_path_or_id
+        intrinsics[DATASTORE_NAME_KEY]            = segment.database_name
+        intrinsics[CATEGORY_KEY]                  = DATASTORE_CATEGORY
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
       end
@@ -77,7 +101,7 @@ module NewRelic
       end
 
       def parent_guid(segment)
-        segment.parent ? segment.parent.guid : nil
+        segment.parent && segment.parent.guid
       end
 
       def grandparent_guid(segment)

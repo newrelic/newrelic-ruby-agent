@@ -255,7 +255,7 @@ module NewRelic
           CrossAppTracing.obfuscator
         end
 
-        def record_event
+        def record_span_event
           aggregator = ::NewRelic::Agent.agent.span_event_aggregator
           priority   = transaction.priority
 

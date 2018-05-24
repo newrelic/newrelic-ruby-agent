@@ -49,12 +49,12 @@ module NewRelic
         end
 
         def segment_complete
-          record_event if transaction.sampled?
+          record_span_event if transaction.sampled?
         end
 
-        def record_event
+        def record_span_event
           aggregator = ::NewRelic::Agent.agent.span_event_aggregator
-          priority   = self.transaction.priority
+          priority   = transaction.priority
 
           aggregator.record(priority: priority) do
             SpanEventPrimitive.for_segment(self)

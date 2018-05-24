@@ -120,6 +120,15 @@ module NewRelic
         def record_sql?
           transaction_state.is_sql_recorded?
         end
+
+        def record_span_event
+          aggregator = ::NewRelic::Agent.agent.span_event_aggregator
+          priority   = transaction.priority
+
+          aggregator.record(priority: priority) do
+            SpanEventPrimitive.for_datastore_segment(self)
+          end
+        end
       end
     end
   end
