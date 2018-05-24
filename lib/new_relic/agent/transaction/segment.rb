@@ -57,7 +57,7 @@ module NewRelic
           priority   = self.transaction.priority
 
           aggregator.record(priority: priority) do
-            SpanEventPrimitive.create(self)
+            SpanEventPrimitive.for_segment(self)
           end
         end
       end

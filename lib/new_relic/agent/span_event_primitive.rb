@@ -41,7 +41,7 @@ module NewRelic
       # To avoid allocations when we have empty custom or agent attributes
       EMPTY_HASH = {}.freeze
 
-      def create(segment)
+      def for_segment(segment)
         intrinsics = intrinsics_for(segment)
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
 
@@ -52,7 +52,7 @@ module NewRelic
         intrinsics = intrinsics_for(segment)
         intrinsics[EXTERNAL_URI_KEY]       = segment.uri
         intrinsics[EXTERNAL_LIBRARY_KEY]   = segment.library
-        intrinsics[EXTERNAL_PROCEDURE_KEY] =  segment.procedure
+        intrinsics[EXTERNAL_PROCEDURE_KEY] = segment.procedure
         intrinsics[CATEGORY_KEY]           = EXTERNAL_CATEGORY
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
