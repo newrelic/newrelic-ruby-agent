@@ -28,6 +28,22 @@ module NewRelic
         end
       end
 
+      SUPPORTABILITY_TOTAL_SEEN = "Supportability/SpanEvent/TotalEventsSeen".freeze
+      SUPPORTABILITY_TOTAL_SENT = "Supportability/SpanEvent/TotalEventsSent".freeze
+      SUPPORTABILITY_DISCARDED  = "Supportability/SpanEvent/Discarded".freeze
+
+      def after_harvest metadata
+        seen      = metadata[:seen]
+        sent      = metadata[:captured]
+        discarded = seen - sent
+
+        ::NewRelic::Agent.record_metric(SUPPORTABILITY_TOTAL_SEEN, count: seen)
+        ::NewRelic::Agent.record_metric(SUPPORTABILITY_TOTAL_SENT, count: sent)
+        ::NewRelic::Agent.record_metric(SUPPORTABILITY_DISCARDED,  count: discarded)
+
+        super
+      end
+
       private
 
       # the spec limits max_samples to 1000 regardless of configuration

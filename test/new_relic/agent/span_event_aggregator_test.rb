@@ -17,6 +17,10 @@ module NewRelic
         @event_aggregator = SpanEventAggregator.new
       end
 
+      def teardown
+        NewRelic::Agent.agent.drop_buffered_data
+      end
+
       # Helpers for DataContainerTests
 
       def create_container
@@ -92,6 +96,18 @@ module NewRelic
 
           assert_equal(9 * 100, last_events.size)
         end
+      end
+
+      def test_supportability_metrics_for_span_events
+        with_config aggregator.class.capacity_key => 5 do
+          12.times { generate_event }
+        end
+
+        assert_equal 5, last_events.size
+
+        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSeen' => { call_count: 12 }})
+        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSent' => { call_count:  5 }})
+        assert_metrics_recorded({'Supportability/SpanEvent/Discarded'       => { call_count:  7 }})
       end
     end
   end
