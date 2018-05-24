@@ -37,6 +37,7 @@ module NewRelic
           @obfuscator = NewRelic::Agent::Obfuscator.new "jotorotoes"
           CrossAppTracing.stubs(:obfuscator).returns(@obfuscator)
           CrossAppTracing.stubs(:valid_encoding_key?).returns(true)
+          nr_freeze_time
         end
 
         def teardown
@@ -673,6 +674,75 @@ module NewRelic
 
             assert_equal t, segment.start_time
           end
+        end
+
+        def test_sampled_external_records_span_event
+          trace_id  = nil
+          txn_guid  = nil
+          sampled   = nil
+          priority  = nil
+          timestamp = nil
+          segment   = nil
+
+          in_transaction('wat') do |txn|
+            txn.sampled = true
+
+            segment = ExternalRequestSegment.new "Typhoeus",
+                                                 "http://remotehost.com/blogs/index",
+                                                 "GET"
+            txn.add_segment segment
+            segment.start
+            advance_time 1.0
+            segment.finish
+
+            timestamp = Integer(segment.start_time.to_f * 1000.0)
+
+            trace_id = txn.trace_id
+            txn_guid = txn.guid
+            sampled  = txn.sampled?
+            priority = txn.priority
+          end
+
+          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          assert_equal 2, last_span_events.size
+          external_span_event = last_span_events[0][0]
+          root_span_event   = last_span_events[1][0]
+          root_guid         = root_span_event['guid']
+
+          expected_name = 'External/remotehost.com/Typhoeus/GET'
+
+          assert_equal 'Span',            external_span_event.fetch('type')
+          assert_equal trace_id,          external_span_event.fetch('traceId')
+          refute_nil                      external_span_event.fetch('guid')
+          assert_equal root_guid,         external_span_event.fetch('parentId')
+          assert_nil                      external_span_event.fetch('grandparentId')
+          assert_equal txn_guid,          external_span_event.fetch('rootSpanId')
+          assert_equal sampled,           external_span_event.fetch('sampled')
+          assert_equal priority,          external_span_event.fetch('priority')
+          assert_equal timestamp,         external_span_event.fetch('timestamp')
+          assert_equal 1.0,               external_span_event.fetch('duration')
+          assert_equal expected_name,     external_span_event.fetch('name')
+          assert_equal segment.uri,       external_span_event.fetch('externalUri')
+          assert_equal segment.library,   external_span_event.fetch('externalLibrary')
+          assert_equal segment.procedure, external_span_event.fetch('externalProcedure')
+          assert_equal 'external',        external_span_event.fetch('category')
+        end
+
+        def test_non_sampled_segment_does_not_record_span_event
+          in_transaction('wat') do |txn|
+            txn.sampled = false
+
+            segment = ExternalRequestSegment.new "Typhoeus",
+                                                 "http://remotehost.com/blogs/index",
+                                                 "GET"
+            txn.add_segment segment
+            segment.start
+            advance_time 1.0
+            segment.finish
+          end
+
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          assert_empty last_span_events
         end
 
         def cat_config

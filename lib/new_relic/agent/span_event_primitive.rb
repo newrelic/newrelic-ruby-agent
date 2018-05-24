@@ -28,15 +28,40 @@ module NewRelic
       NAME_KEY           = 'name'.freeze
       CATEGORY_KEY       = 'category'.freeze
 
+      # Externals
+      EXTERNAL_URI_KEY       = "externalUri".freeze
+      EXTERNAL_LIBRARY_KEY   = "externalLibrary".freeze
+      EXTERNAL_PROCEDURE_KEY = "externalProcedure".freeze
+
       # Strings for static values of the event structure
       EVENT_TYPE         = 'Span'.freeze
-      EVENT_CATEGORY     = 'generic'.freeze
+      GENERIC_CATEGORY   = 'generic'.freeze
+      EXTERNAL_CATEGORY  = 'external'.freeze
 
       # To avoid allocations when we have empty custom or agent attributes
       EMPTY_HASH = {}.freeze
 
       def create(segment)
-        intrinsics = {
+        intrinsics = intrinsics_for(segment)
+        intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
+
+        [intrinsics, EMPTY_HASH, EMPTY_HASH]
+      end
+
+      def for_external_request_segment(segment)
+        intrinsics = intrinsics_for(segment)
+        intrinsics[EXTERNAL_URI_KEY]       = segment.uri
+        intrinsics[EXTERNAL_LIBRARY_KEY]   = segment.library
+        intrinsics[EXTERNAL_PROCEDURE_KEY] =  segment.procedure
+        intrinsics[CATEGORY_KEY]           = EXTERNAL_CATEGORY
+
+        [intrinsics, EMPTY_HASH, EMPTY_HASH]
+      end
+
+      private
+
+      def intrinsics_for(segment)
+        {
           TYPE_KEY           => EVENT_TYPE,
           TRACE_ID_KEY       => segment.transaction.trace_id,
           GUID_KEY           => segment.guid,
@@ -47,14 +72,9 @@ module NewRelic
           PRIORITY_KEY       => segment.transaction.priority,
           TIMESTAMP_KEY      => milliseconds_since_epoch(segment),
           DURATION_KEY       => segment.duration,
-          NAME_KEY           => segment.name,
-          CATEGORY_KEY       => EVENT_CATEGORY
+          NAME_KEY           => segment.name
         }
-
-        [intrinsics, EMPTY_HASH, EMPTY_HASH]
       end
-
-      private
 
       def parent_guid(segment)
         segment.parent ? segment.parent.guid : nil
