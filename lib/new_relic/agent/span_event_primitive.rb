@@ -15,18 +15,18 @@ module NewRelic
       extend self
 
       # Strings for static keys of the event structure
-      TYPE_KEY           = 'type'.freeze
-      TRACE_ID_KEY       = 'traceId'.freeze
-      GUID_KEY           = 'guid'.freeze
-      PARENT_ID_KEY      = 'parentId'.freeze
-      GRANDPARENT_ID_KEY = 'grandparentId'.freeze
-      ROOT_SPAN_ID_KEY   = 'rootSpanId'.freeze
-      SAMPLED_KEY        = 'sampled'.freeze
-      PRIORITY_KEY       = 'priority'.freeze
-      TIMESTAMP_KEY      = 'timestamp'.freeze
-      DURATION_KEY       = 'duration'.freeze
-      NAME_KEY           = 'name'.freeze
-      CATEGORY_KEY       = 'category'.freeze
+      TYPE_KEY                = 'type'.freeze
+      TRACE_ID_KEY            = 'traceId'.freeze
+      GUID_KEY                = 'guid'.freeze
+      PARENT_ID_KEY           = 'parentId'.freeze
+      GRANDPARENT_ID_KEY      = 'grandparentId'.freeze
+      APP_LOCAL_ROOT_ID_KEY   = 'appLocalRootId'.freeze
+      SAMPLED_KEY             = 'sampled'.freeze
+      PRIORITY_KEY            = 'priority'.freeze
+      TIMESTAMP_KEY           = 'timestamp'.freeze
+      DURATION_KEY            = 'duration'.freeze
+      NAME_KEY                = 'name'.freeze
+      CATEGORY_KEY            = 'category'.freeze
 
       # Externals
       EXTERNAL_URI_KEY       = "externalUri".freeze
@@ -86,17 +86,17 @@ module NewRelic
 
       def intrinsics_for(segment)
         {
-          TYPE_KEY           => EVENT_TYPE,
-          TRACE_ID_KEY       => segment.transaction.trace_id,
-          GUID_KEY           => segment.guid,
-          PARENT_ID_KEY      => parent_guid(segment),
-          GRANDPARENT_ID_KEY => grandparent_guid(segment),
-          ROOT_SPAN_ID_KEY   => segment.transaction.guid,
-          SAMPLED_KEY        => segment.transaction.sampled?,
-          PRIORITY_KEY       => segment.transaction.priority,
-          TIMESTAMP_KEY      => milliseconds_since_epoch(segment),
-          DURATION_KEY       => segment.duration,
-          NAME_KEY           => segment.name
+          TYPE_KEY                => EVENT_TYPE,
+          TRACE_ID_KEY            => segment.transaction.trace_id,
+          GUID_KEY                => segment.guid,
+          PARENT_ID_KEY           => parent_guid(segment),
+          GRANDPARENT_ID_KEY      => grandparent_guid(segment),
+          APP_LOCAL_ROOT_ID_KEY   => segment.transaction.guid,
+          SAMPLED_KEY             => segment.transaction.sampled?,
+          PRIORITY_KEY            => segment.transaction.priority,
+          TIMESTAMP_KEY           => milliseconds_since_epoch(segment),
+          DURATION_KEY            => segment.duration,
+          NAME_KEY                => segment.name
         }
       end
 
