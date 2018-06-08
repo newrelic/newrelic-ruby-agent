@@ -72,12 +72,11 @@ module NewRelic
             Agent.config[:application_id]
           end
 
+          assign_ids transaction, payload
           payload.timestamp = (Time.now.to_f * 1000).round
-          payload.id = transaction.guid
           payload.trace_id = transaction.trace_id
           payload.sampled = transaction.sampled?
           payload.priority = transaction.priority
-          payload.parent_id = transaction.parent_id
 
           payload
         end
@@ -123,6 +122,17 @@ module NewRelic
         # have connected yet.
         def connected?
           !!Agent.config[:'cross_process_id']
+        end
+
+        def assign_ids transaction, payload
+          if Agent.config[:'span_events.enabled']
+            return unless current_segment = transaction.current_segment
+            payload.id = current_segment.guid
+            payload.parent_id = current_segment.parent && current_segment.parent.guid
+          else
+            payload.id = transaction.guid
+            payload.parent_id = transaction.parent_id
+          end
         end
       end
 

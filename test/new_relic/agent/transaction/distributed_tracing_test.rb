@@ -14,6 +14,7 @@ module NewRelic
         def setup
           NewRelic::Agent.config.add_config_for_testing(
             :'distributed_tracing.enabled' => true,
+            :'span_events.enabled' => false,
             :application_id => "46954",
             :cross_process_id => "190#222",
             :trusted_account_ids => [190],
@@ -462,6 +463,26 @@ module NewRelic
 
           assert_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Exception"
           refute_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success"
+        end
+
+        def test_span_ids_passed_in_payload_when_span_events_enabled
+          with_config :'span_events.enabled' => true do
+            NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
+            payload = nil
+            txn_segment = nil
+            external_segment = nil
+            in_transaction('test_txn') do |txn|
+              txn_segment = txn.current_segment
+              external_segment = NewRelic::Agent::Transaction.\
+                           start_external_request_segment library: "net/http",
+                                                          uri: "http://docs.newrelic.com",
+                                                          procedure: "GET"
+              payload = txn.create_distributed_trace_payload
+            end
+
+            assert_equal external_segment.guid, payload.id
+            assert_equal txn_segment.guid, payload.parent_id
+          end
         end
 
         private
