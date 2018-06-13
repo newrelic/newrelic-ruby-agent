@@ -12,16 +12,18 @@ module NewRelic
     class Transaction
       class DistributedTracingTest < Minitest::Test
         def setup
-          NewRelic::Agent.config.add_config_for_testing(
+          @config = {
             :'distributed_tracing.enabled' => true,
             :'span_events.enabled' => false,
             :application_id => "46954",
             :cross_process_id => "190#222",
-            :trusted_account_ids => [190],
-          )
+            :trusted_account_ids => [190]
+          }
+          NewRelic::Agent.config.add_config_for_testing(@config)
         end
 
         def teardown
+          NewRelic::Agent.config.remove_config(@config)
           NewRelic::Agent.config.reset_to_defaults
           NewRelic::Agent.drop_buffered_data
         end

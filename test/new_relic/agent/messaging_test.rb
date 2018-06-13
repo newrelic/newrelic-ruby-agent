@@ -551,7 +551,8 @@ module NewRelic
         with_config :"cross_application_tracer.enabled" => false,
                     :"distributed_tracing.enabled" => true,
                     :cross_process_id => "321#123",
-                    :trusted_account_ids => [321] do
+                    :trusted_account_ids => [321],
+                    :'span_events.enabled' => false do
 
           payload = nil
           parent = in_transaction do |txn|

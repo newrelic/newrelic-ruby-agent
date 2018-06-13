@@ -12,15 +12,20 @@ module NewRelic
     class DistributedTracePayloadTest < Minitest::Test
 
       def setup
-      nr_freeze_time
-        NewRelic::Agent.config.add_config_for_testing(
+        nr_freeze_time
+
+        @config = {
           :'distributed_tracing.enabled' => true,
           :application_id => "46954",
-          :cross_process_id => "190#222"
-        )
+          :cross_process_id => "190#222",
+          :'span_events.enabled' => false
+        }
+
+        NewRelic::Agent.config.add_config_for_testing(@config)
       end
 
       def teardown
+        NewRelic::Agent.config.remove_config(@config)
         NewRelic::Agent.config.reset_to_defaults
         NewRelic::Agent.drop_buffered_data
       end
