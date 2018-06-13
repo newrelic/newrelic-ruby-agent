@@ -27,7 +27,7 @@ module NewRelic
         def initialize name=nil, start_time=nil
           @name = name
           @transaction = nil
-          @guid = SecureRandom.hex(16)
+          @guid = SecureRandom.hex(8)
           @parent = nil
           @params = nil
           @start_time = start_time if start_time
