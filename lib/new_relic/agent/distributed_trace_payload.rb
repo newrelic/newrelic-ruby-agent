@@ -18,6 +18,7 @@ module NewRelic
       PARENT_ACCOUNT_ID_KEY      = 'ac'.freeze
       PARENT_APP_KEY             = 'ap'.freeze
       ID_KEY                     = 'id'.freeze
+      TX_KEY                     = 'tx'.freeze
       TRACE_ID_KEY               = 'tr'.freeze
       SAMPLED_KEY                = 'sa'.freeze
       PARENT_ID_KEY              = 'pa'.freeze
@@ -72,7 +73,11 @@ module NewRelic
             Agent.config[:application_id]
           end
 
-          assign_ids transaction, payload
+          payload.id = Agent.config[:'span_events.enabled'] &&
+            transaction.current_segment &&
+            transaction.current_segment.guid
+          payload.transaction_id = transaction.guid
+          payload.parent_id = transaction.parent_id
           payload.timestamp = (Time.now.to_f * 1000).round
           payload.trace_id = transaction.trace_id
           payload.sampled = transaction.sampled?
@@ -92,6 +97,7 @@ module NewRelic
           payload.parent_app_id     = payload_data[PARENT_APP_KEY]
           payload.timestamp         = payload_data[TIMESTAMP_KEY]
           payload.id                = payload_data[ID_KEY]
+          payload.transaction_id    = payload_data[TX_KEY]
           payload.trace_id          = payload_data[TRACE_ID_KEY]
           payload.sampled           = payload_data[SAMPLED_KEY]
           payload.priority          = payload_data[PRIORITY_KEY]
@@ -123,17 +129,6 @@ module NewRelic
         def connected?
           !!Agent.config[:'cross_process_id']
         end
-
-        def assign_ids transaction, payload
-          if Agent.config[:'span_events.enabled']
-            return unless current_segment = transaction.current_segment
-            payload.id = current_segment.guid
-            payload.parent_id = current_segment.parent && current_segment.parent.guid
-          else
-            payload.id = transaction.guid
-            payload.parent_id = transaction.parent_id
-          end
-        end
       end
 
       attr_accessor :version,
@@ -142,6 +137,7 @@ module NewRelic
                     :parent_account_id,
                     :parent_app_id,
                     :id,
+                    :transaction_id,
                     :trace_id,
                     :sampled,
                     :priority,
@@ -164,6 +160,7 @@ module NewRelic
           PARENT_ACCOUNT_ID_KEY => parent_account_id,
           PARENT_APP_KEY        => parent_app_id,
           ID_KEY                => id,
+          TX_KEY                => transaction_id,
           TRACE_ID_KEY          => trace_id,
           SAMPLED_KEY           => sampled,
           PRIORITY_KEY          => priority,

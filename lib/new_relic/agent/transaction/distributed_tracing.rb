@@ -61,7 +61,7 @@ module NewRelic
           # The payload comes from our parent transaction, so its ID
           # is our parent ID.
           #
-          distributed_trace_payload && distributed_trace_payload.id
+          distributed_trace_payload && distributed_trace_payload.transaction_id
         end
 
         def grandparent_id
