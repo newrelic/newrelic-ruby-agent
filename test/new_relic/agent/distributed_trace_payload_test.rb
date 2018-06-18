@@ -89,15 +89,19 @@ module NewRelic
 
         NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
-        referring_transaction = in_transaction("test_txn") {}
+        incoming_payload = nil
 
-        incoming_payload = DistributedTracePayload.for_transaction referring_transaction
+        referring_transaction = in_transaction("test_txn") do |txn|
+          incoming_payload = txn.create_distributed_trace_payload
+        end
+
         payload = DistributedTracePayload.from_json incoming_payload.to_json
 
         assert_equal DistributedTracePayload::VERSION, payload.version
         assert_equal "App", payload.parent_type
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
+        assert_equal referring_transaction.initial_segment.guid, payload.id
         assert_equal referring_transaction.guid, payload.transaction_id
         assert_equal referring_transaction.parent_id, payload.parent_id
         assert_equal referring_transaction.trace_id, payload.trace_id
@@ -111,15 +115,19 @@ module NewRelic
 
         NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
-        referring_transaction = in_transaction("test_txn") {}
+        incoming_payload = nil
 
-        incoming_payload = DistributedTracePayload.for_transaction referring_transaction
+        referring_transaction = in_transaction("test_txn") do |txn|
+          incoming_payload = txn.create_distributed_trace_payload
+        end
+
         payload = DistributedTracePayload.from_http_safe incoming_payload.http_safe
 
         assert_equal DistributedTracePayload::VERSION, payload.version
         assert_equal "App", payload.parent_type
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
+        assert_equal referring_transaction.initial_segment.guid, payload.id
         assert_equal referring_transaction.guid, payload.transaction_id
         assert_equal referring_transaction.parent_id, payload.parent_id
         assert_equal referring_transaction.trace_id, payload.trace_id
