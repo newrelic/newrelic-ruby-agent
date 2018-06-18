@@ -17,8 +17,7 @@ module NewRelic
         @config = {
           :'distributed_tracing.enabled' => true,
           :application_id => "46954",
-          :cross_process_id => "190#222",
-          :'span_events.enabled' => false
+          :cross_process_id => "190#222"
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config)
@@ -140,16 +139,14 @@ module NewRelic
       end
 
       def test_to_json_and_from_json_are_inverse_operations
-        with_config :'span_events.enabled' => true do
-          transaction = in_transaction("test_txn") {}
-          payload1 = DistributedTracePayload.for_transaction(transaction)
-          payload2 = DistributedTracePayload.from_json(payload1.to_json)
+        transaction = in_transaction("test_txn") {}
+        payload1 = DistributedTracePayload.for_transaction(transaction)
+        payload2 = DistributedTracePayload.from_json(payload1.to_json)
 
-          payload1_ivars = payload1.instance_variables.map { |iv| payload1.instance_variable_get(iv) }
-          payload2_ivars = payload2.instance_variables.map { |iv| payload2.instance_variable_get(iv) }
+        payload1_ivars = payload1.instance_variables.map { |iv| payload1.instance_variable_get(iv) }
+        payload2_ivars = payload2.instance_variables.map { |iv| payload2.instance_variable_get(iv) }
 
-          assert_equal payload1_ivars, payload2_ivars
-        end
+        assert_equal payload1_ivars, payload2_ivars
       end
     end
   end

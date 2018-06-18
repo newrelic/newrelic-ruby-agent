@@ -14,7 +14,6 @@ module NewRelic
         def setup
           @config = {
             :'distributed_tracing.enabled' => true,
-            :'span_events.enabled' => false,
             :application_id => "46954",
             :cross_process_id => "190#222",
             :trusted_account_ids => [190]
@@ -41,6 +40,7 @@ module NewRelic
           assert_equal "190", payload.parent_account_id
           assert_equal DistributedTracePayload::VERSION, payload.version
           assert_equal "App", payload.parent_type
+          assert_equal transaction.initial_segment.guid, payload.id
           assert_equal transaction.guid, payload.transaction_id
           assert_equal transaction.trace_id, payload.trace_id
           assert_nil   payload.parent_id
@@ -468,21 +468,19 @@ module NewRelic
         end
 
         def test_span_ids_passed_in_payload_when_span_events_enabled
-          with_config :'span_events.enabled' => true do
-            NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
-            payload = nil
-            external_segment = nil
-            transaction = in_transaction('test_txn') do |txn|
-              external_segment = NewRelic::Agent::Transaction.\
-                           start_external_request_segment library: "net/http",
-                                                          uri: "http://docs.newrelic.com",
-                                                          procedure: "GET"
-              payload = txn.create_distributed_trace_payload
-            end
-
-            assert_equal external_segment.guid, payload.id
-            assert_equal transaction.guid, payload.transaction_id
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
+          payload = nil
+          external_segment = nil
+          transaction = in_transaction('test_txn') do |txn|
+            external_segment = NewRelic::Agent::Transaction.\
+                         start_external_request_segment library: "net/http",
+                                                        uri: "http://docs.newrelic.com",
+                                                        procedure: "GET"
+            payload = txn.create_distributed_trace_payload
           end
+
+          assert_equal external_segment.guid, payload.id
+          assert_equal transaction.guid, payload.transaction_id
         end
 
         private
