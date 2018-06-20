@@ -21,7 +21,6 @@ module NewRelic
       TX_KEY                     = 'tx'.freeze
       TRACE_ID_KEY               = 'tr'.freeze
       SAMPLED_KEY                = 'sa'.freeze
-      PARENT_ID_KEY              = 'pa'.freeze
       TIMESTAMP_KEY              = 'ti'.freeze
       PRIORITY_KEY               = 'pr'.freeze
 
@@ -35,7 +34,6 @@ module NewRelic
       TRACE_ID_INTRINSIC_KEY                   = "traceId".freeze
       TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
       PARENT_ID_INTRINSIC_KEY                  = "parentId".freeze
-      GRANDPARENT_ID_INTRINSIC_KEY             = "grandparentId".freeze
       COMMA                                    = ",".freeze
 
       INTRINSIC_KEYS = [
@@ -47,8 +45,7 @@ module NewRelic
         GUID_INTRINSIC_KEY,
         TRACE_ID_INTRINSIC_KEY,
         TRIP_ID_INTRINSIC_KEY,
-        PARENT_ID_INTRINSIC_KEY,
-        GRANDPARENT_ID_INTRINSIC_KEY
+        PARENT_ID_INTRINSIC_KEY
       ].freeze
 
       # Intrinsic Values
@@ -77,7 +74,6 @@ module NewRelic
             transaction.current_segment &&
             transaction.current_segment.guid
           payload.transaction_id = transaction.guid
-          payload.parent_id = transaction.parent_id
           payload.timestamp = (Time.now.to_f * 1000).round
           payload.trace_id = transaction.trace_id
           payload.sampled = transaction.sampled?
@@ -101,7 +97,6 @@ module NewRelic
           payload.trace_id          = payload_data[TRACE_ID_KEY]
           payload.sampled           = payload_data[SAMPLED_KEY]
           payload.priority          = payload_data[PRIORITY_KEY]
-          payload.parent_id         = payload_data[PARENT_ID_KEY]
 
           payload
         end
@@ -141,7 +136,6 @@ module NewRelic
                     :trace_id,
                     :sampled,
                     :priority,
-                    :parent_id,
                     :timestamp
 
       alias_method :sampled?, :sampled
@@ -164,10 +158,7 @@ module NewRelic
           TRACE_ID_KEY          => trace_id,
           SAMPLED_KEY           => sampled,
           PRIORITY_KEY          => priority,
-          PARENT_ID_KEY         => parent_id,
-          # GRANDPARENT_ID_KEY does not go into the outbound JSON payload;
-          # the callee will take our parent ID as its grandparent ID
-          TIMESTAMP_KEY      => timestamp,
+          TIMESTAMP_KEY         => timestamp,
         }
 
         JSON.dump(result)
@@ -189,7 +180,6 @@ module NewRelic
         transaction_payload[TRACE_ID_INTRINSIC_KEY] = trace_id
         transaction_payload[TRIP_ID_INTRINSIC_KEY] = trace_id
         transaction_payload[PARENT_ID_INTRINSIC_KEY] = transaction.parent_id if transaction.parent_id
-        transaction_payload[GRANDPARENT_ID_INTRINSIC_KEY] = transaction.grandparent_id if transaction.grandparent_id
       end
     end
   end

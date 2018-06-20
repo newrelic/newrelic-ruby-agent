@@ -66,7 +66,6 @@ module NewRelic
 
         assert_equal transaction.guid, payload.transaction_id
         assert_equal transaction.trace_id, payload.trace_id
-        assert_equal transaction.parent_id, payload.parent_id
         assert_equal transaction.priority, payload.priority
       end
 
@@ -103,7 +102,6 @@ module NewRelic
         assert_equal "190", payload.parent_account_id
         assert_equal referring_transaction.initial_segment.guid, payload.id
         assert_equal referring_transaction.guid, payload.transaction_id
-        assert_equal referring_transaction.parent_id, payload.parent_id
         assert_equal referring_transaction.trace_id, payload.trace_id
         assert_equal true, payload.sampled?
         assert_equal referring_transaction.priority, payload.priority
@@ -129,7 +127,6 @@ module NewRelic
         assert_equal "190", payload.parent_account_id
         assert_equal referring_transaction.initial_segment.guid, payload.id
         assert_equal referring_transaction.guid, payload.transaction_id
-        assert_equal referring_transaction.parent_id, payload.parent_id
         assert_equal referring_transaction.trace_id, payload.trace_id
         assert_equal true, payload.sampled?
         assert_equal referring_transaction.priority, payload.priority
@@ -143,7 +140,7 @@ module NewRelic
         raw_payload = JSON.parse(payload.to_json)
 
         assert_equal_unordered %w(v d), raw_payload.keys
-        assert_equal_unordered %w(ty ac ap pa id tx tr pr sa ti), raw_payload["d"].keys
+        assert_equal_unordered %w(ty ac ap id tx tr pr sa ti), raw_payload["d"].keys
       end
 
       def test_to_json_and_from_json_are_inverse_operations
