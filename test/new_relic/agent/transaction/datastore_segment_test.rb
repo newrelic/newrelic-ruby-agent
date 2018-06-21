@@ -246,7 +246,6 @@ module NewRelic
           assert_equal trace_id,    custom_span_event.fetch('traceId')
           refute_nil                custom_span_event.fetch('guid')
           assert_equal root_guid,   custom_span_event.fetch('parentId')
-          assert_nil                custom_span_event.fetch('grandparentId')
           assert_equal txn_guid,    custom_span_event.fetch('appLocalRootId')
           assert_equal sampled,     custom_span_event.fetch('sampled')
           assert_equal priority,    custom_span_event.fetch('priority')

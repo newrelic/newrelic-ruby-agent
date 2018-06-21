@@ -90,7 +90,6 @@ module NewRelic
           TRACE_ID_KEY            => segment.transaction.trace_id,
           GUID_KEY                => segment.guid,
           PARENT_ID_KEY           => parent_guid(segment),
-          GRANDPARENT_ID_KEY      => grandparent_guid(segment),
           APP_LOCAL_ROOT_ID_KEY   => segment.transaction.guid,
           SAMPLED_KEY             => segment.transaction.sampled?,
           PRIORITY_KEY            => segment.transaction.priority,
@@ -102,10 +101,6 @@ module NewRelic
 
       def parent_guid(segment)
         segment.parent && segment.parent.guid
-      end
-
-      def grandparent_guid(segment)
-        segment.parent && segment.parent.parent && segment.parent.parent.guid
       end
 
       def milliseconds_since_epoch(segment)
