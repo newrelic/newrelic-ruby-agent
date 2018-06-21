@@ -89,7 +89,7 @@ module NewRelic
         def test_accept_distributed_trace_payload_records_duration_metrics
           payload = create_distributed_trace_payload
 
-          transaction = in_transaction "test_txn" do |txn|
+          in_transaction "test_txn" do |txn|
             txn.accept_distributed_trace_payload payload.to_json
           end
 
@@ -107,7 +107,7 @@ module NewRelic
         def test_accept_distributed_trace_payload_with_error_records_error_metrics
           payload = create_distributed_trace_payload
 
-          transaction = in_transaction "test_txn" do |txn|
+          in_transaction "test_txn" do |txn|
             txn.accept_distributed_trace_payload payload.to_json
             NewRelic::Agent.notice_error StandardError.new "Nooo!"
           end
@@ -146,7 +146,6 @@ module NewRelic
 
           result      = create_distributed_transactions
           transaction = result[:grandparent_transaction]
-          payload     = result[:grandparent_payload]
           intrinsics  = result[:grandparent_intrinsics]
 
           assert_equal transaction.guid, intrinsics['guid']
@@ -193,9 +192,6 @@ module NewRelic
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
           result                  = create_distributed_transactions
-          grandparent_payload     = result[:grandparent_payload]
-          grandparent_transaction = result[:grandparent_transaction]
-          parent_payload          = result[:parent_payload]
           parent_transaction      = result[:parent_transaction]
           child_transaction       = result[:child_transaction]
           child_intrinsics        = result[:child_intrinsics]
