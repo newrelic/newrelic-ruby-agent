@@ -9,6 +9,7 @@ language: ruby
 sudo: required
 
 before_install:
+  - sudo apt-get update && sudo apt-get install --only-upgrade openssl && sudo apt-get install --only-upgrade libssl-dev
   - gem --version
   - gem update --system
   - ./test/script/before_install/gemstash_mirror.sh
