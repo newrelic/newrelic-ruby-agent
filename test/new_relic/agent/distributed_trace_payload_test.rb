@@ -17,8 +17,7 @@ module NewRelic
         @config = {
           :'distributed_tracing.enabled' => true,
           :application_id => "46954",
-          :cross_process_id => "190#222",
-          :'span_events.enabled' => false
+          :cross_process_id => "190#222"
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config)
@@ -65,9 +64,8 @@ module NewRelic
           payload = DistributedTracePayload.for_transaction txn
         end
 
-        assert_equal transaction.guid, payload.id
+        assert_equal transaction.guid, payload.transaction_id
         assert_equal transaction.trace_id, payload.trace_id
-        assert_equal transaction.parent_id, payload.parent_id
         assert_equal transaction.priority, payload.priority
       end
 
@@ -90,21 +88,23 @@ module NewRelic
 
         NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
-        referring_transaction = in_transaction("test_txn") {}
+        incoming_payload = nil
 
-        incoming_payload = DistributedTracePayload.for_transaction referring_transaction
+        referring_transaction = in_transaction("test_txn") do |txn|
+          incoming_payload = txn.create_distributed_trace_payload
+        end
+
         payload = DistributedTracePayload.from_json incoming_payload.to_json
 
         assert_equal DistributedTracePayload::VERSION, payload.version
         assert_equal "App", payload.parent_type
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
-        assert_equal referring_transaction.guid, payload.id
-        assert_equal referring_transaction.parent_id, payload.parent_id
+        assert_equal referring_transaction.initial_segment.guid, payload.id
+        assert_equal referring_transaction.guid, payload.transaction_id
         assert_equal referring_transaction.trace_id, payload.trace_id
         assert_equal true, payload.sampled?
         assert_equal referring_transaction.priority, payload.priority
-        assert_equal referring_transaction.guid, payload.id
         assert_equal created_at.round, payload.timestamp
       end
 
@@ -113,17 +113,20 @@ module NewRelic
 
         NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
-        referring_transaction = in_transaction("test_txn") {}
+        incoming_payload = nil
 
-        incoming_payload = DistributedTracePayload.for_transaction referring_transaction
+        referring_transaction = in_transaction("test_txn") do |txn|
+          incoming_payload = txn.create_distributed_trace_payload
+        end
+
         payload = DistributedTracePayload.from_http_safe incoming_payload.http_safe
 
         assert_equal DistributedTracePayload::VERSION, payload.version
         assert_equal "App", payload.parent_type
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
-        assert_equal referring_transaction.guid, payload.id
-        assert_equal referring_transaction.parent_id, payload.parent_id
+        assert_equal referring_transaction.initial_segment.guid, payload.id
+        assert_equal referring_transaction.guid, payload.transaction_id
         assert_equal referring_transaction.trace_id, payload.trace_id
         assert_equal true, payload.sampled?
         assert_equal referring_transaction.priority, payload.priority
@@ -137,7 +140,7 @@ module NewRelic
         raw_payload = JSON.parse(payload.to_json)
 
         assert_equal_unordered %w(v d), raw_payload.keys
-        assert_equal_unordered %w(ty ac ap pa id tr pr sa ti), raw_payload["d"].keys
+        assert_equal_unordered %w(ty ac ap id tx tr pr sa ti), raw_payload["d"].keys
       end
 
       def test_to_json_and_from_json_are_inverse_operations

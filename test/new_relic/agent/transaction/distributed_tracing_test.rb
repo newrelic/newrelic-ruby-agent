@@ -14,7 +14,6 @@ module NewRelic
         def setup
           @config = {
             :'distributed_tracing.enabled' => true,
-            :'span_events.enabled' => false,
             :application_id => "46954",
             :cross_process_id => "190#222",
             :trusted_account_ids => [190]
@@ -41,9 +40,9 @@ module NewRelic
           assert_equal "190", payload.parent_account_id
           assert_equal DistributedTracePayload::VERSION, payload.version
           assert_equal "App", payload.parent_type
-          assert_equal transaction.guid, payload.id
+          assert_equal transaction.initial_segment.guid, payload.id
+          assert_equal transaction.guid, payload.transaction_id
           assert_equal transaction.trace_id, payload.trace_id
-          assert_nil   payload.parent_id
           assert_equal created_at, payload.timestamp
         end
 
@@ -90,7 +89,7 @@ module NewRelic
         def test_accept_distributed_trace_payload_records_duration_metrics
           payload = create_distributed_trace_payload
 
-          transaction = in_transaction "test_txn" do |txn|
+          in_transaction "test_txn" do |txn|
             txn.accept_distributed_trace_payload payload.to_json
           end
 
@@ -108,7 +107,7 @@ module NewRelic
         def test_accept_distributed_trace_payload_with_error_records_error_metrics
           payload = create_distributed_trace_payload
 
-          transaction = in_transaction "test_txn" do |txn|
+          in_transaction "test_txn" do |txn|
             txn.accept_distributed_trace_payload payload.to_json
             NewRelic::Agent.notice_error StandardError.new "Nooo!"
           end
@@ -147,14 +146,12 @@ module NewRelic
 
           result      = create_distributed_transactions
           transaction = result[:grandparent_transaction]
-          payload     = result[:grandparent_payload]
           intrinsics  = result[:grandparent_intrinsics]
 
           assert_equal transaction.guid, intrinsics['guid']
           assert_equal transaction.guid, intrinsics['nr.tripId']
           assert_equal transaction.guid, intrinsics['traceId']
           assert_nil                     intrinsics['parentId']
-          assert_nil                     intrinsics['grandparentId']
           assert                         intrinsics['sampled']
 
           txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
@@ -163,7 +160,6 @@ module NewRelic
           assert_equal transaction.guid, txn_intrinsics['nr.tripId']
           assert_equal transaction.guid, intrinsics['traceId']
           assert_nil                     txn_intrinsics['parentId']
-          assert_nil                     txn_intrinsics['grandparentId']
           assert                         txn_intrinsics[:'sampled']
         end
 
@@ -196,9 +192,6 @@ module NewRelic
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
           result                  = create_distributed_transactions
-          grandparent_payload     = result[:grandparent_payload]
-          grandparent_transaction = result[:grandparent_transaction]
-          parent_payload          = result[:parent_payload]
           parent_transaction      = result[:parent_transaction]
           child_transaction       = result[:child_transaction]
           child_intrinsics        = result[:child_intrinsics]
@@ -218,14 +211,10 @@ module NewRelic
           assert                                              child_intrinsics["parentId"]
           assert_equal parent_transaction.guid,               child_intrinsics["parentId"]
 
-          assert                                              child_intrinsics["grandparentId"]
-          assert_equal grandparent_transaction.guid,          child_intrinsics["grandparentId"]
-
           # Make sure the parent / grandparent links are connected all
           # the way up.
           #
-          assert_equal inbound_payload.id,                    parent_transaction.guid
-          assert_equal inbound_payload.parent_id,             grandparent_payload.id
+          assert_equal inbound_payload.transaction_id,        parent_transaction.guid
         end
 
         def test_sampled_is_false_in_transaction_event_when_indicated_by_upstream
@@ -262,13 +251,13 @@ module NewRelic
           assert_equal inbound_payload.caller_transport_type, intrinsics["parent.transportType"]
           assert_equal inbound_payload.parent_app_id, intrinsics["parent.app"]
           assert_equal inbound_payload.parent_account_id, intrinsics["parent.account"]
-          assert_equal inbound_payload.id, referring_transaction.guid
+          assert_equal inbound_payload.transaction_id, referring_transaction.guid
           assert_equal transaction.guid, intrinsics["guid"]
           assert_equal inbound_payload.trace_id, intrinsics["nr.tripId"]
           assert_equal inbound_payload.trace_id, intrinsics["traceId"]
           assert_equal true, intrinsics["sampled"]
           assert       intrinsics["parentId"], "Child should be linked to parent transaction"
-          assert_equal inbound_payload.id, intrinsics["parentId"]
+          assert_equal inbound_payload.transaction_id, intrinsics["parentId"]
         end
 
         def test_sampled_is_false_in_error_event_when_indicated_by_upstream
@@ -468,23 +457,19 @@ module NewRelic
         end
 
         def test_span_ids_passed_in_payload_when_span_events_enabled
-          with_config :'span_events.enabled' => true do
-            NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
-            payload = nil
-            txn_segment = nil
-            external_segment = nil
-            in_transaction('test_txn') do |txn|
-              txn_segment = txn.current_segment
-              external_segment = NewRelic::Agent::Transaction.\
-                           start_external_request_segment library: "net/http",
-                                                          uri: "http://docs.newrelic.com",
-                                                          procedure: "GET"
-              payload = txn.create_distributed_trace_payload
-            end
-
-            assert_equal external_segment.guid, payload.id
-            assert_equal txn_segment.guid, payload.parent_id
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
+          payload = nil
+          external_segment = nil
+          transaction = in_transaction('test_txn') do |txn|
+            external_segment = NewRelic::Agent::Transaction.\
+                         start_external_request_segment library: "net/http",
+                                                        uri: "http://docs.newrelic.com",
+                                                        procedure: "GET"
+            payload = txn.create_distributed_trace_payload
           end
+
+          assert_equal external_segment.guid, payload.id
+          assert_equal transaction.guid, payload.transaction_id
         end
 
         private

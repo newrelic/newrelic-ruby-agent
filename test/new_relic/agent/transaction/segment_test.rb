@@ -170,7 +170,6 @@ module NewRelic
           assert_equal trace_id,  custom_span_event.fetch('traceId')
           refute_nil              custom_span_event.fetch('guid')
           assert_equal root_guid, custom_span_event.fetch('parentId')
-          assert_nil              custom_span_event.fetch('grandparentId')
           assert_equal txn_guid,  custom_span_event.fetch('appLocalRootId')
           assert_equal sampled,   custom_span_event.fetch('sampled')
           assert_equal priority,  custom_span_event.fetch('priority')
@@ -199,19 +198,16 @@ module NewRelic
 
           assert_equal txn.guid, txn_segment_event["appLocalRootId"]
           assert_nil   txn_segment_event["parentId"]
-          assert_nil   txn_segment_event["grandparentId"]
 
           segment_event_a, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_a" }
 
           assert_equal txn.guid, segment_event_a["appLocalRootId"]
           assert_equal txn_segment.guid, segment_event_a["parentId"]
-          assert_nil   segment_event_a["grandparentId"]
 
           segment_event_b, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_b" }
 
           assert_equal txn.guid, segment_event_b["appLocalRootId"]
           assert_equal segment_a.guid, segment_event_b["parentId"]
-          assert_equal txn_segment.guid, segment_event_b["grandparentId"]
         end
 
         def test_sets_start_time_from_constructor
