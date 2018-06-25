@@ -195,13 +195,13 @@ module NewRelic
           @host = host
           @port_path_or_id = port_path_or_id
           @database_name = database_name
-          @safe_statement = nil
+          @safe_sql = nil
         end
 
-        # Returns a statement that will be in the form most permissable by the
-        # config. The format will be safe for transmission to New Relic.
-        def safe_statement
-          @safe_statement ||= case Database.record_sql_method
+        # Returns an sql statement that will be in the form most permissable by
+        # the config. The format will be safe for transmission to New Relic.
+        def safe_sql
+          @safe_sql ||= case Database.record_sql_method
             when :obfuscated
               Database.obfuscate_sql(sql)
             when :raw

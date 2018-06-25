@@ -92,7 +92,7 @@ module NewRelic
         def prepare_sql_for_transmission!
           each_node do |node|
             next unless node[:sql]
-            node[:sql] = node[:sql].safe_statement
+            node[:sql] = node[:sql].safe_sql
           end
         end
 

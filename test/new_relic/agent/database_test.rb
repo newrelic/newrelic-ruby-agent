@@ -505,24 +505,24 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal NewRelic::Agent::Database::MAX_QUERY_LENGTH, statement.sql.size
   end
 
-  def test_safe_statement_obfuscates_when_set
+  def test_safe_sql_obfuscates_when_set
     NewRelic::Agent::Database.stubs(:record_sql_method).returns :obfuscated
     statement = NewRelic::Agent::Database::Statement.new "select * from mytable where name = '1337807';"
 
-    assert_equal "select * from mytable where name = ?;", statement.safe_statement
+    assert_equal "select * from mytable where name = ?;", statement.safe_sql
   end
 
-  def test_safe_statement_returns_raw_when_set
+  def test_safe_sql_returns_raw_when_set
     NewRelic::Agent::Database.stubs(:record_sql_method).returns :raw
     statement = NewRelic::Agent::Database::Statement.new "select * from mytable where name = '1337807';"
 
-    assert_equal "select * from mytable where name = '1337807';", statement.safe_statement
+    assert_equal "select * from mytable where name = '1337807';", statement.safe_sql
   end
 
-  def test_safe_statement_returns_nil_when_off
+  def test_safe_sql_returns_nil_when_off
     NewRelic::Agent::Database.stubs(:record_sql_method).returns :off
     statement = NewRelic::Agent::Database::Statement.new "select * from mytable where name = '1337807';"
 
-    assert_nil statement.safe_statement
+    assert_nil statement.safe_sql
   end
 end

@@ -206,11 +206,12 @@ module NewRelic
         end
 
         def test_sampled_segment_records_span_event
-          trace_id  = nil
-          txn_guid  = nil
-          sampled   = nil
-          priority  = nil
-          timestamp = nil
+          trace_id      = nil
+          txn_guid      = nil
+          sampled       = nil
+          priority      = nil
+          timestamp     = nil
+          sql_statement = "select * from table"
 
           in_web_transaction('wat') do |txn|
             txn.sampled = true
@@ -224,6 +225,7 @@ module NewRelic
               database_name: "calzone_zone",
             )
             segment.start
+            segment.notice_sql sql_statement
             advance_time 1
             segment.finish
 
@@ -260,6 +262,7 @@ module NewRelic
           assert_equal 'rachel.foo:1337807', custom_span_event.fetch('peer.address')
           assert_equal 'rachel.foo',         custom_span_event.fetch('peer.hostname')
           assert_equal 'client',             custom_span_event.fetch('span.kind')
+          assert_equal sql_statement,  custom_span_event.fetch('db.statement')
         end
 
         def test_add_instance_identifier_segment_parameter
