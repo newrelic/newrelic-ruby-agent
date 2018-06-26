@@ -37,14 +37,15 @@ module NewRelic
       DATASTORE_PRODUCT_KEY         = 'datastoreProduct'.freeze
       DATASTORE_COLLECTION_KEY      = 'datastoreCollection'.freeze
       DATASTORE_OPERATION_KEY       = 'datastoreOperation'.freeze
-      DATASTORE_HOST_KEY            = 'datastoreHost'.freeze
-      DATASTORE_PORT_PATH_OR_ID_KEY = 'datastorePortPathOrId'.freeze
-      DATASTORE_NAME_KEY            = 'datastoreName'.freeze
+      DATASTORE_PEER_HOSTNAME_KEY   = 'peer.hostname'.freeze
+      DATASTORE_PEER_ADDRESS_KEY    = 'component'.freeze
+      DATASTORE_INSTANCE_KEY        = 'db.instance'.freeze
+      DATASTORE_SPAN_KIND_KEY       = 'span.kind'.freeze
 
       # Strings for static values of the event structure
       EVENT_TYPE         = 'Span'.freeze
       GENERIC_CATEGORY   = 'generic'.freeze
-      EXTERNAL_CATEGORY  = 'external'.freeze
+      HTTP_CATEGORY      = 'http'.freeze
       DATASTORE_CATEGORY = 'datastore'.freeze
 
       # To avoid allocations when we have empty custom or agent attributes
@@ -72,12 +73,11 @@ module NewRelic
         intrinsics = intrinsics_for(segment)
 
         intrinsics[DATASTORE_PRODUCT_KEY]         = segment.product
-        intrinsics[DATASTORE_COLLECTION_KEY]      = segment.collection
-        intrinsics[DATASTORE_OPERATION_KEY]       = segment.operation
-        intrinsics[DATASTORE_HOST_KEY]            = segment.host
-        intrinsics[DATASTORE_PORT_PATH_OR_ID_KEY] = segment.port_path_or_id
-        intrinsics[DATASTORE_NAME_KEY]            = segment.database_name
+        intrinsics[DATASTORE_PEER_HOSTNAME_KEY]   = segment.host
+        intrinsics[DATASTORE_PEER_ADDRESS_KEY]    = segment.host.concat(segment.port_path_or_id)
+        intrinsics[DATASTORE_INSTANCE_KEY]        = segment.database_name
         intrinsics[CATEGORY_KEY]                  = DATASTORE_CATEGORY
+        intrinsics[DATASTORE_SPAN_KIND_KEY]       = 'client'
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
       end
