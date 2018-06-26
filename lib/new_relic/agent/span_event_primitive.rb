@@ -62,7 +62,7 @@ module NewRelic
         intrinsics[EXTERNAL_URI_KEY]       = segment.uri
         intrinsics[EXTERNAL_LIBRARY_KEY]   = segment.library
         intrinsics[EXTERNAL_PROCEDURE_KEY] = segment.procedure
-        intrinsics[CATEGORY_KEY]           = EXTERNAL_CATEGORY
+        intrinsics[CATEGORY_KEY]           = HTTP_CATEGORY
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
       end
@@ -75,7 +75,7 @@ module NewRelic
         intrinsics[DATASTORE_PEER_ADDRESS_KEY]    = segment.host.dup << ':' << segment.port_path_or_id
         intrinsics[DATASTORE_PEER_HOSTNAME_KEY]   = segment.host
         intrinsics[DATASTORE_SPAN_KIND_KEY]       = 'client'
-        intrinsics[CATEGORY_KEY]                  = DATABASE_CATEGORY
+        intrinsics[CATEGORY_KEY]                  = DATASTORE_CATEGORY
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
       end
