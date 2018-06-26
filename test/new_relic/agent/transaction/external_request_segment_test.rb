@@ -721,10 +721,10 @@ module NewRelic
           assert_equal timestamp,         external_span_event.fetch('timestamp')
           assert_equal 1.0,               external_span_event.fetch('duration')
           assert_equal expected_name,     external_span_event.fetch('name')
-          assert_equal segment.uri,       external_span_event.fetch('externalUri')
-          assert_equal segment.library,   external_span_event.fetch('externalLibrary')
-          assert_equal segment.procedure, external_span_event.fetch('externalProcedure')
-          assert_equal 'external',        external_span_event.fetch('category')
+          assert_equal segment.uri,       external_span_event.fetch('http.url')
+          assert_equal segment.library,   external_span_event.fetch('http.component')
+          assert_equal segment.procedure, external_span_event.fetch('http.method')
+          assert_equal 'http',            external_span_event.fetch('category')
         end
 
         def test_non_sampled_segment_does_not_record_span_event

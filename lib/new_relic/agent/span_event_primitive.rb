@@ -28,17 +28,19 @@ module NewRelic
       NAME_KEY                = 'name'.freeze
       CATEGORY_KEY            = 'category'.freeze
 
-      # Externals
-      EXTERNAL_URI_KEY       = "externalUri".freeze
-      EXTERNAL_LIBRARY_KEY   = "externalLibrary".freeze
-      EXTERNAL_PROCEDURE_KEY = "externalProcedure".freeze
+      # HTTP
+      HTTP_URL_KEY       = 'http.url'.freeze
+      HTTP_METHOD_KEY    = 'http.method'.freeze
+      HTTP_COMPONENT_KEY = 'http.component'.freeze
 
       # Datastores
       DATASTORE_COMPONENT_KEY       = 'component'.freeze
       DATASTORE_INSTANCE_KEY        = 'db.instance'.freeze
       DATASTORE_PEER_ADDRESS_KEY    = 'peer.address'.freeze
       DATASTORE_PEER_HOSTNAME_KEY   = 'peer.hostname'.freeze
-      DATASTORE_SPAN_KIND_KEY       = 'span.kind'.freeze
+
+      # Kind key for HTTP and datastore spans
+      SPAN_KIND_KEY = 'span.kind'.freeze
 
       # Strings for static values of the event structure
       EVENT_TYPE         = 'Span'.freeze
@@ -59,10 +61,11 @@ module NewRelic
       def for_external_request_segment(segment)
         intrinsics = intrinsics_for(segment)
 
-        intrinsics[EXTERNAL_URI_KEY]       = segment.uri
-        intrinsics[EXTERNAL_LIBRARY_KEY]   = segment.library
-        intrinsics[EXTERNAL_PROCEDURE_KEY] = segment.procedure
-        intrinsics[CATEGORY_KEY]           = HTTP_CATEGORY
+        intrinsics[HTTP_URL_KEY]       = segment.uri
+        intrinsics[HTTP_COMPONENT_KEY] = segment.library
+        intrinsics[HTTP_METHOD_KEY]    = segment.procedure
+        intrinsics[CATEGORY_KEY]       = HTTP_CATEGORY
+        intrinsics[SPAN_KIND_KEY]      = 'client'
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
       end
@@ -74,7 +77,7 @@ module NewRelic
         intrinsics[DATASTORE_INSTANCE_KEY]        = segment.database_name
         intrinsics[DATASTORE_PEER_ADDRESS_KEY]    = segment.host.dup << ':' << segment.port_path_or_id
         intrinsics[DATASTORE_PEER_HOSTNAME_KEY]   = segment.host
-        intrinsics[DATASTORE_SPAN_KIND_KEY]       = 'client'
+        intrinsics[SPAN_KIND_KEY]                 = 'client'
         intrinsics[CATEGORY_KEY]                  = DATASTORE_CATEGORY
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
