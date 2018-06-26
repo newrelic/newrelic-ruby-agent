@@ -219,6 +219,7 @@ module NewRelic
               product: "SQLite",
               collection: "Blahg",
               operation: "select",
+              host: "rachel.foo",
               port_path_or_id: 1337807,
               database_name: "calzone_zone",
             )
@@ -254,12 +255,11 @@ module NewRelic
           assert_equal datastore,   custom_span_event.fetch('name')
           assert_equal 'datastore', custom_span_event.fetch('category')
 
-          assert_equal 'SQLite',       custom_span_event.fetch('datastoreProduct')
-          assert_equal 'Blahg',        custom_span_event.fetch('datastoreCollection')
-          assert_equal 'select',       custom_span_event.fetch('datastoreOperation')
-          assert_equal 'unknown',      custom_span_event.fetch('datastoreHost')
-          assert_equal '1337807',      custom_span_event.fetch('datastorePortPathOrId')
-          assert_equal 'calzone_zone', custom_span_event.fetch('datastoreName')
+          assert_equal 'SQLite',             custom_span_event.fetch('component')
+          assert_equal 'calzone_zone',       custom_span_event.fetch('db.instance')
+          assert_equal 'rachel.foo:1337807', custom_span_event.fetch('peer.address')
+          assert_equal 'rachel.foo',         custom_span_event.fetch('peer.hostname')
+          assert_equal 'client',             custom_span_event.fetch('span.kind')
         end
 
         def test_add_instance_identifier_segment_parameter
