@@ -34,12 +34,10 @@ module NewRelic
       EXTERNAL_PROCEDURE_KEY = "externalProcedure".freeze
 
       # Datastores
-      DATASTORE_PRODUCT_KEY         = 'datastoreProduct'.freeze
-      DATASTORE_COLLECTION_KEY      = 'datastoreCollection'.freeze
-      DATASTORE_OPERATION_KEY       = 'datastoreOperation'.freeze
-      DATASTORE_PEER_HOSTNAME_KEY   = 'peer.hostname'.freeze
-      DATASTORE_PEER_ADDRESS_KEY    = 'component'.freeze
+      DATASTORE_COMPONENT_KEY       = 'component'.freeze
       DATASTORE_INSTANCE_KEY        = 'db.instance'.freeze
+      DATASTORE_PEER_ADDRESS_KEY    = 'peer.address'.freeze
+      DATASTORE_PEER_HOSTNAME_KEY   = 'peer.hostname'.freeze
       DATASTORE_SPAN_KIND_KEY       = 'span.kind'.freeze
 
       # Strings for static values of the event structure
@@ -72,12 +70,12 @@ module NewRelic
       def for_datastore_segment(segment)
         intrinsics = intrinsics_for(segment)
 
-        intrinsics[DATASTORE_PRODUCT_KEY]         = segment.product
-        intrinsics[DATASTORE_PEER_HOSTNAME_KEY]   = segment.host
-        intrinsics[DATASTORE_PEER_ADDRESS_KEY]    = segment.host.concat(segment.port_path_or_id)
+        intrinsics[DATASTORE_COMPONENT_KEY]       = segment.product
         intrinsics[DATASTORE_INSTANCE_KEY]        = segment.database_name
-        intrinsics[CATEGORY_KEY]                  = DATASTORE_CATEGORY
+        intrinsics[DATASTORE_PEER_ADDRESS_KEY]    = segment.host.dup << ':' << segment.port_path_or_id
+        intrinsics[DATASTORE_PEER_HOSTNAME_KEY]   = segment.host
         intrinsics[DATASTORE_SPAN_KIND_KEY]       = 'client'
+        intrinsics[CATEGORY_KEY]                  = DATABASE_CATEGORY
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
       end
