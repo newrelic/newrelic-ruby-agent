@@ -70,8 +70,8 @@ module NewRelic
         intrinsics = intrinsics_for(segment)
 
         intrinsics[COMPONENT_KEY]     = segment.product
-        intrinsics[DB_INSTANCE_KEY]      = segment.database_name
-        intrinsics[PEER_ADDRESS_KEY]  = segment.host.dup << ':' << segment.port_path_or_id
+        intrinsics[DB_INSTANCE_KEY]   = segment.database_name
+        intrinsics[PEER_ADDRESS_KEY]  = "#{segment.host}:#{segment.port_path_or_id}"
         intrinsics[PEER_HOSTNAME_KEY] = segment.host
         intrinsics[SPAN_KIND_KEY]     = CLIENT
         intrinsics[CATEGORY_KEY]      = DATASTORE_CATEGORY
