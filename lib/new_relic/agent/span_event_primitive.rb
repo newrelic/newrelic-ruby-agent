@@ -30,7 +30,7 @@ module NewRelic
       URL_KEY                 = 'http.url'.freeze
       METHOD_KEY              = 'http.method'.freeze
       COMPONENT_KEY           = 'component'.freeze
-      INSTANCE_KEY            = 'db.instance'.freeze
+      DB_INSTANCE_KEY         = 'db.instance'.freeze
       PEER_ADDRESS_KEY        = 'peer.address'.freeze
       PEER_HOSTNAME_KEY       = 'peer.hostname'.freeze
 
