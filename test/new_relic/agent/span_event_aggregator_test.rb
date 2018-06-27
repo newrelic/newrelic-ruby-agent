@@ -72,32 +72,6 @@ module NewRelic
 
       include NewRelic::CommonAggregatorTests
 
-      def test_max_samples_config_cannot_exceed_limit
-        # the reservoir should not allow the capacity to be > 1000 regardless
-        # of configuration
-
-        with_config :'span_events.max_samples_stored' => 5000 do
-          buffer = aggregator.instance_variable_get :@buffer
-          assert_equal 1000, buffer.capacity
-        end
-      end
-
-      # this overrides the common aggregator test since we have a lower max
-      # capacity for the span event aggregator
-      def test_does_not_drop_samples_when_used_from_multiple_threads
-        with_config( aggregator.class.capacity_key => 1000 ) do
-          threads = []
-          9.times do
-            threads << Thread.new do
-              100.times { generate_event }
-            end
-          end
-          threads.each { |t| t.join }
-
-          assert_equal(9 * 100, last_events.size)
-        end
-      end
-
       def test_supportability_metrics_for_span_events
         with_config aggregator.class.capacity_key => 5 do
           12.times { generate_event }
