@@ -27,17 +27,12 @@ module NewRelic
       DURATION_KEY            = 'duration'.freeze
       NAME_KEY                = 'name'.freeze
       CATEGORY_KEY            = 'category'.freeze
-
-      # HTTP
-      HTTP_URL_KEY       = 'http.url'.freeze
-      HTTP_METHOD_KEY    = 'http.method'.freeze
-      HTTP_COMPONENT_KEY = 'http.component'.freeze
-
-      # Datastores
-      DATASTORE_COMPONENT_KEY       = 'component'.freeze
-      DATASTORE_INSTANCE_KEY        = 'db.instance'.freeze
-      DATASTORE_PEER_ADDRESS_KEY    = 'peer.address'.freeze
-      DATASTORE_PEER_HOSTNAME_KEY   = 'peer.hostname'.freeze
+      URL_KEY                 = 'http.url'.freeze
+      METHOD_KEY              = 'http.method'.freeze
+      COMPONENT_KEY           = 'component'.freeze
+      INSTANCE_KEY            = 'db.instance'.freeze
+      PEER_ADDRESS_KEY        = 'peer.address'.freeze
+      PEER_HOSTNAME_KEY       = 'peer.hostname'.freeze
 
       # Kind key for HTTP and datastore spans
       SPAN_KIND_KEY = 'span.kind'.freeze
@@ -62,11 +57,11 @@ module NewRelic
       def for_external_request_segment(segment)
         intrinsics = intrinsics_for(segment)
 
-        intrinsics[HTTP_URL_KEY]       = segment.uri
-        intrinsics[HTTP_COMPONENT_KEY] = segment.library
-        intrinsics[HTTP_METHOD_KEY]    = segment.procedure
-        intrinsics[CATEGORY_KEY]       = HTTP_CATEGORY
-        intrinsics[SPAN_KIND_KEY]      = CLIENT
+        intrinsics[URL_KEY]       = segment.uri
+        intrinsics[COMPONENT_KEY] = segment.library
+        intrinsics[METHOD_KEY]    = segment.procedure
+        intrinsics[CATEGORY_KEY]  = HTTP_CATEGORY
+        intrinsics[SPAN_KIND_KEY] = CLIENT
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
       end
@@ -74,12 +69,12 @@ module NewRelic
       def for_datastore_segment(segment)
         intrinsics = intrinsics_for(segment)
 
-        intrinsics[DATASTORE_COMPONENT_KEY]       = segment.product
-        intrinsics[DATASTORE_INSTANCE_KEY]        = segment.database_name
-        intrinsics[DATASTORE_PEER_ADDRESS_KEY]    = segment.host.dup << ':' << segment.port_path_or_id
-        intrinsics[DATASTORE_PEER_HOSTNAME_KEY]   = segment.host
-        intrinsics[SPAN_KIND_KEY]                 = CLIENT
-        intrinsics[CATEGORY_KEY]                  = DATASTORE_CATEGORY
+        intrinsics[COMPONENT_KEY]     = segment.product
+        intrinsics[INSTANCE_KEY]      = segment.database_name
+        intrinsics[PEER_ADDRESS_KEY]  = segment.host.dup << ':' << segment.port_path_or_id
+        intrinsics[PEER_HOSTNAME_KEY] = segment.host
+        intrinsics[SPAN_KIND_KEY]     = CLIENT
+        intrinsics[CATEGORY_KEY]      = DATASTORE_CATEGORY
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
       end

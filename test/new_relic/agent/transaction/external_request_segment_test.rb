@@ -722,7 +722,7 @@ module NewRelic
           assert_equal 1.0,               external_span_event.fetch('duration')
           assert_equal expected_name,     external_span_event.fetch('name')
           assert_equal segment.uri,       external_span_event.fetch('http.url')
-          assert_equal segment.library,   external_span_event.fetch('http.component')
+          assert_equal segment.library,   external_span_event.fetch('component')
           assert_equal segment.procedure, external_span_event.fetch('http.method')
           assert_equal 'http',            external_span_event.fetch('category')
         end
