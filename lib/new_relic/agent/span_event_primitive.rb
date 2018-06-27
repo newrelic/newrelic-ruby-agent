@@ -47,6 +47,7 @@ module NewRelic
       GENERIC_CATEGORY   = 'generic'.freeze
       HTTP_CATEGORY      = 'http'.freeze
       DATASTORE_CATEGORY = 'datastore'.freeze
+      CLIENT             = 'client'.freeze
 
       # To avoid allocations when we have empty custom or agent attributes
       EMPTY_HASH = {}.freeze
@@ -65,7 +66,7 @@ module NewRelic
         intrinsics[HTTP_COMPONENT_KEY] = segment.library
         intrinsics[HTTP_METHOD_KEY]    = segment.procedure
         intrinsics[CATEGORY_KEY]       = HTTP_CATEGORY
-        intrinsics[SPAN_KIND_KEY]      = 'client'
+        intrinsics[SPAN_KIND_KEY]      = CLIENT
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
       end
@@ -77,7 +78,7 @@ module NewRelic
         intrinsics[DATASTORE_INSTANCE_KEY]        = segment.database_name
         intrinsics[DATASTORE_PEER_ADDRESS_KEY]    = segment.host.dup << ':' << segment.port_path_or_id
         intrinsics[DATASTORE_PEER_HOSTNAME_KEY]   = segment.host
-        intrinsics[SPAN_KIND_KEY]                 = 'client'
+        intrinsics[SPAN_KIND_KEY]                 = CLIENT
         intrinsics[CATEGORY_KEY]                  = DATASTORE_CATEGORY
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
