@@ -27,25 +27,22 @@ module NewRelic
       DURATION_KEY            = 'duration'.freeze
       NAME_KEY                = 'name'.freeze
       CATEGORY_KEY            = 'category'.freeze
+      HTTP_URL_KEY            = 'http.url'.freeze
+      HTTP_METHOD_KEY         = 'http.method'.freeze
+      COMPONENT_KEY           = 'component'.freeze
+      DB_INSTANCE_KEY         = 'db.instance'.freeze
+      PEER_ADDRESS_KEY        = 'peer.address'.freeze
+      PEER_HOSTNAME_KEY       = 'peer.hostname'.freeze
 
-      # Externals
-      EXTERNAL_URI_KEY       = "externalUri".freeze
-      EXTERNAL_LIBRARY_KEY   = "externalLibrary".freeze
-      EXTERNAL_PROCEDURE_KEY = "externalProcedure".freeze
-
-      # Datastores
-      DATASTORE_PRODUCT_KEY         = 'datastoreProduct'.freeze
-      DATASTORE_COLLECTION_KEY      = 'datastoreCollection'.freeze
-      DATASTORE_OPERATION_KEY       = 'datastoreOperation'.freeze
-      DATASTORE_HOST_KEY            = 'datastoreHost'.freeze
-      DATASTORE_PORT_PATH_OR_ID_KEY = 'datastorePortPathOrId'.freeze
-      DATASTORE_NAME_KEY            = 'datastoreName'.freeze
+      # Kind key for HTTP and datastore spans
+      SPAN_KIND_KEY = 'span.kind'.freeze
 
       # Strings for static values of the event structure
       EVENT_TYPE         = 'Span'.freeze
       GENERIC_CATEGORY   = 'generic'.freeze
-      EXTERNAL_CATEGORY  = 'external'.freeze
+      HTTP_CATEGORY      = 'http'.freeze
       DATASTORE_CATEGORY = 'datastore'.freeze
+      CLIENT             = 'client'.freeze
 
       # To avoid allocations when we have empty custom or agent attributes
       EMPTY_HASH = {}.freeze
@@ -60,10 +57,11 @@ module NewRelic
       def for_external_request_segment(segment)
         intrinsics = intrinsics_for(segment)
 
-        intrinsics[EXTERNAL_URI_KEY]       = segment.uri
-        intrinsics[EXTERNAL_LIBRARY_KEY]   = segment.library
-        intrinsics[EXTERNAL_PROCEDURE_KEY] = segment.procedure
-        intrinsics[CATEGORY_KEY]           = EXTERNAL_CATEGORY
+        intrinsics[HTTP_URL_KEY]       = segment.uri
+        intrinsics[COMPONENT_KEY] = segment.library
+        intrinsics[HTTP_METHOD_KEY]    = segment.procedure
+        intrinsics[CATEGORY_KEY]  = HTTP_CATEGORY
+        intrinsics[SPAN_KIND_KEY] = CLIENT
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
       end
@@ -71,13 +69,12 @@ module NewRelic
       def for_datastore_segment(segment)
         intrinsics = intrinsics_for(segment)
 
-        intrinsics[DATASTORE_PRODUCT_KEY]         = segment.product
-        intrinsics[DATASTORE_COLLECTION_KEY]      = segment.collection
-        intrinsics[DATASTORE_OPERATION_KEY]       = segment.operation
-        intrinsics[DATASTORE_HOST_KEY]            = segment.host
-        intrinsics[DATASTORE_PORT_PATH_OR_ID_KEY] = segment.port_path_or_id
-        intrinsics[DATASTORE_NAME_KEY]            = segment.database_name
-        intrinsics[CATEGORY_KEY]                  = DATASTORE_CATEGORY
+        intrinsics[COMPONENT_KEY]     = segment.product
+        intrinsics[DB_INSTANCE_KEY]   = segment.database_name
+        intrinsics[PEER_ADDRESS_KEY]  = "#{segment.host}:#{segment.port_path_or_id}"
+        intrinsics[PEER_HOSTNAME_KEY] = segment.host
+        intrinsics[SPAN_KIND_KEY]     = CLIENT
+        intrinsics[CATEGORY_KEY]      = DATASTORE_CATEGORY
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
       end
