@@ -76,6 +76,8 @@ module NewRelic
 
         if segment.sql_statement
           intrinsics[DATASTORE_STATEMENT_KEY] = segment.sql_statement.safe_sql
+        elsif segment.nosql_statement
+          intrinsics[DATASTORE_STATEMENT_KEY] = segment.nosql_statement
         end
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]

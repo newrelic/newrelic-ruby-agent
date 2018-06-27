@@ -224,7 +224,7 @@ module NewRelic
               port_path_or_id: 1337807,
               database_name: "calzone_zone",
             )
-            segment.start
+
             segment.notice_sql sql_statement
             advance_time 1
             segment.finish
@@ -263,6 +263,33 @@ module NewRelic
           assert_equal 'rachel.foo',         custom_span_event.fetch('peer.hostname')
           assert_equal 'client',             custom_span_event.fetch('span.kind')
           assert_equal sql_statement,  custom_span_event.fetch('db.statement')
+        end
+
+        def test_nosql_statement_added_to_span_event_if_present
+          nosql_statement = "get MY_KEY "
+
+          in_web_transaction('wat') do |txn|
+            txn.sampled = true
+
+            segment = Transaction.start_datastore_segment(
+              product: "SQLite",
+              collection: "Blahg",
+              operation: "select",
+              port_path_or_id: 1337807,
+              database_name: "calzone_zone",
+            )
+
+            segment.notice_nosql_statement nosql_statement
+            advance_time 1
+            segment.finish
+          end
+
+          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          assert_equal 2, last_span_events.size
+          event = last_span_events[0][0]
+
+
+          assert_equal nosql_statement, event["db.statement"]
         end
 
         def test_add_instance_identifier_segment_parameter
