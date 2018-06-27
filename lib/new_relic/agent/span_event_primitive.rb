@@ -27,8 +27,8 @@ module NewRelic
       DURATION_KEY            = 'duration'.freeze
       NAME_KEY                = 'name'.freeze
       CATEGORY_KEY            = 'category'.freeze
-      URL_KEY                 = 'http.url'.freeze
-      METHOD_KEY              = 'http.method'.freeze
+      HTTP_URL_KEY            = 'http.url'.freeze
+      HTTP_METHOD_KEY         = 'http.method'.freeze
       COMPONENT_KEY           = 'component'.freeze
       DB_INSTANCE_KEY         = 'db.instance'.freeze
       PEER_ADDRESS_KEY        = 'peer.address'.freeze
