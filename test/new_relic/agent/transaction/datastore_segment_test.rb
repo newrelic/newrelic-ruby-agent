@@ -265,6 +265,64 @@ module NewRelic
           assert_equal sql_statement,  custom_span_event.fetch('db.statement')
         end
 
+        def test_sql_statement_not_added_to_span_event_if_disabled
+          with_config :'transaction_tracer.record_sql' => "off" do
+            sql = "SELECT * FROM mytable WHERE super_secret=1"
+
+            in_web_transaction('wat') do |txn|
+              txn.sampled = true
+
+              segment = Transaction.start_datastore_segment(
+                product: "SQLite",
+                collection: "Blahg",
+                operation: "select",
+                port_path_or_id: 1337807,
+                database_name: "calzone_zone",
+              )
+
+              segment.notice_sql sql
+              advance_time 1
+              segment.finish
+            end
+
+            last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+            assert_equal 2, last_span_events.size
+            event = last_span_events[0][0]
+
+
+            refute event.key("db.statement")
+          end
+        end
+
+        def test_verify_sql_statement_obfuscated_on_span_event
+          with_config :'transaction_tracer.record_sql' => "obfuscated" do
+            sql = "SELECT * FROM mytable WHERE super_secret=1"
+
+            in_web_transaction('wat') do |txn|
+              txn.sampled = true
+
+              segment = Transaction.start_datastore_segment(
+                product: "SQLite",
+                collection: "Blahg",
+                operation: "select",
+                port_path_or_id: 1337807,
+                database_name: "calzone_zone",
+              )
+
+              segment.notice_sql sql
+              advance_time 1
+              segment.finish
+            end
+
+            last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+            assert_equal 2, last_span_events.size
+            event = last_span_events[0][0]
+
+            obfuscated_sql = "SELECT * FROM mytable WHERE super_secret=?"
+            assert_equal obfuscated_sql, event["db.statement"]
+          end
+        end
+
         def test_nosql_statement_added_to_span_event_if_present
           nosql_statement = "get MY_KEY "
 
