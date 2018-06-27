@@ -57,9 +57,9 @@ module NewRelic
       def for_external_request_segment(segment)
         intrinsics = intrinsics_for(segment)
 
-        intrinsics[URL_KEY]       = segment.uri
+        intrinsics[HTTP_URL_KEY]       = segment.uri
         intrinsics[COMPONENT_KEY] = segment.library
-        intrinsics[METHOD_KEY]    = segment.procedure
+        intrinsics[HTTP_METHOD_KEY]    = segment.procedure
         intrinsics[CATEGORY_KEY]  = HTTP_CATEGORY
         intrinsics[SPAN_KIND_KEY] = CLIENT
 
