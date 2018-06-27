@@ -31,6 +31,7 @@ module NewRelic
       HTTP_METHOD_KEY         = 'http.method'.freeze
       COMPONENT_KEY           = 'component'.freeze
       DB_INSTANCE_KEY         = 'db.instance'.freeze
+      DB_STATEMENT_KEY        = 'db.statement'.freeze
       PEER_ADDRESS_KEY        = 'peer.address'.freeze
       PEER_HOSTNAME_KEY       = 'peer.hostname'.freeze
       SPAN_KIND_KEY           = 'span.kind'.freeze
@@ -75,9 +76,9 @@ module NewRelic
         intrinsics[CATEGORY_KEY]      = DATASTORE_CATEGORY
 
         if segment.sql_statement
-          intrinsics[DATASTORE_STATEMENT_KEY] = segment.sql_statement.safe_sql
+          intrinsics[DB_STATEMENT_KEY] = segment.sql_statement.safe_sql
         elsif segment.nosql_statement
-          intrinsics[DATASTORE_STATEMENT_KEY] = segment.nosql_statement
+          intrinsics[DB_STATEMENT_KEY] = segment.nosql_statement
         end
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
