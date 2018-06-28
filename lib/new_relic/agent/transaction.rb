@@ -643,9 +643,7 @@ module NewRelic
       def send_transaction_finished_event
         agent.events.notify(:transaction_finished, payload)
       end
-      
-      SAMPLED_KEY = "sampled".freeze
-      
+            
       def generate_payload(state, start_time, end_time)
         duration = end_time.to_f - start_time.to_f
         @payload = {
@@ -658,8 +656,6 @@ module NewRelic
           :error                => false,
           :priority             => @priority
         }
-
-        # @payload[SAMPLED_KEY] = sampled? if Agent.config[:'distributed_tracing.enabled']
 
         append_cat_info(state, duration, @payload)
         append_distributed_trace_info(@payload)
