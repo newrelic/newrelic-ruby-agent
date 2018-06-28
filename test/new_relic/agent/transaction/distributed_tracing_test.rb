@@ -160,7 +160,7 @@ module NewRelic
           assert_equal transaction.guid, txn_intrinsics['nr.tripId']
           assert_equal transaction.guid, intrinsics['traceId']
           assert_nil                     txn_intrinsics['parentId']
-          assert                         txn_intrinsics[:'sampled']
+          assert                         txn_intrinsics['sampled']
         end
 
         def test_initial_legacy_cat_request_trace_id_overwritten_by_first_distributed_trace_guid
@@ -220,12 +220,25 @@ module NewRelic
         def test_sampled_is_false_in_transaction_event_when_indicated_by_upstream
           payload = create_distributed_trace_payload(sampled: false)
 
-          in_transaction "text_txn" do |txn|
+          in_transaction "test_txn" do |txn|
             txn.accept_distributed_trace_payload payload.to_json
           end
 
           intrinsics, _, _ = last_transaction_event
           assert_equal false, intrinsics["sampled"]
+        end
+
+        def test_agent_attributes_always_recorded_when_distributed_tracing_enabled
+
+          in_transaction("test_txn") {}
+
+          intrinsics, _, _ = last_transaction_event
+
+          assert intrinsics.key?('nr.tripId')
+          assert intrinsics.key?('traceId')
+          assert intrinsics.key?('guid')
+          assert intrinsics.key?('priority')
+          assert intrinsics.key?('sampled')
         end
 
         def test_intrinsics_assigned_to_error_event_from_distributed_trace

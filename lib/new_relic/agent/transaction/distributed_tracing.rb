@@ -74,8 +74,8 @@ module NewRelic
           return unless Agent.config[:'distributed_tracing.enabled']
           if distributed_trace_payload
             distributed_trace_payload.assign_intrinsics self, transaction_payload
-          elsif distributed_trace_payload_created?
-            DistributedTracePayload.assign_intrinsics_for_first_trace self, transaction_payload
+          else
+            DistributedTracePayload.assign_initial_intrinsics self, transaction_payload
           end
         end
 

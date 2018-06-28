@@ -602,7 +602,6 @@ module NewRelic
       end
 
       def assign_intrinsics(state)
-        attributes.add_intrinsic_attribute :'sampled', sampled?
 
         if gc_time = calculate_gc_time
           attributes.add_intrinsic_attribute(:gc_time, gc_time)
@@ -618,7 +617,7 @@ module NewRelic
           attributes.add_intrinsic_attribute(:synthetics_monitor_id, synthetics_monitor_id)
         end
 
-        if distributed_trace_payload || distributed_trace_payload_created?
+        if Agent.config[:'distributed_tracing.enabled']
           assign_distributed_trace_intrinsics
         elsif state.is_cross_app?
           attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)
@@ -644,7 +643,9 @@ module NewRelic
       def send_transaction_finished_event
         agent.events.notify(:transaction_finished, payload)
       end
-
+      
+      SAMPLED_KEY = "sampled".freeze
+      
       def generate_payload(state, start_time, end_time)
         duration = end_time.to_f - start_time.to_f
         @payload = {
@@ -658,7 +659,7 @@ module NewRelic
           :priority             => @priority
         }
 
-        @payload[:'sampled'] = sampled? if Agent.config[:'distributed_tracing.enabled']
+        # @payload[SAMPLED_KEY] = sampled? if Agent.config[:'distributed_tracing.enabled']
 
         append_cat_info(state, duration, @payload)
         append_distributed_trace_info(@payload)
