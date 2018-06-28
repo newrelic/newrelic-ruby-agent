@@ -56,11 +56,11 @@ module NewRelic
       def for_external_request_segment(segment)
         intrinsics = intrinsics_for(segment)
 
-        intrinsics[HTTP_URL_KEY]       = segment.uri
-        intrinsics[COMPONENT_KEY] = segment.library
-        intrinsics[HTTP_METHOD_KEY]    = segment.procedure
-        intrinsics[CATEGORY_KEY]  = HTTP_CATEGORY
-        intrinsics[SPAN_KIND_KEY] = CLIENT
+        intrinsics[HTTP_URL_KEY]    = truncate(segment.uri)
+        intrinsics[COMPONENT_KEY]   = segment.library
+        intrinsics[HTTP_METHOD_KEY] = segment.procedure
+        intrinsics[CATEGORY_KEY]    = HTTP_CATEGORY
+        intrinsics[SPAN_KIND_KEY]   = CLIENT
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
       end
@@ -69,16 +69,16 @@ module NewRelic
         intrinsics = intrinsics_for(segment)
 
         intrinsics[COMPONENT_KEY]     = segment.product
-        intrinsics[DB_INSTANCE_KEY]   = segment.database_name
-        intrinsics[PEER_ADDRESS_KEY]  = "#{segment.host}:#{segment.port_path_or_id}"
-        intrinsics[PEER_HOSTNAME_KEY] = segment.host
+        intrinsics[DB_INSTANCE_KEY]   = truncate(segment.database_name)
+        intrinsics[PEER_ADDRESS_KEY]  = truncate("#{segment.host}:#{segment.port_path_or_id}")
+        intrinsics[PEER_HOSTNAME_KEY] = truncate(segment.host)
         intrinsics[SPAN_KIND_KEY]     = CLIENT
         intrinsics[CATEGORY_KEY]      = DATASTORE_CATEGORY
 
         if segment.sql_statement
-          intrinsics[DB_STATEMENT_KEY] = segment.sql_statement.safe_sql
+          intrinsics[DB_STATEMENT_KEY] = truncate(segment.sql_statement.safe_sql, 2000)
         elsif segment.nosql_statement
-          intrinsics[DB_STATEMENT_KEY] = segment.nosql_statement
+          intrinsics[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, 2000)
         end
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
@@ -107,6 +107,17 @@ module NewRelic
 
       def milliseconds_since_epoch(segment)
         Integer(segment.start_time.to_f * 1000.0)
+      end
+
+      ELLIPSIS = '...'.freeze
+
+      def truncate(value, max_size=255)
+        value = value.to_s
+        if value.bytesize > max_size
+          value.byteslice(0, max_size - 2).chop! << ELLIPSIS
+        else
+          value
+        end
       end
     end
   end

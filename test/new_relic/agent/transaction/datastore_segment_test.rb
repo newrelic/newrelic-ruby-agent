@@ -350,6 +350,78 @@ module NewRelic
           assert_equal nosql_statement, event["db.statement"]
         end
 
+        def test_span_event_truncates_long_sql_statement
+          in_transaction('wat') do |txn|
+            txn.sampled = true
+
+            segment = Transaction.start_datastore_segment(
+              product: "SQLite",
+              operation: "select"
+            )
+
+            sql_statement = "select * from #{'a' * 2500}"
+
+            segment.notice_sql sql_statement
+            segment.finish
+          end
+
+          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          span_event = last_span_events[0][0]
+
+          assert_equal 2000,                             span_event['db.statement'].bytesize
+          assert_equal "select * from #{'a' * 1983}...", span_event['db.statement']
+        end
+
+        def test_span_event_truncates_long_nosql_statement
+          in_transaction('wat') do |txn|
+            txn.sampled = true
+
+              segment = NewRelic::Agent::Transaction.start_datastore_segment(
+                product: "Redis",
+                operation: "set"
+              )
+
+            statement = "set mykey #{'a' * 2500}"
+
+            segment.notice_nosql_statement statement
+            segment.finish
+          end
+
+          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          span_event = last_span_events[0][0]
+
+          assert_equal 2000,                         span_event['db.statement'].bytesize
+          assert_equal "set mykey #{'a' * 1987}...", span_event['db.statement']
+        end
+
+        def test_span_event_truncates_long_attributes
+          in_transaction('wat') do |txn|
+            txn.sampled = true
+
+            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+              product: "SQLite",
+              operation: "select",
+              host: "localhost#{'t' * 300}",
+              database_name: "foo#{'o' * 300}",
+              port_path_or_id: "blah"
+            )
+
+            segment.finish
+          end
+
+          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          span_event = last_span_events[0][0]
+
+          assert_equal 255, span_event['peer.hostname'].bytesize
+          assert_equal "localhost#{'t' * 243}...", span_event['peer.hostname']
+
+          assert_equal 255, span_event['peer.address'].bytesize
+          assert_equal "localhost#{'t' * 243}...", span_event['peer.address']
+
+          assert_equal 255, span_event['db.instance'].bytesize
+          assert_equal "foo#{'o' * 249}...", span_event['db.instance']
+        end
+
         def test_add_instance_identifier_segment_parameter
           segment = nil
 

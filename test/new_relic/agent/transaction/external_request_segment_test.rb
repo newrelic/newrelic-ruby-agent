@@ -744,6 +744,24 @@ module NewRelic
           assert_empty last_span_events
         end
 
+        def test_span_event_truncates_long_value
+          in_transaction('wat') do |txn|
+            txn.sampled = true
+
+            segment = Transaction.start_external_request_segment library: "Typhoeus",
+                                                                 uri: "http://#{'a' * 300}.com",
+                                                                 procedure: "GET"
+
+            segment.finish
+          end
+
+          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          external_span_event = last_span_events[0][0]
+
+          assert_equal 255,                      external_span_event['http.url'].bytesize
+          assert_equal "http://#{'a' * 245}...", external_span_event['http.url']
+        end
+
         def cat_config
           {
             :cross_process_id    => "269975#22824",
