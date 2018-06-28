@@ -31,11 +31,10 @@ module NewRelic
       HTTP_METHOD_KEY         = 'http.method'.freeze
       COMPONENT_KEY           = 'component'.freeze
       DB_INSTANCE_KEY         = 'db.instance'.freeze
+      DB_STATEMENT_KEY        = 'db.statement'.freeze
       PEER_ADDRESS_KEY        = 'peer.address'.freeze
       PEER_HOSTNAME_KEY       = 'peer.hostname'.freeze
-
-      # Kind key for HTTP and datastore spans
-      SPAN_KIND_KEY = 'span.kind'.freeze
+      SPAN_KIND_KEY           = 'span.kind'.freeze
 
       # Strings for static values of the event structure
       EVENT_TYPE         = 'Span'.freeze
@@ -75,6 +74,12 @@ module NewRelic
         intrinsics[PEER_HOSTNAME_KEY] = segment.host
         intrinsics[SPAN_KIND_KEY]     = CLIENT
         intrinsics[CATEGORY_KEY]      = DATASTORE_CATEGORY
+
+        if segment.sql_statement
+          intrinsics[DB_STATEMENT_KEY] = segment.sql_statement.safe_sql
+        elsif segment.nosql_statement
+          intrinsics[DB_STATEMENT_KEY] = segment.nosql_statement
+        end
 
         [intrinsics, EMPTY_HASH, EMPTY_HASH]
       end

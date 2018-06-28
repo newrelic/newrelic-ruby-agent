@@ -90,18 +90,9 @@ module NewRelic
         end
 
         def prepare_sql_for_transmission!
-          strategy = NewRelic::Agent::Database.record_sql_method
           each_node do |node|
             next unless node[:sql]
-
-            case strategy
-            when :obfuscated
-              node[:sql] = NewRelic::Agent::Database.obfuscate_sql(node[:sql])
-            when :raw
-              node[:sql] = node[:sql].sql.to_s
-            else
-              node[:sql] = nil
-            end
+            node[:sql] = node[:sql].safe_sql
           end
         end
 
