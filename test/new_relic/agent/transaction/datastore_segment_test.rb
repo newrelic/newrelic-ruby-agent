@@ -186,6 +186,264 @@ module NewRelic
           end
         end
 
+        def test_non_sampled_segment_does_not_record_span_event
+          in_web_transaction('wat') do |txn|
+            txn.sampled = false
+
+            segment = Transaction.start_datastore_segment(
+              product: "SQLite",
+              operation: "select",
+              port_path_or_id: 1337807
+            )
+
+            segment.start
+            advance_time 1.0
+            segment.finish
+          end
+
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          assert_empty last_span_events
+        end
+
+        def test_sampled_segment_records_span_event
+          trace_id      = nil
+          txn_guid      = nil
+          sampled       = nil
+          priority      = nil
+          timestamp     = nil
+          sql_statement = "select * from table"
+
+          in_web_transaction('wat') do |txn|
+            txn.sampled = true
+
+            segment = Transaction.start_datastore_segment(
+              product: "SQLite",
+              collection: "Blahg",
+              operation: "select",
+              host: "rachel.foo",
+              port_path_or_id: 1337807,
+              database_name: "calzone_zone",
+            )
+
+            segment.notice_sql sql_statement
+            advance_time 1
+            segment.finish
+
+            timestamp = Integer(segment.start_time.to_f * 1000.0)
+
+            trace_id = txn.trace_id
+            txn_guid = txn.guid
+            sampled  = txn.sampled?
+            priority = txn.priority
+          end
+
+          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          assert_equal 2, last_span_events.size
+          custom_span_event = last_span_events[0][0]
+          root_span_event   = last_span_events[1][0]
+          root_guid         = root_span_event['guid']
+
+          datastore = 'Datastore/statement/SQLite/Blahg/select'
+
+          assert_equal 'Span',      custom_span_event.fetch('type')
+          assert_equal trace_id,    custom_span_event.fetch('traceId')
+          refute_nil                custom_span_event.fetch('guid')
+          assert_equal root_guid,   custom_span_event.fetch('parentId')
+          assert_equal txn_guid,    custom_span_event.fetch('transactionId')
+          assert_equal sampled,     custom_span_event.fetch('sampled')
+          assert_equal priority,    custom_span_event.fetch('priority')
+          assert_equal timestamp,   custom_span_event.fetch('timestamp')
+          assert_equal 1.0,         custom_span_event.fetch('duration')
+          assert_equal datastore,   custom_span_event.fetch('name')
+          assert_equal 'datastore', custom_span_event.fetch('category')
+
+          assert_equal 'SQLite',             custom_span_event.fetch('component')
+          assert_equal 'calzone_zone',       custom_span_event.fetch('db.instance')
+          assert_equal 'rachel.foo:1337807', custom_span_event.fetch('peer.address')
+          assert_equal 'rachel.foo',         custom_span_event.fetch('peer.hostname')
+          assert_equal 'client',             custom_span_event.fetch('span.kind')
+          assert_equal sql_statement,  custom_span_event.fetch('db.statement')
+        end
+
+        def test_sql_statement_not_added_to_span_event_if_disabled
+          with_config :'transaction_tracer.record_sql' => "off" do
+            sql = "SELECT * FROM mytable WHERE super_secret=1"
+
+            in_web_transaction('wat') do |txn|
+              txn.sampled = true
+
+              segment = Transaction.start_datastore_segment(
+                product: "SQLite",
+                collection: "Blahg",
+                operation: "select",
+                port_path_or_id: 1337807,
+                database_name: "calzone_zone",
+              )
+
+              segment.notice_sql sql
+              advance_time 1
+              segment.finish
+            end
+
+            last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+            assert_equal 2, last_span_events.size
+            event = last_span_events[0][0]
+
+
+            refute event.key("db.statement")
+          end
+        end
+
+        def test_verify_sql_statement_obfuscated_on_span_event
+          with_config :'transaction_tracer.record_sql' => "obfuscated" do
+            sql = "SELECT * FROM mytable WHERE super_secret=1"
+
+            in_web_transaction('wat') do |txn|
+              txn.sampled = true
+
+              segment = Transaction.start_datastore_segment(
+                product: "SQLite",
+                collection: "Blahg",
+                operation: "select",
+                port_path_or_id: 1337807,
+                database_name: "calzone_zone",
+              )
+
+              segment.notice_sql sql
+              advance_time 1
+              segment.finish
+            end
+
+            last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+            assert_equal 2, last_span_events.size
+            event = last_span_events[0][0]
+
+            obfuscated_sql = "SELECT * FROM mytable WHERE super_secret=?"
+            assert_equal obfuscated_sql, event["db.statement"]
+          end
+        end
+
+        def test_nosql_statement_added_to_span_event_if_present
+          nosql_statement = "get MY_KEY "
+
+          in_web_transaction('wat') do |txn|
+            txn.sampled = true
+
+            segment = Transaction.start_datastore_segment(
+              product: "SQLite",
+              collection: "Blahg",
+              operation: "select",
+              port_path_or_id: 1337807,
+              database_name: "calzone_zone",
+            )
+
+            segment.notice_nosql_statement nosql_statement
+            advance_time 1
+            segment.finish
+          end
+
+          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          assert_equal 2, last_span_events.size
+          event = last_span_events[0][0]
+
+
+          assert_equal nosql_statement, event["db.statement"]
+        end
+
+        def test_span_event_truncates_long_sql_statement
+          with_config :'transaction_tracer.record_sql' => 'raw' do
+            in_transaction('wat') do |txn|
+              txn.sampled = true
+
+              segment = Transaction.start_datastore_segment(
+                product: "SQLite",
+                operation: "select"
+              )
+
+              sql_statement = "select * from #{'a' * 2500}"
+
+              segment.notice_sql sql_statement
+              segment.finish
+            end
+          end
+
+          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          span_event = last_span_events[0][0]
+
+          assert_equal 2000,                             span_event['db.statement'].bytesize
+          assert_equal "select * from #{'a' * 1983}...", span_event['db.statement']
+        end
+
+        def test_span_event_truncates_long_nosql_statement
+          in_transaction('wat') do |txn|
+            txn.sampled = true
+
+              segment = NewRelic::Agent::Transaction.start_datastore_segment(
+                product: "Redis",
+                operation: "set"
+              )
+
+            statement = "set mykey #{'a' * 2500}"
+
+            segment.notice_nosql_statement statement
+            segment.finish
+          end
+
+          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          span_event = last_span_events[0][0]
+
+          assert_equal 2000,                         span_event['db.statement'].bytesize
+          assert_equal "set mykey #{'a' * 1987}...", span_event['db.statement']
+        end
+
+        def test_span_event_truncates_long_attributes
+          in_transaction('wat') do |txn|
+            txn.sampled = true
+
+            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+              product: "SQLite",
+              operation: "select",
+              host: "localhost#{'t' * 300}",
+              database_name: "foo#{'o' * 300}",
+              port_path_or_id: "blah"
+            )
+
+            segment.finish
+          end
+
+          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          span_event = last_span_events[0][0]
+
+          assert_equal 255, span_event['peer.hostname'].bytesize
+          assert_equal "localhost#{'t' * 243}...", span_event['peer.hostname']
+
+          assert_equal 255, span_event['peer.address'].bytesize
+          assert_equal "localhost#{'t' * 243}...", span_event['peer.address']
+
+          assert_equal 255, span_event['db.instance'].bytesize
+          assert_equal "foo#{'o' * 249}...", span_event['db.instance']
+        end
+
+        def test_span_event_omits_optional_attributes
+          in_transaction('wat') do |txn|
+            txn.sampled = true
+
+              segment = NewRelic::Agent::Transaction.start_datastore_segment(
+                product: "SQLite",
+                operation: "select"
+              )
+
+            segment.finish
+          end
+
+          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          span_event = last_span_events[0][0]
+
+          refute span_event.key?('db.instance')
+          refute span_event.key?('peer.address')
+          refute span_event.key?('peer.hostname')
+        end
+
         def test_add_instance_identifier_segment_parameter
           segment = nil
 

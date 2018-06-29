@@ -61,14 +61,7 @@ module NewRelic
           # The payload comes from our parent transaction, so its ID
           # is our parent ID.
           #
-          distributed_trace_payload && distributed_trace_payload.id
-        end
-
-        def grandparent_id
-          # The payload comes from our parent transaction, so its
-          # parent ID is our grandparent ID.
-          #
-          distributed_trace_payload && distributed_trace_payload.parent_id
+          distributed_trace_payload && distributed_trace_payload.transaction_id
         end
 
         def distributed_trace_payload_created?
@@ -81,8 +74,8 @@ module NewRelic
           return unless Agent.config[:'distributed_tracing.enabled']
           if distributed_trace_payload
             distributed_trace_payload.assign_intrinsics self, transaction_payload
-          elsif distributed_trace_payload_created?
-            DistributedTracePayload.assign_intrinsics_for_first_trace self, transaction_payload
+          else
+            DistributedTracePayload.assign_initial_intrinsics self, transaction_payload
           end
         end
 
