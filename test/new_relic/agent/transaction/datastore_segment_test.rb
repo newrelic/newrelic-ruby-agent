@@ -351,18 +351,20 @@ module NewRelic
         end
 
         def test_span_event_truncates_long_sql_statement
-          in_transaction('wat') do |txn|
-            txn.sampled = true
+          with_config :'transaction_tracer.record_sql' => 'raw' do
+            in_transaction('wat') do |txn|
+              txn.sampled = true
 
-            segment = Transaction.start_datastore_segment(
-              product: "SQLite",
-              operation: "select"
-            )
+              segment = Transaction.start_datastore_segment(
+                product: "SQLite",
+                operation: "select"
+              )
 
-            sql_statement = "select * from #{'a' * 2500}"
+              sql_statement = "select * from #{'a' * 2500}"
 
-            segment.notice_sql sql_statement
-            segment.finish
+              segment.notice_sql sql_statement
+              segment.finish
+            end
           end
 
           last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
