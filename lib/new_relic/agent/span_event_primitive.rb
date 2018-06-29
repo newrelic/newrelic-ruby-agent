@@ -15,26 +15,26 @@ module NewRelic
       extend self
 
       # Strings for static keys of the event structure
-      TYPE_KEY                = 'type'.freeze
-      TRACE_ID_KEY            = 'traceId'.freeze
-      GUID_KEY                = 'guid'.freeze
-      PARENT_ID_KEY           = 'parentId'.freeze
-      GRANDPARENT_ID_KEY      = 'grandparentId'.freeze
-      APP_LOCAL_ROOT_ID_KEY   = 'appLocalRootId'.freeze
-      SAMPLED_KEY             = 'sampled'.freeze
-      PRIORITY_KEY            = 'priority'.freeze
-      TIMESTAMP_KEY           = 'timestamp'.freeze
-      DURATION_KEY            = 'duration'.freeze
-      NAME_KEY                = 'name'.freeze
-      CATEGORY_KEY            = 'category'.freeze
-      HTTP_URL_KEY            = 'http.url'.freeze
-      HTTP_METHOD_KEY         = 'http.method'.freeze
-      COMPONENT_KEY           = 'component'.freeze
-      DB_INSTANCE_KEY         = 'db.instance'.freeze
-      DB_STATEMENT_KEY        = 'db.statement'.freeze
-      PEER_ADDRESS_KEY        = 'peer.address'.freeze
-      PEER_HOSTNAME_KEY       = 'peer.hostname'.freeze
-      SPAN_KIND_KEY           = 'span.kind'.freeze
+      TYPE_KEY             = 'type'.freeze
+      TRACE_ID_KEY         = 'traceId'.freeze
+      GUID_KEY             = 'guid'.freeze
+      PARENT_ID_KEY        = 'parentId'.freeze
+      GRANDPARENT_ID_KEY   = 'grandparentId'.freeze
+      TRANSACTION_ID_KEY   = 'transactionId'.freeze
+      SAMPLED_KEY          = 'sampled'.freeze
+      PRIORITY_KEY         = 'priority'.freeze
+      TIMESTAMP_KEY        = 'timestamp'.freeze
+      DURATION_KEY         = 'duration'.freeze
+      NAME_KEY             = 'name'.freeze
+      CATEGORY_KEY         = 'category'.freeze
+      HTTP_URL_KEY         = 'http.url'.freeze
+      HTTP_METHOD_KEY      = 'http.method'.freeze
+      COMPONENT_KEY        = 'component'.freeze
+      DB_INSTANCE_KEY      = 'db.instance'.freeze
+      DB_STATEMENT_KEY     = 'db.statement'.freeze
+      PEER_ADDRESS_KEY     = 'peer.address'.freeze
+      PEER_HOSTNAME_KEY    = 'peer.hostname'.freeze
+      SPAN_KIND_KEY        = 'span.kind'.freeze
 
       # Strings for static values of the event structure
       EVENT_TYPE         = 'Span'.freeze
@@ -68,12 +68,20 @@ module NewRelic
       def for_datastore_segment(segment)
         intrinsics = intrinsics_for(segment)
 
-        intrinsics[COMPONENT_KEY]     = segment.product
-        intrinsics[DB_INSTANCE_KEY]   = truncate(segment.database_name)
-        intrinsics[PEER_ADDRESS_KEY]  = truncate("#{segment.host}:#{segment.port_path_or_id}")
-        intrinsics[PEER_HOSTNAME_KEY] = truncate(segment.host)
-        intrinsics[SPAN_KIND_KEY]     = CLIENT
-        intrinsics[CATEGORY_KEY]      = DATASTORE_CATEGORY
+        intrinsics[COMPONENT_KEY] = segment.product
+
+        if segment.database_name
+          intrinsics[DB_INSTANCE_KEY] = truncate(segment.database_name)
+        end
+        if segment.host && segment.port_path_or_id
+          intrinsics[PEER_ADDRESS_KEY] = truncate("#{segment.host}:#{segment.port_path_or_id}")
+        end
+        if segment.host
+          intrinsics[PEER_HOSTNAME_KEY] = truncate(segment.host)
+        end
+
+        intrinsics[SPAN_KIND_KEY] = CLIENT
+        intrinsics[CATEGORY_KEY] = DATASTORE_CATEGORY
 
         if segment.sql_statement
           intrinsics[DB_STATEMENT_KEY] = truncate(segment.sql_statement.safe_sql, 2000)
@@ -92,7 +100,7 @@ module NewRelic
           TRACE_ID_KEY            => segment.transaction.trace_id,
           GUID_KEY                => segment.guid,
           PARENT_ID_KEY           => parent_guid(segment),
-          APP_LOCAL_ROOT_ID_KEY   => segment.transaction.guid,
+          TRANSACTION_ID_KEY   => segment.transaction.guid,
           SAMPLED_KEY             => segment.transaction.sampled?,
           PRIORITY_KEY            => segment.transaction.priority,
           TIMESTAMP_KEY           => milliseconds_since_epoch(segment),

@@ -170,7 +170,7 @@ module NewRelic
           assert_equal trace_id,  custom_span_event.fetch('traceId')
           refute_nil              custom_span_event.fetch('guid')
           assert_equal root_guid, custom_span_event.fetch('parentId')
-          assert_equal txn_guid,  custom_span_event.fetch('appLocalRootId')
+          assert_equal txn_guid,  custom_span_event.fetch('transactionId')
           assert_equal sampled,   custom_span_event.fetch('sampled')
           assert_equal priority,  custom_span_event.fetch('priority')
           assert_equal timestamp, custom_span_event.fetch('timestamp')
@@ -196,17 +196,17 @@ module NewRelic
 
           txn_segment_event, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "test_txn" }
 
-          assert_equal txn.guid, txn_segment_event["appLocalRootId"]
+          assert_equal txn.guid, txn_segment_event["transactionId"]
           assert_nil   txn_segment_event["parentId"]
 
           segment_event_a, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_a" }
 
-          assert_equal txn.guid, segment_event_a["appLocalRootId"]
+          assert_equal txn.guid, segment_event_a["transactionId"]
           assert_equal txn_segment.guid, segment_event_a["parentId"]
 
           segment_event_b, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_b" }
 
-          assert_equal txn.guid, segment_event_b["appLocalRootId"]
+          assert_equal txn.guid, segment_event_b["transactionId"]
           assert_equal segment_a.guid, segment_event_b["parentId"]
         end
 
