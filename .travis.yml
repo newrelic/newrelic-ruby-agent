@@ -31,7 +31,6 @@ branches:
     - master
     - dev
     - release
-    - RUBY-1882_span_events_integration
 
 notifications:
   webhooks: http://notifitron.herokuapp.com/
