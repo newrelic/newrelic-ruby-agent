@@ -715,7 +715,7 @@ module NewRelic
           assert_equal trace_id,          external_span_event.fetch('traceId')
           refute_nil                      external_span_event.fetch('guid')
           assert_equal root_guid,         external_span_event.fetch('parentId')
-          assert_equal txn_guid,          external_span_event.fetch('appLocalRootId')
+          assert_equal txn_guid,          external_span_event.fetch('transactionId')
           assert_equal sampled,           external_span_event.fetch('sampled')
           assert_equal priority,          external_span_event.fetch('priority')
           assert_equal timestamp,         external_span_event.fetch('timestamp')
