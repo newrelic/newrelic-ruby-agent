@@ -68,12 +68,20 @@ module NewRelic
       def for_datastore_segment(segment)
         intrinsics = intrinsics_for(segment)
 
-        intrinsics[COMPONENT_KEY]     = segment.product
-        intrinsics[DB_INSTANCE_KEY]   = truncate(segment.database_name)
-        intrinsics[PEER_ADDRESS_KEY]  = truncate("#{segment.host}:#{segment.port_path_or_id}")
-        intrinsics[PEER_HOSTNAME_KEY] = truncate(segment.host)
-        intrinsics[SPAN_KIND_KEY]     = CLIENT
-        intrinsics[CATEGORY_KEY]      = DATASTORE_CATEGORY
+        intrinsics[COMPONENT_KEY] = segment.product
+
+        if segment.database_name
+          intrinsics[DB_INSTANCE_KEY] = truncate(segment.database_name)
+        end
+        if segment.host && segment.port_path_or_id
+          intrinsics[PEER_ADDRESS_KEY] = truncate("#{segment.host}:#{segment.port_path_or_id}")
+        end
+        if segment.host
+          intrinsics[PEER_HOSTNAME_KEY] = truncate(segment.host)
+        end
+
+        intrinsics[SPAN_KIND_KEY] = CLIENT
+        intrinsics[CATEGORY_KEY] = DATASTORE_CATEGORY
 
         if segment.sql_statement
           intrinsics[DB_STATEMENT_KEY] = truncate(segment.sql_statement.safe_sql, 2000)

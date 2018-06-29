@@ -424,6 +424,26 @@ module NewRelic
           assert_equal "foo#{'o' * 249}...", span_event['db.instance']
         end
 
+        def test_span_event_omits_optional_attributes
+          in_transaction('wat') do |txn|
+            txn.sampled = true
+
+              segment = NewRelic::Agent::Transaction.start_datastore_segment(
+                product: "SQLite",
+                operation: "select"
+              )
+
+            segment.finish
+          end
+
+          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          span_event = last_span_events[0][0]
+
+          refute span_event.key?('db.instance')
+          refute span_event.key?('peer.address')
+          refute span_event.key?('peer.hostname')
+        end
+
         def test_add_instance_identifier_segment_parameter
           segment = nil
 
