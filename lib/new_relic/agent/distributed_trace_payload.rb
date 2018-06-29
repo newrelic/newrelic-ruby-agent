@@ -34,6 +34,7 @@ module NewRelic
       TRACE_ID_INTRINSIC_KEY                   = "traceId".freeze
       TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
       PARENT_ID_INTRINSIC_KEY                  = "parentId".freeze
+      SAMPLED_INTRINSIC_KEY                    = "sampled".freeze
       COMMA                                    = ",".freeze
 
       INTRINSIC_KEYS = [
@@ -45,7 +46,8 @@ module NewRelic
         GUID_INTRINSIC_KEY,
         TRACE_ID_INTRINSIC_KEY,
         TRIP_ID_INTRINSIC_KEY,
-        PARENT_ID_INTRINSIC_KEY
+        PARENT_ID_INTRINSIC_KEY,
+        SAMPLED_INTRINSIC_KEY
       ].freeze
 
       # Intrinsic Values
@@ -106,11 +108,11 @@ module NewRelic
           from_json decoded_payload
         end
 
-        # Assigns intrinsics for the first distributed trace in a trip
-        def assign_intrinsics_for_first_trace transaction, transaction_payload
+        def assign_initial_intrinsics transaction, transaction_payload
           transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid
           transaction_payload[TRACE_ID_INTRINSIC_KEY] = transaction.trace_id
           transaction_payload[TRIP_ID_INTRINSIC_KEY]  = transaction.trace_id
+          transaction_payload[SAMPLED_INTRINSIC_KEY] = transaction.sampled?
         end
 
         def major_version_matches?(payload)
@@ -180,6 +182,7 @@ module NewRelic
         transaction_payload[TRACE_ID_INTRINSIC_KEY] = trace_id
         transaction_payload[TRIP_ID_INTRINSIC_KEY] = trace_id
         transaction_payload[PARENT_ID_INTRINSIC_KEY] = transaction.parent_id if transaction.parent_id
+        transaction_payload[SAMPLED_INTRINSIC_KEY] = transaction.sampled?
       end
     end
   end
