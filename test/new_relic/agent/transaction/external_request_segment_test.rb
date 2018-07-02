@@ -655,7 +655,7 @@ module NewRelic
                 segment.finish
               end
             end
-            assert request.headers.key?("X-NewRelic-Trace"), "Expected to find X-NewRelic-Trace header"
+            assert request.headers.key?("newrelic"), "Expected to find newrelic header"
           end
         end
 

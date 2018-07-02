@@ -19,7 +19,7 @@ module NewRelic
         NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'.freeze
 
 
-        def initialize library, uri, procedure, start_time = nil # :nodoc:
+        def initialize library, uri, procedure, startX_time = nil # :nodoc:
           @library = library
           @uri = HTTPClients::URIUtil.parse_and_normalize_url(uri)
           @procedure = procedure
@@ -211,7 +211,7 @@ module NewRelic
           CrossAppTracing.insert_request_headers request, txn_guid, trip_id, path_hash
         end
 
-        X_NEWRELIC_TRACE_HEADER = "X-NewRelic-Trace".freeze
+        X_NEWRELIC_TRACE_HEADER = "newrelic".freeze
 
         def insert_distributed_trace_header request
           return unless Agent.config[:'distributed_tracing.enabled']

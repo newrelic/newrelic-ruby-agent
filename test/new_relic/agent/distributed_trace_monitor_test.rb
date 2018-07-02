@@ -9,7 +9,7 @@ require 'net/http'
 module NewRelic
   module Agent
     class DistributedTraceMonitorTest < Minitest::Test
-      NEWRELIC_TRACE_KEY = 'HTTP_X_NEWRELIC_TRACE'.freeze
+      NEWRELIC_TRACE_KEY = 'newrelic'.freeze
 
       def setup
         @events  = EventListener.new

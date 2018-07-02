@@ -8,7 +8,7 @@ require 'new_relic/agent/cross_app_tracing'
 module NewRelic
   module Agent
     class DistributedTraceMonitor < InboundRequestMonitor
-      NEWRELIC_TRACE_KEY  = 'HTTP_X_NEWRELIC_TRACE'.freeze
+      NEWRELIC_TRACE_KEY  = 'newrelic'.freeze
       HTTP_TRANSPORT_TYPE = 'HTTP'.freeze
 
       def on_finished_configuring(events)
