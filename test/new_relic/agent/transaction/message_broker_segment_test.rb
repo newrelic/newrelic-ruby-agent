@@ -131,7 +131,7 @@ module NewRelic
             end
 
             intrinsics, _, _ = last_transaction_event
-            assert_equal transaction.guid, intrinsics['nr.tripId']
+            assert_equal transaction.guid, intrinsics['traceId']
           end
         end
 

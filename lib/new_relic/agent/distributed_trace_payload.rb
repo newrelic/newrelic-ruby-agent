@@ -32,7 +32,6 @@ module NewRelic
       PARENT_TRANSPORT_DURATION_INTRINSIC_KEY  = "parent.transportDuration".freeze
       GUID_INTRINSIC_KEY                       = "guid".freeze
       TRACE_ID_INTRINSIC_KEY                   = "traceId".freeze
-      TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
       PARENT_ID_INTRINSIC_KEY                  = "parentId".freeze
       GRANDPARENT_ID_INTRINSIC_KEY             = "grandparentId".freeze
       COMMA                                    = ",".freeze
@@ -45,7 +44,6 @@ module NewRelic
         PARENT_TRANSPORT_DURATION_INTRINSIC_KEY,
         GUID_INTRINSIC_KEY,
         TRACE_ID_INTRINSIC_KEY,
-        TRIP_ID_INTRINSIC_KEY,
         PARENT_ID_INTRINSIC_KEY,
         GRANDPARENT_ID_INTRINSIC_KEY
       ].freeze
@@ -110,7 +108,6 @@ module NewRelic
         def assign_intrinsics_for_first_trace transaction, transaction_payload
           transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid
           transaction_payload[TRACE_ID_INTRINSIC_KEY] = transaction.trace_id
-          transaction_payload[TRIP_ID_INTRINSIC_KEY]  = transaction.trace_id
         end
 
         def major_version_matches?(payload)
@@ -180,7 +177,6 @@ module NewRelic
         transaction_payload[PARENT_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration
         transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid
         transaction_payload[TRACE_ID_INTRINSIC_KEY] = trace_id
-        transaction_payload[TRIP_ID_INTRINSIC_KEY] = trace_id
         transaction_payload[PARENT_ID_INTRINSIC_KEY] = transaction.parent_id if transaction.parent_id
         transaction_payload[GRANDPARENT_ID_INTRINSIC_KEY] = transaction.grandparent_id if transaction.grandparent_id
       end

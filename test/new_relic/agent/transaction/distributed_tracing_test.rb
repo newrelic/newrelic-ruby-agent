@@ -148,7 +148,6 @@ module NewRelic
           intrinsics  = result[:grandparent_intrinsics]
 
           assert_equal transaction.guid, intrinsics['guid']
-          assert_equal transaction.guid, intrinsics['nr.tripId']
           assert_equal transaction.guid, intrinsics['traceId']
           assert_nil                     intrinsics['parentId']
           assert_nil                     intrinsics['grandparentId']
@@ -157,7 +156,6 @@ module NewRelic
           txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
 
           assert_equal transaction.guid, txn_intrinsics['guid']
-          assert_equal transaction.guid, txn_intrinsics['nr.tripId']
           assert_equal transaction.guid, intrinsics['traceId']
           assert_nil                     txn_intrinsics['parentId']
           assert_nil                     txn_intrinsics['grandparentId']
@@ -181,11 +179,9 @@ module NewRelic
           end
 
           intrinsics, _, _ = last_transaction_event
-          assert_equal transaction.guid, intrinsics['nr.tripId']
           assert_equal transaction.guid, intrinsics['traceId']
 
           txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
-          assert_equal transaction.guid, txn_intrinsics['nr.tripId']
           assert_equal transaction.guid, intrinsics['traceId']
         end
 
@@ -207,7 +203,6 @@ module NewRelic
           assert_equal inbound_payload.parent_app_id,         child_intrinsics["parent.app"]
           assert_equal inbound_payload.parent_account_id,     child_intrinsics["parent.account"]
 
-          assert_equal inbound_payload.trace_id,              child_intrinsics["nr.tripId"]
           assert_equal inbound_payload.trace_id,              child_intrinsics["traceId"]
           assert_equal child_transaction.guid,                child_intrinsics["guid"]
           assert_equal true,                                  child_intrinsics["sampled"]
@@ -261,7 +256,6 @@ module NewRelic
           assert_equal inbound_payload.parent_account_id, intrinsics["parent.account"]
           assert_equal inbound_payload.id, referring_transaction.guid
           assert_equal transaction.guid, intrinsics["guid"]
-          assert_equal inbound_payload.trace_id, intrinsics["nr.tripId"]
           assert_equal inbound_payload.trace_id, intrinsics["traceId"]
           assert_equal true, intrinsics["sampled"]
           assert       intrinsics["parentId"], "Child should be linked to parent transaction"
