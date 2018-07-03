@@ -19,7 +19,7 @@ module NewRelic
         NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'.freeze
 
 
-        def initialize library, uri, procedure, startX_time = nil # :nodoc:
+        def initialize library, uri, procedure, start_time = nil # :nodoc:
           @library = library
           @uri = HTTPClients::URIUtil.parse_and_normalize_url(uri)
           @procedure = procedure
