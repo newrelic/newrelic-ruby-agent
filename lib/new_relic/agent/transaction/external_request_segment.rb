@@ -211,7 +211,7 @@ module NewRelic
           CrossAppTracing.insert_request_headers request, txn_guid, trip_id, path_hash
         end
 
-        X_NEWRELIC_TRACE_HEADER = "newrelic".freeze
+        NEWRELIC_TRACE_HEADER = "newrelic".freeze
 
         def insert_distributed_trace_header request
           return unless Agent.config[:'distributed_tracing.enabled']
