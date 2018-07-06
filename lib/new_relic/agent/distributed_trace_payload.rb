@@ -79,7 +79,7 @@ module NewRelic
           payload.timestamp = (Time.now.to_f * 1000).round
           payload.trace_id = transaction.trace_id
           payload.sampled = transaction.sampled?
-          payload.priority = transaction.priority
+          payload.priority = transaction.priority&.round(6)
 
           payload
         end
@@ -98,7 +98,7 @@ module NewRelic
           payload.transaction_id    = payload_data[TX_KEY]
           payload.trace_id          = payload_data[TRACE_ID_KEY]
           payload.sampled           = payload_data[SAMPLED_KEY]
-          payload.priority          = payload_data[PRIORITY_KEY]
+          payload.priority          = payload_data[PRIORITY_KEY]&.round(6)
 
           payload
         end
@@ -159,7 +159,7 @@ module NewRelic
           TX_KEY                => transaction_id,
           TRACE_ID_KEY          => trace_id,
           SAMPLED_KEY           => sampled,
-          PRIORITY_KEY          => priority,
+          PRIORITY_KEY          => priority&.round(6),
           TIMESTAMP_KEY         => timestamp,
         }
 
