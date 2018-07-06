@@ -229,7 +229,6 @@ module NewRelic
 
           intrinsics, _, _ = last_transaction_event
 
-          assert intrinsics.key?('nr.tripId')
           assert intrinsics.key?('traceId')
           assert intrinsics.key?('guid')
           assert intrinsics.key?('priority')
