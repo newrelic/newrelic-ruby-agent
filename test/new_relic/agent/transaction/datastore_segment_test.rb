@@ -188,7 +188,7 @@ module NewRelic
 
         def test_non_sampled_segment_does_not_record_span_event
           in_web_transaction('wat') do |txn|
-            txn.sampled = false
+            txn.stubs(:sampled?).returns(false)
 
             segment = Transaction.start_datastore_segment(
               product: "SQLite",
@@ -214,7 +214,7 @@ module NewRelic
           sql_statement = "select * from table"
 
           in_web_transaction('wat') do |txn|
-            txn.sampled = true
+            txn.stubs(:sampled?).returns(true)
 
             segment = Transaction.start_datastore_segment(
               product: "SQLite",
@@ -270,7 +270,7 @@ module NewRelic
             sql = "SELECT * FROM mytable WHERE super_secret=1"
 
             in_web_transaction('wat') do |txn|
-              txn.sampled = true
+              txn.stubs(:sampled?).returns(true)
 
               segment = Transaction.start_datastore_segment(
                 product: "SQLite",
@@ -299,7 +299,7 @@ module NewRelic
             sql = "SELECT * FROM mytable WHERE super_secret=1"
 
             in_web_transaction('wat') do |txn|
-              txn.sampled = true
+              txn.stubs(:sampled?).returns(true)
 
               segment = Transaction.start_datastore_segment(
                 product: "SQLite",
@@ -327,7 +327,7 @@ module NewRelic
           nosql_statement = "get MY_KEY "
 
           in_web_transaction('wat') do |txn|
-            txn.sampled = true
+            txn.stubs(:sampled?).returns(true)
 
             segment = Transaction.start_datastore_segment(
               product: "SQLite",
@@ -353,7 +353,7 @@ module NewRelic
         def test_span_event_truncates_long_sql_statement
           with_config :'transaction_tracer.record_sql' => 'raw' do
             in_transaction('wat') do |txn|
-              txn.sampled = true
+              txn.stubs(:sampled?).returns(true)
 
               segment = Transaction.start_datastore_segment(
                 product: "SQLite",
@@ -376,7 +376,7 @@ module NewRelic
 
         def test_span_event_truncates_long_nosql_statement
           in_transaction('wat') do |txn|
-            txn.sampled = true
+            txn.stubs(:sampled?).returns(true)
 
               segment = NewRelic::Agent::Transaction.start_datastore_segment(
                 product: "Redis",
@@ -398,7 +398,7 @@ module NewRelic
 
         def test_span_event_truncates_long_attributes
           in_transaction('wat') do |txn|
-            txn.sampled = true
+            txn.stubs(:sampled?).returns(true)
 
             segment = NewRelic::Agent::Transaction.start_datastore_segment(
               product: "SQLite",
@@ -426,7 +426,7 @@ module NewRelic
 
         def test_span_event_omits_optional_attributes
           in_transaction('wat') do |txn|
-            txn.sampled = true
+            txn.stubs(:sampled?).returns(true)
 
               segment = NewRelic::Agent::Transaction.start_datastore_segment(
                 product: "SQLite",

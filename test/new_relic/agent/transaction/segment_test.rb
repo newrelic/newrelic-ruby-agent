@@ -123,7 +123,7 @@ module NewRelic
 
         def test_non_sampled_segment_does_not_record_span_event
           in_transaction('wat') do |txn|
-            txn.sampled = false
+            txn.stubs(:sampled?).returns(false)
 
             segment = Segment.new 'Ummm'
             txn.add_segment segment
@@ -144,7 +144,7 @@ module NewRelic
           timestamp = nil
 
           in_transaction('wat') do |txn|
-            txn.sampled = true
+            txn.stubs(:sampled?).returns(true)
 
             segment = Segment.new 'Ummm'
             txn.add_segment segment
@@ -184,7 +184,7 @@ module NewRelic
           segment_a = nil
           segment_b = nil
           txn = in_transaction('test_txn') do |t|
-            t.sampled = true
+            t.stubs(:sampled?).returns(true)
             txn_segment = t.initial_segment
             segment_a = NewRelic::Agent::Transaction.start_segment(name: 'segment_a')
             segment_b = NewRelic::Agent::Transaction.start_segment(name: 'segment_b')

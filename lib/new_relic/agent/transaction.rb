@@ -57,9 +57,7 @@ module NewRelic
                     :process_cpu_start,
                     :http_response_code,
                     :response_content_length,
-                    :response_content_type,
-                    :sampled,
-                    :priority
+                    :response_content_type
 
       attr_reader :guid,
                   :metrics,
@@ -72,6 +70,9 @@ module NewRelic
                   :nesting_max_depth,
                   :segments,
                   :end_time
+
+      attr_writer :sampled,
+                  :priority
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -283,16 +284,6 @@ module NewRelic
         @ignore_enduser = options.fetch(:ignore_enduser, false)
         @ignore_trace = false
 
-        if Agent.config[:'distributed_tracing.enabled']
-          @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
-        else
-          @sampled = nil
-        end
-
-        # we will eventually add this behavior into the AdaptiveSampler (ThroughputMontor)
-        @priority = rand
-        @priority +=1 if @sampled
-
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
         merge_request_parameters(@filtered_params)
@@ -305,7 +296,19 @@ module NewRelic
       end
 
       def sampled?
+        return unless Agent.config[:'distributed_tracing.enabled']
+        if @sampled.nil?
+          @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
+        end
         @sampled
+      end
+
+      def priority
+        if @priority.nil?
+          @priority = rand
+          @priority += 1 if sampled?
+        end
+        @priority
       end
 
       def referer
@@ -643,7 +646,7 @@ module NewRelic
       def send_transaction_finished_event
         agent.events.notify(:transaction_finished, payload)
       end
-            
+
       def generate_payload(state, start_time, end_time)
         duration = end_time.to_f - start_time.to_f
         @payload = {
@@ -654,7 +657,7 @@ module NewRelic
           :metrics              => @metrics,
           :attributes           => @attributes,
           :error                => false,
-          :priority             => @priority
+          :priority             => priority
         }
 
         append_cat_info(state, duration, @payload)
