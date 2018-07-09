@@ -83,7 +83,7 @@ module NewRelic
 
           assert_nil              transaction.distributed_trace_payload
           assert_false            accepted
-          assert_metrics_recorded ['Supportability/DistributedTrace/AcceptPayload/Ignored/UntrustedAccount']
+          assert_metrics_recorded ['Supportability/DistributedTrace/AcceptPayload/Ignored/UntrustedAccount/190']
         end
 
         def test_accept_distributed_trace_payload_records_duration_metrics
