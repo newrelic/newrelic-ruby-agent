@@ -150,7 +150,7 @@ module NewRelic
           trusted = trusted_account_ids.include?(payload.parent_account_id.to_i)
 
           unless trusted
-            metric_with_id = "#{SUPPORTABILITY_PAYLOAD_ACCEPT_UNTRUSTED_ACCOUNT}/#{payload.parent_account_id.to_s}"
+            metric_with_id = "#{SUPPORTABILITY_PAYLOAD_ACCEPT_UNTRUSTED_ACCOUNT}/#{payload.parent_account_id}"
             NewRelic::Agent.increment_metric metric_with_id
             return false
           end
