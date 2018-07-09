@@ -164,7 +164,7 @@ module NewRelic
           TX_KEY                => transaction_id,
           TRACE_ID_KEY          => trace_id,
           SAMPLED_KEY           => sampled,
-          PRIORITY_KEY          => priority,
+          PRIORITY_KEY          => DistributedTracePayload.truncate_priority(priority),
           TIMESTAMP_KEY         => timestamp,
         }
 
