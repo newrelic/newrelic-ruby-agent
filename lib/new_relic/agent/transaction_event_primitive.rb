@@ -29,7 +29,6 @@ module NewRelic
       PRIORITY_KEY                   = 'priority'.freeze
       GUID_KEY                       = 'nr.guid'.freeze
       REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'.freeze
-      CAT_TRIP_ID_KEY                = 'nr.tripId'.freeze
       CAT_PATH_HASH_KEY              = 'nr.pathHash'.freeze
       CAT_REFERRING_PATH_HASH_KEY    = 'nr.referringPathHash'.freeze
       CAT_ALTERNATE_PATH_HASHES_KEY  = 'nr.alternatePathHashes'.freeze
@@ -68,7 +67,6 @@ module NewRelic
       def append_optional_attributes(sample, payload)
         optionally_append(GUID_KEY,                       :guid, sample, payload)
         optionally_append(REFERRING_TRANSACTION_GUID_KEY, :referring_transaction_guid, sample, payload)
-        optionally_append(CAT_TRIP_ID_KEY,                :cat_trip_id, sample, payload)
         optionally_append(CAT_PATH_HASH_KEY,              :cat_path_hash, sample, payload)
         optionally_append(CAT_REFERRING_PATH_HASH_KEY,    :cat_referring_path_hash, sample, payload)
         optionally_append(APDEX_PERF_ZONE_KEY,            :apdex_perf_zone, sample, payload)
