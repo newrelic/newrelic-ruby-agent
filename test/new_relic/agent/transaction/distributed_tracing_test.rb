@@ -46,6 +46,21 @@ module NewRelic
           assert_equal created_at, payload.timestamp
         end
 
+        def test_create_distributed_trace_payload_while_disconnected_returns_nil
+          nr_freeze_time
+          created_at = (Time.now.to_f * 1000).round
+          state = TransactionState.tl_get
+
+          payload = 'definitely not nil'
+          with_config(cross_process_id: nil) do
+            transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
+            payload = transaction.create_distributed_trace_payload
+            Transaction.stop(state)
+          end
+
+          assert_nil payload
+        end
+
         def test_accept_distributed_trace_payload_assigns_json_payload
           payload = create_distributed_trace_payload
 

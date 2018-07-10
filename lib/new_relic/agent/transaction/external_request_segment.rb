@@ -216,7 +216,7 @@ module NewRelic
         def insert_distributed_trace_header request
           return unless Agent.config[:'distributed_tracing.enabled']
           payload = transaction.create_distributed_trace_payload
-          request[X_NEWRELIC_TRACE_HEADER] = payload.http_safe
+          request[X_NEWRELIC_TRACE_HEADER] = payload.http_safe if payload
         end
 
         EXTERNAL_ALL = "External/all".freeze

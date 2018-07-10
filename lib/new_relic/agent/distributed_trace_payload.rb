@@ -60,9 +60,9 @@ module NewRelic
         end
 
         def for_transaction transaction
-          payload = new
-          return payload unless connected?
+          return nil unless connected?
 
+          payload = new
           payload.version = VERSION
           payload.parent_type = PARENT_TYPE
 
