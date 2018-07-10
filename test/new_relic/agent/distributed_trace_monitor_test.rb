@@ -9,7 +9,8 @@ require 'net/http'
 module NewRelic
   module Agent
     class DistributedTraceMonitorTest < Minitest::Test
-      NEWRELIC_TRACE_KEY = 'HTTP_X_NEWRELIC_TRACE'.freeze
+      NEWRELIC_TRACE_KEY = 'newrelic'.freeze
+      UPCASED_NEWRELIC_TRACE_KEY = 'NEWRELIC'.freeze
 
       def setup
         @events  = EventListener.new
@@ -39,6 +40,20 @@ module NewRelic
         end
 
         env = { NEWRELIC_TRACE_KEY => payload.http_safe }
+
+        in_transaction "receiving_txn" do |txn|
+          @events.notify(:before_call, env)
+          refute_nil txn.distributed_trace_payload
+        end
+      end
+    def test_accepts_distributed_trace_payload_with_differently_cased_newrelic_key
+        payload = nil
+
+        in_transaction "referring_txn" do |txn|
+          payload = txn.create_distributed_trace_payload
+        end
+
+        env = { UPCASED_NEWRELIC_TRACE_KEY => payload.http_safe }
 
         in_transaction "receiving_txn" do |txn|
           @events.notify(:before_call, env)
