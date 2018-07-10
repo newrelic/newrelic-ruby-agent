@@ -71,7 +71,6 @@
     "expectedIntrinsicFields": {},
     "nonExpectedIntrinsicFields": [
       "nr.guid",
-      "nr.tripId",
       "nr.pathHash",
       "nr.referringTransactionGuid",
       "nr.referringPathHash",
@@ -491,7 +490,6 @@
     "expectedIntrinsicFields": {},
     "nonExpectedIntrinsicFields": [
       "nr.guid",
-      "nr.tripId",
       "nr.pathHash",
       "nr.referringTransactionGuid",
       "nr.referringPathHash",
@@ -533,7 +531,6 @@
     "expectedIntrinsicFields": {},
     "nonExpectedIntrinsicFields": [
       "nr.guid",
-      "nr.tripId",
       "nr.pathHash",
       "nr.referringTransactionGuid",
       "nr.referringPathHash",
