@@ -308,7 +308,7 @@ module NewRelic
 
       def priority
         if @priority.nil?
-          @priority = rand
+          @priority = rand.round(6)
           @priority += 1 if sampled?
         end
         @priority
