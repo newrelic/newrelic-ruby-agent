@@ -16,8 +16,8 @@ module NewRelic
 
         @config = {
           :'distributed_tracing.enabled' => true,
-          :application_id => "46954",
-          :cross_process_id => "190#222",
+          :account_id => "190",
+          :primary_application_id => "46954",
           :trusted_account_key => "trust_this!"
         }
 
@@ -73,19 +73,6 @@ module NewRelic
           refute deserialized_payload["d"].key? "tk"
         end
       end
-
-      def test_app_id_uses_fallback_if_not_explicity_set
-        with_config cross_process_id: "190#46954", application_id: "" do
-          payload = nil
-
-          in_transaction "test_txn" do |txn|
-            payload = DistributedTracePayload.for_transaction txn
-          end
-
-          assert_equal "46954", payload.parent_app_id
-        end
-      end
-
 
       def test_attributes_are_copied_from_transaction
         payload = nil

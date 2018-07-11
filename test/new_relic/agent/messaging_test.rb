@@ -550,7 +550,8 @@ module NewRelic
 
         with_config :"cross_application_tracer.enabled" => false,
                     :"distributed_tracing.enabled" => true,
-                    :cross_process_id => "321#123",
+                    :account_id => "190",
+                    :primary_application_id => "46954",
                     :trusted_account_key => "trust_this!" do
 
           payload = nil

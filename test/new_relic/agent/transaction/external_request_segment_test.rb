@@ -239,7 +239,7 @@ module NewRelic
             request = RequestWrapper.new
             payload = nil
 
-            with_config application_id: "46954", cross_process_id: "190#222" do
+            with_config account_id: "190", primary_application_id: "46954" do
               in_transaction do |txn|
                 payload = txn.create_distributed_trace_payload
               end
@@ -281,7 +281,7 @@ module NewRelic
             request = RequestWrapper.new
             payload = nil
 
-            with_config application_id: "46954", cross_process_id: "190#222" do
+            with_config account_id: "190", primary_application_id: "46954" do
               in_transaction do |txn|
                 payload = txn.create_distributed_trace_payload
               end
@@ -640,7 +640,9 @@ module NewRelic
         def test_segment_adds_distributed_trace_header
           distributed_tracing_config = {
             :'distributed_tracing.enabled'      => true,
-            :'cross_application_tracer.enabled' => false
+            :'cross_application_tracer.enabled' => false,
+            :account_id                         => "190",
+            :primary_application_id             => "46954"
           }
 
           with_config(distributed_tracing_config) do
