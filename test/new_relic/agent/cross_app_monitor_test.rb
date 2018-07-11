@@ -118,6 +118,25 @@ module NewRelic::Agent
       end
     end
 
+    def test_old_cat_enabled
+      with_config(:"cross_application_tracer.enabled" => true) do
+        assert CrossAppTracing.cross_application_tracer_enabled?
+      end
+    end
+
+    def test_old_cat_disabled
+      with_config(:"cross_application_tracer.enabled" => false) do
+        refute CrossAppTracing.cross_application_tracer_enabled?
+      end
+    end
+
+    def test_old_cat_disabled_when_better_cat_enabled
+      with_config(:"cross_application_tracer.enabled" => true,
+                  :"distributed_tracing.enabled"      => true) do
+        refute CrossAppTracing.cross_application_tracer_enabled?
+      end
+    end
+
     def test_doesnt_add_header_if_missing_encoding_key
       with_config( :encoding_key => '' ) do
         when_request_runs

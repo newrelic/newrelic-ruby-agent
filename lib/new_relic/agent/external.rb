@@ -53,15 +53,6 @@ module NewRelic
       #
       def process_request_metadata request_metadata
         NewRelic::Agent.record_api_supportability_metric(:process_request_metadata)
-
-        if NewRelic::Agent.config[:'distributed_tracing.enabled']
-          NewRelic::Agent.logger.log_once(
-            :warn,
-            :process_request_metadata_noop,
-            'Skipping process_request_metadata because distributed tracing is enabled')
-          return
-        end
-
         return unless CrossAppTracing.cross_app_enabled?
 
         state = NewRelic::Agent::TransactionState.tl_get
@@ -108,11 +99,6 @@ module NewRelic
       def get_response_metadata
         NewRelic::Agent.record_api_supportability_metric(:get_response_metadata)
         return unless CrossAppTracing.cross_app_enabled?
-
-        if NewRelic::Agent.config[:'distributed_tracing.enabled']
-          ::NewRelic::Agent.logger.warn('Skipping get_response_metadata because distributed tracing is enabled')
-          return
-        end
 
         state = NewRelic::Agent::TransactionState.tl_get
         if transaction = state.current_transaction and state.client_cross_app_id

@@ -14,9 +14,15 @@
 #
 # name_for(event)                    # Returns the transaction name of the
 #                                    # passed-in event
+#
+# enabled_key()                      # (optional) config key that gates this aggregator
 
 module NewRelic
   module CommonAggregatorTests
+    def enabled_key
+      aggregator.class.enabled_key
+    end
+
     def test_samples_on_transaction_finished_event
       generate_event
       assert_equal 1, last_events.length
@@ -29,7 +35,7 @@ module NewRelic
     end
 
     def test_can_disable_sampling_for_analytics
-      with_config( aggregator.class.enabled_key => false ) do
+      with_config(enabled_key => false) do
         generate_event
         assert last_events.empty?
       end

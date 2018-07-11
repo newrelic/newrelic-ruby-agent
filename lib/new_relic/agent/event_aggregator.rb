@@ -8,6 +8,11 @@ module NewRelic
   module Agent
     class EventAggregator
       class << self
+        def inherited(subclass)
+          @enabled_key = nil
+          @enabled_fn = nil
+        end
+
         def named named = nil
           named ? @named = named.to_s.freeze : @named
         end
@@ -18,6 +23,10 @@ module NewRelic
 
         def enabled_key key = nil
           key ? @enabled_key = key : @enabled_key
+        end
+
+        def enabled_fn fn = nil
+          fn ? @enabled_fn = fn : @enabled_fn
         end
 
         def buffer_class klass = nil
@@ -48,6 +57,7 @@ module NewRelic
       end
 
       def enabled?
+        return self.class.enabled_fn.call if self.class.enabled_fn
         @enabled
       end
 
@@ -108,6 +118,12 @@ module NewRelic
       end
 
       def register_enabled_callback
+        unless self.class.enabled_key || self.class.enabled_fn
+          ::NewRelic::Agent.logger.warn "#{self.class.named} needs an enabled_key or an enabled_fn."
+        end
+
+        return if self.class.enabled_fn
+
         NewRelic::Agent.config.register_callback(self.class.enabled_key) do |enabled|
           # intentionally unsynchronized for liveness
           @enabled = enabled
