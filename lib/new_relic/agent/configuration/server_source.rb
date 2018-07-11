@@ -24,7 +24,8 @@ module NewRelic
           "error_beacon",
           "js_agent_file",
           "js_agent_loader",
-          "trusted_account_ids"
+          "trusted_account_ids",
+          "trusted_account_key"
         ]
 
         def initialize(connect_reply, existing_config={})

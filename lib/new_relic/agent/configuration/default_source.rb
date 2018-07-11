@@ -1683,6 +1683,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code> enables experimental distributed tracing feature.'
         },
+        :trusted_account_key => {
+          :default => nil,
+          :allow_nil => true,
+          :public => false,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'A shared key to validate that a distributed trace payload came from a trusted account.'
+        },
         :'span_events.enabled' => {
           :default => true,
           :public => false,
