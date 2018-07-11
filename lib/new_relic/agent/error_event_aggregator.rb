@@ -19,7 +19,7 @@ module NewRelic
       def record noticed_error, transaction_payload = nil
         return unless enabled?
 
-        priority = (transaction_payload && transaction_payload[:priority]) || rand
+        priority = (transaction_payload && transaction_payload[:priority]) || rand.round(6)
 
         @lock.synchronize do
           @buffer.append(priority: priority) do
