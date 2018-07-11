@@ -227,8 +227,9 @@ module NewRelic
 
           segment_event_a, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_a" }
 
-          assert txn_segment_event.key?("nr.entryPoint")
-          refute segment_event_a.key?("nr.entryPoint")
+          assert txn_segment_event.key?('nr.entryPoint')
+          assert txn_segment_event.fetch('nr.entryPoint')
+          refute segment_event_a.key?('nr.entryPoint')
         end
 
         def test_sets_start_time_from_constructor
