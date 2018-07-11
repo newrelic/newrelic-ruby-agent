@@ -16,7 +16,8 @@ module NewRelic
             :'distributed_tracing.enabled' => true,
             :application_id => "46954",
             :cross_process_id => "190#222",
-            :trusted_account_ids => [190]
+            :trusted_account_ids => [190],
+            :trusted_account_key => "290"
           }
           NewRelic::Agent.config.add_config_for_testing(@config)
         end
@@ -38,6 +39,7 @@ module NewRelic
 
           assert_equal "46954", payload.parent_app_id
           assert_equal "190", payload.parent_account_id
+          assert_equal "290", payload.trusted_account_key
           assert_equal DistributedTracePayload::VERSION, payload.version
           assert_equal "App", payload.parent_type
           assert_equal transaction.initial_segment.guid, payload.id

@@ -17,7 +17,8 @@ module NewRelic
         @config = {
           :'distributed_tracing.enabled' => true,
           :application_id => "46954",
-          :cross_process_id => "190#222"
+          :cross_process_id => "190#222",
+          :trusted_account_key => "290"
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config)
@@ -39,9 +40,38 @@ module NewRelic
 
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
+        assert_equal "290", payload.trusted_account_key
         assert_equal DistributedTracePayload::VERSION, payload.version
         assert_equal "App", payload.parent_type
         assert_equal created_at, payload.timestamp
+      end
+
+      def test_trusted_account_id_present_if_different_than_account_id
+        payload = nil
+        in_transaction "test_txn" do |txn|
+          payload = DistributedTracePayload.for_transaction txn
+        end
+
+        assert_equal "290", payload.trusted_account_key
+
+        deserialized_payload = JSON.parse(payload.to_json)
+
+        assert_equal "290", deserialized_payload["d"]["tk"]
+      end
+
+      def test_trusted_account_id_not_present_if_it_matches_account_id
+        with_config :trusted_account_key => "190" do
+          payload = nil
+          in_transaction "test_txn" do |txn|
+            payload = DistributedTracePayload.for_transaction txn
+          end
+
+          assert_nil payload.trusted_account_key
+
+          deserialized_payload = JSON.parse(payload.to_json)
+
+          refute deserialized_payload["d"].key? "tk"
+        end
       end
 
       def test_app_id_uses_fallback_if_not_explicity_set
@@ -100,6 +130,7 @@ module NewRelic
         assert_equal "App", payload.parent_type
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
+        assert_equal "290", payload.trusted_account_key
         assert_equal referring_transaction.initial_segment.guid, payload.id
         assert_equal referring_transaction.guid, payload.transaction_id
         assert_equal referring_transaction.trace_id, payload.trace_id
@@ -125,6 +156,7 @@ module NewRelic
         assert_equal "App", payload.parent_type
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
+        assert_equal "290", payload.trusted_account_key
         assert_equal referring_transaction.initial_segment.guid, payload.id
         assert_equal referring_transaction.guid, payload.transaction_id
         assert_equal referring_transaction.trace_id, payload.trace_id
@@ -140,7 +172,7 @@ module NewRelic
         raw_payload = JSON.parse(payload.to_json)
 
         assert_equal_unordered %w(v d), raw_payload.keys
-        assert_equal_unordered %w(ty ac ap id tx tr pr sa ti), raw_payload["d"].keys
+        assert_equal_unordered %w(ty ac ap tk id tx tr pr sa ti), raw_payload["d"].keys
       end
 
       def test_to_json_and_from_json_are_inverse_operations
