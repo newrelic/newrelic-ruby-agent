@@ -277,6 +277,7 @@ module NewRelic
           with_config(
             :'distributed_tracing.enabled' => true,
             :trusted_account_key => 'trust_this') do
+
             request = RequestWrapper.new
             payload = nil
 
