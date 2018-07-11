@@ -685,7 +685,7 @@ module NewRelic
           segment   = nil
 
           in_transaction('wat') do |txn|
-            txn.sampled = true
+            txn.stubs(:sampled?).returns(true)
 
             segment = ExternalRequestSegment.new "Typhoeus",
                                                  "http://remotehost.com/blogs/index",
@@ -729,7 +729,7 @@ module NewRelic
 
         def test_non_sampled_segment_does_not_record_span_event
           in_transaction('wat') do |txn|
-            txn.sampled = false
+            txn.stubs(:sampled?).returns(false)
 
             segment = ExternalRequestSegment.new "Typhoeus",
                                                  "http://remotehost.com/blogs/index",
@@ -746,7 +746,7 @@ module NewRelic
 
         def test_span_event_truncates_long_value
           in_transaction('wat') do |txn|
-            txn.sampled = true
+            txn.stubs(:sampled?).returns(true)
 
             segment = Transaction.start_external_request_segment library: "Typhoeus",
                                                                  uri: "http://#{'a' * 300}.com",

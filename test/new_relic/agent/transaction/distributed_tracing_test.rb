@@ -493,15 +493,47 @@ module NewRelic
           assert_equal transaction.guid, payload.transaction_id
         end
 
+        def test_sampled_and_priority_inherited_when_accepting_distributed_trace_payload
+          payload = create_distributed_trace_payload(sampled: true)
+
+          in_transaction('test_txn') do |txn|
+            txn.accept_distributed_trace_payload(payload.to_json)
+
+            assert_equal true, txn.sampled?
+            assert_equal payload.priority, txn.priority
+          end
+        end
+
+        def test_sampling_decisions_only_made_for_transactions_without_payloads
+          payload = create_distributed_trace_payload(sampled: true)
+          # this is a little ugly, but the code below forces the adaptive
+          # sampler into a new interval and resets the counts
+          adaptive_sampler = NewRelic::Agent.instance.adaptive_sampler
+          interval_duration = adaptive_sampler.instance_variable_get :@interval_duration
+          nr_freeze_time
+          advance_time(interval_duration)
+          adaptive_sampler.send(:reset_if_interval_expired!)
+
+          20.times do
+            in_transaction('test_txn') do |txn|
+              txn.accept_distributed_trace_payload payload.to_json
+            end
+          end
+          assert_equal 0, adaptive_sampler.stats[:seen]
+
+          20.times do
+            in_transaction {}
+          end
+          assert_equal 20, adaptive_sampler.stats[:seen]
+        end
+
         private
 
         def create_distributed_trace_payload(sampled: nil)
-          unless sampled.nil?
-            NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(sampled)
-          end
-
           in_transaction do |txn|
-            return txn.create_distributed_trace_payload
+            payload = txn.create_distributed_trace_payload
+            payload.sampled = sampled
+            return payload
           end
         end
 
