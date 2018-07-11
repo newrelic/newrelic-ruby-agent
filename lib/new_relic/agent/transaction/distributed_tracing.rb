@@ -146,14 +146,11 @@ module NewRelic
         SUPPORTABILITY_PAYLOAD_ACCEPT_UNTRUSTED_ACCOUNT = "Supportability/DistributedTrace/AcceptPayload/Ignored/UntrustedAccount".freeze
 
         def check_trusted_account(payload)
-          trusted_account_ids = NewRelic::Agent.config[:trusted_account_ids]
-          trusted = trusted_account_ids.include?(payload.parent_account_id.to_i)
-
-          unless trusted
+          compare_key = payload.trusted_account_key || payload.parent_account_id
+          unless compare_key == NewRelic::Agent.config[:trusted_account_key]
             NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_UNTRUSTED_ACCOUNT
             return false
           end
-
           true
         end
 
