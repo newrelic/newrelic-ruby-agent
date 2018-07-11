@@ -35,6 +35,7 @@ module NewRelic
       PEER_ADDRESS_KEY     = 'peer.address'.freeze
       PEER_HOSTNAME_KEY    = 'peer.hostname'.freeze
       SPAN_KIND_KEY        = 'span.kind'.freeze
+      ENTRY_POINT_KEY      = 'nr.entryPoint'.freeze
 
       # Strings for static values of the event structure
       EVENT_TYPE         = 'Span'.freeze
@@ -95,18 +96,21 @@ module NewRelic
       private
 
       def intrinsics_for(segment)
+        intrinsics =
         {
-          TYPE_KEY                => EVENT_TYPE,
-          TRACE_ID_KEY            => segment.transaction.trace_id,
-          GUID_KEY                => segment.guid,
-          PARENT_ID_KEY           => parent_guid(segment),
-          TRANSACTION_ID_KEY   => segment.transaction.guid,
-          SAMPLED_KEY             => segment.transaction.sampled?,
-          PRIORITY_KEY            => segment.transaction.priority,
-          TIMESTAMP_KEY           => milliseconds_since_epoch(segment),
-          DURATION_KEY            => segment.duration,
-          NAME_KEY                => segment.name
+          TYPE_KEY           => EVENT_TYPE,
+          TRACE_ID_KEY       => segment.transaction.trace_id,
+          GUID_KEY           => segment.guid,
+          PARENT_ID_KEY      => parent_guid(segment),
+          TRANSACTION_ID_KEY => segment.transaction.guid,
+          SAMPLED_KEY        => segment.transaction.sampled?,
+          PRIORITY_KEY       => segment.transaction.priority,
+          TIMESTAMP_KEY      => milliseconds_since_epoch(segment),
+          DURATION_KEY       => segment.duration,
+          NAME_KEY           => segment.name
         }
+        intrinsics[ENTRY_POINT_KEY] = true unless segment.parent
+        intrinsics
       end
 
       def parent_guid(segment)
