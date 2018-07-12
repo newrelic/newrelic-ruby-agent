@@ -136,6 +136,37 @@ module NewRelic
           assert_empty last_span_events
         end
 
+        def test_span_event_parenting
+          txn_segment = nil
+          segment_a = nil
+          segment_b = nil
+          txn = in_transaction('test_txn') do |t|
+            t.stubs(:sampled?).returns(true)
+            txn_segment = t.initial_segment
+            segment_a = NewRelic::Agent::Transaction.start_segment(name: 'segment_a')
+            segment_b = NewRelic::Agent::Transaction.start_segment(name: 'segment_b')
+            segment_b.finish
+            segment_a.finish
+          end
+
+          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
+          txn_segment_event, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "test_txn" }
+
+          assert_equal txn.guid, txn_segment_event["transactionId"]
+          assert_nil   txn_segment_event["parentId"]
+
+          segment_event_a, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_a" }
+
+          assert_equal txn.guid, segment_event_a["transactionId"]
+          assert_equal txn_segment.guid, segment_event_a["parentId"]
+
+          segment_event_b, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_b" }
+
+          assert_equal txn.guid, segment_event_b["transactionId"]
+          assert_equal segment_a.guid, segment_event_b["parentId"]
+        end
+
         def test_sampled_segment_records_span_event
           trace_id  = nil
           txn_guid  = nil
@@ -179,7 +210,7 @@ module NewRelic
           assert_equal 'generic', custom_span_event.fetch('category')
         end
 
-        def test_span_event_parenting
+        def test_entrypoint_attribute_added_to_first_span_only
           txn_segment = nil
           segment_a = nil
           segment_b = nil
@@ -187,8 +218,6 @@ module NewRelic
             t.stubs(:sampled?).returns(true)
             txn_segment = t.initial_segment
             segment_a = NewRelic::Agent::Transaction.start_segment(name: 'segment_a')
-            segment_b = NewRelic::Agent::Transaction.start_segment(name: 'segment_b')
-            segment_b.finish
             segment_a.finish
           end
 
@@ -196,18 +225,11 @@ module NewRelic
 
           txn_segment_event, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "test_txn" }
 
-          assert_equal txn.guid, txn_segment_event["transactionId"]
-          assert_nil   txn_segment_event["parentId"]
-
           segment_event_a, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_a" }
 
-          assert_equal txn.guid, segment_event_a["transactionId"]
-          assert_equal txn_segment.guid, segment_event_a["parentId"]
-
-          segment_event_b, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_b" }
-
-          assert_equal txn.guid, segment_event_b["transactionId"]
-          assert_equal segment_a.guid, segment_event_b["parentId"]
+          assert txn_segment_event.key?('nr.entryPoint')
+          assert txn_segment_event.fetch('nr.entryPoint')
+          refute segment_event_a.key?('nr.entryPoint')
         end
 
         def test_sets_start_time_from_constructor
