@@ -9,8 +9,11 @@ module NewRelic
     class EventAggregator
       class << self
         def inherited(subclass)
-          @enabled_key = nil
-          @enabled_fn = nil
+          # Prevent uninitialized variable warnings; we have to do
+          # this as soon as the subclass is defined, before its
+          # implementor calls enabled_key() or enabled_fn().
+          subclass.instance_variable_set(:@enabled_key, nil)
+          subclass.instance_variable_set(:@enabled_fn,  nil)
         end
 
         def named named = nil
