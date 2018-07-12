@@ -16,7 +16,7 @@ module NewRelic
             :'distributed_tracing.enabled' => true,
             :application_id => "46954",
             :cross_process_id => "190#222",
-            :trusted_account_key => "290"
+            :trusted_account_key => "trust_this!"
           }
           NewRelic::Agent.config.add_config_for_testing(@config)
         end
@@ -38,7 +38,7 @@ module NewRelic
 
           assert_equal "46954", payload.parent_app_id
           assert_equal "190", payload.parent_account_id
-          assert_equal "290", payload.trusted_account_key
+          assert_equal "trust_this!", payload.trusted_account_key
           assert_equal DistributedTracePayload::VERSION, payload.version
           assert_equal "App", payload.parent_type
           assert_equal transaction.initial_segment.guid, payload.id
@@ -92,7 +92,7 @@ module NewRelic
           transaction = nil
           accepted    = nil
 
-          with_config(trusted_account_key: "500") do
+          with_config(trusted_account_key: "somekey") do
             transaction = in_transaction "test_txn" do |txn|
               accepted = txn.accept_distributed_trace_payload payload.http_safe
             end
@@ -111,7 +111,7 @@ module NewRelic
           transaction = nil
           accepted    = nil
 
-          with_config(trusted_account_key: "500") do
+          with_config(trusted_account_key: "somekey") do
             transaction = in_transaction "test_txn" do |txn|
               accepted = txn.accept_distributed_trace_payload payload.http_safe
             end
@@ -125,12 +125,12 @@ module NewRelic
         def test_accept_distributed_trace_payload_accepts_payload_when_account_id_matches_trusted_key
           payload = create_distributed_trace_payload
           payload.trusted_account_key = nil
-          payload.parent_account_id = "500"
+          payload.parent_account_id = "matching_key"
 
           transaction = nil
           accepted    = nil
 
-          with_config(trusted_account_key: "500") do
+          with_config(trusted_account_key: "matching_key") do
             transaction = in_transaction "test_txn" do |txn|
               accepted = txn.accept_distributed_trace_payload payload.http_safe
             end

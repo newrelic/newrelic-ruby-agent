@@ -18,7 +18,7 @@ module NewRelic
           :'distributed_tracing.enabled' => true,
           :application_id => "46954",
           :cross_process_id => "190#222",
-          :trusted_account_key => "290"
+          :trusted_account_key => "trust_this!"
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config)
@@ -40,7 +40,7 @@ module NewRelic
 
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
-        assert_equal "290", payload.trusted_account_key
+        assert_equal "trust_this!", payload.trusted_account_key
         assert_equal DistributedTracePayload::VERSION, payload.version
         assert_equal "App", payload.parent_type
         assert_equal created_at, payload.timestamp
@@ -52,11 +52,11 @@ module NewRelic
           payload = DistributedTracePayload.for_transaction txn
         end
 
-        assert_equal "290", payload.trusted_account_key
+        assert_equal "trust_this!", payload.trusted_account_key
 
         deserialized_payload = JSON.parse(payload.to_json)
 
-        assert_equal "290", deserialized_payload["d"]["tk"]
+        assert_equal "trust_this!", deserialized_payload["d"]["tk"]
       end
 
       def test_trusted_account_id_not_present_if_it_matches_account_id
@@ -130,7 +130,7 @@ module NewRelic
         assert_equal "App", payload.parent_type
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
-        assert_equal "290", payload.trusted_account_key
+        assert_equal "trust_this!", payload.trusted_account_key
         assert_equal referring_transaction.initial_segment.guid, payload.id
         assert_equal referring_transaction.guid, payload.transaction_id
         assert_equal referring_transaction.trace_id, payload.trace_id
@@ -156,7 +156,7 @@ module NewRelic
         assert_equal "App", payload.parent_type
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
-        assert_equal "290", payload.trusted_account_key
+        assert_equal "trust_this!", payload.trusted_account_key
         assert_equal referring_transaction.initial_segment.guid, payload.id
         assert_equal referring_transaction.guid, payload.transaction_id
         assert_equal referring_transaction.trace_id, payload.trace_id
