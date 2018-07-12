@@ -66,7 +66,7 @@ module NewRelic
           account_id, fallback_app_id = Agent.config[:cross_process_id].split(POUND)
           payload.parent_account_id = account_id
 
-          assign_trusted_account_id(payload)
+          assign_trusted_account_key(payload, account_id)
 
           payload.parent_app_id =  if Agent.config[:application_id].empty?
             fallback_app_id
@@ -129,10 +129,10 @@ module NewRelic
           !!Agent.config[:'cross_process_id']
         end
 
-        def assign_trusted_account_id(payload)
+        def assign_trusted_account_key payload, account_id
           trusted_account_key = Agent.config[:trusted_account_key]
 
-          if payload.parent_account_id != trusted_account_key
+          if account_id != trusted_account_key
             payload.trusted_account_key = trusted_account_key
           end
         end
