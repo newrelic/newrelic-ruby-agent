@@ -1676,6 +1676,22 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, the agent will clear <code>TransactionState</code> in <code>Agent.drop_buffered_data</code>.'
         },
+        :account_id => {
+          :default => nil,
+          :allow_nil => true,
+          :public => false,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'The account id associated with this application.'
+        },
+        :primary_application_id => {
+          :default => nil,
+          :allow_nil => true,
+          :public => false,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'The primary id associated with this application.'
+        },
         :'distributed_tracing.enabled' => {
           :default     => false,
           :public      => false,

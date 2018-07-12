@@ -60,19 +60,10 @@ module NewRelic
           payload = new
           payload.version = VERSION
           payload.parent_type = PARENT_TYPE
+          payload.parent_account_id = Agent.config[:account_id]
+          payload.parent_app_id = Agent.config[:primary_application_id]
 
-          # We should not rely on the xp_id being formulated this way, but we have
-          # seen nil account ids coming down in staging for some accounts
-          account_id, fallback_app_id = Agent.config[:cross_process_id].split(POUND)
-          payload.parent_account_id = account_id
-
-          assign_trusted_account_key(payload, account_id)
-
-          payload.parent_app_id =  if Agent.config[:application_id].empty?
-            fallback_app_id
-          else
-            Agent.config[:application_id]
-          end
+          assign_trusted_account_key(payload, payload.parent_account_id)
 
           payload.id = Agent.config[:'span_events.enabled'] &&
             transaction.current_segment &&
@@ -123,10 +114,10 @@ module NewRelic
 
         private
 
-        # We use the presence of the cross_process_id in the config to tell if we
-        # have connected yet.
+        # We use the presence of the account_id and primary_application in the
+        # config to tell if we have connected yet.
         def connected?
-          !!Agent.config[:'cross_process_id']
+          Agent.config[:account_id] && Agent.config[:primary_application_id]
         end
 
         def assign_trusted_account_key payload, account_id

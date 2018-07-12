@@ -18,7 +18,10 @@ module NewRelic::Agent::Configuration
         'apdex_t'                => 1.0,
         'collect_errors'         => false,
         'collect_traces'         => true,
-        'web_transactions_apdex' => { 'Controller/some/txn' => 1.5 }
+        'web_transactions_apdex' => { 'Controller/some/txn' => 1.5 },
+        'trusted_account_key'    => '555',
+        'account_id'             => '190',
+        'primary_application_id' => '1441'
       }
       @source = ServerSource.new(config)
     end
@@ -29,6 +32,18 @@ module NewRelic::Agent::Configuration
 
     def test_should_set_agent_config_values
       assert_equal 'raw', @source[:'transaction_tracer.record_sql']
+    end
+
+    def should_set_trusted_account_key
+      assert_equal '555', @source[:trusted_account_key]
+    end
+
+    def should_set_account_id
+      assert_equal '190', @source[:account_id]
+    end
+
+    def should_set_primary_application_id
+      assert_equal '1441', @source[:primary_application_id]
     end
 
     def test_should_not_dot_the_agent_config_sub_hash

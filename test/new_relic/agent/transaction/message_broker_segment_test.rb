@@ -117,7 +117,9 @@ module NewRelic
         end
 
         def test_segment_adds_distributed_trace_headers_to_message_properties_for_produce
-          with_config :"distributed_tracing.enabled" => true do
+          with_config :"distributed_tracing.enabled" => true,
+                      :account_id => "190",
+                      :primary_application_id => "46954" do
             transaction = in_transaction "test_txn" do |txn|
               segment = NewRelic::Agent::Transaction.start_message_broker_segment(
                 action: :produce,

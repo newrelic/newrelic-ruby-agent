@@ -14,10 +14,11 @@ module NewRelic
         def setup
           @config = {
             :'distributed_tracing.enabled' => true,
-            :application_id => "46954",
-            :cross_process_id => "190#222",
+            :account_id => "190",
+            :primary_application_id => "46954",
             :trusted_account_key => "trust_this!"
           }
+
           NewRelic::Agent.config.add_config_for_testing(@config)
         end
 
@@ -49,11 +50,10 @@ module NewRelic
 
         def test_create_distributed_trace_payload_while_disconnected_returns_nil
           nr_freeze_time
-          created_at = (Time.now.to_f * 1000).round
           state = TransactionState.tl_get
 
           payload = 'definitely not nil'
-          with_config(cross_process_id: nil) do
+          with_config(account_id: nil, primary_application_id: nil) do
             transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
             payload = transaction.create_distributed_trace_payload
             Transaction.stop(state)
@@ -131,6 +131,24 @@ module NewRelic
           accepted    = nil
 
           with_config(trusted_account_key: "matching_key") do
+            transaction = in_transaction "test_txn" do |txn|
+              accepted = txn.accept_distributed_trace_payload payload.http_safe
+            end
+          end
+
+          assert accepted
+          refute_nil transaction.distributed_trace_payload
+        end
+
+        def test_accept_distributed_trace_payload_accepts_payload_when_account_id_matches_trusted_key
+          payload = create_distributed_trace_payload
+          payload.trusted_account_key = nil
+          payload.parent_account_id = "500"
+
+          transaction = nil
+          accepted    = nil
+
+          with_config(trusted_account_key: "500") do
             transaction = in_transaction "test_txn" do |txn|
               accepted = txn.accept_distributed_trace_payload payload.http_safe
             end

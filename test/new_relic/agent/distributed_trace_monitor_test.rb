@@ -19,8 +19,8 @@ module NewRelic
           :'cross_application_tracer.enabled' => false,
           :'distributed_tracing.enabled' => true,
           :encoding_key                  => "\0",
-          :application_id                => "46954",
-          :cross_process_id              => "190#46954",
+          :account_id                    => "190",
+          :primary_application_id        => "46954",
           :trusted_account_key           => "trust_this!"
         }
 
