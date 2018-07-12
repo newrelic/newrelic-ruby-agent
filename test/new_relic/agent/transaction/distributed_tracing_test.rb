@@ -16,7 +16,7 @@ module NewRelic
             :'distributed_tracing.enabled' => true,
             :application_id => "46954",
             :cross_process_id => "190#222",
-            :trusted_account_ids => [190]
+            :trusted_account_key => "trust_this!"
           }
           NewRelic::Agent.config.add_config_for_testing(@config)
         end
@@ -38,6 +38,7 @@ module NewRelic
 
           assert_equal "46954", payload.parent_app_id
           assert_equal "190", payload.parent_account_id
+          assert_equal "trust_this!", payload.trusted_account_key
           assert_equal DistributedTracePayload::VERSION, payload.version
           assert_equal "App", payload.parent_type
           assert_equal transaction.initial_segment.guid, payload.id
@@ -85,12 +86,13 @@ module NewRelic
           assert_equal transaction.trace_id, payload.trace_id
         end
 
-        def test_accept_distributed_trace_payload_rejects_untrusted_account
+        def test_accept_distributed_trace_payload_rejects_untrusted_account_with_trusted_account_id
           payload = create_distributed_trace_payload
 
           transaction = nil
           accepted    = nil
-          with_config(trusted_account_ids: []) do
+
+          with_config(trusted_account_key: "somekey") do
             transaction = in_transaction "test_txn" do |txn|
               accepted = txn.accept_distributed_trace_payload payload.http_safe
             end
@@ -99,6 +101,43 @@ module NewRelic
           assert_nil              transaction.distributed_trace_payload
           assert_false            accepted
           assert_metrics_recorded ['Supportability/DistributedTrace/AcceptPayload/Ignored/UntrustedAccount']
+        end
+
+        def test_accept_distributed_trace_payload_rejects_untrusted_account_without_trusted_account_id
+          # without a trusted account key in the payload the agent will compare against the parent_app_id
+          payload = create_distributed_trace_payload
+          payload.trusted_account_key = nil
+
+          transaction = nil
+          accepted    = nil
+
+          with_config(trusted_account_key: "somekey") do
+            transaction = in_transaction "test_txn" do |txn|
+              accepted = txn.accept_distributed_trace_payload payload.http_safe
+            end
+          end
+
+          assert_nil              transaction.distributed_trace_payload
+          assert_false            accepted
+          assert_metrics_recorded ['Supportability/DistributedTrace/AcceptPayload/Ignored/UntrustedAccount']
+        end
+
+        def test_accept_distributed_trace_payload_accepts_payload_when_account_id_matches_trusted_key
+          payload = create_distributed_trace_payload
+          payload.trusted_account_key = nil
+          payload.parent_account_id = "matching_key"
+
+          transaction = nil
+          accepted    = nil
+
+          with_config(trusted_account_key: "matching_key") do
+            transaction = in_transaction "test_txn" do |txn|
+              accepted = txn.accept_distributed_trace_payload payload.http_safe
+            end
+          end
+
+          assert accepted
+          refute_nil transaction.distributed_trace_payload
         end
 
         def test_accept_distributed_trace_payload_records_duration_metrics

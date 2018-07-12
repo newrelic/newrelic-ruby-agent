@@ -17,6 +17,7 @@ module NewRelic
       PARENT_TYPE_KEY            = 'ty'.freeze
       PARENT_ACCOUNT_ID_KEY      = 'ac'.freeze
       PARENT_APP_KEY             = 'ap'.freeze
+      TRUSTED_ACCOUNT_KEY        = 'tk'.freeze
       ID_KEY                     = 'id'.freeze
       TX_KEY                     = 'tx'.freeze
       TRACE_ID_KEY               = 'tr'.freeze
@@ -65,6 +66,8 @@ module NewRelic
           account_id, fallback_app_id = Agent.config[:cross_process_id].split(POUND)
           payload.parent_account_id = account_id
 
+          assign_trusted_account_key(payload, account_id)
+
           payload.parent_app_id =  if Agent.config[:application_id].empty?
             fallback_app_id
           else
@@ -88,16 +91,17 @@ module NewRelic
           payload_data = raw_payload[DATA_KEY]
 
           payload = new
-          payload.version           = raw_payload[VERSION_KEY]
-          payload.parent_type       = payload_data[PARENT_TYPE_KEY]
-          payload.parent_account_id = payload_data[PARENT_ACCOUNT_ID_KEY]
-          payload.parent_app_id     = payload_data[PARENT_APP_KEY]
-          payload.timestamp         = payload_data[TIMESTAMP_KEY]
-          payload.id                = payload_data[ID_KEY]
-          payload.transaction_id    = payload_data[TX_KEY]
-          payload.trace_id          = payload_data[TRACE_ID_KEY]
-          payload.sampled           = payload_data[SAMPLED_KEY]
-          payload.priority          = payload_data[PRIORITY_KEY]
+          payload.version             = raw_payload[VERSION_KEY]
+          payload.parent_type         = payload_data[PARENT_TYPE_KEY]
+          payload.parent_account_id   = payload_data[PARENT_ACCOUNT_ID_KEY]
+          payload.parent_app_id       = payload_data[PARENT_APP_KEY]
+          payload.trusted_account_key = payload_data[TRUSTED_ACCOUNT_KEY]
+          payload.timestamp           = payload_data[TIMESTAMP_KEY]
+          payload.id                  = payload_data[ID_KEY]
+          payload.transaction_id      = payload_data[TX_KEY]
+          payload.trace_id            = payload_data[TRACE_ID_KEY]
+          payload.sampled             = payload_data[SAMPLED_KEY]
+          payload.priority            = payload_data[PRIORITY_KEY]
 
           payload
         end
@@ -124,6 +128,14 @@ module NewRelic
         def connected?
           !!Agent.config[:'cross_process_id']
         end
+
+        def assign_trusted_account_key payload, account_id
+          trusted_account_key = Agent.config[:trusted_account_key]
+
+          if account_id != trusted_account_key
+            payload.trusted_account_key = trusted_account_key
+          end
+        end
       end
 
       attr_accessor :version,
@@ -131,6 +143,7 @@ module NewRelic
                     :caller_transport_type,
                     :parent_account_id,
                     :parent_app_id,
+                    :trusted_account_key,
                     :id,
                     :transaction_id,
                     :trace_id,
@@ -160,6 +173,8 @@ module NewRelic
           PRIORITY_KEY          => priority,
           TIMESTAMP_KEY         => timestamp,
         }
+
+        result[DATA_KEY][TRUSTED_ACCOUNT_KEY] = trusted_account_key if trusted_account_key
 
         JSON.dump(result)
       end

@@ -235,7 +235,7 @@ module NewRelic
 
         def test_proper_metrics_recorded_for_distributed_trace_on_receiver
           with_config(:'distributed_tracing.enabled' => true,
-                      :trusted_account_ids => [190]) do
+                      :trusted_account_key => 'trust_this!') do
             request = RequestWrapper.new
             payload = nil
 
@@ -276,7 +276,7 @@ module NewRelic
         def test_proper_metrics_recorded_for_distributed_trace_on_receiver_when_error_occurs
           with_config(
             :'distributed_tracing.enabled' => true,
-            :trusted_account_ids => [190]) do
+            :trusted_account_key => 'trust_this') do
             request = RequestWrapper.new
             payload = nil
 
