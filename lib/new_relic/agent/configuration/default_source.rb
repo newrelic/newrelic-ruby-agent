@@ -1707,6 +1707,20 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'A shared key to validate that a distributed trace payload came from a trusted account.'
         },
+        :sampling_target => {
+          :default => 10,
+          :public => false,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'The target number of transactions to mark as sampled during a sampled period.'
+        },
+        :sampling_target_period_in_seconds => {
+          :default => 60,
+          :public => false,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'The period during which a target number of transactions should be marked as sampled.'
+        },
         :'span_events.enabled' => {
           :default => true,
           :public => false,

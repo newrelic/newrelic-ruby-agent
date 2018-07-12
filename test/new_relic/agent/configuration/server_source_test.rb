@@ -15,13 +15,15 @@ module NewRelic::Agent::Configuration
           'transaction_tracer.record_sql'            => 'raw',
           'error_collector.enabled'                  => true
         },
-        'apdex_t'                => 1.0,
-        'collect_errors'         => false,
-        'collect_traces'         => true,
-        'web_transactions_apdex' => { 'Controller/some/txn' => 1.5 },
-        'trusted_account_key'    => '555',
-        'account_id'             => '190',
-        'primary_application_id' => '1441'
+        'apdex_t'                    => 1.0,
+        'collect_errors'             => false,
+        'collect_traces'             => true,
+        'web_transactions_apdex'     => { 'Controller/some/txn'     => 1.5 },
+        'trusted_account_key'        => '555',
+        'account_id'                 => '190',
+        'primary_application_id'     => '1441',
+        'sampling_target'            => 20,
+        'sampling_target_in_seconds' => 120
       }
       @source = ServerSource.new(config)
     end
@@ -44,6 +46,14 @@ module NewRelic::Agent::Configuration
 
     def should_set_primary_application_id
       assert_equal '1441', @source[:primary_application_id]
+    end
+
+    def should_set_sampling_target
+      assert_equal '20', @source[:sampling_target]
+    end
+
+    def should_set_sampling_target_in_seconds
+      assert_equal '120', @source[:sampling_target_in_seconds]
     end
 
     def test_should_not_dot_the_agent_config_sub_hash
