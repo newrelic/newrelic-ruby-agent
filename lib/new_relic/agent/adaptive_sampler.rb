@@ -15,6 +15,7 @@ module NewRelic
         @first_interval = true
         @interval_start = Time.now.to_f
         @lock = Mutex.new
+        register_config_callbacks
       end
 
       # Called at the beginning of each transaction, increments seen and
@@ -62,6 +63,41 @@ module NewRelic
         @seen_last = elapsed_intervals > 1 ? 0 : @seen
         @seen = 0
         @sampled_count = 0
+      end
+
+      def register_config_callbacks
+        register_sampling_target_callback
+        register_sampling_period_callback
+      end
+
+      def register_sampling_target_callback
+        NewRelic::Agent.config.register_callback(:sampling_target) do |target|
+          target_changed = false
+          @lock.synchronize do
+            if @target != target
+              @target = target
+              target_changed = true
+            end
+          end
+          if target_changed
+            NewRelic::Agent.logger.debug "Sampling target set to: #{target}"
+          end
+        end
+      end
+
+      def register_sampling_period_callback
+        NewRelic::Agent.config.register_callback(:sampling_target_period_in_seconds) do |period|
+          period_changed = false
+          @lock.synchronize do
+            if @interval_duration != period
+              @interval_duration = period
+              period_changed = true
+            end
+          end
+          if period_changed
+            NewRelic::Agent.logger.debug "Sampling period set to: #{period}"
+          end
+        end
       end
     end
   end
