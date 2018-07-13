@@ -23,7 +23,7 @@ module NewRelic::Agent::Configuration
         'account_id'                 => '190',
         'primary_application_id'     => '1441',
         'sampling_target'            => 20,
-        'sampling_target_in_seconds' => 120
+        'sampling_target_period_in_seconds' => 120
       }
       @source = ServerSource.new(config)
     end
@@ -36,24 +36,24 @@ module NewRelic::Agent::Configuration
       assert_equal 'raw', @source[:'transaction_tracer.record_sql']
     end
 
-    def should_set_trusted_account_key
+    def test_should_set_trusted_account_key
       assert_equal '555', @source[:trusted_account_key]
     end
 
-    def should_set_account_id
+    def test_should_set_account_id
       assert_equal '190', @source[:account_id]
     end
 
-    def should_set_primary_application_id
+    def test_should_set_primary_application_id
       assert_equal '1441', @source[:primary_application_id]
     end
 
-    def should_set_sampling_target
-      assert_equal '20', @source[:sampling_target]
+    def test_should_set_sampling_target
+      assert_equal 20, @source[:sampling_target]
     end
 
-    def should_set_sampling_target_in_seconds
-      assert_equal '120', @source[:sampling_target_in_seconds]
+    def test_should_set_sampling_target_in_seconds
+      assert_equal 120, @source[:sampling_target_period_in_seconds]
     end
 
     def test_should_not_dot_the_agent_config_sub_hash
