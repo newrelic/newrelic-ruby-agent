@@ -272,6 +272,7 @@ module NewRelic
           assert_equal inbound_payload.parent_account_id,     child_intrinsics["parent.account"]
 
           assert_equal inbound_payload.trace_id,              child_intrinsics["traceId"]
+          assert_equal inbound_payload.id,                    child_intrinsics["parentSpanId"]
           assert_equal child_transaction.guid,                child_intrinsics["guid"]
           assert_equal true,                                  child_intrinsics["sampled"]
 
