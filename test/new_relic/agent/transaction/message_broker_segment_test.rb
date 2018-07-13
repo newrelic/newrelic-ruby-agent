@@ -129,7 +129,7 @@ module NewRelic
                 headers: {}
               )
 
-              assert segment.headers.key?("NewRelicTrace"), "Expected message_properties to contain: NewRelicTrace"
+              assert segment.headers.key?("newrelic"), "Expected message_properties to contain: newrelic"
             end
 
             intrinsics, _, _ = last_transaction_event

@@ -89,7 +89,7 @@ module NewRelic
           @name
         end
 
-        NEWRELIC_TRACE_KEY = "NewRelicTrace".freeze
+        NEWRELIC_TRACE_KEY = "newrelic".freeze
 
         def insert_distributed_trace_header
           return unless Agent.config[:'distributed_tracing.enabled']
