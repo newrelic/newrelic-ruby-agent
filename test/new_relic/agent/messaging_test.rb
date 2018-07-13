@@ -564,7 +564,7 @@ module NewRelic
             library: "RabbitMQ",
             destination_type: :exchange,
             destination_name: 'Default',
-            headers: {'NewRelicTrace' => Base64.strict_encode64(payload.to_json)}
+            headers: {'Newrelic' => Base64.strict_encode64(payload.to_json)}
           ) do
             transaction = NewRelic::Agent::TransactionState.tl_get.current_transaction
             tap.tap
