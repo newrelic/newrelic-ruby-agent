@@ -9,13 +9,15 @@ class SpanEventsTest < Minitest::Test
   setup_and_teardown_agent
 
   def test_span_events_are_submitted
-    event = generate_event('test_event')
-    NewRelic::Agent.instance.span_event_aggregator.record(event: event)
+    with_config :'distributed_tracing.enabled' => true do
+      event = generate_event('test_event')
+      NewRelic::Agent.instance.span_event_aggregator.record(event: event)
 
-    NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+      NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
-    last_event = last_span_event
-    assert_equal event, last_event
+      last_event = last_span_event
+      assert_equal event, last_event
+    end
   end
 
   def last_span_event

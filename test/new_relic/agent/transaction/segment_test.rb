@@ -11,10 +11,13 @@ module NewRelic
     class Transaction
       class SegmentTest < Minitest::Test
         def setup
+          @additional_config = { :'distributed_tracing.enabled' => true }
+          NewRelic::Agent.config.add_config_for_testing(@additional_config)
           nr_freeze_time
         end
 
         def teardown
+          NewRelic::Agent.config.remove_config(@additional_config)
           NewRelic::Agent.drop_buffered_data
         end
 
@@ -64,7 +67,10 @@ module NewRelic
             "Segment/all",
             "Supportability/API/drop_buffered_data",
             "OtherTransactionTotalTime",
-            "OtherTransactionTotalTime/test"
+            "OtherTransactionTotalTime/test",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
+            "Supportability/API/recording_web_transaction?",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther",
           ]
         end
 
@@ -96,7 +102,10 @@ module NewRelic
             "Segment/all",
             "Supportability/API/drop_buffered_data",
             "OtherTransactionTotalTime",
-            "OtherTransactionTotalTime/test"
+            "OtherTransactionTotalTime/test",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
+            "Supportability/API/recording_web_transaction?",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther",
           ]
         end
 
@@ -117,7 +126,10 @@ module NewRelic
             "Segment/allOther",
             "Supportability/API/drop_buffered_data",
             "OtherTransactionTotalTime",
-            "OtherTransactionTotalTime/test"
+            "OtherTransactionTotalTime/test",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
+            "Supportability/API/recording_web_transaction?",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther",
           ]
         end
 

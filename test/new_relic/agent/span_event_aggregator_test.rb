@@ -13,11 +13,15 @@ module NewRelic
     class SpanEventAggregatorTest < Minitest::Test
 
       def setup
+        @additional_config = { :'distributed_tracing.enabled' => true }
+        NewRelic::Agent.config.add_config_for_testing(@additional_config)
+
         nr_freeze_time
         @event_aggregator = SpanEventAggregator.new
       end
 
       def teardown
+        NewRelic::Agent.config.remove_config(@additional_config)
         NewRelic::Agent.agent.drop_buffered_data
       end
 
@@ -68,6 +72,10 @@ module NewRelic
 
       def name_for(event)
         event[0]["name"]
+      end
+
+      def enabled_key
+        :'span_events.enabled'
       end
 
       include NewRelic::CommonAggregatorTests

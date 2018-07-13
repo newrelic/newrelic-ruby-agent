@@ -10,10 +10,13 @@ require 'new_relic/agent/priority_sampled_buffer'
 module NewRelic
   module Agent
     class SpanEventAggregator < EventAggregator
-
       named :SpanEventAggregator
       capacity_key :'span_events.max_samples_stored'
-      enabled_key :'span_events.enabled'
+
+      enabled_fn -> {
+        NewRelic::Agent.config[:'span_events.enabled'] &&
+        NewRelic::Agent.config[:'distributed_tracing.enabled']
+      }
 
       def record priority: nil, event:nil, &blk
         unless(event || priority && blk)

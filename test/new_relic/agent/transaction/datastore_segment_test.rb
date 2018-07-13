@@ -11,10 +11,14 @@ module NewRelic
     class Transaction
       class DatastoreSegmentTest < Minitest::Test
         def setup
+          @additional_config = { :'distributed_tracing.enabled' => true }
+          NewRelic::Agent.config.add_config_for_testing(@additional_config)
+
           nr_freeze_time
         end
 
         def teardown
+          NewRelic::Agent.config.remove_config(@additional_config)
           NewRelic::Agent.drop_buffered_data
         end
 

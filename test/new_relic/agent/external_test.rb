@@ -140,14 +140,6 @@ module NewRelic
         end
       end
 
-      def test_process_request_metadata_deprecated_for_distributed_tracing
-        with_config cat_config.merge(:'distributed_tracing.enabled' => true) do
-          l = with_array_logger { NewRelic::Agent::External.process_request_metadata({}) }
-          refute l.array.empty?, 'process_request_metadata should warn when distributed tracing is on'
-          assert l.array.first =~ %r{distributed tracing is enabled}
-        end
-      end
-
       # --- get_response_metadata
 
       def test_get_response_metadata
@@ -185,14 +177,6 @@ module NewRelic
           in_transaction do |txn|
             refute NewRelic::Agent::External.get_response_metadata
           end
-        end
-      end
-
-      def test_get_response_metadata_deprecated_for_distributed_tracing
-        with_config cat_config.merge(:'distributed_tracing.enabled' => true) do
-          l = with_array_logger { NewRelic::Agent::External.get_response_metadata }
-          refute l.array.empty?, 'get_response_metadata should warn when distributed tracing is on'
-          assert l.array.first =~ %r{distributed tracing is enabled}
         end
       end
 
