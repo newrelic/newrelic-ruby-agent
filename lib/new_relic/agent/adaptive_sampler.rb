@@ -6,14 +6,14 @@ module NewRelic
   module Agent
     class AdaptiveSampler
 
-      def initialize target_samples = 10, interval_duration = 60
+      def initialize target_samples = 10, period_duration = 60
         @target = target_samples
         @seen = 0
         @seen_last = 0
         @sampled_count = 0
-        @interval_duration = interval_duration
-        @first_interval = true
-        @interval_start = Time.now.to_f
+        @period_duration = period_duration
+        @first_period = true
+        @period_start = Time.now.to_f
         @lock = Mutex.new
         register_config_callbacks
       end
@@ -23,8 +23,8 @@ module NewRelic
       # sampled. This uses the adaptive sampling algorithm.
       def sampled?
         @lock.synchronize do
-          reset_if_interval_expired!
-          sampled = if @first_interval
+          reset_if_period_expired!
+          sampled = if @first_period
             @sampled_count < 10
           elsif @sampled_count < @target
             rand(@seen_last) < @target
@@ -52,15 +52,15 @@ module NewRelic
 
       private
 
-      def reset_if_interval_expired!
+      def reset_if_period_expired!
         now = Time.now.to_f
-        return unless @interval_start + @interval_duration <= now
+        return unless @period_start + @period_duration <= now
 
-        elapsed_intervals = Integer((now - @interval_start) / @interval_duration)
-        @interval_start = @interval_start + elapsed_intervals * @interval_duration
+        elapsed_periods = Integer((now - @period_start) / @period_duration)
+        @period_start = @period_start + elapsed_periods * @period_duration
 
-        @first_interval = false
-        @seen_last = elapsed_intervals > 1 ? 0 : @seen
+        @first_period = false
+        @seen_last = elapsed_periods > 1 ? 0 : @seen
         @seen = 0
         @sampled_count = 0
       end
@@ -86,16 +86,16 @@ module NewRelic
       end
 
       def register_sampling_period_callback
-        NewRelic::Agent.config.register_callback(:sampling_target_period_in_seconds) do |period|
+        NewRelic::Agent.config.register_callback(:sampling_target_period_in_seconds) do |period_duration|
           period_changed = false
           @lock.synchronize do
-            if @interval_duration != period
-              @interval_duration = period
+            if @period_duration != period_duration
+              @period_duration = period_duration
               period_changed = true
             end
           end
           if period_changed
-            NewRelic::Agent.logger.debug "Sampling period set to: #{period}"
+            NewRelic::Agent.logger.debug "Sampling period set to: #{period_duration}"
           end
         end
       end

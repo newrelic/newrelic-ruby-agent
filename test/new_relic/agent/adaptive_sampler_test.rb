@@ -49,7 +49,7 @@ module NewRelic
         with_config sampling_target_period_in_seconds: 500 do
           NewRelic::Agent.instance.events.notify(:finished_configuring)
           sampler = NewRelic::Agent.instance.adaptive_sampler
-          period = sampler.instance_variable_get :@interval_duration
+          period = sampler.instance_variable_get :@period_duration
 
           assert_equal 500, period
         end
