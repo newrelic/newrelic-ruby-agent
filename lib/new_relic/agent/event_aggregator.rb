@@ -8,6 +8,12 @@ module NewRelic
   module Agent
     class EventAggregator
       class << self
+        # This architecture requires that every aggregator
+        # implementation provide its own `named`, `capacity_key`, and
+        # `enabled_...` settings.  In particular, we do not allow
+        # subclasses to share these values from an intermediate
+        # superclass.
+
         def inherited(subclass)
           # Prevent uninitialized variable warnings; we have to do
           # this as soon as the subclass is defined, before its
