@@ -26,6 +26,8 @@ module NewRelic
           "js_agent_file",
           "js_agent_loader",
           "primary_application_id",
+          "sampling_target",
+          "sampling_target_period_in_seconds",
           "trusted_account_ids",
           "trusted_account_key"
         ]

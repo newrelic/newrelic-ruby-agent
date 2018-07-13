@@ -62,7 +62,8 @@ module NewRelic
         @harvest_samplers          = NewRelic::Agent::SamplerCollection.new(@events)
         @monotonic_gc_profiler     = NewRelic::Agent::VM::MonotonicGCProfiler.new
         @javascript_instrumentor   = NewRelic::Agent::JavascriptInstrumentor.new(@events)
-        @adaptive_sampler          = NewRelic::Agent::AdaptiveSampler.new
+        @adaptive_sampler          = NewRelic::Agent::AdaptiveSampler.new(self.class.config[:sampling_target],
+                                                                          self.class.config[:sampling_target_period_in_seconds])
 
         @harvester       = NewRelic::Agent::Harvester.new(@events)
         @after_fork_lock = Mutex.new
