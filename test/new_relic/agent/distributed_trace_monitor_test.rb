@@ -45,6 +45,46 @@ module NewRelic
           refute_nil txn.distributed_trace_payload
         end
       end
+
+      def test_sets_transport_type_for_http_scheme
+        payload = nil
+
+        in_transaction "referring_txn" do |txn|
+          payload = txn.create_distributed_trace_payload
+        end
+
+        env = {
+          NEWRELIC_TRACE_KEY => payload.http_safe,
+          'rack.url_scheme'  => 'http'
+        }
+
+        in_transaction "receiving_txn" do |txn|
+          @events.notify(:before_call, env)
+          payload = txn.distributed_trace_payload
+        end
+
+        assert_equal 'HTTP', payload.caller_transport_type
+      end
+
+      def test_sets_transport_type_for_https_scheme
+        payload = nil
+
+        in_transaction "referring_txn" do |txn|
+          payload = txn.create_distributed_trace_payload
+        end
+
+        env = {
+          NEWRELIC_TRACE_KEY => payload.http_safe,
+          'rack.url_scheme'  => 'https'
+        }
+
+        in_transaction "receiving_txn" do |txn|
+          @events.notify(:before_call, env)
+          payload = txn.distributed_trace_payload
+        end
+
+        assert_equal 'HTTPS', payload.caller_transport_type
+      end
     end
   end
 end
