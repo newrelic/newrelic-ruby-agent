@@ -8,13 +8,12 @@ require 'new_relic/agent/cross_app_tracing'
 module NewRelic
   module Agent
     class DistributedTraceMonitor < InboundRequestMonitor
-      NEWRELIC_TRACE_KEY = 'HTTP_NEWRELIC'
-      HTTP_TRANSPORT_TYPE = 'HTTP'.freeze
-
       def on_finished_configuring(events)
         return unless NewRelic::Agent.config[:'distributed_tracing.enabled']
         events.subscribe(:before_call, &method(:on_before_call))
       end
+
+      NEWRELIC_TRACE_KEY = 'HTTP_NEWRELIC'
 
       def on_before_call(request)
         return unless NewRelic::Agent.config[:'distributed_tracing.enabled']
@@ -23,8 +22,19 @@ module NewRelic
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
         if txn.accept_distributed_trace_payload payload
-          txn.distributed_trace_payload.caller_transport_type = HTTP_TRANSPORT_TYPE
+          txn.distributed_trace_payload.caller_transport_type = transport_type(request)
         end
+      end
+
+      URL_SCHEMES = {
+        'http'  => 'HTTP'.freeze,
+        'https' => 'HTTPS'.freeze
+      }
+
+      RACK_URL_SCHEME = 'rack.url_scheme'.freeze
+
+      def transport_type(request)
+        URL_SCHEMES[request[RACK_URL_SCHEME]]
       end
     end
   end
