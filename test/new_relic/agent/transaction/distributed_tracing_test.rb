@@ -551,6 +551,28 @@ module NewRelic
           assert_equal transaction.guid, payload.transaction_id
         end
 
+        def test_parent_span_id_propagated_cross_process
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
+          payload = nil
+          external_segment = nil
+          in_transaction('test_txn') do |txn|
+            external_segment = NewRelic::Agent::Transaction.\
+                         start_external_request_segment library: "net/http",
+                                                        uri: "http://docs.newrelic.com",
+                                                        procedure: "GET"
+            payload = txn.create_distributed_trace_payload
+          end
+
+          in_transaction('test_txn2') do |txn|
+            txn.accept_distributed_trace_payload payload.to_json
+          end
+
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          txn2_entry_span = last_span_events.detect{ |ev| ev[0]["name"] == "test_txn2" }
+
+          assert_equal external_segment.guid, txn2_entry_span[0]["parentId"]
+        end
+
         def test_sampled_and_priority_inherited_when_accepting_distributed_trace_payload
           payload = create_distributed_trace_payload(sampled: true)
 
