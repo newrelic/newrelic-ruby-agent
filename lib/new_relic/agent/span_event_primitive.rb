@@ -114,7 +114,11 @@ module NewRelic
       end
 
       def parent_guid(segment)
-        segment.parent && segment.parent.guid
+        if segment.parent
+          segment.parent.guid
+        elsif segment.transaction && segment.transaction.distributed_trace?
+          segment.transaction.distributed_trace_payload.id
+        end
       end
 
       def milliseconds_since_epoch(segment)

@@ -535,22 +535,6 @@ module NewRelic
           refute_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success"
         end
 
-        def test_span_ids_passed_in_payload_when_span_events_enabled
-          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
-          payload = nil
-          external_segment = nil
-          transaction = in_transaction('test_txn') do |txn|
-            external_segment = NewRelic::Agent::Transaction.\
-                         start_external_request_segment library: "net/http",
-                                                        uri: "http://docs.newrelic.com",
-                                                        procedure: "GET"
-            payload = txn.create_distributed_trace_payload
-          end
-
-          assert_equal external_segment.guid, payload.id
-          assert_equal transaction.guid, payload.transaction_id
-        end
-
         def test_sampled_and_priority_inherited_when_accepting_distributed_trace_payload
           payload = create_distributed_trace_payload(sampled: true)
 
