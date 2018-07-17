@@ -608,6 +608,7 @@ module NewRelic
       end
 
       def assign_intrinsics(state)
+        attributes.add_intrinsic_attribute(:priority, priority)
 
         if gc_time = calculate_gc_time
           attributes.add_intrinsic_attribute(:gc_time, gc_time)
