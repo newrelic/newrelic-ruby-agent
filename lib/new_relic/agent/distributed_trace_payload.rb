@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'json'
 require 'base64'
+require 'set'
 
 module NewRelic
   module Agent
@@ -52,7 +53,7 @@ module NewRelic
       ].freeze
 
       # Intrinsic Values
-      PARENT_TRANSPORT_TYPE_UNKNOWN = 'unknown'.freeze
+      PARENT_TRANSPORT_TYPE_UNKNOWN = 'Unknown'.freeze
 
       class << self
 
@@ -80,7 +81,8 @@ module NewRelic
         end
 
         def from_json serialized_payload
-          raw_payload = JSON.parse serialized_payload
+          raw_payload = JSON.parse serialized_payload, quirks_mode: true
+          return raw_payload if raw_payload.nil?
           payload_data = raw_payload[DATA_KEY]
 
           payload = new
@@ -133,7 +135,6 @@ module NewRelic
 
       attr_accessor :version,
                     :parent_type,
-                    :caller_transport_type,
                     :parent_account_id,
                     :parent_app_id,
                     :trusted_account_key,
@@ -145,6 +146,12 @@ module NewRelic
                     :timestamp
 
       alias_method :sampled?, :sampled
+
+      attr_reader :caller_transport_type
+
+      def caller_transport_type=(type)
+        @caller_transport_type = valid_transport_type_for(type)
+      end
 
       def initialize
         @caller_transport_type = PARENT_TRANSPORT_TYPE_UNKNOWN
@@ -189,6 +196,25 @@ module NewRelic
         transaction_payload[PARENT_ID_INTRINSIC_KEY] = transaction.parent_id if transaction.parent_id
         transaction_payload[PARENT_SPAN_ID_INTRINSIC_KEY] = id if id
         transaction_payload[SAMPLED_INTRINSIC_KEY] = transaction.sampled?
+      end
+
+      private
+
+      ALLOWABLE_TRANSPORT_TYPES = Set.new(%w[
+        Unknown
+        HTTP
+        HTTPS
+        Kafka
+        JMS
+        IronMQ
+        AMQP
+        Queue
+        Other
+      ]).freeze
+
+      def valid_transport_type_for(value)
+        return value if ALLOWABLE_TRANSPORT_TYPES.include?(value)
+        PARENT_TRANSPORT_TYPE_UNKNOWN
       end
     end
   end

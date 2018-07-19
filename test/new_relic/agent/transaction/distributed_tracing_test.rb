@@ -165,14 +165,14 @@ module NewRelic
             txn.accept_distributed_trace_payload payload.to_json
           end
 
-          assert_metrics_recorded ['DurationByCaller/App/190/46954/unknown/all',
-                                   'DurationByCaller/App/190/46954/unknown/allOther']
+          assert_metrics_recorded ['DurationByCaller/App/190/46954/Unknown/all',
+                                   'DurationByCaller/App/190/46954/Unknown/allOther']
 
-          assert_metrics_recorded ['TransportDuration/App/190/46954/unknown/all',
-                                   'TransportDuration/App/190/46954/unknown/allOther']
+          assert_metrics_recorded ['TransportDuration/App/190/46954/Unknown/all',
+                                   'TransportDuration/App/190/46954/Unknown/allOther']
 
-          refute_metrics_recorded ['ErrorsByCaller/App/190/46954/unknown/all',
-                                   'ErrorsByCaller/App/190/46954/unknown/allOther']
+          refute_metrics_recorded ['ErrorsByCaller/App/190/46954/Unknown/all',
+                                   'ErrorsByCaller/App/190/46954/Unknown/allOther']
 
         end
 
@@ -184,8 +184,8 @@ module NewRelic
             NewRelic::Agent.notice_error StandardError.new "Nooo!"
           end
 
-          assert_metrics_recorded ['ErrorsByCaller/App/190/46954/unknown/all',
-                                   'ErrorsByCaller/App/190/46954/unknown/allOther']
+          assert_metrics_recorded ['ErrorsByCaller/App/190/46954/Unknown/all',
+                                   'ErrorsByCaller/App/190/46954/Unknown/allOther']
 
         end
 

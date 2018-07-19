@@ -28,13 +28,13 @@ module NewRelic
             txn = run_transaction(test_case)
           end
 
-          #verify_metrics(test_case)
+          verify_metrics(test_case)
         end
       end
 
       def run_transaction(test_case)
         inbound_payloads = payloads_for(test_case)
-        outbound_payload = nil
+        outbound_payloads = []
 
         in_transaction(in_transaction_options(test_case)) do |txn|
           inbound_payloads.each do |payload|
@@ -43,8 +43,16 @@ module NewRelic
               txn.distributed_trace_payload.caller_transport_type = test_case[:transport_type]
             end
 
+            if test_case[:raises_exception]
+              e = StandardError.new 'ouchies'
+              ::NewRelic::Agent.notice_error(e)
+            end
+
             if test_case[:outbound_payloads]
-              outbound_payload = txn.create_distributed_trace_payload
+              payloads = Array(test_case[:outbound_payloads])
+              payloads.count.times do
+                outbound_payloads << txn.create_distributed_trace_payload
+              end
             end
           end
         end
@@ -66,8 +74,8 @@ module NewRelic
       end
 
       def payloads_for(test_case)
-        if test_case[:inbound_payloads]
-          test_case[:inbound_payloads].map(&:to_json)
+        if test_case.has_key?(:inbound_payloads)
+          (test_case[:inbound_payloads] || [nil]).map(&:to_json)
         else
           []
         end
