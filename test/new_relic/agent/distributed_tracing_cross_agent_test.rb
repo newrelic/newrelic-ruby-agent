@@ -8,6 +8,10 @@ require 'json'
 module NewRelic
   module Agent
     class DistributedTracingCrossAgentTest < Minitest::Test
+      def setup
+        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
+      end
+
       def teardown
         NewRelic::Agent.drop_buffered_data
       end
@@ -56,6 +60,8 @@ module NewRelic
             end
           end
         end
+
+        verify_transaction_intrinsics(test_case)
       end
 
       def in_transaction_options(test_case)
@@ -78,6 +84,59 @@ module NewRelic
           (test_case[:inbound_payloads] || [nil]).map(&:to_json)
         else
           []
+        end
+      end
+
+      def merge_intrinsics(all_intrinsics)
+        merged = {}
+
+        all_intrinsics.each do |intrinsics|
+          exact = intrinsics[:exact] || {}
+          merged[:exact] ||= {}
+          merged[:exact].merge!(exact)
+
+          expected = intrinsics[:expected] || []
+          merged[:expected] ||= []
+          (merged[:expected] += expected).uniq!
+
+          unexpected = intrinsics[:unexpected] || []
+          merged[:unexpected] ||= []
+          (merged[:unexpected] += unexpected).uniq!
+        end
+
+        merged
+      end
+
+      def transaction_intrinsics_for(test_case)
+        return {} unless (intrinsics = test_case[:intrinsics])
+
+        target_events = intrinsics[:target_events] || []
+        return {} unless target_events.include? 'Transaction'
+
+        common_intrinsics = intrinsics[:common] || {}
+        transaction_intrinsics = intrinsics[:Transaction] || {}
+
+        merge_intrinsics [common_intrinsics, transaction_intrinsics]
+      end
+
+      def verify_transaction_intrinsics(test_case)
+        test_case_intrinsics    = transaction_intrinsics_for(test_case)
+        actual_intrinsics, _, _ = last_transaction_event
+
+        test_case_intrinsics[:exact].each do |k, v|
+          assert_equal v,
+                       actual_intrinsics[k.to_s],
+                       %Q|Wrong "#{k}" intrinsic; expected #{v.inspect}, was #{actual_intrinsics[k.to_s].inspect}|
+        end
+
+        test_case_intrinsics[:expected].each do |attr|
+          assert actual_intrinsics.has_key?(attr),
+                 %Q|Missing expected intrinsic "#{attr}"|
+        end
+
+        test_case_intrinsics[:unexpected].each do |attr|
+          refute actual_intrinsics.has_key?(attr),
+                 %Q|Unexpected intrinsic "#{attr}"|
         end
       end
 
