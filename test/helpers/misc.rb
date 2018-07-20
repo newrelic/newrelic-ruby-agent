@@ -99,3 +99,17 @@ def symbolize_keys_in_object(object)
     object
   end
 end
+
+def stringify_keys_in_object(object)
+  case object
+  when Hash
+   object.inject({}) do |memo, (k, v)|
+      memo[k.to_s] = stringify_keys_in_object(v)
+      memo
+    end
+  when Array
+    object.map {|o| stringify_keys_in_object(o)}
+  else
+    object
+  end
+end
