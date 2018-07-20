@@ -63,6 +63,7 @@ module NewRelic
 
         verify_transaction_intrinsics(test_case)
         verify_error_intrinsics(test_case)
+        verify_span_intrinsics(test_case)
       end
 
       def in_transaction_options(test_case)
@@ -148,7 +149,9 @@ module NewRelic
       end
 
       def verify_transaction_intrinsics(test_case)
-        test_case_intrinsics  = intrinsics_for_event(test_case, 'Transaction')
+        test_case_intrinsics = intrinsics_for_event(test_case, 'Transaction')
+        return if test_case_intrinsics.empty?
+
         actual_intrinsics, *_ = last_transaction_event
         verify_intrinsics(test_case_intrinsics, actual_intrinsics, 'Transaction')
       end
@@ -157,8 +160,22 @@ module NewRelic
         return unless test_case[:raises_exception]
 
         test_case_intrinsics = intrinsics_for_event(test_case, 'TransactionError')
+        return if test_case_intrinsics.empty?
+
         actual_intrinsics, *_ = last_error_event
         verify_intrinsics(test_case_intrinsics, actual_intrinsics, 'TransactionError')
+      end
+
+      def verify_span_intrinsics(test_case)
+        return unless test_case[:span_events_enabled]
+
+        test_case_intrinsics = intrinsics_for_event(test_case, 'Span')
+        return if test_case_intrinsics.empty?
+
+        last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+        actual_intrinsics = last_span_events[0][0]
+
+        verify_intrinsics(test_case_intrinsics, actual_intrinsics, 'Span')
       end
 
       def verify_metrics(test_case)
