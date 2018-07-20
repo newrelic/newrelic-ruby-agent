@@ -81,7 +81,7 @@ module NewRelic
         end
 
         def from_json serialized_payload
-          raw_payload = JSON.parse serialized_payload, quirks_mode: true
+          raw_payload = JSON.parse serialized_payload
           return raw_payload if raw_payload.nil?
           payload_data = raw_payload[DATA_KEY]
 
