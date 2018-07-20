@@ -62,6 +62,7 @@ module NewRelic
         end
 
         verify_transaction_intrinsics(test_case)
+        verify_error_intrinsics(test_case)
       end
 
       def in_transaction_options(test_case)
@@ -107,37 +108,57 @@ module NewRelic
         merged
       end
 
-      def transaction_intrinsics_for(test_case)
-        return {} unless (intrinsics = test_case[:intrinsics])
+      ALLOWED_EVENT_TYPES = Set.new %w(
+        Transaction
+        TransactionError
+        Span
+      )
 
+      def intrinsics_for_event(test_case, event_type)
+        unless ALLOWED_EVENT_TYPES.include? event_type
+          raise %Q|Test fixture refers to unexpected event type "#{event_type}"|
+        end
+
+        return {} unless (intrinsics = test_case[:intrinsics])
         target_events = intrinsics[:target_events] || []
-        return {} unless target_events.include? 'Transaction'
+        return {} unless target_events.include? event_type
 
         common_intrinsics = intrinsics[:common] || {}
-        transaction_intrinsics = intrinsics[:Transaction] || {}
+        transaction_intrinsics = intrinsics[event_type.to_sym] || {}
 
         merge_intrinsics [common_intrinsics, transaction_intrinsics]
       end
 
-      def verify_transaction_intrinsics(test_case)
-        test_case_intrinsics    = transaction_intrinsics_for(test_case)
-        actual_intrinsics, _, _ = last_transaction_event
-
+      def verify_intrinsics(test_case_intrinsics, actual_intrinsics, event_type)
         test_case_intrinsics[:exact].each do |k, v|
           assert_equal v,
                        actual_intrinsics[k.to_s],
-                       %Q|Wrong "#{k}" intrinsic; expected #{v.inspect}, was #{actual_intrinsics[k.to_s].inspect}|
+                       %Q|Wrong "#{k}" #{event_type} intrinsic; expected #{v.inspect}, was #{actual_intrinsics[k.to_s].inspect}|
         end
 
         test_case_intrinsics[:expected].each do |attr|
           assert actual_intrinsics.has_key?(attr),
-                 %Q|Missing expected intrinsic "#{attr}"|
+                 %Q|Missing expected #{event_type} intrinsic "#{attr}"|
         end
 
         test_case_intrinsics[:unexpected].each do |attr|
           refute actual_intrinsics.has_key?(attr),
-                 %Q|Unexpected intrinsic "#{attr}"|
+                 %Q|Unexpected #{event_type} intrinsic "#{attr}"|
         end
+      end
+
+      def verify_transaction_intrinsics(test_case)
+        test_case_intrinsics  = intrinsics_for_event(test_case, 'Transaction')
+        actual_intrinsics, *_ = last_transaction_event
+        verify_intrinsics(test_case_intrinsics, actual_intrinsics, 'Transaction')
+      end
+
+      def verify_error_intrinsics(test_case)
+        return unless test_case[:raises_exception]
+
+        test_case_intrinsics = intrinsics_for_event(test_case, 'TransactionError')
+        actual_intrinsics, *_ = last_error_event
+        verify_intrinsics(test_case_intrinsics, actual_intrinsics, 'TransactionError')
       end
 
       def verify_metrics(test_case)
