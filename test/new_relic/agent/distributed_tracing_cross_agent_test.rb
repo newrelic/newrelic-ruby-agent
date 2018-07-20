@@ -36,30 +36,15 @@ module NewRelic
         end
       end
 
+      private
+
       def run_transaction(test_case)
-        inbound_payloads = payloads_for(test_case)
         outbound_payloads = []
 
         in_transaction(in_transaction_options(test_case)) do |txn|
-          inbound_payloads.each do |payload|
-            txn.accept_distributed_trace_payload payload
-            if txn.distributed_trace?
-              txn.distributed_trace_payload.caller_transport_type = test_case[:transport_type]
-            end
-
-            if test_case[:raises_exception]
-              e = StandardError.new 'ouchies'
-              ::NewRelic::Agent.notice_error(e)
-            end
-
-            if test_case[:outbound_payloads]
-              payloads = Array(test_case[:outbound_payloads])
-              payloads.count.times do
-                payload = txn.create_distributed_trace_payload
-                outbound_payloads << payload if payload
-              end
-            end
-          end
+          accept_payloads(test_case, txn)
+          raise_exception(test_case)
+          outbound_payloads = create_payloads(test_case, txn)
         end
 
         verify_transaction_intrinsics(test_case)
