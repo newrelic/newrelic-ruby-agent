@@ -29,16 +29,14 @@ module NewRelic
           }
 
           with_config(config) do
-            txn = run_transaction(test_case)
+            run_test_case(test_case)
           end
-
-          verify_metrics(test_case)
         end
       end
 
       private
 
-      def run_transaction(test_case)
+      def run_test_case(test_case)
         outbound_payloads = []
 
         in_transaction(in_transaction_options(test_case)) do |txn|
@@ -47,6 +45,7 @@ module NewRelic
           outbound_payloads = create_payloads(test_case, txn)
         end
 
+        verify_metrics(test_case)
         verify_transaction_intrinsics(test_case)
         verify_error_intrinsics(test_case)
         verify_span_intrinsics(test_case)
