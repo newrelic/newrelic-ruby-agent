@@ -21,11 +21,11 @@ module NewRelic
         test_case['test_name'] = test_case['test_name'].tr(" ", "_")
         define_method("test_#{test_case['test_name']}") do
           config = {
-            account_id:                    test_case['account_id'],
-            primary_application_id:        "2827902",
-            trusted_account_key:           test_case['trusted_account_key'],
-            'span_events.enabled':         test_case['span_events_enabled'],
-            'distributed_tracing.enabled': true
+            :account_id                    => test_case['account_id'],
+            :primary_application_id        => "2827902",
+            :trusted_account_key           => test_case['trusted_account_key'],
+            :'span_events.enabled'         => test_case['span_events_enabled'],
+            :'distributed_tracing.enabled' => true
           }
 
           with_config(config) do
