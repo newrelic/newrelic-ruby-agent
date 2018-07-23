@@ -774,7 +774,8 @@
                     "d.tk": "44",
                     "d.ty": "App"
                 },
-                "expected": ["d.ap", "d.tx", "d.id", "d.ti"]
+                "expected": ["d.ap", "d.tx", "d.ti"],
+                "unexpected": ["d.id"]
             }
         ],
         "intrinsics": {

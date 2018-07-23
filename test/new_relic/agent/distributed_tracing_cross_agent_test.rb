@@ -9,7 +9,6 @@ module NewRelic
   module Agent
     class DistributedTracingCrossAgentTest < Minitest::Test
       def setup
-        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
         NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
       end
 
@@ -20,6 +19,8 @@ module NewRelic
       load_cross_agent_test("distributed_tracing/distributed_tracing").each do |test_case|
         test_case['test_name'] = test_case['test_name'].tr(" ", "_")
         define_method("test_#{test_case['test_name']}") do
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case["force_sampled_true"])
+
           config = {
             :account_id                    => test_case['account_id'],
             :primary_application_id        => "2827902",

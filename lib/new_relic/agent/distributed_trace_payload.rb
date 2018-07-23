@@ -68,9 +68,7 @@ module NewRelic
 
           assign_trusted_account_key(payload, payload.parent_account_id)
 
-          payload.id = Agent.config[:'span_events.enabled'] &&
-            transaction.current_segment &&
-            transaction.current_segment.guid
+          payload.id = current_segment_id(transaction)
           payload.transaction_id = transaction.guid
           payload.timestamp = (Time.now.to_f * 1000).round
           payload.trace_id = transaction.trace_id
@@ -129,6 +127,13 @@ module NewRelic
 
           if account_id != trusted_account_key
             payload.trusted_account_key = trusted_account_key
+          end
+        end
+
+        def current_segment_id(transaction)
+          if Agent.config[:'span_events.enabled'] && transaction.sampled? &&
+              transaction.current_segment
+            transaction.current_segment.guid
           end
         end
       end
