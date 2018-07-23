@@ -278,6 +278,20 @@
                 }
             }
         ],
+        "outbound_payloads": [
+            {
+                "exact": {
+                    "v": [0, 1],
+                    "d.ac": "33",
+                    "d.pr": 1.234567,
+                    "d.sa": true,
+                    "d.tr": "d6b4ba0c3a712ca",
+                    "d.ty": "App"
+                },
+                "expected": ["d.ap", "d.tx", "d.ti"],
+                "unexpected": ["d.tk", "d.id"]
+            }
+        ],
         "intrinsics": {
             "target_events": ["Transaction"],
             "common":{
