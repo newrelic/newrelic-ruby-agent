@@ -141,9 +141,9 @@ module NewRelic
         return {} unless target_events.include? event_type
 
         common_intrinsics = intrinsics['common'] || {}
-        transaction_intrinsics = intrinsics[event_type.to_sym] || {}
+        event_intrinsics  = intrinsics[event_type.to_sym] || {}
 
-        merge_intrinsics [common_intrinsics, transaction_intrinsics]
+        merge_intrinsics [common_intrinsics, event_intrinsics]
       end
 
       def verify_attributes(test_case_attributes, actual_attributes, event_type)
