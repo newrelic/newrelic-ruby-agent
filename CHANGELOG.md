@@ -1,5 +1,25 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v5.3.0 ##
+
+  * Distributed Tracing
+
+    Distributed tracing lets you see the path that a request takes as
+    it travels through your distributed system. By showing the
+    distributed activity through a unified view, you can troubleshoot
+    and understand a complex system better than ever before.
+
+    Distributed tracing is available with an APM Pro or equivalent
+    subscription. To see a complete distributed trace, you need to
+    enable the feature on a set of neighboring services. Enabling
+    distributed tracing changes the behavior of some New Relic
+    features, so carefully consult the
+    [transition guide](https://docs.newrelic.com/docs/transition-guide-distributed-tracing)
+    before you enable this feature.
+
+    To enable distributed tracing, set the
+    `distributed_tracing.enabled` configuration option to `true`.
+
   ## v5.2.0 ##
 
   * Use priority sampling for errors and custom events
@@ -16,8 +36,8 @@
 
   * Span Events
 
-  Finished segments whose `sampled` property is `true` will now post
-  Span events to Insights.
+    Finished segments whose `sampled` property is `true` will now post
+    Span events to Insights.
 
   ## v5.1.0 ##
 
