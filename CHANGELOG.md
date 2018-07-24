@@ -9,6 +9,14 @@
     configuration changes not being properly applied. The agent now uses lazy
     load hooks which fixes this issue.
 
+  * Redact URIs from external request segments
+
+    Since version 4.8, customers have been able to prevent the agent
+    from attaching external request URIs to errors and transaction
+    traces.  With this release, they can also omit the URI from
+    external request segments, via the new
+    `external_tracer.exclude_request_uri` option.
+
 ## v5.4.0
 
   * Capacity analysis for multi-threaded dispatchers
