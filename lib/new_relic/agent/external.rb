@@ -7,6 +7,13 @@ require 'new_relic/agent/cross_app_tracing'
 
 module NewRelic
   module Agent
+    #
+    # This module contains helper methods to facilitate
+    # instrumentation of external requests not directly supported by
+    # the Ruby agent. It is intended to be primarily used by authors
+    # of 3rd-party instrumentation.
+    #
+    # @api public
     module External
       extend self
 
