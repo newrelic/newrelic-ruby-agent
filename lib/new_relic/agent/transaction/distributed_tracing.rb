@@ -35,6 +35,7 @@ module NewRelic
         def accept_distributed_trace_payload payload
           return unless Agent.config[:'distributed_tracing.enabled']
           return false if check_payload_ignored(payload)
+          return false unless check_payload_present(payload)
           return false unless payload = decode_payload(payload)
           return false unless check_required_fields_present(payload)
           return false unless check_valid_version(payload)
@@ -115,25 +116,22 @@ module NewRelic
           false
         end
 
+        NULL_PAYLOAD = 'null'.freeze
+
         def check_payload_present(payload)
-          unless payload
+          # We might be passed a Ruby `nil` object _or_ the JSON "null"
+          if payload.nil? || payload == NULL_PAYLOAD
             NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_NULL
+            return nil
           end
 
           payload
         end
 
         SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_PARSE_EXCEPTION = "Supportability/DistributedTrace/AcceptPayload/ParseException".freeze
-        NULL_PAYLOAD = 'null'.freeze
         LBRACE = "{".freeze
 
         def decode_payload(payload)
-          # See if we were passed a Ruby `nil` object
-          return nil unless check_payload_present(payload)
-
-          # See if we were passed the JSON string "null"
-          return check_payload_present(nil) if payload == NULL_PAYLOAD
-
           decoded = if payload.start_with? LBRACE
             DistributedTracePayload.from_json payload
           else
