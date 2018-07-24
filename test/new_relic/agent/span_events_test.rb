@@ -25,7 +25,7 @@ module NewRelic
       end
 
       def test_span_ids_passed_in_payload_when_span_events_enabled
-        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(false)
+        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
         payload = nil
         external_segment = nil
         transaction = in_transaction('test_txn') do |txn|

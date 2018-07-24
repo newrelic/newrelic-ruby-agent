@@ -101,7 +101,6 @@ module NewRelic
           TYPE_KEY           => EVENT_TYPE,
           TRACE_ID_KEY       => segment.transaction.trace_id,
           GUID_KEY           => segment.guid,
-          PARENT_ID_KEY      => parent_guid(segment),
           TRANSACTION_ID_KEY => segment.transaction.guid,
           SAMPLED_KEY        => segment.transaction.sampled?,
           PRIORITY_KEY       => segment.transaction.priority,
@@ -109,7 +108,12 @@ module NewRelic
           DURATION_KEY       => segment.duration,
           NAME_KEY           => segment.name
         }
+
+        parent_id = parent_guid(segment)
+        intrinsics[PARENT_ID_KEY] = parent_id if parent_id
+
         intrinsics[ENTRY_POINT_KEY] = true unless segment.parent
+
         intrinsics
       end
 

@@ -35,7 +35,9 @@ module NewRelic
         def accept_distributed_trace_payload payload
           return unless Agent.config[:'distributed_tracing.enabled']
           return false if check_payload_ignored(payload)
+          return false unless check_payload_present(payload)
           return false unless payload = decode_payload(payload)
+          return false unless check_required_fields_present(payload)
           return false unless check_valid_version(payload)
           return false unless check_trusted_account(payload)
 
@@ -104,10 +106,7 @@ module NewRelic
         SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_BROWSER = "Supportability/DistributedTrace/AcceptPayload/Ignored/BrowserAgentInjected".freeze
 
         def check_payload_ignored(payload)
-          if payload.nil?
-            NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_NULL
-            return true
-          elsif distributed_trace_payload
+          if distributed_trace_payload
             NewRelic::Agent.increment_metric SUPPORTABILITY_MULTIPLE_ACCEPT_PAYLOAD
             return true
           elsif distributed_trace_payload_created?
@@ -117,19 +116,53 @@ module NewRelic
           false
         end
 
+        NULL_PAYLOAD = 'null'.freeze
+
+        def check_payload_present(payload)
+          # We might be passed a Ruby `nil` object _or_ the JSON "null"
+          if payload.nil? || payload == NULL_PAYLOAD
+            NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_NULL
+            return nil
+          end
+
+          payload
+        end
+
         SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_PARSE_EXCEPTION = "Supportability/DistributedTrace/AcceptPayload/ParseException".freeze
         LBRACE = "{".freeze
 
         def decode_payload(payload)
-          if payload.start_with? LBRACE
+          decoded = if payload.start_with? LBRACE
             DistributedTracePayload.from_json payload
           else
             DistributedTracePayload.from_http_safe payload
           end
+
+          return nil unless check_payload_present(decoded)
+
+          decoded
         rescue => e
           NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_PARSE_EXCEPTION
           NewRelic::Agent.logger.warn "Error parsing distributed trace payload", e
           nil
+        end
+
+        def check_required_fields_present(payload)
+          if \
+            !payload.version.nil? &&
+            !payload.parent_account_id.nil? &&
+            !payload.parent_app_id.nil? &&
+            !payload.parent_type.nil? &&
+            (!payload.transaction_id.nil? || !payload.id.nil?) &&
+            !payload.trace_id.nil? &&
+            !payload.timestamp.nil? &&
+            !payload.parent_account_id.nil?
+
+            true
+          else
+            NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_PARSE_EXCEPTION
+            false
+          end
         end
 
         SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_MAJOR_VERSION = "Supportability/DistributedTrace/AcceptPayload/Ignored/MajorVersion".freeze

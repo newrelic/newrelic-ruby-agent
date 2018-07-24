@@ -153,8 +153,12 @@ module NewRelic
       end
 
       def test_serialized_payload_has_expected_keys
-        transaction = in_transaction("test_txn") {}
-        payload = DistributedTracePayload.for_transaction transaction
+        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
+        payload = nil
+
+        in_transaction("test_txn") do |txn|
+          payload = DistributedTracePayload.for_transaction txn
+        end
 
         raw_payload = JSON.parse(payload.to_json)
 
