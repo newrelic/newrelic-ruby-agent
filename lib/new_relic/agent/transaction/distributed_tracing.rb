@@ -84,8 +84,8 @@ module NewRelic
         def assign_distributed_trace_intrinsics
           return unless Agent.config[:'distributed_tracing.enabled']
           DistributedTracePayload::INTRINSIC_KEYS.each do |key|
-            next unless value = @payload[key]
-            attributes.add_intrinsic_attribute key, value
+            next unless @payload.key? key
+            attributes.add_intrinsic_attribute key, @payload[key]
           end
           nil
         end
