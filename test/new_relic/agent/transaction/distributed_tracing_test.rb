@@ -286,6 +286,37 @@ module NewRelic
           assert_equal inbound_payload.transaction_id,        parent_transaction.guid
         end
 
+        def test_assign_distributed_trace_intrinsics_properly_assigned_on_receiving_dt
+          payload = create_distributed_trace_payload(sampled: false)
+          payload.id = "abc123"
+
+          txn = in_transaction "test_txn" do |t|
+            t.accept_distributed_trace_payload payload.to_json
+          end
+
+          intrinsics = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+
+          NewRelic::Agent::DistributedTracePayload::INTRINSIC_KEYS.each do |key|
+            assert intrinsics.key?(key), "Expected to find #{key} as an intrinsic, but did not"
+          end
+        end
+
+        def test_assign_distributed_trace_intrinsics_properly_assigned_on_initial_trace
+          payload = create_distributed_trace_payload(sampled: false)
+
+          txn = in_transaction "test_txn" do |t|
+            t.accept_distributed_trace_payload payload.to_json
+          end
+
+          intrinsics = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+
+          expected_keys = ['guid', 'traceId', 'sampled']
+
+          expected_keys.each do |key|
+            assert intrinsics.key?(key), "Expected to find #{key} as an intrinsic, but did not"
+          end
+        end
+
         def test_sampled_is_false_in_transaction_event_when_indicated_by_upstream
           payload = create_distributed_trace_payload(sampled: false)
 
