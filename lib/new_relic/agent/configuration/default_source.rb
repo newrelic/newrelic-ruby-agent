@@ -1694,7 +1694,7 @@ module NewRelic
         },
         :'distributed_tracing.enabled' => {
           :default     => false,
-          :public      => false,
+          :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
           :description => 'Distributed tracing lets you see the path that a request takes through your distributed system. Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the <a href="https://docs.newrelic.com/docs/transition-guide-distributed-tracing">transition guide</a> before you enable this feature.'
