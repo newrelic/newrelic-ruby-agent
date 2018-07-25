@@ -95,7 +95,8 @@ module NewRelic
         # for metrics and intrinsics.
         def transport_duration
           return unless distributed_trace_payload
-          (start_time.to_f * 1000 - distributed_trace_payload.timestamp) / 1000
+          duration = (start_time.to_f * 1000 - distributed_trace_payload.timestamp) / 1000
+          duration < 0 ? 0 : duration
         end
 
         private
