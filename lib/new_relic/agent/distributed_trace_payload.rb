@@ -7,6 +7,12 @@ require 'set'
 
 module NewRelic
   module Agent
+    #
+    # This class contains properties related to distributed traces.
+    # To obtain an instance, call
+    # {DistributedTracing#create_distributed_trace_payload}
+    #
+    # @api public
     class DistributedTracePayload
       VERSION =[0, 1].freeze
       PARENT_TYPE = "App".freeze
@@ -184,10 +190,24 @@ module NewRelic
         JSON.dump(result)
       end
 
-      alias_method :text, :to_json
-
+      # Encode this payload as a string suitable for passing via an
+      # HTTP header.
+      #
+      # @return [String] Payload translated to JSON and encoded for
+      #                  inclusion in headers
+      #
+      # @api public
       def http_safe
         Base64.strict_encode64 to_json
+      end
+
+      # Represent this payload as a raw JSON string.
+      #
+      # @return [String] Payload translated to JSON
+      #
+      # @api public
+      def text
+        to_json
       end
 
       def assign_intrinsics transaction, transaction_payload
