@@ -11,7 +11,7 @@ module NewRelic
     end
 
     MAJOR = 5
-    MINOR = 2
+    MINOR = 3
     TINY  = 0
 
     begin
