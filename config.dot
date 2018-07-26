@@ -42,7 +42,7 @@ digraph AgentEnabled {
   "[dispatcher]"
   "[force_send]"
   "[textmate]"
-  "[post_size_limit]"
+  "[max_payload_size_in_bytes]"
   "[sync_startup]"
   "[send_data_on_exit]"
   "[high_security]"
@@ -223,7 +223,7 @@ digraph AgentEnabled {
   "NewRelicService#initialize" -> "[timeout]"
   "NewRelicService#initialize" -> "[license_key]"
   "NewRelicService#initialize" -> "Control#server"
-  "NewRelicService#check_post_size" -> "[post_size_limit]"
+  "NewRelicService#check_post_size" -> "[max_payload_size_in_bytes]"
   "NewRelicService#connect" -> "Control#server_from_host"
   "NewRelicService#send_request" -> "Control#http_connection"
 

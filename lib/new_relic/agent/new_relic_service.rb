@@ -472,7 +472,7 @@ module NewRelic
       # Raises an UnrecoverableServerException if the post_string is longer
       # than the limit configured in the control object
       def check_post_size(post_string)
-        return if post_string.size < Agent.config[:post_size_limit]
+        return if post_string.size < Agent.config[:max_payload_size_in_bytes]
         ::NewRelic::Agent.logger.debug "Tried to send too much data: #{post_string.size} bytes"
         raise UnrecoverableServerException.new('413 Request Entity Too Large')
       end
