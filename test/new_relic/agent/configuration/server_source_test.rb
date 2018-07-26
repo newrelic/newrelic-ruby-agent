@@ -23,7 +23,8 @@ module NewRelic::Agent::Configuration
         'account_id'                 => '190',
         'primary_application_id'     => '1441',
         'sampling_target'            => 20,
-        'sampling_target_period_in_seconds' => 120
+        'sampling_target_period_in_seconds' => 120,
+        'max_payload_size_in_bytes' => 500
       }
       @source = ServerSource.new(config)
     end
@@ -54,6 +55,10 @@ module NewRelic::Agent::Configuration
 
     def test_should_set_sampling_target_in_seconds
       assert_equal 120, @source[:sampling_target_period_in_seconds]
+    end
+
+    def test_should_set_max_payload_size_in_bytes
+      assert_equal 500, @source[:max_payload_size_in_bytes]
     end
 
     def test_should_not_dot_the_agent_config_sub_hash
