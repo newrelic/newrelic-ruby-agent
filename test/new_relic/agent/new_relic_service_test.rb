@@ -785,6 +785,19 @@ class NewRelicServiceTest < Minitest::Test
     )
   end
 
+  def test_max_payload_size_enforced
+    NewRelic::Agent.drop_buffered_data
+    payload = '.' * (NewRelic::Agent.config[:max_payload_size_in_bytes] + 1)
+
+    assert_raises NewRelic::Agent::UnrecoverableServerException do
+      @service.send(:check_post_size, payload, :foobar)
+    end
+
+    assert_metrics_recorded(
+      "Supportability/Agent/Collector/foobar/MaxPayloadSizeLimit" => { :call_count => 1 }
+    )
+  end
+
   def test_supportability_metrics_without_item_count
     NewRelic::Agent.drop_buffered_data
 

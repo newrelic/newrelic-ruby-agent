@@ -193,7 +193,7 @@ module NewRelic
       # We do not compress if content is smaller than 64kb.  There are
       # problems with bugs in Ruby in some versions that expose us
       # to a risk of segfaults if we compress aggressively.
-      def compress_request_if_needed(data)
+      def compress_request_if_needed(data, endpoint)
         encoding = 'identity'
         if data.size > 64 * 1024
           encoding = Agent.config[:compressed_content_encoding]
@@ -203,7 +203,7 @@ module NewRelic
             Encoders::Compressed::Deflate.encode(data)
           end
         end
-        check_post_size(data)
+        check_post_size(data, endpoint)
         [data, encoding]
       end
 
@@ -412,7 +412,7 @@ module NewRelic
         end
         serialize_finish_ts = Time.now
 
-        data, encoding = compress_request_if_needed(data)
+        data, encoding = compress_request_if_needed(data, method)
         size = data.size
 
         uri = remote_method_uri(method)
@@ -471,9 +471,10 @@ module NewRelic
 
       # Raises an UnrecoverableServerException if the post_string is longer
       # than the limit configured in the control object
-      def check_post_size(post_string)
+      def check_post_size(post_string, endpoint)
         return if post_string.size < Agent.config[:max_payload_size_in_bytes]
         ::NewRelic::Agent.logger.debug "Tried to send too much data: #{post_string.size} bytes"
+        NewRelic::Agent.increment_metric("Supportability/Agent/Collector/#{endpoint}/MaxPayloadSizeLimit")
         raise UnrecoverableServerException.new('413 Request Entity Too Large')
       end
 
