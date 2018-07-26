@@ -67,6 +67,23 @@ module NewRelic
           @sql_statement = Database::Statement.new sql, config, explainer, binds, name, host, port_path_or_id, database_name
         end
 
+        # Method for simplifying attaching non-SQL data statements to a
+        # transaction. For instance, Mongo or CQL queries, Memcached or Redis
+        # keys would all be appropriate data to attach as statements.
+        #
+        # Data passed to this method is NOT obfuscated by New Relic, so please
+        # ensure that user information is obfuscated if the agent setting
+        # `transaction_tracer.record_sql` is set to `obfuscated`
+        #
+        # @param [String] nosql_statement text of the statement to capture.
+        #
+        # @note THERE ARE SECURITY CONCERNS WHEN CAPTURING STATEMENTS!
+        #   This method will properly ignore statements when the user has turned
+        #   off capturing queries, but it is not able to obfuscate arbitrary data!
+        #   To prevent exposing user information embedded in captured queries,
+        #   please ensure all data passed to this method is safe to transmit to
+        #   New Relic.
+
         def notice_nosql_statement nosql_statement
           return unless record_sql?
           @nosql_statement = Database.truncate_query(nosql_statement)
@@ -119,6 +136,15 @@ module NewRelic
 
         def record_sql?
           transaction_state.is_sql_recorded?
+        end
+
+        def record_span_event
+          aggregator = ::NewRelic::Agent.agent.span_event_aggregator
+          priority   = transaction.priority
+
+          aggregator.record(priority: priority) do
+            SpanEventPrimitive.for_datastore_segment(self)
+          end
         end
       end
     end

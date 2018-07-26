@@ -12,15 +12,20 @@ module NewRelic
     class DistributedTracePayloadTest < Minitest::Test
 
       def setup
-      nr_freeze_time
-        NewRelic::Agent.config.add_config_for_testing(
+        nr_freeze_time
+
+        @config = {
           :'distributed_tracing.enabled' => true,
-          :application_id => "46954",
-          :cross_process_id => "190#222"
-        )
+          :account_id => "190",
+          :primary_application_id => "46954",
+          :trusted_account_key => "trust_this!"
+        }
+
+        NewRelic::Agent.config.add_config_for_testing(@config)
       end
 
       def teardown
+        NewRelic::Agent.config.remove_config(@config)
         NewRelic::Agent.config.reset_to_defaults
         NewRelic::Agent.drop_buffered_data
       end
@@ -35,23 +40,39 @@ module NewRelic
 
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
+        assert_equal "trust_this!", payload.trusted_account_key
         assert_equal DistributedTracePayload::VERSION, payload.version
         assert_equal "App", payload.parent_type
         assert_equal created_at, payload.timestamp
       end
 
-      def test_app_id_uses_fallback_if_not_explicity_set
-        with_config cross_process_id: "190#46954", application_id: "" do
-          payload = nil
+      def test_trusted_account_id_present_if_different_than_account_id
+        payload = nil
+        in_transaction "test_txn" do |txn|
+          payload = DistributedTracePayload.for_transaction txn
+        end
 
+        assert_equal "trust_this!", payload.trusted_account_key
+
+        deserialized_payload = JSON.parse(payload.to_json)
+
+        assert_equal "trust_this!", deserialized_payload["d"]["tk"]
+      end
+
+      def test_trusted_account_id_not_present_if_it_matches_account_id
+        with_config :trusted_account_key => "190" do
+          payload = nil
           in_transaction "test_txn" do |txn|
             payload = DistributedTracePayload.for_transaction txn
           end
 
-          assert_equal "46954", payload.parent_app_id
+          assert_nil payload.trusted_account_key
+
+          deserialized_payload = JSON.parse(payload.to_json)
+
+          refute deserialized_payload["d"].key? "tk"
         end
       end
-
 
       def test_attributes_are_copied_from_transaction
         payload = nil
@@ -60,9 +81,8 @@ module NewRelic
           payload = DistributedTracePayload.for_transaction txn
         end
 
-        assert_equal transaction.guid, payload.id
+        assert_equal transaction.guid, payload.transaction_id
         assert_equal transaction.trace_id, payload.trace_id
-        assert_equal transaction.parent_id, payload.parent_id
         assert_equal transaction.priority, payload.priority
       end
 
@@ -85,21 +105,24 @@ module NewRelic
 
         NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
-        referring_transaction = in_transaction("test_txn") {}
+        incoming_payload = nil
 
-        incoming_payload = DistributedTracePayload.for_transaction referring_transaction
+        referring_transaction = in_transaction("test_txn") do |txn|
+          incoming_payload = txn.create_distributed_trace_payload
+        end
+
         payload = DistributedTracePayload.from_json incoming_payload.to_json
 
         assert_equal DistributedTracePayload::VERSION, payload.version
         assert_equal "App", payload.parent_type
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
-        assert_equal referring_transaction.guid, payload.id
-        assert_equal referring_transaction.parent_id, payload.parent_id
+        assert_equal "trust_this!", payload.trusted_account_key
+        assert_equal referring_transaction.initial_segment.guid, payload.id
+        assert_equal referring_transaction.guid, payload.transaction_id
         assert_equal referring_transaction.trace_id, payload.trace_id
         assert_equal true, payload.sampled?
         assert_equal referring_transaction.priority, payload.priority
-        assert_equal referring_transaction.guid, payload.id
         assert_equal created_at.round, payload.timestamp
       end
 
@@ -108,17 +131,21 @@ module NewRelic
 
         NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
-        referring_transaction = in_transaction("test_txn") {}
+        incoming_payload = nil
 
-        incoming_payload = DistributedTracePayload.for_transaction referring_transaction
+        referring_transaction = in_transaction("test_txn") do |txn|
+          incoming_payload = txn.create_distributed_trace_payload
+        end
+
         payload = DistributedTracePayload.from_http_safe incoming_payload.http_safe
 
         assert_equal DistributedTracePayload::VERSION, payload.version
         assert_equal "App", payload.parent_type
         assert_equal "46954", payload.parent_app_id
         assert_equal "190", payload.parent_account_id
-        assert_equal referring_transaction.guid, payload.id
-        assert_equal referring_transaction.parent_id, payload.parent_id
+        assert_equal "trust_this!", payload.trusted_account_key
+        assert_equal referring_transaction.initial_segment.guid, payload.id
+        assert_equal referring_transaction.guid, payload.transaction_id
         assert_equal referring_transaction.trace_id, payload.trace_id
         assert_equal true, payload.sampled?
         assert_equal referring_transaction.priority, payload.priority
@@ -126,13 +153,17 @@ module NewRelic
       end
 
       def test_serialized_payload_has_expected_keys
-        transaction = in_transaction("test_txn") {}
-        payload = DistributedTracePayload.for_transaction transaction
+        NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
+        payload = nil
+
+        in_transaction("test_txn") do |txn|
+          payload = DistributedTracePayload.for_transaction txn
+        end
 
         raw_payload = JSON.parse(payload.to_json)
 
         assert_equal_unordered %w(v d), raw_payload.keys
-        assert_equal_unordered %w(ty ac ap pa id tr pr sa ti), raw_payload["d"].keys
+        assert_equal_unordered %w(ty ac ap tk id tx tr pr sa ti), raw_payload["d"].keys
       end
 
       def test_to_json_and_from_json_are_inverse_operations

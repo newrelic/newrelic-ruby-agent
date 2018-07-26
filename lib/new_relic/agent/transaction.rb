@@ -57,9 +57,7 @@ module NewRelic
                     :process_cpu_start,
                     :http_response_code,
                     :response_content_length,
-                    :response_content_type,
-                    :sampled,
-                    :priority
+                    :response_content_type
 
       attr_reader :guid,
                   :metrics,
@@ -72,6 +70,9 @@ module NewRelic
                   :nesting_max_depth,
                   :segments,
                   :end_time
+
+      attr_writer :sampled,
+                  :priority
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -283,15 +284,8 @@ module NewRelic
         @ignore_enduser = options.fetch(:ignore_enduser, false)
         @ignore_trace = false
 
-        if Agent.config[:'distributed_tracing.enabled']
-          @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
-        else
-          @sampled = nil
-        end
-
-        # we will eventually add this behavior into the AdaptiveSampler (ThroughputMontor)
-        @priority = rand
-        @priority +=1 if @sampled
+        @sampled = nil
+        @priority = nil
 
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
@@ -305,7 +299,19 @@ module NewRelic
       end
 
       def sampled?
+        return unless Agent.config[:'distributed_tracing.enabled']
+        if @sampled.nil?
+          @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
+        end
         @sampled
+      end
+
+      def priority
+        if @priority.nil?
+          @priority = rand.round(6)
+          @priority += 1 if sampled?
+        end
+        @priority
       end
 
       def referer
@@ -602,7 +608,7 @@ module NewRelic
       end
 
       def assign_intrinsics(state)
-        attributes.add_intrinsic_attribute :'sampled', sampled?
+        attributes.add_intrinsic_attribute(:priority, priority)
 
         if gc_time = calculate_gc_time
           attributes.add_intrinsic_attribute(:gc_time, gc_time)
@@ -618,7 +624,7 @@ module NewRelic
           attributes.add_intrinsic_attribute(:synthetics_monitor_id, synthetics_monitor_id)
         end
 
-        if distributed_trace_payload || distributed_trace_payload_created?
+        if Agent.config[:'distributed_tracing.enabled']
           assign_distributed_trace_intrinsics
         elsif state.is_cross_app?
           attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)
@@ -655,10 +661,8 @@ module NewRelic
           :metrics              => @metrics,
           :attributes           => @attributes,
           :error                => false,
-          :priority             => @priority
+          :priority             => priority
         }
-
-        @payload[:'sampled'] = sampled? if Agent.config[:'distributed_tracing.enabled']
 
         append_cat_info(state, duration, @payload)
         append_distributed_trace_info(@payload)

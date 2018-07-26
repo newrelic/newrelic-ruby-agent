@@ -37,7 +37,7 @@ module NewRelic
 
       # Helpers for CommonAggregatorTests
 
-      def generate_event(name = 'whatever', options = {})
+      def generate_event(name = 'Controller/whatever', options = {})
         generate_request(name, options)
       end
 
@@ -83,14 +83,14 @@ module NewRelic
       # Helpers
       #
 
-      def generate_request(name='whatever', options={})
+      def generate_request(name='Controller/whatever', options={})
         payload = generate_payload name, options
         @event_aggregator.record event: TransactionEventPrimitive.create(payload)
       end
 
-      def generate_payload(name='whatever', options={})
+      def generate_payload(name='Controller/whatever', options={})
         {
-          :name => "Controller/#{name}",
+          :name => name,
           :type => :controller,
           :start_timestamp => options[:timestamp] || Time.now.to_f,
           :duration => 0.1,

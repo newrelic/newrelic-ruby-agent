@@ -364,22 +364,11 @@ module NewRelic
         transaction_name
       end
 
-      NEWRELIC_TRACE_KEY      = "NewRelicTrace".freeze
       RABBITMQ_TRANSPORT_TYPE = "RabbitMQ".freeze
 
       def consume_message_headers headers, transaction, state
-        if Agent.config[:'distributed_tracing.enabled']
-          payload = headers[NEWRELIC_TRACE_KEY]
-          if transaction.accept_distributed_trace_payload payload
-            transaction.distributed_trace_payload.caller_transport_type = RABBITMQ_TRANSPORT_TYPE
-          end
-        end
-
-        if CrossAppTracing.cross_app_enabled? && CrossAppTracing.message_has_crossapp_request_header?(headers)
-          decode_id headers[CrossAppTracing::NR_MESSAGE_BROKER_ID_HEADER], state
-          decode_txn_info headers[CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER], state
-          CrossAppTracing.assign_intrinsic_transaction_attributes state
-        end
+        consume_distributed_tracing_headers headers, transaction
+        consume_cross_app_tracing_headers headers, state
 
         assign_synthetics_header headers[CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER], transaction
       rescue => e
@@ -404,6 +393,30 @@ module NewRelic
         rescue => e
           NewRelic::Agent.logger.debug("Failure deserializing encoded header in #{self.class}, #{e.class}, #{e.message}")
           nil
+        end
+      end
+
+      CANDIDATE_HEADERS = ['newrelic'.freeze, 'NEWRELIC'.freeze, 'Newrelic'.freeze]
+
+      def consume_distributed_tracing_headers headers, transaction
+        if Agent.config[:'distributed_tracing.enabled']
+          return unless newrelic_trace_key = CANDIDATE_HEADERS.detect do |key|
+            headers.has_key?(key)
+          end
+
+          return unless payload = headers[newrelic_trace_key]
+
+          if transaction.accept_distributed_trace_payload payload
+            transaction.distributed_trace_payload.caller_transport_type = RABBITMQ_TRANSPORT_TYPE
+          end
+        end
+      end
+
+      def consume_cross_app_tracing_headers headers, state
+        if CrossAppTracing.cross_app_enabled? && CrossAppTracing.message_has_crossapp_request_header?(headers)
+          decode_id headers[CrossAppTracing::NR_MESSAGE_BROKER_ID_HEADER], state
+          decode_txn_info headers[CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER], state
+          CrossAppTracing.assign_intrinsic_transaction_attributes state
         end
       end
 

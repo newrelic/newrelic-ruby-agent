@@ -35,7 +35,9 @@ module NewRelic
         def accept_distributed_trace_payload payload
           return unless Agent.config[:'distributed_tracing.enabled']
           return false if check_payload_ignored(payload)
+          return false unless check_payload_present(payload)
           return false unless payload = decode_payload(payload)
+          return false unless check_required_fields_present(payload)
           return false unless check_valid_version(payload)
           return false unless check_trusted_account(payload)
 
@@ -61,14 +63,7 @@ module NewRelic
           # The payload comes from our parent transaction, so its ID
           # is our parent ID.
           #
-          distributed_trace_payload && distributed_trace_payload.id
-        end
-
-        def grandparent_id
-          # The payload comes from our parent transaction, so its
-          # parent ID is our grandparent ID.
-          #
-          distributed_trace_payload && distributed_trace_payload.parent_id
+          distributed_trace_payload && distributed_trace_payload.transaction_id
         end
 
         def distributed_trace_payload_created?
@@ -81,16 +76,16 @@ module NewRelic
           return unless Agent.config[:'distributed_tracing.enabled']
           if distributed_trace_payload
             distributed_trace_payload.assign_intrinsics self, transaction_payload
-          elsif distributed_trace_payload_created?
-            DistributedTracePayload.assign_intrinsics_for_first_trace self, transaction_payload
+          else
+            DistributedTracePayload.assign_initial_intrinsics self, transaction_payload
           end
         end
 
         def assign_distributed_trace_intrinsics
           return unless Agent.config[:'distributed_tracing.enabled']
           DistributedTracePayload::INTRINSIC_KEYS.each do |key|
-            next unless value = @payload[key]
-            attributes.add_intrinsic_attribute key, value
+            next unless @payload.key? key
+            attributes.add_intrinsic_attribute key, @payload[key]
           end
           nil
         end
@@ -100,7 +95,8 @@ module NewRelic
         # for metrics and intrinsics.
         def transport_duration
           return unless distributed_trace_payload
-          (start_time.to_f * 1000 - distributed_trace_payload.timestamp) / 1000
+          duration = (start_time.to_f * 1000 - distributed_trace_payload.timestamp) / 1000
+          duration < 0 ? 0 : duration
         end
 
         private
@@ -111,10 +107,7 @@ module NewRelic
         SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_BROWSER = "Supportability/DistributedTrace/AcceptPayload/Ignored/BrowserAgentInjected".freeze
 
         def check_payload_ignored(payload)
-          if payload.nil?
-            NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_NULL
-            return true
-          elsif distributed_trace_payload
+          if distributed_trace_payload
             NewRelic::Agent.increment_metric SUPPORTABILITY_MULTIPLE_ACCEPT_PAYLOAD
             return true
           elsif distributed_trace_payload_created?
@@ -124,19 +117,53 @@ module NewRelic
           false
         end
 
+        NULL_PAYLOAD = 'null'.freeze
+
+        def check_payload_present(payload)
+          # We might be passed a Ruby `nil` object _or_ the JSON "null"
+          if payload.nil? || payload == NULL_PAYLOAD
+            NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_NULL
+            return nil
+          end
+
+          payload
+        end
+
         SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_PARSE_EXCEPTION = "Supportability/DistributedTrace/AcceptPayload/ParseException".freeze
         LBRACE = "{".freeze
 
         def decode_payload(payload)
-          if payload.start_with? LBRACE
+          decoded = if payload.start_with? LBRACE
             DistributedTracePayload.from_json payload
           else
             DistributedTracePayload.from_http_safe payload
           end
+
+          return nil unless check_payload_present(decoded)
+
+          decoded
         rescue => e
           NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_PARSE_EXCEPTION
           NewRelic::Agent.logger.warn "Error parsing distributed trace payload", e
           nil
+        end
+
+        def check_required_fields_present(payload)
+          if \
+            !payload.version.nil? &&
+            !payload.parent_account_id.nil? &&
+            !payload.parent_app_id.nil? &&
+            !payload.parent_type.nil? &&
+            (!payload.transaction_id.nil? || !payload.id.nil?) &&
+            !payload.trace_id.nil? &&
+            !payload.timestamp.nil? &&
+            !payload.parent_account_id.nil?
+
+            true
+          else
+            NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_PARSE_EXCEPTION
+            false
+          end
         end
 
         SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_MAJOR_VERSION = "Supportability/DistributedTrace/AcceptPayload/Ignored/MajorVersion".freeze
@@ -153,14 +180,11 @@ module NewRelic
         SUPPORTABILITY_PAYLOAD_ACCEPT_UNTRUSTED_ACCOUNT = "Supportability/DistributedTrace/AcceptPayload/Ignored/UntrustedAccount".freeze
 
         def check_trusted_account(payload)
-          trusted_account_ids = NewRelic::Agent.config[:trusted_account_ids]
-          trusted = trusted_account_ids.include?(payload.parent_account_id.to_i)
-
-          unless trusted
+          compare_key = payload.trusted_account_key || payload.parent_account_id
+          unless compare_key == NewRelic::Agent.config[:trusted_account_key]
             NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_UNTRUSTED_ACCOUNT
             return false
           end
-
           true
         end
 

@@ -1,6 +1,26 @@
 # New Relic Ruby Agent Release Notes #
 
-  ## v5.2.0 ##
+## v5.3.0 ##
+
+  * Distributed Tracing
+
+    Distributed tracing lets you see the path that a request takes as
+    it travels through your distributed system. By showing the
+    distributed activity through a unified view, you can troubleshoot
+    and understand a complex system better than ever before.
+
+    Distributed tracing is available with an APM Pro or equivalent
+    subscription. To see a complete distributed trace, you need to
+    enable the feature on a set of neighboring services. Enabling
+    distributed tracing changes the behavior of some New Relic
+    features, so carefully consult the
+    [transition guide](https://docs.newrelic.com/docs/transition-guide-distributed-tracing)
+    before you enable this feature.
+
+    To enable distributed tracing, set the
+    `distributed_tracing.enabled` configuration option to `true`.
+
+## v5.2.0 ##
 
   * Use priority sampling for errors and custom events
 
@@ -14,7 +34,12 @@
     The agent will now complete the process of wrapping datastore
     operations even if an error occurs during execution of a callback.
 
-  ## v5.1.0 ##
+  * Span Events
+
+    Finished segments whose `sampled` property is `true` will now post
+    Span events to Insights.
+
+## v5.1.0 ##
 
   * Rails 5.2 support
 
@@ -68,7 +93,7 @@
     data to New Relic. This version truncates long traces to 50 frames
     (split evenly between the top and bottom of the trace).
 
-  ## v5.0.0 ##
+## v5.0.0 ##
 
   * SSL connections to New Relic are now mandatory
 
@@ -107,7 +132,7 @@
     works correctly with this new behavior. Thanks to Jimmy Zhang for
     the contribution.
 
-  ## v4.8.0 ##
+## v4.8.0 ##
 
   * Initialize New Relic Agent before config initializers
 
@@ -129,7 +154,7 @@
   It is now an agent attribute that can be controlled via the attributes config.
   For more information on agent attributes [see here](https://docs.newrelic.com/docs/agents/manage-apm-agents/agent-data/agent-attributes).
 
-  ## 4.7.1 ##
+## 4.7.1 ##
 
   * Bugfix for Manual Browser Instrumentation
 
@@ -139,7 +164,7 @@
   instrumentation. Those changes have been reverted. We will revisit this issue
   in an upcoming release.
 
-  ## v4.7.0 ##
+## v4.7.0 ##
 
   * Expected Error API
 

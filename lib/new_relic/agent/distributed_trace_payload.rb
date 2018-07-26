@@ -3,9 +3,16 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'json'
 require 'base64'
+require 'set'
 
 module NewRelic
   module Agent
+    #
+    # This class contains properties related to distributed traces.
+    # To obtain an instance, call
+    # {DistributedTracing#create_distributed_trace_payload}
+    #
+    # @api public
     class DistributedTracePayload
       VERSION =[0, 1].freeze
       PARENT_TYPE = "App".freeze
@@ -17,10 +24,11 @@ module NewRelic
       PARENT_TYPE_KEY            = 'ty'.freeze
       PARENT_ACCOUNT_ID_KEY      = 'ac'.freeze
       PARENT_APP_KEY             = 'ap'.freeze
+      TRUSTED_ACCOUNT_KEY        = 'tk'.freeze
       ID_KEY                     = 'id'.freeze
+      TX_KEY                     = 'tx'.freeze
       TRACE_ID_KEY               = 'tr'.freeze
       SAMPLED_KEY                = 'sa'.freeze
-      PARENT_ID_KEY              = 'pa'.freeze
       TIMESTAMP_KEY              = 'ti'.freeze
       PRIORITY_KEY               = 'pr'.freeze
 
@@ -32,9 +40,9 @@ module NewRelic
       PARENT_TRANSPORT_DURATION_INTRINSIC_KEY  = "parent.transportDuration".freeze
       GUID_INTRINSIC_KEY                       = "guid".freeze
       TRACE_ID_INTRINSIC_KEY                   = "traceId".freeze
-      TRIP_ID_INTRINSIC_KEY                    = "nr.tripId".freeze
       PARENT_ID_INTRINSIC_KEY                  = "parentId".freeze
-      GRANDPARENT_ID_INTRINSIC_KEY             = "grandparentId".freeze
+      PARENT_SPAN_ID_INTRINSIC_KEY             = "parentSpanId".freeze
+      SAMPLED_INTRINSIC_KEY                    = "sampled".freeze
       COMMA                                    = ",".freeze
 
       INTRINSIC_KEYS = [
@@ -45,58 +53,54 @@ module NewRelic
         PARENT_TRANSPORT_DURATION_INTRINSIC_KEY,
         GUID_INTRINSIC_KEY,
         TRACE_ID_INTRINSIC_KEY,
-        TRIP_ID_INTRINSIC_KEY,
         PARENT_ID_INTRINSIC_KEY,
-        GRANDPARENT_ID_INTRINSIC_KEY
+        PARENT_SPAN_ID_INTRINSIC_KEY,
+        SAMPLED_INTRINSIC_KEY
       ].freeze
 
       # Intrinsic Values
-      PARENT_TRANSPORT_TYPE_UNKNOWN = 'unknown'.freeze
+      PARENT_TRANSPORT_TYPE_UNKNOWN = 'Unknown'.freeze
 
       class << self
-        def for_transaction transaction
-          payload = new
-          return payload unless connected?
 
+        def for_transaction transaction
+          return nil unless connected?
+
+          payload = new
           payload.version = VERSION
           payload.parent_type = PARENT_TYPE
+          payload.parent_account_id = Agent.config[:account_id]
+          payload.parent_app_id = Agent.config[:primary_application_id]
 
-          # We should not rely on the xp_id being formulated this way, but we have
-          # seen nil account ids coming down in staging for some accounts
-          account_id, fallback_app_id = Agent.config[:cross_process_id].split(POUND)
-          payload.parent_account_id = account_id
+          assign_trusted_account_key(payload, payload.parent_account_id)
 
-          payload.parent_app_id =  if Agent.config[:application_id].empty?
-            fallback_app_id
-          else
-            Agent.config[:application_id]
-          end
-
+          payload.id = current_segment_id(transaction)
+          payload.transaction_id = transaction.guid
           payload.timestamp = (Time.now.to_f * 1000).round
-          payload.id = transaction.guid
           payload.trace_id = transaction.trace_id
           payload.sampled = transaction.sampled?
           payload.priority = transaction.priority
-          payload.parent_id = transaction.parent_id
 
           payload
         end
 
         def from_json serialized_payload
           raw_payload = JSON.parse serialized_payload
+          return raw_payload if raw_payload.nil?
           payload_data = raw_payload[DATA_KEY]
 
           payload = new
-          payload.version           = raw_payload[VERSION_KEY]
-          payload.parent_type       = payload_data[PARENT_TYPE_KEY]
-          payload.parent_account_id = payload_data[PARENT_ACCOUNT_ID_KEY]
-          payload.parent_app_id     = payload_data[PARENT_APP_KEY]
-          payload.timestamp         = payload_data[TIMESTAMP_KEY]
-          payload.id                = payload_data[ID_KEY]
-          payload.trace_id          = payload_data[TRACE_ID_KEY]
-          payload.sampled           = payload_data[SAMPLED_KEY]
-          payload.priority          = payload_data[PRIORITY_KEY]
-          payload.parent_id         = payload_data[PARENT_ID_KEY]
+          payload.version             = raw_payload[VERSION_KEY]
+          payload.parent_type         = payload_data[PARENT_TYPE_KEY]
+          payload.parent_account_id   = payload_data[PARENT_ACCOUNT_ID_KEY]
+          payload.parent_app_id       = payload_data[PARENT_APP_KEY]
+          payload.trusted_account_key = payload_data[TRUSTED_ACCOUNT_KEY]
+          payload.timestamp           = payload_data[TIMESTAMP_KEY]
+          payload.id                  = payload_data[ID_KEY]
+          payload.transaction_id      = payload_data[TX_KEY]
+          payload.trace_id            = payload_data[TRACE_ID_KEY]
+          payload.sampled             = payload_data[SAMPLED_KEY]
+          payload.priority            = payload_data[PRIORITY_KEY]
 
           payload
         end
@@ -106,11 +110,10 @@ module NewRelic
           from_json decoded_payload
         end
 
-        # Assigns intrinsics for the first distributed trace in a trip
-        def assign_intrinsics_for_first_trace transaction, transaction_payload
+        def assign_initial_intrinsics transaction, transaction_payload
           transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid
           transaction_payload[TRACE_ID_INTRINSIC_KEY] = transaction.trace_id
-          transaction_payload[TRIP_ID_INTRINSIC_KEY]  = transaction.trace_id
+          transaction_payload[SAMPLED_INTRINSIC_KEY] = transaction.sampled?
         end
 
         def major_version_matches?(payload)
@@ -119,26 +122,47 @@ module NewRelic
 
         private
 
-        # We use the presence of the cross_process_id in the config to tell if we
-        # have connected yet.
+        # We use the presence of the account_id and primary_application in the
+        # config to tell if we have connected yet.
         def connected?
-          !!Agent.config[:'cross_process_id']
+          Agent.config[:account_id] && Agent.config[:primary_application_id]
+        end
+
+        def assign_trusted_account_key payload, account_id
+          trusted_account_key = Agent.config[:trusted_account_key]
+
+          if account_id != trusted_account_key
+            payload.trusted_account_key = trusted_account_key
+          end
+        end
+
+        def current_segment_id(transaction)
+          if Agent.config[:'span_events.enabled'] && transaction.sampled? &&
+              transaction.current_segment
+            transaction.current_segment.guid
+          end
         end
       end
 
       attr_accessor :version,
                     :parent_type,
-                    :caller_transport_type,
                     :parent_account_id,
                     :parent_app_id,
+                    :trusted_account_key,
                     :id,
+                    :transaction_id,
                     :trace_id,
                     :sampled,
                     :priority,
-                    :parent_id,
                     :timestamp
 
       alias_method :sampled?, :sampled
+
+      attr_reader :caller_transport_type
+
+      def caller_transport_type=(type)
+        @caller_transport_type = valid_transport_type_for(type)
+      end
 
       def initialize
         @caller_transport_type = PARENT_TRANSPORT_TYPE_UNKNOWN
@@ -153,23 +177,37 @@ module NewRelic
           PARENT_TYPE_KEY       => parent_type,
           PARENT_ACCOUNT_ID_KEY => parent_account_id,
           PARENT_APP_KEY        => parent_app_id,
-          ID_KEY                => id,
+          TX_KEY                => transaction_id,
           TRACE_ID_KEY          => trace_id,
           SAMPLED_KEY           => sampled,
           PRIORITY_KEY          => priority,
-          PARENT_ID_KEY         => parent_id,
-          # GRANDPARENT_ID_KEY does not go into the outbound JSON payload;
-          # the callee will take our parent ID as its grandparent ID
-          TIMESTAMP_KEY      => timestamp,
+          TIMESTAMP_KEY         => timestamp,
         }
+
+        result[DATA_KEY][ID_KEY]              = id if id
+        result[DATA_KEY][TRUSTED_ACCOUNT_KEY] = trusted_account_key if trusted_account_key
 
         JSON.dump(result)
       end
 
-      alias_method :text, :to_json
-
+      # Encode this payload as a string suitable for passing via an
+      # HTTP header.
+      #
+      # @return [String] Payload translated to JSON and encoded for
+      #                  inclusion in headers
+      #
+      # @api public
       def http_safe
         Base64.strict_encode64 to_json
+      end
+
+      # Represent this payload as a raw JSON string.
+      #
+      # @return [String] Payload translated to JSON
+      #
+      # @api public
+      def text
+        to_json
       end
 
       def assign_intrinsics transaction, transaction_payload
@@ -180,9 +218,28 @@ module NewRelic
         transaction_payload[PARENT_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration
         transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid
         transaction_payload[TRACE_ID_INTRINSIC_KEY] = trace_id
-        transaction_payload[TRIP_ID_INTRINSIC_KEY] = trace_id
         transaction_payload[PARENT_ID_INTRINSIC_KEY] = transaction.parent_id if transaction.parent_id
-        transaction_payload[GRANDPARENT_ID_INTRINSIC_KEY] = transaction.grandparent_id if transaction.grandparent_id
+        transaction_payload[PARENT_SPAN_ID_INTRINSIC_KEY] = id if id
+        transaction_payload[SAMPLED_INTRINSIC_KEY] = transaction.sampled?
+      end
+
+      private
+
+      ALLOWABLE_TRANSPORT_TYPES = Set.new(%w[
+        Unknown
+        HTTP
+        HTTPS
+        Kafka
+        JMS
+        IronMQ
+        AMQP
+        Queue
+        Other
+      ]).freeze
+
+      def valid_transport_type_for(value)
+        return value if ALLOWABLE_TRANSPORT_TYPES.include?(value)
+        PARENT_TRANSPORT_TYPE_UNKNOWN
       end
     end
   end

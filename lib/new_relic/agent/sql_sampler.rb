@@ -154,6 +154,20 @@ module NewRelic
         end
       end
 
+      PRIORITY = "priority".freeze
+
+      def distributed_trace_intrinsics(state)
+        transaction = state.current_transaction
+        params = nil
+        if transaction && transaction.distributed_trace_payload
+          params = {}
+          payload = transaction.distributed_trace_payload
+          payload.assign_intrinsics transaction, params
+          params[PRIORITY] = transaction.priority
+        end
+        params
+      end
+
       def notice_sql_statement(statement, metric_name, duration)
         state ||= TransactionState.tl_get
         data = state.sql_sampler_transaction_data
@@ -162,7 +176,8 @@ module NewRelic
         if state.is_sql_recorded?
           if duration > Agent.config[:'slow_sql.explain_threshold']
             backtrace = caller.join("\n")
-            data.sql_data << SlowSql.new(statement, metric_name, duration, backtrace)
+            params = distributed_trace_intrinsics state
+            data.sql_data << SlowSql.new(statement, metric_name, duration, backtrace, params)
           end
         end
       end
@@ -225,11 +240,12 @@ module NewRelic
       attr_reader :duration
       attr_reader :backtrace
 
-      def initialize(statement, metric_name, duration, backtrace=nil)
+      def initialize(statement, metric_name, duration, backtrace=nil, params=nil)
         @statement = statement
         @metric_name = metric_name
         @duration = duration
         @backtrace = backtrace
+        @params = params
       end
 
       def sql
@@ -237,7 +253,7 @@ module NewRelic
       end
 
       def base_params
-        params = {}
+        params = @params || {}
 
         if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
           params[:host] = statement.host if statement.host

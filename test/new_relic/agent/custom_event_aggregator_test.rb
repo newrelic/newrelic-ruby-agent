@@ -31,12 +31,12 @@ module NewRelic::Agent
 
     # Helpers for CommonAggregatorTests
 
-    def generate_event(name = 'blogs/index', options = {})
+    def generate_event(name = 'Controller/blogs/index', options = {})
       generate_request(name, options)
     end
 
-    def generate_request(name='whatever', options={})
-      payload = options.merge(:name => "Controller/#{name}")
+    def generate_request(name='Controller/whatever', options={})
+      payload = options.merge(:name => name)
 
       @aggregator.record :custom, payload
     end

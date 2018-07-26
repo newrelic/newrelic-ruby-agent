@@ -22,6 +22,7 @@ require 'new_relic/agent/distributed_trace_monitor'
 require 'new_relic/agent/synthetics_monitor'
 require 'new_relic/agent/transaction_event_recorder'
 require 'new_relic/agent/custom_event_aggregator'
+require 'new_relic/agent/span_event_aggregator'
 require 'new_relic/agent/sampler_collection'
 require 'new_relic/agent/javascript_instrumentor'
 require 'new_relic/agent/vm/monotonic_gc_profiler'
@@ -61,14 +62,15 @@ module NewRelic
         @harvest_samplers          = NewRelic::Agent::SamplerCollection.new(@events)
         @monotonic_gc_profiler     = NewRelic::Agent::VM::MonotonicGCProfiler.new
         @javascript_instrumentor   = NewRelic::Agent::JavascriptInstrumentor.new(@events)
-        @adaptive_sampler          = NewRelic::Agent::AdaptiveSampler.new
+        @adaptive_sampler          = NewRelic::Agent::AdaptiveSampler.new(self.class.config[:sampling_target],
+                                                                          self.class.config[:sampling_target_period_in_seconds])
 
         @harvester       = NewRelic::Agent::Harvester.new(@events)
         @after_fork_lock = Mutex.new
 
         @transaction_event_recorder = NewRelic::Agent::TransactionEventRecorder.new
-
-        @custom_event_aggregator      = NewRelic::Agent::CustomEventAggregator.new
+        @custom_event_aggregator    = NewRelic::Agent::CustomEventAggregator.new
+        @span_event_aggregator      = NewRelic::Agent::SpanEventAggregator.new
 
         @connect_state      = :pending
         @connect_attempts   = 0
@@ -140,6 +142,7 @@ module NewRelic
         # GC::Profiler.total_time is not monotonic so we wrap it.
         attr_reader :monotonic_gc_profiler
         attr_reader :custom_event_aggregator
+        attr_reader :span_event_aggregator
         attr_reader :transaction_event_recorder
         attr_reader :attribute_filter
         attr_reader :adaptive_sampler
@@ -546,6 +549,7 @@ module NewRelic
           @transaction_sampler.reset!
           @transaction_event_recorder.drop_buffered_data
           @custom_event_aggregator.reset!
+          @span_event_aggregator.reset!
           @sql_sampler.reset!
 
           if Agent.config[:clear_transaction_state_after_fork]
@@ -1108,8 +1112,9 @@ module NewRelic
 
         def harvest_and_send_analytic_event_data
           harvest_and_send_from_container(transaction_event_aggregator, :analytic_event_data)
-          harvest_and_send_from_container(synthetics_event_aggregator, :analytic_event_data)
-          harvest_and_send_from_container(@custom_event_aggregator,      :custom_event_data)
+          harvest_and_send_from_container(synthetics_event_aggregator,  :analytic_event_data)
+          harvest_and_send_from_container(@custom_event_aggregator,     :custom_event_data)
+          harvest_and_send_from_container(span_event_aggregator,        :span_event_data)
         end
 
         def harvest_and_send_error_event_data
@@ -1136,6 +1141,10 @@ module NewRelic
 
         def transmit_event_data
           transmit_single_data_type(:harvest_and_send_analytic_event_data, "TransactionEvent")
+        end
+
+        def transmit_span_event_data
+          transmit_single_data_type(:harvest_and_send_span_event_data, "SpanEvent")
         end
 
         def transmit_single_data_type(harvest_method, supportability_name)

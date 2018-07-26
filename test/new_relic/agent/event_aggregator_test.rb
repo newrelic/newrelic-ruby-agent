@@ -23,6 +23,17 @@ module NewRelic
         end
       end
 
+      class RubeGoldbergTestAggregator < EventAggregator
+        named :RubeGoldbergTestAggregator
+        capacity_key :cap_key
+
+        enabled_fn -> { enabled_for_test }
+
+        class << self
+          attr_accessor :enabled_for_test
+        end
+      end
+
       def setup
         NewRelic::Agent.config.add_config_for_testing(
           :cap_key => 100,
@@ -52,6 +63,16 @@ module NewRelic
         with_config :enabled_key => false do
           refute @aggregator.enabled?, "Expected enabled? to be false"
         end
+      end
+
+      def test_enabled_uses_proc_if_defined
+        @aggregator = RubeGoldbergTestAggregator.new
+
+        RubeGoldbergTestAggregator.enabled_for_test = false
+        refute @aggregator.enabled?
+
+        RubeGoldbergTestAggregator.enabled_for_test = true
+        assert @aggregator.enabled?
       end
 
       def test_after_harvest_invoked_with_report

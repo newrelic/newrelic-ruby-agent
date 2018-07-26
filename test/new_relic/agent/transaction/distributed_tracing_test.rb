@@ -5,6 +5,7 @@
 require File.expand_path('../../../../test_helper', __FILE__)
 require 'new_relic/agent/distributed_trace_payload'
 require 'new_relic/agent/transaction'
+require 'new_relic/agent/distributed_tracing'
 require 'net/http'
 
 module NewRelic
@@ -12,20 +13,24 @@ module NewRelic
     class Transaction
       class DistributedTracingTest < Minitest::Test
         def setup
-          NewRelic::Agent.config.add_config_for_testing(
+          @config = {
             :'distributed_tracing.enabled' => true,
-            :application_id => "46954",
-            :cross_process_id => "190#222",
-            :trusted_account_ids => [190],
-          )
+            :account_id => "190",
+            :primary_application_id => "46954",
+            :trusted_account_key => "trust_this!"
+          }
+
+          NewRelic::Agent.config.add_config_for_testing(@config)
         end
 
         def teardown
+          NewRelic::Agent.config.remove_config(@config)
           NewRelic::Agent.config.reset_to_defaults
           NewRelic::Agent.drop_buffered_data
         end
 
         def test_create_distributed_trace_payload_returns_payload
+          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
           nr_freeze_time
           created_at = (Time.now.to_f * 1000).round
           state = TransactionState.tl_get
@@ -36,12 +41,41 @@ module NewRelic
 
           assert_equal "46954", payload.parent_app_id
           assert_equal "190", payload.parent_account_id
+          assert_equal "trust_this!", payload.trusted_account_key
           assert_equal DistributedTracePayload::VERSION, payload.version
           assert_equal "App", payload.parent_type
-          assert_equal transaction.guid, payload.id
+          assert_equal transaction.initial_segment.guid, payload.id
+          assert_equal transaction.guid, payload.transaction_id
           assert_equal transaction.trace_id, payload.trace_id
-          assert_nil   payload.parent_id
           assert_equal created_at, payload.timestamp
+        end
+
+        def test_create_distributed_trace_payload_while_disconnected_returns_nil
+          nr_freeze_time
+          state = TransactionState.tl_get
+
+          payload = 'definitely not nil'
+          with_config(account_id: nil, primary_application_id: nil) do
+            transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
+            payload = transaction.create_distributed_trace_payload
+            Transaction.stop(state)
+          end
+
+          assert_nil payload
+        end
+
+        def test_public_api_payload_methods
+          inbound_payload = nil
+          created_payload = nil
+
+          transaction = in_transaction "test_txn" do |txn|
+            inbound_payload = create_distributed_trace_payload
+            NewRelic::Agent::DistributedTracing.accept_distributed_trace_payload inbound_payload
+            created_payload = NewRelic::Agent::DistributedTracing.create_distributed_trace_payload
+          end
+
+          assert_equal transaction.trace_id, created_payload.trace_id
+          assert_equal transaction.trace_id, inbound_payload.trace_id
         end
 
         def test_accept_distributed_trace_payload_assigns_json_payload
@@ -68,12 +102,13 @@ module NewRelic
           assert_equal transaction.trace_id, payload.trace_id
         end
 
-        def test_accept_distributed_trace_payload_rejects_untrusted_account
+        def test_accept_distributed_trace_payload_rejects_untrusted_account_with_trusted_account_id
           payload = create_distributed_trace_payload
 
           transaction = nil
           accepted    = nil
-          with_config(trusted_account_ids: []) do
+
+          with_config(trusted_account_key: "somekey") do
             transaction = in_transaction "test_txn" do |txn|
               accepted = txn.accept_distributed_trace_payload payload.http_safe
             end
@@ -84,34 +119,89 @@ module NewRelic
           assert_metrics_recorded ['Supportability/DistributedTrace/AcceptPayload/Ignored/UntrustedAccount']
         end
 
+        def test_accept_distributed_trace_payload_rejects_untrusted_account_without_trusted_account_id
+          # without a trusted account key in the payload the agent will compare against the parent_app_id
+          payload = create_distributed_trace_payload
+          payload.trusted_account_key = nil
+
+          transaction = nil
+          accepted    = nil
+
+          with_config(trusted_account_key: "somekey") do
+            transaction = in_transaction "test_txn" do |txn|
+              accepted = txn.accept_distributed_trace_payload payload.http_safe
+            end
+          end
+
+          assert_nil              transaction.distributed_trace_payload
+          assert_false            accepted
+          assert_metrics_recorded ['Supportability/DistributedTrace/AcceptPayload/Ignored/UntrustedAccount']
+        end
+
+        def test_accept_distributed_trace_payload_accepts_payload_when_account_id_matches_trusted_key
+          payload = create_distributed_trace_payload
+          payload.trusted_account_key = nil
+          payload.parent_account_id = "matching_key"
+
+          transaction = nil
+          accepted    = nil
+
+          with_config(trusted_account_key: "matching_key") do
+            transaction = in_transaction "test_txn" do |txn|
+              accepted = txn.accept_distributed_trace_payload payload.http_safe
+            end
+          end
+
+          assert accepted
+          refute_nil transaction.distributed_trace_payload
+        end
+
+        def test_accept_distributed_trace_payload_accepts_payload_when_account_id_matches_trusted_key
+          payload = create_distributed_trace_payload
+          payload.trusted_account_key = nil
+          payload.parent_account_id = "500"
+
+          transaction = nil
+          accepted    = nil
+
+          with_config(trusted_account_key: "500") do
+            transaction = in_transaction "test_txn" do |txn|
+              accepted = txn.accept_distributed_trace_payload payload.http_safe
+            end
+          end
+
+          assert accepted
+          refute_nil transaction.distributed_trace_payload
+        end
+
         def test_accept_distributed_trace_payload_records_duration_metrics
           payload = create_distributed_trace_payload
 
-          transaction = in_transaction "test_txn" do |txn|
+          in_transaction "test_txn" do |txn|
             txn.accept_distributed_trace_payload payload.to_json
           end
 
-          assert_metrics_recorded ['DurationByCaller/App/190/46954/unknown/all',
-                                   'DurationByCaller/App/190/46954/unknown/allOther']
+          assert_metrics_recorded ['DurationByCaller/App/190/46954/Unknown/all',
+                                   'DurationByCaller/App/190/46954/Unknown/allOther']
 
-          assert_metrics_recorded ['TransportDuration/App/190/46954/unknown/all',
-                                   'TransportDuration/App/190/46954/unknown/allOther']
+          assert_metrics_recorded ['TransportDuration/App/190/46954/Unknown/all',
+                                   'TransportDuration/App/190/46954/Unknown/allOther']
 
-          refute_metrics_recorded ['ErrorsByCaller/App/190/46954/unknown/all',
-                                   'ErrorsByCaller/App/190/46954/unknown/allOther']
+          refute_metrics_recorded ['ErrorsByCaller/App/190/46954/Unknown/all',
+                                   'ErrorsByCaller/App/190/46954/Unknown/allOther']
 
         end
 
         def test_accept_distributed_trace_payload_with_error_records_error_metrics
           payload = create_distributed_trace_payload
 
-          transaction = in_transaction "test_txn" do |txn|
+          in_transaction "test_txn" do |txn|
             txn.accept_distributed_trace_payload payload.to_json
             NewRelic::Agent.notice_error StandardError.new "Nooo!"
           end
 
-          assert_metrics_recorded ['ErrorsByCaller/App/190/46954/unknown/all',
-                                   'ErrorsByCaller/App/190/46954/unknown/allOther']
+          assert_metrics_recorded ['ErrorsByCaller/App/190/46954/Unknown/all',
+                                   'ErrorsByCaller/App/190/46954/Unknown/allOther']
 
         end
 
@@ -144,24 +234,19 @@ module NewRelic
 
           result      = create_distributed_transactions
           transaction = result[:grandparent_transaction]
-          payload     = result[:grandparent_payload]
           intrinsics  = result[:grandparent_intrinsics]
 
           assert_equal transaction.guid, intrinsics['guid']
-          assert_equal transaction.guid, intrinsics['nr.tripId']
           assert_equal transaction.guid, intrinsics['traceId']
           assert_nil                     intrinsics['parentId']
-          assert_nil                     intrinsics['grandparentId']
           assert                         intrinsics['sampled']
 
           txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
 
           assert_equal transaction.guid, txn_intrinsics['guid']
-          assert_equal transaction.guid, txn_intrinsics['nr.tripId']
           assert_equal transaction.guid, intrinsics['traceId']
           assert_nil                     txn_intrinsics['parentId']
-          assert_nil                     txn_intrinsics['grandparentId']
-          assert                         txn_intrinsics[:'sampled']
+          assert                         txn_intrinsics['sampled']
         end
 
         def test_initial_legacy_cat_request_trace_id_overwritten_by_first_distributed_trace_guid
@@ -181,11 +266,9 @@ module NewRelic
           end
 
           intrinsics, _, _ = last_transaction_event
-          assert_equal transaction.guid, intrinsics['nr.tripId']
           assert_equal transaction.guid, intrinsics['traceId']
 
           txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
-          assert_equal transaction.guid, txn_intrinsics['nr.tripId']
           assert_equal transaction.guid, intrinsics['traceId']
         end
 
@@ -193,9 +276,6 @@ module NewRelic
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
           result                  = create_distributed_transactions
-          grandparent_payload     = result[:grandparent_payload]
-          grandparent_transaction = result[:grandparent_transaction]
-          parent_payload          = result[:parent_payload]
           parent_transaction      = result[:parent_transaction]
           child_transaction       = result[:child_transaction]
           child_intrinsics        = result[:child_intrinsics]
@@ -207,33 +287,72 @@ module NewRelic
           assert_equal inbound_payload.parent_app_id,         child_intrinsics["parent.app"]
           assert_equal inbound_payload.parent_account_id,     child_intrinsics["parent.account"]
 
-          assert_equal inbound_payload.trace_id,              child_intrinsics["nr.tripId"]
           assert_equal inbound_payload.trace_id,              child_intrinsics["traceId"]
+          assert_equal inbound_payload.id,                    child_intrinsics["parentSpanId"]
           assert_equal child_transaction.guid,                child_intrinsics["guid"]
           assert_equal true,                                  child_intrinsics["sampled"]
 
           assert                                              child_intrinsics["parentId"]
           assert_equal parent_transaction.guid,               child_intrinsics["parentId"]
 
-          assert                                              child_intrinsics["grandparentId"]
-          assert_equal grandparent_transaction.guid,          child_intrinsics["grandparentId"]
-
           # Make sure the parent / grandparent links are connected all
           # the way up.
           #
-          assert_equal inbound_payload.id,                    parent_transaction.guid
-          assert_equal inbound_payload.parent_id,             grandparent_payload.id
+          assert_equal inbound_payload.transaction_id,        parent_transaction.guid
+        end
+
+        def test_assign_distributed_trace_intrinsics_properly_assigned_on_receiving_dt
+          payload = create_distributed_trace_payload(sampled: false)
+          payload.id = "abc123"
+
+          txn = in_transaction "test_txn" do |t|
+            t.accept_distributed_trace_payload payload.to_json
+          end
+
+          intrinsics = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+
+          NewRelic::Agent::DistributedTracePayload::INTRINSIC_KEYS.each do |key|
+            assert intrinsics.key?(key), "Expected to find #{key} as an intrinsic, but did not"
+          end
+        end
+
+        def test_assign_distributed_trace_intrinsics_properly_assigned_on_initial_trace
+          payload = create_distributed_trace_payload(sampled: false)
+
+          txn = in_transaction "test_txn" do |t|
+            t.accept_distributed_trace_payload payload.to_json
+          end
+
+          intrinsics = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+
+          expected_keys = ['guid', 'traceId', 'sampled']
+
+          expected_keys.each do |key|
+            assert intrinsics.key?(key), "Expected to find #{key} as an intrinsic, but did not"
+          end
         end
 
         def test_sampled_is_false_in_transaction_event_when_indicated_by_upstream
           payload = create_distributed_trace_payload(sampled: false)
 
-          in_transaction "text_txn" do |txn|
+          in_transaction "test_txn" do |txn|
             txn.accept_distributed_trace_payload payload.to_json
           end
 
           intrinsics, _, _ = last_transaction_event
           assert_equal false, intrinsics["sampled"]
+        end
+
+        def test_agent_attributes_always_recorded_when_distributed_tracing_enabled
+
+          in_transaction("test_txn") {}
+
+          intrinsics, _, _ = last_transaction_event
+
+          assert intrinsics.key?('traceId')
+          assert intrinsics.key?('guid')
+          assert intrinsics.key?('priority')
+          assert intrinsics.key?('sampled')
         end
 
         def test_intrinsics_assigned_to_error_event_from_distributed_trace
@@ -259,13 +378,12 @@ module NewRelic
           assert_equal inbound_payload.caller_transport_type, intrinsics["parent.transportType"]
           assert_equal inbound_payload.parent_app_id, intrinsics["parent.app"]
           assert_equal inbound_payload.parent_account_id, intrinsics["parent.account"]
-          assert_equal inbound_payload.id, referring_transaction.guid
+          assert_equal inbound_payload.transaction_id, referring_transaction.guid
           assert_equal transaction.guid, intrinsics["guid"]
-          assert_equal inbound_payload.trace_id, intrinsics["nr.tripId"]
           assert_equal inbound_payload.trace_id, intrinsics["traceId"]
           assert_equal true, intrinsics["sampled"]
           assert       intrinsics["parentId"], "Child should be linked to parent transaction"
-          assert_equal inbound_payload.id, intrinsics["parentId"]
+          assert_equal inbound_payload.transaction_id, intrinsics["parentId"]
         end
 
         def test_sampled_is_false_in_error_event_when_indicated_by_upstream
@@ -464,15 +582,69 @@ module NewRelic
           refute_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success"
         end
 
+        def test_sampled_and_priority_inherited_when_accepting_distributed_trace_payload
+          payload = create_distributed_trace_payload(sampled: true)
+
+          in_transaction('test_txn') do |txn|
+            txn.accept_distributed_trace_payload(payload.to_json)
+
+            assert_equal true, txn.sampled?
+            assert_equal payload.priority, txn.priority
+          end
+        end
+
+        def test_sampling_decisions_only_made_for_transactions_without_payloads
+          payload = create_distributed_trace_payload(sampled: true)
+          # this is a little ugly, but the code below forces the adaptive
+          # sampler into a new interval and resets the counts
+          adaptive_sampler = NewRelic::Agent.instance.adaptive_sampler
+          interval_duration = adaptive_sampler.instance_variable_get :@period_duration
+          nr_freeze_time
+          advance_time(interval_duration)
+          adaptive_sampler.send(:reset_if_period_expired!)
+
+          20.times do
+            in_transaction('test_txn') do |txn|
+              txn.accept_distributed_trace_payload payload.to_json
+            end
+          end
+          assert_equal 0, adaptive_sampler.stats[:seen]
+
+          20.times do
+            in_transaction {}
+          end
+          assert_equal 20, adaptive_sampler.stats[:seen]
+        end
+
+        def test_transport_duration_returned_in_seconds_when_positive
+          payload = create_distributed_trace_payload
+
+          advance_time 2.0
+
+          in_transaction('test_txn') do |txn|
+            txn.accept_distributed_trace_payload payload.to_json
+            assert_equal 2.0, txn.transport_duration.round(0)
+          end
+        end
+
+        def test_transport_duration_zero_with_clock_skew
+          payload = create_distributed_trace_payload
+
+          advance_time(-1.0)
+
+          in_transaction('test_txn') do |txn|
+            txn.accept_distributed_trace_payload payload.to_json
+            assert_equal 0, txn.transport_duration
+          end
+        end
+
         private
 
         def create_distributed_trace_payload(sampled: nil)
-          unless sampled.nil?
-            NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(sampled)
-          end
-
           in_transaction do |txn|
-            return txn.create_distributed_trace_payload
+            payload = txn.create_distributed_trace_payload
+            payload.sampled = sampled
+            return payload
           end
         end
 

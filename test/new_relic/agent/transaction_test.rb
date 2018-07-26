@@ -1338,6 +1338,17 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal 'PDX-NRT', result[:trip_id]
   end
 
+  def test_intrinsic_attributes_include_priority
+    priority = nil
+
+    txn = in_transaction do |t|
+      priority = t.priority
+    end
+
+    result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+    assert_equal priority, result[:priority]
+  end
+
   def test_intrinsic_attributes_dont_include_tripid_if_not_cross_app_transaction
     NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
 

@@ -1676,12 +1676,64 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, the agent will clear <code>TransactionState</code> in <code>Agent.drop_buffered_data</code>.'
         },
+        :account_id => {
+          :default => nil,
+          :allow_nil => true,
+          :public => false,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'The account id associated with this application.'
+        },
+        :primary_application_id => {
+          :default => nil,
+          :allow_nil => true,
+          :public => false,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'The primary id associated with this application.'
+        },
         :'distributed_tracing.enabled' => {
           :default     => false,
-          :public      => false,
+          :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code> enables experimental distributed tracing feature.'
+          :description => 'Distributed tracing lets you see the path that a request takes through your distributed system. Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the <a href="https://docs.newrelic.com/docs/transition-guide-distributed-tracing">transition guide</a> before you enable this feature.'
+        },
+        :trusted_account_key => {
+          :default => nil,
+          :allow_nil => true,
+          :public => false,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'A shared key to validate that a distributed trace payload came from a trusted account.'
+        },
+        :sampling_target => {
+          :default => 10,
+          :public => false,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'The target number of transactions to mark as sampled during a sampled period.'
+        },
+        :sampling_target_period_in_seconds => {
+          :default => 60,
+          :public => false,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'The period during which a target number of transactions should be marked as sampled.'
+        },
+        :'span_events.enabled' => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If <code>true</code>, enables span event sampling.'
+        },
+        :'span_events.max_samples_stored' => {
+          :default => 1000,
+          :public => false,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'Defines the maximum number of span events reported from a single harvest.'
         }
       }.freeze
     end

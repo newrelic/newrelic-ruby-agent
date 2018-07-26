@@ -550,8 +550,9 @@ module NewRelic
 
         with_config :"cross_application_tracer.enabled" => false,
                     :"distributed_tracing.enabled" => true,
-                    :cross_process_id => "321#123",
-                    :trusted_account_ids => [321] do
+                    :account_id => "190",
+                    :primary_application_id => "46954",
+                    :trusted_account_key => "trust_this!" do
 
           payload = nil
           parent = in_transaction do |txn|
@@ -563,7 +564,7 @@ module NewRelic
             library: "RabbitMQ",
             destination_type: :exchange,
             destination_name: 'Default',
-            headers: {'NewRelicTrace' => Base64.strict_encode64(payload.to_json)}
+            headers: {'Newrelic' => Base64.strict_encode64(payload.to_json)}
           ) do
             transaction = NewRelic::Agent::TransactionState.tl_get.current_transaction
             tap.tap

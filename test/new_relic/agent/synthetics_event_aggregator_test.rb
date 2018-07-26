@@ -35,7 +35,7 @@ module NewRelic
 
       # Helpers for CommonAggregatorTests
 
-      def generate_event(name = 'blogs/index', options = {})
+      def generate_event(name = 'Controller/blogs/index', options = {})
         generate_request(name, options)
       end
 
@@ -99,7 +99,7 @@ module NewRelic
 
           _, events = aggregator.harvest!
 
-          expected = (0..4).map { |i| "Controller/event_#{i}" }
+          expected = (0..4).map { |i| "event_#{i}" }
 
           assert_equal_unordered expected, events.map { |e| name_for(e) }
         end
@@ -140,9 +140,9 @@ module NewRelic
         last_synthetics_events.first
       end
 
-      def generate_request name='whatever', options={}
+      def generate_request name='Controller/whatever', options={}
         payload = {
-          :name => "Controller/#{name}",
+          :name => name,
           :type => :controller,
           :start_timestamp => options[:timestamp] || Time.now.to_f,
           :duration => 0.1,

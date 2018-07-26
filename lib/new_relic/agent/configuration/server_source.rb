@@ -10,6 +10,7 @@ module NewRelic
         # response, but should still be merged in as config settings to the
         # main agent configuration.
         TOP_LEVEL_KEYS = [
+          "account_id",
           "apdex_t",
           "application_id",
           "beacon",
@@ -24,7 +25,11 @@ module NewRelic
           "error_beacon",
           "js_agent_file",
           "js_agent_loader",
-          "trusted_account_ids"
+          "primary_application_id",
+          "sampling_target",
+          "sampling_target_period_in_seconds",
+          "trusted_account_ids",
+          "trusted_account_key"
         ]
 
         def initialize(connect_reply, existing_config={})

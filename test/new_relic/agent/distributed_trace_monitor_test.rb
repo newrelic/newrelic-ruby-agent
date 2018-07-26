@@ -9,7 +9,7 @@ require 'net/http'
 module NewRelic
   module Agent
     class DistributedTraceMonitorTest < Minitest::Test
-      NEWRELIC_TRACE_KEY = 'HTTP_X_NEWRELIC_TRACE'.freeze
+      NEWRELIC_TRACE_KEY = 'HTTP_NEWRELIC'.freeze
 
       def setup
         @events  = EventListener.new
@@ -18,9 +18,9 @@ module NewRelic
           :'cross_application_tracer.enabled' => false,
           :'distributed_tracing.enabled' => true,
           :encoding_key                  => "\0",
-          :application_id                => "46954",
-          :cross_process_id              => "190#46954",
-          :trusted_account_ids => [190],
+          :account_id                    => "190",
+          :primary_application_id        => "46954",
+          :trusted_account_key           => "trust_this!"
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config)
@@ -44,6 +44,46 @@ module NewRelic
           @events.notify(:before_call, env)
           refute_nil txn.distributed_trace_payload
         end
+      end
+
+      def test_sets_transport_type_for_http_scheme
+        payload = nil
+
+        in_transaction "referring_txn" do |txn|
+          payload = txn.create_distributed_trace_payload
+        end
+
+        env = {
+          NEWRELIC_TRACE_KEY => payload.http_safe,
+          'rack.url_scheme'  => 'http'
+        }
+
+        in_transaction "receiving_txn" do |txn|
+          @events.notify(:before_call, env)
+          payload = txn.distributed_trace_payload
+        end
+
+        assert_equal 'HTTP', payload.caller_transport_type
+      end
+
+      def test_sets_transport_type_for_https_scheme
+        payload = nil
+
+        in_transaction "referring_txn" do |txn|
+          payload = txn.create_distributed_trace_payload
+        end
+
+        env = {
+          NEWRELIC_TRACE_KEY => payload.http_safe,
+          'rack.url_scheme'  => 'https'
+        }
+
+        in_transaction "receiving_txn" do |txn|
+          @events.notify(:before_call, env)
+          payload = txn.distributed_trace_payload
+        end
+
+        assert_equal 'HTTPS', payload.caller_transport_type
       end
     end
   end

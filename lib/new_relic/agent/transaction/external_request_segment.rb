@@ -211,12 +211,12 @@ module NewRelic
           CrossAppTracing.insert_request_headers request, txn_guid, trip_id, path_hash
         end
 
-        X_NEWRELIC_TRACE_HEADER = "X-NewRelic-Trace".freeze
+        NEWRELIC_TRACE_HEADER = "newrelic".freeze
 
         def insert_distributed_trace_header request
           return unless Agent.config[:'distributed_tracing.enabled']
           payload = transaction.create_distributed_trace_payload
-          request[X_NEWRELIC_TRACE_HEADER] = payload.http_safe
+          request[NEWRELIC_TRACE_HEADER] = payload.http_safe if payload
         end
 
         EXTERNAL_ALL = "External/all".freeze
@@ -253,6 +253,15 @@ module NewRelic
 
         def obfuscator
           CrossAppTracing.obfuscator
+        end
+
+        def record_span_event
+          aggregator = ::NewRelic::Agent.agent.span_event_aggregator
+          priority   = transaction.priority
+
+          aggregator.record(priority: priority) do
+            SpanEventPrimitive.for_external_request_segment(self)
+          end
         end
       end
     end

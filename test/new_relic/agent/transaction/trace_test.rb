@@ -4,6 +4,7 @@
 
 require File.expand_path('../../../../test_helper.rb', __FILE__)
 require 'new_relic/agent/transaction/trace'
+require 'new_relic/agent/database'
 
 class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   def setup
@@ -101,7 +102,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     node = @trace.create_node(0.0, 'has_sql')
     node.stubs(:duration).returns(2)
     node.stubs(:explain_sql).returns('')
-    node[:sql] = ''
+    node[:sql] = NewRelic::Agent::Database::Statement.new "select * from pelicans"
 
     @trace.root_node.children << node
 
@@ -117,7 +118,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     node = @trace.create_node(0.0, 'has_sql')
     node.stubs(:duration).returns(2)
-    node[:sql] = "select * from pelicans where name = '1337807';"
+    node[:sql] = NewRelic::Agent::Database::Statement.new "select * from pelicans where name = '1337807';"
     @trace.root_node.children << node
 
     @trace.prepare_to_send!
@@ -129,7 +130,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     node = @trace.create_node(0.0, 'has_sql')
     node.stubs(:duration).returns(2)
     node.stubs(:explain_sql).returns('')
-    node[:sql] = 'select * from pelicans;'
+    node[:sql] = NewRelic::Agent::Database::Statement.new 'select * from pelicans;'
 
     @trace.root_node.children << node
     @trace.prepare_to_send!
@@ -203,7 +204,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     NewRelic::Agent::Database.stubs(:record_sql_method).returns :obfuscated
 
     node = @trace.create_node(0.0, 'has_sql')
-    node[:sql] = "select * from pelicans where name = '1337807';"
+    node[:sql] = NewRelic::Agent::Database::Statement.new "select * from pelicans where name = '1337807';"
     @trace.root_node.children << node
 
     @trace.prepare_sql_for_transmission!
@@ -225,7 +226,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     NewRelic::Agent::Database.stubs(:record_sql_method).returns :off
 
     node = @trace.create_node(0.0, 'has_sql')
-    node[:sql] = "select * from pelicans where name = '1337807';"
+    node[:sql] = NewRelic::Agent::Database::Statement.new "select * from pelicans where name = '1337807';"
     @trace.root_node.children << node
 
     @trace.prepare_sql_for_transmission!
@@ -236,7 +237,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     node = @trace.create_node(0.0, 'has_sql')
     node.stubs(:duration).returns(2)
     node.stubs(:explain_sql).returns('')
-    node[:sql] = 'select * from pelicans;'
+    node[:sql] = NewRelic::Agent::Database::Statement.new 'select * from pelicans;'
 
     @trace.root_node.children << node
     @trace.strip_sql!
