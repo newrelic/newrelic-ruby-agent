@@ -25,6 +25,7 @@ module NewRelic
           "error_beacon",
           "js_agent_file",
           "js_agent_loader",
+          "max_payload_size_in_bytes",
           "primary_application_id",
           "sampling_target",
           "sampling_target_period_in_seconds",
