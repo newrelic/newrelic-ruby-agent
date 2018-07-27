@@ -239,13 +239,13 @@ module NewRelic
     def test_increment_metric
       dummy_engine = NewRelic::Agent.agent.stats_engine
       dummy_stats = mock
-      dummy_stats.expects(:increment_count).with(1)
+      dummy_stats.expects(:increment_count)
       dummy_stats.expects(:increment_count).with(12)
       dummy_engine.expects(:tl_record_unscoped_metrics).with('Supportability/API/increment_metric').yields(dummy_stats)
       dummy_engine.expects(:tl_record_unscoped_metrics).with('foo').yields(dummy_stats)
       NewRelic::Agent.increment_metric('foo', 12)
     end
-    
+
     class Transactor
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
       def txn

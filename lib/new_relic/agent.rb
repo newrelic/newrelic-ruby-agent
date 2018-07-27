@@ -206,11 +206,17 @@ module NewRelic
     # This method is safe to use from any thread.
     #
     # @api public
+
+    SUPPORTABILITY_INCREMENT_METRIC = 'Supportability/API/increment_metric'.freeze
+
     def increment_metric(metric_name, amount=1) #THREAD_LOCAL_ACCESS
       return unless agent
-
-      { 'Supportability/API/increment_metric' => 1,  metric_name => amount }.each do |metric, increment_amount|
-        agent.stats_engine.tl_record_unscoped_metrics(metric) {|stats| stats.increment_count(increment_amount) }
+      if amount == 1
+        metrics = [metric_name, SUPPORTABILITY_INCREMENT_METRIC]
+        agent.stats_engine.tl_record_unscoped_metrics(metrics) {|stats| stats.increment_count}
+      else
+        agent.stats_engine.tl_record_unscoped_metrics(metric_name) {|stats| stats.increment_count(amount)}
+        agent.stats_engine.tl_record_unscoped_metrics(SUPPORTABILITY_INCREMENT_METRIC) {|stats| stats.increment_count}
       end
     end
 
