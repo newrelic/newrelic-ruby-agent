@@ -268,16 +268,6 @@ module NewRelic
           prev.nil? || prev
         end
 
-        # Sets a thread local variable as to whether we should or
-        # should not record transaction traces in the current
-        # thread. Returns the previous value, if there is one
-        def set_record_tt(should_record) #THREAD_LOCAL_ACCESS
-          state = TransactionState.tl_get
-          prev = state.record_tt
-          state.record_tt = should_record
-          prev.nil? || prev
-        end
-
         # Push flag indicating whether we should be tracing in this
         # thread. This uses a stack which allows us to disable tracing
         # children of a transaction without affecting the tracing of

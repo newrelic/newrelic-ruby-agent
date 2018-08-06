@@ -72,12 +72,6 @@ module NewRelic::Agent
       assert_equal(false, state.is_cross_app_callee?)
     end
 
-    def test_reset_doesnt_touch_record_tt
-      state.record_tt = false
-      state.reset
-      refute state.record_tt
-    end
-
     def test_reset_doesnt_touch_record_sql
       state.record_sql = false
       state.reset
@@ -102,8 +96,7 @@ module NewRelic::Agent
       state.reset
 
       # Anything in this list should be tested explicitly by itself!
-      skip_checking = [:@traced_method_stack, :@record_tt, :@record_sql,
-                       :@untraced]
+      skip_checking = [:@traced_method_stack, :@record_sql, :@untraced]
       variables = state.instance_variables.map(&:to_sym) - skip_checking
 
       variables.each do |ivar|

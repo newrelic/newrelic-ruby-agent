@@ -55,6 +55,7 @@ module NewRelic
     require 'new_relic/agent/http_clients/uri_util'
     require 'new_relic/agent/system_info'
     require 'new_relic/agent/external'
+    require 'new_relic/agent/deprecator'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
@@ -510,16 +511,10 @@ module NewRelic
     # @api public
     #
     def disable_transaction_tracing
+      Deprecator.deprecate :disable_transaction_tracing,
+                           'disable_all_tracing or ignore_transaction'
       record_api_supportability_metric(:disable_transaction_tracing)
-
-      return yield unless agent
-
-      state = agent.set_record_tt(false)
-      begin
-        yield
-      ensure
-        agent.set_record_tt(state)
-      end
+      yield
     end
 
     # This method sets the state of sql recording in the transaction
@@ -551,12 +546,6 @@ module NewRelic
     # Check to see if we are capturing metrics currently on this thread.
     def tl_is_execution_traced?
       NewRelic::Agent::TransactionState.tl_get.is_execution_traced?
-    end
-
-    # helper method to check the thread local to determine whether the
-    # transaction in progress is traced or not
-    def tl_is_transaction_traced?
-      NewRelic::Agent::TransactionState.tl_get.is_transaction_traced?
     end
 
     # helper method to check the thread local to determine whether sql
