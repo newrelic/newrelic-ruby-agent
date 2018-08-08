@@ -72,17 +72,19 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
   end
 
   def test_set_record_sql
-    @agent.set_record_sql(false)
-    assert !NewRelic::Agent.tl_is_sql_recorded?
-    NewRelic::Agent.disable_sql_recording do
-      assert_equal false, NewRelic::Agent.tl_is_sql_recorded?
+    in_transaction do |txn|
+      @agent.set_record_sql(false)
+      refute txn.is_sql_recorded?
       NewRelic::Agent.disable_sql_recording do
-        assert_equal false, NewRelic::Agent.tl_is_sql_recorded?
+        refute txn.is_sql_recorded?
+        NewRelic::Agent.disable_sql_recording do
+          refute txn.is_sql_recorded?
+        end
+        refute txn.is_sql_recorded?
       end
-      assert_equal false, NewRelic::Agent.tl_is_sql_recorded?
+      refute txn.is_sql_recorded?
+      @agent.set_record_sql(nil)
     end
-    assert !NewRelic::Agent.tl_is_sql_recorded?
-    @agent.set_record_sql(nil)
   end
 
   def test_agent_version_string

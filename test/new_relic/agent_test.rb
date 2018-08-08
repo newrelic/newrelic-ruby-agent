@@ -124,21 +124,6 @@ module NewRelic
       NewRelic::Agent.instance_eval { @agent = old_agent }
     end
 
-    def test_is_sql_recorded_true
-      NewRelic::Agent::TransactionState.tl_get.record_sql = true
-      assert_equal(true, NewRelic::Agent.tl_is_sql_recorded?, 'should be true since the thread local is set')
-    end
-
-    def test_is_sql_recorded_blank
-      NewRelic::Agent::TransactionState.tl_get.record_sql = nil
-      assert_equal(true, NewRelic::Agent.tl_is_sql_recorded?, 'should be true since the thread local is not set')
-    end
-
-    def test_is_sql_recorded_false
-      NewRelic::Agent::TransactionState.tl_get.record_sql = false
-      assert_equal(false, NewRelic::Agent.tl_is_sql_recorded?, 'should be false since the thread local is false')
-    end
-
     def test_is_execution_traced_true
       NewRelic::Agent::TransactionState.tl_get.untraced = [true, true]
       assert_equal(true, NewRelic::Agent.tl_is_execution_traced?, 'should be true since the thread local is set')

@@ -7,12 +7,12 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_t
 
 class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   def setup
-    agent = NewRelic::Agent.instance
+    @agent = NewRelic::Agent.instance
     stats_engine = NewRelic::Agent::StatsEngine.new
-    agent.stubs(:stats_engine).returns(stats_engine)
+    @agent.stubs(:stats_engine).returns(stats_engine)
     @state = NewRelic::Agent::TransactionState.tl_get
     @state.reset
-    @sampler = NewRelic::Agent::SqlSampler.new
+    @sampler = NewRelic::Agent.instance.sql_sampler
     @connection = stub('ActiveRecord connection', :execute => 'result')
     NewRelic::Agent::Database.stubs(:get_connection).returns(@connection)
   end
@@ -25,14 +25,14 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   # Helpers for DataContainerTests
 
   def create_container
-    NewRelic::Agent::SqlSampler.new
+    @agent.sql_sampler
   end
 
   def populate_container(sampler, n)
     n.times do |i|
-      sampler.on_start_transaction(@state, nil)
-      sampler.notice_sql("SELECT * FROM test#{i}", "Database/test/select", {}, 1, @state)
-      sampler.on_finishing_transaction(@state, 'txn')
+      in_transaction do
+        sampler.notice_sql("SELECT * FROM test#{i}", "Database/test/select", {}, 1, @state)
+      end
     end
   end
 
@@ -56,35 +56,41 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_notice_sql
-    @sampler.on_start_transaction(@state, nil)
-    @sampler.notice_sql("select * from test", "Database/test/select", nil, 1.5, @state)
-    @sampler.notice_sql("select * from test2", "Database/test2/select", nil, 1.3, @state)
-    # this sql will not be captured
-    @sampler.notice_sql("select * from test", "Database/test/select", nil, 0, @state)
-    refute_nil @sampler.tl_transaction_data
-    assert_equal 2, @sampler.tl_transaction_data.sql_data.size
+    in_transaction do
+      @sampler.on_start_transaction(@state, nil)
+      @sampler.notice_sql("select * from test", "Database/test/select", nil, 1.5, @state)
+      @sampler.notice_sql("select * from test2", "Database/test2/select", nil, 1.3, @state)
+      # this sql will not be captured
+      @sampler.notice_sql("select * from test", "Database/test/select", nil, 0, @state)
+      refute_nil @sampler.tl_transaction_data
+      assert_equal 2, @sampler.tl_transaction_data.sql_data.size
+    end
   end
 
   def test_notice_sql_statement
-    @sampler.on_start_transaction(@state, nil)
+    in_transaction do
+      @sampler.on_start_transaction(@state, nil)
 
-    sql = "select * from test"
-    metric_name = "Database/test/select"
-    statement = NewRelic::Agent::Database::Statement.new sql, {:adapter => :mysql}
+      sql = "select * from test"
+      metric_name = "Database/test/select"
+      statement = NewRelic::Agent::Database::Statement.new sql, {:adapter => :mysql}
 
-    @sampler.notice_sql_statement(statement, metric_name, 1.5)
+      @sampler.notice_sql_statement(statement, metric_name, 1.5)
 
-    slow_sql =  @sampler.tl_transaction_data.sql_data[0]
+      slow_sql =  @sampler.tl_transaction_data.sql_data[0]
 
-    assert_equal statement, slow_sql.statement
-    assert_equal metric_name, slow_sql.metric_name
+      assert_equal statement, slow_sql.statement
+      assert_equal metric_name, slow_sql.metric_name
+    end
   end
 
   def test_notice_sql_truncates_query
-    @sampler.on_start_transaction(@state, nil)
-    message = 'a' * 17_000
-    @sampler.notice_sql(message, "Database/test/select", nil, 1.5, @state)
-    assert_equal('a' * 16_381 + '...', @sampler.tl_transaction_data.sql_data[0].sql)
+    in_transaction do
+      @sampler.on_start_transaction(@state, nil)
+      message = 'a' * 17_000
+      @sampler.notice_sql(message, "Database/test/select", nil, 1.5, @state)
+      assert_equal('a' * 16_381 + '...', @sampler.tl_transaction_data.sql_data[0].sql)
+    end
   end
 
   def test_save_slow_sql

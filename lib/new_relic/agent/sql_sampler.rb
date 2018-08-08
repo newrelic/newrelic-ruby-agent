@@ -145,7 +145,7 @@ module NewRelic
         data = state.sql_sampler_transaction_data
         return unless data
 
-        if state.is_sql_recorded?
+        if is_sql_recorded?(state)
           if duration > Agent.config[:'slow_sql.explain_threshold']
             backtrace = caller.join("\n")
             statement = Database::Statement.new(sql, config, explainer, binds, name)
@@ -169,11 +169,11 @@ module NewRelic
       end
 
       def notice_sql_statement(statement, metric_name, duration)
-        state ||= TransactionState.tl_get
+        state = TransactionState.tl_get
         data = state.sql_sampler_transaction_data
         return unless data
 
-        if state.is_sql_recorded?
+        if is_sql_recorded?(state)
           if duration > Agent.config[:'slow_sql.explain_threshold']
             backtrace = caller.join("\n")
             params = distributed_trace_intrinsics state
@@ -211,6 +211,13 @@ module NewRelic
         @samples_lock.synchronize do
           @sql_traces = {}
         end
+      end
+
+      private
+
+      def is_sql_recorded?(state)
+        return false unless txn = state.current_transaction
+        txn.is_sql_recorded?
       end
     end
 

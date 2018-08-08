@@ -34,13 +34,12 @@ module NewRelic
       def initialize
         @untraced = []
         @current_transaction = nil
-        @record_sql = nil
       end
 
       # This starts the timer for the transaction.
       def reset(transaction=nil)
-        # We purposefully don't reset @untraced or @record_sql
-        # since those are managed by NewRelic::Agent.disable_* calls explicitly
+        # We purposefully don't reset @untraced
+        # since it is managed by NewRelic::Agent.disable_* calls explicitly
         # and (more importantly) outside the scope of a transaction
 
         @timings = nil
@@ -125,10 +124,6 @@ module NewRelic
 
       # TT's and SQL
       attr_accessor :record_sql
-
-      def is_sql_recorded?
-        @record_sql != false
-      end
 
       # Busy calculator
       attr_accessor :busy_entries

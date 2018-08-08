@@ -262,9 +262,13 @@ module NewRelic
         # should not record sql in the current thread. Returns the
         # previous value, if there is one
         def set_record_sql(should_record) #THREAD_LOCAL_ACCESS
-          state = TransactionState.tl_get
-          prev = state.record_sql
-          state.record_sql = should_record
+          unless transaction = Transaction.tl_current
+            ::NewRelic::Agent.logger.log_once(:warn,
+                                              :record_sql_warning,
+                                              "Can't enable or disable SQL recording outside of a transaction.")
+          end
+          prev = transaction.record_sql
+          transaction.record_sql = should_record
           prev.nil? || prev
         end
 

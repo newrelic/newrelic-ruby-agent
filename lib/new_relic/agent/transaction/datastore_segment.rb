@@ -15,7 +15,7 @@ module NewRelic
         UNKNOWN = 'unknown'.freeze
 
         attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :host, :port_path_or_id
-        attr_accessor :database_name
+        attr_accessor :database_name, :record_sql
 
 
         def initialize product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name = nil, start_time = nil
@@ -135,7 +135,7 @@ module NewRelic
         end
 
         def record_sql?
-          transaction_state.is_sql_recorded?
+          transaction && (transaction.is_sql_recorded? || @record_sql)
         end
 
         def record_span_event
