@@ -34,13 +34,12 @@ module NewRelic
       def initialize
         @untraced = []
         @current_transaction = nil
-        @record_tt = nil
         @record_sql = nil
       end
 
       # This starts the timer for the transaction.
       def reset(transaction=nil)
-        # We purposefully don't reset @untraced, @record_tt and @record_sql
+        # We purposefully don't reset @untraced or @record_sql
         # since those are managed by NewRelic::Agent.disable_* calls explicitly
         # and (more importantly) outside the scope of a transaction
 
@@ -125,11 +124,7 @@ module NewRelic
       end
 
       # TT's and SQL
-      attr_accessor :record_tt, :record_sql
-
-      def is_transaction_traced?
-        @record_tt != false
-      end
+      attr_accessor :record_sql
 
       def is_sql_recorded?
         @record_sql != false
