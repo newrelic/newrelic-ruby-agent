@@ -11,6 +11,7 @@ require 'new_relic/agent/transaction/request_attributes'
 require 'new_relic/agent/transaction/tracing'
 require 'new_relic/agent/transaction/distributed_tracing'
 require 'new_relic/agent/cross_app_tracing'
+require 'new_relic/agent/transaction_time_aggregator'
 
 module NewRelic
   module Agent
@@ -446,7 +447,7 @@ module NewRelic
 
         sql_sampler.on_start_transaction(state, start_time, request_path)
         NewRelic::Agent.instance.events.notify(:start_transaction)
-        NewRelic::Agent::BusyCalculator.dispatcher_start(start_time)
+        NewRelic::Agent::TransactionTimeAggregator.transaction_start(start_time)
 
         ignore! if user_defined_rules_ignore?
 
@@ -542,7 +543,7 @@ module NewRelic
 
         outermost_frame.finish
 
-        NewRelic::Agent::BusyCalculator.dispatcher_finish(end_time)
+        NewRelic::Agent::TransactionTimeAggregator.transaction_stop(end_time)
 
         commit!(state, end_time, outermost_frame.name) unless @ignore_this_transaction
       end

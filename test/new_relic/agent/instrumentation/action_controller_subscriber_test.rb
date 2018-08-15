@@ -187,7 +187,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     advance_time(1)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
-    NewRelic::Agent::BusyCalculator.harvest_busy
+    NewRelic::Agent::TransactionTimeAggregator.harvest!
 
     assert_metrics_recorded('Instance/Busy' => { :call_count => 1, :total_call_time => 1.0 })
   end
