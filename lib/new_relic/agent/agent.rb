@@ -924,6 +924,7 @@ module NewRelic
           when :error_event_data        then @error_collector.error_event_aggregator
           when :analytic_event_data     then transaction_event_aggregator
           when :custom_event_data       then @custom_event_aggregator
+          when :span_event_data         then span_event_aggregator
           when :sql_trace_data          then @sql_sampler
           end
         end
