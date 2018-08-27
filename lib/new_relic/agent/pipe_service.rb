@@ -53,6 +53,10 @@ module NewRelic
         write_to_pipe(:error_event_data, events) if events
       end
 
+      def span_event_data(events)
+        write_to_pipe(:span_event_data, events) if events
+      end
+
       def sql_trace_data(sql)
         write_to_pipe(:sql_trace_data, sql) if sql
       end
