@@ -95,9 +95,8 @@ module NewRelic
           super
         end
 
-        def transaction= t
-          super
-          @record_sql = t.record_sql
+        def transaction_assigned
+          @record_sql = transaction.record_sql
         end
 
         private
