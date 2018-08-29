@@ -115,6 +115,10 @@ module NewRelic
           sprintf('#<%s:0x%x %s>', self.class.name, object_id, ivars.join(', '))
         end
 
+        # callback for subclasses to override
+        def transaction_assigned
+        end
+
         protected
 
         attr_writer :range_recorded
