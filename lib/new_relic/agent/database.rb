@@ -203,7 +203,7 @@ module NewRelic
         def safe_sql
           @safe_sql ||= case Database.record_sql_method
             when :obfuscated
-              Database.obfuscate_sql(sql)
+              Database.obfuscate_sql(self)
             when :raw
               sql.to_s
             else
