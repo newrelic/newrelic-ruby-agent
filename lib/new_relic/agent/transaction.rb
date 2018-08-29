@@ -287,6 +287,7 @@ module NewRelic
 
         @sampled = nil
         @priority = nil
+        @record_sql = Agent.config[:'slow_sql.record_sql']
 
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 

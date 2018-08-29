@@ -95,6 +95,13 @@ module NewRelic
           super
         end
 
+        def transaction= t
+          super
+          @record_sql = t.record_sql
+        rescue => e
+          NewRelic::Agent.logger.error "Error during datastore segment processing", e
+        end
+
         private
 
         def segment_complete
@@ -135,7 +142,7 @@ module NewRelic
         end
 
         def record_sql?
-          transaction && (transaction.is_sql_recorded? || @record_sql)
+          @record_sql
         end
 
         def record_span_event
