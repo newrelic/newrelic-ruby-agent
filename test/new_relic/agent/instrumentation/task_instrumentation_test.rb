@@ -9,19 +9,16 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
 
   def run_task_inner(n)
     return if n == 0
-    assert_equal 1, NewRelic::Agent::BusyCalculator.busy_count
     run_task_inner(n-1)
   end
 
   def run_task_outer(n=0)
-    assert_equal 1, NewRelic::Agent::BusyCalculator.busy_count
     run_task_inner(n)
     run_task_inner(n)
   end
 
   def run_task_exception
     NewRelic::Agent.add_custom_attributes(:custom_one => 'one custom val')
-    assert_equal 1, NewRelic::Agent::BusyCalculator.busy_count
     raise "This is an error"
   end
 

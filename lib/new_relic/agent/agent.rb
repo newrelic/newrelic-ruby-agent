@@ -1075,7 +1075,7 @@ module NewRelic
         end
 
         def harvest_and_send_timeslice_data
-          NewRelic::Agent::BusyCalculator.harvest_busy
+          NewRelic::Agent::TransactionTimeAggregator.harvest!
           harvest_and_send_from_container(@stats_engine, :metric_data)
         end
 

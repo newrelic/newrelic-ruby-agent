@@ -186,7 +186,7 @@ module NewRelic
       # For use by test code only.
       def clear_stats
         reset!
-        NewRelic::Agent::BusyCalculator.reset
+        NewRelic::Agent::TransactionTimeAggregator.reset!
       end
 
       # For use by test code only.
