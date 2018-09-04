@@ -504,8 +504,8 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, enables the exit handler that sends data to the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a> before shutting down.'
         },
-        :post_size_limit => {
-          :default => 2 * 1024 * 1024, # 2MB
+        :max_payload_size_in_bytes => {
+          :default => 1000000,
           :public => false,
           :type => Integer,
           :allowed_from_server => true,

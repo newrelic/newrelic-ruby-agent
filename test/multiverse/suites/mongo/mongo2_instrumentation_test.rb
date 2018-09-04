@@ -451,7 +451,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             node = find_last_transaction_node
             statement = node.params[:statement]
 
-            refute statement.inspect.include?('$secret')
+            refute statement.inspect.include?('$ecret')
             assert_equal '?', statement['filter']['password']
           end
 

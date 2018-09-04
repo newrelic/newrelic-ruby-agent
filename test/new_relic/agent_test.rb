@@ -124,21 +124,6 @@ module NewRelic
       NewRelic::Agent.instance_eval { @agent = old_agent }
     end
 
-    def test_is_transaction_traced_true
-      NewRelic::Agent::TransactionState.tl_get.record_tt = true
-      assert_equal(true, NewRelic::Agent.tl_is_transaction_traced?, 'should be true since the thread local is set')
-    end
-
-    def test_is_transaction_traced_blank
-      NewRelic::Agent::TransactionState.tl_get.record_tt = nil
-      assert_equal(true, NewRelic::Agent.tl_is_transaction_traced?, 'should be true since the thread local is not set')
-    end
-
-    def test_is_transaction_traced_false
-      NewRelic::Agent::TransactionState.tl_get.record_tt = false
-      assert_equal(false, NewRelic::Agent.tl_is_transaction_traced?, 'should be false since the thread local is false')
-    end
-
     def test_is_sql_recorded_true
       NewRelic::Agent::TransactionState.tl_get.record_sql = true
       assert_equal(true, NewRelic::Agent.tl_is_sql_recorded?, 'should be true since the thread local is set')
@@ -239,13 +224,13 @@ module NewRelic
     def test_increment_metric
       dummy_engine = NewRelic::Agent.agent.stats_engine
       dummy_stats = mock
-      dummy_stats.expects(:increment_count).with(1)
+      dummy_stats.expects(:increment_count)
       dummy_stats.expects(:increment_count).with(12)
       dummy_engine.expects(:tl_record_unscoped_metrics).with('Supportability/API/increment_metric').yields(dummy_stats)
       dummy_engine.expects(:tl_record_unscoped_metrics).with('foo').yields(dummy_stats)
       NewRelic::Agent.increment_metric('foo', 12)
     end
-    
+
     class Transactor
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
       def txn
@@ -381,6 +366,19 @@ module NewRelic
       end
 
       assert log.array.any? {|msg| msg.include?('Passing the :trace_only option to NewRelic::Agent.notice_error is deprecated. Please use :expected instead') }
+    end
+
+    def test_disable_transaction_tracing_deprecated
+      log = with_array_logger(:warn) do
+        NewRelic::Agent.disable_transaction_tracing do
+          in_transaction do |txn|
+            # no-op
+          end
+        end
+      end
+
+      assert log.array.any? { |msg| msg.include?('The method disable_transaction_tracing is deprecated.'         ) }
+      assert log.array.any? { |msg| msg.include?('Please use disable_all_tracing or ignore_transaction instead.' ) }
     end
 
     def test_eventing_helpers

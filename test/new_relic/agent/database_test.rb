@@ -512,6 +512,18 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     assert_equal "select * from mytable where name = ?;", statement.safe_sql
   end
 
+  def test_safe_sql_does_not_over_obfuscate_for_postgres
+    NewRelic::Agent::Database.stubs(:record_sql_method).returns :obfuscated
+
+    conf = {:adapter=>"postgresql", :encoding=>"utf8", :pool=>10, :port=>5432, :prepared_statements=>false, :ssl_mode=>"require"}
+    sql = "SELECT  \"users\".* FROM \"users\" WHERE \"users\".\"deleted_at\" IS NULL AND \"users\".\"id\" = 1602 LIMIT 1"
+    expected_sql = "SELECT  \"users\".* FROM \"users\" WHERE \"users\".\"deleted_at\" IS ? AND \"users\".\"id\" = ? LIMIT ?"
+
+    stmt = NewRelic::Agent::Database::Statement.new sql, conf
+
+    assert_equal expected_sql, stmt.safe_sql
+  end
+
   def test_safe_sql_returns_raw_when_set
     NewRelic::Agent::Database.stubs(:record_sql_method).returns :raw
     statement = NewRelic::Agent::Database::Statement.new "select * from mytable where name = '1337807';"

@@ -638,14 +638,14 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_compress_request_if_needed_compresses_large_payloads
     large_payload = 'a' * 65 * 1024
-    body, encoding = @service.compress_request_if_needed(large_payload)
+    body, encoding = @service.compress_request_if_needed(large_payload, :foobar)
     assert_equal(large_payload, Zlib::Inflate.inflate(body))
     assert_equal('deflate', encoding)
   end
 
   def test_compress_request_if_needed_passes_thru_small_payloads
     payload = 'a' * 100
-    body, encoding = @service.compress_request_if_needed(payload)
+    body, encoding = @service.compress_request_if_needed(payload, :foobar)
     assert_equal(payload, body)
     assert_equal('identity', encoding)
   end
@@ -782,6 +782,19 @@ class NewRelicServiceTest < Minitest::Test
       'Supportability/invoke_remote_serialize/foobar' => { :call_count => 1},
       'Supportability/invoke_remote_size'             => expected_values,
       'Supportability/invoke_remote_size/foobar'      => expected_values
+    )
+  end
+
+  def test_max_payload_size_enforced
+    NewRelic::Agent.drop_buffered_data
+    payload = '.' * (NewRelic::Agent.config[:max_payload_size_in_bytes] + 1)
+
+    assert_raises NewRelic::Agent::UnrecoverableServerException do
+      @service.send(:check_post_size, payload, :foobar)
+    end
+
+    assert_metrics_recorded(
+      "Supportability/Agent/Collector/foobar/MaxPayloadSizeLimit" => { :call_count => 1 }
     )
   end
 

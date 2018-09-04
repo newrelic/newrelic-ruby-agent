@@ -69,6 +69,13 @@ class PipeServiceTest < Minitest::Test
       assert_equal ['err_ev'], received_data[:error_event_data]
     end
 
+    def test_span_event_data
+      received_data = data_from_forked_process do
+        @service.span_event_data(['span_ev'])
+      end
+      assert_equal ['span_ev'], received_data[:span_event_data]
+    end
+
     def test_sql_trace_data
       received_data = data_from_forked_process do
         @service.sql_trace_data(['sql'])

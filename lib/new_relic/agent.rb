@@ -45,7 +45,6 @@ module NewRelic
     require 'new_relic/agent/sql_sampler'
     require 'new_relic/agent/commands/thread_profiler_session'
     require 'new_relic/agent/error_collector'
-    require 'new_relic/agent/busy_calculator'
     require 'new_relic/agent/sampler'
     require 'new_relic/agent/database'
     require 'new_relic/agent/datastores'
@@ -55,6 +54,7 @@ module NewRelic
     require 'new_relic/agent/http_clients/uri_util'
     require 'new_relic/agent/system_info'
     require 'new_relic/agent/external'
+    require 'new_relic/agent/deprecator'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
@@ -206,11 +206,17 @@ module NewRelic
     # This method is safe to use from any thread.
     #
     # @api public
+
+    SUPPORTABILITY_INCREMENT_METRIC = 'Supportability/API/increment_metric'.freeze
+
     def increment_metric(metric_name, amount=1) #THREAD_LOCAL_ACCESS
       return unless agent
-
-      { 'Supportability/API/increment_metric' => 1,  metric_name => amount }.each do |metric, increment_amount|
-        agent.stats_engine.tl_record_unscoped_metrics(metric) {|stats| stats.increment_count(increment_amount) }
+      if amount == 1
+        metrics = [metric_name, SUPPORTABILITY_INCREMENT_METRIC]
+        agent.stats_engine.tl_record_unscoped_metrics(metrics) {|stats| stats.increment_count}
+      else
+        agent.stats_engine.tl_record_unscoped_metrics(metric_name) {|stats| stats.increment_count(amount)}
+        agent.stats_engine.tl_record_unscoped_metrics(SUPPORTABILITY_INCREMENT_METRIC) {|stats| stats.increment_count}
       end
     end
 
@@ -504,16 +510,10 @@ module NewRelic
     # @api public
     #
     def disable_transaction_tracing
+      Deprecator.deprecate :disable_transaction_tracing,
+                           'disable_all_tracing or ignore_transaction'
       record_api_supportability_metric(:disable_transaction_tracing)
-
-      return yield unless agent
-
-      state = agent.set_record_tt(false)
-      begin
-        yield
-      ensure
-        agent.set_record_tt(state)
-      end
+      yield
     end
 
     # This method sets the state of sql recording in the transaction
@@ -545,12 +545,6 @@ module NewRelic
     # Check to see if we are capturing metrics currently on this thread.
     def tl_is_execution_traced?
       NewRelic::Agent::TransactionState.tl_get.is_execution_traced?
-    end
-
-    # helper method to check the thread local to determine whether the
-    # transaction in progress is traced or not
-    def tl_is_transaction_traced?
-      NewRelic::Agent::TransactionState.tl_get.is_transaction_traced?
     end
 
     # helper method to check the thread local to determine whether sql

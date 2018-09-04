@@ -66,14 +66,6 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     end
   end
 
-  def test_browser_timing_header_disable_transaction_tracing
-    in_transaction do
-      NewRelic::Agent.disable_transaction_tracing do
-        assert_equal "", instrumentor.browser_timing_header
-      end
-    end
-  end
-
   def test_browser_timing_header_disable_all_tracing
     in_transaction do
       NewRelic::Agent.disable_all_tracing do

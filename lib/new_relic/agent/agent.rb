@@ -268,16 +268,6 @@ module NewRelic
           prev.nil? || prev
         end
 
-        # Sets a thread local variable as to whether we should or
-        # should not record transaction traces in the current
-        # thread. Returns the previous value, if there is one
-        def set_record_tt(should_record) #THREAD_LOCAL_ACCESS
-          state = TransactionState.tl_get
-          prev = state.record_tt
-          state.record_tt = should_record
-          prev.nil? || prev
-        end
-
         # Push flag indicating whether we should be tracing in this
         # thread. This uses a stack which allows us to disable tracing
         # children of a transaction without affecting the tracing of
@@ -934,6 +924,7 @@ module NewRelic
           when :error_event_data        then @error_collector.error_event_aggregator
           when :analytic_event_data     then transaction_event_aggregator
           when :custom_event_data       then @custom_event_aggregator
+          when :span_event_data         then span_event_aggregator
           when :sql_trace_data          then @sql_sampler
           end
         end
@@ -1084,7 +1075,7 @@ module NewRelic
         end
 
         def harvest_and_send_timeslice_data
-          NewRelic::Agent::BusyCalculator.harvest_busy
+          NewRelic::Agent::TransactionTimeAggregator.harvest!
           harvest_and_send_from_container(@stats_engine, :metric_data)
         end
 
