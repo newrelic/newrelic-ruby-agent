@@ -1,7 +1,6 @@
 digraph AgentEnabled {
   node[color=green]
   "[agent_enabled]"
-  "[developer_mode]"
   "[monitor_mode]"
   "[slow_sql.explain_threshold]"
   "[slow_sql.stack_trace_threshold]"
@@ -198,7 +197,6 @@ digraph AgentEnabled {
   "Agent#validate_settings" -> "[validate_token]"
   "Agent#log_error" -> "Control#server"
   "Agent#monitoring?" -> "[monitor_mode]"
-  "Agent#check_trasaction_sampler_status" -> "[developer_mode]"
   "Agent#check_sql_sampler_status" -> "[slow_sql.enabled]"
   "Agent#check_sql_sampler_status" -> "[slow_sql.record_sql]"
   "Agent#check_sql_sampler_status" -> "[transaction_tracer.enabled]"
@@ -213,7 +211,6 @@ digraph AgentEnabled {
   "MethodTracer#remove_method_tracer" -> "[agent_enabled]"
 
   "Rails#init_config" -> "[agent_enabled]"
-  "Rails#init_config" -> "[developer_mode]"
 
   "ErrorCollector#initialize" -> "[error_collector.enabled]"
   "ErrorCollector#initialize" -> "[error_collector.capture_source]"
@@ -237,10 +234,6 @@ digraph AgentEnabled {
   "TransactionSampler#configure!" -> "[transaction_tracer.explain_threshold]"
   "TransactionSampler#configure!" -> "[transaction_tracer.explain_enabled]"
   "TransactionSampler#configure!" -> "[transaction_tracer.transaction_threshold]"
-  "TransactionSampler#configure!" -> "[developer_mode]"
-  "TransactionSampler#notice_push_scope" -> "[developer_mode]"
-  "TransactionSampler#capture_segment_trace" -> "[developer_mode]"
-  "TransactionSampler#store_segment_for_developer_mode" -> "[developer_mode]"
 
   "NoticedError#initialize" -> "[high_security]"
 
