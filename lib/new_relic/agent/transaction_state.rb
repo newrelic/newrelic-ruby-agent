@@ -13,6 +13,13 @@ module NewRelic
           tl_state_for(Thread.current)
         end
 
+        alias_method :trace_state, :tl_get
+
+        def current_transaction
+          return unless state = trace_state
+          state.current_transaction
+        end
+
         # This method should only be used by TransactionState for access to the
         # current thread's state or to provide read-only accessors for other threads
         #
@@ -138,5 +145,7 @@ module NewRelic
       # Sql Sampler Transaction Data
       attr_accessor :sql_sampler_transaction_data
     end
+
+    Tracer = TransactionState
   end
 end
