@@ -15,6 +15,11 @@ module NewRelic
 
         alias_method :trace_state, :tl_get
 
+        def tracing_enabled?
+          return unless state = trace_state
+          state.tracing_enabled?
+        end
+
         def current_transaction
           return unless state = trace_state
           state.current_transaction
@@ -131,6 +136,8 @@ module NewRelic
       def is_execution_traced?
         @untraced.nil? || @untraced.last != false
       end
+
+      alias_method :tracing_enabled?, :is_execution_traced?
 
       # TT's and SQL
       attr_accessor :record_sql

@@ -21,6 +21,18 @@ module NewRelic
       def test_current_transaction_without_transaction
         assert_nil Tracer.current_transaction
       end
+
+      def test_tracing_enabled
+        NewRelic::Agent.disable_all_tracing do
+          in_transaction do
+            NewRelic::Agent.disable_all_tracing do
+              refute Tracer.tracing_enabled?
+            end
+            refute Tracer.tracing_enabled?
+          end
+        end
+        assert Tracer.tracing_enabled?
+      end
     end
   end
 end
