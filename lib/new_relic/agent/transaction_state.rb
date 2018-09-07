@@ -8,27 +8,29 @@ module NewRelic
     # This is THE location to store thread local information during a transaction
     # Need a new piece of data? Add a method here, NOT a new thread local variable.
     class TransactionState
-      def self.tl_get
-        tl_state_for(Thread.current)
-      end
-
-      # This method should only be used by TransactionState for access to the
-      # current thread's state or to provide read-only accessors for other threads
-      #
-      # If ever exposed, this requires additional synchronization
-      def self.tl_state_for(thread)
-        state = thread[:newrelic_transaction_state]
-
-        if state.nil?
-          state = TransactionState.new
-          thread[:newrelic_transaction_state] = state
+      class << self
+        def tl_get
+          tl_state_for(Thread.current)
         end
 
-        state
-      end
+        # This method should only be used by TransactionState for access to the
+        # current thread's state or to provide read-only accessors for other threads
+        #
+        # If ever exposed, this requires additional synchronization
+        def tl_state_for(thread)
+          state = thread[:newrelic_transaction_state]
 
-      def self.tl_clear
-        Thread.current[:newrelic_transaction_state] = nil
+          if state.nil?
+            state = TransactionState.new
+            thread[:newrelic_transaction_state] = state
+          end
+
+          state
+        end
+
+        def tl_clear
+          Thread.current[:newrelic_transaction_state] = nil
+        end
       end
 
       def initialize
