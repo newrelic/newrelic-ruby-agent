@@ -33,6 +33,27 @@ module NewRelic
         end
         assert Tracer.tracing_enabled?
       end
+
+      def test_start_transaction_without_one_already_existing
+        assert_nil Tracer.current_transaction
+
+        txn = Tracer.start_transaction(name: "Controller/Blogs/index",
+                                       category: :controller)
+
+        assert_equal txn, Tracer.current_transaction
+      end
+
+      def test_start_transaction_returns_current_if_aready_in_progress
+        in_transaction do |txn1|
+          refute_nil Tracer.current_transaction
+
+          txn2 = Tracer.start_transaction(name: "Controller/Blogs/index",
+                                         category: :controller)
+
+          assert_equal txn2, txn1
+          assert_equal txn2, Tracer.current_transaction
+        end
+      end
     end
   end
 end
