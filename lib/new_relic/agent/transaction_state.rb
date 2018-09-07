@@ -16,13 +16,11 @@ module NewRelic
         alias_method :trace_state, :tl_get
 
         def tracing_enabled?
-          return unless state = trace_state
-          state.tracing_enabled?
+          trace_state.tracing_enabled?
         end
 
         def current_transaction
-          return unless state = trace_state
-          state.current_transaction
+          trace_state.current_transaction
         end
 
         # This method should only be used by TransactionState for access to the
