@@ -25,14 +25,19 @@ module NewRelic
 
         # A more ergonomic API would be to have transaction derive the
         # category from the transaction name and we should explore this as an
-        # option soon.
-        def start_transaction(name: nil, category: nil)
+        # option.
+        def start_transaction(name: nil, category: nil, **options)
+          raise ArgumentError, 'missing required argument: name' if name.nil?
+          raise ArgumentError, 'missing required argument: category' if category.nil?
+
           state = trace_state
           return state.current_transaction if state.current_transaction
 
+          options[:transaction_name] =  name
+
           Transaction.start_new_transaction(trace_state,
                                             category,
-                                            transaction_name: name)
+                                            options)
         end
 
         # This method should only be used by TransactionState for access to the
