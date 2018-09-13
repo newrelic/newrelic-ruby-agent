@@ -41,6 +41,10 @@ module NewRelic
                                        category: :controller)
 
         assert_equal txn, Tracer.current_transaction
+
+        # For now use Transaction.stop, ultimately we want the instance method
+        # Transaction#stop to be able to fullfill these purposes
+        Transaction.stop(Tracer.trace_state)
       end
 
       def test_start_transaction_returns_current_if_aready_in_progress
