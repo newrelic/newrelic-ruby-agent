@@ -144,7 +144,7 @@ module NewRelic
 
       FAILED_TO_STOP_MESSAGE = "Failed during Transaction.stop because there is no current transaction"
 
-      def self.stop(state, end_time=Time.now)
+      def self.stop(state)
         txn = state.current_transaction
 
         if txn.nil?
@@ -155,7 +155,7 @@ module NewRelic
         nested_frame = txn.frame_stack.pop
 
         if txn.frame_stack.empty?
-          txn.stop(state, end_time, nested_frame)
+          txn.stop(state, nested_frame)
           state.reset
         else
           nested_frame.finish
@@ -531,10 +531,10 @@ module NewRelic
         name.start_with?(MIDDLEWARE_PREFIX)
       end
 
-      def stop(state, end_time, outermost_frame)
+      def stop(state, outermost_frame)
         return if !state.is_execution_traced?
 
-        @end_time = end_time
+        @end_time = Time.now
         freeze_name_and_execute_if_not_ignored
 
         if nesting_max_depth == 1
@@ -543,7 +543,7 @@ module NewRelic
 
         outermost_frame.finish
 
-        NewRelic::Agent::TransactionTimeAggregator.transaction_stop(end_time)
+        NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time)
 
         commit!(state, end_time, outermost_frame.name) unless @ignore_this_transaction
       end
