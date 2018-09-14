@@ -21,7 +21,7 @@ module NewRelic
             if payload_object.is_a? ::Delayed::PerformableMethod
               # payload_object contains a reference to an object
               # that received an asynchronous method call via .delay or .handle_asynchronously
-              if payload_object.respond_to?(:display_name)
+              if NewRelic::Agent.config[:'delayed_job.use_display_name']
                 payload_object.display_name
               else
                 "#{object_name(payload_object)}#{delimiter(payload_object)}#{method_name(payload_object)}"

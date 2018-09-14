@@ -761,6 +761,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, disables the use of GC::Profiler to measure time spent in garbage collection'
         },
+        :'delayed_job.use_display_name' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Use Delayed::Job#display_name for naming transactions.'
+        },
         :'sidekiq.capture_params' => {
           :default => false,
           :public => true,
