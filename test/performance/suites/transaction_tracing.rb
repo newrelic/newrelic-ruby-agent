@@ -102,4 +102,29 @@ class TransactionTracingPerfTests < Performance::TestCase
       end
     end
   end
+
+  TXNAME = "Controller/Blogs/index".freeze
+
+  def test_start_with_transaction_start
+    measure do
+      state = NewRelic::Agent::TransactionState.tl_get
+      if state.is_execution_traced?
+        NewRelic::Agent::Transaction.start(state,
+                                           :controller,
+                                           transaction_name: TXNAME)
+        NewRelic::Agent::Transaction.stop(state)
+      end
+    end
+  end
+
+  def test_start_with_tracer_start
+    state = NewRelic::Agent::TransactionState.tl_get
+    measure do
+      if NewRelic::Agent::Tracer.tracing_enabled? && !NewRelic::Agent::Tracer.current_transaction
+        NewRelic::Agent::Tracer.start_transaction(name: TXNAME,
+                                                  category: :controller)
+        NewRelic::Agent::Transaction.stop(state)
+      end
+    end
+  end
 end

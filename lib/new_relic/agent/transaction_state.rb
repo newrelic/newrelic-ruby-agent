@@ -8,27 +8,56 @@ module NewRelic
     # This is THE location to store thread local information during a transaction
     # Need a new piece of data? Add a method here, NOT a new thread local variable.
     class TransactionState
-      def self.tl_get
-        tl_state_for(Thread.current)
-      end
-
-      # This method should only be used by TransactionState for access to the
-      # current thread's state or to provide read-only accessors for other threads
-      #
-      # If ever exposed, this requires additional synchronization
-      def self.tl_state_for(thread)
-        state = thread[:newrelic_transaction_state]
-
-        if state.nil?
-          state = TransactionState.new
-          thread[:newrelic_transaction_state] = state
+      class << self
+        def tl_get
+          tl_state_for(Thread.current)
         end
 
-        state
-      end
+        alias_method :trace_state, :tl_get
 
-      def self.tl_clear
-        Thread.current[:newrelic_transaction_state] = nil
+        def tracing_enabled?
+          trace_state.tracing_enabled?
+        end
+
+        def current_transaction
+          trace_state.current_transaction
+        end
+
+        # A more ergonomic API would be to have transaction derive the
+        # category from the transaction name and we should explore this as an
+        # option.
+        def start_transaction(name: nil, category: nil, **options)
+          raise ArgumentError, 'missing required argument: name' if name.nil?
+          raise ArgumentError, 'missing required argument: category' if category.nil?
+
+          state = trace_state
+          return state.current_transaction if state.current_transaction
+
+          options[:transaction_name] =  name
+
+          Transaction.start_new_transaction(trace_state,
+                                            category,
+                                            options)
+        end
+
+        # This method should only be used by TransactionState for access to the
+        # current thread's state or to provide read-only accessors for other threads
+        #
+        # If ever exposed, this requires additional synchronization
+        def tl_state_for(thread)
+          state = thread[:newrelic_transaction_state]
+
+          if state.nil?
+            state = TransactionState.new
+            thread[:newrelic_transaction_state] = state
+          end
+
+          state
+        end
+
+        def tl_clear
+          Thread.current[:newrelic_transaction_state] = nil
+        end
       end
 
       def initialize
@@ -123,6 +152,8 @@ module NewRelic
         @untraced.nil? || @untraced.last != false
       end
 
+      alias_method :tracing_enabled?, :is_execution_traced?
+
       # TT's and SQL
       attr_accessor :record_sql
 
@@ -136,5 +167,7 @@ module NewRelic
       # Sql Sampler Transaction Data
       attr_accessor :sql_sampler_transaction_data
     end
+
+    Tracer = TransactionState
   end
 end
