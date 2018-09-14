@@ -83,11 +83,21 @@ DependencyDetection.defer do
     defined?(::Delayed) && defined?(::Delayed::Worker) && !NewRelic::Agent.config[:disable_dj]
   end
 
+  depends_on do
+    # Because init_plugin runs dependency detection again.
+    !Delayed::Worker.method_defined?(:initialize_with_new_relic)
+  end
+
   executes do
     ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation [part 1/2]'
   end
 
   executes do
+    unless defined?(::Delayed::Job) && ::Delayed::Job.method_defined?(:invoke_job)
+      NewRelic::Agent.logger.warn("Did not find a Delayed::Job class responding to invoke_job, aborting DJ instrumentation")
+      next
+    end
+
     Delayed::Worker.class_eval do
       def initialize_with_new_relic(*args)
         initialize_without_new_relic(*args)
@@ -96,41 +106,32 @@ DependencyDetection.defer do
                       when self.class.respond_to?(:default_name) then self.class.default_name
                       end
         NewRelic::DelayedJobInjection.worker_name = worker_name
-
-        if defined?(::Delayed::Job) && ::Delayed::Job.method_defined?(:invoke_job) &&
-          !(::Delayed::Job.method_defined?(:invoke_job_without_new_relic) )
-
-          ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation [part 2/2]'
-          install_newrelic_job_tracer
-          NewRelic::Control.instance.init_plugin :dispatcher => :delayed_job
-        else
-          NewRelic::Agent.logger.warn("Did not find a Delayed::Job class responding to invoke_job, aborting DJ instrumentation")
-        end
       end
 
       alias initialize_without_new_relic initialize
       alias initialize initialize_with_new_relic
+    end
 
-      NR_TRANSACTION_CATEGORY = 'OtherTransaction/DelayedJob'.freeze
+    ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation [part 2/2]'
+    Delayed::NR_TRANSACTION_CATEGORY = 'OtherTransaction/DelayedJob'.freeze
 
-      def install_newrelic_job_tracer
-        Delayed::Job.class_eval do
-          include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+    Delayed::Job.class_eval do
+      include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
-          alias_method :invoke_job_without_new_relic, :invoke_job
+      alias_method :invoke_job_without_new_relic, :invoke_job
 
-          def invoke_job(*args, &block)
-            options = {
-              :category => NR_TRANSACTION_CATEGORY,
-              :path => ::NewRelic::Agent::Instrumentation::DelayedJob::Naming.name_from_payload(payload_object)
-            }
+      def invoke_job(*args, &block)
+        options = {
+          :category => Delayed::NR_TRANSACTION_CATEGORY,
+          :path => ::NewRelic::Agent::Instrumentation::DelayedJob::Naming.name_from_payload(payload_object)
+        }
 
-            perform_action_with_newrelic_trace(options) do
-              invoke_job_without_new_relic(*args, &block)
-            end
-          end
+        perform_action_with_newrelic_trace(options) do
+          invoke_job_without_new_relic(*args, &block)
         end
       end
     end
+
+    NewRelic::Control.instance.init_plugin :dispatcher => :delayed_job
   end
 end
