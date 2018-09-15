@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Documentation improvement
+
+    The `config.dot` diagram of the agent's configuration settings no
+    longer includes the deleted `developer_mode` option.  Thanks to
+    Yuichiro Kaneko for the contribution!
+
 ## v5.4.0
 
   * Capacity analysis for multi-threaded dispatchers
