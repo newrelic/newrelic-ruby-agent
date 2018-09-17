@@ -70,6 +70,19 @@ module NewRelic
                                               parent: parent)
         end
 
+        def start_external_request_segment(library: nil,
+                                           uri: nil,
+                                           procedure: nil,
+                                           start_time: nil,
+                                           parent: nil)
+
+          Transaction.start_external_request_segment(library: library,
+                                                     uri: uri,
+                                                     procedure: procedure,
+                                                     start_time: start_time,
+                                                     parent: parent)
+        end
+
         # This method should only be used by TransactionState for access to the
         # current thread's state or to provide read-only accessors for other threads
         #

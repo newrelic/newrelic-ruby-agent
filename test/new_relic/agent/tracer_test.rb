@@ -107,6 +107,27 @@ module NewRelic
                                             start_time: start_time,
                                             parent: parent)
       end
+
+      def test_start_external_request_segment_delegates_to_transaction
+        library    = "Net::HTTP"
+        uri        = "https://docs.newrelic.com"
+        procedure  = "GET"
+        start_time = Time.now
+        parent     = Tracer.start_segment(name: "parent")
+
+        Transaction.expects(:start_external_request_segment)
+                   .with(library: library,
+                         uri: uri,
+                         procedure: procedure,
+                         start_time: start_time,
+                         parent: parent)
+
+        Transaction.start_external_request_segment(library: library,
+                                                   uri: uri,
+                                                   procedure: procedure,
+                                                   start_time: start_time,
+                                                   parent: parent)
+      end
     end
   end
 end
