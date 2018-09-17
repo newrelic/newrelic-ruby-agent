@@ -83,6 +83,25 @@ module NewRelic
                                                      parent: parent)
         end
 
+        def start_message_broker_segment(action: nil,
+                                         library: nil,
+                                         destination_type: nil,
+                                         destination_name: nil,
+                                         headers: nil,
+                                         parameters: nil,
+                                         start_time: nil,
+                                         parent: nil)
+
+          Transaction.start_message_broker_segment(action: action,
+                                                   library: library,
+                                                   destination_type: destination_type,
+                                                   destination_name: destination_name,
+                                                   headers: headers,
+                                                   parameters: parameters,
+                                                   start_time: start_time,
+                                                   parent: parent)
+        end
+
         # This method should only be used by TransactionState for access to the
         # current thread's state or to provide read-only accessors for other threads
         #

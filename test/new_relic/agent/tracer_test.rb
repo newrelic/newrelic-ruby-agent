@@ -128,6 +128,36 @@ module NewRelic
                                                    start_time: start_time,
                                                    parent: parent)
       end
+
+      def test_start_message_broker_segment_delegates_to_transaction
+        action           = :produce,
+        library          = "RabbitMQ"
+        destination_type =  :exchange,
+        destination_name = "QQ"
+        headers          = {foo: "bar"}
+        parameters       = {bar: "baz"}
+        start_time       = Time.now
+        parent           = Tracer.start_segment(name: "parent")
+
+        Transaction.expects(:start_message_broker_segment)
+                   .with(action: action,
+                         library: library,
+                         destination_type: destination_type,
+                         destination_name: destination_name,
+                         headers: headers,
+                         parameters: parameters,
+                         start_time: start_time,
+                         parent: parent)
+
+        Transaction.start_message_broker_segment(action: action,
+                                                 library: library,
+                                                 destination_type: destination_type,
+                                                 destination_name: destination_name,
+                                                 headers: headers,
+                                                 parameters: parameters,
+                                                 start_time: start_time,
+                                                 parent: parent)
+      end
     end
   end
 end
