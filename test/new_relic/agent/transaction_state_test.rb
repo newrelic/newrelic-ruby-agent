@@ -72,6 +72,12 @@ module NewRelic::Agent
       assert_equal(false, state.is_cross_app_callee?)
     end
 
+    def test_reset_doesnt_touch_record_sql
+      state.record_sql = false
+      state.reset
+      refute state.record_sql
+    end
+
     def test_reset_doesnt_touch_untraced_stack
       state.push_traced(true)
       state.reset

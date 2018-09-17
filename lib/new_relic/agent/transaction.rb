@@ -57,8 +57,7 @@ module NewRelic
                     :process_cpu_start,
                     :http_response_code,
                     :response_content_length,
-                    :response_content_type,
-                    :record_sql
+                    :response_content_type
 
       attr_reader :guid,
                   :metrics,
@@ -991,10 +990,6 @@ module NewRelic
                                                cat_trip_id,
                                                cat_path_hash,
                                                raw_synthetics_header
-      end
-
-      def is_sql_recorded?
-        @record_sql != false
       end
 
       private

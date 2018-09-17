@@ -152,7 +152,6 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
     def test_listener_merges_sql_traces
       sampler = NewRelic::Agent.agent.sql_sampler
-      sampler.stubs(:is_sql_recorded?).returns(true)
       create_sql_sample(sampler)
 
       start_listener_with_pipe(667)

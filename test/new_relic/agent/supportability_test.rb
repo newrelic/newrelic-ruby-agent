@@ -96,9 +96,7 @@ class APISupportabilityMetricsTest < Minitest::Test
   end
 
   def test_disable_sql_recording_records_supportability_metric
-    in_transaction do
-      NewRelic::Agent.disable_sql_recording {}
-    end
+    NewRelic::Agent.disable_sql_recording {}
     assert_api_supportability_metric_recorded(:disable_sql_recording)
   end
 

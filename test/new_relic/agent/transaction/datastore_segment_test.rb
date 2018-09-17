@@ -567,8 +567,9 @@ module NewRelic
         end
 
         def test_notice_sql_not_recording
-          in_transaction do |txn|
-            txn.record_sql = false
+          state = NewRelic::Agent::TransactionState.tl_get
+          state.record_sql = false
+          in_transaction do
             segment = NewRelic::Agent::Transaction.start_datastore_segment(
               product: "SQLite",
               operation: "select"
@@ -577,6 +578,7 @@ module NewRelic
             assert_nil segment.sql_statement
             segment.finish
           end
+          state.record_sql = true
         end
 
         def test_notice_sql_can_be_disabled_with_record_sql
@@ -669,8 +671,9 @@ module NewRelic
         end
 
         def test_notice_nosql_statement_not_recording
-          in_transaction do |txn|
-            txn.record_sql = false
+          state = NewRelic::Agent::TransactionState.tl_get
+          state.record_sql = false
+          in_transaction do
             segment = NewRelic::Agent::Transaction.start_datastore_segment(
               product: "SQLite",
               operation: "select"
@@ -679,6 +682,7 @@ module NewRelic
             assert_nil segment.nosql_statement
             segment.finish
           end
+          state.record_sql = true
         end
 
         def test_set_instance_info_with_valid_data
