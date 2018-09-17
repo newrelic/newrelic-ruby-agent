@@ -57,6 +57,26 @@ module NewRelic
           assert_equal txn2, Tracer.current_transaction
         end
       end
+
+      def test_start_segment_delegates_to_transaction
+        name = "Custom/MyClass/myoperation"
+        unscoped_metrics = [
+          "Custom/Segment/something/all",
+          "Custom/Segment/something/allWeb"
+        ]
+        parent = Tracer.start_segment(name: "parent")
+        start_time = Time.now
+
+        Transaction.expects(:start_segment).with(name: name,
+                                                 unscoped_metrics: unscoped_metrics,
+                                                 parent: parent,
+                                                 start_time: start_time)
+
+        Tracer.start_segment(name: name,
+                             unscoped_metrics: unscoped_metrics,
+                             parent: parent,
+                             start_time: start_time)
+      end
     end
   end
 end

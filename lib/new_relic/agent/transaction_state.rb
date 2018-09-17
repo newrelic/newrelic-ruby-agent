@@ -40,6 +40,17 @@ module NewRelic
                                             options)
         end
 
+        def start_segment(name:nil,
+                          unscoped_metrics:nil,
+                          start_time: nil,
+                          parent: nil)
+
+          Transaction.start_segment(name: name,
+                                    unscoped_metrics: unscoped_metrics,
+                                    start_time: start_time,
+                                    parent: parent)
+        end
+
         # This method should only be used by TransactionState for access to the
         # current thread's state or to provide read-only accessors for other threads
         #
