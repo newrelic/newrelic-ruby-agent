@@ -77,6 +77,36 @@ module NewRelic
                              parent: parent,
                              start_time: start_time)
       end
+
+      def test_start_datastore_segment_delegates_to_transaction
+        product         = "MySQL"
+        operation       = "INSERT"
+        collection      = "blogs"
+        host            = "localhost"
+        port_path_or_id = "3306"
+        database_name   = "blog_app"
+        start_time      = Time.now
+        parent          = Tracer.start_segment(name: "parent")
+
+        Transaction.expects(:start_datastore_segment)
+                   .with(product: product,
+                         operation: operation,
+                         collection: collection,
+                         host: host,
+                         port_path_or_id: port_path_or_id,
+                         database_name: database_name,
+                         start_time: start_time,
+                         parent: parent)
+
+        Transaction.start_datastore_segment(product: product,
+                                            operation: operation,
+                                            collection: collection,
+                                            host: host,
+                                            port_path_or_id: port_path_or_id,
+                                            database_name: database_name,
+                                            start_time: start_time,
+                                            parent: parent)
+      end
     end
   end
 end

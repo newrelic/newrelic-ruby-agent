@@ -51,6 +51,25 @@ module NewRelic
                                     parent: parent)
         end
 
+        def start_datastore_segment(product: nil,
+                                    operation: nil,
+                                    collection: nil,
+                                    host: nil,
+                                    port_path_or_id: nil,
+                                    database_name: nil,
+                                    start_time: nil,
+                                    parent: nil)
+
+          Transaction.start_datastore_segment(product: product,
+                                              operation: operation,
+                                              collection: collection,
+                                              host: host,
+                                              port_path_or_id: port_path_or_id,
+                                              database_name: database_name,
+                                              start_time: start_time,
+                                              parent: parent)
+        end
+
         # This method should only be used by TransactionState for access to the
         # current thread's state or to provide read-only accessors for other threads
         #
