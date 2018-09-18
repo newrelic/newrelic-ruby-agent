@@ -286,7 +286,6 @@ module NewRelic
 
         @sampled = nil
         @priority = nil
-        @record_sql = true
 
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
