@@ -131,7 +131,7 @@ module NewRelic
 
             # flag cross app in the state so transaction knows to add bits to paylaod
             #
-            transaction.state.is_cross_app_caller = true
+            transaction.is_cross_app_caller = true
 
             # add Synthetics header if we have it
             #
@@ -206,7 +206,7 @@ module NewRelic
         def insert_cross_app_header request
           return unless CrossAppTracing.cross_app_enabled?
 
-          transaction_state.is_cross_app_caller = true
+          transaction.is_cross_app_caller = true
           txn_guid = transaction_state.request_guid
           trip_id   = transaction && transaction.cat_trip_id
           path_hash = transaction && transaction.cat_path_hash

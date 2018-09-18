@@ -526,7 +526,7 @@ module NewRelic
 
               refute rmd.key? 'NewRelicSynthetics'
 
-              assert txn.state.is_cross_app_caller?
+              assert txn.is_cross_app_caller?
             end
           end
         end

@@ -22,6 +22,7 @@ module NewRelic
     class Transaction
       include Tracing
       include DistributedTracing
+      include CrossAppTracing
 
       # for nested transactions
       SUBTRANSACTION_PREFIX        = 'Nested/'.freeze
@@ -980,7 +981,7 @@ module NewRelic
       end
 
       def add_message_cat_headers headers
-        state.is_cross_app_caller = true
+        self.is_cross_app_caller = true
         CrossAppTracing.insert_message_headers headers,
                                                guid,
                                                cat_trip_id,

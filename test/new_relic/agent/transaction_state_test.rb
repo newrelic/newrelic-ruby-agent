@@ -59,19 +59,6 @@ module NewRelic::Agent
       end
     end
 
-    def test_reset_should_reset_cat_state
-      state.is_cross_app_caller = true
-      state.referring_transaction_info = ['foo', 'bar']
-
-      assert_equal(true, state.is_cross_app_callee?)
-      assert_equal(true, state.is_cross_app_caller?)
-
-      state.reset
-
-      assert_equal(false, state.is_cross_app_caller?)
-      assert_equal(false, state.is_cross_app_callee?)
-    end
-
     def test_reset_doesnt_touch_record_sql
       state.record_sql = false
       state.reset

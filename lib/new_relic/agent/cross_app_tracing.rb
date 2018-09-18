@@ -22,6 +22,12 @@ module NewRelic
       NR_MESSAGE_BROKER_TXN_HEADER = 'NewRelicTransaction'.freeze
       NR_MESSAGE_BROKER_SYNTHETICS_HEADER = 'NewRelicSynthetics'.freeze
 
+      attr_accessor :is_cross_app_caller
+
+      def is_cross_app_caller?
+        @is_cross_app_caller
+      end
+
       ###############
       module_function
       ###############

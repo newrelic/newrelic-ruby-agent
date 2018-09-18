@@ -168,8 +168,17 @@ module NewRelic
       # Because we need values from headers before the transaction actually starts
       attr_accessor :client_cross_app_id, :referring_transaction_info, :is_cross_app_caller
 
+      def is_cross_app_caller
+        current_transaction && current_transaction.is_cross_app_caller
+      end
+
+      def is_cross_app_caller= value
+        return unless current_transaction
+        current_transaction.is_cross_app_caller = value
+      end
+
       def is_cross_app_caller?
-        @is_cross_app_caller
+        self.is_cross_app_caller
       end
 
       def is_cross_app_callee?
