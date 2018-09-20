@@ -40,6 +40,12 @@ module NewRelic
                                             options)
         end
 
+        def accept_distributed_trace_payload(payload)
+          if txn = current_transaction
+            txn.accept_distributed_trace_payload(payload)
+          end
+        end
+
         def start_segment(name:nil,
                           unscoped_metrics:nil,
                           start_time: nil,

@@ -158,6 +158,14 @@ module NewRelic
                                                  start_time: start_time,
                                                  parent: parent)
       end
+
+      def test_accept_distributed_trace_payload_delegates_to_transaction
+        payload = stub(:payload)
+        in_transaction do |txn|
+          txn.expects(:accept_distributed_trace_payload).with(payload)
+          Tracer.accept_distributed_trace_payload(payload)
+        end
+      end
     end
   end
 end
