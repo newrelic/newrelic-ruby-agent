@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
+## v5.5.0
+
+  * Use lazy load hooks for ActiveJob instrumentation
+
+    In some instances the ActiveJob instrumentation could trigger ActiveJob
+    to load before it was initialized by Rails. This could result in
+    configuration changes not being properly applied. The agent now uses lazy
+    load hooks which fixes this issue.
+
 ## v5.4.0
 
   * Capacity analysis for multi-threaded dispatchers
