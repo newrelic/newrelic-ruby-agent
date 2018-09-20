@@ -40,6 +40,12 @@ module NewRelic
                                             options)
         end
 
+        def create_distributed_trace_payload
+          if txn = current_transaction
+            txn.create_distributed_trace_payload
+          end
+        end
+
         def accept_distributed_trace_payload(payload)
           if txn = current_transaction
             txn.accept_distributed_trace_payload(payload)

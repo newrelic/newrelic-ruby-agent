@@ -166,6 +166,13 @@ module NewRelic
           Tracer.accept_distributed_trace_payload(payload)
         end
       end
+
+      def test_create_distributed_trace_payload_delegates_to_transaction
+        in_transaction do |txn|
+          txn.expects(:create_distributed_trace_payload)
+          Tracer.create_distributed_trace_payload
+        end
+      end
     end
   end
 end
