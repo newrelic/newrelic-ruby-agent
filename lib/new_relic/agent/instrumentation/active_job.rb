@@ -14,15 +14,17 @@ DependencyDetection.defer do
   executes do
     ::NewRelic::Agent.logger.info 'Installing ActiveJob instrumentation'
 
-    ::ActiveJob::Base.around_enqueue do |job, block|
-      ::NewRelic::Agent::Instrumentation::ActiveJobHelper.enqueue(job, block)
-    end
+    ActiveSupport.on_load(:active_job) do
+      ::ActiveJob::Base.around_enqueue do |job, block|
+        ::NewRelic::Agent::Instrumentation::ActiveJobHelper.enqueue(job, block)
+      end
 
-    ::ActiveJob::Base.around_perform do |job, block|
-      ::NewRelic::Agent::Instrumentation::ActiveJobHelper.perform(job, block)
-    end
+      ::ActiveJob::Base.around_perform do |job, block|
+        ::NewRelic::Agent::Instrumentation::ActiveJobHelper.perform(job, block)
+      end
 
-    ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActiveJob::Base)
+      ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActiveJob::Base)
+    end
   end
 end
 
