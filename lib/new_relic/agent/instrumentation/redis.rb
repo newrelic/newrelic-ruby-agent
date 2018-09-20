@@ -62,7 +62,7 @@ DependencyDetection.defer do
         hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
         port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
 
-        segment = NewRelic::Agent::Transaction.start_datastore_segment(
+        segment = NewRelic::Agent::Tracer.start_datastore_segment(
           product: NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
           operation: operation,
           host: hostname,
@@ -87,7 +87,7 @@ DependencyDetection.defer do
         hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
         port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
 
-        segment = NewRelic::Agent::Transaction.start_datastore_segment(
+        segment = NewRelic::Agent::Tracer.start_datastore_segment(
           product: NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
           operation: operation,
           host: hostname,
@@ -108,7 +108,7 @@ DependencyDetection.defer do
         hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
         port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
 
-        segment = NewRelic::Agent::Transaction.start_datastore_segment(
+        segment = NewRelic::Agent::Tracer.start_datastore_segment(
           product: NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
           operation: NewRelic::Agent::Datastores::Redis::CONNECT,
           host: hostname,
