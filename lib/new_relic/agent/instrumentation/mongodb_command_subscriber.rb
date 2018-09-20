@@ -12,7 +12,7 @@ module NewRelic
 
         def started(event)
           begin
-            return unless NewRelic::Agent.tl_is_execution_traced?
+            return unless NewRelic::Agent::Tracer.tracing_enabled?
             segments[event.operation_id] = start_segment event
           rescue Exception => e
             log_notification_error('started', e)
@@ -21,8 +21,7 @@ module NewRelic
 
         def completed(event)
           begin
-            state = NewRelic::Agent::TransactionState.tl_get
-            return unless state.is_execution_traced?
+            return unless NewRelic::Agent::Tracer.tracing_enabled?
             segment = segments.delete(event.operation_id)
             segment.finish if segment
           rescue Exception => e
@@ -38,7 +37,7 @@ module NewRelic
         def start_segment event
           host = host_from_address event.address
           port_path_or_id = port_path_or_id_from_address event.address
-          segment = NewRelic::Agent::Transaction.start_datastore_segment(
+          segment = NewRelic::Agent::Tracer.start_datastore_segment(
             product: MONGODB,
             operation: event.command_name,
             collection: collection(event),
