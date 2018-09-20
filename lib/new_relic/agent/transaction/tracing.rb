@@ -130,6 +130,7 @@ module NewRelic
             segment.record_on_finish = true
             ::NewRelic::Agent.logger.debug("Segment limit of #{segment_limit} reached, ceasing collection.")
           end
+          segment.transaction_assigned
         end
 
         def segment_complete segment
