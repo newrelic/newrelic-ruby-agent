@@ -123,7 +123,7 @@ module NewRelic
         txn = state.current_transaction
 
         if txn
-          txn.create_nested_frame(state, category, options)
+          txn.create_nested_frame(category, options)
         else
           txn = start_new_transaction(state, category, options)
         end
@@ -138,7 +138,7 @@ module NewRelic
         txn = Transaction.new(category, options)
         state.reset(txn)
         txn.state = state
-        txn.start(state)
+        txn.start
         txn
       end
 
@@ -181,7 +181,7 @@ module NewRelic
       def self.abort_transaction! #THREAD_LOCAL_ACCESS
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
-        txn.abort_transaction!(state) if txn
+        txn.abort_transaction! if txn
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
@@ -442,7 +442,7 @@ module NewRelic
         @frozen_name ? true : false
       end
 
-      def start(state)
+      def start
         return if !state.is_execution_traced?
 
         sql_sampler.on_start_transaction(state, start_time, request_path)
@@ -481,7 +481,7 @@ module NewRelic
         segment
       end
 
-      def create_nested_frame(state, category, options)
+      def create_nested_frame(category, options)
         if options[:filtered_params] && !options[:filtered_params].empty?
           @filtered_params = options[:filtered_params]
           merge_request_parameters(options[:filtered_params])
@@ -503,7 +503,7 @@ module NewRelic
 
       # Call this to ensure that the current transaction trace is not saved
       # To fully ignore all metrics and errors, use ignore! instead.
-      def abort_transaction!(state)
+      def abort_transaction!
         @ignore_trace = true
       end
 
@@ -546,7 +546,7 @@ module NewRelic
 
         NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time)
 
-        commit!(state, @end_time, outermost_frame.name) unless @ignore_this_transaction
+        commit!(@end_time, outermost_frame.name) unless @ignore_this_transaction
       end
 
       def user_defined_rules_ignore?
@@ -558,11 +558,11 @@ module NewRelic
         end
       end
 
-      def commit!(state, end_time, outermost_node_name)
-        generate_payload(state, start_time, end_time)
+      def commit!(end_time, outermost_node_name)
+        generate_payload(start_time, end_time)
 
         assign_agent_attributes
-        assign_intrinsics(state)
+        assign_intrinsics
 
         finalize_segments
 
@@ -571,9 +571,9 @@ module NewRelic
 
         record_summary_metrics(outermost_node_name, end_time)
         record_total_time_metrics
-        record_apdex(state, end_time) unless ignore_apdex?
+        record_apdex(end_time) unless ignore_apdex?
         record_queue_time
-        record_client_application_metric state
+        record_client_application_metric
         record_distributed_tracing_metrics
 
         record_exceptions
@@ -609,7 +609,7 @@ module NewRelic
         end
       end
 
-      def assign_intrinsics(state)
+      def assign_intrinsics
         attributes.add_intrinsic_attribute(:priority, priority)
 
         if gc_time = calculate_gc_time
@@ -653,7 +653,7 @@ module NewRelic
         agent.events.notify(:transaction_finished, payload)
       end
 
-      def generate_payload(state, start_time, end_time)
+      def generate_payload(start_time, end_time)
         duration = end_time.to_f - start_time.to_f
         @payload = {
           :name                 => @frozen_name,
@@ -666,14 +666,14 @@ module NewRelic
           :priority             => priority
         }
 
-        append_cat_info(state, duration, @payload)
+        append_cat_info(duration, @payload)
         append_distributed_trace_info(@payload)
         append_apdex_perf_zone(duration, @payload)
-        append_synthetics_to(state, @payload)
-        append_referring_transaction_guid_to(state, @payload)
+        append_synthetics_to(@payload)
+        append_referring_transaction_guid_to(@payload)
       end
 
-      def include_guid?(state, duration)
+      def include_guid?(duration)
         state.is_cross_app? || is_synthetics_request?
       end
 
@@ -682,7 +682,7 @@ module NewRelic
       end
 
       def cat_path_hash
-        referring_path_hash = cat_referring_path_hash(state) || '0'
+        referring_path_hash = cat_referring_path_hash || '0'
         seed = referring_path_hash.to_i(16)
         result = NewRelic::Agent.instance.cross_app_monitor.path_hash(best_name, seed)
         record_cat_path_hash(result)
@@ -696,7 +696,7 @@ module NewRelic
         end
       end
 
-      def cat_referring_path_hash(state)
+      def cat_referring_path_hash
         NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_path_hash(state)
       end
 
@@ -751,14 +751,14 @@ module NewRelic
         payload[:apdex_perf_zone] = bucket_str if bucket_str
       end
 
-      def append_cat_info(state, duration, payload)
-        return unless include_guid?(state, duration)
+      def append_cat_info(duration, payload)
+        return unless include_guid?(duration)
         payload[:guid] = guid
 
         return unless state.is_cross_app?
         trip_id             = cat_trip_id
         path_hash           = cat_path_hash
-        referring_path_hash = cat_referring_path_hash(state)
+        referring_path_hash = cat_referring_path_hash
 
         payload[:cat_trip_id]             = trip_id             if trip_id
         payload[:cat_referring_path_hash] = referring_path_hash if referring_path_hash
@@ -773,7 +773,7 @@ module NewRelic
         end
       end
 
-      def append_synthetics_to(state, payload)
+      def append_synthetics_to(payload)
         return unless is_synthetics_request?
 
         payload[:synthetics_resource_id] = synthetics_resource_id
@@ -781,7 +781,7 @@ module NewRelic
         payload[:synthetics_monitor_id]  = synthetics_monitor_id
       end
 
-      def append_referring_transaction_guid_to(state, payload)
+      def append_referring_transaction_guid_to(payload)
         referring_guid = NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_guid(state)
         if referring_guid
           payload[:referring_transaction_guid] = referring_guid
@@ -835,7 +835,7 @@ module NewRelic
         end
       end
 
-      def record_client_application_metric state
+      def record_client_application_metric
         if id = state.client_cross_app_id
           NewRelic::Agent.record_metric "ClientApplication/#{id}/all", state.timings.app_time_in_seconds
         end
@@ -863,7 +863,7 @@ module NewRelic
         self.class.apdex_bucket(duration, had_error_affecting_apdex?, current_apdex_t)
       end
 
-      def record_apdex(state, end_time=Time.now)
+      def record_apdex(end_time=Time.now)
         return unless state.is_execution_traced?
 
         freeze_name_and_execute_if_not_ignored do

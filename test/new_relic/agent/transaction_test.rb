@@ -156,9 +156,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       in_web_transaction('Controller/slow/txn') do
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
-        txn.record_apdex(state, t0 +  3.5)
-        txn.record_apdex(state, t0 +  5.5)
-        txn.record_apdex(state, t0 + 16.5)
+        txn.record_apdex(t0 +  3.5)
+        txn.record_apdex(t0 +  5.5)
+        txn.record_apdex(t0 + 16.5)
       end
 
       # apdex_s is 2 because the transaction itself records apdex
@@ -177,9 +177,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       in_web_transaction('Controller/other/txn') do
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
-        txn.record_apdex(state, t0 + 0.5)
-        txn.record_apdex(state, t0 + 2)
-        txn.record_apdex(state, t0 + 5)
+        txn.record_apdex(t0 + 0.5)
+        txn.record_apdex(t0 + 2)
+        txn.record_apdex(t0 + 5)
       end
 
       # apdex_s is 2 because the transaction itself records apdex
@@ -197,9 +197,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       in_background_transaction('OtherTransaction/back/ground') do
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
-        txn.record_apdex(state, t0 + 7.5)
-        txn.record_apdex(state, t0 + 9.5)
-        txn.record_apdex(state, t0 + 32.5)
+        txn.record_apdex(t0 + 7.5)
+        txn.record_apdex(t0 + 9.5)
+        txn.record_apdex(t0 + 32.5)
       end
 
       assert_metrics_recorded(
@@ -216,9 +216,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       in_background_transaction('OtherTransaction/other/task') do
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
-        txn.record_apdex(state, t0 + 7.5)
-        txn.record_apdex(state, t0 + 9.5)
-        txn.record_apdex(state, t0 + 32.5)
+        txn.record_apdex(t0 + 7.5)
+        txn.record_apdex(t0 + 9.5)
+        txn.record_apdex(t0 + 32.5)
       end
 
       refute_metrics_recorded(['ApdexOther', 'ApdexOther/Transaction/other/task'])
@@ -230,7 +230,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       in_web_transaction('Controller/some/txn') do
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
-        txn.record_apdex(state, Time.now)
+        txn.record_apdex(Time.now)
       end
     end
 
@@ -248,17 +248,17 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       in_background_transaction('OtherTransaction/back/ground') do
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
-        txn.record_apdex(state, t0 + 7.5)
-        txn.record_apdex(state, t0 + 9.5)
-        txn.record_apdex(state, t0 + 32.5)
+        txn.record_apdex(t0 + 7.5)
+        txn.record_apdex(t0 + 9.5)
+        txn.record_apdex(t0 + 32.5)
       end
 
       in_web_transaction('Controller/slow/txn') do
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
-        txn.record_apdex(state, t0 +  3.5)
-        txn.record_apdex(state, t0 +  5.5)
-        txn.record_apdex(state, t0 + 16.5)
+        txn.record_apdex(t0 +  3.5)
+        txn.record_apdex(t0 +  5.5)
+        txn.record_apdex(t0 + 16.5)
       end
 
       # apdex_s is 2 because the transaction itself records apdex
