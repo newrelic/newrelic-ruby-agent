@@ -2,6 +2,11 @@
 
 ## v5.5.0
 
+  * Bugfix for parsing Docker container IDs
+
+    The agent now parses Docker container IDs correctly regardless of the
+    cgroup parent.
+
   * Use lazy load hooks for ActiveJob instrumentation
 
     In some instances the ActiveJob instrumentation could trigger ActiveJob
