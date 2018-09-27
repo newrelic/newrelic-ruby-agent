@@ -22,10 +22,19 @@ module NewRelic
       NR_MESSAGE_BROKER_TXN_HEADER = 'NewRelicTransaction'.freeze
       NR_MESSAGE_BROKER_SYNTHETICS_HEADER = 'NewRelicSynthetics'.freeze
 
-      attr_accessor :is_cross_app_caller
+      attr_accessor :is_cross_app_caller, :referring_transaction_info
 
       def is_cross_app_caller?
+        @is_cross_app_caller = false unless defined? @is_cross_app_caller
         @is_cross_app_caller
+      end
+
+      def is_cross_app_callee?
+        referring_transaction_info != nil
+      end
+
+      def is_cross_app?
+        is_cross_app_caller? || is_cross_app_callee?
       end
 
       ###############
@@ -142,7 +151,7 @@ module NewRelic
           transaction.attributes.add_intrinsic_attribute(:client_cross_process_id, state.client_cross_app_id)
         end
 
-        if referring_guid = state.referring_transaction_info && state.referring_transaction_info[0]
+        if referring_guid = transaction.referring_transaction_info && transaction.referring_transaction_info[0]
           transaction.attributes.add_intrinsic_attribute(:referring_transaction_guid, referring_guid)
         end
       end

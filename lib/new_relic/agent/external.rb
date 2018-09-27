@@ -74,7 +74,7 @@ module NewRelic
             # handle transaction info
             #
             if txn_info = rmd[NON_HTTP_CAT_TXN_HEADER]
-              state.referring_transaction_info = txn_info
+              transaction.referring_transaction_info = txn_info
               CrossAppTracing.assign_intrinsic_transaction_attributes state
             end
 

@@ -40,7 +40,7 @@ module NewRelic
           in_transaction do |txn|
             NewRelic::Agent::External.process_request_metadata rmd
             assert_equal cat_config[:cross_process_id], txn.state.client_cross_app_id
-            assert_equal ['abc', false, 'def', 'ghi'], txn.state.referring_transaction_info
+            assert_equal ['abc', false, 'def', 'ghi'], txn.referring_transaction_info
           end
         end
       end
@@ -77,7 +77,6 @@ module NewRelic
 
           state = NewRelic::Agent::TransactionState.tl_get
           refute state.client_cross_app_id
-          refute state.referring_transaction_info
           refute state.current_transaction
         end
       end
@@ -90,14 +89,14 @@ module NewRelic
             NewRelicSynthetics: 'raw_synth'
           })
 
-          in_transaction do
+          in_transaction do |txn|
             l = with_array_logger { NewRelic::Agent::External.process_request_metadata rmd }
             refute l.array.empty?, "process_request_metadata should log error on invalid ID"
             assert l.array.first =~ %r{invalid/non-trusted ID}
 
             state = NewRelic::Agent::TransactionState.tl_get
             refute state.client_cross_app_id
-            refute state.referring_transaction_info
+            refute txn.referring_transaction_info
           end
         end
       end
@@ -110,14 +109,14 @@ module NewRelic
             NewRelicSynthetics: 'raw_synth'
           })
 
-          in_transaction do
+          in_transaction do |txn|
             l = with_array_logger { NewRelic::Agent::External.process_request_metadata rmd }
             refute l.array.empty?, "process_request_metadata should log error on invalid ID"
             assert l.array.first =~ %r{invalid/non-trusted ID}
 
             state = NewRelic::Agent::TransactionState.tl_get
             refute state.client_cross_app_id
-            refute state.referring_transaction_info
+            refute txn.referring_transaction_info
           end
         end
       end
@@ -129,13 +128,13 @@ module NewRelic
             NewRelicTransaction: ['abc', false, 'def', 'ghi']
           })
 
-          in_transaction do
+          in_transaction do |txn|
             l = with_array_logger { NewRelic::Agent::External.process_request_metadata rmd }
             assert l.array.empty?, "process_request_metadata should not log errors when cross app tracing is disabled"
 
             state = NewRelic::Agent::TransactionState.tl_get
             refute state.client_cross_app_id
-            refute state.referring_transaction_info
+            refute txn.referring_transaction_info
           end
         end
       end

@@ -627,7 +627,7 @@ module NewRelic
 
         if Agent.config[:'distributed_tracing.enabled']
           assign_distributed_trace_intrinsics
-        elsif state.is_cross_app?
+        elsif is_cross_app?
           attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)
           attributes.add_intrinsic_attribute(:path_hash, cat_path_hash)
         end
@@ -672,7 +672,7 @@ module NewRelic
       end
 
       def include_guid?
-        state.is_cross_app? || is_synthetics_request?
+        is_cross_app? || is_synthetics_request?
       end
 
       def cat_trip_id
@@ -753,7 +753,7 @@ module NewRelic
         return unless include_guid?
         payload[:guid] = guid
 
-        return unless state.is_cross_app?
+        return unless is_cross_app?
         trip_id             = cat_trip_id
         path_hash           = cat_path_hash
         referring_path_hash = cat_referring_path_hash

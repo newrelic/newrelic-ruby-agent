@@ -389,7 +389,7 @@ module NewRelic
       def decode_txn_info txn_header, transaction_state
         begin
           txn_info = ::JSON.load(CrossAppTracing.obfuscator.deobfuscate(txn_header))
-          transaction_state.referring_transaction_info = txn_info
+          transaction_state.current_transaction.referring_transaction_info = txn_info
         rescue => e
           NewRelic::Agent.logger.debug("Failure deserializing encoded header in #{self.class}, #{e.class}, #{e.message}")
           nil

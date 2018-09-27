@@ -484,9 +484,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     with_config(:apdex_t => 2.0) do
-      in_transaction do
+      in_transaction do |txn|
         state = NewRelic::Agent::TransactionState.tl_get
-        state.referring_transaction_info = ["another"]
+        txn.referring_transaction_info = ["another"]
       end
     end
 
@@ -499,8 +499,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       referring_guid = payload[:referring_transaction_guid]
     end
 
-    in_transaction do
-      NewRelic::Agent::TransactionState.tl_get.referring_transaction_info = ["GUID"]
+    in_transaction do |txn|
+      txn.referring_transaction_info = ["GUID"]
     end
 
     assert_equal "GUID", referring_guid
@@ -512,9 +512,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       found_referring_guid = payload.key?(:referring_transaction_guid)
     end
 
-    in_transaction do
+    in_transaction do |txn|
       # Make sure we don't have referring transaction state floating around
-      NewRelic::Agent::TransactionState.tl_get.referring_transaction_info = nil
+      txn.referring_transaction_info = nil
     end
 
     refute found_referring_guid

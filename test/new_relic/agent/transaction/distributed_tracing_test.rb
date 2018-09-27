@@ -255,8 +255,7 @@ module NewRelic
 
           transaction = in_transaction "test_txn" do |txn|
             #simulate legacy cat
-            state = TransactionState.tl_get
-            state.referring_transaction_info = [
+            txn.referring_transaction_info = [
               "b854df4feb2b1f06",
               false,
               "7e249074f277923d",

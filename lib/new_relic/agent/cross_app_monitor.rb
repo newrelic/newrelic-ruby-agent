@@ -53,26 +53,26 @@ module NewRelic
       def save_referring_transaction_info(state, request_headers)
         txn_header = request_headers[NEWRELIC_TXN_HEADER_KEY] or return
         txn_info = deserialize_header(txn_header, NEWRELIC_TXN_HEADER)
-        state.referring_transaction_info = txn_info
+        state.current_transaction.referring_transaction_info = txn_info
       end
 
       def client_referring_transaction_guid(state)
-        info = state.referring_transaction_info or return nil
+        info = state.current_transaction.referring_transaction_info or return nil
         return info[0]
       end
 
       def client_referring_transaction_record_flag(state)
-        info = state.referring_transaction_info or return nil
+        info = state.current_transaction.referring_transaction_info or return nil
         return info[1]
       end
 
       def client_referring_transaction_trip_id(state)
-        info = state.referring_transaction_info or return nil
+        info = state.current_transaction.referring_transaction_info or return nil
         return info[2].is_a?(String) && info[2]
       end
 
       def client_referring_transaction_path_hash(state)
-        info = state.referring_transaction_info or return nil
+        info = state.current_transaction.referring_transaction_info or return nil
         return info[3].is_a?(String) && info[3]
       end
 
