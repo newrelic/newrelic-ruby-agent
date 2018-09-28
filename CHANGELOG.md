@@ -17,6 +17,12 @@
     external request segments, via the new
     `external_tracer.exclude_request_uri` option.
 
+  * Documentation improvement
+
+    The `config.dot` diagram of the agent's configuration settings no
+    longer includes the deleted `developer_mode` option.  Thanks to
+    Yuichiro Kaneko for the contribution!
+
 ## v5.4.0
 
   * Capacity analysis for multi-threaded dispatchers
