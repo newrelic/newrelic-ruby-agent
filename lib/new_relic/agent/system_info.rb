@@ -165,11 +165,11 @@ module NewRelic
 
         container_id = case cpu_cgroup
         # docker native driver w/out systemd (fs)
-        when /(([0-9a-f]){64})/                           then $1
+        when /[0-9a-f]{64}/ then $&
         # docker native driver with systemd
-        when '/'                                          then nil
+        when '/'            then nil
         # in a cgroup, but we don't recognize its format
-        when /docker/                                     then
+        when /docker/       then
           ::NewRelic::Agent.logger.debug("Cgroup indicates docker but container_id unrecognized: '#{cpu_cgroup}'")
           ::NewRelic::Agent.increment_metric "Supportability/utilization/docker/error"
           return
