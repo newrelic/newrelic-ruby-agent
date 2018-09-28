@@ -1,5 +1,22 @@
 # New Relic Ruby Agent Release Notes #
 
+## v5.5.0
+
+  * Use lazy load hooks for ActiveJob instrumentation
+
+    In some instances the ActiveJob instrumentation could trigger ActiveJob
+    to load before it was initialized by Rails. This could result in
+    configuration changes not being properly applied. The agent now uses lazy
+    load hooks which fixes this issue.
+
+  * Redact URIs from external request segments
+
+    Since version 4.8, customers have been able to prevent the agent
+    from attaching external request URIs to errors and transaction
+    traces.  With this release, they can also omit the URI from
+    external request segments, via the new
+    `external_tracer.exclude_request_uri` option.
+
   * Documentation improvement
 
     The `config.dot` diagram of the agent's configuration settings no

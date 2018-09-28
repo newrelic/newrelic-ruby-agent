@@ -457,6 +457,28 @@ module NewRelic
           assert_equal uri, node.params[:uri]
         end
 
+        def test_disable_uri_recording
+          segment = nil
+
+          with_config :'external_tracer.exclude_request_uri' => true do
+            uri = "http://newrelic.com/blogs/index"
+
+            in_transaction :category => :controller do
+              segment = Transaction.start_external_request_segment(
+                library: "Net::HTTP",
+                uri: uri,
+                procedure: "GET"
+              )
+              segment.finish
+            end
+
+            sample = last_transaction_trace
+            node = find_node_with_name(sample, segment.name)
+
+            refute node.params[:uri], "URI present even though exclude_request_uri is true"
+          end
+        end
+
         def test_guid_recorded_as_tt_attribute_for_cat_txn
           segment = nil
 
