@@ -546,7 +546,7 @@ module NewRelic
 
         NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time)
 
-        commit!(@end_time, outermost_frame.name) unless @ignore_this_transaction
+        commit!(outermost_frame.name) unless @ignore_this_transaction
       end
 
       def user_defined_rules_ignore?
@@ -558,8 +558,8 @@ module NewRelic
         end
       end
 
-      def commit!(end_time, outermost_node_name)
-        generate_payload(start_time, end_time)
+      def commit!(outermost_node_name)
+        generate_payload
 
         assign_agent_attributes
         assign_intrinsics
@@ -569,7 +569,7 @@ module NewRelic
         @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
-        record_summary_metrics(outermost_node_name, end_time)
+        record_summary_metrics(outermost_node_name)
         record_total_time_metrics
         record_apdex(end_time) unless ignore_apdex?
         record_queue_time
@@ -641,7 +641,7 @@ module NewRelic
 
       # The summary metrics recorded by this method all end up with a duration
       # equal to the transaction itself, and an exclusive time of zero.
-      def record_summary_metrics(outermost_node_name, end_time)
+      def record_summary_metrics(outermost_node_name)
         metrics = summary_metrics
         metrics << @frozen_name unless @frozen_name == outermost_node_name
         @metrics.record_unscoped(metrics, end_time.to_f - start_time.to_f, 0)
@@ -653,7 +653,7 @@ module NewRelic
         agent.events.notify(:transaction_finished, payload)
       end
 
-      def generate_payload(start_time, end_time)
+      def generate_payload
         duration = end_time.to_f - start_time.to_f
         @payload = {
           :name                 => @frozen_name,
@@ -869,7 +869,6 @@ module NewRelic
         freeze_name_and_execute_if_not_ignored do
           total_duration  = end_time - apdex_start
           action_duration = end_time - start_time
-
           if recording_web_transaction?
             record_apdex_metrics(APDEX_METRIC, APDEX_TXN_METRIC_PREFIX,
                                  total_duration, action_duration, apdex_t)
