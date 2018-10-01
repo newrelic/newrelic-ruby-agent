@@ -152,10 +152,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_update_apdex_records_correct_apdex_for_key_transaction
     nr_freeze_time
     with_config(KEY_TRANSACTION_CONFIG) do
-      #apdex_s
-      in_web_transaction('Controller/slow/txn') do
-      end
-
       # apdex_s
       in_web_transaction('Controller/slow/txn') do
         advance_time(3.5)
@@ -171,11 +167,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
         advance_time(16.5)
       end
 
-      # apdex_s is 2 because the transaction itself records apdex
       assert_metrics_recorded(
-        'ApdexAll'       => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
-        'Apdex'          => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
-        'Apdex/slow/txn' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 }
+        'ApdexAll'       => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
+        'Apdex'          => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
+        'Apdex/slow/txn' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
       )
     end
   end
@@ -183,10 +178,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_update_apdex_records_correct_apdex_for_non_key_transaction
     nr_freeze_time
     with_config(KEY_TRANSACTION_CONFIG) do
-      # apdex_s
-      in_web_transaction('Controller/other/txn') do
-      end
-
       # apdex_s
       in_web_transaction('Controller/other/txn') do
         advance_time(0.5)
@@ -202,11 +193,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
         advance_time(5.0)
       end
 
-      # apdex_s is 2 because the transaction itself records apdex
       assert_metrics_recorded(
-        'ApdexAll'        => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
-        'Apdex'           => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
-        'Apdex/other/txn' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 }
+        'ApdexAll'        => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
+        'Apdex'           => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
+        'Apdex/other/txn' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
       )
     end
   end
@@ -214,10 +204,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_update_apdex_records_for_background_key_transaction
     nr_freeze_time
     with_config(KEY_TRANSACTION_CONFIG) do
-      # apdex_s
-      in_background_transaction('OtherTransaction/back/ground') do
-      end
-
       # apdex_s
       in_background_transaction('OtherTransaction/back/ground') do
         advance_time(7.5)
@@ -234,9 +220,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       end
 
       assert_metrics_recorded(
-        'ApdexAll'   => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
-        'ApdexOther' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
-        'ApdexOther/Transaction/back/ground' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 }
+        'ApdexAll'   => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
+        'ApdexOther' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
+        'ApdexOther/Transaction/back/ground' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
       )
     end
   end
@@ -278,9 +264,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     nr_freeze_time
     with_config(KEY_TRANSACTION_CONFIG) do
       # apdex_s
-      in_background_transaction('OtherTransaction/back/ground') {}
-
-      # apdex_s
       in_background_transaction('OtherTransaction/back/ground') do
         advance_time(7.5)
       end
@@ -294,9 +277,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       in_background_transaction('OtherTransaction/back/ground') do
         advance_time(32.5)
       end
-
-      # adpex_s
-      in_web_transaction('Controller/slow/txn') {}
 
       # apdex_s
       in_web_transaction('Controller/slow/txn') do
@@ -313,13 +293,12 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
         advance_time(16.5)
       end
 
-      # apdex_s is 2 because the transaction itself records apdex
       assert_metrics_recorded(
-        'ApdexAll'       => { :apdex_s => 4, :apdex_t => 2, :apdex_f => 2 },
-        'Apdex'          => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
-        'Apdex/slow/txn' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
-        'ApdexOther'     => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 },
-        'ApdexOther/Transaction/back/ground' => { :apdex_s => 2, :apdex_t => 1, :apdex_f => 1 }
+        'ApdexAll'       => { :apdex_s => 2, :apdex_t => 2, :apdex_f => 2 },
+        'Apdex'          => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
+        'Apdex/slow/txn' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
+        'ApdexOther'     => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
+        'ApdexOther/Transaction/back/ground' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
       )
     end
   end
