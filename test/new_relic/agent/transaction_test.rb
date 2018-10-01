@@ -150,15 +150,25 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   }
 
   def test_update_apdex_records_correct_apdex_for_key_transaction
-    t0 = nr_freeze_time
-
+    nr_freeze_time
     with_config(KEY_TRANSACTION_CONFIG) do
+      #apdex_s
       in_web_transaction('Controller/slow/txn') do
-        state = NewRelic::Agent::TransactionState.tl_get
-        txn = state.current_transaction
-        txn.record_apdex(t0 +  3.5)
-        txn.record_apdex(t0 +  5.5)
-        txn.record_apdex(t0 + 16.5)
+      end
+
+      # apdex_s
+      in_web_transaction('Controller/slow/txn') do
+        advance_time(3.5)
+      end
+
+      # apdex_t
+      in_web_transaction('Controller/slow/txn') do
+        advance_time(5.5)
+      end
+
+      # adpex_f
+      in_web_transaction('Controller/slow/txn') do
+        advance_time(16.5)
       end
 
       # apdex_s is 2 because the transaction itself records apdex
@@ -171,15 +181,25 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_update_apdex_records_correct_apdex_for_non_key_transaction
-    t0 = nr_freeze_time
-
+    nr_freeze_time
     with_config(KEY_TRANSACTION_CONFIG) do
+      # apdex_s
       in_web_transaction('Controller/other/txn') do
-        state = NewRelic::Agent::TransactionState.tl_get
-        txn = state.current_transaction
-        txn.record_apdex(t0 + 0.5)
-        txn.record_apdex(t0 + 2)
-        txn.record_apdex(t0 + 5)
+      end
+
+      # apdex_s
+      in_web_transaction('Controller/other/txn') do
+        advance_time(0.5)
+      end
+
+      # apdex_t
+      in_web_transaction('Controller/other/txn') do
+        advance_time(2.0)
+      end
+
+      # apdex_f
+      in_web_transaction('Controller/other/txn') do
+        advance_time(5.0)
       end
 
       # apdex_s is 2 because the transaction itself records apdex
@@ -192,14 +212,25 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_update_apdex_records_for_background_key_transaction
-    t0 = nr_freeze_time
+    nr_freeze_time
     with_config(KEY_TRANSACTION_CONFIG) do
+      # apdex_s
       in_background_transaction('OtherTransaction/back/ground') do
-        state = NewRelic::Agent::TransactionState.tl_get
-        txn = state.current_transaction
-        txn.record_apdex(t0 + 7.5)
-        txn.record_apdex(t0 + 9.5)
-        txn.record_apdex(t0 + 32.5)
+      end
+
+      # apdex_s
+      in_background_transaction('OtherTransaction/back/ground') do
+        advance_time(7.5)
+      end
+
+      # apdex_t
+      in_background_transaction('OtherTransaction/back/ground') do
+        advance_time(9.5)
+      end
+
+      # apdex_f
+      in_background_transaction('OtherTransaction/back/ground') do
+        advance_time(32.5)
       end
 
       assert_metrics_recorded(
@@ -211,14 +242,18 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_skips_apdex_records_for_background_non_key_transaction
-    t0 = nr_freeze_time
+    nr_freeze_time
     with_config(KEY_TRANSACTION_CONFIG) do
       in_background_transaction('OtherTransaction/other/task') do
-        state = NewRelic::Agent::TransactionState.tl_get
-        txn = state.current_transaction
-        txn.record_apdex(t0 + 7.5)
-        txn.record_apdex(t0 + 9.5)
-        txn.record_apdex(t0 + 32.5)
+        advance_time(7.5)
+      end
+
+      in_background_transaction('OtherTransaction/other/task') do
+        advance_time(9.5)
+      end
+
+      in_background_transaction('OtherTransaction/other/task') do
+        advance_time(32.5)
       end
 
       refute_metrics_recorded(['ApdexOther', 'ApdexOther/Transaction/other/task'])
@@ -228,9 +263,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_record_apdex_stores_apdex_t_in_min_and_max
     with_config(:apdex_t => 2.5) do
       in_web_transaction('Controller/some/txn') do
-        state = NewRelic::Agent::TransactionState.tl_get
-        txn = state.current_transaction
-        txn.record_apdex(Time.now)
       end
     end
 
@@ -243,22 +275,42 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_records_apdex_all_for_both_transaction_types
-    t0 = nr_freeze_time
+    nr_freeze_time
     with_config(KEY_TRANSACTION_CONFIG) do
+      # apdex_s
+      in_background_transaction('OtherTransaction/back/ground') {}
+
+      # apdex_s
       in_background_transaction('OtherTransaction/back/ground') do
-        state = NewRelic::Agent::TransactionState.tl_get
-        txn = state.current_transaction
-        txn.record_apdex(t0 + 7.5)
-        txn.record_apdex(t0 + 9.5)
-        txn.record_apdex(t0 + 32.5)
+        advance_time(7.5)
       end
 
+      # apdex_t
+      in_background_transaction('OtherTransaction/back/ground') do
+        advance_time(9.5)
+      end
+
+      # apdex_f
+      in_background_transaction('OtherTransaction/back/ground') do
+        advance_time(32.5)
+      end
+
+      # adpex_s
+      in_web_transaction('Controller/slow/txn') {}
+
+      # apdex_s
       in_web_transaction('Controller/slow/txn') do
-        state = NewRelic::Agent::TransactionState.tl_get
-        txn = state.current_transaction
-        txn.record_apdex(t0 +  3.5)
-        txn.record_apdex(t0 +  5.5)
-        txn.record_apdex(t0 + 16.5)
+        advance_time(3.5)
+      end
+
+      # apdex_t
+      in_web_transaction('Controller/slow/txn') do
+        advance_time(5.5)
+      end
+
+      # apdex_f
+      in_web_transaction('Controller/slow/txn') do
+        advance_time(16.5)
       end
 
       # apdex_s is 2 because the transaction itself records apdex

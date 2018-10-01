@@ -571,7 +571,7 @@ module NewRelic
 
         record_summary_metrics(outermost_node_name)
         record_total_time_metrics
-        record_apdex(end_time) unless ignore_apdex?
+        record_apdex unless ignore_apdex?
         record_queue_time
         record_client_application_metric
         record_distributed_tracing_metrics
@@ -863,7 +863,7 @@ module NewRelic
         self.class.apdex_bucket(duration, had_error_affecting_apdex?, current_apdex_t)
       end
 
-      def record_apdex(end_time=Time.now)
+      def record_apdex
         return unless state.is_execution_traced?
 
         freeze_name_and_execute_if_not_ignored do
