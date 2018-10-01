@@ -564,7 +564,7 @@ module NewRelic
 
         finalize_segments
 
-        @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
+        @transaction_trace = transaction_sampler.on_finishing_transaction(self)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
         record_summary_metrics(outermost_node_name)
