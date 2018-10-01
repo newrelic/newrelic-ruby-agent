@@ -70,7 +70,8 @@ module NewRelic
                   :payload,
                   :nesting_max_depth,
                   :segments,
-                  :end_time
+                  :end_time,
+                  :duration
 
       attr_writer :sampled,
                   :priority
@@ -401,10 +402,6 @@ module NewRelic
       alias_method :transaction_name, :best_name
 
       attr_accessor :xray_session_id
-
-      def duration
-        (@end_time - @start_time).to_f
-      end
       # End common interface
 
       def name_set?
@@ -536,6 +533,7 @@ module NewRelic
         return self.class.stop(state) unless outermost_frame
 
         @end_time = Time.now
+        @duration = @end_time.to_f - @start_time.to_f
         freeze_name_and_execute_if_not_ignored
 
         if nesting_max_depth == 1
@@ -644,7 +642,7 @@ module NewRelic
       def record_summary_metrics(outermost_node_name)
         metrics = summary_metrics
         metrics << @frozen_name unless @frozen_name == outermost_node_name
-        @metrics.record_unscoped(metrics, end_time.to_f - start_time.to_f, 0)
+        @metrics.record_unscoped(metrics, duration, 0)
       end
 
       # This event is fired when the transaction is fully completed. The metric
@@ -654,7 +652,6 @@ module NewRelic
       end
 
       def generate_payload
-        duration = end_time.to_f - start_time.to_f
         @payload = {
           :name                 => @frozen_name,
           :bucket               => recording_web_transaction? ? :request : :background,
@@ -666,14 +663,14 @@ module NewRelic
           :priority             => priority
         }
 
-        append_cat_info(duration, @payload)
+        append_cat_info(@payload)
         append_distributed_trace_info(@payload)
-        append_apdex_perf_zone(duration, @payload)
+        append_apdex_perf_zone(@payload)
         append_synthetics_to(@payload)
         append_referring_transaction_guid_to(@payload)
       end
 
-      def include_guid?(duration)
+      def include_guid?
         state.is_cross_app? || is_synthetics_request?
       end
 
@@ -733,7 +730,7 @@ module NewRelic
       APDEX_T = 'T'.freeze
       APDEX_F = 'F'.freeze
 
-      def append_apdex_perf_zone(duration, payload)
+      def append_apdex_perf_zone(payload)
         if recording_web_transaction?
           bucket = apdex_bucket(duration, apdex_t)
         elsif background_apdex_t = transaction_specific_apdex_t
@@ -751,8 +748,8 @@ module NewRelic
         payload[:apdex_perf_zone] = bucket_str if bucket_str
       end
 
-      def append_cat_info(duration, payload)
-        return unless include_guid?(duration)
+      def append_cat_info(payload)
+        return unless include_guid?
         payload[:guid] = guid
 
         return unless state.is_cross_app?
@@ -867,23 +864,22 @@ module NewRelic
         return unless state.is_execution_traced?
 
         freeze_name_and_execute_if_not_ignored do
-          total_duration  = end_time - apdex_start
-          action_duration = end_time - start_time
           if recording_web_transaction?
-            record_apdex_metrics(APDEX_METRIC, APDEX_TXN_METRIC_PREFIX,
-                                 total_duration, action_duration, apdex_t)
+            record_apdex_metrics(APDEX_METRIC, APDEX_TXN_METRIC_PREFIX, apdex_t)
           else
-            record_apdex_metrics(APDEX_OTHER_METRIC, APDEX_OTHER_TXN_METRIC_PREFIX,
-                                 total_duration, action_duration, transaction_specific_apdex_t)
+            record_apdex_metrics(APDEX_OTHER_METRIC,
+                                 APDEX_OTHER_TXN_METRIC_PREFIX,
+                                 transaction_specific_apdex_t)
           end
         end
       end
 
-      def record_apdex_metrics(rollup_metric, transaction_prefix, total_duration, action_duration, current_apdex_t)
+      def record_apdex_metrics(rollup_metric, transaction_prefix, current_apdex_t)
         return unless current_apdex_t
 
+        total_duration      = end_time - apdex_start
         apdex_bucket_global = apdex_bucket(total_duration, current_apdex_t)
-        apdex_bucket_txn    = apdex_bucket(action_duration, current_apdex_t)
+        apdex_bucket_txn    = apdex_bucket(duration, current_apdex_t)
 
         @metrics.record_unscoped(rollup_metric, apdex_bucket_global, current_apdex_t)
         @metrics.record_unscoped(APDEX_ALL_METRIC, apdex_bucket_global, current_apdex_t)
