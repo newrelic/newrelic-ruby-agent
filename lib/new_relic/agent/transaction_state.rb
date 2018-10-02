@@ -148,17 +148,8 @@ module NewRelic
 
         @request = nil
         @current_transaction = transaction
-
-        @client_cross_app_id = nil
-
         @sql_sampler_transaction_data = nil
-
-        @busy_entries = 0
       end
-
-      # Cross app tracing
-      # Because we need values from headers before the transaction actually starts
-      attr_accessor :client_cross_app_id
 
       # Request data
       attr_accessor :request

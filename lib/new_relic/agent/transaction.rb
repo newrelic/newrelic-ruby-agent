@@ -834,7 +834,7 @@ module NewRelic
       end
 
       def record_client_application_metric
-        if id = state.client_cross_app_id
+        if id = client_cross_app_id
           NewRelic::Agent.record_metric "ClientApplication/#{id}/all", timings.app_time_in_seconds
         end
       end

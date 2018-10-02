@@ -41,6 +41,8 @@ module NewRelic
         @timings ||= TransactionTimings.new(queue_time, start_time, best_name)
       end
 
+      attr_accessor :client_cross_app_id
+
       ###############
       module_function
       ###############
@@ -151,8 +153,8 @@ module NewRelic
         # this, and then write our custom parameter when the transaction starts
         return unless transaction = state.current_transaction
 
-        if state.client_cross_app_id
-          transaction.attributes.add_intrinsic_attribute(:client_cross_process_id, state.client_cross_app_id)
+        if transaction.client_cross_app_id
+          transaction.attributes.add_intrinsic_attribute(:client_cross_process_id, transaction.client_cross_app_id)
         end
 
         if referring_guid = transaction.referring_transaction_info && transaction.referring_transaction_info[0]

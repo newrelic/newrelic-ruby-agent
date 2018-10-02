@@ -431,7 +431,7 @@ module NewRelic
             headers: { "NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info }
           ) do
             txn = NewRelic::Agent::TransactionState.tl_get.current_transaction
-            assert_equal cross_process_id, txn.state.client_cross_app_id
+            assert_equal cross_process_id, txn.client_cross_app_id
             assert_equal raw_txn_info, txn.referring_transaction_info
             assert_equal txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER), intrinsic_attributes
             tap.tap
@@ -471,7 +471,7 @@ module NewRelic
             headers: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info, "NewRelicSynthetics" => synthetics_header }
           ) do
             txn = NewRelic::Agent::TransactionState.tl_get.current_transaction
-            assert_equal cross_process_id, txn.state.client_cross_app_id
+            assert_equal cross_process_id, txn.client_cross_app_id
             assert_equal raw_txn_info, txn.referring_transaction_info
             assert_equal synthetics_header, txn.raw_synthetics_header
             assert_equal synthetics_payload, txn.synthetics_payload

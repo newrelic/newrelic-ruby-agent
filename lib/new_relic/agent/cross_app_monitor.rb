@@ -36,7 +36,7 @@ module NewRelic
           if id = decoded_id(env) and should_process_request?(id)
             state = NewRelic::Agent::TransactionState.tl_get
 
-            state.client_cross_app_id = id
+            state.current_transaction.client_cross_app_id = id if state.current_transaction
             save_referring_transaction_info(state, env)
             CrossAppTracing.assign_intrinsic_transaction_attributes state
           end
@@ -77,15 +77,13 @@ module NewRelic
       end
 
       def insert_response_header(state, request_headers, response_headers)
-        unless state.client_cross_app_id.nil?
-          txn = state.current_transaction
-          unless txn.nil?
-            txn.freeze_name_and_execute_if_not_ignored do
-              timings = txn.timings
-              content_length = content_length_from_request(request_headers)
+        txn = state.current_transaction
+        unless txn.nil? || txn.client_cross_app_id.nil?
+          txn.freeze_name_and_execute_if_not_ignored do
+            timings = txn.timings
+            content_length = content_length_from_request(request_headers)
 
-              set_response_headers(state, response_headers, timings, content_length)
-            end
+            set_response_headers(state, response_headers, timings, content_length)
           end
         end
       end

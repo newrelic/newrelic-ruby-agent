@@ -381,8 +381,8 @@ module NewRelic
                      else
                        CrossAppTracing.obfuscator.deobfuscate(encoded_id)
                      end
-        if CrossAppTracing.trusted_valid_cross_app_id? decoded_id
-          transaction_state.client_cross_app_id = decoded_id
+        if CrossAppTracing.trusted_valid_cross_app_id?(decoded_id) && transaction_state.current_transaction
+          transaction_state.current_transaction.client_cross_app_id = decoded_id
         end
       end
 

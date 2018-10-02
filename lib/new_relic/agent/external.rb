@@ -69,7 +69,7 @@ module NewRelic
           # handle/check ID
           #
           if id = rmd[NON_HTTP_CAT_ID_HEADER] and CrossAppTracing.trusted_valid_cross_app_id?(id)
-            state.client_cross_app_id = id
+            transaction.client_cross_app_id = id
 
             # handle transaction info
             #
@@ -108,7 +108,7 @@ module NewRelic
         return unless CrossAppTracing.cross_app_enabled?
 
         state = NewRelic::Agent::TransactionState.tl_get
-        if transaction = state.current_transaction and state.client_cross_app_id
+        if transaction = state.current_transaction and transaction.client_cross_app_id
 
           # must freeze the name since we're responding with it
           #
