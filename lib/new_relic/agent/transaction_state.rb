@@ -220,9 +220,6 @@ module NewRelic
         @record_sql != false
       end
 
-      # Busy calculator
-      attr_accessor :busy_entries
-
       # Sql Sampler Transaction Data
       attr_accessor :sql_sampler_transaction_data
     end

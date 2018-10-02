@@ -74,7 +74,6 @@ module NewRelic::Agent
     def test_reset_touches_everything!
       state.request = ::Rack::Request.new({})
       state.client_cross_app_id = :client_cross_app_id
-      state.busy_entries = 1
       state.sql_sampler_transaction_data = Object.new
       state.push_traced(true)
 
