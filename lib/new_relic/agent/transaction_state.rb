@@ -146,16 +146,12 @@ module NewRelic
         # since those are managed by NewRelic::Agent.disable_* calls explicitly
         # and (more importantly) outside the scope of a transaction
 
-        @request = nil
         @current_transaction = transaction
         @sql_sampler_transaction_data = nil
       end
 
-      # Request data
-      attr_accessor :request
-
       # Current transaction stack
-      attr_reader   :current_transaction
+      attr_reader :current_transaction
 
       def in_background_transaction?
         !current_transaction.nil? && !current_transaction.recording_web_transaction?

@@ -66,7 +66,6 @@ module NewRelic::Agent
     end
 
     def test_reset_touches_everything!
-      state.request = ::Rack::Request.new({})
       state.sql_sampler_transaction_data = Object.new
       state.push_traced(true)
 
