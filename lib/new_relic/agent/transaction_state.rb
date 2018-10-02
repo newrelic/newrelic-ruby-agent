@@ -154,11 +154,6 @@ module NewRelic
       # Request data
       attr_accessor :request
 
-      def request_guid
-        return nil unless current_transaction
-        current_transaction.guid
-      end
-
       # Current transaction stack
       attr_reader   :current_transaction
 

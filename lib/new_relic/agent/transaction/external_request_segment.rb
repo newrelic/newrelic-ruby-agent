@@ -207,7 +207,7 @@ module NewRelic
           return unless CrossAppTracing.cross_app_enabled?
 
           transaction.is_cross_app_caller = true
-          txn_guid = transaction_state.request_guid
+          txn_guid = transaction.guid
           trip_id   = transaction && transaction.cat_trip_id
           path_hash = transaction && transaction.cat_path_hash
 

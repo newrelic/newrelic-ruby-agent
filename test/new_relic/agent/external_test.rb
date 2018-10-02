@@ -159,7 +159,7 @@ module NewRelic
             assert_instance_of Float, rmd['NewRelicAppData'][2]
             assert_instance_of Float, rmd['NewRelicAppData'][3]
             assert_equal -1, rmd['NewRelicAppData'][4]
-            assert_equal txn.state.request_guid, rmd['NewRelicAppData'][5]
+            assert_equal txn.guid, rmd['NewRelicAppData'][5]
           end
         end
       end

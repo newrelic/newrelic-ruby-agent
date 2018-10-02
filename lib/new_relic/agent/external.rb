@@ -123,7 +123,7 @@ module NewRelic
                 transaction.timings.queue_time_in_seconds.to_f,
                 transaction.timings.app_time_in_seconds.to_f,
                 -1, # per non-HTTP CAT spec
-                state.request_guid
+                transaction.guid
               ]
             }
 

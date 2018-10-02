@@ -83,7 +83,7 @@ module NewRelic
             timings = txn.timings
             content_length = content_length_from_request(request_headers)
 
-            set_response_headers(state, response_headers, timings, content_length)
+            set_response_headers(txn, response_headers, timings, content_length)
           end
         end
       end
@@ -96,18 +96,18 @@ module NewRelic
         NewRelic::Agent::CrossAppTracing.cross_app_enabled?
       end
 
-      def set_response_headers(state, response_headers, timings, content_length)
-        response_headers[NEWRELIC_APPDATA_HEADER] = build_payload(state, timings, content_length)
+      def set_response_headers(transaction, response_headers, timings, content_length)
+        response_headers[NEWRELIC_APPDATA_HEADER] = build_payload(transaction, timings, content_length)
       end
 
-      def build_payload(state, timings, content_length)
+      def build_payload(transaction, timings, content_length)
         payload = [
           NewRelic::Agent.config[:cross_process_id],
           timings.transaction_name,
           timings.queue_time_in_seconds.to_f,
           timings.app_time_in_seconds.to_f,
           content_length,
-          state.request_guid
+          transaction.guid
         ]
         payload = obfuscator.obfuscate(::JSON.dump(payload))
       end

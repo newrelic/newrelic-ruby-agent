@@ -53,12 +53,6 @@ module NewRelic::Agent
       end
     end
 
-    def test_guid_from_transaction
-      in_transaction do |txn|
-        assert_equal state.request_guid, txn.guid
-      end
-    end
-
     def test_reset_doesnt_touch_record_sql
       state.record_sql = false
       state.reset
