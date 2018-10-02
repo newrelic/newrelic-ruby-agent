@@ -99,7 +99,8 @@ RUBY
             read.close
             NewRelic::Agent.after_fork
 
-            txn_name = NewRelic::Agent::TransactionState.tl_get.transaction_name
+            txn      = NewRelic::Agent::TransactionState.tl_get.current_transaction
+            txn_name = txn ? txn.best_name : nil
             Marshal.dump(txn_name, write)
           end
           write.close

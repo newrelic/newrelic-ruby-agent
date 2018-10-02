@@ -170,9 +170,10 @@ module MultiverseHelpers
 
   def capture_js_data
     state = NewRelic::Agent::TransactionState.tl_get
+    return unless (transaction = state.current_transaction)
     events = stub(:subscribe => nil)
     @instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(events)
-    @js_data = @instrumentor.data_for_js_agent(state)
+    @js_data = @instrumentor.data_for_js_agent(transaction)
 
     raw_attributes = @js_data["atts"]
 

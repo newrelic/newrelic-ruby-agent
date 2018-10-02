@@ -45,7 +45,7 @@ module NewRelic::Agent
         txn.start_time = earliest_time + 5
 
         advance_time(10.0)
-        timings = state.timings
+        timings = txn.timings
 
         assert_equal 5.0, timings.queue_time_in_seconds
         assert_equal 5.0, timings.app_time_in_seconds

@@ -81,7 +81,7 @@ module NewRelic
           txn = state.current_transaction
           unless txn.nil?
             txn.freeze_name_and_execute_if_not_ignored do
-              timings = state.timings
+              timings = txn.timings
               content_length = content_length_from_request(request_headers)
 
               set_response_headers(state, response_headers, timings, content_length)

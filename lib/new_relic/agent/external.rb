@@ -119,9 +119,9 @@ module NewRelic
             rmd = {
               NewRelicAppData: [
                 NewRelic::Agent.config[:cross_process_id],
-                state.timings.transaction_name,
-                state.timings.queue_time_in_seconds.to_f,
-                state.timings.app_time_in_seconds.to_f,
+                transaction.timings.transaction_name,
+                transaction.timings.queue_time_in_seconds.to_f,
+                transaction.timings.app_time_in_seconds.to_f,
                 -1, # per non-HTTP CAT spec
                 state.request_guid
               ]

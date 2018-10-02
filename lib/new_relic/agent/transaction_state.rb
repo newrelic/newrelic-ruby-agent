@@ -146,7 +146,6 @@ module NewRelic
         # since those are managed by NewRelic::Agent.disable_* calls explicitly
         # and (more importantly) outside the scope of a transaction
 
-        @timings = nil
         @request = nil
         @current_transaction = transaction
 
@@ -155,10 +154,6 @@ module NewRelic
         @sql_sampler_transaction_data = nil
 
         @busy_entries = 0
-      end
-
-      def timings
-        @timings ||= TransactionTimings.new(transaction_queue_time, transaction_start_time, transaction_name)
       end
 
       # Cross app tracing
@@ -175,18 +170,6 @@ module NewRelic
 
       # Current transaction stack
       attr_reader   :current_transaction
-
-      def transaction_start_time
-        current_transaction.start_time if current_transaction
-      end
-
-      def transaction_queue_time
-        current_transaction.nil? ? 0.0 : current_transaction.queue_time
-      end
-
-      def transaction_name
-        current_transaction.nil? ? nil : current_transaction.best_name
-      end
 
       def in_background_transaction?
         !current_transaction.nil? && !current_transaction.recording_web_transaction?
