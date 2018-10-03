@@ -1505,6 +1505,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, the agent captures attributes from browser monitoring.'
         },
+        :'span.attributes.enabled' => {
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'If <code>true</code>, the agent captures attributes on transaction segments and span events.'
+        },
         :'attributes.exclude' => {
           :default     => [],
           :public      => true,
@@ -1545,6 +1552,14 @@ module NewRelic
           :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from browser monitoring. Allows <code>*</code> as wildcard at end.'
         },
+        :'span.attributes.exclude' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :allowed_from_server => false,
+          :transform   => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to exclude from transaction segments and span events. Allows <code>*</code> as wildcard at end.'
+        },
         :'attributes.include' => {
           :default     => [],
           :public      => true,
@@ -1584,6 +1599,14 @@ module NewRelic
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in browser monitoring. Allows <code>*</code> as wildcard at end.'
+        },
+        :'span.attributes.include' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :allowed_from_server => false,
+          :transform    => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to include on transaction segments and span events. Allows <code>*</code> as wildcard at end.'
         },
         :'custom_attributes.enabled' => {
           :default     => true,

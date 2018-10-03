@@ -68,8 +68,9 @@ module NewRelic
       DST_TRANSACTION_TRACER = 1 << 1
       DST_ERROR_COLLECTOR    = 1 << 2
       DST_BROWSER_MONITORING = 1 << 3
+      DST_SPAN               = 1 << 4
 
-      DST_ALL = 0xF
+      DST_ALL = 0x1f
 
       attr_reader :rules
 
@@ -80,6 +81,7 @@ module NewRelic
         @enabled_destinations |= DST_TRANSACTION_EVENTS if config[:'transaction_events.attributes.enabled']
         @enabled_destinations |= DST_ERROR_COLLECTOR    if config[:'error_collector.attributes.enabled']
         @enabled_destinations |= DST_BROWSER_MONITORING if config[:'browser_monitoring.attributes.enabled']
+        @enabled_destinations |= DST_SPAN               if config[:'span.attributes.enabled']
 
         @enabled_destinations = DST_NONE unless config[:'attributes.enabled']
 
@@ -90,6 +92,7 @@ module NewRelic
         build_rule(config[:'transaction_events.attributes.exclude'], DST_TRANSACTION_EVENTS, false)
         build_rule(config[:'error_collector.attributes.exclude'],    DST_ERROR_COLLECTOR,    false)
         build_rule(config[:'browser_monitoring.attributes.exclude'], DST_BROWSER_MONITORING, false)
+        build_rule(config[:'span.attributes.exclude'],               DST_SPAN, false)
 
         build_rule(['request.parameters.*'], include_destinations_for_capture_params(config[:capture_params]), true)
         build_rule(['job.resque.args.*'],    include_destinations_for_capture_params(config[:'resque.capture_params']), true)
@@ -100,6 +103,7 @@ module NewRelic
         build_rule(config[:'transaction_events.attributes.include'], DST_TRANSACTION_EVENTS, true)
         build_rule(config[:'error_collector.attributes.include'],    DST_ERROR_COLLECTOR,    true)
         build_rule(config[:'browser_monitoring.attributes.include'], DST_BROWSER_MONITORING, true)
+        build_rule(config[:'span.attributes.include'],               DST_SPAN, true)
 
         @rules.sort!
 
