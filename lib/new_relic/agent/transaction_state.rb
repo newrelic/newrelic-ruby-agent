@@ -33,7 +33,7 @@ module NewRelic
           state = trace_state
           return state.current_transaction if state.current_transaction
 
-          options[:transaction_name] =  name
+          options[:transaction_name] = name
 
           Transaction.start_new_transaction(trace_state,
                                             category,
@@ -152,14 +152,6 @@ module NewRelic
 
       # Current transaction stack
       attr_reader :current_transaction
-
-      def in_background_transaction?
-        !current_transaction.nil? && !current_transaction.recording_web_transaction?
-      end
-
-      def in_web_transaction?
-        !current_transaction.nil? && current_transaction.recording_web_transaction?
-      end
 
       # Execution tracing on current thread
       attr_accessor :untraced

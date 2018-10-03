@@ -20,20 +20,15 @@ module NewRelic::Agent
       TransactionState.tl_clear
     end
 
-    def test_without_transaction_stack_on_thread
-      assert_equal false, state.in_background_transaction?
-      assert_equal false, state.in_web_transaction?
-    end
-
     def test_in_background_transaction
       in_transaction(:category => :task) do |txn|
-        assert state.in_background_transaction?
+        assert !txn.recording_web_transaction?
       end
     end
 
     def test_in_request_tranasction
-      in_web_transaction do
-        assert state.in_web_transaction?
+      in_web_transaction do |txn|
+        assert txn.recording_web_transaction?
       end
     end
 

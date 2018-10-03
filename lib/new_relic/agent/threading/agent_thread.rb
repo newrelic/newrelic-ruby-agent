@@ -38,9 +38,11 @@ module NewRelic
             profile_agent_code ? :agent : :ignore
           else
             state = TransactionState.tl_state_for(thread)
-            if state.in_background_transaction?
+            txn   = state.current_transaction
+
+            if    txn && !txn.recording_web_transaction?
               :background
-            elsif state.in_web_transaction?
+            elsif txn &&  txn.recording_web_transaction?
               :request
             else
               :other

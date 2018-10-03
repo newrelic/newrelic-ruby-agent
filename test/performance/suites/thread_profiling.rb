@@ -2,7 +2,11 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'mocha/api'
+
 class ThreadProfiling < Performance::TestCase
+  include Mocha::API
+
   def recurse(n, final)
     if n == 0
       final.call
@@ -30,8 +34,7 @@ class ThreadProfiling < Performance::TestCase
     @nthreads.times do
       @threads << Thread.new do
         @threadq << self
-        transaction_state = NewRelic::Agent::TransactionState.tl_get
-        def transaction_state.in_web_transaction?; true; end
+        NewRelic::Agent::Transaction.any_instance.stubs(:recording_web_transaction?).returns(true)
         recurse(50, method(:block))
       end
     end
@@ -51,6 +54,7 @@ class ThreadProfiling < Performance::TestCase
   def teardown
     @cvar.broadcast
     @threads.each(&:join)
+    mocha_teardown
   rescue Exception => e
     if e.message =~ /Deadlock/
       Thread.list.select(&:alive?).each do |t|
