@@ -94,7 +94,7 @@ DependencyDetection.defer do
       # Add CAT with callbacks if the request is serial
       def add_with_newrelic(curl) #THREAD_LOCAL_ACCESS
         if curl.respond_to?(:_nr_serial) && curl._nr_serial
-          hook_pending_request(curl) if NewRelic::Agent.tl_is_execution_traced?
+          hook_pending_request(curl) if NewRelic::Agent::Tracer.tracing_enabled?
         end
 
         return add_without_newrelic( curl )
@@ -125,7 +125,7 @@ DependencyDetection.defer do
       def hook_pending_request(request) #THREAD_LOCAL_ACCESS
         wrapped_request, wrapped_response = wrap_request(request)
 
-        segment = NewRelic::Agent::Transaction.start_external_request_segment(
+        segment = NewRelic::Agent::Tracer.start_external_request_segment(
           library: wrapped_request.type,
           uri: wrapped_request.uri,
           procedure: wrapped_request.method

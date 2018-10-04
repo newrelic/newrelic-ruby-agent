@@ -21,7 +21,7 @@ DependencyDetection.defer do
         wrapped_request = ::NewRelic::Agent::HTTPClients::HTTPRequest.new(request)
 
         begin
-          segment = NewRelic::Agent::Transaction.start_external_request_segment(
+          segment = NewRelic::Agent::Tracer.start_external_request_segment(
             library: wrapped_request.type,
             uri: wrapped_request.uri,
             procedure: wrapped_request.method
