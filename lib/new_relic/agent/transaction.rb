@@ -271,6 +271,7 @@ module NewRelic
         @category = category
         @start_time = Time.now
         @end_time = nil
+        @duration = nil
         @apdex_start = options[:apdex_start_time] || @start_time
         @jruby_cpu_start = jruby_cpu_time
         @process_cpu_start = process_cpu
