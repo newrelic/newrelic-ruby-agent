@@ -74,7 +74,7 @@ DependencyDetection.defer do
         op_and_col = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for name, payload
         if op_and_col
           operation, collection = op_and_col
-          NewRelic::Agent::Transaction.start_datastore_segment(
+          NewRelic::Agent::Tracer.start_datastore_segment(
             product: product,
             operation: operation,
             collection: collection
