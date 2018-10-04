@@ -54,14 +54,7 @@ module NewRelic
         Agent.config[:'transaction_tracer.enabled']
       end
 
-      # This is called when we are done with the transaction.  We've
-      # unwound the stack to the top level. It also clears the
-      # transaction sample builder so that it won't continue to have
-      # frames appended to it.
-      #
-      # It sets various instance variables to the finished sample,
-      # depending on which settings are active. See `store_sample`
-      def on_finishing_transaction(state, txn, time=Time.now)
+      def on_finishing_transaction(txn)
         return if !enabled? || txn.ignore_trace?
 
         @samples_lock.synchronize do
