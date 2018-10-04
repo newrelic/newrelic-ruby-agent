@@ -22,7 +22,9 @@ module NewRelic
           @metric_name     = metric_name || UNKNOWN_NODE_NAME
           @exit_timestamp  = relative_end
           @children    = nil
-          @params          = params
+          @params          = params.select do |p|
+            NewRelic::Agent.instance.span_attribute_filter.permits? p
+          end if params
           @parent_node     = parent
         end
 

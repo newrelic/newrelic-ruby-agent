@@ -1613,4 +1613,21 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       end
     end
   end
+
+  def test_segment_params_omitted_excluded
+    with_config(:'attributes.exclude' => ['request.parameters.*']) do
+      in_transaction('test_txn') do
+        segment = NewRelic::Agent::Transaction.start_segment(name: 'segment_a')
+        segment.params[:'request.parameters.uri'] = 'https://supersecret.com'
+        segment.params[:foo] = 'bar'
+        segment.finish
+      end
+
+      trace = last_transaction_trace
+      segment_a = find_node_with_name(trace, 'segment_a')
+
+      refute segment_a.params.key?(:'request.parameters.uri')
+      assert segment_a.params.key?(:foo)
+    end
+  end
 end
