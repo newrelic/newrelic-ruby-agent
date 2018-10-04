@@ -709,26 +709,26 @@ module NewRelic
 
             last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
             assert_equal 2, last_span_events.size
-            external_span_event = last_span_events[0][0]
+            external_intrinsics, external_agent_attributes = last_span_events[0]
             root_span_event   = last_span_events[1][0]
             root_guid         = root_span_event['guid']
 
             expected_name = 'External/remotehost.com/Typhoeus/GET'
 
-            assert_equal 'Span',            external_span_event.fetch('type')
-            assert_equal trace_id,          external_span_event.fetch('traceId')
-            refute_nil                      external_span_event.fetch('guid')
-            assert_equal root_guid,         external_span_event.fetch('parentId')
-            assert_equal txn_guid,          external_span_event.fetch('transactionId')
-            assert_equal sampled,           external_span_event.fetch('sampled')
-            assert_equal priority,          external_span_event.fetch('priority')
-            assert_equal timestamp,         external_span_event.fetch('timestamp')
-            assert_equal 1.0,               external_span_event.fetch('duration')
-            assert_equal expected_name,     external_span_event.fetch('name')
-            assert_equal segment.uri.to_s,  external_span_event.fetch('http.url')
-            assert_equal segment.library,   external_span_event.fetch('component')
-            assert_equal segment.procedure, external_span_event.fetch('http.method')
-            assert_equal 'http',            external_span_event.fetch('category')
+            assert_equal 'Span',            external_intrinsics.fetch('type')
+            assert_equal trace_id,          external_intrinsics.fetch('traceId')
+            refute_nil                      external_intrinsics.fetch('guid')
+            assert_equal root_guid,         external_intrinsics.fetch('parentId')
+            assert_equal txn_guid,          external_intrinsics.fetch('transactionId')
+            assert_equal sampled,           external_intrinsics.fetch('sampled')
+            assert_equal priority,          external_intrinsics.fetch('priority')
+            assert_equal timestamp,         external_intrinsics.fetch('timestamp')
+            assert_equal 1.0,               external_intrinsics.fetch('duration')
+            assert_equal expected_name,     external_intrinsics.fetch('name')
+            assert_equal segment.library,   external_intrinsics.fetch('component')
+            assert_equal segment.procedure, external_intrinsics.fetch('http.method')
+            assert_equal 'http',            external_intrinsics.fetch('category')
+            assert_equal segment.uri.to_s,  external_agent_attributes.fetch('http.url')
           end
         end
 
@@ -762,10 +762,10 @@ module NewRelic
             end
 
             last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
-            external_span_event = last_span_events[0][0]
+            _, agent_attributes, _ = last_span_events[0]
 
-            assert_equal 255,                      external_span_event['http.url'].bytesize
-            assert_equal "http://#{'a' * 245}...", external_span_event['http.url']
+            assert_equal 255,                      agent_attributes['http.url'].bytesize
+            assert_equal "http://#{'a' * 245}...", agent_attributes['http.url']
           end
         end
 

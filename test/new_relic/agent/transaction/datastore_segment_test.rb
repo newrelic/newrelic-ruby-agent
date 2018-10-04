@@ -243,30 +243,30 @@ module NewRelic
 
           last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           assert_equal 2, last_span_events.size
-          custom_span_event = last_span_events[0][0]
+          intrinsics, agent_attributes, _ = last_span_events[0]
           root_span_event   = last_span_events[1][0]
           root_guid         = root_span_event['guid']
 
           datastore = 'Datastore/statement/SQLite/Blahg/select'
 
-          assert_equal 'Span',      custom_span_event.fetch('type')
-          assert_equal trace_id,    custom_span_event.fetch('traceId')
-          refute_nil                custom_span_event.fetch('guid')
-          assert_equal root_guid,   custom_span_event.fetch('parentId')
-          assert_equal txn_guid,    custom_span_event.fetch('transactionId')
-          assert_equal sampled,     custom_span_event.fetch('sampled')
-          assert_equal priority,    custom_span_event.fetch('priority')
-          assert_equal timestamp,   custom_span_event.fetch('timestamp')
-          assert_equal 1.0,         custom_span_event.fetch('duration')
-          assert_equal datastore,   custom_span_event.fetch('name')
-          assert_equal 'datastore', custom_span_event.fetch('category')
+          assert_equal 'Span',      intrinsics.fetch('type')
+          assert_equal trace_id,    intrinsics.fetch('traceId')
+          refute_nil                intrinsics.fetch('guid')
+          assert_equal root_guid,   intrinsics.fetch('parentId')
+          assert_equal txn_guid,    intrinsics.fetch('transactionId')
+          assert_equal sampled,     intrinsics.fetch('sampled')
+          assert_equal priority,    intrinsics.fetch('priority')
+          assert_equal timestamp,   intrinsics.fetch('timestamp')
+          assert_equal 1.0,         intrinsics.fetch('duration')
+          assert_equal datastore,   intrinsics.fetch('name')
+          assert_equal 'datastore', intrinsics.fetch('category')
+          assert_equal 'SQLite',    intrinsics.fetch('component')
+          assert_equal 'client',    intrinsics.fetch('span.kind')
 
-          assert_equal 'SQLite',             custom_span_event.fetch('component')
-          assert_equal 'calzone_zone',       custom_span_event.fetch('db.instance')
-          assert_equal 'rachel.foo:1337807', custom_span_event.fetch('peer.address')
-          assert_equal 'rachel.foo',         custom_span_event.fetch('peer.hostname')
-          assert_equal 'client',             custom_span_event.fetch('span.kind')
-          assert_equal sql_statement,  custom_span_event.fetch('db.statement')
+          assert_equal 'calzone_zone',       agent_attributes.fetch('db.instance')
+          assert_equal 'rachel.foo:1337807', agent_attributes.fetch('peer.address')
+          assert_equal 'rachel.foo',         agent_attributes.fetch('peer.hostname')
+          assert_equal sql_statement,        agent_attributes.fetch('db.statement')
         end
 
         def test_sql_statement_not_added_to_span_event_if_disabled
@@ -320,10 +320,10 @@ module NewRelic
 
             last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
             assert_equal 2, last_span_events.size
-            event = last_span_events[0][0]
+            _, agent_attributes, _ = last_span_events[0]
 
             obfuscated_sql = "SELECT * FROM mytable WHERE super_secret=?"
-            assert_equal obfuscated_sql, event["db.statement"]
+            assert_equal obfuscated_sql, agent_attributes["db.statement"]
           end
         end
 
@@ -348,10 +348,10 @@ module NewRelic
 
           last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           assert_equal 2, last_span_events.size
-          event = last_span_events[0][0]
+          _, agent_attributes, _ = last_span_events[0]
 
 
-          assert_equal nosql_statement, event["db.statement"]
+          assert_equal nosql_statement, agent_attributes["db.statement"]
         end
 
         def test_span_event_truncates_long_sql_statement
@@ -372,10 +372,10 @@ module NewRelic
           end
 
           last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
-          span_event = last_span_events[0][0]
+          _, agent_attributes, _ = last_span_events[0]
 
-          assert_equal 2000,                             span_event['db.statement'].bytesize
-          assert_equal "select * from #{'a' * 1983}...", span_event['db.statement']
+          assert_equal 2000,                             agent_attributes['db.statement'].bytesize
+          assert_equal "select * from #{'a' * 1983}...", agent_attributes['db.statement']
         end
 
         def test_span_event_truncates_long_nosql_statement
@@ -393,10 +393,10 @@ module NewRelic
           end
 
           last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
-          span_event = last_span_events[0][0]
+          _, agent_attributes, _ = last_span_events[0]
 
-          assert_equal 2000,                         span_event['db.statement'].bytesize
-          assert_equal "set mykey #{'a' * 1987}...", span_event['db.statement']
+          assert_equal 2000,                         agent_attributes['db.statement'].bytesize
+          assert_equal "set mykey #{'a' * 1987}...", agent_attributes['db.statement']
         end
 
         def test_span_event_truncates_long_attributes
@@ -415,16 +415,16 @@ module NewRelic
           end
 
           last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
-          span_event = last_span_events[0][0]
+          _, agent_attributes, _ = last_span_events[0]
 
-          assert_equal 255, span_event['peer.hostname'].bytesize
-          assert_equal "localhost#{'t' * 243}...", span_event['peer.hostname']
+          assert_equal 255, agent_attributes['peer.hostname'].bytesize
+          assert_equal "localhost#{'t' * 243}...", agent_attributes['peer.hostname']
 
-          assert_equal 255, span_event['peer.address'].bytesize
-          assert_equal "localhost#{'t' * 243}...", span_event['peer.address']
+          assert_equal 255, agent_attributes['peer.address'].bytesize
+          assert_equal "localhost#{'t' * 243}...", agent_attributes['peer.address']
 
-          assert_equal 255, span_event['db.instance'].bytesize
-          assert_equal "foo#{'o' * 249}...", span_event['db.instance']
+          assert_equal 255, agent_attributes['db.instance'].bytesize
+          assert_equal "foo#{'o' * 249}...", agent_attributes['db.instance']
         end
 
         def test_span_event_omits_optional_attributes
