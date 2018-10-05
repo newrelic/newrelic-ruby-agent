@@ -126,10 +126,7 @@ module NewRelic
         ]
 
         @key_cache = destinations.inject({}) do |memo, destination|
-          memo[destination] = Hash.new do |h, k|
-            allowed_destinations = apply(k, destination)
-            h[k] = allows?(allowed_destinations, destination)
-          end
+          memo[destination] = {}
           memo
         end
       end
@@ -178,7 +175,14 @@ module NewRelic
           return false
         end
 
-        @key_cache[destination][key]
+        value = @key_cache[destination][key]
+
+        if value.nil?
+          allowed_destinations = apply(key, destination)
+          @key_cache[destination][key] = allows?(allowed_destinations, destination)
+        else
+          value
+        end
       end
 
       def high_security?
