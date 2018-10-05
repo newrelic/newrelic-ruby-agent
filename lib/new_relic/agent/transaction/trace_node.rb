@@ -21,7 +21,7 @@ module NewRelic
           @entry_timestamp = relative_start
           @metric_name     = metric_name || UNKNOWN_NODE_NAME
           @exit_timestamp  = relative_end
-          @children    = nil
+          @children        = nil
           @params          = params.select do |p|
             NewRelic::Agent.instance.attribute_filter.allows_key? p, AttributeFilter::DST_TRANSACTION_SEGMENTS
           end if params
