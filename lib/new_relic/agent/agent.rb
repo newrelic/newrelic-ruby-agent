@@ -29,7 +29,6 @@ require 'new_relic/agent/vm/monotonic_gc_profiler'
 require 'new_relic/agent/utilization_data'
 require 'new_relic/environment_report'
 require 'new_relic/agent/attribute_filter'
-require 'new_relic/agent/span_attribute_filter'
 require 'new_relic/agent/adaptive_sampler'
 
 module NewRelic
@@ -95,7 +94,6 @@ module NewRelic
 
       def refresh_attribute_filter
         @attribute_filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
-        @span_attribute_filter = NewRelic::Agent::SpanAttributeFilter.new(@attribute_filter)
       end
 
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -147,7 +145,6 @@ module NewRelic
         attr_reader :span_event_aggregator
         attr_reader :transaction_event_recorder
         attr_reader :attribute_filter
-        attr_reader :span_attribute_filter
         attr_reader :adaptive_sampler
 
         def transaction_event_aggregator
