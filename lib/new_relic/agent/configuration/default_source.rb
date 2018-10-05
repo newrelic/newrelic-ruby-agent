@@ -1505,12 +1505,12 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, the agent captures attributes from browser monitoring.'
         },
-        :'span.attributes.enabled' => {
+        :'span_events.attributes.enabled' => {
           :default     => true,
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, the agent captures attributes on transaction segments and span events.'
+          :description => 'If <code>true</code>, the agent captures attributes on span events.'
         },
         :'attributes.exclude' => {
           :default     => [],
@@ -1552,13 +1552,13 @@ module NewRelic
           :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from browser monitoring. Allows <code>*</code> as wildcard at end.'
         },
-        :'span.attributes.exclude' => {
+        :'span_events.attributes.exclude' => {
           :default     => [],
           :public      => true,
           :type        => Array,
           :allowed_from_server => false,
           :transform   => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to exclude from transaction segments and span events. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to exclude from span events. Allows <code>*</code> as wildcard at end.'
         },
         :'attributes.include' => {
           :default     => [],
@@ -1600,13 +1600,13 @@ module NewRelic
           :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in browser monitoring. Allows <code>*</code> as wildcard at end.'
         },
-        :'span.attributes.include' => {
+        :'span_events.attributes.include' => {
           :default     => [],
           :public      => true,
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to include on transaction segments and span events. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to include on span events. Allows <code>*</code> as wildcard at end.'
         },
         :'custom_attributes.enabled' => {
           :default     => true,

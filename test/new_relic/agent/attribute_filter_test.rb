@@ -195,12 +195,12 @@ module NewRelic::Agent
     end
 
     def test_span_include_exclude
-      with_config(:'span.attributes.include' => ['request.headers.contentType'],
-                  :'span.attributes.exclude' => ['request.headers.*']) do
+      with_config(:'span_events.attributes.include' => ['request.headers.contentType'],
+                  :'span_events.attributes.exclude' => ['request.headers.*']) do
 
         filter = AttributeFilter.new(NewRelic::Agent.config)
 
-        result = filter.apply 'request.headers.contentType', AttributeFilter::DST_SPAN
+        result = filter.apply 'request.headers.contentType', AttributeFilter::DST_SPAN_EVENTS
 
         expected_destinations = ['span']
 
@@ -222,13 +222,13 @@ module NewRelic::Agent
     end
 
     def test_key_cache_span_include_exclude
-      with_config :'span.attributes.include' => ['request.headers.contentType'],
-                  :'span.attributes.exclude' => ['request.headers.*'] do
+      with_config :'span_events.attributes.include' => ['request.headers.contentType'],
+                  :'span_events.attributes.exclude' => ['request.headers.*'] do
 
         filter = AttributeFilter.new(NewRelic::Agent.config)
 
-        assert filter.allows_key?('request.headers.contentType', AttributeFilter::DST_SPAN)
-        refute filter.allows_key?('request.headers.accept',      AttributeFilter::DST_SPAN)
+        assert filter.allows_key?('request.headers.contentType', AttributeFilter::DST_SPAN_EVENTS)
+        refute filter.allows_key?('request.headers.accept',      AttributeFilter::DST_SPAN_EVENTS)
       end
     end
 
@@ -243,7 +243,7 @@ module NewRelic::Agent
       names << 'transaction_tracer' if (bitfield & AttributeFilter::DST_TRANSACTION_TRACER) != 0
       names << 'error_collector'    if (bitfield & AttributeFilter::DST_ERROR_COLLECTOR)    != 0
       names << 'browser_monitoring' if (bitfield & AttributeFilter::DST_BROWSER_MONITORING) != 0
-      names << 'span'               if (bitfield & AttributeFilter::DST_SPAN) != 0
+      names << 'span'               if (bitfield & AttributeFilter::DST_SPAN_EVENTS) != 0
 
       names
     end
@@ -257,7 +257,7 @@ module NewRelic::Agent
         when 'transaction_tracer' then bitfield |= AttributeFilter::DST_TRANSACTION_TRACER
         when 'error_collector'    then bitfield |= AttributeFilter::DST_ERROR_COLLECTOR
         when 'browser_monitoring' then bitfield |= AttributeFilter::DST_BROWSER_MONITORING
-        when 'span'               then bitfield |= AttributeFilter::DST_SPAN
+        when 'span'               then bitfield |= AttributeFilter::DST_SPAN_EVENTS
         end
       end
 
@@ -270,7 +270,7 @@ module NewRelic::Agent
         :'transaction_events.attributes.enabled' => true,
         :'error_collector.attributes.enabled' => true,
         :'browser_monitoring.attributes.enabled' => true,
-        :'span.attributes.enabled' => true) do
+        :'span_events.attributes.enabled' => true) do
         yield
       end
     end

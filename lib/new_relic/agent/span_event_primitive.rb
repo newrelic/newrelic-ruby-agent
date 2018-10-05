@@ -147,7 +147,7 @@ module NewRelic
       end
 
       def allowed?(key)
-        NewRelic::Agent.instance.attribute_filter.allows_key?(key, AttributeFilter::DST_SPAN)
+        NewRelic::Agent.instance.attribute_filter.allows_key?(key, AttributeFilter::DST_SPAN_EVENTS)
       end
     end
   end
