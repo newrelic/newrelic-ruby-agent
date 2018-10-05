@@ -111,7 +111,27 @@ module NewRelic
         # filter is re-generated on any significant config change.
         @high_security = config[:high_security]
 
+        setup_key_cache
         cache_prefix_blacklist
+      end
+
+      def setup_key_cache
+        destinations = [
+          DST_TRANSACTION_EVENTS,
+          DST_TRANSACTION_TRACER,
+          DST_ERROR_COLLECTOR,
+          DST_BROWSER_MONITORING,
+          DST_SPAN,
+          DST_ALL
+        ]
+
+        @key_cache = destinations.inject({}) do |memo, destination|
+          memo[destination] = Hash.new do |h, k|
+            allowed_destinations = apply(k, destination)
+            h[k] = allows?(allowed_destinations, destination)
+          end
+          memo
+        end
       end
 
       def include_destinations_for_capture_params(capturing)
@@ -150,6 +170,15 @@ module NewRelic
 
       def allows?(allowed_destinations, requested_destination)
         allowed_destinations & requested_destination == requested_destination
+      end
+
+      def allows_key?(key, destination)
+        if destination == DST_NONE ||
+          destination & @enabled_destinations != destination
+          return false
+        end
+
+        @key_cache[destination][key]
       end
 
       def high_security?

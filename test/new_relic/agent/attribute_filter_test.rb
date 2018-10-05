@@ -208,6 +208,30 @@ module NewRelic::Agent
       end
     end
 
+    def test_key_cache_global_include_exclude
+      with_all_enabled do
+        with_config :'attributes.include' => ['request.headers.contentType'],
+                    :'attributes.exclude' => ['request.headers.*'] do
+
+          filter = AttributeFilter.new(NewRelic::Agent.config)
+
+          assert filter.allows_key?('request.headers.contentType', AttributeFilter::DST_ALL)
+          refute filter.allows_key?('request.headers.accept',      AttributeFilter::DST_ALL)
+        end
+      end
+    end
+
+    def test_key_cache_span_include_exclude
+      with_config :'span.attributes.include' => ['request.headers.contentType'],
+                  :'span.attributes.exclude' => ['request.headers.*'] do
+
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+
+        assert filter.allows_key?('request.headers.contentType', AttributeFilter::DST_SPAN)
+        refute filter.allows_key?('request.headers.accept',      AttributeFilter::DST_SPAN)
+      end
+    end
+
     def assert_destinations(expected, result)
       assert_equal to_bitfield(expected), result, "Expected #{expected}, got #{to_names(result)}"
     end
