@@ -64,46 +64,50 @@ module NewRelic
     class AttributeFilter
       DST_NONE = 0x0
 
-      DST_TRANSACTION_EVENTS = 1 << 0
-      DST_TRANSACTION_TRACER = 1 << 1
-      DST_ERROR_COLLECTOR    = 1 << 2
-      DST_BROWSER_MONITORING = 1 << 3
-      DST_SPAN_EVENTS        = 1 << 4
+      DST_TRANSACTION_EVENTS   = 1 << 0
+      DST_TRANSACTION_TRACER   = 1 << 1
+      DST_ERROR_COLLECTOR      = 1 << 2
+      DST_BROWSER_MONITORING   = 1 << 3
+      DST_SPAN_EVENTS          = 1 << 4
+      DST_TRANSACTION_SEGMENTS = 1 << 5
 
-      DST_ALL = 0x1f
+      DST_ALL                  = 0x3f
 
       attr_reader :rules
 
       def initialize(config)
         @enabled_destinations = DST_NONE
 
-        @enabled_destinations |= DST_TRANSACTION_TRACER if config[:'transaction_tracer.attributes.enabled']
-        @enabled_destinations |= DST_TRANSACTION_EVENTS if config[:'transaction_events.attributes.enabled']
-        @enabled_destinations |= DST_ERROR_COLLECTOR    if config[:'error_collector.attributes.enabled']
-        @enabled_destinations |= DST_BROWSER_MONITORING if config[:'browser_monitoring.attributes.enabled']
-        @enabled_destinations |= DST_SPAN_EVENTS               if config[:'span_events.attributes.enabled']
+        @enabled_destinations |= DST_TRANSACTION_TRACER   if config[:'transaction_tracer.attributes.enabled']
+        @enabled_destinations |= DST_TRANSACTION_EVENTS   if config[:'transaction_events.attributes.enabled']
+        @enabled_destinations |= DST_ERROR_COLLECTOR      if config[:'error_collector.attributes.enabled']
+        @enabled_destinations |= DST_BROWSER_MONITORING   if config[:'browser_monitoring.attributes.enabled']
+        @enabled_destinations |= DST_SPAN_EVENTS          if config[:'span_events.attributes.enabled']
+        @enabled_destinations |= DST_TRANSACTION_SEGMENTS if config[:'transaction_segments.attributes.enabled']
 
         @enabled_destinations = DST_NONE unless config[:'attributes.enabled']
 
         @rules = []
 
         build_rule(config[:'attributes.exclude'], DST_ALL, false)
-        build_rule(config[:'transaction_tracer.attributes.exclude'], DST_TRANSACTION_TRACER, false)
-        build_rule(config[:'transaction_events.attributes.exclude'], DST_TRANSACTION_EVENTS, false)
-        build_rule(config[:'error_collector.attributes.exclude'],    DST_ERROR_COLLECTOR,    false)
-        build_rule(config[:'browser_monitoring.attributes.exclude'], DST_BROWSER_MONITORING, false)
-        build_rule(config[:'span_events.attributes.exclude'],               DST_SPAN_EVENTS, false)
+        build_rule(config[:'transaction_tracer.attributes.exclude'],   DST_TRANSACTION_TRACER,   false)
+        build_rule(config[:'transaction_events.attributes.exclude'],   DST_TRANSACTION_EVENTS,   false)
+        build_rule(config[:'error_collector.attributes.exclude'],      DST_ERROR_COLLECTOR,      false)
+        build_rule(config[:'browser_monitoring.attributes.exclude'],   DST_BROWSER_MONITORING,   false)
+        build_rule(config[:'span_events.attributes.exclude'],          DST_SPAN_EVENTS,          false)
+        build_rule(config[:'transaction_segments.attributes.exclude'], DST_TRANSACTION_SEGMENTS, false)
 
         build_rule(['request.parameters.*'], include_destinations_for_capture_params(config[:capture_params]), true)
         build_rule(['job.resque.args.*'],    include_destinations_for_capture_params(config[:'resque.capture_params']), true)
         build_rule(['job.sidekiq.args.*'],   include_destinations_for_capture_params(config[:'sidekiq.capture_params']), true)
 
         build_rule(config[:'attributes.include'], DST_ALL, true)
-        build_rule(config[:'transaction_tracer.attributes.include'], DST_TRANSACTION_TRACER, true)
-        build_rule(config[:'transaction_events.attributes.include'], DST_TRANSACTION_EVENTS, true)
-        build_rule(config[:'error_collector.attributes.include'],    DST_ERROR_COLLECTOR,    true)
-        build_rule(config[:'browser_monitoring.attributes.include'], DST_BROWSER_MONITORING, true)
-        build_rule(config[:'span_events.attributes.include'],               DST_SPAN_EVENTS, true)
+        build_rule(config[:'transaction_tracer.attributes.include'],   DST_TRANSACTION_TRACER,   true)
+        build_rule(config[:'transaction_events.attributes.include'],   DST_TRANSACTION_EVENTS,   true)
+        build_rule(config[:'error_collector.attributes.include'],      DST_ERROR_COLLECTOR,      true)
+        build_rule(config[:'browser_monitoring.attributes.include'],   DST_BROWSER_MONITORING,   true)
+        build_rule(config[:'span_events.attributes.include'],          DST_SPAN_EVENTS,          true)
+        build_rule(config[:'transaction_segments.attributes.include'], DST_TRANSACTION_SEGMENTS, true)
 
         @rules.sort!
 
@@ -122,6 +126,7 @@ module NewRelic
           DST_ERROR_COLLECTOR,
           DST_BROWSER_MONITORING,
           DST_SPAN_EVENTS,
+          DST_TRANSACTION_SEGMENTS,
           DST_ALL
         ]
 

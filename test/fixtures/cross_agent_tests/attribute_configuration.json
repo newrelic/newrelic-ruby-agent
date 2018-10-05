@@ -75,7 +75,7 @@
       "error_collector.attributes.exclude":["alpha"],
       "browser_monitoring.attributes.enabled":true,
       "browser_monitoring.attributes.exclude":["alpha"],
-      "span.attributes.exclude":["alpha"]
+      "span_events.attributes.exclude":["alpha"]
     },
     "input_key":"alpha",
     "input_default_destinations":
@@ -95,7 +95,7 @@
     "input_default_destinations":
       [],
     "expected_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span"]
+      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span_events", "transaction_segments"]
   },
 
   {
@@ -179,11 +179,12 @@
       "error_collector.attributes.exclude":["alpha"],
       "browser_monitoring.attributes.enabled":true,
       "browser_monitoring.attributes.exclude":["alpha"],
-      "span.attributes.exclude":["alpha"]
+      "span_events.attributes.exclude":["alpha"],
+      "transaction_segments.attributes.exclude":["alpha"]
     },
     "input_key":"alpha",
     "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
+      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span_events", "transaction_segments"],
     "expected_destinations":
       []
   },
@@ -197,13 +198,15 @@
       "transaction_tracer.attributes.exclude":["alpha*"],
       "error_collector.attributes.exclude":["alpha*"],
       "browser_monitoring.attributes.enabled":true,
-      "browser_monitoring.attributes.exclude":["alpha*"]
+      "browser_monitoring.attributes.exclude":["alpha*"],
+      "span_events.attributes.exclude":["alpha*"],
+      "transaction_segments.attributes.exclude":["alpha*"]
     },
     "input_key":"alpha",
     "input_default_destinations":
       [],
     "expected_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span"]
+      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span_events", "transaction_segments"]
   },
 
   {
@@ -239,7 +242,7 @@
     },
     "input_key":"alpha.",
     "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
+      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span_events", "transaction_segments"],
     "expected_destinations":
       []
   },
@@ -254,7 +257,7 @@
     },
     "input_key":"alpha.psi",
     "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
+      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span_events", "transaction_segments"],
     "expected_destinations":
       []
   },
@@ -269,9 +272,9 @@
     },
     "input_key":"alpha.beta.",
     "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span"],
+      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span_events", "transaction_segments"],
     "expected_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span"]
+      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span_events", "transaction_segments"]
   },
 
   {
@@ -284,9 +287,9 @@
     },
     "input_key":"alpha.beta.psi",
     "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span"],
+      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span_events", "transaction_segments"],
     "expected_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span"]
+      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span_events", "transaction_segments"]
   },
 
   {
@@ -299,7 +302,7 @@
     },
     "input_key":"alpha.beta.gamma.",
     "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
+      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring", "span_events", "transaction_segments"],
     "expected_destinations":
       []
   },
