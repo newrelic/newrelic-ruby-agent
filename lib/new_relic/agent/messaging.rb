@@ -381,15 +381,15 @@ module NewRelic
                      else
                        CrossAppTracing.obfuscator.deobfuscate(encoded_id)
                      end
-        if CrossAppTracing.trusted_valid_cross_app_id? decoded_id
-          transaction_state.client_cross_app_id = decoded_id
+        if CrossAppTracing.trusted_valid_cross_app_id?(decoded_id) && transaction_state.current_transaction
+          transaction_state.current_transaction.client_cross_app_id = decoded_id
         end
       end
 
       def decode_txn_info txn_header, transaction_state
         begin
           txn_info = ::JSON.load(CrossAppTracing.obfuscator.deobfuscate(txn_header))
-          transaction_state.referring_transaction_info = txn_info
+          transaction_state.current_transaction.referring_transaction_info = txn_info
         rescue => e
           NewRelic::Agent.logger.debug("Failure deserializing encoded header in #{self.class}, #{e.class}, #{e.message}")
           nil

@@ -69,12 +69,12 @@ module NewRelic
           # handle/check ID
           #
           if id = rmd[NON_HTTP_CAT_ID_HEADER] and CrossAppTracing.trusted_valid_cross_app_id?(id)
-            state.client_cross_app_id = id
+            transaction.client_cross_app_id = id
 
             # handle transaction info
             #
             if txn_info = rmd[NON_HTTP_CAT_TXN_HEADER]
-              state.referring_transaction_info = txn_info
+              transaction.referring_transaction_info = txn_info
               CrossAppTracing.assign_intrinsic_transaction_attributes state
             end
 
@@ -108,7 +108,7 @@ module NewRelic
         return unless CrossAppTracing.cross_app_enabled?
 
         state = NewRelic::Agent::TransactionState.tl_get
-        if transaction = state.current_transaction and state.client_cross_app_id
+        if transaction = state.current_transaction and transaction.client_cross_app_id
 
           # must freeze the name since we're responding with it
           #
@@ -119,11 +119,11 @@ module NewRelic
             rmd = {
               NewRelicAppData: [
                 NewRelic::Agent.config[:cross_process_id],
-                state.timings.transaction_name,
-                state.timings.queue_time_in_seconds.to_f,
-                state.timings.app_time_in_seconds.to_f,
+                transaction.timings.transaction_name,
+                transaction.timings.queue_time_in_seconds.to_f,
+                transaction.timings.app_time_in_seconds.to_f,
                 -1, # per non-HTTP CAT spec
-                state.request_guid
+                transaction.guid
               ]
             }
 

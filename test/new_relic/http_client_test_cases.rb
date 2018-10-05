@@ -539,9 +539,8 @@ module HttpClientTestCases
         with_config(config) do
           NewRelic::Agent.instance.events.notify(:finished_configuring)
 
-          in_transaction do
-            state = NewRelic::Agent::TransactionState.tl_get
-            state.referring_transaction_info = test_case['inboundPayload']
+          in_transaction do |txn|
+            txn.referring_transaction_info = test_case['inboundPayload']
             stub_transaction_guid(test_case['transactionGuid'])
             test_case['outboundRequests'].each do |req|
               set_explicit_transaction_name(req['outboundTxnName'])

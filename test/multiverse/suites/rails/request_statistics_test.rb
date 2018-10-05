@@ -13,7 +13,7 @@ class RequestStatsController < ApplicationController
   end
 
   def cross_app_action
-    NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
+    ::NewRelic::Agent::Transaction.tl_current.is_cross_app_caller = true
     render body:  'some stuff'
   end
 
@@ -103,6 +103,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
         'HTTP_X_NEWRELIC_ID'          => Base64.encode64('1#234'),
         'HTTP_X_NEWRELIC_TRANSACTION' => Base64.encode64('["8badf00d",1]')
       }
+
       get '/request_stats/cross_app_action', headers: rack_env
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)

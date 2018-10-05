@@ -33,7 +33,7 @@ module NewRelic
           state = trace_state
           return state.current_transaction if state.current_transaction
 
-          options[:transaction_name] =  name
+          options[:transaction_name] = name
 
           Transaction.start_new_transaction(trace_state,
                                             category,
@@ -146,70 +146,12 @@ module NewRelic
         # since those are managed by NewRelic::Agent.disable_* calls explicitly
         # and (more importantly) outside the scope of a transaction
 
-        @timings = nil
-        @request = nil
         @current_transaction = transaction
-
-
-        @is_cross_app_caller = false
-        @client_cross_app_id = nil
-        @referring_transaction_info = nil
-
         @sql_sampler_transaction_data = nil
-
-        @busy_entries = 0
-      end
-
-      def timings
-        @timings ||= TransactionTimings.new(transaction_queue_time, transaction_start_time, transaction_name)
-      end
-
-      # Cross app tracing
-      # Because we need values from headers before the transaction actually starts
-      attr_accessor :client_cross_app_id, :referring_transaction_info, :is_cross_app_caller
-
-      def is_cross_app_caller?
-        @is_cross_app_caller
-      end
-
-      def is_cross_app_callee?
-        referring_transaction_info != nil
-      end
-
-      def is_cross_app?
-        is_cross_app_caller? || is_cross_app_callee?
-      end
-
-      # Request data
-      attr_accessor :request
-
-      def request_guid
-        return nil unless current_transaction
-        current_transaction.guid
       end
 
       # Current transaction stack
-      attr_reader   :current_transaction
-
-      def transaction_start_time
-        current_transaction.start_time if current_transaction
-      end
-
-      def transaction_queue_time
-        current_transaction.nil? ? 0.0 : current_transaction.queue_time
-      end
-
-      def transaction_name
-        current_transaction.nil? ? nil : current_transaction.best_name
-      end
-
-      def in_background_transaction?
-        !current_transaction.nil? && !current_transaction.recording_web_transaction?
-      end
-
-      def in_web_transaction?
-        !current_transaction.nil? && current_transaction.recording_web_transaction?
-      end
+      attr_reader :current_transaction
 
       # Execution tracing on current thread
       attr_accessor :untraced
@@ -234,9 +176,6 @@ module NewRelic
       def is_sql_recorded?
         @record_sql != false
       end
-
-      # Busy calculator
-      attr_accessor :busy_entries
 
       # Sql Sampler Transaction Data
       attr_accessor :sql_sampler_transaction_data

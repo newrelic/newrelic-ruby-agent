@@ -457,8 +457,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       guid = payload[:guid]
     end
 
-    in_transaction do
-      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
+    in_transaction do |txn|
+      txn.is_cross_app_caller = true
     end
 
     refute_empty guid
@@ -470,8 +470,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       found_guid = payload.key?(:guid)
     end
 
-    in_transaction do
-      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = false
+    in_transaction do |txn|
+      txn.is_cross_app_caller = false
     end
 
     refute found_guid
@@ -484,9 +484,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     with_config(:apdex_t => 2.0) do
-      in_transaction do
+      in_transaction do |txn|
         state = NewRelic::Agent::TransactionState.tl_get
-        state.referring_transaction_info = ["another"]
+        txn.referring_transaction_info = ["another"]
       end
     end
 
@@ -499,8 +499,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       referring_guid = payload[:referring_transaction_guid]
     end
 
-    in_transaction do
-      NewRelic::Agent::TransactionState.tl_get.referring_transaction_info = ["GUID"]
+    in_transaction do |txn|
+      txn.referring_transaction_info = ["GUID"]
     end
 
     assert_equal "GUID", referring_guid
@@ -512,9 +512,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       found_referring_guid = payload.key?(:referring_transaction_guid)
     end
 
-    in_transaction do
+    in_transaction do |txn|
       # Make sure we don't have referring transaction state floating around
-      NewRelic::Agent::TransactionState.tl_get.referring_transaction_info = nil
+      txn.referring_transaction_info = nil
     end
 
     refute found_referring_guid
@@ -600,8 +600,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       keys = payload.keys
     end
 
-    in_transaction do
-      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
+    in_transaction do |txn|
+      txn.is_cross_app_caller = true
     end
 
     assert_includes keys, :cat_trip_id
@@ -616,11 +616,11 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     nr_freeze_time
 
-    in_transaction do
+    in_transaction do |txn|
       advance_time(10)
 
       state = NewRelic::Agent::TransactionState.tl_get
-      state.is_cross_app_caller = false
+      txn.is_cross_app_caller = false
     end
 
     refute_includes keys, :cat_trip_id
@@ -1361,7 +1361,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
 
     txn = in_transaction do |t|
-      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
+      t.is_cross_app_caller = true
       guid = t.guid
     end
 
@@ -1383,8 +1383,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_intrinsic_attributes_dont_include_tripid_if_not_cross_app_transaction
     NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
 
-    txn = in_transaction do
-      NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = false
+    txn = in_transaction do |t|
+      t.is_cross_app_caller = false
     end
 
     result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
@@ -1396,7 +1396,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     txn = in_transaction do |t|
       state = NewRelic::Agent::TransactionState.tl_get
-      state.is_cross_app_caller = true
+      t.is_cross_app_caller = true
       path_hash = t.cat_path_hash
     end
 

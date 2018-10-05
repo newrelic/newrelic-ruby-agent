@@ -40,12 +40,13 @@ module NewRelic
 
         def self.perform(job, block)
           state = ::NewRelic::Agent::TransactionState.tl_get
+          txn = state.current_transaction
 
           # Don't nest transactions if we're already in a web transaction.
           # Probably inline processing the job if that happens, so just trace.
-          if state.in_web_transaction?
+          if    txn &&  txn.recording_web_transaction?
             run_in_trace(job, block, :Consume)
-          elsif state.in_background_transaction?
+          elsif txn && !txn.recording_web_transaction?
             ::NewRelic::Agent::Transaction.set_default_transaction_name(
               transaction_name_suffix_for_job(job),
               transaction_category)

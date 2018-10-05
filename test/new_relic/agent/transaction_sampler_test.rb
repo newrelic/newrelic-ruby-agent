@@ -359,7 +359,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       in_transaction do |transaction|
-        NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = true
+        transaction.is_cross_app_caller = true
         guid = transaction.guid
       end
     end
@@ -372,7 +372,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       in_transaction do |transaction|
-        NewRelic::Agent::TransactionState.tl_get.is_cross_app_caller = false
+        transaction.is_cross_app_caller = false
       end
     end
 
@@ -385,7 +385,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       in_transaction do |transaction|
         state = NewRelic::Agent::TransactionState.tl_get
-        state.is_cross_app_caller = true
+        transaction.is_cross_app_caller = true
         path_hash = transaction.cat_path_hash
       end
     end

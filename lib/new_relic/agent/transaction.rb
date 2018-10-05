@@ -22,6 +22,7 @@ module NewRelic
     class Transaction
       include Tracing
       include DistributedTracing
+      include CrossAppTracing
 
       # for nested transactions
       SUBTRANSACTION_PREFIX        = 'Nested/'.freeze
@@ -270,6 +271,7 @@ module NewRelic
         @category = category
         @start_time = Time.now
         @end_time = nil
+        @duration = nil
         @apdex_start = options[:apdex_start_time] || @start_time
         @jruby_cpu_start = jruby_cpu_time
         @process_cpu_start = process_cpu
@@ -626,7 +628,7 @@ module NewRelic
 
         if Agent.config[:'distributed_tracing.enabled']
           assign_distributed_trace_intrinsics
-        elsif state.is_cross_app?
+        elsif is_cross_app?
           attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)
           attributes.add_intrinsic_attribute(:path_hash, cat_path_hash)
         end
@@ -671,7 +673,7 @@ module NewRelic
       end
 
       def include_guid?
-        state.is_cross_app? || is_synthetics_request?
+        is_cross_app? || is_synthetics_request?
       end
 
       def cat_trip_id
@@ -752,7 +754,7 @@ module NewRelic
         return unless include_guid?
         payload[:guid] = guid
 
-        return unless state.is_cross_app?
+        return unless is_cross_app?
         trip_id             = cat_trip_id
         path_hash           = cat_path_hash
         referring_path_hash = cat_referring_path_hash
@@ -833,8 +835,8 @@ module NewRelic
       end
 
       def record_client_application_metric
-        if id = state.client_cross_app_id
-          NewRelic::Agent.record_metric "ClientApplication/#{id}/all", state.timings.app_time_in_seconds
+        if id = client_cross_app_id
+          NewRelic::Agent.record_metric "ClientApplication/#{id}/all", timings.app_time_in_seconds
         end
       end
 
@@ -980,7 +982,7 @@ module NewRelic
       end
 
       def add_message_cat_headers headers
-        state.is_cross_app_caller = true
+        self.is_cross_app_caller = true
         CrossAppTracing.insert_message_headers headers,
                                                guid,
                                                cat_trip_id,

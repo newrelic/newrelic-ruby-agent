@@ -36,7 +36,7 @@ module NewRelic
           if id = decoded_id(env) and should_process_request?(id)
             state = NewRelic::Agent::TransactionState.tl_get
 
-            state.client_cross_app_id = id
+            state.current_transaction.client_cross_app_id = id if state.current_transaction
             save_referring_transaction_info(state, env)
             CrossAppTracing.assign_intrinsic_transaction_attributes state
           end
@@ -53,39 +53,37 @@ module NewRelic
       def save_referring_transaction_info(state, request_headers)
         txn_header = request_headers[NEWRELIC_TXN_HEADER_KEY] or return
         txn_info = deserialize_header(txn_header, NEWRELIC_TXN_HEADER)
-        state.referring_transaction_info = txn_info
+        state.current_transaction.referring_transaction_info = txn_info
       end
 
       def client_referring_transaction_guid(state)
-        info = state.referring_transaction_info or return nil
+        info = state.current_transaction.referring_transaction_info or return nil
         return info[0]
       end
 
       def client_referring_transaction_record_flag(state)
-        info = state.referring_transaction_info or return nil
+        info = state.current_transaction.referring_transaction_info or return nil
         return info[1]
       end
 
       def client_referring_transaction_trip_id(state)
-        info = state.referring_transaction_info or return nil
+        info = state.current_transaction.referring_transaction_info or return nil
         return info[2].is_a?(String) && info[2]
       end
 
       def client_referring_transaction_path_hash(state)
-        info = state.referring_transaction_info or return nil
+        info = state.current_transaction.referring_transaction_info or return nil
         return info[3].is_a?(String) && info[3]
       end
 
       def insert_response_header(state, request_headers, response_headers)
-        unless state.client_cross_app_id.nil?
-          txn = state.current_transaction
-          unless txn.nil?
-            txn.freeze_name_and_execute_if_not_ignored do
-              timings = state.timings
-              content_length = content_length_from_request(request_headers)
+        txn = state.current_transaction
+        unless txn.nil? || txn.client_cross_app_id.nil?
+          txn.freeze_name_and_execute_if_not_ignored do
+            timings = txn.timings
+            content_length = content_length_from_request(request_headers)
 
-              set_response_headers(state, response_headers, timings, content_length)
-            end
+            set_response_headers(txn, response_headers, timings, content_length)
           end
         end
       end
@@ -98,18 +96,18 @@ module NewRelic
         NewRelic::Agent::CrossAppTracing.cross_app_enabled?
       end
 
-      def set_response_headers(state, response_headers, timings, content_length)
-        response_headers[NEWRELIC_APPDATA_HEADER] = build_payload(state, timings, content_length)
+      def set_response_headers(transaction, response_headers, timings, content_length)
+        response_headers[NEWRELIC_APPDATA_HEADER] = build_payload(transaction, timings, content_length)
       end
 
-      def build_payload(state, timings, content_length)
+      def build_payload(transaction, timings, content_length)
         payload = [
           NewRelic::Agent.config[:cross_process_id],
           timings.transaction_name,
           timings.queue_time_in_seconds.to_f,
           timings.app_time_in_seconds.to_f,
           content_length,
-          state.request_guid
+          transaction.guid
         ]
         payload = obfuscator.obfuscate(::JSON.dump(payload))
       end

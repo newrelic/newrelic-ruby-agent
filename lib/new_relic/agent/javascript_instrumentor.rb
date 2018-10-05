@@ -109,7 +109,7 @@ module NewRelic
         return '' if txn.nil?
 
         txn.freeze_name_and_execute_if_not_ignored do
-          data = data_for_js_agent(state)
+          data = data_for_js_agent(txn)
           json = ::JSON.dump(data)
           return html_safe_if_needed("\n<script>window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
         end
@@ -131,8 +131,8 @@ module NewRelic
       ATTS_AGENT_SUBKEY    = "a".freeze
 
       # NOTE: Internal prototyping may override this, so leave name stable!
-      def data_for_js_agent(state)
-        timings = state.timings
+      def data_for_js_agent(transaction)
+        timings = transaction.timings
 
         data = {
           BEACON_KEY           => NewRelic::Agent.config[:beacon],
@@ -146,7 +146,7 @@ module NewRelic
         }
 
         add_ssl_for_http(data)
-        add_attributes(data, state.current_transaction)
+        add_attributes(data, transaction)
 
         data
       end

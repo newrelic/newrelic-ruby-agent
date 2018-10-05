@@ -345,7 +345,8 @@ module NewRelic
         def perform_action_with_newrelic_trace(*args, &block) #THREAD_LOCAL_ACCESS
           NewRelic::Agent.record_api_supportability_metric(:perform_action_with_newrelic_trace)
           state = NewRelic::Agent::TransactionState.tl_get
-          state.request = newrelic_request(args)
+          request = newrelic_request(args)
+          queue_start_time = detect_queue_start_time(request)
 
           skip_tracing = do_not_trace? || !state.is_execution_traced?
 
@@ -360,7 +361,7 @@ module NewRelic
 
           trace_options = args.last.is_a?(Hash) ? args.last : NR_DEFAULT_OPTIONS
           category      = trace_options[:category] || :controller
-          txn_options   = create_transaction_options(trace_options, category, state)
+          txn_options   = create_transaction_options(trace_options, category, state, queue_start_time)
 
           begin
             Transaction.start(state, category, txn_options)
@@ -393,8 +394,7 @@ module NewRelic
         # Should be implemented in the dispatcher class
         def newrelic_response_code; end
 
-        def newrelic_request_headers(state)
-          request = state.request
+        def newrelic_request_headers(request)
           if request
             if request.respond_to?(:headers)
               request.headers
@@ -425,14 +425,14 @@ module NewRelic
 
         private
 
-        def create_transaction_options(trace_options, category, state)
+        def create_transaction_options(trace_options, category, state, queue_start_time)
           txn_options = {}
           txn_options[:request]   = trace_options[:request]
           txn_options[:request] ||= request if respond_to?(:request) rescue nil
           # params should have been filtered before calling perform_action_with_newrelic_trace
           txn_options[:filtered_params] = trace_options[:params]
           txn_options[:transaction_name] = TransactionNamer.name_for(nil, self, category, trace_options)
-          txn_options[:apdex_start_time] = detect_queue_start_time(state)
+          txn_options[:apdex_start_time] = queue_start_time
           txn_options[:ignore_apdex] = ignore_apdex?
           txn_options[:ignore_enduser] = ignore_enduser?
           txn_options
@@ -453,8 +453,8 @@ module NewRelic
             name)
         end
 
-        def detect_queue_start_time(state)
-          headers = newrelic_request_headers(state)
+        def detect_queue_start_time(request)
+          headers = newrelic_request_headers(request)
 
           QueueTime.parse_frontend_timestamp(headers) if headers
         end

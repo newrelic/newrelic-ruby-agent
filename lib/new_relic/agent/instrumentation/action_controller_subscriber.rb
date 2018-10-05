@@ -11,7 +11,9 @@ module NewRelic
       class ActionControllerSubscriber < EventedSubscriber
 
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
-          request = state.request
+          # @req is a historically stable but not guaranteed Rails header property
+          request = payload[:headers].instance_variable_get(:@req)
+
           event = ControllerEvent.new(name, Time.now, nil, id, payload, request)
           push_event(event)
 
