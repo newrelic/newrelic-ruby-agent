@@ -64,7 +64,7 @@ module NewRelic
 
         agent_attributes = {}
 
-        if permitted?(HTTP_URL_KEY)
+        if allowed?(HTTP_URL_KEY)
           agent_attributes[HTTP_URL_KEY] = truncate(segment.uri)
         end
 
@@ -80,19 +80,19 @@ module NewRelic
 
         agent_attributes = {}
 
-        if segment.database_name && permitted?(DB_INSTANCE_KEY)
+        if segment.database_name && allowed?(DB_INSTANCE_KEY)
           agent_attributes[DB_INSTANCE_KEY] = truncate(segment.database_name)
         end
-        if segment.host && segment.port_path_or_id && permitted?(PEER_ADDRESS_KEY)
+        if segment.host && segment.port_path_or_id && allowed?(PEER_ADDRESS_KEY)
           agent_attributes[PEER_ADDRESS_KEY] = truncate("#{segment.host}:#{segment.port_path_or_id}")
         end
-        if segment.host && permitted?(PEER_HOSTNAME_KEY)
+        if segment.host && allowed?(PEER_HOSTNAME_KEY)
           agent_attributes[PEER_HOSTNAME_KEY] = truncate(segment.host)
         end
 
-        if segment.sql_statement && permitted?(DB_STATEMENT_KEY)
+        if segment.sql_statement && allowed?(DB_STATEMENT_KEY)
           agent_attributes[DB_STATEMENT_KEY] = truncate(segment.sql_statement.safe_sql, 2000)
-        elsif segment.nosql_statement && permitted?(DB_STATEMENT_KEY)
+        elsif segment.nosql_statement && allowed?(DB_STATEMENT_KEY)
           agent_attributes[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, 2000)
         end
 
@@ -146,8 +146,8 @@ module NewRelic
         end
       end
 
-      def permitted?(key)
-        NewRelic::Agent.instance.span_attribute_filter.permits?(key)
+      def allowed?(key)
+        NewRelic::Agent.instance.attribute_filter.allows_key?(key, AttributeFilter::DST_SPAN)
       end
     end
   end

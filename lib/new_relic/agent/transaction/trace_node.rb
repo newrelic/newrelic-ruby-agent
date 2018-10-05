@@ -23,7 +23,7 @@ module NewRelic
           @exit_timestamp  = relative_end
           @children    = nil
           @params          = params.select do |p|
-            NewRelic::Agent.instance.span_attribute_filter.permits? p
+            NewRelic::Agent.instance.attribute_filter.allows_key? p, AttributeFilter::DST_SPAN
           end if params
           @parent_node     = parent
         end
