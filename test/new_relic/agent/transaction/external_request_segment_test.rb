@@ -709,7 +709,7 @@ module NewRelic
 
             last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
             assert_equal 2, last_span_events.size
-            external_intrinsics, external_agent_attributes = last_span_events[0]
+            external_intrinsics, _, external_agent_attributes = last_span_events[0]
             root_span_event   = last_span_events[1][0]
             root_guid         = root_span_event['guid']
 
@@ -762,7 +762,7 @@ module NewRelic
             end
 
             last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
-            _, agent_attributes, _ = last_span_events[0]
+            _, _, agent_attributes = last_span_events[0]
 
             assert_equal 255,                      agent_attributes['http.url'].bytesize
             assert_equal "http://#{'a' * 245}...", agent_attributes['http.url']

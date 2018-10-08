@@ -243,7 +243,7 @@ module NewRelic
 
           last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           assert_equal 2, last_span_events.size
-          intrinsics, agent_attributes, _ = last_span_events[0]
+          intrinsics, _, agent_attributes = last_span_events[0]
           root_span_event   = last_span_events[1][0]
           root_guid         = root_span_event['guid']
 
@@ -320,7 +320,7 @@ module NewRelic
 
             last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
             assert_equal 2, last_span_events.size
-            _, agent_attributes, _ = last_span_events[0]
+            _, _, agent_attributes = last_span_events[0]
 
             obfuscated_sql = "SELECT * FROM mytable WHERE super_secret=?"
             assert_equal obfuscated_sql, agent_attributes["db.statement"]
@@ -348,7 +348,7 @@ module NewRelic
 
           last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           assert_equal 2, last_span_events.size
-          _, agent_attributes, _ = last_span_events[0]
+          _, _, agent_attributes = last_span_events[0]
 
 
           assert_equal nosql_statement, agent_attributes["db.statement"]
@@ -372,7 +372,7 @@ module NewRelic
           end
 
           last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
-          _, agent_attributes, _ = last_span_events[0]
+          _, _, agent_attributes = last_span_events[0]
 
           assert_equal 2000,                             agent_attributes['db.statement'].bytesize
           assert_equal "select * from #{'a' * 1983}...", agent_attributes['db.statement']
@@ -393,7 +393,7 @@ module NewRelic
           end
 
           last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
-          _, agent_attributes, _ = last_span_events[0]
+          _, _, agent_attributes = last_span_events[0]
 
           assert_equal 2000,                         agent_attributes['db.statement'].bytesize
           assert_equal "set mykey #{'a' * 1987}...", agent_attributes['db.statement']
@@ -415,7 +415,7 @@ module NewRelic
           end
 
           last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
-          _, agent_attributes, _ = last_span_events[0]
+          _, _, agent_attributes = last_span_events[0]
 
           assert_equal 255, agent_attributes['peer.hostname'].bytesize
           assert_equal "localhost#{'t' * 243}...", agent_attributes['peer.hostname']

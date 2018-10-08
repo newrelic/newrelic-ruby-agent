@@ -68,7 +68,7 @@ module NewRelic
           agent_attributes[HTTP_URL_KEY] = truncate(segment.uri)
         end
 
-        [intrinsics, agent_attributes, EMPTY_HASH]
+        [intrinsics, EMPTY_HASH, agent_attributes]
       end
 
       def for_datastore_segment(segment)
@@ -96,7 +96,7 @@ module NewRelic
           agent_attributes[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, 2000)
         end
 
-        [intrinsics, agent_attributes, EMPTY_HASH]
+        [intrinsics, EMPTY_HASH, agent_attributes]
       end
 
       private
