@@ -119,6 +119,14 @@ module NewRelic
         cache_prefix_blacklist
       end
 
+      # Note the key_cache is a global cache, accessible by multiple threads,
+      # but is intentionally left unsynchronized for liveness. Writes will always
+      # involve writing the same boolean value for each key, so there is no
+      # worry of one value clobbering another. For reads, if a value hasn't been
+      # written to the cache yet, the worst that will happen is that it will run
+      # through the filter rules again. Both reads and writes will become
+      # eventually consistent.
+
       def setup_key_cache
         destinations = [
           DST_TRANSACTION_EVENTS,
