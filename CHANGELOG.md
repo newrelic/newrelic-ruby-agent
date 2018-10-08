@@ -2,6 +2,11 @@
 
 ## v5.5.0
 
+  * Bugfix for `perform` instrumentation with curb gem
+
+    Use of curb's `perform` method now no longer results in nil headers
+    getting returned.
+
   * Bugfix for parsing Docker container IDs
 
     The agent now parses Docker container IDs correctly regardless of the
