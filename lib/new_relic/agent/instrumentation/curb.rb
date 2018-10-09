@@ -64,6 +64,7 @@ DependencyDetection.defer do
 
       # Hook the #perform method to mark the request as non-parallel.
       def perform_with_newrelic
+        self._nr_http_verb ||= :GET
         self._nr_serial = true
         perform_without_newrelic
       end
