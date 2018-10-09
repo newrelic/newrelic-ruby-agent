@@ -40,7 +40,10 @@ module NewRelic
           in_transaction do |txn|
             NewRelic::Agent::External.process_request_metadata rmd
             assert_equal cat_config[:cross_process_id], txn.client_cross_app_id
-            assert_equal ['abc', false, 'def', 'ghi'], txn.referring_transaction_info
+
+            assert_equal 'abc', txn.cross_app_payload.referring_guid
+            assert_equal 'def', txn.cross_app_payload.referring_trip_id
+            assert_equal 'ghi', txn.cross_app_payload.referring_path_hash
           end
         end
       end
@@ -95,7 +98,7 @@ module NewRelic
 
             state = NewRelic::Agent::TransactionState.tl_get
             refute txn.client_cross_app_id
-            refute txn.referring_transaction_info
+            refute txn.cross_app_payload
           end
         end
       end
@@ -115,7 +118,7 @@ module NewRelic
 
             state = NewRelic::Agent::TransactionState.tl_get
             refute txn.client_cross_app_id
-            refute txn.referring_transaction_info
+            refute txn.cross_app_payload
           end
         end
       end
@@ -133,7 +136,7 @@ module NewRelic
 
             state = NewRelic::Agent::TransactionState.tl_get
             refute txn.client_cross_app_id
-            refute txn.referring_transaction_info
+            refute txn.cross_app_payload
           end
         end
       end

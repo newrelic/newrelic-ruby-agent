@@ -8,7 +8,6 @@ require 'json'
 module NewRelic
   module Agent
     module CrossAppTracing
-
       # The cross app response header for "outgoing" calls
       NR_APPDATA_HEADER = 'X-NewRelic-App-Data'.freeze
 
@@ -22,7 +21,7 @@ module NewRelic
       NR_MESSAGE_BROKER_TXN_HEADER = 'NewRelicTransaction'.freeze
       NR_MESSAGE_BROKER_SYNTHETICS_HEADER = 'NewRelicSynthetics'.freeze
 
-      attr_accessor :is_cross_app_caller, :referring_transaction_info
+      attr_accessor :is_cross_app_caller, :cross_app_payload
 
       def is_cross_app_caller?
         @is_cross_app_caller = false unless defined? @is_cross_app_caller
@@ -30,7 +29,7 @@ module NewRelic
       end
 
       def is_cross_app_callee?
-        referring_transaction_info != nil
+        cross_app_payload != nil
       end
 
       def is_cross_app?
@@ -157,7 +156,7 @@ module NewRelic
           transaction.attributes.add_intrinsic_attribute(:client_cross_process_id, transaction.client_cross_app_id)
         end
 
-        if referring_guid = transaction.referring_transaction_info && transaction.referring_transaction_info[0]
+        if (referring_guid = transaction.cross_app_payload && transaction.cross_app_payload.referring_guid)
           transaction.attributes.add_intrinsic_attribute(:referring_transaction_guid, referring_guid)
         end
       end

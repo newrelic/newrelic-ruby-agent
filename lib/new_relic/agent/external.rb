@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/transaction/tracing'
 require 'new_relic/agent/cross_app_tracing'
+require 'new_relic/agent/cross_app_payload'
 
 module NewRelic
   module Agent
@@ -74,7 +75,9 @@ module NewRelic
             # handle transaction info
             #
             if txn_info = rmd[NON_HTTP_CAT_TXN_HEADER]
-              transaction.referring_transaction_info = txn_info
+              payload = CrossAppPayload.new(transaction, txn_info)
+              transaction.cross_app_payload = payload
+
               CrossAppTracing.assign_intrinsic_transaction_attributes state
             end
 

@@ -677,7 +677,7 @@ module NewRelic
       end
 
       def cat_trip_id
-        NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_trip_id(state) || guid
+        cross_app_payload && cross_app_payload.referring_trip_id || guid
       end
 
       def cat_path_hash
@@ -696,7 +696,7 @@ module NewRelic
       end
 
       def cat_referring_path_hash
-        NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_path_hash(state)
+        cross_app_payload && cross_app_payload.referring_path_hash
       end
 
       def is_synthetics_request?
@@ -781,8 +781,7 @@ module NewRelic
       end
 
       def append_referring_transaction_guid_to(payload)
-        referring_guid = NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_guid(state)
-        if referring_guid
+        if (referring_guid = cross_app_payload && cross_app_payload.referring_guid)
           payload[:referring_transaction_guid] = referring_guid
         end
       end
