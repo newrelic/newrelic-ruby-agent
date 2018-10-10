@@ -16,8 +16,8 @@ module NewRelic::Agent
     REF_TRANSACTION_GUID      = '830092CDE59421D4'
 
     TRANSACTION_NAME          = 'transaction'
-    QUEUE_TIME                = 1000
-    APP_TIME                  = 2000
+    QUEUE_TIME                = 1.0
+    APP_TIME                  = 2.0
 
     ENCODING_KEY_NOOP         = "\0"
     TRUSTED_ACCOUNT_IDS       = [42,13]
@@ -60,10 +60,10 @@ module NewRelic::Agent
 
     def test_adds_response_header
       with_default_timings
+      NewRelic::Agent::Transaction.any_instance.stubs(:queue_time).returns(QUEUE_TIME)
 
-      when_request_runs
+      when_request_runs for_id(REQUEST_CROSS_APP_ID), 'transaction', APP_TIME
 
-      assert_equal 'WyJxd2VydHkiLCJ0cmFuc2FjdGlvbiIsMTAwMC4wLDIwMDAuMCwtMSwiOTQxQjBFODAwMUU0NDRFOCJd', response_app_data
       assert_equal [AGENT_CROSS_APP_ID, TRANSACTION_NAME, QUEUE_TIME, APP_TIME, -1, TRANSACTION_GUID], unpacked_response
     end
 
@@ -73,7 +73,7 @@ module NewRelic::Agent
           :queue_time_in_seconds => QUEUE_TIME,
           :app_time_in_seconds => APP_TIME))
 
-      when_request_runs
+      when_request_runs for_id(REQUEST_CROSS_APP_ID), %("'goo), APP_TIME
 
       assert_equal "\"'goo", unpacked_response[TRANSACTION_NAME_POSITION]
     end
@@ -230,11 +230,14 @@ module NewRelic::Agent
     # Helpers
     #
 
-    def when_request_runs(request=for_id(REQUEST_CROSS_APP_ID))
-      in_transaction('transaction') do |txn|
+    def when_request_runs(request=for_id(REQUEST_CROSS_APP_ID), name = 'transaction', duration = nil)
+      nr_freeze_time if duration
+
+      in_transaction(name) do |txn|
         @events.notify(:before_call, request)
         # Fake out our GUID for easier comparison in tests
         NewRelic::Agent::Transaction.tl_current.stubs(:guid).returns(TRANSACTION_GUID)
+        advance_time duration if duration
         @events.notify(:after_call, request, [200, @response, ''])
         txn
       end
