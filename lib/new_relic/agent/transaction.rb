@@ -2,7 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/transaction_timings'
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
@@ -835,7 +834,8 @@ module NewRelic
 
       def record_client_application_metric
         if id = client_cross_app_id
-          NewRelic::Agent.record_metric "ClientApplication/#{id}/all", timings.app_time_in_seconds
+          app_time_in_seconds = [Time.now.to_f - @start_time.to_f, 0.0].max
+          NewRelic::Agent.record_metric "ClientApplication/#{id}/all", app_time_in_seconds
         end
       end
 

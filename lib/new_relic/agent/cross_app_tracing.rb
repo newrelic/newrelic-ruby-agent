@@ -36,10 +36,6 @@ module NewRelic
         is_cross_app_caller? || is_cross_app_callee?
       end
 
-      def timings
-        @timings ||= TransactionTimings.new(queue_time, start_time, best_name)
-      end
-
       attr_accessor :client_cross_app_id
 
       ###############

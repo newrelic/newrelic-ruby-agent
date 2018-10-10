@@ -116,15 +116,18 @@ module NewRelic
           # must freeze the name since we're responding with it
           #
           transaction.freeze_name_and_execute_if_not_ignored do
+            queue_time_in_seconds = [transaction.queue_time.to_f, 0.0].max
+            start_time_in_seconds = [transaction.start_time.to_f, 0.0].max
+            app_time_in_seconds   = Time.now.to_f - start_time_in_seconds
 
             # build response payload
             #
             rmd = {
               NewRelicAppData: [
                 NewRelic::Agent.config[:cross_process_id],
-                transaction.timings.transaction_name,
-                transaction.timings.queue_time_in_seconds.to_f,
-                transaction.timings.app_time_in_seconds.to_f,
+                transaction.best_name,
+                queue_time_in_seconds,
+                app_time_in_seconds.to_f,
                 -1, # per non-HTTP CAT spec
                 transaction.guid
               ]

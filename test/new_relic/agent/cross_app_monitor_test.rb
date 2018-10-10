@@ -59,7 +59,6 @@ module NewRelic::Agent
     #
 
     def test_adds_response_header
-      with_default_timings
       NewRelic::Agent::Transaction.any_instance.stubs(:queue_time).returns(QUEUE_TIME)
 
       when_request_runs for_id(REQUEST_CROSS_APP_ID), 'transaction', APP_TIME
@@ -68,33 +67,22 @@ module NewRelic::Agent
     end
 
     def test_encodes_transaction_name
-      NewRelic::Agent::Transaction.any_instance.stubs(:timings).returns(stub(
-          :transaction_name => "\"'goo",
-          :queue_time_in_seconds => QUEUE_TIME,
-          :app_time_in_seconds => APP_TIME))
-
       when_request_runs for_id(REQUEST_CROSS_APP_ID), %("'goo), APP_TIME
 
       assert_equal "\"'goo", unpacked_response[TRANSACTION_NAME_POSITION]
     end
 
     def test_doesnt_write_response_header_if_id_blank
-      with_default_timings
-
       when_request_runs(for_id(''))
       assert_nil response_app_data
     end
 
     def test_doesnt_write_response_header_if_untrusted_id
-      with_default_timings
-
       when_request_runs(for_id("4#1234"))
       assert_nil response_app_data
     end
 
     def test_doesnt_write_response_header_if_improperly_formatted_id
-      with_default_timings
-
       when_request_runs(for_id("42"))
       assert_nil response_app_data
     end
@@ -145,8 +133,6 @@ module NewRelic::Agent
     end
 
     def test_includes_content_length
-      with_default_timings
-
       when_request_runs(for_id(REQUEST_CROSS_APP_ID).merge(CONTENT_LENGTH_KEY => 3000))
       assert_equal 3000, unpacked_response[CONTENT_LENGTH_POSITION]
     end
@@ -157,8 +143,6 @@ module NewRelic::Agent
     end
 
     def test_writes_attributes
-      with_default_timings
-
       txn = when_request_runs
 
       assert_equal REQUEST_CROSS_APP_ID, attributes_for(txn, :intrinsic)[:client_cross_process_id]
@@ -166,16 +150,12 @@ module NewRelic::Agent
     end
 
     def test_writes_metric
-      with_default_timings
-
       when_request_runs
 
       assert_metrics_recorded(["ClientApplication/#{REQUEST_CROSS_APP_ID}/all"])
     end
 
     def test_doesnt_write_metric_if_id_blank
-      with_default_timings
-
       when_request_runs(for_id(''))
 
       assert_metrics_recorded_exclusive(['transaction', 'Supportability/API/drop_buffered_data',
@@ -243,14 +223,7 @@ module NewRelic::Agent
       end
     end
 
-    def with_default_timings
-      NewRelic::Agent::Transaction.any_instance.stubs(:timings).returns(stub(
-          :transaction_name => TRANSACTION_NAME,
-          :queue_time_in_seconds => QUEUE_TIME,
-          :app_time_in_seconds => APP_TIME))
-    end
-
-    def for_id(id)
+   def for_id(id)
       encoded_id = id == "" ? "" : Base64.encode64(id)
       encoded_txn_info = json_dump_and_encode([ REF_TRANSACTION_GUID, false ])
 
