@@ -139,7 +139,7 @@ module NewRelic::Agent
 
     def test_finds_content_length_from_headers
       request = { 'HTTP_CONTENT_LENGTH' => 42 }
-      assert_equal(42, @monitor.content_length_from_request(request))
+      assert_equal(42, @monitor.send(:content_length_from_request, request))
     end
 
     def test_writes_attributes

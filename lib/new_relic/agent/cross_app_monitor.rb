@@ -14,9 +14,9 @@ module NewRelic
   module Agent
     class CrossAppMonitor < InboundRequestMonitor
 
-      NEWRELIC_ID_HEADER      = 'X-NewRelic-ID'
-      NEWRELIC_TXN_HEADER     = 'X-NewRelic-Transaction'
-      NEWRELIC_APPDATA_HEADER = 'X-NewRelic-App-Data'
+      NEWRELIC_ID_HEADER      = 'X-NewRelic-ID'.freeze
+      NEWRELIC_TXN_HEADER     = 'X-NewRelic-Transaction'.freeze
+      NEWRELIC_APPDATA_HEADER = 'X-NewRelic-App-Data'.freeze
 
       NEWRELIC_ID_HEADER_KEY    = 'HTTP_X_NEWRELIC_ID'.freeze
       NEWRELIC_TXN_HEADER_KEY   = 'HTTP_X_NEWRELIC_TRANSACTION'.freeze
@@ -25,6 +25,15 @@ module NewRelic
       def on_finished_configuring(events)
         register_event_listeners(events)
       end
+
+      def path_hash(txn_name, seed)
+        rotated    = ((seed << 1) | (seed >> 31)) & 0xffffffff
+        app_name   = NewRelic::Agent.config.app_names.first
+        identifier = "#{app_name};#{txn_name}"
+        sprintf("%08x", rotated ^ hash_transaction_name(identifier))
+      end
+
+      private
 
       # Expected sequence of events:
       #   :before_call will save our cross application request id to the thread
@@ -72,11 +81,7 @@ module NewRelic
       end
 
       def should_process_request? id
-        return cross_app_enabled? && CrossAppTracing.trusts?(id)
-      end
-
-      def cross_app_enabled?
-        NewRelic::Agent::CrossAppTracing.cross_app_enabled?
+        CrossAppTracing.cross_app_enabled? && CrossAppTracing.trusts?(id)
       end
 
       def set_response_headers(transaction, response_headers, content_length)
@@ -98,13 +103,6 @@ module NewRelic
 
       def hash_transaction_name(identifier)
         Digest::MD5.digest(identifier).unpack("@12N").first & 0xffffffff
-      end
-
-      def path_hash(txn_name, seed)
-        rotated    = ((seed << 1) | (seed >> 31)) & 0xffffffff
-        app_name   = NewRelic::Agent.config.app_names.first
-        identifier = "#{app_name};#{txn_name}"
-        sprintf("%08x", rotated ^ hash_transaction_name(identifier))
       end
     end
   end
