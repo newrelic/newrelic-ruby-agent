@@ -431,7 +431,7 @@ module NewRelic
             headers: { "NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info }
           ) do
             txn = NewRelic::Agent::TransactionState.tl_get.current_transaction
-            assert_equal cross_process_id, txn.client_cross_app_id
+            assert_equal cross_process_id, txn.cross_app_payload.id
             assert_equal txn.cross_app_payload.referring_guid,      raw_txn_info[0]
             assert_equal txn.cross_app_payload.referring_trip_id,   raw_txn_info[2]
             assert_equal txn.cross_app_payload.referring_path_hash, raw_txn_info[3]
@@ -473,7 +473,7 @@ module NewRelic
             headers: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info, "NewRelicSynthetics" => synthetics_header }
           ) do
             txn = NewRelic::Agent::TransactionState.tl_get.current_transaction
-            assert_equal cross_process_id, txn.client_cross_app_id
+            assert_equal cross_process_id, txn.cross_app_payload.id
             assert_equal txn.cross_app_payload.referring_guid,      raw_txn_info[0]
             assert_equal txn.cross_app_payload.referring_trip_id,   raw_txn_info[2]
             assert_equal txn.cross_app_payload.referring_path_hash, raw_txn_info[3]

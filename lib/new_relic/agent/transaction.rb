@@ -833,7 +833,7 @@ module NewRelic
       end
 
       def record_client_application_metric
-        if id = client_cross_app_id
+        if (id = cross_app_payload && cross_app_payload.id)
           app_time_in_seconds = [Time.now.to_f - @start_time.to_f, 0.0].max
           NewRelic::Agent.record_metric "ClientApplication/#{id}/all", app_time_in_seconds
         end

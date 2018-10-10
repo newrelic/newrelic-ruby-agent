@@ -263,7 +263,7 @@ module NewRelic
               "5d2957be"
             ]
 
-            payload = CrossAppPayload.new(txn, referring_txn_info)
+            payload = CrossAppPayload.new('1#666', txn, referring_txn_info)
             txn.cross_app_payload = payload
 
             txn.create_distributed_trace_payload

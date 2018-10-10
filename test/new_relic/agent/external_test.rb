@@ -39,7 +39,7 @@ module NewRelic
 
           in_transaction do |txn|
             NewRelic::Agent::External.process_request_metadata rmd
-            assert_equal cat_config[:cross_process_id], txn.client_cross_app_id
+            assert_equal cat_config[:cross_process_id], txn.cross_app_payload.id
 
             assert_equal 'abc', txn.cross_app_payload.referring_guid
             assert_equal 'def', txn.cross_app_payload.referring_trip_id
@@ -97,7 +97,6 @@ module NewRelic
             assert l.array.first =~ %r{invalid/non-trusted ID}
 
             state = NewRelic::Agent::TransactionState.tl_get
-            refute txn.client_cross_app_id
             refute txn.cross_app_payload
           end
         end
@@ -117,7 +116,6 @@ module NewRelic
             assert l.array.first =~ %r{invalid/non-trusted ID}
 
             state = NewRelic::Agent::TransactionState.tl_get
-            refute txn.client_cross_app_id
             refute txn.cross_app_payload
           end
         end
@@ -135,7 +133,6 @@ module NewRelic
             assert l.array.empty?, "process_request_metadata should not log errors when cross app tracing is disabled"
 
             state = NewRelic::Agent::TransactionState.tl_get
-            refute txn.client_cross_app_id
             refute txn.cross_app_payload
           end
         end
@@ -153,7 +150,6 @@ module NewRelic
 
           in_transaction do |txn|
             # simulate valid processed request metadata
-            txn.client_cross_app_id = "1#666"
             NewRelic::Agent::External.process_request_metadata inbound_rmd
 
             rmd = NewRelic::Agent::External.get_response_metadata

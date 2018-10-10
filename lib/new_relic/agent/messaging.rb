@@ -375,27 +375,26 @@ module NewRelic
         NewRelic::Agent.logger.error "Error in consume_message_headers", e
       end
 
-      def decode_id encoded_id, transaction_state
+      def decode_txn_info headers, transaction_state
+        encoded_id = headers[CrossAppTracing::NR_MESSAGE_BROKER_ID_HEADER]
+
         decoded_id = if encoded_id.nil?
                        EMPTY_STRING
                      else
                        CrossAppTracing.obfuscator.deobfuscate(encoded_id)
                      end
-        if CrossAppTracing.trusted_valid_cross_app_id?(decoded_id) && transaction_state.current_transaction
-          transaction_state.current_transaction.client_cross_app_id = decoded_id
-        end
-      end
 
-      def decode_txn_info txn_header, transaction_state
-        begin
-          txn      = transaction_state.current_transaction
-          txn_info = ::JSON.load(CrossAppTracing.obfuscator.deobfuscate(txn_header))
-          payload = CrossAppPayload.new(txn, txn_info)
+        if CrossAppTracing.trusted_valid_cross_app_id?(decoded_id) && transaction_state.current_transaction
+          txn_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER]
+          txn        = transaction_state.current_transaction
+          txn_info   = ::JSON.load(CrossAppTracing.obfuscator.deobfuscate(txn_header))
+          payload    = CrossAppPayload.new(decoded_id, txn, txn_info)
+
           txn.cross_app_payload = payload
-        rescue => e
-          NewRelic::Agent.logger.debug("Failure deserializing encoded header in #{self.class}, #{e.class}, #{e.message}")
-          nil
         end
+      rescue => e
+        NewRelic::Agent.logger.debug("Failure deserializing encoded header in #{self.class}, #{e.class}, #{e.message}")
+        nil
       end
 
       CANDIDATE_HEADERS = ['newrelic'.freeze, 'NEWRELIC'.freeze, 'Newrelic'.freeze]
@@ -416,8 +415,7 @@ module NewRelic
 
       def consume_cross_app_tracing_headers headers, state
         if CrossAppTracing.cross_app_enabled? && CrossAppTracing.message_has_crossapp_request_header?(headers)
-          decode_id headers[CrossAppTracing::NR_MESSAGE_BROKER_ID_HEADER], state
-          decode_txn_info headers[CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER], state
+          decode_txn_info headers, state
           CrossAppTracing.assign_intrinsic_transaction_attributes state
         end
       end

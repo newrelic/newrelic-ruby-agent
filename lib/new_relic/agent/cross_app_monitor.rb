@@ -48,9 +48,8 @@ module NewRelic
 
             if (transaction = state.current_transaction)
               transaction_info = referring_transaction_info(state, env)
-              transaction.client_cross_app_id = id
 
-              payload = CrossAppPayload.new(transaction, transaction_info)
+              payload = CrossAppPayload.new(id, transaction, transaction_info)
               transaction.cross_app_payload = payload
             end
 
@@ -72,7 +71,7 @@ module NewRelic
 
       def insert_response_header(state, request_headers, response_headers)
         txn = state.current_transaction
-        unless txn.nil? || txn.client_cross_app_id.nil?
+        unless txn.nil? || txn.cross_app_payload.nil?
           txn.freeze_name_and_execute_if_not_ignored do
             content_length = content_length_from_request(request_headers)
             set_response_headers(txn, response_headers, content_length)
@@ -94,7 +93,7 @@ module NewRelic
 
       def decoded_id(request)
         encoded_id = request[NEWRELIC_ID_HEADER_KEY]
-        return "" if encoded_id.nil?
+        return "" if encoded_id.nil? || encoded_id.empty?
 
         obfuscator.deobfuscate(encoded_id)
       end

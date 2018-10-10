@@ -5,9 +5,10 @@
 module NewRelic
   module Agent
     class CrossAppPayload
-      attr_reader :transaction, :referring_guid, :referring_trip_id, :referring_path_hash
+      attr_reader :id, :transaction, :referring_guid, :referring_trip_id, :referring_path_hash
 
-      def initialize(transaction, transaction_info)
+      def initialize(id, transaction, transaction_info)
+        @id                  = id
         @transaction         = transaction
 
         transaction_info ||= []

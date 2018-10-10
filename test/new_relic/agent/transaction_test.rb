@@ -488,7 +488,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       in_transaction do |txn|
         state = NewRelic::Agent::TransactionState.tl_get
         referring_txn_info = ["another"]
-         cross_app_payload = ::NewRelic::Agent::CrossAppPayload.new(txn, referring_txn_info)
+         cross_app_payload = ::NewRelic::Agent::CrossAppPayload.new('1#666', txn, referring_txn_info)
         txn.cross_app_payload = cross_app_payload
       end
     end
@@ -504,7 +504,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     in_transaction do |txn|
       referring_txn_info = ["GUID"]
-      payload = ::NewRelic::Agent::CrossAppPayload.new(txn, referring_txn_info)
+      payload = ::NewRelic::Agent::CrossAppPayload.new('1#666', txn, referring_txn_info)
       txn.cross_app_payload = payload
     end
 
@@ -1367,7 +1367,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     txn = in_transaction do |t|
       txn_info = [t.guid, true, 'PDX-NRT']
-      payload = NewRelic::Agent::CrossAppPayload.new(t, txn_info)
+      payload = NewRelic::Agent::CrossAppPayload.new('1#666', t, txn_info)
       t.cross_app_payload = payload
 
       t.is_cross_app_caller = true

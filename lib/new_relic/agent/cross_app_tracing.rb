@@ -36,8 +36,6 @@ module NewRelic
         is_cross_app_caller? || is_cross_app_callee?
       end
 
-      attr_accessor :client_cross_app_id
-
       ###############
       module_function
       ###############
@@ -146,13 +144,14 @@ module NewRelic
       def assign_intrinsic_transaction_attributes state
         # We expect to get the before call to set the id (if we have it) before
         # this, and then write our custom parameter when the transaction starts
-        return unless transaction = state.current_transaction
+        return unless (transaction       = state.current_transaction)
+        return unless (cross_app_payload = transaction.cross_app_payload)
 
-        if transaction.client_cross_app_id
-          transaction.attributes.add_intrinsic_attribute(:client_cross_process_id, transaction.client_cross_app_id)
+        if (cross_app_id = cross_app_payload.id)
+          transaction.attributes.add_intrinsic_attribute(:client_cross_process_id, cross_app_id)
         end
 
-        if (referring_guid = transaction.cross_app_payload && transaction.cross_app_payload.referring_guid)
+        if (referring_guid = cross_app_payload.referring_guid)
           transaction.attributes.add_intrinsic_attribute(:referring_transaction_guid, referring_guid)
         end
       end
