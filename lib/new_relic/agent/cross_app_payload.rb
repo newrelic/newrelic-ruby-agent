@@ -2,8 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'json'
-
 module NewRelic
   module Agent
     class CrossAppPayload
@@ -24,7 +22,7 @@ module NewRelic
         start_time_in_seconds = [transaction.start_time.to_f, 0.0].max
         app_time_in_seconds   = Time.now.to_f - start_time_in_seconds
 
-        raw_payload = [
+        [
           NewRelic::Agent.config[:cross_process_id],
           transaction.best_name,
           queue_time_in_seconds.to_f,
@@ -32,8 +30,6 @@ module NewRelic
           content_length,
           transaction.guid
         ]
-
-        ::JSON.dump(raw_payload)
       end
 
       private

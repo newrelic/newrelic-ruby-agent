@@ -145,10 +145,16 @@ module NewRelic
 
       def test_get_response_metadata
         with_config cat_config do
-          in_transaction do |txn|
 
+          inbound_rmd = @obfuscator.obfuscate ::JSON.dump({
+            NewRelicID: '1#666',
+            NewRelicTransaction: ['xyz', false, 'uvw', 'rst']
+          })
+
+          in_transaction do |txn|
             # simulate valid processed request metadata
             txn.client_cross_app_id = "1#666"
+            NewRelic::Agent::External.process_request_metadata inbound_rmd
 
             rmd = NewRelic::Agent::External.get_response_metadata
             assert_instance_of String, rmd

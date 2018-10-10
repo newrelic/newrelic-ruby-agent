@@ -50,6 +50,7 @@ module NewRelic
       NON_HTTP_CAT_ID_HEADER  = 'NewRelicID'.freeze
       NON_HTTP_CAT_TXN_HEADER = 'NewRelicTransaction'.freeze
       NON_HTTP_CAT_SYNTHETICS_HEADER = 'NewRelicSynthetics'.freeze
+      NON_HTTP_CAT_CONTENT_LENGTH = -1
 
       # Process obfuscated +String+ indentifying a calling application and transaction that is also running a
       # New Relic agent and save information in current transaction for inclusion in a trace. The +String+ is
@@ -116,21 +117,10 @@ module NewRelic
           # must freeze the name since we're responding with it
           #
           transaction.freeze_name_and_execute_if_not_ignored do
-            queue_time_in_seconds = [transaction.queue_time.to_f, 0.0].max
-            start_time_in_seconds = [transaction.start_time.to_f, 0.0].max
-            app_time_in_seconds   = Time.now.to_f - start_time_in_seconds
-
             # build response payload
             #
             rmd = {
-              NewRelicAppData: [
-                NewRelic::Agent.config[:cross_process_id],
-                transaction.best_name,
-                queue_time_in_seconds,
-                app_time_in_seconds.to_f,
-                -1, # per non-HTTP CAT spec
-                transaction.guid
-              ]
+              NewRelicAppData: transaction.cross_app_payload.build_payload(NON_HTTP_CAT_CONTENT_LENGTH)
             }
 
             # obfuscate the generated response metadata JSON
