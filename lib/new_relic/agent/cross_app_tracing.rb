@@ -21,7 +21,7 @@ module NewRelic
       NR_MESSAGE_BROKER_TXN_HEADER = 'NewRelicTransaction'.freeze
       NR_MESSAGE_BROKER_SYNTHETICS_HEADER = 'NewRelicSynthetics'.freeze
 
-      attr_accessor :is_cross_app_caller, :cross_app_payload
+      attr_accessor :is_cross_app_caller, :cross_app_payload, :cat_path_hashes
 
       def is_cross_app_caller?
         @is_cross_app_caller = false unless defined? @is_cross_app_caller
@@ -34,6 +34,78 @@ module NewRelic
 
       def is_cross_app?
         is_cross_app_caller? || is_cross_app_callee?
+      end
+
+      def cat_trip_id
+        cross_app_payload && cross_app_payload.referring_trip_id || guid
+      end
+
+      def cat_path_hash
+        referring_path_hash = cat_referring_path_hash || '0'
+        seed = referring_path_hash.to_i(16)
+        result = NewRelic::Agent.instance.cross_app_monitor.path_hash(best_name, seed)
+        record_cat_path_hash(result)
+        result
+      end
+
+      def add_message_cat_headers headers
+        self.is_cross_app_caller = true
+        CrossAppTracing.insert_message_headers headers,
+                                               guid,
+                                               cat_trip_id,
+                                               cat_path_hash,
+                                               raw_synthetics_header
+      end
+
+      private
+
+      def record_cat_path_hash(hash)
+        @cat_path_hashes ||= []
+        if @cat_path_hashes.size < 10 && !@cat_path_hashes.include?(hash)
+          @cat_path_hashes << hash
+        end
+      end
+
+      def cat_referring_path_hash
+        cross_app_payload && cross_app_payload.referring_path_hash
+      end
+
+      def append_cat_info(payload)
+        if (referring_guid = cross_app_payload && cross_app_payload.referring_guid)
+          payload[:referring_transaction_guid] = referring_guid
+        end
+
+        return unless include_guid?
+        payload[:guid] = guid
+
+        return unless is_cross_app?
+        trip_id             = cat_trip_id
+        path_hash           = cat_path_hash
+        referring_path_hash = cat_referring_path_hash
+
+        payload[:cat_trip_id]             = trip_id             if trip_id
+        payload[:cat_referring_path_hash] = referring_path_hash if referring_path_hash
+
+        if path_hash
+          payload[:cat_path_hash] = path_hash
+
+          alternate_path_hashes = cat_path_hashes - [path_hash]
+          unless alternate_path_hashes.empty?
+            payload[:cat_alternate_path_hashes] = alternate_path_hashes
+          end
+        end
+      end
+
+      def assign_cross_app_intrinsics
+        attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)
+        attributes.add_intrinsic_attribute(:path_hash, cat_path_hash)
+      end
+
+      def record_cross_app_metrics
+        if (id = cross_app_payload && cross_app_payload.id)
+          app_time_in_seconds = [Time.now.to_f - @start_time.to_f, 0.0].max
+          NewRelic::Agent.record_metric "ClientApplication/#{id}/all", app_time_in_seconds
+        end
       end
 
       ###############
@@ -141,6 +213,7 @@ module NewRelic
         valid_cross_app_id?(id) && trusts?(id)
       end
 
+      # From inbound request headers
       def assign_intrinsic_transaction_attributes state
         # We expect to get the before call to set the id (if we have it) before
         # this, and then write our custom parameter when the transaction starts

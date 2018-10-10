@@ -65,7 +65,6 @@ module NewRelic
                   :gc_start_snapshot,
                   :category,
                   :frame_stack,
-                  :cat_path_hashes,
                   :attributes,
                   :payload,
                   :nesting_max_depth,
@@ -280,7 +279,6 @@ module NewRelic
         @exceptions = {}
         @metrics = TransactionMetrics.new
         @guid = generate_guid
-        @cat_path_hashes = nil
 
         @ignore_this_transaction = false
         @ignore_apdex = options.fetch(:ignore_apdex, false)
@@ -572,7 +570,7 @@ module NewRelic
         record_total_time_metrics
         record_apdex unless ignore_apdex?
         record_queue_time
-        record_client_application_metric
+        record_cross_app_metrics
         record_distributed_tracing_metrics
 
         record_exceptions
@@ -628,8 +626,7 @@ module NewRelic
         if Agent.config[:'distributed_tracing.enabled']
           assign_distributed_trace_intrinsics
         elsif is_cross_app?
-          attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)
-          attributes.add_intrinsic_attribute(:path_hash, cat_path_hash)
+          assign_cross_app_intrinsics
         end
       end
 
@@ -668,34 +665,10 @@ module NewRelic
         append_distributed_trace_info(@payload)
         append_apdex_perf_zone(@payload)
         append_synthetics_to(@payload)
-        append_referring_transaction_guid_to(@payload)
       end
 
       def include_guid?
         is_cross_app? || is_synthetics_request?
-      end
-
-      def cat_trip_id
-        cross_app_payload && cross_app_payload.referring_trip_id || guid
-      end
-
-      def cat_path_hash
-        referring_path_hash = cat_referring_path_hash || '0'
-        seed = referring_path_hash.to_i(16)
-        result = NewRelic::Agent.instance.cross_app_monitor.path_hash(best_name, seed)
-        record_cat_path_hash(result)
-        result
-      end
-
-      def record_cat_path_hash(hash)
-        @cat_path_hashes ||= []
-        if @cat_path_hashes.size < 10 && !@cat_path_hashes.include?(hash)
-          @cat_path_hashes << hash
-        end
-      end
-
-      def cat_referring_path_hash
-        cross_app_payload && cross_app_payload.referring_path_hash
       end
 
       def is_synthetics_request?
@@ -749,40 +722,12 @@ module NewRelic
         payload[:apdex_perf_zone] = bucket_str if bucket_str
       end
 
-      def append_cat_info(payload)
-        return unless include_guid?
-        payload[:guid] = guid
-
-        return unless is_cross_app?
-        trip_id             = cat_trip_id
-        path_hash           = cat_path_hash
-        referring_path_hash = cat_referring_path_hash
-
-        payload[:cat_trip_id]             = trip_id             if trip_id
-        payload[:cat_referring_path_hash] = referring_path_hash if referring_path_hash
-
-        if path_hash
-          payload[:cat_path_hash] = path_hash
-
-          alternate_path_hashes = cat_path_hashes - [path_hash]
-          unless alternate_path_hashes.empty?
-            payload[:cat_alternate_path_hashes] = alternate_path_hashes
-          end
-        end
-      end
-
       def append_synthetics_to(payload)
         return unless is_synthetics_request?
 
         payload[:synthetics_resource_id] = synthetics_resource_id
         payload[:synthetics_job_id]      = synthetics_job_id
         payload[:synthetics_monitor_id]  = synthetics_monitor_id
-      end
-
-      def append_referring_transaction_guid_to(payload)
-        if (referring_guid = cross_app_payload && cross_app_payload.referring_guid)
-          payload[:referring_transaction_guid] = referring_guid
-        end
       end
 
       def merge_metrics
@@ -829,13 +774,6 @@ module NewRelic
           else
             ::NewRelic::Agent.logger.log_once(:warn, :too_high_queue_time, "Not recording unreasonably large queue time of #{value} s")
           end
-        end
-      end
-
-      def record_client_application_metric
-        if (id = cross_app_payload && cross_app_payload.id)
-          app_time_in_seconds = [Time.now.to_f - @start_time.to_f, 0.0].max
-          NewRelic::Agent.record_metric "ClientApplication/#{id}/all", app_time_in_seconds
         end
       end
 
@@ -978,15 +916,6 @@ module NewRelic
 
       def ignore_trace?
         @ignore_trace
-      end
-
-      def add_message_cat_headers headers
-        self.is_cross_app_caller = true
-        CrossAppTracing.insert_message_headers headers,
-                                               guid,
-                                               cat_trip_id,
-                                               cat_path_hash,
-                                               raw_synthetics_header
       end
 
       private
