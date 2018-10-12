@@ -18,7 +18,7 @@ module NewRelic
         @referring_path_hash = string_or_false_for(transaction_info[3])
       end
 
-      def build_payload(content_length)
+      def as_json_array(content_length)
         queue_time_in_seconds = [transaction.queue_time.to_f, 0.0].max
         start_time_in_seconds = [transaction.start_time.to_f, 0.0].max
         app_time_in_seconds   = Time.now.to_f - start_time_in_seconds

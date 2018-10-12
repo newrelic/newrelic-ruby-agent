@@ -86,7 +86,7 @@ module NewRelic
       def set_response_headers(transaction, response_headers, content_length)
         payload = obfuscator.obfuscate(
           ::JSON.dump(
-            transaction.cross_app_payload.build_payload(content_length)))
+            transaction.cross_app_payload.as_json_array(content_length)))
 
         response_headers[NEWRELIC_APPDATA_HEADER] = payload
       end

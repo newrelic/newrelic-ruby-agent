@@ -119,7 +119,7 @@ module NewRelic
           # build response payload
           #
           rmd = {
-            NewRelicAppData: cross_app_payload.build_payload(NON_HTTP_CAT_CONTENT_LENGTH)
+            NewRelicAppData: cross_app_payload.as_json_array(NON_HTTP_CAT_CONTENT_LENGTH)
           }
 
           # obfuscate the generated response metadata JSON
