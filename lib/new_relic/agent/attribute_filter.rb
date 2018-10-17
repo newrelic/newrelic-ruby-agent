@@ -109,6 +109,8 @@ module NewRelic
         build_rule(config[:'span_events.attributes.include'],          DST_SPAN_EVENTS,          true)
         build_rule(config[:'transaction_segments.attributes.include'], DST_TRANSACTION_SEGMENTS, true)
 
+        build_uri_rule(config[:'attributes.exclude'])
+
         @rules.sort!
 
         # We're ok to cache high security for fast lookup because the attribute
@@ -156,6 +158,14 @@ module NewRelic
         attribute_names.each do |attribute_name|
           rule = AttributeFilterRule.new(attribute_name, destinations, is_include)
           @rules << rule unless rule.empty?
+        end
+      end
+
+      def build_uri_rule(excluded_attributes)
+        uri_aliases = %w(uri url request_uri request.uri http.url)
+
+        if (excluded_attributes & uri_aliases).size > 0
+          build_rule(uri_aliases - excluded_attributes, DST_ALL, false)
         end
       end
 
