@@ -233,6 +233,17 @@ module NewRelic::Agent
       end
     end
 
+    def test_excluding_url_attribute_excludes_all
+      with_config :'attributes.exclude' => ['request.uri'] do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+
+        refute filter.allows_key?('uri', AttributeFilter::DST_ALL)
+        refute filter.allows_key?('url', AttributeFilter::DST_ALL)
+        refute filter.allows_key?('request_uri', AttributeFilter::DST_ALL)
+        refute filter.allows_key?('http.url', AttributeFilter::DST_ALL)
+      end
+    end
+
     def assert_destinations(expected, result)
       assert_equal to_bitfield(expected), result, "Expected #{expected}, got #{to_names(result)}"
     end
