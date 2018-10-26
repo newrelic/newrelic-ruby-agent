@@ -102,6 +102,7 @@ module NewRelic
         build_rule(['job.sidekiq.args.*'],   include_destinations_for_capture_params(config[:'sidekiq.capture_params']), true)
 
         build_rule(['host', 'port_path_or_id'], include_destinations_for_datastore_tracer(config[:'datastore_tracer.instance_reporting.enabled']), true)
+        build_rule(['database_name'],           include_destinations_for_datastore_tracer(config[:'datastore_tracer.database_name_reporting.enabled']), true)
 
         build_rule(config[:'attributes.include'], DST_ALL, true)
         build_rule(config[:'transaction_tracer.attributes.include'],   DST_TRANSACTION_TRACER,   true)
