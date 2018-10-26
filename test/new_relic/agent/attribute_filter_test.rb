@@ -121,6 +121,24 @@ module NewRelic::Agent
       end
     end
 
+    def test_datastore_tracer_instance_reporting_enabled_false_adds_exclude_rule_for_host_and_port
+      with_config(:'datastore_tracer.instance_reporting.enabled' => false) do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+        result = filter.apply 'host', AttributeFilter::DST_NONE
+
+        assert_destinations [], result
+      end
+    end
+
+    def test_datastore_tracer_instance_reporting_enabled_true_allows_host_and_port
+      with_config(:'datastore_tracer.instance_reporting.enabled' => true) do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+        result = filter.apply 'host', AttributeFilter::DST_NONE
+
+        assert_destinations ['transaction_segments'], result
+      end
+    end
+
     def test_might_allow_prefix_default_case
       filter = AttributeFilter.new(NewRelic::Agent.config)
       refute filter.might_allow_prefix?(:'request.parameters')

@@ -255,10 +255,8 @@ module NewRelic
       def base_params
         params = @params || {}
 
-        if NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
-          params[:host] = statement.host if statement.host
-          params[:port_path_or_id] = statement.port_path_or_id if statement.port_path_or_id
-        end
+        params[:host] = statement.host if statement.host
+        params[:port_path_or_id] = statement.port_path_or_id if statement.port_path_or_id
         if NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled'] && statement.database_name
           params[:database_name] = statement.database_name
         end

@@ -101,6 +101,8 @@ module NewRelic
         build_rule(['job.resque.args.*'],    include_destinations_for_capture_params(config[:'resque.capture_params']), true)
         build_rule(['job.sidekiq.args.*'],   include_destinations_for_capture_params(config[:'sidekiq.capture_params']), true)
 
+        build_rule(['host', 'port_path_or_id'], include_destinations_for_datastore_tracer(config[:'datastore_tracer.instance_reporting.enabled']), true)
+
         build_rule(config[:'attributes.include'], DST_ALL, true)
         build_rule(config[:'transaction_tracer.attributes.include'],   DST_TRANSACTION_TRACER,   true)
         build_rule(config[:'transaction_events.attributes.include'],   DST_TRANSACTION_EVENTS,   true)
@@ -149,6 +151,14 @@ module NewRelic
       def include_destinations_for_capture_params(capturing)
         if capturing
           DST_TRANSACTION_TRACER | DST_ERROR_COLLECTOR
+        else
+          DST_NONE
+        end
+      end
+
+      def include_destinations_for_datastore_tracer(capturing)
+        if capturing
+          DST_TRANSACTION_SEGMENTS
         else
           DST_NONE
         end
