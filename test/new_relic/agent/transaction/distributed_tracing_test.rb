@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path('../../../../test_helper', __FILE__)
+require 'new_relic/agent/cross_app_payload'
 require 'new_relic/agent/distributed_trace_payload'
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/distributed_tracing'
@@ -255,12 +256,16 @@ module NewRelic
 
           transaction = in_transaction "test_txn" do |txn|
             #simulate legacy cat
-            txn.referring_transaction_info = [
+            referring_txn_info = [
               "b854df4feb2b1f06",
               false,
               "7e249074f277923d",
               "5d2957be"
             ]
+
+            payload = CrossAppPayload.new('1#666', txn, referring_txn_info)
+            txn.cross_app_payload = payload
+
             txn.create_distributed_trace_payload
           end
 

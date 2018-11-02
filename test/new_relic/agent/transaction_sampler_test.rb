@@ -359,6 +359,9 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       in_transaction do |transaction|
+        txn_info = [transaction.guid, true, 'PDX-NRT']
+        payload = NewRelic::Agent::CrossAppPayload.new('1#666', transaction, txn_info)
+        transaction.cross_app_payload = payload
         transaction.is_cross_app_caller = true
         guid = transaction.guid
       end

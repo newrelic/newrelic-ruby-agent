@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require 'new_relic/agent/cross_app_payload'
 
 class NewRelic::Agent::TransactionTest < Minitest::Test
 
@@ -486,7 +487,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     with_config(:apdex_t => 2.0) do
       in_transaction do |txn|
         state = NewRelic::Agent::TransactionState.tl_get
-        txn.referring_transaction_info = ["another"]
+        referring_txn_info = ["another"]
+         cross_app_payload = ::NewRelic::Agent::CrossAppPayload.new('1#666', txn, referring_txn_info)
+        txn.cross_app_payload = cross_app_payload
       end
     end
 
@@ -500,7 +503,9 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
 
     in_transaction do |txn|
-      txn.referring_transaction_info = ["GUID"]
+      referring_txn_info = ["GUID"]
+      payload = ::NewRelic::Agent::CrossAppPayload.new('1#666', txn, referring_txn_info)
+      txn.cross_app_payload = payload
     end
 
     assert_equal "GUID", referring_guid
@@ -514,7 +519,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     in_transaction do |txn|
       # Make sure we don't have referring transaction state floating around
-      txn.referring_transaction_info = nil
+      txn.cross_app_payload = nil
     end
 
     refute found_referring_guid
@@ -1361,6 +1366,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
 
     txn = in_transaction do |t|
+      txn_info = [t.guid, true, 'PDX-NRT']
+      payload = NewRelic::Agent::CrossAppPayload.new('1#666', t, txn_info)
+      t.cross_app_payload = payload
+
       t.is_cross_app_caller = true
       guid = t.guid
     end

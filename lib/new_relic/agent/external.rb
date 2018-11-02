@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/transaction/tracing'
 require 'new_relic/agent/cross_app_tracing'
+require 'new_relic/agent/cross_app_payload'
 
 module NewRelic
   module Agent
@@ -49,6 +50,7 @@ module NewRelic
       NON_HTTP_CAT_ID_HEADER  = 'NewRelicID'.freeze
       NON_HTTP_CAT_TXN_HEADER = 'NewRelicTransaction'.freeze
       NON_HTTP_CAT_SYNTHETICS_HEADER = 'NewRelicSynthetics'.freeze
+      NON_HTTP_CAT_CONTENT_LENGTH = -1
 
       # Process obfuscated +String+ indentifying a calling application and transaction that is also running a
       # New Relic agent and save information in current transaction for inclusion in a trace. The +String+ is
@@ -69,12 +71,12 @@ module NewRelic
           # handle/check ID
           #
           if id = rmd[NON_HTTP_CAT_ID_HEADER] and CrossAppTracing.trusted_valid_cross_app_id?(id)
-            transaction.client_cross_app_id = id
-
             # handle transaction info
             #
             if txn_info = rmd[NON_HTTP_CAT_TXN_HEADER]
-              transaction.referring_transaction_info = txn_info
+              payload = CrossAppPayload.new(id, transaction, txn_info)
+              transaction.cross_app_payload = payload
+
               CrossAppTracing.assign_intrinsic_transaction_attributes state
             end
 
@@ -108,30 +110,21 @@ module NewRelic
         return unless CrossAppTracing.cross_app_enabled?
 
         state = NewRelic::Agent::TransactionState.tl_get
-        if transaction = state.current_transaction and transaction.client_cross_app_id
+        return unless (transaction = state.current_transaction)
+        return unless (cross_app_payload = transaction.cross_app_payload)
 
-          # must freeze the name since we're responding with it
+        # must freeze the name since we're responding with it
+        #
+        transaction.freeze_name_and_execute_if_not_ignored do
+          # build response payload
           #
-          transaction.freeze_name_and_execute_if_not_ignored do
+          rmd = {
+            NewRelicAppData: cross_app_payload.as_json_array(NON_HTTP_CAT_CONTENT_LENGTH)
+          }
 
-            # build response payload
-            #
-            rmd = {
-              NewRelicAppData: [
-                NewRelic::Agent.config[:cross_process_id],
-                transaction.timings.transaction_name,
-                transaction.timings.queue_time_in_seconds.to_f,
-                transaction.timings.app_time_in_seconds.to_f,
-                -1, # per non-HTTP CAT spec
-                transaction.guid
-              ]
-            }
-
-            # obfuscate the generated response metadata JSON
-            #
-            obfuscator.obfuscate ::JSON.dump(rmd)
-
-          end
+          # obfuscate the generated response metadata JSON
+          #
+          obfuscator.obfuscate ::JSON.dump(rmd)
         end
       rescue => e
         NewRelic::Agent.logger.error "error during get_response_metadata", e

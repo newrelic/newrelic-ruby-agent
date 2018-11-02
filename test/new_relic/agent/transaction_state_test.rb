@@ -32,22 +32,6 @@ module NewRelic::Agent
       end
     end
 
-    def test_timings_with_transaction
-      earliest_time = nr_freeze_time
-
-      in_transaction("Transaction/name") do |txn|
-        txn.apdex_start = earliest_time
-        txn.start_time = earliest_time + 5
-
-        advance_time(10.0)
-        timings = txn.timings
-
-        assert_equal 5.0, timings.queue_time_in_seconds
-        assert_equal 5.0, timings.app_time_in_seconds
-        assert_equal txn.best_name, timings.transaction_name
-      end
-    end
-
     def test_reset_doesnt_touch_record_sql
       state.record_sql = false
       state.reset

@@ -8,14 +8,15 @@ require 'json'
 require 'new_relic/agent/inbound_request_monitor'
 require 'new_relic/agent/transaction_state'
 require 'new_relic/agent/threading/agent_thread'
+require 'new_relic/agent/cross_app_payload'
 
 module NewRelic
   module Agent
     class CrossAppMonitor < InboundRequestMonitor
 
-      NEWRELIC_ID_HEADER      = 'X-NewRelic-ID'
-      NEWRELIC_TXN_HEADER     = 'X-NewRelic-Transaction'
-      NEWRELIC_APPDATA_HEADER = 'X-NewRelic-App-Data'
+      NEWRELIC_ID_HEADER      = 'X-NewRelic-ID'.freeze
+      NEWRELIC_TXN_HEADER     = 'X-NewRelic-Transaction'.freeze
+      NEWRELIC_APPDATA_HEADER = 'X-NewRelic-App-Data'.freeze
 
       NEWRELIC_ID_HEADER_KEY    = 'HTTP_X_NEWRELIC_ID'.freeze
       NEWRELIC_TXN_HEADER_KEY   = 'HTTP_X_NEWRELIC_TRANSACTION'.freeze
@@ -24,6 +25,15 @@ module NewRelic
       def on_finished_configuring(events)
         register_event_listeners(events)
       end
+
+      def path_hash(txn_name, seed)
+        rotated    = ((seed << 1) | (seed >> 31)) & 0xffffffff
+        app_name   = NewRelic::Agent.config.app_names.first
+        identifier = "#{app_name};#{txn_name}"
+        sprintf("%08x", rotated ^ hash_transaction_name(identifier))
+      end
+
+      private
 
       # Expected sequence of events:
       #   :before_call will save our cross application request id to the thread
@@ -36,8 +46,13 @@ module NewRelic
           if id = decoded_id(env) and should_process_request?(id)
             state = NewRelic::Agent::TransactionState.tl_get
 
-            state.current_transaction.client_cross_app_id = id if state.current_transaction
-            save_referring_transaction_info(state, env)
+            if (transaction = state.current_transaction)
+              transaction_info = referring_transaction_info(state, env)
+
+              payload = CrossAppPayload.new(id, transaction, transaction_info)
+              transaction.cross_app_payload = payload
+            end
+
             CrossAppTracing.assign_intrinsic_transaction_attributes state
           end
         end
@@ -47,74 +62,38 @@ module NewRelic
 
           insert_response_header(state, env, headers)
         end
-
       end
 
-      def save_referring_transaction_info(state, request_headers)
+      def referring_transaction_info(state, request_headers)
         txn_header = request_headers[NEWRELIC_TXN_HEADER_KEY] or return
-        txn_info = deserialize_header(txn_header, NEWRELIC_TXN_HEADER)
-        state.current_transaction.referring_transaction_info = txn_info
-      end
-
-      def client_referring_transaction_guid(state)
-        info = state.current_transaction.referring_transaction_info or return nil
-        return info[0]
-      end
-
-      def client_referring_transaction_record_flag(state)
-        info = state.current_transaction.referring_transaction_info or return nil
-        return info[1]
-      end
-
-      def client_referring_transaction_trip_id(state)
-        info = state.current_transaction.referring_transaction_info or return nil
-        return info[2].is_a?(String) && info[2]
-      end
-
-      def client_referring_transaction_path_hash(state)
-        info = state.current_transaction.referring_transaction_info or return nil
-        return info[3].is_a?(String) && info[3]
+        deserialize_header(txn_header, NEWRELIC_TXN_HEADER)
       end
 
       def insert_response_header(state, request_headers, response_headers)
         txn = state.current_transaction
-        unless txn.nil? || txn.client_cross_app_id.nil?
+        unless txn.nil? || txn.cross_app_payload.nil?
           txn.freeze_name_and_execute_if_not_ignored do
-            timings = txn.timings
             content_length = content_length_from_request(request_headers)
-
-            set_response_headers(txn, response_headers, timings, content_length)
+            set_response_headers(txn, response_headers, content_length)
           end
         end
       end
 
       def should_process_request? id
-        return cross_app_enabled? && CrossAppTracing.trusts?(id)
+        CrossAppTracing.cross_app_enabled? && CrossAppTracing.trusts?(id)
       end
 
-      def cross_app_enabled?
-        NewRelic::Agent::CrossAppTracing.cross_app_enabled?
-      end
+      def set_response_headers(transaction, response_headers, content_length)
+        payload = obfuscator.obfuscate(
+          ::JSON.dump(
+            transaction.cross_app_payload.as_json_array(content_length)))
 
-      def set_response_headers(transaction, response_headers, timings, content_length)
-        response_headers[NEWRELIC_APPDATA_HEADER] = build_payload(transaction, timings, content_length)
-      end
-
-      def build_payload(transaction, timings, content_length)
-        payload = [
-          NewRelic::Agent.config[:cross_process_id],
-          timings.transaction_name,
-          timings.queue_time_in_seconds.to_f,
-          timings.app_time_in_seconds.to_f,
-          content_length,
-          transaction.guid
-        ]
-        payload = obfuscator.obfuscate(::JSON.dump(payload))
+        response_headers[NEWRELIC_APPDATA_HEADER] = payload
       end
 
       def decoded_id(request)
         encoded_id = request[NEWRELIC_ID_HEADER_KEY]
-        return "" if encoded_id.nil?
+        return "" if encoded_id.nil? || encoded_id.empty?
 
         obfuscator.deobfuscate(encoded_id)
       end
@@ -125,13 +104,6 @@ module NewRelic
 
       def hash_transaction_name(identifier)
         Digest::MD5.digest(identifier).unpack("@12N").first & 0xffffffff
-      end
-
-      def path_hash(txn_name, seed)
-        rotated    = ((seed << 1) | (seed >> 31)) & 0xffffffff
-        app_name   = NewRelic::Agent.config.app_names.first
-        identifier = "#{app_name};#{txn_name}"
-        sprintf("%08x", rotated ^ hash_transaction_name(identifier))
       end
     end
   end

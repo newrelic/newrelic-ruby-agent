@@ -5,7 +5,6 @@
 require 'base64'
 require 'json'
 require 'new_relic/agent/obfuscator'
-require 'new_relic/agent/transaction_timings'
 
 module NewRelic
   module Agent
@@ -132,16 +131,23 @@ module NewRelic
 
       # NOTE: Internal prototyping may override this, so leave name stable!
       def data_for_js_agent(transaction)
-        timings = transaction.timings
+        queue_time_in_seconds = [transaction.queue_time.to_f, 0.0].max
+        start_time_in_seconds = [transaction.start_time.to_f, 0.0].max
+        app_time_in_seconds   = Time.now.to_f - start_time_in_seconds
+
+        queue_time_in_millis = (1000.0 * queue_time_in_seconds).round
+        app_time_in_millis   = (1000.0 * app_time_in_seconds).round
+
+        transaction_name = transaction.best_name || ::NewRelic::Agent::UNKNOWN_METRIC
 
         data = {
           BEACON_KEY           => NewRelic::Agent.config[:beacon],
           ERROR_BEACON_KEY     => NewRelic::Agent.config[:error_beacon],
           LICENSE_KEY_KEY      => NewRelic::Agent.config[:browser_key],
           APPLICATIONID_KEY    => NewRelic::Agent.config[:application_id],
-          TRANSACTION_NAME_KEY => obfuscator.obfuscate(timings.transaction_name_or_unknown),
-          QUEUE_TIME_KEY       => timings.queue_time_in_millis,
-          APPLICATION_TIME_KEY => timings.app_time_in_millis,
+          TRANSACTION_NAME_KEY => obfuscator.obfuscate(transaction_name),
+          QUEUE_TIME_KEY       => queue_time_in_millis,
+          APPLICATION_TIME_KEY => app_time_in_millis,
           AGENT_KEY            => NewRelic::Agent.config[:js_agent_file]
         }
 

@@ -540,7 +540,9 @@ module HttpClientTestCases
           NewRelic::Agent.instance.events.notify(:finished_configuring)
 
           in_transaction do |txn|
-            txn.referring_transaction_info = test_case['inboundPayload']
+            txn_info = test_case['inboundPayload']
+            payload = NewRelic::Agent::CrossAppPayload.new 'someId', txn, txn_info
+            txn.cross_app_payload = payload
             stub_transaction_guid(test_case['transactionGuid'])
             test_case['outboundRequests'].each do |req|
               set_explicit_transaction_name(req['outboundTxnName'])

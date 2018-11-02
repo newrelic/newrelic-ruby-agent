@@ -39,8 +39,11 @@ module NewRelic
 
           in_transaction do |txn|
             NewRelic::Agent::External.process_request_metadata rmd
-            assert_equal cat_config[:cross_process_id], txn.client_cross_app_id
-            assert_equal ['abc', false, 'def', 'ghi'], txn.referring_transaction_info
+            assert_equal cat_config[:cross_process_id], txn.cross_app_payload.id
+
+            assert_equal 'abc', txn.cross_app_payload.referring_guid
+            assert_equal 'def', txn.cross_app_payload.referring_trip_id
+            assert_equal 'ghi', txn.cross_app_payload.referring_path_hash
           end
         end
       end
@@ -94,8 +97,7 @@ module NewRelic
             assert l.array.first =~ %r{invalid/non-trusted ID}
 
             state = NewRelic::Agent::TransactionState.tl_get
-            refute txn.client_cross_app_id
-            refute txn.referring_transaction_info
+            refute txn.cross_app_payload
           end
         end
       end
@@ -114,8 +116,7 @@ module NewRelic
             assert l.array.first =~ %r{invalid/non-trusted ID}
 
             state = NewRelic::Agent::TransactionState.tl_get
-            refute txn.client_cross_app_id
-            refute txn.referring_transaction_info
+            refute txn.cross_app_payload
           end
         end
       end
@@ -132,8 +133,7 @@ module NewRelic
             assert l.array.empty?, "process_request_metadata should not log errors when cross app tracing is disabled"
 
             state = NewRelic::Agent::TransactionState.tl_get
-            refute txn.client_cross_app_id
-            refute txn.referring_transaction_info
+            refute txn.cross_app_payload
           end
         end
       end
@@ -142,10 +142,15 @@ module NewRelic
 
       def test_get_response_metadata
         with_config cat_config do
-          in_transaction do |txn|
 
+          inbound_rmd = @obfuscator.obfuscate ::JSON.dump({
+            NewRelicID: '1#666',
+            NewRelicTransaction: ['xyz', false, 'uvw', 'rst']
+          })
+
+          in_transaction do |txn|
             # simulate valid processed request metadata
-            txn.client_cross_app_id = "1#666"
+            NewRelic::Agent::External.process_request_metadata inbound_rmd
 
             rmd = NewRelic::Agent::External.get_response_metadata
             assert_instance_of String, rmd
