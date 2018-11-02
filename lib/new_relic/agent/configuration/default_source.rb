@@ -910,13 +910,6 @@ module NewRelic
           :allowed_from_server => true,
           :description  => 'If <code>true</code>, the agent will collect metadata about messages and attach them as segment parameters.'
         },
-        :'external_tracer.exclude_request_uri' => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
-          :allowed_from_server => true,
-          :description  => 'If <code>true</code>, the agent will omit the outbound request URI from the segment parameters.'
-        },
         :'slow_sql.enabled' => {
           :default => value_of(:'transaction_tracer.enabled'),
           :public => true,
