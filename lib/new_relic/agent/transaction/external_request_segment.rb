@@ -186,10 +186,7 @@ module NewRelic
         end
 
         def segment_complete
-          unless Agent.config[:'external_tracer.exclude_request_uri']
-            params[:uri] = HTTPClients::URIUtil.filter_uri(uri)
-          end
-
+          params[:uri] = HTTPClients::URIUtil.filter_uri(uri)
           if cross_app_request?
             params[:transaction_guid] = transaction_guid
           end
