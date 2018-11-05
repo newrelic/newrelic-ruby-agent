@@ -386,7 +386,6 @@ module NewRelic
                 product: "Redis",
                 operation: "set"
               )
-
             statement = "set mykey #{'a' * 2500}"
 
             segment.notice_nosql_statement statement
@@ -580,6 +579,19 @@ module NewRelic
             segment.finish
           end
           state.record_sql = true
+        end
+
+        def test_notice_sql_can_be_disabled_with_record_sql
+          in_transaction do |txn|
+            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+              product: "SQLite",
+              operation: "select"
+            )
+            segment.record_sql = false
+            segment.notice_sql "select * from blogs"
+            assert_nil segment.sql_statement
+            segment.finish
+          end
         end
 
         def test_notice_sql_creates_database_statement_with_identifier

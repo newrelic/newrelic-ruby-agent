@@ -20,56 +20,16 @@ module NewRelic::Agent
       TransactionState.tl_clear
     end
 
-    def test_without_transaction_stack_on_thread
-      assert_equal false, state.in_background_transaction?
-      assert_equal false, state.in_web_transaction?
-    end
-
     def test_in_background_transaction
       in_transaction(:category => :task) do |txn|
-        assert state.in_background_transaction?
+        assert !txn.recording_web_transaction?
       end
     end
 
     def test_in_request_tranasction
-      in_web_transaction do
-        assert state.in_web_transaction?
+      in_web_transaction do |txn|
+        assert txn.recording_web_transaction?
       end
-    end
-
-    def test_timings_with_transaction
-      earliest_time = nr_freeze_time
-
-      in_transaction("Transaction/name") do |txn|
-        txn.apdex_start = earliest_time
-        txn.start_time = earliest_time + 5
-
-        advance_time(10.0)
-        timings = state.timings
-
-        assert_equal 5.0, timings.queue_time_in_seconds
-        assert_equal 5.0, timings.app_time_in_seconds
-        assert_equal txn.best_name, timings.transaction_name
-      end
-    end
-
-    def test_guid_from_transaction
-      in_transaction do |txn|
-        assert_equal state.request_guid, txn.guid
-      end
-    end
-
-    def test_reset_should_reset_cat_state
-      state.is_cross_app_caller = true
-      state.referring_transaction_info = ['foo', 'bar']
-
-      assert_equal(true, state.is_cross_app_callee?)
-      assert_equal(true, state.is_cross_app_caller?)
-
-      state.reset
-
-      assert_equal(false, state.is_cross_app_caller?)
-      assert_equal(false, state.is_cross_app_callee?)
     end
 
     def test_reset_doesnt_touch_record_sql
@@ -85,11 +45,6 @@ module NewRelic::Agent
     end
 
     def test_reset_touches_everything!
-      state.request = ::Rack::Request.new({})
-      state.is_cross_app_caller = true
-      state.client_cross_app_id = :client_cross_app_id
-      state.referring_transaction_info = :referring_transaction_info
-      state.busy_entries = 1
       state.sql_sampler_transaction_data = Object.new
       state.push_traced(true)
 

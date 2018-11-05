@@ -2,7 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/transaction_timings'
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
@@ -22,6 +21,7 @@ module NewRelic
     class Transaction
       include Tracing
       include DistributedTracing
+      include CrossAppTracing
 
       # for nested transactions
       SUBTRANSACTION_PREFIX        = 'Nested/'.freeze
@@ -65,12 +65,12 @@ module NewRelic
                   :gc_start_snapshot,
                   :category,
                   :frame_stack,
-                  :cat_path_hashes,
                   :attributes,
                   :payload,
                   :nesting_max_depth,
                   :segments,
-                  :end_time
+                  :end_time,
+                  :duration
 
       attr_writer :sampled,
                   :priority
@@ -123,7 +123,7 @@ module NewRelic
         txn = state.current_transaction
 
         if txn
-          txn.create_nested_frame(state, category, options)
+          txn.create_nested_frame(category, options)
         else
           txn = start_new_transaction(state, category, options)
         end
@@ -138,13 +138,13 @@ module NewRelic
         txn = Transaction.new(category, options)
         state.reset(txn)
         txn.state = state
-        txn.start(state)
+        txn.start
         txn
       end
 
       FAILED_TO_STOP_MESSAGE = "Failed during Transaction.stop because there is no current transaction"
 
-      def self.stop(state, end_time=Time.now)
+      def self.stop(state)
         txn = state.current_transaction
 
         if txn.nil?
@@ -155,7 +155,7 @@ module NewRelic
         nested_frame = txn.frame_stack.pop
 
         if txn.frame_stack.empty?
-          txn.stop(state, end_time, nested_frame)
+          txn.stop(nested_frame) if nested_frame
           state.reset
         else
           nested_frame.finish
@@ -181,7 +181,7 @@ module NewRelic
       def self.abort_transaction! #THREAD_LOCAL_ACCESS
         state = NewRelic::Agent::TransactionState.tl_get
         txn = state.current_transaction
-        txn.abort_transaction!(state) if txn
+        txn.abort_transaction! if txn
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
@@ -269,6 +269,7 @@ module NewRelic
         @category = category
         @start_time = Time.now
         @end_time = nil
+        @duration = nil
         @apdex_start = options[:apdex_start_time] || @start_time
         @jruby_cpu_start = jruby_cpu_time
         @process_cpu_start = process_cpu
@@ -278,7 +279,6 @@ module NewRelic
         @exceptions = {}
         @metrics = TransactionMetrics.new
         @guid = generate_guid
-        @cat_path_hashes = nil
 
         @ignore_this_transaction = false
         @ignore_apdex = options.fetch(:ignore_apdex, false)
@@ -401,10 +401,6 @@ module NewRelic
       alias_method :transaction_name, :best_name
 
       attr_accessor :xray_session_id
-
-      def duration
-        (@end_time - @start_time).to_f
-      end
       # End common interface
 
       def name_set?
@@ -442,7 +438,7 @@ module NewRelic
         @frozen_name ? true : false
       end
 
-      def start(state)
+      def start
         return if !state.is_execution_traced?
 
         sql_sampler.on_start_transaction(state, start_time, request_path)
@@ -481,7 +477,7 @@ module NewRelic
         segment
       end
 
-      def create_nested_frame(state, category, options)
+      def create_nested_frame(category, options)
         if options[:filtered_params] && !options[:filtered_params].empty?
           @filtered_params = options[:filtered_params]
           merge_request_parameters(options[:filtered_params])
@@ -503,7 +499,7 @@ module NewRelic
 
       # Call this to ensure that the current transaction trace is not saved
       # To fully ignore all metrics and errors, use ignore! instead.
-      def abort_transaction!(state)
+      def abort_transaction!
         @ignore_trace = true
       end
 
@@ -531,10 +527,12 @@ module NewRelic
         name.start_with?(MIDDLEWARE_PREFIX)
       end
 
-      def stop(state, end_time, outermost_frame)
+      def stop(outermost_frame = nil)
         return if !state.is_execution_traced?
+        return self.class.stop(state) unless outermost_frame
 
-        @end_time = end_time
+        @end_time = Time.now
+        @duration = @end_time.to_f - @start_time.to_f
         freeze_name_and_execute_if_not_ignored
 
         if nesting_max_depth == 1
@@ -543,9 +541,9 @@ module NewRelic
 
         outermost_frame.finish
 
-        NewRelic::Agent::TransactionTimeAggregator.transaction_stop(end_time)
+        NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time)
 
-        commit!(state, end_time, outermost_frame.name) unless @ignore_this_transaction
+        commit!(outermost_frame.name) unless @ignore_this_transaction
       end
 
       def user_defined_rules_ignore?
@@ -557,22 +555,22 @@ module NewRelic
         end
       end
 
-      def commit!(state, end_time, outermost_node_name)
-        generate_payload(state, start_time, end_time)
+      def commit!(outermost_node_name)
+        generate_payload
 
         assign_agent_attributes
-        assign_intrinsics(state)
+        assign_intrinsics
 
         finalize_segments
 
-        @transaction_trace = transaction_sampler.on_finishing_transaction(state, self, end_time)
+        @transaction_trace = transaction_sampler.on_finishing_transaction(self)
         sql_sampler.on_finishing_transaction(state, @frozen_name)
 
-        record_summary_metrics(outermost_node_name, end_time)
+        record_summary_metrics(outermost_node_name)
         record_total_time_metrics
-        record_apdex(state, end_time) unless ignore_apdex?
+        record_apdex unless ignore_apdex?
         record_queue_time
-        record_client_application_metric state
+        record_cross_app_metrics
         record_distributed_tracing_metrics
 
         record_exceptions
@@ -608,7 +606,7 @@ module NewRelic
         end
       end
 
-      def assign_intrinsics(state)
+      def assign_intrinsics
         attributes.add_intrinsic_attribute(:priority, priority)
 
         if gc_time = calculate_gc_time
@@ -627,9 +625,8 @@ module NewRelic
 
         if Agent.config[:'distributed_tracing.enabled']
           assign_distributed_trace_intrinsics
-        elsif state.is_cross_app?
-          attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)
-          attributes.add_intrinsic_attribute(:path_hash, cat_path_hash)
+        elsif is_cross_app?
+          assign_cross_app_intrinsics
         end
       end
 
@@ -640,10 +637,10 @@ module NewRelic
 
       # The summary metrics recorded by this method all end up with a duration
       # equal to the transaction itself, and an exclusive time of zero.
-      def record_summary_metrics(outermost_node_name, end_time)
+      def record_summary_metrics(outermost_node_name)
         metrics = summary_metrics
         metrics << @frozen_name unless @frozen_name == outermost_node_name
-        @metrics.record_unscoped(metrics, end_time.to_f - start_time.to_f, 0)
+        @metrics.record_unscoped(metrics, duration, 0)
       end
 
       # This event is fired when the transaction is fully completed. The metric
@@ -652,8 +649,7 @@ module NewRelic
         agent.events.notify(:transaction_finished, payload)
       end
 
-      def generate_payload(state, start_time, end_time)
-        duration = end_time.to_f - start_time.to_f
+      def generate_payload
         @payload = {
           :name                 => @frozen_name,
           :bucket               => recording_web_transaction? ? :request : :background,
@@ -665,38 +661,14 @@ module NewRelic
           :priority             => priority
         }
 
-        append_cat_info(state, duration, @payload)
+        append_cat_info(@payload)
         append_distributed_trace_info(@payload)
-        append_apdex_perf_zone(duration, @payload)
-        append_synthetics_to(state, @payload)
-        append_referring_transaction_guid_to(state, @payload)
+        append_apdex_perf_zone(@payload)
+        append_synthetics_to(@payload)
       end
 
-      def include_guid?(state, duration)
-        state.is_cross_app? || is_synthetics_request?
-      end
-
-      def cat_trip_id
-        NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_trip_id(state) || guid
-      end
-
-      def cat_path_hash
-        referring_path_hash = cat_referring_path_hash(state) || '0'
-        seed = referring_path_hash.to_i(16)
-        result = NewRelic::Agent.instance.cross_app_monitor.path_hash(best_name, seed)
-        record_cat_path_hash(result)
-        result
-      end
-
-      def record_cat_path_hash(hash)
-        @cat_path_hashes ||= []
-        if @cat_path_hashes.size < 10 && !@cat_path_hashes.include?(hash)
-          @cat_path_hashes << hash
-        end
-      end
-
-      def cat_referring_path_hash(state)
-        NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_path_hash(state)
+      def include_guid?
+        is_cross_app? || is_synthetics_request?
       end
 
       def is_synthetics_request?
@@ -732,7 +704,7 @@ module NewRelic
       APDEX_T = 'T'.freeze
       APDEX_F = 'F'.freeze
 
-      def append_apdex_perf_zone(duration, payload)
+      def append_apdex_perf_zone(payload)
         if recording_web_transaction?
           bucket = apdex_bucket(duration, apdex_t)
         elsif background_apdex_t = transaction_specific_apdex_t
@@ -750,41 +722,12 @@ module NewRelic
         payload[:apdex_perf_zone] = bucket_str if bucket_str
       end
 
-      def append_cat_info(state, duration, payload)
-        return unless include_guid?(state, duration)
-        payload[:guid] = guid
-
-        return unless state.is_cross_app?
-        trip_id             = cat_trip_id
-        path_hash           = cat_path_hash
-        referring_path_hash = cat_referring_path_hash(state)
-
-        payload[:cat_trip_id]             = trip_id             if trip_id
-        payload[:cat_referring_path_hash] = referring_path_hash if referring_path_hash
-
-        if path_hash
-          payload[:cat_path_hash] = path_hash
-
-          alternate_path_hashes = cat_path_hashes - [path_hash]
-          unless alternate_path_hashes.empty?
-            payload[:cat_alternate_path_hashes] = alternate_path_hashes
-          end
-        end
-      end
-
-      def append_synthetics_to(state, payload)
+      def append_synthetics_to(payload)
         return unless is_synthetics_request?
 
         payload[:synthetics_resource_id] = synthetics_resource_id
         payload[:synthetics_job_id]      = synthetics_job_id
         payload[:synthetics_monitor_id]  = synthetics_monitor_id
-      end
-
-      def append_referring_transaction_guid_to(state, payload)
-        referring_guid = NewRelic::Agent.instance.cross_app_monitor.client_referring_transaction_guid(state)
-        if referring_guid
-          payload[:referring_transaction_guid] = referring_guid
-        end
       end
 
       def merge_metrics
@@ -834,12 +777,6 @@ module NewRelic
         end
       end
 
-      def record_client_application_metric state
-        if id = state.client_cross_app_id
-          NewRelic::Agent.record_metric "ClientApplication/#{id}/all", state.timings.app_time_in_seconds
-        end
-      end
-
       APDEX_ALL_METRIC   = 'ApdexAll'.freeze
 
       APDEX_METRIC       = 'Apdex'.freeze
@@ -862,28 +799,26 @@ module NewRelic
         self.class.apdex_bucket(duration, had_error_affecting_apdex?, current_apdex_t)
       end
 
-      def record_apdex(state, end_time=Time.now)
+      def record_apdex
         return unless state.is_execution_traced?
 
         freeze_name_and_execute_if_not_ignored do
-          total_duration  = end_time - apdex_start
-          action_duration = end_time - start_time
-
           if recording_web_transaction?
-            record_apdex_metrics(APDEX_METRIC, APDEX_TXN_METRIC_PREFIX,
-                                 total_duration, action_duration, apdex_t)
+            record_apdex_metrics(APDEX_METRIC, APDEX_TXN_METRIC_PREFIX, apdex_t)
           else
-            record_apdex_metrics(APDEX_OTHER_METRIC, APDEX_OTHER_TXN_METRIC_PREFIX,
-                                 total_duration, action_duration, transaction_specific_apdex_t)
+            record_apdex_metrics(APDEX_OTHER_METRIC,
+                                 APDEX_OTHER_TXN_METRIC_PREFIX,
+                                 transaction_specific_apdex_t)
           end
         end
       end
 
-      def record_apdex_metrics(rollup_metric, transaction_prefix, total_duration, action_duration, current_apdex_t)
+      def record_apdex_metrics(rollup_metric, transaction_prefix, current_apdex_t)
         return unless current_apdex_t
 
+        total_duration      = end_time - apdex_start
         apdex_bucket_global = apdex_bucket(total_duration, current_apdex_t)
-        apdex_bucket_txn    = apdex_bucket(action_duration, current_apdex_t)
+        apdex_bucket_txn    = apdex_bucket(duration, current_apdex_t)
 
         @metrics.record_unscoped(rollup_metric, apdex_bucket_global, current_apdex_t)
         @metrics.record_unscoped(APDEX_ALL_METRIC, apdex_bucket_global, current_apdex_t)
@@ -981,15 +916,6 @@ module NewRelic
 
       def ignore_trace?
         @ignore_trace
-      end
-
-      def add_message_cat_headers headers
-        state.is_cross_app_caller = true
-        CrossAppTracing.insert_message_headers headers,
-                                               guid,
-                                               cat_trip_id,
-                                               cat_path_hash,
-                                               raw_synthetics_header
       end
 
       private

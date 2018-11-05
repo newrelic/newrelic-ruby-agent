@@ -28,7 +28,7 @@ DependencyDetection.defer do
     class HTTPClient
       def do_get_block_with_newrelic(req, proxy, conn, &block)
         wrapped_request = NewRelic::Agent::HTTPClients::HTTPClientRequest.new(req)
-        segment = NewRelic::Agent::Transaction.start_external_request_segment(
+        segment = NewRelic::Agent::Tracer.start_external_request_segment(
           library: wrapped_request.type,
           uri: wrapped_request.uri,
           procedure: wrapped_request.method

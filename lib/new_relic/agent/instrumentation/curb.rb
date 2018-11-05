@@ -61,15 +61,24 @@ DependencyDetection.defer do
       alias_method :http_without_newrelic, :http
       alias_method :http, :http_with_newrelic
 
-
       # Hook the #perform method to mark the request as non-parallel.
       def perform_with_newrelic
+        self._nr_http_verb ||= :GET
         self._nr_serial = true
         perform_without_newrelic
       end
 
       alias_method :perform_without_newrelic, :perform
       alias_method :perform, :perform_with_newrelic
+
+      # Record the HTTP verb for future #perform calls
+      def method_with_newrelic(m)
+        self._nr_http_verb = m.upcase
+        method_without_newrelic(m)
+      end
+
+      alias_method :method_without_newrelic, :method
+      alias_method :method, :method_with_newrelic
 
       # We override this method in order to ensure access to header_str even
       # though we use an on_header callback
@@ -94,7 +103,7 @@ DependencyDetection.defer do
       # Add CAT with callbacks if the request is serial
       def add_with_newrelic(curl) #THREAD_LOCAL_ACCESS
         if curl.respond_to?(:_nr_serial) && curl._nr_serial
-          hook_pending_request(curl) if NewRelic::Agent.tl_is_execution_traced?
+          hook_pending_request(curl) if NewRelic::Agent::Tracer.tracing_enabled?
         end
 
         return add_without_newrelic( curl )
@@ -125,7 +134,7 @@ DependencyDetection.defer do
       def hook_pending_request(request) #THREAD_LOCAL_ACCESS
         wrapped_request, wrapped_response = wrap_request(request)
 
-        segment = NewRelic::Agent::Transaction.start_external_request_segment(
+        segment = NewRelic::Agent::Tracer.start_external_request_segment(
           library: wrapped_request.type,
           uri: wrapped_request.uri,
           procedure: wrapped_request.method
@@ -155,13 +164,12 @@ DependencyDetection.defer do
       def install_header_callback( request, wrapped_response )
         original_callback = request.on_header
         request._nr_original_on_header = original_callback
-        request._nr_header_str = ''
+        request._nr_header_str = nil
         request.on_header do |header_data|
-          wrapped_response.append_header_data( header_data )
-
           if original_callback
             original_callback.call( header_data )
           else
+            wrapped_response.append_header_data( header_data )
             header_data.length
           end
         end

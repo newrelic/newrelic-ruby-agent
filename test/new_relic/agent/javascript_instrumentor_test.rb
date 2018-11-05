@@ -152,7 +152,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
         state = NewRelic::Agent::TransactionState.tl_get
 
-        data = instrumentor.data_for_js_agent(state)
+        data = instrumentor.data_for_js_agent(txn)
         expected = {
           "beacon"          => "beacon",
           "errorBeacon"     => "",
@@ -176,12 +176,12 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   def test_config_data_for_js_agent_attributes
     nr_freeze_time
     with_config(CAPTURE_ATTRIBUTES => true) do
-      in_transaction('most recent transaction') do
+      in_transaction('most recent transaction') do |txn|
         NewRelic::Agent.add_custom_attributes(:user => "user")
         NewRelic::Agent::Transaction.add_agent_attribute(:agent, "attribute", NewRelic::Agent::AttributeFilter::DST_ALL)
 
         state = NewRelic::Agent::TransactionState.tl_get
-        data = instrumentor.data_for_js_agent(state)
+        data = instrumentor.data_for_js_agent(txn)
 
         # Handle packed atts key specially since it's obfuscated
         actual = unpack_to_object(data["atts"])
@@ -195,24 +195,27 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def test_ssl_for_http_not_included_by_default
-    state = NewRelic::Agent::TransactionState.tl_get
-    data = instrumentor.data_for_js_agent(state)
-    assert_not_includes data, "sslForHttp"
+    in_transaction do |txn|
+      data = instrumentor.data_for_js_agent(txn)
+      assert_not_includes data, "sslForHttp"
+    end
   end
 
   def test_ssl_for_http_enabled
     with_config(:'browser_monitoring.ssl_for_http' => true) do
-      state = NewRelic::Agent::TransactionState.tl_get
-      data = instrumentor.data_for_js_agent(state)
-      assert data["sslForHttp"]
+      in_transaction do |txn|
+        data = instrumentor.data_for_js_agent(txn)
+        assert data["sslForHttp"]
+      end
     end
   end
 
   def test_ssl_for_http_disabled
     with_config(:'browser_monitoring.ssl_for_http' => false) do
-      state = NewRelic::Agent::TransactionState.tl_get
-      data = instrumentor.data_for_js_agent(state)
-      assert_false data["sslForHttp"]
+      in_transaction do |txn|
+        data = instrumentor.data_for_js_agent(txn)
+        assert_false data["sslForHttp"]
+      end
     end
   end
 
@@ -298,15 +301,17 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def assert_attributes_are(expected)
-    state = NewRelic::Agent::TransactionState.tl_get
-    data = instrumentor.data_for_js_agent(state)
-    assert_equal pack(expected), data["atts"]
+    in_transaction do |txn|
+      data = instrumentor.data_for_js_agent(txn)
+      assert_equal pack(expected), data["atts"]
+    end
   end
 
   def assert_attributes_missing
-    state = NewRelic::Agent::TransactionState.tl_get
-    data = instrumentor.data_for_js_agent(state)
-    assert_not_includes data, "atts"
+    in_transaction do |txn|
+      data = instrumentor.data_for_js_agent(txn)
+      assert_not_includes data, "atts"
+    end
   end
 
   def pack(text)

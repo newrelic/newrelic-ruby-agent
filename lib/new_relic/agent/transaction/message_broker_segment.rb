@@ -97,8 +97,7 @@ module NewRelic
           headers[NEWRELIC_TRACE_KEY] = payload.http_safe if payload
         end
 
-        def transaction= t
-          super
+        def transaction_assigned
           if headers && transaction && action == :produce && record_metrics?
             insert_distributed_trace_header
             transaction.add_message_cat_headers headers if CrossAppTracing.cross_app_enabled?

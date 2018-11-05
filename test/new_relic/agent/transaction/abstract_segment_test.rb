@@ -103,6 +103,17 @@ module NewRelic
           end
         end
 
+        def test_transaction_assigned_callback_executes_when_segment_added
+          in_transaction do |txn|
+            segment = BasicSegment.new "Custom/basic/segment"
+            segment.expects(:transaction_assigned)
+            txn.add_segment segment
+            segment.start
+            advance_time 1.0
+            segment.finish
+          end
+        end
+
         def test_segment_records_metrics_on_finish
           in_transaction do |txn|
             segment = BasicSegment.new "Custom/basic/segment"

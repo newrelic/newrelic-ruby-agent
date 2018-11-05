@@ -47,7 +47,7 @@ module Sequel
 
       product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(self.class.adapter_scheme)
       operation = NewRelic::Agent::Datastores::MetricHelper.operation_from_sql(sql)
-      segment = NewRelic::Agent::Transaction.start_datastore_segment(
+      segment = NewRelic::Agent::Tracer.start_datastore_segment(
         product: product,
         operation: operation
       )
@@ -67,7 +67,7 @@ module Sequel
     # statement, otherwise we would end up ovewriting the sql statement with the
     # last one executed.
     def notice_sql sql
-      return unless txn = NewRelic::Agent::TransactionState.tl_get.current_transaction
+      return unless txn = NewRelic::Agent::Tracer.current_transaction
 
       current_segment = txn.current_segment
       return unless current_segment.is_a?(NewRelic::Agent::Transaction::DatastoreSegment)

@@ -133,7 +133,7 @@ module NewRelic
               name = self.class.name
             end
 
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: DATA_MAPPER,
               operation: metric_operation,
               collection: name

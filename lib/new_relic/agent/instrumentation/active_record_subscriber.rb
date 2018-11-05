@@ -100,11 +100,6 @@ module NewRelic
             @segment = start_segment
           end
 
-          # Events do not always finish in the order they are started for this subscriber.
-          # The traced_method_stack expects that frames are popped off in the order that they
-          # are pushed, otherwise it will continue to pop up the stack until it finds the frame
-          # it expects. This will be fixed when we replace the tracer internals, but for now
-          # we need to work around this limitation.
           def start_segment
             product, operation, collection = ActiveRecordHelper.product_operation_collection_for(payload[:name],
                                               sql, @config && @config[:adapter])
@@ -119,21 +114,18 @@ module NewRelic
               database = @config && @config[:database]
             end
 
-            segment = NewRelic::Agent::Transaction::DatastoreSegment.new product, operation, collection, host, port_path_or_id, database
-            if txn = state.current_transaction
-              segment.transaction = txn
-            end
+            segment = Transaction.start_datastore_segment product: product,
+                                                          operation: operation,
+                                                          collection: collection,
+                                                          host: host,
+                                                          port_path_or_id: port_path_or_id,
+                                                          database_name: database
+
             segment._notice_sql sql, @config, @explainer, payload[:binds], payload[:name]
-            segment.start
             segment
           end
 
-          # See comment for start_segment as we continue to work around limitations of the
-          # current tracer in this method.
           def finish
-            if txn = state.current_transaction
-              txn.add_segment @segment
-            end
             @segment.finish if @segment
           end
 
