@@ -61,7 +61,6 @@ DependencyDetection.defer do
       alias_method :http_without_newrelic, :http
       alias_method :http, :http_with_newrelic
 
-
       # Hook the #perform method to mark the request as non-parallel.
       def perform_with_newrelic
         self._nr_http_verb ||= :GET
@@ -71,6 +70,15 @@ DependencyDetection.defer do
 
       alias_method :perform_without_newrelic, :perform
       alias_method :perform, :perform_with_newrelic
+
+      # Record the HTTP verb for future #perform calls
+      def method_with_newrelic(m)
+        self._nr_http_verb = m.upcase
+        method_without_newrelic(m)
+      end
+
+      alias_method :method_without_newrelic, :method
+      alias_method :method, :method_with_newrelic
 
       # We override this method in order to ensure access to header_str even
       # though we use an on_header callback
@@ -156,13 +164,12 @@ DependencyDetection.defer do
       def install_header_callback( request, wrapped_response )
         original_callback = request.on_header
         request._nr_original_on_header = original_callback
-        request._nr_header_str = ''
+        request._nr_header_str = nil
         request.on_header do |header_data|
-          wrapped_response.append_header_data( header_data )
-
           if original_callback
             original_callback.call( header_data )
           else
+            wrapped_response.append_header_data( header_data )
             header_data.length
           end
         end
