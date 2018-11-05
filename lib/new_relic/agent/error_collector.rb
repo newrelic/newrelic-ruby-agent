@@ -13,9 +13,9 @@ module NewRelic
       # made configurable in the future. This is a tradeoff between
       # memory and data retention
       MAX_ERROR_QUEUE_LENGTH = 20
-      # Maximum number of frames in backtraces. May be made configurable
-      # in the future.
-      MAX_BACKTRACE_FRAMES = 50
+      # Traces need to be under 1 MB to be accepted by the APM API
+      # Less than a real MB, but gives us some buffer for truncate notice
+      MAX_BACKTRACE_SIZE = 1000000
       EXCEPTION_TAG_IVAR = :'@__nr_seen_exception'
 
       attr_reader :error_trace_aggregator, :error_event_aggregator
@@ -216,16 +216,30 @@ module NewRelic
         nil
       end
 
-      def truncate_trace(trace, keep_frames=MAX_BACKTRACE_FRAMES)
-        return trace if trace.length < keep_frames || trace.length == 0
+      def truncate_trace(trace, max_trace_size=MAX_BACKTRACE_SIZE)
+        return trace unless trace.is_a?(Array) # Don't do math on <no stack trace>
+        return trace unless trace_over_limit?(trace, max_trace_size)
 
-        # If keep_frames is odd, we will split things up favoring the top of the trace
-        keep_top = (keep_frames / 2.0).ceil
-        keep_bottom = (keep_frames / 2.0).floor
+        top_frames    = [ ]
+        bottom_frames = [ ]
+        top_total     = 0
+        bottom_total  = 0
 
-        truncate_frames = trace.length - keep_frames
+        trace.each do |frame|
+          break if (top_total + frame.bytesize) > (max_trace_size / 2)
+          top_frames << frame
+          top_total += frame.bytesize
+        end
 
-        truncated_trace = trace[0...keep_top].concat(["<truncated #{truncate_frames.to_s} additional frames>"]).concat(trace[-keep_bottom..-1])
+        trace.reverse_each do |frame|
+          break if (bottom_total + frame.bytesize) > (max_trace_size / 2)
+          bottom_frames.unshift(frame)
+          bottom_total += frame.bytesize
+        end
+
+        truncated_frames = trace.length - (top_frames.length + bottom_frames.length)
+        truncated_trace = top_frames + ["<truncated #{truncated_frames.to_s} additional frames>"] + bottom_frames
+
         truncated_trace
       end
 
@@ -271,6 +285,17 @@ module NewRelic
         @error_trace_aggregator.reset!
         @error_event_aggregator.reset!
         nil
+      end
+
+      def trace_over_limit?(trace, max_trace_size=MAX_BACKTRACE_SIZE)
+        running_total = 0
+        trace.each do |frame|
+          running_total += frame.bytesize
+          # Bail out quickly if we bust the limit
+          return true if running_total > max_trace_size
+        end
+
+        false
       end
     end
   end
