@@ -109,7 +109,6 @@ module NewRelic
         end
 
         def add_instance_parameters
-          return unless NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
           params[:host] = host if host
           params[:port_path_or_id] = port_path_or_id if port_path_or_id
         end
