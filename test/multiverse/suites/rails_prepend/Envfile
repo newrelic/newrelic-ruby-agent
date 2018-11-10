@@ -28,6 +28,7 @@ if RUBY_VERSION < '2.4.0'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'minitest', '5.2.3'
     gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
+    gem 'thor', '< 0.20.1' if RUBY_PLATFORM == 'java' # unpredictable thor errors
   RB
 
   gemfile <<-RB
@@ -38,6 +39,7 @@ if RUBY_VERSION < '2.4.0'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'minitest', '5.2.3'
     gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
+    gem 'thor', '< 0.20.1' if RUBY_PLATFORM == 'java' # unpredictable thor errors
   RB
 
   gemfile <<-RB
@@ -45,6 +47,7 @@ if RUBY_VERSION < '2.4.0'
     gem 'haml', '~>5.0.0'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
+    gem 'thor', '< 0.20.1' if RUBY_PLATFORM == 'java' # unpredictable thor errors
   RB
 end
 
