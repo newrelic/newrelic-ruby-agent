@@ -9,7 +9,9 @@ language: ruby
 sudo: required
 
 before_install:
-  - sudo apt-get update && sudo apt-get install --only-upgrade openssl && sudo apt-get install --only-upgrade libssl-dev
+  # RUBY-2072 Prevent Travis setup failure before our test even starts
+  - sudo rm -f /etc/apt/sources.list.d/travis_ci_zeromq3.list
+
   - gem --version
   - gem update --system
   - ./test/script/before_install/gemstash_mirror.sh
@@ -19,7 +21,11 @@ install: bundle install
 
 addons:
   apt:
+    update: true
     packages:
+      - openssl
+      - libssl-dev
+      - build-essential
       - haveged
 
 before_script: ./test/script/before_script/install_mongodb.sh
