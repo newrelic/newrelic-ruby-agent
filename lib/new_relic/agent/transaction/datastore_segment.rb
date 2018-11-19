@@ -114,7 +114,6 @@ module NewRelic
         end
 
         def add_database_name_parameter
-          return unless NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled']
           params[:database_name] = database_name if database_name
         end
 
