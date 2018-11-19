@@ -13,6 +13,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     @trace = NewRelic::Agent::Transaction::Trace.new(@start_time)
     @trace.root_node.end_trace(@start_time)
 
+    NewRelic::Agent.instance.refresh_attribute_filter
     filter = NewRelic::Agent.instance.attribute_filter
     @fake_attributes = NewRelic::Agent::Transaction::Attributes.new(filter)
 

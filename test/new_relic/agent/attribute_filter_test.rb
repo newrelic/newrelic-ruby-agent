@@ -175,6 +175,64 @@ module NewRelic::Agent
       end
     end
 
+    def test_span_global_include_exclude
+      with_config(:'attributes.include' => ['request.headers.contentType'],
+                  :'attributes.exclude' => ['request.headers.*']) do
+
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+
+        result = filter.apply 'request.headers.contentType', AttributeFilter::DST_ALL
+
+        expected_destinations = [
+          'transaction_events',
+          'transaction_tracer',
+          'error_collector',
+          'span_events',
+          'transaction_segments'
+        ]
+
+        assert_destinations expected_destinations, result
+      end
+    end
+
+    def test_span_include_exclude
+      with_config(:'span_events.attributes.include' => ['request.headers.contentType'],
+                  :'span_events.attributes.exclude' => ['request.headers.*']) do
+
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+
+        result = filter.apply 'request.headers.contentType', AttributeFilter::DST_SPAN_EVENTS
+
+        expected_destinations = ['span_events']
+
+        assert_destinations expected_destinations, result
+      end
+    end
+
+    def test_key_cache_global_include_exclude
+      with_all_enabled do
+        with_config :'attributes.include' => ['request.headers.contentType'],
+                    :'attributes.exclude' => ['request.headers.*'] do
+
+          filter = AttributeFilter.new(NewRelic::Agent.config)
+
+          assert filter.allows_key?('request.headers.contentType', AttributeFilter::DST_ALL)
+          refute filter.allows_key?('request.headers.accept',      AttributeFilter::DST_ALL)
+        end
+      end
+    end
+
+    def test_key_cache_span_include_exclude
+      with_config :'span_events.attributes.include' => ['request.headers.contentType'],
+                  :'span_events.attributes.exclude' => ['request.headers.*'] do
+
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+
+        assert filter.allows_key?('request.headers.contentType', AttributeFilter::DST_SPAN_EVENTS)
+        refute filter.allows_key?('request.headers.accept',      AttributeFilter::DST_SPAN_EVENTS)
+      end
+    end
+
     def assert_destinations(expected, result)
       assert_equal to_bitfield(expected), result, "Expected #{expected}, got #{to_names(result)}"
     end
@@ -182,10 +240,12 @@ module NewRelic::Agent
     def to_names(bitfield)
       names = []
 
-      names << 'transaction_events' if (bitfield & AttributeFilter::DST_TRANSACTION_EVENTS) != 0
-      names << 'transaction_tracer' if (bitfield & AttributeFilter::DST_TRANSACTION_TRACER) != 0
-      names << 'error_collector'    if (bitfield & AttributeFilter::DST_ERROR_COLLECTOR)    != 0
-      names << 'browser_monitoring' if (bitfield & AttributeFilter::DST_BROWSER_MONITORING) != 0
+      names << 'transaction_events'   if (bitfield & AttributeFilter::DST_TRANSACTION_EVENTS) != 0
+      names << 'transaction_tracer'   if (bitfield & AttributeFilter::DST_TRANSACTION_TRACER) != 0
+      names << 'error_collector'      if (bitfield & AttributeFilter::DST_ERROR_COLLECTOR)    != 0
+      names << 'browser_monitoring'   if (bitfield & AttributeFilter::DST_BROWSER_MONITORING) != 0
+      names << 'span_events'          if (bitfield & AttributeFilter::DST_SPAN_EVENTS) != 0
+      names << 'transaction_segments' if (bitfield & AttributeFilter::DST_TRANSACTION_SEGMENTS) != 0
 
       names
     end
@@ -195,10 +255,12 @@ module NewRelic::Agent
 
       destination_names.each do |name|
         case name
-        when 'transaction_events' then bitfield |= AttributeFilter::DST_TRANSACTION_EVENTS
-        when 'transaction_tracer' then bitfield |= AttributeFilter::DST_TRANSACTION_TRACER
-        when 'error_collector'    then bitfield |= AttributeFilter::DST_ERROR_COLLECTOR
-        when 'browser_monitoring' then bitfield |= AttributeFilter::DST_BROWSER_MONITORING
+        when 'transaction_events'   then bitfield |= AttributeFilter::DST_TRANSACTION_EVENTS
+        when 'transaction_tracer'   then bitfield |= AttributeFilter::DST_TRANSACTION_TRACER
+        when 'error_collector'      then bitfield |= AttributeFilter::DST_ERROR_COLLECTOR
+        when 'browser_monitoring'   then bitfield |= AttributeFilter::DST_BROWSER_MONITORING
+        when 'span_events'          then bitfield |= AttributeFilter::DST_SPAN_EVENTS
+        when 'transaction_segments' then bitfield |= AttributeFilter::DST_TRANSACTION_SEGMENTS
         end
       end
 
@@ -210,7 +272,9 @@ module NewRelic::Agent
         :'transaction_tracer.attributes.enabled' => true,
         :'transaction_events.attributes.enabled' => true,
         :'error_collector.attributes.enabled' => true,
-        :'browser_monitoring.attributes.enabled' => true) do
+        :'browser_monitoring.attributes.enabled' => true,
+        :'span_events.attributes.enabled' => true,
+        :'transaction_segments.attributes.enabled' => true) do
         yield
       end
     end

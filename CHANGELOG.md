@@ -1,5 +1,16 @@
 # New Relic Ruby Agent Release Notes #
 
+## v5.6.0
+
+  * New agent attributes destinations for span events and transaction segments
+
+    There are now destinations for `span_events.include/exclude` and
+    `transaction_segments.include/exclude` for agent attributes. These
+    destinations can be used control the collection of attributes on span events
+    and transaction traces. As with other attribute destinations, they will
+    inherit values from the top level `attributes.include/exclude` configuration
+    options.
+
 ## v5.5.0
 
   * Bugfix for `perform` instrumentation with curb gem
