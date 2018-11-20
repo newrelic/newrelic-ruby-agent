@@ -183,7 +183,7 @@ module NewRelic
       end
 
       def allows_key?(key, destination)
-        return false unless destination & @enabled_destinations = destination
+        return false unless destination & @enabled_destinations == destination
 
         value = @key_cache[destination][key]
 
