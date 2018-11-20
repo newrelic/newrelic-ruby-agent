@@ -485,29 +485,6 @@ module NewRelic
           end
         end
 
-        def test_does_not_add_instance_identifier_segment_parameter_when_disabled
-          with_config(:'datastore_tracer.instance_reporting.enabled' => false) do
-            segment = nil
-
-            in_transaction do
-              segment = NewRelic::Agent::Transaction.start_datastore_segment(
-                product: "SQLite",
-                operation: "select",
-                host: "localhost",
-                port_path_or_id: "1337807"
-              )
-              advance_time 1
-              segment.finish
-            end
-
-            sample = last_transaction_trace
-            node = find_node_with_name(sample, segment.name)
-
-            refute node.params.key? :host
-            refute node.params.key? :port_path_or_id
-          end
-        end
-
         def test_add_database_name_segment_parameter
           segment = nil
 

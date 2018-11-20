@@ -109,13 +109,11 @@ module NewRelic
         end
 
         def add_instance_parameters
-          return unless NewRelic::Agent.config[:'datastore_tracer.instance_reporting.enabled']
           params[:host] = host if host
           params[:port_path_or_id] = port_path_or_id if port_path_or_id
         end
 
         def add_database_name_parameter
-          return unless NewRelic::Agent.config[:'datastore_tracer.database_name_reporting.enabled']
           params[:database_name] = database_name if database_name
         end
 

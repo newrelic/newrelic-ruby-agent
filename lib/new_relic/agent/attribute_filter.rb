@@ -101,6 +101,9 @@ module NewRelic
         build_rule(['job.resque.args.*'],    include_destinations_for_capture_params(config[:'resque.capture_params']), true)
         build_rule(['job.sidekiq.args.*'],   include_destinations_for_capture_params(config[:'sidekiq.capture_params']), true)
 
+        build_rule(['host', 'port_path_or_id'], DST_TRANSACTION_SEGMENTS, config[:'datastore_tracer.instance_reporting.enabled'])
+        build_rule(['database_name'],           DST_TRANSACTION_SEGMENTS, config[:'datastore_tracer.database_name_reporting.enabled'])
+
         build_rule(config[:'attributes.include'], DST_ALL, true)
         build_rule(config[:'transaction_tracer.attributes.include'],   DST_TRANSACTION_TRACER,   true)
         build_rule(config[:'transaction_events.attributes.include'],   DST_TRANSACTION_EVENTS,   true)
@@ -108,6 +111,8 @@ module NewRelic
         build_rule(config[:'browser_monitoring.attributes.include'],   DST_BROWSER_MONITORING,   true)
         build_rule(config[:'span_events.attributes.include'],          DST_SPAN_EVENTS,          true)
         build_rule(config[:'transaction_segments.attributes.include'], DST_TRANSACTION_SEGMENTS, true)
+
+        build_uri_rule(config[:'attributes.exclude'])
 
         @rules.sort!
 
@@ -156,6 +161,14 @@ module NewRelic
         attribute_names.each do |attribute_name|
           rule = AttributeFilterRule.new(attribute_name, destinations, is_include)
           @rules << rule unless rule.empty?
+        end
+      end
+
+      def build_uri_rule(excluded_attributes)
+        uri_aliases = %w(uri url request_uri request.uri http.url)
+
+        if (excluded_attributes & uri_aliases).size > 0
+          build_rule(uri_aliases - excluded_attributes, DST_ALL, false)
         end
       end
 

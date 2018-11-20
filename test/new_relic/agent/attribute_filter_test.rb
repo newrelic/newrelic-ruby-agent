@@ -121,6 +121,43 @@ module NewRelic::Agent
       end
     end
 
+    def test_datastore_tracer_instance_reporting_disabled_adds_exclude_rule
+      with_config(:'datastore_tracer.instance_reporting.enabled' => false) do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+        result = filter.apply 'host', AttributeFilter::DST_NONE
+
+        assert_destinations [], result
+      end
+    end
+
+    def test_datastore_tracer_instance_reporting_enabled_allows_instance_params
+      with_config(:'datastore_tracer.instance_reporting.enabled' => true) do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+        result = filter.apply 'host', AttributeFilter::DST_NONE
+
+        assert_destinations ['transaction_segments'], result
+      end
+    end
+
+    def test_database_name_reporting_disabled_adds_exclude_rule
+      with_config(:'datastore_tracer.database_name_reporting.enabled' => false) do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+        result = filter.apply 'database_name', AttributeFilter::DST_NONE
+
+        assert_destinations [], result
+      end
+    end
+
+    def test_database_name_reporting_enabled_allows_database_name
+      with_config(:'datastore_tracer.database_name_reporting.enabled' => true) do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+        result = filter.apply 'database_name', AttributeFilter::DST_NONE
+
+        assert_destinations ['transaction_segments'], result
+      end
+    end
+
+
     def test_might_allow_prefix_default_case
       filter = AttributeFilter.new(NewRelic::Agent.config)
       refute filter.might_allow_prefix?(:'request.parameters')
@@ -230,6 +267,17 @@ module NewRelic::Agent
 
         assert filter.allows_key?('request.headers.contentType', AttributeFilter::DST_SPAN_EVENTS)
         refute filter.allows_key?('request.headers.accept',      AttributeFilter::DST_SPAN_EVENTS)
+      end
+    end
+
+    def test_excluding_url_attribute_excludes_all
+      with_config :'attributes.exclude' => ['request.uri'] do
+        filter = AttributeFilter.new(NewRelic::Agent.config)
+
+        refute filter.allows_key?('uri', AttributeFilter::DST_ALL)
+        refute filter.allows_key?('url', AttributeFilter::DST_ALL)
+        refute filter.allows_key?('request_uri', AttributeFilter::DST_ALL)
+        refute filter.allows_key?('http.url', AttributeFilter::DST_ALL)
       end
     end
 
