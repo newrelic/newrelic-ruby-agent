@@ -95,6 +95,8 @@ module NewRelic
                 :rails4
               when 5
                 :rails5
+              when 6
+                :rails6
               else
                 ::NewRelic::Agent.logger.error "Detected unsupported Rails version #{Rails::VERSION::STRING}"
               end
