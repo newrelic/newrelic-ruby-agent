@@ -719,6 +719,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, disables Action Cable instrumentation.'
         },
+        :disable_active_storage => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'If <code>true</code>, disables ActiveStorage instrumentation.'
+        },
         :disable_memcached => {
           :default => value_of(:disable_memcache_instrumentation),
           :public => true,
