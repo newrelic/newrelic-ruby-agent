@@ -11,6 +11,13 @@
     inherit values from the top level `attributes.include/exclude` configuration
     options.
 
+  * Increasing backoff sequence on failing to connect to New Relic
+
+    If the agent cannot reach New Relic, it will now wait for an
+    increasing amount of time after each failed attempt.  We are also
+    starting with a shorter delay initially, which will help customer
+    apps bounce back more quickly from more transient network errors.
+
 ## v5.5.0
 
   * Bugfix for `perform` instrumentation with curb gem
