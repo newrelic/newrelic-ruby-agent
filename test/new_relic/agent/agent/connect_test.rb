@@ -59,11 +59,14 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   end
 
   def test_increment_retry_period
-    10.times do |i|
-      assert_equal((i * 60), connect_retry_period)
-      note_connect_failure
-    end
-    assert_equal(600, connect_retry_period)
+    assert_equal  15, next_retry_period
+    assert_equal  15, next_retry_period
+    assert_equal  30, next_retry_period
+    assert_equal  60, next_retry_period
+    assert_equal 120, next_retry_period
+    assert_equal 300, next_retry_period
+    assert_equal 300, next_retry_period
+    assert_equal 300, next_retry_period
   end
 
   def test_disconnect
@@ -305,5 +308,11 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     fake_collector = mock('error collector')
     self.stubs(:error_collector).returns(fake_collector)
     fake_collector
+  end
+
+  def next_retry_period
+    result = connect_retry_period
+    note_connect_failure
+    result
   end
 end
