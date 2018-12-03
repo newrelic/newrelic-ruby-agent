@@ -981,6 +981,13 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Specify a comma-delimited list of error classes that the agent should ignore.'
         },
+        :'error_collector.max_backtrace_frames' => {
+          :default => 50,
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'Defines the maximum number of frames in an error back trace. Backtraces over this amount are truncated.'
+        },
         :'error_collector.capture_events' => {
           :default => value_of(:'error_collector.enabled'),
           :public => true,
