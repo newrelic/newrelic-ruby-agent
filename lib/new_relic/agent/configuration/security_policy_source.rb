@@ -121,6 +121,20 @@ module NewRelic
               enabled_fn:     method(:not_empty?),
               disabled_value: [],
               permitted_fn:   nil
+            },
+            {
+              option:         :'span_events.attributes.include',
+              supported:      true,
+              enabled_fn:     method(:not_empty?),
+              disabled_value: [],
+              permitted_fn:   nil
+            },
+            {
+              option:         :'transaction_segments.attributes.include',
+              supported:      true,
+              enabled_fn:     method(:not_empty?),
+              disabled_value: [],
+              permitted_fn:   nil
             }
           ],
           "allow_raw_exception_messages" => [
