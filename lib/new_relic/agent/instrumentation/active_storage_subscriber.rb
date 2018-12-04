@@ -22,6 +22,7 @@ module NewRelic
 
         def start_segment name, id, payload
           segment = Transaction.start_segment name: metric_name(name, payload)
+          segment.params[:key] = payload[:key]
           event_stack[id].push segment
         end
 

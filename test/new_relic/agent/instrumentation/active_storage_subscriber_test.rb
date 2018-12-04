@@ -34,6 +34,17 @@ module NewRelic
           end
         end
 
+        def test_key_recorded_as_attribute_on_traces
+          in_transaction 'test' do
+            generate_event 'service_upload.active_storage', key: 'mykey'
+          end
+
+          trace = last_transaction_trace
+          tt_node = find_node_with_name(trace, "Ruby/ActiveStorage/DiskService/upload")
+
+          assert_equal 'mykey', tt_node.params[:key]
+        end
+
         private
 
         def generate_event(event_name, attributes = {})
