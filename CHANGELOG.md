@@ -42,6 +42,12 @@
     The community forum link in `README.md` now goes to the updated
     location.  Thanks to Sam Killgallon for the contribution!
 
+  * Active Storage instrumentation
+
+    The agent now provides instrumentation for Active Storage, introduced in
+    Rails 5.2. Customers will see Active Storage operations represented as
+    segments within transaction traces.
+
 ## v5.5.0
 
   * Bugfix for `perform` instrumentation with curb gem
