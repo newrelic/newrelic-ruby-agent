@@ -45,6 +45,18 @@ module NewRelic
           assert_equal 'mykey', tt_node.params[:key]
         end
 
+        def test_exist_recorded_as_attribute_on_traces
+          in_transaction 'test' do
+            generate_event 'service_exist.active_storage', exist: false
+          end
+
+          trace = last_transaction_trace
+          tt_node = find_node_with_name(trace, "Ruby/ActiveStorage/DiskService/exist")
+
+          assert tt_node.params.key? :exist
+          assert_equal false, tt_node.params[:exist]
+        end
+
         private
 
         def generate_event(event_name, attributes = {})
