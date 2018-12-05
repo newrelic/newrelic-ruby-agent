@@ -18,7 +18,7 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
       advance_time 1
       NewRelic::Agent::TransactionTimeAggregator.transaction_start
       advance_time 10
-      NewRelic::Agent::TransactionTimeAggregator.transaction_stop
+      NewRelic::Agent::TransactionTimeAggregator.transaction_stop Thread.current.object_id
     end
 
     # Simulate a 60-second harvest time
@@ -29,12 +29,14 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
   end
 
   def test_transaction_split_across_harvest
+    thread_id = Thread.current.object_id
+
     # First transaction lies entirely within the harvest:
     # 1-11s
     advance_time 1
     NewRelic::Agent::TransactionTimeAggregator.transaction_start
     advance_time 10
-    NewRelic::Agent::TransactionTimeAggregator.transaction_stop
+    NewRelic::Agent::TransactionTimeAggregator.transaction_stop thread_id
 
     # Second transaction is split evenly across the harvest boundary:
     # 55-60s in the first harvest...
@@ -46,7 +48,7 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
 
     # ...and 0-5s in the second harvest:
     advance_time 5
-    NewRelic::Agent::TransactionTimeAggregator.transaction_stop
+    NewRelic::Agent::TransactionTimeAggregator.transaction_stop thread_id
     advance_time 55
 
     busy_fraction = NewRelic::Agent::TransactionTimeAggregator.harvest!
@@ -58,12 +60,29 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
 
     worker = Thread.new do
       ::NewRelic::Agent::TransactionTimeAggregator.transaction_start t0 + 27
-      ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop t0 + 47
+      ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop t0 + 47, Thread.current.object_id
     end
 
     # main thread:
     ::NewRelic::Agent::TransactionTimeAggregator.transaction_start t0 + 15
-    ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop t0 + 35
+    ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop t0 + 35, Thread.current.object_id
+
+    worker.join
+
+    busy_fraction = ::NewRelic::Agent::TransactionTimeAggregator.harvest! t0 + 60
+    assert_equal 1.0 / 3.0, busy_fraction
+  end
+
+  def test_transactions_across_threads
+    t0 = Time.now
+
+    # main thread:
+    ::NewRelic::Agent::TransactionTimeAggregator.transaction_start t0 + 15
+    starting_thread_id = Thread.current.object_id
+
+    worker = Thread.new do
+      ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop t0 + 35, starting_thread_id
+    end
 
     worker.join
 
@@ -72,9 +91,10 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
   end
 
   def test_metrics
+
     NewRelic::Agent::TransactionTimeAggregator.transaction_start
     advance_time 12
-    NewRelic::Agent::TransactionTimeAggregator.transaction_stop
+    NewRelic::Agent::TransactionTimeAggregator.transaction_stop Thread.current.object_id
     advance_time 48
 
     NewRelic::Agent::TransactionTimeAggregator.harvest!

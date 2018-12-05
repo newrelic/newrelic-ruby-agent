@@ -34,10 +34,10 @@ module NewRelic
         end
       end
 
-      def transaction_stop(now = Time.now)
+      def transaction_stop(now = Time.now, starting_thread_id)
         @lock.synchronize do
-          record_elapsed_transaction_time_until now
-          set_transaction_start_time nil
+          record_elapsed_transaction_time_until now, thread_id: starting_thread_id
+          set_transaction_start_time nil, thread_id: starting_thread_id
         end
       end
 
@@ -104,8 +104,8 @@ module NewRelic
           false
         end
 
-        def set_transaction_start_time(timestamp)
-          @stats[current_thread].transaction_started_at = timestamp
+        def set_transaction_start_time(timestamp, thread_id: current_thread)
+          @stats[thread_id].transaction_started_at = timestamp
         end
 
         def split_transaction_at_harvest(now, thread_id: nil)

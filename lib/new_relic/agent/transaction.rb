@@ -288,6 +288,8 @@ module NewRelic
         @sampled = nil
         @priority = nil
 
+        @starting_thread_id = Thread.current.object_id
+
         @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
 
         merge_request_parameters(@filtered_params)
@@ -447,6 +449,8 @@ module NewRelic
 
         ignore! if user_defined_rules_ignore?
 
+        @starting_thread_id = Thread.current.object_id
+
         create_initial_segment @default_name
       end
 
@@ -541,7 +545,7 @@ module NewRelic
 
         outermost_frame.finish
 
-        NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time)
+        NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
 
         commit!(outermost_frame.name) unless @ignore_this_transaction
       end
