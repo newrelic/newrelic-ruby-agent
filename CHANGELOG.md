@@ -2,6 +2,13 @@
 
 ## v5.6.0
 
+  * Bugfix for transactions with ActionController::Live
+
+    Previously, transactions containing ActionController::Live resulted in
+    incorrect calculations of capacity analysis as well as error backtraces
+    appearing in agent logs in agent versions 5.4 and later. The agent now
+    correctly calculates capacity for transactions with ActionController::Live.
+
   * New agent attributes destinations for span events and transaction segments
 
     There are now destinations for `span_events.include/exclude` and
