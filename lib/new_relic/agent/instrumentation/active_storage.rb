@@ -17,7 +17,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ActiveSupport::Notifications.subscribe(/active_storage/,
+    ActiveSupport::Notifications.subscribe(/\.active_storage$/,
       NewRelic::Agent::Instrumentation::ActiveStorageSubscriber.new)
   end
 end
