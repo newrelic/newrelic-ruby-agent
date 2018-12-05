@@ -449,8 +449,6 @@ module NewRelic
 
         ignore! if user_defined_rules_ignore?
 
-        @starting_thread_id = Thread.current.object_id
-
         create_initial_segment @default_name
       end
 
