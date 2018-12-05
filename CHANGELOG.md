@@ -18,6 +18,11 @@
     starting with a shorter delay initially, which will help customer
     apps bounce back more quickly from more transient network errors.
 
+  * Update link in documentation
+
+    The community forum link in `README.md` now goes to the updated
+    location.  Thanks to Sam Killgallon for the contribution!
+
 ## v5.5.0
 
   * Bugfix for `perform` instrumentation with curb gem
