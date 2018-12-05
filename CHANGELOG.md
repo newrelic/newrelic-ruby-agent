@@ -25,6 +25,11 @@
     `error_collector.max_backtrace_frames` configuration option.
     Thanks to Patrick Tulskie for the contribution!
 
+  * Update link in documentation
+
+    The community forum link in `README.md` now goes to the updated
+    location.  Thanks to Sam Killgallon for the contribution!
+
 ## v5.5.0
 
   * Bugfix for `perform` instrumentation with curb gem
