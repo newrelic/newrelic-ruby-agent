@@ -985,8 +985,8 @@ module NewRelic
           :default => 50,
           :public => true,
           :type => Integer,
-          :allowed_from_server => true,
-          :description => 'Defines the maximum number of frames in an error back trace. Backtraces over this amount are truncated.'
+          :allowed_from_server => false,
+          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated at the beginning and end.'
         },
         :'error_collector.capture_events' => {
           :default => value_of(:'error_collector.enabled'),

@@ -18,6 +18,13 @@
     starting with a shorter delay initially, which will help customer
     apps bounce back more quickly from more transient network errors.
 
+  * Truncation of long stack traces
+
+    Previous versions of the agent would truncate long stack traces to
+    50 frames.  To give customers more flexibility, we have added the
+    `error_collector.max_backtrace_frames` configuration option.
+    Thanks to Patrick Tulskie for the contribution!
+
 ## v5.5.0
 
   * Bugfix for `perform` instrumentation with curb gem

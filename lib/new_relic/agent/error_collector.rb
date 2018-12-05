@@ -215,7 +215,7 @@ module NewRelic
 
       def truncate_trace(trace, keep_frames=nil)
         keep_frames ||= Agent.config[:'error_collector.max_backtrace_frames']
-        return trace if trace.length < keep_frames || trace.length == 0
+        return trace if !keep_frames || trace.length < keep_frames || trace.length == 0
 
         # If keep_frames is odd, we will split things up favoring the top of the trace
         keep_top = (keep_frames / 2.0).ceil
