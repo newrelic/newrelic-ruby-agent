@@ -18,7 +18,7 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
       advance_time 1
       NewRelic::Agent::TransactionTimeAggregator.transaction_start
       advance_time 10
-      NewRelic::Agent::TransactionTimeAggregator.transaction_stop Thread.current.object_id
+      NewRelic::Agent::TransactionTimeAggregator.transaction_stop
     end
 
     # Simulate a 60-second harvest time
@@ -29,14 +29,13 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
   end
 
   def test_transaction_split_across_harvest
-    thread_id = Thread.current.object_id
 
     # First transaction lies entirely within the harvest:
     # 1-11s
     advance_time 1
     NewRelic::Agent::TransactionTimeAggregator.transaction_start
     advance_time 10
-    NewRelic::Agent::TransactionTimeAggregator.transaction_stop thread_id
+    NewRelic::Agent::TransactionTimeAggregator.transaction_stop
 
     # Second transaction is split evenly across the harvest boundary:
     # 55-60s in the first harvest...
@@ -48,7 +47,7 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
 
     # ...and 0-5s in the second harvest:
     advance_time 5
-    NewRelic::Agent::TransactionTimeAggregator.transaction_stop thread_id
+    NewRelic::Agent::TransactionTimeAggregator.transaction_stop
     advance_time 55
 
     busy_fraction = NewRelic::Agent::TransactionTimeAggregator.harvest!
@@ -59,17 +58,17 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
     t0 = Time.now
 
     worker = Thread.new do
-      ::NewRelic::Agent::TransactionTimeAggregator.transaction_start t0 + 27
-      ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop t0 + 47, Thread.current.object_id
+      ::NewRelic::Agent::TransactionTimeAggregator.transaction_start timestamp: t0 + 27
+      ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop timestamp: t0 + 47
     end
 
     # main thread:
-    ::NewRelic::Agent::TransactionTimeAggregator.transaction_start t0 + 15
-    ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop t0 + 35, Thread.current.object_id
+    ::NewRelic::Agent::TransactionTimeAggregator.transaction_start timestamp: t0 + 15
+    ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop timestamp: t0 + 35
 
     worker.join
 
-    busy_fraction = ::NewRelic::Agent::TransactionTimeAggregator.harvest! t0 + 60
+    busy_fraction = ::NewRelic::Agent::TransactionTimeAggregator.harvest! timestamp: t0 + 60
     assert_equal 1.0 / 3.0, busy_fraction
   end
 
@@ -77,16 +76,16 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
     t0 = Time.now
 
     # main thread:
-    ::NewRelic::Agent::TransactionTimeAggregator.transaction_start t0 + 15
+    ::NewRelic::Agent::TransactionTimeAggregator.transaction_start timestamp: t0 + 15
     starting_thread_id = Thread.current.object_id
 
     worker = Thread.new do
-      ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop t0 + 35, starting_thread_id
+      ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop timestamp: t0 + 35, starting_thread_id: starting_thread_id
     end
 
     worker.join
 
-    busy_fraction = ::NewRelic::Agent::TransactionTimeAggregator.harvest! t0 + 60
+    busy_fraction = ::NewRelic::Agent::TransactionTimeAggregator.harvest! timestamp: t0 + 60
     assert_equal 1.0 / 3.0, busy_fraction
   end
 
@@ -94,7 +93,7 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
 
     NewRelic::Agent::TransactionTimeAggregator.transaction_start
     advance_time 12
-    NewRelic::Agent::TransactionTimeAggregator.transaction_stop Thread.current.object_id
+    NewRelic::Agent::TransactionTimeAggregator.transaction_stop
     advance_time 48
 
     NewRelic::Agent::TransactionTimeAggregator.harvest!
@@ -120,7 +119,7 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
     t0 = Time.now
     workers = 100.times.map do
       Thread.new do
-        ::NewRelic::Agent::TransactionTimeAggregator.transaction_start t0 + 15
+        ::NewRelic::Agent::TransactionTimeAggregator.transaction_start timestamp: t0 + 15
         # thread dies before transaction completes
       end
     end
