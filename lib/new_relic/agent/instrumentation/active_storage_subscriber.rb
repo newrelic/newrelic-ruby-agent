@@ -9,7 +9,7 @@ module NewRelic
       class ActiveStorageSubscriber < EventedSubscriber
         def start name, id, payload
           return unless state.is_execution_traced?
-          start_segment(name, id, payload)
+          start_segment name, id, payload
         rescue => e
           log_notification_error e, name, 'start'
         end
@@ -18,7 +18,7 @@ module NewRelic
           return unless state.is_execution_traced?
           finish_segment id
         rescue => e
-          log_notification_error(e, name, 'finish')
+          log_notification_error e, name, 'finish'
         end
 
         def start_segment name, id, payload
