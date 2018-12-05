@@ -85,8 +85,12 @@ module NewRelic
         private
 
         def record_elapsed_transaction_time_until(timestamp: Time.now, thread_id: current_thread)
-          @stats[thread_id].elapsed_transaction_time +=
-            (timestamp - (@stats[thread_id].transaction_started_at || 0.0))
+          if @stats[thread_id].transaction_started_at
+            @stats[thread_id].elapsed_transaction_time +=
+              (timestamp - (@stats[thread_id].transaction_started_at || 0.0))
+          else
+            log_missing_elapsed_transaction_time
+          end
         end
 
         def in_transaction?(thread_id: current_thread)
@@ -124,6 +128,12 @@ module NewRelic
           split_transaction_at_harvest timestamp: timestamp, thread_id: thread_id
 
           elapsed
+        end
+
+        def log_missing_elapsed_transaction_time
+          state = NewRelic::Agent::TransactionState.tl_get
+          transaction_name = state.current_transaction.best_name
+          NewRelic::Agent.logger.warn("Unable to calculate elapsed transaction time for #{transaction_name}")
         end
       end
     end
