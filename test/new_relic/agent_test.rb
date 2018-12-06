@@ -413,6 +413,8 @@ module NewRelic
       end
     end
 
+    DEPRECATED_CONSTANTS = [:Tms]
+
     def test_modules_and_classes_return_name_properly
       valid = [Module, Class]
       stack = [NewRelic]
@@ -430,7 +432,7 @@ module NewRelic
         end
 
         if a.respond_to? :constants
-          consts = a.constants.map { |c| a.const_get c }.select do |c|
+          consts = (a.constants - DEPRECATED_CONSTANTS).map { |c| a.const_get c }.select do |c|
             if valid.include?(c.class) && !c.ancestors.include?(Minitest::Test)
               assert_instance_of String, c.name
               c.name.start_with?(a.name)
