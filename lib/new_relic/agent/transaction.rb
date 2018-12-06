@@ -445,7 +445,7 @@ module NewRelic
 
         sql_sampler.on_start_transaction(state, start_time, request_path)
         NewRelic::Agent.instance.events.notify(:start_transaction)
-        NewRelic::Agent::TransactionTimeAggregator.transaction_start(timestamp: start_time)
+        NewRelic::Agent::TransactionTimeAggregator.transaction_start(start_time)
 
         ignore! if user_defined_rules_ignore?
 
@@ -543,7 +543,7 @@ module NewRelic
 
         outermost_frame.finish
 
-        NewRelic::Agent::TransactionTimeAggregator.transaction_stop(timestamp: @end_time, starting_thread_id: @starting_thread_id)
+        NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
 
         commit!(outermost_frame.name) unless @ignore_this_transaction
       end
