@@ -81,7 +81,7 @@ module NewRelic
                       :transaction_stop,
                       :harvest!
 
-      class <<self
+      class << self
         private
 
         def record_elapsed_transaction_time_until(timestamp: Time.now, thread_id: current_thread)
