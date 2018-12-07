@@ -2,12 +2,12 @@
 
 ## v5.6.0
 
-  * Bugfix for transactions with ActionController::Live
+  * Bugfix for transactions with `ActionController::Live`
 
-    Previously, transactions containing ActionController::Live resulted in
+    Previously, transactions containing `ActionController::Live` resulted in
     incorrect calculations of capacity analysis as well as error backtraces
     appearing in agent logs in agent versions 5.4 and later. The agent now
-    correctly calculates capacity for transactions with ActionController::Live.
+    correctly calculates capacity for transactions with `ActionController::Live`.
 
   * Add ability to exclude attributes from span events and transaction
     segments
@@ -21,14 +21,16 @@
 
     As with other attribute destinations, these new options will
     inherit values from the top-level `attributes.include/exclude`
-    settings.
+    settings. See the
+    [documentation](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enabling-disabling-attributes-ruby)
+    for more information.
 
   * Increasing backoff sequence on failing to connect to New Relic
 
     If the agent cannot reach New Relic, it will now wait for an
     increasing amount of time after each failed attempt.  We are also
     starting with a shorter delay initially, which will help customer
-    apps bounce back more quickly from more transient network errors.
+    apps bounce back more quickly from transient network errors.
 
   * Truncation of long stack traces
 
