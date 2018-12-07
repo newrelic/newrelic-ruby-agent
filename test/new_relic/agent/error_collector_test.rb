@@ -248,14 +248,28 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     assert_equal('<no stack trace>', @error_collector.extract_stack_trace(Exception.new))
   end
 
+  def test_trace_truncated_with_config
+    with_config(:'error_collector.max_backtrace_frames' => 2) do
+      trace = @error_collector.truncate_trace(['error1', 'error2', 'error3', 'error4'])
+      assert_equal ['error1', '<truncated 2 additional frames>', 'error4'], trace
+    end
+  end
+
+  def test_trace_truncated_with_nil_config
+    with_config(:'error_collector.max_backtrace_frames' => nil) do
+      trace = @error_collector.truncate_trace(['error1', 'error2', 'error3', 'error4'])
+      assert_equal 4, trace.length
+    end
+  end
+
   def test_short_trace_not_truncated
     trace = @error_collector.truncate_trace(['error', 'error', 'error'], 6)
-    assert_equal trace.length, 3
+    assert_equal 3, trace.length
   end
 
   def test_empty_trace_not_truncated
     trace = @error_collector.truncate_trace([], 7)
-    assert_equal trace.length, 0
+    assert_empty trace
   end
 
   def test_keeps_correct_frames_if_keep_frames_is_even

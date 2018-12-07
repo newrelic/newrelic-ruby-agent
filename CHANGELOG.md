@@ -9,14 +9,19 @@
     appearing in agent logs in agent versions 5.4 and later. The agent now
     correctly calculates capacity for transactions with ActionController::Live.
 
-  * New agent attributes destinations for span events and transaction segments
+  * Add ability to exclude attributes from span events and transaction
+    segments
 
-    There are now destinations for `span_events.include/exclude` and
-    `transaction_segments.include/exclude` for agent attributes. These
-    destinations can be used control the collection of attributes on span events
-    and transaction traces. As with other attribute destinations, they will
-    inherit values from the top level `attributes.include/exclude` configuration
-    options.
+    Agent versions 5.5 and lower could selectively exclude attributes
+    from page views, error traces, transaction traces, and
+    transaction events.  With agent version 5.6 and higher, you can
+    also exclude attributes from span events (via the
+    `span_events.include/exclude` options) and from transaction
+    segments (via the `transaction_segments.include/exclude` options).
+
+    As with other attribute destinations, these new options will
+    inherit values from the top-level `attributes.include/exclude`
+    settings.
 
   * Increasing backoff sequence on failing to connect to New Relic
 
@@ -24,6 +29,18 @@
     increasing amount of time after each failed attempt.  We are also
     starting with a shorter delay initially, which will help customer
     apps bounce back more quickly from more transient network errors.
+
+  * Truncation of long stack traces
+
+    Previous versions of the agent would truncate long stack traces to
+    50 frames.  To give customers more flexibility, we have added the
+    `error_collector.max_backtrace_frames` configuration option.
+    Thanks to Patrick Tulskie for the contribution!
+
+  * Update link in documentation
+
+    The community forum link in `README.md` now goes to the updated
+    location.  Thanks to Sam Killgallon for the contribution!
 
 ## v5.5.0
 

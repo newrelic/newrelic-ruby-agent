@@ -13,9 +13,6 @@ module NewRelic
       # made configurable in the future. This is a tradeoff between
       # memory and data retention
       MAX_ERROR_QUEUE_LENGTH = 20
-      # Maximum number of frames in backtraces. May be made configurable
-      # in the future.
-      MAX_BACKTRACE_FRAMES = 50
       EXCEPTION_TAG_IVAR = :'@__nr_seen_exception'
 
       attr_reader :error_trace_aggregator, :error_event_aggregator
@@ -216,8 +213,9 @@ module NewRelic
         nil
       end
 
-      def truncate_trace(trace, keep_frames=MAX_BACKTRACE_FRAMES)
-        return trace if trace.length < keep_frames || trace.length == 0
+      def truncate_trace(trace, keep_frames=nil)
+        keep_frames ||= Agent.config[:'error_collector.max_backtrace_frames']
+        return trace if !keep_frames || trace.length < keep_frames || trace.length == 0
 
         # If keep_frames is odd, we will split things up favoring the top of the trace
         keep_top = (keep_frames / 2.0).ceil

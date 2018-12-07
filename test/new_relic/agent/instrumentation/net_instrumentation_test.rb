@@ -29,6 +29,7 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
 
   def test_scope_stack_integrity_maintained_on_request_failure
     @socket.stubs(:write).raises('fake network error')
+    @socket.stubs(:write_nonblock).raises('fake network error')
     with_config(:"cross_application_tracer.enabled" => true) do
       in_transaction "test" do
         segment = NewRelic::Agent::Transaction.start_segment name: "dummy"
