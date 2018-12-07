@@ -39,15 +39,16 @@ module NewRelic
           "Ruby/ActiveStorage/#{service}Service/#{method}"
         end
 
-        METHOD_NAME_MAPPING = {
-          "service_upload.active_storage"             => "upload".freeze,
-          "service_streaming_download.active_storage" => "streaming_download".freeze,
-          "service_download.active_storage"           => "download".freeze,
-          "service_delete.active_storage"             => "delete".freeze,
-          "service_delete_prefixed.active_storage"    => "delete_prefixed".freeze,
-          "service_exist.active_storage"              => "exist".freeze,
-          "service_url.active_storage"                => "url".freeze
-        }
+        PATTERN = /\Aservice_([^\.]*)\.active_storage\z/
+        UNKNOWN = "unknown".freeze
+
+        METHOD_NAME_MAPPING = Hash.new do |h, k|
+          if PATTERN =~ k
+            h[k] = $1
+          else
+            h[k] = UNKNOWN
+          end
+        end
 
         def method_from_name name
           METHOD_NAME_MAPPING[name]

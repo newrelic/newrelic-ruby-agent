@@ -23,15 +23,41 @@ module NewRelic
         end
 
         def test_metrics_recorded_for_known_methods
+          method_name_mapping = {
+            "service_upload.active_storage"             => "upload".freeze,
+            "service_streaming_download.active_storage" => "streaming_download".freeze,
+            "service_download.active_storage"           => "download".freeze,
+            "service_delete.active_storage"             => "delete".freeze,
+            "service_delete_prefixed.active_storage"    => "delete_prefixed".freeze,
+            "service_exist.active_storage"              => "exist".freeze,
+            "service_url.active_storage"                => "url".freeze
+          }
+
           in_transaction 'test' do
-            @subscriber.class::METHOD_NAME_MAPPING.each do |event_name, _|
+            method_name_mapping.keys.each do |event_name|
               generate_event event_name
             end
           end
 
-          @subscriber.class::METHOD_NAME_MAPPING.each do |_, method_name|
+          method_name_mapping.values.each do |method_name|
             assert_metrics_recorded "Ruby/ActiveStorage/DiskService/#{method_name}"
           end
+        end
+
+        def test_metric_will_recorded_for_new_event_names
+          in_transaction 'test' do
+            generate_event 'service_new_method.active_storage'
+          end
+
+          assert_metrics_recorded 'Ruby/ActiveStorage/DiskService/new_method'
+        end
+
+        def test_failsafe_if_event_does_not_match_expected_pattern
+          in_transaction 'test' do
+            generate_event 'wat?'
+          end
+
+          assert_metrics_recorded 'Ruby/ActiveStorage/DiskService/unknown'
         end
 
         def test_key_recorded_as_attribute_on_traces
