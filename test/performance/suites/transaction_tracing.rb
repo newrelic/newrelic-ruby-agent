@@ -127,4 +127,32 @@ class TransactionTracingPerfTests < Performance::TestCase
       end
     end
   end
+
+  def test_short_transaction_with_datastore_segment
+    measure do
+      in_transaction do |txn|
+        txn.sampled = true
+        segment = NewRelic::Agent::Transaction.start_datastore_segment(
+          product: "SQLite",
+          operation: "insert",
+          collection: "Blog"
+        )
+        segment.finish
+      end
+    end
+  end
+
+  def test_short_transaction_with_external_request_segment
+    measure do
+      in_transaction do |txn|
+        txn.sampled = true
+        segment = NewRelic::Agent::Transaction.start_external_request_segment(
+          library: "Net::HTTP",
+          uri: "http://remotehost.com/blogs/index",
+          procedure: "GET"
+        )
+        segment.finish
+      end
+    end
+  end
 end
