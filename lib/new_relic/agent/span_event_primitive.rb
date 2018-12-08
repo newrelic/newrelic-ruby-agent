@@ -57,40 +57,46 @@ module NewRelic
       def for_external_request_segment(segment)
         intrinsics = intrinsics_for(segment)
 
-        intrinsics[HTTP_URL_KEY]    = truncate(segment.uri)
         intrinsics[COMPONENT_KEY]   = segment.library
         intrinsics[HTTP_METHOD_KEY] = segment.procedure
         intrinsics[CATEGORY_KEY]    = HTTP_CATEGORY
         intrinsics[SPAN_KIND_KEY]   = CLIENT
 
-        [intrinsics, EMPTY_HASH, EMPTY_HASH]
+        agent_attributes = {}
+
+        if allowed?(HTTP_URL_KEY)
+          agent_attributes[HTTP_URL_KEY] = truncate(segment.uri)
+        end
+
+        [intrinsics, EMPTY_HASH, agent_attributes]
       end
 
       def for_datastore_segment(segment)
         intrinsics = intrinsics_for(segment)
 
         intrinsics[COMPONENT_KEY] = segment.product
-
-        if segment.database_name
-          intrinsics[DB_INSTANCE_KEY] = truncate(segment.database_name)
-        end
-        if segment.host && segment.port_path_or_id
-          intrinsics[PEER_ADDRESS_KEY] = truncate("#{segment.host}:#{segment.port_path_or_id}")
-        end
-        if segment.host
-          intrinsics[PEER_HOSTNAME_KEY] = truncate(segment.host)
-        end
-
         intrinsics[SPAN_KIND_KEY] = CLIENT
         intrinsics[CATEGORY_KEY] = DATASTORE_CATEGORY
 
-        if segment.sql_statement
-          intrinsics[DB_STATEMENT_KEY] = truncate(segment.sql_statement.safe_sql, 2000)
-        elsif segment.nosql_statement
-          intrinsics[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, 2000)
+        agent_attributes = {}
+
+        if segment.database_name && allowed?(DB_INSTANCE_KEY)
+          agent_attributes[DB_INSTANCE_KEY] = truncate(segment.database_name)
+        end
+        if segment.host && segment.port_path_or_id && allowed?(PEER_ADDRESS_KEY)
+          agent_attributes[PEER_ADDRESS_KEY] = truncate("#{segment.host}:#{segment.port_path_or_id}")
+        end
+        if segment.host && allowed?(PEER_HOSTNAME_KEY)
+          agent_attributes[PEER_HOSTNAME_KEY] = truncate(segment.host)
         end
 
-        [intrinsics, EMPTY_HASH, EMPTY_HASH]
+        if segment.sql_statement && allowed?(DB_STATEMENT_KEY)
+          agent_attributes[DB_STATEMENT_KEY] = truncate(segment.sql_statement.safe_sql, 2000)
+        elsif segment.nosql_statement && allowed?(DB_STATEMENT_KEY)
+          agent_attributes[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, 2000)
+        end
+
+        [intrinsics, EMPTY_HASH, agent_attributes]
       end
 
       private
@@ -138,6 +144,10 @@ module NewRelic
         else
           value
         end
+      end
+
+      def allowed?(key)
+        NewRelic::Agent.instance.attribute_filter.allows_key?(key, AttributeFilter::DST_SPAN_EVENTS)
       end
     end
   end

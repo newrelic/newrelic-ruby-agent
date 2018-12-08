@@ -29,6 +29,7 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
   end
 
   def test_transaction_split_across_harvest
+
     # First transaction lies entirely within the harvest:
     # 1-11s
     advance_time 1
@@ -71,7 +72,25 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
     assert_equal 1.0 / 3.0, busy_fraction
   end
 
+  def test_transactions_across_threads
+    t0 = Time.now
+
+    # main thread:
+    ::NewRelic::Agent::TransactionTimeAggregator.transaction_start t0 + 15
+    starting_thread_id = Thread.current.object_id
+
+    worker = Thread.new do
+      ::NewRelic::Agent::TransactionTimeAggregator.transaction_stop t0 + 35, starting_thread_id
+    end
+
+    worker.join
+
+    busy_fraction = ::NewRelic::Agent::TransactionTimeAggregator.harvest! t0 + 60
+    assert_equal 1.0 / 3.0, busy_fraction
+  end
+
   def test_metrics
+
     NewRelic::Agent::TransactionTimeAggregator.transaction_start
     advance_time 12
     NewRelic::Agent::TransactionTimeAggregator.transaction_stop

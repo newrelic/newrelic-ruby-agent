@@ -727,12 +727,14 @@ module NewRelic
             force || (!connected? && !disconnected?)
           end
 
-          # Retry period is a minute for each failed attempt that
-          # we've made. This should probably do some sort of sane TCP
-          # backoff to prevent hammering the server, but a minute for
-          # each attempt seems to work reasonably well.
+          # Per the spec at
+          # /agents/agent-specs/Collector-Response-Handling.md, retry
+          # connections after a specific backoff sequence to prevent
+          # hammering the server.
+          CONNECT_RETRY_PERIODS = [15, 15, 30, 60, 120, 300]
+
           def connect_retry_period
-            [600, connect_attempts * 60].min
+            CONNECT_RETRY_PERIODS[connect_attempts] || 300
           end
 
           def note_connect_failure

@@ -719,6 +719,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, disables Action Cable instrumentation.'
         },
+        :disable_active_storage => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'If <code>true</code>, disables ActiveStorage instrumentation.'
+        },
         :disable_memcached => {
           :default => value_of(:disable_memcache_instrumentation),
           :public => true,
@@ -980,6 +988,13 @@ module NewRelic
           :type => String,
           :allowed_from_server => true,
           :description => 'Specify a comma-delimited list of error classes that the agent should ignore.'
+        },
+        :'error_collector.max_backtrace_frames' => {
+          :default => 50,
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => false,
+          :description => 'Defines the maximum number of frames in an error backtrace. Backtraces over this amount are truncated at the beginning and end.'
         },
         :'error_collector.capture_events' => {
           :default => value_of(:'error_collector.enabled'),
@@ -1505,6 +1520,20 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, the agent captures attributes from browser monitoring.'
         },
+        :'span_events.attributes.enabled' => {
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'If <code>true</code>, the agent captures attributes on span events.'
+        },
+        :'transaction_segments.attributes.enabled' => {
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'If <code>true</code>, the agent captures attributes on transaction segments.'
+        },
         :'attributes.exclude' => {
           :default     => [],
           :public      => true,
@@ -1545,6 +1574,22 @@ module NewRelic
           :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from browser monitoring. Allows <code>*</code> as wildcard at end.'
         },
+        :'span_events.attributes.exclude' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :allowed_from_server => false,
+          :transform   => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to exclude from span events. Allows <code>*</code> as wildcard at end.'
+        },
+        :'transaction_segments.attributes.exclude' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :allowed_from_server => false,
+          :transform   => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to exclude from transaction segments. Allows <code>*</code> as wildcard at end.'
+        },
         :'attributes.include' => {
           :default     => [],
           :public      => true,
@@ -1584,6 +1629,22 @@ module NewRelic
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in browser monitoring. Allows <code>*</code> as wildcard at end.'
+        },
+        :'span_events.attributes.include' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :allowed_from_server => false,
+          :transform    => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to include on span events. Allows <code>*</code> as wildcard at end.'
+        },
+        :'transaction_segments.attributes.include' => {
+          :default     => [],
+          :public      => true,
+          :type        => Array,
+          :allowed_from_server => false,
+          :transform    => DefaultSource.method(:convert_to_list),
+          :description => 'Prefix of attributes to include on transaction segments. Allows <code>*</code> as wildcard at end.'
         },
         :'custom_attributes.enabled' => {
           :default     => true,

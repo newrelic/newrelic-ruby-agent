@@ -18,6 +18,7 @@ digraph AgentEnabled {
   "[error_collector.capture_source]"
   "[error_collector.enabled]"
   "[error_collector.ignore_errors]"
+  "[error_collector.max_backtrace_frames]"
   "[browser_monitoring.auto_instrument]"
   "[license_key]"
   "[verify_certificate]"

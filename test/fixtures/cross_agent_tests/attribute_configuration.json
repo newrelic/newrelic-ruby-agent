@@ -1,384 +1,725 @@
-[
-  {
-    "testname":"everything enabled, no include/exclude",
-    "config":
-    {
-      "browser_monitoring.attributes.enabled":true
+[{
+    "testname": "everything enabled, no include/exclude",
+    "config": {
+      "browser_monitoring.attributes.enabled": true
     },
-    "input_key":"alpha",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector", "browser_monitoring"],
-    "expected_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"]
+    "input_key": "alpha",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ]
   },
 
   {
-    "testname":"browser monitoring attributes disabled by default",
-    "config":
-    {
-    },
-    "input_key":"alpha",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector", "browser_monitoring"],
-    "expected_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector"]
+    "testname": "browser monitoring attributes disabled by default",
+    "config": {},
+    "input_key": "alpha",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "span_events",
+      "transaction_segments"
+    ]
   },
 
   {
-    "testname":"attributes globally disabled",
-    "config":
-    {
-      "attributes.enabled":false
+    "testname": "attributes globally disabled",
+    "config": {
+      "attributes.enabled": false,
+      "transaction_events.attributes.enabled": true,
+      "transaction_tracer.attributes.enabled": true,
+      "error_collector.attributes.enabled": true,
+      "browser_monitoring.attributes.enabled": true,
+      "span_events.attributes.enabled": true,
+      "transaction_segments.attributes.enabled": true
     },
-    "input_key":"alpha",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      []
+    "input_key": "alpha",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+    ]
   },
 
   {
-    "testname":"all categories disabled",
-    "config":
-    {
-      "transaction_events.attributes.enabled":false,
-      "transaction_tracer.attributes.enabled":false,
-      "error_collector.attributes.enabled":false
+    "testname": "all categories disabled",
+    "config": {
+      "transaction_events.attributes.enabled": false,
+      "transaction_tracer.attributes.enabled": false,
+      "error_collector.attributes.enabled": false,
+      "span_events.attributes.enabled": false,
+      "transaction_segments.attributes.enabled": false
     },
-    "input_key":"alpha",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      []
+    "input_key": "alpha",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+    ]
   },
 
   {
-    "testname":"global exclude",
-    "config":
-    {
-      "attributes.exclude":["alpha"],
-      "browser_monitoring.attributes.enabled":true
+    "testname": "global exclude",
+    "config": {
+      "attributes.exclude": ["alpha"],
+      "browser_monitoring.attributes.enabled": true
     },
-    "input_key":"alpha",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      []
+    "input_key": "alpha",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+    ]
   },
 
   {
-    "testname":"exclude in each category",
-    "config":
-    {
-      "transaction_events.attributes.exclude":["alpha"],
-      "transaction_tracer.attributes.exclude":["alpha"],
-      "error_collector.attributes.exclude":["alpha"],
-      "browser_monitoring.attributes.enabled":true,
-      "browser_monitoring.attributes.exclude":["alpha"]
+    "testname": "exclude in each category",
+    "config": {
+      "transaction_events.attributes.exclude": ["alpha"],
+      "transaction_tracer.attributes.exclude": ["alpha"],
+      "error_collector.attributes.exclude": ["alpha"],
+      "browser_monitoring.attributes.enabled": true,
+      "browser_monitoring.attributes.exclude": ["alpha"],
+      "span_events.attributes.exclude": ["alpha"],
+      "transaction_segments.attributes.exclude": ["alpha"]
     },
-    "input_key":"alpha",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      []
+    "input_key": "alpha",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+    ]
   },
 
   {
-    "testname":"global include",
-    "config":
-    {
-      "attributes.include":["alpha"],
-      "browser_monitoring.attributes.enabled":true
+    "testname": "global include",
+    "config": {
+      "attributes.include": ["alpha"],
+      "browser_monitoring.attributes.enabled": true
     },
-    "input_key":"alpha",
-    "input_default_destinations":
-      [],
-    "expected_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"]
+    "input_key": "alpha",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ]
   },
 
   {
-    "testname":"each category include",
-    "config":
-    {
-      "transaction_events.attributes.include":["alpha"],
-      "transaction_tracer.attributes.include":["alpha"],
-      "error_collector.attributes.include":["alpha"],
-      "browser_monitoring.attributes.enabled":true,
-      "browser_monitoring.attributes.include":["alpha"]
+    "testname": "each category include",
+    "config": {
+      "transaction_events.attributes.include": ["alpha"],
+      "transaction_tracer.attributes.include": ["alpha"],
+      "error_collector.attributes.include": ["alpha"],
+      "browser_monitoring.attributes.enabled": true,
+      "browser_monitoring.attributes.include": ["alpha"],
+      "span_events.attribute.include": ["alpha"],
+      "transaction_segments.attributes.include": ["alpha"]
     },
-    "input_key":"alpha",
-    "input_default_destinations":
-      [],
-    "expected_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"]
+    "input_key": "alpha",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ]
   },
 
   {
-    "testname":"global include/exclude contradict",
-    "config":
-    {
-      "attributes.exclude":["alpha"],
-      "attributes.include":["alpha"],
-      "browser_monitoring.attributes.enabled":true
+    "testname": "global include/exclude contradict",
+    "config": {
+      "attributes.exclude": ["alpha"],
+      "attributes.include": ["alpha"],
+      "browser_monitoring.attributes.enabled": true
     },
-    "input_key":"alpha",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      []
+    "input_key": "alpha",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+    ]
   },
 
   {
-    "testname":"include/exclude contradict in each category",
-    "config":
-    {
-      "transaction_events.attributes.exclude":["alpha"],
-      "transaction_events.attributes.include":["alpha"],
-      "transaction_tracer.attributes.exclude":["alpha"],
-      "transaction_tracer.attributes.include":["alpha"],
-      "error_collector.attributes.exclude":["alpha"],
-      "error_collector.attributes.include":["alpha"],
-      "browser_monitoring.attributes.enabled":true,
-      "browser_monitoring.attributes.exclude":["alpha"],
-      "browser_monitoring.attributes.include":["alpha"]
+    "testname": "include/exclude contradict in each category",
+    "config": {
+      "transaction_events.attributes.exclude": ["alpha"],
+      "transaction_events.attributes.include": ["alpha"],
+      "transaction_tracer.attributes.exclude": ["alpha"],
+      "transaction_tracer.attributes.include": ["alpha"],
+      "error_collector.attributes.exclude": ["alpha"],
+      "error_collector.attributes.include": ["alpha"],
+      "browser_monitoring.attributes.enabled": true,
+      "browser_monitoring.attributes.exclude": ["alpha"],
+      "browser_monitoring.attributes.include": ["alpha"],
+      "span_events.attributes.exclude": ["alpha"],
+      "span_events.attributes.include": ["alpha"],
+      "transaction_segments.attributes.exclude": ["alpha"],
+      "transaction_segments.attributes.include": ["alpha"]
     },
-    "input_key":"alpha",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      []
+    "input_key": "alpha",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+    ]
   },
 
   {
-    "testname":"global exclude contradicts category include",
-    "config":
-    {
-      "attributes.exclude":["alpha"],
-      "transaction_events.attributes.include":["alpha"],
-      "transaction_tracer.attributes.include":["alpha"],
-      "error_collector.attributes.include":["alpha"],
-      "browser_monitoring.attributes.enabled":true,
-      "browser_monitoring.attributes.include":["alpha"]
+    "testname": "global exclude contradicts category include",
+    "config": {
+      "attributes.exclude": ["alpha"],
+      "transaction_events.attributes.include": ["alpha"],
+      "transaction_tracer.attributes.include": ["alpha"],
+      "error_collector.attributes.include": ["alpha"],
+      "browser_monitoring.attributes.enabled": true,
+      "browser_monitoring.attributes.include": ["alpha"],
+      "span_events.attributes.include": ["alpha"],
+      "transaction_segments.attributes.include": ["alpha"]
     },
-    "input_key":"alpha",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      []
+    "input_key": "alpha",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+    ]
   },
 
   {
-    "testname":"global include contradicts category exclude",
-    "config":
-    {
-      "attributes.include":["alpha"],
-      "transaction_events.attributes.exclude":["alpha"],
-      "transaction_tracer.attributes.exclude":["alpha"],
-      "error_collector.attributes.exclude":["alpha"],
-      "browser_monitoring.attributes.enabled":true,
-      "browser_monitoring.attributes.exclude":["alpha"]
+    "testname": "global include contradicts category exclude",
+    "config": {
+      "attributes.include": ["alpha"],
+      "transaction_events.attributes.exclude": ["alpha"],
+      "transaction_tracer.attributes.exclude": ["alpha"],
+      "error_collector.attributes.exclude": ["alpha"],
+      "browser_monitoring.attributes.enabled": true,
+      "browser_monitoring.attributes.exclude": ["alpha"],
+      "span_events.attributes.exclude": ["alpha"],
+      "transaction_segments.attributes.exclude": ["alpha"]
     },
-    "input_key":"alpha",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      []
+    "input_key": "alpha",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+    ]
   },
 
   {
-    "testname":"alpha is more specific than alpha*",
-    "config":
-    {
-      "attributes.include":["alpha"],
-      "transaction_events.attributes.exclude":["alpha*"],
-      "transaction_tracer.attributes.exclude":["alpha*"],
-      "error_collector.attributes.exclude":["alpha*"],
-      "browser_monitoring.attributes.enabled":true,
-      "browser_monitoring.attributes.exclude":["alpha*"]
+    "testname": "alpha is more specific than alpha*",
+    "config": {
+      "attributes.include": ["alpha"],
+      "transaction_events.attributes.exclude": ["alpha*"],
+      "transaction_tracer.attributes.exclude": ["alpha*"],
+      "error_collector.attributes.exclude": ["alpha*"],
+      "browser_monitoring.attributes.enabled": true,
+      "browser_monitoring.attributes.exclude": ["alpha*"],
+      "span_events.attributes.exclude": ["alpha*"],
+      "transaction_segments.attributes.exclude": ["alpha*"]
     },
-    "input_key":"alpha",
-    "input_default_destinations":
-      [],
-    "expected_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"]
+    "input_key": "alpha",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ]
   },
 
   {
-    "testname":"all destination modifiers applied, not only the most specific one",
-    "config":
-    {
-      "attributes.exclude":["a*"],
-      "transaction_events.attributes.include":["ab*"],
-      "transaction_events.attributes.exclude":["abc*"],
-      "transaction_tracer.attributes.exclude":["abcd*"],
-      "transaction_tracer.attributes.include":["abcde*"],
-      "error_collector.attributes.include":   ["abcdef*"],
-      "error_collector.attributes.exclude":   ["abcdefg*"],
-      "browser_monitoring.attributes.exclude":["abcdefgh*"],
-      "browser_monitoring.attributes.include":["abcdefghi*"],
-      "browser_monitoring.attributes.enabled":true
+    "testname": "all destination modifiers applied, not only the most specific one",
+    "config": {
+      "attributes.exclude": ["a*"],
+      "transaction_events.attributes.include": ["ab*"],
+      "transaction_events.attributes.exclude": ["abc*"],
+      "transaction_tracer.attributes.exclude": ["abcd*"],
+      "transaction_tracer.attributes.include": ["abcde*"],
+      "error_collector.attributes.include": ["abcdef*"],
+      "error_collector.attributes.exclude": ["abcdefg*"],
+      "browser_monitoring.attributes.exclude": ["abcdefgh*"],
+      "browser_monitoring.attributes.include": ["abcdefghi*"],
+      "browser_monitoring.attributes.enabled": true,
+      "span_events.attributes.exclude": ["abcdefghij*"],
+      "span_events.attributes.include": ["abcdefghijk*"],
+      "transaction_segments.attributes.exclude": ["abcdefghijkl*"],
+      "transaction_segments.attributes.include": ["abcdefghijklm*"]
     },
-    "input_key":"abcdefghik",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      ["transaction_tracer","browser_monitoring"]
+    "input_key": "abcdefghik",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+      "transaction_tracer",
+      "browser_monitoring"
+    ]
   },
 
 
   {
-    "testname":"venn diagram part 1",
-    "config":
-    {
-      "attributes.exclude":["alpha.*", "alpha.beta.gamma.*"],
-      "attributes.include":["alpha.beta.*"],
-      "browser_monitoring.attributes.enabled":true
+    "testname": "venn diagram part 1",
+    "config": {
+      "attributes.exclude": ["alpha.*", "alpha.beta.gamma.*"],
+      "attributes.include": ["alpha.beta.*"],
+      "browser_monitoring.attributes.enabled": true
     },
-    "input_key":"alpha.",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      []
+    "input_key": "alpha.",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+    ]
   },
 
   {
-    "testname":"venn diagram part 2",
-    "config":
-    {
-      "attributes.exclude":["alpha.*", "alpha.beta.gamma.*"],
-      "attributes.include":["alpha.beta.*"],
-      "browser_monitoring.attributes.enabled":true
+    "testname": "venn diagram part 2",
+    "config": {
+      "attributes.exclude": ["alpha.*", "alpha.beta.gamma.*"],
+      "attributes.include": ["alpha.beta.*"],
+      "browser_monitoring.attributes.enabled": true
     },
-    "input_key":"alpha.psi",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      []
+    "input_key": "alpha.psi",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+    ]
   },
 
   {
-    "testname":"venn diagram part 3",
-    "config":
-    {
-      "attributes.exclude":["alpha.*", "alpha.beta.gamma.*"],
-      "attributes.include":["alpha.beta.*"],
-      "browser_monitoring.attributes.enabled":true
+    "testname": "venn diagram part 3",
+    "config": {
+      "attributes.exclude": ["alpha.*", "alpha.beta.gamma.*"],
+      "attributes.include": ["alpha.beta.*"],
+      "browser_monitoring.attributes.enabled": true
     },
-    "input_key":"alpha.beta.",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"]
+    "input_key": "alpha.beta.",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ]
   },
 
   {
-    "testname":"venn diagram part 4",
-    "config":
-    {
-      "attributes.exclude":["alpha.*", "alpha.beta.gamma.*"],
-      "attributes.include":["alpha.beta.*"],
-      "browser_monitoring.attributes.enabled":true
+    "testname": "venn diagram part 4",
+    "config": {
+      "attributes.exclude": ["alpha.*", "alpha.beta.gamma.*"],
+      "attributes.include": ["alpha.beta.*"],
+      "browser_monitoring.attributes.enabled": true
     },
-    "input_key":"alpha.beta.psi",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"]
+    "input_key": "alpha.beta.psi",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ]
   },
 
   {
-    "testname":"venn diagram part 5",
-    "config":
-    {
-      "attributes.exclude":["alpha.*", "alpha.beta.gamma.*"],
-      "attributes.include":["alpha.beta.*"],
-      "browser_monitoring.attributes.enabled":true
+    "testname": "venn diagram part 5",
+    "config": {
+      "attributes.exclude": ["alpha.*", "alpha.beta.gamma.*"],
+      "attributes.include": ["alpha.beta.*"],
+      "browser_monitoring.attributes.enabled": true
     },
-    "input_key":"alpha.beta.gamma.",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      []
+    "input_key": "alpha.beta.gamma.",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+    ]
   },
 
   {
-    "testname":"alpha is not mistaken for alpha*",
-    "config":
-    {
-      "transaction_events.attributes.include":["alpha"],
-      "transaction_tracer.attributes.exclude":["alpha*"],
-      "error_collector.attributes.include":   ["alpha"],
-      "browser_monitoring.attributes.exclude":["alpha*"],
-      "browser_monitoring.attributes.enabled":true
+    "testname": "alpha is not mistaken for alpha*",
+    "config": {
+      "transaction_events.attributes.include": ["alpha"],
+      "transaction_tracer.attributes.exclude": ["alpha*"],
+      "error_collector.attributes.include": ["alpha"],
+      "browser_monitoring.attributes.exclude": ["alpha*"],
+      "browser_monitoring.attributes.enabled": true,
+      "span_events.attributes.exclude": ["alpha*"],
+      "transaction_segments.attributes.exclude": ["alpha*"]
     },
-    "input_key":"alpha.beta",
-    "input_default_destinations":
-      ["transaction_tracer","browser_monitoring"],
-    "expected_destinations":
-      []
+    "input_key": "alpha.beta",
+    "input_default_destinations": [
+      "transaction_tracer",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+    ]
   },
 
   {
-    "testname":"exact match is case sensitive",
-    "config":
-    {
-      "attributes.exclude":["alpha"],
-      "browser_monitoring.attributes.enabled":true
+    "testname": "exact match is case sensitive",
+    "config": {
+      "attributes.exclude": ["alpha"],
+      "browser_monitoring.attributes.enabled": true
     },
-    "input_key":"ALPHA",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"]
+    "input_key": "ALPHA",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ]
   },
 
   {
-    "testname":"wildcard match is case sensitive",
-    "config":
-    {
-      "attributes.exclude":["alpha.*"],
-      "browser_monitoring.attributes.enabled":true
+    "testname": "wildcard match is case sensitive",
+    "config": {
+      "attributes.exclude": ["alpha.*"],
+      "browser_monitoring.attributes.enabled": true
     },
-    "input_key":"ALPHA.BETA",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"],
-    "expected_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector","browser_monitoring"]
+    "input_key": "ALPHA.BETA",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ]
   },
 
   {
-    "testname":"include with attributes globally disabled",
-    "config":
-    {
-      "attributes.enabled":false,
-      "transaction_events.attributes.include":["alpha"],
-      "transaction_tracer.attributes.include":["alpha"],
-      "error_collector.attributes.include":["alpha"],
-      "browser_monitoring.attributes.include":["alpha"]
+    "testname": "include with attributes globally disabled",
+    "config": {
+      "attributes.enabled": false,
+      "transaction_events.attributes.include": ["alpha"],
+      "transaction_tracer.attributes.include": ["alpha"],
+      "error_collector.attributes.include": ["alpha"],
+      "browser_monitoring.attributes.include": ["alpha"]
     },
-    "input_key":"alpha",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector", "browser_monitoring"],
-    "expected_destinations":
-      []
+    "input_key": "alpha",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+    ]
   },
 
   {
-    "testname":"include with disabled destinations",
-    "config":
-    {
-      "transaction_events.attributes.include":["alpha"],
-      "transaction_events.attributes.enabled":false,
-      "transaction_tracer.attributes.include":["alpha"],
-      "error_collector.attributes.include":["alpha"],
-      "browser_monitoring.attributes.enabled":true,
-      "browser_monitoring.attributes.include":["alpha"]
+    "testname": "include with disabled destinations",
+    "config": {
+      "transaction_events.attributes.include": ["alpha"],
+      "transaction_events.attributes.enabled": false,
+      "transaction_tracer.attributes.include": ["alpha"],
+      "error_collector.attributes.include": ["alpha"],
+      "browser_monitoring.attributes.enabled": true,
+      "browser_monitoring.attributes.include": ["alpha"],
+      "span_events.attributes.enabled": false,
+      "span_events.attributes.include": ["alpha"],
+      "transaction_segments.attributes.enabled": true,
+      "transaction_segments.attributes.include": ["alpha"]
     },
-    "input_key":"alpha",
-    "input_default_destinations":
-      ["transaction_events", "transaction_tracer", "error_collector", "browser_monitoring"],
-    "expected_destinations":
-      ["transaction_tracer", "error_collector", "browser_monitoring"]
+    "input_key": "alpha",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "span_events",
+      "transaction_segments"
+    ],
+    "expected_destinations": [
+      "transaction_tracer",
+      "error_collector",
+      "browser_monitoring",
+      "transaction_segments"
+    ]
+  },
+
+  {
+    "testname": "ordering of rules should not matter 1",
+    "config": {
+      "transaction_events.attributes.include": ["b*", "bcd*"],
+      "transaction_events.attributes.exclude": ["bc*"]
+    },
+    "input_key": "b",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer"
+    ],
+    "expected_destinations": [
+      "transaction_events",
+      "transaction_tracer"
+    ]
+  },
+
+  {
+    "testname": "ordering of rules should not matter 2",
+    "config": {
+      "transaction_events.attributes.include": ["b*", "bcd*"],
+      "transaction_events.attributes.exclude": ["bc*"]
+    },
+    "input_key": "bc",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer"
+    ],
+    "expected_destinations": [
+      "transaction_tracer"
+    ]
+  },
+
+  {
+    "testname": "ordering of rules should not matter 3",
+    "config": {
+      "transaction_events.attributes.include": ["b*", "bcd*"],
+      "transaction_events.attributes.exclude": ["bc*"]
+    },
+    "input_key": "bcd",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer"
+    ],
+    "expected_destinations": [
+      "transaction_events",
+      "transaction_tracer"
+    ]
+  },
+
+  {
+    "testname": "ordering of rules should not matter 4",
+    "config": {
+      "transaction_events.attributes.include": ["b*", "bcd*"],
+      "transaction_events.attributes.exclude": ["bc*"]
+    },
+    "input_key": "bcde",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer"
+    ],
+    "expected_destinations": [
+      "transaction_events",
+      "transaction_tracer"
+    ]
+  },
+
+  {
+    "testname": "ordering of rules should not matter 5",
+    "config": {
+      "transaction_events.attributes.include": ["bcd*", "b*"],
+      "transaction_events.attributes.exclude": ["bc*"]
+    },
+    "input_key": "b",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer"
+    ],
+    "expected_destinations": [
+      "transaction_events",
+      "transaction_tracer"
+    ]
+  },
+
+  {
+    "testname": "ordering of rules should not matter 6",
+    "config": {
+      "transaction_events.attributes.include": ["bcd*", "b*"],
+      "transaction_events.attributes.exclude": ["bc*"]
+    },
+    "input_key": "bc",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer"
+    ],
+    "expected_destinations": [
+      "transaction_tracer"
+    ]
+  },
+
+  {
+    "testname": "ordering of rules should not matter 7",
+    "config": {
+      "transaction_events.attributes.include": ["bcd*", "b*"],
+      "transaction_events.attributes.exclude": ["bc*"]
+    },
+    "input_key": "bcd",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer"
+    ],
+    "expected_destinations": [
+      "transaction_events",
+      "transaction_tracer"
+    ]
+  },
+
+  {
+    "testname": "ordering of rules should not matter 8",
+    "config": {
+      "transaction_events.attributes.include": ["bcd*", "b*"],
+      "transaction_events.attributes.exclude": ["bc*"]
+    },
+    "input_key": "bcde",
+    "input_default_destinations": [
+      "transaction_events",
+      "transaction_tracer"
+    ],
+    "expected_destinations": [
+      "transaction_events",
+      "transaction_tracer"
+    ]
   }
 ]

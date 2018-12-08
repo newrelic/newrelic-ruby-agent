@@ -113,6 +113,24 @@ module NewRelic
         assert txn_segment_event.fetch('nr.entryPoint')
         refute segment_event_a.key?('nr.entryPoint')
       end
+
+      def test_attribute_exclusion
+        external_segment = nil
+        with_config(:'attributes.exclude' => ['http.url']) do
+          in_transaction('test_txn') do |t|
+            t.stubs(:sampled?).returns(true)
+            external_segment = Transaction.start_external_request_segment(library: 'Net::HTTP',
+                                                                          uri: "https://docs.newrelic.com",
+                                                                          procedure: "GET")
+            external_segment.finish
+          end
+        end
+
+        last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+        _, optional_attrs, _ = last_span_events.detect { |ev| ev[0]["name"] == external_segment.name }
+
+        assert_empty optional_attrs
+      end
     end
   end
 end

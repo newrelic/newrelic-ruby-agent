@@ -47,7 +47,9 @@ module NewRelic
                       :'transaction_tracer.attributes.include'     => ['request.uri'],
                       :'transaction_events.attributes.include'     => ['request.headers.*'],
                       :'error_collector.attributes.include'        => ['request.method'],
-                      :'browser_monitoring.attributes.include'     => ['httpResponseCode'] do
+                      :'browser_monitoring.attributes.include'     => ['httpResponseCode'],
+                      :'span_events.attributes.include'            => ['http.url'],
+                      :'transaction_segments.attributes.include'   => ['sql_statement'] do
 
             source = SecurityPolicySource.new(policies)
 
@@ -56,6 +58,8 @@ module NewRelic
             refute_includes source.keys, :'transaction_events.attributes.include'
             refute_includes source.keys, :'error_collector.attributes.include'
             refute_includes source.keys, :'browser_monitoring.attributes.include'
+            refute_includes source.keys, :'span_events.attributes.include'
+            refute_includes source.keys, :'transaction_segments.attributes.include'
           end
         end
 
@@ -65,7 +69,9 @@ module NewRelic
                       :'transaction_tracer.attributes.include'     => ['request.uri'],
                       :'transaction_events.attributes.include'     => ['request.headers.*'],
                       :'error_collector.attributes.include'        => ['request.method'],
-                      :'browser_monitoring.attributes.include'     => ['httpResponseCode'] do
+                      :'browser_monitoring.attributes.include'     => ['httpResponseCode'],
+                      :'span_events.attributes.include'            => ['http.url'],
+                      :'transaction_segments.attributes.include'   => ['sql_statement'] do
 
             source = SecurityPolicySource.new(policies)
 
@@ -74,6 +80,8 @@ module NewRelic
             assert_equal [], source[:'transaction_events.attributes.include']
             assert_equal [], source[:'error_collector.attributes.include']
             assert_equal [], source[:'browser_monitoring.attributes.include']
+            assert_equal [], source[:'span_events.attributes.include']
+            assert_equal [], source[:'transaction_segments.attributes.include']
           end
         end
 

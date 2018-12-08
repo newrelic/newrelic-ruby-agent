@@ -23,37 +23,37 @@ module NewRelic
         h[k] = TransactionStats.new nil, 0.0
       end
 
-      def reset!(now = Time.now)
-        @harvest_cycle_started_at = now
+      def reset!(timestamp = Time.now)
+        @harvest_cycle_started_at = timestamp
         @stats.clear
       end
 
-      def transaction_start(now = Time.now)
+      def transaction_start(timestamp = Time.now)
         @lock.synchronize do
-          set_transaction_start_time now
+          set_transaction_start_time timestamp
         end
       end
 
-      def transaction_stop(now = Time.now)
+      def transaction_stop(timestamp = Time.now, starting_thread_id = current_thread)
         @lock.synchronize do
-          record_elapsed_transaction_time_until now
-          set_transaction_start_time nil
+          record_elapsed_transaction_time_until timestamp, starting_thread_id
+          set_transaction_start_time nil, starting_thread_id
         end
       end
 
       INSTANCE_BUSY_METRIC = 'Instance/Busy'.freeze
 
-      def harvest!(now = Time.now)
+      def harvest!(timestamp = Time.now)
         active_threads = 0
         result = @lock.synchronize do
           # Sum up the transaction times spent in each thread
           elapsed_transaction_time = @stats.inject(0.0) do |total, (thread_id, entry)|
-            total + transaction_time_in_thread(thread_id, entry, now)
+            total + transaction_time_in_thread(timestamp, thread_id, entry)
           end
 
           active_threads = @stats.size
-          elapsed_harvest_time      = (now - @harvest_cycle_started_at) * active_threads
-          @harvest_cycle_started_at = now
+          elapsed_harvest_time      = (timestamp - @harvest_cycle_started_at) * active_threads
+          @harvest_cycle_started_at = timestamp
 
           # Clear out the stats for all threads, _except_ the live ones
           # that have transactions still open (we'll count the rest of
@@ -81,12 +81,16 @@ module NewRelic
                       :transaction_stop,
                       :harvest!
 
-      class <<self
+      class << self
         private
 
-        def record_elapsed_transaction_time_until(timestamp, thread_id: current_thread)
-          @stats[thread_id].elapsed_transaction_time +=
-            (timestamp - (@stats[thread_id].transaction_started_at || 0.0))
+        def record_elapsed_transaction_time_until(timestamp, thread_id = current_thread)
+          if @stats[thread_id].transaction_started_at
+            @stats[thread_id].elapsed_transaction_time +=
+              (timestamp - (@stats[thread_id].transaction_started_at || 0.0))
+          else
+            log_missing_elapsed_transaction_time
+          end
         end
 
         def in_transaction?(thread_id = current_thread)
@@ -104,26 +108,32 @@ module NewRelic
           false
         end
 
-        def set_transaction_start_time(timestamp)
-          @stats[current_thread].transaction_started_at = timestamp
+        def set_transaction_start_time(timestamp, thread_id = current_thread)
+          @stats[thread_id].transaction_started_at = timestamp
         end
 
-        def split_transaction_at_harvest(now, thread_id: nil)
+        def split_transaction_at_harvest(timestamp, thread_id = nil)
           raise ArgumentError, 'thread_id required' unless thread_id
-          @stats[thread_id].transaction_started_at = now
+          @stats[thread_id].transaction_started_at = timestamp
           @stats[thread_id].elapsed_transaction_time = 0.0
         end
 
-        def transaction_time_in_thread thread_id, entry, now
+        def transaction_time_in_thread timestamp, thread_id, entry
           return entry.elapsed_transaction_time unless in_transaction? thread_id
 
           # Count the portion of the transaction that's elapsed so far,...
-          elapsed = record_elapsed_transaction_time_until now, thread_id: thread_id
+          elapsed = record_elapsed_transaction_time_until timestamp, thread_id
 
           # ...then readjust the transaction start time to the next harvest
-          split_transaction_at_harvest now, thread_id: thread_id
+          split_transaction_at_harvest timestamp, thread_id
 
           elapsed
+        end
+
+        def log_missing_elapsed_transaction_time
+          state = NewRelic::Agent::TransactionState.tl_get
+          transaction_name = state.current_transaction.best_name
+          NewRelic::Agent.logger.warn("Unable to calculate elapsed transaction time for #{transaction_name}")
         end
       end
     end

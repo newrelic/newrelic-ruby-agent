@@ -9,7 +9,9 @@ language: ruby
 sudo: required
 
 before_install:
-  - sudo apt-get update && sudo apt-get install --only-upgrade openssl && sudo apt-get install --only-upgrade libssl-dev
+  # RUBY-2072 Prevent Travis setup failure before our test even starts
+  - sudo rm -f /etc/apt/sources.list.d/travis_ci_zeromq3.list
+
   - gem --version
   - gem update --system
   - ./test/script/before_install/gemstash_mirror.sh
@@ -19,7 +21,11 @@ install: bundle install
 
 addons:
   apt:
+    update: true
     packages:
+      - openssl
+      - libssl-dev
+      - build-essential
       - haveged
 
 before_script: ./test/script/before_script/install_mongodb.sh
@@ -40,6 +46,7 @@ notifications:
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
   - jruby-9.1.13.0
+  - 2.6.0-preview3
   - 2.5.0
   - 2.4.2
   - 2.3.5
@@ -88,6 +95,24 @@ matrix:
   fast_finish: true
   exclude:
     # Unsupported Rails/Ruby combinations
+    # 2.6
+    - rvm: 2.6.0-preview3
+      env: TYPE=UNIT ENVIRONMENT=rails21
+    - rvm: 2.6.0-preview3
+      env: TYPE=UNIT ENVIRONMENT=rails22
+    - rvm: 2.6.0-preview3
+      env: TYPE=UNIT ENVIRONMENT=rails23
+    - rvm: 2.6.0-preview3
+      env: TYPE=UNIT ENVIRONMENT=rails30
+    - rvm: 2.6.0-preview3
+      env: TYPE=UNIT ENVIRONMENT=rails31
+    - rvm: 2.6.0-preview3
+      env: TYPE=UNIT ENVIRONMENT=rails32
+    - rvm: 2.6.0-preview3
+      env: TYPE=UNIT ENVIRONMENT=rails40
+    - rvm: 2.6.0-preview3
+      env: TYPE=UNIT ENVIRONMENT=rails41
+
     # 2.5
     - rvm: 2.5.0
       env: TYPE=UNIT ENVIRONMENT=rails21
