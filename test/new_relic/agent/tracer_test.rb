@@ -58,6 +58,39 @@ module NewRelic
         end
       end
 
+      def test_start_transaction_or_add_segment_without_active_txn
+        assert_nil Tracer.current_transaction
+
+        finishable = Tracer.start_transaction_or_add_segment(
+          name: "Controller/Blogs/index",
+          category: :controller
+        )
+
+        assert_equal finishable, Tracer.current_transaction
+
+        finishable.finish
+        assert_nil Tracer.current_transaction
+      end
+
+      def test_start_transaction_or_add_segment_with_active_txn
+        txn = Tracer.start_transaction(name: "Controller/Blogs/index",
+                                       category: :controller)
+
+        finishable = Tracer.start_transaction_or_add_segment(
+          name: "Middleware/Rack/MyMiddleWare/call",
+          category: :middleware
+        )
+
+        #todo: Implement current_segment on Tracer
+        assert_equal finishable, Tracer.current_transaction.current_segment
+
+        finishable.finish
+        refute_nil Tracer.current_transaction
+
+        txn.finish
+        assert_nil Tracer.current_transaction
+      end
+
       def test_start_segment_delegates_to_transaction
         name = "Custom/MyClass/myoperation"
         unscoped_metrics = [

@@ -490,8 +490,9 @@ module NewRelic
 
         nest_initial_segment if nesting_max_depth == 1
         nested_name = self.class.nested_transaction_name options[:transaction_name]
-        create_segment nested_name
+        result = create_segment nested_name
         set_default_transaction_name(options[:transaction_name], category)
+        result
       end
 
       def nest_initial_segment
@@ -527,6 +528,26 @@ module NewRelic
 
       def needs_middleware_summary_metrics?(name)
         name.start_with?(MIDDLEWARE_PREFIX)
+      end
+
+      def finish
+        return if !state.is_execution_traced?
+
+        @end_time = Time.now
+        @duration = @end_time.to_f - @start_time.to_f
+        freeze_name_and_execute_if_not_ignored
+
+        if nesting_max_depth == 1
+          initial_segment.name = @frozen_name
+        end
+
+        initial_segment.finish
+
+        NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
+
+        commit!(initial_segment.name) unless @ignore_this_transaction
+
+        state.reset
       end
 
       def stop(outermost_frame = nil)

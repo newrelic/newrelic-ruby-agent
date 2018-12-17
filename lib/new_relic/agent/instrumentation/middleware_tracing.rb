@@ -87,6 +87,7 @@ module NewRelic
 
           begin
             Transaction.start(state, category, build_transaction_options(env, first_middleware))
+
             events.notify(:before_call, env) if first_middleware
 
             result = (target == self) ? traced_call(env) : target.call(env)

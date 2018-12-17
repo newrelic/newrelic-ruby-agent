@@ -23,6 +23,19 @@ module NewRelic
           trace_state.current_transaction
         end
 
+        # returns a Finishable (transaction or segment)
+        def start_transaction_or_add_segment(name: nil, category: nil, **options)
+          raise ArgumentError, 'missing required argument: name' if name.nil?
+
+          options[:transaction_name] = name
+
+          if (txn = current_transaction)
+            txn.create_nested_frame(category, options)
+          else
+            Transaction.start_new_transaction(tl_get, category, options)
+          end
+        end
+
         # A more ergonomic API would be to have transaction derive the
         # category from the transaction name and we should explore this as an
         # option.
