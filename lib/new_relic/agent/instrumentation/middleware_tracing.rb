@@ -86,7 +86,13 @@ module NewRelic
           state = NewRelic::Agent::TransactionState.tl_get
 
           begin
-            Transaction.start(state, category, build_transaction_options(env, first_middleware))
+            options = build_transaction_options(env, first_middleware)
+
+            finishable = Tracer.start_transaction_or_add_segment(
+              name: options[:transaction_name],
+              category: category,
+              **options
+            )
 
             events.notify(:before_call, env) if first_middleware
 
@@ -102,7 +108,7 @@ module NewRelic
             NewRelic::Agent.notice_error(e)
             raise e
           ensure
-            Transaction.stop(state)
+            finishable.finish if finishable
           end
         end
 

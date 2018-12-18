@@ -1115,8 +1115,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_stop_safe_from_exceptions
-    NewRelic::Agent::Transaction.any_instance.stubs(:stop).raises("Haha")
+  def test_finish_safe_from_exceptions
+    NewRelic::Agent::Transaction.any_instance.stubs(:commit!).raises("Haha")
     expects_logging(:error, any_parameters)
 
     in_transaction("Controller/boom") do
@@ -1267,7 +1267,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_wrap_transaction_with_late_failure
     state = NewRelic::Agent::TransactionState.tl_get
-    NewRelic::Agent::Transaction.any_instance.stubs(:stop).raises("Boom")
+    NewRelic::Agent::Transaction.any_instance.stubs(:commit!).raises("Boom")
     NewRelic::Agent::Transaction.wrap(state, 'test', :other) do
       # No-op
     end

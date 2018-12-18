@@ -104,7 +104,11 @@ module NewRelic
       end
 
       def self.wrap(state, name, category, options = {})
-        Transaction.start(state, category, options.merge(:transaction_name => name))
+        finishable = Tracer.start_transaction_or_add_segment(
+              name: name,
+              category: category,
+              **options
+            )
 
         begin
           # We shouldn't raise from Transaction.start, but only wrap the yield
@@ -114,7 +118,7 @@ module NewRelic
           Transaction.notice_error(e)
           raise e
         ensure
-          Transaction.stop(state)
+          finishable.finish if finishable
         end
       end
 
@@ -531,23 +535,28 @@ module NewRelic
       end
 
       def finish
-        return if !state.is_execution_traced?
+        begin
+          if state.is_execution_traced?
+            @end_time = Time.now
+            @duration = @end_time.to_f - @start_time.to_f
+            freeze_name_and_execute_if_not_ignored
 
-        @end_time = Time.now
-        @duration = @end_time.to_f - @start_time.to_f
-        freeze_name_and_execute_if_not_ignored
+            if nesting_max_depth == 1
+              initial_segment.name = @frozen_name
+            end
 
-        if nesting_max_depth == 1
-          initial_segment.name = @frozen_name
+            initial_segment.finish
+
+            NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
+
+            commit!(initial_segment.name) unless @ignore_this_transaction
+          end
+        rescue => e
+          NewRelic::Agent.logger.error("Exception during Transaction#finish", e)
+          nil
+        ensure
+          state.reset
         end
-
-        initial_segment.finish
-
-        NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
-
-        commit!(initial_segment.name) unless @ignore_this_transaction
-
-        state.reset
       end
 
       def stop(outermost_frame = nil)

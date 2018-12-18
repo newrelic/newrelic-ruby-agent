@@ -42,7 +42,7 @@ module NewRelic
 
         assert_equal txn, Tracer.current_transaction
 
-        txn.stop
+        txn.finish
         assert_nil Tracer.current_transaction
       end
 
@@ -73,21 +73,19 @@ module NewRelic
       end
 
       def test_start_transaction_or_add_segment_with_active_txn
-        txn = Tracer.start_transaction(name: "Controller/Blogs/index",
-                                       category: :controller)
+        in_transaction do |txn|
+          finishable = Tracer.start_transaction_or_add_segment(
+            name: "Middleware/Rack/MyMiddleWare/call",
+            category: :middleware
+          )
 
-        finishable = Tracer.start_transaction_or_add_segment(
-          name: "Middleware/Rack/MyMiddleWare/call",
-          category: :middleware
-        )
+          #todo: Implement current_segment on Tracer
+          assert_equal finishable, Tracer.current_transaction.current_segment
 
-        #todo: Implement current_segment on Tracer
-        assert_equal finishable, Tracer.current_transaction.current_segment
+          finishable.finish
+          refute_nil Tracer.current_transaction
+        end
 
-        finishable.finish
-        refute_nil Tracer.current_transaction
-
-        txn.finish
         assert_nil Tracer.current_transaction
       end
 

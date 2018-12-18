@@ -25,8 +25,6 @@ module NewRelic
 
         # returns a Finishable (transaction or segment)
         def start_transaction_or_add_segment(name: nil, category: nil, **options)
-          raise ArgumentError, 'missing required argument: name' if name.nil?
-
           options[:transaction_name] = name
 
           if (txn = current_transaction)
@@ -34,6 +32,12 @@ module NewRelic
           else
             Transaction.start_new_transaction(tl_get, category, options)
           end
+        #Do we have to be this careful, as this will mask exceptions for users of
+        #this API, or can we guarantee that this method will not raise an exception
+        #if the correct parameters are passed in?
+        rescue => e
+          NewRelic::Agent.logger.error("Exception during Tracer.start_transaction_or_add_segment", e)
+          nil
         end
 
         # A more ergonomic API would be to have transaction derive the
