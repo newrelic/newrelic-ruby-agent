@@ -347,18 +347,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_name_is_unset_if_nil
-    in_transaction(:transaction_name => nil) do |txn|
-      assert !txn.name_set?
-    end
-  end
-
-  def test_name_set_if_anything_else
-    in_transaction("anything else") do |txn|
-      assert txn.name_set?
-    end
-  end
-
   def test_set_default_transaction_name_without_category
     in_transaction('foo', :category => :controller) do |txn|
       NewRelic::Agent::Transaction.set_default_transaction_name('bar')

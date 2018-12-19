@@ -409,10 +409,6 @@ module NewRelic
       attr_accessor :xray_session_id
       # End common interface
 
-      def name_set?
-        (@overridden_name || @default_name) ? true : false
-      end
-
       def promoted_transaction_name(name)
         if name.start_with?(MIDDLEWARE_PREFIX)
           "#{CONTROLLER_PREFIX}#{name}"
