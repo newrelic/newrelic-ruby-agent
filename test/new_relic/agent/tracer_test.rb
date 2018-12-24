@@ -7,6 +7,10 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 module NewRelic
   module Agent
     class TracerTest < Minitest::Test
+      def teardown
+        NewRelic::Agent.instance.drop_buffered_data
+      end
+
       def test_tracer_aliases
         trace_state = Tracer.trace_state
         refute_nil trace_state
@@ -88,6 +92,43 @@ module NewRelic
 
         assert_nil Tracer.current_transaction
       end
+
+      def test_start_transaction_or_add_segment_mulitple_calls
+        f1 = Tracer.start_transaction_or_add_segment(
+          name: "Controller/Rack/Test::App/call",
+          category: :rack
+        )
+
+        f2 = Tracer.start_transaction_or_add_segment(
+          name: "Middleware/Rack/MyMiddleware/call",
+          category: :middleware
+        )
+
+        f3 = Tracer.start_transaction_or_add_segment(
+          name: "Controller/blogs/index",
+          category: :controller
+        )
+
+        f4 = Tracer.start_segment(name: "Custom/MyClass/my_meth")
+
+        f4.finish
+        f3.finish
+        f2.finish
+        f1.finish
+
+        assert_metrics_recorded [
+          ["Nested/Controller/Rack/Test::App/call", "Controller/blogs/index"],
+          ["Middleware/Rack/MyMiddleware/call",     "Controller/blogs/index"],
+          ["Nested/Controller/blogs/index",         "Controller/blogs/index"],
+          ["Custom/MyClass/my_meth",                "Controller/blogs/index"],
+          "Controller/blogs/index",
+          "Nested/Controller/Rack/Test::App/call",
+          "Middleware/Rack/MyMiddleware/call",
+          "Nested/Controller/blogs/index",
+          "Custom/MyClass/my_meth"
+        ]
+      end
+
 
       def test_start_segment_delegates_to_transaction
         name = "Custom/MyClass/myoperation"
