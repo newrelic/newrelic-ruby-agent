@@ -351,7 +351,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     in_transaction('foo', :category => :controller) do |txn|
       NewRelic::Agent::Transaction.set_default_transaction_name('bar')
       assert_equal("Controller/bar", txn.best_name)
-      assert_equal("Controller/bar", txn.frame_stack.last.name)
     end
   end
 
@@ -359,7 +358,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     in_transaction('foo', :category => :controller) do |txn|
       NewRelic::Agent::Transaction.set_default_transaction_name('bar', :rack)
       assert_equal("Controller/Rack/bar", txn.best_name)
-      assert_equal("Controller/Rack/bar", txn.frame_stack.last.name)
     end
   end
 
@@ -1559,14 +1557,14 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       "Apdex/RackFramework/action",
       "Nested/Controller/Framework/webby",
       "Nested/Controller/Framework/inner_1",
-      "Nested/Controller/RackFramework/action",
+      "Nested/Controller/Framework/inner_2",
       "Ruby/my_lib/my_meth",
       "Supportability/API/set_transaction_name",
       "WebTransactionTotalTime",
       "WebTransactionTotalTime/Controller/RackFramework/action",
       ["Nested/Controller/Framework/webby", "Controller/RackFramework/action"],
       ["Nested/Controller/Framework/inner_1", "Controller/RackFramework/action"],
-      ["Nested/Controller/RackFramework/action", "Controller/RackFramework/action"],
+      ["Nested/Controller/Framework/inner_2", "Controller/RackFramework/action"],
       ["Ruby/my_lib/my_meth", "Controller/RackFramework/action"]
     ]
   end

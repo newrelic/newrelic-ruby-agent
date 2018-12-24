@@ -89,7 +89,6 @@ module NewRelic
       def self.set_default_transaction_name(name, category = nil) #THREAD_LOCAL_ACCESS
         txn  = tl_current
         name = txn.make_transaction_name(name, category)
-        txn.name_last_frame(name)
         txn.set_default_transaction_name(name, category)
       end
 
@@ -98,8 +97,6 @@ module NewRelic
         return unless txn
 
         name = txn.make_transaction_name(name, category)
-
-        txn.name_last_frame(name)
         txn.set_overriding_transaction_name(name, category)
       end
 
@@ -382,11 +379,6 @@ module NewRelic
           self.overridden_name = name
           @category = category if category
         end
-      end
-
-      def name_last_frame(name)
-        name = self.class.nested_transaction_name(name) if nesting_max_depth > 1
-        frame_stack.last.name = name
       end
 
       def log_frozen_name(name)
