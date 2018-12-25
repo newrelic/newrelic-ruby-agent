@@ -64,7 +64,6 @@ module NewRelic
                   :metrics,
                   :gc_start_snapshot,
                   :category,
-                  :frame_stack,
                   :attributes,
                   :payload,
                   :nesting_max_depth,
@@ -219,7 +218,6 @@ module NewRelic
         @nesting_max_depth = 0
         @current_segment = nil
         @segments = []
-        @frame_stack = []
 
         self.default_name = options[:transaction_name]
         @overridden_name    = nil
@@ -425,7 +423,6 @@ module NewRelic
           unscoped_metrics: summary_metrics
         )
 
-        frame_stack.push segment
         segment
       end
 
