@@ -1105,13 +1105,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_metrics_not_recorded(['Controller/boom'])
   end
 
-  def test_stop_safe_when_no_transaction_available
-    expects_logging(:error, includes(NewRelic::Agent::Transaction::FAILED_TO_STOP_MESSAGE))
-
-    state = NewRelic::Agent::TransactionState.new
-    NewRelic::Agent::Transaction.stop(state)
-  end
-
   def test_user_defined_rules_ignore_returns_true_for_matched_path
     rule = 'ignored'
     with_config(:rules => { :ignore_url_regexes => [rule] }) do
@@ -1131,14 +1124,12 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_stop_resets_the_transaction_state_if_there_is_an_error
-    in_transaction do |txn|
-      state = mock
-      state.stubs(:current_transaction).raises(StandardError, 'StandardError')
-
-      state.expects(:reset)
-      NewRelic::Agent::Transaction.stop(state)
-    end
+  def test_finish_resets_the_transaction_state_if_there_is_an_error
+    txn = NewRelic::Agent::Tracer.start_transaction(name: "test", category: :controller)
+    state = NewRelic::Agent::TransactionState.tl_get
+    state.expects(:reset)
+    txn.stubs(:commit!).raises(StandardError, 'StandardError')
+    txn.finish
   end
 
   def test_doesnt_record_queue_time_if_it_is_zero

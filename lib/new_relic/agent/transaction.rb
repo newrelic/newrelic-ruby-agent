@@ -119,54 +119,12 @@ module NewRelic
         end
       end
 
-      def self.start(state, category, options)
-        category ||= :controller
-        txn = state.current_transaction
-
-        if txn
-          txn.create_nested_frame(category, options)
-        else
-          txn = start_new_transaction(state, category, options)
-        end
-
-        txn
-      rescue => e
-        NewRelic::Agent.logger.error("Exception during Transaction.start", e)
-        nil
-      end
-
       def self.start_new_transaction(state, category, options)
         txn = Transaction.new(category, options)
         state.reset(txn)
         txn.state = state
         txn.start
         txn
-      end
-
-      FAILED_TO_STOP_MESSAGE = "Failed during Transaction.stop because there is no current transaction"
-
-      def self.stop(state)
-        txn = state.current_transaction
-
-        if txn.nil?
-          NewRelic::Agent.logger.error(FAILED_TO_STOP_MESSAGE)
-          return
-        end
-
-        nested_frame = txn.frame_stack.pop
-
-        if txn.frame_stack.empty?
-          txn.stop(nested_frame) if nested_frame
-          state.reset
-        else
-          nested_frame.finish
-        end
-
-        :transaction_stopped
-      rescue => e
-        state.reset
-        NewRelic::Agent.logger.error("Exception during Transaction.stop", e)
-        nil
       end
 
       def self.nested_transaction_name(name)
@@ -523,47 +481,25 @@ module NewRelic
       end
 
       def finish
-        begin
-          if state.is_execution_traced?
-            @end_time = Time.now
-            @duration = @end_time.to_f - @start_time.to_f
-            freeze_name_and_execute_if_not_ignored
-
-            if nesting_max_depth == 1
-              initial_segment.name = @frozen_name
-            end
-
-            initial_segment.finish
-
-            NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
-
-            commit!(initial_segment.name) unless @ignore_this_transaction
-          end
-        rescue => e
-          NewRelic::Agent.logger.error("Exception during Transaction#finish", e)
-          nil
-        ensure
-          state.reset
-        end
-      end
-
-      def stop(outermost_frame = nil)
-        return if !state.is_execution_traced?
-        return self.class.stop(state) unless outermost_frame
-
+        return unless state.is_execution_traced?
         @end_time = Time.now
         @duration = @end_time.to_f - @start_time.to_f
         freeze_name_and_execute_if_not_ignored
 
         if nesting_max_depth == 1
-          outermost_frame.name = @frozen_name
+          initial_segment.name = @frozen_name
         end
 
-        outermost_frame.finish
+        initial_segment.finish
 
         NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
 
-        commit!(outermost_frame.name) unless @ignore_this_transaction
+        commit!(initial_segment.name) unless @ignore_this_transaction
+      rescue => e
+        NewRelic::Agent.logger.error("Exception during Transaction#finish", e)
+        nil
+      ensure
+        state.reset
       end
 
       def user_defined_rules_ignore?
