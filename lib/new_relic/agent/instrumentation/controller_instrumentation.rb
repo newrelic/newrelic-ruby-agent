@@ -364,7 +364,7 @@ module NewRelic
           txn_options   = create_transaction_options(trace_options, category, state, queue_start_time)
 
           begin
-            finishable = Tracer.start_transaction_or_add_segment(
+            finishable = Tracer.start_transaction_or_segment(
               name: txn_options[:transaction_name],
               category: category,
               **txn_options

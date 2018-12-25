@@ -43,7 +43,7 @@ module NewRelic
         end
 
         def start_transaction(event)
-          event.payload[:finishable] = Tracer.start_transaction_or_add_segment(
+          event.payload[:finishable] = Tracer.start_transaction_or_segment(
             name:             event.metric_name,
             category:         :controller,
             request:          event.request,

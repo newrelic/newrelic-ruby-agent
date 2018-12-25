@@ -38,7 +38,7 @@ module NewRelic
         private
 
         def start_transaction event
-          event.payload[:finishable] = Tracer.start_transaction_or_add_segment(
+          event.payload[:finishable] = Tracer.start_transaction_or_segment(
             name:     transaction_name_from_event(event),
             category: :action_cable
           )

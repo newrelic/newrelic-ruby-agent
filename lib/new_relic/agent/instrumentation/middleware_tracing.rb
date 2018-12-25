@@ -88,7 +88,7 @@ module NewRelic
           begin
             options = build_transaction_options(env, first_middleware)
 
-            finishable = Tracer.start_transaction_or_add_segment(
+            finishable = Tracer.start_transaction_or_segment(
               name: options[:transaction_name],
               category: category,
               **options

@@ -62,10 +62,10 @@ module NewRelic
         end
       end
 
-      def test_start_transaction_or_add_segment_without_active_txn
+      def test_start_transaction_or_segment_without_active_txn
         assert_nil Tracer.current_transaction
 
-        finishable = Tracer.start_transaction_or_add_segment(
+        finishable = Tracer.start_transaction_or_segment(
           name: "Controller/Blogs/index",
           category: :controller
         )
@@ -76,9 +76,9 @@ module NewRelic
         assert_nil Tracer.current_transaction
       end
 
-      def test_start_transaction_or_add_segment_with_active_txn
+      def test_start_transaction_or_segment_with_active_txn
         in_transaction do |txn|
-          finishable = Tracer.start_transaction_or_add_segment(
+          finishable = Tracer.start_transaction_or_segment(
             name: "Middleware/Rack/MyMiddleWare/call",
             category: :middleware
           )
@@ -93,18 +93,18 @@ module NewRelic
         assert_nil Tracer.current_transaction
       end
 
-      def test_start_transaction_or_add_segment_mulitple_calls
-        f1 = Tracer.start_transaction_or_add_segment(
+      def test_start_transaction_or_segment_mulitple_calls
+        f1 = Tracer.start_transaction_or_segment(
           name: "Controller/Rack/Test::App/call",
           category: :rack
         )
 
-        f2 = Tracer.start_transaction_or_add_segment(
+        f2 = Tracer.start_transaction_or_segment(
           name: "Middleware/Rack/MyMiddleware/call",
           category: :middleware
         )
 
-        f3 = Tracer.start_transaction_or_add_segment(
+        f3 = Tracer.start_transaction_or_segment(
           name: "Controller/blogs/index",
           category: :controller
         )

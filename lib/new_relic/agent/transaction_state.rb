@@ -24,7 +24,7 @@ module NewRelic
         end
 
         # returns a Finishable (transaction or segment)
-        def start_transaction_or_add_segment(name: nil, category: nil, **options)
+        def start_transaction_or_segment(name: nil, category: nil, **options)
           raise ArgumentError, 'missing required argument: name' if name.nil?
           raise ArgumentError, 'missing required argument: category' if category.nil?
 
@@ -39,7 +39,7 @@ module NewRelic
         rescue ArgumentError
           raise
         rescue => e
-          NewRelic::Agent.logger.error("Exception during Tracer.start_transaction_or_add_segment", e)
+          NewRelic::Agent.logger.error("Exception during Tracer.start_transaction_or_segment", e)
           nil
         end
 
@@ -61,7 +61,7 @@ module NewRelic
         rescue ArgumentError
           raise
         rescue => e
-          NewRelic::Agent.logger.error("Exception during Tracer.start_transaction_or_add_segment", e)
+          NewRelic::Agent.logger.error("Exception during Tracer.start_transaction_or_segment", e)
           nil
         end
 

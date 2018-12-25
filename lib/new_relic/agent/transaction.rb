@@ -100,7 +100,7 @@ module NewRelic
       end
 
       def self.wrap(state, name, category, options = {})
-        finishable = Tracer.start_transaction_or_add_segment(
+        finishable = Tracer.start_transaction_or_segment(
               name: name,
               category: category,
               **options
