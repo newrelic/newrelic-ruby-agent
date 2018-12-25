@@ -129,7 +129,8 @@ module NewRelic
 
         begin
           txn_name = transaction_name library, destination_type, destination_name
-          txn = Transaction.start state, :message, transaction_name: txn_name
+
+          txn = Tracer.start_transaction name: txn_name, category: :message
 
           if headers
             consume_message_headers headers, txn, state
@@ -150,7 +151,7 @@ module NewRelic
         yield
       ensure
         begin
-          Transaction.stop(state) if txn
+          txn.finish if txn
         rescue => e
           NewRelic::Agent.logger.error "Error stopping Message Broker consume transaction", e
         end

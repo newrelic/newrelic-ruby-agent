@@ -387,7 +387,7 @@ module NewRelic
       end
 
       def influences_transaction_name?(category)
-        !category || frame_stack.size == 1 || similar_category?(category)
+        !category || nesting_max_depth == 1 || similar_category?(category)
       end
 
       def best_name
