@@ -129,6 +129,37 @@ module NewRelic
         ]
       end
 
+      def test_start_transaction_or_segment_mulitple_calls_with_partial_name
+        f1 = Tracer.start_transaction_or_segment(
+          partial_name: "Test::App/call",
+          category: :rack
+        )
+
+        f2 = Tracer.start_transaction_or_segment(
+          partial_name: "MyMiddleware/call",
+          category: :middleware
+        )
+
+        f3 = Tracer.start_transaction_or_segment(
+          partial_name: "blogs/index",
+          category: :controller
+        )
+
+        f3.finish
+        f2.finish
+        f1.finish
+
+        assert_metrics_recorded [
+          ["Nested/Controller/Rack/Test::App/call", "Controller/blogs/index"],
+          ["Middleware/Rack/MyMiddleware/call",     "Controller/blogs/index"],
+          ["Nested/Controller/blogs/index",         "Controller/blogs/index"],
+          "Controller/blogs/index",
+          "Nested/Controller/Rack/Test::App/call",
+          "Middleware/Rack/MyMiddleware/call",
+          "Nested/Controller/blogs/index",
+        ]
+      end
+
 
       def test_start_segment_delegates_to_transaction
         name = "Custom/MyClass/myoperation"

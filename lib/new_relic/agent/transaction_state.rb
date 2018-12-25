@@ -23,12 +23,27 @@ module NewRelic
           trace_state.current_transaction
         end
 
-        # returns a Finishable (transaction or segment)
-        def start_transaction_or_segment(name: nil, category: nil, **options)
-          raise ArgumentError, 'missing required argument: name' if name.nil?
-          raise ArgumentError, 'missing required argument: category' if category.nil?
+        # Takes name or partial_name and a category.
+        # Returns a Finishable (transaction or segment)
+        def start_transaction_or_segment(name: nil,
+                                         partial_name: nil,
+                                         category: nil,
+                                         **options)
+          if name.nil? && partial_name.nil?
+            raise ArgumentError, 'missing required argument: name or partial_name'
+          end
+          if category.nil?
+            raise ArgumentError, 'missing required argument: category'
+          end
 
-          options[:transaction_name] = name
+          if name
+            options[:transaction_name] = name
+          else
+            options[:transaction_name] = Transaction.name_from_partial(
+              partial_name,
+              category
+            )
+          end
 
           if (txn = current_transaction)
             txn.create_nested_frame(category, options)
