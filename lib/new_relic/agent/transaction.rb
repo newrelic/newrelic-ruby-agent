@@ -397,14 +397,14 @@ module NewRelic
 
         ignore! if user_defined_rules_ignore?
 
-        create_initial_segment @default_name
+        create_initial_segment
       end
 
       def initial_segment
         segments.first
       end
 
-      def create_initial_segment name
+      def create_initial_segment
         segment = create_segment @default_name
         segment.record_scoped_metric = false
       end
@@ -426,7 +426,7 @@ module NewRelic
         segment
       end
 
-      def create_nested_frame(category, options)
+      def create_nested_segment(category, options)
         if options[:filtered_params] && !options[:filtered_params].empty?
           @filtered_params = options[:filtered_params]
           merge_request_parameters(options[:filtered_params])

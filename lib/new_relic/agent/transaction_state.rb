@@ -46,7 +46,7 @@ module NewRelic
           end
 
           if (txn = current_transaction)
-            txn.create_nested_frame(category, options)
+            txn.create_nested_segment(category, options)
           else
             Transaction.start_new_transaction(tl_get, category, options)
           end
