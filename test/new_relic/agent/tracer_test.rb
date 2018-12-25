@@ -160,6 +160,16 @@ module NewRelic
         ]
       end
 
+      def test_start_transaction_with_partial_name
+        txn = Tracer.start_transaction(
+          partial_name: "Test::App/call",
+          category: :rack
+        )
+
+        txn.finish
+
+        assert_metrics_recorded ["Controller/Rack/Test::App/call"]
+      end
 
       def test_start_segment_delegates_to_transaction
         name = "Custom/MyClass/myoperation"

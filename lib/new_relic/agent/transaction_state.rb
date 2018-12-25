@@ -58,17 +58,29 @@ module NewRelic
           nil
         end
 
-        # A more ergonomic API would be to have transaction derive the
-        # category from the transaction name and we should explore this as an
-        # option.
-        def start_transaction(name: nil, category: nil, **options)
-          raise ArgumentError, 'missing required argument: name' if name.nil?
-          raise ArgumentError, 'missing required argument: category' if category.nil?
+        # Takes name or partial_name and a category.
+        # Returns a transaction instance or nil
+        def start_transaction(name: nil,
+                              partial_name: nil,
+                              category: nil,
+                              **options)
+          if name.nil? && partial_name.nil?
+            raise ArgumentError, 'missing required argument: name or partial_name'
+          end
+          if category.nil?
+            raise ArgumentError, 'missing required argument: category'
+          end
 
-          state = trace_state
-          return state.current_transaction if state.current_transaction
+          return current_transaction if current_transaction
 
-          options[:transaction_name] = name
+          if name
+            options[:transaction_name] = name
+          else
+            options[:transaction_name] = Transaction.name_from_partial(
+              partial_name,
+              category
+            )
+          end
 
           Transaction.start_new_transaction(trace_state,
                                             category,
@@ -76,7 +88,7 @@ module NewRelic
         rescue ArgumentError
           raise
         rescue => e
-          NewRelic::Agent.logger.error("Exception during Tracer.start_transaction_or_segment", e)
+          NewRelic::Agent.logger.error("Exception during Tracer.start_transaction", e)
           nil
         end
 
