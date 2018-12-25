@@ -87,7 +87,7 @@ module NewRelic
 
       def self.set_default_transaction_name(name, category = nil) #THREAD_LOCAL_ACCESS
         txn  = tl_current
-        name = txn.make_transaction_name(name, category)
+        name = name_from_partial(name, category || txn.category)
         txn.set_default_transaction_name(name, category)
       end
 
@@ -95,8 +95,13 @@ module NewRelic
         txn = tl_current
         return unless txn
 
-        name = txn.make_transaction_name(name, category)
+        name = name_from_partial(name, category || txn.category)
         txn.set_overriding_transaction_name(name, category)
+      end
+
+      def self.name_from_partial(partial_name, category)
+        namer = Instrumentation::ControllerInstrumentation::TransactionNamer
+        "#{namer.prefix_for_category(self, category)}#{partial_name}"
       end
 
       def self.wrap(state, name, category, options = {})
@@ -314,11 +319,6 @@ module NewRelic
 
       def merge_request_parameters(params)
         merge_untrusted_agent_attributes(params, :'request.parameters', AttributeFilter::DST_NONE)
-      end
-
-      def make_transaction_name(name, category=nil)
-        namer = Instrumentation::ControllerInstrumentation::TransactionNamer
-        "#{namer.prefix_for_category(self, category)}#{name}"
       end
 
       def set_default_transaction_name(name, category)
