@@ -108,7 +108,7 @@ module NewRelic
         finishable = Tracer.start_transaction_or_segment(
               name: name,
               category: category,
-              **options
+              options: options
             )
 
         begin

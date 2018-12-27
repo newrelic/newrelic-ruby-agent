@@ -46,11 +46,13 @@ module NewRelic
           event.payload[:finishable] = Tracer.start_transaction_or_segment(
             name:             event.metric_name,
             category:         :controller,
-            request:          event.request,
-            filtered_params:  filter(event.payload[:params]),
-            apdex_start_time: event.queue_start,
-            ignore_apdex:     event.apdex_ignored?,
-            ignore_enduser:   event.enduser_ignored?
+            options: {
+              request:          event.request,
+              filtered_params:  filter(event.payload[:params]),
+              apdex_start_time: event.queue_start,
+              ignore_apdex:     event.apdex_ignored?,
+              ignore_enduser:   event.enduser_ignored?
+            }
           )
         end
 

@@ -28,7 +28,7 @@ module NewRelic
         def start_transaction_or_segment(name: nil,
                                          partial_name: nil,
                                          category: nil,
-                                         **options)
+                                         options: {})
           if name.nil? && partial_name.nil?
             raise ArgumentError, 'missing required argument: name or partial_name'
           end

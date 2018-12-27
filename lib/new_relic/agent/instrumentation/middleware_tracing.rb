@@ -91,7 +91,7 @@ module NewRelic
             finishable = Tracer.start_transaction_or_segment(
               name: options[:transaction_name],
               category: category,
-              **options
+              options: options
             )
 
             events.notify(:before_call, env) if first_middleware
