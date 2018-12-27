@@ -114,7 +114,15 @@ DependencyDetection.defer do
       ::NewRelic::Agent::Instrumentation::GrapeInstrumentation.send :alias_method, :name_for_transaction, :name_for_transaction_deprecated
     end
 
-    ::Grape::API.class_eval do
+    # Since 1.2.0, the class `Grape::API` no longer refers to an API instance, rather, what used to be `Grape::API` is `Grape::API::Instance`
+    # https://github.com/ruby-grape/grape/blob/c20a73ac1e3f3ba1082005ed61bf69452373ba87/UPGRADING.md#upgrading-to--120
+    grape_api_class = if defined?(Grape::VERSION) && Gem::Version.new(::Grape::VERSION) >= Gem::Version.new("1.2.0")
+                        ::Grape::API::Instance
+                      else
+                        ::Grape::API
+                      end
+
+    grape_api_class.class_eval do
       def call_with_new_relic(env)
         begin
           response = call_without_new_relic(env)
@@ -122,7 +130,10 @@ DependencyDetection.defer do
           begin
             endpoint = env[::NewRelic::Agent::Instrumentation::GrapeInstrumentation::API_ENDPOINT]
             version = env[::NewRelic::Agent::Instrumentation::GrapeInstrumentation::API_VERSION]
-            ::NewRelic::Agent::Instrumentation::GrapeInstrumentation.handle_transaction(endpoint, self.class.name, version)
+
+            # Since 1.2.0, how to obtain the class name is changed.
+            class_name = self.class.respond_to?(:base) ? self.class.base.name : self.class.name
+            ::NewRelic::Agent::Instrumentation::GrapeInstrumentation.handle_transaction(endpoint, class_name, version)
           rescue => e
             ::NewRelic::Agent.logger.warn("Error in Grape instrumentation", e)
           end
