@@ -85,17 +85,17 @@ module NewRelic
         Tracer.current_transaction
       end
 
-      def self.set_default_transaction_name(name, category = nil) #THREAD_LOCAL_ACCESS
+      def self.set_default_transaction_name(partial_name, category = nil) #THREAD_LOCAL_ACCESS
         txn  = tl_current
-        name = name_from_partial(name, category || txn.category)
+        name = name_from_partial(partial_name, category || txn.category)
         txn.set_default_transaction_name(name, category)
       end
 
-      def self.set_overriding_transaction_name(name, category = nil) #THREAD_LOCAL_ACCESS
+      def self.set_overriding_transaction_name(partial_name, category = nil) #THREAD_LOCAL_ACCESS
         txn = tl_current
         return unless txn
 
-        name = name_from_partial(name, category || txn.category)
+        name = name_from_partial(partial_name, category || txn.category)
         txn.set_overriding_transaction_name(name, category)
       end
 
