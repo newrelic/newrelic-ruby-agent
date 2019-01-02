@@ -171,18 +171,18 @@ module NewRelic
         #
         # If ever exposed, this requires additional synchronization
         def tl_state_for(thread)
-          state = thread[:newrelic_transaction_state]
+          state = thread[:newrelic_tracer_state]
 
           if state.nil?
             state = Tracer::State.new
-            thread[:newrelic_transaction_state] = state
+            thread[:newrelic_tracer_state] = state
           end
 
           state
         end
 
         def tl_clear
-          Thread.current[:newrelic_transaction_state] = nil
+          Thread.current[:newrelic_tracer_state] = nil
         end
 
         alias_method :clear_state, :tl_clear
