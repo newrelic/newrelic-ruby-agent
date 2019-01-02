@@ -4,9 +4,6 @@
 
 module NewRelic
   module Agent
-
-    # This is THE location to store thread local information during a transaction
-    # Need a new piece of data? Add a method here, NOT a new thread local variable.
     class Tracer
       class << self
         def tl_get
@@ -188,6 +185,8 @@ module NewRelic
         alias_method :clear_state, :tl_clear
       end
 
+      # This is THE location to store thread local information during a transaction
+      # Need a new piece of data? Add a method here, NOT a new thread local variable.
       class State
 
         def initialize
