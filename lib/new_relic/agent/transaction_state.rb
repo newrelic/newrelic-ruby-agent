@@ -7,7 +7,7 @@ module NewRelic
 
     # This is THE location to store thread local information during a transaction
     # Need a new piece of data? Add a method here, NOT a new thread local variable.
-    class TransactionState
+    class Tracer
       class << self
         def tl_get
           tl_state_for(Thread.current)
@@ -166,7 +166,7 @@ module NewRelic
                                                    parent: parent)
         end
 
-        # This method should only be used by TransactionState for access to the
+        # This method should only be used by Tracer for access to the
         # current thread's state or to provide read-only accessors for other threads
         #
         # If ever exposed, this requires additional synchronization
@@ -174,7 +174,7 @@ module NewRelic
           state = thread[:newrelic_transaction_state]
 
           if state.nil?
-            state = TransactionState.new
+            state = Tracer.new
             thread[:newrelic_transaction_state] = state
           end
 
@@ -235,6 +235,6 @@ module NewRelic
       attr_accessor :sql_sampler_transaction_data
     end
 
-    Tracer = TransactionState
+    TransactionState = Tracer
   end
 end
