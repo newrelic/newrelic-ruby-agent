@@ -8,7 +8,7 @@ require 'new_relic/agent/transaction/segment'
 require 'new_relic/agent/tracer'
 
 module NewRelic::Agent
-  class TransactionStateTest < Minitest::Test
+  class TracerStateTest < Minitest::Test
     attr_reader :state
 
     def setup
