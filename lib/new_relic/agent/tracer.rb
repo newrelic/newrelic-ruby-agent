@@ -6,11 +6,11 @@ module NewRelic
   module Agent
     class Tracer
       class << self
-        def tl_get
-          tl_state_for(Thread.current)
+        def state
+          state_for(Thread.current)
         end
 
-        alias_method :state, :tl_get
+        alias_method :tl_get, :state
 
         def tracing_enabled?
           state.tracing_enabled?
@@ -167,7 +167,7 @@ module NewRelic
         # current thread's state or to provide read-only accessors for other threads
         #
         # If ever exposed, this requires additional synchronization
-        def tl_state_for(thread)
+        def state_for(thread)
           state = thread[:newrelic_tracer_state]
 
           if state.nil?
@@ -178,11 +178,13 @@ module NewRelic
           state
         end
 
-        def tl_clear
+        alias_method :tl_state_for, :state_for
+
+        def clear_state
           Thread.current[:newrelic_tracer_state] = nil
         end
 
-        alias_method :clear_state, :tl_clear
+        alias_method :tl_clear, :clear_state
       end
 
       # This is THE location to store thread local information during a transaction
