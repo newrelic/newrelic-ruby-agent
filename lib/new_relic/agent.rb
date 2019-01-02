@@ -487,7 +487,7 @@ module NewRelic
     # Yield to the block without collecting any metrics or traces in
     # any of the subsequent calls.  If executed recursively, will keep
     # track of the first entry point and turn on tracing again after
-    # leaving that block.  This uses the thread local TransactionState.
+    # leaving that block.  This uses the thread local Tracer::State.
     #
     # @api public
     #

@@ -174,7 +174,7 @@ module NewRelic
           state = thread[:newrelic_transaction_state]
 
           if state.nil?
-            state = Tracer.new
+            state = Tracer::State.new
             thread[:newrelic_transaction_state] = state
           end
 
@@ -188,51 +188,54 @@ module NewRelic
         alias_method :clear_state, :tl_clear
       end
 
-      def initialize
-        @untraced = []
-        @current_transaction = nil
-        @record_sql = nil
+      class State
+
+        def initialize
+          @untraced = []
+          @current_transaction = nil
+          @record_sql = nil
+        end
+
+        # This starts the timer for the transaction.
+        def reset(transaction=nil)
+          # We purposefully don't reset @untraced or @record_sql
+          # since those are managed by NewRelic::Agent.disable_* calls explicitly
+          # and (more importantly) outside the scope of a transaction
+
+          @current_transaction = transaction
+          @sql_sampler_transaction_data = nil
+        end
+
+        # Current transaction stack
+        attr_reader :current_transaction
+
+        # Execution tracing on current thread
+        attr_accessor :untraced
+
+        def push_traced(should_trace)
+          @untraced << should_trace
+        end
+
+        def pop_traced
+          @untraced.pop if @untraced
+        end
+
+        def is_execution_traced?
+          @untraced.nil? || @untraced.last != false
+        end
+
+        alias_method :tracing_enabled?, :is_execution_traced?
+
+        # TT's and SQL
+        attr_accessor :record_sql
+
+        def is_sql_recorded?
+          @record_sql != false
+        end
+
+        # Sql Sampler Transaction Data
+        attr_accessor :sql_sampler_transaction_data
       end
-
-      # This starts the timer for the transaction.
-      def reset(transaction=nil)
-        # We purposefully don't reset @untraced or @record_sql
-        # since those are managed by NewRelic::Agent.disable_* calls explicitly
-        # and (more importantly) outside the scope of a transaction
-
-        @current_transaction = transaction
-        @sql_sampler_transaction_data = nil
-      end
-
-      # Current transaction stack
-      attr_reader :current_transaction
-
-      # Execution tracing on current thread
-      attr_accessor :untraced
-
-      def push_traced(should_trace)
-        @untraced << should_trace
-      end
-
-      def pop_traced
-        @untraced.pop if @untraced
-      end
-
-      def is_execution_traced?
-        @untraced.nil? || @untraced.last != false
-      end
-
-      alias_method :tracing_enabled?, :is_execution_traced?
-
-      # TT's and SQL
-      attr_accessor :record_sql
-
-      def is_sql_recorded?
-        @record_sql != false
-      end
-
-      # Sql Sampler Transaction Data
-      attr_accessor :sql_sampler_transaction_data
     end
 
     TransactionState = Tracer
