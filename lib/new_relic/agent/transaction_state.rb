@@ -184,6 +184,8 @@ module NewRelic
         def tl_clear
           Thread.current[:newrelic_transaction_state] = nil
         end
+
+        alias_method :clear_state, :tl_clear
       end
 
       def initialize
