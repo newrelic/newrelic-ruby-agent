@@ -4,7 +4,7 @@
 
 require 'new_relic/agent/method_tracer'
 require 'new_relic/agent/transaction'
-require 'new_relic/agent/transaction_state'
+require 'new_relic/agent/tracer'
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 

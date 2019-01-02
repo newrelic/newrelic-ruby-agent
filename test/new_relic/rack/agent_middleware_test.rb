@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/rack/agent_middleware'
-require 'new_relic/agent/transaction_state'
+require 'new_relic/agent/tracer'
 
 module NewRelic
   module Rack
