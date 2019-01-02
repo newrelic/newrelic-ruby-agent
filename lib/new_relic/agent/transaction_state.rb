@@ -13,14 +13,14 @@ module NewRelic
           tl_state_for(Thread.current)
         end
 
-        alias_method :trace_state, :tl_get
+        alias_method :state, :tl_get
 
         def tracing_enabled?
-          trace_state.tracing_enabled?
+          state.tracing_enabled?
         end
 
         def current_transaction
-          trace_state.current_transaction
+          state.current_transaction
         end
 
         # Takes name or partial_name and a category.
@@ -82,7 +82,7 @@ module NewRelic
             )
           end
 
-          Transaction.start_new_transaction(trace_state,
+          Transaction.start_new_transaction(state,
                                             category,
                                             options)
         rescue ArgumentError

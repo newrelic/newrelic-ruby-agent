@@ -12,8 +12,8 @@ module NewRelic
       end
 
       def test_tracer_aliases
-        trace_state = Tracer.trace_state
-        refute_nil trace_state
+        state = Tracer.state
+        refute_nil state
       end
 
       def test_current_transaction_with_transaction
