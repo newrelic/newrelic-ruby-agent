@@ -543,7 +543,7 @@ module NewRelic
           @sql_sampler.reset!
 
           if Agent.config[:clear_transaction_state_after_fork]
-            TransactionState.tl_clear
+            Tracer.clear_state
           end
         end
 

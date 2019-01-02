@@ -19,7 +19,7 @@ module NewRelic
     end
 
     def teardown
-      NewRelic::Agent::TransactionState.tl_clear
+      NewRelic::Agent::Tracer.clear_state
     end
 
     def test_shutdown

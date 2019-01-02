@@ -19,7 +19,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     NewRelic::Agent::PipeChannelManager.instance_variable_set(:@listener, listener)
 
     NewRelic::Agent.manual_start
-    NewRelic::Agent::TransactionState.tl_clear
+    NewRelic::Agent::Tracer.clear_state
   end
 
   def teardown
