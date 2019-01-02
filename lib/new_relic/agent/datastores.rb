@@ -163,7 +163,7 @@ module NewRelic
       def self.notice_sql(query, scoped_metric, elapsed)
         NewRelic::Agent.record_api_supportability_metric(:notice_sql)
 
-        state = TransactionState.tl_get
+        state = Tracer.state
         if (txn = state.current_transaction) && (segment = txn.current_segment) && segment.respond_to?(:notice_sql)
           segment.notice_sql(query)
         end
@@ -198,7 +198,7 @@ module NewRelic
 
         # Settings may change eventually, but for now we follow the same
         # capture rules as SQL for non-SQL statements.
-        state = TransactionState.tl_get
+        state = Tracer.state
         if (txn = state.current_transaction) && (segment = txn.current_segment) && segment.respond_to?(:notice_nosql_statement)
           segment.notice_nosql_statement(statement)
         end

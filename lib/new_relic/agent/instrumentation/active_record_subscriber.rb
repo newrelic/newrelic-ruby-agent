@@ -130,7 +130,7 @@ module NewRelic
           end
 
           def state
-            @state ||= NewRelic::Agent::TransactionState.tl_get
+            @state ||= NewRelic::Agent::Tracer.state
           end
 
           def sql

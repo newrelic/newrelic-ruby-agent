@@ -344,7 +344,7 @@ module NewRelic
         #
         def perform_action_with_newrelic_trace(*args, &block) #THREAD_LOCAL_ACCESS
           NewRelic::Agent.record_api_supportability_metric(:perform_action_with_newrelic_trace)
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = NewRelic::Agent::Tracer.state
           request = newrelic_request(args)
           queue_start_time = detect_queue_start_time(request)
 

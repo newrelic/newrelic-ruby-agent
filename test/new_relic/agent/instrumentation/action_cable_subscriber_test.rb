@@ -31,7 +31,7 @@ module NewRelic
 
         def test_creates_web_transaction
           @subscriber.start('perform_action.action_cable', :id, payload_for_perform_action)
-          assert NewRelic::Agent::TransactionState.tl_get.current_transaction.recording_web_transaction?
+          assert NewRelic::Agent::Tracer.state.current_transaction.recording_web_transaction?
           advance_time(1.0)
           @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
 
@@ -85,7 +85,7 @@ module NewRelic
 
         def test_creates_tt_node_for_transmit
           @subscriber.start('perform_action.action_cable', :id, payload_for_perform_action)
-          assert NewRelic::Agent::TransactionState.tl_get.current_transaction.recording_web_transaction?
+          assert NewRelic::Agent::Tracer.state.current_transaction.recording_web_transaction?
           @subscriber.start('transmit.action_cable', :id, payload_for_transmit)
           advance_time(1.0)
           @subscriber.finish('transmit.action_cable', :id, payload_for_transmit)

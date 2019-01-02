@@ -464,7 +464,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     with_config(:apdex_t => 2.0) do
       in_transaction do |txn|
-        state = NewRelic::Agent::TransactionState.tl_get
+        state = NewRelic::Agent::Tracer.state
         referring_txn_info = ["another"]
          cross_app_payload = ::NewRelic::Agent::CrossAppPayload.new('1#666', txn, referring_txn_info)
         txn.cross_app_payload = cross_app_payload
@@ -602,7 +602,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     in_transaction do |txn|
       advance_time(10)
 
-      state = NewRelic::Agent::TransactionState.tl_get
+      state = NewRelic::Agent::Tracer.state
       txn.is_cross_app_caller = false
     end
 
@@ -634,7 +634,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_synthetics_accessors
     in_transaction do
-      state = NewRelic::Agent::TransactionState.tl_get
+      state = NewRelic::Agent::Tracer.state
       txn = state.current_transaction
       txn.synthetics_payload = [1,2,3,4,5]
 
@@ -1126,7 +1126,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_finish_resets_the_transaction_state_if_there_is_an_error
     txn = NewRelic::Agent::Tracer.start_transaction(name: "test", category: :controller)
-    state = NewRelic::Agent::TransactionState.tl_get
+    state = NewRelic::Agent::Tracer.state
     state.expects(:reset)
     txn.stubs(:commit!).raises(StandardError, 'StandardError')
     txn.finish
@@ -1215,7 +1215,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_wrap_transaction
-    state = NewRelic::Agent::TransactionState.tl_get
+    state = NewRelic::Agent::Tracer.state
     NewRelic::Agent::Transaction.wrap(state, 'test', :other) do
       # No-op
     end
@@ -1225,7 +1225,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_wrap_transaction_with_early_failure
     yielded = false
-    state = NewRelic::Agent::TransactionState.tl_get
+    state = NewRelic::Agent::Tracer.state
     NewRelic::Agent::Transaction.any_instance.stubs(:start).raises("Boom")
     NewRelic::Agent::Transaction.wrap(state, 'test', :other) do
       yielded = true
@@ -1235,7 +1235,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_wrap_transaction_with_late_failure
-    state = NewRelic::Agent::TransactionState.tl_get
+    state = NewRelic::Agent::Tracer.state
     NewRelic::Agent::Transaction.any_instance.stubs(:commit!).raises("Boom")
     NewRelic::Agent::Transaction.wrap(state, 'test', :other) do
       # No-op
@@ -1245,7 +1245,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_wrap_transaction_notices_errors
-    state = NewRelic::Agent::TransactionState.tl_get
+    state = NewRelic::Agent::Tracer.state
     assert_raises RuntimeError do
       NewRelic::Agent::Transaction.wrap(state, 'test', :other) do
         raise "O_o"
@@ -1373,7 +1373,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     path_hash = nil
 
     txn = in_transaction do |t|
-      state = NewRelic::Agent::TransactionState.tl_get
+      state = NewRelic::Agent::Tracer.state
       t.is_cross_app_caller = true
       path_hash = t.cat_path_hash
     end

@@ -78,7 +78,7 @@ module NewRelic
           l = with_array_logger { NewRelic::Agent::External.process_request_metadata rmd }
           assert l.array.empty?, "process_request_metadata should not log errors without a current transaction"
 
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = NewRelic::Agent::Tracer.state
           refute state.current_transaction
         end
       end
@@ -96,7 +96,7 @@ module NewRelic
             refute l.array.empty?, "process_request_metadata should log error on invalid ID"
             assert l.array.first =~ %r{invalid/non-trusted ID}
 
-            state = NewRelic::Agent::TransactionState.tl_get
+            state = NewRelic::Agent::Tracer.state
             refute txn.cross_app_payload
           end
         end
@@ -115,7 +115,7 @@ module NewRelic
             refute l.array.empty?, "process_request_metadata should log error on invalid ID"
             assert l.array.first =~ %r{invalid/non-trusted ID}
 
-            state = NewRelic::Agent::TransactionState.tl_get
+            state = NewRelic::Agent::Tracer.state
             refute txn.cross_app_payload
           end
         end
@@ -132,7 +132,7 @@ module NewRelic
             l = with_array_logger { NewRelic::Agent::External.process_request_metadata rmd }
             assert l.array.empty?, "process_request_metadata should not log errors when cross app tracing is disabled"
 
-            state = NewRelic::Agent::TransactionState.tl_get
+            state = NewRelic::Agent::Tracer.state
             refute txn.cross_app_payload
           end
         end

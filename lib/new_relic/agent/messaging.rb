@@ -123,7 +123,7 @@ module NewRelic
         raise ArgumentError, 'missing required argument: destination_type' if destination_type.nil?
         raise ArgumentError, 'missing required argument: destination_name' if destination_name.nil?
 
-        state = TransactionState.tl_get
+        state = Tracer.state
         return yield if state.current_transaction
         txn = nil
 

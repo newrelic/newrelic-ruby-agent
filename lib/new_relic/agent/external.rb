@@ -64,7 +64,7 @@ module NewRelic
         NewRelic::Agent.record_api_supportability_metric(:process_request_metadata)
         return unless CrossAppTracing.cross_app_enabled?
 
-        state = NewRelic::Agent::TransactionState.tl_get
+        state = NewRelic::Agent::Tracer.state
         if transaction = state.current_transaction
           rmd = ::JSON.parse obfuscator.deobfuscate(request_metadata)
 
@@ -109,7 +109,7 @@ module NewRelic
         NewRelic::Agent.record_api_supportability_metric(:get_response_metadata)
         return unless CrossAppTracing.cross_app_enabled?
 
-        state = NewRelic::Agent::TransactionState.tl_get
+        state = NewRelic::Agent::Tracer.state
         return unless (transaction = state.current_transaction)
         return unless (cross_app_payload = transaction.cross_app_payload)
 

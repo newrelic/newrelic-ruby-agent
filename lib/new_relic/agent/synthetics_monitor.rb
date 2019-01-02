@@ -27,7 +27,7 @@ module NewRelic
           SyntheticsMonitor.is_supported_version?(incoming_payload) &&
           SyntheticsMonitor.is_trusted?(incoming_payload)
 
-        state = NewRelic::Agent::TransactionState.tl_get
+        state = NewRelic::Agent::Tracer.state
         txn = state.current_transaction
         txn.raw_synthetics_header = encoded_header
         txn.synthetics_payload    = incoming_payload

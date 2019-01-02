@@ -91,7 +91,7 @@ module NewRelic
           private
 
           def start_and_add_segment segment, parent = nil
-            state = NewRelic::Agent::TransactionState.tl_get
+            state = NewRelic::Agent::Tracer.state
             if (txn = state.current_transaction) && state.is_execution_traced?
               txn.add_segment segment, parent
             else

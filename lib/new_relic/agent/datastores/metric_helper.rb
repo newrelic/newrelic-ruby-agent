@@ -107,7 +107,7 @@ module NewRelic
         # Allow Transaction#with_database_metric_name to override our
         # collection and operation
         def self.overridden_operation_and_collection #THREAD_LOCAL_ACCESS
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = NewRelic::Agent::Tracer.state
           txn   = state.current_transaction
           txn ? txn.instrumentation_state[:datastore_override] : nil
         end

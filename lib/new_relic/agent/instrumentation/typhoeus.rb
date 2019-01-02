@@ -73,7 +73,7 @@ module NewRelic
         end
 
         def self.trace(request)
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = NewRelic::Agent::Tracer.state
           return unless state.is_execution_traced?
 
           wrapped_request = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(request)

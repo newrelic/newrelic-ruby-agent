@@ -5,7 +5,7 @@
 require 'bundler/setup'
 require 'newrelic_rpm'
 
-NewRelic::Agent::Transaction.wrap(NewRelic::Agent::TransactionState.tl_get, 'ponies', :controller) do
+NewRelic::Agent::Transaction.wrap(NewRelic::Agent::Tracer.state, 'ponies', :controller) do
 end
 
 NewRelic::Agent.notice_error 'oops'

@@ -44,7 +44,7 @@ module NewRelic
 
         events.subscribe(:before_call) do |env| #THREAD_LOCAL_ACCESS
           if id = decoded_id(env) and should_process_request?(id)
-            state = NewRelic::Agent::TransactionState.tl_get
+            state = NewRelic::Agent::Tracer.state
 
             if (transaction = state.current_transaction)
               transaction_info = referring_transaction_info(state, env)
@@ -58,7 +58,7 @@ module NewRelic
         end
 
         events.subscribe(:after_call) do |env, (_status_code, headers, _body)| #THREAD_LOCAL_ACCESS
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = NewRelic::Agent::Tracer.state
 
           insert_response_header(state, env, headers)
         end

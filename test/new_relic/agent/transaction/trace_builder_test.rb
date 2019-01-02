@@ -15,7 +15,7 @@ module NewRelic
 
         def test_builds_trace_for_transaction
           txn = nil
-          state = TransactionState.tl_get
+          state = Tracer.state
           Transaction.wrap state, "test_txn", :controller do
             txn = state.current_transaction
             advance_time 1
@@ -62,7 +62,7 @@ module NewRelic
 
         def test_trace_built_if_segment_left_unfinished
           txn = nil
-          state = TransactionState.tl_get
+          state = Tracer.state
           Transaction.wrap state, "test_txn", :controller do
             txn = state.current_transaction
             advance_time 1

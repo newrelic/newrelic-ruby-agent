@@ -27,7 +27,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def setup
     NewRelic::Agent::TransactionState.tl_clear
-    @state = NewRelic::Agent::TransactionState.tl_get
+    @state = NewRelic::Agent::Tracer.state
     agent = NewRelic::Agent.instance
     stats_engine = NewRelic::Agent::StatsEngine.new
     agent.stubs(:stats_engine).returns(stats_engine)
@@ -387,7 +387,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       in_transaction do |transaction|
-        state = NewRelic::Agent::TransactionState.tl_get
+        state = NewRelic::Agent::Tracer.state
         transaction.is_cross_app_caller = true
         path_hash = transaction.cat_path_hash
       end

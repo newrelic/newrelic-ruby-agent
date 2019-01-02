@@ -39,7 +39,7 @@ module NewRelic
         end
 
         def self.perform(job, block)
-          state = ::NewRelic::Agent::TransactionState.tl_get
+          state = ::NewRelic::Agent::Tracer.state
           txn = state.current_transaction
 
           # Don't nest transactions if we're already in a web transaction.

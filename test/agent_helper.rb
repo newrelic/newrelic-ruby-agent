@@ -334,7 +334,7 @@ def in_transaction(*args, &blk)
   name = opts.key?(:transaction_name) ? opts.delete(:transaction_name) :
                                         args.first || 'dummy'
 
-  state = NewRelic::Agent::TransactionState.tl_get
+  state = NewRelic::Agent::Tracer.state
   txn = nil
 
   NewRelic::Agent::Transaction.wrap(state, name, category, opts) do

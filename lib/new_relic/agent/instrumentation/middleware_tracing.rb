@@ -83,7 +83,7 @@ module NewRelic
         def call(env)
           first_middleware = note_transaction_started(env)
 
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = NewRelic::Agent::Tracer.state
 
           begin
             options = build_transaction_options(env, first_middleware)

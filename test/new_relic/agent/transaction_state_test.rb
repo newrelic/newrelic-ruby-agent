@@ -13,7 +13,7 @@ module NewRelic::Agent
 
     def setup
       TransactionState.tl_clear
-      @state = TransactionState.tl_get
+      @state = Tracer.state
     end
 
     def teardown

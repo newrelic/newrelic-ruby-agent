@@ -544,7 +544,7 @@ module NewRelic
         end
 
         def test_notice_sql_not_recording
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = NewRelic::Agent::Tracer.state
           state.record_sql = false
           in_transaction do
             segment = NewRelic::Agent::Transaction.start_datastore_segment(
@@ -648,7 +648,7 @@ module NewRelic
         end
 
         def test_notice_nosql_statement_not_recording
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = NewRelic::Agent::Tracer.state
           state.record_sql = false
           in_transaction do
             segment = NewRelic::Agent::Transaction.start_datastore_segment(

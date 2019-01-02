@@ -26,7 +26,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
     # By default we expect our transaction to have a start time
     # All sorts of basics don't output without this setup initially
-    NewRelic::Agent::TransactionState.tl_get.reset
+    NewRelic::Agent::Tracer.state.reset
   end
 
   def teardown
@@ -150,7 +150,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
         txn.stubs(:start_time).returns(Time.now - 10)
         txn.stubs(:guid).returns('ABC')
 
-        state = NewRelic::Agent::TransactionState.tl_get
+        state = NewRelic::Agent::Tracer.state
 
         data = instrumentor.data_for_js_agent(txn)
         expected = {
@@ -180,7 +180,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
         NewRelic::Agent.add_custom_attributes(:user => "user")
         NewRelic::Agent::Transaction.add_agent_attribute(:agent, "attribute", NewRelic::Agent::AttributeFilter::DST_ALL)
 
-        state = NewRelic::Agent::TransactionState.tl_get
+        state = NewRelic::Agent::Tracer.state
         data = instrumentor.data_for_js_agent(txn)
 
         # Handle packed atts key specially since it's obfuscated

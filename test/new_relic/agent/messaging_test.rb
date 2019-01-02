@@ -155,7 +155,7 @@ module NewRelic
           destination_name: "Default",
           routing_key: "red"
         ) do
-          txn = NewRelic::Agent::TransactionState.tl_get.current_transaction
+          txn = NewRelic::Agent::Tracer.state.current_transaction
           assert_equal 'OtherTransaction/Message/AwesomeBunniez/Exchange/Named/Default', txn.best_name
           tap.tap
         end
@@ -430,7 +430,7 @@ module NewRelic
             destination_name: 'Default',
             headers: { "NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info }
           ) do
-            txn = NewRelic::Agent::TransactionState.tl_get.current_transaction
+            txn = NewRelic::Agent::Tracer.state.current_transaction
             assert_equal cross_process_id, txn.cross_app_payload.id
             assert_equal txn.cross_app_payload.referring_guid,      raw_txn_info[0]
             assert_equal txn.cross_app_payload.referring_trip_id,   raw_txn_info[2]
@@ -472,7 +472,7 @@ module NewRelic
             destination_name: "Default",
             headers: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info, "NewRelicSynthetics" => synthetics_header }
           ) do
-            txn = NewRelic::Agent::TransactionState.tl_get.current_transaction
+            txn = NewRelic::Agent::Tracer.state.current_transaction
             assert_equal cross_process_id, txn.cross_app_payload.id
             assert_equal txn.cross_app_payload.referring_guid,      raw_txn_info[0]
             assert_equal txn.cross_app_payload.referring_trip_id,   raw_txn_info[2]
@@ -570,7 +570,7 @@ module NewRelic
             destination_name: 'Default',
             headers: {'Newrelic' => Base64.strict_encode64(payload.to_json)}
           ) do
-            transaction = NewRelic::Agent::TransactionState.tl_get.current_transaction
+            transaction = NewRelic::Agent::Tracer.state.current_transaction
             tap.tap
           end
 
