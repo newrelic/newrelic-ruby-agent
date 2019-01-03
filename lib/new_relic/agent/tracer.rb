@@ -178,14 +178,27 @@ module NewRelic
                                          start_time: nil,
                                          parent: nil)
 
-          Transaction.start_message_broker_segment(action: action,
-                                                   library: library,
-                                                   destination_type: destination_type,
-                                                   destination_name: destination_name,
-                                                   headers: headers,
-                                                   parameters: parameters,
-                                                   start_time: start_time,
-                                                   parent: parent)
+          # ruby 2.0.0 does not support required kwargs
+          raise ArgumentError, 'missing required argument: action' if action.nil?
+          raise ArgumentError, 'missing required argument: library' if library.nil?
+          raise ArgumentError, 'missing required argument: destination_type' if destination_type.nil?
+          raise ArgumentError, 'missing required argument: destination_name' if destination_name.nil?
+
+          segment = Transaction::MessageBrokerSegment.new(
+            action: action,
+            library: library,
+            destination_type: destination_type,
+            destination_name: destination_name,
+            headers: headers,
+            parameters: parameters,
+            start_time: start_time
+          )
+          start_and_add_segment segment, parent
+
+        rescue ArgumentError
+          raise
+        rescue => e
+          log_error('start_datastore_segment', e)
         end
 
         # This method should only be used by Tracer for access to the
