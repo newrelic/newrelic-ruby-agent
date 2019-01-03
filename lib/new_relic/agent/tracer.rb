@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/transaction'
 require 'new_relic/agent/transaction/segment'
 require 'new_relic/agent/transaction/datastore_segment'
 require 'new_relic/agent/transaction/external_request_segment'
@@ -93,15 +94,13 @@ module NewRelic
         end
 
         def create_distributed_trace_payload
-          if txn = current_transaction
-            txn.create_distributed_trace_payload
-          end
+          return unless txn = current_transaction
+          txn.create_distributed_trace_payload
         end
 
         def accept_distributed_trace_payload(payload)
-          if txn = current_transaction
-            txn.accept_distributed_trace_payload(payload)
-          end
+          return unless txn = current_transaction
+          txn.accept_distributed_trace_payload(payload)
         end
 
         def current_segment
