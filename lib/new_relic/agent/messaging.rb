@@ -58,7 +58,7 @@ module NewRelic
                                        parameters: nil,
                                        start_time: nil)
 
-        Transaction.start_message_broker_segment(
+        Tracer.start_message_broker_segment(
           action: action,
           library: library,
           destination_type: destination_type,
@@ -160,7 +160,7 @@ module NewRelic
       # Start a MessageBroker segment configured to trace an AMQP publish.
       # Finishing this segment will handle timing and recording of the proper
       # metrics for New Relic's messaging features. This method is a convenience
-      # wrapper around NewRelic::Agent::Transaction.start_message_broker_segment.
+      # wrapper around NewRelic::Agent::Tracer.start_message_broker_segment.
       #
       # @param library [String] The name of the library being instrumented
       #
@@ -198,7 +198,7 @@ module NewRelic
 
         original_headers = headers.nil? ? nil : headers.dup
 
-        segment = Transaction.start_message_broker_segment(
+        segment = Tracer.start_message_broker_segment(
           action: :produce,
           library: library,
           destination_type: :exchange,
@@ -220,7 +220,7 @@ module NewRelic
       # Start a MessageBroker segment configured to trace an AMQP consume.
       # Finishing this segment will handle timing and recording of the proper
       # metrics for New Relic's messaging features. This method is a convenience
-      # wrapper around NewRelic::Agent::Transaction.start_message_broker_segment.
+      # wrapper around NewRelic::Agent::Tracer.start_message_broker_segment.
       #
       # @param library [String] The name of the library being instrumented
       #
@@ -259,7 +259,7 @@ module NewRelic
         raise ArgumentError, 'missing required argument: delivery_info' if delivery_info.nil?
         raise ArgumentError, 'missing required argument: message_properties' if message_properties.nil?
 
-        segment = Transaction.start_message_broker_segment(
+        segment = Tracer.start_message_broker_segment(
           action: :consume,
           library: library,
           destination_name: destination_name,

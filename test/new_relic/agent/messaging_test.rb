@@ -291,7 +291,7 @@ module NewRelic
       end
 
       def test_start_message_broker_segments_returns_properly_constructed_segment
-        segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+        segment = NewRelic::Agent::Tracer.start_message_broker_segment(
           action: :produce,
           library: "RabbitMQ",
           destination_type: :exchange,

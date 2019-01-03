@@ -524,7 +524,7 @@ module NewRelic
           in_transaction 'test_txn' do
             segment_a = NewRelic::Agent::Tracer.start_segment name: 'segment_a'
             segment_b = NewRelic::Agent::Tracer.start_segment name: 'segment_b'
-            segment_c = NewRelic::Agent::Transaction.start_message_broker_segment(
+            segment_c = NewRelic::Agent::Tracer.start_message_broker_segment(
               action: :produce,
               library: "RabbitMQ",
               destination_type: :exchange,
