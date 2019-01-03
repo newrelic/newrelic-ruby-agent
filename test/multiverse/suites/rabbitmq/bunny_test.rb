@@ -256,7 +256,7 @@ class BunnyTest < Minitest::Test
 
   def test_error_starting_message_broker_segment_does_not_interfere_with_transaction
     with_queue do |queue|
-      NewRelic::Agent::Transaction.stubs(:start_message_broker_segment).raises(StandardError.new("Boo"))
+      NewRelic::Agent::Tracer.stubs(:start_message_broker_segment).raises(StandardError.new("Boo"))
 
       in_transaction "test_txn" do
         # This should error
