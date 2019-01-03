@@ -111,10 +111,17 @@ module NewRelic
                           start_time: nil,
                           parent: nil)
 
-          Transaction.start_segment(name: name,
-                                    unscoped_metrics: unscoped_metrics,
-                                    start_time: start_time,
-                                    parent: parent)
+          # ruby 2.0.0 does not support required kwargs
+          raise ArgumentError, 'missing required argument: name' if name.nil?
+
+          segment = Segment.new name, unscoped_metrics, start_time
+
+          start_and_add_segment segment, parent
+
+        rescue ArgumentError
+          raise
+        rescue => e
+          log_error('start_segment', e)
         end
 
         def start_datastore_segment(product: nil,
@@ -190,6 +197,25 @@ module NewRelic
         end
 
         alias_method :tl_clear, :clear_state
+
+        private
+
+        def start_and_add_segment segment, parent = nil
+          tracer_state = state
+          if (txn = tracer_state.current_transaction) &&
+            tracer_state.tracing_enabled?
+            txn.add_segment segment, parent
+          else
+            segment.record_metrics = false
+          end
+          segment.start
+          segment
+        end
+
+        def log_error(method_name, exception)
+          NewRelic::Agent.logger.error("Exception during Tracer.#{method_name}", exception)
+          nil
+        end
       end
 
       # This is THE location to store thread local information during a transaction
