@@ -7,6 +7,13 @@
      We have tested the agent with the official release of Ruby 2.6.0
      made on December 25, 2018.
 
+   * Support for loading Sequel core standalone
+
+     The agent will now enable Sequel instrumentation when an
+     application loads Sequel's core standalone; i.e., without the
+     `Sequel::Model` class.  Thanks to Vasily Kolesnikov for the
+     contribution!
+
 ## v5.6.0
 
   * Bugfix for transactions with `ActionController::Live`
