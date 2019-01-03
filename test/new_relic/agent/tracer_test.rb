@@ -171,6 +171,26 @@ module NewRelic
         assert_metrics_recorded ["Controller/Rack/Test::App/call"]
       end
 
+      def test_current_segment_with_transaction
+        assert_nil Tracer.current_segment
+
+        txn = Tracer.start_transaction(name: "Controller/blogs/index", category: :controller)
+        assert_equal txn.initial_segment, Tracer.current_segment
+
+        segment = Tracer.start_segment(name: "Custom/MyClass/myoperation")
+        assert_equal segment, Tracer.current_segment
+
+        txn.finish
+
+        assert_nil Tracer.current_segment
+      end
+
+      def test_current_segment_without_transaction
+        assert_nil Tracer.current_segment
+        Tracer.start_segment(name: "Custom/MyClass/myoperation")
+        assert_nil Tracer.current_segment
+      end
+
       def test_start_segment_delegates_to_transaction
         name = "Custom/MyClass/myoperation"
         unscoped_metrics = [

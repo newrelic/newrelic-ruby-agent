@@ -101,6 +101,11 @@ module NewRelic
           end
         end
 
+        def current_segment
+          return unless txn = current_transaction
+          txn.current_segment
+        end
+
         def start_segment(name:nil,
                           unscoped_metrics:nil,
                           start_time: nil,
