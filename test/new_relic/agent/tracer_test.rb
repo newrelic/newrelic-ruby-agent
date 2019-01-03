@@ -197,20 +197,24 @@ module NewRelic
           "Custom/Segment/something/all",
           "Custom/Segment/something/allWeb"
         ]
-
         parent = Transaction::Segment.new(name: "parent")
         start_time = Time.now
 
-        segment = Tracer.start_segment(name: name,
-         unscoped_metrics: unscoped_metrics,
-         parent: parent,
-         start_time: start_time
-        )
+        in_transaction 'test' do
+          segment = Tracer.start_segment(
+           name: name,
+           unscoped_metrics: unscoped_metrics,
+           parent: parent,
+           start_time: start_time
+          )
 
-        assert_equal segment, Tracer.current_segment
+          assert_equal segment, Tracer.current_segment
+
+          segment.finish
+        end
       end
 
-      def test_start_datastore_segment_delegates_to_transaction
+      def test_start_datastore_segment
         product         = "MySQL"
         operation       = "INSERT"
         collection      = "blogs"
@@ -218,47 +222,24 @@ module NewRelic
         port_path_or_id = "3306"
         database_name   = "blog_app"
         start_time      = Time.now
-        parent          = Tracer.start_segment(name: "parent")
+        parent          = Transaction::Segment.new(name: "parent")
 
-        Transaction.expects(:start_datastore_segment)
-                   .with(product: product,
-                         operation: operation,
-                         collection: collection,
-                         host: host,
-                         port_path_or_id: port_path_or_id,
-                         database_name: database_name,
-                         start_time: start_time,
-                         parent: parent)
+        in_transaction 'test' do
+          segment = Transaction.start_datastore_segment(
+            product: product,
+            operation: operation,
+            collection: collection,
+            host: host,
+            port_path_or_id: port_path_or_id,
+            database_name: database_name,
+            start_time: start_time,
+            parent: parent
+          )
 
-        Transaction.start_datastore_segment(product: product,
-                                            operation: operation,
-                                            collection: collection,
-                                            host: host,
-                                            port_path_or_id: port_path_or_id,
-                                            database_name: database_name,
-                                            start_time: start_time,
-                                            parent: parent)
-      end
+          assert_equal segment, Tracer.current_segment
 
-      def test_start_external_request_segment_delegates_to_transaction
-        library    = "Net::HTTP"
-        uri        = "https://docs.newrelic.com"
-        procedure  = "GET"
-        start_time = Time.now
-        parent     = Tracer.start_segment(name: "parent")
-
-        Transaction.expects(:start_external_request_segment)
-                   .with(library: library,
-                         uri: uri,
-                         procedure: procedure,
-                         start_time: start_time,
-                         parent: parent)
-
-        Transaction.start_external_request_segment(library: library,
-                                                   uri: uri,
-                                                   procedure: procedure,
-                                                   start_time: start_time,
-                                                   parent: parent)
+          segment.finish
+        end
       end
 
       def test_start_message_broker_segment_delegates_to_transaction

@@ -2,6 +2,11 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/transaction/segment'
+require 'new_relic/agent/transaction/datastore_segment'
+require 'new_relic/agent/transaction/external_request_segment'
+require 'new_relic/agent/transaction/message_broker_segment'
+
 module NewRelic
   module Agent
     class Tracer
@@ -114,8 +119,7 @@ module NewRelic
           # ruby 2.0.0 does not support required kwargs
           raise ArgumentError, 'missing required argument: name' if name.nil?
 
-          segment = Segment.new name, unscoped_metrics, start_time
-
+          segment = Transaction::Segment.new name, unscoped_metrics, start_time
           start_and_add_segment segment, parent
 
         rescue ArgumentError
@@ -124,8 +128,11 @@ module NewRelic
           log_error('start_segment', e)
         end
 
-        def start_datastore_segment(product: nil,
-                                    operation: nil,
+        UNKNOWN = "Unknown".freeze
+        OTHER = "other".freeze
+
+        def start_datastore_segment(product: UNKNOWN,
+                                    operation: OTHER,
                                     collection: nil,
                                     host: nil,
                                     port_path_or_id: nil,
@@ -133,27 +140,13 @@ module NewRelic
                                     start_time: nil,
                                     parent: nil)
 
-          Transaction.start_datastore_segment(product: product,
-                                              operation: operation,
-                                              collection: collection,
-                                              host: host,
-                                              port_path_or_id: port_path_or_id,
-                                              database_name: database_name,
-                                              start_time: start_time,
-                                              parent: parent)
-        end
+          segment = Transaction::DatastoreSegment.new product, operation, collection, host, port_path_or_id, database_name
+          start_and_add_segment segment, parent
 
-        def start_external_request_segment(library: nil,
-                                           uri: nil,
-                                           procedure: nil,
-                                           start_time: nil,
-                                           parent: nil)
-
-          Transaction.start_external_request_segment(library: library,
-                                                     uri: uri,
-                                                     procedure: procedure,
-                                                     start_time: start_time,
-                                                     parent: parent)
+        rescue ArgumentError
+          raise
+        rescue => e
+          log_error('start_datastore_segment', e)
         end
 
         def start_message_broker_segment(action: nil,
