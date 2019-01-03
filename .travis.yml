@@ -39,6 +39,7 @@ branches:
     - master
     - dev
     - release
+    - tracer-refactoring-integration
 
 notifications:
   webhooks: http://notifitron.herokuapp.com/
