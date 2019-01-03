@@ -80,7 +80,7 @@ module NewRelic::Agent
     end
 
     def assert_no_synthetics_payload
-      assert_nil NewRelic::Agent::Tracer.state.current_transaction.synthetics_payload
+      assert_nil NewRelic::Agent::Tracer.current_transaction.synthetics_payload
     end
 
     def with_synthetics_headers(payload, header_key = SyntheticsMonitor::SYNTHETICS_HEADER_KEY)

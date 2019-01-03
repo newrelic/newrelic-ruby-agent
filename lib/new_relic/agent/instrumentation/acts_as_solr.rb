@@ -13,7 +13,7 @@ module NewRelic
             begin
               parse_query_without_newrelic(*args)
             ensure
-              return unless txn = ::NewRelic::Agent::Tracer.state.current_transaction
+              return unless txn = ::NewRelic::Agent::Tracer.current_transaction
               txn.current_segment.params[:statement] = ::NewRelic::Agent::Database.truncate_query(args.first.inspect) rescue nil
             end
           end

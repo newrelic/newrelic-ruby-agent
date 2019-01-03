@@ -180,7 +180,6 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
         NewRelic::Agent.add_custom_attributes(:user => "user")
         NewRelic::Agent::Transaction.add_agent_attribute(:agent, "attribute", NewRelic::Agent::AttributeFilter::DST_ALL)
 
-        state = NewRelic::Agent::Tracer.state
         data = instrumentor.data_for_js_agent(txn)
 
         # Handle packed atts key specially since it's obfuscated

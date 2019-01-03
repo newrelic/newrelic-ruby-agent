@@ -332,7 +332,7 @@ module NewRelic::Agent::Instrumentation
 
         def doit
           perform_action_with_newrelic_trace do
-            NewRelic::Agent::Tracer.state.current_transaction.request_path
+            NewRelic::Agent::Tracer.current_transaction.request_path
           end
         end
       end

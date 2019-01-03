@@ -602,7 +602,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     in_transaction do |txn|
       advance_time(10)
 
-      state = NewRelic::Agent::Tracer.state
       txn.is_cross_app_caller = false
     end
 
@@ -1373,7 +1372,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     path_hash = nil
 
     txn = in_transaction do |t|
-      state = NewRelic::Agent::Tracer.state
       t.is_cross_app_caller = true
       path_hash = t.cat_path_hash
     end

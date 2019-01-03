@@ -131,8 +131,7 @@ module NewRelic
         end
 
         def log_missing_elapsed_transaction_time
-          state = NewRelic::Agent::Tracer.state
-          transaction_name = state.current_transaction.best_name
+          transaction_name = Tracer.current_transaction.best_name
           NewRelic::Agent.logger.warn("Unable to calculate elapsed transaction time for #{transaction_name}")
         end
       end

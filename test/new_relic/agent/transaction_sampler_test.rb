@@ -387,7 +387,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       in_transaction do |transaction|
-        state = NewRelic::Agent::Tracer.state
         transaction.is_cross_app_caller = true
         path_hash = transaction.cat_path_hash
       end

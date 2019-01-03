@@ -169,8 +169,7 @@ module MultiverseHelpers
   end
 
   def capture_js_data
-    state = NewRelic::Agent::Tracer.state
-    return unless (transaction = state.current_transaction)
+    return unless (transaction = NewRelic::Agent::Tracer.current_transaction)
     events = stub(:subscribe => nil)
     @instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(events)
     @js_data = @instrumentor.data_for_js_agent(transaction)

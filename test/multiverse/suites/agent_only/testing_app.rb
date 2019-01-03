@@ -23,7 +23,7 @@ class TestingApp
       opts = {}
       if params['transaction_category']
         opts[:category] = params['transaction_category']
-        NewRelic::Agent::Tracer.state.current_transaction.stubs(:similar_category?).returns true
+        NewRelic::Agent::Tracer.current_transaction.stubs(:similar_category?).returns true
       end
       NewRelic::Agent.set_transaction_name(params['transaction_name'], opts)
     end

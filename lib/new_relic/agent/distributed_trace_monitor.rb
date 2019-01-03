@@ -18,9 +18,8 @@ module NewRelic
       def on_before_call(request)
         return unless NewRelic::Agent.config[:'distributed_tracing.enabled']
         return unless payload = request[NEWRELIC_TRACE_KEY]
+        return unless txn = Tracer.current_transaction
 
-        state = NewRelic::Agent::Tracer.state
-        txn = state.current_transaction
         if txn.accept_distributed_trace_payload payload
           txn.distributed_trace_payload.caller_transport_type = transport_type(request)
         end

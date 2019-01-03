@@ -109,8 +109,7 @@ module NewRelic
         NewRelic::Agent.record_api_supportability_metric(:get_response_metadata)
         return unless CrossAppTracing.cross_app_enabled?
 
-        state = NewRelic::Agent::Tracer.state
-        return unless (transaction = state.current_transaction)
+        return unless (transaction = Tracer.current_transaction)
         return unless (cross_app_payload = transaction.cross_app_payload)
 
         # must freeze the name since we're responding with it

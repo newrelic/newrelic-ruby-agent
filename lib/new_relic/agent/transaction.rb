@@ -82,7 +82,7 @@ module NewRelic
 
       # Return the currently active transaction, or nil.
       def self.tl_current
-        Tracer.state.current_transaction
+        Tracer.current_transaction
       end
 
       def self.set_default_transaction_name(name, category = nil) #THREAD_LOCAL_ACCESS
@@ -142,15 +142,13 @@ module NewRelic
       # Indicate that you don't want to keep the currently saved transaction
       # information
       def self.abort_transaction! #THREAD_LOCAL_ACCESS
-        state = NewRelic::Agent::Tracer.state
-        txn = state.current_transaction
+        txn = Tracer.current_transaction
         txn.abort_transaction! if txn
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
       def self.notice_error(e, options={}) #THREAD_LOCAL_ACCESS
-        state = NewRelic::Agent::Tracer.state
-        txn = state.current_transaction
+        txn = Tracer.current_transaction
         if txn
           txn.notice_error(e, options)
         elsif NewRelic::Agent.instance
