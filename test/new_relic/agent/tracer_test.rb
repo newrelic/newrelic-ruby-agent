@@ -225,7 +225,7 @@ module NewRelic
         parent          = Transaction::Segment.new("parent")
 
         in_transaction 'test' do
-          segment = Transaction.start_datastore_segment(
+          segment = Tracer.start_datastore_segment(
             product: product,
             operation: operation,
             collection: collection,

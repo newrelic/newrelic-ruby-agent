@@ -67,7 +67,7 @@ module NewRelic
             database = @config && @config[:database]
           end
 
-          segment = NewRelic::Agent::Transaction.start_datastore_segment(
+          segment = NewRelic::Agent::Tracer.start_datastore_segment(
             product: product,
             operation: operation,
             collection: collection,

@@ -122,7 +122,7 @@ class TransactionTracingPerfTests < Performance::TestCase
     measure do
       in_transaction do |txn|
         txn.sampled = true
-        segment = NewRelic::Agent::Transaction.start_datastore_segment(
+        segment = NewRelic::Agent::Tracer.start_datastore_segment(
           product: "SQLite",
           operation: "insert",
           collection: "Blog"

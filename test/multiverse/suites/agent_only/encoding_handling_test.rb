@@ -11,7 +11,7 @@ class EncodingHandlingTest < Minitest::Test
     with_config(:'transaction_tracer.transaction_threshold' => 0.0,
                 :'transaction_tracer.record_sql' => :raw) do
       in_transaction do
-        segment = NewRelic::Agent::Transaction.start_datastore_segment
+        segment = NewRelic::Agent::Tracer.start_datastore_segment
         segment.notice_sql(bad_string)
         segment.finish
       end

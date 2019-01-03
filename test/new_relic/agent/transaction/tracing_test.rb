@@ -104,7 +104,7 @@ module NewRelic
 
         def test_start_datastore_segment
           in_transaction "test_txn" do |txn|
-            segment = Transaction.start_datastore_segment(
+            segment = Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "insert",
               collection: "Blog"
@@ -119,7 +119,7 @@ module NewRelic
         end
 
         def test_start_datastore_segment_provides_defaults_without_params
-          segment = Transaction.start_datastore_segment
+          segment = Tracer.start_datastore_segment
           segment.finish
 
           assert_equal "Datastore/operation/Unknown/other", segment.name
@@ -128,7 +128,7 @@ module NewRelic
         end
 
         def test_start_datastore_segment_does_not_record_metrics_outside_of_txn
-          segment = Transaction.start_datastore_segment(
+          segment = Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "insert",
               collection: "Blog"
@@ -167,7 +167,7 @@ module NewRelic
         def test_current_segment_in_transaction
           in_transaction "test_txn" do |txn|
             assert_equal txn.initial_segment, txn.current_segment
-            ds_segment = Transaction.start_datastore_segment(
+            ds_segment = Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "insert",
               collection: "Blog"
@@ -189,7 +189,7 @@ module NewRelic
           in_transaction "test_txn" do |txn|
             assert_equal nil, txn.initial_segment.parent
 
-            ds_segment = Transaction.start_datastore_segment(
+            ds_segment = Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "insert",
               collection: "Blog"
@@ -341,7 +341,7 @@ module NewRelic
           with_config(:'transaction_tracer.limit_segments' => 3) do
             in_transaction do
               %w[ wheat challah semolina ].each do |bread|
-                s = NewRelic::Agent::Transaction.start_datastore_segment
+                s = NewRelic::Agent::Tracer.start_datastore_segment
                 s.notice_sql("SELECT * FROM sandwiches WHERE bread = '#{bread}'")
                 s.finish
               end
@@ -486,7 +486,7 @@ module NewRelic
           in_transaction 'test_txn' do
             segment_a = NewRelic::Agent::Tracer.start_segment name: 'segment_a'
             segment_b = NewRelic::Agent::Tracer.start_segment name: 'segment_b'
-            segment_c = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment_c = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "Select",
               collection: "blogs",

@@ -131,14 +131,17 @@ module NewRelic
         UNKNOWN = "Unknown".freeze
         OTHER = "other".freeze
 
-        def start_datastore_segment(product: UNKNOWN,
-                                    operation: OTHER,
+        def start_datastore_segment(product: nil,
+                                    operation: nil,
                                     collection: nil,
                                     host: nil,
                                     port_path_or_id: nil,
                                     database_name: nil,
                                     start_time: nil,
                                     parent: nil)
+
+          product ||= UNKNOWN
+          operation ||= OTHER
 
           segment = Transaction::DatastoreSegment.new product, operation, collection, host, port_path_or_id, database_name
           start_and_add_segment segment, parent
