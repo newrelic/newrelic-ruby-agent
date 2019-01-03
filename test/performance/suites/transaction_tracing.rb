@@ -136,7 +136,7 @@ class TransactionTracingPerfTests < Performance::TestCase
     measure do
       in_transaction do |txn|
         txn.sampled = true
-        segment = NewRelic::Agent::Transaction.start_external_request_segment(
+        segment = NewRelic::Agent::Tracer.start_external_request_segment(
           library: "Net::HTTP",
           uri: "http://remotehost.com/blogs/index",
           procedure: "GET"

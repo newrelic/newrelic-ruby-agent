@@ -82,7 +82,7 @@ module NewRelic
             request.hydra.instance_variable_get(:@__newrelic_hydra_segment)
           end
 
-          segment = NewRelic::Agent::Transaction.start_external_request_segment(
+          segment = NewRelic::Agent::Tracer.start_external_request_segment(
             library: wrapped_request.type,
             uri: wrapped_request.uri,
             procedure: wrapped_request.method,

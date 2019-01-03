@@ -40,7 +40,7 @@ module NewRelic
 
         ::NewRelic::Agent.record_api_supportability_metric(:start_segment)
 
-        ::NewRelic::Agent::Transaction.start_external_request_segment(
+        ::NewRelic::Agent::Tracer.start_external_request_segment(
           library: library,
           uri: uri,
           procedure: procedure

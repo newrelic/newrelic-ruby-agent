@@ -119,7 +119,7 @@ module NewRelic
         with_config(:'attributes.exclude' => ['http.url']) do
           in_transaction('test_txn') do |t|
             t.stubs(:sampled?).returns(true)
-            external_segment = Transaction.start_external_request_segment(library: 'Net::HTTP',
+            external_segment = Tracer.start_external_request_segment(library: 'Net::HTTP',
                                                                           uri: "https://docs.newrelic.com",
                                                                           procedure: "GET")
             external_segment.finish

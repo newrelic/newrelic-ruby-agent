@@ -69,7 +69,7 @@ module NewRelic
 
         def test_segment_records_expected_metrics_for_non_cat_txn
           in_transaction "test", :category => :controller do
-            segment = Transaction.start_external_request_segment(
+            segment = Tracer.start_external_request_segment(
               library: "Net::HTTP",
               uri: "http://remotehost.com/blogs/index",
               procedure: "GET"
@@ -101,7 +101,7 @@ module NewRelic
 
           with_config(cat_config.merge({:"cross_application_tracer.enabled" => false})) do
             in_transaction "test", :category => :controller do
-              segment = Transaction.start_external_request_segment(
+              segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://remotehost.com/blogs/index",
                 procedure: "GET"
@@ -136,7 +136,7 @@ module NewRelic
 
           with_config(cat_config.merge({:cross_process_id => ''})) do
             in_transaction "test", :category => :controller do
-              segment = Transaction.start_external_request_segment(
+              segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://remotehost.com/blogs/index",
                 procedure: "GET"
@@ -172,7 +172,7 @@ module NewRelic
 
           with_config(cat_config.merge({:encoding_key => ''})) do
             in_transaction "test", :category => :controller do
-              segment = Transaction.start_external_request_segment(
+              segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://remotehost.com/blogs/index",
                 procedure: "GET"
@@ -206,7 +206,7 @@ module NewRelic
 
           with_config cat_config do
             in_transaction "test", :category => :controller do |txn|
-              segment = Transaction.start_external_request_segment(
+              segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://newrelic.com/blogs/index",
                 procedure: "GET"
@@ -249,7 +249,7 @@ module NewRelic
 
             in_transaction "test_txn2", :category => :controller do |txn|
               txn.accept_distributed_trace_payload payload.to_json
-              segment = Transaction.start_external_request_segment(
+              segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://newrelic.com/blogs/index",
                 procedure: "GET"
@@ -291,7 +291,7 @@ module NewRelic
 
             in_transaction "test_txn2", :category => :controller do |txn|
               txn.accept_distributed_trace_payload payload.to_json
-              segment = Transaction.start_external_request_segment(
+              segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://newrelic.com/blogs/index",
                 procedure: "GET"
@@ -322,7 +322,7 @@ module NewRelic
           request = RequestWrapper.new
           with_config cat_config do
             in_transaction :category => :controller do
-              segment = Transaction.start_external_request_segment(
+              segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://remotehost.com/blogs/index",
                 procedure: "GET"
@@ -340,7 +340,7 @@ module NewRelic
           with_config cat_config do
             in_transaction :category => :controller do |txn|
               txn.raw_synthetics_header = json_dump_and_encode [1, 42, 100, 200, 300]
-              segment = Transaction.start_external_request_segment(
+              segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://remotehost.com/blogs/index",
                 procedure: "GET"
@@ -356,7 +356,7 @@ module NewRelic
           request = RequestWrapper.new({"host" => "anotherhost.local"})
           with_config cat_config do
             in_transaction :category => :controller do
-              segment = Transaction.start_external_request_segment(
+              segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://remotehost.com/blogs/index",
                 procedure: "GET"
@@ -376,7 +376,7 @@ module NewRelic
 
           with_config cat_config do
             in_transaction :category => :controller do |txn|
-              segment = Transaction.start_external_request_segment(
+              segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://remotehost.com/blogs/index",
                 procedure: "GET"
@@ -399,7 +399,7 @@ module NewRelic
 
           with_config cat_config do
             in_transaction :category => :controller do |txn|
-              segment = Transaction.start_external_request_segment(
+              segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://remotehost.com/blogs/index",
                 procedure: "GET"
@@ -422,7 +422,7 @@ module NewRelic
 
           with_config cat_config do
             in_transaction :category => :controller do |txn|
-              segment = Transaction.start_external_request_segment(
+              segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://remotehost.com/blogs/index",
                 procedure: "GET"
@@ -443,7 +443,7 @@ module NewRelic
           uri = "http://newrelic.com/blogs/index"
 
           in_transaction :category => :controller do
-            segment = Transaction.start_external_request_segment(
+            segment = Tracer.start_external_request_segment(
               library: "Net::HTTP",
               uri: uri,
               procedure: "GET"
@@ -466,7 +466,7 @@ module NewRelic
 
           with_config cat_config do
             in_transaction :category => :controller do
-              segment = Transaction.start_external_request_segment(
+              segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://remotehost.com/blogs/index",
                 procedure: "GET"
@@ -649,7 +649,7 @@ module NewRelic
             request = RequestWrapper.new
             with_config cat_config.merge(distributed_tracing_config) do
               in_transaction :category => :controller do |txn|
-                segment = Transaction.start_external_request_segment(
+                segment = Tracer.start_external_request_segment(
                   library: "Net::HTTP",
                   uri: "http://remotehost.com/blogs/index",
                   procedure: "GET"
@@ -667,7 +667,7 @@ module NewRelic
 
           in_transaction do |txn|
 
-            segment = Transaction.start_external_request_segment(
+            segment = Tracer.start_external_request_segment(
               library: "Net::HTTP",
               uri: "http://remotehost.com/blogs/index",
               procedure: "GET",
@@ -754,7 +754,7 @@ module NewRelic
             in_transaction('wat') do |txn|
               txn.stubs(:sampled?).returns(true)
 
-              segment = Transaction.start_external_request_segment library: "Typhoeus",
+              segment = Tracer.start_external_request_segment library: "Typhoeus",
                                                                    uri: "http://#{'a' * 300}.com",
                                                                    procedure: "GET"
 
@@ -790,7 +790,7 @@ module NewRelic
         end
 
         def external_request_segment
-          segment = NewRelic::Agent::Transaction.start_external_request_segment(
+          segment = NewRelic::Agent::Tracer.start_external_request_segment(
             library: :foo,
             uri: 'http://example.com/root/index',
             procedure: :get

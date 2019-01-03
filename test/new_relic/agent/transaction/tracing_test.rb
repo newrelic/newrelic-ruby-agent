@@ -218,7 +218,7 @@ module NewRelic
 
         def test_start_external_request_segment
           in_transaction "test_txn" do |txn|
-            segment = Transaction.start_external_request_segment(
+            segment = Tracer.start_external_request_segment(
               library: "Net::HTTP",
               uri: "http://site.com/endpoint",
               procedure: "GET"
@@ -236,7 +236,7 @@ module NewRelic
         end
 
         def test_segment_does_not_record_metrics_outside_of_txn
-          segment = Transaction.start_external_request_segment(
+          segment = Tracer.start_external_request_segment(
             library: "Net::HTTP",
             uri: "http://remotehost.com/blogs/index",
             procedure: "GET"
@@ -505,7 +505,7 @@ module NewRelic
           in_transaction 'test_txn' do
             segment_a = NewRelic::Agent::Tracer.start_segment name: 'segment_a'
             segment_b = NewRelic::Agent::Tracer.start_segment name: 'segment_b'
-            segment_c = NewRelic::Agent::Transaction.start_external_request_segment(
+            segment_c = NewRelic::Agent::Tracer.start_external_request_segment(
               library: "MyLib",
               uri: "https://blog.newrelic.com",
               procedure: "GET",
