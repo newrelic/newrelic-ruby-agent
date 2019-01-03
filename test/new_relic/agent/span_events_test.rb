@@ -29,7 +29,7 @@ module NewRelic
         payload = nil
         external_segment = nil
         transaction = in_transaction('test_txn') do |txn|
-          external_segment = NewRelic::Agent::Transaction.\
+          external_segment = NewRelic::Agent::Tracer.\
                        start_external_request_segment library: "net/http",
                                                       uri: "http://docs.newrelic.com",
                                                       procedure: "GET"
@@ -45,7 +45,7 @@ module NewRelic
         payload = nil
         external_segment = nil
         in_transaction('test_txn') do |txn|
-          external_segment = NewRelic::Agent::Transaction.\
+          external_segment = NewRelic::Agent::Tracer.\
                        start_external_request_segment library: "net/http",
                                                       uri: "http://docs.newrelic.com",
                                                       procedure: "GET"

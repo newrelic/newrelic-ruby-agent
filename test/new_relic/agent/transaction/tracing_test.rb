@@ -262,7 +262,7 @@ module NewRelic
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
             advance_time(0.002)
 
-            segment_c = NewRelic::Agent::Transaction::start_segment name: "metric c"
+            segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
             advance_time(0.003)
             segment_c.finish
 
