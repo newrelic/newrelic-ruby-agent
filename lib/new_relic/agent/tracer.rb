@@ -56,8 +56,7 @@ module NewRelic
         rescue ArgumentError
           raise
         rescue => e
-          NewRelic::Agent.logger.error("Exception during Tracer.start_transaction_or_segment", e)
-          nil
+          log_error('start_transaction_or_segment', e)
         end
 
         # Takes name or partial_name and a category.
@@ -90,8 +89,7 @@ module NewRelic
         rescue ArgumentError
           raise
         rescue => e
-          NewRelic::Agent.logger.error("Exception during Tracer.start_transaction", e)
-          nil
+          log_error('start_transaction', e)
         end
 
         def create_distributed_trace_payload
