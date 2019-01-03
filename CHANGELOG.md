@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+## v5.7.0
+
+   * Ruby 2.6 support
+
+     We have tested the agent with the official release of Ruby 2.6.0
+     made on December 25, 2018.
+
 ## v5.6.0
 
   * Bugfix for transactions with `ActionController::Live`
