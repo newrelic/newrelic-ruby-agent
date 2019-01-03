@@ -149,6 +149,26 @@ module NewRelic
           log_error('start_datastore_segment', e)
         end
 
+        def start_external_request_segment(library: nil,
+                                           uri: nil,
+                                           procedure: nil,
+                                           start_time: nil,
+                                           parent: nil)
+
+          # ruby 2.0.0 does not support required kwargs
+          raise ArgumentError, 'missing required argument: library' if library.nil?
+          raise ArgumentError, 'missing required argument: uri' if uri.nil?
+          raise ArgumentError, 'missing required argument: procedure' if procedure.nil?
+
+          segment = Transaction::ExternalRequestSegment.new library, uri, procedure, start_time
+          start_and_add_segment segment, parent
+
+        rescue ArgumentError
+          raise
+        rescue => e
+          log_error('start_external_request_segment', e)
+        end
+
         def start_message_broker_segment(action: nil,
                                          library: nil,
                                          destination_type: nil,

@@ -242,6 +242,28 @@ module NewRelic
         end
       end
 
+      def test_start_external_request_segment
+        library    = "Net::HTTP"
+        uri        = "https://docs.newrelic.com"
+        procedure  = "GET"
+        start_time = Time.now
+        parent     = Tracer.start_segment(name: "parent")
+
+        in_transaction 'test' do
+          segment = Tracer.start_external_request_segment(
+            library: library,
+            uri: uri,
+            procedure: procedure,
+            start_time: start_time,
+            parent: parent
+          )
+
+          assert_equal segment, Tracer.current_segment
+
+          segment.finish
+        end
+      end
+
       def test_start_message_broker_segment_delegates_to_transaction
         action           = :produce,
         library          = "RabbitMQ"
