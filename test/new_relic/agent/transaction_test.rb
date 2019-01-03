@@ -1527,7 +1527,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     in_web_transaction "Controller/Framework/webby" do |t|
       in_web_transaction "Controller/Framework/inner_1" do
         in_web_transaction "Controller/Framework/inner_2" do
-          segment = NewRelic::Agent::Transaction.start_segment name: "Ruby/my_lib/my_meth"
+          segment = NewRelic::Agent::Tracer.start_segment name: "Ruby/my_lib/my_meth"
           NewRelic::Agent.set_transaction_name "RackFramework/action"
           segment.finish
         end
@@ -1580,7 +1580,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_segment_params_omitted_excluded
     with_config(:'attributes.exclude' => ['request.parameters.*']) do
       in_transaction('test_txn') do
-        segment = NewRelic::Agent::Transaction.start_segment(name: 'segment_a')
+        segment = NewRelic::Agent::Tracer.start_segment(name: 'segment_a')
         segment.params[:'request.parameters.uri'] = 'https://supersecret.com'
         segment.params[:foo] = 'bar'
         segment.finish

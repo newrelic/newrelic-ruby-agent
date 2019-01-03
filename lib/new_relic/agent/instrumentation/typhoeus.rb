@@ -35,7 +35,7 @@ DependencyDetection.defer do
     class Typhoeus::Hydra
 
       def run_with_newrelic(*args)
-        segment = NewRelic::Agent::Transaction.start_segment(
+        segment = NewRelic::Agent::Tracer.start_segment(
           name: NewRelic::Agent::Instrumentation::TyphoeusTracing::HYDRA_SEGMENT_NAME
         )
 

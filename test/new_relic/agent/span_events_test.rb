@@ -69,8 +69,8 @@ module NewRelic
         txn = in_transaction('test_txn') do |t|
           t.stubs(:sampled?).returns(true)
           txn_segment = t.initial_segment
-          segment_a = NewRelic::Agent::Transaction.start_segment(name: 'segment_a')
-          segment_b = NewRelic::Agent::Transaction.start_segment(name: 'segment_b')
+          segment_a = NewRelic::Agent::Tracer.start_segment(name: 'segment_a')
+          segment_b = NewRelic::Agent::Tracer.start_segment(name: 'segment_b')
           segment_b.finish
           segment_a.finish
         end
@@ -99,7 +99,7 @@ module NewRelic
         in_transaction('test_txn') do |t|
           t.stubs(:sampled?).returns(true)
           txn_segment = t.initial_segment
-          segment_a = NewRelic::Agent::Transaction.start_segment(name: 'segment_a')
+          segment_a = NewRelic::Agent::Tracer.start_segment(name: 'segment_a')
           segment_a.finish
         end
 

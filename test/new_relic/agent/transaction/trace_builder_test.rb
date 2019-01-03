@@ -19,13 +19,13 @@ module NewRelic
           Transaction.wrap state, "test_txn", :controller do
             txn = state.current_transaction
             advance_time 1
-            segment_a = Transaction.start_segment name: "segment_a"
+            segment_a = Tracer.start_segment name: "segment_a"
             segment_a.params[:foo] = "bar"
             advance_time 1
-            segment_b = Transaction.start_segment name: "segment_b"
+            segment_b = Tracer.start_segment name: "segment_b"
             advance_time 2
             segment_b.finish
-            segment_c = Transaction.start_segment name:  "segment_c"
+            segment_c = Tracer.start_segment name:  "segment_c"
             advance_time 3
             segment_c.finish
             segment_a.finish
@@ -66,7 +66,7 @@ module NewRelic
           Transaction.wrap state, "test_txn", :controller do
             txn = state.current_transaction
             advance_time 1
-            Transaction.start_segment name: "segment_a"
+            Tracer.start_segment name: "segment_a"
             advance_time 1
           end
 

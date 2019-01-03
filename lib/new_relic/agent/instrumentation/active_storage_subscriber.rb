@@ -22,7 +22,7 @@ module NewRelic
         end
 
         def start_segment name, id, payload
-          segment = Transaction.start_segment name: metric_name(name, payload)
+          segment = Tracer.start_segment name: metric_name(name, payload)
           segment.params[:key] = payload[:key]
           segment.params[:exist] = payload[:exist] if payload.key? :exist
           event_stack[id].push segment
