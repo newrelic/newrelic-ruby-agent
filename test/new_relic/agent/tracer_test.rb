@@ -38,6 +38,47 @@ module NewRelic
         assert Tracer.tracing_enabled?
       end
 
+      def test_in_transaction
+        NewRelic::Agent::Tracer.in_transaction(name: 'test', category: :other) do
+          # No-op
+        end
+
+        assert_metrics_recorded(['test'])
+      end
+
+      def test_in_transaction_with_early_failure
+        yielded = false
+        NewRelic::Agent::Transaction.any_instance.stubs(:start).raises("Boom")
+        NewRelic::Agent::Tracer.in_transaction(name: 'test', category: :other) do
+          yielded = true
+        end
+
+        assert yielded
+
+        NewRelic::Agent::Tracer.clear_state
+      end
+
+      def test_in_transaction_with_late_failure
+        yielded = false
+        NewRelic::Agent::Transaction.any_instance.stubs(:commit!).raises("Boom")
+        NewRelic::Agent::Tracer.in_transaction(name: 'test', category: :other) do
+          yielded = true
+        end
+
+        assert yielded
+        refute_metrics_recorded(['test'])
+      end
+
+      def test_in_transaction_notices_errors
+        assert_raises RuntimeError do
+          NewRelic::Agent::Tracer.in_transaction(name: 'test', category: :other) do
+            raise "O_o"
+          end
+        end
+
+        assert_metrics_recorded(["Errors/all"])
+      end
+
       def test_start_transaction_without_one_already_existing
         assert_nil Tracer.current_transaction
 
@@ -50,7 +91,7 @@ module NewRelic
         assert_nil Tracer.current_transaction
       end
 
-      def test_start_transaction_returns_current_if_aready_in_progress
+      def test_start_transaction_returns_current_if_already_in_progress
         in_transaction do |txn1|
           refute_nil Tracer.current_transaction
 

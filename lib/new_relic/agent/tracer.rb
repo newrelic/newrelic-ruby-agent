@@ -26,6 +26,31 @@ module NewRelic
           state.current_transaction
         end
 
+        def in_transaction(name: nil,
+                           partial_name: nil,
+                           category: nil,
+                           options: {})
+
+          finishable = Tracer.start_transaction_or_segment(
+            name: name,
+            partial_name: partial_name,
+            category: category,
+            options: options
+          )
+
+          begin
+            # We shouldn't raise from Tracer.start_transaction_or_segment, but
+            # only wrap the yield to be absolutely sure we don't report agent
+            # problems as app errors
+            yield
+          rescue => e
+            current_transaction.notice_error(e)
+            raise e
+          ensure
+            finishable.finish if finishable
+          end
+        end
+
         # Takes name or partial_name and a category.
         # Returns a Finishable (transaction or segment)
         def start_transaction_or_segment(name: nil,
