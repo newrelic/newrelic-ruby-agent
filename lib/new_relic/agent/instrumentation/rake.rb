@@ -38,8 +38,7 @@ DependencyDetection.defer do
 
           NewRelic::Agent::Instrumentation::RakeInstrumentation.before_invoke_transaction(self)
 
-          state = NewRelic::Agent::Tracer.state
-          NewRelic::Agent::Transaction.wrap(state, "OtherTransaction/Rake/invoke/#{name}", :rake)  do
+          NewRelic::Agent::Tracer.in_transaction(name: "OtherTransaction/Rake/invoke/#{name}", category: :rake) do
             NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
             invoke_without_newrelic(*args)
           end

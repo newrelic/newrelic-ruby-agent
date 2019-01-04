@@ -52,7 +52,7 @@ module NewRelic
               transaction_category)
             block.call
           else
-            run_in_transaction(state, job, block)
+            run_in_transaction(job, block)
           end
         end
 
@@ -62,11 +62,10 @@ module NewRelic
           end
         end
 
-        def self.run_in_transaction(state, job, block)
-          ::NewRelic::Agent::Transaction.wrap(state,
-                                              transaction_name_for_job(job),
-                                              :other,
-                                              &block)
+        def self.run_in_transaction(job, block)
+          ::NewRelic::Agent::Tracer.in_transaction(name: transaction_name_for_job(job),
+                                                   category: :other,
+                                                   &block)
         end
 
         def self.transaction_category

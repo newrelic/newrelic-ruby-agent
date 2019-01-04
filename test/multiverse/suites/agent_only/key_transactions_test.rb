@@ -48,8 +48,7 @@ class KeyTransactionsTest < Minitest::Test
     end
 
     def job(name)
-      state = ::NewRelic::Agent::Tracer.state
-      ::NewRelic::Agent::Transaction.wrap(state, name, :other) do
+      ::NewRelic::Agent::Transaction.in_transaction(name: name, category: :other) do
         advance_time(5)
       end
     end

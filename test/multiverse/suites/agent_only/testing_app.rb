@@ -50,8 +50,7 @@ class TestingBackgroundJob
   end
 
   def job(name, awhile)
-    state = ::NewRelic::Agent::Tracer.state
-    ::NewRelic::Agent::Transaction.wrap(state, name, :other) do
+    ::NewRelic::Agent::Tracer.in_transaction(name: name, category: :other) do
       sleep(awhile) if awhile
     end
   end
