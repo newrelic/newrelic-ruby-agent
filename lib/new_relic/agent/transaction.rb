@@ -11,7 +11,6 @@ require 'new_relic/agent/transaction/tracing'
 require 'new_relic/agent/transaction/distributed_tracing'
 require 'new_relic/agent/cross_app_tracing'
 require 'new_relic/agent/transaction_time_aggregator'
-require 'new_relic/agent/tracer'
 
 module NewRelic
   module Agent
