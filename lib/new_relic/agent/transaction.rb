@@ -36,7 +36,7 @@ module NewRelic
       ACTION_CABLE_PREFIX          = 'Controller/ActionCable/'.freeze
       OTHER_TRANSACTION_PREFIX     = 'OtherTransaction/'.freeze
 
-      WEB_TRANSACTION_CATEGORIES   = [:controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
+      WEB_TRANSACTION_CATEGORIES   = [:web, :controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
       TRANSACTION_NAMING_SOURCES   = [:child, :api].freeze
 
       MIDDLEWARE_SUMMARY_METRICS   = ['Middleware/all'.freeze].freeze

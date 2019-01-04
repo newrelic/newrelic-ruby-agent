@@ -233,7 +233,9 @@ module NewRelic
             category ||= (txn && txn.category)
             case category
             when :controller    then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
+            when :web           then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
             when :task          then ::NewRelic::Agent::Transaction::TASK_PREFIX
+            when :background    then ::NewRelic::Agent::Transaction::TASK_PREFIX
             when :rack          then ::NewRelic::Agent::Transaction::RACK_PREFIX
             when :uri           then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
             when :sinatra       then ::NewRelic::Agent::Transaction::SINATRA_PREFIX
