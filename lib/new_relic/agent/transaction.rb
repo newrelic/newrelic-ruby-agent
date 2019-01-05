@@ -11,6 +11,7 @@ require 'new_relic/agent/transaction/tracing'
 require 'new_relic/agent/transaction/distributed_tracing'
 require 'new_relic/agent/cross_app_tracing'
 require 'new_relic/agent/transaction_time_aggregator'
+require 'new_relic/agent/deprecator'
 
 module NewRelic
   module Agent
@@ -105,6 +106,9 @@ module NewRelic
       end
 
       def self.wrap(state, name, category, options = {})
+        Deprecator.deprecate 'Transaction.wrap',
+                             'Tracer#in_transaction'
+
         finishable = Tracer.start_transaction_or_segment(
               name: name,
               category: category,
