@@ -14,10 +14,12 @@ before_install:
 
   - gem --version
   - ./test/script/before_install/update_rubygems.sh
+  - gem uninstall bundler --all
+  - gem install bundler -v=1.17.3
   - ./test/script/before_install/gemstash_mirror.sh
-  - bundle --version
+  - bundle _1.17.3_ --version
 
-install: bundle install
+install: bundle _1.17.3_ install
 
 addons:
   apt:
