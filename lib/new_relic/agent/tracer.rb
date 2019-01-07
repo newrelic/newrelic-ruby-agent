@@ -31,7 +31,7 @@ module NewRelic
                            category: nil,
                            options: {})
 
-          finishable = Tracer.start_transaction_or_segment(
+          finishable = start_transaction_or_segment(
             name: name,
             partial_name: partial_name,
             category: category,
