@@ -14,6 +14,14 @@
      `Sequel::Model` class.  Thanks to Vasily Kolesnikov for the
      contribution!
 
+   * Grape 1.2 support
+
+     With agent versions 5.6 and earlier, Grape 1.2 apps reported
+     their transactions under the name `Proc#call` instead of the name
+     of the API endpoint.  Starting with agent version 5.7, all
+     existing versions of Grape will report the correct transaction
+     name.  Thanks to Masato Ohba for the contribution!
+
 ## v5.6.0
 
   * Bugfix for transactions with `ActionController::Live`
