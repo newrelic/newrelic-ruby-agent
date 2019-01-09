@@ -10,6 +10,11 @@ require 'new_relic/agent/transaction/message_broker_segment'
 
 module NewRelic
   module Agent
+    #
+    # This class helps you interact with the current transaction (if
+    # it exists), start new transactions, etc.
+    #
+    # @api public
     class Tracer
       class << self
         def state
@@ -26,6 +31,20 @@ module NewRelic
           state.current_transaction
         end
 
+        # Runs the given block of code in a transaction.
+        #
+        # @param [String] name reserved for New Relic internal use
+        #
+        # @param [String] partial_name a meaningful name for this
+        #   transaction (e.g., +blogs/index+); the Ruby agent will add a
+        #   New-Relic-specific prefix
+        #
+        # @param [Symbol] category +:web+ for web transactions or
+        #   +:background+ for background transactions
+        #
+        # @param [Hash] options reserved for New Relic internal use
+        #
+        # @api public
         def in_transaction(name: nil,
                            partial_name: nil,
                            category: nil,
@@ -51,8 +70,26 @@ module NewRelic
           end
         end
 
-        # Takes name or partial_name and a category.
-        # Returns a Finishable (transaction or segment)
+        # If no transaction is running, this method starts a
+        # transaction.  Otherwise, it adds a segment to the
+        # transaction already in progress.
+        #
+        # @param [String] name reserved for New Relic internal use
+        #
+        # @param [String] partial_name a meaningful name for this
+        #   transaction (e.g., +blogs/index+); the Ruby agent will add a
+        #   New-Relic-specific prefix
+        #
+        # @param [Symbol] category +:web+ for web transactions or
+        #   +:background+ for background transactions
+        #
+        # @param [Hash] options reserved for New Relic internal use
+        #
+        # @return [Object, #finish] an object that responds to
+        #   +finish+; you _must_ call +finish+ on it at the end of the
+        #   code you're tracing
+        #
+        # @api public
         def start_transaction_or_segment(name: nil,
                                          partial_name: nil,
                                          category: nil,
