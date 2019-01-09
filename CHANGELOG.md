@@ -5,14 +5,17 @@
    * Ruby 2.6 support
 
      We have tested the agent with the official release of Ruby 2.6.0
-     made on December 25, 2018.
+     made on December 25, 2018, and it looks great! Feel free to use
+     agent v5.7 to measure the performance of your Ruby 2.6
+     applications.
 
    * Support for loading Sequel core standalone
 
-     The agent will now enable Sequel instrumentation when an
-     application loads Sequel's core standalone; i.e., without the
-     `Sequel::Model` class.  Thanks to Vasily Kolesnikov for the
-     contribution!
+     Earlier versions of the agent required users of the Sequel data
+     mapping library to load the _entire_ library.  The agent will now
+     enable Sequel instrumentation when an application loads Sequel's
+     core standalone; i.e., without the `Sequel::Model` class.  Thanks
+     to Vasily Kolesnikov for the contribution!
 
    * Grape 1.2 support
 
