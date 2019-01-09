@@ -13,11 +13,13 @@ before_install:
   - sudo rm -f /etc/apt/sources.list.d/travis_ci_zeromq3.list
 
   - gem --version
-  - gem update --system
+  - ./test/script/before_install/update_rubygems.sh
+  - gem uninstall bundler -a -x
+  - gem install bundler -v=1.17.3
   - ./test/script/before_install/gemstash_mirror.sh
-  - bundle --version
+  - bundle _1.17.3_ --version
 
-install: bundle install
+install: bundle _1.17.3_ install
 
 addons:
   apt:
@@ -46,7 +48,7 @@ notifications:
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
   - jruby-9.1.13.0
-  - 2.6.0-preview3
+  - 2.6.0
   - 2.5.0
   - 2.4.2
   - 2.3.5
@@ -96,21 +98,21 @@ matrix:
   exclude:
     # Unsupported Rails/Ruby combinations
     # 2.6
-    - rvm: 2.6.0-preview3
+    - rvm: 2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.6.0-preview3
+    - rvm: 2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.6.0-preview3
+    - rvm: 2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: 2.6.0-preview3
+    - rvm: 2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails30
-    - rvm: 2.6.0-preview3
+    - rvm: 2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails31
-    - rvm: 2.6.0-preview3
+    - rvm: 2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails32
-    - rvm: 2.6.0-preview3
+    - rvm: 2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails40
-    - rvm: 2.6.0-preview3
+    - rvm: 2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails41
 
     # 2.5

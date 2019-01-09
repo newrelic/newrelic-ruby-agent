@@ -1,5 +1,30 @@
 # New Relic Ruby Agent Release Notes #
 
+## v5.7.0
+
+   * Ruby 2.6 support
+
+     We have tested the agent with the official release of Ruby 2.6.0
+     made on December 25, 2018, and it looks great! Feel free to use
+     agent v5.7 to measure the performance of your Ruby 2.6
+     applications.
+
+   * Support for loading Sequel core standalone
+
+     Earlier versions of the agent required users of the Sequel data
+     mapping library to load the _entire_ library.  The agent will now
+     enable Sequel instrumentation when an application loads Sequel's
+     core standalone; i.e., without the `Sequel::Model` class.  Thanks
+     to Vasily Kolesnikov for the contribution!
+
+   * Grape 1.2 support
+
+     With agent versions 5.6 and earlier, Grape 1.2 apps reported
+     their transactions under the name `Proc#call` instead of the name
+     of the API endpoint.  Starting with agent version 5.7, all
+     existing versions of Grape will report the correct transaction
+     name.  Thanks to Masato Ohba for the contribution!
+
 ## v5.6.0
 
   * Bugfix for transactions with `ActionController::Live`

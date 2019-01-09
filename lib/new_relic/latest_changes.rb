@@ -26,7 +26,7 @@ EOS
     # * This is a patch item (3.7.1.188)
     def self.read_patch(patch_level, changelog=default_changelog)
       latest = extract_latest_changes(File.read(changelog))
-      changes = ["## v#{patch_level} ##", ""]
+      changes = ["## v#{patch_level}", ""]
 
       current_item = nil
       latest.each do |line|
@@ -52,7 +52,7 @@ EOS
       changes = []
       version_count = 0
       contents.each_line do |line|
-        if line.match(/##\s+v[\d.]+\s+##/)
+        if line.match(/##\s+v[\d.]+/)
           version_count += 1
         end
         break if version_count >= 2
