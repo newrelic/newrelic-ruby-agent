@@ -23,10 +23,18 @@ module NewRelic
 
         alias_method :tl_get, :state
 
+        # Returns +true+ unless called from within an
+        # +NewRelic::Agent.disable_all_tracing+ block.
+        #
+        # @api public
         def tracing_enabled?
           state.tracing_enabled?
         end
 
+        # Returns the transaction in progress for this thread, or
+        # +nil+ if none exists.
+        #
+        # @api public
         def current_transaction
           state.current_transaction
         end
@@ -70,9 +78,8 @@ module NewRelic
           end
         end
 
-        # If no transaction is running, this method starts a
-        # transaction.  Otherwise, it adds a segment to the
-        # transaction already in progress.
+        # Starts a segment on the current transaction (if one exists)
+        # or starts a new transaction otherwise.
         #
         # @param [String] name reserved for New Relic internal use
         #
@@ -113,7 +120,7 @@ module NewRelic
           if (txn = current_transaction)
             txn.create_nested_segment(category, options)
           else
-            Transaction.start_new_transaction(tl_get, category, options)
+            Transaction.start_new_transaction(state, category, options)
           end
 
         rescue ArgumentError
@@ -165,6 +172,11 @@ module NewRelic
           txn.accept_distributed_trace_payload(payload)
         end
 
+        # Returns the currently active segment in the transaction in
+        # progress for this thread, or +nil+ if no segment or
+        # transaction exists.
+        #
+        # @api public
         def current_segment
           return unless txn = current_transaction
           txn.current_segment
