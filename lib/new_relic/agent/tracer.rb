@@ -12,7 +12,7 @@ module NewRelic
   module Agent
     #
     # This class helps you interact with the current transaction (if
-    # it exists), start new transactions, etc.
+    # it exists), start new transactions/segments, etc.
     #
     # @api public
     class Tracer
