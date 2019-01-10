@@ -182,6 +182,30 @@ module NewRelic
           txn.current_segment
         end
 
+        # Creates and starts a general-purpose segment used to time
+        # arbitrary code.
+        #
+        # @param [String] name full name of the segment; the agent
+        #   will not add a prefix. Third-party users should begin the
+        #   name with +Custom/+; e.g.,
+        #   +Custom/UserMailer/send_welcome_email+
+        #
+        # @param [optional, String, Array] unscoped_metrics additional
+        #   unscoped metrics to record using this segment's timing
+        #   information
+        #
+        # @param start_time [optional, Time] a +Time+ instance
+        #   denoting the start time of the segment. Value is set by
+        #   AbstractSegment#start if not given.
+        #
+        # @param parent [optional, Segment] Use for the rare cases
+        #   (such as async) where the parent segment should be something
+        #   other than the current segment
+        #
+        # @return [Segment] the newly created segment; you _must_ call
+        #   +finish+ on it at the end of the code you're tracing
+        #
+        # @api public
         def start_segment(name:nil,
                           unscoped_metrics:nil,
                           start_time: nil,
@@ -202,6 +226,41 @@ module NewRelic
         UNKNOWN = "Unknown".freeze
         OTHER = "other".freeze
 
+        # Creates and starts a datastore segment used to time
+        # datastore operations.
+        #
+        # @param [String] product the datastore name for use in metric
+        #   naming, e.g. "FauxDB"
+        #
+        # @param [String] operation the name of the operation
+        #   (e.g. "select"), often named after the method that's being
+        #   instrumented.
+        #
+        # @param [optional, String] collection the collection name for use in
+        #   statement-level metrics (i.e. table or model name)
+        #
+        # @param [optional, String] host the host this database
+        #   instance is running on
+        #
+        # @param [optional, String] port_path_or_id TCP port, file
+        #   path, UNIX domain socket, or other connection-related info
+        #
+        # @param [optional, String] database_name the name of this
+        #   database
+        #
+        # @param start_time [optional, Time] a +Time+ instance
+        #   denoting the start time of the segment. Value is set by
+        #   AbstractSegment#start if not given.
+        #
+        # @param parent [optional, Segment] Use for the rare cases
+        #   (such as async) where the parent segment should be something
+        #   other than the current segment
+        #
+        # @return [DatastoreSegment] the newly created segment; you
+        #   _must_ call +finish+ on it at the end of the code you're
+        #   tracing
+        #
+        # @api public
         def start_datastore_segment(product: nil,
                                     operation: nil,
                                     collection: nil,
@@ -223,6 +282,33 @@ module NewRelic
           log_error('start_datastore_segment', e)
         end
 
+        # Creates and starts an external request segment using the
+        # given library, URI, and procedure. This is used to time
+        # external calls made over HTTP.
+        #
+        # @param [String] library a string of the class name of the library used to
+        #   make the external call, for example, 'Net::HTTP'.
+        #
+        # @param [String, URI] uri indicates the URI to which the
+        #   external request is being made. The URI should begin with the protocol,
+        #   for example, 'https://github.com'.
+        #
+        # @param [String] procedure the HTTP method being used for the external
+        #   request as a string, for example, 'GET'.
+        #
+        # @param start_time [optional, Time] a +Time+ instance
+        #   denoting the start time of the segment. Value is set by
+        #   AbstractSegment#start if not given.
+        #
+        # @param parent [optional, Segment] Use for the rare cases
+        #   (such as async) where the parent segment should be something
+        #   other than the current segment
+        #
+        # @return [ExternalRequestSegment] the newly created segment;
+        #   you _must_ call +finish+ on it at the end of the code
+        #   you're tracing
+        #
+        # @api public
         def start_external_request_segment(library: nil,
                                            uri: nil,
                                            procedure: nil,
@@ -243,6 +329,7 @@ module NewRelic
           log_error('start_external_request_segment', e)
         end
 
+        # For New Relic internal use only.
         def start_message_broker_segment(action: nil,
                                          library: nil,
                                          destination_type: nil,

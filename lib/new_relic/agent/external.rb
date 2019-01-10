@@ -34,6 +34,9 @@ module NewRelic
       #
       # @api public
       def start_segment(library: nil, uri: nil, procedure: nil)
+        Deprecator.deprecate 'External.start_segment',
+                             'Tracer#start_external_request_segment'
+
         raise ArgumentError, 'Argument `library` is required' if library.nil?
         raise ArgumentError, 'Argument `uri` is required' if uri.nil?
         raise ArgumentError, 'Argument `procedure` is required' if procedure.nil?

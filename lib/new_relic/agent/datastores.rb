@@ -123,8 +123,8 @@ module NewRelic
         ensure
           begin
             if callback
-                elapsed_time = (Time.now - segment.start_time).to_f
-                callback.call(result, segment.name, elapsed_time)
+              elapsed_time = (Time.now - segment.start_time).to_f
+              callback.call(result, segment.name, elapsed_time)
             end
           ensure
             segment.finish if segment
