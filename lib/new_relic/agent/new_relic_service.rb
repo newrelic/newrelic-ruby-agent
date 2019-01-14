@@ -70,6 +70,7 @@ module NewRelic
       end
 
       def connect(settings={})
+        @request_headers_map = nil
         security_policies = nil
         if response = preconnect
           if host = response['redirect_host']
@@ -490,7 +491,6 @@ module NewRelic
       #                    and returns the name of the collector to
       #                    contact
       #  - :data => the data to send as the body of the request
-      #  - :headers => additional headers to attached to the request
       def send_request(opts)
         headers = {
           'Content-Encoding' => opts[:encoding],

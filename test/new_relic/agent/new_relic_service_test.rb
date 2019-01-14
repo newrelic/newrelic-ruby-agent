@@ -884,6 +884,26 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal '12BAED78FC89BAFE1243', headers['x-nr-metadata']
   end
 
+  def test_headers_cleared_on_subsequent_connect
+    connect_response = {
+      'agent_run_id' => 1,
+      'request_headers_map' => {
+        'X-NR-Run-Token' => 'AFBE4546FEADDEAD1243',
+        'X-NR-Metadata' => '12BAED78FC89BAFE1243'
+      }
+    }
+
+    @http_handle.respond_to(:connect, connect_response)
+
+    @service.connect
+    @service.connect
+
+    header_keys = @http_handle.last_request.to_hash.keys
+
+    refute_includes header_keys, 'x-nr-run-token'
+    refute_includes header_keys, 'x-nr-metadata'
+  end
+
   def build_stats_hash(items={})
     hash = NewRelic::Agent::StatsHash.new
     items.each do |key, value|
