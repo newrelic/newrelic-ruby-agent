@@ -16,7 +16,7 @@ module NewRelic
       # Specifies the version of the agent's communication protocol with
       # the NewRelic hosted site.
 
-      PROTOCOL_VERSION = 16
+      PROTOCOL_VERSION = 17
 
       # 1f147a42: v10 (tag 3.5.3.17)
       # cf0d1ff1: v9 (tag 3.5.0)
@@ -43,6 +43,7 @@ module NewRelic
         @in_session = nil
         @agent_id = nil
         @shared_tcp_connection = nil
+        @request_headers_map = nil
         reset_remote_method_uris
 
         @audit_logger = ::NewRelic::Agent::AuditLogger.new
@@ -80,6 +81,7 @@ module NewRelic
           end
         end
         response = invoke_remote(:connect, [settings])
+        @request_headers_map = response['request_headers_map']
         self.agent_id = response['agent_run_id']
         response.merge!(security_policies) if security_policies
         response
@@ -488,11 +490,18 @@ module NewRelic
       #                    and returns the name of the collector to
       #                    contact
       #  - :data => the data to send as the body of the request
+      #  - :headers => additional headers to attached to the request
       def send_request(opts)
+        headers = {
+          'Content-Encoding' => opts[:encoding],
+          'Host'             => opts[:collector].name
+        }
+        headers.merge!(@request_headers_map) if @request_headers_map
+
         if Agent.config[:put_for_data_send]
-          request = Net::HTTP::Put.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'HOST' => opts[:collector].name)
+          request = Net::HTTP::Put.new(opts[:uri], headers)
         else
-          request = Net::HTTP::Post.new(opts[:uri], 'CONTENT-ENCODING' => opts[:encoding], 'HOST' => opts[:collector].name)
+          request = Net::HTTP::Post.new(opts[:uri], headers)
         end
         request['user-agent'] = user_agent
         request.content_type = "application/octet-stream"

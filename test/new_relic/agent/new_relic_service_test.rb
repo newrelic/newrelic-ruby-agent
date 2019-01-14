@@ -862,6 +862,28 @@ class NewRelicServiceTest < Minitest::Test
     end
   end
 
+  def test_headers_from_connect_sent_on_subsequent_posts
+    connect_response = {
+      'agent_run_id' => 1,
+      'request_headers_map' => {
+        'X-NR-Run-Token' => 'AFBE4546FEADDEAD1243',
+        'X-NR-Metadata' => '12BAED78FC89BAFE1243'
+      }
+    }
+
+    @http_handle.respond_to(:connect, connect_response)
+    @http_handle.respond_to(:foo, ['blah'])
+
+    @service.connect
+    @service.send(:invoke_remote, :foo, ['payload'])
+
+    headers = {}
+    @http_handle.last_request.each_header { |k, v| headers[k] = v }
+
+    assert_equal 'AFBE4546FEADDEAD1243', headers['x-nr-run-token']
+    assert_equal '12BAED78FC89BAFE1243', headers['x-nr-metadata']
+  end
+
   def build_stats_hash(items={})
     hash = NewRelic::Agent::StatsHash.new
     items.each do |key, value|
