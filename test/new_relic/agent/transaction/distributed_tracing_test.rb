@@ -82,7 +82,7 @@ module NewRelic
           payload = create_distributed_trace_payload
 
           transaction = in_transaction "test_txn" do |txn|
-            txn.accept_distributed_trace_payload payload.to_json
+            txn.accept_distributed_trace_payload payload.text
           end
 
           refute_nil transaction.distributed_trace_payload
@@ -178,7 +178,7 @@ module NewRelic
           payload = create_distributed_trace_payload
 
           in_transaction "test_txn" do |txn|
-            txn.accept_distributed_trace_payload payload.to_json
+            txn.accept_distributed_trace_payload payload.text
           end
 
           assert_metrics_recorded ['DurationByCaller/App/190/46954/Unknown/all',
@@ -196,7 +196,7 @@ module NewRelic
           payload = create_distributed_trace_payload
 
           in_transaction "test_txn" do |txn|
-            txn.accept_distributed_trace_payload payload.to_json
+            txn.accept_distributed_trace_payload payload.text
             NewRelic::Agent.notice_error StandardError.new "Nooo!"
           end
 
@@ -212,7 +212,7 @@ module NewRelic
 
           in_transaction "test_txn" do |txn|
             refute txn.sampled?
-            txn.accept_distributed_trace_payload payload.to_json
+            txn.accept_distributed_trace_payload payload.text
             assert txn.sampled?
           end
         end
@@ -224,7 +224,7 @@ module NewRelic
 
           in_transaction "test_txn" do |txn|
             assert txn.sampled?
-            txn.accept_distributed_trace_payload payload.to_json
+            txn.accept_distributed_trace_payload payload.text
             refute txn.sampled?
           end
         end
@@ -309,7 +309,7 @@ module NewRelic
           payload.id = "abc123"
 
           txn = in_transaction "test_txn" do |t|
-            t.accept_distributed_trace_payload payload.to_json
+            t.accept_distributed_trace_payload payload.text
           end
 
           intrinsics = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
@@ -323,7 +323,7 @@ module NewRelic
           payload = create_distributed_trace_payload(sampled: false)
 
           txn = in_transaction "test_txn" do |t|
-            t.accept_distributed_trace_payload payload.to_json
+            t.accept_distributed_trace_payload payload.text
           end
 
           intrinsics = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
@@ -339,7 +339,7 @@ module NewRelic
           payload = create_distributed_trace_payload(sampled: false)
 
           in_transaction "test_txn" do |txn|
-            txn.accept_distributed_trace_payload payload.to_json
+            txn.accept_distributed_trace_payload payload.text
           end
 
           intrinsics, _, _ = last_transaction_event
@@ -369,7 +369,7 @@ module NewRelic
           end
 
           transaction = in_transaction "text_txn2" do |txn|
-            txn.accept_distributed_trace_payload payload.to_json
+            txn.accept_distributed_trace_payload payload.text
             NewRelic::Agent.notice_error StandardError.new "Nooo!"
           end
 
@@ -395,7 +395,7 @@ module NewRelic
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
           in_transaction "text_txn" do |txn|
-            txn.accept_distributed_trace_payload payload.to_json
+            txn.accept_distributed_trace_payload payload.text
             NewRelic::Agent.notice_error StandardError.new "Nooo!"
           end
 
@@ -410,7 +410,7 @@ module NewRelic
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
           transaction = in_transaction "test_txn" do |txn|
-            txn.accept_distributed_trace_payload payload.to_json
+            txn.accept_distributed_trace_payload payload.text
           end
 
           intrinsics, _, _ = last_transaction_event
@@ -453,7 +453,7 @@ module NewRelic
           payload = create_distributed_trace_payload(sampled: true)
 
           transaction = in_transaction "test_txn" do |txn|
-            txn.accept_distributed_trace_payload payload.to_json
+            txn.accept_distributed_trace_payload payload.text
           end
 
           assert_equal transaction.priority, payload.priority
@@ -467,7 +467,7 @@ module NewRelic
           priority = nil
           transaction = in_transaction "test_txn2" do |txn|
             priority = txn.priority
-            txn.accept_distributed_trace_payload payload.to_json
+            txn.accept_distributed_trace_payload payload.text
           end
 
           assert_equal priority, transaction.priority
@@ -485,7 +485,7 @@ module NewRelic
           priority = nil
           transaction = in_transaction "test_txn2" do |txn|
             priority = txn.priority
-            txn.accept_distributed_trace_payload payload.to_json
+            txn.accept_distributed_trace_payload payload.text
           end
 
           assert_equal priority, transaction.priority
@@ -500,8 +500,8 @@ module NewRelic
         end
 
         def test_multiple_payload_accepts_ignored
-          payload1 = create_distributed_trace_payload.to_json
-          payload2 = create_distributed_trace_payload.to_json
+          payload1 = create_distributed_trace_payload.text
+          payload2 = create_distributed_trace_payload.text
 
           in_transaction do |txn|
             assert txn.accept_distributed_trace_payload(payload1)
@@ -512,7 +512,7 @@ module NewRelic
         end
 
         def test_payload_rejected_when_accept_is_called_after_create
-          payload = create_distributed_trace_payload.to_json
+          payload = create_distributed_trace_payload.text
 
           in_transaction do |txn|
             txn.create_distributed_trace_payload
@@ -539,14 +539,14 @@ module NewRelic
           payload.version = [1e100, 0]
 
           in_transaction do |txn2|
-            refute txn2.accept_distributed_trace_payload(payload.to_json)
+            refute txn2.accept_distributed_trace_payload(payload.text)
           end
 
           assert_metrics_recorded "Supportability/DistributedTrace/AcceptPayload/Ignored/MajorVersion"
         end
 
         def test_supportability_metric_recorded_accept_successful
-          payload = create_distributed_trace_payload.to_json
+          payload = create_distributed_trace_payload.text
 
           in_transaction do |txn|
             assert txn.accept_distributed_trace_payload(payload)
@@ -556,7 +556,7 @@ module NewRelic
         end
 
         def test_supportability_metric_recorded_on_exception_during_accept
-          payload = create_distributed_trace_payload.to_json
+          payload = create_distributed_trace_payload.text
 
           in_transaction do |txn|
             txn.stubs(:check_valid_version).raises(ArgumentError.new("oops!"))
@@ -589,7 +589,7 @@ module NewRelic
           payload = create_distributed_trace_payload(sampled: true)
 
           in_transaction('test_txn') do |txn|
-            txn.accept_distributed_trace_payload(payload.to_json)
+            txn.accept_distributed_trace_payload(payload.text)
 
             assert_equal true, txn.sampled?
             assert_equal payload.priority, txn.priority
@@ -608,7 +608,7 @@ module NewRelic
 
           20.times do
             in_transaction('test_txn') do |txn|
-              txn.accept_distributed_trace_payload payload.to_json
+              txn.accept_distributed_trace_payload payload.text
             end
           end
           assert_equal 0, adaptive_sampler.stats[:seen]
@@ -625,7 +625,7 @@ module NewRelic
           advance_time 2.0
 
           in_transaction('test_txn') do |txn|
-            txn.accept_distributed_trace_payload payload.to_json
+            txn.accept_distributed_trace_payload payload.text
             assert_equal 2.0, txn.transport_duration.round(0)
           end
         end
@@ -636,7 +636,7 @@ module NewRelic
           advance_time(-1.0)
 
           in_transaction('test_txn') do |txn|
-            txn.accept_distributed_trace_payload payload.to_json
+            txn.accept_distributed_trace_payload payload.text
             assert_equal 0, txn.transport_duration
           end
         end
@@ -667,7 +667,7 @@ module NewRelic
 
           result[:parent_transaction] = in_transaction "text_txn2" do |txn|
             txn.accept_distributed_trace_payload(
-              result[:grandparent_payload].to_json)
+              result[:grandparent_payload].text)
 
             result[:parent_payload] =
               txn.create_distributed_trace_payload
@@ -677,7 +677,7 @@ module NewRelic
 
           result[:child_transaction] = in_transaction "text_txn3" do |txn|
             txn.accept_distributed_trace_payload(
-              result[:parent_payload].to_json)
+              result[:parent_payload].text)
           end
 
           result[:child_intrinsics], _, _ = last_transaction_event

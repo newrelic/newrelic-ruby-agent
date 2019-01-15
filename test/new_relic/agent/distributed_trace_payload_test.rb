@@ -54,7 +54,7 @@ module NewRelic
 
         assert_equal "trust_this!", payload.trusted_account_key
 
-        deserialized_payload = JSON.parse(payload.to_json)
+        deserialized_payload = JSON.parse(payload.text)
 
         assert_equal "trust_this!", deserialized_payload["d"]["tk"]
       end
@@ -68,7 +68,7 @@ module NewRelic
 
           assert_nil payload.trusted_account_key
 
-          deserialized_payload = JSON.parse(payload.to_json)
+          deserialized_payload = JSON.parse(payload.text)
 
           refute deserialized_payload["d"].key? "tk"
         end
@@ -111,7 +111,7 @@ module NewRelic
           incoming_payload = txn.create_distributed_trace_payload
         end
 
-        payload = DistributedTracePayload.from_json incoming_payload.to_json
+        payload = DistributedTracePayload.from_json incoming_payload.text
 
         assert_equal DistributedTracePayload::VERSION, payload.version
         assert_equal "App", payload.parent_type
@@ -160,7 +160,7 @@ module NewRelic
           payload = DistributedTracePayload.for_transaction txn
         end
 
-        raw_payload = JSON.parse(payload.to_json)
+        raw_payload = JSON.parse(payload.text)
 
         assert_equal_unordered %w(v d), raw_payload.keys
         assert_equal_unordered %w(ty ac ap tk id tx tr pr sa ti), raw_payload["d"].keys
@@ -169,7 +169,7 @@ module NewRelic
       def test_to_json_and_from_json_are_inverse_operations
         transaction = in_transaction("test_txn") {}
         payload1 = DistributedTracePayload.for_transaction(transaction)
-        payload2 = DistributedTracePayload.from_json(payload1.to_json)
+        payload2 = DistributedTracePayload.from_json(payload1.text)
 
         payload1_ivars = payload1.instance_variables.map { |iv| payload1.instance_variable_get(iv) }
         payload2_ivars = payload2.instance_variables.map { |iv| payload2.instance_variable_get(iv) }

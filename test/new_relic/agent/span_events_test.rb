@@ -53,7 +53,7 @@ module NewRelic
         end
 
         in_transaction('test_txn2') do |txn|
-          txn.accept_distributed_trace_payload payload.to_json
+          txn.accept_distributed_trace_payload payload.text
         end
 
         last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
