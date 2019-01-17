@@ -156,8 +156,7 @@ module NewRelic
             !payload.parent_type.nil? &&
             (!payload.transaction_id.nil? || !payload.id.nil?) &&
             !payload.trace_id.nil? &&
-            !payload.timestamp.nil? &&
-            !payload.parent_account_id.nil?
+            !payload.timestamp.nil?
 
             true
           else
