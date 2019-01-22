@@ -22,6 +22,13 @@
      `Transaction.start/stop`, you will need to update your code to
      use the Tracer API.
 
+    * Agent detects Rails 6.0
+
+      The agent properly detects Rails 6.0 and no longer logs an error when
+      started in a Rails 6.0 environment. This does not include full Rails 6.0
+      support, which will be coming in a future release. Thanks to Jacob Bednarz
+      for the contribution.
+
 ## v5.7.0
 
    * Ruby 2.6 support
