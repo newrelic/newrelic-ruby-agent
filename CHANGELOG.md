@@ -22,12 +22,24 @@
      `Transaction.start/stop`, you will need to update your code to
      use the Tracer API.
 
-    * Agent detects Rails 6.0
+     The full list of APIs that were removed or deprecated are:
+       * `External.start_segment`
+       * `Transaction.create_segment`
+       * `Transaction.start`
+       * `Transaction.stop`
+       * `Transaction.start_datastore_segment`
+       * `Transaction.start_segment`
+       * `Transaction.wrap`
+       * `TransactionState.current_transaction`
 
-      The agent properly detects Rails 6.0 and no longer logs an error when
-      started in a Rails 6.0 environment. This does not include full Rails 6.0
-      support, which will be coming in a future release. Thanks to Jacob Bednarz
-      for the contribution.
+     If are you using any of these APIs, please see the [upgrade guide](https://docs.newrelic.com/docs/agents/ruby-agent/troubleshooting/update-private-api-calls-public-tracer-api) for a list of replacements.
+
+   * Agent detects Rails 6.0
+
+     The agent properly detects Rails 6.0 and no longer logs an error when
+     started in a Rails 6.0 environment. This does not include full Rails 6.0
+     support, which will be coming in a future release. Thanks to Jacob Bednarz
+     for the contribution.
 
 ## v5.7.0
 
