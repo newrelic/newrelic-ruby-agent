@@ -1,5 +1,27 @@
 # New Relic Ruby Agent Release Notes #
 
+## v6.0.0
+
+   * Tracer API for flexible custom instrumentation
+
+     With agent version 6.0, we are introducing the `Tracer` class, an
+     officially supported public API for more flexible custom
+     instrumentation.  By calling its `in_transaction` method, you can
+     instrument an arbitrary section of Ruby code without needing to
+     juggle any explicit state.  Behind the scenes, the agent will
+     make sure that the measured code results in an APM segment inside
+     a transaction.
+
+     The same API contains additional methods for creating
+     transactions and segments, and for interacting with the current
+     transaction.  For more details, see the [custom instrumentation
+     documentation](https://docs.newrelic.com/docs/agents/ruby-agent/api-guides/ruby-custom-instrumentation).
+
+     If you were previously using any of the agent's private,
+     undocumented APIs, such as `Transaction.wrap` or
+     `Transaction.start/stop`, you will need to update your code to
+     use the Tracer API.
+
 ## v5.7.0
 
    * Ruby 2.6 support
