@@ -86,7 +86,7 @@ module NewRelic
       def browser_timing_header #THREAD_LOCAL_ACCESS
         return '' unless js_enabled_and_ready? # fast exit
 
-        state = NewRelic::Agent::TransactionState.tl_get
+        state = NewRelic::Agent::Tracer.state
 
         return '' unless insert_js?(state) # slower exit
 

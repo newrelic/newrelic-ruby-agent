@@ -10,7 +10,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     agent = NewRelic::Agent.instance
     stats_engine = NewRelic::Agent::StatsEngine.new
     agent.stubs(:stats_engine).returns(stats_engine)
-    @state = NewRelic::Agent::TransactionState.tl_get
+    @state = NewRelic::Agent::Tracer.state
     @state.reset
     @sampler = NewRelic::Agent::SqlSampler.new
     @connection = stub('ActiveRecord connection', :execute => 'result')
@@ -439,7 +439,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_on_finishing_transaction_with_busted_transaction_state_does_not_crash
-    state = NewRelic::Agent::TransactionState.tl_get
+    state = NewRelic::Agent::Tracer.state
     @sampler.on_finishing_transaction(state, "whatever", Time.now)
   end
 
@@ -478,7 +478,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
         t.sampled = true
         t.accept_distributed_trace_payload payload.to_json
         sampled = t.sampled?
-        segment = NewRelic::Agent::Transaction.start_datastore_segment(
+        segment = NewRelic::Agent::Tracer.start_datastore_segment(
           product: "SQLite",
           operation: "insert",
           collection: "Blog"

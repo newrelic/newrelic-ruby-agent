@@ -26,8 +26,8 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def setup
-    NewRelic::Agent::TransactionState.tl_clear
-    @state = NewRelic::Agent::TransactionState.tl_get
+    NewRelic::Agent::Tracer.clear_state
+    @state = NewRelic::Agent::Tracer.state
     agent = NewRelic::Agent.instance
     stats_engine = NewRelic::Agent::StatsEngine.new
     agent.stubs(:stats_engine).returns(stats_engine)
@@ -53,7 +53,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
   def teardown
     super
-    NewRelic::Agent::TransactionState.tl_clear
+    NewRelic::Agent::Tracer.clear_state
     NewRelic::Agent.config.remove_config(@test_config)
     NewRelic::Agent.instance.instance_variable_set(:@transaction_sampler, @old_sampler)
   end
@@ -243,11 +243,11 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
 
       in_transaction 'a' do
-        segment_b = NewRelic::Agent::Transaction.start_segment name: "b"
+        segment_b = NewRelic::Agent::Tracer.start_segment name: "b"
         segment_b.finish
 
-        segment_c = NewRelic::Agent::Transaction.start_segment name: "c"
-        segment_d = NewRelic::Agent::Transaction.start_segment name: "d"
+        segment_c = NewRelic::Agent::Tracer.start_segment name: "c"
+        segment_d = NewRelic::Agent::Tracer.start_segment name: "d"
         segment_d.finish
         segment_c.finish
       end
@@ -266,29 +266,29 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     nr_freeze_time
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       in_transaction do
-        s = NewRelic::Agent::Transaction.start_segment name: 'first'
+        s = NewRelic::Agent::Tracer.start_segment name: 'first'
         advance_time 0.1
         s.finish
       end
       in_transaction do
-        s = NewRelic::Agent::Transaction.start_segment name: 'second'
+        s = NewRelic::Agent::Tracer.start_segment name: 'second'
         advance_time 0.1
         s.finish
       end
 
       in_transaction do
-        s = NewRelic::Agent::Transaction.start_segment name: 'two_seconds'
+        s = NewRelic::Agent::Tracer.start_segment name: 'two_seconds'
         advance_time 2
         s.finish
       end
 
       in_transaction do
-        s = NewRelic::Agent::Transaction.start_segment name: 'fourth'
+        s = NewRelic::Agent::Tracer.start_segment name: 'fourth'
         advance_time 0.1
         s.finish
       end
       in_transaction do
-        s = NewRelic::Agent::Transaction.start_segment name: 'fifth'
+        s = NewRelic::Agent::Tracer.start_segment name: 'fifth'
         advance_time 0.1
         s.finish
       end
@@ -301,7 +301,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
       # 1 second duration
       # run_sample_trace(0,1)
       in_transaction do
-        s = NewRelic::Agent::Transaction.start_segment name: 'one_second'
+        s = NewRelic::Agent::Tracer.start_segment name: 'one_second'
         advance_time 1
         s.finish
       end
@@ -311,7 +311,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
       # 1 second duration
       in_transaction do
-        s = NewRelic::Agent::Transaction.start_segment name: 'ten_seconds'
+        s = NewRelic::Agent::Tracer.start_segment name: 'ten_seconds'
         advance_time 10
         s.finish
       end
@@ -387,7 +387,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
 
     with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
       in_transaction do |transaction|
-        state = NewRelic::Agent::TransactionState.tl_get
         transaction.is_cross_app_caller = true
         path_hash = transaction.cat_path_hash
       end

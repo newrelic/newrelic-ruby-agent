@@ -23,7 +23,7 @@ class TestingApp
       opts = {}
       if params['transaction_category']
         opts[:category] = params['transaction_category']
-        NewRelic::Agent::TransactionState.tl_get.current_transaction.stubs(:similar_category?).returns true
+        NewRelic::Agent::Tracer.current_transaction.stubs(:similar_category?).returns true
       end
       NewRelic::Agent.set_transaction_name(params['transaction_name'], opts)
     end
@@ -50,8 +50,7 @@ class TestingBackgroundJob
   end
 
   def job(name, awhile)
-    state = ::NewRelic::Agent::TransactionState.tl_get
-    ::NewRelic::Agent::Transaction.wrap(state, name, :other) do
+    ::NewRelic::Agent::Tracer.in_transaction(name: name, category: :other) do
       sleep(awhile) if awhile
     end
   end

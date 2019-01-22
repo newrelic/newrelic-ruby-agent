@@ -34,11 +34,11 @@ module NewRelic
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
           nr_freeze_time
           created_at = (Time.now.to_f * 1000).round
-          state = TransactionState.tl_get
+          payload = nil
 
-          transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
-          payload = transaction.create_distributed_trace_payload
-          Transaction.stop(state)
+          transaction = in_transaction "test_txn" do |t|
+            payload = t.create_distributed_trace_payload
+          end
 
           assert_equal "46954", payload.parent_app_id
           assert_equal "190", payload.parent_account_id
@@ -53,13 +53,12 @@ module NewRelic
 
         def test_create_distributed_trace_payload_while_disconnected_returns_nil
           nr_freeze_time
-          state = TransactionState.tl_get
 
           payload = 'definitely not nil'
           with_config(account_id: nil, primary_application_id: nil) do
-            transaction = Transaction.start state, :controller, :transaction_name => "test_txn"
-            payload = transaction.create_distributed_trace_payload
-            Transaction.stop(state)
+            in_transaction "test_txn" do |t|
+              payload = t.create_distributed_trace_payload
+            end
           end
 
           assert_nil payload

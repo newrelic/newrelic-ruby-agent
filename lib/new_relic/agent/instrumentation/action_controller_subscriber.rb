@@ -43,17 +43,21 @@ module NewRelic
         end
 
         def start_transaction(event)
-          Transaction.start(state, :controller,
-                            :request          => event.request,
-                            :filtered_params  => filter(event.payload[:params]),
-                            :apdex_start_time => event.queue_start,
-                            :transaction_name => event.metric_name,
-                            :ignore_apdex     => event.apdex_ignored?,
-                            :ignore_enduser   => event.enduser_ignored?)
+          event.payload[:finishable] = Tracer.start_transaction_or_segment(
+            name:             event.metric_name,
+            category:         :controller,
+            options: {
+              request:          event.request,
+              filtered_params:  filter(event.payload[:params]),
+              apdex_start_time: event.queue_start,
+              ignore_apdex:     event.apdex_ignored?,
+              ignore_enduser:   event.enduser_ignored?
+            }
+          )
         end
 
         def stop_transaction(event)
-          Transaction.stop(state)
+          (finishable = event.payload[:finishable]) && finishable.finish
         end
 
         def filter(params)

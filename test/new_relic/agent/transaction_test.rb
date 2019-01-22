@@ -21,7 +21,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def cleanup_transaction
-    NewRelic::Agent::TransactionState.tl_clear
+    NewRelic::Agent::Tracer.clear_state
   end
 
   def test_request_parsing_none
@@ -347,23 +347,10 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_name_is_unset_if_nil
-    in_transaction(:transaction_name => nil) do |txn|
-      assert !txn.name_set?
-    end
-  end
-
-  def test_name_set_if_anything_else
-    in_transaction("anything else") do |txn|
-      assert txn.name_set?
-    end
-  end
-
   def test_set_default_transaction_name_without_category
     in_transaction('foo', :category => :controller) do |txn|
       NewRelic::Agent::Transaction.set_default_transaction_name('bar')
       assert_equal("Controller/bar", txn.best_name)
-      assert_equal("Controller/bar", txn.frame_stack.last.name)
     end
   end
 
@@ -371,15 +358,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     in_transaction('foo', :category => :controller) do |txn|
       NewRelic::Agent::Transaction.set_default_transaction_name('bar', :rack)
       assert_equal("Controller/Rack/bar", txn.best_name)
-      assert_equal("Controller/Rack/bar", txn.frame_stack.last.name)
-    end
-  end
-
-  def test_set_default_transaction_name_with_category_and_node_name
-    in_transaction('foo', :category => :controller) do |txn|
-      NewRelic::Agent::Transaction.set_default_transaction_name('bar', :grape, 'baz')
-      assert_equal("Controller/Grape/bar", txn.best_name)
-      assert_equal("baz", txn.frame_stack.last.name)
     end
   end
 
@@ -486,7 +464,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     with_config(:apdex_t => 2.0) do
       in_transaction do |txn|
-        state = NewRelic::Agent::TransactionState.tl_get
+        state = NewRelic::Agent::Tracer.state
         referring_txn_info = ["another"]
          cross_app_payload = ::NewRelic::Agent::CrossAppPayload.new('1#666', txn, referring_txn_info)
         txn.cross_app_payload = cross_app_payload
@@ -624,7 +602,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     in_transaction do |txn|
       advance_time(10)
 
-      state = NewRelic::Agent::TransactionState.tl_get
       txn.is_cross_app_caller = false
     end
 
@@ -656,7 +633,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_synthetics_accessors
     in_transaction do
-      state = NewRelic::Agent::TransactionState.tl_get
+      state = NewRelic::Agent::Tracer.state
       txn = state.current_transaction
       txn.synthetics_payload = [1,2,3,4,5]
 
@@ -1115,8 +1092,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_stop_safe_from_exceptions
-    NewRelic::Agent::Transaction.any_instance.stubs(:stop).raises("Haha")
+  def test_finish_safe_from_exceptions
+    NewRelic::Agent::Transaction.any_instance.stubs(:commit!).raises("Haha")
     expects_logging(:error, any_parameters)
 
     in_transaction("Controller/boom") do
@@ -1125,13 +1102,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     # We expect our transaction to fail, but no exception should surface
     assert_metrics_not_recorded(['Controller/boom'])
-  end
-
-  def test_stop_safe_when_no_transaction_available
-    expects_logging(:error, includes(NewRelic::Agent::Transaction::FAILED_TO_STOP_MESSAGE))
-
-    state = NewRelic::Agent::TransactionState.new
-    NewRelic::Agent::Transaction.stop(state)
   end
 
   def test_user_defined_rules_ignore_returns_true_for_matched_path
@@ -1153,14 +1123,12 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     end
   end
 
-  def test_stop_resets_the_transaction_state_if_there_is_an_error
-    in_transaction do |txn|
-      state = mock
-      state.stubs(:current_transaction).raises(StandardError, 'StandardError')
-
-      state.expects(:reset)
-      NewRelic::Agent::Transaction.stop(state)
-    end
+  def test_finish_resets_the_transaction_state_if_there_is_an_error
+    txn = NewRelic::Agent::Tracer.start_transaction(name: "test", category: :controller)
+    state = NewRelic::Agent::Tracer.state
+    state.expects(:reset)
+    txn.stubs(:commit!).raises(StandardError, 'StandardError')
+    txn.finish
   end
 
   def test_doesnt_record_queue_time_if_it_is_zero
@@ -1246,7 +1214,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_wrap_transaction
-    state = NewRelic::Agent::TransactionState.tl_get
+    state = NewRelic::Agent::Tracer.state
     NewRelic::Agent::Transaction.wrap(state, 'test', :other) do
       # No-op
     end
@@ -1256,7 +1224,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
   def test_wrap_transaction_with_early_failure
     yielded = false
-    state = NewRelic::Agent::TransactionState.tl_get
+    state = NewRelic::Agent::Tracer.state
     NewRelic::Agent::Transaction.any_instance.stubs(:start).raises("Boom")
     NewRelic::Agent::Transaction.wrap(state, 'test', :other) do
       yielded = true
@@ -1266,8 +1234,8 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_wrap_transaction_with_late_failure
-    state = NewRelic::Agent::TransactionState.tl_get
-    NewRelic::Agent::Transaction.any_instance.stubs(:stop).raises("Boom")
+    state = NewRelic::Agent::Tracer.state
+    NewRelic::Agent::Transaction.any_instance.stubs(:commit!).raises("Boom")
     NewRelic::Agent::Transaction.wrap(state, 'test', :other) do
       # No-op
     end
@@ -1276,7 +1244,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_wrap_transaction_notices_errors
-    state = NewRelic::Agent::TransactionState.tl_get
+    state = NewRelic::Agent::Tracer.state
     assert_raises RuntimeError do
       NewRelic::Agent::Transaction.wrap(state, 'test', :other) do
         raise "O_o"
@@ -1404,7 +1372,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     path_hash = nil
 
     txn = in_transaction do |t|
-      state = NewRelic::Agent::TransactionState.tl_get
       t.is_cross_app_caller = true
       path_hash = t.cat_path_hash
     end
@@ -1543,32 +1510,28 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_nesting_max_depth_increments
-    state = NewRelic::Agent::TransactionState.tl_get
-
     txn = in_transaction do |t|
       assert_equal 1, t.nesting_max_depth
-      NewRelic::Agent::Transaction.start state, :other, :transaction_name => "inner_1"
-      assert_equal 2, t.nesting_max_depth
-      NewRelic::Agent::Transaction.start state, :other, :transaction_name => "inner_2"
-      assert_equal 3, t.nesting_max_depth
-      NewRelic::Agent::Transaction.stop(state)
-      NewRelic::Agent::Transaction.stop(state)
+      in_transaction do
+        assert_equal 2, t.nesting_max_depth
+        in_transaction do
+          assert_equal 3, t.nesting_max_depth
+        end
+      end
     end
 
     assert_equal 3, txn.nesting_max_depth
   end
 
   def test_set_transaction_name_for_nested_transactions
-    state = NewRelic::Agent::TransactionState.tl_get
-
     in_web_transaction "Controller/Framework/webby" do |t|
-      NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "Controller/Framework/inner_1"
-      NewRelic::Agent::Transaction.start state, :controller, :transaction_name => "Controller/Framework/inner_2"
-      segment = NewRelic::Agent::Transaction.start_segment name: "Ruby/my_lib/my_meth"
-      NewRelic::Agent.set_transaction_name "RackFramework/action"
-      segment.finish
-      NewRelic::Agent::Transaction.stop(state)
-      NewRelic::Agent::Transaction.stop(state)
+      in_web_transaction "Controller/Framework/inner_1" do
+        in_web_transaction "Controller/Framework/inner_2" do
+          segment = NewRelic::Agent::Tracer.start_segment name: "Ruby/my_lib/my_meth"
+          NewRelic::Agent.set_transaction_name "RackFramework/action"
+          segment.finish
+        end
+      end
     end
 
     assert_metrics_recorded_exclusive [
@@ -1579,14 +1542,14 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       "Apdex/RackFramework/action",
       "Nested/Controller/Framework/webby",
       "Nested/Controller/Framework/inner_1",
-      "Nested/Controller/RackFramework/action",
+      "Nested/Controller/Framework/inner_2",
       "Ruby/my_lib/my_meth",
       "Supportability/API/set_transaction_name",
       "WebTransactionTotalTime",
       "WebTransactionTotalTime/Controller/RackFramework/action",
       ["Nested/Controller/Framework/webby", "Controller/RackFramework/action"],
       ["Nested/Controller/Framework/inner_1", "Controller/RackFramework/action"],
-      ["Nested/Controller/RackFramework/action", "Controller/RackFramework/action"],
+      ["Nested/Controller/Framework/inner_2", "Controller/RackFramework/action"],
       ["Ruby/my_lib/my_meth", "Controller/RackFramework/action"]
     ]
   end
@@ -1617,7 +1580,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   def test_segment_params_omitted_excluded
     with_config(:'attributes.exclude' => ['request.parameters.*']) do
       in_transaction('test_txn') do
-        segment = NewRelic::Agent::Transaction.start_segment(name: 'segment_a')
+        segment = NewRelic::Agent::Tracer.start_segment(name: 'segment_a')
         segment.params[:'request.parameters.uri'] = 'https://supersecret.com'
         segment.params[:foo] = 'bar'
         segment.finish

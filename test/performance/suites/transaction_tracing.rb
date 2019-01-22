@@ -105,25 +105,15 @@ class TransactionTracingPerfTests < Performance::TestCase
 
   TXNAME = "Controller/Blogs/index".freeze
 
-  def test_start_with_transaction_start
-    measure do
-      state = NewRelic::Agent::TransactionState.tl_get
-      if state.is_execution_traced?
-        NewRelic::Agent::Transaction.start(state,
-                                           :controller,
-                                           transaction_name: TXNAME)
-        NewRelic::Agent::Transaction.stop(state)
-      end
-    end
-  end
-
   def test_start_with_tracer_start
-    state = NewRelic::Agent::TransactionState.tl_get
     measure do
-      if NewRelic::Agent::Tracer.tracing_enabled? && !NewRelic::Agent::Tracer.current_transaction
-        NewRelic::Agent::Tracer.start_transaction(name: TXNAME,
-                                                  category: :controller)
-        NewRelic::Agent::Transaction.stop(state)
+      if NewRelic::Agent::Tracer.tracing_enabled? &&
+          !NewRelic::Agent::Tracer.current_transaction
+        finishable = NewRelic::Agent::Tracer.start_transaction(
+          name: TXNAME,
+          category: :controller
+        )
+        finishable.finish
       end
     end
   end
@@ -132,7 +122,7 @@ class TransactionTracingPerfTests < Performance::TestCase
     measure do
       in_transaction do |txn|
         txn.sampled = true
-        segment = NewRelic::Agent::Transaction.start_datastore_segment(
+        segment = NewRelic::Agent::Tracer.start_datastore_segment(
           product: "SQLite",
           operation: "insert",
           collection: "Blog"
@@ -146,7 +136,7 @@ class TransactionTracingPerfTests < Performance::TestCase
     measure do
       in_transaction do |txn|
         txn.sampled = true
-        segment = NewRelic::Agent::Transaction.start_external_request_segment(
+        segment = NewRelic::Agent::Tracer.start_external_request_segment(
           library: "Net::HTTP",
           uri: "http://remotehost.com/blogs/index",
           procedure: "GET"

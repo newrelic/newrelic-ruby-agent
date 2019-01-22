@@ -61,7 +61,7 @@ module NewRelic
       # @api private
       #
       def tl_record_unscoped_metrics(metric_names, value=nil, aux=nil, &blk)
-        state = NewRelic::Agent::TransactionState.tl_get
+        state = NewRelic::Agent::Tracer.state
         record_unscoped_metrics(state, metric_names, value, aux, &blk)
       end
 
@@ -97,7 +97,7 @@ module NewRelic
       # @api private
       #
       def tl_record_scoped_and_unscoped_metrics(scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)
-        state = NewRelic::Agent::TransactionState.tl_get
+        state = NewRelic::Agent::Tracer.state
         record_scoped_and_unscoped_metrics(state, scoped_metric, summary_metrics, value, aux, &blk)
       end
 

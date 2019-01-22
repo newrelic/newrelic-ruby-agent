@@ -28,7 +28,7 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Minitest::Test
     expected_headers = {:fake => :header}
     @app.request = mock('request', :env => expected_headers)
 
-    state = NewRelic::Agent::TransactionState.tl_get
+    state = NewRelic::Agent::Tracer.state
 
     assert_equal(@app.newrelic_request_headers(state), expected_headers)
   end

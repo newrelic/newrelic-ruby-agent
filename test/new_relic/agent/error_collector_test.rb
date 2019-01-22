@@ -17,14 +17,14 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     @error_collector = NewRelic::Agent::ErrorCollector.new
     @error_collector.stubs(:enabled).returns(true)
 
-    NewRelic::Agent::TransactionState.tl_clear
+    NewRelic::Agent::Tracer.clear_state
     NewRelic::Agent.instance.stats_engine.reset!
   end
 
   def teardown
     super
     NewRelic::Agent::ErrorCollector.ignore_error_filter = nil
-    NewRelic::Agent::TransactionState.tl_clear
+    NewRelic::Agent::Tracer.clear_state
     NewRelic::Agent.config.reset_to_defaults
   end
 
@@ -126,7 +126,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
   def test_increment_error_count_record_summary_and_web_txn_metric
     in_web_transaction('Controller/class/method') do
-      @error_collector.increment_error_count!(NewRelic::Agent::TransactionState.tl_get, StandardError.new('Boo'))
+      @error_collector.increment_error_count!(NewRelic::Agent::Tracer.state, StandardError.new('Boo'))
     end
 
     assert_metrics_recorded(['Errors/all',
@@ -136,7 +136,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
   def test_increment_error_count_record_summary_and_other_txn_metric
     in_background_transaction('OtherTransaction/AnotherFramework/Job/perform') do
-      @error_collector.increment_error_count!(NewRelic::Agent::TransactionState.tl_get, StandardError.new('Boo'))
+      @error_collector.increment_error_count!(NewRelic::Agent::Tracer.state, StandardError.new('Boo'))
     end
 
     assert_metrics_recorded(['Errors/all',
@@ -145,14 +145,14 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_increment_error_count_summary_outside_transaction
-    @error_collector.increment_error_count!(NewRelic::Agent::TransactionState.tl_get, StandardError.new('Boo'))
+    @error_collector.increment_error_count!(NewRelic::Agent::Tracer.state, StandardError.new('Boo'))
 
     assert_metrics_recorded(['Errors/all'])
     assert_metrics_not_recorded(['Errors/allWeb', 'Errors/allOther'])
   end
 
   def test_doesnt_increment_error_count_on_transaction_if_nameless
-    @error_collector.increment_error_count!(NewRelic::Agent::TransactionState.tl_get,
+    @error_collector.increment_error_count!(NewRelic::Agent::Tracer.state,
                                             StandardError.new('Boo'),
                                             :metric => '(unknown)')
 

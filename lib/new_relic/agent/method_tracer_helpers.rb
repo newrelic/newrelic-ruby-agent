@@ -10,14 +10,14 @@ module NewRelic
       extend self
 
       def trace_execution_scoped(metric_names, options={}) #THREAD_LOCAL_ACCESS
-        state = NewRelic::Agent::TransactionState.tl_get
+        state = NewRelic::Agent::Tracer.state
         return yield unless state.is_execution_traced?
 
         metric_names = Array(metric_names)
         first_name   = metric_names.shift
         return yield unless first_name
 
-        segment = NewRelic::Agent::Transaction.start_segment(
+        segment = NewRelic::Agent::Tracer.start_segment(
           name: first_name,
           unscoped_metrics: metric_names
         )

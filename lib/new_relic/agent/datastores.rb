@@ -47,7 +47,7 @@ module NewRelic
             alias_method method_name_without_newrelic, method_name
 
             define_method(method_name) do |*args, &blk|
-              segment = NewRelic::Agent::Transaction.start_datastore_segment(
+              segment = NewRelic::Agent::Tracer.start_datastore_segment(
                 product: product,
                 operation: operation
               )
@@ -112,7 +112,7 @@ module NewRelic
 
         return yield unless operation
 
-        segment = NewRelic::Agent::Transaction.start_datastore_segment(
+        segment = NewRelic::Agent::Tracer.start_datastore_segment(
           product: product,
           operation: operation,
           collection: collection
@@ -123,8 +123,8 @@ module NewRelic
         ensure
           begin
             if callback
-                elapsed_time = (Time.now - segment.start_time).to_f
-                callback.call(result, segment.name, elapsed_time)
+              elapsed_time = (Time.now - segment.start_time).to_f
+              callback.call(result, segment.name, elapsed_time)
             end
           ensure
             segment.finish if segment
@@ -163,8 +163,7 @@ module NewRelic
       def self.notice_sql(query, scoped_metric, elapsed)
         NewRelic::Agent.record_api_supportability_metric(:notice_sql)
 
-        state = TransactionState.tl_get
-        if (txn = state.current_transaction) && (segment = txn.current_segment) && segment.respond_to?(:notice_sql)
+        if (txn = Tracer.current_transaction) && (segment = txn.current_segment) && segment.respond_to?(:notice_sql)
           segment.notice_sql(query)
         end
         nil
@@ -198,8 +197,7 @@ module NewRelic
 
         # Settings may change eventually, but for now we follow the same
         # capture rules as SQL for non-SQL statements.
-        state = TransactionState.tl_get
-        if (txn = state.current_transaction) && (segment = txn.current_segment) && segment.respond_to?(:notice_nosql_statement)
+        if (txn = Tracer.current_transaction) && (segment = txn.current_segment) && segment.respond_to?(:notice_nosql_statement)
           segment.notice_nosql_statement(statement)
         end
         nil

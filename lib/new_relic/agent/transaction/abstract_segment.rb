@@ -228,7 +228,7 @@ module NewRelic
           @transaction_state ||= if @transaction
             transaction.state
           else
-            TransactionState.tl_get
+            Tracer.state
           end
         end
       end

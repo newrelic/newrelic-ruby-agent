@@ -197,7 +197,7 @@ module NewRelic
 
         tag_exception(exception)
 
-        state = ::NewRelic::Agent::TransactionState.tl_get
+        state = ::NewRelic::Agent::Tracer.state
 
         unless options[:expected]
           increment_error_count!(state, exception, options)

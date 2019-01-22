@@ -141,7 +141,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
     in_transaction do |txn|
       nr_freeze_time
-      segment = NewRelic::Agent::Transaction.start_datastore_segment(
+      segment = NewRelic::Agent::Tracer.start_datastore_segment(
         product: "MyFirstDatabase",
         operation: "find",
         collection: "SomeThing"
@@ -162,7 +162,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
     in_transaction do |txn|
       nr_freeze_time
-      segment = NewRelic::Agent::Transaction.start_datastore_segment(
+      segment = NewRelic::Agent::Tracer.start_datastore_segment(
         product: "MyFirstDatastore",
         operation: "get",
         collection: "key"

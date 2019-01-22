@@ -39,7 +39,7 @@ module NewRelic
         end
 
         def self.perform(job, block)
-          state = ::NewRelic::Agent::TransactionState.tl_get
+          state = ::NewRelic::Agent::Tracer.state
           txn = state.current_transaction
 
           # Don't nest transactions if we're already in a web transaction.
@@ -52,7 +52,7 @@ module NewRelic
               transaction_category)
             block.call
           else
-            run_in_transaction(state, job, block)
+            run_in_transaction(job, block)
           end
         end
 
@@ -62,11 +62,10 @@ module NewRelic
           end
         end
 
-        def self.run_in_transaction(state, job, block)
-          ::NewRelic::Agent::Transaction.wrap(state,
-                                              transaction_name_for_job(job),
-                                              :other,
-                                              &block)
+        def self.run_in_transaction(job, block)
+          ::NewRelic::Agent::Tracer.in_transaction(name: transaction_name_for_job(job),
+                                                   category: :other,
+                                                   &block)
         end
 
         def self.transaction_category

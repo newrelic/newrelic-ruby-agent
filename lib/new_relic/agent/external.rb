@@ -34,13 +34,16 @@ module NewRelic
       #
       # @api public
       def start_segment(library: nil, uri: nil, procedure: nil)
+        Deprecator.deprecate 'External.start_segment',
+                             'Tracer#start_external_request_segment'
+
         raise ArgumentError, 'Argument `library` is required' if library.nil?
         raise ArgumentError, 'Argument `uri` is required' if uri.nil?
         raise ArgumentError, 'Argument `procedure` is required' if procedure.nil?
 
         ::NewRelic::Agent.record_api_supportability_metric(:start_segment)
 
-        ::NewRelic::Agent::Transaction.start_external_request_segment(
+        ::NewRelic::Agent::Tracer.start_external_request_segment(
           library: library,
           uri: uri,
           procedure: procedure
@@ -64,7 +67,7 @@ module NewRelic
         NewRelic::Agent.record_api_supportability_metric(:process_request_metadata)
         return unless CrossAppTracing.cross_app_enabled?
 
-        state = NewRelic::Agent::TransactionState.tl_get
+        state = NewRelic::Agent::Tracer.state
         if transaction = state.current_transaction
           rmd = ::JSON.parse obfuscator.deobfuscate(request_metadata)
 
@@ -109,8 +112,7 @@ module NewRelic
         NewRelic::Agent.record_api_supportability_metric(:get_response_metadata)
         return unless CrossAppTracing.cross_app_enabled?
 
-        state = NewRelic::Agent::TransactionState.tl_get
-        return unless (transaction = state.current_transaction)
+        return unless (transaction = Tracer.current_transaction)
         return unless (cross_app_payload = transaction.cross_app_payload)
 
         # must freeze the name since we're responding with it

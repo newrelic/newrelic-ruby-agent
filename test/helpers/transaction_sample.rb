@@ -6,7 +6,7 @@ module TransactionSampleTestHelper
   module_function
   def make_sql_transaction(*sql)
     sampler = nil
-    state = NewRelic::Agent::TransactionState.tl_get
+    state = NewRelic::Agent::Tracer.state
 
     in_transaction('/path') do
       sampler = NewRelic::Agent.instance.transaction_sampler

@@ -114,7 +114,7 @@ module NewRelic
               database = @config && @config[:database]
             end
 
-            segment = Transaction.start_datastore_segment product: product,
+            segment = Tracer.start_datastore_segment product: product,
                                                           operation: operation,
                                                           collection: collection,
                                                           host: host,
@@ -130,7 +130,7 @@ module NewRelic
           end
 
           def state
-            @state ||= NewRelic::Agent::TransactionState.tl_get
+            @state ||= NewRelic::Agent::Tracer.state
           end
 
           def sql

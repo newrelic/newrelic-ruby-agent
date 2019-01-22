@@ -16,7 +16,7 @@ module NewRelic
 
         def test_metrics_recorded_for_produce
           in_transaction "test_txn" do
-            segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+            segment = NewRelic::Agent::Tracer.start_message_broker_segment(
               action: :produce,
               library: "RabbitMQ",
               destination_type: :exchange,
@@ -33,7 +33,7 @@ module NewRelic
 
         def test_metrics_recorded_for_consume
           in_transaction "test_txn" do
-            segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+            segment = NewRelic::Agent::Tracer.start_message_broker_segment(
               action: :consume,
               library: "RabbitMQ",
               destination_type: :exchange,
@@ -50,7 +50,7 @@ module NewRelic
 
         def test_segment_copies_parameters
           in_transaction "test_txn" do
-            segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+            segment = NewRelic::Agent::Tracer.start_message_broker_segment(
               action: :produce,
               library: "RabbitMQ",
               destination_type: :exchange,
@@ -65,7 +65,7 @@ module NewRelic
 
         def test_allows_symbol_exhange_names
           in_transaction "test_txn" do
-            segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+            segment = NewRelic::Agent::Tracer.start_message_broker_segment(
               action: :produce,
               library: "RabbitMQ",
               destination_type: :exchange,
@@ -81,7 +81,7 @@ module NewRelic
         def test_segment_adds_cat_headers_to_message_properties_for_produce
           with_config :"cross_application_tracer.enabled" => true, :cross_process_id => "321#123", :encoding_key => "abc" do
             in_transaction "test_txn" do
-              segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+              segment = NewRelic::Agent::Tracer.start_message_broker_segment(
                 action: :produce,
                 library: "RabbitMQ",
                 destination_type: :exchange,
@@ -101,7 +101,7 @@ module NewRelic
             in_transaction "test_txn" do |txn|
               txn.raw_synthetics_header = "boo"
 
-              segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+              segment = NewRelic::Agent::Tracer.start_message_broker_segment(
                 action: :produce,
                 library: "RabbitMQ",
                 destination_type: :exchange,
@@ -121,7 +121,7 @@ module NewRelic
                       :account_id => "190",
                       :primary_application_id => "46954" do
             transaction = in_transaction "test_txn" do |txn|
-              segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+              segment = NewRelic::Agent::Tracer.start_message_broker_segment(
                 action: :produce,
                 library: "RabbitMQ",
                 destination_type: :exchange,
@@ -147,7 +147,7 @@ module NewRelic
                                              start_time: t
           assert_equal t, segment.start_time
 
-          segment = NewRelic::Agent::Transaction.start_message_broker_segment action: :produce,
+          segment = NewRelic::Agent::Tracer.start_message_broker_segment action: :produce,
                                                                               library: "RabbitMQ",
                                                                               destination_type: :exchange,
                                                                               destination_name: "Default",

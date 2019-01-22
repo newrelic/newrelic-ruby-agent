@@ -185,7 +185,7 @@ module NewRelic
         # hooked with tracers, ensuring that notice_sql attaches this SQL to
         # the proper call scope.
         def log(msg) #THREAD_LOCAL_ACCESS
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = NewRelic::Agent::Tracer.state
           return unless state.is_execution_traced?
 
           txn = state.current_transaction

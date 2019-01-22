@@ -10,8 +10,8 @@ module NewRelic
       parts.compact.join('.')
     end
 
-    MAJOR = 5
-    MINOR = 7
+    MAJOR = 6
+    MINOR = 0
     TINY  = 0
 
     begin
