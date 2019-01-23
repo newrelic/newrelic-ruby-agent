@@ -248,7 +248,7 @@ module NewRelic
             NewRelic::Agent.drop_buffered_data
 
             in_transaction "test_txn2", :category => :controller do |txn|
-              txn.accept_distributed_trace_payload payload.to_json
+              txn.accept_distributed_trace_payload payload.text
               segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://newrelic.com/blogs/index",
@@ -290,7 +290,7 @@ module NewRelic
             NewRelic::Agent.drop_buffered_data
 
             in_transaction "test_txn2", :category => :controller do |txn|
-              txn.accept_distributed_trace_payload payload.to_json
+              txn.accept_distributed_trace_payload payload.text
               segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
                 uri: "http://newrelic.com/blogs/index",
