@@ -60,7 +60,7 @@ module NewRelic
         end
 
         def state
-          NewRelic::Agent::TransactionState.tl_get
+          NewRelic::Agent::Tracer.state
         end
       end
 

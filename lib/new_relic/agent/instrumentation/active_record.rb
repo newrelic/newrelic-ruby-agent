@@ -44,7 +44,7 @@ module NewRelic
         end
 
         def log_with_newrelic_instrumentation(*args, &block) #THREAD_LOCAL_ACCESS
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = NewRelic::Agent::Tracer.state
 
           if !state.is_execution_traced?
             return log_without_newrelic_instrumentation(*args, &block)
@@ -67,7 +67,7 @@ module NewRelic
             database = @config && @config[:database]
           end
 
-          segment = NewRelic::Agent::Transaction.start_datastore_segment(
+          segment = NewRelic::Agent::Tracer.start_datastore_segment(
             product: product,
             operation: operation,
             collection: collection,

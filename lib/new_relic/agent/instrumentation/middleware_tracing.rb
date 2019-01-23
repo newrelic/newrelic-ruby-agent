@@ -4,7 +4,7 @@
 
 require 'new_relic/agent/method_tracer'
 require 'new_relic/agent/transaction'
-require 'new_relic/agent/transaction_state'
+require 'new_relic/agent/tracer'
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 
@@ -83,10 +83,17 @@ module NewRelic
         def call(env)
           first_middleware = note_transaction_started(env)
 
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = NewRelic::Agent::Tracer.state
 
           begin
-            Transaction.start(state, category, build_transaction_options(env, first_middleware))
+            options = build_transaction_options(env, first_middleware)
+
+            finishable = Tracer.start_transaction_or_segment(
+              name: options[:transaction_name],
+              category: category,
+              options: options
+            )
+
             events.notify(:before_call, env) if first_middleware
 
             result = (target == self) ? traced_call(env) : target.call(env)
@@ -101,7 +108,7 @@ module NewRelic
             NewRelic::Agent.notice_error(e)
             raise e
           ensure
-            Transaction.stop(state)
+            finishable.finish if finishable
           end
         end
 

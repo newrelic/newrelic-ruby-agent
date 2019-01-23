@@ -487,7 +487,7 @@ module NewRelic
     # Yield to the block without collecting any metrics or traces in
     # any of the subsequent calls.  If executed recursively, will keep
     # track of the first entry point and turn on tracing again after
-    # leaving that block.  This uses the thread local TransactionState.
+    # leaving that block.  This uses the thread local Tracer::State.
     #
     # @api public
     #
@@ -544,13 +544,13 @@ module NewRelic
 
     # Check to see if we are capturing metrics currently on this thread.
     def tl_is_execution_traced?
-      NewRelic::Agent::TransactionState.tl_get.is_execution_traced?
+      NewRelic::Agent::Tracer.state.is_execution_traced?
     end
 
     # helper method to check the thread local to determine whether sql
     # is being recorded or not
     def tl_is_sql_recorded?
-      NewRelic::Agent::TransactionState.tl_get.is_sql_recorded?
+      NewRelic::Agent::Tracer.state.is_sql_recorded?
     end
 
     # @!group Adding custom attributes to traces

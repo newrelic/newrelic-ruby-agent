@@ -11,7 +11,6 @@ sudo: required
 before_install:
   # RUBY-2072 Prevent Travis setup failure before our test even starts
   - sudo rm -f /etc/apt/sources.list.d/travis_ci_zeromq3.list
-
   - gem --version
   - ./test/script/before_install/update_rubygems.sh
   - gem uninstall bundler -a -x

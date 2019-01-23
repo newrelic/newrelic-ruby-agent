@@ -46,7 +46,7 @@ class AuditLogTest < Minitest::Test
   end
 
   def perform_actions
-    state = NewRelic::Agent::TransactionState.tl_get
+    state = NewRelic::Agent::Tracer.state
     NewRelic::Agent.instance.sql_sampler.on_start_transaction(state, nil)
     NewRelic::Agent.instance.sql_sampler.notice_sql("select * from test",
                                  "Database/test/select",

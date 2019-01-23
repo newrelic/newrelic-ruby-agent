@@ -35,7 +35,7 @@ DependencyDetection.defer do
     class Typhoeus::Hydra
 
       def run_with_newrelic(*args)
-        segment = NewRelic::Agent::Transaction.start_segment(
+        segment = NewRelic::Agent::Tracer.start_segment(
           name: NewRelic::Agent::Instrumentation::TyphoeusTracing::HYDRA_SEGMENT_NAME
         )
 
@@ -73,7 +73,7 @@ module NewRelic
         end
 
         def self.trace(request)
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = NewRelic::Agent::Tracer.state
           return unless state.is_execution_traced?
 
           wrapped_request = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPRequest.new(request)
@@ -82,7 +82,7 @@ module NewRelic
             request.hydra.instance_variable_get(:@__newrelic_hydra_segment)
           end
 
-          segment = NewRelic::Agent::Transaction.start_external_request_segment(
+          segment = NewRelic::Agent::Tracer.start_external_request_segment(
             library: wrapped_request.type,
             uri: wrapped_request.uri,
             procedure: wrapped_request.method,

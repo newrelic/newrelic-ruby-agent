@@ -38,8 +38,7 @@ DependencyDetection.defer do
 
           NewRelic::Agent::Instrumentation::RakeInstrumentation.before_invoke_transaction(self)
 
-          state = NewRelic::Agent::TransactionState.tl_get
-          NewRelic::Agent::Transaction.wrap(state, "OtherTransaction/Rake/invoke/#{name}", :rake)  do
+          NewRelic::Agent::Tracer.in_transaction(name: "OtherTransaction/Rake/invoke/#{name}", category: :rake) do
             NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
             invoke_without_newrelic(*args)
           end
@@ -102,7 +101,7 @@ module NewRelic
             def invoke_prerequisites_concurrently(*_)
               NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/multitask") do
                 prereqs = self.prerequisite_tasks.map(&:name).join(", ")
-                if txn = ::NewRelic::Agent::TransactionState.tl_get.current_transaction
+                if txn = ::NewRelic::Agent::Tracer.current_transaction
                   txn.current_segment.params[:statement] = NewRelic::Agent::Database.truncate_query("Couldn't trace concurrent prereq tasks: #{prereqs}")
                 end
                 super

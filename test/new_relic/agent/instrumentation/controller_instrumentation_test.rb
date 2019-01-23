@@ -169,10 +169,20 @@ module NewRelic::Agent::Instrumentation
                                    @object,
                                    :controller,
                                    :path => 'metric/path'))
+      assert_equal('Controller/metric/path',
+                   @txn_namer.name_for(nil,
+                                   @object,
+                                   :web,
+                                   :path => 'metric/path'))
       assert_equal('OtherTransaction/Background/metric/path',
                    @txn_namer.name_for(nil,
                                    @object,
                                    :task,
+                                   :path => 'metric/path'))
+      assert_equal('OtherTransaction/Background/metric/path',
+                   @txn_namer.name_for(nil,
+                                   @object,
+                                   :background,
                                    :path => 'metric/path'))
       assert_equal('Controller/Rack/metric/path',
                    @txn_namer.name_for(nil,
@@ -212,7 +222,9 @@ module NewRelic::Agent::Instrumentation
     def test_transaction_namer_determines_prefix
       in_transaction do |txn|
         assert_equal @txn_namer.prefix_for_category(txn, :controller), 'Controller/'
+        assert_equal @txn_namer.prefix_for_category(txn, :web), 'Controller/'
         assert_equal @txn_namer.prefix_for_category(txn, :task), 'OtherTransaction/Background/'
+        assert_equal @txn_namer.prefix_for_category(txn, :background), 'OtherTransaction/Background/'
         assert_equal @txn_namer.prefix_for_category(txn, :rack), 'Controller/Rack/'
         assert_equal @txn_namer.prefix_for_category(txn, :sinatra), 'Controller/Sinatra/'
         assert_equal @txn_namer.prefix_for_category(txn, :uri), 'Controller/'
@@ -332,7 +344,7 @@ module NewRelic::Agent::Instrumentation
 
         def doit
           perform_action_with_newrelic_trace do
-            NewRelic::Agent::TransactionState.tl_get.current_transaction.request_path
+            NewRelic::Agent::Tracer.current_transaction.request_path
           end
         end
       end

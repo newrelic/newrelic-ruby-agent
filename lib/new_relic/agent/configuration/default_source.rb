@@ -95,6 +95,8 @@ module NewRelic
                 :rails4
               when 5
                 :rails5
+              when 6
+                :rails6
               else
                 ::NewRelic::Agent.logger.error "Detected unsupported Rails version #{Rails::VERSION::STRING}"
               end
@@ -1735,7 +1737,7 @@ module NewRelic
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, the agent will clear <code>TransactionState</code> in <code>Agent.drop_buffered_data</code>.'
+          :description => 'If <code>true</code>, the agent will clear <code>Tracer::State</code> in <code>Agent.drop_buffered_data</code>.'
         },
         :account_id => {
           :default => nil,

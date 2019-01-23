@@ -262,7 +262,7 @@ module NewRelic
         # should not record sql in the current thread. Returns the
         # previous value, if there is one
         def set_record_sql(should_record) #THREAD_LOCAL_ACCESS
-          state = TransactionState.tl_get
+          state = Tracer.state
           prev = state.record_sql
           state.record_sql = should_record
           prev.nil? || prev
@@ -273,13 +273,13 @@ module NewRelic
         # children of a transaction without affecting the tracing of
         # the whole transaction
         def push_trace_execution_flag(should_trace=false) #THREAD_LOCAL_ACCESS
-          TransactionState.tl_get.push_traced(should_trace)
+          Tracer.state.push_traced(should_trace)
         end
 
         # Pop the current trace execution status.  Restore trace execution status
         # to what it was before we pushed the current flag.
         def pop_trace_execution_flag #THREAD_LOCAL_ACCESS
-          TransactionState.tl_get.pop_traced
+          Tracer.state.pop_traced
         end
 
         # Herein lies the corpse of the former 'start' method. May
@@ -543,7 +543,7 @@ module NewRelic
           @sql_sampler.reset!
 
           if Agent.config[:clear_transaction_state_after_fork]
-            TransactionState.tl_clear
+            Tracer.clear_state
           end
         end
 

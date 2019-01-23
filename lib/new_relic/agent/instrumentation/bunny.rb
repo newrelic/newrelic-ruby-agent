@@ -85,7 +85,7 @@ DependencyDetection.defer do
         def purge *args
           begin
             type = server_named? ? :temporary_queue : :queue
-            segment = NewRelic::Agent::Transaction.start_message_broker_segment(
+            segment = NewRelic::Agent::Tracer.start_message_broker_segment(
               action: :purge,
               library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
               destination_type: type,

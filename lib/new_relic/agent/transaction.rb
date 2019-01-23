@@ -11,6 +11,7 @@ require 'new_relic/agent/transaction/tracing'
 require 'new_relic/agent/transaction/distributed_tracing'
 require 'new_relic/agent/cross_app_tracing'
 require 'new_relic/agent/transaction_time_aggregator'
+require 'new_relic/agent/deprecator'
 
 module NewRelic
   module Agent
@@ -36,7 +37,7 @@ module NewRelic
       ACTION_CABLE_PREFIX          = 'Controller/ActionCable/'.freeze
       OTHER_TRANSACTION_PREFIX     = 'OtherTransaction/'.freeze
 
-      WEB_TRANSACTION_CATEGORIES   = [:controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
+      WEB_TRANSACTION_CATEGORIES   = [:web, :controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
       TRANSACTION_NAMING_SOURCES   = [:child, :api].freeze
 
       MIDDLEWARE_SUMMARY_METRICS   = ['Middleware/all'.freeze].freeze
@@ -64,7 +65,6 @@ module NewRelic
                   :metrics,
                   :gc_start_snapshot,
                   :category,
-                  :frame_stack,
                   :attributes,
                   :payload,
                   :nesting_max_depth,
@@ -83,28 +83,37 @@ module NewRelic
 
       # Return the currently active transaction, or nil.
       def self.tl_current
-        TransactionState.tl_get.current_transaction
+        Tracer.current_transaction
       end
 
-      def self.set_default_transaction_name(name, category = nil, node_name = nil) #THREAD_LOCAL_ACCESS
+      def self.set_default_transaction_name(partial_name, category = nil) #THREAD_LOCAL_ACCESS
         txn  = tl_current
-        name = txn.make_transaction_name(name, category)
-        txn.name_last_frame(node_name || name)
+        name = name_from_partial(partial_name, category || txn.category)
         txn.set_default_transaction_name(name, category)
       end
 
-      def self.set_overriding_transaction_name(name, category = nil) #THREAD_LOCAL_ACCESS
+      def self.set_overriding_transaction_name(partial_name, category = nil) #THREAD_LOCAL_ACCESS
         txn = tl_current
         return unless txn
 
-        name = txn.make_transaction_name(name, category)
-
-        txn.name_last_frame(name)
+        name = name_from_partial(partial_name, category || txn.category)
         txn.set_overriding_transaction_name(name, category)
       end
 
+      def self.name_from_partial(partial_name, category)
+        namer = Instrumentation::ControllerInstrumentation::TransactionNamer
+        "#{namer.prefix_for_category(self, category)}#{partial_name}"
+      end
+
       def self.wrap(state, name, category, options = {})
-        Transaction.start(state, category, options.merge(:transaction_name => name))
+        Deprecator.deprecate 'Transaction.wrap',
+                             'Tracer#in_transaction'
+
+        finishable = Tracer.start_transaction_or_segment(
+              name: name,
+              category: category,
+              options: options
+            )
 
         begin
           # We shouldn't raise from Transaction.start, but only wrap the yield
@@ -114,24 +123,8 @@ module NewRelic
           Transaction.notice_error(e)
           raise e
         ensure
-          Transaction.stop(state)
+          finishable.finish if finishable
         end
-      end
-
-      def self.start(state, category, options)
-        category ||= :controller
-        txn = state.current_transaction
-
-        if txn
-          txn.create_nested_frame(category, options)
-        else
-          txn = start_new_transaction(state, category, options)
-        end
-
-        txn
-      rescue => e
-        NewRelic::Agent.logger.error("Exception during Transaction.start", e)
-        nil
       end
 
       def self.start_new_transaction(state, category, options)
@@ -140,32 +133,6 @@ module NewRelic
         txn.state = state
         txn.start
         txn
-      end
-
-      FAILED_TO_STOP_MESSAGE = "Failed during Transaction.stop because there is no current transaction"
-
-      def self.stop(state)
-        txn = state.current_transaction
-
-        if txn.nil?
-          NewRelic::Agent.logger.error(FAILED_TO_STOP_MESSAGE)
-          return
-        end
-
-        nested_frame = txn.frame_stack.pop
-
-        if txn.frame_stack.empty?
-          txn.stop(nested_frame) if nested_frame
-          state.reset
-        else
-          nested_frame.finish
-        end
-
-        :transaction_stopped
-      rescue => e
-        state.reset
-        NewRelic::Agent.logger.error("Exception during Transaction.stop", e)
-        nil
       end
 
       def self.nested_transaction_name(name)
@@ -179,15 +146,13 @@ module NewRelic
       # Indicate that you don't want to keep the currently saved transaction
       # information
       def self.abort_transaction! #THREAD_LOCAL_ACCESS
-        state = NewRelic::Agent::TransactionState.tl_get
-        txn = state.current_transaction
+        txn = Tracer.current_transaction
         txn.abort_transaction! if txn
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
       def self.notice_error(e, options={}) #THREAD_LOCAL_ACCESS
-        state = NewRelic::Agent::TransactionState.tl_get
-        txn = state.current_transaction
+        txn = Tracer.current_transaction
         if txn
           txn.notice_error(e, options)
         elsif NewRelic::Agent.instance
@@ -260,7 +225,6 @@ module NewRelic
         @nesting_max_depth = 0
         @current_segment = nil
         @segments = []
-        @frame_stack = []
 
         self.default_name = options[:transaction_name]
         @overridden_name    = nil
@@ -359,11 +323,6 @@ module NewRelic
         merge_untrusted_agent_attributes(params, :'request.parameters', AttributeFilter::DST_NONE)
       end
 
-      def make_transaction_name(name, category=nil)
-        namer = Instrumentation::ControllerInstrumentation::TransactionNamer
-        "#{namer.prefix_for_category(self, category)}#{name}"
-      end
-
       def set_default_transaction_name(name, category)
         return log_frozen_name(name) if name_frozen?
         if influences_transaction_name?(category)
@@ -380,18 +339,13 @@ module NewRelic
         end
       end
 
-      def name_last_frame(name)
-        name = self.class.nested_transaction_name(name) if nesting_max_depth > 1
-        frame_stack.last.name = name
-      end
-
       def log_frozen_name(name)
         NewRelic::Agent.logger.warn("Attempted to rename transaction to '#{name}' after transaction name was already frozen as '#{@frozen_name}'.")
         nil
       end
 
       def influences_transaction_name?(category)
-        !category || frame_stack.size == 1 || similar_category?(category)
+        !category || nesting_max_depth == 1 || similar_category?(category)
       end
 
       def best_name
@@ -404,10 +358,6 @@ module NewRelic
 
       attr_accessor :xray_session_id
       # End common interface
-
-      def name_set?
-        (@overridden_name || @default_name) ? true : false
-      end
 
       def promoted_transaction_name(name)
         if name.start_with?(MIDDLEWARE_PREFIX)
@@ -449,14 +399,14 @@ module NewRelic
 
         ignore! if user_defined_rules_ignore?
 
-        create_initial_segment @default_name
+        create_initial_segment
       end
 
       def initial_segment
         segments.first
       end
 
-      def create_initial_segment name
+      def create_initial_segment
         segment = create_segment @default_name
         segment.record_scoped_metric = false
       end
@@ -470,16 +420,15 @@ module NewRelic
 
         @nesting_max_depth += 1
 
-        segment = self.class.start_segment(
+        segment = Tracer.start_segment(
           name: name,
           unscoped_metrics: summary_metrics
         )
 
-        frame_stack.push segment
         segment
       end
 
-      def create_nested_frame(category, options)
+      def create_nested_segment(category, options)
         if options[:filtered_params] && !options[:filtered_params].empty?
           @filtered_params = options[:filtered_params]
           merge_request_parameters(options[:filtered_params])
@@ -490,8 +439,9 @@ module NewRelic
 
         nest_initial_segment if nesting_max_depth == 1
         nested_name = self.class.nested_transaction_name options[:transaction_name]
-        create_segment nested_name
+        result = create_segment nested_name
         set_default_transaction_name(options[:transaction_name], category)
+        result
       end
 
       def nest_initial_segment
@@ -529,23 +479,26 @@ module NewRelic
         name.start_with?(MIDDLEWARE_PREFIX)
       end
 
-      def stop(outermost_frame = nil)
-        return if !state.is_execution_traced?
-        return self.class.stop(state) unless outermost_frame
-
+      def finish
+        return unless state.is_execution_traced?
         @end_time = Time.now
         @duration = @end_time.to_f - @start_time.to_f
         freeze_name_and_execute_if_not_ignored
 
         if nesting_max_depth == 1
-          outermost_frame.name = @frozen_name
+          initial_segment.name = @frozen_name
         end
 
-        outermost_frame.finish
+        initial_segment.finish
 
         NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
 
-        commit!(outermost_frame.name) unless @ignore_this_transaction
+        commit!(initial_segment.name) unless @ignore_this_transaction
+      rescue => e
+        NewRelic::Agent.logger.error("Exception during Transaction#finish", e)
+        nil
+      ensure
+        state.reset
       end
 
       def user_defined_rules_ignore?

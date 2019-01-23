@@ -15,17 +15,17 @@ module NewRelic
 
         def test_builds_trace_for_transaction
           txn = nil
-          state = TransactionState.tl_get
-          Transaction.wrap state, "test_txn", :controller do
+          state = Tracer.state
+          Tracer.in_transaction name: "test_txn", category: :controller do
             txn = state.current_transaction
             advance_time 1
-            segment_a = Transaction.start_segment name: "segment_a"
+            segment_a = Tracer.start_segment name: "segment_a"
             segment_a.params[:foo] = "bar"
             advance_time 1
-            segment_b = Transaction.start_segment name: "segment_b"
+            segment_b = Tracer.start_segment name: "segment_b"
             advance_time 2
             segment_b.finish
-            segment_c = Transaction.start_segment name:  "segment_c"
+            segment_c = Tracer.start_segment name:  "segment_c"
             advance_time 3
             segment_c.finish
             segment_a.finish
@@ -62,11 +62,11 @@ module NewRelic
 
         def test_trace_built_if_segment_left_unfinished
           txn = nil
-          state = TransactionState.tl_get
-          Transaction.wrap state, "test_txn", :controller do
+          state = Tracer.state
+          Tracer.in_transaction name: "test_txn", category: :controller do
             txn = state.current_transaction
             advance_time 1
-            Transaction.start_segment name: "segment_a"
+            Tracer.start_segment name: "segment_a"
             advance_time 1
           end
 

@@ -32,7 +32,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareTracingTest < Minitest::Test
   end
 
   def test_dont_block_errors_during_malfunctioning_transaction
-    NewRelic::Agent::Transaction.stubs(:start).returns(nil)
+    NewRelic::Agent::Tracer.stubs(:start_transaction_or_segment).returns(nil)
 
     middleware = HostClass.new { raise UserError }
     assert_raises(UserError) do
@@ -41,7 +41,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareTracingTest < Minitest::Test
   end
 
   def test_dont_raise_when_transaction_start_fails
-    NewRelic::Agent::Transaction.stubs(:start).returns(nil)
+    NewRelic::Agent::Tracer.stubs(:start_transaction_or_segment).returns(nil)
 
     middleware = HostClass.new { [200, {}, ['hi!']] }
     middleware.call({})

@@ -67,7 +67,7 @@ module NewRelic::Agent
       key = SyntheticsMonitor::SYNTHETICS_HEADER_KEY
       synthetics_payload = [VERSION_ID] + STANDARD_DATA
       with_synthetics_headers(synthetics_payload, key) do
-        state = NewRelic::Agent::TransactionState.tl_get
+        state = NewRelic::Agent::Tracer.state
         txn = state.current_transaction
         assert_equal @last_encoded_header, txn.raw_synthetics_header
         assert_equal synthetics_payload,   txn.synthetics_payload
@@ -80,7 +80,7 @@ module NewRelic::Agent
     end
 
     def assert_no_synthetics_payload
-      assert_nil NewRelic::Agent::TransactionState.tl_get.current_transaction.synthetics_payload
+      assert_nil NewRelic::Agent::Tracer.current_transaction.synthetics_payload
     end
 
     def with_synthetics_headers(payload, header_key = SyntheticsMonitor::SYNTHETICS_HEADER_KEY)

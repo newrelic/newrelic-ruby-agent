@@ -27,7 +27,7 @@ module NewRelic
           event = super
           notice_error payload if payload.key? :exception
           if event.name == PERFORM_ACTION
-            finish_transaction
+            finish_transaction event
           else
             stop_recording_metrics event
           end
@@ -38,15 +38,18 @@ module NewRelic
         private
 
         def start_transaction event
-          Transaction.start(state, :action_cable, :transaction_name => transaction_name_from_event(event))
+          event.payload[:finishable] = Tracer.start_transaction_or_segment(
+            name:     transaction_name_from_event(event),
+            category: :action_cable
+          )
         end
 
-        def finish_transaction
-          Transaction.stop(state)
+        def finish_transaction event
+          (finishable = event.payload[:finishable]) && finishable.finish
         end
 
         def start_recording_metrics event
-          event.payload[:segment] = Transaction.start_segment name: metric_name_from_event(event)
+          event.payload[:segment] = Tracer.start_segment name: metric_name_from_event(event)
         end
 
         def stop_recording_metrics event

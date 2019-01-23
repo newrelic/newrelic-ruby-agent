@@ -61,7 +61,7 @@ module NewRelic
       end
 
       def tl_transaction_data # only used for testing
-        TransactionState.tl_get.sql_sampler_transaction_data
+        Tracer.state.sql_sampler_transaction_data
       end
 
       # This is called when we are done with the transaction.
@@ -141,7 +141,7 @@ module NewRelic
       # @deprecated Use {Datastores.notice_sql} instead.
       #
       def notice_sql(sql, metric_name, config, duration, state=nil, explainer=nil, binds=nil, name=nil) #THREAD_LOCAL_ACCESS sometimes
-        state ||= TransactionState.tl_get
+        state ||= Tracer.state
         data = state.sql_sampler_transaction_data
         return unless data
 
@@ -169,7 +169,7 @@ module NewRelic
       end
 
       def notice_sql_statement(statement, metric_name, duration)
-        state ||= TransactionState.tl_get
+        state ||= Tracer.state
         data = state.sql_sampler_transaction_data
         return unless data
 

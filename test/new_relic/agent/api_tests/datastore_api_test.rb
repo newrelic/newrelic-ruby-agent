@@ -22,7 +22,7 @@ module NewRelic
 
           with_config config do
             send(txn_helper_method) do
-              segment = NewRelic::Agent::Transaction.start_datastore_segment(
+              segment = NewRelic::Agent::Tracer.start_datastore_segment(
                 product: params['product'],
                 operation: params['operation'],
                 collection: params['collection'],

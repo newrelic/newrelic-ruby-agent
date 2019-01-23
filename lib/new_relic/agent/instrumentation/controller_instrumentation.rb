@@ -233,7 +233,9 @@ module NewRelic
             category ||= (txn && txn.category)
             case category
             when :controller    then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
+            when :web           then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
             when :task          then ::NewRelic::Agent::Transaction::TASK_PREFIX
+            when :background    then ::NewRelic::Agent::Transaction::TASK_PREFIX
             when :rack          then ::NewRelic::Agent::Transaction::RACK_PREFIX
             when :uri           then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
             when :sinatra       then ::NewRelic::Agent::Transaction::SINATRA_PREFIX
@@ -344,7 +346,7 @@ module NewRelic
         #
         def perform_action_with_newrelic_trace(*args, &block) #THREAD_LOCAL_ACCESS
           NewRelic::Agent.record_api_supportability_metric(:perform_action_with_newrelic_trace)
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = NewRelic::Agent::Tracer.state
           request = newrelic_request(args)
           queue_start_time = detect_queue_start_time(request)
 
@@ -364,7 +366,11 @@ module NewRelic
           txn_options   = create_transaction_options(trace_options, category, state, queue_start_time)
 
           begin
-            Transaction.start(state, category, txn_options)
+            finishable = Tracer.start_transaction_or_segment(
+              name: txn_options[:transaction_name],
+              category: category,
+              options: txn_options
+            )
 
             begin
               yield
@@ -374,7 +380,7 @@ module NewRelic
             end
 
           ensure
-            Transaction.stop(state)
+            finishable.finish if finishable
           end
         end
 

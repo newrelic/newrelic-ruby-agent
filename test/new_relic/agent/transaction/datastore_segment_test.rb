@@ -51,7 +51,7 @@ module NewRelic
 
         def test_segment_records_expected_metrics
           in_web_transaction "text_txn" do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "insert",
               collection: "Blog"
@@ -73,7 +73,7 @@ module NewRelic
 
         def test_segment_records_expected_metrics_without_collection
           in_web_transaction "text_txn" do
-            segment = Transaction.start_datastore_segment(
+            segment = Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select"
             )
@@ -93,7 +93,7 @@ module NewRelic
 
         def test_segment_records_expected_metrics_with_instance_identifier
           in_web_transaction "text_txn" do
-            segment = Transaction.start_datastore_segment(
+            segment = Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select",
               host: "jonan-01",
@@ -116,7 +116,7 @@ module NewRelic
 
         def test_segment_records_expected_metrics_with_instance_identifier_host_only
           in_web_transaction "text_txn" do
-            segment = Transaction.start_datastore_segment(
+            segment = Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select",
               host: "jonan-01"
@@ -138,7 +138,7 @@ module NewRelic
 
         def test_segment_records_expected_metrics_with_instance_identifier_port_only
           in_web_transaction "text_txn" do
-            segment = Transaction.start_datastore_segment(
+            segment = Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select",
               port_path_or_id: 1337807
@@ -160,7 +160,7 @@ module NewRelic
 
         def test_segment_does_not_record_expected_metrics_with_empty_data
           in_web_transaction "text_txn" do
-            segment = Transaction.start_datastore_segment(
+            segment = Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select"
             )
@@ -175,7 +175,7 @@ module NewRelic
         def test_segment_does_not_record_instance_id_metrics_when_disabled
           with_config(:'datastore_tracer.instance_reporting.enabled' => false) do
             in_web_transaction "text_txn" do
-              segment = Transaction.start_datastore_segment(
+              segment = Tracer.start_datastore_segment(
                 product: "SQLite",
                 operation: "select",
                 collection: "jonan-01",
@@ -194,7 +194,7 @@ module NewRelic
           in_web_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(false)
 
-            segment = Transaction.start_datastore_segment(
+            segment = Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select",
               port_path_or_id: 1337807
@@ -220,7 +220,7 @@ module NewRelic
           in_web_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(true)
 
-            segment = Transaction.start_datastore_segment(
+            segment = Tracer.start_datastore_segment(
               product: "SQLite",
               collection: "Blahg",
               operation: "select",
@@ -276,7 +276,7 @@ module NewRelic
             in_web_transaction('wat') do |txn|
               txn.stubs(:sampled?).returns(true)
 
-              segment = Transaction.start_datastore_segment(
+              segment = Tracer.start_datastore_segment(
                 product: "SQLite",
                 collection: "Blahg",
                 operation: "select",
@@ -305,7 +305,7 @@ module NewRelic
             in_web_transaction('wat') do |txn|
               txn.stubs(:sampled?).returns(true)
 
-              segment = Transaction.start_datastore_segment(
+              segment = Tracer.start_datastore_segment(
                 product: "SQLite",
                 collection: "Blahg",
                 operation: "select",
@@ -333,7 +333,7 @@ module NewRelic
           in_web_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(true)
 
-            segment = Transaction.start_datastore_segment(
+            segment = Tracer.start_datastore_segment(
               product: "SQLite",
               collection: "Blahg",
               operation: "select",
@@ -359,7 +359,7 @@ module NewRelic
             in_transaction('wat') do |txn|
               txn.stubs(:sampled?).returns(true)
 
-              segment = Transaction.start_datastore_segment(
+              segment = Tracer.start_datastore_segment(
                 product: "SQLite",
                 operation: "select"
               )
@@ -382,7 +382,7 @@ module NewRelic
           in_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(true)
 
-              segment = NewRelic::Agent::Transaction.start_datastore_segment(
+              segment = NewRelic::Agent::Tracer.start_datastore_segment(
                 product: "Redis",
                 operation: "set"
               )
@@ -403,7 +403,7 @@ module NewRelic
           in_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(true)
 
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select",
               host: "localhost#{'t' * 300}",
@@ -431,7 +431,7 @@ module NewRelic
           in_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(true)
 
-              segment = NewRelic::Agent::Transaction.start_datastore_segment(
+              segment = NewRelic::Agent::Tracer.start_datastore_segment(
                 product: "SQLite",
                 operation: "select"
               )
@@ -451,7 +451,7 @@ module NewRelic
           segment = nil
 
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select",
               host: "jonan-01",
@@ -472,7 +472,7 @@ module NewRelic
           NewRelic::Agent::Hostname.stubs(:get).returns("jonan.gummy_planet")
 
           %w[localhost 0.0.0.0 127.0.0.1 0:0:0:0:0:0:0:1 0:0:0:0:0:0:0:0 ::1 ::].each do |host|
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select",
               collection: "blogs",
@@ -489,7 +489,7 @@ module NewRelic
           segment = nil
 
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select",
               database_name: "pizza_cube"
@@ -509,7 +509,7 @@ module NewRelic
             segment = nil
 
             in_transaction do
-              segment = NewRelic::Agent::Transaction.start_datastore_segment(
+              segment = NewRelic::Agent::Tracer.start_datastore_segment(
                 product: "SQLite",
                 operation: "select",
                 database_name: "pizza_cube"
@@ -527,7 +527,7 @@ module NewRelic
 
         def test_notice_sql
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select"
             )
@@ -544,10 +544,10 @@ module NewRelic
         end
 
         def test_notice_sql_not_recording
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = NewRelic::Agent::Tracer.state
           state.record_sql = false
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select"
             )
@@ -560,7 +560,7 @@ module NewRelic
 
         def test_notice_sql_can_be_disabled_with_record_sql
           in_transaction do |txn|
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select"
             )
@@ -573,7 +573,7 @@ module NewRelic
 
         def test_notice_sql_creates_database_statement_with_identifier
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select",
               host: "jonan.gummy_planet",
@@ -589,7 +589,7 @@ module NewRelic
 
         def test_notice_sql_creates_database_statement_with_database_name
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select",
               database_name: "pizza_cube"
@@ -603,7 +603,7 @@ module NewRelic
 
         def test_notice_sql_truncates_long_queries
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select"
             )
@@ -616,7 +616,7 @@ module NewRelic
         def test_internal_notice_sql
           explainer = stub(:explainer)
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select"
             )
@@ -635,7 +635,7 @@ module NewRelic
         def test_notice_nosql_statement
           statement = "set mykey 123"
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "Redis",
               operation: "set"
             )
@@ -648,10 +648,10 @@ module NewRelic
         end
 
         def test_notice_nosql_statement_not_recording
-          state = NewRelic::Agent::TransactionState.tl_get
+          state = NewRelic::Agent::Tracer.state
           state.record_sql = false
           in_transaction do
-            segment = NewRelic::Agent::Transaction.start_datastore_segment(
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "select"
             )
@@ -698,7 +698,7 @@ module NewRelic
           segment = nil
           with_config :'transaction_tracer.stack_trace_threshold' => 2.0 do
             in_web_transaction "test_txn" do
-              segment = NewRelic::Agent::Transaction.start_datastore_segment(
+              segment = NewRelic::Agent::Tracer.start_datastore_segment(
                 product: "SQLite",
                 operation: "insert",
                 collection: "Blog"
@@ -720,7 +720,7 @@ module NewRelic
           segment = nil
           with_config :'transaction_tracer.stack_trace_threshold' => 1.0 do
             in_web_transaction "test_txn" do
-              segment = NewRelic::Agent::Transaction.start_datastore_segment(
+              segment = NewRelic::Agent::Tracer.start_datastore_segment(
                 product: "SQLite",
                 operation: "insert",
                 collection: "Blog"
@@ -742,7 +742,7 @@ module NewRelic
           orig_sql = "SELECT * from Jim where id=66"
 
           in_transaction do
-            s = NewRelic::Agent::Transaction.start_datastore_segment
+            s = NewRelic::Agent::Tracer.start_datastore_segment
             s.notice_sql(orig_sql)
             s.finish
           end
@@ -756,7 +756,7 @@ module NewRelic
 
           in_transaction do |txn|
 
-            segment = Transaction.start_datastore_segment(
+            segment = Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "insert",
               collection: "Blog",

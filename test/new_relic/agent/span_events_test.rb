@@ -29,7 +29,7 @@ module NewRelic
         payload = nil
         external_segment = nil
         transaction = in_transaction('test_txn') do |txn|
-          external_segment = NewRelic::Agent::Transaction.\
+          external_segment = NewRelic::Agent::Tracer.\
                        start_external_request_segment library: "net/http",
                                                       uri: "http://docs.newrelic.com",
                                                       procedure: "GET"
@@ -45,7 +45,7 @@ module NewRelic
         payload = nil
         external_segment = nil
         in_transaction('test_txn') do |txn|
-          external_segment = NewRelic::Agent::Transaction.\
+          external_segment = NewRelic::Agent::Tracer.\
                        start_external_request_segment library: "net/http",
                                                       uri: "http://docs.newrelic.com",
                                                       procedure: "GET"
@@ -69,8 +69,8 @@ module NewRelic
         txn = in_transaction('test_txn') do |t|
           t.stubs(:sampled?).returns(true)
           txn_segment = t.initial_segment
-          segment_a = NewRelic::Agent::Transaction.start_segment(name: 'segment_a')
-          segment_b = NewRelic::Agent::Transaction.start_segment(name: 'segment_b')
+          segment_a = NewRelic::Agent::Tracer.start_segment(name: 'segment_a')
+          segment_b = NewRelic::Agent::Tracer.start_segment(name: 'segment_b')
           segment_b.finish
           segment_a.finish
         end
@@ -99,7 +99,7 @@ module NewRelic
         in_transaction('test_txn') do |t|
           t.stubs(:sampled?).returns(true)
           txn_segment = t.initial_segment
-          segment_a = NewRelic::Agent::Transaction.start_segment(name: 'segment_a')
+          segment_a = NewRelic::Agent::Tracer.start_segment(name: 'segment_a')
           segment_a.finish
         end
 
@@ -119,7 +119,7 @@ module NewRelic
         with_config(:'attributes.exclude' => ['http.url']) do
           in_transaction('test_txn') do |t|
             t.stubs(:sampled?).returns(true)
-            external_segment = Transaction.start_external_request_segment(library: 'Net::HTTP',
+            external_segment = Tracer.start_external_request_segment(library: 'Net::HTTP',
                                                                           uri: "https://docs.newrelic.com",
                                                                           procedure: "GET")
             external_segment.finish

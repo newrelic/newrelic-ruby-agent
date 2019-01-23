@@ -5,19 +5,19 @@
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/transaction/segment'
-require 'new_relic/agent/transaction_state'
+require 'new_relic/agent/tracer'
 
 module NewRelic::Agent
-  class TransactionStateTest < Minitest::Test
+  class TracerStateTest < Minitest::Test
     attr_reader :state
 
     def setup
-      TransactionState.tl_clear
-      @state = TransactionState.tl_get
+      Tracer.clear_state
+      @state = Tracer.state
     end
 
     def teardown
-      TransactionState.tl_clear
+      Tracer.clear_state
     end
 
     def test_in_background_transaction

@@ -12,6 +12,7 @@ lib/new_relic/agent/stats_engine/metric_stats.rb
 lib/new_relic/agent/datastores.rb
 lib/new_relic/agent/messaging.rb
 lib/new_relic/agent/sql_sampler.rb
+lib/new_relic/agent/tracer.rb
 lib/new_relic/agent/transaction.rb
 lib/new_relic/agent/transaction_sampler.rb
 lib/new_relic/rack/agent_hooks.rb
