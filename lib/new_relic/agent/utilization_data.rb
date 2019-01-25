@@ -7,10 +7,11 @@ require 'new_relic/agent/utilization/gcp'
 require 'new_relic/agent/utilization/azure'
 require 'new_relic/agent/utilization/pcf'
 
+
 module NewRelic
   module Agent
     class UtilizationData
-      METADATA_VERSION = 3
+      METADATA_VERSION = 5
 
       VENDORS = {
         Utilization::AWS   => :'utilization.detect_aws',
@@ -21,6 +22,10 @@ module NewRelic
 
       def hostname
         NewRelic::Agent::Hostname.get
+      end
+
+      def ip_address
+        ::NewRelic::Agent::SystemInfo.ip_address
       end
 
       def container_id
@@ -69,6 +74,7 @@ module NewRelic
         append_docker_info(result)
         append_configured_values(result)
         append_boot_id(result)
+        append_ip_address(result)
 
         result
       end
@@ -97,6 +103,10 @@ module NewRelic
 
       def append_configured_values(collector_hash)
         collector_hash[:config] = config_hash unless config_hash.empty?
+      end
+
+      def append_ip_address(collector_hash)
+        collector_hash[:ip_address] = ip_address unless ip_address.empty?
       end
 
       def append_boot_id(collector_hash)

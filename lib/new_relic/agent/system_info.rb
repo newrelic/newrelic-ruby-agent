@@ -8,6 +8,7 @@
 # the requested information is unavailable.
 
 require 'rbconfig'
+require 'socket'
 
 module NewRelic
   module Agent
@@ -29,6 +30,10 @@ module NewRelic
       end
 
       @processor_info = nil
+
+      def self.ip_address
+        Socket.ip_address_list.map &:ip_address
+      end
 
       def self.clear_processor_info
         @processor_info = nil
