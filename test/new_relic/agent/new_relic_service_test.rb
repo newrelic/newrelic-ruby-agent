@@ -685,7 +685,7 @@ class NewRelicServiceTest < Minitest::Test
     }
     error = @service.marshaller.parsed_error(error_data)
     assert_equal NewRelic::Agent::ForceRestartException, error.class
-    assert_equal 'test', error.message
+    assert_equal 'test, restarting.', error.message
   end
 
   def test_marshaller_handles_force_disconnect_exception
@@ -695,6 +695,7 @@ class NewRelicServiceTest < Minitest::Test
     }
     error = @service.marshaller.parsed_error(error_data)
     assert_equal NewRelic::Agent::ForceDisconnectException, error.class
+     # The logging code in Agent::Agent will add ', disconnecting'
     assert_equal 'test', error.message
   end
 
