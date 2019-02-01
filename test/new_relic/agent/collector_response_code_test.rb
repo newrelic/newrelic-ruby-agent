@@ -13,7 +13,8 @@ module NewRelic
       end
 
       def test_harvest_and_send_errors_merges_back_on_429
-        errors = [mock('e0'), mock('e1')]
+        errors = ["e1", "e2"]
+
         stub_service Net::HTTPTooManyRequests.new('1.1', 429, 'Too many requests')
 
         @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(errors)
