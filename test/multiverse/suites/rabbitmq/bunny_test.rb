@@ -275,6 +275,18 @@ class BunnyTest < Minitest::Test
     end
   end
 
+  def test_pop_returning_no_message_doesnt_error
+    NewRelic::Agent.stubs(:logger).returns(NewRelic::Agent::MemoryLogger.new)
+
+    with_queue do |queue|
+      in_transaction "test_txn" do
+        queue.pop
+      end
+
+      assert_empty NewRelic::Agent.logger.messages
+    end
+  end
+
   def with_queue temp=true, exclusive=true, &block
     queue_name = temp ? "" : random_string
     queue = @chan.queue(queue_name, exclusive: exclusive)
