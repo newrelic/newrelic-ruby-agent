@@ -57,19 +57,22 @@ DependencyDetection.defer do
         def pop(opts = {:manual_ack => false}, &block)
           t0 = Time.now
           msg = pop_without_new_relic opts, &block
+          delivery_info, message_properties, _payload = msg
 
           begin
-            exchange_name = NewRelic::Agent::Instrumentation::Bunny.exchange_name(msg.first.exchange)
+            if !delivery_info.nil?
+              exchange_name = NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange)
 
-            segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
-              library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
-              destination_name: exchange_name,
-              delivery_info: msg[0],
-              message_properties: msg[1],
-              exchange_type: channel.exchanges[msg.first.exchange].type,
-              queue_name: name,
-              start_time: t0
-            )
+              segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
+                library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
+                destination_name: exchange_name,
+                delivery_info: delivery_info,
+                message_properties: message_properties,
+                exchange_type: channel.exchanges[msg.first.exchange].type,
+                queue_name: name,
+                start_time: t0
+              )
+            end
 
           rescue => e
             NewRelic::Agent.logger.error "Error starting message broker segment in Bunny::Queue#pop", e
