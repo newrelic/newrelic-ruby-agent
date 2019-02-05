@@ -544,7 +544,7 @@ module NewRelic
         when Net::HTTPUnsupportedMediaType
           raise UnrecoverableServerException, '415 Unsupported Media Type'
         when Net::HTTPTooManyRequests
-          raise ServerConnectionException, "429 Too Many Requests: #{response.message}"
+          raise ServerConnectionException, "#{response.code} #{response.message}"
         else
           raise ServerConnectionException, "Unexpected response from server (#{response.code}): #{response.message}"
         end
