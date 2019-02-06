@@ -526,6 +526,15 @@ class NewRelicServiceTest < Minitest::Test
     end
   end
 
+  # protocol 17
+  def test_should_raise_exception_on_429
+    @http_handle.respond_to(:metric_data, 'some metrics', :code => 429)
+    assert_raises NewRelic::Agent::ServerConnectionException do
+      stats_hash = NewRelic::Agent::StatsHash.new
+      @service.metric_data(stats_hash)
+    end
+  end
+
   def test_json_marshaller_handles_responses_from_collector
     marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
     assert_equal ['beep', 'boop'], marshaller.load('{"return_value": ["beep","boop"]}')
@@ -1019,6 +1028,7 @@ class NewRelicServiceTest < Minitest::Test
     HTTPNotFound              = Class.new(Net::HTTPNotFound)              { include HTTPResponseMock }
     HTTPRequestEntityTooLarge = Class.new(Net::HTTPRequestEntityTooLarge) { include HTTPResponseMock }
     HTTPUnsupportedMediaType  = Class.new(Net::HTTPUnsupportedMediaType)  { include HTTPResponseMock }
+    HTTPTooManyRequests       = Class.new(Net::HTTPTooManyRequests)       { include HTTPResponseMock }
 
     attr_accessor :read_timeout
     attr_reader :calls, :last_request
@@ -1067,6 +1077,8 @@ class NewRelicServiceTest < Minitest::Test
         klass = HTTPRequestEntityTooLarge
       elsif opts[:code] == 415
         klass = HTTPUnsupportedMediaType
+      elsif opts[:code] ==  429
+        klass = HTTPTooManyRequests
       elsif opts[:code] >= 400
         klass = HTTPServerError
       else
