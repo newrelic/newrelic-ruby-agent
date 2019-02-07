@@ -188,7 +188,7 @@ module NewRelic::Agent
     end
 
     def test_ip_is_present_in_collector_hash
-      NewRelic::Agent::SystemInfo.stubs(:ip_address).returns(['127.0.0.1'])
+      NewRelic::Agent::SystemInfo.stubs(:ip_addresses).returns(['127.0.0.1'])
 
       utilization_data = UtilizationData.new
 
@@ -343,7 +343,7 @@ module NewRelic::Agent
       :input_total_ram_mib => :ram_in_mib,
       :input_logical_processors => :cpu_count,
       :input_hostname => :hostname,
-      :input_ip_address => :ip_address,
+      :input_ip_address => :ip_addresses,
     }
 
     def stub_utilization_inputs test_case

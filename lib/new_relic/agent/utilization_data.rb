@@ -24,8 +24,8 @@ module NewRelic
         NewRelic::Agent::Hostname.get
       end
 
-      def ip_address
-        ::NewRelic::Agent::SystemInfo.ip_address
+      def ip_addresses
+        ::NewRelic::Agent::SystemInfo.ip_addresses
       end
 
       def container_id
@@ -106,7 +106,8 @@ module NewRelic
       end
 
       def append_ip_address(collector_hash)
-        collector_hash[:ip_address] = ip_address unless ip_address.empty?
+        ips = ip_addresses
+        collector_hash[:ip_address] = ips unless ips.empty?
       end
 
       def append_boot_id(collector_hash)

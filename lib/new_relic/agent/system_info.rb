@@ -31,8 +31,8 @@ module NewRelic
 
       @processor_info = nil
 
-      def self.ip_address
-        Socket.ip_address_list.map &:ip_address
+      def self.ip_addresses
+        Socket.ip_address_list.map(&:ip_address)
       end
 
       def self.clear_processor_info
