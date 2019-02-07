@@ -624,7 +624,7 @@ module NewRelic
           # is the worker thread that gathers data and talks to the
           # server.
           def handle_force_disconnect(error)
-            ::NewRelic::Agent.logger.warn "New Relic forced this agent to disconnect (#{error.message})"
+            ::NewRelic::Agent.logger.warn "Agent received a ForceDisconnectException from the server, disconnecting. (#{error.message})"
             disconnect
           end
 
@@ -632,7 +632,7 @@ module NewRelic
           # it and disconnecting the agent, since we are now in an
           # unknown state.
           def handle_other_error(error)
-            ::NewRelic::Agent.logger.error "Unhandled error in worker thread, disconnecting this agent process:"
+            ::NewRelic::Agent.logger.error "Unhandled error in worker thread, disconnecting."
             # These errors are fatal (that is, they will prevent the agent from
             # reporting entirely), so we really want backtraces when they happen
             ::NewRelic::Agent.logger.log_exception(:error, error)

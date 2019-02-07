@@ -76,7 +76,11 @@ module NewRelic
     class ForceDisconnectException < StandardError; end
 
     # An exception that forces an agent to restart.
-    class ForceRestartException < StandardError; end
+    class ForceRestartException < StandardError
+      def message
+        "#{super}, restarting."
+      end
+    end
 
     # Used to blow out of a periodic task without logging a an error, such as for routine
     # failures.
