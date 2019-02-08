@@ -24,6 +24,10 @@ module NewRelic
         NewRelic::Agent::Hostname.get
       end
 
+      def fqdn
+        NewRelic::Agent::Hostname.get_fqdn
+      end
+
       def ip_addresses
         ::NewRelic::Agent::SystemInfo.ip_addresses
       end
@@ -75,6 +79,7 @@ module NewRelic
         append_configured_values(result)
         append_boot_id(result)
         append_ip_address(result)
+        append_fqdn(result)
 
         result
       end
@@ -105,15 +110,21 @@ module NewRelic
         collector_hash[:config] = config_hash unless config_hash.empty?
       end
 
+      def append_boot_id(collector_hash)
+        if bid = ::NewRelic::Agent::SystemInfo.boot_id
+          collector_hash[:boot_id] = bid
+        end
+      end
+
       def append_ip_address(collector_hash)
         ips = ip_addresses
         collector_hash[:ip_address] = ips unless ips.empty?
       end
 
-      def append_boot_id(collector_hash)
-        if bid = ::NewRelic::Agent::SystemInfo.boot_id
-          collector_hash[:boot_id] = bid
-        end
+      def append_fqdn(collector_hash)
+        full_hostname = fqdn
+        return if full_hostname.nil? || full_hostname.empty?
+        collector_hash[:full_hostname] = full_hostname
       end
 
       def config_hash

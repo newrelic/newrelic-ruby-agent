@@ -195,6 +195,24 @@ module NewRelic::Agent
       assert_equal ['127.0.0.1'], utilization_data.to_collector_hash[:ip_address]
     end
 
+    def test_full_hostname_is_present_in_collector_hash
+      NewRelic::Agent::Hostname.stubs(:get_fqdn).returns("foobar.baz.com")
+
+      utilization_data = UtilizationData.new
+
+      assert_equal "foobar.baz.com", utilization_data.to_collector_hash[:full_hostname]
+    end
+
+    def test_full_hostname_omitted_if_empty_or_nil
+      [nil, ""].each do |return_value|
+        NewRelic::Agent::Hostname.stubs(:get_fqdn).returns(return_value)
+
+        utilization_data = UtilizationData.new
+
+        refute utilization_data.to_collector_hash.key?(:full_hostname)
+      end
+    end
+
     def test_cpu_count_is_present_in_collector_hash
       NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(5)
 
@@ -318,9 +336,6 @@ module NewRelic::Agent
           test_case[:expected_output_json][:boot_id] = NewRelic::Agent::SystemInfo.proc_try_read('/proc/sys/kernel/random/boot_id').chomp
         end
 
-        # temporary, until we collect full hostname
-        test_case[:expected_output_json].delete(:full_hostname)
-
         with_config options do
           test = ->{ assert_equal test_case[:expected_output_json], UtilizationData.new.to_collector_hash }
           if PCF_INPUTS.keys.all? {|k| test_case.key? k}
@@ -344,6 +359,7 @@ module NewRelic::Agent
       :input_logical_processors => :cpu_count,
       :input_hostname => :hostname,
       :input_ip_address => :ip_addresses,
+      :input_full_hostname => :fqdn
     }
 
     def stub_utilization_inputs test_case
