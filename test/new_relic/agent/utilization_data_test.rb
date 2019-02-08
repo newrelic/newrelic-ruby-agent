@@ -317,8 +317,9 @@ module NewRelic::Agent
 
       test_case = symbolize_keys_in_object test_case
 
-      #temporary, until we add kubernetes support
+      #temporary, until we implement utilization v5
       next if test_case[:testname].include? "kubernetes"
+      test_case[:expected_output_json][:metadata_version] = 4
 
       define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
         setup_cross_agent_test_stubs test_case
