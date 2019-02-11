@@ -60,7 +60,7 @@ DependencyDetection.defer do
           delivery_info, message_properties, _payload = msg
 
           begin
-            if !delivery_info.nil?
+            if delivery_info
               exchange_name = NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange)
               exchange_type = NewRelic::Agent::Instrumentation::Bunny.exchange_type(delivery_info, channel)
 
