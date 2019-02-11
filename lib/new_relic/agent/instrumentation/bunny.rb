@@ -62,13 +62,14 @@ DependencyDetection.defer do
           begin
             if !delivery_info.nil?
               exchange_name = NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange)
+              exchange_type = NewRelic::Agent::Instrumentation::Bunny.exchange_type(delivery_info, channel)
 
               segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
                 library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
                 destination_name: exchange_name,
                 delivery_info: delivery_info,
                 message_properties: message_properties,
-                exchange_type: channel.exchanges[msg.first.exchange].type,
+                exchange_type: exchange_type,
                 queue_name: name,
                 start_time: t0
               )
