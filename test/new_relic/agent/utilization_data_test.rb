@@ -326,12 +326,10 @@ module NewRelic::Agent
 
       test_case = symbolize_keys_in_object test_case
 
-      #temporary, until we implement utilization v5
-      next if test_case[:testname].include? "kubernetes"
-      test_case[:expected_output_json][:metadata_version] = 4
-
       define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
         setup_cross_agent_test_stubs test_case
+
+        env = non_config_environment_variables(test_case)
 
         # This is a little bit ugly, but TravisCI runs these tests in a docker environment,
         # which means we get an unexpected docker id in the vendors hash. Since none of the
@@ -346,12 +344,15 @@ module NewRelic::Agent
           test_case[:expected_output_json][:boot_id] = NewRelic::Agent::SystemInfo.proc_try_read('/proc/sys/kernel/random/boot_id').chomp
         end
 
-        with_config options do
-          test = ->{ assert_equal test_case[:expected_output_json], UtilizationData.new.to_collector_hash }
-          if PCF_INPUTS.keys.all? {|k| test_case.key? k}
-            with_pcf_env stub_pcf_env(test_case), &test
-          else
-            test[]
+
+        with_environment env do
+          with_config options do
+            test = ->{ assert_equal test_case[:expected_output_json], UtilizationData.new.to_collector_hash }
+            if PCF_INPUTS.keys.all? {|k| test_case.key? k}
+              with_pcf_env stub_pcf_env(test_case), &test
+            else
+              test[]
+            end
           end
         end
       end
@@ -380,6 +381,17 @@ module NewRelic::Agent
       end
     end
 
+    def non_config_environment_variables test_case
+      env_inputs = test_case.fetch :input_environment_variables, {}
+      env_inputs.inject({}) do |memo, (k, v)|
+        k = k.to_s
+        unless k.start_with? 'NEW_RELIC'
+          memo[k] = v
+        end
+        memo
+      end
+    end
+
     AWS_INPUTS = {
       input_aws_id:   :instanceId,
       input_aws_type: :instanceType,
@@ -402,7 +414,9 @@ module NewRelic::Agent
     def convert_env_to_config_options test_case
       env_inputs = test_case.fetch :input_environment_variables, {}
       env_inputs.keys.inject({}) do |memo, k|
-        memo[ENV_TO_OPTIONS[k]] = NUMERIC_ENV_OPTS.include?(k) ? env_inputs[k].to_i : env_inputs[k]
+        if k.to_s.start_with? 'NEW_RELIC'
+          memo[ENV_TO_OPTIONS[k]] = NUMERIC_ENV_OPTS.include?(k) ? env_inputs[k].to_i : env_inputs[k]
+        end
         memo
       end
     end

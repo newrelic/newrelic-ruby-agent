@@ -11,7 +11,7 @@ require 'new_relic/agent/utilization/pcf'
 module NewRelic
   module Agent
     class UtilizationData
-      METADATA_VERSION = 4
+      METADATA_VERSION = 5
 
       VENDORS = {
         Utilization::AWS   => :'utilization.detect_aws',
