@@ -12,7 +12,7 @@ class UtilizationDataCollectionTest < Minitest::Test
     expected = {
       "hostname" => "host",
       "ip_address" => ["127.0.0.1"],
-      "metadata_version" => 4,
+      "metadata_version" => 5,
       "logical_processors" => 5,
       "total_ram_mib" => 128,
       "vendors" => {
@@ -52,7 +52,7 @@ class UtilizationDataCollectionTest < Minitest::Test
      expected = {
       "hostname" => "host",
       "ip_address" => ["127.0.0.1"],
-      "metadata_version" => 4,
+      "metadata_version" => 5,
       "logical_processors" => 5,
       "total_ram_mib" => 128
     }
