@@ -80,6 +80,7 @@ module NewRelic
         append_boot_id(result)
         append_ip_address(result)
         append_full_hostname(result)
+        append_kubernetes_info(result)
 
         result
       end
@@ -119,6 +120,17 @@ module NewRelic
       def append_ip_address(collector_hash)
         ips = ip_addresses
         collector_hash[:ip_address] = ips unless ips.empty?
+      end
+
+      KUBERNETES_SERVICE_HOST = 'KUBERNETES_SERVICE_HOST'.freeze
+
+      def append_kubernetes_info(collector_hash)
+        if host = ENV[KUBERNETES_SERVICE_HOST]
+          collector_hash[:vendors] ||= {}
+          collector_hash[:vendors][:kubernetes] = {
+            kubernetes_service_host: host
+          }
+        end
       end
 
       def append_full_hostname(collector_hash)

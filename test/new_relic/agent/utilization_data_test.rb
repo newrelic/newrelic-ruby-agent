@@ -273,6 +273,15 @@ module NewRelic::Agent
       assert_equal "boot-id", utilization_data.to_collector_hash[:boot_id]
     end
 
+    def test_kubernetes_information_is_present_if_available
+      with_environment 'KUBERNETES_SERVICE_HOST' => '10.96.0.1' do
+        utilization_data = UtilizationData.new
+
+        assert_equal({kubernetes_service_host: '10.96.0.1'},
+                     utilization_data.to_collector_hash[:vendors][:kubernetes])
+      end
+    end
+
     # ---
 
     def stub_aws_info response_code: '200', response_body: default_aws_response
