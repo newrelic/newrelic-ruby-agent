@@ -125,6 +125,7 @@ module NewRelic
       KUBERNETES_SERVICE_HOST = 'KUBERNETES_SERVICE_HOST'.freeze
 
       def append_kubernetes_info(collector_hash)
+        return unless Agent.config[:'utilization.detect_kubernetes']
         if host = ENV[KUBERNETES_SERVICE_HOST]
           collector_hash[:vendors] ||= {}
           collector_hash[:vendors][:kubernetes] = {

@@ -1694,6 +1694,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If <code>true</code>, the agent automatically detects that it is running in Docker.'
         },
+        :'utilization.detect_kubernetes' => {
+          :default     => true,
+          :public      => true,
+          :type        => Boolean,
+          :allowed_from_server => false,
+          :description => 'If <code>true</code>, the agent automatically detects that it is running in Kubernetes.'
+        },
         :'utilization.billing_hostname' => {
           :default     => nil,
           :allow_nil   => true,

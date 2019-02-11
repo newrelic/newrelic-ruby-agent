@@ -282,6 +282,17 @@ module NewRelic::Agent
       end
     end
 
+    def test_kubernetes_information_is_omitted_if_disabled
+      with_config :'utilization.detect_kubernetes' => false do
+        with_environment 'KUBERNETES_SERVICE_HOST' => '10.96.0.1' do
+          utilization_data = UtilizationData.new
+
+          collector_hash = utilization_data.to_collector_hash
+          refute collector_hash.key? :vendors
+        end
+      end
+    end
+
     # ---
 
     def stub_aws_info response_code: '200', response_body: default_aws_response
