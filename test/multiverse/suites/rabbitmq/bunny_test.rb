@@ -302,7 +302,7 @@ class BunnyTest < Minitest::Test
         assert_equal "test_msg", msg[2]
       end
 
-      assert_empty NewRelic::Agent.logger.messages #.reject { |m| m.first == :debug }
+      assert_empty NewRelic::Agent.logger.messages
 
       assert_metrics_recorded ["MessageBroker/RabbitMQ/Exchange/Consume/Named/Default"]
     end
