@@ -79,7 +79,7 @@ module NewRelic
         append_configured_values(result)
         append_boot_id(result)
         append_ip_address(result)
-        append_fqdn(result)
+        append_full_hostname(result)
 
         result
       end
@@ -121,7 +121,7 @@ module NewRelic
         collector_hash[:ip_address] = ips unless ips.empty?
       end
 
-      def append_fqdn(collector_hash)
+      def append_full_hostname(collector_hash)
         full_hostname = fqdn
         return if full_hostname.nil? || full_hostname.empty?
         collector_hash[:full_hostname] = full_hostname
