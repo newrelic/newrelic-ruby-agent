@@ -11,7 +11,8 @@ class UtilizationDataCollectionTest < Minitest::Test
   def test_sends_all_utilization_data_on_connect
     expected = {
       "hostname" => "host",
-      "metadata_version" => 3,
+      "ip_address" => ["127.0.0.1"],
+      "metadata_version" => 4,
       "logical_processors" => 5,
       "total_ram_mib" => 128,
       "vendors" => {
@@ -27,10 +28,12 @@ class UtilizationDataCollectionTest < Minitest::Test
     }
 
     NewRelic::Agent::Hostname.stubs(:get).returns("host")
+    NewRelic::Agent::Hostname.stubs(:get_fqdn).returns(nil)
     NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns("47cbd16b77c50cbf71401")
     NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(5)
     NewRelic::Agent::SystemInfo.stubs(:ram_in_mib).returns(128)
     NewRelic::Agent::SystemInfo.stubs(:boot_id).returns(nil)
+    NewRelic::Agent::SystemInfo.stubs(:ip_addresses).returns(["127.0.0.1"])
 
     aws_fixture_path = File.expand_path('../../../../fixtures/utilization/aws', __FILE__)
     fixture = File.read File.join(aws_fixture_path, "valid.json")
@@ -48,16 +51,19 @@ class UtilizationDataCollectionTest < Minitest::Test
   def test_omits_sending_vendor_data_on_connect_when_not_available
      expected = {
       "hostname" => "host",
-      "metadata_version" => 3,
+      "ip_address" => ["127.0.0.1"],
+      "metadata_version" => 4,
       "logical_processors" => 5,
       "total_ram_mib" => 128
     }
 
     NewRelic::Agent::Hostname.stubs(:get).returns("host")
+    NewRelic::Agent::Hostname.stubs(:get_fqdn).returns(nil)
     NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(5)
     NewRelic::Agent::SystemInfo.stubs(:ram_in_mib).returns(128)
     NewRelic::Agent::SystemInfo.stubs(:docker_container_id).returns(nil)
     NewRelic::Agent::SystemInfo.stubs(:boot_id).returns(nil)
+    NewRelic::Agent::SystemInfo.stubs(:ip_addresses).returns(["127.0.0.1"])
     NewRelic::Agent::Utilization::AWS.any_instance.stubs(:detect).returns(false)
     NewRelic::Agent::Utilization::GCP.any_instance.stubs(:detect).returns(false)
 

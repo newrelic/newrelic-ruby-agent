@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+require 'socket'
 
 module NewRelic
   module Agent
@@ -14,6 +15,13 @@ module NewRelic
         else
           Socket.gethostname
         end
+      end
+
+      def self.get_fqdn
+        %x[hostname -f].chomp!
+      rescue => e
+        NewRelic::Agent.logger.debug "Unable to determine fqdn #{e}"
+        nil
       end
 
       def self.heroku_dyno_name_prefix(dyno_name)

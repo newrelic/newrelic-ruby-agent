@@ -187,6 +187,32 @@ module NewRelic::Agent
       assert_equal "host", utilization_data.to_collector_hash[:hostname]
     end
 
+    def test_ip_is_present_in_collector_hash
+      NewRelic::Agent::SystemInfo.stubs(:ip_addresses).returns(['127.0.0.1'])
+
+      utilization_data = UtilizationData.new
+
+      assert_equal ['127.0.0.1'], utilization_data.to_collector_hash[:ip_address]
+    end
+
+    def test_full_hostname_is_present_in_collector_hash
+      NewRelic::Agent::Hostname.stubs(:get_fqdn).returns("foobar.baz.com")
+
+      utilization_data = UtilizationData.new
+
+      assert_equal "foobar.baz.com", utilization_data.to_collector_hash[:full_hostname]
+    end
+
+    def test_full_hostname_omitted_if_empty_or_nil
+      [nil, ""].each do |return_value|
+        NewRelic::Agent::Hostname.stubs(:get_fqdn).returns(return_value)
+
+        utilization_data = UtilizationData.new
+
+        refute utilization_data.to_collector_hash.key?(:full_hostname)
+      end
+    end
+
     def test_cpu_count_is_present_in_collector_hash
       NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(5)
 
@@ -290,6 +316,11 @@ module NewRelic::Agent
     load_cross_agent_test("utilization/utilization_json").each do |test_case|
 
       test_case = symbolize_keys_in_object test_case
+
+      #temporary, until we implement utilization v5
+      next if test_case[:testname].include? "kubernetes"
+      test_case[:expected_output_json][:metadata_version] = 4
+
       define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
         setup_cross_agent_test_stubs test_case
 
@@ -327,7 +358,9 @@ module NewRelic::Agent
     UTILIZATION_INPUTS = {
       :input_total_ram_mib => :ram_in_mib,
       :input_logical_processors => :cpu_count,
-      :input_hostname => :hostname
+      :input_hostname => :hostname,
+      :input_ip_address => :ip_addresses,
+      :input_full_hostname => :fqdn
     }
 
     def stub_utilization_inputs test_case
