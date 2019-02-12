@@ -1,5 +1,15 @@
 # New Relic Ruby Agent Release Notes #
 
+## v6.1.0
+
+   * Bugfix for Bunny instrumentation when popping empty queues
+
+     When a customer calls `Bunny::Queue#pop` on an empty queue, Bunny
+     returns a `nil` value.  Previous Ruby Agent versions raised a
+     `NoMethodError` when trying to process this result.  Now, the
+     agent correctly skips processing for `nil` values.  Thanks to
+     Matt Campbell for the contribution.
+
 ## v6.0.0
 
    * Tracer API for flexible custom instrumentation
