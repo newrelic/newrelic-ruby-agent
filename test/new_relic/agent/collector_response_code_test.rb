@@ -13,186 +13,84 @@ module NewRelic
         @errors = ["e1", "e2"]
       end
 
-      def test_harvest_and_send_errors_discards_on_400
-        stub_service Net::HTTPBadRequest.new('1.1', 400, 'Bad request')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        assert_empty @agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
-
-        @agent.send :harvest_and_send_errors
-      end
-
-      def test_harvest_and_send_errors_restarts_on_401
-        stub_service Net::HTTPUnauthorized.new('1.1', 401, 'Unauthorized')
-
-        # The error-handling code in agent.rb calls `retry`; rather
-        # than testing it directly, we'll just assert that our service
-        # call raises the right exception.
-        #
-        assert_raises(NewRelic::Agent::ForceRestartException) do
-          @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-          @agent.send :harvest_and_send_errors
-        end
-      end
-
-      def test_harvest_and_send_errors_discards_on_403
-        stub_service Net::HTTPForbidden.new('1.1', 403, 'Forbidden')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        assert_empty @agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
-
-        @agent.send :harvest_and_send_errors
-      end
-
-      def test_harvest_and_send_errors_discards_on_404
-        stub_service Net::HTTPNotFound.new('1.1', 404, 'Not found')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        assert_empty @agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
-
-        @agent.send :harvest_and_send_errors
-      end
-
-      def test_harvest_and_send_errors_discards_on_405
-        stub_service Net::HTTPMethodNotAllowed.new('1.1', 405, 'Method not allowed')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        assert_empty @agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
-
-        @agent.send :harvest_and_send_errors
-      end
-
-      def test_harvest_and_send_errors_discards_on_407
-        stub_service Net::HTTPMethodNotAllowed.new('1.1', 407, 'Proxy authentication required')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        assert_empty @agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
-
-        @agent.send :harvest_and_send_errors
-      end
-
-      def test_harvest_and_send_errors_merges_back_on_408
-        stub_service Net::HTTPRequestTimeOut.new('1.1', 408, 'Request timeout')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        @agent.error_collector.error_trace_aggregator.expects(:merge!).with(@errors)
-
-        @agent.send :harvest_and_send_errors
-      end
-
-      def test_harvest_and_send_errors_restarts_on_409
-        stub_service Net::HTTPUnauthorized.new('1.1', 409, 'Conflict')
-
-        assert_raises(::NewRelic::Agent::ForceRestartException) do
-          @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-          @agent.send :harvest_and_send_errors
-        end
-      end
-
-      def test_harvest_and_send_errors_disconnects_on_410
-        stub_service Net::HTTPGone.new('1.1', 410, 'Gone')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        @agent.expects(:disconnect)
-
-        @agent.send(:catch_errors) do
-          @agent.send :harvest_and_send_errors
-        end
-      end
-
-      def test_harvest_and_send_errors_discards_on_411
-        stub_service Net::HTTPLengthRequired.new('1.1', 411, 'Length required')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        assert_empty @agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
-
-        @agent.send :harvest_and_send_errors
-      end
-
-      def test_harvest_and_send_errors_discards_on_413
-        stub_service Net::HTTPRequestEntityTooLarge.new('1.1', 413, 'Too large')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        assert_empty @agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
-
-        @agent.send :harvest_and_send_errors
-      end
-
-      def test_harvest_and_send_errors_discards_on_414
-        stub_service Net::HTTPRequestURITooLong.new('1.1', 414, 'URI too long')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        assert_empty @agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
-
-        @agent.send :harvest_and_send_errors
-      end
-
-      def test_harvest_and_send_errors_discards_on_415
-        stub_service Net::HTTPUnsupportedMediaType.new('1.1', 415, 'Unsupported media type')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        assert_empty @agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
-
-        @agent.send :harvest_and_send_errors
-      end
-
-      def test_harvest_and_send_errors_discards_on_417
-        stub_service Net::HTTPExpectationFailed.new('1.1', 417, 'Expectation failed')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        assert_empty @agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
-
-        @agent.send :harvest_and_send_errors
-      end
-
-      def test_harvest_and_send_errors_merges_back_on_429
-        stub_service Net::HTTPTooManyRequests.new('1.1', 429, 'Too many requests')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        @agent.error_collector.error_trace_aggregator.expects(:merge!).with(@errors)
-
-        @agent.send :harvest_and_send_errors
-      end
-
-      def test_harvest_and_send_errors_discards_on_431
-        stub_service Net::HTTPRequestHeaderFieldsTooLarge.new('1.1', 431, 'Header fields too large')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        assert_empty @agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
-
-        @agent.send :harvest_and_send_errors
-      end
-
-      def test_harvest_and_send_errors_merges_back_on_500
-        stub_service Net::HTTPInternalServerError.new('1.1', 500, 'Internal server error')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        @agent.error_collector.error_trace_aggregator.expects(:merge!).with(@errors)
-
-        @agent.send :harvest_and_send_errors
-      end
-
-      def test_harvest_and_send_errors_merges_back_on_503
-        stub_service Net::HTTPServiceUnavailable.new('1.1', 503, 'Service unavailable')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        @agent.error_collector.error_trace_aggregator.expects(:merge!).with(@errors)
-
-        @agent.send :harvest_and_send_errors
-      end
-
-      def test_harvest_and_send_errors_discards_on_unknown_error
-        stub_service Net::HTTPNotAcceptable.new('1.1', 406, 'Unacceptable!!')
-
-        @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
-        assert_empty @agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
-        @agent.send :harvest_and_send_errors
-      end
-
       def stub_service response
         conn = stub("http_connection", request: response)
         @agent.service.stubs(:http_connection).returns(conn)
       end
+
+      def self.check_discards *response_codes
+        response_codes.each do |response_code|
+          define_method "test_#{response_code}_discards" do
+            klass = Net::HTTPResponse::CODE_TO_OBJ[response_code.to_s]
+
+            stub_service klass.new('1.1', response_code, 'Trash it')
+
+            @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
+            assert_empty @agent.error_collector.error_trace_aggregator.instance_variable_get(:@errors)
+
+            @agent.send :harvest_and_send_errors
+          end
+        end
+      end
+
+      def self.check_merges *response_codes
+        response_codes.each do |response_code|
+          define_method "test_#{response_code}_merges" do
+            klass = Net::HTTPResponse::CODE_TO_OBJ[response_code.to_s]
+
+            stub_service klass.new('1.1', response_code, 'Keep it')
+
+            @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
+            @agent.error_collector.error_trace_aggregator.expects(:merge!).with(@errors)
+
+            @agent.send :harvest_and_send_errors
+          end
+        end
+      end
+
+      def self.check_restarts *response_codes
+        response_codes.each do |response_code|
+          define_method "test_#{response_code}_restarts" do
+            klass = Net::HTTPResponse::CODE_TO_OBJ[response_code.to_s]
+
+            stub_service klass.new('1.1', response_code, 'Try again')
+
+            # The error-handling code in agent.rb calls `retry`; rather
+            # than testing it directly, we'll just assert that our service
+            # call raises the right exception.
+            #
+            assert_raises(NewRelic::Agent::ForceRestartException) do
+              @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
+              @agent.send :harvest_and_send_errors
+            end
+          end
+        end
+      end
+
+      def self.check_disconnects *response_codes
+        response_codes.each do |response_code|
+          define_method "test_#{response_code}_disconnects" do
+            klass = Net::HTTPResponse::CODE_TO_OBJ[response_code.to_s]
+
+            stub_service klass.new('1.1', klass, 'Go away')
+
+            @agent.error_collector.error_trace_aggregator.expects(:harvest!).returns(@errors)
+            @agent.expects(:disconnect)
+
+            @agent.send(:catch_errors) do
+              @agent.send :harvest_and_send_errors
+            end
+          end
+        end
+      end
+
+      check_discards 400, 403, 404, 405, 407, 411, 413, 414, 415, 417, 431, 406  # 406 is unexpected
+
+      check_merges 408, 429, 500, 503
+
+      check_restarts 401, 409
+
+      check_disconnects 410
     end
   end
 end
