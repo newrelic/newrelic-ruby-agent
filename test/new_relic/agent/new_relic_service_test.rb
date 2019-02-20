@@ -875,12 +875,11 @@ class NewRelicServiceTest < Minitest::Test
     }
 
     assert_metrics_recorded(
-      'Supportability/invoke_remote'                  => { :call_count => 1 },
-      'Supportability/invoke_remote/foobar'           => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize'        => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize/foobar' => { :call_count => 1},
-      'Supportability/invoke_remote_size'             => expected_values,
-      'Supportability/invoke_remote_size/foobar'      => expected_values
+      'Supportability/Agent/Collector/foobar/Duration' => { :call_count => 1 },
+      'Supportability/invoke_remote_serialize'         => { :call_count => 1 },
+      'Supportability/invoke_remote_serialize/foobar'  => { :call_count => 1},
+      'Supportability/invoke_remote_size'              => expected_values,
+      'Supportability/invoke_remote_size/foobar'       => expected_values
     )
   end
 
@@ -912,12 +911,11 @@ class NewRelicServiceTest < Minitest::Test
     }
 
     assert_metrics_recorded(
-      'Supportability/invoke_remote'                  => { :call_count => 1 },
-      'Supportability/invoke_remote/foobar'           => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize'        => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize/foobar' => { :call_count => 1},
-      'Supportability/invoke_remote_size'             => expected_values,
-      'Supportability/invoke_remote_size/foobar'      => expected_values
+      'Supportability/Agent/Collector/foobar/Duration' => { :call_count => 1 },
+      'Supportability/invoke_remote_serialize'         => { :call_count => 1 },
+      'Supportability/invoke_remote_serialize/foobar'  => { :call_count => 1},
+      'Supportability/invoke_remote_size'              => expected_values,
+      'Supportability/invoke_remote_size/foobar'       => expected_values
     )
   end
 
@@ -935,8 +933,6 @@ class NewRelicServiceTest < Minitest::Test
     expected_values = { :call_count => 1 }
 
     assert_metrics_recorded(
-      'Supportability/invoke_remote'                => expected_values,
-      'Supportability/invoke_remote/foobar'         => expected_values,
       'Supportability/serialization_failure'        => expected_values,
       'Supportability/serialization_failure/foobar' => expected_values
     )

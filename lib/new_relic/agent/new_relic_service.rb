@@ -449,9 +449,6 @@ module NewRelic
       def record_timing_supportability_metrics(method, start_ts, serialize_finish_ts, request_send_ts, response_check_ts)
         serialize_time = serialize_finish_ts && (serialize_finish_ts - start_ts)
         request_duration = response_check_ts && (response_check_ts - request_send_ts).to_f
-        duration = (Time.now - start_ts).to_f
-        NewRelic::Agent.record_metric("Supportability/invoke_remote", duration)
-        NewRelic::Agent.record_metric("Supportability/invoke_remote/#{method.to_s}", duration)
         if request_duration
           NewRelic::Agent.record_metric("Supportability/Agent/Collector/#{method.to_s}/Duration", request_duration)
         end
