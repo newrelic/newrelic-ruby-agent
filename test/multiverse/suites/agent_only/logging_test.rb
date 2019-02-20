@@ -84,10 +84,10 @@ class LoggingTest < Minitest::Test
 
   def test_invalid_license_key
     setup_agent({}) do |collector|
-      collector.stub('connect', {}, 401)
+      collector.stub('connect', {}, 410)
     end
 
-    saw?("Visit NewRelic.com to obtain a valid license key")
+    saw?("Agent received a ForceDisconnectException from the server")
 
     teardown_agent
   end
