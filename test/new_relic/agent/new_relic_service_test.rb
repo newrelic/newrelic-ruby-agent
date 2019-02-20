@@ -562,7 +562,7 @@ class NewRelicServiceTest < Minitest::Test
     end
   end
 
-  # for PRUBY proxy compatibility
+  # protocol 17
   def test_should_raise_exception_on_410
     @http_handle.reset
     @http_handle.respond_to(:preconnect, 'disconnect', :code => 410)
