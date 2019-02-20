@@ -407,7 +407,7 @@ module NewRelic
       def invoke_remote(method, payload = [], options = {})
         start_ts = Time.now
 
-        data, size, serialize_finish_ts = nil
+        data, size, serialize_finish_ts, request_send_ts, response_check_ts = nil
         begin
           data = @marshaller.dump(payload, options)
         rescue StandardError, SystemStackError => e
@@ -422,13 +422,16 @@ module NewRelic
         full_uri = "#{@collector}#{uri}"
 
         @audit_logger.log_request(full_uri, payload, @marshaller)
+        request_send_ts = Time.now
         response = send_request(:data      => data,
                                 :uri       => uri,
                                 :encoding  => encoding,
-                                :collector => @collector)
+                                :collector => @collector,
+                                :endpoint  => method)
+        response_check_ts = Time.now
         @marshaller.load(decompress_response(response))
       ensure
-        record_timing_supportability_metrics(method, start_ts, serialize_finish_ts)
+        record_timing_supportability_metrics(method, start_ts, serialize_finish_ts, request_send_ts, response_check_ts)
         if size
           record_size_supportability_metrics(method, size, options[:item_count])
         end
@@ -443,11 +446,12 @@ module NewRelic
         raise error
       end
 
-      def record_timing_supportability_metrics(method, start_ts, serialize_finish_ts)
+      def record_timing_supportability_metrics(method, start_ts, serialize_finish_ts, request_send_ts, response_check_ts)
         serialize_time = serialize_finish_ts && (serialize_finish_ts - start_ts)
-        duration = (Time.now - start_ts).to_f
-        NewRelic::Agent.record_metric("Supportability/invoke_remote", duration)
-        NewRelic::Agent.record_metric("Supportability/invoke_remote/#{method.to_s}", duration)
+        request_duration = response_check_ts && (response_check_ts - request_send_ts).to_f
+        if request_duration
+          NewRelic::Agent.record_metric("Supportability/Agent/Collector/#{method.to_s}/Duration", request_duration)
+        end
         if serialize_time
           NewRelic::Agent.record_metric("Supportability/invoke_remote_serialize", serialize_time)
           NewRelic::Agent.record_metric("Supportability/invoke_remote_serialize/#{method.to_s}", serialize_time)
@@ -510,6 +514,7 @@ module NewRelic
         response     = nil
         attempts     = 0
         max_attempts = 2
+        endpoint     = opts[:endpoint]
 
         begin
           attempts += 1
@@ -531,28 +536,59 @@ module NewRelic
         log_response(response)
 
         case response
-        when Net::HTTPSuccess
+        when Net::HTTPSuccess,
+             Net::HTTPAccepted
           true # do nothing
-        when Net::HTTPUnauthorized
-          raise LicenseException, 'Invalid license key, please visit support.newrelic.com'
-        when Net::HTTPServiceUnavailable
-          raise ServerConnectionException, "Service unavailable (#{response.code}): #{response.message}"
-        when Net::HTTPGatewayTimeOut
-          raise ServerConnectionException, "Gateway timeout (#{response.code}): #{response.message}"
-        when Net::HTTPRequestEntityTooLarge
-          raise UnrecoverableServerException, '413 Request Entity Too Large'
-        when Net::HTTPUnsupportedMediaType
-          raise UnrecoverableServerException, '415 Unsupported Media Type'
-        when Net::HTTPTooManyRequests
-          raise ServerConnectionException, "#{response.code} #{response.message}"
+        when Net::HTTPRequestTimeOut,
+             Net::HTTPTooManyRequests,
+             Net::HTTPInternalServerError,
+             Net::HTTPServiceUnavailable
+          record_endpoint_attempts_supportability_metrics(endpoint)
+          raise ServerConnectionException, "#{response.code}: #{response.message}"
+        when Net::HTTPBadRequest,
+             Net::HTTPForbidden,
+             Net::HTTPNotFound,
+             Net::HTTPMethodNotAllowed,
+             Net::HTTPProxyAuthenticationRequired,
+             Net::HTTPLengthRequired,
+             Net::HTTPRequestEntityTooLarge,
+             Net::HTTPRequestURITooLong,
+             Net::HTTPUnsupportedMediaType,
+             Net::HTTPExpectationFailed,
+             Net::HTTPUnsupportedMediaType,
+             Net::HTTPRequestHeaderFieldsTooLarge
+          record_endpoint_attempts_supportability_metrics(endpoint)
+          record_error_response_supportability_metrics(response.code)
+          raise UnrecoverableServerException, "#{response.code}: #{response.message}"
+        when Net::HTTPConflict,
+             Net::HTTPUnauthorized
+          record_endpoint_attempts_supportability_metrics(endpoint)
+          record_error_response_supportability_metrics(response.code)
+          raise ForceRestartException, "#{response.code}: #{response.message}"
+        when Net::HTTPGone
+          record_endpoint_attempts_supportability_metrics(endpoint)
+          record_error_response_supportability_metrics(response.code)
+          raise ForceDisconnectException, "#{response.code}: #{response.message}"
         else
-          raise ServerConnectionException, "Unexpected response from server (#{response.code}): #{response.message}"
+          record_endpoint_attempts_supportability_metrics(endpoint)
+          record_error_response_supportability_metrics(response.code)
+          raise UnrecoverableServerException, "#{response.code}: #{response.message}"
         end
         response
       end
 
       def log_response(response)
         ::NewRelic::Agent.logger.debug "Received response, status: #{response.code}, encoding: '#{response['content-encoding']}'"
+      end
+
+      # Per protocol 17, this metric should be recorded for all error response codes
+      # that cause data to be discarded.
+      def record_error_response_supportability_metrics(response_code)
+        ::NewRelic::Agent.increment_metric("Supportability/Agent/Collector/HTTPError/#{response_code}")
+      end
+
+      def record_endpoint_attempts_supportability_metrics(endpoint)
+        ::NewRelic::Agent.increment_metric("Supportability/Agent/Collector/#{endpoint}/Attempts")
       end
 
       # Decompresses the response from the server, if it is gzip
@@ -577,9 +613,6 @@ module NewRelic
         zlib_version << "zlib/#{Zlib.zlib_version}" if defined?(::Zlib) && Zlib.respond_to?(:zlib_version)
         "NewRelic-RubyAgent/#{NewRelic::VERSION::STRING} #{ruby_description}#{zlib_version}"
       end
-
-      # Used to wrap errors reported to agent by the collector
-      class CollectorError < StandardError; end
     end
   end
 end
