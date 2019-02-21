@@ -476,7 +476,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       sampled = nil
       txn = in_web_transaction "test_txn" do |t|
         t.sampled = true
-        t.accept_distributed_trace_payload payload.to_json
+        t.accept_distributed_trace_payload payload.text
         sampled = t.sampled?
         segment = NewRelic::Agent::Tracer.start_datastore_segment(
           product: "SQLite",

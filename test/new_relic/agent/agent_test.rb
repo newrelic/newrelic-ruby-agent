@@ -724,6 +724,44 @@ module NewRelic
           @agent.log_ignore_url_regexes
         end
       end
+
+      def test_force_restart_logs_message
+        @agent.service = nil
+        @agent.stubs(:sleep)
+
+        log_results = with_array_logger(:debug) do
+          error = NewRelic::Agent::ForceRestartException.new
+          @agent.handle_force_restart(error)
+        end
+
+        matching_lines = log_results.array.grep(/, restarting\./)
+        refute_empty matching_lines, 'logs should say the agent is restarting'
+      end
+
+      def test_force_disconnect_logs_message
+        @agent.service = nil
+        @agent.stubs(:sleep)
+
+        log_results = with_array_logger(:debug) do
+          error = NewRelic::Agent::ForceDisconnectException.new
+          @agent.handle_force_disconnect(error)
+        end
+
+        matching_lines = log_results.array.grep(/, disconnecting\./)
+        refute_empty matching_lines, 'logs should say the agent is disconnecting'
+      end
+
+      def test_discarding_logs_message
+        @agent.service.stubs(:send).raises(UnrecoverableServerException)
+
+        log_results = with_array_logger(:warn) do
+          @agent.send(:send_data_to_endpoint, 'some_endpoint', [], nil)
+        end
+
+        matching_lines = log_results.array.grep(/, discarding\./)
+        refute_empty matching_lines, 'logs should say the agent is discarding'
+      end
+
     end
 
     class AgentStartingTest < Minitest::Test

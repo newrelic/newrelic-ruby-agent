@@ -112,13 +112,9 @@ DependencyDetection.defer do
       alias_method :add_without_newrelic, :add
       alias_method :add, :add_with_newrelic
 
-
       # Trace as an External/Multiple call if the first request isn't serial.
       def perform_with_newrelic(&blk)
-        return perform_without_newrelic if
-          self.requests.first &&
-          self.requests.first.respond_to?(:_nr_serial) &&
-          self.requests.first._nr_serial
+        return perform_without_newrelic if first_request_is_serial?
 
         trace_execution_scoped("External/Multiple/Curb::Multi/perform") do
           perform_without_newrelic(&blk)
@@ -196,6 +192,23 @@ DependencyDetection.defer do
         request.on_complete(&request._nr_original_on_complete)
         request.on_header(&request._nr_original_on_header)
         request._nr_instrumented = false
+      end
+
+      private
+
+      def first_request_is_serial?
+        return false unless (first = self.requests.first)
+
+        # Before curb 0.9.8, requests was an array of Curl::Easy
+        # instances.  Starting with 0.9.8, it's a Hash where the
+        # values are Curl::Easy instances.
+        #
+        # So, requests.first will either be an_obj or [a_key, an_obj].
+        # We need to handle either case.
+        #
+        first = first[-1] if first.is_a?(Array)
+
+        first.respond_to?(:_nr_serial) && first._nr_serial
       end
 
     end # class Curl::Multi

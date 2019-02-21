@@ -7,10 +7,11 @@ require 'new_relic/agent/utilization/gcp'
 require 'new_relic/agent/utilization/azure'
 require 'new_relic/agent/utilization/pcf'
 
+
 module NewRelic
   module Agent
     class UtilizationData
-      METADATA_VERSION = 3
+      METADATA_VERSION = 5
 
       VENDORS = {
         Utilization::AWS   => :'utilization.detect_aws',
@@ -21,6 +22,14 @@ module NewRelic
 
       def hostname
         NewRelic::Agent::Hostname.get
+      end
+
+      def fqdn
+        NewRelic::Agent::Hostname.get_fqdn
+      end
+
+      def ip_addresses
+        ::NewRelic::Agent::SystemInfo.ip_addresses
       end
 
       def container_id
@@ -69,6 +78,9 @@ module NewRelic
         append_docker_info(result)
         append_configured_values(result)
         append_boot_id(result)
+        append_ip_address(result)
+        append_full_hostname(result)
+        append_kubernetes_info(result)
 
         result
       end
@@ -103,6 +115,29 @@ module NewRelic
         if bid = ::NewRelic::Agent::SystemInfo.boot_id
           collector_hash[:boot_id] = bid
         end
+      end
+
+      def append_ip_address(collector_hash)
+        ips = ip_addresses
+        collector_hash[:ip_address] = ips unless ips.empty?
+      end
+
+      KUBERNETES_SERVICE_HOST = 'KUBERNETES_SERVICE_HOST'.freeze
+
+      def append_kubernetes_info(collector_hash)
+        return unless Agent.config[:'utilization.detect_kubernetes']
+        if host = ENV[KUBERNETES_SERVICE_HOST]
+          collector_hash[:vendors] ||= {}
+          collector_hash[:vendors][:kubernetes] = {
+            kubernetes_service_host: host
+          }
+        end
+      end
+
+      def append_full_hostname(collector_hash)
+        full_hostname = fqdn
+        return if full_hostname.nil? || full_hostname.empty?
+        collector_hash[:full_hostname] = full_hostname
       end
 
       def config_hash

@@ -187,6 +187,32 @@ module NewRelic::Agent
       assert_equal "host", utilization_data.to_collector_hash[:hostname]
     end
 
+    def test_ip_is_present_in_collector_hash
+      NewRelic::Agent::SystemInfo.stubs(:ip_addresses).returns(['127.0.0.1'])
+
+      utilization_data = UtilizationData.new
+
+      assert_equal ['127.0.0.1'], utilization_data.to_collector_hash[:ip_address]
+    end
+
+    def test_full_hostname_is_present_in_collector_hash
+      NewRelic::Agent::Hostname.stubs(:get_fqdn).returns("foobar.baz.com")
+
+      utilization_data = UtilizationData.new
+
+      assert_equal "foobar.baz.com", utilization_data.to_collector_hash[:full_hostname]
+    end
+
+    def test_full_hostname_omitted_if_empty_or_nil
+      [nil, ""].each do |return_value|
+        NewRelic::Agent::Hostname.stubs(:get_fqdn).returns(return_value)
+
+        utilization_data = UtilizationData.new
+
+        refute utilization_data.to_collector_hash.key?(:full_hostname)
+      end
+    end
+
     def test_cpu_count_is_present_in_collector_hash
       NewRelic::Agent::SystemInfo.stubs(:num_logical_processors).returns(5)
 
@@ -247,6 +273,27 @@ module NewRelic::Agent
       assert_equal "boot-id", utilization_data.to_collector_hash[:boot_id]
     end
 
+    def test_kubernetes_information_is_present_if_available
+      with_environment 'KUBERNETES_SERVICE_HOST' => '10.96.0.1' do
+        utilization_data = UtilizationData.new
+
+        assert_equal({kubernetes_service_host: '10.96.0.1'},
+                     utilization_data.to_collector_hash[:vendors][:kubernetes])
+      end
+    end
+
+    def test_kubernetes_information_is_omitted_if_disabled
+      with_config :'utilization.detect_kubernetes' => false,
+                  :'utilization.detect_docker'     => false do
+        with_environment 'KUBERNETES_SERVICE_HOST' => '10.96.0.1' do
+          utilization_data = UtilizationData.new
+
+          collector_hash = utilization_data.to_collector_hash
+          assert_nil collector_hash[:vendors]
+        end
+      end
+    end
+
     # ---
 
     def stub_aws_info response_code: '200', response_body: default_aws_response
@@ -290,8 +337,11 @@ module NewRelic::Agent
     load_cross_agent_test("utilization/utilization_json").each do |test_case|
 
       test_case = symbolize_keys_in_object test_case
+
       define_method("test_#{test_case[:testname]}".tr(" ", "_")) do
         setup_cross_agent_test_stubs test_case
+
+        env = non_config_environment_variables(test_case)
 
         # This is a little bit ugly, but TravisCI runs these tests in a docker environment,
         # which means we get an unexpected docker id in the vendors hash. Since none of the
@@ -306,12 +356,15 @@ module NewRelic::Agent
           test_case[:expected_output_json][:boot_id] = NewRelic::Agent::SystemInfo.proc_try_read('/proc/sys/kernel/random/boot_id').chomp
         end
 
-        with_config options do
-          test = ->{ assert_equal test_case[:expected_output_json], UtilizationData.new.to_collector_hash }
-          if PCF_INPUTS.keys.all? {|k| test_case.key? k}
-            with_pcf_env stub_pcf_env(test_case), &test
-          else
-            test[]
+
+        with_environment env do
+          with_config options do
+            test = ->{ assert_equal test_case[:expected_output_json], UtilizationData.new.to_collector_hash }
+            if PCF_INPUTS.keys.all? {|k| test_case.key? k}
+              with_pcf_env stub_pcf_env(test_case), &test
+            else
+              test[]
+            end
           end
         end
       end
@@ -327,7 +380,9 @@ module NewRelic::Agent
     UTILIZATION_INPUTS = {
       :input_total_ram_mib => :ram_in_mib,
       :input_logical_processors => :cpu_count,
-      :input_hostname => :hostname
+      :input_hostname => :hostname,
+      :input_ip_address => :ip_addresses,
+      :input_full_hostname => :fqdn
     }
 
     def stub_utilization_inputs test_case
@@ -335,6 +390,17 @@ module NewRelic::Agent
         if meth = UTILIZATION_INPUTS[key]
           UtilizationData.any_instance.stubs(meth).returns(test_case[key])
         end
+      end
+    end
+
+    def non_config_environment_variables test_case
+      env_inputs = test_case.fetch :input_environment_variables, {}
+      env_inputs.inject({}) do |memo, (k, v)|
+        k = k.to_s
+        unless k.start_with? 'NEW_RELIC'
+          memo[k] = v
+        end
+        memo
       end
     end
 
@@ -360,7 +426,9 @@ module NewRelic::Agent
     def convert_env_to_config_options test_case
       env_inputs = test_case.fetch :input_environment_variables, {}
       env_inputs.keys.inject({}) do |memo, k|
-        memo[ENV_TO_OPTIONS[k]] = NUMERIC_ENV_OPTS.include?(k) ? env_inputs[k].to_i : env_inputs[k]
+        if k.to_s.start_with? 'NEW_RELIC'
+          memo[ENV_TO_OPTIONS[k]] = NUMERIC_ENV_OPTS.include?(k) ? env_inputs[k].to_i : env_inputs[k]
+        end
         memo
       end
     end

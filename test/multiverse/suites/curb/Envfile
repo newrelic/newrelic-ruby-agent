@@ -13,7 +13,13 @@ gemfile <<-RB
 RB
 
 gemfile <<-RB
-  gem 'curb', '~> 0.9.4'
+  gem 'curb', '0.9.4'
+  gem 'rack'
+  gem 'json', :platforms => [:rbx, :mri_18]
+RB
+
+gemfile <<-RB
+  gem 'curb', '~> 0.9.8'
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
 RB

@@ -105,8 +105,8 @@ module NewRelic
 
       def test_obfuscates_error_messages_when_high_security_is_set
         with_config(:high_security => true) do
-          notice_error(StandardError.new("YO SQL BAD: serect * flom test where foo = 'bar'"))
-          notice_error(StandardError.new("YO SQL BAD: serect * flom test where foo in (1,2,3,4,5)"))
+          notice_error(StandardError.new("BAAAAD SQL: choose * out_of test where foo = 'bar'"))
+          notice_error(StandardError.new("BAAAAD SQL: choose * out_of test where foo in (1,2,3,4,5)"))
 
           errors = error_trace_aggregator.harvest!
 

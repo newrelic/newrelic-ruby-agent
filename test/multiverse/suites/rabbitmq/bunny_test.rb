@@ -275,6 +275,39 @@ class BunnyTest < Minitest::Test
     end
   end
 
+  def test_pop_returning_no_message_doesnt_error
+    NewRelic::Agent.stubs(:logger).returns(NewRelic::Agent::MemoryLogger.new)
+
+    with_queue do |queue|
+      in_transaction "test_txn" do
+        queue.pop
+      end
+
+      assert_empty NewRelic::Agent.logger.messages
+    end
+  end
+
+  def test_pop_returning_a_good_message_send_to_an_exchange_we_havent_accessed_doesnt_error
+    NewRelic::Agent.stubs(:logger).returns(NewRelic::Agent::MemoryLogger.new)
+
+    with_queue do |queue|
+      # publish in such a way that the exchange object does not end up in channel.exchanges
+      channel = queue.channel
+      channel.basic_publish("test_msg", "", queue.name)
+
+      assert_empty channel.exchanges
+
+      in_transaction "test_txn" do
+        msg = queue.pop
+        assert_equal "test_msg", msg[2]
+      end
+
+      assert_empty NewRelic::Agent.logger.messages
+
+      assert_metrics_recorded ["MessageBroker/RabbitMQ/Exchange/Consume/Named/Default"]
+    end
+  end
+
   def with_queue temp=true, exclusive=true, &block
     queue_name = temp ? "" : random_string
     queue = @chan.queue(queue_name, exclusive: exclusive)

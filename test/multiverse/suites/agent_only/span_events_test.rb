@@ -20,6 +20,26 @@ class SpanEventsTest < Minitest::Test
     end
   end
 
+  def test_span_events_are_not_recorded_when_disabled_by_feature_gate
+    with_config :'distributed_tracing.enabled' => true do
+      connect_response = {
+        'agent_run_id'          => 1,
+        'collect_span_events' => false
+      }
+
+      $collector.stub('connect', connect_response)
+
+      trigger_agent_reconnect
+
+      event = generate_event('test_event')
+
+      NewRelic::Agent.instance.span_event_aggregator.record(event: event)
+      NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+
+      assert_equal(0, $collector.calls_for(:span_event_data).size)
+    end
+  end
+
   def last_span_event
     post = last_span_event_post
     assert_equal(1, post.events.size)

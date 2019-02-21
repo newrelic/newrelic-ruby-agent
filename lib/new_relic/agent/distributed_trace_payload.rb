@@ -168,7 +168,12 @@ module NewRelic
         @caller_transport_type = PARENT_TRANSPORT_TYPE_UNKNOWN
       end
 
-      def to_json
+      # Represent this payload as a raw JSON string.
+      #
+      # @return [String] Payload translated to JSON
+      #
+      # @api public
+      def text
         result = {
           VERSION_KEY => version
         }
@@ -198,16 +203,7 @@ module NewRelic
       #
       # @api public
       def http_safe
-        Base64.strict_encode64 to_json
-      end
-
-      # Represent this payload as a raw JSON string.
-      #
-      # @return [String] Payload translated to JSON
-      #
-      # @api public
-      def text
-        to_json
+        Base64.strict_encode64 text
       end
 
       def assign_intrinsics transaction, transaction_payload
