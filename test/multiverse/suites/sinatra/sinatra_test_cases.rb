@@ -202,6 +202,27 @@ module SinatraTestCases
     get '/pass'
   end
 
+  def test_injects_middleware
+    app.stubs(:middleware).returns([])
+
+    app.expects(:build_without_newrelic).once
+    app.expects(:use).at_least(2)
+
+    app.build_with_newrelic(@app)
+  end
+
+  def test_doesnt_inject_already_existing_middleware
+    default_middlewares = app.newrelic_middlewares
+    # mock up the return value of Sinatra's #middleware method, which returns an
+    # Array of Arrays.
+    middleware_info = default_middlewares.map { |m| [m] }
+    app.stubs(:middleware).returns(middleware_info)
+
+    app.expects(:build_without_newrelic).once
+    app.expects(:use).never
+
+    app.build_with_newrelic(@app)
+  end
 
   if Gem::Version.new(Sinatra::VERSION).segments[0] < 2
     def trigger_error_on_params
