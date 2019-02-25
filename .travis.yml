@@ -16,9 +16,9 @@ before_install:
   - gem uninstall bundler -a -x
   - gem install bundler -v=1.17.3
   - ./test/script/before_install/gemstash_mirror.sh
-  - bundle _1.17.3_ --version
+  - bundle --version
 
-install: bundle _1.17.3_ install
+install: bundle install
 
 addons:
   apt:
