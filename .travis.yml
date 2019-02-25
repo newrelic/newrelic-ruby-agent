@@ -13,7 +13,7 @@ before_install:
   - sudo rm -f /etc/apt/sources.list.d/travis_ci_zeromq3.list
   - gem --version
   - ./test/script/before_install/update_rubygems.sh
-  - gem uninstall bundler -a -x
+  - rvm @global do gem uninstall bundler --all --executables || true
   - gem install bundler -v=1.17.3
   - ./test/script/before_install/gemstash_mirror.sh
   - bundle --version
