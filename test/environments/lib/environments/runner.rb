@@ -16,8 +16,7 @@ module Environments
       "2.2"         => ["rails50"],
       "2.1"         => ["rails50"],
       "2.0"         => ["rails50"],
-      "2"           => ["rails21", "rails22", "rails23"],
-      "jruby-9.0"   => ["rails21", "rails22", "rails23", "rails30", "rails31", "rails32"]
+      "jruby-9.0"   => ["rails30", "rails31", "rails32"]
     }
 
     attr_reader :envs
