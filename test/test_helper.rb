@@ -26,31 +26,21 @@ Dir[File.expand_path('../helpers/*', __FILE__)].each {|f| require f.sub(/.*test\
 # We can speed things up in tests that don't need to load rails.
 # You can also run the tests in a mode without rails.  Many tests
 # will be skipped.
-if ENV["NO_RAILS"]
+
+
+if ENV['NO_RAILS']
   puts "Running tests in standalone mode without Rails."
   require 'newrelic_rpm'
 else
   begin
+    # try loading rails via attempted loading of config/environment.rb
     require './config/environment'
     require 'newrelic_rpm'
+    puts "Running in standalone mode with Rails"
   rescue LoadError
-    puts "Running tests in standalone mode."
-
-    require 'bundler'
-    Bundler.require
-
-    require 'rails/all'
+    # if there was not a file at config/environment.rb fall back to running without it
     require 'newrelic_rpm'
-
-    # Bootstrap a basic rails environment for the agent to run in.
-    class MyApp < Rails::Application
-      config.active_support.deprecation = :log
-      config.secret_token = "49837489qkuweoiuoqwehisuakshdjksadhaisdy78o34y138974xyqp9rmye8yrpiokeuioqwzyoiuxftoyqiuxrhm3iou1hrzmjk"
-      config.after_initialize do
-        NewRelic::Agent.manual_start
-      end
-    end
-    MyApp.initialize!
+    puts "Running in standalone mode without Rails"
   end
 end
 

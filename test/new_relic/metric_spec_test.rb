@@ -64,7 +64,7 @@ class NewRelic::MetricSpecTest < Minitest::Test
       compare_metric_data(metric_data, import)
     end
   else
-    puts "Skipping tests in #{__FILE__} because ActiveSupport is unavailable"
+    puts "Skipping `test_json` in #{__FILE__} because ActiveSupport is unavailable"
   end
 
   def test_initialize_truncates_name_and_scope

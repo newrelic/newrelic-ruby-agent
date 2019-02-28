@@ -45,15 +45,8 @@ EOS
   s.add_development_dependency 'minitest', '~> 4.7.5'
   s.add_development_dependency 'mocha', '~> 0.13.0'
   s.add_development_dependency 'yard'
-  s.add_development_dependency 'rails', '~> 3.2.13'
-  s.add_development_dependency 'json', '>= 2.0.2' if RUBY_VERSION >= '2.4.0' # possible bundler issue?
   s.add_development_dependency 'pry-nav', '~> 0.2.4'
   s.add_development_dependency 'pry-stack_explorer', '~> 0.4.9'
   s.add_development_dependency 'hometown', '~> 0.2.5'
-
-  if RUBY_PLATFORM == 'java'
-    s.add_development_dependency 'activerecord-jdbcsqlite3-adapter'
-  else
-    s.add_development_dependency 'sqlite3', '~> 1.3.13'
-  end
+  s.add_development_dependency 'bundler', '< 2.0'
 end
