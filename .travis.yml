@@ -66,11 +66,6 @@ env:
     - TESTOPTS="-v"
     - VERBOSE = 1
   matrix:
-    # RUBY-1668 rails21, rails22, and rails23 are all excluded below
-    - TYPE=UNIT ENVIRONMENT=rails21
-    - TYPE=UNIT ENVIRONMENT=rails22
-    - TYPE=UNIT ENVIRONMENT=rails23
-
     - TYPE=UNIT ENVIRONMENT=rails30
     - TYPE=UNIT ENVIRONMENT=rails31
     - TYPE=UNIT ENVIRONMENT=rails32
@@ -98,12 +93,6 @@ matrix:
     # Unsupported Rails/Ruby combinations
     # 2.6
     - rvm: 2.6.0
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.6.0
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.6.0
-      env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: 2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails30
     - rvm: 2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails31
@@ -115,12 +104,6 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails41
 
     # 2.5
-    - rvm: 2.5.0
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.5.0
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.5.0
-      env: TYPE=UNIT ENVIRONMENT=rails23
     - rvm: 2.5.0
       env: TYPE=UNIT ENVIRONMENT=rails30
     - rvm: 2.5.0
@@ -134,12 +117,6 @@ matrix:
 
     # 2.4
     - rvm: 2.4.2
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.4.2
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.4.2
-      env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: 2.4.2
       env: TYPE=UNIT ENVIRONMENT=rails30
     - rvm: 2.4.2
       env: TYPE=UNIT ENVIRONMENT=rails31
@@ -150,29 +127,7 @@ matrix:
     - rvm: 2.4.2
       env: TYPE=UNIT ENVIRONMENT=rails41
 
-    # 2.3
-    - rvm: 2.3.5
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.3.5
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.3.5
-      env: TYPE=UNIT ENVIRONMENT=rails23
-
-    # 2.2
-    - rvm: 2.2.8
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.2.8
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.2.8
-      env: TYPE=UNIT ENVIRONMENT=rails23
-
-    # 2.1
-    - rvm: 2.1.10
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.1.10
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.1.10
-      env: TYPE=UNIT ENVIRONMENT=rails23
+    #2.1
     - rvm: 2.1.10
       env: TYPE=UNIT ENVIRONMENT=rails50
     - rvm: 2.1.10
@@ -180,23 +135,11 @@ matrix:
 
     # 2.0
     - rvm: 2.0.0-p648
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.0.0-p648
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.0.0-p648
-      env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: 2.0.0-p648
       env: TYPE=UNIT ENVIRONMENT=rails50
     - rvm: 2.0.0-p648
       env: TYPE=UNIT ENVIRONMENT=rails51
 
     # jruby 9.0
-    - rvm: jruby-9.1.13.0
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: jruby-9.1.13.0
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: jruby-9.1.13.0
-      env: TYPE=UNIT ENVIRONMENT=rails23
     - rvm: jruby-9.1.13.0
       env: TYPE=UNIT ENVIRONMENT=rails30
     - rvm: jruby-9.1.13.0
