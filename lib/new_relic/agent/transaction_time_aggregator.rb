@@ -2,8 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'objspace'
-
 # This module powers the Busy calculation for the Capacity report in
 # APM (https://rpm.newrelic.com/accounts/.../applications/.../optimize/capacity_analysis).
 #
@@ -102,10 +100,25 @@ module NewRelic
         end
 
         def thread_is_alive?(thread_id)
-          thread = ObjectSpace._id2ref(thread_id)
+          thread = thread_by_id thread_id
           thread && thread.alive?
         rescue StandardError
           false
+        end
+
+        # ObjectSpace is faster on MRI, but disabled by default on JRuby for
+        # perfomance reasons. We have two implmentations of `thread_by_id`
+        # based on ruby implementation.
+        if RUBY_ENGINE == 'jruby'
+          def thread_by_id thread_id
+            Thread.list.detect { |t| t.object_id == thread_id }
+          end
+        else
+          require 'objspace'
+
+          def thread_by_id thread_id
+            ObjectSpace._id2ref(thread_id)
+          end
         end
 
         def set_transaction_start_time(timestamp, thread_id = current_thread)
