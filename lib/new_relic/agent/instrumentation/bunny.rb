@@ -66,7 +66,7 @@ DependencyDetection.defer do
 
               segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
                 library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
-                destination_name: exchange_name,
+                destination_name: name,
                 delivery_info: delivery_info,
                 message_properties: message_properties,
                 exchange_type: exchange_type,
@@ -116,7 +116,7 @@ DependencyDetection.defer do
 
           NewRelic::Agent::Messaging.wrap_amqp_consume_transaction(
             library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
-            destination_name: NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange),
+            destination_name: queue_name,
             delivery_info: delivery_info,
             message_properties: message_properties,
             exchange_type: NewRelic::Agent::Instrumentation::Bunny.exchange_type(delivery_info, channel),
