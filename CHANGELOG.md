@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Bugfix for TransactionTimeAggregator on JRuby
+
+    An alternative implementation of a method was added
+    to the TransactionTimeAggregator for JRuby that avoids
+    using ObjectSpace.
+
 ## v6.1.0
 
    * Performance monitoring on Kubernetes
