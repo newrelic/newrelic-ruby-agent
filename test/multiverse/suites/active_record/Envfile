@@ -9,6 +9,31 @@ boilerplate_gems = <<-BOILERPLATE
   gem 'rack'
 BOILERPLATE
 
+if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM == 'java'
+  mysql_vsn = '~>0.4.4'
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 5.2.0'
+    gem 'minitest', '~> 5.2.3'
+    gem 'activerecord-jdbcmysql-adapter', '~>52.0'
+    #{boilerplate_gems}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 5.1.6'
+    gem 'minitest', '~> 5.2.3'
+    gem 'activerecord-jdbcmysql-adapter', '~>51.0'
+    #{boilerplate_gems}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 5.0.0'
+    gem 'minitest', '~> 5.2.3'
+    gem 'activerecord-jdbcmysql-adapter', '~>50.0'
+    #{boilerplate_gems}
+  RB
+end
+
 if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM != 'java'
   mysql_vsn = '~>0.4.4'
 

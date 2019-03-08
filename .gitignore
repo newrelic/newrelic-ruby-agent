@@ -25,4 +25,5 @@ lib/new_relic/build.rb
 .bundle
 .yardoc
 artifacts/
+test/performance/log/
 test/performance/script/log/

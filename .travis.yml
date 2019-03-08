@@ -10,6 +10,7 @@ sudo: required
 
 before_install:
   # RUBY-2072 Prevent Travis setup failure before our test even starts
+  - jdk_switcher use oraclejdk8
   - sudo rm -f /etc/apt/sources.list.d/travis_ci_zeromq3.list
   - gem --version
   - ./test/script/before_install/update_rubygems.sh
@@ -46,9 +47,9 @@ notifications:
 
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
-  - jruby-9.1.13.0
-  - 2.6.0
-  - 2.5.0
+  - jruby-9.2.6.0
+  - 2.6.1
+  - 2.5.3
   - 2.4.2
   - 2.3.5
   - 2.2.8
@@ -66,11 +67,6 @@ env:
     - TESTOPTS="-v"
     - VERBOSE = 1
   matrix:
-    # RUBY-1668 rails21, rails22, and rails23 are all excluded below
-    - TYPE=UNIT ENVIRONMENT=rails21
-    - TYPE=UNIT ENVIRONMENT=rails22
-    - TYPE=UNIT ENVIRONMENT=rails23
-
     - TYPE=UNIT ENVIRONMENT=rails30
     - TYPE=UNIT ENVIRONMENT=rails31
     - TYPE=UNIT ENVIRONMENT=rails32
@@ -97,49 +93,31 @@ matrix:
   exclude:
     # Unsupported Rails/Ruby combinations
     # 2.6
-    - rvm: 2.6.0
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.6.0
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.6.0
-      env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: 2.6.0
+    - rvm: 2.6.1
       env: TYPE=UNIT ENVIRONMENT=rails30
-    - rvm: 2.6.0
+    - rvm: 2.6.1
       env: TYPE=UNIT ENVIRONMENT=rails31
-    - rvm: 2.6.0
+    - rvm: 2.6.1
       env: TYPE=UNIT ENVIRONMENT=rails32
-    - rvm: 2.6.0
+    - rvm: 2.6.1
       env: TYPE=UNIT ENVIRONMENT=rails40
-    - rvm: 2.6.0
+    - rvm: 2.6.1
       env: TYPE=UNIT ENVIRONMENT=rails41
 
     # 2.5
-    - rvm: 2.5.0
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.5.0
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.5.0
-      env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: 2.5.0
+    - rvm: 2.5.3
       env: TYPE=UNIT ENVIRONMENT=rails30
-    - rvm: 2.5.0
+    - rvm: 2.5.3
       env: TYPE=UNIT ENVIRONMENT=rails31
-    - rvm: 2.5.0
+    - rvm: 2.5.3
       env: TYPE=UNIT ENVIRONMENT=rails32
-    - rvm: 2.5.0
+    - rvm: 2.5.3
       env: TYPE=UNIT ENVIRONMENT=rails40
-    - rvm: 2.5.0
+    - rvm: 2.5.3
       env: TYPE=UNIT ENVIRONMENT=rails41
 
     # 2.4
     - rvm: 2.4.2
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.4.2
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.4.2
-      env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: 2.4.2
       env: TYPE=UNIT ENVIRONMENT=rails30
     - rvm: 2.4.2
       env: TYPE=UNIT ENVIRONMENT=rails31
@@ -150,29 +128,7 @@ matrix:
     - rvm: 2.4.2
       env: TYPE=UNIT ENVIRONMENT=rails41
 
-    # 2.3
-    - rvm: 2.3.5
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.3.5
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.3.5
-      env: TYPE=UNIT ENVIRONMENT=rails23
-
-    # 2.2
-    - rvm: 2.2.8
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.2.8
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.2.8
-      env: TYPE=UNIT ENVIRONMENT=rails23
-
     # 2.1
-    - rvm: 2.1.10
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.1.10
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.1.10
-      env: TYPE=UNIT ENVIRONMENT=rails23
     - rvm: 2.1.10
       env: TYPE=UNIT ENVIRONMENT=rails50
     - rvm: 2.1.10
@@ -180,48 +136,18 @@ matrix:
 
     # 2.0
     - rvm: 2.0.0-p648
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: 2.0.0-p648
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: 2.0.0-p648
-      env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: 2.0.0-p648
       env: TYPE=UNIT ENVIRONMENT=rails50
     - rvm: 2.0.0-p648
       env: TYPE=UNIT ENVIRONMENT=rails51
 
-    # jruby 9.0
-    - rvm: jruby-9.1.13.0
-      env: TYPE=UNIT ENVIRONMENT=rails21
-    - rvm: jruby-9.1.13.0
-      env: TYPE=UNIT ENVIRONMENT=rails22
-    - rvm: jruby-9.1.13.0
-      env: TYPE=UNIT ENVIRONMENT=rails23
-    - rvm: jruby-9.1.13.0
+    # jruby 9.2.6.0 (Compatible with MRI 2.5)
+    - rvm: jruby-9.2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails30
-    - rvm: jruby-9.1.13.0
+    - rvm: jruby-9.2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails31
-    - rvm: jruby-9.1.13.0
+    - rvm: jruby-9.2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails32
-
-  # Travis (and only Travis) has been throwing difficult-to-reproduce
-  # errors in various JRuby tests.  These appeared after a build image
-  # update, and they seem to be unrelated to any agent code changes.
-  # So, we'll allow these specific test runs to fail while we track
-  # the issue (RUBY-1869).
-  #
-  allow_failures:
-    - rvm: jruby-9.1.13.0
+    - rvm: jruby-9.2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails40
-    - rvm: jruby-9.1.13.0
+    - rvm: jruby-9.2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails41
-    - rvm: jruby-9.1.13.0
-      env: TYPE=UNIT ENVIRONMENT=rails42
-    - rvm: jruby-9.1.13.0
-      env: TYPE=UNIT ENVIRONMENT=rails50
-    - rvm: jruby-9.1.13.0
-      env: TYPE=UNIT ENVIRONMENT=rails51
-    - rvm: jruby-9.1.13.0
-      env: TYPE=UNIT ENVIRONMENT=norails
-    - rvm: jruby-9.1.13.0
-      env: TYPE=FUNCTIONAL GROUP=background_2

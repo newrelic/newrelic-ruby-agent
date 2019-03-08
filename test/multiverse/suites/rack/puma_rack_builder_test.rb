@@ -79,7 +79,7 @@ class PumaRackBuilderTest < Minitest::Test
         ["Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"],
         ["Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"]
       ],
-      :ignore_filter => /^(Supportability|RubyVM|Memory)/
+      :ignore_filter => /^(Supportability|RubyVM|Memory|CPU)/
     )
   end
 end
