@@ -1,5 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
+## v6.2.0
+
   * Bugfix for superfluous `Empty JSON response` error messages
 
     Version 6.1.0 of the agent frequently logged error messages about an empty JSON response, when no error had occurred.  These logs no longer appear. 
