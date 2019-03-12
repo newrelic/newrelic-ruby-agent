@@ -6,5 +6,5 @@
 set -ev
 
 if [ -n "$GEMSTASH_MIRROR" ]; then
-  bundle _1.17.3_ config mirror.https://rubygems.org $GEMSTASH_MIRROR
+  bundle config mirror.https://rubygems.org $GEMSTASH_MIRROR
 fi

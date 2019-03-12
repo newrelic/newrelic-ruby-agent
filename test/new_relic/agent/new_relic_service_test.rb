@@ -675,15 +675,13 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal ['beep', 'boop'], marshaller.load('{"return_value": ["beep","boop"]}')
   end
 
-  def test_json_marshaller_logs_on_empty_response_from_collector
+  def test_json_marshaller_returns_nil_on_empty_response_from_collector
     marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-    expects_logging(:error, any_parameters)
     assert_nil marshaller.load('')
   end
 
-  def test_json_marshaller_logs_on_nil_response_from_collector
+  def test_json_marshaller_returns_nil_on_nil_response_from_collector
     marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-    expects_logging(:error, any_parameters)
     assert_nil marshaller.load(nil)
   end
 

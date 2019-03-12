@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
+require File.expand_path('../../../../test_helper', __FILE__)
 require 'new_relic/agent/instrumentation/sinatra'
 
 class NewRelic::Agent::Instrumentation::SinatraTest < Minitest::Test
@@ -50,28 +50,6 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Minitest::Test
     @app.expects(:route_eval_without_newrelic).once
     NewRelic::Agent.expects(:set_transaction_name).never
     @app.route_eval_with_newrelic
-  end
-
-  def test_injects_middleware
-    SinatraTestApp.stubs(:middleware).returns([])
-
-    SinatraTestApp.expects(:build_without_newrelic).once
-    SinatraTestApp.expects(:use).at_least(2)
-
-    SinatraTestApp.build_with_newrelic(@app)
-  end
-
-  def test_doesnt_inject_already_existing_middleware
-    default_middlewares = SinatraTestApp.newrelic_middlewares
-    # mock up the return value of Sinatra's #middleware method, which returns an
-    # Array of Arrays.
-    middleware_info = default_middlewares.map { |m| [m] }
-    SinatraTestApp.stubs(:middleware).returns(middleware_info)
-
-    SinatraTestApp.expects(:build_without_newrelic).once
-    SinatraTestApp.expects(:use).never
-
-    SinatraTestApp.build_with_newrelic(@app)
   end
 
   def assert_transaction_name(expected, original)

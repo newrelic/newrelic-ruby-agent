@@ -16,8 +16,7 @@ module Environments
       "2.2"         => ["rails50"],
       "2.1"         => ["rails50"],
       "2.0"         => ["rails50"],
-      "2"           => ["rails21", "rails22", "rails23"],
-      "jruby-9.0"   => ["rails21", "rails22", "rails23", "rails30", "rails31", "rails32"]
+      "jruby-9.0"   => ["rails30", "rails31", "rails32"]
     }
 
     attr_reader :envs
@@ -86,10 +85,10 @@ module Environments
 
     def bundle(dir)
       puts "Bundling in #{dir}..."
-      result = `cd #{dir} && bundle _1.17.3_ install --local`
+      result = `cd #{dir} && bundle install --local`
       unless $?.success?
         puts "Failed local bundle, trying again with full bundle..."
-        command = "cd #{dir} && bundle _1.17.3_ install --retry 3"
+        command = "cd #{dir} && bundle install --retry 3"
         result = Multiverse::ShellUtils.try_command_n_times(command, 3)
       end
 
@@ -100,7 +99,7 @@ module Environments
 
     def run(dir)
       puts "Starting tests..."
-      IO.popen("cd #{dir} && bundle _1.17.3_ exec rake") do |io|
+      IO.popen("cd #{dir} && bundle exec rake") do |io|
         until io.eof do
           print io.read(1)
         end
