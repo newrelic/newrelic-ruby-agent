@@ -4,13 +4,17 @@
 
   * Bugfix for superfluous `Empty JSON response` error messages
 
-    Version 6.1.0 of the agent frequently logged error messages about an empty JSON response, when no error had occurred.  These logs no longer appear. 
+    Version 6.1.0 of the agent frequently logged error messages about an empty 
+    JSON response, when no error had occurred.  These logs no longer appear. 
 
-  * Bugfix for TransactionTimeAggregator on JRuby
+  * Bugfix for `Unable to calculate elapsed transaction time` warning messages
 
-    An alternative implementation of a method was added
-    to the TransactionTimeAggregator for JRuby that avoids
-    using ObjectSpace.
+    When using previous Ruby Agent versions in jruby without ObjectSpace 
+    enabled, the agent would occasionally log a warning indicating that the 
+    agent was unable to calculate the elapsed transaction time.  When this log
+    statement appeared, the affected transaction would not be included in 
+    the _App instance busy_ metric.  These transactions are now correctly 
+    included in the _App instance busy_ metric.
 
 ## v6.1.0
 
