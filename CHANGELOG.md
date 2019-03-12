@@ -9,12 +9,12 @@
 
   * Bugfix for `Unable to calculate elapsed transaction time` warning messages
 
-    When using previous Ruby Agent versions in jruby without ObjectSpace 
-    enabled, the agent would occasionally log a warning indicating that the 
+    Ruby Agent versions 5.4 through 6.1, when running in jruby without 
+    ObjectSpace enabled, would occasionally log a warning indicating that the 
     agent was unable to calculate the elapsed transaction time.  When this log
-    statement appeared, the affected transaction would not be included in 
-    the _App instance busy_ metric.  These transactions are now correctly 
-    included in the _App instance busy_ metric.
+    statement appeared, the affected transactions would not be included in the 
+    data displayed on the capacity analysis page.  These transactions are now 
+    correctly recorded.
 
 ## v6.1.0
 
