@@ -59,6 +59,8 @@ class LicenseTest < Minitest::Test
       path.include?(gem_root + '/vendor/bundle') ||
       # skip the auto-generated build.rb file
       path =~ %r{lib/new_relic/build\.rb} ||
+      # skip the YARD-generated doc directory
+      path.include?(gem_root + '/doc') ||
       # skip tags file
       path =~ %r{/tags$}i ||
       # skip multiverse auto-generated gemfiles
