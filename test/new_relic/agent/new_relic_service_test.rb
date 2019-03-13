@@ -499,132 +499,33 @@ class NewRelicServiceTest < Minitest::Test
     @service.sql_trace_data([])
   end
 
-  # protocol 17
-  def test_should_raise_exception_on_400
-    @http_handle.respond_to(:metric_data, 'bad format', :code => 400)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
+  def self.check_status_code_handling( expected_exceptions )
+    expected_exceptions.each do |status_code, exception_type|
+      method_name = "test_#{status_code}_raises_#{exception_type.name.split('::').last}"
+      define_method method_name do
+        @http_handle.respond_to(:metric_data, 'payload', :code => status_code)
+        assert_raises exception_type do
+          stats_hash = NewRelic::Agent::StatsHash.new
+          @service.metric_data(stats_hash)
+        end
+      end
     end
   end
 
-  # protocol 17
-  def test_should_raise_exception_on_401
-    @http_handle.respond_to(:metric_data, 'unauthorized', :code => 401)
-    assert_raises NewRelic::Agent::ForceRestartException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_403
-    @http_handle.respond_to(:metric_data, 'forbidden', :code => 403)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_405
-    @http_handle.respond_to(:metric_data, 'method not allowed', :code => 405)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_407
-    @http_handle.respond_to(:metric_data, 'proxy authentication required', :code => 407)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_408
-    @http_handle.respond_to(:metric_data, 'request timeout', :code => 408)
-    assert_raises NewRelic::Agent::ServerConnectionException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_409
-    @http_handle.reset
-    @http_handle.respond_to(:preconnect, 'reconnect', :code => 409)
-    assert_raises NewRelic::Agent::ForceRestartException do
-      @service.preconnect
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_410
-    @http_handle.reset
-    @http_handle.respond_to(:preconnect, 'disconnect', :code => 410)
-    assert_raises NewRelic::Agent::ForceDisconnectException do
-      @service.preconnect
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_411
-    @http_handle.respond_to(:metric_data, 'length required', :code => 411)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 9
-  def test_should_raise_exception_on_413
-    @http_handle.respond_to(:metric_data, 'too big', :code => 413)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 9
-  def test_should_raise_exception_on_415
-    @http_handle.respond_to(:metric_data, 'too big', :code => 415)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 9
-  def test_should_raise_exception_on_417
-    @http_handle.respond_to(:metric_data, 'unsupported media type', :code => 417)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_429
-    @http_handle.respond_to(:metric_data, 'some metrics', :code => 429)
-    assert_raises NewRelic::Agent::ServerConnectionException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-
-  # protocol 17
-  def test_should_raise_exception_on_431
-    @http_handle.respond_to(:metric_data, 'request headers too big', :code => 431)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
+  check_status_code_handling(400 => NewRelic::Agent::UnrecoverableServerException,
+    401 => NewRelic::Agent::ForceRestartException,
+    403 => NewRelic::Agent::UnrecoverableServerException,
+    405 => NewRelic::Agent::UnrecoverableServerException,
+    407 => NewRelic::Agent::UnrecoverableServerException,
+    408 => NewRelic::Agent::ServerConnectionException,
+    409 => NewRelic::Agent::ForceRestartException,
+    410 => NewRelic::Agent::ForceDisconnectException,
+    411 => NewRelic::Agent::UnrecoverableServerException,
+    413 => NewRelic::Agent::UnrecoverableServerException,
+    415 => NewRelic::Agent::UnrecoverableServerException,
+    417 => NewRelic::Agent::UnrecoverableServerException,
+    429 => NewRelic::Agent::ServerConnectionException,
+    431 => NewRelic::Agent::UnrecoverableServerException)
 
   # protocol 17
   def test_supportability_metrics_for_http_error_responses
