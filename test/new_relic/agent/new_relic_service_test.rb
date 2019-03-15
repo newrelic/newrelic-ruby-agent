@@ -499,132 +499,33 @@ class NewRelicServiceTest < Minitest::Test
     @service.sql_trace_data([])
   end
 
-  # protocol 17
-  def test_should_raise_exception_on_400
-    @http_handle.respond_to(:metric_data, 'bad format', :code => 400)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
+  def self.check_status_code_handling( expected_exceptions )
+    expected_exceptions.each do |status_code, exception_type|
+      method_name = "test_#{status_code}_raises_#{exception_type.name.split('::').last}"
+      define_method method_name do
+        @http_handle.respond_to(:metric_data, 'payload', :code => status_code)
+        assert_raises exception_type do
+          stats_hash = NewRelic::Agent::StatsHash.new
+          @service.metric_data(stats_hash)
+        end
+      end
     end
   end
 
-  # protocol 17
-  def test_should_raise_exception_on_401
-    @http_handle.respond_to(:metric_data, 'unauthorized', :code => 401)
-    assert_raises NewRelic::Agent::ForceRestartException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_403
-    @http_handle.respond_to(:metric_data, 'forbidden', :code => 403)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_405
-    @http_handle.respond_to(:metric_data, 'method not allowed', :code => 405)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_407
-    @http_handle.respond_to(:metric_data, 'proxy authentication required', :code => 407)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_408
-    @http_handle.respond_to(:metric_data, 'request timeout', :code => 408)
-    assert_raises NewRelic::Agent::ServerConnectionException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_409
-    @http_handle.reset
-    @http_handle.respond_to(:preconnect, 'reconnect', :code => 409)
-    assert_raises NewRelic::Agent::ForceRestartException do
-      @service.preconnect
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_410
-    @http_handle.reset
-    @http_handle.respond_to(:preconnect, 'disconnect', :code => 410)
-    assert_raises NewRelic::Agent::ForceDisconnectException do
-      @service.preconnect
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_411
-    @http_handle.respond_to(:metric_data, 'length required', :code => 411)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 9
-  def test_should_raise_exception_on_413
-    @http_handle.respond_to(:metric_data, 'too big', :code => 413)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 9
-  def test_should_raise_exception_on_415
-    @http_handle.respond_to(:metric_data, 'too big', :code => 415)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 9
-  def test_should_raise_exception_on_417
-    @http_handle.respond_to(:metric_data, 'unsupported media type', :code => 417)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-  # protocol 17
-  def test_should_raise_exception_on_429
-    @http_handle.respond_to(:metric_data, 'some metrics', :code => 429)
-    assert_raises NewRelic::Agent::ServerConnectionException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
-
-
-  # protocol 17
-  def test_should_raise_exception_on_431
-    @http_handle.respond_to(:metric_data, 'request headers too big', :code => 431)
-    assert_raises NewRelic::Agent::UnrecoverableServerException do
-      stats_hash = NewRelic::Agent::StatsHash.new
-      @service.metric_data(stats_hash)
-    end
-  end
+  check_status_code_handling(400 => NewRelic::Agent::UnrecoverableServerException,
+    401 => NewRelic::Agent::ForceRestartException,
+    403 => NewRelic::Agent::UnrecoverableServerException,
+    405 => NewRelic::Agent::UnrecoverableServerException,
+    407 => NewRelic::Agent::UnrecoverableServerException,
+    408 => NewRelic::Agent::ServerConnectionException,
+    409 => NewRelic::Agent::ForceRestartException,
+    410 => NewRelic::Agent::ForceDisconnectException,
+    411 => NewRelic::Agent::UnrecoverableServerException,
+    413 => NewRelic::Agent::UnrecoverableServerException,
+    415 => NewRelic::Agent::UnrecoverableServerException,
+    417 => NewRelic::Agent::UnrecoverableServerException,
+    429 => NewRelic::Agent::ServerConnectionException,
+    431 => NewRelic::Agent::UnrecoverableServerException)
 
   # protocol 17
   def test_supportability_metrics_for_http_error_responses
@@ -1107,24 +1008,6 @@ class NewRelicServiceTest < Minitest::Test
       end
     end
 
-    HTTPSuccess                     = Class.new(Net::HTTPSuccess)                     { include HTTPResponseMock }
-    HTTPBadRequest                  = Class.new(Net::HTTPBadRequest)                  { include HTTPResponseMock }
-    HTTPUnauthorized                = Class.new(Net::HTTPUnauthorized)                { include HTTPResponseMock }
-    HTTPForbidden                   = Class.new(Net::HTTPForbidden)                   { include HTTPResponseMock }
-    HTTPNotFound                    = Class.new(Net::HTTPNotFound)                    { include HTTPResponseMock }
-    HTTPMethodNotAllowed            = Class.new(Net::HTTPMethodNotAllowed)            { include HTTPResponseMock }
-    HTTPProxyAuthenticationRequired = Class.new(Net::HTTPProxyAuthenticationRequired) { include HTTPResponseMock }
-    HTTPRequestTimeOut              = Class.new(Net::HTTPRequestTimeOut)              { include HTTPResponseMock }
-    HTTPConflict                    = Class.new(Net::HTTPConflict)                    { include HTTPResponseMock }
-    HTTPGone                        = Class.new(Net::HTTPGone)                        { include HTTPResponseMock }
-    HTTPLengthRequired              = Class.new(Net::HTTPLengthRequired)              { include HTTPResponseMock }
-    HTTPRequestURITooLong           = Class.new(Net::HTTPRequestURITooLong)           { include HTTPResponseMock }
-    HTTPUnsupportedMediaType        = Class.new(Net::HTTPUnsupportedMediaType)        { include HTTPResponseMock }
-    HTTPExpectationFailed           = Class.new(Net::HTTPExpectationFailed)           { include HTTPResponseMock }
-    HTTPTooManyRequests             = Class.new(Net::HTTPTooManyRequests)             { include HTTPResponseMock }
-    HTTPRequestHeaderFieldsTooLarge = Class.new(Net::HTTPRequestHeaderFieldsTooLarge) { include HTTPResponseMock }
-    HTTPRequestEntityTooLarge       = Class.new(Net::HTTPRequestEntityTooLarge)       { include HTTPResponseMock }
-
     attr_accessor :read_timeout
     attr_reader :calls, :last_request
 
@@ -1166,44 +1049,9 @@ class NewRelicServiceTest < Minitest::Test
         :format => :json
       }.merge(opts)
 
-      if opts[:code] == 400
-        klass = HTTPBadRequest
-      elsif opts[:code] == 401
-        klass = HTTPUnauthorized
-      elsif opts[:code] == 403
-        klass = HTTPForbidden
-      elsif opts[:code] == 404
-        klass = HTTPNotFound
-      elsif opts[:code] == 405
-        klass = HTTPMethodNotAllowed
-      elsif opts[:code] == 407
-        klass = HTTPProxyAuthenticationRequired
-      elsif opts[:code] == 408
-        klass = HTTPRequestTimeOut
-      elsif opts[:code] == 409
-        klass = HTTPConflict
-      elsif opts[:code] == 410
-        klass = HTTPGone
-      elsif opts[:code] == 411
-        klass = HTTPLengthRequired
-      elsif opts[:code] == 413
-        klass = HTTPRequestEntityTooLarge
-      elsif opts[:code] == 414
-        klass = HTTPRequestURITooLong
-      elsif opts[:code] == 415
-        klass = HTTPUnsupportedMediaType
-      elsif opts[:code] == 417
-        klass = HTTPExpectationFailed
-      elsif opts[:code] ==  429
-        klass = HTTPTooManyRequests
-      elsif opts[:code] == 431
-        klass = HTTPRequestHeaderFieldsTooLarge
-      elsif opts[:code] > 400
-        klass = HTTPServerError
-      else
-        klass = HTTPSuccess
-      end
-
+      klass = Class.new(Net::HTTPResponse::CODE_TO_OBJ[opts[:code].to_s]) {
+        include HTTPResponseMock
+      }
       klass.new(JSON.dump('return_value' => payload), opts[:code], {})
     end
 
@@ -1229,7 +1077,7 @@ class NewRelicServiceTest < Minitest::Test
         raise response if response.kind_of?(Exception)
         response
       else
-        HTTPNotFound.new('not found', 404)
+        create_response_mock 'not found', :code => 404
       end
     end
 
