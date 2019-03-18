@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/instrumentation/active_record_notifications'
 require 'new_relic/agent/instrumentation/active_record_subscriber'
 require 'new_relic/agent/instrumentation/active_record_prepend'
 
@@ -35,6 +36,12 @@ DependencyDetection.defer do
       if ::ActiveRecord::VERSION::MINOR.to_i == 1 &&
          ::ActiveRecord::VERSION::TINY.to_i >= 6
         ::ActiveRecord::Base.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions516
+      end
+
+      if ::ActiveRecord::VERSION::MINOR.to_i == 0
+        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordNotitifcations::BaseExtensions50
+      elsif ::ActiveRecord::VERSION::MINOR.to_i >= 1
+        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordNotitifcations::BaseExtensions51
       end
     end
   end

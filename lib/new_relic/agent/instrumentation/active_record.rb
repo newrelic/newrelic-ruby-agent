@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/instrumentation/active_record_prepend'
-require 'new_relic/agent/instrumentation/active_record_notifications'
 
 module NewRelic
   module Agent
@@ -30,13 +29,6 @@ module NewRelic
           end
 
           ::ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
-            if ::ActiveRecord::VERSION::MAJOR.to_i == 4 && ::ActiveRecord::VERSION::MINOR.to_i >= 1
-              include ::NewRelic::Agent::Instrumentation::ActiveRecordNotitifcations::BaseExtensions41
-            elsif ::ActiveRecord::VERSION::MAJOR.to_i == 5 && ::ActiveRecord::VERSION::MINOR.to_i == 0
-              include ::NewRelic::Agent::Instrumentation::ActiveRecordNotitifcations::BaseExtensions50
-            elsif ::ActiveRecord::VERSION::MAJOR.to_i == 5 && ::ActiveRecord::VERSION::MINOR.to_i >= 1
-              include ::NewRelic::Agent::Instrumentation::ActiveRecordNotitifcations::BaseExtensions51
-            end
             include ::NewRelic::Agent::Instrumentation::ActiveRecord
           end
         end
