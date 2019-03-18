@@ -39,9 +39,9 @@ DependencyDetection.defer do
       end
 
       if ::ActiveRecord::VERSION::MINOR.to_i == 0
-        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordNotitifcations::BaseExtensions50
+        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions50
       elsif ::ActiveRecord::VERSION::MINOR.to_i >= 1
-        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordNotitifcations::BaseExtensions51
+        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions51
       end
     end
   end

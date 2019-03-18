@@ -39,7 +39,7 @@ DependencyDetection.defer do
         ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
       end
 
-      ::ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordNotitifcations::BaseExtensions41
+      ::ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions41
     end
   end
 end
