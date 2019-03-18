@@ -81,7 +81,7 @@ module NewRelic
           # handle if the notification payload provides the AR connection
           # available in Rails 6+ & our ActiveRecordNotifications#log extension
           if payload[:connection]
-            connection_config = connection.instance_variable_get(:@config)
+            connection_config = payload[:connection].instance_variable_get(:@config)
             return connection_config if connection_config
           end
 
