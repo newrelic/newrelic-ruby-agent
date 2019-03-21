@@ -20,7 +20,6 @@ module NewRelic
           "browser_monitoring.loader_version",
           "cross_process_id",
           "data_report_period",
-          "data_report_periods.analytic_event_data",
           "encoding_key",
           "error_beacon",
           "js_agent_file",
