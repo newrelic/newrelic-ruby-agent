@@ -575,24 +575,6 @@ module NewRelic
             EventLoop.new
           end
 
-          # Never allow any data type to be reported more frequently than once
-          # per second.
-          MIN_ALLOWED_REPORT_PERIOD = 1.0
-
-          def report_period_for(method)
-            config_key = "data_report_periods.#{method}".to_sym
-            period = Agent.config[config_key]
-            if !period
-              period = Agent.config[:data_report_period]
-              ::NewRelic::Agent.logger.warn("Could not find configured period for #{method}, falling back to data_report_period (#{period} s)")
-            end
-            if period < MIN_ALLOWED_REPORT_PERIOD
-              ::NewRelic::Agent.logger.warn("Configured #{config_key} was #{period}, but minimum allowed is #{MIN_ALLOWED_REPORT_PERIOD}, using #{MIN_ALLOWED_REPORT_PERIOD}.")
-              period = MIN_ALLOWED_REPORT_PERIOD
-            end
-            period
-          end
-
           LOG_ONCE_KEYS_RESET_PERIOD = 60.0
 
           def create_and_run_event_loop
