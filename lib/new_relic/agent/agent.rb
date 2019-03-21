@@ -607,7 +607,7 @@ module NewRelic
               ::NewRelic::Agent.logger.clear_already_logged
             end
             @event_loop.fire_every(Agent.config[:data_report_period],       :report_data)
-            @event_loop.fire_every(report_period_for(:analytic_event_data), :report_event_data)
+            @event_loop.fire_every(Agent.config[:event_report_period],      :report_event_data)
             @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD,              :reset_log_once_keys)
 
             @event_loop.run
