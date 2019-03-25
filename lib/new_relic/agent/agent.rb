@@ -1011,7 +1011,10 @@ module NewRelic
           harvest_and_send_from_container(transaction_event_aggregator, :analytic_event_data)
           harvest_and_send_from_container(synthetics_event_aggregator,  :analytic_event_data)
           harvest_and_send_from_container(@custom_event_aggregator,     :custom_event_data)
-          harvest_and_send_from_container(span_event_aggregator,        :span_event_data)
+        end
+
+        def harvest_and_send_span_event_data
+          harvest_and_send_from_container(span_event_aggregator, :span_event_data)
         end
 
         def harvest_and_send_error_event_data
@@ -1071,6 +1074,7 @@ module NewRelic
             harvest_and_send_transaction_traces
             harvest_and_send_slowest_sql
             harvest_and_send_timeslice_data
+            harvest_and_send_span_event_data
 
             check_for_and_handle_agent_commands
             harvest_and_send_for_agent_commands
