@@ -30,7 +30,8 @@ require 'new_relic/agent/utilization_data'
 require 'new_relic/environment_report'
 require 'new_relic/agent/attribute_filter'
 require 'new_relic/agent/adaptive_sampler'
-require 'new_relic/agent/connect'
+require 'new_relic/agent/connect/request_builder'
+require 'new_relic/agent/connect/response_handler'
 
 module NewRelic
   module Agent

@@ -4,8 +4,6 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', '..','test_helper'))
 require 'new_relic/agent/agent'
-require 'new_relic/agent/connect'
-
 
 class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
 
