@@ -30,6 +30,7 @@ require 'new_relic/agent/utilization_data'
 require 'new_relic/environment_report'
 require 'new_relic/agent/attribute_filter'
 require 'new_relic/agent/adaptive_sampler'
+require 'new_relic/agent/connect'
 
 module NewRelic
   module Agent
@@ -152,6 +153,10 @@ module NewRelic
 
         def synthetics_event_aggregator
           @transaction_event_recorder.synthetics_event_aggregator
+        end
+
+        def transaction_rules=(rules)
+          @transaction_rules = rules
         end
 
         # This method should be called in a forked process after a fork.
@@ -782,7 +787,7 @@ module NewRelic
 
           # Returns connect data passed back from the server
           def connect_to_server
-            connect_request_payload = NewRelic::Agent::Connect::RequestBuilder.new(@service, Agent.config).connect_payload
+            connect_request_payload = ::NewRelic::Agent::Connect::RequestBuilder.new(@service, Agent.config).connect_payload
             @service.connect connect_request_payload
           end
 
@@ -794,50 +799,7 @@ module NewRelic
           # Sets the collector host and connects to the server, then
           # invokes the final configuration with the returned data
           def query_server_for_configuration
-            finish_setup(connect_to_server)
-          end
-
-          # Takes a hash of configuration data returned from the
-          # server and uses it to set local variables and to
-          # initialize various parts of the agent that are configured
-          # separately.
-          #
-          # Can accommodate most arbitrary data - anything extra is
-          # ignored unless we say to do something with it here.
-          def finish_setup(config_data)
-            return if config_data == nil
-
-            @service.agent_id = config_data['agent_run_id']
-
-            security_policies = config_data.delete('security_policies')
-
-            add_server_side_config(config_data)
-            add_security_policy_config(security_policies) if security_policies
-
-            log_connection!(config_data)
-            @transaction_rules = RulesEngine.create_transaction_rules(config_data)
-            @stats_engine.metric_rules = RulesEngine.create_metric_rules(config_data)
-
-            # If you're adding something else here to respond to the server-side config,
-            # use Agent.instance.events.subscribe(:finished_configuring) callback instead!
-          end
-
-          def add_server_side_config(config_data)
-            if config_data['agent_config']
-              ::NewRelic::Agent.logger.debug "Using config from server"
-            end
-
-            ::NewRelic::Agent.logger.debug "Server provided config: #{config_data.inspect}"
-            server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data, Agent.config)
-            Agent.config.replace_or_add_config(server_config)
-          end
-
-          def add_security_policy_config(security_policies)
-            ::NewRelic::Agent.logger.info 'Installing security policies'
-            security_policy_source = NewRelic::Agent::Configuration::SecurityPolicySource.new(security_policies)
-            Agent.config.replace_or_add_config(security_policy_source)
-            # drop data collected before applying security policies
-            drop_buffered_data
+            ::NewRelic::Agent::Connect::ResponseHandler.new(@service).finish_setup(connect_to_server)
           end
 
           class WaitOnConnectTimeout < StandardError
@@ -869,22 +831,6 @@ module NewRelic
             end
           end
 
-          # Logs when we connect to the server, for debugging purposes
-          # - makes sure we know if an agent has not connected
-          def log_connection!(config_data)
-            ::NewRelic::Agent.logger.debug "Connected to NewRelic Service at #{@service.collector.name}"
-            ::NewRelic::Agent.logger.debug "Agent Run       = #{@service.agent_id}."
-            ::NewRelic::Agent.logger.debug "Connection data = #{config_data.inspect}"
-            if config_data['messages'] && config_data['messages'].any?
-              log_collector_messages(config_data['messages'])
-            end
-          end
-
-          def log_collector_messages(messages)
-            messages.each do |message|
-              ::NewRelic::Agent.logger.send(message['level'].downcase, message['message'])
-            end
-          end
         end
         include Connect
 

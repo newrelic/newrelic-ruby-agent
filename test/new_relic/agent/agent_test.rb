@@ -384,7 +384,7 @@ module NewRelic
         }
 
         @agent.service.expects(:connect).returns(connect_response)
-        @agent.expects(:add_security_policy_config).with(connect_response['security_policies'])
+        ::NewRelic::Agent::Connect::ResponseHandler.any_instance.expects(:add_security_policy_config).with(connect_response['security_policies'])
         @agent.send(:connect)
       end
 
@@ -394,7 +394,7 @@ module NewRelic
         }
 
         @agent.service.expects(:connect).returns(connect_response)
-        @agent.expects(:add_security_policy_config).never
+        ::NewRelic::Agent::Connect::ResponseHandler.any_instance.expects(:add_security_policy_config).never
         @agent.send(:connect)
       end
 
