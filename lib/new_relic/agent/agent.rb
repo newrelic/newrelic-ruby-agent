@@ -74,7 +74,6 @@ module NewRelic
 
         @connect_state      = :pending
         @connect_attempts   = 0
-        @environment_report = nil
         @waited_on_connect  = nil
         @connected_pid      = nil
 
@@ -781,39 +780,10 @@ module NewRelic
             Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
           end
 
-          # We've seen objects in the environment report (Rails.env in
-          # particular) that can't seralize to JSON. Cope with that here and
-          # clear out so downstream code doesn't have to check again.
-          def sanitize_environment_report
-            if !@service.valid_to_marshal?(@environment_report)
-              @environment_report = []
-            end
-          end
-
-          # Initializes the hash of settings that we send to the
-          # server. Returns a literal hash containing the options
-          def connect_settings
-            sanitize_environment_report
-
-            {
-              :pid           => $$,
-              :host          => local_host,
-              :display_host  => Agent.config[:'process_host.display_name'],
-              :app_name      => Agent.config.app_names,
-              :language      => 'ruby',
-              :labels        => Agent.config.parsed_labels,
-              :agent_version => NewRelic::VERSION::STRING,
-              :environment   => @environment_report,
-              :settings      => Agent.config.to_collector_hash,
-              :high_security => Agent.config[:high_security],
-              :utilization   => UtilizationData.new.to_collector_hash,
-              :identifier    => "ruby:#{local_host}:#{Agent.config.app_names.sort.join(',')}"
-            }
-          end
-
           # Returns connect data passed back from the server
           def connect_to_server
-            @service.connect(connect_settings)
+            connect_request_payload = NewRelic::Agent::Connect::RequestBuilder.new(@service, Agent.config).connect_payload
+            @service.connect connect_request_payload
           end
 
           # apdex_f is always 4 times the apdex_t
@@ -996,15 +966,6 @@ module NewRelic
           ::NewRelic::Agent.logger.error "Exception of unexpected type during Agent#connect():", e
 
           raise
-        end
-
-        # Who am I? Well, this method can tell you your hostname.
-        def determine_host
-          NewRelic::Agent::Hostname.get
-        end
-
-        def local_host
-          @local_host ||= determine_host
         end
 
         # Delegates to the control class to determine the root

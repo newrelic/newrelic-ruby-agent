@@ -409,47 +409,6 @@ module NewRelic
         @agent.send(:connect)
       end
 
-      def test_connect_settings
-        expected = [
-         :pid,
-         :host,
-         :display_host,
-         :app_name,
-         :language,
-         :labels,
-         :agent_version,
-         :environment,
-         :settings,
-         :high_security,
-         :identifier
-        ]
-
-        expected.each do |expect_key|
-          assert_includes @agent.connect_settings.keys, expect_key
-        end
-      end
-
-      def test_connect_settings_checks_environment_report_can_marshal
-        @agent.service.stubs(:valid_to_marshal?).returns(false)
-        assert_equal [], @agent.connect_settings[:environment]
-      end
-
-      def test_connect_settings_includes_labels_from_config
-        with_config({:labels => {'Server' => 'East'}}) do
-          expected = [ {"label_type"=>"Server", "label_value"=>"East"} ]
-          assert_equal expected, @agent.connect_settings[:labels]
-        end
-      end
-
-      def test_connect_settings_includes_labels_from_semicolon_separated_config
-        with_config(:labels => "Server:East;Server:West;") do
-          expected = [
-            {"label_type"=>"Server", "label_value"=>"West"}
-          ]
-          assert_equal expected, @agent.connect_settings[:labels]
-        end
-      end
-
       def test_wait_on_connect
         error = nil
         connected = false

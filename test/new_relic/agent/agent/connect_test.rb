@@ -4,6 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', '..','test_helper'))
 require 'new_relic/agent/agent'
+require 'new_relic/agent/connect'
 require 'ostruct'
 
 class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
@@ -22,7 +23,6 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
     NewRelic::Agent.instance.service = @service
-    @local_host = nil
 
     NewRelic::Agent.reset_config
   end
@@ -35,10 +35,6 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
       end
     end
     fake_control
-  end
-
-  def local_host
-    @local_host
   end
 
   def test_should_connect_if_pending
@@ -87,44 +83,6 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     error = mock(:message => "error message")
     self.expects(:disconnect).once
     handle_license_error(error)
-  end
-
-  def test_connect_settings_have_environment_report
-    NewRelic::Agent.agent.generate_environment_report
-    assert NewRelic::Agent.agent.connect_settings[:environment].detect{ |(k, _)|
-      k == 'Gems'
-    }, "expected connect_settings to include gems from environment"
-  end
-
-  def test_environment_for_connect_negative
-    with_config(:send_environment_info => false) do
-      NewRelic::Agent.agent.generate_environment_report
-      assert_equal [], NewRelic::Agent.agent.connect_settings[:environment]
-    end
-  end
-
-  def test_connect_settings
-    NewRelic::Agent.config.expects(:app_names).twice.returns(["apps"])
-    @local_host = "lo-calhost"
-    @environment_report = {}
-
-    keys = %w(pid host identifier display_host app_name language agent_version environment settings).map(&:to_sym)
-
-    settings = connect_settings
-    keys.each do |k|
-      assert_includes(settings.keys, k)
-      refute_nil(settings[k], "expected a value for #{k}")
-    end
-  end
-
-  def test_connect_settings_includes_correct_identifier
-    NewRelic::Agent.config.expects(:app_names).twice.returns(["b", "a", "c"])
-    @local_host = "lo-calhost"
-    @environment_report = {}
-
-    settings = connect_settings
-
-    assert_equal settings[:identifier], "ruby:lo-calhost:a,b,c"
   end
 
   def test_configure_transaction_tracer_positive
