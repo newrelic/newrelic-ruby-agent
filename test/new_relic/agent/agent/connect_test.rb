@@ -139,12 +139,6 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     end
   end
 
-  def test_query_server_for_configuration
-    self.expects(:connect_to_server).returns("so happy")
-    ::NewRelic::Agent::Connect::ResponseHandler.any_instance.expects(:finish_setup).with("so happy")
-    query_server_for_configuration
-  end
-
   def test_connect_gets_config
     NewRelic::Agent.manual_start
     NewRelic::Agent.instance.service = default_service(
@@ -169,7 +163,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     expects_logging(:info, 'beep boop')
     expects_logging(:warn, 'ha cha cha')
 
-    NewRelic::Agent.agent.query_server_for_configuration
+    NewRelic::Agent.agent.connect_to_server
     NewRelic::Agent.shutdown
   end
 

@@ -786,21 +786,21 @@ module NewRelic
             Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
           end
 
-          # Returns connect data passed back from the server
+          # Builds the payload to send to the connect service,
+          # connects, then configures the agent using the response from 
+          # the connect service
           def connect_to_server
-            connect_request_payload = ::NewRelic::Agent::Connect::RequestBuilder.new(@service, Agent.config).connect_payload
-            @service.connect connect_request_payload
+            request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new(@service, Agent.config)
+            connect_response = @service.connect request_builder.connect_payload
+
+            response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(@service)
+            response_handler.finish_setup(connect_response)
+            connect_response
           end
 
           # apdex_f is always 4 times the apdex_t
           def apdex_f
             (4 * Agent.config[:apdex_t]).to_f
-          end
-
-          # Sets the collector host and connects to the server, then
-          # invokes the final configuration with the returned data
-          def query_server_for_configuration
-            ::NewRelic::Agent::Connect::ResponseHandler.new(@service).finish_setup(connect_to_server)
           end
 
           class WaitOnConnectTimeout < StandardError
@@ -891,7 +891,7 @@ module NewRelic
           return unless should_connect?(opts[:force_reconnect])
 
           ::NewRelic::Agent.logger.debug "Connecting Process to New Relic: #$0"
-          query_server_for_configuration
+          connect_to_server
           @connected_pid = $$
           @connect_state = :connected
           signal_connected
