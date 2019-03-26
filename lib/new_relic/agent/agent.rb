@@ -481,7 +481,6 @@ module NewRelic
             @harvester.mark_started
 
             unless in_resque_child_process?
-              generate_environment_report
               install_exit_handler
               @harvest_samplers.load_samplers unless Agent.config[:disable_samplers]
             end
@@ -771,10 +770,6 @@ module NewRelic
             ::NewRelic::Agent.logger.error(error.message)
             disconnect
             shutdown
-          end
-
-          def generate_environment_report
-            @environment_report = environment_for_connect
           end
 
           # Checks whether we should send environment info, and if so,
