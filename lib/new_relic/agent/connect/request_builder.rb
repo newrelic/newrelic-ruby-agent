@@ -10,6 +10,12 @@ module NewRelic
 
       class RequestBuilder
 
+        EVENT_DATA_CONFIG_KEY_MAPPING = {
+          :analytic_event_data => :'analytics_events.max_samples_stored',
+          :custom_event_data => :'custom_insights_events.max_samples_stored',
+          :error_event_data => :'error_collector.max_event_samples_stored'
+        }
+
         def initialize(new_relic_service, config)
           @service = new_relic_service
           @config = config
@@ -31,7 +37,8 @@ module NewRelic
             :settings      => Agent.config.to_collector_hash,
             :high_security => Agent.config[:high_security],
             :utilization   => UtilizationData.new.to_collector_hash,
-            :identifier    => "ruby:#{local_host}:#{Agent.config.app_names.sort.join(',')}"
+            :identifier    => "ruby:#{local_host}:#{Agent.config.app_names.sort.join(',')}",
+            :event_data    => event_data_hash
           }
         end
 
@@ -54,6 +61,15 @@ module NewRelic
 
         def local_host
           NewRelic::Agent::Hostname.get
+        end
+
+        def event_data_hash
+          {:harvest_limits => EVENT_DATA_CONFIG_KEY_MAPPING.inject({}) do
+              |event_data, (event_data_key, config_key)|
+                event_data[event_data_key] = NewRelic::Agent.config[config_key]
+                event_data
+              end
+          }
         end
       end
     end

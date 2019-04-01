@@ -75,4 +75,20 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
     end
   end
 
+  def test_event_data_hash_returns_default_values
+    NewRelic::Agent.config.add_config_for_testing(:'analytics_events.max_samples_stored' => 1000)
+    NewRelic::Agent.config.add_config_for_testing(:'custom_insights_events.max_samples_stored' => 1000)
+    NewRelic::Agent.config.add_config_for_testing(:'error_collector.max_event_samples_stored' => 1000)
+
+    expected = {
+      :harvest_limits => {
+        :analytic_event_data => 1000,
+        :custom_event_data => 1000,
+        :error_event_data => 1000
+      }
+    }
+
+    assert_equal(expected, @request_builder.event_data_hash)
+  end
+
 end
