@@ -15,6 +15,14 @@ module NewRelic::Agent::Configuration
           'transaction_tracer.record_sql'            => 'raw',
           'error_collector.enabled'                  => true
         },
+        'event_data' => {
+          'report_period_ms' => 5000,
+          'harvest_limits'   => {
+            'analytic_event_data' => 833,
+            'custom_event_data'   => 833,
+            'error_event_data'    => 8
+          }
+        },
         'apdex_t'                    => 1.0,
         'collect_errors'             => false,
         'collect_traces'             => true,
@@ -79,6 +87,14 @@ module NewRelic::Agent::Configuration
 
     def test_should_not_dot_the_web_transactions_apdex_hash
       assert_equal 1.5, @source[:web_transactions_apdex]['Controller/some/txn']
+    end
+
+    def test_should_set_analytics_events_max_samples
+      assert_equal 833, @source[:'analytics_events.max_samples_stored']
+    end
+
+    def test_should_set_event_report_period
+      assert_equal 5, @source[:'event_report_period']
     end
 
     def test_should_disable_gated_features_when_server_says_to
