@@ -25,7 +25,7 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
     assert_kind_of NewRelic::Agent::Configuration::DefaultSource, NewRelic::Agent.config.source(:apdex_t)
   end
 
-  def test_finish_setup
+  def test_configure_agent
     config = {
       'agent_run_id' => 'fishsticks',
       'collect_traces' => true,
@@ -35,19 +35,19 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
     }
     @response_handler.expects(:log_connection!).with(config)
     with_config(:'transaction_tracer.enabled' => true) do
-      @response_handler.finish_setup(config)
-      assert_equal 'fishsticks', @service.agent_id
+      @response_handler.configure_agent(config)
+      assert_equal 'fishsticks', @agent.service.agent_id
       assert_equal 'raw', NewRelic::Agent.config[:'transaction_tracer.record_sql']
     end
   end
 
-  def test_finish_setup_without_config
+  def test_configure_agent_without_config
     @service.agent_id = 'blah'
-    @response_handler.finish_setup(nil)
+    @response_handler.configure_agent(nil)
     assert_equal 'blah', @service.agent_id
   end
 
-  def test_finish_setup_saves_transaction_name_rules
+  def test_configure_agent_saves_transaction_name_rules
     NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
                                             NewRelic::Agent::RulesEngine.new)
     config = {
@@ -56,7 +56,7 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
                                     { 'match_expression' => 'xx',
                                       'replacement'      => 'XX' } ]
     }
-    @response_handler.finish_setup(config)
+    @response_handler.configure_agent(config)
 
     rules = NewRelic::Agent.instance.transaction_rules
     assert_equal 2, rules.size
@@ -70,7 +70,7 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
   end
 
 
-  def test_finish_setup_saves_metric_name_rules
+  def test_configure_agent_saves_metric_name_rules
     NewRelic::Agent.instance.instance_variable_set(:@metric_rules,
                                             NewRelic::Agent::RulesEngine.new)
     config = {
@@ -79,7 +79,7 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
                                { 'match_expression' => 'yy',
                                  'replacement'      => 'YY' }]
     }
-    @response_handler.finish_setup(config)
+    @response_handler.configure_agent(config)
 
     rules = ::NewRelic::Agent.instance.stats_engine.metric_rules
     assert_equal 2, rules.size
@@ -97,7 +97,7 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
                  :'slow_sql.enabled'           => true,
                  :'transaction_tracer.enabled' => true,
                  :monitor_mode                 => true}) do
-      @response_handler.finish_setup('collect_traces' => false)
+      @response_handler.configure_agent('collect_traces' => false)
 
       refute NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
              'sql enabled when tracing disabled by server'

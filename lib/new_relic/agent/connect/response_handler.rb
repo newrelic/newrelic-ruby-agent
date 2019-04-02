@@ -20,7 +20,7 @@ module NewRelic
         #
         # Can accommodate most arbitrary data - anything extra is
         # ignored unless we say to do something with it here.
-        def finish_setup(config_data)
+        def configure_agent(config_data)
           return if config_data == nil
 
           @service.agent_id = config_data['agent_run_id']
