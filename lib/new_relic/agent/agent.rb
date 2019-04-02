@@ -30,6 +30,8 @@ require 'new_relic/agent/utilization_data'
 require 'new_relic/environment_report'
 require 'new_relic/agent/attribute_filter'
 require 'new_relic/agent/adaptive_sampler'
+require 'new_relic/agent/connect/request_builder'
+require 'new_relic/agent/connect/response_handler'
 
 module NewRelic
   module Agent
@@ -74,7 +76,6 @@ module NewRelic
 
         @connect_state      = :pending
         @connect_attempts   = 0
-        @environment_report = nil
         @waited_on_connect  = nil
         @connected_pid      = nil
 
@@ -136,7 +137,7 @@ module NewRelic
         # Transaction and metric renaming rules as provided by the
         # collector on connect.  The former are applied during txns,
         # the latter during harvest.
-        attr_reader :transaction_rules
+        attr_accessor :transaction_rules
         # Responsbile for restarting the harvest thread
         attr_reader :harvester
         # GC::Profiler.total_time is not monotonic so we wrap it.
@@ -153,6 +154,10 @@ module NewRelic
 
         def synthetics_event_aggregator
           @transaction_event_recorder.synthetics_event_aggregator
+        end
+
+        def agent_id=(agent_id)
+          @service.agent_id = agent_id
         end
 
         # This method should be called in a forked process after a fork.
@@ -476,7 +481,6 @@ module NewRelic
             @harvester.mark_started
 
             unless in_resque_child_process?
-              generate_environment_report
               install_exit_handler
               @harvest_samplers.load_samplers unless Agent.config[:disable_samplers]
             end
@@ -768,10 +772,6 @@ module NewRelic
             shutdown
           end
 
-          def generate_environment_report
-            @environment_report = environment_for_connect
-          end
-
           # Checks whether we should send environment info, and if so,
           # returns the snapshot from the local environment.
           # Generating the EnvironmentReport has the potential to trigger
@@ -781,93 +781,40 @@ module NewRelic
             Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
           end
 
-          # We've seen objects in the environment report (Rails.env in
-          # particular) that can't seralize to JSON. Cope with that here and
-          # clear out so downstream code doesn't have to check again.
-          def sanitize_environment_report
-            if !@service.valid_to_marshal?(@environment_report)
-              @environment_report = []
+          # Builds the payload to send to the connect service,
+          # connects, then configures the agent using the response from 
+          # the connect service
+          def connect_to_server
+            request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new(@service, Agent.config)
+            connect_response = @service.connect request_builder.connect_payload
+
+            response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(self, Agent.config)
+            response_handler.configure_agent(connect_response)
+
+            log_connection connect_response if connect_response
+            connect_response
+          end
+
+          # Logs when we connect to the server, for debugging purposes
+          # - makes sure we know if an agent has not connected
+          def log_connection(config_data)
+            ::NewRelic::Agent.logger.debug "Connected to NewRelic Service at #{@service.collector.name}"
+            ::NewRelic::Agent.logger.debug "Agent Run       = #{@service.agent_id}."
+            ::NewRelic::Agent.logger.debug "Connection data = #{config_data.inspect}"
+            if config_data['messages'] && config_data['messages'].any?
+              log_collector_messages(config_data['messages'])
             end
           end
 
-          # Initializes the hash of settings that we send to the
-          # server. Returns a literal hash containing the options
-          def connect_settings
-            sanitize_environment_report
-
-            {
-              :pid           => $$,
-              :host          => local_host,
-              :display_host  => Agent.config[:'process_host.display_name'],
-              :app_name      => Agent.config.app_names,
-              :language      => 'ruby',
-              :labels        => Agent.config.parsed_labels,
-              :agent_version => NewRelic::VERSION::STRING,
-              :environment   => @environment_report,
-              :settings      => Agent.config.to_collector_hash,
-              :high_security => Agent.config[:high_security],
-              :utilization   => UtilizationData.new.to_collector_hash,
-              :identifier    => "ruby:#{local_host}:#{Agent.config.app_names.sort.join(',')}"
-            }
-          end
-
-          # Returns connect data passed back from the server
-          def connect_to_server
-            @service.connect(connect_settings)
+          def log_collector_messages(messages)
+            messages.each do |message|
+              ::NewRelic::Agent.logger.send(message['level'].downcase, message['message'])
+            end
           end
 
           # apdex_f is always 4 times the apdex_t
           def apdex_f
             (4 * Agent.config[:apdex_t]).to_f
-          end
-
-          # Sets the collector host and connects to the server, then
-          # invokes the final configuration with the returned data
-          def query_server_for_configuration
-            finish_setup(connect_to_server)
-          end
-
-          # Takes a hash of configuration data returned from the
-          # server and uses it to set local variables and to
-          # initialize various parts of the agent that are configured
-          # separately.
-          #
-          # Can accommodate most arbitrary data - anything extra is
-          # ignored unless we say to do something with it here.
-          def finish_setup(config_data)
-            return if config_data == nil
-
-            @service.agent_id = config_data['agent_run_id']
-
-            security_policies = config_data.delete('security_policies')
-
-            add_server_side_config(config_data)
-            add_security_policy_config(security_policies) if security_policies
-
-            log_connection!(config_data)
-            @transaction_rules = RulesEngine.create_transaction_rules(config_data)
-            @stats_engine.metric_rules = RulesEngine.create_metric_rules(config_data)
-
-            # If you're adding something else here to respond to the server-side config,
-            # use Agent.instance.events.subscribe(:finished_configuring) callback instead!
-          end
-
-          def add_server_side_config(config_data)
-            if config_data['agent_config']
-              ::NewRelic::Agent.logger.debug "Using config from server"
-            end
-
-            ::NewRelic::Agent.logger.debug "Server provided config: #{config_data.inspect}"
-            server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data, Agent.config)
-            Agent.config.replace_or_add_config(server_config)
-          end
-
-          def add_security_policy_config(security_policies)
-            ::NewRelic::Agent.logger.info 'Installing security policies'
-            security_policy_source = NewRelic::Agent::Configuration::SecurityPolicySource.new(security_policies)
-            Agent.config.replace_or_add_config(security_policy_source)
-            # drop data collected before applying security policies
-            drop_buffered_data
           end
 
           class WaitOnConnectTimeout < StandardError
@@ -899,22 +846,6 @@ module NewRelic
             end
           end
 
-          # Logs when we connect to the server, for debugging purposes
-          # - makes sure we know if an agent has not connected
-          def log_connection!(config_data)
-            ::NewRelic::Agent.logger.debug "Connected to NewRelic Service at #{@service.collector.name}"
-            ::NewRelic::Agent.logger.debug "Agent Run       = #{@service.agent_id}."
-            ::NewRelic::Agent.logger.debug "Connection data = #{config_data.inspect}"
-            if config_data['messages'] && config_data['messages'].any?
-              log_collector_messages(config_data['messages'])
-            end
-          end
-
-          def log_collector_messages(messages)
-            messages.each do |message|
-              ::NewRelic::Agent.logger.send(message['level'].downcase, message['message'])
-            end
-          end
         end
         include Connect
 
@@ -974,7 +905,7 @@ module NewRelic
           return unless should_connect?(opts[:force_reconnect])
 
           ::NewRelic::Agent.logger.debug "Connecting Process to New Relic: #$0"
-          query_server_for_configuration
+          connect_to_server
           @connected_pid = $$
           @connect_state = :connected
           signal_connected
@@ -996,15 +927,6 @@ module NewRelic
           ::NewRelic::Agent.logger.error "Exception of unexpected type during Agent#connect():", e
 
           raise
-        end
-
-        # Who am I? Well, this method can tell you your hostname.
-        def determine_host
-          NewRelic::Agent::Hostname.get
-        end
-
-        def local_host
-          @local_host ||= determine_host
         end
 
         # Delegates to the control class to determine the root
