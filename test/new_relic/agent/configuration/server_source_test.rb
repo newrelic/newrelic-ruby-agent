@@ -8,7 +8,7 @@ require 'new_relic/agent/configuration/server_source'
 module NewRelic::Agent::Configuration
   class ServerSourceTest < Minitest::Test
     def setup
-      config = {
+      @config = {
         'agent_config' => {
           'slow_sql.enabled'                         => true,
           'transaction_tracer.transaction_threshold' => 'apdex_f',
@@ -34,7 +34,7 @@ module NewRelic::Agent::Configuration
         'sampling_target_period_in_seconds' => 120,
         'max_payload_size_in_bytes' => 500
       }
-      @source = ServerSource.new(config)
+      @source = ServerSource.new(@config)
     end
 
     def test_should_set_apdex_t
@@ -95,6 +95,13 @@ module NewRelic::Agent::Configuration
 
     def test_should_set_event_report_period
       assert_equal 5, @source[:'event_report_period']
+    end
+
+    def test_should_record_supportability_metric_on_missing_event_data
+      @config.delete :event_data
+      source = ServerSource.new(@config)
+
+      assert_metrics_recorded(["Supportability/Agent/Collector/MissingEventData"])
     end
 
     def test_should_disable_gated_features_when_server_says_to

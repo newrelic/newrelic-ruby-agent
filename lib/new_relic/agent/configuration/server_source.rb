@@ -81,6 +81,11 @@ module NewRelic
                   merged_settings[config_key] = connect_reply['event_data']['harvest_limits'][event_data_key.to_s]
                 end
               merged_settings['event_report_period'] = connect_reply['event_data']['report_period_ms'] / 1000
+            else
+              NewRelic::Agent.logger.warn(
+                  "No event data configuration found in connect response; " \
+                  + "using default event report period.")
+              NewRelic::Agent.record_metric('Supportability/Agent/Collector/MissingEventData', 1)
             end
         end
 
