@@ -7,6 +7,8 @@ module NewRelic
     module Configuration
       module EventData
 
+        extend self
+
         EVENT_DATA_CONFIG_KEY_MAPPING = {
           :analytic_event_data => :'analytics_events.max_samples_stored',
           :custom_event_data => :'custom_insights_events.max_samples_stored',
@@ -31,8 +33,6 @@ module NewRelic
           config_hash[:event_report_period] = connect_reply['event_data']['report_period_ms'] / 1000
           config_hash
         end
-
-        module_function :from_config, :to_config_hash
       end
     end
   end
