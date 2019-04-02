@@ -76,11 +76,7 @@ module NewRelic
 
         def add_event_data(merged_settings, connect_reply)
             if connect_reply['event_data']
-              NewRelic::Agent::Connect::RequestBuilder::EVENT_DATA_CONFIG_KEY_MAPPING.each do
-                |event_data_key, config_key|
-                  merged_settings[config_key] = connect_reply['event_data']['harvest_limits'][event_data_key.to_s]
-                end
-              merged_settings['event_report_period'] = connect_reply['event_data']['report_period_ms'] / 1000
+              merged_settings.merge! EventData.to_config_hash(connect_reply)
             else
               NewRelic::Agent.logger.warn(
                   "No event data configuration found in connect response; " \
