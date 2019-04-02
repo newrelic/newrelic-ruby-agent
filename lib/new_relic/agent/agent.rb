@@ -137,7 +137,7 @@ module NewRelic
         # Transaction and metric renaming rules as provided by the
         # collector on connect.  The former are applied during txns,
         # the latter during harvest.
-        attr_reader :transaction_rules
+        attr_accessor :transaction_rules
         # Responsbile for restarting the harvest thread
         attr_reader :harvester
         # GC::Profiler.total_time is not monotonic so we wrap it.
@@ -154,10 +154,6 @@ module NewRelic
 
         def synthetics_event_aggregator
           @transaction_event_recorder.synthetics_event_aggregator
-        end
-
-        def transaction_rules=(rules)
-          @transaction_rules = rules
         end
 
         def agent_id=(agent_id)
