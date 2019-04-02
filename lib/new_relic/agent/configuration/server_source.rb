@@ -78,9 +78,8 @@ module NewRelic
             if connect_reply['event_data']
               merged_settings.merge! EventData.to_config_hash(connect_reply)
             else
-              NewRelic::Agent.logger.warn(
-                  "No event data configuration found in connect response; " \
-                  + "using default event report period.")
+              NewRelic::Agent.logger.warn "No event data configuration found " \
+                  "in connect response; using default event report period."
               NewRelic::Agent.record_metric('Supportability/Agent/Collector/MissingEventData', 1)
             end
         end
