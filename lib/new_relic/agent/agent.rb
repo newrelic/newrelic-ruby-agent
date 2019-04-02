@@ -160,6 +160,10 @@ module NewRelic
           @transaction_rules = rules
         end
 
+        def agent_id=(agent_id)
+          @service.agent_id = agent_id
+        end
+
         # This method should be called in a forked process after a fork.
         # It assumes the parent process initialized the agent, but does
         # not assume the agent started.
@@ -788,9 +792,28 @@ module NewRelic
             request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new(@service, Agent.config)
             connect_response = @service.connect request_builder.connect_payload
 
-            response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(@service)
-            response_handler.finish_setup(connect_response)
+            response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(self, Agent.config)
+            response_handler.configure_agent(connect_response)
+
+            log_connection connect_response if connect_response
             connect_response
+          end
+
+          # Logs when we connect to the server, for debugging purposes
+          # - makes sure we know if an agent has not connected
+          def log_connection(config_data)
+            ::NewRelic::Agent.logger.debug "Connected to NewRelic Service at #{@service.collector.name}"
+            ::NewRelic::Agent.logger.debug "Agent Run       = #{@service.agent_id}."
+            ::NewRelic::Agent.logger.debug "Connection data = #{config_data.inspect}"
+            if config_data['messages'] && config_data['messages'].any?
+              log_collector_messages(config_data['messages'])
+            end
+          end
+
+          def log_collector_messages(messages)
+            messages.each do |message|
+              ::NewRelic::Agent.logger.send(message['level'].downcase, message['message'])
+            end
           end
 
           # apdex_f is always 4 times the apdex_t

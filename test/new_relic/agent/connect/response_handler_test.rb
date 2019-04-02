@@ -10,19 +10,24 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
   def setup
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
+    NewRelic::Agent.instance.service = @service
+    @local_host = nil
+
     NewRelic::Agent.reset_config
-    @response_handler = NewRelic::Agent::Connect::ResponseHandler.new(@service)
+    @agent = NewRelic::Agent.instance
+    @config = NewRelic::Agent.config
+    @response_handler = NewRelic::Agent::Connect::ResponseHandler.new(@agent, @config)
   end
 
-  def test_finish_setup_replaces_server_config
-    @response_handler.finish_setup('apdex_t' => 42)
-    assert_equal 42, NewRelic::Agent.config[:apdex_t]
-    assert_kind_of NewRelic::Agent::Configuration::ServerSource, NewRelic::Agent.config.source(:apdex_t)
+  def test_configure_agent_replaces_server_config
+    @response_handler.configure_agent('apdex_t' => 42)
+    assert_equal 42, @config[:apdex_t]
+    assert_kind_of NewRelic::Agent::Configuration::ServerSource, @config.source(:apdex_t)
 
     # this should create a new server source that replaces the existing one that
     # had apdex_t specified, rather than layering on top of the existing one.
-    @response_handler.finish_setup('data_report_period' => 12)
-    assert_kind_of NewRelic::Agent::Configuration::DefaultSource, NewRelic::Agent.config.source(:apdex_t)
+    @response_handler.configure_agent('data_report_period' => 12)
+    assert_kind_of NewRelic::Agent::Configuration::DefaultSource, @config.source(:apdex_t)
   end
 
   def test_configure_agent
@@ -33,22 +38,22 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
       'sample_rate' => 10,
       'agent_config' => { 'transaction_tracer.record_sql' => 'raw' }
     }
-    @response_handler.expects(:log_connection!).with(config)
+    
     with_config(:'transaction_tracer.enabled' => true) do
       @response_handler.configure_agent(config)
       assert_equal 'fishsticks', @agent.service.agent_id
-      assert_equal 'raw', NewRelic::Agent.config[:'transaction_tracer.record_sql']
+      assert_equal 'raw', @config[:'transaction_tracer.record_sql']
     end
   end
 
   def test_configure_agent_without_config
-    @service.agent_id = 'blah'
+    @agent.service.agent_id = 'blah'
     @response_handler.configure_agent(nil)
-    assert_equal 'blah', @service.agent_id
+    assert_equal 'blah', @agent.service.agent_id
   end
 
   def test_configure_agent_saves_transaction_name_rules
-    NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
+    @agent.instance_variable_set(:@transaction_rules,
                                             NewRelic::Agent::RulesEngine.new)
     config = {
       'transaction_name_rules' => [ { 'match_expression' => '88',
@@ -58,20 +63,20 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
     }
     @response_handler.configure_agent(config)
 
-    rules = NewRelic::Agent.instance.transaction_rules
+    rules = @agent.transaction_rules
     assert_equal 2, rules.size
     assert(rules.find{|r| r.match_expression == /88/i && r.replacement == '**' },
            "rule not found among #{rules}")
     assert(rules.find{|r| r.match_expression == /xx/i && r.replacement == 'XX' },
            "rule not found among #{rules}")
   ensure
-    NewRelic::Agent.instance.instance_variable_set(:@transaction_rules,
+    @agent.instance_variable_set(:@transaction_rules,
                                             NewRelic::Agent::RulesEngine.new)
   end
 
 
   def test_configure_agent_saves_metric_name_rules
-    NewRelic::Agent.instance.instance_variable_set(:@metric_rules,
+    @agent.instance_variable_set(:@metric_rules,
                                             NewRelic::Agent::RulesEngine.new)
     config = {
       'metric_name_rules' => [ { 'match_expression' => '77',
@@ -81,14 +86,14 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
     }
     @response_handler.configure_agent(config)
 
-    rules = ::NewRelic::Agent.instance.stats_engine.metric_rules
+    rules = @agent.stats_engine.metric_rules
     assert_equal 2, rules.size
     assert(rules.find{|r| r.match_expression == /77/i && r.replacement == '&&' },
            "rule not found among #{rules}")
     assert(rules.find{|r| r.match_expression == /yy/i && r.replacement == 'YY' },
            "rule not found among #{rules}")
   ensure
-    NewRelic::Agent.instance.instance_variable_set(:@metric_rules,
+    @agent.instance_variable_set(:@metric_rules,
                                             NewRelic::Agent::RulesEngine.new)
   end
 
@@ -99,8 +104,7 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
                  :monitor_mode                 => true}) do
       @response_handler.configure_agent('collect_traces' => false)
 
-      refute NewRelic::Agent::Agent.instance.sql_sampler.enabled?,
-             'sql enabled when tracing disabled by server'
+      refute @agent.sql_sampler.enabled?, 'sql enabled when tracing disabled by server'
     end
   end
 end
