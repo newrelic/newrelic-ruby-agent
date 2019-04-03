@@ -553,12 +553,20 @@ module NewRelic
           :public => false,
           :type => Integer,
           :allowed_from_server => true,
-          :description => 'Number of seconds betwixt connections to the New Relic data collection service. Note that transaction events have a separate report period, specified by data_report_periods.analytic_event_data.'
+          :description => 'Number of seconds betwixt connections to the New Relic data collection service.'
+        },
+        :event_report_period => {
+          :default => 60,
+          :public => false,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'Number of seconds betwixt connections to the New Relic event collection services.'
         },
         :'data_report_periods.analytic_event_data' => {
           :default => 60,
           :public => false,
           :type => Integer,
+          :deprecated => true,
           :dynamic_name => true,
           :allowed_from_server => true,
           :description => 'Number of seconds between connections to the New Relic data collection service for sending transaction event data.'

@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/environment_report'
+require 'new_relic/agent/configuration/event_data'
 
 module NewRelic
   module Agent
@@ -31,7 +32,8 @@ module NewRelic
             :settings      => Agent.config.to_collector_hash,
             :high_security => Agent.config[:high_security],
             :utilization   => UtilizationData.new.to_collector_hash,
-            :identifier    => "ruby:#{local_host}:#{Agent.config.app_names.sort.join(',')}"
+            :identifier    => "ruby:#{local_host}:#{Agent.config.app_names.sort.join(',')}",
+            :event_data    => Configuration::EventData.from_config(Agent.config)
           }
         end
 

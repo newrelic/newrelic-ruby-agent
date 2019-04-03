@@ -575,24 +575,6 @@ module NewRelic
             EventLoop.new
           end
 
-          # Never allow any data type to be reported more frequently than once
-          # per second.
-          MIN_ALLOWED_REPORT_PERIOD = 1.0
-
-          def report_period_for(method)
-            config_key = "data_report_periods.#{method}".to_sym
-            period = Agent.config[config_key]
-            if !period
-              period = Agent.config[:data_report_period]
-              ::NewRelic::Agent.logger.warn("Could not find configured period for #{method}, falling back to data_report_period (#{period} s)")
-            end
-            if period < MIN_ALLOWED_REPORT_PERIOD
-              ::NewRelic::Agent.logger.warn("Configured #{config_key} was #{period}, but minimum allowed is #{MIN_ALLOWED_REPORT_PERIOD}, using #{MIN_ALLOWED_REPORT_PERIOD}.")
-              period = MIN_ALLOWED_REPORT_PERIOD
-            end
-            period
-          end
-
           LOG_ONCE_KEYS_RESET_PERIOD = 60.0
 
           def create_and_run_event_loop
@@ -607,7 +589,7 @@ module NewRelic
               ::NewRelic::Agent.logger.clear_already_logged
             end
             @event_loop.fire_every(Agent.config[:data_report_period],       :report_data)
-            @event_loop.fire_every(report_period_for(:analytic_event_data), :report_event_data)
+            @event_loop.fire_every(Agent.config[:event_report_period],      :report_event_data)
             @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD,              :reset_log_once_keys)
 
             @event_loop.run
@@ -1029,7 +1011,10 @@ module NewRelic
           harvest_and_send_from_container(transaction_event_aggregator, :analytic_event_data)
           harvest_and_send_from_container(synthetics_event_aggregator,  :analytic_event_data)
           harvest_and_send_from_container(@custom_event_aggregator,     :custom_event_data)
-          harvest_and_send_from_container(span_event_aggregator,        :span_event_data)
+        end
+
+        def harvest_and_send_span_event_data
+          harvest_and_send_from_container(span_event_aggregator, :span_event_data)
         end
 
         def harvest_and_send_error_event_data
@@ -1089,6 +1074,7 @@ module NewRelic
             harvest_and_send_transaction_traces
             harvest_and_send_slowest_sql
             harvest_and_send_timeslice_data
+            harvest_and_send_span_event_data
 
             check_for_and_handle_agent_commands
             harvest_and_send_for_agent_commands

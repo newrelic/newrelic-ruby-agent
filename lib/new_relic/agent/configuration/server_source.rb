@@ -20,7 +20,6 @@ module NewRelic
           "browser_monitoring.loader_version",
           "cross_process_id",
           "data_report_period",
-          "data_report_periods.analytic_event_data",
           "encoding_key",
           "error_beacon",
           "js_agent_file",
@@ -39,6 +38,7 @@ module NewRelic
           merge_top_level_keys(merged_settings, connect_reply)
           merge_agent_config_hash(merged_settings, connect_reply)
           fix_transaction_threshold(merged_settings)
+          add_event_data(merged_settings, connect_reply)
           filter_keys(merged_settings)
 
           apply_feature_gates(merged_settings, connect_reply, existing_config)
@@ -72,6 +72,16 @@ module NewRelic
           if merged_settings['transaction_tracer.transaction_threshold'] =~ /apdex_f/i
             merged_settings.delete('transaction_tracer.transaction_threshold')
           end
+        end
+
+        def add_event_data(merged_settings, connect_reply)
+            if connect_reply['event_data']
+              merged_settings.merge! EventData.to_config_hash(connect_reply)
+            else
+              NewRelic::Agent.logger.warn "No event data configuration found " \
+                  "in connect response; using default event report period."
+              NewRelic::Agent.record_metric('Supportability/Agent/Collector/MissingEventData', 1)
+            end
         end
 
         def filter_keys(merged_settings)
