@@ -172,6 +172,16 @@ module NewRelic
           end
         end
 
+        def self.api_host
+          Proc.new do
+            if String(NewRelic::Agent.config[:license_key]).start_with? 'eu'
+              'rpm.eu.newrelic.com'
+            else
+              'rpm.newrelic.com'
+            end
+          end
+        end
+
         def self.convert_to_regexp_list(raw_value)
           value_list = convert_to_list(raw_value)
           value_list.map do |value|
@@ -472,7 +482,7 @@ module NewRelic
           :description => "URI for the New Relic data collection service."
         },
         :api_host => {
-          :default => 'rpm.newrelic.com',
+          :default => DefaultSource.api_host,
           :public => false,
           :type => String,
           :allowed_from_server => false,

@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Bugfix for `newrelic deployments` script
+
+    The newrelic deployments script included with previous versions of the agent
+    would fail with a `Deployment not recorded: Application does not exist.`
+    message for applications housed in the EU, because the script would attempt
+    to send the deployment notification to the US region.  The deployment script
+    now sends deployments to the correct region.
+
 ## v6.2.0
 
   * Bugfix for superfluous `Empty JSON response` error messages
