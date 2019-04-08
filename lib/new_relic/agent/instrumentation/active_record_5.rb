@@ -38,10 +38,12 @@ DependencyDetection.defer do
         ::ActiveRecord::Base.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions516
       end
 
-      if ::ActiveRecord::VERSION::MINOR.to_i == 0
-        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions50
-      elsif ::ActiveRecord::VERSION::MINOR.to_i >= 1
-        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions51
+      if NewRelic::Agent.config[:backport_fast_active_record_connection_lookup]
+        if ::ActiveRecord::VERSION::MINOR.to_i == 0
+          ::ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions50
+        elsif ::ActiveRecord::VERSION::MINOR.to_i >= 1
+          ::ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions51
+        end
       end
     end
   end
