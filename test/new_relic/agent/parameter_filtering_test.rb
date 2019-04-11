@@ -11,9 +11,11 @@ module NewRelic
 
       def test_apply_filters_returns_params_when_rails_is_not_present
         undefine_constant(:"ActionDispatch::Http::ParameterFilter") do
-          params = {"password" => "mypass"}
-          result = ParameterFiltering.apply_filters({}, params)
-          assert_equal params, result
+          undefine_constant(:"ActiveSupport::ParameterFilter") do
+            params = {"password" => "mypass"}
+            result = ParameterFiltering.apply_filters({}, params)
+            assert_equal params, result
+          end
         end
       end
 
