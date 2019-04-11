@@ -51,7 +51,15 @@ module NewRelic
 
         def pop_event(transaction_id)
           event = event_stack[transaction_id].pop
-          event.end = Time.now
+
+          if event.respond_to?(:finish!)
+            # ActiveSupport version 6 and greater use a finish! method rather
+            # that allowing us to set the end directly
+            event.finish!
+          else
+            event.end = Time.now
+          end
+
           return event
         end
 
