@@ -11,10 +11,33 @@ module NewRelic
         end
 
         def self.subscribed?
+          find_all_subscribers.find{|s| s.instance_variable_get(:@delegate).class == self }
+        end
+
+        def self.find_all_subscribers
           # TODO: need to talk to Rails core about an API for this,
           # rather than digging through Listener ivars
-          ActiveSupport::Notifications.notifier.instance_variable_get(:@subscribers) \
-            .find{|s| s.instance_variable_get(:@delegate).class == self }
+          instance_variable_names = [:@subscribers, :@string_subscribers, :@other_subscribers]
+          all_subscribers = []
+
+          notifier = ActiveSupport::Notifications.notifier
+
+          instance_variable_names.each do |name| 
+            if notifier.instance_variable_defined?(name)
+              subscribers = notifier.instance_variable_get(name)
+              if subscribers.is_a? Array
+                # Rails 5 @subscribers, and Rails 6 @other_subscribers is a
+                # plain array of subscriber objects
+                all_subscribers += subscribers
+              elsif subscribers.is_a? Hash
+                # Rails 6 @string_subscribers is a Hash mapping the pattern
+                # string of a subscriber to an array of subscriber objects
+                subscribers.values.each { |array| all_subscribers += array }
+              end
+            end
+          end
+
+          all_subscribers
         end
 
         def self.subscribe(pattern)
