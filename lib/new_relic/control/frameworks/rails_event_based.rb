@@ -7,7 +7,7 @@ require 'new_relic/control/frameworks/rails4'
 module NewRelic
   class Control
     module Frameworks
-      class Rails5 < NewRelic::Control::Frameworks::Rails4
+      class RailsEventBased < NewRelic::Control::Frameworks::Rails4
       end
     end
   end
