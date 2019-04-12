@@ -69,6 +69,9 @@ if !defined?(MyApp)
     config.eager_load = false
     config.filter_parameters += [:secret]
     config.secret_key_base = SecureRandom.hex(64)
+    if config.respond_to? :hosts
+      config.hosts << "www.example.com"
+    end
     initializer "install_error_middleware" do
       config.middleware.use ErrorMiddleware
     end
