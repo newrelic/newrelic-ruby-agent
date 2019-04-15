@@ -1,7 +1,11 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
+
 # Provides a way to send :connection through ActiveSupport notifications to avoid
 # looping through connection handlers to locate a connection by connection_id
 # This is not needed in Rails 6+: https://github.com/rails/rails/pull/34602
-
 module NewRelic
   module Agent
     module Instrumentation
