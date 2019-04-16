@@ -9,25 +9,16 @@ module NewRelic
 
 
       def apply_filters(env, params)
-        params = filter_using_active_dispatch(env, params)
-        params = filter_using_rails(params)
+        params = filter_using_rails(env, params)
         params = filter_rack_file_data(env, params)
         params
       end
 
-      def filter_using_active_dispatch(env, params)
+      def filter_using_rails(env, params)
         return params if rails_parameter_filter.nil? || !env.key?("action_dispatch.parameter_filter")
         
         filters = env["action_dispatch.parameter_filter"]
         rails_parameter_filter.new(filters).filter(params)
-      end
-
-      def filter_using_rails(params)
-        return params if rails_parameter_filter.nil?
-
-        munged_params = filter_rails_request_parameters(params)
-        filters = Rails.application.config.filter_parameters
-        rails_parameter_filter.new(filters).filter(munged_params)
       end
 
       def filter_rack_file_data(env, params)

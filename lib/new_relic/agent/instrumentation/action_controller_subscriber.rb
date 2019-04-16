@@ -48,7 +48,9 @@ module NewRelic
             category:         :controller,
             options: {
               request:          event.request,
-              filtered_params:  NewRelic::Agent::ParameterFiltering.filter_using_rails(event.payload[:params]),
+              filtered_params:  NewRelic::Agent::ParameterFiltering.filter_using_rails(
+                  event.request.env,
+                  event.payload[:params]),
               apdex_start_time: event.queue_start,
               ignore_apdex:     event.apdex_ignored?,
               ignore_enduser:   event.enduser_ignored?
