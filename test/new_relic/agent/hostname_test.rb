@@ -21,6 +21,11 @@ module NewRelic
         assert_equal 'Rivendell', NewRelic::Agent::Hostname.get
       end
 
+      def test_get_returns_socket_hostname_converted_to_utf8
+        Socket.stubs(:gethostname).returns('Elronds’s-Computer'.force_encoding(Encoding::ASCII_8BIT))
+        assert_equal 'Elronds’s-Computer', NewRelic::Agent::Hostname.get
+      end
+
       def test_get_uses_dyno_name_if_dyno_env_set_and_dyno_names_enabled
         with_dyno_name('Imladris', :'heroku.use_dyno_names' => true) do
           assert_equal 'Imladris', NewRelic::Agent::Hostname.get
