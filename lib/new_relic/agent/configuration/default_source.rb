@@ -1293,13 +1293,13 @@ module NewRelic
           :allowed_from_server => false,
           :description  => 'If <code>true</code>, disables instrumentation for ActiveRecord 4.'
         },
-        :disable_active_record_5 => {
+        :disable_active_record_event_based => {
           :default      => false,
           :public       => true,
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for ActiveRecord 5.'
+          :description  => 'If <code>true</code>, disables instrumentation for ActiveRecord 5 and 6.'
         },
         :disable_bunny => {
           :default      => false,
