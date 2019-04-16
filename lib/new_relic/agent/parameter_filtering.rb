@@ -7,6 +7,7 @@ module NewRelic
     module ParameterFiltering
       extend self
 
+      ACTION_DISPATCH_PARAMETER_FILTER = "action_dispatch.parameter_filter".freeze
 
       def apply_filters(env, params)
         params = filter_using_rails(env, params)
@@ -15,10 +16,11 @@ module NewRelic
       end
 
       def filter_using_rails(env, params)
-        return params if rails_parameter_filter.nil? || !env.key?("action_dispatch.parameter_filter")
-        
-        filters = env["action_dispatch.parameter_filter"]
-        rails_parameter_filter.new(filters).filter(params)
+        return params unless filters = env[ACTION_DISPATCH_PARAMETER_FILTER]
+        return params unless filter_class = rails_parameter_filter
+
+        pre_filtered_params = filter_rails_request_parameters(params)
+        filter_class.new(filters).filter(pre_filtered_params)
       end
 
       def filter_rack_file_data(env, params)
