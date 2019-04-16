@@ -75,6 +75,7 @@ env:
     - TYPE=UNIT ENVIRONMENT=rails42
     - TYPE=UNIT ENVIRONMENT=rails50
     - TYPE=UNIT ENVIRONMENT=rails51
+    - TYPE=UNIT ENVIRONMENT=rails60
     - TYPE=UNIT ENVIRONMENT=norails
     - TYPE=FUNCTIONAL GROUP=agent
     - TYPE=FUNCTIONAL GROUP=api
@@ -127,18 +128,32 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails40
     - rvm: 2.4.2
       env: TYPE=UNIT ENVIRONMENT=rails41
+    - rvm: 2.4.2
+      env: TYPE=UNIT ENVIRONMENT=rails60
+
+    # 2.3
+    - rvm: 2.3.5
+      env: TYPE=UNIT ENVIRONMENT=rails60
+
+    # 2.2
+    - rvm: 2.2.8
+      env: TYPE=UNIT ENVIRONMENT=rails60
 
     # 2.1
     - rvm: 2.1.10
       env: TYPE=UNIT ENVIRONMENT=rails50
     - rvm: 2.1.10
       env: TYPE=UNIT ENVIRONMENT=rails51
+    - rvm: 2.1.10
+      env: TYPE=UNIT ENVIRONMENT=rails60
 
     # 2.0
     - rvm: 2.0.0-p648
       env: TYPE=UNIT ENVIRONMENT=rails50
     - rvm: 2.0.0-p648
       env: TYPE=UNIT ENVIRONMENT=rails51
+    - rvm: 2.0.0-p648
+      env: TYPE=UNIT ENVIRONMENT=rails60
 
     # jruby 9.2.6.0 (Compatible with MRI 2.5)
     - rvm: jruby-9.2.6.0
@@ -151,3 +166,5 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails40
     - rvm: jruby-9.2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails41
+    - rvm: jruby-9.2.6.0
+      env: TYPE=UNIT ENVIRONMENT=rails60

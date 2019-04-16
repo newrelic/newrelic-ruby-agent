@@ -7,16 +7,21 @@ module NewRelic
     module ParameterFiltering
       extend self
 
+      ACTION_DISPATCH_PARAMETER_FILTER = "action_dispatch.parameter_filter".freeze
+
       def apply_filters(env, params)
-        params = filter_using_rails(env, params)
+        if filters = env[ACTION_DISPATCH_PARAMETER_FILTER]
+          params = filter_using_rails(params, filters) 
+        end
         params = filter_rack_file_data(env, params)
         params
       end
 
-      def filter_using_rails(env, params)
-        return params unless defined?(ActionDispatch::Http::ParameterFilter) && env.key?("action_dispatch.parameter_filter")
-        filters = env["action_dispatch.parameter_filter"]
-        ActionDispatch::Http::ParameterFilter.new(filters).filter(params)
+      def filter_using_rails(params, filters)
+        return params unless filter_class = rails_parameter_filter
+
+        pre_filtered_params = filter_rails_request_parameters(params)
+        filter_class.new(filters).filter(pre_filtered_params)
       end
 
       def filter_rack_file_data(env, params)
@@ -38,6 +43,14 @@ module NewRelic
         result.delete("controller")
         result.delete("action")
         result
+      end
+
+      def rails_parameter_filter
+        if defined?(ActiveSupport::ParameterFilter)
+          ActiveSupport::ParameterFilter
+        elsif defined?(ActionDispatch::Http::ParameterFilter)
+          ActionDispatch::Http::ParameterFilter
+        end
       end
     end
   end
