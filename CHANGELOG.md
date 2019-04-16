@@ -1,5 +1,9 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Official Rails 6.0 support
+
+    This version of the agent has been verified against the Rails 6.0.0 release.
+
   * Bugfix for `newrelic deployments` script
 
     The newrelic deployments script included with previous versions of the agent
