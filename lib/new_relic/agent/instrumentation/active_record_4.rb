@@ -40,7 +40,7 @@ DependencyDetection.defer do
       end
 
       if NewRelic::Agent.config[:backport_fast_active_record_connection_lookup]
-        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions41
+        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:prepend, ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions41)
       end
     end
   end
