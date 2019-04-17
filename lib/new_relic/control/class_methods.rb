@@ -49,7 +49,7 @@ module NewRelic
           # maybe it is already loaded by some external system
           # i.e. rpm_contrib or user extensions?
         end
-        NewRelic::Control::Frameworks.const_get(constantize(framework.to_s))
+        NewRelic::Control::Frameworks.const_get(camelize(framework.to_s))
       end
 
       # The root directory for the plugin or gem
@@ -57,7 +57,7 @@ module NewRelic
         File.expand_path(File.join("..", "..", "..", ".."), __FILE__)
       end
 
-      def constantize(snake_case_name)
+      def camelize(snake_case_name)
         snake_case_name.gsub(/(\_|^)[a-z]/) do |substring|
           substring[-1].capitalize!
         end

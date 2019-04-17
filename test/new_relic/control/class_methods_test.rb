@@ -50,7 +50,7 @@ class NewRelic::Control::ClassMethodsTest < Minitest::Test
     end
   end
 
-  def test_constantize
-    assert_equal 'TestConstantize', @base.constantize('test_constantize')
+  def test_camelize
+    assert_equal 'TestConstantize', @base.camelize('test_constantize')
   end
 end
