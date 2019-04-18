@@ -9,7 +9,7 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(::Rails::VERSION::MAJOR) &&
-     ::Rails::VERSION::MAJOR.to_i >= 5 &&
+     ::Rails::VERSION::MAJOR.to_i >= 4 &&
        defined?(::ActionCable)
   end
 
