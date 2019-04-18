@@ -8,6 +8,11 @@
     to send the deployment notification to the US region.  The deployment script
     now sends deployments to the correct region.
 
+  * Faster ActiveRecord connection resolution
+
+    This version of the agent uses the faster ActiveRecord connection resolution that Rails 6.0 uses, even on previous versions of Rails.  
+    Thanks to Callum Jones for the contribution!
+
 ## v6.2.0
 
   * Bugfix for superfluous `Empty JSON response` error messages
