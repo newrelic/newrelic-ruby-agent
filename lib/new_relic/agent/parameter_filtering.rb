@@ -9,6 +9,14 @@ module NewRelic
 
       ACTION_DISPATCH_PARAMETER_FILTER = "action_dispatch.parameter_filter".freeze
 
+      RAILS_FILTER_CLASS = if defined?(ActiveSupport::ParameterFilter)
+         ActiveSupport::ParameterFilter
+      elsif defined?(ActionDispatch::Http::ParameterFilter)
+        ActionDispatch::Http::ParameterFilter
+      else
+        nil
+      end
+
       def apply_filters(env, params)
         if filters = env[ACTION_DISPATCH_PARAMETER_FILTER]
           params = filter_using_rails(params, filters) 
@@ -18,10 +26,10 @@ module NewRelic
       end
 
       def filter_using_rails(params, filters)
-        return params unless filter_class = rails_parameter_filter
+        return params if RAILS_FILTER_CLASS.nil?
 
         pre_filtered_params = filter_rails_request_parameters(params)
-        filter_class.new(filters).filter(pre_filtered_params)
+        RAILS_FILTER_CLASS.new(filters).filter(pre_filtered_params)
       end
 
       def filter_rack_file_data(env, params)
@@ -43,14 +51,6 @@ module NewRelic
         result.delete("controller")
         result.delete("action")
         result
-      end
-
-      def rails_parameter_filter
-        if defined?(ActiveSupport::ParameterFilter)
-          ActiveSupport::ParameterFilter
-        elsif defined?(ActionDispatch::Http::ParameterFilter)
-          ActionDispatch::Http::ParameterFilter
-        end
       end
     end
   end
