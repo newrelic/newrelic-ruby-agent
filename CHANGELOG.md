@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
+  * Official Rails 6.0 support
+
+    This version of the agent has been verified against the Rails 6.0.0 release.  
+
+    As Active Record 5 and 6 use the same New Relic instrumentation, the 
+    `disable_active_record_5` setting in NewRelic.yml has been deprecated in favor of 
+    the new `disable_active_record_notifications`.  This new setting will affect _both_ 
+    Active Record 5 and 6 instrumentation.
+
   * Bugfix for `newrelic deployments` script
 
     The newrelic deployments script included with previous versions of the agent

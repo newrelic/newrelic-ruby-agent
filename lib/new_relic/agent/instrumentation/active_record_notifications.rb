@@ -6,12 +6,12 @@ require 'new_relic/agent/instrumentation/active_record_subscriber'
 require 'new_relic/agent/instrumentation/active_record_prepend'
 
 DependencyDetection.defer do
-  named :active_record_5
+  named :active_record_notifications
 
   depends_on do
     defined?(::ActiveRecord) && defined?(::ActiveRecord::Base) &&
       defined?(::ActiveRecord::VERSION) &&
-      ::ActiveRecord::VERSION::MAJOR.to_i == 5
+      ::ActiveRecord::VERSION::MAJOR.to_i >= 5
   end
 
   depends_on do
@@ -20,7 +20,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing ActiveRecord 5 instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing notifications based Active Record instrumentation'
   end
 
   executes do

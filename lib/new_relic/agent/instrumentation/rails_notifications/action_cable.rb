@@ -5,11 +5,11 @@ require 'new_relic/agent/instrumentation/action_cable_subscriber'
 require 'new_relic/agent/prepend_supportability'
 
 DependencyDetection.defer do
-  @name = :rails5_action_cable
+  @name = :action_cable_notifications
 
   depends_on do
     defined?(::Rails::VERSION::MAJOR) &&
-     ::Rails::VERSION::MAJOR.to_i == 5 &&
+     ::Rails::VERSION::MAJOR.to_i >= 5 &&
        defined?(::ActionCable)
   end
 
@@ -19,7 +19,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails 5 Action Cable instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing notifications based Action Cable instrumentation'
   end
 
   executes do

@@ -6,10 +6,10 @@ require 'new_relic/agent/prepend_supportability'
 
 
 DependencyDetection.defer do
-  @name = :rails5_controller
+  @name = :action_controller_notifications
 
   depends_on do
-    defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i == 5
+    defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i >= 5
   end
 
   depends_on do
@@ -17,7 +17,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails 5 Controller instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing notifications based Action Controller instrumentation'
   end
 
   executes do

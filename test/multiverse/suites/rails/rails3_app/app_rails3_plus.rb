@@ -68,6 +68,10 @@ if !defined?(MyApp)
     config.secret_token = "49837489qkuweoiuoqwehisuakshdjksadhaisdy78o34y138974xyqp9rmye8yrpiokeuioqwzyoiuxftoyqiuxrhm3iou1hrzmjk"
     config.eager_load = false
     config.filter_parameters += [:secret]
+    config.secret_key_base = SecureRandom.hex(64)
+    if config.respond_to? :hosts
+      config.hosts << "www.example.com"
+    end
     initializer "install_error_middleware" do
       config.middleware.use ErrorMiddleware
     end
