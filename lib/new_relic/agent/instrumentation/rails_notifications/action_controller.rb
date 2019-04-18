@@ -6,7 +6,7 @@ require 'new_relic/agent/prepend_supportability'
 
 
 DependencyDetection.defer do
-  @name = :rails_event_based_controller
+  @name = :action_controller_notifications
 
   depends_on do
     defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i >= 5
@@ -17,7 +17,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails Event Based Controller instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing notifications based Action Controller instrumentation'
   end
 
   executes do

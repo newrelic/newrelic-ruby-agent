@@ -93,10 +93,8 @@ module NewRelic
                 :rails3
               when 4
                 :rails4
-              when 5
-                :rails_event_based
-              when 6
-                :rails_event_based
+              when 5..6
+                :rails_notifications
               else
                 ::NewRelic::Agent.logger.error "Detected unsupported Rails version #{Rails::VERSION::STRING}"
               end
@@ -1293,7 +1291,20 @@ module NewRelic
           :allowed_from_server => false,
           :description  => 'If <code>true</code>, disables instrumentation for ActiveRecord 4.'
         },
-        :disable_active_record_event_based => {
+        :disable_active_record_5 => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :deprecated   => true,
+          :description  => 'Deprecated.  ' \
+              'For agent versions 6.3 or higher, ' \
+              'use <a href="#disable_active_record_notifications"><code>' \
+                'disable_active_record_notifications' \
+              '</code></a> instead.'
+        },
+        :disable_active_record_notifications => {
           :default      => false,
           :public       => true,
           :type         => Boolean,

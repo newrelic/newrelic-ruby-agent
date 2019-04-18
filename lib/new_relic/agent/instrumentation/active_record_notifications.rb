@@ -6,7 +6,7 @@ require 'new_relic/agent/instrumentation/active_record_subscriber'
 require 'new_relic/agent/instrumentation/active_record_prepend'
 
 DependencyDetection.defer do
-  named :active_record_event_based
+  named :active_record_notifications
 
   depends_on do
     defined?(::ActiveRecord) && defined?(::ActiveRecord::Base) &&
@@ -20,7 +20,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing ActiveRecord Event Based instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing notifications based Active Record instrumentation'
   end
 
   executes do
