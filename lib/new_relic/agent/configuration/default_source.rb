@@ -1294,7 +1294,12 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for ActiveRecord 4.'
+          :deprecated   => true,
+          :description  => 'Deprecated.  ' \
+              'For agent versions 6.3 or higher, ' \
+              'use <a href="#disable_active_record_notifications"><code>' \
+                'disable_active_record_notifications' \
+              '</code></a> instead.'
         },
         :disable_active_record_5 => {
           :default      => false,
