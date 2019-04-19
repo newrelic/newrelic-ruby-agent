@@ -2,6 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/instrumentation/active_record_notifications'
+require 'new_relic/agent/instrumentation/active_record_subscriber'
+require 'new_relic/agent/instrumentation/active_record_prepend'
+
 
 # Provides a way to send :connection through ActiveSupport notifications to avoid
 # looping through connection handlers to locate a connection by connection_id
@@ -62,6 +66,49 @@ module NewRelic
           rescue => e
             raise translate_exception_class(e, sql)
           end
+        end
+      end
+    end
+  end
+end
+
+DependencyDetection.defer do
+  named :active_record_notifications
+
+  depends_on do
+    defined?(::ActiveRecord) && defined?(::ActiveRecord::Base) &&
+      defined?(::ActiveRecord::VERSION) &&
+      ::ActiveRecord::VERSION::MAJOR.to_i >= 5
+  end
+
+  depends_on do
+    !NewRelic::Agent.config[:disable_activerecord_instrumentation] &&
+      !NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.subscribed?
+  end
+
+  executes do
+    ::NewRelic::Agent.logger.info 'Installing notifications based Active Record instrumentation'
+  end
+
+  executes do
+    ActiveSupport::Notifications.subscribe('sql.active_record',
+      NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.new)
+
+    ActiveSupport.on_load(:active_record) do
+      ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActiveRecord::Base, ::ActiveRecord::Relation)
+      ::ActiveRecord::Base.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions
+      ::ActiveRecord::Relation.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::RelationExtensions
+
+      if ::ActiveRecord::VERSION::MINOR.to_i == 1 &&
+         ::ActiveRecord::VERSION::TINY.to_i >= 6
+        ::ActiveRecord::Base.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions516
+      end
+
+      if NewRelic::Agent.config[:backport_fast_active_record_connection_lookup]
+        if ::ActiveRecord::VERSION::MINOR.to_i == 0
+          ::ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions50
+        elsif ::ActiveRecord::VERSION::MINOR.to_i >= 1
+          ::ActiveRecord::ConnectionAdapters::AbstractAdapter.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions51
         end
       end
     end
