@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/instrumentation/active_record_notifications'
 require 'new_relic/agent/instrumentation/active_record_prepend'
 require 'new_relic/agent/instrumentation/active_record_subscriber'
 require 'new_relic/agent/prepend_supportability'
@@ -36,6 +37,10 @@ DependencyDetection.defer do
         ::ActiveRecord::Relation.prepend ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::RelationExtensions
       else
         ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
+      end
+
+      if NewRelic::Agent.config[:backport_fast_active_record_connection_lookup]
+        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:prepend, ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions41)
       end
     end
   end

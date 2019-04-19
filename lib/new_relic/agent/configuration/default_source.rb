@@ -1251,6 +1251,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls whether to normalize string encodings prior to serializing data for the collector to JSON.'
         },
+        :backport_fast_active_record_connection_lookup => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Enables patching of "sql.active_record" AS Notification to include :connection in payload.'
+        },
         :disable_vm_sampler => {
           :default      => false,
           :public       => true,
