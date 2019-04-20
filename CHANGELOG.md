@@ -4,10 +4,10 @@
 
     This version of the agent has been verified against the Rails 6.0.0 release.  
 
-    As Active Record 5 and 6 use the same New Relic instrumentation, the 
-    `disable_active_record_5` setting in NewRelic.yml has been deprecated in favor of 
-    the new `disable_active_record_notifications`.  This new setting will affect _both_ 
-    Active Record 5 and 6 instrumentation.
+    As Active Record 4, 5, and 6 use the same New Relic instrumentation, the 
+    `disable_active_record_4` and `disable_active_record_5` settings in NewRelic.yml have
+    been deprecated in favor of the new `disable_active_record_notifications`.  This new 
+    setting will affect the instrumentation of Active Record 4, 5, and 6.
 
   * Bugfix for `newrelic deployments` script
 

@@ -9,7 +9,7 @@ DependencyDetection.defer do
   @name = :action_controller_notifications
 
   depends_on do
-    defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i >= 5
+    defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i >= 4
   end
 
   depends_on do
