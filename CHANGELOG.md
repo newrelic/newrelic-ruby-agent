@@ -22,6 +22,11 @@
     This version of the agent uses the faster ActiveRecord connection resolution that Rails 6.0 uses, even on previous versions of Rails.  
     Thanks to Callum Jones for the contribution!
 
+  * Support non-ascii characters in hostnames
+
+    Previous versions of the agent would frequently log warnings like: `log writing failed.  "\xE2" from ASCII-8BIT to UTF-8` if the hostname contained a non-ascii character.  This version of the agent will no longer log these warnings.  
+    Thanks to Rafael Petry for the contribution!
+
 ## v6.2.0
 
   * Bugfix for superfluous `Empty JSON response` error messages

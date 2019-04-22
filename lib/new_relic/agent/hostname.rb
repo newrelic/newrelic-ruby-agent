@@ -13,7 +13,7 @@ module NewRelic
           dyno_name = "#{matching_prefix}.*" if matching_prefix
           dyno_name
         else
-          Socket.gethostname
+          Socket.gethostname.force_encoding(Encoding::UTF_8)
         end
       end
 
