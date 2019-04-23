@@ -1,14 +1,14 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
-require 'new_relic/agent/instrumentation/evented_subscriber'
+require 'new_relic/agent/instrumentation/notifications_subscriber'
 require 'new_relic/agent/instrumentation/ignore_actions'
 require 'new_relic/agent/parameter_filtering'
 
 module NewRelic
   module Agent
     module Instrumentation
-      class ActionControllerSubscriber < EventedSubscriber
+      class ActionControllerSubscriber < NotificationsSubscriber
 
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
           # @req is a historically stable but not guaranteed Rails header property

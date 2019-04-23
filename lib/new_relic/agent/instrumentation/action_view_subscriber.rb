@@ -1,14 +1,14 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
-require 'new_relic/agent/instrumentation/evented_subscriber'
+require 'new_relic/agent/instrumentation/notifications_subscriber'
 
 # Listen for ActiveSupport::Notifications events for ActionView render
 # events.  Write metric data and transaction trace nodes for each event.
 module NewRelic
   module Agent
     module Instrumentation
-      class ActionViewSubscriber < EventedSubscriber
+      class ActionViewSubscriber < NotificationsSubscriber
 
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
           parent = find_parent(id)
