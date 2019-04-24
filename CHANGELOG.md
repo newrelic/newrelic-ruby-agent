@@ -2,47 +2,46 @@
 
 ## v6.3.0
 
-  * Official Rails 6.0 support
+  * **Official Rails 6.0 support**
 
-    This version of the agent has been verified against the Rails 6.0.0 release.  
+    This version of the agent has been verified against the Rails 6.0.0 release.
 
-    As Active Record 4, 5, and 6 use the same New Relic instrumentation, the 
+    As Active Record 4, 5, and 6 use the same New Relic instrumentation, the
     `disable_active_record_4` and `disable_active_record_5` settings in NewRelic.yml have
-    been deprecated in favor of the new `disable_active_record_notifications`.  This new 
+    been deprecated in favor of the new `disable_active_record_notifications`.  This new
     setting will affect the instrumentation of Active Record 4, 5, and 6.
 
-  * Bugfix for `newrelic deployments` script
+  * **Bugfix for `newrelic deployments` script**
 
-    The newrelic deployments script included with previous versions of the agent
-    would fail with a `Deployment not recorded: Application does not exist.`
-    message for applications housed in the EU, because the script would attempt
-    to send the deployment notification to the US region.  The deployment script
-    now sends deployments to the correct region.
+    For applications housed in the EU, the `newrelic deployments` script included with previous
+    versions of the agent would fail with the following message: `Deployment not recorded:
+    Application does not exist.` This is because the script would attempt to send the deployment
+    notification to the US region. The deployment script now sends deployments to the correct region.
 
-  * Faster ActiveRecord connection resolution
+  * **Faster ActiveRecord connection resolution**
 
-    This version of the agent uses the faster ActiveRecord connection resolution that Rails 6.0 uses, even on previous versions of Rails.  
+    This version of the agent uses the faster ActiveRecord connection resolution that Rails 6.0 uses, even on previous versions of Rails.
     Thanks to Callum Jones for the contribution!
 
-  * Support non-ascii characters in hostnames
+  * **Support non-ascii characters in hostnames**
 
-    Previous versions of the agent would frequently log warnings like: `log writing failed.  "\xE2" from ASCII-8BIT to UTF-8` if the hostname contained a non-ascii character.  This version of the agent will no longer log these warnings.  
+    Previous versions of the agent would frequently log warnings like: `log writing failed.  "\xE2" from ASCII-8BIT to UTF-8` if the hostname contained a non-ascii character.  This version of the agent will no longer log these warnings.
     Thanks to Rafael Petry for the contribution!
 
 ## v6.2.0
 
   * Bugfix for superfluous `Empty JSON response` error messages
 
-    Version 6.1.0 of the agent frequently logged error messages about an empty 
-    JSON response, when no error had occurred.  These logs no longer appear. 
+    Version 6.1.0 of the agent frequently logged error messages about an empty
+    JSON response, when no error had occurred.  These logs no longer appear.
 
   * Bugfix for `Unable to calculate elapsed transaction time` warning messages
 
-    Ruby Agent versions 5.4 through 6.1, when running in jruby without 
-    ObjectSpace enabled, would occasionally log a warning indicating that the 
+    Ruby Agent versions 5.4 through 6.1, when running in jruby without
+    ObjectSpace enabled, would occasionally log a warning indicating that the
     agent was unable to calculate the elapsed transaction time.  When this log
-    statement appeared, the affected transactions would not be included in the 
-    data displayed on the capacity analysis page.  These transactions are now 
+    statement appeared, the affected transactions would not be included in the
+    data displayed on the capacity analysis page.  These transactions are now
     correctly recorded.
 
 ## v6.1.0

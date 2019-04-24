@@ -85,6 +85,22 @@ DependencyDetection.defer do
       !NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.subscribed?
   end
 
+
+  depends_on do
+    # If the deprecated :disable_active_record_4 setting is true, and 
+    # the active record version is four, disable!
+    NewRelic::Agent.config[:disable_active_record_4] == false \
+        || ::ActiveRecord::VERSION::MAJOR.to_i != 4
+  end
+
+  depends_on do
+    # If the deprecated :disable_active_record_5 setting is true, and 
+    # the active record version is five, disable!
+    NewRelic::Agent.config[:disable_active_record_5] == false \
+        || ::ActiveRecord::VERSION::MAJOR.to_i  != 5 
+  end
+
+
   executes do
     ::NewRelic::Agent.logger.info 'Installing notifications based Active Record instrumentation'
   end

@@ -1320,7 +1320,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for ActiveRecord 5 and 6.'
+          :description  => 'If <code>true</code>, disables instrumentation for ActiveRecord 4, 5, and 6.'
         },
         :disable_bunny => {
           :default      => false,
