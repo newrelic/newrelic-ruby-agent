@@ -1,5 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
+## v6.3.0
+
   * **Official Rails 6.0 support**
 
     This version of the agent has been verified against the Rails 6.0.0 release.
