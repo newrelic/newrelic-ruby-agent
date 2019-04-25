@@ -91,12 +91,8 @@ module NewRelic
                 :rails
               when 3
                 :rails3
-              when 4
-                :rails4
-              when 5
-                :rails5
-              when 6
-                :rails6
+              when 4..6
+                :rails_notifications
               else
                 ::NewRelic::Agent.logger.error "Detected unsupported Rails version #{Rails::VERSION::STRING}"
               end
@@ -168,6 +164,16 @@ module NewRelic
               "collector.#{matches['identifier']}.nr-data.net"
             else
               'collector.newrelic.com'
+            end
+          end
+        end
+
+        def self.api_host
+          Proc.new do
+            if String(NewRelic::Agent.config[:license_key]).start_with? 'eu'
+              'rpm.eu.newrelic.com'
+            else
+              'rpm.newrelic.com'
             end
           end
         end
@@ -472,7 +478,7 @@ module NewRelic
           :description => "URI for the New Relic data collection service."
         },
         :api_host => {
-          :default => 'rpm.newrelic.com',
+          :default => DefaultSource.api_host,
           :public => false,
           :type => String,
           :allowed_from_server => false,
@@ -553,12 +559,20 @@ module NewRelic
           :public => false,
           :type => Integer,
           :allowed_from_server => true,
-          :description => 'Number of seconds betwixt connections to the New Relic data collection service. Note that transaction events have a separate report period, specified by data_report_periods.analytic_event_data.'
+          :description => 'Number of seconds betwixt connections to the New Relic data collection service.'
+        },
+        :event_report_period => {
+          :default => 60,
+          :public => false,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'Number of seconds betwixt connections to the New Relic event collection services.'
         },
         :'data_report_periods.analytic_event_data' => {
           :default => 60,
           :public => false,
           :type => Integer,
+          :deprecated => true,
           :dynamic_name => true,
           :allowed_from_server => true,
           :description => 'Number of seconds between connections to the New Relic data collection service for sending transaction event data.'
@@ -1235,6 +1249,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls whether to normalize string encodings prior to serializing data for the collector to JSON.'
         },
+        :backport_fast_active_record_connection_lookup => {
+          :default => true,
+          :public => false,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Enables patching of "sql.active_record" AS Notification to include :connection in payload.'
+        },
         :disable_vm_sampler => {
           :default      => false,
           :public       => true,
@@ -1273,7 +1294,12 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for ActiveRecord 4.'
+          :deprecated   => true,
+          :description  => 'Deprecated.  ' \
+              'For agent versions 6.3 or higher, ' \
+              'use <a href="#disable_active_record_notifications"><code>' \
+                'disable_active_record_notifications' \
+              '</code></a> instead.'
         },
         :disable_active_record_5 => {
           :default      => false,
@@ -1281,7 +1307,20 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for ActiveRecord 5.'
+          :deprecated   => true,
+          :description  => 'Deprecated.  ' \
+              'For agent versions 6.3 or higher, ' \
+              'use <a href="#disable_active_record_notifications"><code>' \
+                'disable_active_record_notifications' \
+              '</code></a> instead.'
+        },
+        :disable_active_record_notifications => {
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description  => 'If <code>true</code>, disables instrumentation for ActiveRecord 4, 5, and 6.'
         },
         :disable_bunny => {
           :default      => false,

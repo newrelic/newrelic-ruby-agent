@@ -231,6 +231,18 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_api_host_us
+      with_config(license_key: "08a2ad66c637a29c3982469a3fe8d1982d002c4a") do
+        assert_equal 'rpm.newrelic.com', DefaultSource.api_host.call
+      end
+    end
+
+    def test_api_host_eu
+      with_config(license_key: "eu01xx65c637a29c3982469a3fe8d1982d002c4b") do
+        assert_equal 'rpm.eu.newrelic.com', DefaultSource.api_host.call
+      end
+    end
+
     def get_config_value_class(value)
       type = value.class
 

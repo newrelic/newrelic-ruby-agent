@@ -13,7 +13,7 @@ class SpanEventsTest < Minitest::Test
       event = generate_event('test_event')
       NewRelic::Agent.instance.span_event_aggregator.record(event: event)
 
-      NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+      NewRelic::Agent.agent.send(:harvest_and_send_span_event_data)
 
       last_event = last_span_event
       assert_equal event, last_event
@@ -34,7 +34,7 @@ class SpanEventsTest < Minitest::Test
       event = generate_event('test_event')
 
       NewRelic::Agent.instance.span_event_aggregator.record(event: event)
-      NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+      NewRelic::Agent.agent.send(:harvest_and_send_span_event_data)
 
       assert_equal(0, $collector.calls_for(:span_event_data).size)
     end

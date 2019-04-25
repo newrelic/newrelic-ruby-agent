@@ -48,7 +48,9 @@ module NewRelic
             category:         :controller,
             options: {
               request:          event.request,
-              filtered_params:  filter(event.payload[:params]),
+              filtered_params:  NewRelic::Agent::ParameterFiltering.filter_using_rails(
+                  event.payload[:params],
+                  Rails.application.config.filter_parameters),
               apdex_start_time: event.queue_start,
               ignore_apdex:     event.apdex_ignored?,
               ignore_enduser:   event.enduser_ignored?
@@ -58,12 +60,6 @@ module NewRelic
 
         def stop_transaction(event)
           (finishable = event.payload[:finishable]) && finishable.finish
-        end
-
-        def filter(params)
-          munged_params = NewRelic::Agent::ParameterFiltering.filter_rails_request_parameters(params)
-          filters = Rails.application.config.filter_parameters
-          ActionDispatch::Http::ParameterFilter.new(filters).filter(munged_params)
         end
       end
 

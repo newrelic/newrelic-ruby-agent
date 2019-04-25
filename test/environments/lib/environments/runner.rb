@@ -12,10 +12,13 @@ module Environments
     include Multiverse::Color
 
     BLACKLIST = {
-      "2.2.1"       => ["rails50"],
-      "2.2"         => ["rails50"],
-      "2.1"         => ["rails50"],
-      "2.0"         => ["rails50"],
+      "2.4.2"       => ["rails60"],
+      "2.3.5"       => ["rails60"],
+      "2.2.1"       => ["rails50", "rails60"],
+      "2.2"         => ["rails50", "rails60"],
+      "2.1"         => ["rails50", "rails60"],
+      "2.0"         => ["rails50", "rails60"],
+      "jruby-9.2.6.0" => ["rails60"],
       "jruby-9.0"   => ["rails30", "rails31", "rails32"]
     }
 

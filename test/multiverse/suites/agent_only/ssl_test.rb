@@ -14,7 +14,6 @@ class SSLTest < Minitest::Test
 
   def test_agent_shuts_down_when_ssl_is_on_but_unavailable
     NewRelic::Agent.agent.expects(:shutdown).at_least_once
-    NewRelic::Agent.expects(:finish_setup).never
 
     run_agent(:ssl => true)
   end

@@ -6,27 +6,28 @@ require 'new_relic/agent/prepend_supportability'
 
 
 DependencyDetection.defer do
-  @name = :rails4_controller
+  @name = :action_controller_notifications
 
   depends_on do
-    defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i == 4
+    defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i >= 4
   end
 
   depends_on do
-    defined?(ActionController) && defined?(ActionController::Base)
+    defined?(ActionController) && (defined?(ActionController::Base) || defined?(ActionController::API))
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails 4 Controller instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing notifications based Action Controller instrumentation'
   end
 
   executes do
-    class ActionController::Base
+    ActiveSupport.on_load(:action_controller) do
       include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+
+      NewRelic::Agent::PrependSupportability.record_metrics_for(self)
     end
+
     NewRelic::Agent::Instrumentation::ActionControllerSubscriber \
       .subscribe(/^process_action.action_controller$/)
-
-    ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionController::Base)
   end
 end

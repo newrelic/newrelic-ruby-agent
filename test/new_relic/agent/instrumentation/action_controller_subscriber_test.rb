@@ -28,14 +28,18 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     nr_freeze_time
     @subscriber = NewRelic::Agent::Instrumentation::ActionControllerSubscriber.new
     NewRelic::Agent.drop_buffered_data
+    @request = ActionDispatch::Request.new({'REQUEST_METHOD'=> 'POST'})
+    @headers = ActionDispatch::Http::Headers.new(@request)
     @entry_payload = {
       :controller => TestController.to_s,
       :action => 'index',
       :format => :html,
       :method => 'GET',
       :path => '/tests',
+      :headers => @headers,
       :params => { :controller => 'test_controller', :action => 'index' },
     }
+
     @exit_payload = @entry_payload.merge(:status => 200, :view_runtime => 5.0,
                                          :db_runtime => 0.5 )
     @stats_engine = NewRelic::Agent.instance.stats_engine
@@ -274,6 +278,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_records_filtered_request_params_in_txn
+    @request.env["action_dispatch.parameter_filter"] = [:password]
     with_config(:capture_params => true) do
       @entry_payload[:params]['password'] = 'secret'
       @subscriber.start('process_action.action_controller', :id, @entry_payload)

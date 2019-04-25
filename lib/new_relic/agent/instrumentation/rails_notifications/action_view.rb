@@ -5,10 +5,10 @@ require 'new_relic/agent/instrumentation/action_view_subscriber'
 require 'new_relic/agent/prepend_supportability'
 
 DependencyDetection.defer do
-  @name = :rails5_view
+  @name = :action_view_notifications
 
   depends_on do
-    defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i == 5
+    defined?(::Rails::VERSION::MAJOR) && ::Rails::VERSION::MAJOR.to_i >= 4
   end
 
   depends_on do
@@ -17,7 +17,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.info 'Installing Rails 5 view instrumentation'
+    NewRelic::Agent.logger.info 'Installing notification based Action View instrumentation'
   end
 
   executes do

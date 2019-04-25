@@ -58,7 +58,6 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   def test_check_config_and_start_agent_normal
     @harvester.expects(:mark_started)
     @harvest_samplers.expects(:load_samplers)
-    self.expects(:generate_environment_report)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
     with_config(:dispatcher => 'test', :sync_startup => false, :monitor_mode => true,
@@ -70,7 +69,6 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   def test_check_config_and_start_agent_sync
     @harvester.expects(:mark_started)
     @harvest_samplers.expects(:load_samplers)
-    self.expects(:generate_environment_report)
     self.expects(:connect_in_foreground)
     self.expects(:start_worker_thread)
     self.expects(:install_exit_handler)
