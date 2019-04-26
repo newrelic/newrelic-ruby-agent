@@ -74,9 +74,8 @@ module NewRelic
 
         def push_segment(id, segment)
           parent = event_stack[id].last
-          if parent
+          if parent && segment.parent.nil?
             segment.parent = parent
-            # parent << segment
           end
           event_stack[id].push segment
         end

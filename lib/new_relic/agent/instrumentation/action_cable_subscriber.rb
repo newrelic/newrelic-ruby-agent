@@ -10,68 +10,50 @@ module NewRelic
 
         PERFORM_ACTION = 'perform_action.action_cable'.freeze
 
-        def start name, id, payload #THREAD_LOCAL_ACCESS
+        def start(name, id, payload) #THREAD_LOCAL_ACCESS
           return unless state.is_execution_traced?
-          event = super
-          if event.name == PERFORM_ACTION
-            start_transaction event
+
+          finishable = if name == PERFORM_ACTION
+            Tracer.start_transaction_or_segment(
+              name: transaction_name_from_payload(payload),
+              category: :action_cable
+            )
           else
-            start_recording_metrics event
+            Tracer.start_segment(name: metric_name_from_payload(name, payload))
           end
+          push_segment(id, finishable)
         rescue => e
           log_notification_error e, name, 'start'
         end
 
-        def finish name, id, payload #THREAD_LOCAL_ACCESS
+        def finish(name, id, payload) #THREAD_LOCAL_ACCESS
           return unless state.is_execution_traced?
-          event = super
+
           notice_error payload if payload.key? :exception
-          if event.name == PERFORM_ACTION
-            finish_transaction event
-          else
-            stop_recording_metrics event
-          end
+          finishable = pop_segment(id)
+          finishable.finish if finishable
         rescue => e
           log_notification_error e, name, 'finish'
         end
 
         private
 
-        def start_transaction event
-          event.payload[:finishable] = Tracer.start_transaction_or_segment(
-            name:     transaction_name_from_event(event),
-            category: :action_cable
-          )
+        def transaction_name_from_payload(payload)
+          "Controller/ActionCable/#{payload[:channel_class]}/#{payload[:action]}"
         end
 
-        def finish_transaction event
-          (finishable = event.payload[:finishable]) && finishable.finish
+        def metric_name_from_payload(name, payload)
+          "Ruby/ActionCable/#{payload[:channel_class]}/#{action_name(name)}"
         end
 
-        def start_recording_metrics event
-          event.payload[:segment] = Tracer.start_segment name: metric_name_from_event(event)
+        DOT_ACTION_CABLE = '.action_cable'.freeze
+        EMPTY_STRING = ''.freeze
+
+        def action_name(name)
+          name.gsub DOT_ACTION_CABLE, EMPTY_STRING
         end
 
-        def stop_recording_metrics event
-          event.payload[:segment].finish if event.payload[:segment]
-        end
-
-        def transaction_name_from_event event
-          "Controller/ActionCable/#{event.payload[:channel_class]}/#{event.payload[:action]}"
-        end
-
-        def metric_name_from_event event
-          "Ruby/ActionCable/#{event.payload[:channel_class]}/#{action_name_from_event(event)}"
-        end
-
-        DOT_ACTION_CABLE = ".action_cable".freeze
-        EMPTY_STRING = "".freeze
-
-        def action_name_from_event event
-          event.name.gsub DOT_ACTION_CABLE, EMPTY_STRING
-        end
-
-        def notice_error payload
+        def notice_error(payload)
           NewRelic::Agent.notice_error payload[:exception_object]
         end
       end
