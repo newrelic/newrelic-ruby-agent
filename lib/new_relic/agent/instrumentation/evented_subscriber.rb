@@ -72,6 +72,20 @@ module NewRelic
           event_stack[event.transaction_id].push event
         end
 
+        def push_segment(id, segment)
+          parent = event_stack[id].last
+          if parent
+            segment.parent = parent
+            # parent << segment
+          end
+          event_stack[id].push segment
+        end
+
+        def pop_segment(id)
+          segment = event_stack[id].pop
+          segment
+        end
+
         def pop_event(transaction_id)
           event = event_stack[transaction_id].pop
 
