@@ -11,77 +11,94 @@ module NewRelic
       class ActionViewSubscriber < EventedSubscriber
 
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
-          event = RenderEvent.new(name, Time.now, nil, id, payload)
-          push_event(event)
-          if state.is_execution_traced? && event.recordable?
-            event.segment = NewRelic::Agent::Tracer.start_segment name: event.metric_name
+          parent = find_parent(id)
+          metric_name = format_metric_name(name, payload, parent)
+
+          event = ActionViewEvent.new(metric_name, payload[:identifier])
+          if state.is_execution_traced? && recordable?(name, metric_name)
+            event.finishable = Tracer.start_segment(name: metric_name)
           end
+          push_segment id, event
         rescue => e
           log_notification_error(e, name, 'start')
         end
 
         def finish(name, id, payload) #THREAD_LOCAL_ACCESS
-          event = pop_event(id)
-          event.segment.finish if event.segment
+          event = pop_segment(id)
+          event.finish if event
         rescue => e
           log_notification_error(e, name, 'finish')
         end
 
-        class RenderEvent < Event
-          attr_accessor :segment
+        def format_metric_name(event_name, payload, parent)
+          return parent.name if parent \
+             && (payload[:virtual_path] \
+              || (parent.identifier =~ /template$/))
 
-          RENDER_TEMPLATE_EVENT_NAME   = 'render_template.action_view'.freeze
-          RENDER_PARTIAL_EVENT_NAME    = 'render_partial.action_view'.freeze
-          RENDER_COLLECTION_EVENT_NAME = 'render_collection.action_view'.freeze
-
-          # Nearly every "render_blah.action_view" event has a child
-          # in the form of "!render_blah.action_view".  The children
-          # are the ones we want to record.  There are a couple
-          # special cases of events without children.
-          def recordable?
-            name[0] == '!' ||
-              metric_name == 'View/text template/Rendering' ||
-              metric_name == "View/#{::NewRelic::Agent::UNKNOWN_METRIC}/Partial"
+          if payload.key?(:virtual_path)
+            identifier = payload[:virtual_path]
+          else
+            identifier = payload[:identifier]
           end
 
-          def metric_name
-            if parent && (payload[:virtual_path] ||
-                          (parent.payload[:identifier] =~ /template$/))
-              return parent.metric_name
-            elsif payload.key?(:virtual_path)
-              identifier = payload[:virtual_path]
-            else
-              identifier = payload[:identifier]
-            end
+          "View/#{metric_path(event_name, identifier)}/#{metric_action(event_name)}"
+        end
 
-            # memoize
-            @metric_name ||= "View/#{metric_path(name, identifier)}/#{metric_action(name)}"
-            @metric_name
+        # Nearly every "render_blah.action_view" event has a child
+        # in the form of "!render_blah.action_view".  The children
+        # are the ones we want to record.  There are a couple
+        # special cases of events without children.
+        def recordable?(event_name, metric_name)
+          event_name[0] == '!' \
+              || metric_name == 'View/text template/Rendering' \
+              || metric_name == "View/#{::NewRelic::Agent::UNKNOWN_METRIC}/Partial"
+        end
+
+        RENDER_TEMPLATE_EVENT_NAME   = 'render_template.action_view'.freeze
+        RENDER_PARTIAL_EVENT_NAME    = 'render_partial.action_view'.freeze
+        RENDER_COLLECTION_EVENT_NAME = 'render_collection.action_view'.freeze
+
+        def metric_action(name)
+          case name
+          when /#{RENDER_TEMPLATE_EVENT_NAME}$/ then 'Rendering'
+          when RENDER_PARTIAL_EVENT_NAME        then 'Partial'
+          when RENDER_COLLECTION_EVENT_NAME     then 'Partial'
           end
+        end
 
-          def metric_path(name, identifier)
-            # Rails 5 sets identifier to nil for empty collections,
-            # so do not mistake rendering a collection for rendering a file.
-            if identifier == nil && name != RENDER_COLLECTION_EVENT_NAME
-              'file'
-            elsif identifier =~ /template$/
-              identifier
-            elsif identifier && (parts = identifier.split('/')).size > 1
-              parts[-2..-1].join('/')
-            else
-              ::NewRelic::Agent::UNKNOWN_METRIC
-            end
-          end
-
-          def metric_action(name)
-            case name
-            when /#{RENDER_TEMPLATE_EVENT_NAME}$/ then 'Rendering'
-            when RENDER_PARTIAL_EVENT_NAME        then 'Partial'
-            when RENDER_COLLECTION_EVENT_NAME     then 'Partial'
-            end
+        def metric_path(name, identifier)
+          # Rails 5 sets identifier to nil for empty collections,
+          # so do not mistake rendering a collection for rendering a file.
+          if identifier.nil? && name != RENDER_COLLECTION_EVENT_NAME
+            'file'
+          elsif identifier =~ /template$/
+            identifier
+          elsif identifier && (parts = identifier.split('/')).size > 1
+            parts[-2..-1].join('/')
+          else
+            ::NewRelic::Agent::UNKNOWN_METRIC
           end
         end
       end
+
+      # This class holds state information between calls to `start`
+      # and `finish` for ActiveSupport events that we do not want to track
+      # as a transaction or segment.
+      class ActionViewEvent
+        attr_reader :name, :identifier
+        attr_accessor :finishable
+
+        def initialize(name, identifier)
+          @name = name
+          @identifier = identifier
+          @finishable = nil
+        end
+
+        def finish
+          @finishable.finish if @finishable
+        end
+      end
     end
+
   end
 end

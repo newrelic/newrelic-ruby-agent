@@ -73,7 +73,7 @@ module NewRelic
         end
 
         def push_segment(id, segment)
-          parent = event_stack[id].last
+          parent = find_parent(id)
           if parent && segment.parent.nil?
             segment.parent = parent
           end
@@ -83,6 +83,10 @@ module NewRelic
         def pop_segment(id)
           segment = event_stack[id].pop
           segment
+        end
+
+        def find_parent(id)
+          event_stack[id].last
         end
 
         def pop_event(transaction_id)
