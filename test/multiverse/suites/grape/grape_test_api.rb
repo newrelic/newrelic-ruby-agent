@@ -62,3 +62,13 @@ class GrapeTestApi < Grape::API
     end
   end
 end
+
+if ::Grape::VERSION >= '1.2.0'
+  class GrapeApiInstanceTestApi < ::Grape::API::Instance
+    namespace :banjaxing do
+      get do
+        'List of Banjaxing'
+      end
+    end
+  end
+end
