@@ -133,9 +133,8 @@ DependencyDetection.defer do
             endpoint = env[::NewRelic::Agent::Instrumentation::GrapeInstrumentation::API_ENDPOINT]
             version = env[::NewRelic::Agent::Instrumentation::GrapeInstrumentation::API_VERSION]
 
-            # Since 1.2.0, how to obtain the class name is changed.
-            class_name = self.class.respond_to?(:base) ? self.class.base.name : self.class.name
-            ::NewRelic::Agent::Instrumentation::GrapeInstrumentation.handle_transaction(endpoint, class_name, version)
+            api_class = (self.class.respond_to?(:base) && self.class.base) || self.class
+            ::NewRelic::Agent::Instrumentation::GrapeInstrumentation.handle_transaction(endpoint, api_class.name, version)
           rescue => e
             ::NewRelic::Agent.logger.warn("Error in Grape instrumentation", e)
           end
