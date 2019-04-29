@@ -31,6 +31,7 @@ module NewRelic
           # we don't expect this to be called more than once, but we're being
           # defensive.
           return if defined?(cached?)
+
           if defined?(::ActiveRecord) && ::ActiveRecord::VERSION::STRING >= "5.1.0"
             def cached?(payload)
               payload.fetch(:cached, false)
@@ -45,9 +46,10 @@ module NewRelic
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
           return if cached?(payload)
           return unless NewRelic::Agent.tl_is_execution_traced?
+
           config = active_record_config(payload)
-          event = ActiveRecordEvent.new(name, Time.now, nil, id, payload, @explainer, config)
-          push_event(event)
+          segment = start_segment(config, payload)
+          push_segment(id, segment)
         rescue => e
           log_notification_error(e, name, 'start')
         end
@@ -55,8 +57,9 @@ module NewRelic
         def finish(name, id, payload) #THREAD_LOCAL_ACCESS
           return if cached?(payload)
           return unless state.is_execution_traced?
-          event = pop_event(id)
-          event.finish
+
+          segment = pop_segment(id)
+          segment.finish if segment
         rescue => e
           log_notification_error(e, name, 'finish')
         end
@@ -99,50 +102,33 @@ module NewRelic
           connection.instance_variable_get(:@config) if connection
         end
 
-        class ActiveRecordEvent < Event
-          def initialize(name, start, ending, transaction_id, payload, explainer, config)
-            super(name, start, ending, transaction_id, payload)
-            @explainer = explainer
-            @config = config
-            @segment = start_segment
+        def start_segment(config, payload)
+          sql = Helper.correctly_encoded payload[:sql]
+          product, operation, collection = ActiveRecordHelper.product_operation_collection_for(
+            payload[:name],
+            sql,
+            config && config[:adapter]
+          )
+
+          host = nil
+          port_path_or_id = nil
+          database = nil
+
+          if ActiveRecordHelper::InstanceIdentification.supported_adapter?(config)
+            host = ActiveRecordHelper::InstanceIdentification.host(config)
+            port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(config)
+            database = config && config[:database]
           end
 
-          def start_segment
-            product, operation, collection = ActiveRecordHelper.product_operation_collection_for(payload[:name],
-                                              sql, @config && @config[:adapter])
+          segment = Tracer.start_datastore_segment(product: product,
+            operation: operation,
+            collection: collection,
+            host: host,
+            port_path_or_id: port_path_or_id,
+            database_name: database)
 
-            host = nil
-            port_path_or_id = nil
-            database = nil
-
-            if ActiveRecordHelper::InstanceIdentification.supported_adapter?(@config)
-              host = ActiveRecordHelper::InstanceIdentification.host(@config)
-              port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(@config)
-              database = @config && @config[:database]
-            end
-
-            segment = Tracer.start_datastore_segment product: product,
-                                                          operation: operation,
-                                                          collection: collection,
-                                                          host: host,
-                                                          port_path_or_id: port_path_or_id,
-                                                          database_name: database
-
-            segment._notice_sql sql, @config, @explainer, payload[:binds], payload[:name]
-            segment
-          end
-
-          def finish
-            @segment.finish if @segment
-          end
-
-          def state
-            @state ||= NewRelic::Agent::Tracer.state
-          end
-
-          def sql
-            @sql ||= Helper.correctly_encoded payload[:sql]
-          end
+          segment._notice_sql sql, config, @explainer, payload[:binds], payload[:name]
+          segment
         end
       end
     end
