@@ -1,5 +1,18 @@
 # New Relic Ruby Agent Release Notes #
 
+* **Bugfix for Grape instrumentation error**
+
+  Previous versions of the agent would fail to install Grape instrumentation in Grape 
+  versions 1.2.0 and up if the API being instrumented subclassed `Grape::API::Instance` 
+  rather than `Grape::API`.  A warning would also print to the newrelic_agent log:
+  ```
+  WARN : Error in Grape instrumentation 
+  WARN : NoMethodError: undefined method `name' for nil:NilClass 
+  ```
+
+  This version of the agent successfully installs instrumentation for subclasses 
+  of `Grape::API::Instance`, and these log messages should no longer appear.  
+
 ## v6.3.0
 
   * **Official Rails 6.0 support**
