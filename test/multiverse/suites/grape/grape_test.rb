@@ -217,3 +217,28 @@ class GrapeTest < Minitest::Test
     end
   end
 end
+
+class GrapeApiInstanceTest < Minitest::Test
+  include Rack::Test::Methods
+  include MultiverseHelpers
+
+  setup_and_teardown_agent
+
+  if ::Grape::VERSION >= '1.2.0'
+    def app
+      Rack::Builder.app { run GrapeApiInstanceTestApi.new }
+    end
+
+    def test_subclass_of_grape_api_instance
+      get '/banjaxing'
+
+      expected_node_name = 'Middleware/Grape/GrapeApiInstanceTestApi/call'
+      expected_txn_name = 'Controller/Grape/GrapeApiInstanceTestApi/banjaxing (GET)'
+      assert_metrics_recorded([
+        expected_node_name,
+        [expected_node_name, expected_txn_name],
+        expected_txn_name
+        ])
+    end
+  end
+end
