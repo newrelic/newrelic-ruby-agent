@@ -293,31 +293,6 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     assert_collector_array_contains(:reserved, nil)
   end
 
-  def test_collector_array_contains_forced_true_if_in_an_xray_session
-    @trace.xray_session_id = 7
-    assert_collector_array_contains(:forced?, true)
-  end
-
-  def test_collector_array_contains_forced_false_if_not_in_an_xray_session
-    @trace.xray_session_id = nil
-    assert_collector_array_contains(:forced?, false)
-  end
-
-  def test_collector_array_contains_xray_session_id
-    @trace.xray_session_id = 112357
-    assert_collector_array_contains(:xray_session_id, 112357)
-  end
-
-  def test_xray_session_id_gets_coerced_to_an_integer
-    @trace.xray_session_id = '112357'
-    assert_collector_array_contains(:xray_session_id, 112357)
-  end
-
-  def test_xray_session_id_does_not_coerce_nil_to_an_integer
-    @trace.xray_session_id = nil
-    assert_collector_array_contains(:xray_session_id, nil)
-  end
-
   def test_collector_array_contains_synthetics_resource_id
     @fake_attributes.add_intrinsic_attribute(:synthetics_resource_id, '31415926')
     assert_collector_array_contains(:synthetics_resource_id, '31415926')

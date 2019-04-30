@@ -6,7 +6,6 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','data_container_tests'))
 
 require 'new_relic/agent/commands/agent_command_router'
-require 'new_relic/agent/commands/xray_session'
 
 class AgentCommandRouterTest < Minitest::Test
 
@@ -113,17 +112,6 @@ class AgentCommandRouterTest < Minitest::Test
     agent_commands.check_for_and_handle_agent_commands
   end
 
-  # Start/stop X-Ray tests
-
-  def test_empty_agent_commands_stops_running_xray
-    start_xray_session(123)
-
-    service.stubs(:get_agent_commands).returns([])
-    agent_commands.check_for_and_handle_agent_commands
-
-    assert_false agent_commands.xray_session_collection.include?(123)
-  end
-
   # Harvesting tests
 
   if NewRelic::Agent::Threading::BacktraceService.is_supported?
@@ -183,44 +171,6 @@ class AgentCommandRouterTest < Minitest::Test
       refute_empty result
     end
 
-    def test_harvest_with_xray_sessions_in_progress
-      start_xray_session(123)
-      start_xray_session(456)
-
-      sample_on_profiles
-
-      result = agent_commands.harvest!
-
-      assert_equal 2, result.length
-    end
-
-    def test_harvest_with_xray_sessions_and_thread_profile_in_progress
-      start_xray_session(123)
-      start_xray_session(456)
-
-      start_profile('duration' => 1.0)
-
-      sample_on_profiles
-
-      result = agent_commands.harvest!
-
-      assert_equal 2, result.length
-    end
-
-    def test_harvest_with_xray_sessions_and_completed_thread_profile
-      start_xray_session(123)
-      start_xray_session(456)
-
-      start_profile('duration' => 1.0)
-
-      sample_on_profiles
-      advance_time(1.1)
-
-      result = agent_commands.harvest!
-
-      assert_equal 3, result.length
-    end
-
   end
 
   # Helpers
@@ -237,14 +187,6 @@ class AgentCommandRouterTest < Minitest::Test
     nr_freeze_time
     agent_commands.backtrace_service.worker_loop.stubs(:run)
     agent_commands.thread_profiler_session.start(create_agent_command(args))
-  end
-
-  def start_xray_session(id)
-    args = { 'x_ray_id' => id, 'key_transaction_name' => "txn_#{id}" }
-    session = NewRelic::Agent::Commands::XraySession.new(args)
-
-    agent_commands.backtrace_service.worker_loop.stubs(:run)
-    agent_commands.xray_session_collection.add_session(session)
   end
 
   def sample_on_profiles

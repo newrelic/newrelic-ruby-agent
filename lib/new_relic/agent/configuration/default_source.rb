@@ -1171,35 +1171,7 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'If <code>true</code>, enables use of the <a href="https://docs.newrelic.com/docs/apm/applications-menu/events/thread-profiler-tool">thread profiler</a>.'
         },
-        :'xray_session.enabled' => {
-          :default => true,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => true,
-          :description => 'If <code>true</code>, enables <a href="https://docs.newrelic.com/docs/apm/transactions-menu/x-ray-sessions/x-ray-sessions">X-Ray sessions</a>.'
-        },
-        :'xray_session.allow_traces' => {
-          :default => true,
-          :public => false,
-          :type => Boolean,
-          :allowed_from_server => true,
-          :description => 'Enable or disable X-Ray sessions recording transaction traces.'
-        },
-        :'xray_session.allow_profiles' => {
-          :default => true,
-          :public => false,
-          :type => Boolean,
-          :allowed_from_server => true,
-          :description => 'Enable or disable X-Ray sessions taking thread profiles.'
-        },
-        :'xray_session.max_samples' => {
-          :default => 10,
-          :public => false,
-          :type => Integer,
-          :allowed_from_server => true,
-          :description => 'Maximum number of transaction traces to buffer for active X-Ray sessions'
-        },
-        :'xray_session.max_profile_overhead' => {
+        :'thread_profiler.max_profile_overhead' => {
           :default => 0.05,
           :public => false,
           :type => Float,

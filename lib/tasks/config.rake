@@ -17,8 +17,7 @@ namespace :newrelic do
     }
 
     NAME_OVERRIDES = {
-      "slow_sql"     => "Slow SQL",
-      "xray_session" => "X-Ray Session"
+      "slow_sql"     => "Slow SQL"
     }
 
     def output(format)

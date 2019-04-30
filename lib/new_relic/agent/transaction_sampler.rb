@@ -4,7 +4,6 @@
 
 require 'new_relic/agent/transaction/slowest_sample_buffer'
 require 'new_relic/agent/transaction/synthetics_sample_buffer'
-require 'new_relic/agent/transaction/xray_sample_buffer'
 require 'new_relic/agent/transaction/trace_builder'
 
 module NewRelic
@@ -19,13 +18,10 @@ module NewRelic
     #
     # @api public
     class TransactionSampler
-      attr_reader :last_sample, :xray_sample_buffer
+      attr_reader :last_sample
 
       def initialize
-        @xray_sample_buffer = NewRelic::Agent::Transaction::XraySampleBuffer.new
-
         @sample_buffers = []
-        @sample_buffers << @xray_sample_buffer
         @sample_buffers << NewRelic::Agent::Transaction::SlowestSampleBuffer.new
         @sample_buffers << NewRelic::Agent::Transaction::SyntheticsSampleBuffer.new
 

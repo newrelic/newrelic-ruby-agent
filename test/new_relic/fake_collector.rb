@@ -293,10 +293,6 @@ module NewRelic
           SubmittedTransactionTraceTree.new(@body[4], @format)
         end
 
-        def xray_id
-          @body[8]
-        end
-
         def synthetics_resource_id
           @body[9]
         end

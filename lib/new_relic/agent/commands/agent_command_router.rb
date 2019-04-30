@@ -9,7 +9,6 @@
 # like the ThreadProfiler, so it's simpler to just keep it together here.
 
 require 'new_relic/agent/commands/agent_command'
-require 'new_relic/agent/commands/xray_session_collection'
 require 'new_relic/agent/threading/backtrace_service'
 
 module NewRelic
@@ -18,8 +17,7 @@ module NewRelic
       class AgentCommandRouter
         attr_reader :handlers
 
-        attr_accessor :thread_profiler_session, :backtrace_service,
-                      :xray_session_collection
+        attr_accessor :thread_profiler_session, :backtrace_service
 
         def initialize(event_listener=nil)
           @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
@@ -27,11 +25,9 @@ module NewRelic
           @backtrace_service = Threading::BacktraceService.new(event_listener)
 
           @thread_profiler_session = ThreadProfilerSession.new(@backtrace_service)
-          @xray_session_collection = XraySessionCollection.new(@backtrace_service, event_listener)
 
           @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler_session.handle_start_command(cmd) }
           @handlers['stop_profiler']  = Proc.new { |cmd| thread_profiler_session.handle_stop_command(cmd) }
-          @handlers['active_xray_sessions'] = Proc.new { |cmd| xray_session_collection.handle_active_xray_sessions(cmd) }
 
           if event_listener
             event_listener.subscribe(:before_shutdown, &method(:on_before_shutdown))
@@ -45,18 +41,8 @@ module NewRelic
         def check_for_and_handle_agent_commands
           commands = get_agent_commands
 
-          stop_xray_sessions unless active_xray_command?(commands)
-
           results = invoke_commands(commands)
           new_relic_service.agent_command_results(results) unless results.empty?
-        end
-
-        def stop_xray_sessions
-          self.xray_session_collection.stop_all_sessions
-        end
-
-        def active_xray_command?(commands)
-          commands.any? {|command| command.name == 'active_xray_sessions'}
         end
 
         def on_before_shutdown(*args)
@@ -67,7 +53,6 @@ module NewRelic
 
         def harvest!
           profiles = []
-          profiles += harvest_from_xray_session_collection
           profiles += harvest_from_thread_profiler_session
           log_profiles(profiles)
           profiles
@@ -76,13 +61,9 @@ module NewRelic
         # We don't currently support merging thread profiles that failed to send
         # back into the AgentCommandRouter, so we just no-op this method.
         # Same with reset! - we don't support asynchronous cancellation of a
-        # running thread profile or X-Ray session currently.
+        # running thread profile currently.
         def merge!(*args); end
         def reset!; end
-
-        def harvest_from_xray_session_collection
-          self.xray_session_collection.harvest_thread_profiles
-        end
 
         def harvest_from_thread_profiler_session
           if self.thread_profiler_session.ready_to_harvest?

@@ -436,7 +436,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.buffer_backtrace_for_thread(thread, Time.now.to_f, stub, :request)
         assert_equal BacktraceService::MAX_BUFFER_LENGTH, @service.buffer[thread].length
-        assert_metrics_recorded(["Supportability/XraySessions/DroppedBacktraces"])
+        assert_metrics_recorded(["Supportability/ThreadProfiler/DroppedBacktraces"])
       end
 
       def test_dynamically_adjusts_worker_loop_period
@@ -467,7 +467,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         nr_freeze_time
         fake_worker_loop(@service)
 
-        with_config(:'xray_session.max_profile_overhead' => 0.1) do
+        with_config(:'thread_profiler.max_profile_overhead' => 0.1) do
           poll_for(0.01)
           assert_has_default_period
         end

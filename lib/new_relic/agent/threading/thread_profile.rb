@@ -16,7 +16,7 @@ module NewRelic
 
         attr_reader :profile_id, :traces, :sample_period,
           :duration, :poll_count, :backtrace_count, :failure_count,
-          :created_at, :xray_id, :command_arguments, :profile_agent_code
+          :created_at, :command_arguments, :profile_agent_code
         attr_accessor :finished_at
 
         def initialize(command_arguments={})
@@ -25,7 +25,6 @@ module NewRelic
           @duration           = command_arguments.fetch('duration', 120)
           @sample_period      = command_arguments.fetch('sample_period', 0.1)
           @profile_agent_code = command_arguments.fetch('profile_agent_code', false)
-          @xray_id            = command_arguments.fetch('x_ray_id', nil)
           @finished = false
 
           @traces = {
@@ -52,11 +51,7 @@ module NewRelic
         end
 
         def sample_count
-          xray? ? @backtrace_count : @poll_count
-        end
-
-        def xray?
-          !!@xray_id
+          @poll_count
         end
 
         def empty?
@@ -129,18 +124,13 @@ module NewRelic
             int(self.unique_thread_count),
             0 # runnable thread count, which we don't track
           ]
-          result << int(@xray_id) if xray?
           result
         end
 
         def to_log_description
-          id = if xray?
-                 "@xray_id: #{xray_id}"
-               else
-                 "@profile_id: #{profile_id}"
-               end
-
-          "#<ThreadProfile:#{object_id} #{id} @command_arguments=#{@command_arguments.inspect}>"
+          "#<ThreadProfile:#{object_id} "\
+            "@profile_id: #{profile_id} "\
+            "@command_arguments=#{@command_arguments.inspect}>"
         end
 
       end
