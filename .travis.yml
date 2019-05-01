@@ -40,11 +40,6 @@ branches:
     - dev
     - release
 
-notifications:
-  webhooks: http://notifitron.herokuapp.com/
-  on_success: always
-  on_failure: always
-
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
   - jruby-9.2.6.0
