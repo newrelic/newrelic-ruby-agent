@@ -169,8 +169,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     assert_equal([slower_sample], @sampler.harvest!)
   end
 
-  SLOWEST_SAMPLE_MAX = NewRelic::Agent::Transaction::SlowestSampleBuffer::CAPACITY
-
   class BoundlessBuffer < NewRelic::Agent::Transaction::TransactionSampleBuffer
     def capacity
       1.0 / 0 # Can't use Float::INFINITY on older Rubies :(
