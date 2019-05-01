@@ -48,7 +48,6 @@ module NewRelic
           trace.guid = transaction.guid
           trace.attributes = transaction.attributes
           trace.threshold = transaction.threshold
-          trace.xray_session_id = transaction.xray_session_id
           trace.finished = true
         end
       end
