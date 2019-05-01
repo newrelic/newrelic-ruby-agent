@@ -67,7 +67,7 @@ class ThreadProfilingTest < Minitest::Test
 
     profile_data = $collector.calls_for('profile_data')[0]
     assert_equal('666', profile_data.run_id, "Missing run_id, profile_data was #{profile_data.inspect}")
-    assert(profile_data.sample_count >= 2, "Expected sample_count >= 2, but was #{profile_data.sample_count}")
+    assert(profile_data.poll_count >= 2, "Expected sample_count >= 2, but was #{profile_data.poll_count}")
 
     assert_saw_traces(profile_data, "OTHER")
     assert_saw_traces(profile_data, "AGENT")
@@ -85,7 +85,7 @@ class ThreadProfilingTest < Minitest::Test
 
     profile_data = $collector.calls_for('profile_data')[0]
     assert_equal('666', profile_data.run_id, "Missing run_id, profile_data was #{profile_data.inspect}")
-    assert(profile_data.sample_count < 50, "Expected sample_count < 50, but was #{profile_data.sample_count}")
+    assert(profile_data.poll_count < 50, "Expected sample_count < 50, but was #{profile_data.poll_count}")
   end
 
   def issue_command(cmd)

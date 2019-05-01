@@ -50,10 +50,6 @@ module NewRelic
           @poll_count += 1
         end
 
-        def sample_count
-          @poll_count
-        end
-
         def empty?
           @backtrace_count == 0
         end
@@ -116,12 +112,12 @@ module NewRelic
         def to_collector_array(encoder)
           encoded_trace_tree = encoder.encode(generate_traces, :skip_normalization => true)
           result = [
-            int(self.profile_id),
-            float(self.created_at),
-            float(self.finished_at),
-            int(self.sample_count),
+            int(profile_id),
+            float(created_at),
+            float(finished_at),
+            int(poll_count),
             encoded_trace_tree,
-            int(self.unique_thread_count),
+            int(unique_thread_count),
             0 # runnable thread count, which we don't track
           ]
           result
