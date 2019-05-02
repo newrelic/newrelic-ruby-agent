@@ -29,6 +29,7 @@ module NewRelic
             :labels        => Agent.config.parsed_labels,
             :agent_version => NewRelic::VERSION::STRING,
             :environment   => sanitize_environment_report(environment_report),
+            :metadata      => environment_metadata,
             :settings      => Agent.config.to_collector_hash,
             :high_security => Agent.config[:high_security],
             :utilization   => UtilizationData.new.to_collector_hash,
@@ -52,6 +53,10 @@ module NewRelic
         # be called synchronously from on the main thread.
         def environment_report
           Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
+        end
+
+        def environment_metadata
+          ENV.select {|k, v| k =~ /^NEW_RELIC_METADATA_/}
         end
 
         def local_host
