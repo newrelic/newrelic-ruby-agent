@@ -88,5 +88,15 @@ module NewRelic::Agent::Configuration
 
       assert_equal(false, source[:'transaction_tracer.record_redis_arguments'])
     end
+
+    def test_forces_attributes_include_empty
+      local_settings = {
+        :'attributes.include' => ['something']
+      }
+
+      source = HighSecuritySource.new(local_settings)
+
+      assert_empty source[:'attributes.include']
+    end
   end
 end
