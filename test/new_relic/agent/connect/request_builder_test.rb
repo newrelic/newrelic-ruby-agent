@@ -75,4 +75,20 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
     end
   end
 
+  def test_environment_metadata_empty
+    expected = {}
+    assert_equal expected, @request_builder.connect_payload[:metadata]
+  end
+
+  def test_enviroment_metadata
+    key = 'NEW_RELIC_METADATA_ONE'
+    value = 'hypogeal flushing'
+    expected = {key => value}
+
+    ENV[key] = value
+    assert_equal expected, @request_builder.connect_payload[:metadata]
+  ensure
+    ENV[key] = nil
+  end
+
 end
