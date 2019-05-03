@@ -12,6 +12,10 @@ class UndeadController < ApplicationController
   def brains
     render :inline => RESPONSE_BODY
   end
+
+  def brain_stream
+    render :inline => RESPONSE_BODY, :stream => true
+  end
 end
 
 class LiveController < UndeadController
@@ -33,6 +37,13 @@ class ActionControllerLiveRumTest < ActionDispatch::IntegrationTest
   def test_excludes_rum_instrumentation_when_streaming_with_action_controller_live
     get '/live/brains'
     assert_equal(LiveController::RESPONSE_BODY, response.body)
+  end
+
+  def test_excludes_rum_instrumentation_when_streaming_with_action_stream_true
+    get '/undead/brain_stream'
+
+    assert_includes(response.body, UndeadController::RESPONSE_BODY)
+    assert_not_includes(response.body, JS_LOADER)
   end
 end
 
