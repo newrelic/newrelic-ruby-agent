@@ -13,6 +13,7 @@ module NewRelic
             :capture_params           => false,
             :'resque.capture_params'  => false,
             :'sidekiq.capture_params' => false,
+            :'attributes.include'     => [],
 
             :'transaction_tracer.record_sql' => record_sql_setting(local_settings, :'transaction_tracer.record_sql'),
             :'slow_sql.record_sql'           => record_sql_setting(local_settings, :'slow_sql.record_sql'),
