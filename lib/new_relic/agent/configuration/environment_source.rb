@@ -9,7 +9,8 @@ module NewRelic
         SUPPORTED_PREFIXES = /^new_relic_|^newrelic_/i
         SPECIAL_CASE_KEYS  = [
           'NEW_RELIC_ENV', # read by NewRelic::Control::Frameworks::Ruby
-          'NEW_RELIC_LOG'  # read by set_log_file
+          'NEW_RELIC_LOG',  # read by set_log_file
+          /^NEW_RELIC_METADATA_/ # read by NewRelic::Agent::Connect::RequestBuilder
         ]
 
         attr_accessor :alias_map, :type_map
@@ -66,7 +67,8 @@ module NewRelic
           nr_env_var_keys = collect_new_relic_environment_variable_keys
 
           nr_env_var_keys.each do |key|
-            next if SPECIAL_CASE_KEYS.include?(key.upcase)
+            next if SPECIAL_CASE_KEYS.any? { |pattern| pattern === key.upcase }
+
             set_value_from_environment_variable(key)
           end
         end
