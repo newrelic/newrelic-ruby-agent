@@ -13,6 +13,21 @@
   This version of the agent successfully installs instrumentation for subclasses 
   of `Grape::API::Instance`, and these log messages should no longer appear.  
 
+* **Bugfix for streaming responses**
+
+  Previous versions of the agent would attempt to insert javascript instrumentation into
+  any streaming response that did not make use of `ActionController::Live`.  This resulted
+  in an empty, non-streamed response being sent to the client.
+
+  This version of the agent will not attempt to insert javascript instrumentation into
+  a response which includes the header `Transfer-Encoding=chunked`, which indicates a
+  streaming response.
+
+  This should exclude javascript instrumentation for all streamed responses.  To include 
+  this instrumentation manually, see 
+  [Manually instrument via agent API](https://docs.newrelic.com/docs/agents/ruby-agent/features/new-relic-browser-ruby-agent#manual_instrumentation) 
+  in our documentation.
+
 ## v6.3.0
 
   * **Official Rails 6.0 support**
