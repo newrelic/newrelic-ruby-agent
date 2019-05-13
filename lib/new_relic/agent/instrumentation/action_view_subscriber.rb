@@ -11,7 +11,7 @@ module NewRelic
       class ActionViewSubscriber < NotificationsSubscriber
 
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
-          parent = find_parent(id)
+          parent = segment_stack[id].last
           metric_name = format_metric_name(name, payload, parent)
 
           event = ActionViewEvent.new(metric_name, payload[:identifier])

@@ -62,10 +62,6 @@ module NewRelic
           segment
         end
 
-        def find_parent(id)
-          segment_stack[id].last
-        end
-
         def segment_stack
           Thread.current[@queue_key] ||= Hash.new {|h,id| h[id] = [] }
         end
