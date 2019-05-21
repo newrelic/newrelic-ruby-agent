@@ -16,7 +16,8 @@ module NewRelic
         module BaseExtensions41
           def self.included(base)
             base.class_eval do
-              alias_method_chain :log, :performance_improvement
+              alias_method :log_without_performance_improvement, :log
+              alias_method :log, :log_with_performance_improvement
             end
           end
 
@@ -38,7 +39,8 @@ module NewRelic
         module BaseExtensions50
           def self.included(base)
             base.class_eval do
-              alias_method_chain :log, :performance_improvement
+              alias_method :log_without_performance_improvement, :log
+              alias_method :log, :log_with_performance_improvement
             end
           end
 
@@ -61,7 +63,8 @@ module NewRelic
         module BaseExtensions51
           def self.included(base)
             base.class_eval do
-              alias_method_chain :log, :performance_improvement
+              alias_method :log_without_performance_improvement, :log
+              alias_method :log, :log_with_performance_improvement
             end
           end
 
