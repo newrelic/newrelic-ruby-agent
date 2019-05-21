@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
+## v6.4.0
+
+* **Custom Metadata Collection**
+
+  The agent now collects environment variables prefixed by `NEW_RELIC_METADATA_`.  These
+  may be added to transaction events to provide context between your Kubernetes cluster
+  and your services.  For details on the behavior, see
+  [this blog post](https://blog.newrelic.com/engineering/monitoring-application-performance-in-kubernetes/).
+
 * **Bugfix for faster ActiveRecord connection resolution**
 
   Version 6.3.0 of the agent backported the faster ActiveRecord connection resolution
@@ -34,13 +43,6 @@
   this instrumentation manually, see
   [Manually instrument via agent API](https://docs.newrelic.com/docs/agents/ruby-agent/features/new-relic-browser-ruby-agent#manual_instrumentation)
   in our documentation.
-
-* **Custom Metadata Collection**
-
-  The agent now collects environment variables prefixed by `NEW_RELIC_METADATA_`.  These
-  may be added to transaction events to provide context between your Kubernetes cluster
-  and your services.  For details on the behavior, see
-  [this blog post](https://blog.newrelic.com/engineering/monitoring-application-performance-in-kubernetes/).
 
 ## v6.3.0
 
