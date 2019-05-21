@@ -5,7 +5,7 @@
 module NewRelic
   module Agent
     module Instrumentation
-      class EventedSubscriber
+      class NotificationsSubscriber
         def initialize
           @queue_key = ['NewRelic', self.class.name, object_id].join('-')
         end
@@ -46,16 +46,6 @@ module NewRelic
           end
         end
 
-        def start(name, id, payload)
-          event = ActiveSupport::Notifications::Event.new(name, Time.now, nil, id, payload)
-          push_event(event)
-          return event
-        end
-
-        def finish(name, id, payload)
-          pop_event(id)
-        end
-
         def log_notification_error(error, name, event_type)
           # These are important enough failures that we want the backtraces
           # logged at error level, hence the explicit log_exception call.
@@ -63,30 +53,16 @@ module NewRelic
           NewRelic::Agent.logger.log_exception(:error, error)
         end
 
-        def push_event(event)
-          parent = event_stack[event.transaction_id].last
-          if parent && event.respond_to?(:parent=)
-            event.parent = parent
-            parent << event
-          end
-          event_stack[event.transaction_id].push event
+        def push_segment(id, segment)
+          segment_stack[id].push segment
         end
 
-        def pop_event(transaction_id)
-          event = event_stack[transaction_id].pop
-
-          if event.respond_to?(:finish!)
-            # ActiveSupport version 6 and greater use a finish! method rather
-            # that allowing us to set the end directly
-            event.finish!
-          else
-            event.end = Time.now
-          end
-
-          return event
+        def pop_segment(id)
+          segment = segment_stack[id].pop
+          segment
         end
 
-        def event_stack
+        def segment_stack
           Thread.current[@queue_key] ||= Hash.new {|h,id| h[id] = [] }
         end
 
@@ -95,41 +71,6 @@ module NewRelic
         end
       end
 
-      # Taken from ActiveSupport::Notifications::Event, pasted here
-      # with a couple minor additions so we don't have a hard
-      # dependency on ActiveSupport::Notifications.
-      #
-      # Represents an instrumentation event, provides timing and metric
-      # name information useful when recording metrics.
-      class Event
-        attr_reader :name, :time, :transaction_id, :payload, :children
-        attr_accessor :end, :parent, :frame
-
-        def initialize(name, start, ending, transaction_id, payload)
-          @name           = name
-          @payload        = payload.dup
-          @time           = start
-          @transaction_id = transaction_id
-          @end            = ending
-          @children       = []
-        end
-
-        def metric_name
-          raise NotImplementedError
-        end
-
-        def duration
-          self.end - time
-        end
-
-        def <<(event)
-          @children << event
-        end
-
-        def parent_of?(event)
-          @children.include? event
-        end
-      end
     end
   end
 end

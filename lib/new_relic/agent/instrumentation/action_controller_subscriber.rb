@@ -1,24 +1,24 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
-require 'new_relic/agent/instrumentation/evented_subscriber'
+require 'new_relic/agent/instrumentation/notifications_subscriber'
 require 'new_relic/agent/instrumentation/ignore_actions'
 require 'new_relic/agent/parameter_filtering'
 
 module NewRelic
   module Agent
     module Instrumentation
-      class ActionControllerSubscriber < EventedSubscriber
+      class ActionControllerSubscriber < NotificationsSubscriber
 
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
           # @req is a historically stable but not guaranteed Rails header property
           request = payload[:headers].instance_variable_get(:@req)
 
-          event = ControllerEvent.new(name, Time.now, nil, id, payload, request)
-          push_event(event)
+          controller_class = controller_class(payload)
 
-          if state.is_execution_traced? && !event.ignored?
-            start_transaction(event)
+          if state.is_execution_traced? && !should_ignore(payload, controller_class)
+            finishable = start_transaction_or_segment(payload, request, controller_class)
+            push_segment(id, finishable)
           else
             # if this transaction is ignored, make sure child
             # transaction are also ignored
@@ -30,11 +30,12 @@ module NewRelic
         end
 
         def finish(name, id, payload) #THREAD_LOCAL_ACCESS
-          event = pop_event(id)
-          event.payload.merge!(payload)
+          finishable = pop_segment(id)
 
-          if state.is_execution_traced? && !event.ignored?
-            stop_transaction(event)
+          if state.is_execution_traced? \
+              && !should_ignore(payload, controller_class(payload))
+
+            finishable.finish
           else
             Agent.instance.pop_trace_execution_flag
           end
@@ -42,77 +43,52 @@ module NewRelic
           log_notification_error(e, name, 'finish')
         end
 
-        def start_transaction(event)
-          event.payload[:finishable] = Tracer.start_transaction_or_segment(
-            name:             event.metric_name,
-            category:         :controller,
-            options: {
-              request:          event.request,
+        def start_transaction_or_segment(payload, request, controller_class)
+          Tracer.start_transaction_or_segment(
+            name:      format_metric_name(payload[:action], controller_class),
+            category:  :controller,
+            options:   {
+              request:          request,
               filtered_params:  NewRelic::Agent::ParameterFiltering.filter_using_rails(
-                  event.payload[:params],
-                  Rails.application.config.filter_parameters),
-              apdex_start_time: event.queue_start,
-              ignore_apdex:     event.apdex_ignored?,
-              ignore_enduser:   event.enduser_ignored?
+                payload[:params],
+                Rails.application.config.filter_parameters
+              ),
+              apdex_start_time: queue_start(request),
+              ignore_apdex:     NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
+                ControllerInstrumentation::NR_IGNORE_APDEX_KEY,
+                controller_class,
+                payload[:action]
+              ),
+              ignore_enduser:   NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
+                ControllerInstrumentation::NR_IGNORE_ENDUSER_KEY,
+                controller_class,
+                payload[:action]
+              )
             }
           )
         end
 
-        def stop_transaction(event)
-          (finishable = event.payload[:finishable]) && finishable.finish
-        end
-      end
-
-      class ControllerEvent < Event
-        attr_accessor :parent
-        attr_reader :queue_start, :request
-
-        def initialize(name, start, ending, transaction_id, payload, request)
-          # We have a different initialize parameter list, so be explicit
-          super(name, start, ending, transaction_id, payload)
-
-          @request = request
-          @controller_class = payload[:controller].split('::') \
-            .inject(Object){|m,o| m.const_get(o)}
-
-          if request && request.respond_to?(:env)
-            @queue_start = QueueTime.parse_frontend_timestamp(request.env, self.time)
-          end
+        def format_metric_name(metric_action, controller_name)
+          controller_class = ::NewRelic::LanguageSupport.constantize(controller_name)
+          "Controller/#{controller_class.controller_path}/#{metric_action}"
         end
 
-        def metric_name
-          @metric_name || "Controller/#{metric_path}/#{metric_action}"
+        def controller_class(payload)
+          ::NewRelic::LanguageSupport.constantize(payload[:controller])
         end
 
-        def metric_path
-          @controller_class.controller_path
-        end
-
-        def metric_action
-          payload[:action]
-        end
-
-        def ignored?
-          _is_filtered?(ControllerInstrumentation::NR_DO_NOT_TRACE_KEY)
-        end
-
-        def apdex_ignored?
-          _is_filtered?(ControllerInstrumentation::NR_IGNORE_APDEX_KEY)
-        end
-
-        def enduser_ignored?
-          _is_filtered?(ControllerInstrumentation::NR_IGNORE_ENDUSER_KEY)
-        end
-
-        def _is_filtered?(key)
+        def should_ignore(payload, controller_class)
           NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
-            key,
-            @controller_class,
-            metric_action)
+            ControllerInstrumentation::NR_DO_NOT_TRACE_KEY,
+            controller_class,
+            payload[:action]
+          )
         end
 
-        def to_s
-          "#<NewRelic::Agent::Instrumentation::ControllerEvent:#{object_id} name: \"#{name}\" id: #{transaction_id} payload: #{payload}}>"
+        def queue_start(request)
+          if request && request.respond_to?(:env)
+            QueueTime.parse_frontend_timestamp(request.env, Time.now)
+          end
         end
       end
     end

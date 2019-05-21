@@ -254,10 +254,10 @@ module NewRelic
     end
 
     class ProfileDataPost < AgentPost
-      attr_accessor :sample_count, :traces
+      attr_accessor :poll_count, :traces
       def initialize(opts={})
         super
-        @sample_count = @body[1][0][3]
+        @poll_count = @body[1][0][3]
         @body[1][0][4] = unblob(@body[1][0][4]) if @format == :json
         @traces = @body[1][0][4]
       end
@@ -291,10 +291,6 @@ module NewRelic
 
         def tree
           SubmittedTransactionTraceTree.new(@body[4], @format)
-        end
-
-        def xray_id
-          @body[8]
         end
 
         def synthetics_resource_id

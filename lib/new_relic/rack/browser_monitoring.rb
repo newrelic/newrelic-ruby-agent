@@ -29,15 +29,16 @@ module NewRelic::Rack
     GT                  = ">".freeze
 
     def traced_call(env)
-      result = @app.call(env)   # [status, headers, response]
+      result = @app.call(env)
+      (status, headers, response) = result
 
       js_to_inject = NewRelic::Agent.browser_timing_header
-      if (js_to_inject != "") && should_instrument?(env, result[0], result[1])
-        response_string = autoinstrument_source(result[2], result[1], js_to_inject)
+      if (js_to_inject != "") && should_instrument?(env, status, headers)
+        response_string = autoinstrument_source(response, headers, js_to_inject)
 
         env[ALREADY_INSTRUMENTED_KEY] = true
         if response_string
-          response = Rack::Response.new(response_string, result[0], result[1])
+          response = Rack::Response.new(response_string, status, headers)
           response.finish
         else
           result
@@ -55,7 +56,7 @@ module NewRelic::Rack
         !env[ALREADY_INSTRUMENTED_KEY] &&
         is_html?(headers) &&
         !is_attachment?(headers) &&
-        !is_streaming?(env)
+        !is_streaming?(env, headers)
     end
 
     def is_html?(headers)
@@ -66,10 +67,11 @@ module NewRelic::Rack
       headers[CONTENT_DISPOSITION] && headers[CONTENT_DISPOSITION].include?(ATTACHMENT)
     end
 
-    def is_streaming?(env)
-      return false unless defined?(ActionController::Live)
+    def is_streaming?(env, headers)
+      return true if headers && headers['Transfer-Encoding'] == 'chunked'
 
-      env['action_controller.instance'].class.included_modules.include?(ActionController::Live)
+      defined?(ActionController::Live) &&
+        env['action_controller.instance'].class.included_modules.include?(ActionController::Live)
     end
 
     CHARSET_RE         = /<\s*meta[^>]+charset\s*=[^>]*>/im.freeze

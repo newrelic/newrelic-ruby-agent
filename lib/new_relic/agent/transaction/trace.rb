@@ -11,7 +11,7 @@ module NewRelic
         class FinishedTraceError < StandardError; end
 
         attr_reader :start_time, :root_node
-        attr_accessor :transaction_name, :guid, :xray_session_id, :attributes,
+        attr_accessor :transaction_name, :guid, :attributes,
                       :node_count, :finished, :threshold, :profile
 
         ROOT = "ROOT".freeze
@@ -38,11 +38,6 @@ module NewRelic
 
         def duration
           self.root_node.duration
-        end
-
-        def forced?
-          return true if NewRelic::Coerce.int_or_nil(xray_session_id)
-          false
         end
 
         def synthetics_resource_id
@@ -148,8 +143,8 @@ module NewRelic
             encoder.encode(trace_tree(attributes_hash)),
             NewRelic::Coerce.string(self.guid),
             nil,
-            forced?,
-            NewRelic::Coerce.int_or_nil(xray_session_id),
+            false, # forced?,
+            nil, # NewRelic::Coerce.int_or_nil(xray_session_id),
             NewRelic::Coerce.string(self.synthetics_resource_id)
           ]
         end

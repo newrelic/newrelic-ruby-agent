@@ -169,46 +169,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     assert_equal([slower_sample], @sampler.harvest!)
   end
 
-  SLOWEST_SAMPLE_MAX = NewRelic::Agent::Transaction::SlowestSampleBuffer::CAPACITY
-  XRAY_SAMPLE_MAX = NewRelic::Agent.config[:'xray_session.max_samples']
-
-  def test_harvest_respects_limits_from_previous
-    slowest = sample_with(:duration => 10.0)
-    previous = [slowest]
-
-    xray_samples = generate_samples(100, :transaction_name => "Active/xray")
-    previous.concat(xray_samples)
-
-    result = nil
-    with_active_xray_session("Active/xray") do
-      @sampler.merge!(previous)
-      result = @sampler.harvest!
-    end
-
-    expected = [slowest]
-    expected = expected.concat(xray_samples.first(XRAY_SAMPLE_MAX))
-
-    assert_equal_unordered(expected, result)
-  end
-
-  def test_harvest_respects_limits_from_current_traces
-    slowest = sample_with(:duration => 10.0)
-    @sampler.store_sample(slowest)
-
-    xray_samples = generate_samples(100, :transaction_name => "Active/xray")
-    with_active_xray_session("Active/xray") do
-      xray_samples.each do |xrayed|
-        @sampler.store_sample(xrayed)
-      end
-    end
-
-    result = @sampler.harvest!
-
-    expected = [slowest]
-    expected = expected.concat(xray_samples.first(XRAY_SAMPLE_MAX))
-    assert_equal_unordered(expected, result)
-  end
-
   class BoundlessBuffer < NewRelic::Agent::Transaction::TransactionSampleBuffer
     def capacity
       1.0 / 0 # Can't use Float::INFINITY on older Rubies :(
@@ -475,23 +435,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     (1..count).map do |millis|
       sample_with(opts.merge(:duration => (millis / 1000.0)))
     end
-  end
-
-  def with_active_xray_session(name)
-    xray_session_id = 1234
-    xray_session = NewRelic::Agent::Commands::XraySession.new({
-      "x_ray_id" => xray_session_id,
-      "key_transaction_name" => name,
-      "run_profiler" => false
-    })
-
-    xray_session_collection = NewRelic::Agent.instance.agent_command_router.xray_session_collection
-    xray_session_collection.send(:add_session, xray_session)
-    @sampler.xray_sample_buffer.xray_session_collection = xray_session_collection
-
-    yield
-  ensure
-    xray_session_collection.send(:remove_session_by_id, xray_session_id)
   end
 
   def run_long_sample_trace(n)

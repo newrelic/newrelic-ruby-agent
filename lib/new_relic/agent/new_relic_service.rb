@@ -163,10 +163,6 @@ module NewRelic
         invoke_remote(:agent_command_results, [@agent_id, results])
       end
 
-      def get_xray_metadata(xray_ids)
-        invoke_remote(:get_xray_metadata, [@agent_id, *xray_ids])
-      end
-
       def analytic_event_data(data)
         _, items = data
         invoke_remote(:analytic_event_data, [@agent_id, *data],

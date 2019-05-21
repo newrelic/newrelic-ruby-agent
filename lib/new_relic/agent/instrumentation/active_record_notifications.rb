@@ -14,8 +14,15 @@ module NewRelic
     module Instrumentation
       module ActiveRecordNotifications
         module BaseExtensions41
+          def self.included(base)
+            base.class_eval do
+              alias_method :log_without_performance_improvement, :log
+              alias_method :log, :log_with_performance_improvement
+            end
+          end
+
           # https://github.com/rails/rails/blob/4-1-stable/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb#L371
-          def log(sql, name = "SQL", binds = [], statement_name = nil)
+          def log_with_performance_improvement(sql, name = "SQL", binds = [], statement_name = nil)
             @instrumenter.instrument(
               "sql.active_record",
               :sql            => sql,
@@ -30,8 +37,15 @@ module NewRelic
         end
 
         module BaseExtensions50
+          def self.included(base)
+            base.class_eval do
+              alias_method :log_without_performance_improvement, :log
+              alias_method :log, :log_with_performance_improvement
+            end
+          end
+
           # https://github.com/rails/rails/blob/5-0-stable/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb#L582
-          def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil)
+          def log_with_performance_improvement(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil)
             @instrumenter.instrument(
               "sql.active_record",
               sql:               sql,
@@ -47,8 +61,15 @@ module NewRelic
         end
 
         module BaseExtensions51
+          def self.included(base)
+            base.class_eval do
+              alias_method :log_without_performance_improvement, :log
+              alias_method :log, :log_with_performance_improvement
+            end
+          end
+
           # https://github.com/rails/rails/blob/5-1-stable/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb#L603
-          def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
+          def log_with_performance_improvement(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
             @instrumenter.instrument(
               "sql.active_record",
               sql:               sql,
@@ -87,17 +108,17 @@ DependencyDetection.defer do
 
 
   depends_on do
-    # If the deprecated :disable_active_record_4 setting is true, and 
+    # If the deprecated :disable_active_record_4 setting is true, and
     # the active record version is four, disable!
     NewRelic::Agent.config[:disable_active_record_4] == false \
         || ::ActiveRecord::VERSION::MAJOR.to_i != 4
   end
 
   depends_on do
-    # If the deprecated :disable_active_record_5 setting is true, and 
+    # If the deprecated :disable_active_record_5 setting is true, and
     # the active record version is five, disable!
     NewRelic::Agent.config[:disable_active_record_5] == false \
-        || ::ActiveRecord::VERSION::MAJOR.to_i  != 5 
+        || ::ActiveRecord::VERSION::MAJOR.to_i  != 5
   end
 
 
@@ -116,7 +137,7 @@ DependencyDetection.defer do
           ::ActiveRecord::Base,
           ::ActiveRecord::Relation)
 
-      # Default to .prepending, unless the ActiveRecord version is <=4 
+      # Default to .prepending, unless the ActiveRecord version is <=4
       # **AND** the :prepend_active_record_instrumentation config is false
       if ::ActiveRecord::VERSION::MAJOR > 4 \
           || ::NewRelic::Agent.config[:prepend_active_record_instrumentation]
@@ -145,7 +166,7 @@ DependencyDetection.defer do
       end
 
       unless activerecord_extension.nil?
-        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:prepend, activerecord_extension)
+        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:include, activerecord_extension)
       end
     end
   end

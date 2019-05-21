@@ -123,6 +123,11 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     )
   end
 
+  def test_format_metric_name
+      metric_name = @subscriber.format_metric_name('index', TestController)
+      assert_equal 'Controller/test/index', metric_name
+  end
+
   def test_sets_default_transaction_name_on_start
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     assert_equal 'Controller/test/index', NewRelic::Agent::Transaction.tl_current.best_name

@@ -7,6 +7,19 @@ gemfile <<-RB
 RB
 
 if RUBY_VERSION >= '2.2.2'
+  # in Ruby < 2.3, we can't use later than redis 4.1.0 (because >= 4.1.1 
+  # references Enumerable#grep_v, which didn't exist prior to ruby 2.3)
+  gemfile <<-RB
+    gem 'json'
+    gem 'sidekiq', '~> 5.0.5'
+    gem 'redis', '4.1.0'
+    gem 'rack'
+
+    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
+  RB
+end
+
+if RUBY_VERSION > '2.3.0'
   gemfile <<-RB
     gem 'json'
     gem 'sidekiq', '~> 5.0.5'

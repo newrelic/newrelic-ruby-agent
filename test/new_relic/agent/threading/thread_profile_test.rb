@@ -126,25 +126,6 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         assert_equal expected, @profile.to_collector_array(NewRelic::Agent::NewRelicService::Encoders::Identity)
       end
 
-      def test_to_collector_array_with_xray_session_id
-        build_well_known_trace('profile_id' => -1, 'x_ray_id' => 4242)
-        @profile.stubs(:created_at).returns(1350403938892.524)
-        @profile.finished_at = 1350403939904.375
-
-        expected = [
-          -1,
-          1350403938892.524,
-          1350403939904.375,
-          20,
-          WELL_KNOWN_TRACE_ENCODED,
-          2,
-          0,
-          4242
-        ]
-
-        assert_equal expected, @profile.to_collector_array(encoder)
-      end
-
       def test_to_collector_array_with_bad_values
         build_well_known_trace(:profile_id => -1)
         @profile.stubs(:created_at).returns('')
@@ -212,16 +193,8 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       SAMPLE_COUNT_POSITION = 3
 
       def test_sample_count_for_thread_profiling
-        profile = ThreadProfile.new('x_ray_id' => nil)
+        profile = ThreadProfile.new
         profile.increment_poll_count
-
-        result = profile.to_collector_array(encoder)
-        assert_equal 1, result[SAMPLE_COUNT_POSITION]
-      end
-
-      def test_sample_count_for_xrays
-        profile = ThreadProfile.new('x_ray_id' => 123)
-        profile.aggregate(@single_trace, :request, Thread.current)
 
         result = profile.to_collector_array(encoder)
         assert_equal 1, result[SAMPLE_COUNT_POSITION]

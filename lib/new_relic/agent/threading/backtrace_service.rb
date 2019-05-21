@@ -36,8 +36,8 @@ module NewRelic
           @worker_loop = NewRelic::Agent::WorkerLoop.new
 
           # Memoize overhead % to avoid getting stale OR looked up every poll
-          @overhead_percent_threshold = NewRelic::Agent.config[:'xray_session.max_profile_overhead']
-          NewRelic::Agent.config.register_callback(:'xray_session.max_profile_overhead') do |new_value|
+          @overhead_percent_threshold = NewRelic::Agent.config[:'thread_profiler.max_profile_overhead']
+          NewRelic::Agent.config.register_callback(:'thread_profiler.max_profile_overhead') do |new_value|
             @overhead_percent_threshold = new_value
           end
 
@@ -213,7 +213,7 @@ module NewRelic
             if @buffer[thread].length < MAX_BUFFER_LENGTH
               @buffer[thread] << [timestamp, backtrace]
             else
-              NewRelic::Agent.increment_metric('Supportability/XraySessions/DroppedBacktraces')
+              NewRelic::Agent.increment_metric('Supportability/ThreadProfiler/DroppedBacktraces')
             end
           end
         end

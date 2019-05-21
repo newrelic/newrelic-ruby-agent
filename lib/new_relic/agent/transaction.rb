@@ -355,8 +355,6 @@ module NewRelic
 
       # For common interface with Trace
       alias_method :transaction_name, :best_name
-
-      attr_accessor :xray_session_id
       # End common interface
 
       def promoted_transaction_name(name)
