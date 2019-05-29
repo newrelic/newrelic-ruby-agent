@@ -83,14 +83,6 @@ module NewRelic
           assert_equal false, tt_node.params[:exist]
         end
 
-        def test_starting_event_adds_segment_to_stack
-          in_transaction 'test' do
-            payload = {key: SecureRandom.hex, service: "Disk"}
-            @subscriber.start 'something', @id, payload
-            assert_equal 1, @subscriber.segment_stack.size
-          end
-        end
-
         private
 
         def generate_event(event_name, attributes = {})
