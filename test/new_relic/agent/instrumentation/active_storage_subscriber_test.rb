@@ -45,13 +45,11 @@ module NewRelic
         end
 
         def test_metric_will_recorded_for_new_event_names
-          txn = in_transaction 'test' do
+          in_transaction 'test' do
             generate_event 'service_new_method.active_storage'
           end
 
           assert_metrics_recorded 'Ruby/ActiveStorage/DiskService/new_method'
-          assert_equal 2, txn.segments.size
-          assert_equal 'Ruby/ActiveStorage/DiskService/new_method', txn.segments[-1].name
         end
 
         def test_failsafe_if_event_does_not_match_expected_pattern
