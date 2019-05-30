@@ -1,5 +1,10 @@
 # New Relic Ruby Agent Release Notes #
 
+* **Bugfix for ActiveStorage instrumentation error**
+
+  Version 6.4.0 of the agent introduced a bug that interfered with ActiveStorage
+  callbacks. ActiveStorage segments are now correctly recorded.
+
 ## v6.4.0
 
 * **Custom Metadata Collection**
