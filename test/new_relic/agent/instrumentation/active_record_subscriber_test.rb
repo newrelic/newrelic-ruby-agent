@@ -187,12 +187,6 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     simulate_query
   end
 
-  def simulate_query(duration=nil)
-    @subscriber.start('sql.active_record', :id, @params)
-    advance_time(duration) if duration
-    @subscriber.finish('sql.active_record', :id, @params)
-  end
-
   def test_active_record_config_for_event
     target_connection = ActiveRecord::Base.connection_handler.connection_pool_list.first.connections.first
     expected_config = target_connection.instance_variable_get(:@config)
@@ -201,6 +195,35 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
 
     result = @subscriber.active_record_config(payload)
     assert_equal expected_config, result
+  end
+
+  def test_segment_created
+    in_transaction 'test' do
+      txn = NewRelic::Agent::Tracer.current_transaction
+      assert_equal 1, txn.segments.size
+
+      simulate_query 1
+      assert_equal 2, txn.segments.size
+      assert txn.segments.last.finished?, "Segment '#{txn.segments.last.name}'' was never finished.  "
+      assert_equal \
+        'Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find',
+        txn.segments.last.name
+
+      simulate_query 1
+      assert_equal 3, txn.segments.size
+      assert txn.segments.last.finished?, "Segment '#{txn.segments.last.name}'' was never finished.  "
+      assert_equal \
+        'Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find',
+        txn.segments.last.name
+    end
+  end
+
+  private
+
+  def simulate_query(duration=nil)
+    @subscriber.start('sql.active_record', :id, @params)
+    advance_time(duration) if duration
+    @subscriber.finish('sql.active_record', :id, @params)
   end
 end
 

@@ -45,11 +45,13 @@ module NewRelic
         end
 
         def test_metric_will_recorded_for_new_event_names
-          in_transaction 'test' do
+          txn = in_transaction 'test' do
             generate_event 'service_new_method.active_storage'
           end
 
           assert_metrics_recorded 'Ruby/ActiveStorage/DiskService/new_method'
+          assert_equal 2, txn.segments.size
+          assert_equal 'Ruby/ActiveStorage/DiskService/new_method', txn.segments[-1].name
         end
 
         def test_failsafe_if_event_does_not_match_expected_pattern
@@ -81,6 +83,23 @@ module NewRelic
 
           assert tt_node.params.key? :exist
           assert_equal false, tt_node.params[:exist]
+        end
+
+        def test_segment_created
+          in_transaction 'test' do
+            txn = NewRelic::Agent::Tracer.current_transaction
+            assert_equal 1, txn.segments.size
+
+            generate_event 'service_exist.active_storage', exist: false
+            assert_equal 2, txn.segments.size
+            assert_equal 'Ruby/ActiveStorage/DiskService/exist', txn.segments.last.name
+            assert txn.segments.last.finished?, "Segment #{txn.segments.last.name} was never finished.  "
+
+            generate_event 'service_upload.active_storage', key: 'mykey'
+            assert_equal 3, txn.segments.size
+            assert_equal 'Ruby/ActiveStorage/DiskService/upload', txn.segments.last.name
+            assert txn.segments.last.finished?, "Segment #{txn.segments.last.name} was never finished.  "
+          end
         end
 
         private
