@@ -15,7 +15,7 @@ module NewRelic
       module ActiveRecordNotifications
         SQL_ACTIVE_RECORD = 'sql.active_record'.freeze
 
-        module BaseExtensions41
+        module BaseExtensions4x
           def self.included(base)
             base.class_eval do
               alias_method :log_without_performance_improvement, :log
@@ -165,7 +165,7 @@ DependencyDetection.defer do
       minor_version = ::ActiveRecord::VERSION::MINOR.to_i
 
       activerecord_extension = if major_version == 4
-        ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions41
+        ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions4x
       elsif major_version == 5 && minor_version == 0
         ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions50
       elsif major_version == 5 && minor_version == 1
