@@ -32,7 +32,12 @@ module NewRelic
               :statement_name => statement_name,
               :binds          => binds) { yield }
           rescue => e
-            raise translate_exception_class(e, sql)
+            # The translate_exception_class method got introduced in 4.1
+            if ::ActiveRecord::VERSION::MINOR == 0
+              raise translate_exception(e, sql)
+            else
+              raise translate_exception_class(e, sql)
+            end
           end
         end
 
@@ -157,7 +162,7 @@ DependencyDetection.defer do
       major_version = ::ActiveRecord::VERSION::MAJOR.to_i
       minor_version = ::ActiveRecord::VERSION::MINOR.to_i
 
-      activerecord_extension = if major_version == 4 && minor_version >= 1
+      activerecord_extension = if major_version == 4
         ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions41
       elsif major_version == 5 && minor_version == 0
         ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions50
