@@ -32,7 +32,7 @@ module NewRelic
               :statement_name => statement_name,
               :binds          => binds) { yield }
           rescue => e
-            raise translate_exception(e, sql)
+            raise translate_exception_class(e, sql)
           end
         end
 
