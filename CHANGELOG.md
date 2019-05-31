@@ -5,6 +5,14 @@
   Version 6.4.0 of the agent introduced a bug that interfered with ActiveStorage
   callbacks. ActiveStorage segments are now correctly recorded.
 
+* **Bugfix for ActiveRecord 4.1 and 4.2 exception logging**
+
+  Version 6.3 of the agent introduced a bug that prevented ActiveRecord versions 4.1 
+  and 4.2 from logging exceptions that occurred within a database transaction.  This 
+  version of the agent restores the exception logging functionality from previous agent
+  versions.  
+  Thanks to Oleksiy Kovyrin for the contribution!
+
 ## v6.4.0
 
 * **Custom Metadata Collection**
