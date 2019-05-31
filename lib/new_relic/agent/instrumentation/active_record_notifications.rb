@@ -13,6 +13,8 @@ module NewRelic
   module Agent
     module Instrumentation
       module ActiveRecordNotifications
+        SQL_ACTIVE_RECORD = 'sql.active_record'.freeze
+
         module BaseExtensions41
           def self.included(base)
             base.class_eval do
@@ -24,7 +26,7 @@ module NewRelic
           # https://github.com/rails/rails/blob/4-1-stable/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb#L371
           def log_with_performance_improvement(sql, name = "SQL", binds = [], statement_name = nil)
             @instrumenter.instrument(
-              "sql.active_record",
+              SQL_ACTIVE_RECORD,
               :sql            => sql,
               :name           => name,
               :connection_id  => object_id,
@@ -52,7 +54,7 @@ module NewRelic
           # https://github.com/rails/rails/blob/5-0-stable/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb#L582
           def log_with_performance_improvement(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil)
             @instrumenter.instrument(
-              "sql.active_record",
+              SQL_ACTIVE_RECORD,
               sql:               sql,
               name:              name,
               binds:             binds,
@@ -76,7 +78,7 @@ module NewRelic
           # https://github.com/rails/rails/blob/5-1-stable/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb#L603
           def log_with_performance_improvement(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
             @instrumenter.instrument(
-              "sql.active_record",
+              SQL_ACTIVE_RECORD,
               sql:               sql,
               name:              name,
               binds:             binds,
