@@ -154,15 +154,15 @@ DependencyDetection.defer do
 
   executes do
     if NewRelic::Agent.config[:backport_fast_active_record_connection_lookup]
+      major_version = ::ActiveRecord::VERSION::MAJOR.to_i
+      minor_version = ::ActiveRecord::VERSION::MINOR.to_i
 
-      activerecord_extension = if ::ActiveRecord::VERSION::MAJOR.to_i == 4
+      activerecord_extension = if major_version == 4 && minor_version >= 1
         ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions41
-      elsif ::ActiveRecord::VERSION::MAJOR.to_i == 5
-        if ::ActiveRecord::VERSION::MINOR.to_i == 0
-          ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions50
-        elsif ::ActiveRecord::VERSION::MINOR.to_i >= 1
-          ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions51
-        end
+      elsif major_version == 5 && minor_version == 0
+        ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions50
+      elsif major_version == 5 && minor_version == 1
+        ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions51
       end
 
       unless activerecord_extension.nil?
