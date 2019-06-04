@@ -92,11 +92,6 @@ module NewRelic
             assert_equal 2, txn.segments.size
             assert_equal 'Ruby/ActiveStorage/DiskService/exist', txn.segments.last.name
             assert txn.segments.last.finished?, "Segment #{txn.segments.last.name} was never finished.  "
-
-            generate_event 'service_upload.active_storage', key: 'mykey'
-            assert_equal 3, txn.segments.size
-            assert_equal 'Ruby/ActiveStorage/DiskService/upload', txn.segments.last.name
-            assert txn.segments.last.finished?, "Segment #{txn.segments.last.name} was never finished.  "
           end
         end
 
