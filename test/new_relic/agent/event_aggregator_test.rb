@@ -12,7 +12,7 @@ module NewRelic
       class TestAggregator < EventAggregator
         named :TestAggregator
         capacity_key :cap_key
-        enabled_key :enabled_key
+        enabled keys: :enabled_key
 
         attr_reader :buffer
 
@@ -23,21 +23,31 @@ module NewRelic
         end
       end
 
-      class RubeGoldbergTestAggregator < EventAggregator
+      class KeyAndFnTestAggregator < EventAggregator
         named :RubeGoldbergTestAggregator
         capacity_key :cap_key
 
-        enabled_fn -> { enabled_for_test }
+        enabled keys: :enabled_key,
+                fn: ->(){ Agent.config[:enabled_key] && enabled_for_test }
+
 
         class << self
           attr_accessor :enabled_for_test
         end
       end
 
+      class MultiKeyTestAggregator < EventAggregator
+        named :RubeGoldbergTestAggregator
+        capacity_key :cap_key
+
+        enabled keys: [:enabled_key, :enabled_key2]
+      end
+
       def setup
         NewRelic::Agent.config.add_config_for_testing(
           :cap_key => 100,
-          :enabled_key => true
+          :enabled_key => true,
+          :enabled_key2 => true
         )
 
         @aggregator = TestAggregator.new
@@ -65,14 +75,34 @@ module NewRelic
         end
       end
 
-      def test_enabled_uses_proc_if_defined
-        @aggregator = RubeGoldbergTestAggregator.new
+      def test_enabled_uses_multiple_keys_by_default
+        @aggregator = MultiKeyTestAggregator.new
+        with_config :enabled_key2 => true do
+          assert @aggregator.enabled?
+        end
 
-        RubeGoldbergTestAggregator.enabled_for_test = false
-        refute @aggregator.enabled?
+        with_config :enabled_key2 => false do
+          refute @aggregator.enabled?
+        end
+      end
 
-        RubeGoldbergTestAggregator.enabled_for_test = true
-        assert @aggregator.enabled?
+      def test_enabled_uses_both_fn_and_key_if_defined
+        @aggregator = KeyAndFnTestAggregator.new
+        with_config :enabled_key => true do
+          KeyAndFnTestAggregator.enabled_for_test = false
+          refute @aggregator.enabled?
+
+          KeyAndFnTestAggregator.enabled_for_test = true
+          assert @aggregator.enabled?
+        end
+
+        with_config :enabled_key => false do
+          KeyAndFnTestAggregator.enabled_for_test = false
+          refute @aggregator.enabled?
+
+          KeyAndFnTestAggregator.enabled_for_test = true
+          refute @aggregator.enabled?
+        end
       end
 
       def test_after_harvest_invoked_with_report
