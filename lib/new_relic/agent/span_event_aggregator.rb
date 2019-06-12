@@ -12,7 +12,6 @@ module NewRelic
     class SpanEventAggregator < EventAggregator
       named :SpanEventAggregator
       capacity_key :'span_events.max_samples_stored'
-
       enabled_keys :'span_events.enabled',
                    :'distributed_tracing.enabled'
 

@@ -1017,6 +1017,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
+          :dynamic_name => true,
           :description => 'If <code>true</code>, the agent collects <a href="https://docs.newrelic.com/docs/insights/new-relic-insights/decorating-events/error-event-default-attributes-insights">TransactionError events</a>.'
         },
         :'error_collector.max_event_samples_stored' => {

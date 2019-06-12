@@ -91,7 +91,7 @@ module NewRelic
         end
       end
 
-      def test_errors_noticed_when_error_traces_disabled
+      def test_errors_not_noticed_when_error_collector_disabled
         config = {
           :'error_collector.enabled' => false,
           :'error_collector.capture_events' => true
@@ -99,7 +99,7 @@ module NewRelic
         with_config config do
           generate_error
           errors = last_error_events
-          assert_equal 1, errors.size
+          assert_empty errors
         end
       end
 
