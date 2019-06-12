@@ -12,7 +12,7 @@ module NewRelic
       class TestAggregator < EventAggregator
         named :TestAggregator
         capacity_key :cap_key
-        enabled keys: :enabled_key
+        enabled_key :enabled_key
 
         attr_reader :buffer
 
@@ -39,8 +39,7 @@ module NewRelic
       class MultiKeyTestAggregator < EventAggregator
         named :RubeGoldbergTestAggregator
         capacity_key :cap_key
-
-        enabled keys: [:enabled_key, :enabled_key2]
+        enabled_keys :enabled_key, :enabled_key2
       end
 
       def setup
