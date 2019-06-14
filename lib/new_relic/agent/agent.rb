@@ -763,11 +763,17 @@ module NewRelic
             Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
           end
 
+          # Constructs and memoizes an event_data hash to be used in the payload
+          # sent during connect (and reconnect)
+          def event_data
+            @event_data ||= Configuration::EventData.from_config(Agent.config)
+          end
+
           # Builds the payload to send to the connect service,
           # connects, then configures the agent using the response from 
           # the connect service
           def connect_to_server
-            request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new(@service, Agent.config)
+            request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new(@service, Agent.config, event_data)
             connect_response = @service.connect request_builder.connect_payload
 
             response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(self, Agent.config)

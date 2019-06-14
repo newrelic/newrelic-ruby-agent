@@ -10,8 +10,11 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
   def setup
     @service = default_service
     NewRelic::Agent.reset_config
+    @event_data = NewRelic::Agent.agent.event_data
     @request_builder = NewRelic::Agent::Connect::RequestBuilder.new(
-        @service, NewRelic::Agent.config)
+        @service,
+        NewRelic::Agent.config,
+        @event_data)
   end
 
   def test_connect_settings_have_environment_report
