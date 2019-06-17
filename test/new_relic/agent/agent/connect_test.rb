@@ -163,22 +163,20 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     }
 
     NewRelic::Agent.instance.service.stubs(:connect)\
+      # the stub connect service will return this canned response
       .returns({
         'agent_run_id' => 23,
         'event_data' => {
           'report_period_ms' => 5000,
-          'harvest_limits'   => {
-            'analytic_event_data' => 833,
-            'custom_event_data'   => 83,
-            'error_event_data'    => 8
-          }
+          'harvest_limits' => { 'analytic_event_data'=>833, 'custom_event_data'=>83, 'error_event_data'=>8 }
         }
       })\
+      # evey call to :connect should pass the same expected event_data payload
       .with { |value| value[:event_data] == expected_event_data_payload }
 
     # Calling connect twice should send the same event data both times
-    response = NewRelic::Agent.agent.connect_to_server
-    response = NewRelic::Agent.agent.connect_to_server
+    NewRelic::Agent.agent.connect_to_server
+    NewRelic::Agent.agent.connect_to_server
   end
 
   def test_logging_collector_messages
