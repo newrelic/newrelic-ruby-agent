@@ -11,9 +11,10 @@ module NewRelic
 
       class RequestBuilder
 
-        def initialize(new_relic_service, config)
+        def initialize(new_relic_service, config, event_data)
           @service = new_relic_service
           @config = config
+          @event_data = event_data
         end
 
 
@@ -34,7 +35,7 @@ module NewRelic
             :high_security => Agent.config[:high_security],
             :utilization   => UtilizationData.new.to_collector_hash,
             :identifier    => "ruby:#{local_host}:#{Agent.config.app_names.sort.join(',')}",
-            :event_data    => Configuration::EventData.from_config(Agent.config)
+            :event_data    => @event_data
           }
         end
 

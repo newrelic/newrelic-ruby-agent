@@ -22,6 +22,8 @@ module NewRelic
       def append(priority: nil, event: nil, &blk)
         increment_seen
 
+        return if @capacity == 0
+
         if @seen == @capacity
           @items = Heap.new(@items) { |x| priority_for(x) }
         end
