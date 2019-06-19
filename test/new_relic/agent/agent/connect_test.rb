@@ -152,9 +152,9 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     NewRelic::Agent.shutdown
   end
 
-  def test_connect_memoizes_event_data
+  def test_connect_memoizes_event_harvest_config
     default_source = NewRelic::Agent::Configuration::DefaultSource.new
-    expected_event_data_payload = {
+    expected_event_harvest_config_payload = {
       :harvest_limits => {
         :analytic_event_data => default_source[:'analytics_events.max_samples_stored'],
         :custom_event_data => default_source[:'custom_insights_events.max_samples_stored'],
@@ -166,13 +166,13 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
       # the stub connect service will return this canned response
       .returns({
         'agent_run_id' => 23,
-        'event_data' => {
+        'event_harvest_config' => {
           'report_period_ms' => 5000,
           'harvest_limits' => { 'analytic_event_data'=>833, 'custom_event_data'=>83, 'error_event_data'=>8 }
         }
       })\
-      # evey call to :connect should pass the same expected event_data payload
-      .with { |value| value[:event_data] == expected_event_data_payload }
+      # every call to :connect should pass the same expected event_harvest_config payload
+      .with { |value| value[:event_harvest_config] == expected_event_harvest_config_payload }
 
     # Calling connect twice should send the same event data both times
     NewRelic::Agent.agent.connect_to_server

@@ -15,7 +15,7 @@ module NewRelic::Agent::Configuration
           'transaction_tracer.record_sql'            => 'raw',
           'error_collector.enabled'                  => true
         },
-        'event_data' => {
+        'event_harvest_config' => {
           'report_period_ms' => 5000,
           'harvest_limits'   => {
             'analytic_event_data' => 833,
@@ -98,7 +98,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_record_supportability_metric_on_missing_event_data
-      @config.delete :event_data
+      @config.delete :event_harvest_config
       source = ServerSource.new(@config)
 
       assert_metrics_recorded(["Supportability/Agent/Collector/MissingEventData"])

@@ -38,7 +38,7 @@ module NewRelic
           merge_top_level_keys(merged_settings, connect_reply)
           merge_agent_config_hash(merged_settings, connect_reply)
           fix_transaction_threshold(merged_settings)
-          add_event_data(merged_settings, connect_reply)
+          add_event_harvest_config(merged_settings, connect_reply)
           filter_keys(merged_settings)
 
           apply_feature_gates(merged_settings, connect_reply, existing_config)
@@ -74,11 +74,11 @@ module NewRelic
           end
         end
 
-        def add_event_data(merged_settings, connect_reply)
-            if connect_reply['event_data']
-              merged_settings.merge! EventData.to_config_hash(connect_reply)
+        def add_event_harvest_config(merged_settings, connect_reply)
+            if connect_reply['event_harvest_config']
+              merged_settings.merge! EventHarvestConfig.to_config_hash(connect_reply)
             else
-              NewRelic::Agent.logger.warn "No event data configuration found " \
+              NewRelic::Agent.logger.warn "No event harvest config found " \
                   "in connect response; using default event report period."
               NewRelic::Agent.record_metric('Supportability/Agent/Collector/MissingEventData', 1)
             end

@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/environment_report'
-require 'new_relic/agent/configuration/event_data'
+require 'new_relic/agent/configuration/event_harvest_config'
 
 module NewRelic
   module Agent
@@ -11,10 +11,10 @@ module NewRelic
 
       class RequestBuilder
 
-        def initialize(new_relic_service, config, event_data)
+        def initialize(new_relic_service, config, event_harvest_config)
           @service = new_relic_service
           @config = config
-          @event_data = event_data
+          @event_harvest_config = event_harvest_config
         end
 
 
@@ -35,7 +35,7 @@ module NewRelic
             :high_security => Agent.config[:high_security],
             :utilization   => UtilizationData.new.to_collector_hash,
             :identifier    => "ruby:#{local_host}:#{Agent.config.app_names.sort.join(',')}",
-            :event_data    => @event_data
+            :event_harvest_config => @event_harvest_config
           }
         end
 

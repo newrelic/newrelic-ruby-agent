@@ -3,13 +3,11 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
-require 'new_relic/agent/configuration/event_data'
+require 'new_relic/agent/configuration/event_harvest_config'
 
-class EventDataTest < Minitest::Test
+class NewRelic::Agent::Configuration::EventHarvestConfigTest < Minitest::Test
 
-  EventData = NewRelic::Agent::Configuration::EventData
-
-  def test_event_data_from_config
+  def test_from_config
     config = NewRelic::Agent::Configuration::Manager.new
     config.add_config_for_testing(:'analytics_events.max_samples_stored' => 1000)
     config.add_config_for_testing(:'custom_insights_events.max_samples_stored' => 1000)
@@ -23,12 +21,12 @@ class EventDataTest < Minitest::Test
       }
     }
 
-    assert_equal(expected, EventData.from_config(config))
+    assert_equal(expected, EventHarvestConfig.from_config(config))
   end
 
-  def test_event_data_to_config_hash
+  def test_to_config_hash
     connect_reply = {
-      'event_data' => {
+      'event_harvest_config' => {
         'report_period_ms' => 5000,
         'harvest_limits'   => {
           'analytic_event_data' => 833,
@@ -44,6 +42,6 @@ class EventDataTest < Minitest::Test
       :'error_collector.max_event_samples_stored' => 8,
       :event_report_period => 5
     }
-    assert_equal expected, EventData.to_config_hash(connect_reply)
+    assert_equal expected, EventHarvestConfig.to_config_hash(connect_reply)
   end
 end
