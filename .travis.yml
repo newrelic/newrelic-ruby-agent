@@ -6,6 +6,7 @@ services:
 
 language: ruby
 
+dist: precise
 sudo: required
 
 before_install:
