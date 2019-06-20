@@ -74,21 +74,19 @@ module NewRelic
           end
         end
 
+        EVENT_HARVEST_CONFIG_SUPPORTABILITY_METRIC_NAMES = {
+          :'analytics_events.max_samples_stored' => 'Supportability/EventHarvest/AnalyticEventData/HarvestLimit',
+          :'custom_insights_events.max_samples_stored' => 'Supportability/EventHarvest/CustomEventData/HarvestLimit',
+          :'error_collector.max_event_samples_stored'=> 'Supportability/EventHarvest/ErrorEventData/HarvestLimit',
+          :event_report_period => 'Supportability/EventHarvest/ReportPeriod'
+        }
+
         def add_event_harvest_config(merged_settings, connect_reply)
           if connect_reply['event_harvest_config']
             event_harvest_config = EventHarvestConfig.to_config_hash(connect_reply)
-            NewRelic::Agent.record_metric \
-              'Supportability/EventHarvest/AnalyticEventData/HarvestLimit',
-              event_harvest_config[:'analytics_events.max_samples_stored']
-            NewRelic::Agent.record_metric \
-              'Supportability/EventHarvest/CustomEventData/HarvestLimit',
-              event_harvest_config[:'custom_insights_events.max_samples_stored']
-            NewRelic::Agent.record_metric \
-              'Supportability/EventHarvest/ErrorEventData/HarvestLimit',
-              event_harvest_config[:'error_collector.max_event_samples_stored']
-            NewRelic::Agent.record_metric \
-              'Supportability/EventHarvest/ReportPeriod',
-              event_harvest_config[:event_report_period]
+            EVENT_HARVEST_CONFIG_SUPPORTABILITY_METRIC_NAMES.each do |config_key, metric_name|
+              NewRelic::Agent.record_metric metric_name, event_harvest_config[config_key]
+            end
 
             merged_settings.merge! event_harvest_config
           else
