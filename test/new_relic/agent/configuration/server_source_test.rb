@@ -118,6 +118,32 @@ module NewRelic::Agent::Configuration
       assert_metrics_recorded(["Supportability/Agent/Collector/MissingEventHarvestConfig"])
     end
 
+    def test_should_record_supportability_metric_on_invalid_event_harvest_interval
+      @config['event_harvest_config']['report_period_ms'] = 0
+      source = ServerSource.new(@config)
+
+      assert_metrics_recorded(["Supportability/Agent/Collector/MissingEventHarvestConfig"])
+      # Also, the server source should not have these values set, so the agent 
+      # will fall back to the default source
+      refute source[:'event_report_period']
+      refute source[:'error_collector.max_event_samples_stored']
+      refute source[:'custom_insights_events.max_samples_stored']
+      refute source[:'analytics_events.max_samples_stored']
+    end
+
+    def test_should_record_supportability_metric_on_invalid_event_max_samples_stored
+      @config['event_harvest_config']['harvest_limits']['error_event_data'] = -1
+      source = ServerSource.new(@config)
+
+      assert_metrics_recorded(["Supportability/Agent/Collector/MissingEventHarvestConfig"])
+      # Also, the server source should not have these values set, so the agent 
+      # will fall back to the default source
+      refute source[:'event_report_period']
+      refute source[:'error_collector.max_event_samples_stored']
+      refute source[:'custom_insights_events.max_samples_stored']
+      refute source[:'analytics_events.max_samples_stored']
+    end
+
     def test_should_disable_gated_features_when_server_says_to
       rsp = {
         'collect_errors' => false,

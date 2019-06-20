@@ -82,17 +82,28 @@ module NewRelic
         }
 
         def add_event_harvest_config(merged_settings, connect_reply)
-          if connect_reply['event_harvest_config']
-            event_harvest_config = EventHarvestConfig.to_config_hash(connect_reply)
-            EVENT_HARVEST_CONFIG_SUPPORTABILITY_METRIC_NAMES.each do |config_key, metric_name|
-              NewRelic::Agent.record_metric metric_name, event_harvest_config[config_key]
-            end
+          return unless event_harvest_config_is_valid connect_reply
 
-            merged_settings.merge! event_harvest_config
-          else
-            NewRelic::Agent.logger.warn "No event harvest config found " \
+          event_harvest_config = EventHarvestConfig.to_config_hash(connect_reply)
+          EVENT_HARVEST_CONFIG_SUPPORTABILITY_METRIC_NAMES.each do |config_key, metric_name|
+            NewRelic::Agent.record_metric metric_name, event_harvest_config[config_key]
+          end
+
+          merged_settings.merge! event_harvest_config
+        end
+
+        def event_harvest_config_is_valid connect_reply
+          event_harvest_config = connect_reply['event_harvest_config']
+
+          if event_harvest_config.nil? \
+              || event_harvest_config['harvest_limits'].values.min < 0 \
+              || (event_harvest_config['report_period_ms'] / 1000) <= 0
+            NewRelic::Agent.logger.warn "Invalid event harvest config found " \
                 "in connect response; using default event report period."
             NewRelic::Agent.record_metric('Supportability/Agent/Collector/MissingEventHarvestConfig', 1)
+            false
+          else
+            true
           end
         end
 
