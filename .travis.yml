@@ -15,6 +15,7 @@ before_install:
   - gem --version
   - ./test/script/before_install/update_rubygems.sh
   - rvm @global do gem uninstall bundler --all --executables || true
+  - gem uninstall bundler --all --executables || true
   - gem install bundler -v=1.17.3
   - ./test/script/before_install/gemstash_mirror.sh
   - bundle --version
