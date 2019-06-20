@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+* **Change to default setting for ActiveRecord connection resolution**
+
+  Due to continued incompatibilities between the faster ActiveRecord connection resolution
+  released in v6.3.0 of the agent and other gems which patch ActiveRecord,
+  `backport_fast_active_record_connection_lookup` will now be set to `false` by default,
+  enabling customers to decide whether this improvement is appropriate for their environment.
+
 * **Bugfix for ActiveStorage instrumentation error**
 
   Version 6.4.0 of the agent introduced a bug that interfered with ActiveStorage
@@ -7,10 +14,10 @@
 
 * **Bugfix for ActiveRecord 4.1 and 4.2 exception logging**
 
-  Version 6.3 of the agent introduced a bug that prevented ActiveRecord versions 4.1 
-  and 4.2 from logging exceptions that occurred within a database transaction.  This 
+  Version 6.3 of the agent introduced a bug that prevented ActiveRecord versions 4.1
+  and 4.2 from logging exceptions that occurred within a database transaction.  This
   version of the agent restores the exception logging functionality from previous agent
-  versions.  
+  versions.
   Thanks to Oleksiy Kovyrin for the contribution!
 
 ## v6.4.0
