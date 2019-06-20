@@ -1,5 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
+## v6.5.0
+
 * **Change to default setting for ActiveRecord connection resolution**
 
   Due to continued incompatibilities between the faster ActiveRecord connection resolution
@@ -14,7 +16,7 @@
 
 * **Bugfix for ActiveRecord 4.1 and 4.2 exception logging**
 
-  Version 6.3 of the agent introduced a bug that prevented ActiveRecord versions 4.1
+  Version 6.3.0 of the agent introduced a bug that prevented ActiveRecord versions 4.1
   and 4.2 from logging exceptions that occurred within a database transaction.  This
   version of the agent restores the exception logging functionality from previous agent
   versions.
