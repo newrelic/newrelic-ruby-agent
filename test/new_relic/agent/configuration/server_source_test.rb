@@ -8,6 +8,7 @@ require 'new_relic/agent/configuration/server_source'
 module NewRelic::Agent::Configuration
   class ServerSourceTest < Minitest::Test
     def setup
+      NewRelic::Agent.instance.stats_engine.reset!
       @config = {
         'agent_config' => {
           'slow_sql.enabled'                         => true,
@@ -15,7 +16,7 @@ module NewRelic::Agent::Configuration
           'transaction_tracer.record_sql'            => 'raw',
           'error_collector.enabled'                  => true
         },
-        'event_data' => {
+        'event_harvest_config' => {
           'report_period_ms' => 5000,
           'harvest_limits'   => {
             'analytic_event_data' => 833,
@@ -91,17 +92,30 @@ module NewRelic::Agent::Configuration
 
     def test_should_set_analytics_events_max_samples
       assert_equal 833, @source[:'analytics_events.max_samples_stored']
+      assert_metrics_recorded({"Supportability/EventHarvest/AnalyticEventData/HarvestLimit" => {total_call_time: 833}})
+    end
+
+    def test_should_set_custom_events_max_samples
+      assert_equal 833, @source[:'custom_insights_events.max_samples_stored']
+      assert_metrics_recorded({"Supportability/EventHarvest/CustomEventData/HarvestLimit" => {total_call_time: 833}})
+    end
+
+    def test_should_set_error_events_max_samples
+      assert_equal 8, @source[:'error_collector.max_event_samples_stored']
+      assert_metrics_recorded({"Supportability/EventHarvest/ErrorEventData/HarvestLimit" => {total_call_time: 8}})
     end
 
     def test_should_set_event_report_period
       assert_equal 5, @source[:'event_report_period']
+      assert_metrics_recorded({"Supportability/EventHarvest/ReportPeriod" => {total_call_time: 5}})
     end
 
-    def test_should_record_supportability_metric_on_missing_event_data
-      @config.delete :event_data
+    def test_should_record_supportability_metric_on_missing_event_harvest_config
+      NewRelic::Agent.instance.stats_engine.reset!
+      @config.delete "event_harvest_config"
       source = ServerSource.new(@config)
 
-      assert_metrics_recorded(["Supportability/Agent/Collector/MissingEventData"])
+      assert_metrics_recorded(["Supportability/Agent/Collector/MissingEventHarvestConfig"])
     end
 
     def test_should_disable_gated_features_when_server_says_to
