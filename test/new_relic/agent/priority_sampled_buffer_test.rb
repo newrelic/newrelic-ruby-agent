@@ -148,6 +148,18 @@ module NewRelic::Agent
       assert_equal(5, buffer.num_dropped)
     end
 
+    def test_append_with_zero_capacity
+      buffer = PrioritySampledBuffer.new 0
+
+      buffer.append event: create_event
+
+      assert_equal 1, buffer.num_dropped
+      assert_equal 0, buffer.size
+
+      assert_equal 1, buffer.seen_lifetime
+      assert_equal 0, buffer.captured_lifetime
+    end
+
     def test_reset_resets_drop_count
       buffer = PrioritySampledBuffer.new(5)
 

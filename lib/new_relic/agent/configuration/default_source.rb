@@ -1222,11 +1222,11 @@ module NewRelic
           :description => 'Controls whether to normalize string encodings prior to serializing data for the collector to JSON.'
         },
         :backport_fast_active_record_connection_lookup => {
-          :default => true,
+          :default => false,
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Enables patching of "sql.active_record" AS Notification to include :connection in payload.'
+          :description => 'Enables patching of "sql.active_record" AS Notification to include :connection in payload. Note that this setting may not be compatible with other gems that patch ActiveRecord.'
         },
         :disable_vm_sampler => {
           :default      => false,

@@ -412,18 +412,10 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_still_records_metrics_in_error_cases
-    # have the AR select throw an error
-    Order.connection.stubs(:log_info).with do |sql, *|
-      raise "Error" if sql =~ /select/
-      true
-    end
-
-    in_web_transaction do
-      begin
-        Order.connection.select_rows "select * from #{Order.table_name}"
-      rescue RuntimeError => e
-        # catch only the error we raise above
-        raise unless e.message == 'Error'
+    # Let's trigger an active record SQL StatemntInvalid error
+    assert_raises ::ActiveRecord::StatementInvalid do 
+      in_web_transaction do
+        Order.connection.select_rows "select * from askdjfhkajsdhflkjh"
       end
     end
 
@@ -431,13 +423,14 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_passes_through_errors
-    begin
+    to_raise = ActiveRecord::ActiveRecordError.new('preserve-me!')
+    actually_raised = assert_raises ActiveRecord::ActiveRecordError do
       Order.transaction do
-        raise ActiveRecord::ActiveRecordError.new('preserve-me!')
+        raise to_raise
       end
-    rescue ActiveRecord::ActiveRecordError => e
-      assert_equal 'preserve-me!', e.message
     end
+
+    assert_same to_raise, actually_raised
   end
 
   def test_only_supportability_metrics_recorded_with_disable_all_tracing

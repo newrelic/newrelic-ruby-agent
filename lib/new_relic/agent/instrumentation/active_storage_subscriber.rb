@@ -25,11 +25,11 @@ module NewRelic
           segment = Tracer.start_segment name: metric_name(name, payload)
           segment.params[:key] = payload[:key]
           segment.params[:exist] = payload[:exist] if payload.key? :exist
-          event_stack[id].push segment
+          push_segment id, segment
         end
 
         def finish_segment id
-          segment = event_stack[id].pop
+          segment = pop_segment id
           segment.finish if segment
         end
 

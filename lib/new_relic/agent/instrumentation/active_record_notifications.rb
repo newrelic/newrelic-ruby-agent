@@ -13,18 +13,13 @@ module NewRelic
   module Agent
     module Instrumentation
       module ActiveRecordNotifications
-        module BaseExtensions41
-          def self.included(base)
-            base.class_eval do
-              alias_method :log_without_performance_improvement, :log
-              alias_method :log, :log_with_performance_improvement
-            end
-          end
+        SQL_ACTIVE_RECORD = 'sql.active_record'.freeze
 
+        module BaseExtensions4x
           # https://github.com/rails/rails/blob/4-1-stable/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb#L371
-          def log_with_performance_improvement(sql, name = "SQL", binds = [], statement_name = nil)
+          def log(sql, name = "SQL", binds = [], statement_name = nil)
             @instrumenter.instrument(
-              "sql.active_record",
+              SQL_ACTIVE_RECORD,
               :sql            => sql,
               :name           => name,
               :connection_id  => object_id,
@@ -32,22 +27,20 @@ module NewRelic
               :statement_name => statement_name,
               :binds          => binds) { yield }
           rescue => e
-            raise translate_exception(e, sql)
+            # The translate_exception_class method got introduced in 4.1
+            if ::ActiveRecord::VERSION::MINOR == 0
+              raise translate_exception(e, sql)
+            else
+              raise translate_exception_class(e, sql)
+            end
           end
         end
 
         module BaseExtensions50
-          def self.included(base)
-            base.class_eval do
-              alias_method :log_without_performance_improvement, :log
-              alias_method :log, :log_with_performance_improvement
-            end
-          end
-
           # https://github.com/rails/rails/blob/5-0-stable/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb#L582
-          def log_with_performance_improvement(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil)
+          def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil)
             @instrumenter.instrument(
-              "sql.active_record",
+              SQL_ACTIVE_RECORD,
               sql:               sql,
               name:              name,
               binds:             binds,
@@ -61,17 +54,10 @@ module NewRelic
         end
 
         module BaseExtensions51
-          def self.included(base)
-            base.class_eval do
-              alias_method :log_without_performance_improvement, :log
-              alias_method :log, :log_with_performance_improvement
-            end
-          end
-
           # https://github.com/rails/rails/blob/5-1-stable/activerecord/lib/active_record/connection_adapters/abstract_adapter.rb#L603
-          def log_with_performance_improvement(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
+          def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
             @instrumenter.instrument(
-              "sql.active_record",
+              SQL_ACTIVE_RECORD,
               sql:               sql,
               name:              name,
               binds:             binds,
@@ -154,19 +140,19 @@ DependencyDetection.defer do
 
   executes do
     if NewRelic::Agent.config[:backport_fast_active_record_connection_lookup]
+      major_version = ::ActiveRecord::VERSION::MAJOR.to_i
+      minor_version = ::ActiveRecord::VERSION::MINOR.to_i
 
-      activerecord_extension = if ::ActiveRecord::VERSION::MAJOR.to_i == 4
-        ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions41
-      elsif ::ActiveRecord::VERSION::MAJOR.to_i == 5
-        if ::ActiveRecord::VERSION::MINOR.to_i == 0
-          ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions50
-        elsif ::ActiveRecord::VERSION::MINOR.to_i >= 1
-          ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions51
-        end
+      activerecord_extension = if major_version == 4
+        ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions4x
+      elsif major_version == 5 && minor_version == 0
+        ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions50
+      elsif major_version == 5 && minor_version == 1
+        ::NewRelic::Agent::Instrumentation::ActiveRecordNotifications::BaseExtensions51
       end
 
       unless activerecord_extension.nil?
-        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:include, activerecord_extension)
+        ::ActiveRecord::ConnectionAdapters::AbstractAdapter.send(:prepend, activerecord_extension)
       end
     end
   end
