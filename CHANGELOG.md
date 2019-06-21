@@ -4,15 +4,22 @@
 
 * **Change to default setting for ActiveRecord connection resolution**
 
-  Due to continued incompatibilities between the faster ActiveRecord connection resolution
+  Due to incompatibilities between the faster ActiveRecord connection resolution
   released in v6.3.0 of the agent and other gems which patch ActiveRecord,
-  `backport_fast_active_record_connection_lookup` will now be set to `false` by default,
-  enabling customers to decide whether this improvement is appropriate for their environment.
+  `backport_fast_active_record_connection_lookup` will now be set to `false` by default.
+  Because it results in a significant performance improvement, we recommend customers
+  whose environments include ActiveRecord change this setting to `true`
+  _unless_ they are using other gems which measure ActiveRecord performance, which may
+  lose functionality when combined with this setting. If unsure whether to enable
+  `backport_fast_active_record_connection_lookup`, we recommend enabling it in a
+  development environment to make sure other gems which patch ActiveRecord are still
+  working as expected.
 
 * **Bugfix for ActiveStorage instrumentation error**
 
   Version 6.4.0 of the agent introduced a bug that interfered with ActiveStorage
-  callbacks. ActiveStorage segments are now correctly recorded.
+  callbacks, resulting in the agent being unable to instrument ActiveStorage operations.
+  ActiveStorage segments are now correctly recorded.
 
 * **Bugfix for ActiveRecord 4.1 and 4.2 exception logging**
 
