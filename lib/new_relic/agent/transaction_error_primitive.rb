@@ -54,8 +54,8 @@ module NewRelic
         if payload
           attrs[NAME_KEY] = payload[:name]
           attrs[DURATION_KEY] = payload[:duration]
-          attrs[SAMPLED_KEY] = payload[:'sampled'] if Agent.config[:'distributed_tracing.enabled']
-          attrs[PRIORITY_KEY] = payload[:'priority']
+          attrs[SAMPLED_KEY] = payload[:sampled] if payload.key?(:sampled)
+          attrs[PRIORITY_KEY] = payload[:priority]
           append_synthetics payload, attrs
           append_cat payload, attrs
           append_distributed_trace_intrinsics payload, attrs

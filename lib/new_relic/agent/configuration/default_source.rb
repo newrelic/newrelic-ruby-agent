@@ -1913,6 +1913,13 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => true,
           :description => 'Defines the maximum number of span events reported from a single harvest.'
+        },
+        :'trace_context.enabled' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Uses W3C trace context for context propagation.'
         }
       }.freeze
     end

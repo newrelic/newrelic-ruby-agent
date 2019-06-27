@@ -12,8 +12,7 @@ module NewRelic
           nr_freeze_time
 
           @config = {
-            #@todo: we need a flag for trace_context enabled, fix sampling
-            :'distributed_tracing.enabled' => true,
+            :'trace_context.enabled' => true,
             :account_id => "190",
             :primary_application_id => "46954",
             :trusted_account_key => "trust_this!"

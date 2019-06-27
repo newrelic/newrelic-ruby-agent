@@ -271,7 +271,7 @@ module NewRelic
       end
 
       def sampled?
-        return unless Agent.config[:'distributed_tracing.enabled']
+        return unless Agent.config[:'distributed_tracing.enabled'] || Agent.config[:'trace_context.enabled']
         if @sampled.nil?
           @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
         end
