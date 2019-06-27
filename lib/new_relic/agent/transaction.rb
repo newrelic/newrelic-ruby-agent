@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'securerandom'
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
