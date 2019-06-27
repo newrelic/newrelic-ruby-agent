@@ -33,14 +33,18 @@ module NewRelic
 
           carrier = {}
           trace_state = nil
+          trace_id = nil
+          parent_id = nil
 
-          t = in_transaction do |txn|
+          in_transaction do |txn|
             txn.sampled = true
             txn.insert_trace_context carrier: carrier
             trace_state = txn.trace_state
+            parent_id = txn.current_segment.guid
+            trace_id = txn.trace_id
           end
 
-          expected_trace_parent = "00-#{t.trace_id}-#{t.parent_id}-01"
+          expected_trace_parent = "00-#{trace_id}-#{parent_id}-01"
           assert_equal expected_trace_parent, carrier['traceparent']
 
           assert_equal trace_state, carrier['tracestate']

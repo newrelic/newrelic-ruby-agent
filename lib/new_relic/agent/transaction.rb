@@ -74,7 +74,8 @@ module NewRelic
                   :nesting_max_depth,
                   :segments,
                   :end_time,
-                  :duration
+                  :duration,
+                  :parent_transaction_id
 
       attr_writer :sampled,
                   :priority

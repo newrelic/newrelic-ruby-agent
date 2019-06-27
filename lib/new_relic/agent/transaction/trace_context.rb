@@ -12,7 +12,7 @@ module NewRelic
           NewRelic::Agent::TraceContext.insert \
             carrier: carrier,
             trace_id: trace_id,
-            parent_id: parent_id,
+            parent_id: current_segment.guid,
             trace_flags: sampled? ? 0x1 : 0x0,
             trace_state: trace_state
         end

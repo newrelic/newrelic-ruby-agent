@@ -214,7 +214,7 @@ module NewRelic
         transaction_payload[PARENT_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration
         transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid
         transaction_payload[TRACE_ID_INTRINSIC_KEY] = trace_id
-        transaction_payload[PARENT_ID_INTRINSIC_KEY] = transaction.parent_id if transaction.parent_id
+        transaction_payload[PARENT_ID_INTRINSIC_KEY] = transaction.parent_transaction_id if transaction.parent_transaction_id
         transaction_payload[PARENT_SPAN_ID_INTRINSIC_KEY] = id if id
         transaction_payload[SAMPLED_INTRINSIC_KEY] = transaction.sampled?
       end
