@@ -51,14 +51,6 @@ module NewRelic
           false
         end
 
-        def trace_id
-          if distributed_trace_payload
-            distributed_trace_payload.trace_id
-          else
-            guid
-          end
-        end
-
         def parent_id
           # The payload comes from our parent transaction, so its ID
           # is our parent ID.
@@ -189,6 +181,7 @@ module NewRelic
 
         def assign_payload_and_sampling_params(payload)
           self.distributed_trace_payload = payload
+          @trace_id = payload.trace_id
 
           unless payload.sampled.nil?
             self.sampled = payload.sampled

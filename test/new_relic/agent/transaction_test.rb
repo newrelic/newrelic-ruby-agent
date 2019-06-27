@@ -1446,6 +1446,13 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal "418", actual[:"httpResponseCode"]
   end
 
+  def test_trace_id
+    txn = in_transaction {}
+
+    refute_nil txn.trace_id
+    assert_equal 32, txn.trace_id.size
+  end
+
   def test_referer_in_agent_attributes
     request = stub('request', :referer => "/referered", :path => "/")
     txn = in_transaction(:request => request) do

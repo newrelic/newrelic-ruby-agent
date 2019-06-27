@@ -237,16 +237,16 @@ module NewRelic
           intrinsics  = result[:grandparent_intrinsics]
 
           assert_equal transaction.guid, intrinsics['guid']
-          assert_equal transaction.guid, intrinsics['traceId']
-          assert_nil                     intrinsics['parentId']
-          assert                         intrinsics['sampled']
+          assert_equal transaction.trace_id, intrinsics['traceId']
+          assert_nil intrinsics['parentId']
+          assert intrinsics['sampled']
 
           txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
 
           assert_equal transaction.guid, txn_intrinsics['guid']
-          assert_equal transaction.guid, intrinsics['traceId']
-          assert_nil                     txn_intrinsics['parentId']
-          assert                         txn_intrinsics['sampled']
+          assert_equal transaction.trace_id, intrinsics['traceId']
+          assert_nil txn_intrinsics['parentId']
+          assert txn_intrinsics['sampled']
         end
 
         def test_initial_legacy_cat_request_trace_id_overwritten_by_first_distributed_trace_guid
@@ -269,10 +269,10 @@ module NewRelic
           end
 
           intrinsics, _, _ = last_transaction_event
-          assert_equal transaction.guid, intrinsics['traceId']
+          assert_equal transaction.trace_id, intrinsics['traceId']
 
-          txn_intrinsics = transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
-          assert_equal transaction.guid, intrinsics['traceId']
+          transaction.attributes.intrinsic_attributes_for AttributeFilter::DST_TRANSACTION_TRACER
+          assert_equal transaction.trace_id, intrinsics['traceId']
         end
 
         def test_intrinsics_assigned_to_transaction_event_from_distributed_trace

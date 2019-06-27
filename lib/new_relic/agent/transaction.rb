@@ -277,6 +277,10 @@ module NewRelic
         @sampled
       end
 
+      def trace_id
+        @trace_id ||= SecureRandom.hex(16)
+      end
+
       def priority
         if @priority.nil?
           @priority = rand.round(6)
