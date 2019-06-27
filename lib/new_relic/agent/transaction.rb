@@ -8,6 +8,7 @@ require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/attributes'
 require 'new_relic/agent/transaction/request_attributes'
 require 'new_relic/agent/transaction/tracing'
+require 'new_relic/agent/transaction/trace_context'
 require 'new_relic/agent/transaction/distributed_tracing'
 require 'new_relic/agent/cross_app_tracing'
 require 'new_relic/agent/transaction_time_aggregator'
@@ -22,6 +23,7 @@ module NewRelic
     # @api public
     class Transaction
       include Tracing
+      include TraceContext
       include DistributedTracing
       include CrossAppTracing
 
