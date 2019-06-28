@@ -335,6 +335,23 @@ module NewRelic
           assert request.headers.key?("X-NewRelic-Transaction"), "Expected to find X-NewRelic-Transaction header"
         end
 
+        def test_segment_writes_outbound_request_headers_for_trace_context
+          request = RequestWrapper.new
+          with_config trace_context_config do
+            in_transaction :category => :controller do
+              segment = Tracer.start_external_request_segment(
+                library: "Net::HTTP",
+                uri: "http://remotehost.com/blogs/index",
+                procedure: "GET"
+              )
+              segment.add_request_headers request
+              segment.finish
+            end
+          end
+          assert request.headers.key?("traceparent"), "Expected to find traceparent header"
+          assert request.headers.key?("tracestate"), "Expected to find tracestate header"
+        end
+
         def test_segment_writes_synthetics_header_for_synthetics_txn
           request = RequestWrapper.new
           with_config cat_config do
@@ -782,6 +799,17 @@ module NewRelic
           {
             :'distributed_tracing.enabled'      => true,
             :'cross_application_tracer.enabled' => false
+          }
+        end
+
+        def trace_context_config
+          {
+            :'distributed_tracing.enabled'      => false,
+            :'cross_application_tracer.enabled' => false,
+            :'trace_context.enabled'            => true,
+            :account_id                         => "190",
+            :primary_application_id             => "46954",
+            :trusted_account_key                => "trust_this!"
           }
         end
 
