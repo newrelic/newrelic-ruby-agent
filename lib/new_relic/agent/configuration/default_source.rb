@@ -1223,10 +1223,10 @@ module NewRelic
         },
         :backport_fast_active_record_connection_lookup => {
           :default => false,
-          :public => false,
+          :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Enables patching of "sql.active_record" AS Notification to include :connection in payload. Note that this setting may not be compatible with other gems that patch ActiveRecord.'
+          :description => 'Backports the faster ActiveRecord connection lookup introduced in Rails 6, which improves agent performance when instrumenting ActiveRecord. Note that this setting may not be compatible with other gems that patch ActiveRecord.'
         },
         :disable_vm_sampler => {
           :default      => false,
