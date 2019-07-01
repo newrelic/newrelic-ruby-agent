@@ -51,7 +51,7 @@ module NewRelic
         PRIORITY_KEY  => payload[:priority]
         }
 
-        intrinsics[SAMPLED_KEY] = payload[:'sampled'] if payload.key?(:sampled)
+        intrinsics[SAMPLED_KEY] = payload[:sampled] if payload.key?(:sampled)
 
         NewRelic::Agent::PayloadMetricMapping.append_mapped_metrics(payload[:metrics], intrinsics)
         append_optional_attributes(intrinsics, payload)

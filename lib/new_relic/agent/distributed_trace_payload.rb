@@ -40,7 +40,7 @@ module NewRelic
       PARENT_TRANSPORT_DURATION_INTRINSIC_KEY  = "parent.transportDuration".freeze
       GUID_INTRINSIC_KEY                       = "guid".freeze
       TRACE_ID_INTRINSIC_KEY                   = "traceId".freeze
-      PARENT_ID_INTRINSIC_KEY                  = "parentId".freeze
+      PARENT_TRANSACTION_ID_INTRINSIC_KEY      = "parentId".freeze
       PARENT_SPAN_ID_INTRINSIC_KEY             = "parentSpanId".freeze
       SAMPLED_INTRINSIC_KEY                    = "sampled".freeze
       COMMA                                    = ",".freeze
@@ -53,7 +53,7 @@ module NewRelic
         PARENT_TRANSPORT_DURATION_INTRINSIC_KEY,
         GUID_INTRINSIC_KEY,
         TRACE_ID_INTRINSIC_KEY,
-        PARENT_ID_INTRINSIC_KEY,
+        PARENT_TRANSACTION_ID_INTRINSIC_KEY,
         PARENT_SPAN_ID_INTRINSIC_KEY,
         SAMPLED_INTRINSIC_KEY
       ].freeze
@@ -214,7 +214,9 @@ module NewRelic
         transaction_payload[PARENT_TRANSPORT_DURATION_INTRINSIC_KEY] = transaction.transport_duration
         transaction_payload[GUID_INTRINSIC_KEY] = transaction.guid
         transaction_payload[TRACE_ID_INTRINSIC_KEY] = trace_id
-        transaction_payload[PARENT_ID_INTRINSIC_KEY] = transaction.parent_transaction_id if transaction.parent_transaction_id
+        if transaction.parent_transaction_id
+          transaction_payload[PARENT_TRANSACTION_ID_INTRINSIC_KEY] = transaction.parent_transaction_id
+        end
         transaction_payload[PARENT_SPAN_ID_INTRINSIC_KEY] = id if id
         transaction_payload[SAMPLED_INTRINSIC_KEY] = transaction.sampled?
       end

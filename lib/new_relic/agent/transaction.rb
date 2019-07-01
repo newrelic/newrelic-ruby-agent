@@ -586,7 +586,7 @@ module NewRelic
         end
 
         if Agent.config[:'distributed_tracing.enabled']
-          assign_distributed_trace_intrinsics
+          assign_distributed_trace_intrinsics @payload
         elsif is_cross_app?
           assign_cross_app_intrinsics
         end
