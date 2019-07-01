@@ -24,6 +24,22 @@ module NewRelic
         assert_equal "00-#{trace_id}-#{parent_id}-01", carrier['traceparent']
         assert_equal trace_state, carrier['tracestate']
       end
+
+      def test_parse
+        carrier = {
+          'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01'
+        }
+
+        tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_TEXT_MAP,
+                                               carrier: carrier
+
+        traceparent = tracecontext_data.traceparent
+
+        assert_equal '00', traceparent['version']
+        assert_equal 'a8e67265afe2773a3c611b94306ee5c2', traceparent['trace_id']
+        assert_equal 'fb1010463ea28a38', traceparent['parent_id']
+        assert_equal '01', traceparent['trace_flags']
+      end
     end
   end
 end
