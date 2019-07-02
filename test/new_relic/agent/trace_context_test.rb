@@ -9,6 +9,22 @@ require 'new_relic/agent/distributed_trace_payload'
 module NewRelic
   module Agent
     class TraceContextTest < Minitest::Test
+
+      def setup
+        @config = {
+          :account_id => "190",
+          :primary_application_id => "46954",
+          :disable_harvest_thread => true
+        }
+
+        NewRelic::Agent.config.add_config_for_testing(@config)
+      end
+
+      def teardown
+        NewRelic::Agent.config.remove_config(@config)
+        NewRelic::Agent.config.reset_to_defaults
+      end
+
       def test_insert
         carrier = {}
         trace_id = 'a8e67265afe2773a3c611b94306ee5c2'
@@ -27,18 +43,7 @@ module NewRelic
       end
 
       def test_parse
-        @config = {
-          :account_id => "190",
-          :primary_application_id => "46954"
-        }
-
-        NewRelic::Agent.config.add_config_for_testing(@config)
-
-        payload = nil
-
-        in_transaction "test_txn" do |txn|
-          payload = DistributedTracePayload.for_transaction txn
-        end
+        payload = make_payload
 
         carrier = {
           'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
@@ -58,6 +63,36 @@ module NewRelic
         assert_nil tracecontext_data.tenant_id
         assert_equal payload.text, tracecontext_data.tracestate_entry.text
         assert_equal ['other=asdf'], tracecontext_data.tracestate
+      end
+
+      def test_parse_tracestate_no_other_entries
+        payload = make_payload
+        carrier = make_inbound_carrier({'tracestate' => "nr=#{payload.http_safe}"})
+        tracecontext_data = TraceContext.parse format: TraceContext::TextMapFormat,
+                                               carrier: carrier
+        assert_equal payload.text, tracecontext_data.tracestate_entry.text
+        assert_equal [], tracecontext_data.tracestate
+      end
+
+      def test_parse_tracestate_no_nr_entry
+        carrier = make_inbound_carrier
+        tracecontext_data = TraceContext.parse format: TraceContext::TextMapFormat,
+                                               carrier: carrier
+        assert_equal nil, tracecontext_data.tracestate_entry
+        assert_equal ['other=asdf'], tracecontext_data.tracestate
+      end
+
+      def make_inbound_carrier options = {}
+        {
+          'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+          'tracestate'  => "other=asdf"
+        }.update(options)
+      end
+
+      def make_payload
+        in_transaction "test_txn" do |txn|
+          return DistributedTracePayload.for_transaction txn
+        end
       end
     end
   end

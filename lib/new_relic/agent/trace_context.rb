@@ -10,7 +10,7 @@ module NewRelic
       VERSION = 0x0
 
       TRACEPARENT_REGEX = /\A(?<version>\d{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})\z/.freeze
-      TRACE_ENTRY_REGEX = /((?<tenant_id>[a-z0-9]+)[@])?nr=(?<payload>.+)/.freeze
+      TRACE_ENTRY_REGEX = /(?:([a-z0-9]+)@)?nr=(.+)/.freeze
 
       module RackFormat
         TRACEPARENT = 'HTTP_TRACEPARENT'.freeze
@@ -68,16 +68,22 @@ module NewRelic
         def extract_tracestate format, carrier
           header_name = format::TRACESTATE
           header = carrier[header_name]
-          nr_entry = nil
+          tenant_id = nil
+          payload = nil
 
-          tracestate = header.split(',').reject! do |entry|
+          tracestate = header.split(',')
+          tracestate.reject! do |entry|
             if matchdata = entry.match(TRACE_ENTRY_REGEX)
-              nr_entry = matchdata.named_captures
+              tenant_id, payload = matchdata.captures
               true
             end
           end
 
-          return nr_entry['tenant_id'], DistributedTracePayload.from_http_safe(nr_entry['payload']), tracestate
+          [
+            tenant_id,
+            payload ? DistributedTracePayload.from_http_safe(payload) : nil,
+            tracestate
+          ]
         end
       end
     end
