@@ -2,19 +2,25 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/distributed_trace_payload'
+
 module NewRelic
   module Agent
     class TraceContext
       VERSION     = 0x0
-      TRACEPARENT = 'traceparent'.freeze
-      TRACESTATE  = 'tracestate'.freeze
-
-      TRACEPARENT_RACK = 'HTTP_TRACEPARENT'.freeze
-
-      FORMAT_TEXT_MAP = 0
-      FORMAT_RACK     = 1
 
       TRACEPARENT_REGEX = /\A(?<version>\d{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})\z/
+      TRACE_ENTRY_REGEX = /(?<tenant_id>[a-z0-9]+)[@]nr=(?<payload>.+)/
+
+      module RackFormat
+        TRACEPARENT = 'HTTP_TRACEPARENT'.freeze
+        TRACESTATE = 'HTTP_TRACESTATE'.freeze
+      end
+
+      module TextMapFormat
+        TRACEPARENT = 'traceparent'.freeze
+        TRACESTATE  = 'tracestate'.freeze
+      end
 
       class << self
         def insert carrier: nil,
@@ -23,12 +29,12 @@ module NewRelic
                    trace_flags: nil,
                    trace_state: nil
 
-          carrier[TRACEPARENT] = format_trace_parent \
+          carrier[TextMapFormat::TRACEPARENT] = format_trace_parent \
             trace_id: trace_id,
             parent_id: parent_id,
             trace_flags: trace_flags
 
-          carrier[TRACESTATE] = trace_state if trace_state
+          carrier[TextMapFormat::TRACESTATE] = trace_state if trace_state
         end
 
 
@@ -37,9 +43,9 @@ module NewRelic
         def parse format: FORMAT_TEXT_MAP,
                   carrier: nil
           traceparent = extract_traceparent format, carrier
-          tracestate_entry = nil
-          tracestate = nil
-          Data.new traceparent, tracestate_entry, tracestate
+          tenant_id, tracestate_entry, tracestate = extract_tracestate format, carrier
+
+          Data.new traceparent, tenant_id, tracestate_entry, tracestate
         end
 
         private
@@ -55,41 +61,39 @@ module NewRelic
         end
 
         def extract_traceparent format, carrier
-          header_name = traceparent_header_for_format format
+          header_name = format::TRACEPARENT
           header = carrier[header_name]
           if matchdata = header.match(TRACEPARENT_REGEX)
             matchdata.named_captures
           end
         end
 
-        def traceparent_header_for_format format
-          if format == FORMAT_RACK
-            TRACEPARENT_RACK
-          else
-            TRACEPARENT
+        def extract_tracestate format, carrier
+          header_name = format::TRACESTATE
+          header = carrier[header_name]
+          nr_entry = nil
+
+          tracestate = header.split(',').reject! do |entry|
+            if matchdata = entry.match(TRACE_ENTRY_REGEX)
+              nr_entry = matchdata.named_captures
+              true
+            end
           end
+
+          return nr_entry['tenant_id'], DistributedTracePayload.from_http_safe(nr_entry['payload']), tracestate
         end
       end
     end
 
     class Data
-      def initialize traceparent, tracestate_entry, tracestate
+      def initialize traceparent, tenant_id, tracestate_entry, tracestate
         @traceparent = traceparent
         @tracestate_entry = tracestate_entry
         @tracestate = tracestate
-      end
-      # hash trace_id,parent_id,trace_flags,version
-      def traceparent
-        @traceparent
+        @tenant_id = tenant_id
       end
 
-      # our tracestate entry, decoded, if there was one
-      def tracestate_entry
-      end
-
-      # a pruned and ready to append to, string representation of tracestate
-      def tracestate
-      end
+      attr_reader :traceparent, :tracestate_entry, :tracestate, :tenant_id
     end
   end
 end
