@@ -52,7 +52,7 @@ module NewRelic
           assert_equal trace_state, carrier['tracestate']
         end
 
-        def test_accept_trace_context
+        def test_accept_trace_context_no_new_relic_parent
           traceparent = "00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01"
           tenant_id = nil
           tracestate_entry = nil
@@ -66,6 +66,7 @@ module NewRelic
           end
 
           assert_same trace_context_data, t.trace_context
+          assert_nil t.parent_transaction_id
         end
 
         def test_accept_trace_state_actually_sets_transaction_attributes
