@@ -38,7 +38,7 @@ module NewRelic
           carrier[format::TRACESTATE] = trace_state if trace_state
         end
 
-        def parse format: FORMAT_TEXT_MAP,
+        def parse format: TextMapFormat,
                   carrier: nil
           traceparent = extract_traceparent format, carrier
           tenant_id, tracestate_entry, tracestate = extract_tracestate format, carrier
