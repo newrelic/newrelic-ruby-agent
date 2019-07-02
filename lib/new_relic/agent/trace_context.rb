@@ -23,18 +23,19 @@ module NewRelic
       end
 
       class << self
-        def insert carrier: nil,
+        def insert format: RackFormat,
+                   carrier: nil,
                    parent_id: nil,
                    trace_id: nil,
                    trace_flags: nil,
                    trace_state: nil
 
-          carrier[TextMapFormat::TRACEPARENT] = format_trace_parent \
+          carrier[format::TRACEPARENT] = format_trace_parent \
             trace_id: trace_id,
             parent_id: parent_id,
             trace_flags: trace_flags
 
-          carrier[TextMapFormat::TRACESTATE] = trace_state if trace_state
+          carrier[format::TRACESTATE] = trace_state if trace_state
         end
 
         def parse format: FORMAT_TEXT_MAP,

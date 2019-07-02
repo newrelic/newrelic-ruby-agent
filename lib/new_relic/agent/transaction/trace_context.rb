@@ -10,8 +10,11 @@ module NewRelic
       attr_accessor :trace_context
 
       module TraceContext
-        def insert_trace_context carrier: nil
+        def insert_trace_context \
+            format: NewRelic::Agent::TraceContext::TextMapFormat,
+            carrier: nil
           NewRelic::Agent::TraceContext.insert \
+            format: format,
             carrier: carrier,
             trace_id: trace_id,
             parent_id: current_segment.guid,

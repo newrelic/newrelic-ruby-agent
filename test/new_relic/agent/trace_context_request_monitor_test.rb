@@ -4,6 +4,7 @@
 
 require File.expand_path('../../../test_helper', __FILE__)
 require 'new_relic/agent/trace_context_request_monitor'
+require 'new_relic/agent/trace_context'
 
 module NewRelic
   module Agent
@@ -27,6 +28,20 @@ module NewRelic
 
       def teardown
         NewRelic::Agent.config.reset_to_defaults
+      end
+
+      def test_accepts_trace_context
+        carrier = {}
+
+        in_transaction "referring_txn" do |txn|
+          txn.insert_trace_context format: TraceContext::RackFormat,
+                                   carrier: carrier
+        end
+
+        in_transaction "receiving_txn" do |txn|
+          @events.notify(:before_call, carrier)
+          refute_nil txn.trace_context
+        end
       end
     end
   end
