@@ -4,6 +4,8 @@
 
 require File.expand_path '../../../../test_helper', __FILE__
 
+require 'new_relic/agent/trace_context'
+
 module NewRelic
   module Agent
     class Transaction
@@ -15,7 +17,8 @@ module NewRelic
             :'trace_context.enabled' => true,
             :account_id => "190",
             :primary_application_id => "46954",
-            :trusted_account_key => "trust_this!"
+            :trusted_account_key => "trust_this!",
+            :disable_harvest_thread => true
           }
 
           NewRelic::Agent.config.add_config_for_testing(@config)
@@ -47,6 +50,22 @@ module NewRelic
           assert_equal expected_trace_parent, carrier['traceparent']
 
           assert_equal trace_state, carrier['tracestate']
+        end
+
+        def test_accept_trace_context
+          traceparent = "00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01"
+          tenant_id = nil
+          tracestate_entry = nil
+          tracestate = "other=asdf"
+
+          trace_context_data = NewRelic::Agent::TraceContext::Data.new \
+              traceparent, tenant_id, tracestate_entry, tracestate
+
+          t = in_transaction do |txn|
+            txn.accept_trace_context trace_context_data
+          end
+
+          assert_same trace_context_data, t.trace_context
         end
       end
     end

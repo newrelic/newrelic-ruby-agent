@@ -7,6 +7,8 @@ require 'new_relic/agent/distributed_trace_payload'
 module NewRelic
   module Agent
     class Transaction
+      attr_accessor :trace_context
+
       module TraceContext
         def insert_trace_context carrier: nil
           NewRelic::Agent::TraceContext.insert \
@@ -24,6 +26,11 @@ module NewRelic
 
         def create_trace_state_entry
           DistributedTracePayload.for_transaction self
+        end
+
+        def accept_trace_context trace_context
+          return unless Agent.config[:'trace_context.enabled']
+          self.trace_context = trace_context
         end
       end
     end

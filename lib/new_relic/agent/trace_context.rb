@@ -86,17 +86,16 @@ module NewRelic
           ]
         end
       end
-    end
+      class Data
+        def initialize traceparent, tenant_id, tracestate_entry, tracestate
+          @traceparent = traceparent
+          @tracestate_entry = tracestate_entry
+          @tracestate = tracestate
+          @tenant_id = tenant_id
+        end
 
-    class Data
-      def initialize traceparent, tenant_id, tracestate_entry, tracestate
-        @traceparent = traceparent
-        @tracestate_entry = tracestate_entry
-        @tracestate = tracestate
-        @tenant_id = tenant_id
+        attr_reader :traceparent, :tracestate_entry, :tracestate, :tenant_id
       end
-
-      attr_reader :traceparent, :tracestate_entry, :tracestate, :tenant_id
     end
   end
 end
