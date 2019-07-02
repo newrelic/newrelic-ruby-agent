@@ -67,7 +67,26 @@ module NewRelic
 
           assert_same trace_context_data, t.trace_context
         end
-      end
+
+        def test_accept_trace_state_actually_sets_transaction_attributes
+          carrier = {}
+
+          parent_txn = in_transaction 'parent' do |txn|
+            txn.sampled = true
+            txn.insert_trace_context carrier: carrier
+          end
+
+          trace_context_data = NewRelic::Agent::TraceContext.parse carrier: carrier
+
+          child_txn = in_transaction 'new' do |txn|
+            txn.accept_trace_context trace_context_data
+          end
+
+          assert_equal parent_txn.guid, child_txn.parent_transaction_id
+          assert_equal parent_txn.trace_id, child_txn.trace_id
+          assert_equal parent_txn.sampled?, child_txn.sampled?
+          assert_equal parent_txn.priority, child_txn.priority
+        end
     end
   end
 end

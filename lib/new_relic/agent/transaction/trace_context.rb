@@ -33,7 +33,16 @@ module NewRelic
 
         def accept_trace_context trace_context
           return unless Agent.config[:'trace_context.enabled']
-          self.trace_context = trace_context
+          return unless payload = trace_context.tracestate_entry
+
+          @trace_context = trace_context
+          @trace_id = payload.trace_id
+          @parent_transaction_id = payload.transaction_id
+
+          if payload.sampled
+            self.sampled = payload.sampled
+            self.priority = payload.priority if payload.priority
+          end
         end
       end
     end
