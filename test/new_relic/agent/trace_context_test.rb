@@ -42,7 +42,7 @@ module NewRelic
 
         carrier = {
           'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-          'tracestate'  => "123456@nr=#{payload.http_safe},other=asdf"
+          'tracestate'  => "nr=#{payload.http_safe},other=asdf"
         }
 
         tracecontext_data = TraceContext.parse format: TraceContext::TextMapFormat,
@@ -55,7 +55,7 @@ module NewRelic
         assert_equal 'fb1010463ea28a38', traceparent['parent_id']
         assert_equal '01', traceparent['trace_flags']
 
-        assert_equal '123456', tracecontext_data.tenant_id
+        assert_nil tracecontext_data.tenant_id
         assert_equal payload.text, tracecontext_data.tracestate_entry.text
         assert_equal ['other=asdf'], tracecontext_data.tracestate
       end

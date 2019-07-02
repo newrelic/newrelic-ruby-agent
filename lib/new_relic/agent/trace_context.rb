@@ -7,10 +7,10 @@ require 'new_relic/agent/distributed_trace_payload'
 module NewRelic
   module Agent
     class TraceContext
-      VERSION     = 0x0
+      VERSION = 0x0
 
-      TRACEPARENT_REGEX = /\A(?<version>\d{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})\z/
-      TRACE_ENTRY_REGEX = /(?<tenant_id>[a-z0-9]+)[@]nr=(?<payload>.+)/
+      TRACEPARENT_REGEX = /\A(?<version>\d{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})\z/.freeze
+      TRACE_ENTRY_REGEX = /((?<tenant_id>[a-z0-9]+)[@])?nr=(?<payload>.+)/.freeze
 
       module RackFormat
         TRACEPARENT = 'HTTP_TRACEPARENT'.freeze
@@ -37,9 +37,6 @@ module NewRelic
           carrier[TextMapFormat::TRACESTATE] = trace_state if trace_state
         end
 
-
-
-        # return a TraceContext::Data
         def parse format: FORMAT_TEXT_MAP,
                   carrier: nil
           traceparent = extract_traceparent format, carrier
