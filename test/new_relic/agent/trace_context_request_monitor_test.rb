@@ -46,6 +46,28 @@ module NewRelic
         assert_equal parent_txn.guid, child_txn.parent_transaction_id
         assert_equal parent_txn.trace_id, child_txn.trace_id
       end
+
+      def test_does_not_accept_trace_context_if_no_trace_context_headers
+        carrier = {}
+        child_txn = in_transaction 'child' do |txn|
+          @events.notify(:before_call, carrier)
+        end
+
+        assert_nil child_txn.trace_context
+      end
+
+      def test_does_not_accept_malformed_trace_context
+        carrier ={
+          'HTTP_TRACESTATE' => 'alsdkfja;lskdjfa',
+          'HTTP_TRACEPARENT' => 'alkjhdsfasdf'
+        }
+
+        child_txn = in_transaction 'child' do |txn|
+          @events.notify(:before_call, carrier)
+        end
+
+        assert_nil child_txn.trace_context
+      end
     end
   end
 end

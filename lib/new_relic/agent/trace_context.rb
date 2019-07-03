@@ -41,6 +41,8 @@ module NewRelic
         def parse format: TextMapFormat,
                   carrier: nil
           traceparent = extract_traceparent format, carrier
+          return if traceparent.nil?
+
           tenant_id, tracestate_entry, tracestate = extract_tracestate format, carrier
 
           Data.new traceparent, tenant_id, tracestate_entry, tracestate
