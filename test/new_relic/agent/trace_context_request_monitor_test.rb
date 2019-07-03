@@ -31,12 +31,7 @@ module NewRelic
       end
 
       def test_accepts_trace_context
-        carrier = {}
-
-        parent_txn = in_transaction "referring_txn" do |txn|
-          txn.insert_trace_context format: TraceContext::RackFormat,
-                                   carrier: carrier
-        end
+        parent_txn, carrier = build_parent_transaction_headers
 
         child_txn = in_transaction "receiving_txn" do |txn|
           @events.notify(:before_call, carrier)
@@ -45,6 +40,22 @@ module NewRelic
         refute_nil child_txn.trace_context
         assert_equal parent_txn.guid, child_txn.parent_transaction_id
         assert_equal parent_txn.trace_id, child_txn.trace_id
+      end
+
+      def test_does_not_accept_trace_context_if_trace_context_disabled
+        with_config @config.merge({ :'trace_context.enabled' => false }) do 
+          _, carrier = build_parent_transaction_headers
+
+          child_txn = in_transaction "receiving_txn" do |txn|
+            @events.notify(:before_call, carrier)
+          end
+          assert_nil child_txn.trace_context
+        end
+      end
+
+      def test_does_not_accept_trace_context_if_not_in_transaction
+        _, carrier = build_parent_transaction_headers
+        assert_nil @monitor.on_before_call(carrier)
       end
 
       def test_does_not_accept_trace_context_if_no_trace_context_headers
@@ -67,6 +78,16 @@ module NewRelic
         end
 
         assert_nil child_txn.trace_context
+      end
+
+      def build_parent_transaction_headers
+        carrier = {}
+
+        parent_txn = in_transaction "referring_txn" do |txn|
+          txn.insert_trace_context format: TraceContext::RackFormat,
+                                   carrier: carrier
+        end
+        [parent_txn, carrier]
       end
     end
   end
