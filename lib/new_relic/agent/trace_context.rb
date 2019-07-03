@@ -17,7 +17,7 @@ module NewRelic
         TRACESTATE = 'HTTP_TRACESTATE'.freeze
       end
 
-      module TextMapFormat
+      module HttpFormat
         TRACEPARENT = 'traceparent'.freeze
         TRACESTATE  = 'tracestate'.freeze
       end
@@ -38,7 +38,7 @@ module NewRelic
           carrier[format::TRACESTATE] = trace_state if trace_state
         end
 
-        def parse format: TextMapFormat,
+        def parse format: HttpFormat,
                   carrier: nil
           traceparent = extract_traceparent format, carrier
           return if traceparent.nil?
