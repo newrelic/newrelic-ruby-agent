@@ -33,15 +33,18 @@ module NewRelic
       def test_accepts_trace_context
         carrier = {}
 
-        in_transaction "referring_txn" do |txn|
+        parent_txn = in_transaction "referring_txn" do |txn|
           txn.insert_trace_context format: TraceContext::RackFormat,
                                    carrier: carrier
         end
 
-        in_transaction "receiving_txn" do |txn|
+        child_txn = in_transaction "receiving_txn" do |txn|
           @events.notify(:before_call, carrier)
-          refute_nil txn.trace_context
         end
+
+        refute_nil child_txn.trace_context
+        assert_equal parent_txn.guid, child_txn.parent_transaction_id
+        assert_equal parent_txn.trace_id, child_txn.trace_id
       end
     end
   end
