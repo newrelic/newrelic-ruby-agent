@@ -89,6 +89,32 @@ module NewRelic
           assert_equal parent_txn.priority, child_txn.priority
         end
 
+        def test_do_not_accept_trace_context_if_trace_context_disabled
+          carrier = {}
+          disabled_config = @config.merge({
+            :'trace_context.enabled' => false
+          })
+          parent_txn = nil
+          child_txn = nil
+
+          with_config(disabled_config) do
+            parent_txn = in_transaction 'parent' do |txn|
+              txn.sampled = true
+              txn.insert_trace_context carrier: carrier
+            end
+
+            trace_context_data = NewRelic::Agent::TraceContext.parse carrier: carrier
+
+            child_txn = in_transaction 'child' do |txn|
+              txn.accept_trace_context trace_context_data
+            end
+          end
+
+          refute_equal parent_txn.guid, child_txn.parent_transaction_id
+          assert_nil child_txn.parent_transaction_id
+          refute_equal parent_txn.trace_id, child_txn.trace_id
+        end
+
         def test_do_not_accept_trace_context_with_mismatching_account_ids
           carrier = {}
           account_one = @config.merge({
@@ -102,7 +128,7 @@ module NewRelic
           txn_one = nil
           txn_two = nil
 
-          with_config(account_one) do 
+          with_config(account_one) do
             txn_one = in_transaction 'parent' do |txn|
               txn.sampled = true
               txn.insert_trace_context carrier: carrier
