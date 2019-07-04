@@ -53,13 +53,7 @@ module NewRelic
         end
 
         def test_accept_trace_context_no_new_relic_parent
-          traceparent = "00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01"
-          tenant_id = nil
-          tracestate_entry = nil
-          tracestate = "other=asdf"
-
-          trace_context_data = NewRelic::Agent::TraceContext::Data.new \
-              traceparent, tenant_id, tracestate_entry, tracestate
+          trace_context_data = make_trace_context_data
 
           t = in_transaction do |txn|
             txn.accept_trace_context trace_context_data
@@ -145,6 +139,68 @@ module NewRelic
           refute_equal txn_one.guid, txn_two.parent_transaction_id
           assert_nil txn_two.parent_transaction_id
           refute_equal txn_one.trace_id, txn_two.trace_id
+        end
+
+        def test_accept_trace_context_mismatching_account_ids_matching_trust_key
+          carrier = {}
+          account_one = @config.merge({
+            trusted_account_key: '500'
+          })
+          account_two = @config.merge({
+            account_id: '200',
+            primary_application_id: '190011',
+            trusted_account_key: '500'
+          })
+          txn_one = nil
+          txn_two = nil
+
+          with_config(account_one) do
+            txn_one = in_transaction 'parent' do |txn|
+              txn.sampled = true
+              txn.insert_trace_context carrier: carrier
+            end
+          end
+
+          trace_context_data = NewRelic::Agent::TraceContext.parse carrier: carrier
+          with_config(account_two) do
+            txn_two = in_transaction 'child' do |txn|
+              txn.accept_trace_context trace_context_data
+            end
+          end
+
+          assert_equal txn_one.guid, txn_two.parent_transaction_id
+          assert txn_two.parent_transaction_id
+          assert_equal txn_one.trace_id, txn_two.trace_id
+        end
+
+        def test_do_not_accept_trace_context_if_trace_context_already_accepted
+          in_transaction do |txn|
+            tracestate_entry = txn.create_trace_state_entry
+            trace_context_data = make_trace_context_data tracestate_entry: tracestate_entry
+
+            assert txn.accept_trace_context(trace_context_data), "Expected first trace context to be accepted"
+            refute txn.accept_trace_context(trace_context_data), "Expected second trace context not to be accepted"
+          end
+          assert_metrics_recorded "Supportability/AcceptTraceContext/Ignored/Multiple"
+        end
+
+        def test_do_not_accept_trace_context_if_txn_has_already_generated_trace_context
+          carrier = {}
+
+          in_transaction do |txn|
+            txn.insert_trace_context carrier: carrier
+            trace_context_data = make_trace_context_data
+
+            refute txn.accept_trace_context trace_context_data
+          end
+          assert_metrics_recorded "Supportability/AcceptTraceContext/Ignored/CreateBeforeAccept"
+        end
+
+        def make_trace_context_data traceparent: "00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01",
+                                    tenant_id: nil,
+                                    tracestate_entry: nil,
+                                    tracestate: "other=asdf"
+            NewRelic::Agent::TraceContext::Data.new traceparent, tenant_id, tracestate_entry, tracestate
         end
       end
     end

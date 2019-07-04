@@ -8,11 +8,13 @@ module NewRelic
   module Agent
     class Transaction
       attr_accessor :trace_context
+      attr_writer   :trace_context_inserted
 
       module TraceContext
         def insert_trace_context \
             format: NewRelic::Agent::TraceContext::HttpFormat,
             carrier: nil
+            self.trace_context_inserted = true
           NewRelic::Agent::TraceContext.insert \
             format: format,
             carrier: carrier,
@@ -33,9 +35,10 @@ module NewRelic
 
         def accept_trace_context trace_context
           return unless Agent.config[:'trace_context.enabled']
-          return unless @trace_context = trace_context
-          return unless payload = trace_context.tracestate_entry
-          return unless check_trusted_account payload
+          return false if check_trace_context_ignored
+          return false unless @trace_context = trace_context
+          return false unless payload = trace_context.tracestate_entry
+          return false unless check_trusted_account payload
 
           @trace_id = payload.trace_id
           @parent_transaction_id = payload.transaction_id
@@ -44,7 +47,26 @@ module NewRelic
             self.sampled = payload.sampled
             self.priority = payload.priority if payload.priority
           end
+          true
         end
+
+        SUPPORTABILITY_MULTIPLE_ACCEPT_TRACE_CONTEXT = "Supportability/AcceptTraceContext/Ignored/Multiple".freeze
+        SUPPORTABILITY_CREATE_BEFORE_ACCEPT_TRACE_CONTEXT = "Supportability/AcceptTraceContext/Ignored/CreateBeforeAccept".freeze
+
+        def check_trace_context_ignored
+          if trace_context
+            NewRelic::Agent.increment_metric SUPPORTABILITY_MULTIPLE_ACCEPT_TRACE_CONTEXT
+            return true
+          elsif trace_context_inserted?
+            NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_BEFORE_ACCEPT_TRACE_CONTEXT
+            return true
+          end
+          false
+        end
+      end
+
+      def trace_context_inserted?
+        @trace_context_inserted ||=  false
       end
     end
   end
