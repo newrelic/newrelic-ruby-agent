@@ -109,37 +109,38 @@ module NewRelic
           refute_equal parent_txn.trace_id, child_txn.trace_id
         end
 
-        def test_do_not_accept_trace_context_with_mismatching_account_ids
-          carrier = {}
-          account_one = @config.merge({
-            trusted_account_key: '500'
-          })
-          account_two = @config.merge({
-            account_id: '200',
-            primary_application_id: '190011',
-            trusted_account_key: '495590'
-          })
-          txn_one = nil
-          txn_two = nil
+        # we'll reuse this when we extract trace context based on tac
+        # def test_do_not_accept_trace_context_with_mismatching_account_ids
+        #   carrier = {}
+        #   account_one = @config.merge({
+        #     trusted_account_key: '500'
+        #   })
+        #   account_two = @config.merge({
+        #     account_id: '200',
+        #     primary_application_id: '190011',
+        #     trusted_account_key: '495590'
+        #   })
+        #   txn_one = nil
+        #   txn_two = nil
 
-          with_config(account_one) do
-            txn_one = in_transaction 'parent' do |txn|
-              txn.sampled = true
-              txn.insert_trace_context carrier: carrier
-            end
-          end
+        #   with_config(account_one) do
+        #     txn_one = in_transaction 'parent' do |txn|
+        #       txn.sampled = true
+        #       txn.insert_trace_context carrier: carrier
+        #     end
+        #   end
 
-          trace_context_data = NewRelic::Agent::TraceContext.parse carrier: carrier
-          with_config(account_two) do
-            txn_two = in_transaction 'child' do |txn|
-              txn.accept_trace_context trace_context_data
-            end
-          end
+        #   trace_context_data = NewRelic::Agent::TraceContext.parse carrier: carrier
+        #   with_config(account_two) do
+        #     txn_two = in_transaction 'child' do |txn|
+        #       txn.accept_trace_context trace_context_data
+        #     end
+        #   end
 
-          refute_equal txn_one.guid, txn_two.parent_transaction_id
-          assert_nil txn_two.parent_transaction_id
-          refute_equal txn_one.trace_id, txn_two.trace_id
-        end
+        #   refute_equal txn_one.guid, txn_two.parent_transaction_id
+        #   assert_nil txn_two.parent_transaction_id
+        #   refute_equal txn_one.trace_id, txn_two.trace_id
+        # end
 
         def test_accept_trace_context_mismatching_account_ids_matching_trust_key
           carrier = {}

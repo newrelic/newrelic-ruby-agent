@@ -38,7 +38,6 @@ module NewRelic
           return false if check_trace_context_ignored
           return false unless @trace_context = trace_context
           return false unless payload = trace_context.tracestate_entry
-          return false unless check_trusted_account payload
 
           @trace_id = payload.trace_id
           @parent_transaction_id = payload.transaction_id
