@@ -71,7 +71,9 @@ module NewRelic
             txn.insert_trace_context carrier: carrier
           end
 
-          trace_context_data = NewRelic::Agent::TraceContext.parse carrier: carrier
+          trace_context_data = NewRelic::Agent::TraceContext.parse \
+            carrier: carrier,
+            tracestate_entry_key: "nr"
 
           child_txn = in_transaction 'new' do |txn|
             txn.accept_trace_context trace_context_data
@@ -97,7 +99,10 @@ module NewRelic
               txn.insert_trace_context carrier: carrier
             end
 
-            trace_context_data = NewRelic::Agent::TraceContext.parse carrier: carrier
+            trace_context_data = NewRelic::Agent::TraceContext.parse \
+              carrier: carrier,
+              tracestate_entry_key: "nr"
+
 
             child_txn = in_transaction 'child' do |txn|
               txn.accept_trace_context trace_context_data
@@ -162,7 +167,10 @@ module NewRelic
             end
           end
 
-          trace_context_data = NewRelic::Agent::TraceContext.parse carrier: carrier
+          trace_context_data = NewRelic::Agent::TraceContext.parse \
+            carrier: carrier,
+            tracestate_entry_key: "nr"
+
           with_config(account_two) do
             txn_two = in_transaction 'child' do |txn|
               txn.accept_trace_context trace_context_data

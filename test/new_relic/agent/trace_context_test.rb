@@ -48,11 +48,12 @@ module NewRelic
 
         carrier = {
           'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-          'tracestate'  => "nr=#{payload.http_safe},other=asdf"
+          'tracestate'  => "t5a@nr=#{payload.http_safe},other=asdf"
         }
 
         tracecontext_data = TraceContext.parse format: TraceContext::HttpFormat,
-                                               carrier: carrier
+                                               carrier: carrier,
+                                               tracestate_entry_key: "t5a@nr"
 
         traceparent = tracecontext_data.traceparent
 
@@ -66,11 +67,60 @@ module NewRelic
         assert_equal ['other=asdf'], tracecontext_data.tracestate
       end
 
+      def test_parse_with_nr_at_end
+        payload = make_payload
+
+        carrier = {
+          'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+          'tracestate'  => "other=asdf,t5a@nr=#{payload.http_safe}"
+        }
+
+        tracecontext_data = TraceContext.parse format: TraceContext::HttpFormat,
+                                               carrier: carrier,
+                                               tracestate_entry_key: "t5a@nr"
+
+        traceparent = tracecontext_data.traceparent
+
+        assert_equal '00', traceparent['version']
+        assert_equal 'a8e67265afe2773a3c611b94306ee5c2', traceparent['trace_id']
+        assert_equal 'fb1010463ea28a38', traceparent['parent_id']
+        assert_equal '01', traceparent['trace_flags']
+
+        assert_nil tracecontext_data.tenant_id
+        assert_equal payload.text, tracecontext_data.tracestate_entry.text
+        assert_equal ['other=asdf'], tracecontext_data.tracestate
+      end
+
+      def test_parse_with_nr_middle
+        payload = make_payload
+
+        carrier = {
+          'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+          'tracestate'  => "other=asdf,t5a@nr=#{payload.http_safe},otherother=asdfasdf"
+        }
+
+        tracecontext_data = TraceContext.parse format: TraceContext::HttpFormat,
+                                               carrier: carrier,
+                                               tracestate_entry_key: "t5a@nr"
+
+        traceparent = tracecontext_data.traceparent
+
+        assert_equal '00', traceparent['version']
+        assert_equal 'a8e67265afe2773a3c611b94306ee5c2', traceparent['trace_id']
+        assert_equal 'fb1010463ea28a38', traceparent['parent_id']
+        assert_equal '01', traceparent['trace_flags']
+
+        assert_nil tracecontext_data.tenant_id
+        assert_equal payload.text, tracecontext_data.tracestate_entry.text
+        assert_equal ['other=asdf','otherother=asdfasdf'], tracecontext_data.tracestate
+      end
+
       def test_parse_tracestate_no_other_entries
         payload = make_payload
-        carrier = make_inbound_carrier({'tracestate' => "nr=#{payload.http_safe}"})
+        carrier = make_inbound_carrier({'tracestate' => "t5a@nr=#{payload.http_safe}"})
         tracecontext_data = TraceContext.parse format: TraceContext::HttpFormat,
-                                               carrier: carrier
+                                               carrier: carrier,
+                                               tracestate_entry_key: "t5a@nr"
         assert_equal payload.text, tracecontext_data.tracestate_entry.text
         assert_equal [], tracecontext_data.tracestate
       end
@@ -78,7 +128,8 @@ module NewRelic
       def test_parse_tracestate_no_nr_entry
         carrier = make_inbound_carrier
         tracecontext_data = TraceContext.parse format: TraceContext::HttpFormat,
-                                               carrier: carrier
+                                               carrier: carrier,
+                                               tracestate_entry_key: "t5a@nr"
         assert_equal nil, tracecontext_data.tracestate_entry
         assert_equal ['other=asdf'], tracecontext_data.tracestate
       end

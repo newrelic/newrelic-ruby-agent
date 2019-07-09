@@ -10,7 +10,6 @@ module NewRelic
       VERSION = 0x0
 
       TRACEPARENT_REGEX = /\A(?<version>\d{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})\z/.freeze
-      TRACE_ENTRY_REGEX = /(?:([a-z0-9]+)@)?nr=(.+)/.freeze
 
       module RackFormat
         TRACEPARENT = 'HTTP_TRACEPARENT'.freeze
@@ -39,11 +38,13 @@ module NewRelic
         end
 
         def parse format: HttpFormat,
-                  carrier: nil
+                  carrier: nil,
+                  tracestate_entry_key: nil
+
           traceparent = extract_traceparent format, carrier
           return if traceparent.nil?
 
-          tenant_id, tracestate_entry, tracestate = extract_tracestate format, carrier
+          tenant_id, tracestate_entry, tracestate = extract_tracestate format, carrier, tracestate_entry_key
 
           Data.new traceparent, tenant_id, tracestate_entry, tracestate
         end
@@ -68,17 +69,21 @@ module NewRelic
           end
         end
 
-        def extract_tracestate format, carrier
+        COMMA = ','.freeze
+        EMPTY_STRING = ''.freeze
+
+        def extract_tracestate format, carrier, tracestate_entry_key
           header_name = format::TRACESTATE
           header = carrier[header_name]
           tenant_id = nil
           payload = nil
 
-          tracestate = header.split(',')
+          tracestate = header.split(COMMA)
+          tracestate_entry_prefix = "#{tracestate_entry_key}="
           tracestate.reject! do |entry|
-            if matchdata = entry.match(TRACE_ENTRY_REGEX)
-              tenant_id, payload = matchdata.captures
-              true
+            if entry.start_with? tracestate_entry_prefix
+              payload = entry.gsub!(tracestate_entry_prefix, EMPTY_STRING)
+              !!payload
             end
           end
 
