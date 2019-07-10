@@ -64,7 +64,7 @@ module NewRelic
 
         assert_nil tracecontext_data.tenant_id
         assert_equal payload.text, tracecontext_data.tracestate_entry.text
-        assert_equal ['other=asdf'], tracecontext_data.tracestate
+        assert_equal 'other=asdf', tracecontext_data.tracestate
       end
 
       def test_parse_with_nr_at_end
@@ -88,7 +88,7 @@ module NewRelic
 
         assert_nil tracecontext_data.tenant_id
         assert_equal payload.text, tracecontext_data.tracestate_entry.text
-        assert_equal ['other=asdf'], tracecontext_data.tracestate
+        assert_equal 'other=asdf', tracecontext_data.tracestate
       end
 
       def test_parse_with_nr_middle
@@ -112,7 +112,7 @@ module NewRelic
 
         assert_nil tracecontext_data.tenant_id
         assert_equal payload.text, tracecontext_data.tracestate_entry.text
-        assert_equal ['other=asdf','otherother=asdfasdf'], tracecontext_data.tracestate
+        assert_equal 'other=asdf,otherother=asdfasdf', tracecontext_data.tracestate
       end
 
       def test_parse_tracestate_no_other_entries
@@ -122,7 +122,7 @@ module NewRelic
                                                carrier: carrier,
                                                tracestate_entry_key: "t5a@nr"
         assert_equal payload.text, tracecontext_data.tracestate_entry.text
-        assert_equal [], tracecontext_data.tracestate
+        assert_equal '', tracecontext_data.tracestate
       end
 
       def test_parse_tracestate_no_nr_entry
@@ -131,7 +131,7 @@ module NewRelic
                                                carrier: carrier,
                                                tracestate_entry_key: "t5a@nr"
         assert_equal nil, tracecontext_data.tracestate_entry
-        assert_equal ['other=asdf'], tracecontext_data.tracestate
+        assert_equal 'other=asdf', tracecontext_data.tracestate
       end
 
       def make_inbound_carrier options = {}

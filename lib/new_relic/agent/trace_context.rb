@@ -95,14 +95,20 @@ module NewRelic
         end
       end
       class Data
-        def initialize traceparent, tenant_id, tracestate_entry, tracestate
+        def initialize traceparent, tenant_id, tracestate_entry, tracestate_array
           @traceparent = traceparent
+          @tracestate_array = tracestate_array
           @tracestate_entry = tracestate_entry
-          @tracestate = tracestate
           @tenant_id = tenant_id
         end
 
-        attr_reader :traceparent, :tracestate_entry, :tracestate, :tenant_id
+        attr_reader :traceparent, :tracestate_entry, :tenant_id
+
+        def tracestate
+          @tracestate ||= @tracestate_array.join(",")
+          @tracestate_array = nil
+          @tracestate
+        end
       end
       # is there a better place for this?
       module AccountHelpers
