@@ -17,7 +17,7 @@ module NewRelic
             :'trace_context.enabled' => true,
             :account_id => "190",
             :primary_application_id => "46954",
-            :trusted_account_key => "trust_this!",
+            :trusted_account_key => "999999",
             :disable_harvest_thread => true
           }
 
@@ -25,6 +25,7 @@ module NewRelic
         end
 
         def teardown
+          uncache_trusted_account_key
           NewRelic::Agent.config.remove_config(@config)
           NewRelic::Agent.config.reset_to_defaults
           NewRelic::Agent.drop_buffered_data
@@ -73,7 +74,7 @@ module NewRelic
 
           trace_context_data = NewRelic::Agent::TraceContext.parse \
             carrier: carrier,
-            tracestate_entry_key: "nr"
+            tracestate_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
 
           child_txn = in_transaction 'new' do |txn|
             txn.accept_trace_context trace_context_data
@@ -114,38 +115,41 @@ module NewRelic
           refute_equal parent_txn.trace_id, child_txn.trace_id
         end
 
-        # we'll reuse this when we extract trace context based on tac
-        # def test_do_not_accept_trace_context_with_mismatching_account_ids
-        #   carrier = {}
-        #   account_one = @config.merge({
-        #     trusted_account_key: '500'
-        #   })
-        #   account_two = @config.merge({
-        #     account_id: '200',
-        #     primary_application_id: '190011',
-        #     trusted_account_key: '495590'
-        #   })
-        #   txn_one = nil
-        #   txn_two = nil
+        def test_do_not_accept_trace_context_with_mismatching_account_ids
+          carrier = {}
+          account_one = @config.merge({
+            trusted_account_key: '500'
+          })
+          account_two = @config.merge({
+            account_id: '200',
+            primary_application_id: '190011',
+            trusted_account_key: '495590'
+          })
+          txn_one = nil
+          txn_two = nil
 
-        #   with_config(account_one) do
-        #     txn_one = in_transaction 'parent' do |txn|
-        #       txn.sampled = true
-        #       txn.insert_trace_context carrier: carrier
-        #     end
-        #   end
+          with_config(account_one) do
+            txn_one = in_transaction 'parent' do |txn|
+              txn.sampled = true
+              txn.insert_trace_context carrier: carrier
+            end
+          end
 
-        #   trace_context_data = NewRelic::Agent::TraceContext.parse carrier: carrier
-        #   with_config(account_two) do
-        #     txn_two = in_transaction 'child' do |txn|
-        #       txn.accept_trace_context trace_context_data
-        #     end
-        #   end
+          uncache_trusted_account_key
 
-        #   refute_equal txn_one.guid, txn_two.parent_transaction_id
-        #   assert_nil txn_two.parent_transaction_id
-        #   refute_equal txn_one.trace_id, txn_two.trace_id
-        # end
+          with_config(account_two) do
+            trace_context_data = NewRelic::Agent::TraceContext.parse \
+              carrier: carrier,
+              tracestate_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
+            txn_two = in_transaction 'child' do |txn|
+              txn.accept_trace_context trace_context_data
+            end
+          end
+
+          refute_equal txn_one.guid, txn_two.parent_transaction_id
+          assert_nil txn_two.parent_transaction_id
+          refute_equal txn_one.trace_id, txn_two.trace_id
+        end
 
         def test_accept_trace_context_mismatching_account_ids_matching_trust_key
           carrier = {}
@@ -167,11 +171,12 @@ module NewRelic
             end
           end
 
-          trace_context_data = NewRelic::Agent::TraceContext.parse \
-            carrier: carrier,
-            tracestate_entry_key: "nr"
+          uncache_trusted_account_key
 
           with_config(account_two) do
+            trace_context_data = NewRelic::Agent::TraceContext.parse \
+              carrier: carrier,
+              tracestate_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
             txn_two = in_transaction 'child' do |txn|
               txn.accept_trace_context trace_context_data
             end
@@ -210,6 +215,10 @@ module NewRelic
                                     tracestate_entry: nil,
                                     tracestate: "other=asdf"
             NewRelic::Agent::TraceContext::Data.new traceparent, tenant_id, tracestate_entry, tracestate
+        end
+
+        def uncache_trusted_account_key
+          NewRelic::Agent::TraceContext::AccountHelpers.instance_variable_set :@tracestate_entry_key, nil
         end
       end
     end

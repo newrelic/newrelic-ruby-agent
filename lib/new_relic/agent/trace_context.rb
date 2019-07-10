@@ -104,6 +104,17 @@ module NewRelic
 
         attr_reader :traceparent, :tracestate_entry, :tracestate, :tenant_id
       end
+      # is there a better place for this?
+      module AccountHelpers
+        extend self
+        def tracestate_entry_key
+          @tracestate_entry_key ||= if Agent.config[:trusted_account_key]
+            "t#{Agent.config[:trusted_account_key].to_i.to_s(36)}@nr".freeze
+          elsif Agent.config[:account_id]
+            "t#{Agent.config[:account_id].to_i.to_s(36)}@nr".freeze
+          end
+        end
+      end
     end
   end
 end

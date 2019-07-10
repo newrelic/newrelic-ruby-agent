@@ -26,7 +26,8 @@ module NewRelic
 
         def trace_state
           entry = create_trace_state_entry
-          "nr=#{entry.http_safe}"
+          tracestate_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
+          "#{tracestate_entry_key}=#{entry.http_safe}"
         end
 
         def create_trace_state_entry

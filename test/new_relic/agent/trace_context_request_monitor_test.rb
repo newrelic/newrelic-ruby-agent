@@ -19,7 +19,7 @@ module NewRelic
           :encoding_key                  => "\0",
           :account_id                    => "190",
           :primary_application_id        => "46954",
-          :trusted_account_key           => "trust_this!"
+          :trusted_account_key           => "99999"
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config)
@@ -43,7 +43,7 @@ module NewRelic
       end
 
       def test_does_not_accept_trace_context_if_trace_context_disabled
-        with_config @config.merge({ :'trace_context.enabled' => false }) do 
+        with_config @config.merge({ :'trace_context.enabled' => false }) do
           _, carrier = build_parent_transaction_headers
 
           child_txn = in_transaction "receiving_txn" do |txn|
