@@ -89,9 +89,19 @@ module NewRelic
 
           [
             tenant_id,
-            payload ? DistributedTracePayload.from_http_safe(payload) : nil,
+            payload ? decode_payload(payload) : nil,
             tracestate
           ]
+        end
+
+        SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_IGNORED_PARSE_EXCEPTION = "Supportability/TraceContext/AcceptPayload/ParseException".freeze
+
+        def decode_payload payload
+          DistributedTracePayload.from_http_safe(payload)
+        rescue => e
+          NewRelic::Agent.increment_metric SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_IGNORED_PARSE_EXCEPTION
+          NewRelic::Agent.logger.warn "Error parsing trace context payload", e
+          nil
         end
       end
       class Data

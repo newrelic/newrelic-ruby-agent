@@ -195,7 +195,7 @@ module NewRelic
             assert txn.accept_trace_context(trace_context_data), "Expected first trace context to be accepted"
             refute txn.accept_trace_context(trace_context_data), "Expected second trace context not to be accepted"
           end
-          assert_metrics_recorded "Supportability/AcceptTraceContext/Ignored/Multiple"
+          assert_metrics_recorded "Supportability/TraceContext/AcceptPayload/Ignored/Multiple"
         end
 
         def test_do_not_accept_trace_context_if_txn_has_already_generated_trace_context
@@ -207,7 +207,7 @@ module NewRelic
 
             refute txn.accept_trace_context trace_context_data
           end
-          assert_metrics_recorded "Supportability/AcceptTraceContext/Ignored/CreateBeforeAccept"
+          assert_metrics_recorded "Supportability/TraceContext/AcceptPayload/Ignored/CreateBeforeAccept"
         end
 
         def make_trace_context_data traceparent: "00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01",

@@ -134,6 +134,16 @@ module NewRelic
         assert_equal 'other=asdf', tracecontext_data.tracestate
       end
 
+      def test_parse_tracestate_nr_entry_malformed
+        carrier = make_inbound_carrier({'tracestate' => "t5a@nr=somethingincorrect"})
+        tracecontext_data = TraceContext.parse format: TraceContext::HttpFormat,
+                                               carrier: carrier,
+                                               tracestate_entry_key: "t5a@nr"
+        assert_equal nil, tracecontext_data.tracestate_entry
+        assert_equal '', tracecontext_data.tracestate
+        assert_metrics_recorded "Supportability/TraceContext/AcceptPayload/ParseException"
+      end
+
       def make_inbound_carrier options = {}
         {
           'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',

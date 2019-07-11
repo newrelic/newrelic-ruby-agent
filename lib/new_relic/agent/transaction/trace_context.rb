@@ -34,6 +34,9 @@ module NewRelic
           DistributedTracePayload.for_transaction self
         end
 
+        SUPPORTABILITY_ACCEPT_SUCCESS = "Supportability/TraceContext/AcceptPayload/Success".freeze
+        SUPPORTABILITY_ACCEPT_EXCEPTION = "Supportability/TraceContext/AcceptPayload/Exception".freeze
+
         def accept_trace_context trace_context
           return unless Agent.config[:'trace_context.enabled']
           return false if check_trace_context_ignored
@@ -47,11 +50,16 @@ module NewRelic
             self.sampled = payload.sampled
             self.priority = payload.priority if payload.priority
           end
+          NewRelic::Agent.increment_metric SUPPORTABILITY_ACCEPT_SUCCESS
           true
+        rescue => e
+          NewRelic::Agent.increment_metric SUPPORTABILITY_ACCEPT_EXCEPTION
+          NewRelic::Agent.logger.warn "Failed to accept trace context payload", e
+          false
         end
 
-        SUPPORTABILITY_MULTIPLE_ACCEPT_TRACE_CONTEXT = "Supportability/AcceptTraceContext/Ignored/Multiple".freeze
-        SUPPORTABILITY_CREATE_BEFORE_ACCEPT_TRACE_CONTEXT = "Supportability/AcceptTraceContext/Ignored/CreateBeforeAccept".freeze
+        SUPPORTABILITY_MULTIPLE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/AcceptPayload/Ignored/Multiple".freeze
+        SUPPORTABILITY_CREATE_BEFORE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/AcceptPayload/Ignored/CreateBeforeAccept".freeze
 
         def check_trace_context_ignored
           if trace_context
