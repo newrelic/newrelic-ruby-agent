@@ -65,7 +65,10 @@ module NewRelic
           header_name = format::TRACEPARENT
           header = carrier[header_name]
           if matchdata = header.match(TRACEPARENT_REGEX)
-            matchdata.named_captures
+            TRACEPARENT_REGEX.named_captures.inject({}) do |hash, (name, (index))|
+              hash[name] = matchdata[index]
+              hash
+            end
           end
         end
 
