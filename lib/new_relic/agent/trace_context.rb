@@ -41,20 +41,22 @@ module NewRelic
                   carrier: nil,
                   tracestate_entry_key: nil
 
-          traceparent = extract_traceparent format, carrier
-          return if traceparent.nil?
+          return unless traceparent = extract_traceparent(format, carrier)
 
-          tenant_id, tracestate_entry, tracestate = extract_tracestate format, carrier, tracestate_entry_key
-
-          Data.new traceparent, tenant_id, tracestate_entry, tracestate
+          if data = extract_tracestate(format, carrier, tracestate_entry_key)
+            data.traceparent = traceparent
+            data
+          end
         end
 
         private
 
+        TRACEPARENT_FORMAT_STRING = "%02x-%s-%s-%02x".freeze
+
         def format_trace_parent trace_id: nil,
                                 parent_id: nil,
                                 trace_flags: nil
-          sprintf "%02x-%s-%s-%02x",
+          sprintf TRACEPARENT_FORMAT_STRING,
                   VERSION,
                   trace_id,
                   parent_id,
@@ -106,11 +108,9 @@ module NewRelic
             end
           end
 
-          [
-            tenant_id,
-            payload ? decode_payload(payload) : nil,
-            tracestate
-          ]
+          Data.create tenant_id: tenant_id,
+                      tracestate_entry: payload ? decode_payload(payload) : nil,
+                      tracestate_array: tracestate
         end
 
         SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_IGNORED_PARSE_EXCEPTION = "Supportability/TraceContext/AcceptPayload/ParseException".freeze
@@ -124,6 +124,15 @@ module NewRelic
         end
       end
       class Data
+        class << self
+          def create traceparent: nil,
+                     tenant_id: nil,
+                     tracestate_entry: nil,
+                     tracestate_array: nil
+            new traceparent, tenant_id, tracestate_entry, tracestate_array
+          end
+        end
+
         def initialize traceparent, tenant_id, tracestate_entry, tracestate_array
           @traceparent = traceparent
           @tracestate_array = tracestate_array
@@ -131,7 +140,7 @@ module NewRelic
           @tenant_id = tenant_id
         end
 
-        attr_reader :traceparent, :tracestate_entry, :tenant_id
+        attr_accessor :traceparent, :tracestate_entry, :tenant_id
 
         def tracestate
           @tracestate ||= @tracestate_array.join(",")
