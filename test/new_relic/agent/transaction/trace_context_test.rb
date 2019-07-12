@@ -22,10 +22,10 @@ module NewRelic
           }
 
           NewRelic::Agent.config.add_config_for_testing(@config)
+          uncache_trusted_account_key
         end
 
         def teardown
-          uncache_trusted_account_key
           NewRelic::Agent.config.remove_config(@config)
           NewRelic::Agent.config.reset_to_defaults
           NewRelic::Agent.drop_buffered_data
