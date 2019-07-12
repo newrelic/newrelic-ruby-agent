@@ -91,7 +91,6 @@ module NewRelic
         end
 
         COMMA = ','.freeze
-        EMPTY_STRING = ''.freeze
 
         def extract_tracestate format, carrier, tracestate_entry_key
           header_name = tracestate_header_for_format format
@@ -103,7 +102,8 @@ module NewRelic
           tracestate_entry_prefix = "#{tracestate_entry_key}="
           tracestate.reject! do |entry|
             if entry.start_with? tracestate_entry_prefix
-              payload = entry.gsub!(tracestate_entry_prefix, EMPTY_STRING)
+              payload = entry.slice! tracestate_entry_key.size + 1,
+                                     entry.size
               !!payload
             end
           end
