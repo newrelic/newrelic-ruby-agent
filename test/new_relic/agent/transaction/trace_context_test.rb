@@ -75,7 +75,6 @@ module NewRelic
           trace_context_data = NewRelic::Agent::TraceContext.parse \
             carrier: carrier,
             tracestate_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
-
           child_txn = in_transaction 'new' do |txn|
             txn.accept_trace_context trace_context_data
           end

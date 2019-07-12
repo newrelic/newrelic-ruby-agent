@@ -32,7 +32,7 @@ module NewRelic
         trace_flags = 0x1
         trace_state = 'k1=asdf,k2=qwerty'
 
-        TraceContext.insert format: TraceContext::HttpFormat,
+        TraceContext.insert format: TraceContext::FORMAT_HTTP,
                             carrier: carrier,
                             trace_id: trace_id,
                             parent_id: parent_id,
@@ -51,7 +51,7 @@ module NewRelic
           'tracestate'  => "t5a@nr=#{payload.http_safe},other=asdf"
         }
 
-        tracecontext_data = TraceContext.parse format: TraceContext::HttpFormat,
+        tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                tracestate_entry_key: "t5a@nr"
 
@@ -75,7 +75,7 @@ module NewRelic
           'tracestate'  => "other=asdf,t5a@nr=#{payload.http_safe}"
         }
 
-        tracecontext_data = TraceContext.parse format: TraceContext::HttpFormat,
+        tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                tracestate_entry_key: "t5a@nr"
 
@@ -99,7 +99,7 @@ module NewRelic
           'tracestate'  => "other=asdf,t5a@nr=#{payload.http_safe},otherother=asdfasdf"
         }
 
-        tracecontext_data = TraceContext.parse format: TraceContext::HttpFormat,
+        tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                tracestate_entry_key: "t5a@nr"
 
@@ -118,7 +118,7 @@ module NewRelic
       def test_parse_tracestate_no_other_entries
         payload = make_payload
         carrier = make_inbound_carrier({'tracestate' => "t5a@nr=#{payload.http_safe}"})
-        tracecontext_data = TraceContext.parse format: TraceContext::HttpFormat,
+        tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                tracestate_entry_key: "t5a@nr"
         assert_equal payload.text, tracecontext_data.tracestate_entry.text
@@ -127,7 +127,7 @@ module NewRelic
 
       def test_parse_tracestate_no_nr_entry
         carrier = make_inbound_carrier
-        tracecontext_data = TraceContext.parse format: TraceContext::HttpFormat,
+        tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                tracestate_entry_key: "t5a@nr"
         assert_equal nil, tracecontext_data.tracestate_entry
@@ -136,7 +136,7 @@ module NewRelic
 
       def test_parse_tracestate_nr_entry_malformed
         carrier = make_inbound_carrier({'tracestate' => "t5a@nr=somethingincorrect"})
-        tracecontext_data = TraceContext.parse format: TraceContext::HttpFormat,
+        tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                tracestate_entry_key: "t5a@nr"
         assert_equal nil, tracecontext_data.tracestate_entry

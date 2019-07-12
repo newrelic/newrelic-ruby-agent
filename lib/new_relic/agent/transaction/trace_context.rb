@@ -12,7 +12,7 @@ module NewRelic
 
       module TraceContext
         def insert_trace_context \
-            format: NewRelic::Agent::TraceContext::HttpFormat,
+            format: NewRelic::Agent::TraceContext::FORMAT_HTTP,
             carrier: nil
             self.trace_context_inserted = true
           NewRelic::Agent::TraceContext.insert \

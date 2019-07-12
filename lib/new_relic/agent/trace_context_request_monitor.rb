@@ -17,7 +17,7 @@ module NewRelic
       def on_before_call(request)
         return unless NewRelic::Agent.config[:'trace_context.enabled']
         return unless trace_context = TraceContext.parse(
-          format: TraceContext::RackFormat,
+          format: TraceContext::FORMAT_RACK,
           carrier: request,
           tracestate_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
         )

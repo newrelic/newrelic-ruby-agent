@@ -8,36 +8,36 @@ module NewRelic
   module Agent
     class TraceContext
       VERSION = 0x0
+      TRACEPARENT = 'traceparent'.freeze
+      TRACESTATE  = 'tracestate'.freeze
+
+      TRACEPARENT_RACK = 'HTTP_TRACEPARENT'.freeze
+      TRACESTATE_RACK  = 'HTTP_TRACESTATE'.freeze
+
+      FORMAT_HTTP = 0
+      FORMAT_RACK = 1
 
       TRACEPARENT_REGEX = /\A(?<version>\d{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})\z/.freeze
 
-      module RackFormat
-        TRACEPARENT = 'HTTP_TRACEPARENT'.freeze
-        TRACESTATE = 'HTTP_TRACESTATE'.freeze
-      end
-
-      module HttpFormat
-        TRACEPARENT = 'traceparent'.freeze
-        TRACESTATE  = 'tracestate'.freeze
-      end
-
       class << self
-        def insert format: RackFormat,
+        def insert format: FORMAT_HTTP,
                    carrier: nil,
                    parent_id: nil,
                    trace_id: nil,
                    trace_flags: nil,
                    trace_state: nil
 
-          carrier[format::TRACEPARENT] = format_trace_parent \
+          traceparent_header = traceparent_header_for_format format
+          carrier[traceparent_header] = format_trace_parent \
             trace_id: trace_id,
             parent_id: parent_id,
             trace_flags: trace_flags
 
-          carrier[format::TRACESTATE] = trace_state if trace_state
+          tracestate_header = tracestate_header_for_format format
+          carrier[tracestate_header] = trace_state if trace_state
         end
 
-        def parse format: HttpFormat,
+        def parse format: FORMAT_HTTP,
                   carrier: nil,
                   tracestate_entry_key: nil
 
@@ -62,7 +62,7 @@ module NewRelic
         end
 
         def extract_traceparent format, carrier
-          header_name = format::TRACEPARENT
+          header_name = traceparent_header_for_format format
           header = carrier[header_name]
           if matchdata = header.match(TRACEPARENT_REGEX)
             TRACEPARENT_REGEX.named_captures.inject({}) do |hash, (name, (index))|
@@ -72,11 +72,27 @@ module NewRelic
           end
         end
 
+        def traceparent_header_for_format format
+          if format == FORMAT_RACK
+            TRACEPARENT_RACK
+          else
+            TRACEPARENT
+          end
+        end
+
+        def tracestate_header_for_format format
+          if format == FORMAT_RACK
+            TRACESTATE_RACK
+          else
+            TRACESTATE
+          end
+        end
+
         COMMA = ','.freeze
         EMPTY_STRING = ''.freeze
 
         def extract_tracestate format, carrier, tracestate_entry_key
-          header_name = format::TRACESTATE
+          header_name = tracestate_header_for_format format
           header = carrier[header_name]
           tenant_id = nil
           payload = nil

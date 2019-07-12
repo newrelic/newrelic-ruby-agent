@@ -84,7 +84,7 @@ module NewRelic
         carrier = {}
 
         parent_txn = in_transaction "referring_txn" do |txn|
-          txn.insert_trace_context format: TraceContext::RackFormat,
+          txn.insert_trace_context format: TraceContext::FORMAT_RACK,
                                    carrier: carrier
         end
         [parent_txn, carrier]
