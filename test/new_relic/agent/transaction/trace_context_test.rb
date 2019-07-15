@@ -60,7 +60,7 @@ module NewRelic
             txn.accept_trace_context trace_context_data
           end
 
-          assert_same trace_context_data, t.trace_context
+          assert_same trace_context_data, t.trace_context_data
           assert_nil t.parent_transaction_id
         end
 

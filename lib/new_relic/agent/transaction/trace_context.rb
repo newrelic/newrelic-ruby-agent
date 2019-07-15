@@ -7,7 +7,7 @@ require 'new_relic/agent/distributed_trace_payload'
 module NewRelic
   module Agent
     class Transaction
-      attr_accessor :trace_context
+      attr_accessor :trace_context_data
       attr_writer   :trace_context_inserted
 
       module TraceContext
@@ -37,11 +37,11 @@ module NewRelic
         SUPPORTABILITY_ACCEPT_SUCCESS = "Supportability/TraceContext/AcceptPayload/Success".freeze
         SUPPORTABILITY_ACCEPT_EXCEPTION = "Supportability/TraceContext/AcceptPayload/Exception".freeze
 
-        def accept_trace_context trace_context
+        def accept_trace_context trace_context_data
           return unless Agent.config[:'trace_context.enabled']
           return false if check_trace_context_ignored
-          return false unless @trace_context = trace_context
-          return false unless payload = trace_context.tracestate_entry
+          return false unless @trace_context_data = trace_context_data
+          return false unless payload = trace_context_data.tracestate_entry
 
           @trace_id = payload.trace_id
           @parent_transaction_id = payload.transaction_id
@@ -62,7 +62,7 @@ module NewRelic
         SUPPORTABILITY_CREATE_BEFORE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/AcceptPayload/Ignored/CreateBeforeAccept".freeze
 
         def check_trace_context_ignored
-          if trace_context
+          if trace_context_data
             NewRelic::Agent.increment_metric SUPPORTABILITY_MULTIPLE_ACCEPT_TRACE_CONTEXT
             return true
           elsif trace_context_inserted?
