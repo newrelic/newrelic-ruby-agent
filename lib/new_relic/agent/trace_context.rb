@@ -121,6 +121,7 @@ module NewRelic
           nil
         end
       end
+
       class Data
         class << self
           def create traceparent: nil,
@@ -144,7 +145,7 @@ module NewRelic
           @tracestate
         end
       end
-      # is there a better place for this?
+
       module AccountHelpers
         extend self
         def tracestate_entry_key

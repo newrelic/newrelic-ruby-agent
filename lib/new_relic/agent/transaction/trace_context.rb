@@ -14,7 +14,6 @@ module NewRelic
         def insert_trace_context \
             format: NewRelic::Agent::TraceContext::FORMAT_HTTP,
             carrier: nil
-          self.trace_context_inserted = true
           NewRelic::Agent::TraceContext.insert \
             format: format,
             carrier: carrier,
@@ -22,6 +21,7 @@ module NewRelic
             parent_id: current_segment.guid,
             trace_flags: sampled? ? 0x1 : 0x0,
             trace_state: trace_state
+          self.trace_context_inserted = true
         end
 
         def trace_state
