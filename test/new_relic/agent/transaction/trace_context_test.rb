@@ -210,10 +210,9 @@ module NewRelic
         end
 
         def make_trace_context_data traceparent: "00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01",
-                                    tenant_id: nil,
                                     tracestate_entry: nil,
                                     tracestate: "other=asdf"
-            NewRelic::Agent::TraceContext::Data.new traceparent, tenant_id, tracestate_entry, tracestate
+            NewRelic::Agent::TraceContext::Data.new traceparent, tracestate_entry, tracestate
         end
 
         def uncache_trusted_account_key

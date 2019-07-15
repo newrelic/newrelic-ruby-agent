@@ -62,7 +62,6 @@ module NewRelic
         assert_equal 'fb1010463ea28a38', traceparent['parent_id']
         assert_equal '01', traceparent['trace_flags']
 
-        assert_nil tracecontext_data.tenant_id
         assert_equal payload.text, tracecontext_data.tracestate_entry.text
         assert_equal 'other=asdf', tracecontext_data.tracestate
       end
@@ -86,7 +85,6 @@ module NewRelic
         assert_equal 'fb1010463ea28a38', traceparent['parent_id']
         assert_equal '01', traceparent['trace_flags']
 
-        assert_nil tracecontext_data.tenant_id
         assert_equal payload.text, tracecontext_data.tracestate_entry.text
         assert_equal 'other=asdf', tracecontext_data.tracestate
       end
@@ -110,7 +108,6 @@ module NewRelic
         assert_equal 'fb1010463ea28a38', traceparent['parent_id']
         assert_equal '01', traceparent['trace_flags']
 
-        assert_nil tracecontext_data.tenant_id
         assert_equal payload.text, tracecontext_data.tracestate_entry.text
         assert_equal 'other=asdf,otherother=asdfasdf', tracecontext_data.tracestate
       end

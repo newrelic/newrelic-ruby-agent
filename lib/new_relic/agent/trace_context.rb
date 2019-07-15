@@ -95,7 +95,6 @@ module NewRelic
         def extract_tracestate format, carrier, tracestate_entry_key
           header_name = tracestate_header_for_format format
           header = carrier[header_name]
-          tenant_id = nil
           payload = nil
 
           tracestate = header.split(COMMA)
@@ -108,8 +107,7 @@ module NewRelic
             end
           end
 
-          Data.create tenant_id: tenant_id,
-                      tracestate_entry: payload ? decode_payload(payload) : nil,
+          Data.create tracestate_entry: payload ? decode_payload(payload) : nil,
                       tracestate_array: tracestate
         end
 
@@ -126,21 +124,19 @@ module NewRelic
       class Data
         class << self
           def create traceparent: nil,
-                     tenant_id: nil,
                      tracestate_entry: nil,
                      tracestate_array: nil
-            new traceparent, tenant_id, tracestate_entry, tracestate_array
+            new traceparent, tracestate_entry, tracestate_array
           end
         end
 
-        def initialize traceparent, tenant_id, tracestate_entry, tracestate_array
+        def initialize traceparent, tracestate_entry, tracestate_array
           @traceparent = traceparent
           @tracestate_array = tracestate_array
           @tracestate_entry = tracestate_entry
-          @tenant_id = tenant_id
         end
 
-        attr_accessor :traceparent, :tracestate_entry, :tenant_id
+        attr_accessor :traceparent, :tracestate_entry
 
         def tracestate
           @tracestate ||= @tracestate_array.join(",")
