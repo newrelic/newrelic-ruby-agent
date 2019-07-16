@@ -59,6 +59,7 @@ module NewRelic
           trace_id = nil
 
           in_transaction do |parent|
+            parent.sampled = true
             payload = DistributedTracePayload.for_transaction parent
             parent_trace_context_data = make_trace_context_data tracestate_entry: payload
             trace_id = parent.trace_id
@@ -91,6 +92,7 @@ module NewRelic
           trace_id = nil
 
           in_transaction do |parent|
+            parent.sampled = true
             payload = DistributedTracePayload.for_transaction parent
             parent_trace_context_data = make_trace_context_data tracestate_entry: payload, tracestate: []
             trace_id = parent.trace_id
