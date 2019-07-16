@@ -25,12 +25,16 @@ module NewRelic
         end
 
         def trace_state
-          entry = create_trace_state_entry
+          payload = create_trace_state_payload
           tracestate_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
-          "#{tracestate_entry_key}=#{entry.http_safe}"
+          if trace_context_data && !trace_context_data.tracestate.empty?
+            "#{tracestate_entry_key}=#{payload.http_safe},#{trace_context_data.tracestate}"
+          else
+            "#{tracestate_entry_key}=#{payload.http_safe}"
+          end
         end
 
-        def create_trace_state_entry
+        def create_trace_state_payload
           DistributedTracePayload.for_transaction self
         end
 

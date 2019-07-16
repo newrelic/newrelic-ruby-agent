@@ -53,6 +53,73 @@ module NewRelic
           assert_equal trace_state, carrier['tracestate']
         end
 
+        def test_insert_trace_context_non_root
+          parent_trace_context_data = nil
+          trace_state = nil
+          trace_id = nil
+
+          in_transaction do |parent|
+            payload = DistributedTracePayload.for_transaction parent
+            parent_trace_context_data = make_trace_context_data tracestate_entry: payload
+            trace_id = parent.trace_id
+            trace_state = parent_trace_context_data.tracestate
+          end
+
+          carrier = {}
+          child_trace_state_entry = nil
+          parent_id = nil
+
+          in_transaction do |child|
+            child.accept_trace_context parent_trace_context_data
+            child.insert_trace_context carrier: carrier
+            child_trace_state_entry = DistributedTracePayload.for_transaction child
+            parent_id = child.current_segment.guid
+          end
+
+          expected_trace_parent = "00-#{trace_id}-#{parent_id}-01"
+          assert_equal expected_trace_parent, carrier['traceparent']
+
+          # We expect trace state to now have our entry at the front
+          trace_state_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
+          expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_entry.http_safe},#{trace_state}"
+          assert_equal expected_trace_state, carrier['tracestate']
+        end
+
+        def test_insert_trace_context_no_other_vendors
+          parent_trace_context_data = nil
+          trace_state = nil
+          trace_id = nil
+
+          in_transaction do |parent|
+            payload = DistributedTracePayload.for_transaction parent
+            parent_trace_context_data = make_trace_context_data tracestate_entry: payload, tracestate: []
+            trace_id = parent.trace_id
+            trace_state = parent_trace_context_data.tracestate
+          end
+
+          carrier = {}
+          child_trace_state_entry = nil
+          parent_id = nil
+
+          in_transaction do |child|
+            child.accept_trace_context parent_trace_context_data
+            child.insert_trace_context carrier: carrier
+            child_trace_state_entry = DistributedTracePayload.for_transaction child
+            parent_id = child.current_segment.guid
+          end
+
+          expected_trace_parent = "00-#{trace_id}-#{parent_id}-01"
+          assert_equal expected_trace_parent, carrier['traceparent']
+
+          # We expect trace state to now have replaced our old entry with our new entry
+          trace_state_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
+          expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_entry.http_safe}"
+          assert_equal expected_trace_state, carrier['tracestate']
+
+          # We expect the trace state not to be the same as the parent's trace state
+          refute_match parent_trace_context_data.tracestate_entry.http_safe, carrier['tracestate']
+        end
+
         def test_accept_trace_context_no_new_relic_parent
           trace_context_data = make_trace_context_data
 
@@ -188,7 +255,7 @@ module NewRelic
 
         def test_do_not_accept_trace_context_if_trace_context_already_accepted
           in_transaction do |txn|
-            tracestate_entry = txn.create_trace_state_entry
+            tracestate_entry = txn.create_trace_state_payload
             trace_context_data = make_trace_context_data tracestate_entry: tracestate_entry
 
             assert txn.accept_trace_context(trace_context_data), "Expected first trace context to be accepted"
@@ -211,7 +278,7 @@ module NewRelic
 
         def make_trace_context_data traceparent: "00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01",
                                     tracestate_entry: nil,
-                                    tracestate: "other=asdf"
+                                    tracestate: ["other=asdf"]
             NewRelic::Agent::TraceContext::Data.new traceparent, tracestate_entry, tracestate
         end
 
