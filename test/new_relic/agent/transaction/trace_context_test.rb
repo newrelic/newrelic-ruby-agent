@@ -86,6 +86,34 @@ module NewRelic
           assert_equal expected_trace_state, carrier['tracestate']
         end
 
+        def test_insert_trace_context_only_other_vendors
+          parent_trace_context_data = nil
+          trace_state = nil
+          trace_id = nil
+
+          in_transaction do |parent|
+            parent_trace_context_data = make_trace_context_data tracestate: ['other=asdf,other2=jkl;']
+            trace_id = parent.trace_id
+            trace_state = parent_trace_context_data.tracestate
+          end
+
+          carrier = {}
+          child_trace_state_entry = nil
+          parent_id = nil
+
+          in_transaction do |child|
+            child.accept_trace_context parent_trace_context_data
+            child.insert_trace_context carrier: carrier
+            child_trace_state_entry = DistributedTracePayload.for_transaction child
+            parent_id = child.current_segment.guid
+          end
+
+          # We expect trace state to now have our entry at the front
+          trace_state_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
+          expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_entry.http_safe},#{trace_state}"
+          assert_equal expected_trace_state, carrier['tracestate']
+        end
+
         def test_insert_trace_context_no_other_vendors
           parent_trace_context_data = nil
           trace_state = nil
@@ -214,9 +242,12 @@ module NewRelic
             end
           end
 
+          # Make sure the parent transaction did not affect the child transaction's attributes
           refute_equal txn_one.guid, txn_two.parent_transaction_id
           assert_nil txn_two.parent_transaction_id
           refute_equal txn_one.trace_id, txn_two.trace_id
+          # Make sure the tracestate isn't affected either
+          assert_nil txn_two.trace_context_data.tracestate_entry
         end
 
         def test_accept_trace_context_mismatching_account_ids_matching_trust_key
