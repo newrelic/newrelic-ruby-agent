@@ -62,7 +62,7 @@ module NewRelic
         assert_equal 'fb1010463ea28a38', traceparent['parent_id']
         assert_equal '01', traceparent['trace_flags']
 
-        assert_equal payload.text, tracecontext_data.tracestate_entry.text
+        assert_equal payload.text, tracecontext_data.trace_state_payload.text
         assert_equal 'other=asdf', tracecontext_data.tracestate
       end
 
@@ -85,7 +85,7 @@ module NewRelic
         assert_equal 'fb1010463ea28a38', traceparent['parent_id']
         assert_equal '01', traceparent['trace_flags']
 
-        assert_equal payload.text, tracecontext_data.tracestate_entry.text
+        assert_equal payload.text, tracecontext_data.trace_state_payload.text
         assert_equal 'other=asdf', tracecontext_data.tracestate
       end
 
@@ -108,7 +108,7 @@ module NewRelic
         assert_equal 'fb1010463ea28a38', traceparent['parent_id']
         assert_equal '01', traceparent['trace_flags']
 
-        assert_equal payload.text, tracecontext_data.tracestate_entry.text
+        assert_equal payload.text, tracecontext_data.trace_state_payload.text
         assert_equal 'other=asdf,otherother=asdfasdf', tracecontext_data.tracestate
       end
 
@@ -118,7 +118,7 @@ module NewRelic
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                tracestate_entry_key: "t5a@nr"
-        assert_equal payload.text, tracecontext_data.tracestate_entry.text
+        assert_equal payload.text, tracecontext_data.trace_state_payload.text
         assert_equal '', tracecontext_data.tracestate
       end
 
@@ -127,7 +127,7 @@ module NewRelic
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                tracestate_entry_key: "t5a@nr"
-        assert_equal nil, tracecontext_data.tracestate_entry
+        assert_equal nil, tracecontext_data.trace_state_payload
         assert_equal 'other=asdf', tracecontext_data.tracestate
       end
 
@@ -136,7 +136,7 @@ module NewRelic
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                tracestate_entry_key: "t5a@nr"
-        assert_equal nil, tracecontext_data.tracestate_entry
+        assert_equal nil, tracecontext_data.trace_state_payload
         assert_equal '', tracecontext_data.tracestate
         assert_metrics_recorded "Supportability/TraceContext/AcceptPayload/ParseException"
       end

@@ -107,8 +107,8 @@ module NewRelic
             end
           end
 
-          Data.create tracestate_entry: payload ? decode_payload(payload) : nil,
-                      tracestate_array: tracestate
+          Data.create trace_state_payload: payload ? decode_payload(payload) : nil,
+                      other_trace_state_entries: tracestate
         end
 
         SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_IGNORED_PARSE_EXCEPTION = "Supportability/TraceContext/AcceptPayload/ParseException".freeze
@@ -125,23 +125,23 @@ module NewRelic
       class Data
         class << self
           def create traceparent: nil,
-                     tracestate_entry: nil,
-                     tracestate_array: nil
-            new traceparent, tracestate_entry, tracestate_array
+                     trace_state_payload: nil,
+                     other_trace_state_entries: nil
+            new traceparent, trace_state_payload, other_trace_state_entries
           end
         end
 
-        def initialize traceparent, tracestate_entry, tracestate_array
+        def initialize traceparent, trace_state_payload, other_trace_state_entries
           @traceparent = traceparent
-          @tracestate_array = tracestate_array
-          @tracestate_entry = tracestate_entry
+          @other_trace_state_entries = other_trace_state_entries
+          @trace_state_payload = trace_state_payload
         end
 
-        attr_accessor :traceparent, :tracestate_entry
+        attr_accessor :traceparent, :trace_state_payload
 
         def tracestate
-          @tracestate ||= @tracestate_array.join(",")
-          @tracestate_array = nil
+          @tracestate ||= @other_trace_state_entries.join(",")
+          @other_trace_state_entries = nil
           @tracestate
         end
       end
