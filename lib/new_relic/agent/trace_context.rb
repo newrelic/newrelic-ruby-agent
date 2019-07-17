@@ -26,6 +26,7 @@ module NewRelic
       INVALID_PARENT_ID = '0000000000000000'.freeze
 
       MAX_TRACE_STATE_SIZE = 512 # bytes
+      MAX_TRACE_STATE_ENTRY_SIZE = 128 # bytes
 
       class << self
         def insert format: FORMAT_HTTP,
@@ -188,6 +189,7 @@ module NewRelic
           @other_trace_state_entries.each do |entry|
             entry_size = entry.bytesize
             break if used_size + entry_size >= max_size
+            next if entry_size > MAX_TRACE_STATE_ENTRY_SIZE
 
             if entry_index > 0
               other_trace_state << COMMA

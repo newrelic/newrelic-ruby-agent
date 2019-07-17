@@ -44,9 +44,22 @@ module NewRelic
           # setting the entry size to something > 12 should result in a trimmed trace state
           new_entry = 'a' * 13
           trace_state = data.trace_state new_entry
-          
+
           expected_size = 499 - 9 + 13
           assert_equal expected_size, trace_state.bytesize
+        end
+
+        def test_trace_state_trims_entries_larger_than_128_bytes
+          trace_state_array = [
+            'one=value',
+            "#{random_text(2)}=#{random_text(130)}", # 133 bytes
+            'two=value' 
+          ]
+          data = Data.new 'traceparent', 'payload', trace_state_array
+
+          trace_state = data.trace_state 'new=entry'
+          expected_trace_state = 'new=entry,one=value,two=value'
+          assert_equal expected_trace_state, trace_state
         end
 
         LETTERS = ('a'..'z').to_a
