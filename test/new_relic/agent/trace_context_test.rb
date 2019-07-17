@@ -55,12 +55,12 @@ module NewRelic
                                                carrier: carrier,
                                                trace_state_entry_key: "t5a@nr"
 
-        traceparent = tracecontext_data.traceparent
+        trace_parent = tracecontext_data.trace_parent
 
-        assert_equal '00', traceparent['version']
-        assert_equal 'a8e67265afe2773a3c611b94306ee5c2', traceparent['trace_id']
-        assert_equal 'fb1010463ea28a38', traceparent['parent_id']
-        assert_equal '01', traceparent['trace_flags']
+        assert_equal '00', trace_parent['version']
+        assert_equal 'a8e67265afe2773a3c611b94306ee5c2', trace_parent['trace_id']
+        assert_equal 'fb1010463ea28a38', trace_parent['parent_id']
+        assert_equal '01', trace_parent['trace_flags']
 
         assert_equal payload.text, tracecontext_data.trace_state_payload.text
         assert_equal 'other=asdf', tracecontext_data.trace_state
@@ -78,12 +78,12 @@ module NewRelic
                                                carrier: carrier,
                                                trace_state_entry_key: "t5a@nr"
 
-        traceparent = tracecontext_data.traceparent
+        trace_parent = tracecontext_data.trace_parent
 
-        assert_equal '00', traceparent['version']
-        assert_equal 'a8e67265afe2773a3c611b94306ee5c2', traceparent['trace_id']
-        assert_equal 'fb1010463ea28a38', traceparent['parent_id']
-        assert_equal '01', traceparent['trace_flags']
+        assert_equal '00', trace_parent['version']
+        assert_equal 'a8e67265afe2773a3c611b94306ee5c2', trace_parent['trace_id']
+        assert_equal 'fb1010463ea28a38', trace_parent['parent_id']
+        assert_equal '01', trace_parent['trace_flags']
 
         assert_equal payload.text, tracecontext_data.trace_state_payload.text
         assert_equal 'other=asdf', tracecontext_data.trace_state
@@ -101,12 +101,12 @@ module NewRelic
                                                carrier: carrier,
                                                trace_state_entry_key: "t5a@nr"
 
-        traceparent = tracecontext_data.traceparent
+        trace_parent = tracecontext_data.trace_parent
 
-        assert_equal '00', traceparent['version']
-        assert_equal 'a8e67265afe2773a3c611b94306ee5c2', traceparent['trace_id']
-        assert_equal 'fb1010463ea28a38', traceparent['parent_id']
-        assert_equal '01', traceparent['trace_flags']
+        assert_equal '00', trace_parent['version']
+        assert_equal 'a8e67265afe2773a3c611b94306ee5c2', trace_parent['trace_id']
+        assert_equal 'fb1010463ea28a38', trace_parent['parent_id']
+        assert_equal '01', trace_parent['trace_flags']
 
         assert_equal payload.text, tracecontext_data.trace_state_payload.text
         assert_equal 'other=asdf,otherother=asdfasdf', tracecontext_data.trace_state

@@ -8,16 +8,16 @@ module NewRelic
   module Agent
     class TraceContext
       VERSION = 0x0
-      TRACEPARENT = 'traceparent'.freeze
+      TRACE_PARENT = 'traceparent'.freeze
       TRACE_STATE  = 'tracestate'.freeze
 
-      TRACEPARENT_RACK = 'HTTP_TRACEPARENT'.freeze
+      TRACE_PARENT_RACK = 'HTTP_TRACEPARENT'.freeze
       TRACE_STATE_RACK  = 'HTTP_TRACESTATE'.freeze
 
       FORMAT_HTTP = 0
       FORMAT_RACK = 1
 
-      TRACEPARENT_REGEX = /\A(?<version>\d{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})\z/.freeze
+      TRACE_PARENT_REGEX = /\A(?<version>\d{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})\z/.freeze
 
       MAX_TRACE_STATE_SIZE = 512 # bytes
 
@@ -29,8 +29,8 @@ module NewRelic
                    trace_flags: nil,
                    trace_state: nil
 
-          traceparent_header = traceparent_header_for_format format
-          carrier[traceparent_header] = format_trace_parent \
+          trace_parent_header = trace_parent_header_for_format format
+          carrier[trace_parent_header] = format_trace_parent \
             trace_id: trace_id,
             parent_id: parent_id,
             trace_flags: trace_flags
@@ -43,22 +43,22 @@ module NewRelic
                   carrier: nil,
                   trace_state_entry_key: nil
 
-          return unless traceparent = extract_traceparent(format, carrier)
+          return unless trace_parent = extract_traceparent(format, carrier)
 
           if data = extract_tracestate(format, carrier, trace_state_entry_key)
-            data.traceparent = traceparent
+            data.trace_parent = trace_parent
             data
           end
         end
 
         private
 
-        TRACEPARENT_FORMAT_STRING = "%02x-%s-%s-%02x".freeze
+        TRACE_PARENT_FORMAT_STRING = "%02x-%s-%s-%02x".freeze
 
         def format_trace_parent trace_id: nil,
                                 parent_id: nil,
                                 trace_flags: nil
-          sprintf TRACEPARENT_FORMAT_STRING,
+          sprintf TRACE_PARENT_FORMAT_STRING,
                   VERSION,
                   trace_id,
                   parent_id,
@@ -66,21 +66,21 @@ module NewRelic
         end
 
         def extract_traceparent format, carrier
-          header_name = traceparent_header_for_format format
+          header_name = trace_parent_header_for_format format
           header = carrier[header_name]
-          if matchdata = header.match(TRACEPARENT_REGEX)
-            TRACEPARENT_REGEX.named_captures.inject({}) do |hash, (name, (index))|
+          if matchdata = header.match(TRACE_PARENT_REGEX)
+            TRACE_PARENT_REGEX.named_captures.inject({}) do |hash, (name, (index))|
               hash[name] = matchdata[index]
               hash
             end
           end
         end
 
-        def traceparent_header_for_format format
+        def trace_parent_header_for_format format
           if format == FORMAT_RACK
-            TRACEPARENT_RACK
+            TRACE_PARENT_RACK
           else
-            TRACEPARENT
+            TRACE_PARENT
           end
         end
 
@@ -126,20 +126,20 @@ module NewRelic
 
       class Data
         class << self
-          def create traceparent: nil,
+          def create trace_parent: nil,
                      trace_state_payload: nil,
                      other_trace_state_entries: nil
-            new traceparent, trace_state_payload, other_trace_state_entries
+            new trace_parent, trace_state_payload, other_trace_state_entries
           end
         end
 
-        def initialize traceparent, trace_state_payload, other_trace_state_entries
-          @traceparent = traceparent
+        def initialize trace_parent, trace_state_payload, other_trace_state_entries
+          @trace_parent = trace_parent
           @other_trace_state_entries = other_trace_state_entries
           @trace_state_payload = trace_state_payload
         end
 
-        attr_accessor :traceparent, :trace_state_payload
+        attr_accessor :trace_parent, :trace_state_payload
 
         def trace_state
           @trace_state ||= @other_trace_state_entries.join(",")
