@@ -61,7 +61,10 @@ module NewRelic
           in_transaction do |parent|
             parent.sampled = true
             payload = DistributedTracePayload.for_transaction parent
-            parent_trace_context_data = make_trace_context_data trace_state_payload: payload
+            trace_parent = make_trace_parent({'trace_id' => parent.trace_id, 'parent_id' => parent.guid})
+            parent_trace_context_data = make_trace_context_data \
+              trace_parent: trace_parent,
+              trace_state_payload: payload
             trace_id = parent.trace_id
             trace_state = parent_trace_context_data.trace_state
           end
@@ -122,7 +125,11 @@ module NewRelic
           in_transaction do |parent|
             parent.sampled = true
             payload = DistributedTracePayload.for_transaction parent
-            parent_trace_context_data = make_trace_context_data trace_state_payload: payload, trace_state: []
+            trace_parent = make_trace_parent({'trace_id' => parent.trace_id, 'parent_id' => parent.guid})
+            parent_trace_context_data = make_trace_context_data \
+              trace_parent: trace_parent,
+              trace_state_payload: payload,
+              trace_state: []
             trace_id = parent.trace_id
             trace_state = parent_trace_context_data.trace_state
           end
@@ -242,10 +249,13 @@ module NewRelic
             end
           end
 
+          # even though the two accounts are unrelated, they are still part of
+          # the same trace
+          assert_equal txn_one.trace_id, txn_two.trace_id
+
           # Make sure the parent transaction did not affect the child transaction's attributes
           refute_equal txn_one.guid, txn_two.parent_transaction_id
           assert_nil txn_two.parent_transaction_id
-          refute_equal txn_one.trace_id, txn_two.trace_id
           # Make sure the trace_state isn't affected either
           assert_nil txn_two.trace_context_data.instance_variable_get :@trace_state_payload
         end
@@ -307,6 +317,15 @@ module NewRelic
             refute txn.accept_trace_context trace_context_data
           end
           assert_metrics_recorded "Supportability/TraceContext/AcceptPayload/Ignored/CreateBeforeAccept"
+        end
+
+        def make_trace_parent options
+          {
+            'version' => '00',
+            'trace_id' => '',
+            'parent_id' => '',
+            'sampled' => '01'
+          }.update options
         end
 
         def make_trace_context_data trace_parent: "00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01",
