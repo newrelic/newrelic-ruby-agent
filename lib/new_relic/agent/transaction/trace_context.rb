@@ -51,9 +51,10 @@ module NewRelic
           return unless Agent.config[:'trace_context.enabled']
           return false if check_trace_context_ignored
           return false unless @trace_context_data = trace_context_data
+          @trace_id = @trace_context_data.trace_id
+
           return false unless payload = trace_context_data.trace_state_payload
 
-          @trace_id = payload.trace_id
           @parent_transaction_id = payload.transaction_id
 
           if payload.sampled

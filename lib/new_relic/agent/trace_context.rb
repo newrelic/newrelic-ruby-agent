@@ -20,6 +20,7 @@ module NewRelic
       TRACE_PARENT_REGEX = /\A(?<version>\d{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})\z/.freeze
 
       COMMA = ','.freeze
+      TRACE_ID_KEY = 'trace_id'.freeze
 
       MAX_TRACE_STATE_SIZE = 512 # bytes
 
@@ -97,6 +98,8 @@ module NewRelic
         def extract_tracestate format, carrier, trace_state_entry_key
           header_name = trace_state_header_for_format format
           header = carrier[header_name]
+          return Data.new nil, nil, [] if header.nil? || header.empty?
+
           payload = nil
 
           trace_state = header.split(COMMA)
@@ -125,6 +128,8 @@ module NewRelic
       end
 
       class Data
+        TRACE_ID_KEY = 'trace_id'.freeze
+
         class << self
           def create trace_parent: nil,
                      trace_state_payload: nil,
@@ -145,6 +150,10 @@ module NewRelic
           @trace_state ||= @other_trace_state_entries.join(COMMA)
           @other_trace_state_entries = nil
           @trace_state
+        end
+
+        def trace_id
+          @trace_parent[TRACE_ID_KEY]
         end
 
         def set_entry_size entry_size
