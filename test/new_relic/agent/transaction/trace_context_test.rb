@@ -55,7 +55,7 @@ module NewRelic
 
         def test_insert_trace_context_non_root
           parent_trace_context_data = nil
-          trace_state = nil
+          other_trace_state = nil
           trace_id = nil
 
           in_transaction do |parent|
@@ -66,7 +66,7 @@ module NewRelic
               trace_parent: trace_parent,
               trace_state_payload: payload
             trace_id = parent.trace_id
-            trace_state = parent_trace_context_data.trace_state
+            other_trace_state = parent_trace_context_data.instance_variable_get :@other_trace_state_entries
           end
 
           carrier = {}
@@ -85,19 +85,17 @@ module NewRelic
 
           # We expect trace state to now have our entry at the front
           trace_state_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
-          expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_entry.http_safe},#{trace_state}"
+          expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_entry.http_safe},#{other_trace_state.join('.')}"
           assert_equal expected_trace_state, carrier['tracestate']
         end
 
         def test_insert_trace_context_only_other_vendors
           parent_trace_context_data = nil
-          trace_state = nil
-          trace_id = nil
+          other_trace_state = nil
 
           in_transaction do |parent|
             parent_trace_context_data = make_trace_context_data trace_state: ['other=asdf,other2=jkl;']
-            trace_id = parent.trace_id
-            trace_state = parent_trace_context_data.trace_state
+            other_trace_state = parent_trace_context_data.instance_variable_get :@other_trace_state_entries
           end
 
           carrier = {}
@@ -113,14 +111,12 @@ module NewRelic
 
           # We expect trace state to now have our entry at the front
           trace_state_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
-          expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_entry.http_safe},#{trace_state}"
+          expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_entry.http_safe},#{other_trace_state.join(',')}"
           assert_equal expected_trace_state, carrier['tracestate']
         end
 
         def test_insert_trace_context_no_other_vendors
           parent_trace_context_data = nil
-          trace_state = nil
-          trace_id = nil
 
           in_transaction do |parent|
             parent.sampled = true
@@ -130,8 +126,6 @@ module NewRelic
               trace_parent: trace_parent,
               trace_state_payload: payload,
               trace_state: []
-            trace_id = parent.trace_id
-            trace_state = parent_trace_context_data.trace_state
           end
 
           carrier = {}
@@ -145,7 +139,7 @@ module NewRelic
             parent_id = child.current_segment.guid
           end
 
-          expected_trace_parent = "00-#{trace_id}-#{parent_id}-01"
+          expected_trace_parent = "00-#{parent_trace_context_data.trace_id}-#{parent_id}-01"
           assert_equal expected_trace_parent, carrier['traceparent']
 
           # We expect trace state to now have replaced our old entry with our new entry
@@ -206,7 +200,6 @@ module NewRelic
             trace_context_data = NewRelic::Agent::TraceContext.parse \
               carrier: carrier,
               trace_state_entry_key: "nr"
-
 
             child_txn = in_transaction 'child' do |txn|
               txn.accept_trace_context trace_context_data

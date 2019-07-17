@@ -63,7 +63,7 @@ module NewRelic
         assert_equal '01', trace_parent['trace_flags']
 
         assert_equal payload.text, tracecontext_data.trace_state_payload.text
-        assert_equal 'other=asdf', tracecontext_data.trace_state
+        assert_equal 'new=entry,other=asdf', tracecontext_data.trace_state('new=entry')
       end
 
       def test_parse_with_nr_at_end
@@ -86,7 +86,7 @@ module NewRelic
         assert_equal '01', trace_parent['trace_flags']
 
         assert_equal payload.text, tracecontext_data.trace_state_payload.text
-        assert_equal 'other=asdf', tracecontext_data.trace_state
+        assert_equal 'new=entry,other=asdf', tracecontext_data.trace_state('new=entry')
       end
 
       def test_parse_with_nr_middle
@@ -109,7 +109,7 @@ module NewRelic
         assert_equal '01', trace_parent['trace_flags']
 
         assert_equal payload.text, tracecontext_data.trace_state_payload.text
-        assert_equal 'other=asdf,otherother=asdfasdf', tracecontext_data.trace_state
+        assert_equal 'new=entry,other=asdf,otherother=asdfasdf', tracecontext_data.trace_state('new=entry')
       end
 
       def test_parse_tracestate_no_other_entries
@@ -119,7 +119,7 @@ module NewRelic
                                                carrier: carrier,
                                                trace_state_entry_key: "t5a@nr"
         assert_equal payload.text, tracecontext_data.trace_state_payload.text
-        assert_equal '', tracecontext_data.trace_state
+        assert_equal 'new=entry', tracecontext_data.trace_state('new=entry')
       end
 
       def test_parse_tracestate_no_nr_entry
@@ -128,7 +128,7 @@ module NewRelic
                                                carrier: carrier,
                                                trace_state_entry_key: "t5a@nr"
         assert_equal nil, tracecontext_data.trace_state_payload
-        assert_equal 'other=asdf', tracecontext_data.trace_state
+        assert_equal 'new=entry,other=asdf', tracecontext_data.trace_state('new=entry')
       end
 
       def test_parse_tracestate_nr_entry_malformed
@@ -137,7 +137,7 @@ module NewRelic
                                                carrier: carrier,
                                                trace_state_entry_key: "t5a@nr"
         assert_equal nil, tracecontext_data.trace_state_payload
-        assert_equal '', tracecontext_data.trace_state
+        assert_equal 'new=entry', tracecontext_data.trace_state('new=entry')
         assert_metrics_recorded "Supportability/TraceContext/AcceptPayload/ParseException"
       end
 

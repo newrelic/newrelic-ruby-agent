@@ -58,6 +58,10 @@ module NewRelic
           end
         end
 
+        def create_trace_state_entry entry_key, payload
+          "#{entry_key}=#{payload}"
+        end
+
         private
 
         TRACE_PARENT_FORMAT_STRING = "%02x-%s-%s-%02x".freeze
@@ -157,40 +161,46 @@ module NewRelic
 
         attr_accessor :trace_parent, :trace_state_payload
 
-        def trace_state
-          @trace_state ||= @other_trace_state_entries.join(COMMA)
+        def trace_state trace_state_entry
+          new_entry_size = trace_state_entry.bytesize
+          bytes_available_for_other_entries = MAX_TRACE_STATE_SIZE - new_entry_size - COMMA.bytesize
+
+          @trace_state ||= join_other_trace_state bytes_available_for_other_entries
           @other_trace_state_entries = nil
-          @trace_state
+
+          trace_state_entry << COMMA << @trace_state unless @trace_state.empty?
+          trace_state_entry
         end
 
         def trace_id
           @trace_parent[TRACE_ID_KEY]
         end
 
-        def set_entry_size entry_size
-          # this method trims the trace_state array being stored in memory so
-          # that, when joined with a comma delimiter and prepended with a
-          # trace state entry of the specified entry_size, the resulting string
-          # will be less than or equal to MAX_TRACE_STATE_SIZE
-          # If this method is called _after_ the array of trace state entries
-          # has been converted to a string, it has no effect.  
-          # This method is destructive.  After calling `set_entry_size 100`,
-          # calling with a number less than 100 will have no effect.
-          bytes_to_remove = array_size - (MAX_TRACE_STATE_SIZE - entry_size)
-          while bytes_to_remove > 0
-            bytes_to_remove -= @other_trace_state_entries.pop.bytesize
-          end
-        end
-
         private
 
-        def array_size
-          return 0 unless @other_trace_state_entries
-          @other_trace_state_entries.inject(0) do |size, char|
-            size += char.bytesize + 1
-            size
+        def join_other_trace_state max_size
+          other_trace_state = ''
+          return other_trace_state unless @other_trace_state_entries
+
+          used_size = 0
+          entry_index = 0
+
+          @other_trace_state_entries.each do |entry|
+            entry_size = entry.bytesize
+            break if used_size + entry_size >= max_size
+
+            if entry_index > 0
+              other_trace_state << COMMA
+              used_size += 1
+            end
+            other_trace_state << entry
+            used_size += entry_size
+            entry_index += 1
           end
+
+          other_trace_state
         end
+
       end
 
       module AccountHelpers
