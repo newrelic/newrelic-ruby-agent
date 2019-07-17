@@ -21,7 +21,9 @@ module NewRelic
 
       COMMA = ','.freeze
       TRACE_ID_KEY = 'trace_id'.freeze
+      PARENT_ID_KEY = 'parent_id'.freeze
       INVALID_TRACE_ID = '00000000000000000000000000000000'.freeze
+      INVALID_PARENT_ID = '0000000000000000'.freeze
 
       MAX_TRACE_STATE_SIZE = 512 # bytes
 
@@ -83,6 +85,7 @@ module NewRelic
 
         def trace_parent_valid? trace_parent
           return false if trace_parent[TRACE_ID_KEY] == INVALID_TRACE_ID
+          return false if trace_parent[PARENT_ID_KEY] == INVALID_PARENT_ID
 
           true
         end

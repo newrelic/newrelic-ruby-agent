@@ -151,12 +151,6 @@ module NewRelic
       end
 
       def test_trace_parent_valid
-        invalid_trace_parent = {
-          'version' => '00',
-          'trace_id' => '00000000000000000000000000000000',
-          'parent_id' => 'fb1010463ea28a38',
-          'trace_flags' => '01'
-        }
         valid_trace_parent = {
           'version' => '00',
           'trace_id' => 'a8e67265afe2773a3c611b94306ee5c2',
@@ -165,6 +159,27 @@ module NewRelic
         }
 
         assert TraceContext.send :trace_parent_valid?, valid_trace_parent
+      end
+
+      def test_trace_parent_valid_invalid_trace_id
+        invalid_trace_id = {
+          'version' => '00',
+          'trace_id' => '00000000000000000000000000000000',
+          'parent_id' => 'fb1010463ea28a38',
+          'trace_flags' => '01'
+        }
+
+        assert_false TraceContext.send :trace_parent_valid?, invalid_trace_id
+      end
+
+      def test_trace_parent_valid_invalid_parent_id
+        invalid_trace_parent = {
+          'version' => '00',
+          'trace_id' => 'a8e67265afe2773a3c611b94306ee5c2',
+          'parent_id' => '0000000000000000',
+          'trace_flags' => '01'
+        }
+
         assert_false TraceContext.send :trace_parent_valid?, invalid_trace_parent
       end
 
