@@ -141,6 +141,15 @@ module NewRelic
         assert_metrics_recorded "Supportability/TraceContext/AcceptPayload/ParseException"
       end
 
+      def test_extract_trace_parent_nonzero_version
+        carrier = make_inbound_carrier({
+          'traceparent' => 'cc-12345678901234567890123456789012-1234567890123456-01'
+        })
+        trace_parent = TraceContext.send :extract_traceparent, TraceContext::FORMAT_HTTP, carrier
+        assert_equal 'cc', trace_parent['version']
+        assert_equal '12345678901234567890123456789012', trace_parent['trace_id']
+      end
+
       def test_trace_parent_valid
         invalid_trace_parent = {
           'version' => '00',

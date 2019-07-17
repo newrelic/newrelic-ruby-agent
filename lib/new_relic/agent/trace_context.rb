@@ -17,7 +17,7 @@ module NewRelic
       FORMAT_HTTP = 0
       FORMAT_RACK = 1
 
-      TRACE_PARENT_REGEX = /\A(?<version>\d{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})\z/.freeze
+      TRACE_PARENT_REGEX = /\A(?<version>[a-f\d]{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})\z/.freeze
 
       COMMA = ','.freeze
       TRACE_ID_KEY = 'trace_id'.freeze
