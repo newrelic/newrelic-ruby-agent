@@ -25,13 +25,19 @@ module NewRelic
         end
 
         def trace_state
-          payload = create_trace_state_payload
-          tracestate_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
-          if trace_context_data && !trace_context_data.tracestate.empty?
-            "#{tracestate_entry_key}=#{payload.http_safe},#{trace_context_data.tracestate}"
-          else
-            "#{tracestate_entry_key}=#{payload.http_safe}"
+          entry = create_trace_state_entry
+
+          if trace_context_data
+            trace_context_data.set_entry_size entry.bytesize
+            entry << ',' << trace_context_data.tracestate unless trace_context_data.tracestate.empty?
           end
+
+          entry
+        end
+
+        def create_trace_state_entry
+          tracestate_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
+          "#{tracestate_entry_key}=#{create_trace_state_payload.http_safe}"
         end
 
         def create_trace_state_payload

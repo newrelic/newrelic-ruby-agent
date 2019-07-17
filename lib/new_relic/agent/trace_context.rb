@@ -19,6 +19,8 @@ module NewRelic
 
       TRACEPARENT_REGEX = /\A(?<version>\d{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})\z/.freeze
 
+      MAX_TRACE_STATE_SIZE = 512 # bytes
+
       class << self
         def insert format: FORMAT_HTTP,
                    carrier: nil,
@@ -143,6 +145,31 @@ module NewRelic
           @tracestate ||= @other_trace_state_entries.join(",")
           @other_trace_state_entries = nil
           @tracestate
+        end
+
+        def set_entry_size entry_size
+          # this method trims the trace_state array being stored in memory so
+          # that, when joined with a comma delimiter and prepended with a
+          # trace state entry of the specified entry_size, the resulting string
+          # will be less than or equal to MAX_TRACE_STATE_SIZE
+          # If this method is called _after_ the array of trace state entries
+          # has been converted to a string, it has no effect.  
+          # This method is destructive.  After calling `set_entry_size 100`,
+          # calling with a number less than 100 will have no effect.
+          bytes_to_remove = array_size - (MAX_TRACE_STATE_SIZE - entry_size)
+          while bytes_to_remove > 0
+            bytes_to_remove -= @other_trace_state_entries.pop.bytesize
+          end
+        end
+
+        private
+
+        def array_size
+          return 0 unless @other_trace_state_entries
+          @other_trace_state_entries.inject(0) do |size, char|
+            size += char.bytesize + 1
+            size
+          end
         end
       end
 
