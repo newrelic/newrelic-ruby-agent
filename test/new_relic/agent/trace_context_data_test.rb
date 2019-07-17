@@ -15,11 +15,11 @@ module NewRelic
           other_entries = ['one', 'two']
           data = Data.new 'traceparent', 'tracestate_entry', other_entries
 
-          assert_nil data.instance_variable_get :@tracestate
+          assert_nil data.instance_variable_get :@trace_state
           refute_nil data.instance_variable_get :@other_trace_state_entries
 
-          assert_equal 'one,two', data.tracestate
-          refute_nil data.instance_variable_get :@tracestate
+          assert_equal 'one,two', data.trace_state
+          refute_nil data.instance_variable_get :@trace_state
           assert_nil data.instance_variable_get :@other_trace_state_entries
         end
 
@@ -27,8 +27,8 @@ module NewRelic
         def test_tracestate_trims_if_too_log
           # Create a trace state array with 50 9 byte entries.  When joined
           # with a comma, this would be 499 bytes
-          tracestate_array = (0...50).map { "#{random_text(2)}=#{random_text(6)}" }
-          data = Data.new 'traceparent', 'payload', tracestate_array
+          trace_state_array = (0...50).map { "#{random_text(2)}=#{random_text(6)}" }
+          data = Data.new 'traceparent', 'payload', trace_state_array
 
           # setting the entry size to something <= 12 shouldn't change the length
           # of the array

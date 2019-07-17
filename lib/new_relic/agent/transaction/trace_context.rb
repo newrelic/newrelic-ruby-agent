@@ -29,15 +29,15 @@ module NewRelic
 
           if trace_context_data
             trace_context_data.set_entry_size entry.bytesize
-            entry << ',' << trace_context_data.tracestate unless trace_context_data.tracestate.empty?
+            entry << ',' << trace_context_data.trace_state unless trace_context_data.trace_state.empty?
           end
 
           entry
         end
 
         def create_trace_state_entry
-          tracestate_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
-          "#{tracestate_entry_key}=#{create_trace_state_payload.http_safe}"
+          trace_state_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
+          "#{trace_state_entry_key}=#{create_trace_state_payload.http_safe}"
         end
 
         def create_trace_state_payload

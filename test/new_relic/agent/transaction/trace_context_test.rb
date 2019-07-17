@@ -63,7 +63,7 @@ module NewRelic
             payload = DistributedTracePayload.for_transaction parent
             parent_trace_context_data = make_trace_context_data trace_state_payload: payload
             trace_id = parent.trace_id
-            trace_state = parent_trace_context_data.tracestate
+            trace_state = parent_trace_context_data.trace_state
           end
 
           carrier = {}
@@ -81,7 +81,7 @@ module NewRelic
           assert_equal expected_trace_parent, carrier['traceparent']
 
           # We expect trace state to now have our entry at the front
-          trace_state_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
+          trace_state_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
           expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_entry.http_safe},#{trace_state}"
           assert_equal expected_trace_state, carrier['tracestate']
         end
@@ -92,9 +92,9 @@ module NewRelic
           trace_id = nil
 
           in_transaction do |parent|
-            parent_trace_context_data = make_trace_context_data tracestate: ['other=asdf,other2=jkl;']
+            parent_trace_context_data = make_trace_context_data trace_state: ['other=asdf,other2=jkl;']
             trace_id = parent.trace_id
-            trace_state = parent_trace_context_data.tracestate
+            trace_state = parent_trace_context_data.trace_state
           end
 
           carrier = {}
@@ -109,7 +109,7 @@ module NewRelic
           end
 
           # We expect trace state to now have our entry at the front
-          trace_state_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
+          trace_state_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
           expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_entry.http_safe},#{trace_state}"
           assert_equal expected_trace_state, carrier['tracestate']
         end
@@ -122,9 +122,9 @@ module NewRelic
           in_transaction do |parent|
             parent.sampled = true
             payload = DistributedTracePayload.for_transaction parent
-            parent_trace_context_data = make_trace_context_data trace_state_payload: payload, tracestate: []
+            parent_trace_context_data = make_trace_context_data trace_state_payload: payload, trace_state: []
             trace_id = parent.trace_id
-            trace_state = parent_trace_context_data.tracestate
+            trace_state = parent_trace_context_data.trace_state
           end
 
           carrier = {}
@@ -142,7 +142,7 @@ module NewRelic
           assert_equal expected_trace_parent, carrier['traceparent']
 
           # We expect trace state to now have replaced our old entry with our new entry
-          trace_state_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
+          trace_state_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
           expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_entry.http_safe}"
           assert_equal expected_trace_state, carrier['tracestate']
 
@@ -171,7 +171,7 @@ module NewRelic
 
           trace_context_data = NewRelic::Agent::TraceContext.parse \
             carrier: carrier,
-            tracestate_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
+            trace_state_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
           child_txn = in_transaction 'new' do |txn|
             txn.accept_trace_context trace_context_data
           end
@@ -198,7 +198,7 @@ module NewRelic
 
             trace_context_data = NewRelic::Agent::TraceContext.parse \
               carrier: carrier,
-              tracestate_entry_key: "nr"
+              trace_state_entry_key: "nr"
 
 
             child_txn = in_transaction 'child' do |txn|
@@ -236,7 +236,7 @@ module NewRelic
           with_config(account_two) do
             trace_context_data = NewRelic::Agent::TraceContext.parse \
               carrier: carrier,
-              tracestate_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
+              trace_state_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
             txn_two = in_transaction 'child' do |txn|
               txn.accept_trace_context trace_context_data
             end
@@ -246,8 +246,8 @@ module NewRelic
           refute_equal txn_one.guid, txn_two.parent_transaction_id
           assert_nil txn_two.parent_transaction_id
           refute_equal txn_one.trace_id, txn_two.trace_id
-          # Make sure the tracestate isn't affected either
-          assert_nil txn_two.trace_context_data.instance_variable_get :@tracestate_payload
+          # Make sure the trace_state isn't affected either
+          assert_nil txn_two.trace_context_data.instance_variable_get :@trace_state_payload
         end
 
         def test_accept_trace_context_mismatching_account_ids_matching_trust_key
@@ -275,7 +275,7 @@ module NewRelic
           with_config(account_two) do
             trace_context_data = NewRelic::Agent::TraceContext.parse \
               carrier: carrier,
-              tracestate_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.tracestate_entry_key
+              trace_state_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
             txn_two = in_transaction 'child' do |txn|
               txn.accept_trace_context trace_context_data
             end
@@ -311,12 +311,12 @@ module NewRelic
 
         def make_trace_context_data traceparent: "00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01",
                                     trace_state_payload: nil,
-                                    tracestate: ["other=asdf"]
-            NewRelic::Agent::TraceContext::Data.new traceparent, trace_state_payload, tracestate
+                                    trace_state: ["other=asdf"]
+            NewRelic::Agent::TraceContext::Data.new traceparent, trace_state_payload, trace_state
         end
 
         def uncache_trusted_account_key
-          NewRelic::Agent::TraceContext::AccountHelpers.instance_variable_set :@tracestate_entry_key, nil
+          NewRelic::Agent::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
         end
       end
     end

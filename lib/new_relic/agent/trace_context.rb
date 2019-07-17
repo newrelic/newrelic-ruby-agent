@@ -9,10 +9,10 @@ module NewRelic
     class TraceContext
       VERSION = 0x0
       TRACEPARENT = 'traceparent'.freeze
-      TRACESTATE  = 'tracestate'.freeze
+      TRACE_STATE  = 'tracestate'.freeze
 
       TRACEPARENT_RACK = 'HTTP_TRACEPARENT'.freeze
-      TRACESTATE_RACK  = 'HTTP_TRACESTATE'.freeze
+      TRACE_STATE_RACK  = 'HTTP_TRACESTATE'.freeze
 
       FORMAT_HTTP = 0
       FORMAT_RACK = 1
@@ -35,17 +35,17 @@ module NewRelic
             parent_id: parent_id,
             trace_flags: trace_flags
 
-          tracestate_header = tracestate_header_for_format format
-          carrier[tracestate_header] = trace_state if trace_state
+          trace_state_header = trace_state_header_for_format format
+          carrier[trace_state_header] = trace_state if trace_state
         end
 
         def parse format: FORMAT_HTTP,
                   carrier: nil,
-                  tracestate_entry_key: nil
+                  trace_state_entry_key: nil
 
           return unless traceparent = extract_traceparent(format, carrier)
 
-          if data = extract_tracestate(format, carrier, tracestate_entry_key)
+          if data = extract_tracestate(format, carrier, trace_state_entry_key)
             data.traceparent = traceparent
             data
           end
@@ -84,33 +84,33 @@ module NewRelic
           end
         end
 
-        def tracestate_header_for_format format
+        def trace_state_header_for_format format
           if format == FORMAT_RACK
-            TRACESTATE_RACK
+            TRACE_STATE_RACK
           else
-            TRACESTATE
+            TRACE_STATE
           end
         end
 
         COMMA = ','.freeze
 
-        def extract_tracestate format, carrier, tracestate_entry_key
-          header_name = tracestate_header_for_format format
+        def extract_tracestate format, carrier, trace_state_entry_key
+          header_name = trace_state_header_for_format format
           header = carrier[header_name]
           payload = nil
 
-          tracestate = header.split(COMMA)
-          tracestate_entry_prefix = "#{tracestate_entry_key}="
-          tracestate.reject! do |entry|
-            if entry.start_with? tracestate_entry_prefix
-              payload = entry.slice! tracestate_entry_key.size + 1,
+          trace_state = header.split(COMMA)
+          trace_state_entry_prefix = "#{trace_state_entry_key}="
+          trace_state.reject! do |entry|
+            if entry.start_with? trace_state_entry_prefix
+              payload = entry.slice! trace_state_entry_key.size + 1,
                                      entry.size
               !!payload
             end
           end
 
           Data.create trace_state_payload: payload ? decode_payload(payload) : nil,
-                      other_trace_state_entries: tracestate
+                      other_trace_state_entries: trace_state
         end
 
         SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_IGNORED_PARSE_EXCEPTION = "Supportability/TraceContext/AcceptPayload/ParseException".freeze
@@ -141,10 +141,10 @@ module NewRelic
 
         attr_accessor :traceparent, :trace_state_payload
 
-        def tracestate
-          @tracestate ||= @other_trace_state_entries.join(",")
+        def trace_state
+          @trace_state ||= @other_trace_state_entries.join(",")
           @other_trace_state_entries = nil
-          @tracestate
+          @trace_state
         end
 
         def set_entry_size entry_size
@@ -175,8 +175,8 @@ module NewRelic
 
       module AccountHelpers
         extend self
-        def tracestate_entry_key
-          @tracestate_entry_key ||= if Agent.config[:trusted_account_key]
+        def trace_state_entry_key
+          @trace_state_entry_key ||= if Agent.config[:trusted_account_key]
             "t#{Agent.config[:trusted_account_key].to_i.to_s(36)}@nr".freeze
           elsif Agent.config[:account_id]
             "t#{Agent.config[:account_id].to_i.to_s(36)}@nr".freeze
