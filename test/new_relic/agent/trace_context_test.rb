@@ -141,6 +141,24 @@ module NewRelic
         assert_metrics_recorded "Supportability/TraceContext/AcceptPayload/ParseException"
       end
 
+      def test_trace_parent_valid
+        invalid_trace_parent = {
+          'version' => '00',
+          'trace_id' => '00000000000000000000000000000000',
+          'parent_id' => 'fb1010463ea28a38',
+          'trace_flags' => '01'
+        }
+        valid_trace_parent = {
+          'version' => '00',
+          'trace_id' => 'a8e67265afe2773a3c611b94306ee5c2',
+          'parent_id' => 'fb1010463ea28a38',
+          'trace_flags' => '01'
+        }
+
+        assert TraceContext.send :trace_parent_valid?, valid_trace_parent
+        assert_false TraceContext.send :trace_parent_valid?, invalid_trace_parent
+      end
+
       def make_inbound_carrier options = {}
         {
           'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',

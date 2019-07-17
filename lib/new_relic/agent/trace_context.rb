@@ -21,6 +21,7 @@ module NewRelic
 
       COMMA = ','.freeze
       TRACE_ID_KEY = 'trace_id'.freeze
+      INVALID_TRACE_ID = '00000000000000000000000000000000'.freeze
 
       MAX_TRACE_STATE_SIZE = 512 # bytes
 
@@ -47,6 +48,7 @@ module NewRelic
                   trace_state_entry_key: nil
 
           return unless trace_parent = extract_traceparent(format, carrier)
+          return unless trace_parent_valid? trace_parent
 
           if data = extract_tracestate(format, carrier, trace_state_entry_key)
             data.trace_parent = trace_parent
@@ -77,6 +79,12 @@ module NewRelic
               hash
             end
           end
+        end
+
+        def trace_parent_valid? trace_parent
+          return false if trace_parent[TRACE_ID_KEY] == INVALID_TRACE_ID
+
+          true
         end
 
         def trace_parent_header_for_format format

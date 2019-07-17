@@ -63,6 +63,18 @@ module NewRelic
         assert_equal '12345678901234567890123456789012', txn.trace_id
       end
 
+      def test_restarts_trace_on_all_zero_trace_id
+        carrier = {
+          'HTTP_TRACEPARENT' => '00-00000000000000000000000000000000-1234567890123456-00',
+          'HTTP_TRACESTATE' => ''
+        }
+        txn = in_transaction "receiving_txn" do |txn|
+          @events.notify(:before_call, carrier)
+        end
+
+        refute_equal '00000000000000000000000000000000', txn.trace_id
+      end
+
       def test_does_not_accept_trace_context_if_trace_context_disabled
         with_config @config.merge({ :'trace_context.enabled' => false }) do
           _, carrier = build_parent_transaction_headers
