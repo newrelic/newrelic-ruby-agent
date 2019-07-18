@@ -20,6 +20,7 @@ module NewRelic
       TRACE_PARENT_REGEX = /\A(?<version>[a-f\d]{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})\z/.freeze
 
       COMMA = ','.freeze
+      EMPTY_STRING = ''.freeze
       TRACE_ID_KEY = 'trace_id'.freeze
       PARENT_ID_KEY = 'parent_id'.freeze
       INVALID_TRACE_ID = '00000000000000000000000000000000'.freeze
@@ -144,8 +145,6 @@ module NewRelic
       end
 
       class Data
-        TRACE_ID_KEY = 'trace_id'.freeze
-
         class << self
           def create trace_parent: nil,
                      trace_state_payload: nil,
@@ -180,8 +179,10 @@ module NewRelic
         private
 
         def join_other_trace_state max_size
+          return @trace_state || EMPTY_STRING if @other_trace_state_entries.nil?
+          return @other_trace_state_entries.join(COMMA) if joined_size(@other_trace_state_entries) < max_size
+
           other_trace_state = ''
-          return other_trace_state unless @other_trace_state_entries
 
           used_size = 0
           entry_index = 0
@@ -201,6 +202,17 @@ module NewRelic
           end
 
           other_trace_state
+        end
+
+        def joined_size array
+          # The joined array size is the sum of the bytesize of each string in 
+          # the array, plus one byte for each comma used to delimit the resulting
+          # string (which is array.size - 1)
+          bytesize = array.inject(0) do |size, entry|
+            size += entry.bytesize
+            size
+          end
+          bytesize + array.length - 1
         end
 
       end
