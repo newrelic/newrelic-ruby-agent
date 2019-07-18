@@ -17,14 +17,16 @@ module NewRelic
       FORMAT_HTTP = 0
       FORMAT_RACK = 1
 
-      TRACE_PARENT_REGEX = /\A(?<version>[a-f\d]{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})\z/.freeze
+      TRACE_PARENT_REGEX = /\A(?<version>[a-f\d]{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})(-[a-zA-Z\d-]*)?\z/.freeze
 
       COMMA = ','.freeze
       EMPTY_STRING = ''.freeze
       TRACE_ID_KEY = 'trace_id'.freeze
       PARENT_ID_KEY = 'parent_id'.freeze
+      VERSION_KEY = 'version'.freeze
       INVALID_TRACE_ID = '00000000000000000000000000000000'.freeze
       INVALID_PARENT_ID = '0000000000000000'.freeze
+      INVALID_VERSION = 'ff'
 
       MAX_TRACE_STATE_SIZE = 512 # bytes
       MAX_TRACE_STATE_ENTRY_SIZE = 128 # bytes
@@ -92,6 +94,7 @@ module NewRelic
         def trace_parent_valid? trace_parent
           return false if trace_parent[TRACE_ID_KEY] == INVALID_TRACE_ID
           return false if trace_parent[PARENT_ID_KEY] == INVALID_PARENT_ID
+          return false if trace_parent[VERSION_KEY] == INVALID_VERSION
 
           true
         end
@@ -205,7 +208,7 @@ module NewRelic
         end
 
         def joined_size array
-          # The joined array size is the sum of the bytesize of each string in 
+          # The joined array size is the sum of the bytesize of each string in
           # the array, plus one byte for each comma used to delimit the resulting
           # string (which is array.size - 1)
           bytesize = array.inject(0) do |size, entry|

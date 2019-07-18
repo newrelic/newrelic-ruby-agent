@@ -143,7 +143,7 @@ module NewRelic
 
       def test_extract_trace_parent_nonzero_version
         carrier = make_inbound_carrier({
-          'traceparent' => 'cc-12345678901234567890123456789012-1234567890123456-01'
+          'traceparent' => 'cc-12345678901234567890123456789012-1234567890123456-01-what-the-future-will-be-like'
         })
         trace_parent = TraceContext.send :extract_traceparent, TraceContext::FORMAT_HTTP, carrier
         assert_equal 'cc', trace_parent['version']
@@ -177,6 +177,17 @@ module NewRelic
           'version' => '00',
           'trace_id' => 'a8e67265afe2773a3c611b94306ee5c2',
           'parent_id' => '0000000000000000',
+          'trace_flags' => '01'
+        }
+
+        assert_false TraceContext.send :trace_parent_valid?, invalid_trace_parent
+      end
+
+      def test_invalid_version
+        invalid_trace_parent = {
+          'version' => 'ff',
+          'trace_id' => 'a8e67265afe2773a3c611b94306ee5c2',
+          'parent_id' => 'fb1010463ea28a38',
           'trace_flags' => '01'
         }
 
