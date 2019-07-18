@@ -552,6 +552,7 @@ module NewRelic
         tap = mock 'tap'
         tap.expects :tap
 
+        NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
         with_config :"cross_application_tracer.enabled" => false,
                     :"distributed_tracing.enabled" => true,
                     :account_id => "190",

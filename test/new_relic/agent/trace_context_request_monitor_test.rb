@@ -23,6 +23,7 @@ module NewRelic
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config)
+        NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
         @events.notify(:finished_configuring)
       end
 

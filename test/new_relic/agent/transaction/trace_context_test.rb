@@ -20,6 +20,7 @@ module NewRelic
             :trusted_account_key => "999999",
             :disable_harvest_thread => true
           }
+          NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
 
           NewRelic::Agent.config.add_config_for_testing(@config)
           uncache_trusted_account_key

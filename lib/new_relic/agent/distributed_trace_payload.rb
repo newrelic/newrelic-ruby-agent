@@ -122,12 +122,6 @@ module NewRelic
 
         private
 
-        # We use the presence of the account_id and primary_application in the
-        # config to tell if we have connected yet.
-        def connected?
-          Agent.config[:account_id] && Agent.config[:primary_application_id]
-        end
-
         def assign_trusted_account_key payload, account_id
           trusted_account_key = Agent.config[:trusted_account_key]
 
@@ -141,6 +135,10 @@ module NewRelic
               transaction.current_segment
             transaction.current_segment.guid
           end
+        end
+
+        def connected?
+          Agent.instance.connected?
         end
       end
 

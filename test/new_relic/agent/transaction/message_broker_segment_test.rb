@@ -117,6 +117,7 @@ module NewRelic
         end
 
         def test_segment_adds_distributed_trace_headers_to_message_properties_for_produce
+          NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
           with_config :"distributed_tracing.enabled" => true,
                       :account_id => "190",
                       :primary_application_id => "46954" do

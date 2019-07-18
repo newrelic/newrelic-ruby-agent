@@ -35,6 +35,8 @@ module NewRelic
 
         def setup
           @obfuscator = NewRelic::Agent::Obfuscator.new "jotorotoes"
+          NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+
           CrossAppTracing.stubs(:obfuscator).returns(@obfuscator)
           CrossAppTracing.stubs(:valid_encoding_key?).returns(true)
           nr_freeze_time

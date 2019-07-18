@@ -461,6 +461,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_record_intrinsics_on_slow_sql
     payload = nil
+    NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
     with_config({:'distributed_tracing.enabled' => true,
                  :primary_application_id => "46954",
                  :trusted_account_key => 'trust_this!',

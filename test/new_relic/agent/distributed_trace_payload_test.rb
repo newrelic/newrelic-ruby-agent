@@ -5,7 +5,6 @@
 require File.expand_path('../../../test_helper', __FILE__)
 require 'new_relic/agent/distributed_trace_payload'
 require 'new_relic/agent/transaction'
-require 'net/http'
 
 module NewRelic
   module Agent
@@ -22,7 +21,7 @@ module NewRelic
           :primary_application_id => "46954",
           :trusted_account_key => "trust_this!"
         }
-
+        NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
         NewRelic::Agent.config.add_config_for_testing(@config)
       end
 
