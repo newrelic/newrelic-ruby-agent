@@ -24,9 +24,9 @@ module NewRelic
       TRACE_ID_KEY = 'trace_id'.freeze
       PARENT_ID_KEY = 'parent_id'.freeze
       VERSION_KEY = 'version'.freeze
-      INVALID_TRACE_ID = '00000000000000000000000000000000'.freeze
-      INVALID_PARENT_ID = '0000000000000000'.freeze
-      INVALID_VERSION = 'ff'
+      INVALID_TRACE_ID = ('0' * 32).freeze
+      INVALID_PARENT_ID = ('0' * 16).freeze
+      INVALID_VERSION = 'ff'.freeze
 
       MAX_TRACE_STATE_SIZE = 512 # bytes
       MAX_TRACE_STATE_ENTRY_SIZE = 128 # bytes
