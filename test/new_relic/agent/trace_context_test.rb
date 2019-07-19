@@ -143,11 +143,31 @@ module NewRelic
 
       def test_extract_trace_parent_nonzero_version
         carrier = make_inbound_carrier({
+          'traceparent' => 'cc-12345678901234567890123456789012-1234567890123456-01'
+        })
+        trace_parent = TraceContext.send :extract_traceparent, TraceContext::FORMAT_HTTP, carrier
+        assert TraceContext.send :trace_parent_valid?, trace_parent
+        assert_equal 'cc', trace_parent['version']
+        assert_equal '12345678901234567890123456789012', trace_parent['trace_id']
+      end
+
+      def test_extract_trace_parent_nonzero_version_with_trailing_fields
+        carrier = make_inbound_carrier({
           'traceparent' => 'cc-12345678901234567890123456789012-1234567890123456-01-what-the-future-will-be-like'
         })
         trace_parent = TraceContext.send :extract_traceparent, TraceContext::FORMAT_HTTP, carrier
+        assert TraceContext.send :trace_parent_valid?, trace_parent
         assert_equal 'cc', trace_parent['version']
         assert_equal '12345678901234567890123456789012', trace_parent['trace_id']
+      end
+
+
+      def test_extract_trace_parent_zero_version_with_trailing_fields
+        carrier = make_inbound_carrier({
+          'traceparent' => '00-12345678901234567890123456789012-1234567890123456-01-what-the-future-will-be-like'
+        })
+        trace_parent = TraceContext.send :extract_traceparent, TraceContext::FORMAT_HTTP, carrier
+        refute TraceContext.send :trace_parent_valid?, trace_parent
       end
 
       def test_trace_parent_valid
@@ -189,6 +209,30 @@ module NewRelic
           'trace_id' => 'a8e67265afe2773a3c611b94306ee5c2',
           'parent_id' => 'fb1010463ea28a38',
           'trace_flags' => '01'
+        }
+
+        assert_false TraceContext.send :trace_parent_valid?, invalid_trace_parent
+      end
+
+      def test_trace_parent_valid_version_zero_with_extra_fields
+        invalid_trace_parent = {
+          'version' => '00',
+          'trace_id' => 'a8e67265afe2773a3c611b94306ee5c2',
+          'parent_id' => 'fb1010463ea28a38',
+          'trace_flags' => '01',
+          'undefined_fields' => '-these-are-some-extra-fields'
+        }
+
+        assert_false TraceContext.send :trace_parent_valid?, invalid_trace_parent
+      end
+
+      def test_trace_parent_valid_future_version_with_extra_fields
+        invalid_trace_parent = {
+          'version' => 'ff',
+          'trace_id' => 'a8e67265afe2773a3c611b94306ee5c2',
+          'parent_id' => 'fb1010463ea28a38',
+          'trace_flags' => '01',
+          'undefined_fields' => '-these-are-some-extra-fields'
         }
 
         assert_false TraceContext.send :trace_parent_valid?, invalid_trace_parent

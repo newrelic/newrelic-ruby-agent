@@ -17,13 +17,14 @@ module NewRelic
       FORMAT_HTTP = 0
       FORMAT_RACK = 1
 
-      TRACE_PARENT_REGEX = /\A(?<version>[a-f\d]{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})(-[a-zA-Z\d-]*)?\z/.freeze
+      TRACE_PARENT_REGEX = /\A(?<version>[a-f\d]{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})(?<undefined_fields>-[a-zA-Z\d-]*)?\z/.freeze
 
       COMMA = ','.freeze
       EMPTY_STRING = ''.freeze
       TRACE_ID_KEY = 'trace_id'.freeze
       PARENT_ID_KEY = 'parent_id'.freeze
       VERSION_KEY = 'version'.freeze
+      UNDEFINED_FIELDS_KEY = 'undefined_fields'.freeze
       INVALID_TRACE_ID = ('0' * 32).freeze
       INVALID_PARENT_ID = ('0' * 16).freeze
       INVALID_VERSION = 'ff'.freeze
@@ -95,6 +96,7 @@ module NewRelic
           return false if trace_parent[TRACE_ID_KEY] == INVALID_TRACE_ID
           return false if trace_parent[PARENT_ID_KEY] == INVALID_PARENT_ID
           return false if trace_parent[VERSION_KEY] == INVALID_VERSION
+          return false if trace_parent[VERSION_KEY].to_i(16) == VERSION && !trace_parent[UNDEFINED_FIELDS_KEY].nil?
 
           true
         end
