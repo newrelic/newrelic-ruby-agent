@@ -49,12 +49,12 @@ module NewRelic
 
         carrier = {
           'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-          'tracestate'  => "t5a@nr=#{payload.http_safe},other=asdf"
+          'tracestate'  => "t190@nr=#{payload.http_safe},other=asdf"
         }
 
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
-                                               trace_state_entry_key: "t5a@nr"
+                                               trace_state_entry_key: "t190@nr"
 
         trace_parent = tracecontext_data.trace_parent
 
@@ -72,12 +72,12 @@ module NewRelic
 
         carrier = {
           'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-          'tracestate'  => "other=asdf,t5a@nr=#{payload.http_safe}"
+          'tracestate'  => "other=asdf,t190@nr=#{payload.http_safe}"
         }
 
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
-                                               trace_state_entry_key: "t5a@nr"
+                                               trace_state_entry_key: "t190@nr"
 
         trace_parent = tracecontext_data.trace_parent
 
@@ -95,12 +95,12 @@ module NewRelic
 
         carrier = {
           'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-          'tracestate'  => "other=asdf,t5a@nr=#{payload.http_safe},otherother=asdfasdf"
+          'tracestate'  => "other=asdf,t190@nr=#{payload.http_safe},otherother=asdfasdf"
         }
 
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
-                                               trace_state_entry_key: "t5a@nr"
+                                               trace_state_entry_key: "t190@nr"
 
         trace_parent = tracecontext_data.trace_parent
 
@@ -115,10 +115,10 @@ module NewRelic
 
       def test_parse_tracestate_no_other_entries
         payload = make_payload
-        carrier = make_inbound_carrier({'tracestate' => "t5a@nr=#{payload.http_safe}"})
+        carrier = make_inbound_carrier({'tracestate' => "t190@nr=#{payload.http_safe}"})
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
-                                               trace_state_entry_key: "t5a@nr"
+                                               trace_state_entry_key: "t190@nr"
         assert_equal payload.text, tracecontext_data.trace_state_payload.text
         assert_equal 'new=entry', tracecontext_data.trace_state('new=entry')
       end
@@ -127,16 +127,16 @@ module NewRelic
         carrier = make_inbound_carrier
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
-                                               trace_state_entry_key: "t5a@nr"
+                                               trace_state_entry_key: "t190@nr"
         assert_equal nil, tracecontext_data.trace_state_payload
         assert_equal 'new=entry,other=asdf', tracecontext_data.trace_state('new=entry')
       end
 
       def test_parse_tracestate_nr_entry_malformed
-        carrier = make_inbound_carrier({'tracestate' => "t5a@nr=somethingincorrect"})
+        carrier = make_inbound_carrier({'tracestate' => "t190@nr=somethingincorrect"})
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
-                                               trace_state_entry_key: "t5a@nr"
+                                               trace_state_entry_key: "t190@nr"
         assert_equal nil, tracecontext_data.trace_state_payload
         assert_equal 'new=entry', tracecontext_data.trace_state('new=entry')
         assert_metrics_recorded "Supportability/TraceContext/AcceptPayload/ParseException"

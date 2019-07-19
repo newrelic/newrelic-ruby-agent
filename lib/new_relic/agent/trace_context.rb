@@ -210,11 +210,12 @@ module NewRelic
 
       module AccountHelpers
         extend self
+
         def trace_state_entry_key
           @trace_state_entry_key ||= if Agent.config[:trusted_account_key]
-            "t#{Agent.config[:trusted_account_key].to_i.to_s(36)}@nr".freeze
+            "t#{Agent.config[:trusted_account_key]}@nr".freeze
           elsif Agent.config[:account_id]
-            "t#{Agent.config[:account_id].to_i.to_s(36)}@nr".freeze
+            "t#{Agent.config[:account_id]}@nr".freeze
           end
         end
       end
