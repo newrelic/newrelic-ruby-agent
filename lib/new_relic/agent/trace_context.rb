@@ -120,22 +120,25 @@ module NewRelic
         def extract_tracestate format, carrier, trace_state_entry_key
           header_name = trace_state_header_for_format format
           header = carrier[header_name]
-          return Data.new nil, nil, [] if header.nil? || header.empty?
+          return Data.create if header.nil? || header.empty?
 
           payload = nil
-
+          trace_state_size = 0
           trace_state = header.split(COMMA)
           trace_state_entry_prefix = "#{trace_state_entry_key}="
           trace_state.reject! do |entry|
             if entry.start_with? trace_state_entry_prefix
-              payload = entry.slice! trace_state_entry_key.size + 1,
-                                     entry.size
-              !!payload
+              payload = entry.slice! trace_state_entry_key.size + 1, entry.size
+              true
+            else
+              trace_state_size += entry.size
+              false
             end
           end
 
           Data.create trace_state_payload: payload ? decode_payload(payload) : nil,
-                      other_trace_state_entries: trace_state
+                      other_trace_state_entries: trace_state,
+                      trace_state_size: trace_state_size
         end
 
         SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_IGNORED_PARSE_EXCEPTION = "Supportability/TraceContext/AcceptPayload/ParseException".freeze
@@ -153,15 +156,17 @@ module NewRelic
         class << self
           def create trace_parent: nil,
                      trace_state_payload: nil,
-                     other_trace_state_entries: nil
-            new trace_parent, trace_state_payload, other_trace_state_entries
+                     other_trace_state_entries: nil,
+                     trace_state_size: 0
+            new trace_parent, trace_state_payload, other_trace_state_entries, trace_state_size
           end
         end
 
-        def initialize trace_parent, trace_state_payload, other_trace_state_entries
+        def initialize trace_parent, trace_state_payload, other_trace_state_entries, trace_state_size
           @trace_parent = trace_parent
           @other_trace_state_entries = other_trace_state_entries
           @trace_state_payload = trace_state_payload
+          @trace_state_size = trace_state_size
         end
 
         attr_accessor :trace_parent, :trace_state_payload
@@ -185,7 +190,7 @@ module NewRelic
 
         def join_other_trace_state max_size
           return @trace_state || EMPTY_STRING if @other_trace_state_entries.nil?
-          return @other_trace_state_entries.join(COMMA) if joined_size(@other_trace_state_entries) < max_size
+          return @other_trace_state_entries.join(COMMA) if @trace_state_size < max_size
 
           other_trace_state = ''
 
@@ -207,17 +212,6 @@ module NewRelic
           end
 
           other_trace_state
-        end
-
-        def joined_size array
-          # The joined array size is the sum of the size of each string in
-          # the array, plus one byte for each comma used to delimit the resulting
-          # string (which is array.size - 1)
-          size = array.inject(0) do |size, entry|
-            size += entry.size
-            size
-          end
-          size + array.length - 1
         end
 
       end
