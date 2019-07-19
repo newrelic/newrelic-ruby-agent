@@ -23,7 +23,7 @@ module NewRelic
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config)
-        NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+        NewRelic::Agent::Transaction.any_instance.stubs(:connected?).returns(true)
         @events.notify(:finished_configuring)
       end
 
@@ -51,7 +51,7 @@ module NewRelic
 
         assert_equal '12345678901234567890123456789012', txn.trace_id
       end
-      
+
       def test_accepts_trace_context_with_empty_trace_state
         carrier = {
           'HTTP_TRACEPARENT' => '00-12345678901234567890123456789012-1234567890123456-00',
@@ -118,6 +118,7 @@ module NewRelic
         carrier = {}
 
         parent_txn = in_transaction "referring_txn" do |txn|
+          txn.sampled = true
           txn.insert_trace_context format: TraceContext::FORMAT_RACK,
                                    carrier: carrier
         end

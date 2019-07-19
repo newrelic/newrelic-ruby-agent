@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/distributed_trace_payload'
+require 'new_relic/agent/trace_context_payload'
 
 module NewRelic
   module Agent
@@ -141,14 +141,8 @@ module NewRelic
                       trace_state_size: trace_state_size
         end
 
-        SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_IGNORED_PARSE_EXCEPTION = "Supportability/TraceContext/AcceptPayload/ParseException".freeze
-
         def decode_payload payload
-          DistributedTracePayload.from_http_safe(payload)
-        rescue => e
-          NewRelic::Agent.increment_metric SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_IGNORED_PARSE_EXCEPTION
-          NewRelic::Agent.logger.warn "Error parsing trace context payload", e
-          nil
+          TraceContextPayload.from_s payload
         end
       end
 

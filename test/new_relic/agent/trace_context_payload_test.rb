@@ -23,6 +23,24 @@ module NewRelic
         assert_equal "0-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-#{payload.timestamp}", payload.to_s
       end
 
+      def test_to_s_with_nil_id
+        # The id field will be nil if span events are disabled or the transaction is not sampled,
+        # and to_s should be able to deal with that.
+
+        payload = TraceContextPayload.new
+
+        payload.parent_account_id = "12345"
+        payload.parent_app_id = "6789"
+
+        payload.id = nil
+
+        payload.transaction_id = "164d3b4b0d09cb05"
+        payload.sampled = true
+        payload.priority = 0.123
+
+        assert_equal "0-0-12345-6789--164d3b4b0d09cb05-1-0.123-#{payload.timestamp}", payload.to_s
+      end
+
       def test_from_s
         nr_freeze_time
         now_ms = (Time.now.to_f * 1000).round

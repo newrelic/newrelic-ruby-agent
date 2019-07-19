@@ -8,11 +8,18 @@ module NewRelic
       VERSION = 0
       PARENT_TYPE = 0
       DELIMITER = "-".freeze
+      SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_IGNORED_PARSE_EXCEPTION = "Supportability/TraceContext/AcceptPayload/ParseException".freeze
 
       class << self
         def from_s payload_string
           attrs = payload_string.split(DELIMITER)
-          return unless attrs.size == 9
+
+          #consider if we should futureproof by allowing more attributes in
+          #future versions
+          if attrs.size != 9
+            log_parse_error message: "payload string unexpected size"
+            return
+          end
 
           payload = new
           payload.version = attrs[0]
@@ -25,6 +32,19 @@ module NewRelic
           payload.priority = attrs[7].to_f
           payload.timestamp = attrs[8].to_f
           payload
+        rescue => e
+          log_parse_error error: e
+        end
+
+        private
+
+        def log_parse_error error: nil, message: nil
+          NewRelic::Agent.increment_metric SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_IGNORED_PARSE_EXCEPTION
+          if error
+            NewRelic::Agent.logger.warn "Error parsing trace context payload", error
+          elsif message
+            NewRelic::Agent.logger.warn "Error parsing trace context payload: #{message}"
+          end
         end
       end
 
@@ -46,12 +66,14 @@ module NewRelic
         @timestamp = (Time.now.to_f * 1000).round
       end
 
+      EMPTY = "".freeze
+
       def to_s
         result = version.to_s
         result << DELIMITER << parent_type.to_s
         result << DELIMITER << parent_account_id
         result << DELIMITER << parent_app_id
-        result << DELIMITER << id
+        result << DELIMITER << (id || EMPTY)
         result << DELIMITER << transaction_id
         result << DELIMITER << (sampled ? 1 : 0).to_s
         result << DELIMITER << priority.to_s

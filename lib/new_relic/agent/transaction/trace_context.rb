@@ -14,6 +14,7 @@ module NewRelic
         def insert_trace_context \
             format: NewRelic::Agent::TraceContext::FORMAT_HTTP,
             carrier: nil
+          return unless Agent.config[:'trace_context.enabled']
           NewRelic::Agent::TraceContext.insert \
             format: format,
             carrier: carrier,
@@ -29,13 +30,27 @@ module NewRelic
           payload = create_trace_state_payload
           entry = NewRelic::Agent::TraceContext.create_trace_state_entry \
             entry_key,
-            payload.http_safe
+            payload.to_s
 
           trace_context_data ? trace_context_data.trace_state(entry) : entry
         end
 
         def create_trace_state_payload
-          DistributedTracePayload.for_transaction self
+          return unless connected?
+          payload = TraceContextPayload.new
+
+          payload.parent_account_id = Agent.config[:account_id]
+          payload.parent_app_id = Agent.config[:primary_application_id]
+
+          if Agent.config[:'span_events.enabled'] && sampled?
+            payload.id = current_segment.guid
+          end
+
+          payload.transaction_id = guid
+          payload.sampled = sampled?
+          payload.priority = priority
+
+          payload
         end
 
         SUPPORTABILITY_ACCEPT_SUCCESS = "Supportability/TraceContext/AcceptPayload/Success".freeze
@@ -80,6 +95,10 @@ module NewRelic
 
       def trace_context_inserted?
         @trace_context_inserted ||=  false
+      end
+
+      def connected?
+        Agent.instance.connected?
       end
     end
   end
