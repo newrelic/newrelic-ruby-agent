@@ -172,14 +172,10 @@ module NewRelic
         attr_accessor :trace_parent, :trace_state_payload
 
         def trace_state trace_state_entry
-          new_entry_size = trace_state_entry.size
-          bytes_available_for_other_entries = MAX_TRACE_STATE_SIZE - new_entry_size - COMMA.size
-
-          @trace_state ||= join_trace_state bytes_available_for_other_entries
+          @trace_state ||= join_trace_state trace_state_entry.size
           @trace_state_entries = nil
 
-          trace_state_entry << COMMA << @trace_state unless @trace_state.empty?
-          trace_state_entry
+          trace_state_entry << @trace_state
         end
 
         def trace_id
@@ -188,27 +184,23 @@ module NewRelic
 
         private
 
-        def join_trace_state max_size
-          return @trace_state || EMPTY_STRING if @trace_state_entries.nil?
-          return @trace_state_entries.join(COMMA) if @trace_state_size < max_size
+        def join_trace_state trace_state_entry_size
+          return @trace_state || EMPTY_STRING if @trace_state_entries.nil? || @trace_state_entries.empty?
+
+          max_size = MAX_TRACE_STATE_SIZE - trace_state_entry_size
+          return @trace_state_entries.join(COMMA).prepend(COMMA) if @trace_state_size < max_size
 
           joined_trace_state = ''
 
           used_size = 0
-          entry_index = 0
 
           @trace_state_entries.each do |entry|
-            entry_size = entry.size
-            break if used_size + entry_size >= max_size
+            entry_size = entry.size + 1
+            break if used_size + entry_size > max_size
             next if entry_size > MAX_TRACE_STATE_ENTRY_SIZE
 
-            if entry_index > 0
-              joined_trace_state << COMMA
-              used_size += 1
-            end
-            joined_trace_state << entry
+            joined_trace_state << COMMA << entry
             used_size += entry_size
-            entry_index += 1
           end
 
           joined_trace_state
