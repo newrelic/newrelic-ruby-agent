@@ -26,24 +26,19 @@ module NewRelic
         @timestamp = (Time.now.to_f * 1000).round
       end
 
-      def to_a
-        [
-          version,
-          parent_type,
-          parent_account_id,
-          parent_app_id,
-          id,
-          transaction_id,
-          sampled ? 1 : 0,
-          priority,
-          timestamp
-        ]
-      end
-
       DELIMITER = "-".freeze
 
       def to_s
-        to_a.join(DELIMITER)
+        result = version.to_s
+        result << DELIMITER << parent_type.to_s
+        result << DELIMITER << parent_account_id
+        result << DELIMITER << parent_app_id
+        result << DELIMITER << id
+        result << DELIMITER << transaction_id
+        result << DELIMITER << (sampled ? 1 : 0).to_s
+        result << DELIMITER << priority.to_s
+        result << DELIMITER << timestamp.to_s
+        result
       end
     end
   end
