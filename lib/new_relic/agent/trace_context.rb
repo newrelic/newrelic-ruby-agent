@@ -167,8 +167,8 @@ module NewRelic
         attr_accessor :trace_parent, :trace_state_payload
 
         def trace_state trace_state_entry
-          new_entry_size = trace_state_entry.bytesize
-          bytes_available_for_other_entries = MAX_TRACE_STATE_SIZE - new_entry_size - COMMA.bytesize
+          new_entry_size = trace_state_entry.size
+          bytes_available_for_other_entries = MAX_TRACE_STATE_SIZE - new_entry_size - COMMA.size
 
           @trace_state ||= join_other_trace_state bytes_available_for_other_entries
           @other_trace_state_entries = nil
@@ -193,7 +193,7 @@ module NewRelic
           entry_index = 0
 
           @other_trace_state_entries.each do |entry|
-            entry_size = entry.bytesize
+            entry_size = entry.size
             break if used_size + entry_size >= max_size
             next if entry_size > MAX_TRACE_STATE_ENTRY_SIZE
 
@@ -210,14 +210,14 @@ module NewRelic
         end
 
         def joined_size array
-          # The joined array size is the sum of the bytesize of each string in
+          # The joined array size is the sum of the size of each string in
           # the array, plus one byte for each comma used to delimit the resulting
           # string (which is array.size - 1)
-          bytesize = array.inject(0) do |size, entry|
-            size += entry.bytesize
+          size = array.inject(0) do |size, entry|
+            size += entry.size
             size
           end
-          bytesize + array.length - 1
+          size + array.length - 1
         end
 
       end
