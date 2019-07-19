@@ -137,7 +137,7 @@ module NewRelic
           end
 
           Data.create trace_state_payload: payload ? decode_payload(payload) : nil,
-                      other_trace_state_entries: trace_state,
+                      trace_state_entries: trace_state,
                       trace_state_size: trace_state_size
         end
 
@@ -156,15 +156,15 @@ module NewRelic
         class << self
           def create trace_parent: nil,
                      trace_state_payload: nil,
-                     other_trace_state_entries: nil,
+                     trace_state_entries: nil,
                      trace_state_size: 0
-            new trace_parent, trace_state_payload, other_trace_state_entries, trace_state_size
+            new trace_parent, trace_state_payload, trace_state_entries, trace_state_size
           end
         end
 
-        def initialize trace_parent, trace_state_payload, other_trace_state_entries, trace_state_size
+        def initialize trace_parent, trace_state_payload, trace_state_entries, trace_state_size
           @trace_parent = trace_parent
-          @other_trace_state_entries = other_trace_state_entries
+          @trace_state_entries = trace_state_entries
           @trace_state_payload = trace_state_payload
           @trace_state_size = trace_state_size
         end
@@ -175,8 +175,8 @@ module NewRelic
           new_entry_size = trace_state_entry.size
           bytes_available_for_other_entries = MAX_TRACE_STATE_SIZE - new_entry_size - COMMA.size
 
-          @trace_state ||= join_other_trace_state bytes_available_for_other_entries
-          @other_trace_state_entries = nil
+          @trace_state ||= join_trace_state bytes_available_for_other_entries
+          @trace_state_entries = nil
 
           trace_state_entry << COMMA << @trace_state unless @trace_state.empty?
           trace_state_entry
@@ -188,30 +188,30 @@ module NewRelic
 
         private
 
-        def join_other_trace_state max_size
-          return @trace_state || EMPTY_STRING if @other_trace_state_entries.nil?
-          return @other_trace_state_entries.join(COMMA) if @trace_state_size < max_size
+        def join_trace_state max_size
+          return @trace_state || EMPTY_STRING if @trace_state_entries.nil?
+          return @trace_state_entries.join(COMMA) if @trace_state_size < max_size
 
-          other_trace_state = ''
+          joined_trace_state = ''
 
           used_size = 0
           entry_index = 0
 
-          @other_trace_state_entries.each do |entry|
+          @trace_state_entries.each do |entry|
             entry_size = entry.size
             break if used_size + entry_size >= max_size
             next if entry_size > MAX_TRACE_STATE_ENTRY_SIZE
 
             if entry_index > 0
-              other_trace_state << COMMA
+              joined_trace_state << COMMA
               used_size += 1
             end
-            other_trace_state << entry
+            joined_trace_state << entry
             used_size += entry_size
             entry_index += 1
           end
 
-          other_trace_state
+          joined_trace_state
         end
 
       end

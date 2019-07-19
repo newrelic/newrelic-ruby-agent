@@ -66,7 +66,7 @@ module NewRelic
               trace_parent: trace_parent,
               trace_state_payload: payload
             trace_id = parent.trace_id
-            other_trace_state = parent_trace_context_data.instance_variable_get :@other_trace_state_entries
+            other_trace_state = parent_trace_context_data.instance_variable_get :@trace_state_entries
           end
 
           carrier = {}
@@ -95,7 +95,7 @@ module NewRelic
 
           in_transaction do |parent|
             parent_trace_context_data = make_trace_context_data trace_state: ['other=asdf,other2=jkl;']
-            other_trace_state = parent_trace_context_data.instance_variable_get :@other_trace_state_entries
+            other_trace_state = parent_trace_context_data.instance_variable_get :@trace_state_entries
           end
 
           carrier = {}

@@ -16,11 +16,11 @@ module NewRelic
           data = Data.new 'traceparent', 'tracestate_entry', other_entries, 0
 
           assert_nil data.instance_variable_get :@trace_state
-          refute_nil data.instance_variable_get :@other_trace_state_entries
+          refute_nil data.instance_variable_get :@trace_state_entries
 
           assert_equal 'new_entry,one,two', data.trace_state('new_entry')
           refute_nil data.instance_variable_get :@trace_state
-          assert_nil data.instance_variable_get :@other_trace_state_entries
+          assert_nil data.instance_variable_get :@trace_state_entries
         end
 
         def test_trace_state_does_not_trim_unless_size_exceeds_512_bytes
