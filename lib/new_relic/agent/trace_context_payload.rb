@@ -7,6 +7,26 @@ module NewRelic
     class TraceContextPayload
       VERSION = 0
       PARENT_TYPE = 0
+      DELIMITER = "-".freeze
+
+      class << self
+        def from_s payload_string
+          attrs = payload_string.split(DELIMITER)
+          return unless attrs.size == 9
+
+          payload = new
+          payload.version = attrs[0]
+          payload.parent_type = attrs[1]
+          payload.parent_account_id = attrs[2]
+          payload.parent_app_id = attrs[3]
+          payload.id = attrs[4]
+          payload.transaction_id = attrs[5]
+          payload.sampled = (attrs[6] == "1" ? true : false)
+          payload.priority = attrs[7].to_f
+          payload.timestamp = attrs[8].to_f
+          payload
+        end
+      end
 
       attr_accessor :version,
                     :parent_type,
@@ -25,8 +45,6 @@ module NewRelic
         @parent_type = PARENT_TYPE
         @timestamp = (Time.now.to_f * 1000).round
       end
-
-      DELIMITER = "-".freeze
 
       def to_s
         result = version.to_s
