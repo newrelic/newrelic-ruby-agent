@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/distributed_trace_payload'
 require 'new_relic/agent/distributed_trace_intrinsics'
+require 'new_relic/agent/distributed_trace_metrics'
 
 module NewRelic
   module Agent
@@ -183,64 +184,10 @@ module NewRelic
           end
         end
 
-        ALL_SUFFIX = "all".freeze
-        ALL_WEB_SUFFIX = "allWeb".freeze
-        ALL_OTHER_SUFFIX = "allOther".freeze
-
-        def transaction_type_suffix
-          if Transaction.recording_web_transaction?
-            ALL_WEB_SUFFIX
-          else
-            ALL_OTHER_SUFFIX
-          end
-        end
-
         def record_distributed_tracing_metrics
           return unless Agent.config[:'distributed_tracing.enabled']
 
-          record_caller_by_duration_metrics
-          record_transport_duration_metrics
-          record_errors_by_caller_metrics
-        end
-
-        DURATION_BY_CALLER_UNKOWN_PREFIX = "DurationByCaller/Unknown/Unknown/Unknown/Unknown".freeze
-
-        def record_caller_by_duration_metrics
-          prefix = if distributed_trace?
-            payload = distributed_trace_payload
-            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
-          else
-            DURATION_BY_CALLER_UNKOWN_PREFIX
-          end
-
-          metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}",              duration
-          metrics.record_unscoped "#{prefix}/#{transaction_type_suffix}", duration
-        end
-
-        def record_transport_duration_metrics
-          return unless distributed_trace?
-
-          payload = distributed_trace_payload
-          prefix = "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
-
-          metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}",              transport_duration
-          metrics.record_unscoped "#{prefix}/#{transaction_type_suffix}", transport_duration
-        end
-
-        ERRORS_BY_CALLER_UNKOWN_PREFIX = "ErrorsByCaller/Unknown/Unknown/Unknown/Unknown".freeze
-
-        def record_errors_by_caller_metrics
-          return unless exceptions.size > 0
-
-          prefix = if distributed_trace?
-            payload = distributed_trace_payload
-            "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
-          else
-            ERRORS_BY_CALLER_UNKOWN_PREFIX
-          end
-
-          metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}",              1
-          metrics.record_unscoped "#{prefix}/#{transaction_type_suffix}", 1
+          DistributedTraceMetrics.record_metrics_for_transaction self
         end
       end
     end
