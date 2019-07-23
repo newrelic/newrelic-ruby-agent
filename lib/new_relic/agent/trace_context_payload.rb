@@ -10,6 +10,9 @@ module NewRelic
       DELIMITER = "-".freeze
       SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_IGNORED_PARSE_EXCEPTION = "Supportability/TraceContext/AcceptPayload/ParseException".freeze
 
+      TRUE_CHAR = '1'.freeze
+      FALSE_CHAR = '0'.freeze
+
       class << self
         def from_s payload_string
           attrs = payload_string.split(DELIMITER)
@@ -28,7 +31,7 @@ module NewRelic
           payload.parent_app_id = attrs[3]
           payload.id = attrs[4]
           payload.transaction_id = attrs[5]
-          payload.sampled = (attrs[6] == "1" ? true : false)
+          payload.sampled = attrs[6] == TRUE_CHAR
           payload.priority = attrs[7].to_f
           payload.timestamp = attrs[8].to_f
           payload
@@ -75,7 +78,7 @@ module NewRelic
         result << DELIMITER << parent_app_id
         result << DELIMITER << (id || EMPTY)
         result << DELIMITER << transaction_id
-        result << DELIMITER << (sampled ? 1 : 0).to_s
+        result << DELIMITER << (sampled ? TRUE_CHAR : FALSE_CHAR)
         result << DELIMITER << priority.to_s
         result << DELIMITER << timestamp.to_s
         result
