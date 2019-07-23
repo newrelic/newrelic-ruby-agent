@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/distributed_trace_payload'
+require 'new_relic/agent/distributed_trace_intrinsics'
 
 module NewRelic
   module Agent
@@ -18,7 +19,6 @@ module NewRelic
         SUPPORTABILITY_CREATE_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/CreatePayload/Exception".freeze
 
         def create_distributed_trace_payload
-          return unless Agent.config[:'distributed_tracing.enabled']
           self.distributed_trace_payload_created = true
           payload = DistributedTracePayload.for_transaction self
           NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_PAYLOAD_SUCCESS
@@ -60,15 +60,15 @@ module NewRelic
         def append_distributed_trace_info transaction_payload
           return unless Agent.config[:'distributed_tracing.enabled']
           if distributed_trace_payload
-            distributed_trace_payload.assign_intrinsics self, transaction_payload
+            DistributedTraceIntrinsics.assign_intrinsics self, distributed_trace_payload, transaction_payload
           else
-            DistributedTracePayload.assign_initial_intrinsics self, transaction_payload
+            DistributedTraceIntrinsics.assign_initial_intrinsics self, transaction_payload
           end
         end
 
         def assign_distributed_trace_intrinsics transaction_payload
           return unless Agent.config[:'distributed_tracing.enabled']
-          DistributedTracePayload::INTRINSIC_KEYS.each do |key|
+          DistributedTraceIntrinsics::INTRINSIC_KEYS.each do |key|
             next unless transaction_payload.key? key
             attributes.add_intrinsic_attribute key, transaction_payload[key]
           end

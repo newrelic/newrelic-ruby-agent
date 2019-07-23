@@ -9,6 +9,7 @@
 
 require 'new_relic/agent/payload_metric_mapping'
 require 'new_relic/agent/distributed_trace_payload'
+require 'new_relic/agent/distributed_trace_intrinsics'
 
 module NewRelic
   module Agent
@@ -78,7 +79,7 @@ module NewRelic
 
       def append_distributed_trace_intrinsics payload, sample
         return unless Agent.config[:'distributed_tracing.enabled']
-        DistributedTracePayload::INTRINSIC_KEYS.each do |key|
+        DistributedTraceIntrinsics::INTRINSIC_KEYS.each do |key|
           value = payload[key]
           sample[key] = value unless value.nil?
         end

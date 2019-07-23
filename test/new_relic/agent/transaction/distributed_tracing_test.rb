@@ -5,6 +5,7 @@
 require File.expand_path('../../../../test_helper', __FILE__)
 require 'new_relic/agent/cross_app_payload'
 require 'new_relic/agent/distributed_trace_payload'
+require 'new_relic/agent/distributed_trace_intrinsics'
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/distributed_tracing'
 require 'net/http'
@@ -286,18 +287,18 @@ module NewRelic
 
           inbound_payload = child_transaction.distributed_trace_payload
 
-          assert_equal inbound_payload.parent_type,           child_intrinsics["parent.type"]
-          assert_equal inbound_payload.caller_transport_type, child_intrinsics["parent.transportType"]
-          assert_equal inbound_payload.parent_app_id,         child_intrinsics["parent.app"]
-          assert_equal inbound_payload.parent_account_id,     child_intrinsics["parent.account"]
+          assert_equal inbound_payload.parent_type,       child_intrinsics["parent.type"]
+          assert_equal "Unknown",                          child_intrinsics["parent.transportType"]
+          assert_equal inbound_payload.parent_app_id,     child_intrinsics["parent.app"]
+          assert_equal inbound_payload.parent_account_id, child_intrinsics["parent.account"]
 
-          assert_equal inbound_payload.trace_id,              child_intrinsics["traceId"]
-          assert_equal inbound_payload.id,                    child_intrinsics["parentSpanId"]
-          assert_equal child_transaction.guid,                child_intrinsics["guid"]
-          assert_equal true,                                  child_intrinsics["sampled"]
+          assert_equal inbound_payload.trace_id,          child_intrinsics["traceId"]
+          assert_equal inbound_payload.id,                child_intrinsics["parentSpanId"]
+          assert_equal child_transaction.guid,            child_intrinsics["guid"]
+          assert_equal true,                              child_intrinsics["sampled"]
 
-          assert                                              child_intrinsics["parentId"]
-          assert_equal parent_transaction.guid,               child_intrinsics["parentId"]
+          assert                                          child_intrinsics["parentId"]
+          assert_equal parent_transaction.guid,           child_intrinsics["parentId"]
 
           # Make sure the parent / grandparent links are connected all
           # the way up.
@@ -315,7 +316,7 @@ module NewRelic
 
           intrinsics = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
 
-          NewRelic::Agent::DistributedTracePayload::INTRINSIC_KEYS.each do |key|
+          NewRelic::Agent::DistributedTraceIntrinsics::INTRINSIC_KEYS.each do |key|
             assert intrinsics.key?(key), "Expected to find #{key} as an intrinsic, but did not"
           end
         end
