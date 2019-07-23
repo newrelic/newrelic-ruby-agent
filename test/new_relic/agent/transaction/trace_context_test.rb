@@ -339,6 +339,30 @@ module NewRelic
           assert_equal now_ms, payload.timestamp
         end
 
+        def test_accept_trace_context_payload_from_browser
+          # Browser payloads don't contain a transaction id, sampled flag, or priority
+          # The transaction that receives one should come up with its own
+          carrier = {
+            'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-0996096a36a1cd29-01',
+            'tracestate' => 't190@nr=0-1-212311-51424-0996096a36a1cd29----1482959525577'
+          }
+
+          trace_context_data = NewRelic::Agent::TraceContext.parse \
+            carrier: carrier,
+            trace_state_entry_key: 't190@nr'
+
+          txn = in_transaction do |t|
+            t.accept_trace_context trace_context_data
+          end
+
+          assert_equal 'a8e67265afe2773a3c611b94306ee5c2', txn.trace_id
+          refute_nil txn.trace_context_data
+          assert_nil txn.parent_transaction_id
+          refute_nil txn.guid
+          refute_nil txn.sampled?
+          refute_nil txn.priority
+        end
+
         def make_trace_parent options
           {
             'version' => '00',

@@ -30,10 +30,10 @@ module NewRelic
           payload.parent_account_id = attrs[2]
           payload.parent_app_id = attrs[3]
           payload.id = attrs[4]
-          payload.transaction_id = attrs[5]
-          payload.sampled = attrs[6] == TRUE_CHAR
-          payload.priority = attrs[7].to_f
-          payload.timestamp = attrs[8].to_f
+          payload.transaction_id = attrs[5].empty? ? nil : attrs[5]
+          payload.sampled = attrs[6].empty? ? nil : (attrs[6] == TRUE_CHAR)
+          payload.priority = (attrs[7].empty? ? nil : attrs[7].to_f)
+          payload.timestamp = attrs[8].to_i
           payload
         rescue => e
           log_parse_error error: e

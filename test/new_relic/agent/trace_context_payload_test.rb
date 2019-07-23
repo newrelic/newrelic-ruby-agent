@@ -55,6 +55,20 @@ module NewRelic
         assert_equal true, payload.sampled
         assert_equal 0.123, payload.priority
       end
+
+      def test_from_s_browser_payload_no_sampled_priority_or_transaction_id
+        payload_str = '0-1-212311-51424-0996096a36a1cd29----1482959525577'
+        payload = TraceContextPayload.from_s payload_str
+
+        assert_equal '0', payload.version
+        assert_equal '212311', payload.parent_account_id
+        assert_equal '51424', payload.parent_app_id
+        assert_equal '0996096a36a1cd29', payload.id
+        assert_nil payload.transaction_id
+        assert_nil payload.sampled
+        assert_nil payload.priority
+        assert_equal 1482959525577, payload.timestamp
+      end
     end
   end
 end
