@@ -47,7 +47,6 @@ module NewRelic
             priority: (attrs[7].empty? ? nil : attrs[7].to_f),
             timestamp: attrs[8].to_i
         rescue => e
-          require 'pry'; binding.pry
           log_parse_error error: e
         end
 
