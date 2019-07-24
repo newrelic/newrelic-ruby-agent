@@ -23,7 +23,7 @@ module NewRelic
           end
 
           payload = new
-          payload.version = attrs[0]
+          payload.version = attrs[0].to_i
           payload.parent_type = attrs[1]
           payload.parent_account_id = attrs[2]
           payload.parent_app_id = attrs[3]
