@@ -44,7 +44,7 @@ module NewRelic
           in_transaction do |txn|
             txn.sampled = true
             txn.insert_trace_context carrier: carrier
-            trace_state = txn.trace_state
+            trace_state = txn.create_trace_state
             parent_id = txn.current_segment.guid
             trace_id = txn.trace_id
           end

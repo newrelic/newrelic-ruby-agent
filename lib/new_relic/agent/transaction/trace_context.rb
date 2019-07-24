@@ -25,7 +25,7 @@ module NewRelic
           self.trace_context_inserted = true
         end
 
-        def trace_state
+        def create_trace_state
           entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
           payload = create_trace_state_payload
           entry = NewRelic::Agent::TraceContext.create_trace_state_entry \
