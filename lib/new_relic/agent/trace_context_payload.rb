@@ -14,6 +14,20 @@ module NewRelic
       FALSE_CHAR = '0'.freeze
 
       class << self
+        def create version: VERSION,
+                   parent_type: PARENT_TYPE,
+                   parent_account_id: nil,
+                   parent_app_id: nil,
+                   id: nil,
+                   transaction_id: nil,
+                   sampled: nil,
+                   priority: nil,
+                   timestamp: now_ms
+
+          new version, parent_type, parent_account_id, parent_app_id, id,
+              transaction_id, sampled, priority, timestamp
+        end
+
         def from_s payload_string
           attrs = payload_string.split(DELIMITER)
 
@@ -22,22 +36,26 @@ module NewRelic
             return
           end
 
-          payload = new
-          payload.version = attrs[0].to_i
-          payload.parent_type = attrs[1].to_i
-          payload.parent_account_id = attrs[2]
-          payload.parent_app_id = attrs[3]
-          payload.id = attrs[4]
-          payload.transaction_id = attrs[5].empty? ? nil : attrs[5]
-          payload.sampled = attrs[6].empty? ? nil : (attrs[6] == TRUE_CHAR)
-          payload.priority = (attrs[7].empty? ? nil : attrs[7].to_f)
-          payload.timestamp = attrs[8].to_i
-          payload
+          create \
+            version: attrs[0].to_i,
+            parent_type: attrs[1].to_i,
+            parent_account_id: attrs[2],
+            parent_app_id: attrs[3],
+            id: attrs[4],
+            transaction_id: attrs[5].empty? ? nil : attrs[5],
+            sampled: attrs[6].empty? ? nil : (attrs[6] == TRUE_CHAR),
+            priority: (attrs[7].empty? ? nil : attrs[7].to_f),
+            timestamp: attrs[8].to_i
         rescue => e
+          require 'pry'; binding.pry
           log_parse_error error: e
         end
 
         private
+
+        def now_ms
+          (Time.now.to_f * 1000).round
+        end
 
         def log_parse_error error: nil, message: nil
           NewRelic::Agent.increment_metric SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_IGNORED_PARSE_EXCEPTION
@@ -61,10 +79,17 @@ module NewRelic
 
       alias_method :sampled?, :sampled
 
-      def initialize
-        @version = VERSION
-        @parent_type = PARENT_TYPE
-        @timestamp = (Time.now.to_f * 1000).round
+      def initialize version, parent_type, parent_account_id, parent_app_id,
+                     id, transaction_id, sampled, priority, timestamp
+        @version = version
+        @parent_type = parent_type
+        @parent_account_id = parent_account_id
+        @parent_app_id = parent_app_id
+        @id = id
+        @transaction_id = transaction_id
+        @sampled = sampled
+        @priority = priority
+        @timestamp = timestamp
       end
 
       EMPTY = "".freeze

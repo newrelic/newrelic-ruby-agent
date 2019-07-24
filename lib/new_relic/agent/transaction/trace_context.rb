@@ -37,18 +37,17 @@ module NewRelic
 
         def create_trace_state_payload
           return unless connected?
-          payload = TraceContextPayload.new
 
-          payload.parent_account_id = Agent.config[:account_id]
-          payload.parent_app_id = Agent.config[:primary_application_id]
+          payload = TraceContextPayload.create \
+            parent_account_id:  Agent.config[:account_id],
+            parent_app_id:  Agent.config[:primary_application_id],
+            transaction_id:  guid,
+            sampled:  sampled?,
+            priority:  priority
 
           if Agent.config[:'span_events.enabled'] && sampled?
             payload.id = current_segment.guid
           end
-
-          payload.transaction_id = guid
-          payload.sampled = sampled?
-          payload.priority = priority
 
           payload
         end
