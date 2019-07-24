@@ -17,10 +17,8 @@ module NewRelic
         def from_s payload_string
           attrs = payload_string.split(DELIMITER)
 
-          #consider if we should futureproof by allowing more attributes in
-          #future versions
-          if attrs.size != 9
-            log_parse_error message: "payload string unexpected size"
+          if attrs.size < 9
+            log_parse_error message: "attributes missing from payload"
             return
           end
 
