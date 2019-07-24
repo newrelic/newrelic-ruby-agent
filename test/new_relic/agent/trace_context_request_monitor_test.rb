@@ -23,7 +23,7 @@ module NewRelic
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config)
-        NewRelic::Agent::Transaction.any_instance.stubs(:connected?).returns(true)
+        NewRelic::Agent::Transaction.any_instance.stubs(:trace_context_enabled?).returns(true)
         @events.notify(:finished_configuring)
       end
 

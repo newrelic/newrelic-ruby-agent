@@ -22,7 +22,7 @@ module NewRelic
             :trusted_account_key => "999999",
             :disable_harvest_thread => true
           }
-          NewRelic::Agent::Transaction.any_instance.stubs(:connected?).returns(true)
+          NewRelic::Agent::Transaction.any_instance.stubs(:trace_context_enabled?).returns(true)
           NewRelic::Agent.config.add_config_for_testing(@config)
           uncache_trusted_account_key
         end
@@ -319,7 +319,7 @@ module NewRelic
 
         def test_creates_trace_context_payload
           nr_freeze_time
-          Transaction.stubs(:connected?).returns(true)
+
           payload = nil
           parent_id = nil
           now_ms = (Time.now.to_f * 1000).round

@@ -338,6 +338,7 @@ module NewRelic
         end
 
         def test_segment_writes_outbound_request_headers_for_trace_context
+          NewRelic::Agent::Transaction.any_instance.stubs(:trace_context_enabled?).returns(true)
           request = RequestWrapper.new
           with_config trace_context_config do
             in_transaction :category => :controller do

@@ -16,7 +16,6 @@ module NewRelic
           :primary_application_id => "46954",
           :disable_harvest_thread => true
         }
-        NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
 
         NewRelic::Agent.config.add_config_for_testing(@config)
       end

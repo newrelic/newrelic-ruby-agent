@@ -14,14 +14,14 @@ module NewRelic
         def insert_trace_context \
             format: NewRelic::Agent::TraceContext::FORMAT_HTTP,
             carrier: nil
-          return unless Agent.config[:'trace_context.enabled']
+          return unless trace_context_enabled?
           NewRelic::Agent::TraceContext.insert \
             format: format,
             carrier: carrier,
             trace_id: trace_id,
             parent_id: current_segment.guid,
             trace_flags: sampled? ? 0x1 : 0x0,
-            trace_state: trace_state
+            trace_state: create_trace_state
           self.trace_context_inserted = true
         end
 
@@ -36,7 +36,7 @@ module NewRelic
         end
 
         def create_trace_state_payload
-          return unless connected?
+          return unless trace_context_enabled?
 
           payload = TraceContextPayload.create \
             parent_account_id:  Agent.config[:account_id],
@@ -96,8 +96,8 @@ module NewRelic
         @trace_context_inserted ||=  false
       end
 
-      def connected?
-        Agent.instance.connected?
+      def trace_context_enabled?
+        Agent.config[:'trace_context.enabled'] && Agent.instance.connected?
       end
     end
   end
