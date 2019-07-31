@@ -60,20 +60,10 @@ module NewRelic
 
         def append_distributed_trace_info transaction_payload
           return unless Agent.config[:'distributed_tracing.enabled']
-          if distributed_trace_payload
-            DistributedTraceIntrinsics.assign_intrinsics self, distributed_trace_payload, transaction_payload
-          else
-            DistributedTraceIntrinsics.assign_initial_intrinsics self, transaction_payload
-          end
-        end
-
-        def assign_distributed_trace_intrinsics transaction_payload
-          return unless Agent.config[:'distributed_tracing.enabled']
-          DistributedTraceIntrinsics::INTRINSIC_KEYS.each do |key|
-            next unless transaction_payload.key? key
-            attributes.add_intrinsic_attribute key, transaction_payload[key]
-          end
-          nil
+          DistributedTraceIntrinsics.add_to_transaction_payload \
+            self,
+            distributed_trace_payload,
+            transaction_payload
         end
 
         # This method returns transport_duration in seconds. Transport duration

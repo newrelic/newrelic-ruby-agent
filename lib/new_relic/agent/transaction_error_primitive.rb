@@ -59,7 +59,7 @@ module NewRelic
           attrs[PRIORITY_KEY] = payload[:priority]
           append_synthetics payload, attrs
           append_cat payload, attrs
-          append_distributed_trace_intrinsics payload, attrs
+          DistributedTraceIntrinsics.extract_to_hash payload, attrs
           PayloadMetricMapping.append_mapped_metrics payload[:metrics], attrs
         end
 
@@ -75,14 +75,6 @@ module NewRelic
       def append_cat payload, sample
         sample[GUID_KEY] = payload[:guid] if payload[:guid]
         sample[REFERRING_TRANSACTION_GUID_KEY] = payload[:referring_transaction_guid] if payload[:referring_transaction_guid]
-      end
-
-      def append_distributed_trace_intrinsics payload, sample
-        return unless Agent.config[:'distributed_tracing.enabled']
-        DistributedTraceIntrinsics::INTRINSIC_KEYS.each do |key|
-          value = payload[key]
-          sample[key] = value unless value.nil?
-        end
       end
     end
   end

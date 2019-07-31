@@ -162,7 +162,7 @@ module NewRelic
         if transaction && transaction.distributed_trace_payload
           params = {}
           payload = transaction.distributed_trace_payload
-          DistributedTraceIntrinsics.assign_intrinsics transaction, payload, params
+          DistributedTraceIntrinsics.add_to_transaction_payload transaction, payload, params
           params[PRIORITY] = transaction.priority
         end
         params

@@ -55,7 +55,7 @@ module NewRelic
 
         NewRelic::Agent::PayloadMetricMapping.append_mapped_metrics(payload[:metrics], intrinsics)
         append_optional_attributes(intrinsics, payload)
-        append_distributed_trace_intrinsics(intrinsics, payload)
+        DistributedTraceIntrinsics.extract_to_hash payload, intrinsics
 
         attributes = payload[:attributes]
 
@@ -81,14 +81,6 @@ module NewRelic
       def append_cat_alternate_path_hashes(sample, payload)
         if payload.include?(:cat_alternate_path_hashes)
           sample[CAT_ALTERNATE_PATH_HASHES_KEY] = payload[:cat_alternate_path_hashes].sort.join(COMMA)
-        end
-      end
-
-      def append_distributed_trace_intrinsics(sample, payload)
-        return unless Agent.config[:'distributed_tracing.enabled']
-        DistributedTraceIntrinsics::INTRINSIC_KEYS.each do |key|
-          value = payload[key]
-          sample[key] = value unless value.nil?
         end
       end
 
