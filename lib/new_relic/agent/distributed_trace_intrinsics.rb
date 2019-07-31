@@ -34,8 +34,8 @@ module NewRelic
       ].freeze
 
       def extract_to_hash transaction_payload, attributes_hash
-        # This method takes distributed trace intrinsics _from_ the transaction
-        # payload, and puts them into the transaction's attributes
+        # This method extracts intrinsics from the transaction_payload and
+        # inserts them into the specified attributes_hash.  
         return unless Agent.config[:'distributed_tracing.enabled']
         INTRINSIC_KEYS.each do |key|
           value = transaction_payload[key]
@@ -44,6 +44,8 @@ module NewRelic
       end
 
       def extract_to_transaction_attributes transaction_payload, transacton_attributes
+        # This method extracts intrinsics from the transaction_payload and
+        # inserts them as intrinsics in the specified transaction_attributes
         return unless Agent.config[:'distributed_tracing.enabled']
         INTRINSIC_KEYS.each do |key|
           next unless transaction_payload.key? key
