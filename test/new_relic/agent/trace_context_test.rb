@@ -138,7 +138,7 @@ module NewRelic
                                                trace_state_entry_key: "190@nr"
         assert_equal nil, tracecontext_data.trace_state_payload
         assert_equal 'new=entry', tracecontext_data.trace_state('new=entry')
-        assert_metrics_recorded "Supportability/TraceContext/AcceptPayload/ParseException"
+        assert_metrics_recorded "Supportability/TraceContext/Accept/Ignored/InvalidPayload"
       end
 
       def test_extract_trace_parent_nonzero_version

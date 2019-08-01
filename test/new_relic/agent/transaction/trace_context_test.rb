@@ -40,19 +40,25 @@ module NewRelic
           trace_state = nil
           trace_id = nil
           parent_id = nil
+          inserted = false
 
-          in_transaction do |txn|
-            txn.sampled = true
-            txn.insert_trace_context carrier: carrier
-            trace_state = txn.create_trace_state
-            parent_id = txn.current_segment.guid
-            trace_id = txn.trace_id
+          txn = in_transaction do |t|
+            t.sampled = true
+            inserted = t.insert_trace_context carrier: carrier
+            trace_state = t.create_trace_state
+            parent_id = t.current_segment.guid
+            trace_id = t.trace_id
           end
+
+          assert inserted
+          assert txn.instance_variable_get :@trace_context_inserted
 
           expected_trace_parent = "00-#{trace_id}-#{parent_id}-01"
           assert_equal expected_trace_parent, carrier['traceparent']
 
           assert_equal trace_state, carrier['tracestate']
+
+          assert_metrics_recorded "Supportability/TraceContext/Create/Success"
         end
 
         def test_insert_trace_context_non_root
@@ -301,7 +307,7 @@ module NewRelic
             assert txn.accept_trace_context(trace_context_data), "Expected first trace context to be accepted"
             refute txn.accept_trace_context(trace_context_data), "Expected second trace context not to be accepted"
           end
-          assert_metrics_recorded "Supportability/TraceContext/AcceptPayload/Ignored/Multiple"
+          assert_metrics_recorded "Supportability/TraceContext/Accept/Ignored/Multiple"
         end
 
         def test_do_not_accept_trace_context_if_txn_has_already_generated_trace_context
@@ -314,7 +320,7 @@ module NewRelic
 
             refute txn.accept_trace_context trace_context_data
           end
-          assert_metrics_recorded "Supportability/TraceContext/AcceptPayload/Ignored/CreateBeforeAccept"
+          assert_metrics_recorded "Supportability/TraceContext/Accept/Ignored/CreateBeforeAccept"
         end
 
         def test_creates_trace_context_payload

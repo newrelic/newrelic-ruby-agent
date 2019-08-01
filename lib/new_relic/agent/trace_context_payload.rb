@@ -8,7 +8,7 @@ module NewRelic
       VERSION = 0
       PARENT_TYPE = 0
       DELIMITER = "-".freeze
-      SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_IGNORED_PARSE_EXCEPTION = "Supportability/TraceContext/AcceptPayload/ParseException".freeze
+      SUPPORTABILITY_INVALID_PAYLOAD = "Supportability/TraceContext/Accept/Ignored/InvalidPayload".freeze
 
       TRUE_CHAR = '1'.freeze
       FALSE_CHAR = '0'.freeze
@@ -32,7 +32,7 @@ module NewRelic
           attrs = payload_string.split(DELIMITER)
 
           if attrs.size < 9
-            log_parse_error message: "attributes missing from payload"
+            log_invalid_payload message: "attributes missing from payload"
             return
           end
 
@@ -47,7 +47,7 @@ module NewRelic
             priority: (attrs[7].empty? ? nil : attrs[7].to_f),
             timestamp: attrs[8].to_i
         rescue => e
-          log_parse_error error: e
+          log_invalid_payload error: e
         end
 
         private
@@ -56,8 +56,8 @@ module NewRelic
           (Time.now.to_f * 1000).round
         end
 
-        def log_parse_error error: nil, message: nil
-          NewRelic::Agent.increment_metric SUPPORTABILITY_TRACE_CONTEXT_ACCEPT_IGNORED_PARSE_EXCEPTION
+        def log_invalid_payload error: nil, message: nil
+          NewRelic::Agent.increment_metric SUPPORTABILITY_INVALID_PAYLOAD
           if error
             NewRelic::Agent.logger.warn "Error parsing trace context payload", error
           elsif message

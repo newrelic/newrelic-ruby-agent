@@ -11,6 +11,14 @@ module NewRelic
       attr_writer   :trace_context_inserted
 
       module TraceContext
+
+        SUPPORTABILITY_CREATE_SUCCESS = "Supportability/TraceContext/Create/Success".freeze
+        SUPPORTABILITY_CREATE_EXCEPTION = "Supportability/TraceContext/Create/Exception".freeze
+        SUPPORTABILITY_ACCEPT_SUCCESS = "Supportability/TraceContext/Accept/Success".freeze
+        SUPPORTABILITY_ACCEPT_EXCEPTION = "Supportability/TraceContext/Accept/Exception".freeze
+        SUPPORTABILITY_MULTIPLE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/Accept/Ignored/Multiple".freeze
+        SUPPORTABILITY_CREATE_BEFORE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/Accept/Ignored/CreateBeforeAccept".freeze
+
         def insert_trace_context \
             format: NewRelic::Agent::TraceContext::FORMAT_HTTP,
             carrier: nil
@@ -23,6 +31,12 @@ module NewRelic
             trace_flags: sampled? ? 0x1 : 0x0,
             trace_state: create_trace_state
           self.trace_context_inserted = true
+          NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_SUCCESS
+          true
+        rescue
+          NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_EXCEPTION
+          NewRelic::Agent.logger.warn "Failed to create trace context payload", e
+          false
         end
 
         def create_trace_state
@@ -52,8 +66,6 @@ module NewRelic
           payload
         end
 
-        SUPPORTABILITY_ACCEPT_SUCCESS = "Supportability/TraceContext/AcceptPayload/Success".freeze
-        SUPPORTABILITY_ACCEPT_EXCEPTION = "Supportability/TraceContext/AcceptPayload/Exception".freeze
 
         def accept_trace_context trace_context_data
           return unless Agent.config[:'trace_context.enabled']
@@ -77,8 +89,6 @@ module NewRelic
           false
         end
 
-        SUPPORTABILITY_MULTIPLE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/AcceptPayload/Ignored/Multiple".freeze
-        SUPPORTABILITY_CREATE_BEFORE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/AcceptPayload/Ignored/CreateBeforeAccept".freeze
 
         def check_trace_context_ignored
           if trace_context_data
