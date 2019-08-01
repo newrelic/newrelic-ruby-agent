@@ -207,9 +207,9 @@ module NewRelic
 
         def trace_state_entry_key
           @trace_state_entry_key ||= if Agent.config[:trusted_account_key]
-            "t#{Agent.config[:trusted_account_key]}@nr".freeze
+            "#{Agent.config[:trusted_account_key]}@nr".freeze
           elsif Agent.config[:account_id]
-            "t#{Agent.config[:account_id]}@nr".freeze
+            "#{Agent.config[:account_id]}@nr".freeze
           end
         end
       end

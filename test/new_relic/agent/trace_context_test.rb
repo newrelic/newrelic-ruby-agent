@@ -48,12 +48,12 @@ module NewRelic
 
         carrier = {
           'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-          'tracestate'  => "t190@nr=#{payload.to_s},other=asdf"
+          'tracestate'  => "190@nr=#{payload.to_s},other=asdf"
         }
 
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
-                                               trace_state_entry_key: "t190@nr"
+                                               trace_state_entry_key: "190@nr"
 
         trace_parent = tracecontext_data.trace_parent
 
@@ -71,12 +71,12 @@ module NewRelic
 
         carrier = {
           'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-          'tracestate'  => "other=asdf,t190@nr=#{payload.to_s}"
+          'tracestate'  => "other=asdf,190@nr=#{payload.to_s}"
         }
 
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
-                                               trace_state_entry_key: "t190@nr"
+                                               trace_state_entry_key: "190@nr"
 
         trace_parent = tracecontext_data.trace_parent
 
@@ -94,12 +94,12 @@ module NewRelic
 
         carrier = {
           'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-          'tracestate'  => "other=asdf,t190@nr=#{payload.to_s},otherother=asdfasdf"
+          'tracestate'  => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
         }
 
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
-                                               trace_state_entry_key: "t190@nr"
+                                               trace_state_entry_key: "190@nr"
 
         trace_parent = tracecontext_data.trace_parent
 
@@ -114,10 +114,10 @@ module NewRelic
 
       def test_parse_tracestate_no_other_entries
         payload = make_payload
-        carrier = make_inbound_carrier({'tracestate' => "t190@nr=#{payload.to_s}"})
+        carrier = make_inbound_carrier({'tracestate' => "190@nr=#{payload.to_s}"})
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
-                                               trace_state_entry_key: "t190@nr"
+                                               trace_state_entry_key: "190@nr"
         assert_equal payload.to_s, tracecontext_data.trace_state_payload.to_s
         assert_equal 'new=entry', tracecontext_data.trace_state('new=entry')
       end
@@ -126,16 +126,16 @@ module NewRelic
         carrier = make_inbound_carrier
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
-                                               trace_state_entry_key: "t190@nr"
+                                               trace_state_entry_key: "190@nr"
         assert_equal nil, tracecontext_data.trace_state_payload
         assert_equal 'new=entry,other=asdf', tracecontext_data.trace_state('new=entry')
       end
 
       def test_parse_tracestate_nr_entry_malformed
-        carrier = make_inbound_carrier({'tracestate' => "t190@nr=somethingincorrect"})
+        carrier = make_inbound_carrier({'tracestate' => "190@nr=somethingincorrect"})
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
-                                               trace_state_entry_key: "t190@nr"
+                                               trace_state_entry_key: "190@nr"
         assert_equal nil, tracecontext_data.trace_state_payload
         assert_equal 'new=entry', tracecontext_data.trace_state('new=entry')
         assert_metrics_recorded "Supportability/TraceContext/AcceptPayload/ParseException"

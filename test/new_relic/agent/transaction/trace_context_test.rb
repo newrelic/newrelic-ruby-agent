@@ -344,12 +344,12 @@ module NewRelic
           # The transaction that receives one should come up with its own
           carrier = {
             'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-0996096a36a1cd29-01',
-            'tracestate' => 't190@nr=0-1-212311-51424-0996096a36a1cd29----1482959525577'
+            'tracestate' => '190@nr=0-1-212311-51424-0996096a36a1cd29----1482959525577'
           }
 
           trace_context_data = NewRelic::Agent::TraceContext.parse \
             carrier: carrier,
-            trace_state_entry_key: 't190@nr'
+            trace_state_entry_key: '190@nr'
 
           txn = in_transaction do |t|
             t.accept_trace_context trace_context_data
