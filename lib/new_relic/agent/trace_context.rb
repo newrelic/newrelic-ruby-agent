@@ -87,7 +87,7 @@ module NewRelic
 
         def extract_traceparent format, carrier
           header_name = trace_parent_header_for_format format
-          header = carrier[header_name]
+          return unless header = carrier[header_name]
           if matchdata = header.match(TRACE_PARENT_REGEX)
             TRACE_PARENT_REGEX.named_captures.inject({}) do |hash, (name, (index))|
               hash[name] = matchdata[index]
