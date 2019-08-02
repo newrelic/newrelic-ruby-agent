@@ -621,28 +621,6 @@ module NewRelic
           assert_equal 20, adaptive_sampler.stats[:seen]
         end
 
-        def test_transport_duration_returned_in_seconds_when_positive
-          payload = create_distributed_trace_payload
-
-          advance_time 2.0
-
-          in_transaction('test_txn') do |txn|
-            txn.accept_distributed_trace_payload payload.text
-            assert_equal 2.0, txn.transport_duration.round(0)
-          end
-        end
-
-        def test_transport_duration_zero_with_clock_skew
-          payload = create_distributed_trace_payload
-
-          advance_time(-1.0)
-
-          in_transaction('test_txn') do |txn|
-            txn.accept_distributed_trace_payload payload.text
-            assert_equal 0, txn.transport_duration
-          end
-        end
-
         private
 
         def create_distributed_trace_payload(sampled: nil)

@@ -66,15 +66,6 @@ module NewRelic
             transaction_payload
         end
 
-        # This method returns transport_duration in seconds. Transport duration
-        # is stored in milliseconds on the payload, but it's needed in seconds
-        # for metrics and intrinsics.
-        def transport_duration
-          return unless distributed_trace_payload
-          duration = (start_time.to_f * 1000 - distributed_trace_payload.timestamp) / 1000
-          duration < 0 ? 0 : duration
-        end
-
         private
 
         SUPPORTABILITY_CREATE_BEFORE_ACCEPT_PAYLOAD   = "Supportability/DistributedTrace/AcceptPayload/Ignored/CreateBeforeAccept".freeze

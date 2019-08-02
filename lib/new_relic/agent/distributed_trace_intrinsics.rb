@@ -72,7 +72,10 @@ module NewRelic
             destination[PARENT_SPAN_ID_KEY] = distributed_trace_payload.id
           end
 
-          destination[PARENT_TRANSPORT_DURATION_KEY] = transaction.transport_duration
+          destination[PARENT_TRANSPORT_DURATION_KEY] = DistributedTraceMetrics.transport_duration \
+              transaction,
+              distributed_trace_payload
+
           if transaction.parent_transaction_id
             destination[PARENT_TRANSACTION_ID_KEY] = transaction.parent_transaction_id
           end
