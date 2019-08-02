@@ -41,7 +41,8 @@ module NewRelic
         payload = TraceContextPayload.from_s payload_str
 
         assert_equal 0, payload.version
-        assert_equal 0, payload.parent_type
+        assert_equal 0, payload.parent_type_id
+        assert_equal "App", payload.parent_type
         assert_equal "12345", payload.parent_account_id
         assert_equal "6789", payload.parent_app_id
         assert_equal "f85f42fd82a4cf1d", payload.id
@@ -55,7 +56,8 @@ module NewRelic
         payload = TraceContextPayload.from_s payload_str
 
         assert_equal 0, payload.version
-        assert_equal 1, payload.parent_type
+        assert_equal 1, payload.parent_type_id
+        assert_equal "Browser", payload.parent_type
         assert_equal '212311', payload.parent_account_id
         assert_equal '51424', payload.parent_app_id
         assert_equal '0996096a36a1cd29', payload.id
@@ -78,7 +80,8 @@ module NewRelic
         payload = TraceContextPayload.from_s payload_str
 
         assert_equal 1, payload.version
-        assert_equal 0, payload.parent_type
+        assert_equal 0, payload.parent_type_id
+        assert_equal "App", payload.parent_type
         assert_equal "12345", payload.parent_account_id
         assert_equal "6789", payload.parent_app_id
         assert_equal "f85f42fd82a4cf1d", payload.id

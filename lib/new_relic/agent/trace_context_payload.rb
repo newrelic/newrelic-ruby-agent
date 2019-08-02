@@ -13,6 +13,12 @@ module NewRelic
       TRUE_CHAR = '1'.freeze
       FALSE_CHAR = '0'.freeze
 
+      PARENT_TYPES = [
+        'App'.freeze,     # type 0
+        'Browser'.freeze, # type 1
+        'Mobile'.freeze   # type 2
+      ].freeze
+
       class << self
         def create version: VERSION,
                    parent_type: PARENT_TYPE,
@@ -67,7 +73,7 @@ module NewRelic
       end
 
       attr_accessor :version,
-                    :parent_type,
+                    :parent_type_id,
                     :parent_account_id,
                     :parent_app_id,
                     :id,
@@ -79,10 +85,10 @@ module NewRelic
 
       alias_method :sampled?, :sampled
 
-      def initialize version, parent_type, parent_account_id, parent_app_id,
+      def initialize version, parent_type_id, parent_account_id, parent_app_id,
                      id, transaction_id, sampled, priority, timestamp
         @version = version
-        @parent_type = parent_type
+        @parent_type_id = parent_type_id
         @parent_account_id = parent_account_id
         @parent_app_id = parent_app_id
         @id = id
@@ -92,11 +98,15 @@ module NewRelic
         @timestamp = timestamp
       end
 
+      def parent_type
+        @parent_type_string ||= PARENT_TYPES[@parent_type_id]
+      end
+
       EMPTY = "".freeze
 
       def to_s
         result = version.to_s
-        result << DELIMITER << parent_type.to_s
+        result << DELIMITER << parent_type_id.to_s
         result << DELIMITER << parent_account_id
         result << DELIMITER << parent_app_id
         result << DELIMITER << (id || EMPTY)
