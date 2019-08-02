@@ -81,7 +81,7 @@ module NewRelic
 
           @parent_transaction_id = payload.transaction_id
 
-          if payload.sampled
+          unless payload.sampled.nil?
             self.sampled = payload.sampled
             self.priority = payload.priority if payload.priority
           end
