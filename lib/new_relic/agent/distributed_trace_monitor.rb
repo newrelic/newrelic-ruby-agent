@@ -24,17 +24,6 @@ module NewRelic
           txn.distributed_trace_payload.caller_transport_type = transport_type(request)
         end
       end
-
-      URL_SCHEMES = {
-        'http'  => 'HTTP'.freeze,
-        'https' => 'HTTPS'.freeze
-      }
-
-      RACK_URL_SCHEME = 'rack.url_scheme'.freeze
-
-      def transport_type(request)
-        URL_SCHEMES[request[RACK_URL_SCHEME]]
-      end
     end
   end
 end

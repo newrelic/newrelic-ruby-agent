@@ -39,6 +39,17 @@ module NewRelic
         NewRelic::Agent.logger.debug("Failure deserializing encoded header '#{key}' in #{self.class}, #{err.class}, #{err.message}")
         nil
       end
+
+      URL_SCHEMES = {
+        'http'  => 'HTTP'.freeze,
+        'https' => 'HTTPS'.freeze
+      }
+
+      RACK_URL_SCHEME = 'rack.url_scheme'.freeze
+
+      def transport_type(request)
+        URL_SCHEMES[request[RACK_URL_SCHEME]]
+      end
     end
   end
 end
