@@ -59,7 +59,7 @@ module NewRelic
           attrs[PRIORITY_KEY] = payload[:priority]
           append_synthetics payload, attrs
           append_cat payload, attrs
-          DistributedTraceIntrinsics.extract_to_hash payload, attrs
+          DistributedTraceIntrinsics.copy_to_hash payload, attrs
           PayloadMetricMapping.append_mapped_metrics payload[:metrics], attrs
         end
 

@@ -60,7 +60,7 @@ module NewRelic
 
         def append_distributed_trace_info transaction_payload
           return unless Agent.config[:'distributed_tracing.enabled']
-          DistributedTraceIntrinsics.add_to_transaction_payload \
+          DistributedTraceIntrinsics.copy_from_transaction \
             self,
             distributed_trace_payload,
             transaction_payload
