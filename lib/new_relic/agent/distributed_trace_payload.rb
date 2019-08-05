@@ -5,6 +5,8 @@ require 'json'
 require 'base64'
 require 'set'
 
+require 'new_relic/agent/distributed_trace_transport_types'
+
 module NewRelic
   module Agent
     #
@@ -124,11 +126,11 @@ module NewRelic
       attr_reader :caller_transport_type
 
       def caller_transport_type= type
-        @caller_transport_type = DistributedTraceIntrinsics.valid_transport_type_for type
+        @caller_transport_type = DistributedTraceTransportTypes.valid_transport_type_for type
       end
 
       def initialize
-        @caller_transport_type = DistributedTraceIntrinsics::PARENT_TRANSPORT_TYPE_UNKNOWN
+        @caller_transport_type = DistributedTraceTransportTypes::PARENT_TRANSPORT_TYPE_UNKNOWN
       end
 
       # Represent this payload as a raw JSON string.
