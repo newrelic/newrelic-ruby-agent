@@ -7,7 +7,7 @@ module NewRelic
     module DistributedTraceTransportTypes
       extend self
 
-      PARENT_TRANSPORT_TYPE_UNKNOWN = 'Unknown'.freeze
+      UNKNOWN = 'Unknown'.freeze
 
       ALLOWABLE_TRANSPORT_TYPES = Set.new(%w[
         Unknown
@@ -21,10 +21,10 @@ module NewRelic
         Other
       ]).freeze
 
-      def valid_transport_type_for(value)
+      def from value
         return value if ALLOWABLE_TRANSPORT_TYPES.include?(value)
 
-        PARENT_TRANSPORT_TYPE_UNKNOWN
+        UNKNOWN
       end
     end
   end

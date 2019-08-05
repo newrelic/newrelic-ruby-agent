@@ -67,8 +67,7 @@ module NewRelic
           destination[PARENT_TYPE_KEY] = distributed_trace_payload.parent_type
           destination[PARENT_APP_KEY] = distributed_trace_payload.parent_app_id
           destination[PARENT_ACCOUNT_ID_KEY] = distributed_trace_payload.parent_account_id
-          destination[PARENT_TRANSPORT_TYPE_KEY] = DistributedTraceTransportTypes.valid_transport_type_for \
-              distributed_trace_payload.caller_transport_type
+          destination[PARENT_TRANSPORT_TYPE_KEY] = DistributedTraceTransportTypes.from distributed_trace_payload.caller_transport_type
 
           if distributed_trace_payload.id
             destination[PARENT_SPAN_ID_KEY] = distributed_trace_payload.id

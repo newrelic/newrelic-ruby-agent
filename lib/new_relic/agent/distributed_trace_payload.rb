@@ -126,11 +126,11 @@ module NewRelic
       attr_reader :caller_transport_type
 
       def caller_transport_type= type
-        @caller_transport_type = DistributedTraceTransportTypes.valid_transport_type_for type
+        @caller_transport_type = DistributedTraceTransportTypes.from type
       end
 
       def initialize
-        @caller_transport_type = DistributedTraceTransportTypes::PARENT_TRANSPORT_TYPE_UNKNOWN
+        @caller_transport_type = DistributedTraceTransportTypes::UNKNOWN
       end
 
       # Represent this payload as a raw JSON string.
