@@ -1,0 +1,1070 @@
+[
+    {
+        "test_name": "accept_payload",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-da8bc8cc6d062849b0efcf3c169afb5a-7d3efb1b173fecfa-01",
+                "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction", "Span"],
+            "common":{
+                "exact": {
+                    "traceId": "da8bc8cc6d062849b0efcf3c169afb5a",
+                    "priority": 1.234567,
+                    "sampled": true
+                },
+                "expected": ["guid"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {
+                    "parent.type": "App",
+                    "parent.app": "2827902",
+                    "parent.account": "33",
+                    "parent.transportType": "HTTP",
+                    "parentId": "e8b91a159289ff74",
+                    "parentSpanId": "7d3efb1b173fecfa"
+                },
+                "expected": ["parent.transportDuration"]
+            },
+            "Span": {
+                "exact": {
+                    "parentId": "7d3efb1b173fecfa"
+                },
+                "expected": ["transactionId"],
+                "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+            }
+        },
+        "expected_metrics": [
+            ["DurationByCaller/App/33/2827902/HTTP/all", 1],
+            ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
+            ["TransportDuration/App/33/2827902/HTTP/all", 1],
+            ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
+            ["Supportability/TraceContext/AcceptPayload/Success", 1]
+        ]
+    },
+    {
+        "test_name": "multiple_accept_calls",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-4f9031d32d5e890397ccc1e2b936907b-7d3efb1b173fecfa-00",
+                "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-0-0.123456-1518469636035"
+            },
+            {
+                "traceparent": "00-25418af305d624cb239e82e753303fbb-b4a07f08064ee8f9-01",
+                "tracestate": "33@nr=0-0-33-2097282-b4a07f08064ee8f9-23cb0b7a48407caf-1-1.234567-1530549828110"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "exact": {
+                    "parent.type": "App",
+                    "parent.app": "2827902",
+                    "parent.account": "33",
+                    "parent.transportType": "HTTP",
+                    "traceId": "4f9031d32d5e890397ccc1e2b936907b",
+                    "priority": 0.123456,
+                    "sampled": false
+                },
+                "expected": ["parent.transportDuration", "guid"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {
+                    "parentId": "e8b91a159289ff74"
+                }
+            }
+        },
+        "expected_metrics": [
+            ["DurationByCaller/App/33/2827902/HTTP/all", 1],
+            ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
+            ["TransportDuration/App/33/2827902/HTTP/all", 1],
+            ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
+            ["Supportability/TraceContext/AcceptPayload/Success", 1],
+            ["Supportability/TraceContext/AcceptPayload/Ignored/Multiple", 1]
+        ]
+    },
+    {
+        "test_name": "payload_with_sampled_false",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-37375fc353f345b5801b166e31b76136-b4a07f08064ee8f9-00",
+                "tracestate": "33@nr=0-0-33-2827902-b4a07f08064ee8f9-e8b91a159289ff74-0-0.123456-1518469636035"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "exact": {
+                    "parent.type": "App",
+                    "parent.app": "2827902",
+                    "parent.account": "33",
+                    "parent.transportType": "HTTP",
+                    "traceId": "37375fc353f345b5801b166e31b76136",
+                    "priority": 0.123456,
+                    "sampled": false
+                },
+                "expected": ["parent.transportDuration", "guid"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {
+                    "parentId": "e8b91a159289ff74"
+                }
+            }
+        },
+        "expected_metrics": [
+            ["DurationByCaller/App/33/2827902/HTTP/all", 1],
+            ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
+            ["TransportDuration/App/33/2827902/HTTP/all", 1],
+            ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
+            ["Supportability/TraceContext/AcceptPayload/Success", 1]
+        ]
+    },
+    {
+        "test_name": "spans_disabled_in_parent",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-7a933b0e517e8c1f6bc6a7466be6f2a0-b4a07f08064ee8f9-01",
+                "tracestate": "33@nr=0-0-33-2827902-b4a07f08064ee8f9-e8b91a159289ff74-1-1.234567-1518469636035"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction", "Span"],
+            "common":{
+                "exact": {
+                    "traceId": "7a933b0e517e8c1f6bc6a7466be6f2a0",
+                    "priority": 1.234567,
+                    "sampled": true
+                },
+                "expected": ["guid"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {
+                    "parent.type": "App",
+                    "parent.app": "2827902",
+                    "parent.account": "33",
+                    "parent.transportType": "HTTP",
+                    "parentId": "e8b91a159289ff74"
+                },
+                "expected": ["parent.transportDuration"],
+                "unexpected": ["parentSpanId"]
+            },
+            "Span": {
+                "expected": ["transactionId"],
+                "unexpected": ["parentId", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+
+            }
+        },
+        "expected_metrics": [
+            ["DurationByCaller/App/33/2827902/HTTP/all", 1],
+            ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
+            ["TransportDuration/App/33/2827902/HTTP/all", 1],
+            ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
+            ["Supportability/TraceContext/AcceptPayload/Success", 1]
+        ]
+    },
+    {
+        "test_name": "spans_disabled_in_child",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": false,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-2c7a33d956d44531b48ec6f2e535e5c4-7d3efb1b173fecfa-01",
+                "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035"
+            }
+        ],
+        "outbound_payloads": [
+            {
+                "exact": {
+                    "traceparent.version": "00",
+                    "traceparent.trace_id": "2c7a33d956d44531b48ec6f2e535e5c4",
+                    "traceparent.trace_flags": "01",
+                    "tracestate.tenant_id": "33",
+                    "tracestate.version": 0,
+                    "tracestate.parent_type": "App",
+                    "tracestate.parent_account_id": "33",
+                    "tracestate.parent_application_id": "2827902",
+                    "tracestate.sampled": true,
+                    "tracestate.priority": 1.234567
+                },
+                "expected": [
+                    "traceparent.parent_id",
+                    "tracestate.span_id",
+                    "tracestate.transaction_id",
+                    "tracestate.timestamp"
+                ]
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "exact": {
+                    "parent.type": "App",
+                    "parent.app": "2827902",
+                    "parent.account": "33",
+                    "parent.transportType": "HTTP",
+                    "traceId": "2c7a33d956d44531b48ec6f2e535e5c4",
+                    "priority": 1.234567,
+                    "sampled": true
+                },
+                "expected": ["parent.transportDuration", "guid"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {
+                    "parentId": "e8b91a159289ff74",
+                    "parentSpanId": "7d3efb1b173fecfa"
+                }
+            }
+        },
+        "expected_metrics": [
+            ["DurationByCaller/App/33/2827902/HTTP/all", 1],
+            ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
+            ["TransportDuration/App/33/2827902/HTTP/all", 1],
+            ["TransportDuration/App/33/2827902/HTTP/allWeb", 1]
+        ]
+    },
+    {
+        "test_name": "exception",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": true,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-46ad73477e5605a5053d462bde1f95b0-7d3efb1b173fecfa-01",
+                "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.001000-1518469636035"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction", "TransactionError", "Span"],
+            "common":{
+                "exact": {
+                    "traceId": "46ad73477e5605a5053d462bde1f95b0",
+                    "priority": 1.001,
+                    "sampled": true
+                },
+                "expected": ["guid"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {
+                    "error": true,
+                    "parent.type": "App",
+                    "parent.app": "2827902",
+                    "parent.account": "33",
+                    "parent.transportType": "HTTP",
+                    "parentId": "e8b91a159289ff74",
+                    "parentSpanId": "7d3efb1b173fecfa"
+                },
+                "expected": ["parent.transportDuration"]
+            },
+            "Span": {
+                "exact": {
+                    "parentId": "7d3efb1b173fecfa"
+                },
+                "expected": ["transactionId"],
+                "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+            }
+        },
+        "expected_metrics": [
+            ["DurationByCaller/App/33/2827902/HTTP/all", 1],
+            ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
+            ["ErrorsByCaller/App/33/2827902/HTTP/all", 1],
+            ["ErrorsByCaller/App/33/2827902/HTTP/allWeb", 1],
+            ["TransportDuration/App/33/2827902/HTTP/all", 1],
+            ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
+            ["Supportability/TraceContext/AcceptPayload/Success", 1]
+        ]
+    },
+    {
+        "test_name": "background_transaction",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": false,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-7aa2a2cf20e3326bd1334b7dc7cf3ff8-7d3efb1b173fecfa-00",
+                "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-0-0.234567-1518469636035"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "exact": {
+                    "parent.type": "App",
+                    "parent.app": "2827902",
+                    "parent.account": "33",
+                    "parent.transportType": "HTTP",
+                    "traceId": "7aa2a2cf20e3326bd1334b7dc7cf3ff8",
+                    "priority": 0.234567,
+                    "sampled": false
+                },
+                "expected": ["parent.transportDuration", "guid"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {
+                    "parentId": "e8b91a159289ff74",
+                    "parentSpanId": "7d3efb1b173fecfa"
+                }
+            }
+        },
+        "expected_metrics": [
+            ["DurationByCaller/App/33/2827902/HTTP/all", 1],
+            ["DurationByCaller/App/33/2827902/HTTP/allOther", 1],
+            ["TransportDuration/App/33/2827902/HTTP/all", 1],
+            ["TransportDuration/App/33/2827902/HTTP/allOther", 1],
+            ["Supportability/TraceContext/AcceptPayload/Success", 1]
+        ]
+    },
+    {
+        "test_name": "payload_from_mobile_caller",
+        "comment": "the transaction must be marked sampled=true so a Span event is created",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": true,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-f6e9c09812b22fba2f1999b318ddfc8b-7d3efb1b173fecfa-00",
+                "tracestate": "33@nr=0-2-33-2827902-7d3efb1b173fecfa----1518469636035"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction", "Span"],
+            "common":{
+                "exact": {
+                    "traceId": "f6e9c09812b22fba2f1999b318ddfc8b",
+                    "sampled": true
+                },
+                "expected": ["guid", "priority"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {
+                    "parent.type": "Mobile",
+                    "parent.app": "2827902",
+                    "parent.account": "33",
+                    "parent.transportType": "HTTP",
+                    "parentSpanId": "7d3efb1b173fecfa"
+                },
+                "expected": ["parent.transportDuration"],
+                "unexpected": ["parentId"]
+            },
+            "Span": {
+                "exact": {
+                    "parentId": "7d3efb1b173fecfa"
+                },
+                "expected": ["transactionId"],
+                "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+            }
+        },
+        "expected_metrics": [
+            ["DurationByCaller/Mobile/33/2827902/HTTP/all", 1],
+            ["DurationByCaller/Mobile/33/2827902/HTTP/allWeb", 1],
+            ["TransportDuration/Mobile/33/2827902/HTTP/all", 1],
+            ["TransportDuration/Mobile/33/2827902/HTTP/allWeb", 1]
+        ]
+    },
+    {
+        "test_name": "lowercase_known_transport_is_unknown",
+        "comment": "beware the casing!",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "kafka",
+        "inbound_headers": [
+            {
+                "traceparent": "00-9cb52593888819d2b2eb63979f436b8d-f4a5ff268f63d62a-00",
+                "tracestate": "33@nr=0-0-33-2827902-f4a5ff268f63d62a-e8b91a159289ff74-0-0.123456-1518469636035"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "exact": {
+                    "parent.type": "App",
+                    "parent.app": "2827902",
+                    "parent.account": "33",
+                    "parent.transportType": "Unknown",
+                    "traceId": "9cb52593888819d2b2eb63979f436b8d",
+                    "priority": 0.123456,
+                    "sampled": false
+                },
+                "expected": ["parent.transportDuration", "guid"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {
+                    "parentId": "e8b91a159289ff74"
+                }
+            }
+        },
+        "expected_metrics": [
+            ["DurationByCaller/App/33/2827902/Unknown/all", 1],
+            ["DurationByCaller/App/33/2827902/Unknown/allWeb", 1],
+            ["TransportDuration/App/33/2827902/Unknown/all", 1],
+            ["TransportDuration/App/33/2827902/Unknown/allWeb", 1],
+            ["Supportability/TraceContext/AcceptPayload/Success", 1]
+        ]
+    },
+    {
+        "test_name": "create_payload",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-e22175eb1d68b6de32bf70e38458ccc3-7d3efb1b173fecfa-01",
+                "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035"
+            }
+        ],
+        "outbound_payloads": [
+            {
+                "exact": {
+                    "traceparent.version": "00",
+                    "traceparent.trace_id": "e22175eb1d68b6de32bf70e38458ccc3",
+                    "traceparent.trace_flags": "01",
+                    "tracestate.tenant_id": "33",
+                    "tracestate.version": 0,
+                    "tracestate.parent_type": "App",
+                    "tracestate.parent_account_id": "33",
+                    "tracestate.parent_application_id": "2827902",
+                    "tracestate.sampled": true,
+                    "tracestate.priority": 1.234567
+                },
+                "expected": [
+                    "traceparent.parent_id",
+                    "tracestate.span_id",
+                    "tracestate.transaction_id",
+                    "tracestate.timestamp"
+                ]
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction", "Span"],
+            "common":{
+                "exact": {
+                    "traceId": "e22175eb1d68b6de32bf70e38458ccc3",
+                    "priority": 1.234567,
+                    "sampled": true
+                },
+                "expected": ["guid"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {
+                    "parent.type": "App",
+                    "parent.app": "2827902",
+                    "parent.account": "33",
+                    "parent.transportType": "HTTP",
+                    "parentId": "e8b91a159289ff74",
+                    "parentSpanId": "7d3efb1b173fecfa"
+                },
+                "expected": ["parent.transportDuration"]
+            },
+            "Span": {
+                "exact": {
+                    "parentId": "7d3efb1b173fecfa"
+                },
+                "expected": ["transactionId"],
+                "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+            }
+        },
+        "expected_metrics": [
+            ["DurationByCaller/App/33/2827902/HTTP/all", 1],
+            ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
+            ["TransportDuration/App/33/2827902/HTTP/all", 1],
+            ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
+            ["Supportability/TraceContext/AcceptPayload/Success", 1]
+            // ["Supportability/TraceContext/CreatePayload/Success", 1]
+        ]
+    },
+    {
+        "test_name": "multiple_create_calls",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-099ae207600a34ecdd5902aba9c8c6c3-7d3efb1b173fecfa-01",
+                "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035"
+            }
+        ],
+        "outbound_payloads": [
+            {
+                "exact": {
+                    "traceparent.version": "00",
+                    "traceparent.trace_id": "099ae207600a34ecdd5902aba9c8c6c3",
+                    "traceparent.trace_flags": "01",
+                    "tracestate.tenant_id": "33",
+                    "tracestate.version": 0,
+                    "tracestate.parent_type": "App",
+                    "tracestate.parent_account_id": "33",
+                    "tracestate.parent_application_id": "2827902",
+                    "tracestate.sampled": true,
+                    "tracestate.priority": 1.234567
+                },
+                "expected": [
+                    "traceparent.parent_id",
+                    "tracestate.span_id",
+                    "tracestate.transaction_id",
+                    "tracestate.timestamp"
+                ]
+            },
+            {
+                "exact": {
+                    "traceparent.version": "00",
+                    "traceparent.trace_id": "099ae207600a34ecdd5902aba9c8c6c3",
+                    "traceparent.trace_flags": "01",
+                    "tracestate.tenant_id": "33",
+                    "tracestate.version": 0,
+                    "tracestate.parent_type": "App",
+                    "tracestate.parent_account_id": "33",
+                    "tracestate.parent_application_id": "2827902",
+                    "tracestate.sampled": true,
+                    "tracestate.priority": 1.234567
+                },
+                "expected": [
+                    "traceparent.parent_id",
+                    "tracestate.span_id",
+                    "tracestate.transaction_id",
+                    "tracestate.timestamp"
+                ]
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction", "Span"],
+            "common":{
+                "exact": {
+                    "traceId": "099ae207600a34ecdd5902aba9c8c6c3",
+                    "priority": 1.234567,
+                    "sampled": true
+                },
+                "expected": ["guid"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {
+                    "parent.type": "App",
+                    "parent.app": "2827902",
+                    "parent.account": "33",
+                    "parent.transportType": "HTTP",
+                    "parentId": "e8b91a159289ff74",
+                    "parentSpanId": "7d3efb1b173fecfa"
+                },
+                "expected": ["parent.transportDuration"]
+            },
+            "Span": {
+                "exact": {
+                    "parentId": "7d3efb1b173fecfa"
+                },
+                "expected": ["transactionId"],
+                "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+            }
+        },
+        "expected_metrics": [
+            ["DurationByCaller/App/33/2827902/HTTP/all", 1],
+            ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
+            ["TransportDuration/App/33/2827902/HTTP/all", 1],
+            ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
+            ["Supportability/TraceContext/AcceptPayload/Success", 1]
+            // ["Supportability/TraceContext/CreatePayload/Success", 2]
+        ]
+    },
+    {
+        "test_name": "payload_from_trusted_partnership_account",
+        "trusted_account_key": "65",
+        "account_id": "11",
+        "web_transaction": true,
+        "raises_exception": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-44673569f54fad422c3795b6cd4aef69-7d3efb1b173fecfa-00",
+                "tracestate": "65@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035"
+            }
+        ],
+        "outbound_payloads": [
+            {
+                "exact": {
+                    "traceparent.version": "00",
+                    "traceparent.trace_id": "44673569f54fad422c3795b6cd4aef69",
+                    "traceparent.trace_flags": "01",
+                    "tracestate.tenant_id": "65",
+                    "tracestate.version": 0,
+                    "tracestate.parent_type": "App",
+                    "tracestate.parent_account_id": "11",
+                    "tracestate.parent_application_id": "2827902",
+                    "tracestate.sampled": true,
+                    "tracestate.priority": 1.234567
+                },
+                "expected": [
+                    "traceparent.parent_id",
+                    "tracestate.span_id",
+                    "tracestate.transaction_id",
+                    "tracestate.timestamp"
+                ]
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "exact": {
+                    "parent.type": "App",
+                    "parent.app": "2827902",
+                    "parent.account": "33",
+                    "parent.transportType": "HTTP",
+                    "traceId": "44673569f54fad422c3795b6cd4aef69",
+                    "priority": 1.234567,
+                    "sampled": true
+                },
+                "expected": ["parent.transportDuration", "guid"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {
+                    "parentId": "e8b91a159289ff74"
+                }
+            }
+        },
+        "expected_metrics": [
+            ["DurationByCaller/App/33/2827902/HTTP/all", 1],
+            ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
+            ["TransportDuration/App/33/2827902/HTTP/all", 1],
+            ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
+            ["Supportability/TraceContext/AcceptPayload/Success", 1]
+            // ["Supportability/TraceContext/CreatePayload/Success", 1]
+        ]
+    },
+    {
+        "test_name": "payload_with_untrusted_key",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-87b1c9a429205b25e5b687d890d4821f-7d3efb1b173fecfa-00",
+                "tracestate": "44@nr=0-0-11-2827902-7d3efb1b173fecfa-e8b91a159289ff74-0-0.123456-1518469636035"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "expected": ["guid", "traceId", "priority", "sampled"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+            }
+        },
+        "expected_metrics": []
+    },
+    {
+        "test_name": "payload_from_untrusted_account",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-030e61f3f097890a2efcc35f22bd4f17-7d3efb1b173fecfa-00",
+                "tracestate": "44@nr=0-0-44-2827902-7d3efb1b173fecfa-e8b91a159289ff74-0-0.123456-1518469636035"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "expected": ["guid", "traceId", "priority", "sampled"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+            }
+        },
+        "expected_metrics": [
+            ["DurationByCaller/Unknown/Unknown/Unknown/Unknown/all", 1],
+            ["DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb", 1]
+        ]
+    },
+    {
+        "test_name": "payload_has_larger_version",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-ccaa36c833b26ce54bafa6c4102fd740-7d3efb1b173fecfa-01",
+                "tracestate": "33@nr=1-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035-other-new-fields"
+            }
+        ],
+        "outbound_payloads": [
+            {
+                "exact": {
+                    "traceparent.version": "00",
+                    "traceparent.trace_id": "ccaa36c833b26ce54bafa6c4102fd740",
+                    "traceparent.trace_flags": "01",
+                    "tracestate.tenant_id": "33",
+                    "tracestate.version": 0,
+                    "tracestate.parent_type": "App",
+                    "tracestate.parent_account_id": "33",
+                    "tracestate.parent_application_id": "2827902",
+                    "tracestate.sampled": true,
+                    "tracestate.priority": 1.234567
+                },
+                "expected": [
+                    "traceparent.parent_id",
+                    "tracestate.span_id",
+                    "tracestate.transaction_id",
+                    "tracestate.timestamp"
+                ]
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "exact": {
+                    "parent.type": "App",
+                    "parent.app": "2827902",
+                    "parent.account": "33",
+                    "parent.transportType": "HTTP",
+                    "traceId": "ccaa36c833b26ce54bafa6c4102fd740",
+                    "priority": 1.234567,
+                    "sampled": true
+                },
+                "expected": ["parent.transportDuration", "guid"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {
+                    "parentId": "e8b91a159289ff74"
+                }
+            }
+        },
+        "expected_metrics": [
+            ["DurationByCaller/App/33/2827902/HTTP/all", 1],
+            ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
+            ["TransportDuration/App/33/2827902/HTTP/all", 1],
+            ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
+            ["Supportability/TraceContext/AcceptPayload/Success", 1]
+            // ["Supportability/TraceContext/CreatePayload/Success", 1]
+        ]
+    },
+    {
+        "test_name": "payload_missing_version",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-5f2796876f44a3c898994ce2668e2222-b4a146e3237b4df1-01",
+                "tracestate": "33@nr=-0-33-2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.234567-1518469636035"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "expected": ["guid", "traceId", "priority", "sampled"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+            }
+        },
+        "expected_metrics": [
+            ["Supportability/TraceContext/Accept/InvalidPayload", 1]
+        ]
+    },
+    {
+        "test_name": "payload_missing_account",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-5f2796876f44a3c898994ce2668e2222-b4a146e3237b4df1-01",
+                "tracestate": "33@nr=0-0--2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.234567-1518469636035"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "expected": ["guid", "traceId", "priority", "sampled"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+            }
+        },
+        "expected_metrics": [
+            ["Supportability/TraceContext/Accept/InvalidPayload", 1]
+        ]
+    },
+    {
+        "test_name": "payload_missing_application",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-5f2796876f44a3c898994ce2668e2222-7d3efb1b173fecfa-01",
+                "tracestate": "33@nr=0-0-33--7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "expected": ["guid", "traceId", "priority", "sampled"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+            }
+        },
+        "expected_metrics": [
+            ["Supportability/TraceContext/Accept/InvalidPayload", 1]
+        ]
+    },
+    {
+        "test_name": "payload_missing_type",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-5f2796876f44a3c898994ce2668e2222-b4a146e3237b4df1-01",
+                "tracestate": "33@nr=0--33-2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.234567-1518469636035"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "expected": ["guid", "traceId", "priority", "sampled"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+            }
+        },
+        "expected_metrics": [
+            ["Supportability/TraceContext/Accept/InvalidPayload", 1]
+        ]
+    },
+    {
+        "test_name": "payload_missing_transactionId",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-5f2796876f44a3c898994ce2668e2222-31ee29476b04eda5-01",
+                "tracestate": "33@nr=0-0-33-2827902-31ee29476b04eda5--1-1.234567-1518469636035"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction", "Span"],
+            "common":{
+                "exact": {
+                    "traceId": "5f2796876f44a3c898994ce2668e2222",
+                    "priority": 1.234567,
+                    "sampled": true
+                },
+                "expected": ["guid"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {
+                    "parent.type": "App",
+                    "parent.app": "2827902",
+                    "parent.account": "33",
+                    "parent.transportType": "HTTP",
+                    "parentSpanId": "7d3efb1b173fecfa"
+                },
+                "expected": ["parent.transportDuration"],
+                "unexpected": ["parentId"]
+            },
+            "Span": {
+                "exact": {
+                    "parentId": "7d3efb1b173fecfa"
+                },
+                "expected": ["transactionId"],
+                "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
+            }
+        },
+        "expected_metrics": [
+            ["DurationByCaller/App/33/2827902/HTTP/all", 1],
+            ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
+            ["Supportability/TraceContext/AcceptPayload/Success", 1],
+            ["TransportDuration/App/33/2827902/HTTP/all", 1],
+            ["TransportDuration/App/33/2827902/HTTP/allWeb", 1]
+        ]
+    },
+    {
+        "test_name": "payload_missing_traceId",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00--b4a146e3237b4df1-01",
+                "tracestate": "33@nr=0-0-33-2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.234567-1518469636035"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "expected": ["guid", "traceId", "priority", "sampled"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+            }
+        },
+        "expected_metrics": [
+            ["Supportability/TraceContext/Parse/Exception", 1]
+        ]
+    },
+    {
+        "test_name": "payload_missing_timestamp",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_headers": [
+            {
+                "traceparent": "00-5f2796876f44a3c898994ce2668e2222-b4a146e3237b4df1-01",
+                "tracestate": "33@nr=0-0-33-2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.234567-"
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "expected": ["guid", "traceId", "priority", "sampled"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+            }
+        },
+        "expected_metrics": [
+            ["Supportability/TraceContext/Accept/InvalidPayload", 1]
+        ]
+    }
+]
