@@ -48,10 +48,12 @@ module NewRelic
             parent_account_id: attrs[2],
             parent_app_id: attrs[3],
             id: attrs[4],
-            transaction_id: attrs[5].empty? ? nil : attrs[5],
-            sampled: attrs[6].empty? ? nil : (attrs[6] == TRUE_CHAR),
-            priority: (attrs[7].empty? ? nil : attrs[7].to_f),
-            timestamp: attrs[8].to_i
+            transaction_id: nil_or_empty?(attrs[5]) ? nil : attrs[5],
+            sampled: nil_or_empty?(attrs[6]) ? nil : (attrs[6] == TRUE_CHAR),
+            priority: nil_or_empty?(attrs[7]) ? nil : attrs[7].to_f,
+            timestamp: nil_or_empty?(attrs[8]) ? nil : attrs[8].to_i
+          log_parse_error message: 'payload missing attributes' unless payload.valid?
+          payload
         rescue => e
           log_invalid_payload error: e
         end
@@ -69,6 +71,10 @@ module NewRelic
           elsif message
             NewRelic::Agent.logger.warn "Error parsing trace context payload: #{message}"
           end
+        end
+
+        def nil_or_empty? value
+          value.nil? || value.empty?
         end
       end
 
@@ -100,6 +106,17 @@ module NewRelic
 
       def parent_type
         @parent_type_string ||= PARENT_TYPES[@parent_type_id]
+      end
+
+      def valid?
+        !version.nil? \
+          && !parent_type_id.nil? \
+          && parent_account_id && !parent_account_id.empty? \
+          && parent_app_id && !parent_app_id.empty? \
+          && id && !id.empty? \
+          && !timestamp.nil?
+      rescue
+        false
       end
 
       EMPTY = "".freeze

@@ -136,7 +136,7 @@ module NewRelic
         tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                trace_state_entry_key: "190@nr"
-        assert_equal nil, tracecontext_data.trace_state_payload
+        refute tracecontext_data.trace_state_payload.valid?
         assert_equal 'new=entry', tracecontext_data.trace_state('new=entry')
         assert_metrics_recorded "Supportability/TraceContext/Accept/Ignored/InvalidPayload"
       end

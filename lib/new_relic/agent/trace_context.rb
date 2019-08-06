@@ -54,7 +54,6 @@ module NewRelic
                   carrier: nil,
                   trace_state_entry_key: nil,
                   caller_transport_type: nil
-
           return unless trace_parent = extract_traceparent(format, carrier)
           return unless trace_parent_valid? trace_parent
 

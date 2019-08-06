@@ -67,12 +67,6 @@ module NewRelic
         assert_equal 1482959525577, payload.timestamp
       end
 
-      def test_missing_attributes
-        #missing timestamp
-        payload_str = "0-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123"
-        assert_nil TraceContextPayload.from_s payload_str
-      end
-
       def test_additional_attributes
         nr_freeze_time
 
@@ -88,6 +82,35 @@ module NewRelic
         assert_equal "164d3b4b0d09cb05", payload.transaction_id
         assert_equal true, payload.sampled
         assert_equal 0.123, payload.priority
+      end
+
+      def test_valid
+        valid_payloads = [
+          "1-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-1482959525577",
+          "1-0-12345-6789-f85f42fd82a4cf1d--1-0.123-1482959525577",
+          "1-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05--0.123-1482959525577",
+          "1-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05---1482959525577"
+        ]
+
+        valid_payloads.each do |payload_str|
+          payload = TraceContextPayload.from_s payload_str
+          assert payload.valid?, "Payload should be valid: '#{payload_str}'"
+        end
+
+        invalid_payloads = [
+          "-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-1482959525577",
+          "1--12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-1482959525577",
+          "1-0--6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-1482959525577",
+          "1-0-12345--f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-1482959525577",
+          "1-0-12345-6789--164d3b4b0d09cb05-1-0.123-1482959525577",
+          "1-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-"
+        ]
+
+        invalid_payloads.each do |payload_str|
+          payload = TraceContextPayload.from_s payload_str
+          refute payload.valid?, "Payload should be invalid: '#{payload_str}'"
+        end
+        
       end
 
       private

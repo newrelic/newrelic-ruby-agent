@@ -77,6 +77,7 @@ module NewRelic
           @trace_id = @trace_context_data.trace_id
 
           return false unless payload = trace_context_data.trace_state_payload
+          return false unless payload.valid?
           @trace_state_payload = payload
 
           @parent_transaction_id = payload.transaction_id
