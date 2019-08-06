@@ -8,6 +8,9 @@ require 'new_relic/agent/trace_context'
 module NewRelic
   module Agent
     class TraceContextRequestMonitor < InboundRequestMonitor
+
+      SUPPORTABILITY_PARSE_EXCEPTION = "Supportability/TraceContext/Parse/Exception".freeze
+
       def on_finished_configuring(events)
         return unless NewRelic::Agent.config[:'trace_context.enabled']
         events.subscribe(:before_call, &method(:on_before_call))
@@ -16,12 +19,17 @@ module NewRelic
 
       def on_before_call(request)
         return unless NewRelic::Agent.config[:'trace_context.enabled']
-        return unless trace_context = TraceContext.parse(
+        trace_context = TraceContext.parse(
           format: TraceContext::FORMAT_RACK,
           carrier: request,
           trace_state_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key,
           caller_transport_type: transport_type(request)
         )
+        if trace_context.nil?
+          NewRelic::Agent.increment_metric SUPPORTABILITY_PARSE_EXCEPTION
+          return
+        end
+
         return unless txn = Tracer.current_transaction
 
         txn.accept_trace_context trace_context
