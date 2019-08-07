@@ -38,7 +38,7 @@ module NewRelic
       # This method extracts intrinsics from the transaction_payload and
       # inserts them into the specified destination.  
       def copy_to_hash transaction_payload, destination
-        return unless Agent.config[:'distributed_tracing.enabled']
+        return unless enabled?
         INTRINSIC_KEYS.each do |key|
           value = transaction_payload[key]
           destination[key] = value unless value.nil?
@@ -48,7 +48,7 @@ module NewRelic
       # This method extracts intrinsics from the transaction_payload and
       # inserts them as intrinsics in the specified transaction_attributes
       def copy_to_attributes transaction_payload, destination
-        return unless Agent.config[:'distributed_tracing.enabled']
+        return unless enabled?
         INTRINSIC_KEYS.each do |key|
           next unless transaction_payload.key? key
           destination.add_intrinsic_attribute key, transaction_payload[key]
@@ -81,6 +81,13 @@ module NewRelic
           destination[TRACE_ID_KEY] = transaction.trace_id
         end
       end
+
+      private
+
+      def enabled?
+        return Agent.config[:'distributed_tracing.enabled'] || Agent.config[:'trace_context.enabled']
+      end
+
     end
   end
 end

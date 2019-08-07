@@ -587,7 +587,7 @@ module NewRelic
         end
 
         if Agent.config[:'distributed_tracing.enabled'] || trace_context_enabled?
-          DistributedTraceIntrinsics.extract_to_transaction_attributes @payload, attributes
+          DistributedTraceIntrinsics.copy_to_attributes @payload, attributes
         elsif is_cross_app?
           assign_cross_app_intrinsics
         end
