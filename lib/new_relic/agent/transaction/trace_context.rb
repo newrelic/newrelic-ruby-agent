@@ -3,12 +3,15 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 require 'new_relic/agent/trace_context'
 require 'new_relic/agent/distributed_trace_payload'
+require 'new_relic/agent/distributed_trace_intrinsics'
+require 'new_relic/agent/distributed_trace_metrics'
 
 module NewRelic
   module Agent
     class Transaction
       attr_accessor :trace_context_data
       attr_writer   :trace_context_inserted
+      attr_reader   :trace_state_payload
 
       module TraceContext
 
@@ -74,6 +77,7 @@ module NewRelic
           @trace_id = @trace_context_data.trace_id
 
           return false unless payload = trace_context_data.trace_state_payload
+          @trace_state_payload = payload
 
           @parent_transaction_id = payload.transaction_id
 
@@ -88,7 +92,6 @@ module NewRelic
           NewRelic::Agent.logger.warn "Failed to accept trace context payload", e
           false
         end
-
 
         def check_trace_context_ignored
           if trace_context_data
@@ -109,6 +112,7 @@ module NewRelic
       def trace_context_enabled?
         Agent.config[:'trace_context.enabled'] && Agent.instance.connected?
       end
+
     end
   end
 end

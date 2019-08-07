@@ -24,7 +24,11 @@ module NewRelic
       end
 
       def record_metrics_for_transaction transaction
-        payload = transaction.distributed_trace? ? transaction.distributed_trace_payload : nil
+        payload = if transaction.distributed_trace?
+          transaction.distributed_trace_payload
+        elsif transaction.trace_context_enabled?
+          transaction.trace_state_payload
+        end
 
         record_caller_by_duration_metrics transaction, payload
         record_transport_duration_metrics transaction, payload
