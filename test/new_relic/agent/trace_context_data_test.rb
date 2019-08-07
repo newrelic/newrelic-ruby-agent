@@ -13,7 +13,7 @@ module NewRelic
 
         def test_tracestate_built_from_array
           other_entries = ['one', 'two']
-          data = Data.new 'traceparent', 'tracestate_entry', other_entries, 0
+          data = Data.new 'traceparent', 'tracestate_entry', other_entries, 0, ''
 
           assert_nil data.instance_variable_get :@trace_state
           refute_nil data.instance_variable_get :@trace_state_entries
@@ -27,7 +27,7 @@ module NewRelic
           # Create a trace state array with 50 9 byte entries.  When joined
           # with a comma, this would be 499 bytes
           trace_state_array = (0...50).map { "#{random_text(2)}=#{random_text(6)}" }
-          data = Data.new 'traceparent', 'payload', trace_state_array, 499
+          data = Data.new 'traceparent', 'payload', trace_state_array, 499, ''
 
           # setting the entry size to something <= 12 shouldn't trim the trace state
           new_entry = 'a' * 12
@@ -39,7 +39,7 @@ module NewRelic
           # Create a trace state array with 50 9 byte entries.  When joined
           # with a comma, this would be 499 bytes
           trace_state_array = (0...50).map { "#{random_text(2)}=#{random_text(6)}" }
-          data = Data.new 'traceparent', 'payload', trace_state_array, 499
+          data = Data.new 'traceparent', 'payload', trace_state_array, 499, ''
 
           # setting the entry size to something > 12 should result in a trimmed trace state
           new_entry = 'a' * 13
@@ -55,7 +55,7 @@ module NewRelic
           ]
           # also add 500 more bytes
           trace_state_array += (0...50).map { "#{random_text(2)}=#{random_text(6)}" }
-          data = Data.new 'traceparent', 'payload', trace_state_array, 550
+          data = Data.new 'traceparent', 'payload', trace_state_array, 550, ''
 
           trace_state = data.trace_state 'new=entry'
           # if the big 133 byte entry gets dropped, the joined trace state
@@ -71,7 +71,7 @@ module NewRelic
             "#{random_text(2)}=#{random_text(130)}", # 133 bytes
             'two=value'
           ]
-          data = Data.new 'traceparent', 'payload', trace_state_array, 155
+          data = Data.new 'traceparent', 'payload', trace_state_array, 155, ''
 
           trace_state = data.trace_state 'new=entry'
           expected_trace_state = "new=entry,#{trace_state_array.join(',')}"

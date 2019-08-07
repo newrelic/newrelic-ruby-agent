@@ -21,7 +21,6 @@ module NewRelic
       PARENT_SPAN_ID_KEY             = "parentSpanId".freeze
       SAMPLED_KEY                    = "sampled".freeze
 
-
       INTRINSIC_KEYS = [
         PARENT_TYPE_KEY,
         PARENT_APP_KEY,

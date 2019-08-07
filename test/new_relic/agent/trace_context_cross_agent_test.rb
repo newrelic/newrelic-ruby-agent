@@ -195,6 +195,8 @@ module NewRelic
         return if test_case_intrinsics.empty?
 
         last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
+        refute_empty last_span_events
         actual_intrinsics = last_span_events[0][0]
 
         verify_attributes test_case_intrinsics, actual_intrinsics, 'Span'

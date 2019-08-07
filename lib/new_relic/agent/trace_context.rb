@@ -21,6 +21,7 @@ module NewRelic
 
       COMMA = ','.freeze
       EMPTY_STRING = ''.freeze
+      EQUALS = '='.freeze
       TRACE_ID_KEY = 'trace_id'.freeze
       PARENT_ID_KEY = 'parent_id'.freeze
       VERSION_KEY = 'version'.freeze
@@ -124,21 +125,24 @@ module NewRelic
 
           payload = nil
           trace_state_size = 0
+          trace_state_vendors = []
           trace_state = header.split(COMMA)
-          trace_state_entry_prefix = "#{trace_state_entry_key}="
           trace_state.reject! do |entry|
-            if entry.start_with? trace_state_entry_prefix
+            vendor_id = entry.slice 0, entry.index(EQUALS)
+            if vendor_id == trace_state_entry_key
               payload = entry.slice! trace_state_entry_key.size + 1, entry.size
               true
             else
               trace_state_size += entry.size
+              trace_state_vendors << vendor_id
               false
             end
           end
 
           Data.create trace_state_payload: payload ? decode_payload(payload) : nil,
                       trace_state_entries: trace_state,
-                      trace_state_size: trace_state_size
+                      trace_state_size: trace_state_size,
+                      trace_state_vendors: trace_state_vendors.join(COMMA).freeze
         end
 
         def decode_payload payload
@@ -151,19 +155,25 @@ module NewRelic
           def create trace_parent: nil,
                      trace_state_payload: nil,
                      trace_state_entries: nil,
-                     trace_state_size: 0
-            new trace_parent, trace_state_payload, trace_state_entries, trace_state_size
+                     trace_state_size: 0,
+                     trace_state_vendors: nil
+            new trace_parent, \
+                trace_state_payload, \
+                trace_state_entries, \
+                trace_state_size, \
+                trace_state_vendors
           end
         end
 
-        def initialize trace_parent, trace_state_payload, trace_state_entries, trace_state_size
+        def initialize trace_parent, trace_state_payload, trace_state_entries, trace_state_size, trace_state_vendors
           @trace_parent = trace_parent
           @trace_state_entries = trace_state_entries
           @trace_state_payload = trace_state_payload
           @trace_state_size = trace_state_size
+          @trace_state_vendors = trace_state_vendors
         end
 
-        attr_accessor :trace_parent, :trace_state_payload
+        attr_accessor :trace_parent, :trace_state_payload, :trace_state_vendors
 
         def trace_state trace_state_entry
           @trace_state ||= join_trace_state trace_state_entry.size
@@ -174,6 +184,10 @@ module NewRelic
 
         def trace_id
           @trace_parent[TRACE_ID_KEY]
+        end
+
+        def parent_id
+          @trace_parent[PARENT_ID_KEY]
         end
 
         private

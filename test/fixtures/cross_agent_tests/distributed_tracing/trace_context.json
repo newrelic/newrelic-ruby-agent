@@ -38,7 +38,9 @@
             },
             "Span": {
                 "exact": {
-                    "parentId": "7d3efb1b173fecfa"
+                    "parentId": "7d3efb1b173fecfa",
+                    "traceContext.parentId": "7d3efb1b173fecfa",
+                    "traceContext.traceStateVendors": ""
                 },
                 "expected": ["transactionId"],
                 "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
