@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/distributed_trace_transport_types'
+
 module NewRelic
   module Agent
     class TraceContextPayload
@@ -86,8 +88,7 @@ module NewRelic
                     :transaction_id,
                     :sampled,
                     :priority,
-                    :timestamp,
-                    :caller_transport_type
+                    :timestamp
 
       alias_method :sampled?, :sampled
 
@@ -102,6 +103,12 @@ module NewRelic
         @sampled = sampled
         @priority = priority
         @timestamp = timestamp
+      end
+
+      attr_reader :caller_transport_type
+
+      def caller_transport_type= type
+        @caller_transport_type = DistributedTraceTransportTypes.from type
       end
 
       def parent_type
@@ -126,7 +133,7 @@ module NewRelic
         result << DELIMITER << parent_type_id.to_s
         result << DELIMITER << parent_account_id
         result << DELIMITER << parent_app_id
-        result << DELIMITER << (id || EMPTY)
+        result << DELIMITER << (id || EMPTY) # we allow an empty span id?
         result << DELIMITER << transaction_id
         result << DELIMITER << (sampled ? TRUE_CHAR : FALSE_CHAR)
         result << DELIMITER << priority.to_s
