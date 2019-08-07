@@ -60,10 +60,9 @@ module NewRelic
       def copy_from_transaction transaction, distributed_trace_payload, destination
         destination[GUID_KEY] = transaction.guid
         destination[SAMPLED_KEY] = transaction.sampled?
- 
-        if distributed_trace_payload
-          destination[TRACE_ID_KEY] = distributed_trace_payload.trace_id
+        destination[TRACE_ID_KEY] = transaction.trace_id 
 
+        if distributed_trace_payload
           destination[PARENT_TYPE_KEY] = distributed_trace_payload.parent_type
           destination[PARENT_APP_KEY] = distributed_trace_payload.parent_app_id
           destination[PARENT_ACCOUNT_ID_KEY] = distributed_trace_payload.parent_account_id
@@ -77,8 +76,6 @@ module NewRelic
           if transaction.parent_transaction_id
             destination[PARENT_TRANSACTION_ID_KEY] = transaction.parent_transaction_id
           end
-        else
-          destination[TRACE_ID_KEY] = transaction.trace_id
         end
       end
 
