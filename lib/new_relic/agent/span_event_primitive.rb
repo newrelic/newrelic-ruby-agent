@@ -137,6 +137,8 @@ module NewRelic
           segment.parent.guid
         elsif segment.transaction && segment.transaction.distributed_trace?
           segment.transaction.distributed_trace_payload.id
+        elsif segment.transaction && segment.transaction.trace_state_payload
+          segment.transaction.trace_state_payload.id
         end
       end
 
