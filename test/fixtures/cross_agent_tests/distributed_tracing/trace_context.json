@@ -776,7 +776,7 @@
         ]
     },
     {
-        "test_name": "payload_has_larger_version",
+        "test_name": "tracestate_has_larger_version",
         "trusted_account_key": "33",
         "account_id": "33",
         "web_transaction": true,
@@ -845,7 +845,7 @@
         ]
     },
     {
-        "test_name": "payload_missing_version",
+        "test_name": "tracestate_missing_version",
         "trusted_account_key": "33",
         "account_id": "33",
         "web_transaction": true,
@@ -873,7 +873,7 @@
         ]
     },
     {
-        "test_name": "payload_missing_account",
+        "test_name": "tracestate_missing_account",
         "trusted_account_key": "33",
         "account_id": "33",
         "web_transaction": true,
@@ -901,7 +901,7 @@
         ]
     },
     {
-        "test_name": "payload_missing_application",
+        "test_name": "tracestate_missing_application",
         "trusted_account_key": "33",
         "account_id": "33",
         "web_transaction": true,
@@ -929,7 +929,7 @@
         ]
     },
     {
-        "test_name": "payload_missing_type",
+        "test_name": "tracestate_missing_type",
         "trusted_account_key": "33",
         "account_id": "33",
         "web_transaction": true,
@@ -957,7 +957,7 @@
         ]
     },
     {
-        "test_name": "payload_missing_transactionId",
+        "test_name": "tracestate_missing_transactionId",
         "trusted_account_key": "33",
         "account_id": "33",
         "web_transaction": true,
@@ -1012,7 +1012,7 @@
         ]
     },
     {
-        "test_name": "payload_missing_traceId",
+        "test_name": "traceparent_missing_traceId",
         "trusted_account_key": "33",
         "account_id": "33",
         "web_transaction": true,
@@ -1040,7 +1040,7 @@
         ]
     },
     {
-        "test_name": "payload_missing_timestamp",
+        "test_name": "tracestate_missing_timestamp",
         "trusted_account_key": "33",
         "account_id": "33",
         "web_transaction": true,
