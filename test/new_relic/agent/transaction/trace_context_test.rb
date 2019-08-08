@@ -301,6 +301,7 @@ module NewRelic
 
         def test_do_not_accept_trace_context_if_trace_context_already_accepted
           in_transaction do |txn|
+            txn.sampled = true
             trace_state_payload = txn.create_trace_state_payload
             trace_context_data = make_trace_context_data trace_state_payload: trace_state_payload
 
