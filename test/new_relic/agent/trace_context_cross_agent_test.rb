@@ -12,6 +12,7 @@ module NewRelic
         NewRelic::Agent::Transaction.any_instance.stubs(:trace_context_enabled?).returns(true)
         agent_event_listener = mock(:subscribe)
         @request_monitor = TraceContextRequestMonitor.new agent_event_listener
+        NewRelic::Agent.drop_buffered_data
       end
 
       def teardown
