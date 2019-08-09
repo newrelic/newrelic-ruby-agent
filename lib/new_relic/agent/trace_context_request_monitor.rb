@@ -19,7 +19,8 @@ module NewRelic
         return unless trace_context = TraceContext.parse(
           format: TraceContext::FORMAT_RACK,
           carrier: request,
-          trace_state_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
+          trace_state_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key,
+          caller_transport_type: transport_type(request)
         )
         return unless txn = Tracer.current_transaction
 

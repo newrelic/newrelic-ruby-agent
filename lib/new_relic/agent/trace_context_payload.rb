@@ -74,7 +74,8 @@ module NewRelic
                     :transaction_id,
                     :sampled,
                     :priority,
-                    :timestamp
+                    :timestamp,
+                    :caller_transport_type
 
       alias_method :sampled?, :sampled
 
