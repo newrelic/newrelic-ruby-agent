@@ -39,21 +39,16 @@ module NewRelic
         def from_s payload_string
           attrs = payload_string.split(DELIMITER)
 
-          if attrs.size < 9
-            log_invalid_payload message: "attributes missing from payload"
-            return
-          end
-
-          create \
-            version: attrs[0].to_i,
-            parent_type: attrs[1].to_i,
+          payload = create \
+            version: parse_int(attrs[0]),
+            parent_type: parse_int(attrs[1]),
             parent_account_id: attrs[2],
             parent_app_id: attrs[3],
-            id: nil_or_empty?(attrs[4]) ? nil : attrs[4],
-            transaction_id: nil_or_empty?(attrs[5]) ? nil : attrs[5],
-            sampled: nil_or_empty?(attrs[6]) ? nil : (attrs[6] == TRUE_CHAR),
-            priority: nil_or_empty?(attrs[7]) ? nil : attrs[7].to_f,
-            timestamp: nil_or_empty?(attrs[8]) ? nil : attrs[8].to_i
+            id: parse_value(attrs[4]),
+            transaction_id: parse_value(attrs[5]),
+            sampled: parse_boolean(attrs[6]),
+            priority: parse_float(attrs[7]),
+            timestamp: parse_int(attrs[8])
           log_parse_error message: 'payload missing attributes' unless payload.valid?
           payload
         rescue => e
@@ -75,8 +70,21 @@ module NewRelic
           end
         end
 
-        def nil_or_empty? value
-          value.nil? || value.empty?
+        def parse_value value
+          return nil if value.nil? || value.empty?
+          value
+        end
+
+        def parse_int value
+          (parsed = parse_value value) && parsed.to_i
+        end
+
+        def parse_boolean value
+          (parsed = parse_value value) && parsed == TRUE_CHAR
+        end
+
+        def parse_float value
+          (parsed = parse_value value) && parsed.to_f
         end
       end
 

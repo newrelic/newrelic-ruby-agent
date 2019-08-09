@@ -113,6 +113,32 @@ module NewRelic
         
       end
 
+      def test_parse_value
+        assert_nil TraceContextPayload.send(:parse_value, '')
+        assert_nil TraceContextPayload.send(:parse_value, nil)
+        assert_equal 'a', TraceContextPayload.send(:parse_value, 'a')
+      end
+
+      def test_parse_int
+        assert_nil TraceContextPayload.send(:parse_int, '')
+        assert_nil TraceContextPayload.send(:parse_int, nil)
+        assert_equal 120, TraceContextPayload.send(:parse_int, '120')
+      end
+
+      def test_parse_boolean
+        assert_nil TraceContextPayload.send(:parse_boolean, '')
+        assert_nil TraceContextPayload.send(:parse_boolean, nil)
+        assert TraceContextPayload.send(:parse_boolean, '1')
+        refute TraceContextPayload.send(:parse_boolean, '0')
+        refute TraceContextPayload.send(:parse_boolean, 'somethignunexpected')
+      end
+
+      def test_parse_float
+        assert_nil TraceContextPayload.send(:parse_float, '')
+        assert_nil TraceContextPayload.send(:parse_float, nil)
+        assert_equal 1.23456, TraceContextPayload.send(:parse_float, '1.23456')
+      end
+
       private
 
       def now_ms
