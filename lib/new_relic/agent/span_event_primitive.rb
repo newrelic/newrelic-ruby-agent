@@ -135,7 +135,7 @@ module NewRelic
       def parent_guid(segment)
         if segment.parent
           segment.parent.guid
-        elsif segment.transaction && segment.transaction.distributed_trace?
+        elsif segment.transaction && segment.transaction.distributed_trace_payload
           segment.transaction.distributed_trace_payload.id
         elsif segment.transaction && segment.transaction.trace_state_payload
           segment.transaction.trace_state_payload.id

@@ -12,10 +12,6 @@ module NewRelic
       module DistributedTracing
         attr_accessor :distributed_trace_payload
 
-        def distributed_trace?
-          !!distributed_trace_payload
-        end
-
         SUPPORTABILITY_CREATE_PAYLOAD_SUCCESS   = "Supportability/DistributedTrace/CreatePayload/Success".freeze
         SUPPORTABILITY_CREATE_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/CreatePayload/Exception".freeze
 
