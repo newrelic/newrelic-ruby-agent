@@ -49,7 +49,7 @@ module NewRelic
             parent_type: attrs[1].to_i,
             parent_account_id: attrs[2],
             parent_app_id: attrs[3],
-            id: attrs[4],
+            id: nil_or_empty?(attrs[4]) ? nil : attrs[4],
             transaction_id: nil_or_empty?(attrs[5]) ? nil : attrs[5],
             sampled: nil_or_empty?(attrs[6]) ? nil : (attrs[6] == TRUE_CHAR),
             priority: nil_or_empty?(attrs[7]) ? nil : attrs[7].to_f,
@@ -120,7 +120,6 @@ module NewRelic
           && !parent_type_id.nil? \
           && parent_account_id && !parent_account_id.empty? \
           && parent_app_id && !parent_app_id.empty? \
-          && id && !id.empty? \
           && !timestamp.nil?
       rescue
         false
@@ -133,8 +132,8 @@ module NewRelic
         result << DELIMITER << parent_type_id.to_s
         result << DELIMITER << parent_account_id
         result << DELIMITER << parent_app_id
-        result << DELIMITER << (id || EMPTY) # we allow an empty span id?
-        result << DELIMITER << transaction_id
+        result << DELIMITER << (id || EMPTY)
+        result << DELIMITER << (transaction_id || EMPTY)
         result << DELIMITER << (sampled ? TRUE_CHAR : FALSE_CHAR)
         result << DELIMITER << priority.to_s
         result << DELIMITER << timestamp.to_s

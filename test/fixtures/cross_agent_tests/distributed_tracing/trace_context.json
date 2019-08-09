@@ -162,8 +162,8 @@
         "transport_type": "HTTP",
         "inbound_headers": [
             {
-                "traceparent": "00-7a933b0e517e8c1f6bc6a7466be6f2a0-b4a07f08064ee8f9-01",
-                "tracestate": "33@nr=0-0-33-2827902-b4a07f08064ee8f9-e8b91a159289ff74-1-1.234567-1518469636035"
+                "traceparent": "00-7a933b0e517e8c1f6bc6a7466be6f2a0-e8b91a159289ff74-01",
+                "tracestate": "33@nr=0-0-33-2827902--e8b91a159289ff74-1-1.234567-1518469636035"
             }
         ],
         "intrinsics": {
@@ -208,7 +208,7 @@
         "account_id": "33",
         "web_transaction": true,
         "raises_exception": false,
-        "force_sampled_true": false,
+        "force_sampled_true": true,
         "span_events_enabled": false,
         "major_version": 0,
         "minor_version": 1,
@@ -235,9 +235,11 @@
                 },
                 "expected": [
                     "traceparent.parent_id",
-                    "tracestate.span_id",
                     "tracestate.transaction_id",
                     "tracestate.timestamp"
+                ],
+                "unexpected": [
+                    "traceparent.span_id"
                 ]
             }
         ],
@@ -482,7 +484,7 @@
         "account_id": "33",
         "web_transaction": true,
         "raises_exception": false,
-        "force_sampled_true": false,
+        "force_sampled_true": true,
         "span_events_enabled": true,
         "major_version": 0,
         "minor_version": 1,
@@ -969,8 +971,8 @@
         "transport_type": "HTTP",
         "inbound_headers": [
             {
-                "traceparent": "00-5f2796876f44a3c898994ce2668e2222-31ee29476b04eda5-01",
-                "tracestate": "33@nr=0-0-33-2827902-31ee29476b04eda5--1-1.234567-1518469636035"
+                "traceparent": "00-5f2796876f44a3c898994ce2668e2222-7d3efb1b173fecfa-01",
+                "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa--1-1.234567-1518469636035"
             }
         ],
         "intrinsics": {
