@@ -141,6 +141,7 @@ module NewRelic
         self.class.enabled_keys.each do |key|
           NewRelic::Agent.config.register_callback(key) do |enabled|
             @enabled = self.class.enabled_fn.call
+            reset! if enabled == false
             ::NewRelic::Agent.logger.debug "#{self.class.named} will #{@enabled ? '' : 'not '}be sent to the New Relic service."
           end
         end

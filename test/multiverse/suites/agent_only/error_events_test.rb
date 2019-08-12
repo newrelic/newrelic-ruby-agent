@@ -56,6 +56,18 @@ class ErrorEventsTest < Minitest::Test
     end
   end
 
+  def test_does_not_record_error_events_after_error_collector_disabled_from_server
+    with_config :'error_collector.enabled' => true do
+      generate_errors 5
+
+      with_config :'error_collector.enabled' => false do
+        NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
+      end
+    end
+
+    assert_equal(0, $collector.calls_for(:error_event_data).size)
+  end
+
   def test_does_not_record_error_events_when_disabled_by_feature_gate
 
     $collector.stub('connect', {
