@@ -91,6 +91,7 @@ module NewRelic
 
       def register_config_callbacks
         Agent.config.register_callback(:'error_collector.enabled') do |enabled|
+          reset! if enabled == false
           ::NewRelic::Agent.logger.debug "Error traces will #{enabled ? '' : 'not '}be sent to the New Relic service."
         end
       end
