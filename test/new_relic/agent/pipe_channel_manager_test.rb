@@ -90,7 +90,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
       run_child(668) do
         NewRelic::Agent.after_fork
-        new_sampler = NewRelic::Agent::ErrorCollector.new
+        new_sampler = NewRelic::Agent::ErrorCollector.new NewRelic::Agent.instance.events
         new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
                                  :metric => 'path', :referer => 'test_referer',
                                  :request_params => {:x => 'y'})
@@ -138,7 +138,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
       run_child(668) do
         NewRelic::Agent.after_fork
-        new_sampler = NewRelic::Agent::ErrorCollector.new
+        new_sampler = NewRelic::Agent::ErrorCollector.new NewRelic::Agent.instance.events
         new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
                                  :metric => 'path', :referer => 'test_referer',
                                  :request_params => {:x => 'y'})

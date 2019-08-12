@@ -58,13 +58,13 @@ module NewRelic
         end
       end
 
-      def initialize
+      def initialize events
         @lock = Mutex.new
         @buffer = self.class.buffer_class.new NewRelic::Agent.config[self.class.capacity_key]
         @enabled = false
         @notified_full = false
         register_capacity_callback
-        register_enabled_callback
+        register_enabled_callback events
         after_initialize
       end
 
@@ -137,14 +137,12 @@ module NewRelic
         end
       end
 
-      def register_enabled_callback
-        self.class.enabled_keys.each do |key|
-          NewRelic::Agent.config.register_callback(key) do |enabled|
-            @enabled = self.class.enabled_fn.call
-            reset! if enabled == false
-            ::NewRelic::Agent.logger.debug "#{self.class.named} will #{@enabled ? '' : 'not '}be sent to the New Relic service."
-          end
-        end
+      def register_enabled_callback events
+        events.subscribe(:finished_configuring) {
+          @enabled = self.class.enabled_fn.call
+          reset! if @enabled == false
+          ::NewRelic::Agent.logger.debug "#{self.class.named} will #{@enabled ? '' : 'not '}be sent to the New Relic service."
+        }
       end
 
       def notify_if_full

@@ -15,9 +15,10 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     @keep_retrying = nil
     @connect_attempts = 0
     @connect_retry_period = 0
+    events = NewRelic::Agent.instance.events
     @transaction_sampler = NewRelic::Agent::TransactionSampler.new
     @sql_sampler = NewRelic::Agent::SqlSampler.new
-    @error_collector = NewRelic::Agent::ErrorCollector.new
+    @error_collector = NewRelic::Agent::ErrorCollector.new events
     @stats_engine = NewRelic::Agent::StatsEngine.new
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)

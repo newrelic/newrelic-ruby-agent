@@ -49,7 +49,8 @@ module NewRelic
           :enabled_key2 => true
         )
 
-        @aggregator = TestAggregator.new
+        @events = NewRelic::Agent.instance.events
+        @aggregator = TestAggregator.new @events
       end
 
       def create_container
@@ -75,7 +76,7 @@ module NewRelic
       end
 
       def test_enabled_uses_multiple_keys_by_default
-        @aggregator = MultiKeyTestAggregator.new
+        @aggregator = MultiKeyTestAggregator.new @events
         with_config :enabled_key2 => true do
           assert @aggregator.enabled?
         end
@@ -86,7 +87,7 @@ module NewRelic
       end
 
       def test_enabled_uses_both_fn_and_key_if_defined
-        @aggregator = KeyAndFnTestAggregator.new
+        @aggregator = KeyAndFnTestAggregator.new @events
         with_config :enabled_key => true do
           KeyAndFnTestAggregator.enabled_for_test = false
           refute @aggregator.enabled?
@@ -177,7 +178,7 @@ module NewRelic
           buffer_class TestBuffer
           attr_reader :buffer
         end
-        instance = klass.new
+        instance = klass.new @events
 
         assert_kind_of TestBuffer, instance.buffer
       end

@@ -12,7 +12,8 @@ module NewRelic::Agent
   class CustomEventAggregatorTest < Minitest::Test
     def setup
       nr_freeze_time
-      @aggregator = NewRelic::Agent::CustomEventAggregator.new
+      events = NewRelic::Agent.instance.events
+      @aggregator = NewRelic::Agent::CustomEventAggregator.new events
     end
 
     # Helpers for DataContainerTests

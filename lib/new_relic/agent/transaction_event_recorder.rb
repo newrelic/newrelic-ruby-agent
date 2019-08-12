@@ -14,9 +14,9 @@ module NewRelic
       attr_reader :transaction_event_aggregator
       attr_reader :synthetics_event_aggregator
 
-      def initialize
-        @transaction_event_aggregator = NewRelic::Agent::TransactionEventAggregator.new
-        @synthetics_event_aggregator = NewRelic::Agent::SyntheticsEventAggregator.new
+      def initialize events
+        @transaction_event_aggregator = NewRelic::Agent::TransactionEventAggregator.new events
+        @synthetics_event_aggregator = NewRelic::Agent::SyntheticsEventAggregator.new events
       end
 
       def record payload

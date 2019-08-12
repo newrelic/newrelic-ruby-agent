@@ -17,7 +17,8 @@ module NewRelic
         NewRelic::Agent.config.add_config_for_testing(@additional_config)
 
         nr_freeze_time
-        @event_aggregator = SpanEventAggregator.new
+        events = NewRelic::Agent.instance.events
+        @event_aggregator = SpanEventAggregator.new events
       end
 
       def teardown

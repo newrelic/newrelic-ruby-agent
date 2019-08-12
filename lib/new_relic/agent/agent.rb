@@ -59,7 +59,7 @@ module NewRelic
         @cross_app_monitor         = NewRelic::Agent::CrossAppMonitor.new(@events)
         @distributed_trace_monitor = NewRelic::Agent::DistributedTraceMonitor.new(@events)
         @synthetics_monitor        = NewRelic::Agent::SyntheticsMonitor.new(@events)
-        @error_collector           = NewRelic::Agent::ErrorCollector.new
+        @error_collector           = NewRelic::Agent::ErrorCollector.new @events
         @transaction_rules         = NewRelic::Agent::RulesEngine.new
         @harvest_samplers          = NewRelic::Agent::SamplerCollection.new(@events)
         @monotonic_gc_profiler     = NewRelic::Agent::VM::MonotonicGCProfiler.new
@@ -70,9 +70,9 @@ module NewRelic
         @harvester       = NewRelic::Agent::Harvester.new(@events)
         @after_fork_lock = Mutex.new
 
-        @transaction_event_recorder = NewRelic::Agent::TransactionEventRecorder.new
-        @custom_event_aggregator    = NewRelic::Agent::CustomEventAggregator.new
-        @span_event_aggregator      = NewRelic::Agent::SpanEventAggregator.new
+        @transaction_event_recorder = NewRelic::Agent::TransactionEventRecorder.new @events
+        @custom_event_aggregator    = NewRelic::Agent::CustomEventAggregator.new @events
+        @span_event_aggregator      = NewRelic::Agent::SpanEventAggregator.new @events
 
         @connect_state      = :pending
         @connect_attempts   = 0

@@ -10,7 +10,8 @@ module NewRelic
     class TransactionEventRecorderTest < Minitest::Test
 
       def setup
-        @recorder = TransactionEventRecorder.new
+        events = NewRelic::Agent.instance.events
+        @recorder = TransactionEventRecorder.new events
         @attributes = nil
       end
 

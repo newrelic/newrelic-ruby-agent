@@ -14,7 +14,8 @@ module NewRelic
       def setup
         nr_freeze_time
         @attributes = nil
-        @synthetics_event_aggregator = SyntheticsEventAggregator.new
+        events = NewRelic::Agent.instance.events
+        @synthetics_event_aggregator = SyntheticsEventAggregator.new events
       end
 
       def teardown
