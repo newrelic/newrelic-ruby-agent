@@ -61,7 +61,7 @@ module NewRelic
       def accept_headers(test_case, txn)
         inbound_headers = headers_for(test_case)
         inbound_headers.each do |carrier|
-          @request_monitor.stubs(:transport_type).returns(test_case['transport_type'])
+          DistributedTraceTransportTypes.stubs(:for_rack_request).returns(test_case['transport_type'])
 
           @request_monitor.on_before_call rack_format(carrier)
         end

@@ -21,10 +21,22 @@ module NewRelic
         Other
       ]).freeze
 
+      URL_SCHEMES = {
+        'http'  => 'HTTP'.freeze,
+        'https' => 'HTTPS'.freeze
+      }
+
+      RACK_URL_SCHEME = 'rack.url_scheme'.freeze
+
       def from value
         return value if ALLOWABLE_TRANSPORT_TYPES.include?(value)
 
         UNKNOWN
+      end
+
+
+      def for_rack_request request
+        URL_SCHEMES[request[RACK_URL_SCHEME]]
       end
     end
   end
