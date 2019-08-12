@@ -50,7 +50,7 @@ module NewRelic
         return unless payload
 
         prefix = "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
-        duration = transport_duration transaction, payload
+        duration = transaction.calculate_transport_duration payload
 
         transaction.metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}",              duration
         transaction.metrics.record_unscoped "#{prefix}/#{transaction_type_suffix}", duration
@@ -67,16 +67,6 @@ module NewRelic
 
         transaction.metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}",              1
         transaction.metrics.record_unscoped "#{prefix}/#{transaction_type_suffix}", 1
-      end
-
-      # This method returns transport_duration in seconds. Transport duration
-      # is stored in milliseconds on the payload, but it's needed in seconds
-      # for metrics and intrinsics.
-      def transport_duration transaction, payload
-        return unless payload
-
-        duration = (transaction.start_time.to_f * 1000 - payload.timestamp) / 1000
-        duration < 0 ? 0 : duration
       end
     end
   end

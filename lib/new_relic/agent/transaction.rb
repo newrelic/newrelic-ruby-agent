@@ -598,6 +598,16 @@ module NewRelic
         NewRelic::Agent::StatsEngine::GCProfiler.record_delta(gc_start_snapshot, gc_stop_snapshot)
       end
 
+      # This method returns transport_duration in seconds. Transport duration
+      # is stored in milliseconds on the payload, but it's needed in seconds
+      # for metrics and intrinsics.
+      def calculate_transport_duration distributed_trace_payload
+        return unless distributed_trace_payload
+
+        duration = (start_time.to_f * 1000 - distributed_trace_payload.timestamp) / 1000
+        duration < 0 ? 0 : duration
+      end
+
       # The summary metrics recorded by this method all end up with a duration
       # equal to the transaction itself, and an exclusive time of zero.
       def record_summary_metrics(outermost_node_name)
