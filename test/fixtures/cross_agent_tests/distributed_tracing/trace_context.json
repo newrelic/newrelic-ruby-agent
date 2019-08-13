@@ -264,9 +264,6 @@
             ["TransportDuration/App/33/2827902/HTTP/allWeb", 1]
         ]
     },
-    // {
-    //     "test_name": "transactions_disabled_in_child",
-    // },
     {
         "test_name": "exception",
         "trusted_account_key": "33",
@@ -538,7 +535,6 @@
             ["TransportDuration/App/33/2827902/HTTP/all", 1],
             ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
             ["Supportability/TraceContext/AcceptPayload/Success", 1]
-            // ["Supportability/TraceContext/CreatePayload/Success", 1]
         ]
     },
     {
@@ -634,7 +630,6 @@
             ["TransportDuration/App/33/2827902/HTTP/all", 1],
             ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
             ["Supportability/TraceContext/AcceptPayload/Success", 1]
-            // ["Supportability/TraceContext/CreatePayload/Success", 2]
         ]
     },
     {
@@ -700,7 +695,6 @@
             ["TransportDuration/App/33/2827902/HTTP/all", 1],
             ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
             ["Supportability/TraceContext/AcceptPayload/Success", 1]
-            // ["Supportability/TraceContext/CreatePayload/Success", 1]
         ]
     },
     {
@@ -818,7 +812,6 @@
             ["TransportDuration/App/33/2827902/HTTP/all", 1],
             ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
             ["Supportability/TraceContext/AcceptPayload/Success", 1]
-            // ["Supportability/TraceContext/CreatePayload/Success", 1]
         ]
     },
     {

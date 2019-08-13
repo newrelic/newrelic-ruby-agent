@@ -15,11 +15,7 @@ module NewRelic
       TRUE_CHAR = '1'.freeze
       FALSE_CHAR = '0'.freeze
 
-      PARENT_TYPES = [
-        'App'.freeze,     # type 0
-        'Browser'.freeze, # type 1
-        'Mobile'.freeze   # type 2
-      ].freeze
+      PARENT_TYPES = %w(App Browser Mobile).map(&:freeze).freeze
 
       class << self
         def create version: VERSION,
