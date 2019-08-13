@@ -51,7 +51,7 @@ module NewRelic
       def initialize events
         @lock = Mutex.new
         @buffer = self.class.buffer_class.new NewRelic::Agent.config[self.class.capacity_key]
-        @enabled = false
+        @enabled = self.class.enabled_fn ? self.class.enabled_fn.call : false
         @notified_full = false
         register_capacity_callback
         register_enabled_callback events
@@ -67,7 +67,6 @@ module NewRelic
       end
 
       def enabled?
-        return self.class.enabled_fn.call if self.class.enabled_fn
         @enabled
       end
 

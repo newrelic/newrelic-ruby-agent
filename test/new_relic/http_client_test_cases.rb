@@ -535,7 +535,6 @@ module HttpClientTestCases
           :'cross_application_tracer.enabled' => true
         }
         with_config(config) do
-          NewRelic::Agent.instance.events.notify(:finished_configuring)
 
           in_transaction do |txn|
             txn_info = test_case['inboundPayload']
@@ -580,7 +579,6 @@ module HttpClientTestCases
       }
 
       with_config(config) do
-        NewRelic::Agent.instance.events.notify(:finished_configuring)
 
         fake_rack_env = {}
         test['inputObfuscatedHeader'].each do |key, value|

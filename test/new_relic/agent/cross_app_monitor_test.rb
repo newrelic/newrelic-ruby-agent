@@ -50,7 +50,7 @@ module NewRelic::Agent
 
     def teardown
       NewRelic::Agent.config.remove_config(@config)
-      NewRelic::Agent.instance.events.clear
+      @events.clear
     end
 
 
