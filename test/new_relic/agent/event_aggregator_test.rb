@@ -83,25 +83,6 @@ module NewRelic
         end
       end
 
-      def test_enabled_uses_both_fn_and_key_if_defined
-        @aggregator = FnTestAggregator.new @events
-        with_config :enabled_key => true do
-          FnTestAggregator.enabled_for_test = false
-          refute @aggregator.enabled?
-
-          FnTestAggregator.enabled_for_test = true
-          assert @aggregator.enabled?
-        end
-
-        with_config :enabled_key => false do
-          FnTestAggregator.enabled_for_test = false
-          refute @aggregator.enabled?
-
-          FnTestAggregator.enabled_for_test = true
-          refute @aggregator.enabled?
-        end
-      end
-
       def test_after_harvest_invoked_with_report
         metadata = {:meta => true}
         @aggregator.buffer.stubs(:metadata).returns(metadata)
