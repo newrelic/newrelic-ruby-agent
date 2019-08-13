@@ -23,13 +23,10 @@ module NewRelic
         end
       end
 
-      class KeyAndFnTestAggregator < EventAggregator
+      class FnTestAggregator < EventAggregator
         named :RubeGoldbergTestAggregator
         capacity_key :cap_key
-
-        enabled keys: :enabled_key,
-                fn: ->(){ Agent.config[:enabled_key] && enabled_for_test }
-
+        enabled_fn ->(){ Agent.config[:enabled_key] && enabled_for_test }
 
         class << self
           attr_accessor :enabled_for_test
@@ -87,20 +84,20 @@ module NewRelic
       end
 
       def test_enabled_uses_both_fn_and_key_if_defined
-        @aggregator = KeyAndFnTestAggregator.new @events
+        @aggregator = FnTestAggregator.new @events
         with_config :enabled_key => true do
-          KeyAndFnTestAggregator.enabled_for_test = false
+          FnTestAggregator.enabled_for_test = false
           refute @aggregator.enabled?
 
-          KeyAndFnTestAggregator.enabled_for_test = true
+          FnTestAggregator.enabled_for_test = true
           assert @aggregator.enabled?
         end
 
         with_config :enabled_key => false do
-          KeyAndFnTestAggregator.enabled_for_test = false
+          FnTestAggregator.enabled_for_test = false
           refute @aggregator.enabled?
 
-          KeyAndFnTestAggregator.enabled_for_test = true
+          FnTestAggregator.enabled_for_test = true
           refute @aggregator.enabled?
         end
       end

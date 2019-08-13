@@ -18,32 +18,22 @@ module NewRelic
 
         # An aggregator can specify one or more keys to check to see if it is
         # enabled. Multiple keys will be &&'d and the enabled status of the
-        # aggregator will be reset if the the configuration changes.
+        # aggregator will be reset when agent configuration changes.
 
         def enabled_keys *keys
           if keys.empty?
             @enabled_keys ||= []
           else
-            enabled keys: keys
+            @enabled_keys = Array(keys)
+            @enabled_fn = ->(){ @enabled_keys.all? { |k| Agent.config[k] } }
           end
         end
 
         alias_method :enabled_key, :enabled_keys
 
-        # For more fine grained control over whether an aggregator should be
-        # enabled, an enabled fn and a set of keys to watch for changes can
-        # be supplied. The enabled fn will be reevaluated when any of the keys
-        # are changed by config.
-
-        def enabled keys: nil,
-                    fn: nil
-          @enabled_keys = Array(keys)
-          @enabled_fn = fn || ->(){ @enabled_keys.all? { |k| Agent.config[k] } }
-        end
-
-        # This method will set an enabled fn only, but does not register any
-        # keys to watch for config changes. It's recommended to use `enabled`
-        # and provide a fn and keys to watch.
+        # This can be used instead of `enabled_key(s)` for more fine grained
+        # control over whether an aggregator should be enabled. The enabled fn
+        # will be reevaluated after configuration changes
 
         def enabled_fn fn = nil
           fn ? @enabled_fn = fn : @enabled_fn
