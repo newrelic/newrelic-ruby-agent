@@ -59,9 +59,6 @@ module NewRelic
 
           if data = extract_tracestate(format, carrier, trace_state_entry_key)
             data.trace_parent = trace_parent
-            if data.trace_state_payload
-              data.trace_state_payload.caller_transport_type = caller_transport_type
-            end
             data
           end
         end

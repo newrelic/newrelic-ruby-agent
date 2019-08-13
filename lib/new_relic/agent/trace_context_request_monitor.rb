@@ -33,7 +33,9 @@ module NewRelic
 
         return unless txn = Tracer.current_transaction
 
-        txn.accept_trace_context trace_context
+        if txn.accept_trace_context trace_context
+          txn.trace_state_payload.caller_transport_type = DistributedTraceTransportTypes.for_rack_request(request)
+        end
       end
     end
   end
