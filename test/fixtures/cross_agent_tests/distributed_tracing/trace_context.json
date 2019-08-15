@@ -231,7 +231,7 @@
                     "tracestate.timestamp"
                 ],
                 "unexpected": [
-                    "traceparent.span_id"
+                    "tracestate.span_id"
                 ]
             }
         ],
