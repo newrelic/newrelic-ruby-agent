@@ -54,7 +54,7 @@ module NewRelic
                   carrier: nil,
                   trace_state_entry_key: nil,
                   caller_transport_type: nil
-          return unless trace_parent = extract_traceparent(format, carrier)
+          trace_parent = extract_traceparent(format, carrier)
           return unless trace_parent_valid? trace_parent
 
           if data = extract_tracestate(format, carrier, trace_state_entry_key)
@@ -93,6 +93,7 @@ module NewRelic
         end
 
         def trace_parent_valid? trace_parent
+          return false if trace_parent.nil?
           return false if trace_parent[TRACE_ID_KEY] == INVALID_TRACE_ID
           return false if trace_parent[PARENT_ID_KEY] == INVALID_PARENT_ID
           return false if trace_parent[VERSION_KEY] == INVALID_VERSION

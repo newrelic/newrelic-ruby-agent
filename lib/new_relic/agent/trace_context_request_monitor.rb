@@ -19,7 +19,7 @@ module NewRelic
 
 
       def on_before_call(request)
-        return unless NewRelic::Agent.config[:'trace_context.enabled']
+        return unless NewRelic::Agent.config[:'trace_context.enabled'] && request['HTTP_TRACEPARENT']
         trace_context = TraceContext.parse(
           format: TraceContext::FORMAT_RACK,
           carrier: request,
