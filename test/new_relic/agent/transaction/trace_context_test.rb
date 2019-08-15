@@ -20,9 +20,10 @@ module NewRelic
             :account_id => "190",
             :primary_application_id => "46954",
             :trusted_account_key => "999999",
-            :disable_harvest_thread => true
+            :disable_harvest_thread => true,
+            :trace_context_enabled => true
           }
-          NewRelic::Agent::Transaction.any_instance.stubs(:trace_context_enabled?).returns(true)
+          NewRelic::Agent.agent.stubs(:connected?).returns(true)
           NewRelic::Agent.config.add_config_for_testing(@config)
           uncache_trusted_account_key
         end

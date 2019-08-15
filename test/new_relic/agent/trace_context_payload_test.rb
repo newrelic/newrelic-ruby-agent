@@ -110,7 +110,7 @@ module NewRelic
           payload = TraceContextPayload.from_s payload_str
           refute payload.valid?, "Payload should be invalid: '#{payload_str}'"
         end
-        
+
       end
 
       def test_parse_value

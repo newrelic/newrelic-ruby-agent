@@ -71,7 +71,7 @@ module NewRelic
 
 
         def accept_trace_context trace_context_data
-          return unless Agent.config[:'trace_context.enabled']
+          return unless trace_context_enabled?
           return false if check_trace_context_ignored
           return false unless @trace_context_data = trace_context_data
           @trace_id = @trace_context_data.trace_id
@@ -93,6 +93,23 @@ module NewRelic
           NewRelic::Agent.logger.warn "Failed to accept trace context payload", e
           false
         end
+
+        def append_trace_context_info transaction_payload
+          return unless trace_context_enabled?
+          DistributedTraceIntrinsics.copy_from_transaction \
+              self,
+              @trace_state_payload,
+              transaction_payload
+        end
+
+        def record_trace_context_metrics
+          return unless trace_context_enabled?
+
+          DistributedTraceMetrics.record_metrics_for_transaction self
+        end
+
+        SUPPORTABILITY_MULTIPLE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/AcceptPayload/Ignored/Multiple".freeze
+        SUPPORTABILITY_CREATE_BEFORE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/AcceptPayload/Ignored/CreateBeforeAccept".freeze
 
         def check_trace_context_ignored
           if trace_context_data
