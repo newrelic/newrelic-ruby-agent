@@ -72,7 +72,7 @@ module NewRelic
         end
 
         def parse_int value
-          (parsed = parse_value value) && parsed.to_i
+          (parsed = parse_value value) && Integer(parsed)
         end
 
         def parse_boolean value
