@@ -1062,6 +1062,44 @@
                 ]
             }
         ],
+        "intrinsics": {
+            "target_events": ["Transaction", "Span"],
+            "common":{
+                "exact": {
+                    "traceId": "5f2796876f44a3c898994ce2668e2222"
+                },
+                "expected": ["guid"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {},
+                "expected": [],
+                "unexpected": [
+                    "parent.transportDuration",
+                    "parent.type",
+                    "parent.app",
+                    "parent.account",
+                    "parent.transportType",
+                    "parentId",
+                    "parentSpanId"
+                ]
+            },
+            "Span": {
+                "exact": {
+                    "traceContext.parentId": "b4a146e3237b4df1",
+                    "traceContext.traceStateVendors": "foo,bar"
+                },
+                "expected": ["transactionId"],
+                "unexpected": [
+                    "parent.transportDuration",
+                    "parent.type",
+                    "parent.app",
+                    "parent.account",
+                    "parent.transportType",
+                    "parentId"
+                ]
+            }
+        },
         "expected_metrics": [
             ["DurationByCaller/Unknown/Unknown/Unknown/Unknown/all", 1],
             ["DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb", 1]
@@ -1126,7 +1164,9 @@
                 ]
             },
             "Span": {
-                "exact": {},
+                "exact": {
+                    "traceContext.parentId": "b4a146e3237b4df1"
+                },
                 "expected": ["transactionId"],
                 "unexpected": [
                     "parent.transportDuration",
