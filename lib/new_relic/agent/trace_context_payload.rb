@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/distributed_trace_transport_types'
+require 'new_relic/agent/distributed_trace_transport_type'
 
 module NewRelic
   module Agent
@@ -112,7 +112,7 @@ module NewRelic
       attr_reader :caller_transport_type
 
       def caller_transport_type= type
-        @caller_transport_type = DistributedTraceTransportTypes.from type
+        @caller_transport_type = DistributedTraceTransportType.from type
       end
 
       def parent_type

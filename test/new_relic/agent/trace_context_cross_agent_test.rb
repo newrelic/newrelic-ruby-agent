@@ -61,7 +61,7 @@ module NewRelic
       def accept_headers(test_case, txn)
         inbound_headers = headers_for(test_case)
         inbound_headers.each do |carrier|
-          DistributedTraceTransportTypes.stubs(:for_rack_request).returns(test_case['transport_type'])
+          DistributedTraceTransportType.stubs(:for_rack_request).returns(test_case['transport_type'])
 
           @request_monitor.on_before_call rack_format(carrier)
         end
@@ -206,7 +206,7 @@ module NewRelic
 
         test_case_payloads.zip(actual_payloads).each do |test_case_data, actual|
           context_hash = trace_context_headers_to_hash actual
-          dotted_context_hash = NewRelic::Agent::Configuration::DottedHash.new context_hash 
+          dotted_context_hash = NewRelic::Agent::Configuration::DottedHash.new context_hash
           stringified_hash = stringify_keys_in_object dotted_context_hash
 
           verify_attributes test_case_data, stringified_hash, 'Payload'

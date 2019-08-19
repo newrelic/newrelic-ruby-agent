@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/distributed_trace_transport_types'
+require 'new_relic/agent/distributed_trace_transport_type'
 
 module NewRelic
   module Agent
@@ -36,7 +36,7 @@ module NewRelic
       ].freeze
 
       # This method extracts intrinsics from the transaction_payload and
-      # inserts them into the specified destination.  
+      # inserts them into the specified destination.
       def copy_to_hash transaction_payload, destination
         return unless enabled?
         INTRINSIC_KEYS.each do |key|
@@ -60,13 +60,13 @@ module NewRelic
       def copy_from_transaction transaction, distributed_trace_payload, destination
         destination[GUID_KEY] = transaction.guid
         destination[SAMPLED_KEY] = transaction.sampled?
-        destination[TRACE_ID_KEY] = transaction.trace_id 
+        destination[TRACE_ID_KEY] = transaction.trace_id
 
         if distributed_trace_payload
           destination[PARENT_TYPE_KEY] = distributed_trace_payload.parent_type
           destination[PARENT_APP_KEY] = distributed_trace_payload.parent_app_id
           destination[PARENT_ACCOUNT_ID_KEY] = distributed_trace_payload.parent_account_id
-          destination[PARENT_TRANSPORT_TYPE_KEY] = DistributedTraceTransportTypes.from distributed_trace_payload.caller_transport_type
+          destination[PARENT_TRANSPORT_TYPE_KEY] = DistributedTraceTransportType.from distributed_trace_payload.caller_transport_type
 
           if distributed_trace_payload.id
             destination[PARENT_SPAN_ID_KEY] = distributed_trace_payload.id

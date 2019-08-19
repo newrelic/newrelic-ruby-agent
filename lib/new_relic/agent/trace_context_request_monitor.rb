@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/distributed_trace_transport_types'
+require 'new_relic/agent/distributed_trace_transport_type'
 require 'new_relic/agent/inbound_request_monitor'
 require 'new_relic/agent/trace_context'
 
@@ -24,7 +24,7 @@ module NewRelic
           format: TraceContext::FORMAT_RACK,
           carrier: request,
           trace_state_entry_key: TraceContext::AccountHelpers.trace_state_entry_key,
-          caller_transport_type: DistributedTraceTransportTypes.for_rack_request(request)
+          caller_transport_type: DistributedTraceTransportType.for_rack_request(request)
         )
         if trace_context.nil?
           NewRelic::Agent.increment_metric SUPPORTABILITY_PARSE_EXCEPTION
@@ -34,7 +34,7 @@ module NewRelic
         return unless txn = Tracer.current_transaction
 
         if txn.accept_trace_context trace_context
-          txn.trace_state_payload.caller_transport_type = DistributedTraceTransportTypes.for_rack_request(request)
+          txn.trace_state_payload.caller_transport_type = DistributedTraceTransportType.for_rack_request(request)
         end
       end
     end
