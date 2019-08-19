@@ -24,7 +24,6 @@ module NewRelic
           format: TraceContext::FORMAT_RACK,
           carrier: request,
           trace_state_entry_key: TraceContext::AccountHelpers.trace_state_entry_key,
-          caller_transport_type: DistributedTraceTransportType.for_rack_request(request)
         )
         if trace_context.nil?
           NewRelic::Agent.increment_metric SUPPORTABILITY_PARSE_EXCEPTION
