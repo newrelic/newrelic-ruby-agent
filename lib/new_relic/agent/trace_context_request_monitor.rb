@@ -11,15 +11,15 @@ module NewRelic
     class TraceContextRequestMonitor < InboundRequestMonitor
 
       SUPPORTABILITY_PARSE_EXCEPTION = "Supportability/TraceContext/Parse/Exception".freeze
+      TRACEPARENT                    = 'HTTP_TRACEPARENT'.freeze
 
       def on_finished_configuring(events)
         return unless NewRelic::Agent.config[:'trace_context.enabled']
         events.subscribe(:before_call, &method(:on_before_call))
       end
 
-
       def on_before_call(request)
-        return unless NewRelic::Agent.config[:'trace_context.enabled'] && request['HTTP_TRACEPARENT']
+        return unless NewRelic::Agent.config[:'trace_context.enabled'] && request[TRACEPARENT]
         trace_context = TraceContext.parse(
           format: TraceContext::FORMAT_RACK,
           carrier: request,
