@@ -112,11 +112,3 @@ def stringify_keys_in_object(object)
     object
   end
 end
-
-def object_to_hash object
-  object.instance_variables.inject({}) do |hash, variable_name|
-    key = variable_name.to_s.sub(/^@/,'')
-    hash[key] = object.instance_variable_get(variable_name)
-    hash
-  end
-end

@@ -222,6 +222,14 @@ module NewRelic
         assert_metrics_recorded expected_metrics
       end
 
+      def object_to_hash object
+        object.instance_variables.inject({}) do |hash, variable_name|
+          key = variable_name.to_s.sub(/^@/,'')
+          hash[key] = object.instance_variable_get(variable_name)
+          hash
+        end
+      end
+
       def trace_context_headers_to_hash carrier
         entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
         data = NewRelic::Agent::TraceContext.parse \
