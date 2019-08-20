@@ -12,6 +12,8 @@ module NewRelic
     class ErrorEventAggregatorTest < Minitest::Test
       def setup
         nr_freeze_time
+        NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
+
         events = NewRelic::Agent.instance.events
         @error_event_aggregator = ErrorEventAggregator.new events
       end

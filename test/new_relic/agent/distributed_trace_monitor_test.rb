@@ -12,6 +12,8 @@ module NewRelic
       NEWRELIC_TRACE_KEY = 'HTTP_NEWRELIC'.freeze
 
       def setup
+        NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
+
         @events  = EventListener.new
         @monitor = DistributedTraceMonitor.new(@events)
         @config = {

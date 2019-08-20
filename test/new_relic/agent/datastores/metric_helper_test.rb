@@ -12,6 +12,7 @@ module NewRelic
         @product = "JonanDB"
         @collection = "wiggles"
         @operation = "select"
+        NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
       end
 
       def test_statement_metric_for

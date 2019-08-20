@@ -12,6 +12,8 @@ module NewRelic
       TRANSACTION_GUID = 'BEC1BC64675138B9'
 
       def setup
+        NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
+
         @obfuscator = NewRelic::Agent::Obfuscator.new "jotorotoes"
         CrossAppTracing.stubs(:obfuscator).returns(@obfuscator)
         CrossAppTracing.stubs(:valid_encoding_key?).returns(true)
