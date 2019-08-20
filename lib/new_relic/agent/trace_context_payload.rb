@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/distributed_trace_transport_type'
+require 'new_relic/coerce'
 
 module NewRelic
   module Agent
@@ -32,19 +33,21 @@ module NewRelic
               transaction_id, sampled, priority, timestamp
         end
 
+        include NewRelic::Coerce
+
         def from_s payload_string
           attrs = payload_string.split(DELIMITER)
 
           payload = create \
-            version: parse_int(attrs[0]),
-            parent_type: parse_int(attrs[1]),
+            version: int!(attrs[0]),
+            parent_type: int!(attrs[1]),
             parent_account_id: attrs[2],
             parent_app_id: attrs[3],
-            id: parse_value(attrs[4]),
-            transaction_id: parse_value(attrs[5]),
-            sampled: parse_boolean(attrs[6]),
-            priority: parse_float(attrs[7]),
-            timestamp: parse_int(attrs[8])
+            id: value_or_nil(attrs[4]),
+            transaction_id: value_or_nil(attrs[5]),
+            sampled: value_or_nil(attrs[6]) ? boolean_int!(attrs[6]) == 1 : nil,
+            priority: float!(attrs[7]),
+            timestamp: int!(attrs[8])
           log_parse_error message: 'payload missing attributes' unless payload.valid?
           payload
         rescue => e
@@ -64,23 +67,6 @@ module NewRelic
           elsif message
             NewRelic::Agent.logger.warn "Error parsing trace context payload: #{message}"
           end
-        end
-
-        def parse_value value
-          return nil if value.nil? || value.empty?
-          value
-        end
-
-        def parse_int value
-          (parsed = parse_value value) && Integer(parsed)
-        end
-
-        def parse_boolean value
-          (parsed = parse_value value) && parsed == TRUE_CHAR
-        end
-
-        def parse_float value
-          (parsed = parse_value value) && parsed.to_f
         end
       end
 
