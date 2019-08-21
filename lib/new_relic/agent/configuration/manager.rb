@@ -172,10 +172,17 @@ module NewRelic
           end
         end
 
+        # This event is intended to be fired every time the server source is
+        # applied.  This happens after the agent's initial connect, and again
+        # on every forced reconnect.
         def notify_server_source_added
           NewRelic::Agent.instance.events.notify(:server_source_configuration_added)
         end
 
+        # This event is intended to be fired once during the entire lifespan of
+        # an agent run, after the server source has been applied for the first
+        # time.  This should indicate that all configuration has been applied,
+        # and the main functions of the agent are safe to start.
         def notify_finished_configuring
           NewRelic::Agent.instance.events.notify(:initial_configuration_complete)
         end
