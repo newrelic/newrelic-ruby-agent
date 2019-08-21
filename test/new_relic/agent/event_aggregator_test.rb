@@ -67,18 +67,18 @@ module NewRelic
       def test_enabled_relects_config_value
         assert @aggregator.enabled?, "Expected enabled? to be true"
 
-        with_config :enabled_key => false do
+        with_server_source :enabled_key => false do
           refute @aggregator.enabled?, "Expected enabled? to be false"
         end
       end
 
       def test_enabled_uses_multiple_keys_by_default
         @aggregator = MultiKeyTestAggregator.new @events
-        with_config :enabled_key2 => true do
+        with_server_source :enabled_key2 => true do
           assert @aggregator.enabled?
         end
 
-        with_config :enabled_key2 => false do
+        with_server_source :enabled_key2 => false do
           refute @aggregator.enabled?
         end
       end

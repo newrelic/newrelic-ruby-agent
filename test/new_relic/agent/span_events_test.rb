@@ -16,6 +16,7 @@ module NewRelic
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config)
+        NewRelic::Agent.config.notify_server_source_added
       end
 
       def teardown

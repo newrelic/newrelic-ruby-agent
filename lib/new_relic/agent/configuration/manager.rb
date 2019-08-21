@@ -95,6 +95,7 @@ module NewRelic
           reset_cache
           log_config(:add, source)
 
+          notify_server_source_added if ServerSource === source
           notify_finished_configuring if !was_finished && finished_configuring?
         end
 
@@ -169,6 +170,10 @@ module NewRelic
               end
             end
           end
+        end
+
+        def notify_server_source_added
+          NewRelic::Agent.instance.events.notify(:server_source_configuration_added)
         end
 
         def notify_finished_configuring

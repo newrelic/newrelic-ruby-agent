@@ -169,7 +169,7 @@ module NewRelic
         memo[opt] = false
         memo
       end
-      with_config(options, &blk)
+      with_server_source(options, &blk)
     end
   end
 end

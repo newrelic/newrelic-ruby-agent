@@ -31,6 +31,7 @@ module NewRelic
           }
 
           with_config(config) do
+            NewRelic::Agent.config.notify_server_source_added
             run_test_case(test_case)
           end
         end
