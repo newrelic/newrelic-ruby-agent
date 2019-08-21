@@ -127,7 +127,7 @@ module NewRelic
       end
 
       def register_enabled_callback events
-        events.subscribe(:finished_configuring) {
+        events.subscribe(:initial_configuration_complete) {
           @enabled = self.class.enabled_fn.call
           reset! if @enabled == false
           ::NewRelic::Agent.logger.debug "#{self.class.named} will #{@enabled ? '' : 'not '}be sent to the New Relic service."

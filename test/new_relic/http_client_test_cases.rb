@@ -30,7 +30,7 @@ module HttpClientTestCases
     $fake_secure_server.reset
     $fake_secure_server.run
 
-    NewRelic::Agent.instance.events.notify(:finished_configuring)
+    NewRelic::Agent.instance.events.notify(:initial_configuration_complete)
     NewRelic::Agent::CrossAppTracing.instance_variable_set(:@obfuscator, nil)
   end
 

@@ -14,7 +14,7 @@ module NewRelic
       RUM_KEY_LENGTH = 13
 
       def initialize(event_listener)
-        event_listener.subscribe(:finished_configuring, &method(:log_configuration))
+        event_listener.subscribe(:initial_configuration_complete, &method(:log_configuration))
       end
 
       def log_configuration

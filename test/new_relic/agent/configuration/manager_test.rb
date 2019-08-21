@@ -234,7 +234,7 @@ module NewRelic::Agent::Configuration
 
     def test_notifies_finished_configuring
       called = false
-      NewRelic::Agent.instance.events.subscribe(:finished_configuring) { called = true }
+      NewRelic::Agent.instance.events.subscribe(:initial_configuration_complete) { called = true }
       @manager.replace_or_add_config(ServerSource.new({}))
 
       assert_equal true, called
@@ -242,7 +242,7 @@ module NewRelic::Agent::Configuration
 
     def test_doesnt_notify_unless_finished
       called = false
-      NewRelic::Agent.instance.events.subscribe(:finished_configuring) { called = true }
+      NewRelic::Agent.instance.events.subscribe(:initial_configuration_complete) { called = true }
 
       @manager.add_config_for_testing(:fake => "config")
       @manager.replace_or_add_config(ManualSource.new(:manual => true))

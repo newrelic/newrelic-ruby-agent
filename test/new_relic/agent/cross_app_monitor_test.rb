@@ -45,7 +45,7 @@ module NewRelic::Agent
       }
 
       NewRelic::Agent.config.add_config_for_testing(@config)
-      @events.notify(:finished_configuring)
+      @events.notify(:initial_configuration_complete)
     end
 
     def teardown

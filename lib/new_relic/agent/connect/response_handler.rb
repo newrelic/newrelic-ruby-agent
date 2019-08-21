@@ -35,7 +35,7 @@ module NewRelic
           @agent.stats_engine.metric_rules = RulesEngine.create_metric_rules(config_data)
 
           # If you're adding something else here to respond to the server-side config,
-          # use Agent.instance.events.subscribe(:finished_configuring) callback instead!
+          # use Agent.instance.events.subscribe(:initial_configuration_complete) callback instead!
         end
 
         def add_server_side_config(config_data)

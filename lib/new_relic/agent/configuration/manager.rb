@@ -172,7 +172,7 @@ module NewRelic
         end
 
         def notify_finished_configuring
-          NewRelic::Agent.instance.events.notify(:finished_configuring)
+          NewRelic::Agent.instance.events.notify(:initial_configuration_complete)
         end
 
         def finished_configuring?

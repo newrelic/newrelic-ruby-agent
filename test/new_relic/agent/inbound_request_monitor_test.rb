@@ -22,7 +22,7 @@ module NewRelic::Agent
         end
       end
 
-      @events.notify(:finished_configuring)
+      @events.notify(:initial_configuration_complete)
     end
 
     def teardown

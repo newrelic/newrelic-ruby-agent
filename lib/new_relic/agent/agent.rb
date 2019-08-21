@@ -88,7 +88,7 @@ module NewRelic
       def setup_attribute_filter
         refresh_attribute_filter
 
-        @events.subscribe(:finished_configuring) do
+        @events.subscribe(:initial_configuration_complete) do
           refresh_attribute_filter
         end
       end
@@ -531,7 +531,7 @@ module NewRelic
           check_config_and_start_agent
           log_version_and_pid
 
-          events.subscribe(:finished_configuring) do
+          events.subscribe(:initial_configuration_complete) do
             log_ignore_url_regexes
           end
         end
