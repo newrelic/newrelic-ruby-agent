@@ -12,11 +12,8 @@ module NewRelic
     class SpanEventAggregator < EventAggregator
       named :SpanEventAggregator
       capacity_key :'span_events.max_samples_stored'
-
-      enabled_fn -> {
-        NewRelic::Agent.config[:'span_events.enabled'] &&
-        NewRelic::Agent.config[:'distributed_tracing.enabled']
-      }
+      enabled_keys :'span_events.enabled',
+                   :'distributed_tracing.enabled'
 
       def record priority: nil, event:nil, &blk
         unless(event || priority && blk)

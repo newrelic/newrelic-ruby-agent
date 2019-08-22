@@ -452,6 +452,13 @@ def with_config(config_hash, at_start=true)
   end
 end
 
+def with_server_source config_hash, at_start=true
+  with_config config_hash, at_start do
+    NewRelic::Agent.config.notify_server_source_added
+    yield
+  end
+end
+
 def with_config_low_priority(config_hash)
   with_config(config_hash, false) do
     yield

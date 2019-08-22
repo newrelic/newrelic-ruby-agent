@@ -113,7 +113,7 @@ class SyntheticsTest < Minitest::Test
       }
 
       with_config(config) do
-        NewRelic::Agent.instance.events.notify(:finished_configuring)
+        NewRelic::Agent.instance.events.notify(:initial_configuration_complete)
 
         get '/', request_params_for_test(test), request_headers_for_test(test)
 

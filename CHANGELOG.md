@@ -1,5 +1,15 @@
 # New Relic Ruby Agent Release Notes #
 
+  * **Handling of disabling Error Collection**
+    
+    When the agent first starts, it begins collecting Error Events and Traces before
+    fetching configuration from New Relic.  In previous versions of the agent, those 
+    events or traces would be sent to New Relic, even if _Error Collection_ is disabled in
+    the application's server-side configuration.  
+    
+    Version 6.6.0 of the agent drops all collected Error Events and Traces if the
+    configuration from the server disables _Error Collection_.
+
 ## v6.5.0
 
 * **Change to default setting for ActiveRecord connection resolution**

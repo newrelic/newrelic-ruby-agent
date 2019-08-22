@@ -13,6 +13,8 @@ module NewRelic
 
       def setup
         nr_freeze_time
+        NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
+
 
         @config = {
           :'distributed_tracing.enabled' => true,

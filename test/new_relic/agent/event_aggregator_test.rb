@@ -23,24 +23,31 @@ module NewRelic
         end
       end
 
-      class RubeGoldbergTestAggregator < EventAggregator
+      class FnTestAggregator < EventAggregator
         named :RubeGoldbergTestAggregator
         capacity_key :cap_key
-
-        enabled_fn -> { enabled_for_test }
+        enabled_fn ->(){ Agent.config[:enabled_key] && enabled_for_test }
 
         class << self
           attr_accessor :enabled_for_test
         end
       end
 
+      class MultiKeyTestAggregator < EventAggregator
+        named :RubeGoldbergTestAggregator
+        capacity_key :cap_key
+        enabled_keys :enabled_key, :enabled_key2
+      end
+
       def setup
         NewRelic::Agent.config.add_config_for_testing(
           :cap_key => 100,
-          :enabled_key => true
+          :enabled_key => true,
+          :enabled_key2 => true
         )
 
-        @aggregator = TestAggregator.new
+        @events = NewRelic::Agent.instance.events
+        @aggregator = TestAggregator.new @events
       end
 
       def create_container
@@ -60,19 +67,20 @@ module NewRelic
       def test_enabled_relects_config_value
         assert @aggregator.enabled?, "Expected enabled? to be true"
 
-        with_config :enabled_key => false do
+        with_server_source :enabled_key => false do
           refute @aggregator.enabled?, "Expected enabled? to be false"
         end
       end
 
-      def test_enabled_uses_proc_if_defined
-        @aggregator = RubeGoldbergTestAggregator.new
+      def test_enabled_uses_multiple_keys_by_default
+        @aggregator = MultiKeyTestAggregator.new @events
+        with_server_source :enabled_key2 => true do
+          assert @aggregator.enabled?
+        end
 
-        RubeGoldbergTestAggregator.enabled_for_test = false
-        refute @aggregator.enabled?
-
-        RubeGoldbergTestAggregator.enabled_for_test = true
-        assert @aggregator.enabled?
+        with_server_source :enabled_key2 => false do
+          refute @aggregator.enabled?
+        end
       end
 
       def test_after_harvest_invoked_with_report
@@ -148,7 +156,7 @@ module NewRelic
           buffer_class TestBuffer
           attr_reader :buffer
         end
-        instance = klass.new
+        instance = klass.new @events
 
         assert_kind_of TestBuffer, instance.buffer
       end

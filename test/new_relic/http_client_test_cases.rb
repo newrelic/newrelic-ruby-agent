@@ -30,7 +30,7 @@ module HttpClientTestCases
     $fake_secure_server.reset
     $fake_secure_server.run
 
-    NewRelic::Agent.instance.events.notify(:finished_configuring)
+    NewRelic::Agent.instance.events.notify(:initial_configuration_complete)
     NewRelic::Agent::CrossAppTracing.instance_variable_set(:@obfuscator, nil)
   end
 
@@ -535,7 +535,7 @@ module HttpClientTestCases
           :'cross_application_tracer.enabled' => true
         }
         with_config(config) do
-          NewRelic::Agent.instance.events.notify(:finished_configuring)
+          NewRelic::Agent.instance.events.notify(:initial_configuration_complete)
 
           in_transaction do |txn|
             txn_info = test_case['inboundPayload']
@@ -579,8 +579,8 @@ module HttpClientTestCases
         :'cross_application_tracer.enabled' => true
       }
 
-      with_config(config) do
-        NewRelic::Agent.instance.events.notify(:finished_configuring)
+      with_config config do
+        NewRelic::Agent.instance.events.notify(:initial_configuration_complete)
 
         fake_rack_env = {}
         test['inputObfuscatedHeader'].each do |key, value|

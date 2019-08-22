@@ -16,7 +16,8 @@ module NewRelic
 
       def setup
         nr_freeze_time
-        @event_aggregator = TransactionEventAggregator.new
+        events = NewRelic::Agent.instance.events
+        @event_aggregator = TransactionEventAggregator.new events
 
         @attributes = nil
       end

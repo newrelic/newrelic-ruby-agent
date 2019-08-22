@@ -14,6 +14,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     @test_config = { :monitor_mode => true }
     NewRelic::Agent.agent.drop_buffered_data
     NewRelic::Agent.config.add_config_for_testing(@test_config)
+    NewRelic::Agent.config.notify_server_source_added
 
     listener = NewRelic::Agent::PipeChannelManager::Listener.new
     NewRelic::Agent::PipeChannelManager.instance_variable_set(:@listener, listener)
@@ -90,7 +91,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
       run_child(668) do
         NewRelic::Agent.after_fork
-        new_sampler = NewRelic::Agent::ErrorCollector.new
+        new_sampler = NewRelic::Agent::ErrorCollector.new NewRelic::Agent.instance.events
         new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
                                  :metric => 'path', :referer => 'test_referer',
                                  :request_params => {:x => 'y'})
@@ -138,7 +139,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
       run_child(668) do
         NewRelic::Agent.after_fork
-        new_sampler = NewRelic::Agent::ErrorCollector.new
+        new_sampler = NewRelic::Agent::ErrorCollector.new NewRelic::Agent.instance.events
         new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
                                  :metric => 'path', :referer => 'test_referer',
                                  :request_params => {:x => 'y'})
