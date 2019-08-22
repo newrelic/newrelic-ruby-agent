@@ -48,10 +48,10 @@ module NewRelic
             sampled: value_or_nil(attrs[6]) ? boolean_int!(attrs[6]) == 1 : nil,
             priority: float!(attrs[7]),
             timestamp: int!(attrs[8])
-          log_parse_error message: 'payload missing attributes' unless payload.valid?
+          handle_invalid_payload message: 'payload missing attributes' unless payload.valid?
           payload
         rescue => e
-          log_invalid_payload error: e
+          handle_invalid_payload error: e
         end
 
         private
@@ -60,7 +60,7 @@ module NewRelic
           (Time.now.to_f * 1000).round
         end
 
-        def log_invalid_payload error: nil, message: nil
+        def handle_invalid_payload error: nil, message: nil
           NewRelic::Agent.increment_metric SUPPORTABILITY_INVALID_PAYLOAD
           if error
             NewRelic::Agent.logger.warn "Error parsing trace context payload", error
