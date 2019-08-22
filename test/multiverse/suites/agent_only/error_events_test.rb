@@ -49,6 +49,7 @@ class ErrorEventsTest < Minitest::Test
 
   def test_does_not_record_error_events_when_disabled
     with_config :'error_collector.capture_events' => false do
+      NewRelic::Agent.config.notify_server_source_added
       generate_errors 5
 
       NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
@@ -60,7 +61,7 @@ class ErrorEventsTest < Minitest::Test
     with_config :'error_collector.enabled' => true do
       generate_errors 5
 
-      with_config :'error_collector.enabled' => false do
+      with_server_source :'error_collector.enabled' => false do
         NewRelic::Agent.agent.send(:harvest_and_send_error_event_data)
       end
     end

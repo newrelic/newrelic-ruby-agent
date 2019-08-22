@@ -10,6 +10,7 @@ class SpanEventsTest < Minitest::Test
 
   def test_span_events_are_submitted
     with_config :'distributed_tracing.enabled' => true do
+      NewRelic::Agent.config.notify_server_source_added
       event = generate_event('test_event')
       NewRelic::Agent.instance.span_event_aggregator.record(event: event)
 
