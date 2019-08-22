@@ -125,7 +125,7 @@ module NewRelic
 
           payload = nil
           trace_state_size = 0
-          trace_state_vendors = []
+          trace_state_vendors = ''
           trace_state = header.split(COMMA)
           trace_state.reject! do |entry|
             vendor_id = entry.slice 0, entry.index(EQUALS)
@@ -134,15 +134,17 @@ module NewRelic
               true
             else
               trace_state_size += entry.size
-              trace_state_vendors << vendor_id
+              trace_state_vendors << vendor_id << COMMA
               false
             end
           end
 
+          trace_state_vendors.chomp! COMMA unless trace_state_vendors.empty?
+
           Data.create trace_state_payload: payload ? decode_payload(payload) : nil,
                       trace_state_entries: trace_state,
                       trace_state_size: trace_state_size,
-                      trace_state_vendors: trace_state_vendors.join(COMMA).freeze
+                      trace_state_vendors: trace_state_vendors
         end
 
         def decode_payload payload
