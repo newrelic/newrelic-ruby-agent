@@ -28,9 +28,8 @@ DependencyDetection.defer do
       NewRelic::Agent::Instrumentation::ActionCableSubscriber.new)
 
     ActiveSupport.on_load(:action_cable) do
-      ::NewRelic::Agent::PrependSupportability.record_metrics_for(
-        ::ActionCable::Engine,
-        ::ActionCable::RemoteConnections)
+      ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionCable::Engine) if defined?(::ActionCable::Engine)
+      ::NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionCable::RemoteConnections) if defined?(::ActionCable::RemoteConnections)
     end
   end
 end

@@ -1,12 +1,21 @@
 # New Relic Ruby Agent Release Notes #
 
+  * **Bugfix for ActionCable Instrumentation**
+
+    Previous versions of the agent sometimes caused application crashes with some versions
+    of ActionCable.  The application would exit quickly after startup with the error:
+    `uninitialized constant ActionCable::Engine`.
+
+    Version 6.6.0 of the agent no longer crashes in this way.
+
+
   * **Handling of disabling Error Collection**
-    
+
     When the agent first starts, it begins collecting Error Events and Traces before
-    fetching configuration from New Relic.  In previous versions of the agent, those 
+    fetching configuration from New Relic.  In previous versions of the agent, those
     events or traces would be sent to New Relic, even if _Error Collection_ is disabled in
-    the application's server-side configuration.  
-    
+    the application's server-side configuration.
+
     Version 6.6.0 of the agent drops all collected Error Events and Traces if the
     configuration from the server disables _Error Collection_.
 
