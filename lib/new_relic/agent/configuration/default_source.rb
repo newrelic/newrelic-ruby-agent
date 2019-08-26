@@ -1805,14 +1805,14 @@ module NewRelic
         },
         :'span_events.enabled' => {
           :default => true,
-          :public => false,
+          :public => true,
           :type => Boolean,
           :allowed_from_server => true,
           :description => 'If <code>true</code>, enables span event sampling.'
         },
         :'span_events.max_samples_stored' => {
           :default => 1000,
-          :public => false,
+          :public => true,
           :type => Integer,
           :allowed_from_server => true,
           :description => 'Defines the maximum number of span events reported from a single harvest.'
