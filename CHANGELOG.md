@@ -1,5 +1,16 @@
 # New Relic Ruby Agent Release Notes #
 
+  * **Trace and Entity Metadata API**
+
+    Several new API methods have been added to the agent:
+    * [`Agent#linking_metadata`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent#linking_metadata-instance_method)
+    * [`Tracer#trace_id`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent/Tracer#trace_id-class_method)
+    * [`Tracer#span_id`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent/Tracer#span_id-class_method)
+    * [`Tracer#sampled?`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent/Tracer#sampled?-class_method)
+
+    Together, these API methods provide access to information that can be used to
+    link a trace to an entity in APM.
+
 ## v6.6.0
 
   * **Bugfix for ActionCable Instrumentation**
