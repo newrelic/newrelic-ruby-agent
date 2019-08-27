@@ -660,6 +660,54 @@ module NewRelic
       NewRelic::Agent.logger.debug "Ignoring exception during %p event notification" % [event_type]
     end
 
+    # @!group Trace and Entity metadata
+
+    TRACE_ID_KEY = 'trace.id'.freeze
+    SPAN_ID_KEY = 'span.id'.freeze
+    ENTITY_NAME_KEY = 'entity.name'.freeze
+    ENTITY_TYPE_KEY = 'entity.type'.freeze
+    ENTITY_GUID_KEY = 'entity.guid'.freeze
+    HOSTNAME_KEY = 'hostname'.freeze
+
+    ENTITY_TYPE = 'SERVICE'.freeze
+
+    # Returns a new hash containing trace and entity metadata that can be used
+    # to relate data to a trace or to an entity in APM.
+    #
+    # This hash includes:
+    # * trace.id    - The current trace id, if there is a current trace id. This
+    #   value may be omitted.
+    # * span.id     - The current span id, if there is a current span.  This
+    #   value may be omitted.
+    # * entity.name - The name of the current application. This is read from
+    #   the +app_name+ key in your config.  If there are multiple application
+    #   names, the first one is used.
+    # * entity.type - The entity type is hardcoded to the string +'SERVICE'+.
+    # * entity.guid - The guid of the current entity.
+    # * hostname    - The fully qualified hostname.
+    #
+    # @api public
+    def linking_metadata
+      metadata = Hash.new
+      metadata[ENTITY_NAME_KEY] = config.app_names[0]
+      metadata[ENTITY_TYPE_KEY] = ENTITY_TYPE
+      metadata[HOSTNAME_KEY] = Hostname.get
+
+      if entity_guid = config[:entity_guid]
+        metadata[ENTITY_GUID_KEY] = entity_guid
+      end
+
+      if Tracer.current_transaction && trace_id = Tracer.current_transaction.trace_id
+        metadata[TRACE_ID_KEY] = trace_id
+      end
+      if current_segment = Tracer.current_segment
+        metadata[SPAN_ID_KEY] = current_segment.guid
+      end
+      metadata
+    end
+
+    #@!endgroup
+
     # @!group Manual browser monitoring configuration
 
     # This method returns a string suitable for inclusion in a page - known as
