@@ -12,7 +12,8 @@ class RakeTest < Minitest::Test
   setup_and_teardown_agent
 
   def test_disabling_rake_instrumentation
-    with_environment("NEW_RELIC_DISABLE_RAKE" => "true") do
+    with_environment("NEW_RELIC_DISABLE_RAKE" => "true",
+                     "NEW_RELIC_SYNC_STARTUP" => "true") do
       run_rake
     end
 
@@ -35,7 +36,8 @@ class RakeTest < Minitest::Test
     $collector.stub_wait('connect', 5)
 
     with_environment("NEW_RELIC_RAKE_CONNECT_TIMEOUT" => "0",
-                     "NEW_RELIC_LOG" => "stdout") do
+                     "NEW_RELIC_LOG" => "stdout",
+                     "NEW_RELIC_SYNC_STARTUP" => "true") do
       run_rake
     end
 
