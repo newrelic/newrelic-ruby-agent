@@ -14,7 +14,8 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
     }
     NewRelic::Agent.config.add_config_for_testing(@test_config)
 
-    @error_collector = NewRelic::Agent::ErrorCollector.new
+    events = NewRelic::Agent.instance.events
+    @error_collector = NewRelic::Agent::ErrorCollector.new events
     @error_collector.stubs(:enabled).returns(true)
 
     NewRelic::Agent::Tracer.clear_state
@@ -106,7 +107,7 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
       nil
     end
 
-    new_error_collector = NewRelic::Agent::ErrorCollector.new
+    new_error_collector = NewRelic::Agent::ErrorCollector.new NewRelic::Agent.instance.events
     new_error_collector.notice_error(StandardError.new("message"))
 
     assert_empty new_error_collector.error_trace_aggregator.harvest!
@@ -292,7 +293,11 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
 
   def test_skip_notice_error_is_true_if_the_error_collector_is_disabled
     error = StandardError.new
-    with_config(:'error_collector.enabled' => false, :'error_collector.capture_events' => false) do
+    server_source = {
+      :'error_collector.enabled' => false,
+      :'error_collector.capture_events' => false
+    }
+    with_server_source server_source do
       assert @error_collector.skip_notice_error?(error)
     end
   end

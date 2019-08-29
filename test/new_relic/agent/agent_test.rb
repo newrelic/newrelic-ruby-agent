@@ -350,8 +350,11 @@ module NewRelic
       def test_connect_replaces_attribute_filter
         old_filter = @agent.attribute_filter
 
+        # the attribute filter is only refreshed after the first connect
+        # the stubbing below is fragile, but simulates that scenario
         @agent.stubs(:connected?).returns(true)
         @agent.service.expects(:connect).returns({})
+        NewRelic::Agent.config.stubs(:finished_configuring?).returns(false).then.returns(true)
         @agent.send(:connect, :force_reconnect => true)
 
         refute old_filter == @agent.attribute_filter, "#{@agent.attribute_filter} should not be equal to\n#{old_filter}"

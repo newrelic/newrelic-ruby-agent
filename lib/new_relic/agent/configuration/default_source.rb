@@ -1017,6 +1017,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
+          :dynamic_name => true,
           :description => 'If <code>true</code>, the agent collects <a href="https://docs.newrelic.com/docs/insights/new-relic-insights/decorating-events/error-event-default-attributes-insights">TransactionError events</a>.'
         },
         :'error_collector.max_event_samples_stored' => {
@@ -1223,10 +1224,10 @@ module NewRelic
         },
         :backport_fast_active_record_connection_lookup => {
           :default => false,
-          :public => false,
+          :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Enables patching of "sql.active_record" AS Notification to include :connection in payload. Note that this setting may not be compatible with other gems that patch ActiveRecord.'
+          :description => 'Backports the faster ActiveRecord connection lookup introduced in Rails 6, which improves agent performance when instrumenting ActiveRecord. Note that this setting may not be compatible with other gems that patch ActiveRecord.'
         },
         :disable_vm_sampler => {
           :default      => false,
@@ -1804,14 +1805,14 @@ module NewRelic
         },
         :'span_events.enabled' => {
           :default => true,
-          :public => false,
+          :public => true,
           :type => Boolean,
           :allowed_from_server => true,
           :description => 'If <code>true</code>, enables span event sampling.'
         },
         :'span_events.max_samples_stored' => {
           :default => 1000,
-          :public => false,
+          :public => true,
           :type => Integer,
           :allowed_from_server => true,
           :description => 'Defines the maximum number of span events reported from a single harvest.'

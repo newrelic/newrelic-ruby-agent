@@ -269,6 +269,17 @@ module NewRelic
         end
       end
 
+      def test_errors_not_harvested_when_changing_from_enabled_to_disabled
+        with_config :'error_collector.enabled' => true do
+          notice_error StandardError.new "Red hands"
+
+          with_config :'error_collector.enabled' => false do
+            errors = error_trace_aggregator.harvest!
+            assert_empty errors
+          end
+        end
+      end
+
       def create_noticed_error(exception, options = {})
         path = options.delete(:metric)
         noticed_error = NewRelic::NoticedError.new(path, exception)

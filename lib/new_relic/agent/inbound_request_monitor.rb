@@ -20,8 +20,8 @@ module NewRelic
       attr_reader :obfuscator
 
       def initialize(events)
-        events.subscribe(:finished_configuring) do
-          # This requires :encoding_key, so must wait until :finished_configuring
+        events.subscribe(:initial_configuration_complete) do
+          # This requires :encoding_key, so must wait until :initial_configuration_complete
           setup_obfuscator
           on_finished_configuring(events)
         end

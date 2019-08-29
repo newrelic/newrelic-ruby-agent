@@ -37,7 +37,6 @@ module NewRelic
 
       def test_sampling_target_updated_when_config_changes
         with_config sampling_target: 55 do
-          NewRelic::Agent.instance.events.notify(:finished_configuring)
           sampler = NewRelic::Agent.instance.adaptive_sampler
           target = sampler.instance_variable_get :@target
 
@@ -47,7 +46,6 @@ module NewRelic
 
       def test_sampling_period_updated_when_config_changes
         with_config sampling_target_period_in_seconds: 500 do
-          NewRelic::Agent.instance.events.notify(:finished_configuring)
           sampler = NewRelic::Agent.instance.adaptive_sampler
           period = sampler.instance_variable_get :@period_duration
 

@@ -13,6 +13,7 @@ module NewRelic
         def setup
           @additional_config = { :'distributed_tracing.enabled' => true }
           NewRelic::Agent.config.add_config_for_testing(@additional_config)
+          NewRelic::Agent.config.notify_server_source_added
 
           nr_freeze_time
         end

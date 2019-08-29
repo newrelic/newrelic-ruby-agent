@@ -18,6 +18,8 @@ module NewRelic
       attr_reader :middleware, :env
 
       def setup
+        NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
+
         @app = lambda { |env| [200, {}, ['yeah!']]}
         @middleware = ExampleMiddleware.new(@app)
         @env = {}

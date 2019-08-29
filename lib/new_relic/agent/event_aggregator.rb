@@ -8,20 +8,6 @@ module NewRelic
   module Agent
     class EventAggregator
       class << self
-        # This architecture requires that every aggregator
-        # implementation provide its own `named`, `capacity_key`, and
-        # `enabled_...` settings.  In particular, we do not allow
-        # subclasses to share these values from an intermediate
-        # superclass.
-
-        def inherited(subclass)
-          # Prevent uninitialized variable warnings; we have to do
-          # this as soon as the subclass is defined, before its
-          # implementor calls enabled_key() or enabled_fn().
-          subclass.instance_variable_set(:@enabled_key, nil)
-          subclass.instance_variable_set(:@enabled_fn,  nil)
-        end
-
         def named named = nil
           named ? @named = named.to_s.freeze : @named
         end
@@ -30,9 +16,24 @@ module NewRelic
           key ? @capacity_key = key : @capacity_key
         end
 
-        def enabled_key key = nil
-          key ? @enabled_key = key : @enabled_key
+        # An aggregator can specify one or more keys to check to see if it is
+        # enabled. Multiple keys will be &&'d and the enabled status of the
+        # aggregator will be reset when agent configuration changes.
+
+        def enabled_keys *keys
+          if keys.empty?
+            @enabled_keys ||= []
+          else
+            @enabled_keys = Array(keys)
+            @enabled_fn = ->(){ @enabled_keys.all? { |k| Agent.config[k] } }
+          end
         end
+
+        alias_method :enabled_key, :enabled_keys
+
+        # This can be used instead of `enabled_key(s)` for more fine grained
+        # control over whether an aggregator should be enabled. The enabled fn
+        # will be reevaluated after configuration changes
 
         def enabled_fn fn = nil
           fn ? @enabled_fn = fn : @enabled_fn
@@ -47,13 +48,13 @@ module NewRelic
         end
       end
 
-      def initialize
+      def initialize events
         @lock = Mutex.new
         @buffer = self.class.buffer_class.new NewRelic::Agent.config[self.class.capacity_key]
-        @enabled = false
+        @enabled = self.class.enabled_fn ? self.class.enabled_fn.call : false
         @notified_full = false
         register_capacity_callback
-        register_enabled_callback
+        register_enabled_callback events
         after_initialize
       end
 
@@ -66,7 +67,6 @@ module NewRelic
       end
 
       def enabled?
-        return self.class.enabled_fn.call if self.class.enabled_fn
         @enabled
       end
 
@@ -126,18 +126,12 @@ module NewRelic
         end
       end
 
-      def register_enabled_callback
-        unless self.class.enabled_key || self.class.enabled_fn
-          ::NewRelic::Agent.logger.warn "#{self.class.named} needs an enabled_key or an enabled_fn."
-        end
-
-        return if self.class.enabled_fn
-
-        NewRelic::Agent.config.register_callback(self.class.enabled_key) do |enabled|
-          # intentionally unsynchronized for liveness
-          @enabled = enabled
-          ::NewRelic::Agent.logger.debug "#{self.class.named} will #{enabled ? '' : 'not '}be sent to the New Relic service."
-        end
+      def register_enabled_callback events
+        events.subscribe(:server_source_configuration_added) {
+          @enabled = self.class.enabled_fn.call
+          reset! if @enabled == false
+          ::NewRelic::Agent.logger.debug "#{self.class.named} will #{@enabled ? '' : 'not '}be sent to the New Relic service."
+        }
       end
 
       def notify_if_full

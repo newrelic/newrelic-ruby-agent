@@ -10,6 +10,7 @@ module NewRelic
     class DistributedTracingCrossAgentTest < Minitest::Test
       def setup
         NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+        NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
       end
 
       def teardown
@@ -30,6 +31,7 @@ module NewRelic
           }
 
           with_config(config) do
+            NewRelic::Agent.config.notify_server_source_added
             run_test_case(test_case)
           end
         end

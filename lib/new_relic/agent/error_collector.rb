@@ -18,9 +18,9 @@ module NewRelic
       attr_reader :error_trace_aggregator, :error_event_aggregator
 
       # Returns a new error collector
-      def initialize
+      def initialize events
         @error_trace_aggregator = ErrorTraceAggregator.new(MAX_ERROR_QUEUE_LENGTH)
-        @error_event_aggregator = ErrorEventAggregator.new
+        @error_event_aggregator = ErrorEventAggregator.new events
 
         # lookup of exception class names to ignore.  Hash for fast access
         @ignore = {}

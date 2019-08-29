@@ -34,6 +34,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
   def setup
     NewRelic::Agent.drop_buffered_data
+    NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
   end
 
   def test_still_calls_through
