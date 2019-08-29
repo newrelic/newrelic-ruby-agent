@@ -24,10 +24,13 @@ module NewRelic
       end
     end
 
-    class DecoratingLogger < ::Logger
+    class DecoratingLogger < (defined?(::ActiveSupport) ? ::ActiveSupport::Logger : ::Logger)
+
+      alias :write :info
+
       def initialize *args
         super
-        @formatter = DecoratingJsonFormatter.new
+        self.formatter = DecoratingJsonFormatter.new
       end
     end
   end
