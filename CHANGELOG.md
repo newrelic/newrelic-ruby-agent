@@ -1,5 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
+## v6.6.0
+
   * **Bugfix for ActionCable Instrumentation**
 
     Previous versions of the agent sometimes caused application crashes with some versions
