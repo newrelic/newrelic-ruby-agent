@@ -48,26 +48,28 @@ module NewRelic
         assert_equal 1000, device.instance_variable_get(:@shift_size)
       end
 
-      def test_constructor_arguments_level
-        logger = DecoratingLogger.new @output, level: :error
-        assert_equal Logger::ERROR, logger.level
-      end
+      if RUBY_VERSION >= '2.4.0'
+        def test_constructor_arguments_level
+          logger = DecoratingLogger.new @output, level: :error
+          assert_equal Logger::ERROR, logger.level
+        end
 
-      def test_constructor_arguments_progname
-        logger = DecoratingLogger.new @output, progname: 'LoggingTest'
-        logger.info('test')
+        def test_constructor_arguments_progname
+          logger = DecoratingLogger.new @output, progname: 'LoggingTest'
+          logger.info('test')
 
-        message = JSON.load @output.string
-        assert_equal 'LoggingTest', message['logger.name']
-      end
+          message = JSON.load @output.string
+          assert_equal 'LoggingTest', message['logger.name']
+        end
 
-      def test_constructor_arguments_formatter
-        # the formatter parameter is ignored, in favor of our formatter.
-        # does this seem correct?  Maybe if they pass one in, we should keep
-        # it and use it to format messages?
-        formatter = ::Logger::Formatter.new
-        logger = DecoratingLogger.new @output, formatter: formatter
-        refute_equal formatter, logger.formatter
+        def test_constructor_arguments_formatter
+          # the formatter parameter is ignored, in favor of our formatter.
+          # does this seem correct?  Maybe if they pass one in, we should keep
+          # it and use it to format messages?
+          formatter = ::Logger::Formatter.new
+          logger = DecoratingLogger.new @output, formatter: formatter
+          refute_equal formatter, logger.formatter
+        end
       end
     end
   end
