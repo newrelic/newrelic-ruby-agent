@@ -1,3 +1,7 @@
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+
 require 'json'
 require 'new_relic/agent'
 require 'new_relic/agent/null_logger'
@@ -24,7 +28,20 @@ module NewRelic
       end
     end
 
-    class DecoratingLogger < (defined?(::ActiveSupport) ? ::ActiveSupport::Logger : ::Logger)
+    # This class decorates logs with trace and entity metadata, and emits log
+    # messages formatted as JSON objects.  It extends the Logger class from
+    # the Ruby standard library, and accepts the same constructor parameters.
+    #
+    # It can be added to a Rails application like this:
+    #
+    #   require 'newrelic_rpm'
+    #
+    #   Rails.application.configure do
+    #     config.logger = NewRelic::Logging::DecoratingLogger.new "log/#{Rails.env}.log"
+    #   end
+    #
+    # @api public
+    class DecoratingLogger < (defined?(::ActiveSupport) && defined?(::ActiveSupport::Logger) ? ::ActiveSupport::Logger : ::Logger)
 
       alias :write :info
 
