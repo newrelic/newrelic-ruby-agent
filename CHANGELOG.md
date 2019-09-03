@@ -10,6 +10,13 @@
 
     These API methods allow you to access information that can be used to link data of your choosing to a trace or entity.
 
+  * **Logs in Context**
+
+    This version of the agent includes a logger, which can be used in place of `::Logger`
+    from the standard library, or `ActiveSupport::Logger` from Rails.  This logger
+    leverages the new trace and entity metadata API to decorate log statements with entity
+    and trace metadata, so they can be correlated together in the New Relic UI.
+
 ## v6.6.0
 
   * **Bugfix for ActionCable Instrumentation**
