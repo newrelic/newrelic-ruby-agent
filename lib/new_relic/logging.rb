@@ -20,7 +20,7 @@ module NewRelic
       def call severity, time, progname, msg
         metadata = NewRelic::Agent.linking_metadata
         metadata[TIMESTAMP_KEY] = (time.to_f * 1000).round
-        metadata[MESSAGE_KEY] = (String === msg ? msg : msg.inspect)
+        metadata[MESSAGE_KEY] = msg2str msg
         metadata[LOG_LEVEL_KEY] = severity
         metadata[LOG_NAME_KEY] = progname if progname
 
