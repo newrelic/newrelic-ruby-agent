@@ -10,7 +10,20 @@ module NewRelic
   module Logging
     extend self
 
-    class DecoratingJsonFormatter < ::Logger::Formatter
+    # This class can be used as the formatter for an existing logger.  It
+    # decorates log messages with trace and entity metadata, and formats each
+    # log messages as a JSON object.
+    #
+    # It can be added to a Rails application like this:
+    #
+    #   require 'newrelic_rpm'
+    #
+    #   Rails.application.configure do
+    #     config.log_formatter = ::NewRelic::Logging::DecoratingFormatter.new
+    #   end
+    #
+    # @api public
+    class DecoratingFormatter < ::Logger::Formatter
       TIMESTAMP_KEY = 'timestamp'.freeze
       MESSAGE_KEY = 'message'.freeze
       LOG_LEVEL_KEY = 'log.level'.freeze
@@ -28,17 +41,19 @@ module NewRelic
       end
     end
 
-    # This class decorates logs with trace and entity metadata, and emits log
+    # This logger decorates logs with trace and entity metadata, and emits log
     # messages formatted as JSON objects.  It extends the Logger class from
     # the Ruby standard library, and accepts the same constructor parameters.
     #
-    # It can be added to a Rails application like this:
+    # It aliases the `:info` message to overwrite the `:write` method, so it
+    # can be used in Rack applications that expect the logger to be a file-like
+    # object.
+    #
+    # It can be added to an application like this:
     #
     #   require 'newrelic_rpm'
     #
-    #   Rails.application.configure do
-    #     config.logger = NewRelic::Logging::DecoratingLogger.new "log/#{Rails.env}.log"
-    #   end
+    #   config.logger = NewRelic::Logging::DecoratingLogger.new "log/application.log"
     #
     # @api public
     class DecoratingLogger < (defined?(::ActiveSupport) && defined?(::ActiveSupport::Logger) ? ::ActiveSupport::Logger : ::Logger)
@@ -47,7 +62,7 @@ module NewRelic
 
       def initialize *args
         super
-        self.formatter = DecoratingJsonFormatter.new
+        self.formatter = DecoratingFormatter.new
       end
     end
   end
