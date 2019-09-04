@@ -697,10 +697,10 @@ module NewRelic
         metadata[ENTITY_GUID_KEY] = entity_guid
       end
 
-      if trace_id = Tracer.trace_id
+      if trace_id = Tracer.current_trace_id
         metadata[TRACE_ID_KEY] = trace_id
       end
-      if span_id = Tracer.span_id
+      if span_id = Tracer.current_span_id
         metadata[SPAN_ID_KEY] = span_id
       end
       metadata

@@ -43,30 +43,33 @@ module NewRelic
         # none exists.
         #
         # @api public
-        def trace_id
+        def current_trace_id
           if txn = current_transaction
             txn.trace_id
           end
         end
+        alias_method :trace_id, :current_trace_id
 
         # Returns the id of the current span, or +nil+ if none exists.
         #
         # @api public
-        def span_id
+        def current_span_id
           if span = current_segment
             span.guid
           end
         end
+        alias_method :span_id, :current_span_id
 
         # Returns a boolean indicating whether the current_transaction
         # is sampled, or +nil+ if there is no current transaction.
         #
         # @api public
-        def sampled?
+        def transaction_sampled?
           if txn = current_transaction
             txn.sampled?
           end
         end
+        alias_method :sampled?, :transaction_sampled?
 
         # Runs the given block of code in a transaction.
         #
