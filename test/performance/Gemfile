@@ -4,3 +4,6 @@ gem 'newrelic_rpm', :path => '../../..'
 gem 'rack'
 gem 'mocha'
 
+gem 'stackprof'
+gem 'pry'
+gem 'pry-nav'
