@@ -4,7 +4,7 @@
 
 require 'json'
 require 'new_relic/agent'
-require 'new_relic/agent/null_logger'
+require 'new_relic/agent/hostname'
 
 module NewRelic
   module Logging
@@ -30,16 +30,53 @@ module NewRelic
       LOG_NAME_KEY = 'logger.name'.freeze
       NEWLINE = "\n".freeze
 
-      def call severity, time, progname, msg
-        metadata = NewRelic::Agent.linking_metadata
-        metadata[TIMESTAMP_KEY] = (time.to_f * 1000).round
-        metadata[MESSAGE_KEY] = msg2str msg
-        metadata[LOG_LEVEL_KEY] = severity
-        metadata[LOG_NAME_KEY] = progname if progname
+      QUOTE = '"'.freeze
+      COLON = ':'.freeze
+      COMMA = ','.freeze
+      CLOSING_BRACE = '}'.freeze
 
-        JSON.dump(metadata) << NEWLINE
+      def call severity, time, progname, msg
+        message = '{'
+        add_pair_of_strings message, Agent::ENTITY_NAME_KEY, Agent.config.app_names[0]
+        message << COMMA
+        add_pair_of_strings message, Agent::ENTITY_TYPE_KEY, Agent::ENTITY_TYPE
+        message << COMMA
+        add_pair_of_strings message, Agent::HOSTNAME_KEY, Agent::Hostname.get
+
+        if entity_guid = Agent.config[:entity_guid]
+          message << COMMA
+          add_pair_of_strings message, ENTITY_GUID_KEY, entity_guid
+        end
+
+        if trace_id = Agent::Tracer.trace_id
+          message << COMMA
+          add_pair_of_strings message, Agent::TRACE_ID_KEY, trace_id
+        end
+        if span_id = Agent::Tracer.span_id
+          message << COMMA
+          add_pair_of_strings message, Agent::SPAN_ID_KEY, span_id
+        end
+
+        message << COMMA
+        add_pair_of_strings message, MESSAGE_KEY, msg2str(msg)
+        message << COMMA
+        add_pair_of_strings message, LOG_LEVEL_KEY, severity
+        if progname
+          message << COMMA
+          add_pair_of_strings message, LOG_NAME_KEY, progname
+        end
+
+        message << COMMA
+        message << QUOTE << TIMESTAMP_KEY << QUOTE << COLON << time.to_f.to_s
+        message << CLOSING_BRACE << NEWLINE
       end
+
+      def add_pair_of_strings message, key, value
+        message << QUOTE << key << QUOTE << COLON << QUOTE << value << QUOTE
+      end
+
     end
+
 
     # This logger decorates logs with trace and entity metadata, and emits log
     # messages formatted as JSON objects.  It extends the Logger class from
