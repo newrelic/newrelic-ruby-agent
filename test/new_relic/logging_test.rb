@@ -14,11 +14,15 @@ module NewRelic
         @output = StringIO.new
       end
 
+      def last_message
+        JSON.load @output.string.split("\n")[-1]
+      end
+
       def test_log_to_json
         logger = DecoratingLogger.new @output
         logger.info('this is a test')
 
-        message = JSON.load @output.string
+        message = last_message
         # Should include the keys:
         #  entity.name, entity.type, hostname, timestamp, message, log.level
         assert_equal 'this is a test', message['message']
@@ -36,6 +40,20 @@ module NewRelic
         assert_includes message, 'timestamp'
         refute_nil message['timestamp']
 
+      end
+
+      def test_app_name
+        logger = DecoratingLogger.new @output
+
+        with_config app_name: 'Unset' do
+          logger.info('one')
+          assert_equal 'Unset', last_message['entity.name']
+
+          with_config app_name: 'MyTotallySweetApplication' do
+            logger.info('two')
+            assert_equal 'MyTotallySweetApplication', last_message['entity.name']
+          end
+        end
       end
 
       def test_constructor_arguments_shift_age

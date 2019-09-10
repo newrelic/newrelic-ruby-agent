@@ -35,10 +35,18 @@ module NewRelic
       COMMA = ','.freeze
       CLOSING_BRACE = '}'.freeze
 
+      def initialize
+        NewRelic::Agent.config.register_callback :app_name do
+          @app_name = nil
+        end
+      end
+
       def call severity, time, progname, msg
         message = '{'
-        add_pair_of_strings message, Agent::ENTITY_NAME_KEY, Agent.config.app_names[0]
-        message << COMMA
+        if app_name
+          add_pair_of_strings message, Agent::ENTITY_NAME_KEY, app_name
+          message << COMMA
+        end
         add_pair_of_strings message, Agent::ENTITY_TYPE_KEY, Agent::ENTITY_TYPE
         message << COMMA
         add_pair_of_strings message, Agent::HOSTNAME_KEY, Agent::Hostname.get
@@ -69,6 +77,10 @@ module NewRelic
         message << COMMA
         message << QUOTE << TIMESTAMP_KEY << QUOTE << COLON << time.to_f.to_s
         message << CLOSING_BRACE << NEWLINE
+      end
+
+      def app_name
+        @app_name ||= Agent.config.app_names[0]
       end
 
       def add_pair_of_strings message, key, value
