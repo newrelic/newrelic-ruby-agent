@@ -88,24 +88,11 @@ env:
     - TYPE=NULLVERSE
 
 matrix:
+  allow_failures:
+    - rvm: jruby-9.2.6.0
+      env: TYPE=FUNCTIONAL GROUP=agent
   fast_finish: true
   exclude:
-    # Don't specify a jdk for MRI
-    - rvm: 2.6.1
-      jdk: oraclejdk8
-    - rvm: 2.5.3
-      jdk: oraclejdk8
-    - rvm: 2.4.2
-      jdk: oraclejdk8
-    - rvm: 2.3.5
-      jdk: oraclejdk8
-    - rvm: 2.2.8
-      jdk: oraclejdk8
-    - rvm: 2.1.10
-      jdk: oraclejdk8
-    - rvm: 2.0.0-p648
-      jdk: oraclejdk8
-
     # Unsupported Rails/Ruby combinations
     # 2.6
     - rvm: 2.6.1
