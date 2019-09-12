@@ -43,34 +43,34 @@ module NewRelic
       def call severity, time, progname, msg
         message = '{'
         if app_name
-          add_pair_of_strings message, Agent::ENTITY_NAME_KEY, app_name
+          add_key_value message, Agent::ENTITY_NAME_KEY, app_name
           message << COMMA
         end
-        add_pair_of_strings message, Agent::ENTITY_TYPE_KEY, Agent::ENTITY_TYPE
+        add_key_value message, Agent::ENTITY_TYPE_KEY, Agent::ENTITY_TYPE
         message << COMMA
-        add_pair_of_strings message, Agent::HOSTNAME_KEY, Agent::Hostname.get
+        add_key_value message, Agent::HOSTNAME_KEY, Agent::Hostname.get
 
         if entity_guid = Agent.config[:entity_guid]
           message << COMMA
-          add_pair_of_strings message, ENTITY_GUID_KEY, entity_guid
+          add_key_value message, Agent::ENTITY_GUID_KEY, entity_guid
         end
 
         if trace_id = Agent::Tracer.trace_id
           message << COMMA
-          add_pair_of_strings message, Agent::TRACE_ID_KEY, trace_id
+          add_key_value message, Agent::TRACE_ID_KEY, trace_id
         end
         if span_id = Agent::Tracer.span_id
           message << COMMA
-          add_pair_of_strings message, Agent::SPAN_ID_KEY, span_id
+          add_key_value message, Agent::SPAN_ID_KEY, span_id
         end
 
         message << COMMA
-        add_pair_of_strings message, MESSAGE_KEY, msg2str(msg)
+        add_key_value message, MESSAGE_KEY, msg2str(msg)
         message << COMMA
-        add_pair_of_strings message, LOG_LEVEL_KEY, severity
+        add_key_value message, LOG_LEVEL_KEY, severity
         if progname
           message << COMMA
-          add_pair_of_strings message, LOG_NAME_KEY, progname
+          add_key_value message, LOG_NAME_KEY, progname
         end
 
         message << COMMA
@@ -82,7 +82,7 @@ module NewRelic
         @app_name ||= Agent.config.app_names[0]
       end
 
-      def add_pair_of_strings message, key, value
+      def add_key_value message, key, value
         message << QUOTE << key << QUOTE << COLON << QUOTE << value << QUOTE
       end
 
