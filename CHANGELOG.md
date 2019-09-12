@@ -8,8 +8,7 @@
     * [`Tracer#span_id`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent/Tracer#span_id-class_method)
     * [`Tracer#sampled?`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent/Tracer#sampled?-class_method)
 
-    Together, these API methods provide access to information that can be used to
-    link a trace to an entity in APM.
+    These API methods allow you to access information that can be used to link data of your choosing to a trace or entity.
 
 ## v6.6.0
 
