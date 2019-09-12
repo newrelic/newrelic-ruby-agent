@@ -228,14 +228,6 @@ module NewRelic
           end
         end
 
-        def app_names
-          case NewRelic::Agent.config[:app_name]
-          when Array then NewRelic::Agent.config[:app_name]
-          when String then NewRelic::Agent.config[:app_name].split(';')
-          else []
-          end
-        end
-
         MALFORMED_LABELS_WARNING = "Skipping malformed labels configuration"
         PARSING_LABELS_FAILURE   = "Failure during parsing labels. Ignoring and carrying on with connect."
 

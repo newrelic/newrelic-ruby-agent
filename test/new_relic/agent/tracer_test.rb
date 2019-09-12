@@ -26,6 +26,56 @@ module NewRelic
         assert_nil Tracer.current_transaction
       end
 
+      def test_trace_id_in_transaction
+        in_transaction do |txn|
+          refute_nil Tracer.trace_id
+          assert_equal txn.trace_id, Tracer.trace_id
+        end
+      end
+
+      def test_trace_id_not_in_transaction
+        assert_nil Tracer.trace_id
+      end
+
+      def test_span_id_in_transaction
+        in_transaction do |txn|
+          refute_nil Tracer.span_id
+          assert_equal txn.current_segment.guid, Tracer.span_id
+        end
+      end
+
+      def test_span_id_not_in_transaction
+        assert_nil Tracer.span_id
+      end
+
+      def test_sampled?
+        with_config :'distributed_tracing.enabled' => true do
+          in_transaction do |txn|
+            refute_nil Tracer.sampled?
+          end
+          # with sampled explicity set true, assert that it's true
+          in_transaction do |txn|
+            txn.sampled = true
+            assert Tracer.sampled?
+          end
+          # with sampled explicity set false, assert that it's false
+          in_transaction do |txn|
+            txn.sampled = false
+            refute Tracer.sampled?
+          end
+        end
+
+        with_config :'distributed_tracing.enabled' => false do
+          in_transaction do |txn|
+            assert_nil Tracer.sampled?
+          end
+        end
+      end
+
+      def test_sampled_not_in_transaction
+        assert_nil Tracer.sampled?
+      end
+
       def test_tracing_enabled
         NewRelic::Agent.disable_all_tracing do
           in_transaction do

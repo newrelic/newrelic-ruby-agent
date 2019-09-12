@@ -31,6 +31,7 @@ module NewRelic::Agent::Configuration
         'trusted_account_key'        => '555',
         'account_id'                 => '190',
         'primary_application_id'     => '1441',
+        'entity_guid'                => 'MXxBUE18QVBQTElDQV',
         'sampling_target'            => 20,
         'sampling_target_period_in_seconds' => 120,
         'max_payload_size_in_bytes' => 500
@@ -56,6 +57,10 @@ module NewRelic::Agent::Configuration
 
     def test_should_set_primary_application_id
       assert_equal '1441', @source[:primary_application_id]
+    end
+
+    def test_should_set_entity_guid
+      assert_equal 'MXxBUE18QVBQTElDQV', @source[:entity_guid]
     end
 
     def test_should_set_sampling_target
@@ -123,7 +128,7 @@ module NewRelic::Agent::Configuration
       source = ServerSource.new(@config)
 
       assert_metrics_recorded(["Supportability/Agent/Collector/MissingEventHarvestConfig"])
-      # Also, the server source should not have these values set, so the agent 
+      # Also, the server source should not have these values set, so the agent
       # will fall back to the default source
       refute source[:'event_report_period']
       refute source[:'error_collector.max_event_samples_stored']
@@ -136,7 +141,7 @@ module NewRelic::Agent::Configuration
       source = ServerSource.new(@config)
 
       assert_metrics_recorded(["Supportability/Agent/Collector/MissingEventHarvestConfig"])
-      # Also, the server source should not have these values set, so the agent 
+      # Also, the server source should not have these values set, so the agent
       # will fall back to the default source
       refute source[:'event_report_period']
       refute source[:'error_collector.max_event_samples_stored']

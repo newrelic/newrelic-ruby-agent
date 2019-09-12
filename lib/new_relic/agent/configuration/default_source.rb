@@ -196,6 +196,15 @@ module NewRelic
           end
         end
 
+        SEMICOLON = ';'.freeze
+        def self.split_app_names app_name
+          case app_name
+          when Array then app_name
+          when String then app_name.split(SEMICOLON)
+          else []
+          end
+        end
+
         def self.convert_to_constant_list(raw_value)
           const_names = convert_to_list(raw_value)
           const_names.map! do |class_name|
@@ -291,7 +300,16 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :transform => DefaultSource.method(:split_app_names),
           :description => 'Specify the <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/installation-configuration/name-your-application">application name</a> used to aggregate data in the New Relic UI. To report data to <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/installation-configuration/using-multiple-names-app">multiple apps at the same time</a>, specify a list of names separated by a semicolon <code>;</code>. For example, <code>MyApp</code> or <code>MyStagingApp;Instance1</code>.'
+        },
+        :entity_guid => {
+          :default => nil,
+          :allow_nil => true,
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'The <a href="https://docs.newrelic.com/attribute-dictionary/span/entityguid">Entity GUID</a> for the entity running this agent.'
         },
         :monitor_mode => {
           :default => value_of(:enabled),

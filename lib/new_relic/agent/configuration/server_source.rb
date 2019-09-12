@@ -21,6 +21,7 @@ module NewRelic
           "cross_process_id",
           "data_report_period",
           "encoding_key",
+          "entity_guid",
           "error_beacon",
           "js_agent_file",
           "js_agent_loader",
