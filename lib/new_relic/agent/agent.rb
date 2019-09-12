@@ -332,7 +332,7 @@ module NewRelic
           end
 
           def log_app_name
-            ::NewRelic::Agent.logger.info "Application: #{Agent.config.app_names.join(", ")}"
+            ::NewRelic::Agent.logger.info "Application: #{Agent.config[:app_name].join(", ")}"
           end
 
           def log_ignore_url_regexes
@@ -345,7 +345,7 @@ module NewRelic
 
           # Logs the configured application names
           def app_name_configured?
-            names = Agent.config.app_names
+            names = Agent.config[:app_name]
             return names.respond_to?(:any?) && names.any?
           end
 
@@ -763,14 +763,14 @@ module NewRelic
             Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
           end
 
-          # Constructs and memoizes an event_harvest_config hash to be used in 
+          # Constructs and memoizes an event_harvest_config hash to be used in
           # the payload sent during connect (and reconnect)
           def event_harvest_config
             @event_harvest_config ||= Configuration::EventHarvestConfig.from_config(Agent.config)
           end
 
           # Builds the payload to send to the connect service,
-          # connects, then configures the agent using the response from 
+          # connects, then configures the agent using the response from
           # the connect service
           def connect_to_server
             request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new \

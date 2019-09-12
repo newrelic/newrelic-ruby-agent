@@ -60,14 +60,14 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
 
   def test_manual_overrides
     NewRelic::Agent.manual_start :app_name => "testjobs"
-    assert_equal "testjobs", NewRelic::Agent.config.app_names[0]
+    assert_equal "testjobs", NewRelic::Agent.config[:app_name][0]
     NewRelic::Agent.shutdown
   end
 
   def test_agent_restart
     NewRelic::Agent.manual_start :app_name => "noapp"
     NewRelic::Agent.manual_start :app_name => "testjobs"
-    assert_equal "testjobs", NewRelic::Agent.config.app_names[0]
+    assert_equal "testjobs", NewRelic::Agent.config[:app_name][0]
     NewRelic::Agent.shutdown
   end
 

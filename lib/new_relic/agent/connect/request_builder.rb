@@ -25,7 +25,7 @@ module NewRelic
             :pid           => $$,
             :host          => local_host,
             :display_host  => Agent.config[:'process_host.display_name'],
-            :app_name      => Agent.config.app_names,
+            :app_name      => Agent.config[:app_name],
             :language      => 'ruby',
             :labels        => Agent.config.parsed_labels,
             :agent_version => NewRelic::VERSION::STRING,
@@ -34,7 +34,7 @@ module NewRelic
             :settings      => Agent.config.to_collector_hash,
             :high_security => Agent.config[:high_security],
             :utilization   => UtilizationData.new.to_collector_hash,
-            :identifier    => "ruby:#{local_host}:#{Agent.config.app_names.sort.join(',')}",
+            :identifier    => "ruby:#{local_host}:#{Agent.config[:app_name].sort.join(',')}",
             :event_harvest_config => @event_harvest_config
           }
         end

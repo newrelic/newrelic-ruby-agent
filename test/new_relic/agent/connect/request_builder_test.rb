@@ -41,25 +41,26 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
   end
 
   def test_connect_settings
-    NewRelic::Agent.config.expects(:app_names).twice.returns(["apps"])
+    with_config :app_name => ["apps"] do
+      keys = %w(pid host identifier display_host app_name language agent_version environment settings).map(&:to_sym)
 
-    keys = %w(pid host identifier display_host app_name language agent_version environment settings).map(&:to_sym)
-
-    settings = @request_builder.connect_payload
-    keys.each do |k|
-      assert_includes(settings.keys, k)
-      refute_nil(settings[k], "expected a value for #{k}")
+      settings = @request_builder.connect_payload
+      keys.each do |k|
+        assert_includes(settings.keys, k)
+        refute_nil(settings[k], "expected a value for #{k}")
+      end
     end
   end
 
   def test_connect_settings_includes_correct_identifier
-    NewRelic::Agent.config.expects(:app_names).twice.returns(["b", "a", "c"])
-    NewRelic::Agent::Connect::RequestBuilder.any_instance.stubs(:local_host).returns('lo-calhost')
-    @environment_report = {}
+    with_config :app_name => "b;a;c" do
+      NewRelic::Agent::Connect::RequestBuilder.any_instance.stubs(:local_host).returns('lo-calhost')
+      @environment_report = {}
 
-    settings = @request_builder.connect_payload
+      settings = @request_builder.connect_payload
 
-    assert_equal settings[:identifier], "ruby:lo-calhost:a,b,c"
+      assert_equal settings[:identifier], "ruby:lo-calhost:a,b,c"
+    end
   end
 
   def test_connect_settings_includes_labels_from_config

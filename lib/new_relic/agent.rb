@@ -689,7 +689,7 @@ module NewRelic
     # @api public
     def linking_metadata
       metadata = Hash.new
-      metadata[ENTITY_NAME_KEY] = config.app_names[0]
+      metadata[ENTITY_NAME_KEY] = config[:app_name][0]
       metadata[ENTITY_TYPE_KEY] = ENTITY_TYPE
       metadata[HOSTNAME_KEY] = Hostname.get
 

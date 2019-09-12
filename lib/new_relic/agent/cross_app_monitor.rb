@@ -28,7 +28,7 @@ module NewRelic
 
       def path_hash(txn_name, seed)
         rotated    = ((seed << 1) | (seed >> 31)) & 0xffffffff
-        app_name   = NewRelic::Agent.config.app_names.first
+        app_name   = NewRelic::Agent.config[:app_name].first
         identifier = "#{app_name};#{txn_name}"
         sprintf("%08x", rotated ^ hash_transaction_name(identifier))
       end
