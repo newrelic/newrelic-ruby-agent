@@ -8,7 +8,6 @@ require 'new_relic/agent/hostname'
 
 module NewRelic
   module Logging
-    extend self
 
     # This class can be used as the formatter for an existing logger.  It
     # decorates log messages with trace and entity metadata, and formats each
