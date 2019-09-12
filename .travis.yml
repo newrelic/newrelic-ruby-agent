@@ -51,6 +51,9 @@ rvm:
   - 2.1.10
   - 2.0.0-p648
 
+jdk:
+  - oraclejdk8
+
 env:
   global:
     - BUNDLE_PATH=/home/travis/bundle
@@ -85,6 +88,9 @@ env:
     - TYPE=NULLVERSE
 
 matrix:
+  allow_failures:
+    - rvm: jruby-9.2.6.0
+      env: TYPE=FUNCTIONAL GROUP=agent
   fast_finish: true
   exclude:
     # Unsupported Rails/Ruby combinations
