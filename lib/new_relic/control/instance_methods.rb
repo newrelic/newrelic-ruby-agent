@@ -2,7 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/logging'
 require 'new_relic/agent/null_logger'
 require 'new_relic/agent/memory_logger'
 require 'new_relic/agent/agent_logger'
