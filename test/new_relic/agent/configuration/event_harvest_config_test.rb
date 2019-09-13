@@ -49,5 +49,27 @@ module NewRelic::Agent::Configuration
       }
       assert_equal expected, EventHarvestConfig.to_config_hash(connect_reply)
     end
+
+    def test_to_config_hash_with_omitted_event_type
+      connect_reply = {
+        'event_harvest_config' => {
+          'report_period_ms' => 5000,
+          'harvest_limits'   => {
+            'analytic_event_data' => 833,
+            'custom_event_data'   => 83,
+            'error_event_data'    => 8
+          }
+        }
+      }
+
+      expected = {
+        :'analytics_events.max_samples_stored' => 833,
+        :'custom_insights_events.max_samples_stored' => 83,
+        :'error_collector.max_event_samples_stored' => 8,
+        :event_report_period => 5
+      }
+      assert_equal expected, EventHarvestConfig.to_config_hash(connect_reply)
+    end
+
   end
 end

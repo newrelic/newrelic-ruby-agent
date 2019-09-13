@@ -28,7 +28,9 @@ module NewRelic
         def to_config_hash(connect_reply)
           config_hash = EVENT_HARVEST_CONFIG_KEY_MAPPING.inject({}) do
             |event_harvest_config, (connect_payload_key, config_key)|
-              event_harvest_config[config_key] = connect_reply['event_harvest_config']['harvest_limits'][connect_payload_key.to_s]
+              if harvest_limit = connect_reply['event_harvest_config']['harvest_limits'][connect_payload_key.to_s]
+                event_harvest_config[config_key] = harvest_limit
+              end
               event_harvest_config
             end
           config_hash[:event_report_period] = connect_reply['event_harvest_config']['report_period_ms'] / 1000
