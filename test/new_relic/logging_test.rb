@@ -66,6 +66,28 @@ module NewRelic
         assert_equal 1000, device.instance_variable_get(:@shift_size)
       end
 
+      messages_to_escape = {
+        'quote' => 'message with a quote "',
+        'escaped_quote' => 'message with an escaped quote \"',
+        'backslash' => "message with a backslash \ ",
+        'forward_slash' => "message with a forward slash / ",
+        'backspace' => 'message with a backspace \b ',
+        'form_feed' => "message with a form feed \f ",
+        'newline' => "message with a newline \n ",
+        'carriage_return' => "message with a carriage return \r",
+        'tab' => "message with a tab \t ",
+        'unicode' => "message with a unicode snowman ☃ ",
+        'unicode_hex' => "message with a unicode snowman \u2603  "
+      }
+      messages_to_escape.each do |name, message|
+        define_method "test_escape_message_#{name}" do
+          logger = DecoratingLogger.new @output
+          logger.info message
+          assert_equal message, last_message['message']
+        end
+      end
+
+
       if RUBY_VERSION >= '2.4.0'
         def test_constructor_arguments_level
           logger = DecoratingLogger.new @output, level: :error

@@ -65,7 +65,7 @@ module NewRelic
         end
 
         message << COMMA
-        add_key_value message, MESSAGE_KEY, msg2str(msg)
+        message << QUOTE << MESSAGE_KEY << QUOTE << COLON << escape(msg)
         message << COMMA
         add_key_value message, LOG_LEVEL_KEY, severity
         if progname
@@ -79,13 +79,20 @@ module NewRelic
       end
 
       def app_name
-        @app_name ||= Agent.config.app_names[0]
+        @app_name ||= Agent.config[:app_name][0]
       end
 
       def add_key_value message, key, value
         message << QUOTE << key << QUOTE << COLON << QUOTE << value << QUOTE
       end
 
+      def escape message
+        if String === message
+          message.to_json
+        else
+          message.inspect.to_json
+        end
+      end
     end
 
 
