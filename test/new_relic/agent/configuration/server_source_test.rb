@@ -121,6 +121,29 @@ module NewRelic::Agent::Configuration
       assert_metrics_recorded({"Supportability/EventHarvest/ReportPeriod" => {total_call_time: 5}})
     end
 
+    def test_should_correctly_handle_missing_event_type_from_event_harvest_config
+      modified_event_harvest_config = {
+          'report_period_ms' => 5000,
+          'harvest_limits'   => {
+            'analytic_event_data' => 833,
+            'custom_event_data'   => 833,
+            'error_event_data'    => 8,
+          }
+        }
+
+      @config['event_harvest_config'] = modified_event_harvest_config
+      @source = ServerSource.new(@config)
+
+      # Span events should fall back to default source
+      refute @source[:'span_events.max_samples_stored'], "Expected span events to be excluded from server source"
+
+      # The event report period and limits for other event types should still be in server source
+      assert_equal 5, @source[:'event_report_period']
+      assert_equal 833, @source[:'analytics_events.max_samples_stored']
+      assert_equal 833, @source[:'custom_insights_events.max_samples_stored']
+      assert_equal 8, @source[:'error_collector.max_event_samples_stored']
+    end
+
     def test_should_disable_gated_features_when_server_says_to
       rsp = {
         'collect_errors' => false,
