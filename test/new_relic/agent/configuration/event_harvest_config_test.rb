@@ -13,12 +13,14 @@ module NewRelic::Agent::Configuration
       config.add_config_for_testing(:'analytics_events.max_samples_stored' => 1000)
       config.add_config_for_testing(:'custom_insights_events.max_samples_stored' => 1000)
       config.add_config_for_testing(:'error_collector.max_event_samples_stored' => 1000)
+      config.add_config_for_testing(:'span_events.max_event_samples_stored' => 1000)
 
       expected = {
         :harvest_limits => {
           :analytic_event_data => 1000,
           :custom_event_data => 1000,
-          :error_event_data => 1000
+          :error_event_data => 1000,
+          :span_event_data => 1000
         }
       }
 
@@ -32,7 +34,8 @@ module NewRelic::Agent::Configuration
           'harvest_limits'   => {
             'analytic_event_data' => 833,
             'custom_event_data'   => 83,
-            'error_event_data'    => 8
+            'error_event_data'    => 8,
+            'span_event_data'     => 83
           }
         }
       }
@@ -41,6 +44,7 @@ module NewRelic::Agent::Configuration
         :'analytics_events.max_samples_stored' => 833,
         :'custom_insights_events.max_samples_stored' => 83,
         :'error_collector.max_event_samples_stored' => 8,
+        :'span_events.max_samples_stored' => 83,
         :event_report_period => 5
       }
       assert_equal expected, EventHarvestConfig.to_config_hash(connect_reply)

@@ -159,7 +159,8 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
       :harvest_limits => {
         :analytic_event_data => default_source[:'analytics_events.max_samples_stored'],
         :custom_event_data => default_source[:'custom_insights_events.max_samples_stored'],
-        :error_event_data => default_source[:'error_collector.max_event_samples_stored']
+        :error_event_data => default_source[:'error_collector.max_event_samples_stored'],
+        :span_event_data => default_source[:'span_events.max_samples_stored']
       }
     }
 
