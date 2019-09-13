@@ -101,7 +101,6 @@ module NewRelic
               || (event_harvest_config['report_period_ms'] / 1000) <= 0
             NewRelic::Agent.logger.warn "Invalid event harvest config found " \
                 "in connect response; using default event report period."
-            NewRelic::Agent.record_metric('Supportability/Agent/Collector/MissingEventHarvestConfig', 1)
             false
           else
             true
