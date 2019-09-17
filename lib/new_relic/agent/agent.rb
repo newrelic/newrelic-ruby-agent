@@ -594,8 +594,11 @@ module NewRelic
           SPAN_EVENT_DATA = "span_event_data".freeze
 
           def create_and_run_event_loop
+            data_harvest = :"#{Agent.config[:data_report_period]}_second_harvest"
+            event_harvest = :"#{Agent.config[:event_report_period]}_second_harvest"
+
             @event_loop = create_event_loop
-            @event_loop.on(:report_data) do
+            @event_loop.on(data_harvest) do
               transmit_data
             end
 
@@ -614,8 +617,8 @@ module NewRelic
             @event_loop.on(:reset_log_once_keys) do
               ::NewRelic::Agent.logger.clear_already_logged
             end
-            @event_loop.fire_every(Agent.config[:data_report_period], :"every_#{Agent.config[:data_report_period]}_seconds")
-            @event_loop.fire_every(Agent.config[:event_report_period], :"every_#{Agent.config[:event_report_period]}_seconds")
+            @event_loop.fire_every(Agent.config[:data_report_period], data_harvest)
+            @event_loop.fire_every(Agent.config[:event_report_period], event_harvest)
             @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD, :reset_log_once_keys)
 
             @event_loop.run
