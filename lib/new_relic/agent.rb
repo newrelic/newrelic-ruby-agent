@@ -31,7 +31,6 @@ module NewRelic
     require 'new_relic/metric_data'
     require 'new_relic/noticed_error'
     require 'new_relic/supportability_helper'
-    require 'new_relic/logging'
 
     require 'new_relic/agent/encoding_normalizer'
     require 'new_relic/agent/stats'
@@ -56,6 +55,7 @@ module NewRelic
     require 'new_relic/agent/system_info'
     require 'new_relic/agent/external'
     require 'new_relic/agent/deprecator'
+    require 'new_relic/agent/logging'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
