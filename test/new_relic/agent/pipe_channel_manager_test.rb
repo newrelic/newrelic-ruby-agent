@@ -117,7 +117,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
           :type => :controller,
           :priority => 0.5
         })
-        NewRelic::Agent.agent.send(:transmit_event_data)
+        NewRelic::Agent.agent.send(:transmit_analytic_event_data)
       end
 
       _, samples = transaction_event_aggregator.harvest!

@@ -30,6 +30,8 @@ module NewRelic
             |event_harvest_config, (connect_payload_key, config_key)|
               if harvest_limit = connect_reply['event_harvest_config']['harvest_limits'][connect_payload_key.to_s]
                 event_harvest_config[config_key] = harvest_limit
+                report_period_key = :"event_report_period.#{connect_payload_key}"
+                event_harvest_config[report_period_key] = connect_reply['event_harvest_config']['report_period_ms'] / 1000
               end
               event_harvest_config
             end
