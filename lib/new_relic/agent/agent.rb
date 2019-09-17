@@ -1082,20 +1082,24 @@ module NewRelic
           NewRelic::Agent.record_metric("Supportability/remote_unavailable/#{endpoint.to_s}", 0.0)
         end
 
+        TRANSACTION_EVENT = "TransactionEvent".freeze
         def transmit_analytic_event_data
-          transmit_single_data_type(:harvest_and_send_analytic_event_data, "TransactionEvent")
+          transmit_single_data_type(:harvest_and_send_analytic_event_data, TRANSACTION_EVENT)
         end
 
+        CUSTOM_EVENT = "CustomEvent".freeze
         def transmit_custom_event_data
-          transmit_single_data_type(:harvest_and_send_custom_event_data, "CustomEvent")
+          transmit_single_data_type(:harvest_and_send_custom_event_data, CUSTOM_EVENT)
         end
 
+        ERROR_EVENT = "ErrorEvent".freeze
         def transmit_error_event_data
-          transmit_single_data_type(:harvest_and_send_error_event_data, "ErrorEvent")
+          transmit_single_data_type(:harvest_and_send_error_event_data, ERROR_EVENT)
         end
 
+        SPAN_EVENT = "SpanEvent".freeze
         def transmit_span_event_data
-          transmit_single_data_type(:harvest_and_send_span_event_data, "SpanEvent")
+          transmit_single_data_type(:harvest_and_send_span_event_data, SPAN_EVENT)
         end
 
         def transmit_single_data_type(harvest_method, supportability_name)
