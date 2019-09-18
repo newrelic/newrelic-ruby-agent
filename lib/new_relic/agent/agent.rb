@@ -585,7 +585,7 @@ module NewRelic
           # on which to report them
           def interval_for event_type
             interval = Agent.config[:"event_report_period.#{event_type}"]
-            :"every_#{interval}_seconds"
+            :"#{interval}_second_harvest"
           end
 
           ANALYTIC_EVENT_DATA = "analytic_event_data".freeze
