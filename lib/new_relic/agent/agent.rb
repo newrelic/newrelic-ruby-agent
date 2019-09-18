@@ -1105,7 +1105,7 @@ module NewRelic
         def transmit_single_data_type(harvest_method, supportability_name)
           now = Time.now
 
-          msg = "Sending #{harvest_method.to_s.gsub("harvest_and_send_", "")} to New Relic Service"
+          msg = "Sending #{supportability_name} data to New Relic Service"
           ::NewRelic::Agent.logger.debug msg
 
           @service.session do # use http keep-alive
