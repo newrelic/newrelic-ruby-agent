@@ -586,6 +586,38 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Number of seconds betwixt connections to the New Relic event collection services.'
         },
+        :'event_report_period.analytic_event_data' => {
+          :default => 60,
+          :public => false,
+          :type => Integer,
+          :dynamic_name => true,
+          :allowed_from_server => true,
+          :description => 'Number of seconds betwixt connections to the New Relic analytic event collection services.'
+        },
+        :'event_report_period.custom_event_data' => {
+          :default => 60,
+          :public => false,
+          :type => Integer,
+          :dynamic_name => true,
+          :allowed_from_server => true,
+          :description => 'Number of seconds betwixt connections to the New Relic custom event collection services.'
+        },
+        :'event_report_period.error_event_data' => {
+          :default => 60,
+          :public => false,
+          :type => Integer,
+          :dynamic_name => true,
+          :allowed_from_server => true,
+          :description => 'Number of seconds betwixt connections to the New Relic error event collection services.'
+        },
+        :'event_report_period.span_event_data' => {
+          :default => 60,
+          :public => false,
+          :type => Integer,
+          :dynamic_name => true,
+          :allowed_from_server => true,
+          :description => 'Number of seconds betwixt connections to the New Relic span event collection services.'
+        },
         :'data_report_periods.analytic_event_data' => {
           :default => 60,
           :public => false,

@@ -21,7 +21,8 @@ module NewRelic::Agent::Configuration
           'harvest_limits'   => {
             'analytic_event_data' => 833,
             'custom_event_data'   => 833,
-            'error_event_data'    => 8
+            'error_event_data'    => 8,
+            'span_event_data'     => 83
           }
         },
         'apdex_t'                    => 1.0,
@@ -110,43 +111,37 @@ module NewRelic::Agent::Configuration
       assert_metrics_recorded({"Supportability/EventHarvest/ErrorEventData/HarvestLimit" => {total_call_time: 8}})
     end
 
+    def test_should_set_span_events_max_samples
+      assert_equal 83, @source[:'span_events.max_samples_stored']
+      assert_metrics_recorded({"Supportability/EventHarvest/SpanEventData/HarvestLimit" => {total_call_time: 83}})
+    end
+
     def test_should_set_event_report_period
       assert_equal 5, @source[:'event_report_period']
       assert_metrics_recorded({"Supportability/EventHarvest/ReportPeriod" => {total_call_time: 5}})
     end
 
-    def test_should_record_supportability_metric_on_missing_event_harvest_config
-      NewRelic::Agent.instance.stats_engine.reset!
-      @config.delete "event_harvest_config"
-      source = ServerSource.new(@config)
+    def test_should_correctly_handle_missing_event_type_from_event_harvest_config
+      modified_event_harvest_config = {
+          'report_period_ms' => 5000,
+          'harvest_limits'   => {
+            'analytic_event_data' => 833,
+            'custom_event_data'   => 833,
+            'error_event_data'    => 8,
+          }
+        }
 
-      assert_metrics_recorded(["Supportability/Agent/Collector/MissingEventHarvestConfig"])
-    end
+      @config['event_harvest_config'] = modified_event_harvest_config
+      @source = ServerSource.new(@config)
 
-    def test_should_record_supportability_metric_on_invalid_event_harvest_interval
-      @config['event_harvest_config']['report_period_ms'] = 0
-      source = ServerSource.new(@config)
+      # Span events should fall back to default source
+      refute @source[:'span_events.max_samples_stored'], "Expected span events to be excluded from server source"
 
-      assert_metrics_recorded(["Supportability/Agent/Collector/MissingEventHarvestConfig"])
-      # Also, the server source should not have these values set, so the agent
-      # will fall back to the default source
-      refute source[:'event_report_period']
-      refute source[:'error_collector.max_event_samples_stored']
-      refute source[:'custom_insights_events.max_samples_stored']
-      refute source[:'analytics_events.max_samples_stored']
-    end
-
-    def test_should_record_supportability_metric_on_invalid_event_max_samples_stored
-      @config['event_harvest_config']['harvest_limits']['error_event_data'] = -1
-      source = ServerSource.new(@config)
-
-      assert_metrics_recorded(["Supportability/Agent/Collector/MissingEventHarvestConfig"])
-      # Also, the server source should not have these values set, so the agent
-      # will fall back to the default source
-      refute source[:'event_report_period']
-      refute source[:'error_collector.max_event_samples_stored']
-      refute source[:'custom_insights_events.max_samples_stored']
-      refute source[:'analytics_events.max_samples_stored']
+      # The event report period and limits for other event types should still be in server source
+      assert_equal 5, @source[:'event_report_period']
+      assert_equal 833, @source[:'analytics_events.max_samples_stored']
+      assert_equal 833, @source[:'custom_insights_events.max_samples_stored']
+      assert_equal 8, @source[:'error_collector.max_event_samples_stored']
     end
 
     def test_should_disable_gated_features_when_server_says_to
