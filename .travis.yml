@@ -6,7 +6,10 @@ services:
 
 language: ruby
 
+dist: precise
 sudo: required
+jdk:
+  - oraclejdk8
 
 before_install:
   # RUBY-2072 Prevent Travis setup failure before our test even starts
@@ -15,6 +18,7 @@ before_install:
   - gem --version
   - ./test/script/before_install/update_rubygems.sh
   - rvm @global do gem uninstall bundler --all --executables || true
+  - gem uninstall bundler --all --executables || true
   - gem install bundler -v=1.17.3
   - ./test/script/before_install/gemstash_mirror.sh
   - bundle --version
