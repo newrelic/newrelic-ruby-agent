@@ -1,5 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.7.0
+
   * **Trace and Entity Metadata API**
 
     Several new API methods have been added to the agent:
