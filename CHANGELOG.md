@@ -17,6 +17,13 @@
     leverages the new trace and entity metadata API to decorate log statements with entity
     and trace metadata, so they can be correlated together in the New Relic UI.
 
+  * **Project metadata in Gemspec**
+
+     Project metadata has been added to the gemspec file. This means our Rubygems page will allow users to more easily
+     access the agent's source code, raise issues, and read the changelog.
+
+     Thanks to Orien Madgwick for the contribution!
+
 ## v6.6.0
 
   * **Bugfix for ActionCable Instrumentation**
