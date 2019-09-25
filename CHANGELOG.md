@@ -19,6 +19,8 @@
     leverages the new trace and entity metadata API to decorate log statements with entity
     and trace metadata, so they can be correlated together in the New Relic UI.
 
+    For more information on how to use logs in context, see https://docs.newrelic.com/docs/enable-logs-context-ruby
+
   * **Project metadata in Gemspec**
 
      Project metadata has been added to the gemspec file. This means our Rubygems page will allow users to more easily
