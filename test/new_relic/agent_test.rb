@@ -352,6 +352,66 @@ module NewRelic
       assert_metrics_recorded 'OtherTransaction/Background/new_name'
     end
 
+    def setup_linking_metadata_stubs app_names, hostname, entity_guid = nil
+      NewRelic::Agent.config.reset_to_defaults
+
+      yaml_source = NewRelic::Agent::Configuration::YamlSource.new '', 'test'
+      yaml_source[:app_name] = app_names
+      NewRelic::Agent.config.replace_or_add_config yaml_source
+
+      if entity_guid
+        response_handler = NewRelic::Agent::Connect::ResponseHandler.new(Agent.instance, Agent.config)
+        response_handler.configure_agent('entity_guid' => entity_guid)
+      end
+
+      NewRelic::Agent::Hostname.stubs(:get).returns(hostname)
+    end
+
+    def test_linking_metadata_before_connect
+      setup_linking_metadata_stubs 'AppName', 'HostName'
+      expected = {
+        'entity.name' => 'AppName',
+        'entity.type' => 'SERVICE',
+        'hostname' => 'HostName'
+      }
+
+      assert_equal expected, NewRelic::Agent.linking_metadata
+    end
+
+    def test_linking_metadata_after_connect
+      setup_linking_metadata_stubs 'AppName', 'HostName', 'EntityGUID'
+
+      trace_id = nil
+      span_id = nil
+      linking_metadata = nil
+      in_transaction do |txn|
+        trace_id = txn.trace_id
+        span_id = txn.current_segment.guid
+        linking_metadata = NewRelic::Agent.linking_metadata
+      end
+      expected = {
+        'entity.name' => 'AppName',
+        'entity.type' => 'SERVICE',
+        'entity.guid' => 'EntityGUID',
+        'hostname' => 'HostName',
+        'trace.id' => trace_id,
+        'span.id' => span_id
+      }
+      assert_equal expected, linking_metadata
+    end
+
+    def test_linking_metadata_no_transaction
+      setup_linking_metadata_stubs 'AppName', 'HostName', 'EntityGuid'
+
+      expected = {
+        'entity.name' => 'AppName',
+        'entity.type' => 'SERVICE',
+        'entity.guid' => 'EntityGuid',
+        'hostname' => 'HostName'
+      }
+      assert_equal expected, NewRelic::Agent.linking_metadata
+    end
+
     # It's not uncommon for customers to conclude a rescue block with a call to
     # notice_error.  We should always return nil, which mean less folks
     # unexpectedly get a noticed error Hash returned from their methods.

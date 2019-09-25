@@ -332,7 +332,7 @@ module NewRelic
           end
 
           def log_app_name
-            ::NewRelic::Agent.logger.info "Application: #{Agent.config.app_names.join(", ")}"
+            ::NewRelic::Agent.logger.info "Application: #{Agent.config[:app_name].join(", ")}"
           end
 
           def log_ignore_url_regexes
@@ -345,7 +345,7 @@ module NewRelic
 
           # Logs the configured application names
           def app_name_configured?
-            names = Agent.config.app_names
+            names = Agent.config[:app_name]
             return names.respond_to?(:any?) && names.any?
           end
 
@@ -561,7 +561,10 @@ module NewRelic
         def flush_pipe_data
           if connected? && @service.is_a?(::NewRelic::Agent::PipeService)
             transmit_data
-            transmit_event_data
+            transmit_analytic_event_data
+            transmit_custom_event_data
+            transmit_error_event_data
+            transmit_span_event_data
           end
         end
 
@@ -577,20 +580,46 @@ module NewRelic
 
           LOG_ONCE_KEYS_RESET_PERIOD = 60.0
 
+          # Certain event types may sometimes need to be on the same interval as metrics,
+          # so we will check config assigned in EventHarvestConfig to determine the interval
+          # on which to report them
+          def interval_for event_type
+            interval = Agent.config[:"event_report_period.#{event_type}"]
+            :"#{interval}_second_harvest"
+          end
+
+          ANALYTIC_EVENT_DATA = "analytic_event_data".freeze
+          CUSTOM_EVENT_DATA = "custom_event_data".freeze
+          ERROR_EVENT_DATA = "error_event_data".freeze
+          SPAN_EVENT_DATA = "span_event_data".freeze
+
           def create_and_run_event_loop
+            data_harvest = :"#{Agent.config[:data_report_period]}_second_harvest"
+            event_harvest = :"#{Agent.config[:event_report_period]}_second_harvest"
+
             @event_loop = create_event_loop
-            @event_loop.on(:report_data) do
+            @event_loop.on(data_harvest) do
               transmit_data
             end
-            @event_loop.on(:report_event_data) do
-              transmit_event_data
+
+            @event_loop.on(interval_for ANALYTIC_EVENT_DATA) do
+              transmit_analytic_event_data
+            end
+            @event_loop.on(interval_for CUSTOM_EVENT_DATA) do
+              transmit_custom_event_data
+            end
+            @event_loop.on(interval_for ERROR_EVENT_DATA) do
+              transmit_error_event_data
+            end
+            @event_loop.on(interval_for SPAN_EVENT_DATA) do
+              transmit_span_event_data
             end
             @event_loop.on(:reset_log_once_keys) do
               ::NewRelic::Agent.logger.clear_already_logged
             end
-            @event_loop.fire_every(Agent.config[:data_report_period],       :report_data)
-            @event_loop.fire_every(Agent.config[:event_report_period],      :report_event_data)
-            @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD,              :reset_log_once_keys)
+            @event_loop.fire_every(Agent.config[:data_report_period], data_harvest)
+            @event_loop.fire_every(Agent.config[:event_report_period], event_harvest)
+            @event_loop.fire_every(LOG_ONCE_KEYS_RESET_PERIOD, :reset_log_once_keys)
 
             @event_loop.run
           end
@@ -763,14 +792,14 @@ module NewRelic
             Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
           end
 
-          # Constructs and memoizes an event_harvest_config hash to be used in 
+          # Constructs and memoizes an event_harvest_config hash to be used in
           # the payload sent during connect (and reconnect)
           def event_harvest_config
             @event_harvest_config ||= Configuration::EventHarvestConfig.from_config(Agent.config)
           end
 
           # Builds the payload to send to the connect service,
-          # connects, then configures the agent using the response from 
+          # connects, then configures the agent using the response from
           # the connect service
           def connect_to_server
             request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new \
@@ -1019,15 +1048,18 @@ module NewRelic
         def harvest_and_send_analytic_event_data
           harvest_and_send_from_container(transaction_event_aggregator, :analytic_event_data)
           harvest_and_send_from_container(synthetics_event_aggregator,  :analytic_event_data)
-          harvest_and_send_from_container(@custom_event_aggregator,     :custom_event_data)
         end
 
-        def harvest_and_send_span_event_data
-          harvest_and_send_from_container(span_event_aggregator, :span_event_data)
+        def harvest_and_send_custom_event_data
+          harvest_and_send_from_container(@custom_event_aggregator, :custom_event_data)
         end
 
         def harvest_and_send_error_event_data
           harvest_and_send_from_container @error_collector.error_event_aggregator, :error_event_data
+        end
+
+        def harvest_and_send_span_event_data
+          harvest_and_send_from_container(span_event_aggregator, :span_event_data)
         end
 
         def check_for_and_handle_agent_commands
@@ -1050,18 +1082,30 @@ module NewRelic
           NewRelic::Agent.record_metric("Supportability/remote_unavailable/#{endpoint.to_s}", 0.0)
         end
 
-        def transmit_event_data
-          transmit_single_data_type(:harvest_and_send_analytic_event_data, "TransactionEvent")
+        TRANSACTION_EVENT = "TransactionEvent".freeze
+        def transmit_analytic_event_data
+          transmit_single_data_type(:harvest_and_send_analytic_event_data, TRANSACTION_EVENT)
         end
 
+        CUSTOM_EVENT = "CustomEvent".freeze
+        def transmit_custom_event_data
+          transmit_single_data_type(:harvest_and_send_custom_event_data, CUSTOM_EVENT)
+        end
+
+        ERROR_EVENT = "ErrorEvent".freeze
+        def transmit_error_event_data
+          transmit_single_data_type(:harvest_and_send_error_event_data, ERROR_EVENT)
+        end
+
+        SPAN_EVENT = "SpanEvent".freeze
         def transmit_span_event_data
-          transmit_single_data_type(:harvest_and_send_span_event_data, "SpanEvent")
+          transmit_single_data_type(:harvest_and_send_span_event_data, SPAN_EVENT)
         end
 
         def transmit_single_data_type(harvest_method, supportability_name)
           now = Time.now
 
-          msg = "Sending #{harvest_method.to_s.gsub("harvest_and_send_", "")} to New Relic Service"
+          msg = "Sending #{supportability_name} data to New Relic Service"
           ::NewRelic::Agent.logger.debug msg
 
           @service.session do # use http keep-alive
@@ -1108,7 +1152,10 @@ module NewRelic
 
               @events.notify(:before_shutdown)
               transmit_data
-              transmit_event_data
+              transmit_analytic_event_data
+              transmit_custom_event_data
+              transmit_error_event_data
+              transmit_span_event_data
 
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 ::NewRelic::Agent.logger.debug "Sending New Relic service agent run shutdown message"

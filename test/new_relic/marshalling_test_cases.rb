@@ -189,6 +189,9 @@ module MarshallingTestCases
   end
 
   def transmit_event_data
-    NewRelic::Agent.instance.send(:transmit_event_data)
+    NewRelic::Agent.instance.send(:transmit_analytic_event_data)
+    NewRelic::Agent.instance.send(:transmit_custom_event_data)
+    NewRelic::Agent.instance.send(:transmit_error_event_data)
+    NewRelic::Agent.instance.send(:transmit_span_event_data)
   end
 end

@@ -39,7 +39,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
     control.env = @environment if @environment
 
     load_yaml_from_env(control.env)
-    @appname ||= NewRelic::Agent.config.app_names[0] || control.env || 'development'
+    @appname ||= NewRelic::Agent.config[:app_name][0] || control.env || 'development'
     @license_key ||= NewRelic::Agent.config[:license_key]
 
     setup_logging(control.env)

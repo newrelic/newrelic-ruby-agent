@@ -15,7 +15,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
     t0 = nr_freeze_time
     NewRelic::Agent.record_custom_event(:DummyType, :foo => :bar, :baz => :qux)
 
-    NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+    NewRelic::Agent.agent.send(:harvest_and_send_custom_event_data)
     events = last_posted_events
     events.first[0].delete('priority')
 
@@ -41,7 +41,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
     NewRelic::Agent.record_custom_event(bad_event_type,  :foo => :bar)
     NewRelic::Agent.record_custom_event(good_event_type, :foo => :bar)
 
-    NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+    NewRelic::Agent.agent.send(:harvest_and_send_custom_event_data)
     events = last_posted_events
 
     assert_equal(1, events.size)
@@ -69,7 +69,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
       NewRelic::Agent.record_custom_event(:DummyType, :foo => :bar, :baz => :qux, :i => i)
     end
 
-    NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
+    NewRelic::Agent.agent.send(:harvest_and_send_custom_event_data)
     post = last_custom_event_post
 
     assert_equal({"reservoir_size"=>1000, "events_seen"=>10}, post.reservoir_metadata)

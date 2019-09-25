@@ -130,7 +130,10 @@ module MultiverseHelpers
 
   def run_harvest
     NewRelic::Agent.instance.send(:transmit_data)
-    NewRelic::Agent.instance.send(:transmit_event_data)
+    NewRelic::Agent.instance.send(:transmit_analytic_event_data)
+    NewRelic::Agent.instance.send(:transmit_custom_event_data)
+    NewRelic::Agent.instance.send(:transmit_error_event_data)
+    NewRelic::Agent.instance.send(:transmit_span_event_data)
   end
 
   def single_transaction_trace_posted

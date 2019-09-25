@@ -69,7 +69,7 @@ class StartUpTest < Minitest::Test
 
     NewRelic::Agent.after_fork
 
-    assert_equal('my great app', NewRelic::Agent.config[:app_name])
+    assert_equal(['my great app'], NewRelic::Agent.config[:app_name])
   end
 
   def test_agent_does_not_start_if_hsm_and_lasp_both_enabled

@@ -196,6 +196,15 @@ module NewRelic
           end
         end
 
+        SEMICOLON = ';'.freeze
+        def self.convert_to_list_on_semicolon value
+          case value
+          when Array then value
+          when String then value.split(SEMICOLON)
+          else []
+          end
+        end
+
         def self.convert_to_constant_list(raw_value)
           const_names = convert_to_list(raw_value)
           const_names.map! do |class_name|
@@ -291,7 +300,16 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :transform => DefaultSource.method(:convert_to_list_on_semicolon),
           :description => 'Specify the <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/installation-configuration/name-your-application">application name</a> used to aggregate data in the New Relic UI. To report data to <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/installation-configuration/using-multiple-names-app">multiple apps at the same time</a>, specify a list of names separated by a semicolon <code>;</code>. For example, <code>MyApp</code> or <code>MyStagingApp;Instance1</code>.'
+        },
+        :entity_guid => {
+          :default => nil,
+          :allow_nil => true,
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'The <a href="https://docs.newrelic.com/attribute-dictionary/span/entityguid">Entity GUID</a> for the entity running this agent.'
         },
         :monitor_mode => {
           :default => value_of(:enabled),
@@ -567,6 +585,38 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => true,
           :description => 'Number of seconds betwixt connections to the New Relic event collection services.'
+        },
+        :'event_report_period.analytic_event_data' => {
+          :default => 60,
+          :public => false,
+          :type => Integer,
+          :dynamic_name => true,
+          :allowed_from_server => true,
+          :description => 'Number of seconds betwixt connections to the New Relic analytic event collection services.'
+        },
+        :'event_report_period.custom_event_data' => {
+          :default => 60,
+          :public => false,
+          :type => Integer,
+          :dynamic_name => true,
+          :allowed_from_server => true,
+          :description => 'Number of seconds betwixt connections to the New Relic custom event collection services.'
+        },
+        :'event_report_period.error_event_data' => {
+          :default => 60,
+          :public => false,
+          :type => Integer,
+          :dynamic_name => true,
+          :allowed_from_server => true,
+          :description => 'Number of seconds betwixt connections to the New Relic error event collection services.'
+        },
+        :'event_report_period.span_event_data' => {
+          :default => 60,
+          :public => false,
+          :type => Integer,
+          :dynamic_name => true,
+          :allowed_from_server => true,
+          :description => 'Number of seconds betwixt connections to the New Relic span event collection services.'
         },
         :'data_report_periods.analytic_event_data' => {
           :default => 60,

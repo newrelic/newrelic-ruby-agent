@@ -1,5 +1,33 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.7.0
+
+  * **Trace and Entity Metadata API**
+
+    Several new API methods have been added to the agent:
+    * [`Agent#linking_metadata`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent#linking_metadata-instance_method)
+    * [`Tracer#trace_id`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent/Tracer#trace_id-class_method)
+    * [`Tracer#span_id`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent/Tracer#span_id-class_method)
+    * [`Tracer#sampled?`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent/Tracer#sampled?-class_method)
+
+    These API methods allow you to access information that can be used to link data of your choosing to a trace or entity.
+
+  * **Logs in Context**
+
+    This version of the agent includes a logger, which can be used in place of `::Logger`
+    from the standard library, or `ActiveSupport::Logger` from Rails.  This logger
+    leverages the new trace and entity metadata API to decorate log statements with entity
+    and trace metadata, so they can be correlated together in the New Relic UI.
+
+    For more information on how to use logs in context, see https://docs.newrelic.com/docs/enable-logs-context-ruby
+
+  * **Project metadata in Gemspec**
+
+     Project metadata has been added to the gemspec file. This means our Rubygems page will allow users to more easily
+     access the agent's source code, raise issues, and read the changelog.
+
+     Thanks to Orien Madgwick for the contribution!
+
 ## v6.6.0
 
   * **Bugfix for ActionCable Instrumentation**
