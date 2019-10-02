@@ -8,6 +8,9 @@ require 'new_relic/agent/configuration/yaml_source'
 
 class TestClass
   include NewRelic::Control::InstanceMethods
+  def stderr
+    @stderr ||= StringIO.new
+  end
 end
 
 class NewRelic::Control::InstanceMethodsTest < Minitest::Test
@@ -38,6 +41,13 @@ class NewRelic::Control::InstanceMethodsTest < Minitest::Test
     refute_has_config NewRelic::Agent::Configuration::HighSecuritySource
     @test.configure_agent('test', {:high_security => true})
     assert_has_config NewRelic::Agent::Configuration::HighSecuritySource
+  end
+
+  def test_configure_agent_invalid_yaml_logs_to_stderr
+    @test.stubs(:process_yaml).throws(StandardError.new('ha!'))
+    @test.configure_agent('invalid', {})
+    assert NewRelic::Agent.config.instance_variable_get(:@yaml_source).failed?
+    assert @test.stderr.string.start_with?("** [NewRelic] FATAL :")
   end
 
   def refute_has_config(clazz)

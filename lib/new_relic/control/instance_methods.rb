@@ -101,7 +101,13 @@ module NewRelic
         Agent.config.replace_or_add_config(manual)
 
         config_file_path = @config_file_override || Agent.config[:config_path]
-        Agent.config.replace_or_add_config(Agent::Configuration::YamlSource.new(config_file_path, env))
+        yaml_source = Agent::Configuration::YamlSource.new(config_file_path, env)
+        if yaml_source.failed?
+          yaml_source.failures.each do |msg|
+            stderr.puts Agent::AgentLogger.format_fatal_error(msg)
+          end
+        end
+        Agent.config.replace_or_add_config(yaml_source)
 
         if security_settings_valid? && Agent.config[:high_security]
           Agent.logger.info("Installing high security configuration based on local configuration")
@@ -172,6 +178,9 @@ module NewRelic
         '.'
       end
 
+      def stderr
+        STDERR
+      end
     end
     include InstanceMethods
   end
