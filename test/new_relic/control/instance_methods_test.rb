@@ -43,11 +43,22 @@ class NewRelic::Control::InstanceMethodsTest < Minitest::Test
     assert_has_config NewRelic::Agent::Configuration::HighSecuritySource
   end
 
-  def test_configure_agent_invalid_yaml_logs_to_stderr
+  def test_configure_agent_yaml_parse_error_logs_to_stderr
     @test.stubs(:process_yaml).throws(StandardError.new('ha!'))
     @test.configure_agent('invalid', {})
     assert NewRelic::Agent.config.instance_variable_get(:@yaml_source).failed?
     assert @test.stderr.string.start_with?("** [NewRelic] FATAL :")
+  end
+
+  def test_configure_agent_invalid_yaml_value_logs_to_stderr
+    config_path = File.expand_path(File.join(
+      File.dirname(__FILE__),
+      '..','..', 'config','newrelic.yml')
+    )
+    @test.configure_agent('invalid', {:config_path => config_path})
+    assert NewRelic::Agent.config.instance_variable_get(:@yaml_source).failed?
+    expected_err = "** [NewRelic] FATAL : Unexpected value (cultured groats) for 'enabled' in #{config_path}\n"
+    assert_equal expected_err, @test.stderr.string
   end
 
   def refute_has_config(clazz)
