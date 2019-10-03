@@ -121,7 +121,7 @@ module NewRelic
         def booleanify_values(config, *keys)
           # auto means defer to default
           keys.each do |option|
-            if config[option] == 'auto'
+            if 'auto' == config[option]
               config.delete(option)
             elsif !config[option].nil? && !is_boolean?(config[option])
               coerced_value = !!(config[option] =~ /yes|on|true/i)
@@ -134,7 +134,7 @@ module NewRelic
         end
 
         def is_boolean?(value)
-          value == !!value
+          !!value == value
         end
 
         def log_failure(*messages)
