@@ -44,10 +44,10 @@ class NewRelic::Control::InstanceMethodsTest < Minitest::Test
   end
 
   def test_configure_agent_yaml_parse_error_logs_to_stderr
-    @test.stubs(:process_yaml).throws(StandardError.new('ha!'))
+    NewRelic::Agent::Configuration::YamlSource.any_instance.stubs(:failed?).returns(true)
+    NewRelic::Agent::Configuration::YamlSource.any_instance.stubs(:failures).returns(['failure'])
     @test.configure_agent('invalid', {})
-    assert NewRelic::Agent.config.instance_variable_get(:@yaml_source).failed?
-    assert @test.stderr.string.start_with?("** [NewRelic] FATAL :")
+    assert_equal "** [NewRelic] FATAL : failure\n", @test.stderr.string
   end
 
   def test_configure_agent_invalid_yaml_value_logs_to_stderr
