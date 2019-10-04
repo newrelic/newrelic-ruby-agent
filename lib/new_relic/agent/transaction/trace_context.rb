@@ -9,7 +9,7 @@ require 'new_relic/agent/distributed_trace_metrics'
 module NewRelic
   module Agent
     class Transaction
-      attr_accessor :trace_context_data
+      attr_accessor :trace_context_header_data
       attr_writer   :trace_context_inserted
       attr_reader   :trace_state_payload
 
@@ -49,7 +49,7 @@ module NewRelic
             entry_key,
             payload.to_s
 
-          trace_context_data ? trace_context_data.trace_state(entry) : entry
+          trace_context_header_data ? trace_context_header_data.trace_state(entry) : entry
         end
 
         def create_trace_state_payload
@@ -70,13 +70,13 @@ module NewRelic
         end
 
 
-        def accept_trace_context trace_context_data
+        def accept_trace_context trace_context_header_data
           return unless trace_context_enabled?
           return false if check_trace_context_ignored
-          return false unless @trace_context_data = trace_context_data
-          @trace_id = @trace_context_data.trace_id
+          return false unless @trace_context_header_data = trace_context_header_data
+          @trace_id = @trace_context_header_data.trace_id
 
-          return false unless payload = trace_context_data.trace_state_payload
+          return false unless payload = trace_context_header_data.trace_state_payload
           return false unless payload.valid?
           @trace_state_payload = payload
 
@@ -112,7 +112,7 @@ module NewRelic
         SUPPORTABILITY_CREATE_BEFORE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/AcceptPayload/Ignored/CreateBeforeAccept".freeze
 
         def check_trace_context_ignored
-          if trace_context_data
+          if trace_context_header_data
             NewRelic::Agent.increment_metric SUPPORTABILITY_MULTIPLE_ACCEPT_TRACE_CONTEXT
             return true
           elsif trace_context_inserted?

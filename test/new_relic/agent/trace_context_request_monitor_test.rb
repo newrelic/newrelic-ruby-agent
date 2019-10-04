@@ -38,7 +38,7 @@ module NewRelic
           @events.notify(:before_call, carrier)
         end
 
-        refute_nil child_txn.trace_context_data
+        refute_nil child_txn.trace_context_header_data
         assert_equal parent_txn.guid, child_txn.parent_transaction_id
         assert_equal parent_txn.trace_id, child_txn.trace_id
       end
@@ -83,7 +83,7 @@ module NewRelic
           child_txn = in_transaction "receiving_txn" do |txn|
             @events.notify(:before_call, carrier)
           end
-          assert_nil child_txn.trace_context_data
+          assert_nil child_txn.trace_context_header_data
         end
       end
 
@@ -98,7 +98,7 @@ module NewRelic
           @events.notify(:before_call, carrier)
         end
 
-        assert_nil child_txn.trace_context_data
+        assert_nil child_txn.trace_context_header_data
       end
 
       def test_does_not_accept_malformed_trace_context
@@ -111,7 +111,7 @@ module NewRelic
           @events.notify(:before_call, carrier)
         end
 
-        assert_nil child_txn.trace_context_data
+        assert_nil child_txn.trace_context_header_data
       end
 
       def build_parent_transaction_headers

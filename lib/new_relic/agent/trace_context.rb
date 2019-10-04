@@ -57,9 +57,9 @@ module NewRelic
           trace_parent = extract_traceparent(format, carrier)
           return unless trace_parent_valid? trace_parent
 
-          if data = extract_tracestate(format, carrier, trace_state_entry_key)
-            data.trace_parent = trace_parent
-            data
+          if header_data = extract_tracestate(format, carrier, trace_state_entry_key)
+            header_data.trace_parent = trace_parent
+            header_data
           end
         end
 
@@ -121,7 +121,7 @@ module NewRelic
         def extract_tracestate format, carrier, trace_state_entry_key
           header_name = trace_state_header_for_format format
           header = carrier[header_name]
-          return Data.create if header.nil? || header.empty?
+          return HeaderData.create if header.nil? || header.empty?
 
           payload = nil
           trace_state_size = 0
@@ -141,7 +141,7 @@ module NewRelic
 
           trace_state_vendors.chomp! COMMA unless trace_state_vendors.empty?
 
-          Data.create trace_state_payload: payload ? decode_payload(payload) : nil,
+          HeaderData.create trace_state_payload: payload ? decode_payload(payload) : nil,
                       trace_state_entries: trace_state,
                       trace_state_size: trace_state_size,
                       trace_state_vendors: trace_state_vendors
@@ -152,7 +152,7 @@ module NewRelic
         end
       end
 
-      class Data
+      class HeaderData
         class << self
           def create trace_parent: nil,
                      trace_state_payload: nil,

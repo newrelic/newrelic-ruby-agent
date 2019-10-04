@@ -51,19 +51,19 @@ module NewRelic
           'tracestate'  => "190@nr=#{payload.to_s},other=asdf"
         }
 
-        tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
+        trace_context_header_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                trace_state_entry_key: "190@nr"
 
-        trace_parent = tracecontext_data.trace_parent
+        trace_parent = trace_context_header_data.trace_parent
 
         assert_equal '00', trace_parent['version']
         assert_equal 'a8e67265afe2773a3c611b94306ee5c2', trace_parent['trace_id']
         assert_equal 'fb1010463ea28a38', trace_parent['parent_id']
         assert_equal '01', trace_parent['trace_flags']
 
-        assert_equal payload.to_s, tracecontext_data.trace_state_payload.to_s
-        assert_equal 'new=entry,other=asdf', tracecontext_data.trace_state('new=entry')
+        assert_equal payload.to_s, trace_context_header_data.trace_state_payload.to_s
+        assert_equal 'new=entry,other=asdf', trace_context_header_data.trace_state('new=entry')
       end
 
       def test_parse_with_nr_at_end
@@ -74,19 +74,19 @@ module NewRelic
           'tracestate'  => "other=asdf,190@nr=#{payload.to_s}"
         }
 
-        tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
+        trace_context_header_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                trace_state_entry_key: "190@nr"
 
-        trace_parent = tracecontext_data.trace_parent
+        trace_parent = trace_context_header_data.trace_parent
 
         assert_equal '00', trace_parent['version']
         assert_equal 'a8e67265afe2773a3c611b94306ee5c2', trace_parent['trace_id']
         assert_equal 'fb1010463ea28a38', trace_parent['parent_id']
         assert_equal '01', trace_parent['trace_flags']
 
-        assert_equal payload.to_s, tracecontext_data.trace_state_payload.to_s
-        assert_equal 'new=entry,other=asdf', tracecontext_data.trace_state('new=entry')
+        assert_equal payload.to_s, trace_context_header_data.trace_state_payload.to_s
+        assert_equal 'new=entry,other=asdf', trace_context_header_data.trace_state('new=entry')
       end
 
       def test_parse_with_nr_middle
@@ -97,47 +97,47 @@ module NewRelic
           'tracestate'  => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
         }
 
-        tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
+        trace_context_header_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                trace_state_entry_key: "190@nr"
 
-        trace_parent = tracecontext_data.trace_parent
+        trace_parent = trace_context_header_data.trace_parent
 
         assert_equal '00', trace_parent['version']
         assert_equal 'a8e67265afe2773a3c611b94306ee5c2', trace_parent['trace_id']
         assert_equal 'fb1010463ea28a38', trace_parent['parent_id']
         assert_equal '01', trace_parent['trace_flags']
 
-        assert_equal payload.to_s, tracecontext_data.trace_state_payload.to_s
-        assert_equal 'new=entry,other=asdf,otherother=asdfasdf', tracecontext_data.trace_state('new=entry')
+        assert_equal payload.to_s, trace_context_header_data.trace_state_payload.to_s
+        assert_equal 'new=entry,other=asdf,otherother=asdfasdf', trace_context_header_data.trace_state('new=entry')
       end
 
       def test_parse_tracestate_no_other_entries
         payload = make_payload
         carrier = make_inbound_carrier({'tracestate' => "190@nr=#{payload.to_s}"})
-        tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
+        trace_context_header_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                trace_state_entry_key: "190@nr"
-        assert_equal payload.to_s, tracecontext_data.trace_state_payload.to_s
-        assert_equal 'new=entry', tracecontext_data.trace_state('new=entry')
+        assert_equal payload.to_s, trace_context_header_data.trace_state_payload.to_s
+        assert_equal 'new=entry', trace_context_header_data.trace_state('new=entry')
       end
 
       def test_parse_tracestate_no_nr_entry
         carrier = make_inbound_carrier
-        tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
+        trace_context_header_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                trace_state_entry_key: "190@nr"
-        assert_equal nil, tracecontext_data.trace_state_payload
-        assert_equal 'new=entry,other=asdf', tracecontext_data.trace_state('new=entry')
+        assert_equal nil, trace_context_header_data.trace_state_payload
+        assert_equal 'new=entry,other=asdf', trace_context_header_data.trace_state('new=entry')
       end
 
       def test_parse_tracestate_nr_entry_malformed
         carrier = make_inbound_carrier({'tracestate' => "190@nr=somethingincorrect"})
-        tracecontext_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
+        trace_context_header_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                                carrier: carrier,
                                                trace_state_entry_key: "190@nr"
-        refute tracecontext_data.trace_state_payload
-        assert_equal 'new=entry', tracecontext_data.trace_state('new=entry')
+        refute trace_context_header_data.trace_state_payload
+        assert_equal 'new=entry', trace_context_header_data.trace_state('new=entry')
         assert_metrics_recorded "Supportability/TraceContext/Accept/Ignored/InvalidPayload"
       end
 

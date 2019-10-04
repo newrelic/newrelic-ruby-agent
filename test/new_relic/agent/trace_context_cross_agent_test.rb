@@ -234,16 +234,16 @@ module NewRelic
 
       def trace_context_headers_to_hash carrier
         entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
-        data = NewRelic::Agent::TraceContext.parse \
+        header_data = NewRelic::Agent::TraceContext.parse \
             carrier: carrier,
             trace_state_entry_key: entry_key
-        tracestate = object_to_hash data.trace_state_payload
+        tracestate = object_to_hash header_data.trace_state_payload
         tracestate['tenant_id'] = entry_key.sub '@nr', ''
-        tracestate['parent_type'] = data.trace_state_payload.parent_type
-        tracestate['parent_application_id'] = data.trace_state_payload.parent_app_id
-        tracestate['span_id'] = data.trace_state_payload.id
+        tracestate['parent_type'] = header_data.trace_state_payload.parent_type
+        tracestate['parent_application_id'] = header_data.trace_state_payload.parent_app_id
+        tracestate['span_id'] = header_data.trace_state_payload.id
         {
-          'traceparent' => data.trace_parent,
+          'traceparent' => header_data.trace_parent,
           'tracestate' => tracestate
         }
       end
