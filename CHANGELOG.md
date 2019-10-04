@@ -2,8 +2,8 @@
 
   * **Bugfix for parsing invalid newrelic.yml**
 
-    Previously, if the newrelic.yml configuration file was invalid, and the agent cannot
-    start as a result, the agent would not start, and would not log any indication of
+    Previously, if the newrelic.yml configuration file was invalid, and the agent
+    could not start as a result, the agent would not log any indication of
     the problem.
 
     This version of the agent will emit a FATAL message to STDOUT when this scenario
