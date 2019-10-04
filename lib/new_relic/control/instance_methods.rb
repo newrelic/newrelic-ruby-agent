@@ -104,7 +104,7 @@ module NewRelic
         yaml_source = Agent::Configuration::YamlSource.new(config_file_path, env)
         if yaml_source.failed?
           yaml_source.failures.each do |msg|
-            stderr.puts Agent::AgentLogger.format_fatal_error(msg)
+            stdout.puts Agent::AgentLogger.format_fatal_error(msg)
           end
         end
         Agent.config.replace_or_add_config(yaml_source)
@@ -178,8 +178,8 @@ module NewRelic
         '.'
       end
 
-      def stderr
-        STDERR
+      def stdout
+        STDOUT
       end
     end
     include InstanceMethods
