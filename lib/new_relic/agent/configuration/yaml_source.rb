@@ -12,6 +12,7 @@ module NewRelic
         attr_reader :generated_for_user, :license_key
 
         def initialize(path, env)
+          @path = path
           config    = {}
           @failures = []
 
@@ -118,23 +119,27 @@ module NewRelic
         end
 
         def booleanify_values(config, *keys)
-          # auto means defer ro default
+          # auto means defer to default
           keys.each do |option|
-            if config[option] == 'auto'
+            if 'auto' == config[option]
               config.delete(option)
             elsif !config[option].nil? && !is_boolean?(config[option])
-              config[option] = !!(config[option] =~ /yes|on|true/i)
+              coerced_value = !!(config[option] =~ /yes|on|true/i)
+              if !coerced_value
+                log_failure "Unexpected value (#{config[option]}) for '#{option}' in #{@path}"
+              end
+              config[option] = coerced_value
             end
           end
         end
 
         def is_boolean?(value)
-          value == !!value
+          !!value == value
         end
 
         def log_failure(*messages)
           ::NewRelic::Agent.logger.error(*messages)
-          @failures << messages
+          messages.each { |message| @failures << message }
         end
       end
     end

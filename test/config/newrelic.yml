@@ -44,3 +44,6 @@ test:
 
 development:
   host: the.wrong.host
+
+invalid:
+  enabled: 'cultured groats'
