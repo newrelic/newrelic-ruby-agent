@@ -34,7 +34,7 @@ module NewRelic
             :'trace_context.enabled' => true
           }
 
-          with_config(config) do
+          with_server_source(config) do
             run_test_case(test_case)
           end
         end
