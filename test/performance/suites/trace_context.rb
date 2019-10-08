@@ -56,8 +56,4 @@ class TraceContext < Performance::TestCase
       end
     end
   end
-
-  def test_trace_context_monitor_call
-
-  end
 end
