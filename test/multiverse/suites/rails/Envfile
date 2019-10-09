@@ -5,6 +5,7 @@ if RUBY_VERSION >= '2.5.0'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '2.0.0'
     gem 'minitest', '5.2.3'
+    gem 'sprockets', '3.7.2'
   RB
 
 end
@@ -16,6 +17,7 @@ if RUBY_VERSION >= '2.2.2'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '~>1.0.0'
     gem 'minitest', '5.2.3'
+    gem 'sprockets', '3.7.2'
   RB
 
   gemfile <<-RB
@@ -23,6 +25,7 @@ if RUBY_VERSION >= '2.2.2'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '~>1.0.0'
     gem 'minitest', '5.2.3'
+    gem 'sprockets', '3.7.2'
   RB
 
   gemfile <<-RB
@@ -30,6 +33,7 @@ if RUBY_VERSION >= '2.2.2'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '~>1.0.0'
     gem 'minitest', '5.2.3'
+    gem 'sprockets', '3.7.2'
   RB
 end
 
