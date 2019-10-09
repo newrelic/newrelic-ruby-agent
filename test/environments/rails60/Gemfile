@@ -8,6 +8,7 @@ gem 'minitest', '5.2.3'
 gem 'mocha', '1.1', :require => false
 gem 'rack'
 gem 'rack-test'
+gem 'sprockets', '3.7.2'
 
 platforms :jruby do
   gem "jruby-openssl"
