@@ -36,7 +36,7 @@ module NewRelic
           self.trace_context_inserted = true
           NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_SUCCESS
           true
-        rescue
+        rescue Exception => e
           NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_EXCEPTION
           NewRelic::Agent.logger.warn "Failed to create trace context payload", e
           false
