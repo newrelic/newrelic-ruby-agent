@@ -188,7 +188,7 @@ module NewRelic
             txn.accept_trace_context trace_context_header_data
           end
 
-          assert_equal parent_txn.guid, child_txn.parent_transaction_id
+          assert_nil child_txn.parent_transaction_id
           assert_equal parent_txn.trace_id, child_txn.trace_id
           assert_equal parent_txn.sampled?, child_txn.sampled?
           assert_equal parent_txn.priority, child_txn.priority
@@ -295,8 +295,7 @@ module NewRelic
             end
           end
 
-          assert_equal txn_one.guid, txn_two.parent_transaction_id
-          assert txn_two.parent_transaction_id
+          assert_nil txn_two.parent_transaction_id
           assert_equal txn_one.trace_id, txn_two.trace_id
         end
 
@@ -341,7 +340,6 @@ module NewRelic
           assert_equal '190', payload.parent_account_id
           assert_equal '46954', payload.parent_app_id
           assert_equal parent_id, payload.id
-          assert_equal txn.guid, payload.transaction_id
           assert_equal txn.sampled?, payload.sampled
           assert_equal txn.priority, payload.priority
           assert_equal now_ms, payload.timestamp

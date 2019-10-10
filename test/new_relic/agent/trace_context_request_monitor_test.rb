@@ -39,7 +39,7 @@ module NewRelic
         end
 
         refute_nil child_txn.trace_context_header_data
-        assert_equal parent_txn.guid, child_txn.parent_transaction_id
+        assert_nil child_txn.parent_transaction_id
         assert_equal parent_txn.trace_id, child_txn.trace_id
       end
 

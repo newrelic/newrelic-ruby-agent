@@ -24,13 +24,12 @@ module NewRelic
                    parent_account_id: nil,
                    parent_app_id: nil,
                    id: nil,
-                   transaction_id: nil,
                    sampled: nil,
                    priority: nil,
                    timestamp: now_ms
 
           new version, parent_type, parent_account_id, parent_app_id, id,
-              transaction_id, sampled, priority, timestamp
+              sampled, priority, timestamp
         end
 
         include NewRelic::Coerce
@@ -44,10 +43,9 @@ module NewRelic
             parent_account_id: attrs[2],
             parent_app_id: attrs[3],
             id: value_or_nil(attrs[4]),
-            transaction_id: value_or_nil(attrs[5]),
-            sampled: value_or_nil(attrs[6]) ? boolean_int!(attrs[6]) == 1 : nil,
-            priority: float!(attrs[7]),
-            timestamp: int!(attrs[8])
+            sampled: value_or_nil(attrs[5]) ? boolean_int!(attrs[5]) == 1 : nil,
+            priority: float!(attrs[6]),
+            timestamp: int!(attrs[7])
           handle_invalid_payload message: 'payload missing attributes' unless payload.valid?
           payload
         rescue => e
@@ -75,7 +73,6 @@ module NewRelic
                     :parent_account_id,
                     :parent_app_id,
                     :id,
-                    :transaction_id,
                     :sampled,
                     :priority,
                     :timestamp
@@ -83,13 +80,12 @@ module NewRelic
       alias_method :sampled?, :sampled
 
       def initialize version, parent_type_id, parent_account_id, parent_app_id,
-                     id, transaction_id, sampled, priority, timestamp
+                     id, sampled, priority, timestamp
         @version = version
         @parent_type_id = parent_type_id
         @parent_account_id = parent_account_id
         @parent_app_id = parent_app_id
         @id = id
-        @transaction_id = transaction_id
         @sampled = sampled
         @priority = priority
         @timestamp = timestamp
@@ -123,7 +119,6 @@ module NewRelic
         result << DELIMITER << parent_account_id
         result << DELIMITER << parent_app_id
         result << DELIMITER << (id || EMPTY)
-        result << DELIMITER << (transaction_id || EMPTY)
         result << DELIMITER << (sampled ? TRUE_CHAR : FALSE_CHAR)
         result << DELIMITER << priority.to_s
         result << DELIMITER << timestamp.to_s
