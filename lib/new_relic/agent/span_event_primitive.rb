@@ -146,7 +146,7 @@ module NewRelic
         elsif segment.transaction && segment.transaction.distributed_trace_payload
           segment.transaction.distributed_trace_payload.id
         elsif segment.transaction && segment.transaction.trace_state_payload
-          segment.transaction.trace_state_payload.id
+          segment.transaction.trace_context_header_data.parent_id
         end
       end
 
