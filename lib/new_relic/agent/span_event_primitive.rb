@@ -119,10 +119,13 @@ module NewRelic
 
         if segment.parent.nil?
           intrinsics[ENTRY_POINT_KEY] = true
-          if segment.transaction && segment.transaction.trace_context_header_data
-            trace_context_header_data = segment.transaction.trace_context_header_data
-            intrinsics[CLOSEST_NR_PARENT_KEY] = segment.transaction.trace_context_payload.parent_id
-            intrinsics[TRACE_STATE_VENDORS_KEY] = trace_context_header_data.trace_state_vendors
+          if segment.transaction
+            if segment.transaction.trace_context_header_data
+              intrinsics[TRACE_STATE_VENDORS_KEY] = segment.transaction.trace_context_header_data.trace_state_vendors
+            end
+            if segment.transaction.trace_context_payload
+              intrinsics[CLOSEST_NR_PARENT_KEY] = segment.transaction.trace_context_payload.parent_id
+            end
           end
         end
 
