@@ -123,8 +123,8 @@ module NewRelic
             if segment.transaction.trace_context_header_data
               intrinsics[TRACE_STATE_VENDORS_KEY] = segment.transaction.trace_context_header_data.trace_state_vendors
             end
-            if segment.transaction.trace_context_payload
-              intrinsics[CLOSEST_NR_PARENT_KEY] = segment.transaction.trace_context_payload.parent_id
+            if segment.transaction.trace_state_payload
+              intrinsics[CLOSEST_NR_PARENT_KEY] = segment.transaction.trace_state_payload.id
             end
           end
         end
