@@ -36,7 +36,7 @@ module NewRelic
       PEER_HOSTNAME_KEY    = 'peer.hostname'.freeze
       SPAN_KIND_KEY        = 'span.kind'.freeze
       ENTRY_POINT_KEY      = 'nr.entryPoint'.freeze
-      CLOSEST_NR_PARENT_KEY  = "closestNrParent".freeze
+      CLOSEST_NR_PARENT_KEY  = "traceContext.closestNrParent".freeze
       TRACE_STATE_VENDORS_KEY = "traceContext.traceStateVendors".freeze
 
       # Strings for static values of the event structure
