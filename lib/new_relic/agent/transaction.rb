@@ -75,7 +75,8 @@ module NewRelic
                   :segments,
                   :end_time,
                   :duration,
-                  :parent_transaction_id
+                  :parent_transaction_id,
+                  :parent_span_id
 
       attr_writer :sampled,
                   :priority

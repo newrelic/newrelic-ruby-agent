@@ -61,15 +61,15 @@ module NewRelic
         destination[SAMPLED_KEY] = transaction.sampled?
         destination[TRACE_ID_KEY] = transaction.trace_id
 
+        if transaction.parent_span_id
+          destination[PARENT_SPAN_ID_KEY] = transaction.parent_span_id
+        end
+
         if distributed_trace_payload
           destination[PARENT_TYPE_KEY] = distributed_trace_payload.parent_type
           destination[PARENT_APP_KEY] = distributed_trace_payload.parent_app_id
           destination[PARENT_ACCOUNT_ID_KEY] = distributed_trace_payload.parent_account_id
           destination[PARENT_TRANSPORT_TYPE_KEY] = DistributedTraceTransportType.from distributed_trace_payload.caller_transport_type
-
-          if distributed_trace_payload.id
-            destination[PARENT_SPAN_ID_KEY] = distributed_trace_payload.id
-          end
 
           destination[PARENT_TRANSPORT_DURATION_KEY] = transaction.calculate_transport_duration distributed_trace_payload
 

@@ -75,6 +75,7 @@ module NewRelic
           return false if check_trace_context_ignored
           return false unless @trace_context_header_data = trace_context_header_data
           @trace_id = @trace_context_header_data.trace_id
+          @parent_span_id = @trace_context_header_data.parent_id
 
           return false unless payload = trace_context_header_data.trace_state_payload
           return false unless payload.valid?

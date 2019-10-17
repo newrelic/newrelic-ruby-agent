@@ -154,6 +154,7 @@ module NewRelic
           self.distributed_trace_payload = payload
           @trace_id = payload.trace_id
           @parent_transaction_id = payload.transaction_id
+          @parent_span_id = payload.id
 
           unless payload.sampled.nil?
             self.sampled = payload.sampled
