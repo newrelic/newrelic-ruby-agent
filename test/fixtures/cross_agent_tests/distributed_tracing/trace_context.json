@@ -1129,7 +1129,8 @@
       },
       "Span": {
         "exact": {
-          "parentId": "b4a146e3237b4df1"
+          "parentId": "b4a146e3237b4df1",
+          "traceContext.traceStateVendors": "foo,bar"
         },
         "expected": ["transactionId"],
         "unexpected": [
@@ -1306,7 +1307,7 @@
   {
     "test_name": "multiple_new_relic_trace_state_entries",
     "trusted_account_key": "33",
-    "account_id": "33",
+    "account_id": "99",
     "web_transaction": true,
     "raises_exception": false,
     "force_sampled_true": false,
@@ -1314,8 +1315,8 @@
     "transport_type": "HTTP",
     "inbound_headers": [
       {
-        "traceparent": "00-87b1c9a429205b25e5b687d890d4821f-7d3efb1b173fecfa-00",
-        "tracestate": "44@nr=0-0-11-2827902-7d3efb1b173fecfa-0-0.123456-1518469636035,33@nr=0-0-33-2827902-7d3efb1b173fecfa-1-1.234567-1518469636025"
+        "traceparent": "00-87b1c9a429205b25e5b687d890d4821f-afe162ae3117a892-00",
+        "tracestate": "44@nr=0-0-11-30299-afe162ae3117a892-0-0.123456-1518469636035,33@nr=0-0-33-2827902-7d3efb1b173fecfa-1-1.234567-1518469636025"
       }
     ],
     "outbound_payloads": [
@@ -1326,16 +1327,16 @@
           "tracestate.tenant_id": "33",
           "tracestate.version": 0,
           "tracestate.parent_type": "App",
-          "tracestate.parent_account_id": "33"
+          "tracestate.parent_account_id": "99",
+          "tracestate.sampled": true,
+          "tracestate.priority": 1.234567
         },
         "expected": [
           "traceparent.trace_flags",
           "traceparent.parent_id",
           "tracestate.span_id",
           "tracestate.parent_application_id",
-          "tracestate.timestamp",
-          "tracestate.sampled",
-          "tracestate.priority"
+          "tracestate.timestamp"
         ],
         "vendors": [
           "44@nr"
@@ -1359,14 +1360,16 @@
           "parent.app": "2827902",
           "parent.account": "33",
           "parent.transportType": "HTTP",
-          "parentSpanId": "7d3efb1b173fecfa"
+          "parentSpanId": "afe162ae3117a892"
         },
         "expected": ["parent.transportDuration"],
         "unexpected": ["parentId"]
       },
       "Span": {
         "exact": {
-          "parentId": "7d3efb1b173fecfa"
+          "parentId": "afe162ae3117a892",
+          "traceContext.closestNrParent": "7d3efb1b173fecfa",
+          "traceContext.traceStateVendors": "44@nr"
         },
         "expected": ["transactionId"],
         "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
