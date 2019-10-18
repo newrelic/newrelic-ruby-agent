@@ -45,6 +45,7 @@ module NewRelic
         def create_trace_state
           entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
           payload = create_trace_state_payload
+
           entry = NewRelic::Agent::TraceContext.create_trace_state_entry \
             entry_key,
             payload.to_s
@@ -55,17 +56,16 @@ module NewRelic
         def create_trace_state_payload
           return unless trace_context_enabled?
 
-          payload = TraceContextPayload.create \
-            parent_account_id:  Agent.config[:account_id],
-            parent_app_id:  Agent.config[:primary_application_id],
-            sampled:  sampled?,
-            priority:  priority
-
-          if Agent.config[:'span_events.enabled'] && sampled?
-            payload.id = current_segment.guid
+          if Agent.config[:'span_events.enabled']
+            TraceContextPayload.create \
+              parent_account_id:  Agent.config[:account_id],
+              parent_app_id:  Agent.config[:primary_application_id],
+              sampled:  sampled?,
+              priority:  priority,
+              id: current_segment.guid
+          elsif trace_context_header_data
+            trace_context_header_data.trace_state_payload
           end
-
-          payload
         end
 
 
