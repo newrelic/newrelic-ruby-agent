@@ -22,6 +22,8 @@ module NewRelic
         SUPPORTABILITY_MULTIPLE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/Accept/Ignored/Multiple".freeze
         SUPPORTABILITY_CREATE_BEFORE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/Accept/Ignored/CreateBeforeAccept".freeze
 
+        EMPTY = ''.freeze
+
         def insert_trace_context \
             format: NewRelic::Agent::TraceContext::FORMAT_HTTP,
             carrier: nil
@@ -46,9 +48,13 @@ module NewRelic
           entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
           payload = create_trace_state_payload
 
-          entry = NewRelic::Agent::TraceContext.create_trace_state_entry \
-            entry_key,
-            payload.to_s
+          if payload
+            entry = NewRelic::Agent::TraceContext.create_trace_state_entry \
+              entry_key,
+              payload.to_s
+          else
+            entry = EMPTY
+          end
 
           trace_context_header_data ? trace_context_header_data.trace_state(entry) : entry
         end

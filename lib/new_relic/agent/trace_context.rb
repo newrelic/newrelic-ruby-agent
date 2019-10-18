@@ -48,7 +48,7 @@ module NewRelic
             trace_flags: trace_flags
 
           trace_state_header = trace_state_header_for_format format
-          carrier[trace_state_header] = trace_state if trace_state
+          carrier[trace_state_header] = trace_state if trace_state && !trace_state.empty?
         end
 
         def parse format: FORMAT_HTTP,

@@ -245,11 +245,15 @@ module NewRelic
         header_data = NewRelic::Agent::TraceContext.parse \
             carrier: carrier,
             trace_state_entry_key: entry_key
-        tracestate = object_to_hash header_data.trace_state_payload
-        tracestate['tenant_id'] = entry_key.sub '@nr', ''
-        tracestate['parent_type'] = header_data.trace_state_payload.parent_type
-        tracestate['parent_application_id'] = header_data.trace_state_payload.parent_app_id
-        tracestate['span_id'] = header_data.trace_state_payload.id
+        if header_data.trace_state_payload
+          tracestate = object_to_hash header_data.trace_state_payload
+          tracestate['tenant_id'] = entry_key.sub '@nr', ''
+          tracestate['parent_type'] = header_data.trace_state_payload.parent_type
+          tracestate['parent_application_id'] = header_data.trace_state_payload.parent_app_id
+          tracestate['span_id'] = header_data.trace_state_payload.id
+        else
+          tracestate = nil
+        end
         {
           'traceparent' => header_data.trace_parent,
           'tracestate' => tracestate
