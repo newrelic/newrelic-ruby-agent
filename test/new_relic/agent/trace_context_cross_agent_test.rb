@@ -159,6 +159,14 @@ module NewRelic
                        %Q|Wrong "#{k}" #{event_type} attribute; expected #{v.inspect}, was #{actual_attributes[k.to_s].inspect}|
         end
 
+        (test_case_attributes['notequal'] || []).each do |k, v|
+          refute_equal(
+            v,
+            actual_attributes[k.to_s],
+            "#{event_type} #{k.to_s.inspect} attribute should not equal #{v.inspect}"
+            )
+        end
+
         (test_case_attributes['expected'] || []).each do |key|
           assert actual_attributes.has_key?(key),
                  %Q|Missing expected #{event_type} attribute "#{key}"|
