@@ -167,6 +167,10 @@ module NewRelic
 
           DistributedTraceMetrics.record_metrics_for_transaction self
         end
+
+        def nr_distributed_tracing_enabled?
+          Agent.config[:'distributed_tracing.enabled'] && Agent.config[:'distributed_tracing.format' == 'nr'] && Agent.instance.connected?
+        end
       end
     end
   end

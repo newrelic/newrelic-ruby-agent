@@ -132,9 +132,8 @@ module NewRelic
       end
 
       def trace_context_enabled?
-        Agent.config[:'trace_context.enabled'] && Agent.instance.connected?
+        Agent.config[:'distributed_tracing.enabled'] && Agent.config[:'distributed_tracing.format' == 'w3c'] && Agent.instance.connected?
       end
-
     end
   end
 end
