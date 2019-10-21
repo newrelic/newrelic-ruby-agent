@@ -218,6 +218,16 @@ module NewRelic
           end
           const_names.compact
         end
+
+        def self.enforce_fallback(allowed_values: nil, fallback: nil)
+          Proc.new do |configured_value|
+            if allowed_values.include? String(configured_value).downcase  # allowed_values should be lowercase strings
+              configured_value
+            else
+              fallback
+            end
+          end
+        end
       end
 
       AUTOSTART_DENYLISTED_RAKE_TASKS = [
@@ -1878,6 +1888,16 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Distributed tracing lets you see the path that a request takes through your distributed system. Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the <a href="https://docs.newrelic.com/docs/transition-guide-distributed-tracing">transition guide</a> before you enable this feature.'
         },
+        :'distributed_tracing.format' => {
+          :default => 'nr',
+          :public => true,
+          :type => String,
+          :transform => DefaultSource.enforce_fallback(
+            allowed_values: ['w3c', 'nr'],
+            fallback: 'nr'),
+          :allowed_from_server => false,
+          :description => 'The format to use for distributed tracing if it is enabled. Options are w3c for W3C Trace Context or nr for New Relic Distriburted Tracing. Defaults to New Relic Distributed Tracing.'
+        },
         :trusted_account_key => {
           :default => nil,
           :allow_nil => true,
@@ -1913,13 +1933,6 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => true,
           :description => 'Defines the maximum number of span events reported from a single harvest.'
-        },
-        :'trace_context.enabled' => {
-          :default => false,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => false,
-          :description => 'Uses W3C trace context for context propagation.'
         }
       }.freeze
     end
