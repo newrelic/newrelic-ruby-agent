@@ -24,6 +24,7 @@ module NewRelic
       end
 
       def record_metrics_for_transaction transaction
+        return unless Agent.config[:'distributed_tracing.enabled']
         payload = if transaction.distributed_trace_payload
           transaction.distributed_trace_payload
         elsif transaction.trace_state_payload

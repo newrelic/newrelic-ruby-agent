@@ -122,8 +122,10 @@ module NewRelic
         @trace_context_inserted ||=  false
       end
 
+      W3C_FORMAT = "w3c".freeze
+
       def trace_context_enabled?
-        Agent.config[:'distributed_tracing.enabled'] && (Agent.config[:'distributed_tracing.format'] == 'w3c') && Agent.instance.connected?
+        Agent.config[:'distributed_tracing.enabled'] && (Agent.config[:'distributed_tracing.format'] == W3C_FORMAT) && Agent.instance.connected?
       end
     end
   end

@@ -221,7 +221,7 @@ module NewRelic
 
         def self.enforce_fallback(allowed_values: nil, fallback: nil)
           Proc.new do |configured_value|
-            if allowed_values.include? String(configured_value).downcase  # allowed_values should be lowercase strings
+            if allowed_values.any? { |v| v =~ /#{configured_value}/i }
               configured_value
             else
               fallback

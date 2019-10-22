@@ -37,8 +37,10 @@ module NewRelic
         end
       end
 
+      W3C_FORMAT = "w3c".freeze
+
       def enabled?
-        NewRelic::Agent.config[:'distributed_tracing.enabled'] && (NewRelic::Agent.config[:'distributed_tracing.format'] == 'w3c')
+        NewRelic::Agent.config[:'distributed_tracing.enabled'] && (NewRelic::Agent.config[:'distributed_tracing.format'] == W3C_FORMAT)
       end
     end
   end

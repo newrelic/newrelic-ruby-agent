@@ -534,7 +534,7 @@ module NewRelic
         record_apdex unless ignore_apdex?
         record_queue_time
         record_cross_app_metrics
-        record_distributed_tracing_metrics
+        DistributedTraceMetrics.record_metrics_for_transaction self
 
         record_exceptions
         record_transaction_event

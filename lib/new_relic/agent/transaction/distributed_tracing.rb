@@ -62,8 +62,10 @@ module NewRelic
             transaction_payload
         end
 
+        NR_FORMAT = "nr".freeze
+
         def nr_distributed_tracing_enabled?
-          Agent.config[:'distributed_tracing.enabled'] && (Agent.config[:'distributed_tracing.format'] == 'nr') && Agent.instance.connected?
+          Agent.config[:'distributed_tracing.enabled'] && (Agent.config[:'distributed_tracing.format'] == NR_FORMAT) && Agent.instance.connected?
         end
 
         private
@@ -164,12 +166,6 @@ module NewRelic
             self.sampled = payload.sampled
             self.priority = payload.priority if payload.priority
           end
-        end
-
-        def record_distributed_tracing_metrics
-          return unless Agent.config[:'distributed_tracing.enabled']
-
-          DistributedTraceMetrics.record_metrics_for_transaction self
         end
       end
     end
