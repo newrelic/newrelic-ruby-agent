@@ -15,7 +15,8 @@ module NewRelic
           nr_freeze_time
 
           @config = {
-            :'trace_context.enabled' => true,
+            :'distributed_tracing.enabled' => true,
+            :'distributed_tracing.format' => 'w3c',
             :'span_events.enabled' => true,
             :account_id => "190",
             :primary_application_id => "46954",
@@ -197,7 +198,7 @@ module NewRelic
         def test_do_not_accept_trace_context_if_trace_context_disabled
           carrier = {}
           disabled_config = @config.merge({
-            :'trace_context.enabled' => false
+            :'distributed_tracing.format' => 'nr'
           })
           parent_txn = nil
           child_txn = nil

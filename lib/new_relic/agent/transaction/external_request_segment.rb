@@ -202,9 +202,9 @@ module NewRelic
         def insert_context_propagation_headers request
           return unless transaction
 
-          if Agent.config[:'trace_context.enabled']
+          if transaction.trace_context_enabled?
             insert_trace_context_headers request
-          elsif Agent.config[:'distributed_tracing.enabled']
+          elsif transaction.nr_distributed_tracing_enabled?
             insert_distributed_trace_header request
           elsif CrossAppTracing.cross_app_enabled?
             insert_cross_app_header request

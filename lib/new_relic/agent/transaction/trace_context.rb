@@ -106,15 +106,6 @@ module NewRelic
               transaction_payload
         end
 
-        def record_trace_context_metrics
-          return unless trace_context_enabled?
-
-          DistributedTraceMetrics.record_metrics_for_transaction self
-        end
-
-        SUPPORTABILITY_MULTIPLE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/AcceptPayload/Ignored/Multiple".freeze
-        SUPPORTABILITY_CREATE_BEFORE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/AcceptPayload/Ignored/CreateBeforeAccept".freeze
-
         def check_trace_context_ignored
           if trace_context_header_data
             NewRelic::Agent.increment_metric SUPPORTABILITY_MULTIPLE_ACCEPT_TRACE_CONTEXT
@@ -132,7 +123,7 @@ module NewRelic
       end
 
       def trace_context_enabled?
-        Agent.config[:'distributed_tracing.enabled'] && Agent.config[:'distributed_tracing.format' == 'w3c'] && Agent.instance.connected?
+        Agent.config[:'distributed_tracing.enabled'] && (Agent.config[:'distributed_tracing.format'] == 'w3c') && Agent.instance.connected?
       end
     end
   end

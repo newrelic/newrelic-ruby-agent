@@ -14,8 +14,8 @@ module NewRelic
         @monitor = TraceContextRequestMonitor.new(@events)
         @config = {
           :'cross_application_tracer.enabled' => false,
-          :'distributed_tracing.enabled' => false,
-          :'trace_context.enabled'       => true,
+          :'distributed_tracing.enabled' => true,
+          :'distributed_tracing.format' => 'w3c',
           :encoding_key                  => "\0",
           :account_id                    => "190",
           :primary_application_id        => "46954",
@@ -77,7 +77,7 @@ module NewRelic
       end
 
       def test_does_not_accept_trace_context_if_trace_context_disabled
-        with_config @config.merge({ :'trace_context.enabled' => false }) do
+        with_config @config.merge({ :'distributed_tracing.format' => 'somethingelse' }) do
           _, carrier = build_parent_transaction_headers
 
           child_txn = in_transaction "receiving_txn" do |txn|

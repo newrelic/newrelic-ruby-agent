@@ -82,7 +82,7 @@ module NewRelic
       private
 
       def enabled?
-        return Agent.config[:'distributed_tracing.enabled'] || Agent.config[:'trace_context.enabled']
+        return Agent.config[:'distributed_tracing.enabled']
       end
 
     end

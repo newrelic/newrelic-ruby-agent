@@ -14,12 +14,12 @@ module NewRelic
       TRACEPARENT                    = 'HTTP_TRACEPARENT'.freeze
 
       def on_finished_configuring(events)
-        return unless NewRelic::Agent.config[:'trace_context.enabled']
+        return unless enabled?
         events.subscribe(:before_call, &method(:on_before_call))
       end
 
       def on_before_call(request)
-        return unless NewRelic::Agent.config[:'trace_context.enabled'] && request[TRACEPARENT]
+        return unless enabled? && request[TRACEPARENT]
         trace_context = TraceContext.parse(
           format: TraceContext::FORMAT_RACK,
           carrier: request,
@@ -35,6 +35,10 @@ module NewRelic
         if txn.accept_trace_context trace_context
           txn.trace_state_payload.caller_transport_type = DistributedTraceTransportType.for_rack_request(request)
         end
+      end
+
+      def enabled?
+        NewRelic::Agent.config[:'distributed_tracing.enabled'] && (NewRelic::Agent.config[:'distributed_tracing.format'] == 'w3c')
       end
     end
   end

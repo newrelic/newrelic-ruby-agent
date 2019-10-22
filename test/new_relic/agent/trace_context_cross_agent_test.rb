@@ -27,11 +27,12 @@ module NewRelic
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case["force_sampled_true"])
 
           config = {
+            :'distributed_tracing.enabled' => true,
+            :'distributed_tracing.format'  => 'w3c',
             :account_id                    => test_case['account_id'],
             :primary_application_id        => "2827902",
             :trusted_account_key           => test_case['trusted_account_key'],
-            :'span_events.enabled'         => test_case['span_events_enabled'],
-            :'trace_context.enabled' => true
+            :'span_events.enabled'         => test_case['span_events_enabled']
           }
 
           with_server_source(config) do

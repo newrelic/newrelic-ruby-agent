@@ -35,7 +35,7 @@ module NewRelic
 
         def setup
           @obfuscator = NewRelic::Agent::Obfuscator.new "jotorotoes"
-          NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+          NewRelic::Agent.agent.stubs(:connected?).returns(true)
 
           CrossAppTracing.stubs(:obfuscator).returns(@obfuscator)
           CrossAppTracing.stubs(:valid_encoding_key?).returns(true)
@@ -341,6 +341,7 @@ module NewRelic
           NewRelic::Agent::Transaction.any_instance.stubs(:trace_context_enabled?).returns(true)
           request = RequestWrapper.new
           with_config trace_context_config do
+
             in_transaction :category => :controller do
               segment = Tracer.start_external_request_segment(
                 library: "Net::HTTP",
@@ -660,6 +661,7 @@ module NewRelic
         def test_segment_adds_distributed_trace_header
           distributed_tracing_config = {
             :'distributed_tracing.enabled'      => true,
+            :'distributed_tracing.format'       => 'nr',
             :'cross_application_tracer.enabled' => false,
             :account_id                         => "190",
             :primary_application_id             => "46954"
@@ -801,15 +803,16 @@ module NewRelic
         def distributed_tracing_config
           {
             :'distributed_tracing.enabled'      => true,
+            :'distributed_tracing.format'       => 'nr',
             :'cross_application_tracer.enabled' => false
           }
         end
 
         def trace_context_config
           {
-            :'distributed_tracing.enabled'      => false,
+            :'distributed_tracing.enabled' => true,
+            :'distributed_tracing.format' => 'w3c',
             :'cross_application_tracer.enabled' => false,
-            :'trace_context.enabled'            => true,
             :account_id                         => "190",
             :primary_application_id             => "46954",
             :trusted_account_key                => "trust_this!"

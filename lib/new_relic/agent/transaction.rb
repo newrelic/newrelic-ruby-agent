@@ -272,7 +272,7 @@ module NewRelic
       end
 
       def sampled?
-        return unless Agent.config[:'distributed_tracing.enabled'] || Agent.config[:'trace_context.enabled']
+        return unless Agent.config[:'distributed_tracing.enabled']
         if @sampled.nil?
           @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
         end
@@ -535,7 +535,6 @@ module NewRelic
         record_queue_time
         record_cross_app_metrics
         record_distributed_tracing_metrics
-        record_trace_context_metrics
 
         record_exceptions
         record_transaction_event

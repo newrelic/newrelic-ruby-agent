@@ -10,7 +10,8 @@ class TraceContextRequestMonitor < Performance::TestCase
   CONFIG = {
     :'cross_application_tracer.enabled' => false,
     :'distributed_tracing.enabled' => false,
-    :'trace_context.enabled'       => true,
+    :'distributed_tracing.enabled' => true,
+    :'distributed_tracing.format' => 'w3c',
     :encoding_key                  => "\0",
     :account_id                    => "190",
     :primary_application_id        => "46954",

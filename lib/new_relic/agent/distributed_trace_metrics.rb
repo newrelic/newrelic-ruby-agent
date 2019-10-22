@@ -26,7 +26,7 @@ module NewRelic
       def record_metrics_for_transaction transaction
         payload = if transaction.distributed_trace_payload
           transaction.distributed_trace_payload
-        elsif transaction.trace_context_enabled?
+        elsif transaction.trace_state_payload
           transaction.trace_state_payload
         end
 

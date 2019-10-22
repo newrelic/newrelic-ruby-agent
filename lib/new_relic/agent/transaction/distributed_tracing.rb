@@ -62,6 +62,10 @@ module NewRelic
             transaction_payload
         end
 
+        def nr_distributed_tracing_enabled?
+          Agent.config[:'distributed_tracing.enabled'] && (Agent.config[:'distributed_tracing.format'] == 'nr') && Agent.instance.connected?
+        end
+
         private
 
         SUPPORTABILITY_CREATE_BEFORE_ACCEPT_PAYLOAD   = "Supportability/DistributedTrace/AcceptPayload/Ignored/CreateBeforeAccept".freeze
@@ -166,10 +170,6 @@ module NewRelic
           return unless Agent.config[:'distributed_tracing.enabled']
 
           DistributedTraceMetrics.record_metrics_for_transaction self
-        end
-
-        def nr_distributed_tracing_enabled?
-          Agent.config[:'distributed_tracing.enabled'] && Agent.config[:'distributed_tracing.format' == 'nr'] && Agent.instance.connected?
         end
       end
     end
