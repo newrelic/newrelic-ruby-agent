@@ -64,10 +64,11 @@ module NewRelic
 
           if Agent.config[:'span_events.enabled']
             TraceContextPayload.create \
-              parent_account_id:  Agent.config[:account_id],
-              parent_app_id:  Agent.config[:primary_application_id],
-              sampled:  sampled?,
-              priority:  priority,
+              parent_account_id: Agent.config[:account_id],
+              parent_app_id: Agent.config[:primary_application_id],
+              transaction_id: guid,
+              sampled: sampled?,
+              priority: priority,
               id: current_segment.guid
           elsif trace_context_header_data
             trace_context_header_data.trace_state_payload
@@ -85,6 +86,8 @@ module NewRelic
           return false unless payload = trace_context_header_data.trace_state_payload
           return false unless payload.valid?
           @trace_state_payload = payload
+
+          @parent_transaction_id = payload.transaction_id
 
           unless payload.sampled.nil?
             self.sampled = payload.sampled
