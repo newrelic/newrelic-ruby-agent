@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+  * **Enables ability to migrate to Configurable Security Policies (CSP) on a per agent
+  basis for accounts already using High Security Mode (HSM).**
+
+    When both [HSM](https://docs.newrelic.com/docs/agents/manage-apm-agents/configuration/high-security-mode) and [CSP](https://docs.newrelic.com/docs/agents/manage-apm-agents/configuration/enable-configurable-security-policies) are enabled for an account, an agent (this version or later)
+    can successfully connect with either `high_security: true` or the appropriate
+    `security_policies_token` configured. `high_security` has been added as part of
+    the preconnect payload.
+
   * **Bugfix for parsing invalid newrelic.yml**
 
     Previously, if the newrelic.yml configuration file was invalid, and the agent
