@@ -15,6 +15,21 @@ class MinimalRackApp
   end
 end
 
+class MinimalRackBody
+  def initialize(body)
+    @body = body
+    @closed = false
+  end
+
+  def each
+    @body.each { |part| yield part }
+  end
+
+  def close
+    @closed = true
+  end
+end
+
 class NewRelic::Agent::Instrumentation::RackTest < Minitest::Test
 
   def generate_minimal_rack_app mock_response
@@ -27,6 +42,26 @@ class NewRelic::Agent::Instrumentation::RackTest < Minitest::Test
     x = generate_minimal_rack_app([200, {}, ["whee"]])
     assert_equal [200, {}, ["whee"]], x.call({})
     assert_metrics_recorded(['Controller/Middleware/Rack/MinimalRackApp/call'])
+  end
+
+  def test_streaming_rack_app
+    # should return what we send in, even when instrumented
+    body = MinimalRackBody.new(["whe", "e"])
+    x = generate_minimal_rack_app([200, {}, body])
+    status, headers, response = x.call({})
+
+    full_body = ""
+    response.each do |part|
+      full_body += part
+    end
+    response.close
+
+    assert_equal(200, status)
+    assert_equal({}, headers)
+    assert_equal("whee", full_body)
+    assert_metrics_recorded(['Controller/Middleware/Rack/MinimalRackApp/call'])
+    assert_metrics_recorded(['Middleware/Rack/StreamBodyProxy/body_each'])
+    assert_metrics_recorded(['Middleware/Rack/StreamBodyProxy/close'])
   end
 
   def test_basic_rack_app_404
