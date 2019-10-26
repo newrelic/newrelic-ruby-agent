@@ -11,7 +11,7 @@ module Environments
   class Runner
     include Multiverse::Color
 
-    BLACKLIST = {
+    DENYLIST = {
       "2.4.2"       => ["rails60"],
       "2.3.5"       => ["rails60"],
       "2.2.1"       => ["rails50", "rails60"],
@@ -66,9 +66,9 @@ module Environments
       version = RUBY_VERSION
       version = "jruby-#{JRUBY_VERSION[0..2]}" if defined?(JRUBY_VERSION)
 
-      BLACKLIST.each do |check_version, blacklisted|
+      DENYLIST.each do |check_version, denylisted|
         if version.start_with?(check_version)
-          dirs.reject! {|d| blacklisted.include?(File.basename(d)) }
+          dirs.reject! {|d| denylisted.include?(File.basename(d)) }
         end
       end
 
