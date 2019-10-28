@@ -39,7 +39,7 @@ class NewRelic::NoticedError
 
     # replace error message if enabled
     if NewRelic::Agent.config[:'strip_exception_messages.enabled'] &&
-       !self.class.passes_message_whitelist(exception.class)
+       !self.class.passes_message_allowlist(exception.class)
       @message = STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE
     end
 
@@ -57,8 +57,12 @@ class NewRelic::NoticedError
     end
   end
 
-  def self.passes_message_whitelist(exception_class)
-    NewRelic::Agent.config[:'strip_exception_messages.whitelist'].any? do |klass|
+  def self.passes_message_allowlist(exception_class)
+    # For backwards compatibility until we remove :'strip_exception_messages.whitelist' config option
+
+    allowed = NewRelic::Agent.config[:'strip_exception_messages.allowlist'].concat(NewRelic::Agent.config[:'strip_exception_messages.whitelist'])
+
+    allowed.any? do |klass|
       exception_class <= klass
     end
   end

@@ -9,6 +9,14 @@
     This version of the agent will emit a FATAL message to STDOUT when this scenario
     occurs so that customers can address issues with newrelic.yml that prevent startup.
 
+  * **Configuration options containing the terms "whitelist" and "blacklist" deprecated**
+
+    The following local configuration settings have been deprecated:
+
+    * `autostart.blacklisted_constants`: use `autostart.denylisted_constants` instead.
+    * `autostart.blacklisted_executables`: use `autostart.denylisted_executables` instead.
+    * `autostart.blacklisted_rake_tasks`: use `autostart.denylisted_rake_tasks` instead.
+    * `strip_exception_messages.whitelist`: use `strip_exception_messages.allowlist` instead.
 
   ## v6.7.0
 

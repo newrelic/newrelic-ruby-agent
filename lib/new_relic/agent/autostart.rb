@@ -20,23 +20,28 @@ module NewRelic
 
 
       # The constants, executables (i.e. $0) and rake tasks used can be
-      # configured with the config keys 'autostart.blacklisted_constants',
-      # 'autostart.blacklisted_executables' and
-      # 'autostart.blacklisted_rake_tasks'
+      # configured with the config keys 'autostart.denylisted_constants',
+      # 'autostart.denylisted_executables' and
+      # 'autostart.denylisted_rake_tasks'
       def agent_should_start?
-          !blacklisted_constants? &&
-          !blacklisted_executables? &&
-          !in_blacklisted_rake_task?
+          !denylisted_constants? &&
+          !denylisted_executables? &&
+          !in_denylisted_rake_task?
       end
 
-      def blacklisted_constants?
-        blacklisted?(NewRelic::Agent.config[:'autostart.blacklisted_constants']) do |name|
+      COMMA = ",".freeze
+
+      def denylisted_constants?
+        # For backwards compatibility until :'autostart_blacklisted_constants' config option is removed
+        constants = NewRelic::Agent.config[:'autostart.denylisted_constants'] << COMMA << NewRelic::Agent.config[:'autostart.blacklisted_constants']
+
+        denylisted?(constants) do |name|
           constant_is_defined?(name)
         end
       end
 
-      def blacklisted_executables?
-        blacklisted?(NewRelic::Agent.config[:'autostart.blacklisted_executables']) do |bin|
+      def denylisted_executables?
+        denylisted?(NewRelic::Agent.config[:'autostart.denylisted_executables']) do |bin|
           File.basename($0) == bin
         end
       end
@@ -47,18 +52,18 @@ module NewRelic
         !!::NewRelic::LanguageSupport.constantize(const_name)
       end
 
-      def blacklisted?(value, &block)
+      def denylisted?(value, &block)
         value.split(/\s*,\s*/).any?(&block)
       end
 
-      def in_blacklisted_rake_task?
+      def in_denylisted_rake_task?
         tasks = begin
                   ::Rake.application.top_level_tasks
                 rescue => e
-            ::NewRelic::Agent.logger.debug("Not in Rake environment so skipping blacklisted_rake_tasks check: #{e}")
+            ::NewRelic::Agent.logger.debug("Not in Rake environment so skipping denylisted_rake_tasks check: #{e}")
             []
           end
-        !(tasks & ::NewRelic::Agent.config[:'autostart.blacklisted_rake_tasks'].split(/\s*,\s*/)).empty?
+        !(tasks & ::NewRelic::Agent.config[:'autostart.denylisted_rake_tasks'].split(/\s*,\s*/)).empty?
       end
     end
   end

@@ -141,42 +141,42 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     assert_equal ('1234567890' * 500)[0..4095], err.message
   end
 
-  def test_permits_messages_from_whitelisted_exceptions_in_high_security_mode
-    with_config(:'strip_exception_messages.whitelist' => 'NewRelic::TestHelpers::Exceptions::TestError') do
-      e = TestError.new('whitelisted test exception')
+  def test_permits_messages_from_allowlisted_exceptions_in_high_security_mode
+    with_config(:'strip_exception_messages.allowlist' => 'NewRelic::TestHelpers::Exceptions::TestError') do
+      e = TestError.new('allowlisted test exception')
       error = NewRelic::NoticedError.new(@path, e, @time)
 
-      assert_equal 'whitelisted test exception', error.message
+      assert_equal 'allowlisted test exception', error.message
     end
   end
 
-  def test_whitelisted_returns_nil_with_an_empty_whitelist
-    with_config(:'strip_exception_messages.whitelist' => '') do
-      assert_falsy NewRelic::NoticedError.passes_message_whitelist(TestError)
+  def test_allowlisted_returns_nil_with_an_empty_allowlist
+    with_config(:'strip_exception_messages.allowlist' => '') do
+      assert_falsy NewRelic::NoticedError.passes_message_allowlist(TestError)
     end
   end
 
-  def test_whitelisted_returns_nil_when_error_is_not_in_whitelist
-    with_config(:'strip_exception_messages.whitelist' => 'YourErrorIsInAnotherCastle') do
-      assert_falsy NewRelic::NoticedError.passes_message_whitelist(TestError)
+  def test_allowlisted_returns_nil_when_error_is_not_in_allowlist
+    with_config(:'strip_exception_messages.allowlist' => 'YourErrorIsInAnotherCastle') do
+      assert_falsy NewRelic::NoticedError.passes_message_allowlist(TestError)
     end
   end
 
-  def test_whitelisted_is_true_when_error_is_in_whitelist
-    with_config(:'strip_exception_messages.whitelist' => 'OtherException,NewRelic::TestHelpers::Exceptions::TestError') do
-      assert_truthy NewRelic::NoticedError.passes_message_whitelist(TestError)
+  def test_allowlisted_is_true_when_error_is_in_allowlist
+    with_config(:'strip_exception_messages.allowlist' => 'OtherException,NewRelic::TestHelpers::Exceptions::TestError') do
+      assert_truthy NewRelic::NoticedError.passes_message_allowlist(TestError)
     end
   end
 
-  def test_whitelisted_ignores_nonexistent_exception_types_in_whitelist
-    with_config(:'strip_exception_messages.whitelist' => 'NonExistent::Exception,NewRelic::TestHelpers::Exceptions::TestError') do
-      assert_truthy NewRelic::NoticedError.passes_message_whitelist(TestError)
+  def test_allowlisted_ignores_nonexistent_exception_types_in_allowlist
+    with_config(:'strip_exception_messages.allowlist' => 'NonExistent::Exception,NewRelic::TestHelpers::Exceptions::TestError') do
+      assert_truthy NewRelic::NoticedError.passes_message_allowlist(TestError)
     end
   end
 
-  def test_whitelisted_is_true_when_an_exceptions_ancestor_is_whitelisted
-    with_config(:'strip_exception_messages.whitelist' => 'NewRelic::TestHelpers::Exceptions::ParentException') do
-      assert_truthy NewRelic::NoticedError.passes_message_whitelist(ChildException)
+  def test_allowlisted_is_true_when_an_exceptions_ancestor_is_allowlisted
+    with_config(:'strip_exception_messages.allowlist' => 'NewRelic::TestHelpers::Exceptions::ParentException') do
+      assert_truthy NewRelic::NoticedError.passes_message_allowlist(ChildException)
     end
   end
 

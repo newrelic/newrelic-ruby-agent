@@ -420,6 +420,17 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :description => 'Deprecated.  ' \
+              'For agent versions 6.8.0 or higher, ' \
+              'use <a href="#autostart-denylisted_constants"><code>' \
+                'autostart.denylisted_constants' \
+              '</code></a> instead.'
+        },
+        :'autostart.denylisted_constants' => {
+          :default => 'Rails::Console',
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
           :description => 'Specify a list of constants that should prevent the agent from starting automatically. Separate individual constants with a comma <code>,</code>. For example, <code>Rails::Console,UninstrumentedBackgroundJob</code>.'
         },
         :'autostart.blacklisted_executables' => {
@@ -427,10 +438,32 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :description => 'Deprecated.  ' \
+              'For agent versions 6.8.0 or higher, ' \
+              'use <a href="#autostart-denylisted_executables"><code>' \
+                'autostart.denylisted_executables' \
+              '</code></a> instead.'
+        },
+        :'autostart.denylisted_executables' => {
+          :default => value_of(:'autostart.blacklisted_executables'),
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
           :description => 'Defines a comma-delimited list of executables that the agent should not instrument. For example, <code>rake,my_ruby_script.rb</code>.'
         },
         :'autostart.blacklisted_rake_tasks' => {
           :default => AUTOSTART_BLACKLISTED_RAKE_TASKS,
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'Deprecated.  ' \
+              'For agent versions 6.8.0 or higher, ' \
+              'use <a href="#autostart-denylisted_rake_tasks"><code>' \
+                'autostart.denylisted_rake_tasks' \
+              '</code></a> instead.'
+        },
+        :'autostart.denylisted_rake_tasks' => {
+          :default => value_of(:'autostart.blacklisted_rake_tasks'),
           :public => true,
           :type => String,
           :allowed_from_server => false,
@@ -478,15 +511,29 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If true, the agent strips messages from all exceptions except those in the <a href="#strip_exception_messages-whitelist">whitelist</a>. Enabled automatically in <a href="https://docs.newrelic.com/docs/accounts-partnerships/accounts/security/high-security">high security mode</a>.'
+          :description => 'If true, the agent strips messages from all exceptions except those in the <a href="#strip_exception_messages-allowlist">allowlist</a>. Enabled automatically in <a href="https://docs.newrelic.com/docs/accounts-partnerships/accounts/security/high-security">high security mode</a>.'
         },
         :'strip_exception_messages.whitelist' => {
           :default => '',
           :public => true,
           :type => String,
+          :deprecated => true,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_constant_list),
-          :description => 'Specify a whitelist of exceptions you do not want the agent to strip when <a href="#strip_exception_messages-enabled">strip_exception_messages</a> is <code>true</code>. Separate exceptions with a comma. For example, <code>"ImportantException,PreserveMessageException"</code>.'
+          :description => 'Deprecated.  ' \
+              'For agent versions 6.8.0 or higher, ' \
+              'use <a href="#strip_exception_messages-allowlist"><code>' \
+                'strip_exception_messages.allowlist' \
+              '</code></a> instead.'
+        },
+        :'strip_exception_messages.allowlist' => {
+          :default => '',
+          :public => true,
+          :type => String,
+          :deprecated => true,
+          :allowed_from_server => false,
+          :transform => DefaultSource.method(:convert_to_constant_list),
+          :description => 'Specify a list of exceptions you do not want the agent to strip when <a href="#strip_exception_messages-enabled">strip_exception_messages</a> is <code>true</code>. Separate exceptions with a comma. For example, <code>"ImportantException,PreserveMessageException"</code>.'
         },
         :host => {
           :default => DefaultSource.host,
