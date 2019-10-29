@@ -220,7 +220,7 @@ module NewRelic
         end
       end
 
-      AUTOSTART_BLACKLISTED_RAKE_TASKS = [
+      AUTOSTART_DENYLISTED_RAKE_TASKS = [
         'about',
         'assets:clean',
         'assets:clobber',
@@ -452,7 +452,7 @@ module NewRelic
           :description => 'Defines a comma-delimited list of executables that the agent should not instrument. For example, <code>rake,my_ruby_script.rb</code>.'
         },
         :'autostart.blacklisted_rake_tasks' => {
-          :default => AUTOSTART_BLACKLISTED_RAKE_TASKS,
+          :default => AUTOSTART_DENYLISTED_RAKE_TASKS,
           :public => true,
           :type => String,
           :allowed_from_server => false,
