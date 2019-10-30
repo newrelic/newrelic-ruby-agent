@@ -317,6 +317,21 @@ class NewRelicServiceTest < Minitest::Test
     end
   end
 
+  def test_high_security_mode_sent_on_preconnect
+    with_config(:high_security => true) do
+      @service.preconnect
+      payload = @http_handle.last_request_payload.first
+      assert payload['high_security']
+    end
+
+    with_config(:high_security => false) do
+      @service.preconnect
+      payload = @http_handle.last_request_payload.first
+      refute_nil payload['high_security']
+      refute payload['high_security']
+    end
+  end
+
   def test_preliminary_security_policies_sent_on_connect
     policies = DEFAULT_PRECONNECT_POLICIES
 
