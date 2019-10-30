@@ -13,7 +13,7 @@ module NewRelic
           OBFUSCATE_KEYS = [ 'filter', 'query', 'pipeline' ].freeze
 
           # Keys that will get completely removed from the statement.
-          BLACKLISTED_KEYS = [ 'deletes', 'documents', 'updates' ].freeze
+          DENYLISTED_KEYS = [ 'deletes', 'documents', 'updates' ].freeze
 
           def self.format(command_name, database_name, command)
             return nil unless NewRelic::Agent.config[:'mongo.capture_queries']
@@ -25,7 +25,7 @@ module NewRelic
             }
 
             command.each do |key, value|
-              next if BLACKLISTED_KEYS.include?(key)
+              next if DENYLISTED_KEYS.include?(key)
               if OBFUSCATE_KEYS.include?(key)
                 obfuscated = obfuscate(value)
                 result[key] = obfuscated if obfuscated

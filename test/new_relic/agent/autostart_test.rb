@@ -55,25 +55,25 @@ class AutostartTest < Minitest::Test
 
 
   MyConst = true
-  def test_blacklisted_constants_can_be_configured
-    with_config('autostart.blacklisted_constants' => "IRB,::AutostartTest::MyConst") do
-      assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart when environment contains blacklisted constant"
+  def test_denylisted_constants_can_be_configured
+    with_config('autostart.denylisted_constants' => "IRB,::AutostartTest::MyConst") do
+      assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart when environment contains denylisted constant"
     end
   end
 
-  def test_blacklisted_executable_can_be_configured
+  def test_denylisted_executable_can_be_configured
     @orig_dollar_0, $0 = $0, '/foo/bar/baz'
-    with_config('autostart.blacklisted_executables' => 'boo,baz') do
-      assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart when process is invoked by blacklisted executable"
+    with_config('autostart.denylisted_executables' => 'boo,baz') do
+      assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart when process is invoked by denylisted executable"
     end
   ensure
     $0 = @orig_dollar_0
   end
 
-  def test_blacklisted_rake_tasks_can_be_configured
-    with_config('autostart.blacklisted_rake_tasks' => 'foo,bar,baz:bang') do
+  def test_denylisted_rake_tasks_can_be_configured
+    with_config('autostart.denylisted_rake_tasks' => 'foo,bar,baz:bang') do
       Rake.stubs(:application => stub(:top_level_tasks => ['biz', 'baz:bang']))
-      assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't during blacklisted rake task"
+      assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't during denylisted rake task"
     end
   end
 end

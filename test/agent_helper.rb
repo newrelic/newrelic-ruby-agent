@@ -212,7 +212,7 @@ end
 #
 # If you want to *allow* unexpected metrics matching certain patterns, use
 # the :ignore_filter option. This will allow you to specify a Regex that
-# whitelists broad swathes of metric territory (e.g. 'Supportability/').
+# allowlists broad swathes of metric territory (e.g. 'Supportability/').
 #
 def assert_metrics_recorded_exclusive(expected, options={})
   expected = _normalize_metric_expectations(expected)
