@@ -592,7 +592,7 @@ module NewRelic
           :description => 'Use HTTP PUT requests instead of POST.'
         },
         :compressed_content_encoding => {
-          :default => 'deflate',
+          :default => 'gzip',
           :public => false,
           :type => String,
           :allowed_from_server => false,
