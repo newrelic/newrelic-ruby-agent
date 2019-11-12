@@ -686,11 +686,21 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal([expected_string], field)
   end
 
-  def test_compress_request_if_needed_compresses_large_payloads
+  def test_compress_request_if_needed_compresses_large_payloads_gzip
     large_payload = 'a' * 65 * 1024
     body, encoding = @service.compress_request_if_needed(large_payload, :foobar)
-    assert_equal(large_payload, Zlib::Inflate.inflate(body))
-    assert_equal('deflate', encoding)
+    zstream = Zlib::Inflate.new(16+Zlib::MAX_WBITS)
+    assert_equal(large_payload, zstream.inflate(body))
+    assert_equal('gzip', encoding)
+  end
+
+  def test_compress_request_if_needed_compresses_large_payloads_deflate
+    with_config(:compressed_content_encoding => 'deflate') do
+      large_payload = 'a' * 65 * 1024
+      body, encoding = @service.compress_request_if_needed(large_payload, :foobar)
+      assert_equal(large_payload, Zlib::Inflate.inflate(body))
+      assert_equal('deflate', encoding)
+    end
   end
 
   def test_compress_request_if_needed_passes_thru_small_payloads
@@ -1105,9 +1115,15 @@ class NewRelicServiceTest < Minitest::Test
     def last_request_payload
       return nil unless @last_request && @last_request.body
 
-      body = @last_request.body
       content_encoding = @last_request['Content-Encoding']
-      body = Zlib::Inflate.inflate(body) if content_encoding == 'deflate'
+      body = if content_encoding == 'deflate'
+        Zlib::Inflate.inflate(@last_request.body)
+      elsif content_encoding == 'gzip'
+        zstream = Zlib::Inflate.new(16+Zlib::MAX_WBITS)
+        zstream.inflate(@last_request.body)
+      else
+        @last_request.body
+      end
 
       uri = URI.parse(@last_request.path)
       params = CGI.parse(uri.query)

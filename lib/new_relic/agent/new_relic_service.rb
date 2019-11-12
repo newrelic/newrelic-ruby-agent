@@ -198,10 +198,10 @@ module NewRelic
         encoding = 'identity'
         if data.size > 64 * 1024
           encoding = Agent.config[:compressed_content_encoding]
-          data = if encoding == 'gzip'
-            Encoders::Compressed::Gzip.encode(data)
-          else
+          data = if encoding == 'deflate'
             Encoders::Compressed::Deflate.encode(data)
+          else
+            Encoders::Compressed::Gzip.encode(data)
           end
         end
         check_post_size(data, endpoint)
