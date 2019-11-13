@@ -51,7 +51,7 @@ module NewRelic
         intrinsics = intrinsics_for(segment)
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
 
-        [intrinsics, EMPTY_HASH, EMPTY_HASH]
+        [intrinsics, custom_attributes(segment.attributes), EMPTY_HASH]
       end
 
       def for_external_request_segment(segment)
@@ -68,7 +68,7 @@ module NewRelic
           agent_attributes[HTTP_URL_KEY] = truncate(segment.uri)
         end
 
-        [intrinsics, EMPTY_HASH, agent_attributes]
+        [intrinsics, custom_attributes(segment.attributes), agent_attributes]
       end
 
       def for_datastore_segment(segment)
@@ -96,7 +96,7 @@ module NewRelic
           agent_attributes[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, 2000)
         end
 
-        [intrinsics, EMPTY_HASH, agent_attributes]
+        [intrinsics, custom_attributes(segment.attributes), agent_attributes]
       end
 
       private
@@ -121,6 +121,15 @@ module NewRelic
         intrinsics[ENTRY_POINT_KEY] = true unless segment.parent
 
         intrinsics
+      end
+
+      def custom_attributes attributes
+        if attributes
+          result = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
+          result.freeze
+        else
+          EMPTY_HASH
+        end
       end
 
       def parent_guid(segment)

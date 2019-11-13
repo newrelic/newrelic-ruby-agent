@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/agent/attribute_filter'
-require 'new_relic/agent/transaction/attributes'
+require 'new_relic/agent/attributes'
 require 'new_relic/agent/transaction_event_primitive'
 
 module NewRelic
@@ -188,7 +188,7 @@ module NewRelic
       def attributes
         @attributes ||= begin
           filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
-          NewRelic::Agent::Transaction::Attributes.new(filter)
+          NewRelic::Agent::Attributes.new(filter)
         end
       end
 

@@ -581,6 +581,18 @@ module NewRelic
       end
     end
 
+    def add_custom_span_attributes params
+      record_api_supportability_metric :add_custom_span_attributes
+
+      if params.is_a? Hash
+        if segment = NewRelic::Agent::Tracer.current_segment
+          segment.add_custom_attributes params
+        end
+      else
+        ::NewRelic::Agent.logger.warn "Bad argument passed to #add_custom_span_attributes. Expected Hash but got #{params.class}"
+      end
+    end
+
     # @!endgroup
 
     # @!group Transaction naming

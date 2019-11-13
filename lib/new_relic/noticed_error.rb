@@ -91,7 +91,7 @@ class NewRelic::NoticedError
   def processed_attributes
     @processed_attributes ||= begin
       attributes = base_parameters
-      merged_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      merged_attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
       append_attributes(attributes, USER_ATTRIBUTES, merged_custom_attributes(merged_attributes))
       append_attributes(attributes, AGENT_ATTRIBUTES, build_agent_attributes(merged_attributes))
       append_attributes(attributes, INTRINSIC_ATTRIBUTES, build_intrinsic_attributes)

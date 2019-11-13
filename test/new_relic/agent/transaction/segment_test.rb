@@ -22,6 +22,33 @@ module NewRelic
           NewRelic::Agent.drop_buffered_data
         end
 
+        def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_span_attributes
+          expects_logging(:warn, includes("add_custom_span_attributes"))
+          in_transaction do
+            NewRelic::Agent.add_custom_span_attributes('fooz')
+          end
+        end
+
+        def test_ignores_custom_attributes_when_in_high_security
+          with_config(:high_security => true) do
+            in_transaction do |txn|
+              NewRelic::Agent.add_custom_span_attributes(:failure => "is an option")
+              assert_empty attributes_for(txn.current_segment, :custom)
+            end
+          end
+        end
+
+        def test_adding_custom_attributes
+          with_config(:'span_events.attributes.enabled' => true) do
+            in_transaction do |txn|
+              NewRelic::Agent.add_custom_span_attributes(:foo => "bar")
+              actual = txn.current_segment.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+              assert_equal({"foo" => "bar"}, actual)
+            end
+          end
+        end
+
+
         def test_assigns_unscoped_metrics
           segment = Segment.new  "Custom/simple/segment", "Segment/all"
           assert_equal "Custom/simple/segment", segment.name

@@ -115,6 +115,37 @@ module NewRelic
         refute segment_event_a.key?('nr.entryPoint')
       end
 
+      def test_includes_custom_attributes_in_event
+        in_transaction do |txn|
+          txn.current_segment.attributes.merge_custom_attributes('bing' => 2)
+          _, custom_attrs, _ = SpanEventPrimitive.for_segment txn.current_segment
+          assert_equal 2, custom_attrs['bing']
+        end
+      end
+
+      def test_doesnt_include_custom_attributes_in_event_when_configured_not_to
+        with_config('span_events.attributes.enabled' => false) do
+          in_transaction do |txn|
+            txn.current_segment.attributes.merge_custom_attributes('bing' => 2)
+            _, custom_attrs, _ = SpanEventPrimitive.for_segment txn.current_segment
+            assert_empty custom_attrs
+          end
+        end
+      end
+
+      def test_custom_attributes_in_event_cant_override_reserved_attributes
+        in_transaction do |txn|
+          txn.current_segment.attributes.merge_custom_attributes('type' => 'giraffe', 'duration' => 'hippo')
+          event, custom_attrs, _ = SpanEventPrimitive.for_segment txn.current_segment
+
+          assert_equal 'Span', event['type']
+          assert_equal 0.0, event['duration']
+
+          assert_equal 'giraffe', custom_attrs['type']
+          assert_equal 'hippo', custom_attrs['duration']
+        end
+      end
+
       def test_attribute_exclusion
         external_segment = nil
         with_config(:'attributes.exclude' => ['http.url']) do
