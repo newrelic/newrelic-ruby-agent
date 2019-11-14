@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+  New API method for adding custom attributes to spans.  Previously, custom attributes were only available at 
+  the Transaction level.  Now, with Span level custom attributes, more granular tagging of events is 
+  possible for easier isolation and review of trace events.  For more information:
+
+  * [`Agent#add_custom_span_attributes`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent#add_custom_span_attributes)
+
+
+  Custom Attributes are not assignable to the Span level via the add_custom_span_attributes API call.
   * **Enables ability to migrate to Configurable Security Policies (CSP) on a per agent
   basis for accounts already using High Security Mode (HSM).**
 

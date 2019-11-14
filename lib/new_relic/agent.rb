@@ -568,6 +568,12 @@ module NewRelic
     # these custom attributes will also be present in the script injected into
     # the response body, making them available on Insights PageView events.
     #
+    #
+    # @param [Hash] params      A Hash of attributes to be attached to the span event.
+    #                           Keys should be strings or symbols, and values
+    #                           may be strings, symbols, numeric values or
+    #                           booleans.
+    #
     # @api public
     #
     def add_custom_attributes(params) #THREAD_LOCAL_ACCESS
@@ -581,6 +587,20 @@ module NewRelic
       end
     end
 
+    # Record custom attributes and values to be sent to New Relic Insights.
+    # The recorded custom attributes will appear under the specific spans they
+    # are associated with within the Span Events pane and can be filtered 
+    # and queried via NRQL queries.
+    #
+    # Custom attributes will not be transmitted when +high_security+ setting is enabled or 
+    # +custom_attributes+ setting is disabled.
+    #
+    # @param [Hash] params      A Hash of attributes to be attached to the span event.
+    #                           Keys should be strings or symbols, and values
+    #                           may be strings, symbols, numeric values or
+    #                           booleans.
+    #
+    # @api public
     def add_custom_span_attributes params
       record_api_supportability_metric :add_custom_span_attributes
 
