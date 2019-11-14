@@ -569,7 +569,7 @@ module NewRelic
     # the response body, making them available on Insights PageView events.
     #
     #
-    # @param [Hash] params      A Hash of attributes to be attached to the span event.
+    # @param [Hash] params      A Hash of attributes to be attached to the transaction event.
     #                           Keys should be strings or symbols, and values
     #                           may be strings, symbols, numeric values or
     #                           booleans.
