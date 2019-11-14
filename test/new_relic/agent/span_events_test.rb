@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path('../../../test_helper', __FILE__)
+require 'new_relic/agent/transaction_event_primitive'
 
 module NewRelic
   module Agent
@@ -143,6 +144,32 @@ module NewRelic
 
           assert_equal 'giraffe', custom_attrs['type']
           assert_equal 'hippo', custom_attrs['duration']
+        end
+      end
+
+      def test_custom_span_attributes_not_added_to_transaction_events
+        with_segment do |segment, txn|
+          expected_span_attrs = {'foo' => 'bar'}
+          segment.attributes.merge_custom_attributes(expected_span_attrs)
+
+          filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
+          attributes = NewRelic::Agent::Attributes.new(filter)
+
+          payload = {
+            :name => "Controller/whatever",
+            :type => :controller,
+            :start_timestamp =>  Time.now.to_f,
+            :duration => 0.1,
+            :attributes => attributes,
+            :error => false,
+            :priority => 0.123
+          }
+          _, custom_txn_attrs, _ = TransactionEventPrimitive.create payload
+
+          _, custom_span_attrs, _ = SpanEventPrimitive.for_segment segment
+
+          assert_empty custom_txn_attrs
+          assert_equal expected_span_attrs, custom_span_attrs
         end
       end
 
