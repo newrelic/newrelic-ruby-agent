@@ -345,6 +345,15 @@ def in_transaction(*args, &blk)
   txn
 end
 
+# Convenience wrapper to stand up a transaction and provide a segment within
+# that transaction to work with.  The same arguements as provided to in_transaction
+# may be supplied.
+def with_segment *args, &blk
+  in_transaction *args do |txn|
+    yield txn.current_segment, txn
+  end
+end
+
 def stub_transaction_guid(guid)
   NewRelic::Agent::Transaction.tl_current.instance_variable_set(:@guid, guid)
 end

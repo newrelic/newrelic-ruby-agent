@@ -125,18 +125,18 @@ module NewRelic
 
       def test_doesnt_include_custom_attributes_in_event_when_configured_not_to
         with_config('span_events.attributes.enabled' => false) do
-          in_transaction do |txn|
-            txn.current_segment.attributes.merge_custom_attributes('bing' => 2)
-            _, custom_attrs, _ = SpanEventPrimitive.for_segment txn.current_segment
+          with_segment do |segment|
+            segment.attributes.merge_custom_attributes('bing' => 2)
+            _, custom_attrs, _ = SpanEventPrimitive.for_segment segment
             assert_empty custom_attrs
           end
         end
       end
 
       def test_custom_attributes_in_event_cant_override_reserved_attributes
-        in_transaction do |txn|
-          txn.current_segment.attributes.merge_custom_attributes('type' => 'giraffe', 'duration' => 'hippo')
-          event, custom_attrs, _ = SpanEventPrimitive.for_segment txn.current_segment
+        with_segment do |segment|
+          segment.attributes.merge_custom_attributes('type' => 'giraffe', 'duration' => 'hippo')
+          event, custom_attrs, _ = SpanEventPrimitive.for_segment segment
 
           assert_equal 'Span', event['type']
           assert_equal 0.0, event['duration']
