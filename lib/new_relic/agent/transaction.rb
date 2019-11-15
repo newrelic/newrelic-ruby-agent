@@ -5,7 +5,7 @@
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
-require 'new_relic/agent/transaction/attributes'
+require 'new_relic/agent/attributes'
 require 'new_relic/agent/transaction/request_attributes'
 require 'new_relic/agent/transaction/tracing'
 require 'new_relic/agent/transaction/distributed_tracing'

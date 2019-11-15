@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
-require 'new_relic/agent/transaction/attributes'
+require 'new_relic/agent/attributes'
 
 class FooError < StandardError; end
 
@@ -16,7 +16,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     nr_freeze_time
     @time = Time.now
 
-    @attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+    @attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
     @attributes_from_notice_error = { :user => 'params' }
   end
 
@@ -198,7 +198,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_intrinsics_always_get_sent
     with_config(:'error_collector.attributes.enabled' => false) do
-      attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
       attributes.add_intrinsic_attribute(:intrinsic, "attribute")
 
       error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
@@ -211,7 +211,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_custom_attributes_sent_when_enabled
     with_config :'error_collector.attributes.enabled' => true do
-      attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
       custom_attrs = {"name" => "Ron Burgundy", "channel" => 4}
       attributes.merge_custom_attributes(custom_attrs)
 
@@ -224,7 +224,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_custom_attributes_not_sent_when_disabled
     with_config :'error_collector.attributes.enabled' => false do
-      attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
       custom_attrs = {"name" => "Ron Burgundy", "channel" => 4}
       attributes.merge_custom_attributes(custom_attrs)
 
@@ -237,7 +237,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_agent_attributes_sent_when_enabled
     with_config :'error_collector.attributes.enabled' => true do
-      attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
       attributes.add_agent_attribute :"request.headers.referer", "http://blog.site/home", NewRelic::Agent::AttributeFilter::DST_ALL
 
       error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
@@ -250,7 +250,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_agent_attributes_not_sent_when_disabled
     with_config :'error_collector.attributes.enabled' => false do
-      attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
       attributes.add_agent_attribute :"request.headers.referer", "http://blog.site/home", NewRelic::Agent::AttributeFilter::DST_ALL
 
       error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))

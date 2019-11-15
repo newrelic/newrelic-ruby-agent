@@ -37,7 +37,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     @test_config = { :'transaction_tracer.enabled' => true }
     NewRelic::Agent.config.add_config_for_testing(@test_config)
 
-    attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+    attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
     @txn = stub('txn',
                 :best_name => '/path',
                 :request_path => '/request_path',
@@ -420,7 +420,7 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
     opts = SAMPLE_DEFAULTS.dup
     opts.merge!(incoming_opts)
 
-    attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+    attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
     attributes.add_intrinsic_attribute(:synthetics_resource_id, opts[:synthetics_resource_id])
 
     sample = NewRelic::Agent::Transaction::Trace.new(Time.now)

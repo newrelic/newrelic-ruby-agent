@@ -3,12 +3,12 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..','..','test_helper'))
-require 'new_relic/agent/transaction/attributes'
+require 'new_relic/agent/attributes'
 require 'new_relic/agent/attribute_filter'
 
 class AttributesTest < Minitest::Test
 
-  Attributes      = NewRelic::Agent::Transaction::Attributes
+  Attributes      = NewRelic::Agent::Attributes
   AttributeFilter = NewRelic::Agent::AttributeFilter
 
   def setup
@@ -119,7 +119,7 @@ class AttributesTest < Minitest::Test
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     result = custom_attributes["key"]
     assert result.valid_encoding?
-    assert result.bytesize < NewRelic::Agent::Transaction::Attributes::VALUE_LIMIT
+    assert result.bytesize < NewRelic::Agent::Attributes::VALUE_LIMIT
   end
 
   def test_truncates_multibyte_symbol
@@ -132,7 +132,7 @@ class AttributesTest < Minitest::Test
     custom_attributes = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
     result = custom_attributes["key"]
     assert result.valid_encoding?
-    assert result.bytesize < NewRelic::Agent::Transaction::Attributes::VALUE_LIMIT
+    assert result.bytesize < NewRelic::Agent::Attributes::VALUE_LIMIT
   end
 
   def test_limits_key_length
@@ -251,7 +251,7 @@ class AttributesTest < Minitest::Test
 
   def create_attributes
     filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
-    NewRelic::Agent::Transaction::Attributes.new(filter)
+    NewRelic::Agent::Attributes.new(filter)
   end
 
   def custom_attributes(attributes)
