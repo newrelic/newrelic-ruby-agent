@@ -587,12 +587,10 @@ module NewRelic
       end
     end
 
-    # Record custom attributes and values to be sent to New Relic Insights.
-    # The recorded custom attributes will appear under the specific spans they
-    # are associated with within the Span Events pane and can be filtered 
-    # and queried via NRQL queries.
+    # Add custom attributes to the span event for the current span. Attributes will be visible on spans in the
+    # New Relic Distributed Tracing UI and on span events in New Relic Insights.
     #
-    # Custom attributes will not be transmitted when +high_security+ setting is enabled or 
+    # Custom attributes will not be transmitted when +high_security+ setting is enabled or
     # +custom_attributes+ setting is disabled.
     #
     # @param [Hash] params      A Hash of attributes to be attached to the span event.
@@ -600,6 +598,7 @@ module NewRelic
     #                           may be strings, symbols, numeric values or
     #                           booleans.
     #
+    # @see https://docs.newrelic.com/docs/using-new-relic/welcome-new-relic/get-started/glossary#span
     # @api public
     def add_custom_span_attributes params
       record_api_supportability_metric :add_custom_span_attributes
