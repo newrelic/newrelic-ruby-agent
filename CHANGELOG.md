@@ -2,13 +2,12 @@
 
   * **New API method to add custom attributes to Spans**
 
-    New API method for adding custom attributes to spans.  Previously, custom 
-    attributes were only available at the Transaction level.  Now, with Span 
-    level custom attributes, more granular tagging of events is possible for 
+    New API method for adding custom attributes to spans.  Previously, custom
+    attributes were only available at the Transaction level.  Now, with Span
+    level custom attributes, more granular tagging of events is possible for
     easier isolation and review of trace events.  For more information:
 
     * [`Agent#add_custom_span_attributes`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent#add_custom_span_attributes)
-
 
   * **Enables ability to migrate to Configurable Security Policies (CSP) on a per agent
   basis for accounts already using High Security Mode (HSM).**
@@ -35,6 +34,17 @@
     * `autostart.blacklisted_executables`: use `autostart.denylisted_executables` instead.
     * `autostart.blacklisted_rake_tasks`: use `autostart.denylisted_rake_tasks` instead.
     * `strip_exception_messages.whitelist`: use `strip_exception_messages.allowlist` instead.
+
+  * **Bugfix for module loading and constant resolution in Rails**
+
+    Starting in version 6.3, the Ruby agent has caused module loading and constant
+    resolution to sometimes fail, which caused errors in some Rails applications.
+    These errors were generally `NoMethodError` exceptions or I18n errors
+    `translation missing` or `invalid locale`.  These errors would not appear if the agent
+    was removed from the application's Gemfile.
+    This version of the agent fixes these issues with module loading and constant
+    resolution, so these errors no longer occur.
+
 
   ## v6.7.0
 
