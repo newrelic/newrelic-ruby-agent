@@ -11,22 +11,12 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
     @service = default_service
     NewRelic::Agent.reset_config
     @event_harvest_config = NewRelic::Agent.agent.event_harvest_config
+    @environment_report = []
     @request_builder = NewRelic::Agent::Connect::RequestBuilder.new \
       @service,
       NewRelic::Agent.config,
-      @event_harvest_config
-  end
-
-  def test_connect_settings_have_environment_report
-    assert @request_builder.environment_report.detect{ |(k, _)|
-      k == 'Gems'
-    }, "expected connect_settings to include gems from environment"
-  end
-
-  def test_environment_for_connect_negative
-    with_config(:send_environment_info => false) do
-      assert_equal [], @request_builder.environment_report
-    end
+      @event_harvest_config,
+      @environment_report
   end
 
   def test_sanitize_environment_report

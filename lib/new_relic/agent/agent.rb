@@ -482,6 +482,7 @@ module NewRelic
 
             unless in_resque_child_process?
               install_exit_handler
+              environment_for_connect
               @harvest_samplers.load_samplers unless Agent.config[:disable_samplers]
             end
 
@@ -789,7 +790,7 @@ module NewRelic
           # require calls in Rails environments, so this method should only
           # be called synchronously from on the main thread.
           def environment_for_connect
-            Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
+            @environment_report ||= Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
           end
 
           # Constructs and memoizes an event_harvest_config hash to be used in
@@ -805,7 +806,8 @@ module NewRelic
             request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new \
               @service,
               Agent.config,
-              event_harvest_config
+              event_harvest_config,
+              environment_for_connect
             connect_response = @service.connect request_builder.connect_payload
 
             response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(self, Agent.config)
