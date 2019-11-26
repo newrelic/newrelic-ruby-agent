@@ -45,6 +45,15 @@
     This version of the agent fixes these issues with module loading and constant
     resolution, so these errors no longer occur.
 
+  * **Bugfix: failed to get urandom**
+
+    Previous versions of the agent would fail unexpectedly when the Ruby process used
+    every available file descriptor.  The failures would include this message:
+    ```
+    ERROR : RuntimeError: failed to get urandom
+    ```
+    This version of the agent uses a different strategy for generating random IDs, and
+    will not fail in the same way when no file descriptors are available.
 
   ## v6.7.0
 
