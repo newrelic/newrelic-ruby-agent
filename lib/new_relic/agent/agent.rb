@@ -147,6 +147,7 @@ module NewRelic
         attr_reader :transaction_event_recorder
         attr_reader :attribute_filter
         attr_reader :adaptive_sampler
+        attr_reader :environment_report
 
         def transaction_event_aggregator
           @transaction_event_recorder.transaction_event_aggregator
