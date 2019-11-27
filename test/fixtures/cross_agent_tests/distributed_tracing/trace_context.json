@@ -39,8 +39,8 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "traceContext.closestNrParent": "7d3efb1b173fecfa",
-          "traceContext.traceStateVendors": ""
+          "trustedParentId": "7d3efb1b173fecfa",
+          "tracingVendors": ""
         },
         "expected": ["transactionId"],
         "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
@@ -188,8 +188,8 @@
       "Span": {
         "exact": {
           "parentId": "e8b91a159289ff74",
-          "traceContext.closestNrParent": "5093db371f0ba945",
-          "traceContext.traceStateVendors": ""
+          "trustedParentId": "5093db371f0ba945",
+          "tracingVendors": ""
         },
         "expected": ["transactionId"],
         "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
@@ -372,8 +372,8 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "traceContext.closestNrParent": "7d3efb1b173fecfa",
-          "traceContext.traceStateVendors": ""
+          "trustedParentId": "7d3efb1b173fecfa",
+          "tracingVendors": ""
         },
         "expected": ["transactionId"],
         "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
@@ -429,8 +429,8 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "traceContext.closestNrParent": "7d3efb1b173fecfa",
-          "traceContext.traceStateVendors": ""
+          "trustedParentId": "7d3efb1b173fecfa",
+          "tracingVendors": ""
         }
       }
     },
@@ -482,8 +482,8 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "traceContext.closestNrParent": "7d3efb1b173fecfa",
-          "traceContext.traceStateVendors": ""
+          "trustedParentId": "7d3efb1b173fecfa",
+          "tracingVendors": ""
         },
         "expected": ["transactionId"],
         "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
@@ -538,8 +538,8 @@
       "Span": {
         "exact": {
           "parentId": "f4a5ff268f63d62a",
-          "traceContext.closestNrParent": "f4a5ff268f63d62a",
-          "traceContext.traceStateVendors": ""
+          "trustedParentId": "f4a5ff268f63d62a",
+          "tracingVendors": ""
         }
       }
     },
@@ -613,8 +613,8 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "traceContext.closestNrParent": "7d3efb1b173fecfa",
-          "traceContext.traceStateVendors": ""
+          "trustedParentId": "7d3efb1b173fecfa",
+          "tracingVendors": ""
         },
         "expected": ["transactionId"],
         "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
@@ -711,8 +711,8 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "traceContext.closestNrParent": "7d3efb1b173fecfa",
-          "traceContext.traceStateVendors": ""
+          "trustedParentId": "7d3efb1b173fecfa",
+          "tracingVendors": ""
         },
         "expected": ["transactionId"],
         "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
@@ -789,8 +789,8 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "traceContext.closestNrParent": "7d3efb1b173fecfa",
-          "traceContext.traceStateVendors": ""
+          "trustedParentId": "7d3efb1b173fecfa",
+          "tracingVendors": ""
         },
         "expected": ["transactionId"],
         "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
@@ -834,8 +834,8 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "traceContext.closestNrParent": null,
-          "traceContext.traceStateVendors": "44@nr"
+          "trustedParentId": null,
+          "tracingVendors": "44@nr"
         },
         "expected": ["transactionId"],
         "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
@@ -873,8 +873,8 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "traceContext.closestNrParent": null,
-          "traceContext.traceStateVendors": "44@nr"
+          "trustedParentId": null,
+          "tracingVendors": "44@nr"
         },
         "expected": ["transactionId"],
         "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
@@ -952,8 +952,8 @@
       "Span": {
         "exact": {
           "parentId": "7d3efb1b173fecfa",
-          "traceContext.closestNrParent": "7d3efb1b173fecfa",
-          "traceContext.traceStateVendors": ""
+          "trustedParentId": "7d3efb1b173fecfa",
+          "tracingVendors": ""
         },
         "expected": ["transactionId"],
         "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]
@@ -1253,7 +1253,7 @@
       "Span": {
         "exact": {
           "parentId": "b4a146e3237b4df1",
-          "traceContext.traceStateVendors": "foo,bar"
+          "tracingVendors": "foo,bar"
         },
         "expected": ["transactionId"],
         "unexpected": [
@@ -1495,8 +1495,8 @@
       "Span": {
         "exact": {
           "parentId": "afe162ae3117a892",
-          "traceContext.closestNrParent": "7d3efb1b173fecfa",
-          "traceContext.traceStateVendors": "44@nr"
+          "trustedParentId": "7d3efb1b173fecfa",
+          "tracingVendors": "44@nr"
         },
         "expected": ["transactionId"],
         "unexpected": ["parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType"]

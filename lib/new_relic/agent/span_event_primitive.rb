@@ -36,8 +36,8 @@ module NewRelic
       PEER_HOSTNAME_KEY    = 'peer.hostname'.freeze
       SPAN_KIND_KEY        = 'span.kind'.freeze
       ENTRY_POINT_KEY      = 'nr.entryPoint'.freeze
-      CLOSEST_NR_PARENT_KEY  = "traceContext.closestNrParent".freeze
-      TRACE_STATE_VENDORS_KEY = "traceContext.traceStateVendors".freeze
+      TRUSTED_PARENT_KEY   = "trustedParentId".freeze
+      TRACING_VENDORS_KEY  = "tracingVendors".freeze
 
       # Strings for static values of the event structure
       EVENT_TYPE         = 'Span'.freeze
@@ -121,10 +121,10 @@ module NewRelic
           intrinsics[ENTRY_POINT_KEY] = true
           if segment.transaction
             if segment.transaction.trace_context_header_data
-              intrinsics[TRACE_STATE_VENDORS_KEY] = segment.transaction.trace_context_header_data.trace_state_vendors
+              intrinsics[TRACING_VENDORS_KEY] = segment.transaction.trace_context_header_data.trace_state_vendors
             end
             if segment.transaction.trace_state_payload
-              intrinsics[CLOSEST_NR_PARENT_KEY] = segment.transaction.trace_state_payload.id
+              intrinsics[TRUSTED_PARENT_KEY] = segment.transaction.trace_state_payload.id
             end
           end
         end
