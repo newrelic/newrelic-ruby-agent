@@ -60,7 +60,10 @@ module NewRelic
         end
 
         def create_trace_state_payload
-          return unless trace_context_enabled?
+          unless trace_context_enabled?
+            NewRelic::Agent.logger.warn "Not configured to create WC3 trace context payload"
+            return
+          end
 
           if Agent.config[:'span_events.enabled']
             TraceContextPayload.create \
@@ -77,7 +80,10 @@ module NewRelic
 
 
         def accept_trace_context trace_context_header_data
-          return unless trace_context_enabled?
+          unless trace_context_enabled?
+            NewRelic::Agent.logger.warn "Not configured to accept WC3 trace context payload"
+            return
+          end
           return false if check_trace_context_ignored
           return false unless @trace_context_header_data = trace_context_header_data
           @trace_id = @trace_context_header_data.trace_id
