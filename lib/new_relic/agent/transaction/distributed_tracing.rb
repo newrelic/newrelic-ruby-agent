@@ -16,6 +16,7 @@ module NewRelic
         SUPPORTABILITY_CREATE_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/CreatePayload/Exception".freeze
 
         def create_distributed_trace_payload
+          return unless Agent.config[:'distributed_tracing.enabled'] && (Agent.config[:'distributed_tracing.format'] == NR_FORMAT)
           self.distributed_trace_payload_created = true
           payload = DistributedTracePayload.for_transaction self
           NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_PAYLOAD_SUCCESS
@@ -30,7 +31,7 @@ module NewRelic
         SUPPORTABILITY_ACCEPT_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/AcceptPayload/Exception".freeze
 
         def accept_distributed_trace_payload payload
-          return unless Agent.config[:'distributed_tracing.enabled']
+          return unless Agent.config[:'distributed_tracing.enabled'] && (Agent.config[:'distributed_tracing.format'] == NR_FORMAT)
           return false if check_payload_ignored(payload)
           return false unless check_payload_present(payload)
           return false unless payload = decode_payload(payload)
@@ -62,7 +63,7 @@ module NewRelic
             transaction_payload
         end
 
-        NR_FORMAT = "nr".freeze
+        NR_FORMAT = "newrelic".freeze
 
         def nr_distributed_tracing_enabled?
           Agent.config[:'distributed_tracing.enabled'] && (Agent.config[:'distributed_tracing.format'] == NR_FORMAT) && Agent.instance.connected?

@@ -198,7 +198,7 @@ module NewRelic
         def test_do_not_accept_trace_context_if_trace_context_disabled
           carrier = {}
           disabled_config = @config.merge({
-            :'distributed_tracing.format' => 'nr'
+            :'distributed_tracing.format' => 'newrelic'
           })
           parent_txn = nil
           child_txn = nil
