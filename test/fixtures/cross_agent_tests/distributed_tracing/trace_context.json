@@ -1158,7 +1158,7 @@
       }
     },
     "expected_metrics": [
-      ["Supportability/TraceContext/Parse/Exception", 1]
+      ["Supportability/TraceContext/TraceParent/Parse/Exception", 1]
     ]
   },
   {

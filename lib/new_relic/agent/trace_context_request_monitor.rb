@@ -9,9 +9,7 @@ require 'new_relic/agent/trace_context'
 module NewRelic
   module Agent
     class TraceContextRequestMonitor < InboundRequestMonitor
-
-      SUPPORTABILITY_PARSE_EXCEPTION = "Supportability/TraceContext/Parse/Exception".freeze
-      TRACEPARENT                    = 'HTTP_TRACEPARENT'.freeze
+      TRACEPARENT = 'HTTP_TRACEPARENT'.freeze
 
       def on_finished_configuring(events)
         return unless enabled?
@@ -25,10 +23,7 @@ module NewRelic
           carrier: request,
           trace_state_entry_key: TraceContext::AccountHelpers.trace_state_entry_key,
         )
-        if trace_context.nil?
-          NewRelic::Agent.increment_metric SUPPORTABILITY_PARSE_EXCEPTION
-          return
-        end
+        return if trace_context.nil?
 
         return unless txn = Tracer.current_transaction
 

@@ -33,6 +33,9 @@ module NewRelic
       MAX_TRACE_STATE_SIZE = 512 # bytes
       MAX_TRACE_STATE_ENTRY_SIZE = 128 # bytes
 
+      SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION = "Supportability/TraceContext/TraceParent/Parse/Exception".freeze
+      SUPPORTABILITY_TRACE_STATE_PARSE_EXCEPTION  = "Supportability/TraceContext/TraceState/Parse/Exception".freeze
+
       class << self
         def insert format: FORMAT_HTTP,
                    carrier: nil,
@@ -55,11 +58,18 @@ module NewRelic
                   carrier: nil,
                   trace_state_entry_key: nil
           trace_parent = extract_traceparent(format, carrier)
-          return unless trace_parent_valid? trace_parent
+          unless trace_parent_valid? trace_parent
+            NewRelic::Agent.increment_metric SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION
+            return
+          end
 
-          if header_data = extract_tracestate(format, carrier, trace_state_entry_key)
-            header_data.trace_parent = trace_parent
-            header_data
+          begin
+            if header_data = extract_tracestate(format, carrier, trace_state_entry_key)
+              header_data.trace_parent = trace_parent
+              header_data
+            end
+          rescue Exception
+            NewRelic::Agent.increment_metric SUPPORTABILITY_TRACE_STATE_PARSE_EXCEPTION
           end
         end
 
