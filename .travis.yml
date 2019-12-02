@@ -18,6 +18,7 @@ before_install:
   - gem --version
   - "echo 'gem: --no-rdoc --no-ri --no-document' > ~/.gemrc"
   - ./test/script/before_install/update_rubygems.sh
+  - rvm --version
   - rvm @global do gem uninstall bundler --all --executables || true
   - gem uninstall bundler --all --executables || true
   - gem install bundler -v=1.17.3
