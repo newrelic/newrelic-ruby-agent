@@ -41,10 +41,19 @@ module NewRelic
         assert_equal 123, @agent.service.channel_id
       end
 
+      def test_after_fork_should_not_collect_environment_report
+        with_config(:monitor_mode => true) do
+          @agent.stubs(:connected?).returns(true)
+          @agent.stubs(:in_resque_child_process?).returns(false)
+          @agent.after_fork
+          refute_nil @agent.environment_report
+        end
+      end
+
       def test_after_fork_reporting_to_channel_should_not_collect_environment_report
         with_config(:monitor_mode => true) do
           @agent.stubs(:connected?).returns(true)
-          @agent.expects(:generate_environment_report).never
+          @agent.expects(:environment_for_connect).never
           @agent.after_fork(:report_to_channel => 123)
         end
       end
