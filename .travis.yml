@@ -48,6 +48,7 @@ branches:
 rvm:
   # Run slowest builds first to try and optimize overall cycle time.
   - jruby-9.2.6.0
+  - 2.7
   - 2.6.1
   - 2.5.3
   - 2.4.2
@@ -99,6 +100,18 @@ matrix:
   fast_finish: true
   exclude:
     # Unsupported Rails/Ruby combinations
+    # 2.7
+    - rvm: 2.7
+      env: TYPE=UNIT ENVIRONMENT=rails30
+    - rvm: 2.7
+      env: TYPE=UNIT ENVIRONMENT=rails31
+    - rvm: 2.7
+      env: TYPE=UNIT ENVIRONMENT=rails32
+    - rvm: 2.7
+      env: TYPE=UNIT ENVIRONMENT=rails40
+    - rvm: 2.7
+      env: TYPE=UNIT ENVIRONMENT=rails41
+
     # 2.6
     - rvm: 2.6.1
       env: TYPE=UNIT ENVIRONMENT=rails30
