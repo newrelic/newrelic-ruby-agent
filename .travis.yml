@@ -16,6 +16,7 @@ before_install:
   - jdk_switcher use oraclejdk8
   - sudo rm -f /etc/apt/sources.list.d/travis_ci_zeromq3.list
   - gem --version
+  - "echo 'gem: --no-rdoc --no-ri --no-document' > ~/.gemrc"
   - ./test/script/before_install/update_rubygems.sh
   - rvm @global do gem uninstall bundler --all --executables || true
   - gem uninstall bundler --all --executables || true
