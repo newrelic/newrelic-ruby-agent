@@ -168,19 +168,19 @@ module Multiverse
 
       gemfile = File.join(Dir.pwd, "Gemfile.#{env_index}")
       File.open(gemfile,'w') do |f|
-        f.puts '  source "https://rubygems.org"' unless local
+        f.puts 'source "https://rubygems.org"' unless local
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
         f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./ || (defined?(JRUBY_VERSION) && JRUBY_VERSION > '1.7')
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
         f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
-        f.puts "  gem 'mocha', '0.14.0', :require => false"
+        f.puts "gem 'mocha', '~> 1.9.0', :require => false"
 
         if debug
-          f.puts "  gem 'pry', '~> 0.10.0'"
-          f.puts "  gem 'pry-byebug', platforms: :mri"
-          f.puts "  gem 'pry-stack_explorer', platforms: :mri"
+          f.puts "gem 'pry', '~> 0.10.0'"
+          f.puts "gem 'pry-byebug', platforms: :mri"
+          f.puts "gem 'pry-stack_explorer', platforms: :mri"
         end
       end
       puts yellow("Gemfile.#{env_index} set to:") if verbose?
@@ -190,7 +190,7 @@ module Multiverse
     def newrelic_gemfile_line
       line = ENV['NEWRELIC_GEMFILE_LINE'] if ENV['NEWRELIC_GEMFILE_LINE']
       path = ENV['NEWRELIC_GEM_PATH'] || '../../../..'
-      line ||= "  gem 'newrelic_rpm', :path => '#{path}'"
+      line ||= "gem 'newrelic_rpm', :path => '#{path}'"
       line
     end
 

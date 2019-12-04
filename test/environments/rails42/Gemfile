@@ -5,7 +5,7 @@ gem 'rake', '< 11'
 gem 'rails', '4.2.11'
 
 gem 'minitest', '5.2.3'
-gem 'mocha', '~> 1.9', :require => false
+gem 'mocha', '~> 1.9.0', :require => false
 gem 'rack', '< 2.0.0'
 gem 'rack-test'
 gem 'sprockets', '3.7.2'
