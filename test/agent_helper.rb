@@ -624,9 +624,8 @@ end
 def with_environment(env)
   old_env = {}
   env.keys.each do |key|
-    val = ENV[key]
     old_env[key] = ENV[key]
-    ENV[key]     = val.to_s
+    ENV[key]     = env[key].to_s
   end
   begin
     yield
