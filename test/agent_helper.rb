@@ -624,14 +624,15 @@ end
 def with_environment(env)
   old_env = {}
   mutex = Mutex.new
+
   env.keys.each do |key|
     old_env[key] = ENV[key]
-    mutex.synchronize { ENV[key] = env[key].to_s }
   end
+  ENV.merge!(env)
   begin
     yield
   ensure
-    old_env.each { |key, old_val| ENV[key] = old_val }
+    ENV.merge!(old_env)
   end
 end
 
