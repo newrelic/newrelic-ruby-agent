@@ -28,10 +28,11 @@ module RakeTestHelper
   end
 
   def with_tasks_traced(*tasks)
-    with_environment("NEW_RELIC_RAKE_TASKS" => tasks.join(",")) do
-      with_environment("NEW_RELIC_SYNC_STARTUP" => true) do
-        yield
-      end
+    with_environment(
+      "NEW_RELIC_RAKE_TASKS" => tasks.join(","),
+      "NEW_RELIC_SYNC_STARTUP" => true
+    ) do
+      yield
     end
   end
 

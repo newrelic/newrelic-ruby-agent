@@ -623,9 +623,10 @@ end
 
 def with_environment(env)
   old_env = {}
+  mutex = Mutex.new
   env.keys.each do |key|
     old_env[key] = ENV[key]
-    ENV[key]     = env[key].to_s
+    mutex.synchronize { ENV[key] = env[key].to_s }
   end
   begin
     yield
