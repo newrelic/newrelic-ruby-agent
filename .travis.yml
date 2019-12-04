@@ -63,7 +63,7 @@ env:
   global:
     - BUNDLE_PATH=/home/travis/bundle
     - MONGODB=2.6.11
-    - JAVA_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xmx640m"
+    - JAVA_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xmx1024m -XX:CICompilerCount=1 -Xshare:auto"
     - JRUBY_OPTS="-Xcompile.invokedynamic=false -J-Djruby.compile.mode=OFF"
     - RBXOPT="-Xcompiler.no_rbc -Xint"
     - SERIALIZE=1
