@@ -34,6 +34,6 @@ grape_versions.each do |version|
   gemfile <<-RB
     gem 'rack'
     gem 'rack-test', '#{rack_test_version}'
-    gem 'grape', '#{version}'
+    gem 'grape', '~> #{version}'
   RB
 end
