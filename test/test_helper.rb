@@ -16,7 +16,7 @@ require 'rubygems'
 require 'rake'
 
 require 'minitest/autorun'
-require 'mocha/setup'
+require 'mocha/minitest'
 
 require 'hometown'
 Hometown.watch(::Thread)

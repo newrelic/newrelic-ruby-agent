@@ -45,15 +45,15 @@ def fixture_tcp_socket( response )
       self.write_checker = Proc.new
     end
 
-    def self.write( buf )
-      self.write_checker.call( buf ) if self.write_checker
+    def self.write buf
+      self.write_checker.call(buf) if self.write_checker
       buf.length
     end
 
-    def self.sysread( size, buf='' )
+    def self.sysread size, buf=''
       @data ||= response.to_s
       raise EOFError if @data.empty?
-      buf.replace @data.slice!( 0, size )
+      buf.replace @data.slice!(0, size)
       buf
     end
     class << self
@@ -61,9 +61,8 @@ def fixture_tcp_socket( response )
     end
 
   end
-
   socket.response = response
-  TCPSocket.stubs( :open ).returns( socket )
+  TCPSocket.stubs(:open).returns(socket)
 
   return socket
 end
