@@ -623,7 +623,8 @@ end
 
 def with_environment(env)
   old_env = {}
-  env.each do |key, val|
+  env.keys.each do |key|
+    val = ENV[key]
     old_env[key] = ENV[key]
     ENV[key]     = val.to_s
   end
