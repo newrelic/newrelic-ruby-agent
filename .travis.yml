@@ -49,12 +49,12 @@ rvm:
   # Run slowest builds first to try and optimize overall cycle time.
   - jruby-9.2.6.0
   - 2.6.1
-  # - 2.5.3
-  # - 2.4.2
-  # - 2.3.5
-  # - 2.2.8
-  # - 2.1.10
-  # - 2.0.0-p648
+  - 2.5.3
+  - 2.4.2
+  - 2.3.5
+  - 2.2.8
+  - 2.1.10
+  - 2.0.0-p648
 
 jdk:
   - oraclejdk8
@@ -70,27 +70,27 @@ env:
     - TESTOPTS="-v"
     - VERBOSE = 1
   matrix:
-    # - TYPE=UNIT ENVIRONMENT=rails30
-    # - TYPE=UNIT ENVIRONMENT=rails31
-    # - TYPE=UNIT ENVIRONMENT=rails32
-    # - TYPE=UNIT ENVIRONMENT=rails40
-    # - TYPE=UNIT ENVIRONMENT=rails41
-    # - TYPE=UNIT ENVIRONMENT=rails42
-    # - TYPE=UNIT ENVIRONMENT=rails50
-    # - TYPE=UNIT ENVIRONMENT=rails51
-    # - TYPE=UNIT ENVIRONMENT=rails60
-    # - TYPE=UNIT ENVIRONMENT=norails
-    # - TYPE=FUNCTIONAL GROUP=agent
-    # - TYPE=FUNCTIONAL GROUP=api
-    # - TYPE=FUNCTIONAL GROUP=background
-    # - TYPE=FUNCTIONAL GROUP=database
-    # - TYPE=FUNCTIONAL GROUP=httpclients
-    # - TYPE=FUNCTIONAL GROUP=rails
-    # - TYPE=FUNCTIONAL GROUP=serialization
-    # - TYPE=FUNCTIONAL GROUP=sinatra
-    # - TYPE=FUNCTIONAL GROUP=rest
+    - TYPE=UNIT ENVIRONMENT=rails30
+    - TYPE=UNIT ENVIRONMENT=rails31
+    - TYPE=UNIT ENVIRONMENT=rails32
+    - TYPE=UNIT ENVIRONMENT=rails40
+    - TYPE=UNIT ENVIRONMENT=rails41
+    - TYPE=UNIT ENVIRONMENT=rails42
+    - TYPE=UNIT ENVIRONMENT=rails50
+    - TYPE=UNIT ENVIRONMENT=rails51
+    - TYPE=UNIT ENVIRONMENT=rails60
+    - TYPE=UNIT ENVIRONMENT=norails
+    - TYPE=FUNCTIONAL GROUP=agent
+    - TYPE=FUNCTIONAL GROUP=api
+    - TYPE=FUNCTIONAL GROUP=background
+    - TYPE=FUNCTIONAL GROUP=database
+    - TYPE=FUNCTIONAL GROUP=httpclients
+    - TYPE=FUNCTIONAL GROUP=rails
+    - TYPE=FUNCTIONAL GROUP=serialization
+    - TYPE=FUNCTIONAL GROUP=sinatra
+    - TYPE=FUNCTIONAL GROUP=rest
     - TYPE=FUNCTIONAL GROUP=background_2
-    # - TYPE=NULLVERSE
+    - TYPE=NULLVERSE
 
 matrix:
   allow_failures:
