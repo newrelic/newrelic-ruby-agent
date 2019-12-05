@@ -621,29 +621,35 @@ ensure
   NewRelic::Agent.logger = orig_logger
 end
 
-def mutex
-  @mutex ||= Mutex.new
-end
-
-def with_environment(env)
-  new_env = {}
-  ENV.each{ |k,v| new_env[k] = v }
-  new_env.merge!(env)
-
+def mri_with_environment(env)
   old_env = {}
-
-  mutex.synchronize do
-    env.keys.each do |key|
-      old_env[key] = ENV[key]
-      ENV[key] = env[key].to_s
-    end
+  env.each do |key, val|
+    old_env[key] = ENV[key]
+    ENV[key]     = val.to_s
   end
   begin
     yield
   ensure
-    mutex.synchronize do
-      old_env.each { |key, old_val| ENV[key] = old_val }
-    end
+    old_env.each { |key, old_val| ENV[key] = old_val }
+  end
+end
+
+def jruby_with_environment(env)
+  env.each{|k,v| env[k] = v.to_s}
+  old_env = ENV.dup
+  ENV.replace ENV.to_h.merge(env)
+  begin
+    yield
+  ensure
+    ENV.replace old_env
+  end
+end
+
+def with_environment(env, &block)
+  if RUBY_PLATFORM == "java"
+    jruby_with_environment(env, &block)
+  else
+    mri_with_environment(env, &block)
   end
 end
 
