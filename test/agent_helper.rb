@@ -634,14 +634,26 @@ def mri_with_environment(env)
   end
 end
 
-def jruby_with_environment(env)
-  env.each{|k,v| env[k] = v.to_s}
-  old_env = ENV.dup
-  ENV.replace ENV.to_h.merge(env)
+def with_retry(retry_limit=3)
   begin
+    retries ||= 0
+    sleep(retries)
     yield
-  ensure
-    ENV.replace old_env
+  rescue
+    (retries += 1) < retry_limit ? retry : raise
+  end
+end
+
+def jruby_with_environment(env)
+  with_retry do
+    env.each{|k,v| env[k] = v.to_s}
+    old_env = ENV.dup
+    ENV.replace ENV.to_h.merge(env)
+    begin
+      yield
+    ensure
+      ENV.replace old_env
+    end
   end
 end
 

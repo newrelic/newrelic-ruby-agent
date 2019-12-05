@@ -20,11 +20,7 @@ module RakeTestHelper
 
   def run_rake(commands = "", allow_failure = false)
     full_command = "bundle exec rake #{commands} 2>&1"
-    puts '*' * 80
-    puts "RUN RAKE: #{full_command.inspect}"
     @output = `#{full_command}`
-    puts @output
-    puts '*' * 80
 
     if !allow_failure
       assert $?.success?, "Failed during '#{full_command}'"
