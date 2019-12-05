@@ -634,32 +634,35 @@ def mri_with_environment(env)
   end
 end
 
-def with_retry(retry_limit=3)
-  begin
+# Singleton pattern to ensure one mutex lock for all threads
+class EnvUpdater
+  MAX_RETRIES = 5
+
+  def initialize
+    @mutex = Mutex.new
+  end
+
+  def with_retry retry_limit=MAX_RETRIES
     retries ||= 0
     sleep(retries)
     yield
   rescue
     (retries += 1) < retry_limit ? retry : raise
   end
-end
-
-# Singleton pattern to ensure one mutex lock for all threads
-class EnvUpdater
-
-  def initialize
-    @mutex = Mutex.new
-  end
 
   def safe_update env
-    @mutex.synchronize do
-      env.each{ |key, val| ENV[key] = val.to_s }
+    with_retry do
+      @mutex.synchronize do
+        env.each{ |key, val| ENV[key] = val.to_s }
+      end
     end
   end
 
   def safe_restore old_env
-    @mutex.synchronize do
-      old_env.each{ |key, val| val ? ENV[key] = val : ENV.delete(key) }
+    with_retry do
+      @mutex.synchronize do
+        old_env.each{ |key, val| val ? ENV[key] = val : ENV.delete(key) }
+      end
     end
   end
 
@@ -692,16 +695,6 @@ end
 
 def jruby_with_environment(env, &block)
   EnvUpdater.inject(env) { yield }
-  # with_retry do
-  #   env.each{|k,v| env[k] = v.to_s}
-  #   old_env = ENV.dup
-  #   ENV.replace ENV.to_h.merge(env)
-  #   begin
-  #     yield
-  #   ensure
-  #     ENV.replace old_env
-  #   end
-  # end
 end
 
 def with_environment(env, &block)
