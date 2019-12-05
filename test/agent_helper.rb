@@ -622,17 +622,19 @@ ensure
 end
 
 def with_environment(env)
-  old_env = {}
-  mutex = Mutex.new
+  new_env = {}
+  ENV.each{ |k,v| new_env[k] = v }
+  new_env.merge!(env)
 
-  env.keys.each do |key|
-    old_env[key] = ENV[key]
-  end
-  ENV.merge!(env)
+  old_env = {}
+  env.each{ |k,v| old_env[k] = ENV[k] }
+
+  ENV.replace(new_env)
+
   begin
     yield
   ensure
-    ENV.merge!(old_env)
+    ENV.replace(new_env.merge(old_env))
   end
 end
 
