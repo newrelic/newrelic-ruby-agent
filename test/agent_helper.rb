@@ -644,17 +644,64 @@ def with_retry(retry_limit=3)
   end
 end
 
-def jruby_with_environment(env)
-  with_retry do
-    env.each{|k,v| env[k] = v.to_s}
-    old_env = ENV.dup
-    ENV.replace ENV.to_h.merge(env)
-    begin
-      yield
-    ensure
-      ENV.replace old_env
+# Singleton pattern to ensure one mutex lock for all threads
+class EnvUpdater
+
+  def initialize
+    @mutex = Mutex.new
+  end
+
+  def safe_update env
+    @mutex.synchronize do
+      env.each{ |key, val| ENV[key] = val.to_s }
     end
   end
+
+  def safe_restore old_env
+    @mutex.synchronize do
+      old_env.each{ |key, val| val ? ENV[key] = val : ENV.delete(key) }
+    end
+  end
+
+  def self.instance
+    @@instance ||= EnvUpdater.new
+  end
+
+  def self.safe_update env
+    instance.safe_update env
+  end
+
+  def self.safe_restore old_env
+    instance.safe_restore old_env
+  end
+
+  def self.inject env, &block
+    old_env = {}
+    env.each{ |key, val| old_env[key] = ENV[key] }
+    begin
+      safe_update(env)
+      yield
+    ensure
+      safe_restore(old_env)
+    end
+  end    
+
+  # must call instance here to ensure only one @mutex for all threads.
+  instance
+end
+
+def jruby_with_environment(env, &block)
+  EnvUpdater.inject(env) { yield }
+  # with_retry do
+  #   env.each{|k,v| env[k] = v.to_s}
+  #   old_env = ENV.dup
+  #   ENV.replace ENV.to_h.merge(env)
+  #   begin
+  #     yield
+  #   ensure
+  #     ENV.replace old_env
+  #   end
+  # end
 end
 
 def with_environment(env, &block)
