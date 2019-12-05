@@ -9,11 +9,11 @@ language: ruby
 dist: precise
 sudo: required
 jdk:
-  - oraclejdk10
+  - oraclejdk8
 
 before_install:
   # RUBY-2072 Prevent Travis setup failure before our test even starts
-  - jdk_switcher use oraclejdk10
+  - jdk_switcher use oraclejdk8
   - sudo rm -f /etc/apt/sources.list.d/travis_ci_zeromq3.list
   - gem --version
   - "echo 'gem: --no-rdoc --no-ri --no-document' > ~/.gemrc"
