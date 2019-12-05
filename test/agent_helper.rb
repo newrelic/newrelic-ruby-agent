@@ -621,6 +621,10 @@ ensure
   NewRelic::Agent.logger = orig_logger
 end
 
+def mutex
+  @mutex ||= Mutex.new
+end
+
 def with_environment(env)
   new_env = {}
   ENV.each{ |k,v| new_env[k] = v }
@@ -628,7 +632,6 @@ def with_environment(env)
 
   old_env = {}
 
-  mutex = Mutex.new
   mutex.synchronize do
     env.keys.each do |key|
       old_env[key] = ENV[key]
