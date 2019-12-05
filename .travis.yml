@@ -16,6 +16,7 @@ before_install:
   - jdk_switcher use oraclejdk8
   - sudo rm -f /etc/apt/sources.list.d/travis_ci_zeromq3.list
   - gem --version
+  - "echo 'gem: --no-rdoc --no-ri --no-document' > ~/.gemrc"
   - ./test/script/before_install/update_rubygems.sh
   - rvm @global do gem uninstall bundler --all --executables || true
   - gem uninstall bundler --all --executables || true
@@ -23,7 +24,7 @@ before_install:
   - ./test/script/before_install/gemstash_mirror.sh
   - bundle --version
 
-install: bundle install
+install: bundle install --jobs 4
 
 addons:
   apt:
@@ -62,7 +63,7 @@ env:
   global:
     - BUNDLE_PATH=/home/travis/bundle
     - MONGODB=2.6.11
-    - JAVA_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xmx640m"
+    - JAVA_OPTS="-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Xmx1024m -XX:CICompilerCount=1 -Xshare:auto"
     - JRUBY_OPTS="-Xcompile.invokedynamic=false -J-Djruby.compile.mode=OFF"
     - RBXOPT="-Xcompiler.no_rbc -Xint"
     - SERIALIZE=1

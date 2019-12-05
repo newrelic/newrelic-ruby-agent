@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'resolv'
-require 'mocha/setup'
+require 'mocha/minitest'
 
 class LoadTest < Minitest::Test
   def test_loading_agent_when_disabled_does_not_resolv_addresses
