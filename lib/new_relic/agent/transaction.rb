@@ -12,6 +12,7 @@ require 'new_relic/agent/transaction/distributed_tracing'
 require 'new_relic/agent/cross_app_tracing'
 require 'new_relic/agent/transaction_time_aggregator'
 require 'new_relic/agent/deprecator'
+require 'new_relic/agent/guid_generator'
 
 module NewRelic
   module Agent
@@ -242,7 +243,7 @@ module NewRelic
 
         @exceptions = {}
         @metrics = TransactionMetrics.new
-        @guid = generate_guid
+        @guid = NewRelic::Agent::GuidGenerator.generate_guid
 
         @ignore_this_transaction = false
         @ignore_apdex = options.fetch(:ignore_apdex, false)
@@ -904,18 +905,6 @@ module NewRelic
 
       def sql_sampler
         agent.sql_sampler
-      end
-
-      HEX_DIGITS = (0..15).map{|i| i.to_s(16)}
-      GUID_LENGTH = 16
-
-      # generate a random 64 bit uuid
-      def generate_guid
-        guid = ''
-        GUID_LENGTH.times do |a|
-          guid << HEX_DIGITS[rand(16)]
-        end
-        guid
       end
     end
   end
