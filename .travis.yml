@@ -17,12 +17,9 @@ before_install:
   - sudo rm -f /etc/apt/sources.list.d/travis_ci_zeromq3.list
   - gem --version
   - "echo 'gem: --no-rdoc --no-ri --no-document' > ~/.gemrc"
-  - ./test/script/before_install/update_rubygems.sh
-  - rvm --version
-  - rvm @global do gem uninstall bundler --all --executables || true
-  - gem uninstall bundler --all --executables || true
-  - gem install bundler -v=1.17.3
+  - ./test/script/before_install/conditionally_upgrade_rubygems.sh
   - ./test/script/before_install/gemstash_mirror.sh
+  - "echo GEMSTASH_MIRROR: $GEMSTASH_MIRROR"
   - bundle --version
 
 install: bundle install --jobs 4
@@ -112,6 +109,28 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails40
     - rvm: 2.7.0-preview1
       env: TYPE=UNIT ENVIRONMENT=rails41
+
+    - rvm: 2.7.0-preview1
+      env: TYPE=UNIT ENVIRONMENT=rails42  # rails (= 4.2.11) depends on bundler (< 2.0, >= 1.3.0)
+    - rvm: 2.7.0-preview1
+      env: TYPE=UNIT ENVIRONMENT=rails50  # rails (= 5.0.0) depends on bundler (< 2.0, >= 1.3.0)
+    - rvm: 2.7.0-preview1
+      env: TYPE=UNIT ENVIRONMENT=rails51  # rails (= 5.1.0) depends on bundler (< 2.0, >= 1.3.0)
+    - rvm: 2.7.0-preview1
+      env: TYPE=FUNCTIONAL GROUP=api      # blocked: https://github.com/solnic/coercible/issues/27
+    - rvm: 2.7.0-preview1
+      env: TYPE=FUNCTIONAL GROUP=sinatra  # padrino (~> 0.14.0) depends on bundler (~> 1.0)
+
+    - rvm: 2.7.0-preview1
+      env: TYPE=UNIT ENVIRONMENT=rails42  # rails (= 4.2.11) depends on bundler (< 2.0, >= 1.3.0)
+    - rvm: 2.7.0-preview1
+      env: TYPE=UNIT ENVIRONMENT=rails50  # rails (= 5.0.0) depends on bundler (< 2.0, >= 1.3.0)
+    - rvm: 2.7.0-preview1
+      env: TYPE=UNIT ENVIRONMENT=rails51  # rails (= 5.1.0) depends on bundler (< 2.0, >= 1.3.0)
+    - rvm: 2.7.0-preview1
+      env: TYPE=FUNCTIONAL GROUP=api      # blocked: https://github.com/solnic/coercible/issues/27
+    - rvm: 2.7.0-preview1
+      env: TYPE=FUNCTIONAL GROUP=sinatra  # padrino (~> 0.14.0) depends on bundler (~> 1.0)
 
     # 2.6
     - rvm: 2.6.1
