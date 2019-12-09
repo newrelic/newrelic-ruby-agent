@@ -1,7 +1,7 @@
 if RUBY_VERSION >= '2.5.0'
 
   gemfile <<-RB
-    gem 'rails', '6.0.0.beta3'
+    gem 'rails', '6.0.0'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '2.0.0'
     gem 'minitest', '5.2.3'

@@ -198,7 +198,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     def test_should_create_a_metric_for_rendered_file_that_does_not_include_the_filename_so_it_doesnt_metric_explode
       get '/views/file_render'
       sample = last_transaction_trace
-      assert find_node_with_name(sample, 'View/file/Rendering')
+      assert find_node_with_name(sample, 'Nested/Controller/views/file_render')
       refute find_node_with_name_matching(sample, 'dummy')
     end
 
