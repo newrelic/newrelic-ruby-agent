@@ -1,5 +1,9 @@
 # New Relic Ruby Agent Release Notes #
 
+  * **Initial Ruby 2.7 support**
+
+    The Ruby agent has been verified to run with Ruby 2.7.0-preview1.
+
   * **New API method to add custom attributes to Spans**
 
     New API method for adding custom attributes to spans.  Previously, custom

@@ -124,7 +124,7 @@ module NewRelic
             if 'auto' == config[option]
               config.delete(option)
             elsif !config[option].nil? && !is_boolean?(config[option])
-              coerced_value = !!(config[option] =~ /yes|on|true/i)
+              coerced_value = !!(config[option].to_s =~ /yes|on|true/i)
               if !coerced_value
                 log_failure "Unexpected value (#{config[option]}) for '#{option}' in #{@path}"
               end
