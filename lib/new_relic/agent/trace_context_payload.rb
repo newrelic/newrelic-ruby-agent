@@ -106,11 +106,11 @@ module NewRelic
       end
 
       def valid?
-        !version.nil? \
-          && !parent_type_id.nil? \
-          && parent_account_id && !parent_account_id.empty? \
-          && parent_app_id && !parent_app_id.empty? \
-          && !timestamp.nil?
+        version \
+          && parent_type_id \
+          && !parent_account_id.empty? \
+          && !parent_app_id.empty? \
+          && timestamp
       rescue
         false
       end

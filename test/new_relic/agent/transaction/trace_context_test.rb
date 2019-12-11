@@ -53,7 +53,7 @@ module NewRelic
           end
 
           assert inserted
-          assert txn.instance_variable_get :@trace_context_inserted
+          assert txn.trace_context_inserted?
 
           expected_trace_parent = "00-#{trace_id}-#{parent_id}-01"
           assert_equal expected_trace_parent, carrier['traceparent']
@@ -311,6 +311,43 @@ module NewRelic
             refute txn.accept_trace_context(trace_context_header_data), "Expected second trace context not to be accepted"
           end
           assert_metrics_recorded "Supportability/TraceContext/Accept/Ignored/Multiple"
+        end
+
+        def test_records_a_no_nr_entry_trace_state_metric
+          parent_trace_context_header_data = nil
+          other_trace_state = nil
+
+          in_transaction do |parent|
+            parent.sampled = true
+            parent_trace_context_header_data = make_trace_context_header_data trace_state: ['other=asdf,other2=jkl;']
+            other_trace_state = parent_trace_context_header_data.instance_variable_get :@trace_state_entries
+          end
+
+          carrier = {}
+          child_trace_state_payload = nil
+          parent_id = nil
+
+          in_transaction do |child|
+            child.sampled = true
+            child.accept_trace_context parent_trace_context_header_data
+            child.insert_trace_context carrier: carrier
+            child_trace_state_payload = child.create_trace_state_payload
+            parent_id = child.current_segment.guid
+          end
+
+          assert_metrics_recorded "Supportability/TraceContext/TraceState/NoNrEntry"
+        end
+
+        def test_records_an_invalid_trace_state_metric
+          in_transaction do |txn|
+            txn.sampled = true
+            trace_state_payload = txn.create_trace_state_payload
+            trace_context_header_data = make_trace_context_header_data trace_state_payload: trace_state_payload
+            trace_state_payload.stubs(:valid?).returns(false)
+            refute txn.accept_trace_context(trace_context_header_data), "Expected trace context to be rejected"
+          end
+
+          assert_metrics_recorded "Supportability/TraceContext/TraceState/InvalidEntry"
         end
 
         def test_do_not_accept_trace_context_if_txn_has_already_generated_trace_context

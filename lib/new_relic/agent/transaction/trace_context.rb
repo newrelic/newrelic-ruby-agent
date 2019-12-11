@@ -10,23 +10,30 @@ module NewRelic
   module Agent
     class Transaction
       attr_accessor :trace_context_header_data
-      attr_writer   :trace_context_inserted
       attr_reader   :trace_state_payload
 
       module TraceContext
-
-        SUPPORTABILITY_CREATE_SUCCESS = "Supportability/TraceContext/Create/Success".freeze
-        SUPPORTABILITY_CREATE_EXCEPTION = "Supportability/TraceContext/Create/Exception".freeze
-        SUPPORTABILITY_ACCEPT_SUCCESS = "Supportability/TraceContext/Accept/Success".freeze
-        SUPPORTABILITY_ACCEPT_EXCEPTION = "Supportability/TraceContext/Accept/Exception".freeze
-        SUPPORTABILITY_MULTIPLE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/Accept/Ignored/Multiple".freeze
-        SUPPORTABILITY_CREATE_BEFORE_ACCEPT_TRACE_CONTEXT = "Supportability/TraceContext/Accept/Ignored/CreateBeforeAccept".freeze
-
-        EMPTY = ''.freeze
+        EMPTY_STRING                      = ''.freeze
+        SUPPORTABILITY_PREFIX             = "Supportability/TraceContext".freeze
+        CREATE_PREFIX                     = "#{SUPPORTABILITY_PREFIX}/Create".freeze
+        ACCEPT_PREFIX                     = "#{SUPPORTABILITY_PREFIX}/Accept".freeze
+        TRACESTATE_PREFIX                 = "#{SUPPORTABILITY_PREFIX}/TraceState".freeze
+        
+        CREATE_SUCCESS_METRIC             = "#{CREATE_PREFIX}/Success".freeze
+        CREATE_EXCEPTION_METRIC           = "#{CREATE_PREFIX}/Exception".freeze
+        
+        ACCEPT_SUCCESS_METRIC             = "#{ACCEPT_PREFIX}/Success".freeze
+        ACCEPT_EXCEPTION_METRIC           = "#{ACCEPT_PREFIX}/Exception".freeze
+        IGNORE_MULTIPLE_ACCEPT_METRIC     = "#{ACCEPT_PREFIX}/Ignored/Multiple".freeze
+        IGNORE_ACCEPT_AFTER_CREATE_METRIC = "#{ACCEPT_PREFIX}/Ignored/CreateBeforeAccept".freeze
+        
+        NO_NR_ENTRY_TRACESTATE_METRIC     = "#{TRACESTATE_PREFIX}/NoNrEntry".freeze
+        INVALID_TRACESTATE_METRIC         = "#{TRACESTATE_PREFIX}/InvalidEntry".freeze
 
         def insert_trace_context \
             format: NewRelic::Agent::TraceContext::FORMAT_HTTP,
             carrier: nil
+          
           return unless trace_context_enabled?
           NewRelic::Agent::TraceContext.insert \
             format: format,
@@ -35,11 +42,11 @@ module NewRelic
             parent_id: current_segment.guid,
             trace_flags: sampled? ? 0x1 : 0x0,
             trace_state: create_trace_state
-          self.trace_context_inserted = true
-          NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_SUCCESS
+          @trace_context_inserted = true
+          NewRelic::Agent.increment_metric CREATE_SUCCESS_METRIC
           true
         rescue Exception => e
-          NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_EXCEPTION
+          NewRelic::Agent.increment_metric CREATE_EXCEPTION_METRIC
           NewRelic::Agent.logger.warn "Failed to create trace context payload", e
           false
         end
@@ -53,7 +60,7 @@ module NewRelic
               entry_key,
               payload.to_s
           else
-            entry = EMPTY
+            entry = EMPTY_STRING
           end
 
           trace_context_header_data ? trace_context_header_data.trace_state(entry) : entry
@@ -78,20 +85,31 @@ module NewRelic
           end
         end
 
+        def assign_trace_state_payload
+          payload = @trace_context_header_data.trace_state_payload
+          unless payload
+            NewRelic::Agent.increment_metric NO_NR_ENTRY_TRACESTATE_METRIC
+            return false
+          end
+          unless payload.valid?
+            NewRelic::Agent.increment_metric INVALID_TRACESTATE_METRIC
+            return false
+          end            
+          @trace_state_payload = payload
+        end
 
         def accept_trace_context trace_context_header_data
           unless trace_context_enabled?
             NewRelic::Agent.logger.warn "Not configured to accept WC3 trace context payload"
-            return
+            return false
           end
-          return false if check_trace_context_ignored
-          return false unless @trace_context_header_data = trace_context_header_data
+          return false if ignore_trace_context?
+          
+          @trace_context_header_data = trace_context_header_data
           @trace_id = @trace_context_header_data.trace_id
           @parent_span_id = @trace_context_header_data.parent_id
 
-          return false unless payload = trace_context_header_data.trace_state_payload
-          return false unless payload.valid?
-          @trace_state_payload = payload
+          return false unless payload = assign_trace_state_payload
 
           @parent_transaction_id = payload.transaction_id
 
@@ -99,10 +117,10 @@ module NewRelic
             self.sampled = payload.sampled
             self.priority = payload.priority if payload.priority
           end
-          NewRelic::Agent.increment_metric SUPPORTABILITY_ACCEPT_SUCCESS
+          NewRelic::Agent.increment_metric ACCEPT_SUCCESS_METRIC
           true
         rescue => e
-          NewRelic::Agent.increment_metric SUPPORTABILITY_ACCEPT_EXCEPTION
+          NewRelic::Agent.increment_metric ACCEPT_EXCEPTION_METRIC
           NewRelic::Agent.logger.warn "Failed to accept trace context payload", e
           false
         end
@@ -115,12 +133,12 @@ module NewRelic
               transaction_payload
         end
 
-        def check_trace_context_ignored
+        def ignore_trace_context?
           if trace_context_header_data
-            NewRelic::Agent.increment_metric SUPPORTABILITY_MULTIPLE_ACCEPT_TRACE_CONTEXT
+            NewRelic::Agent.increment_metric IGNORE_MULTIPLE_ACCEPT_METRIC
             return true
           elsif trace_context_inserted?
-            NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_BEFORE_ACCEPT_TRACE_CONTEXT
+            NewRelic::Agent.increment_metric IGNORE_ACCEPT_AFTER_CREATE_METRIC
             return true
           end
           false
@@ -128,7 +146,7 @@ module NewRelic
       end
 
       def trace_context_inserted?
-        @trace_context_inserted ||=  false
+        @trace_context_inserted ||= false
       end
 
       W3C_FORMAT = "w3c".freeze
