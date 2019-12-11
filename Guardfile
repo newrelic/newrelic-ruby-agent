@@ -1,6 +1,6 @@
 guard_options = {
-  spring: "bundle exec ruby", 
-  test_folders: ['test/new_relic'], 
+  spring: "bundle exec ruby",
+  test_folders: ['test/new_relic', 'test'], 
   all_after_pass: false
 }
 

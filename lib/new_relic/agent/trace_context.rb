@@ -136,7 +136,7 @@ module NewRelic
           payload = nil
           trace_state_size = 0
           trace_state_vendors = ''
-          trace_state = header.split(COMMA)
+          trace_state = header.split(COMMA).map(&:strip)
           trace_state.reject! do |entry|
             vendor_id = entry.slice 0, entry.index(EQUALS)
             if vendor_id == trace_state_entry_key

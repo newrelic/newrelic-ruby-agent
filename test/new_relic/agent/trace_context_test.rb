@@ -112,6 +112,29 @@ module NewRelic
         assert_equal 'new=entry,other=asdf,otherother=asdfasdf', trace_context_header_data.trace_state('new=entry')
       end
 
+      def test_parse_with_nr_middle_and_spaces
+        payload = make_payload
+
+        carrier = {
+          'traceparent' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+          'tracestate'  => "other=asdf , \t190@nr=#{payload.to_s},\totherother=asdfasdf"
+        }
+
+        trace_context_header_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
+                                               carrier: carrier,
+                                               trace_state_entry_key: "190@nr"
+
+        trace_parent = trace_context_header_data.trace_parent
+
+        assert_equal '00', trace_parent['version']
+        assert_equal 'a8e67265afe2773a3c611b94306ee5c2', trace_parent['trace_id']
+        assert_equal 'fb1010463ea28a38', trace_parent['parent_id']
+        assert_equal '01', trace_parent['trace_flags']
+
+        assert_equal payload.to_s, trace_context_header_data.trace_state_payload.to_s
+        assert_equal 'new=entry,other=asdf,otherother=asdfasdf', trace_context_header_data.trace_state('new=entry')
+      end
+
       def test_parse_tracestate_no_other_entries
         payload = make_payload
         carrier = make_inbound_carrier({'tracestate' => "190@nr=#{payload.to_s}"})

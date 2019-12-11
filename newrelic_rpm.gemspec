@@ -54,6 +54,8 @@ EOS
   s.add_development_dependency 'yard'
   s.add_development_dependency 'pry-nav', '~> 0.2.4'
   s.add_development_dependency 'pry-stack_explorer', '~> 0.4.9'
+  s.add_development_dependency 'guard', '~> 2.16.0'
+  s.add_development_dependency 'guard-minitest', '~> 2.4.0'
   s.add_development_dependency 'hometown', '~> 0.2.5'
   s.add_development_dependency 'bundler'
 end
