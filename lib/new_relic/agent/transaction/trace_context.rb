@@ -28,7 +28,7 @@ module NewRelic
         IGNORE_ACCEPT_AFTER_CREATE_METRIC = "#{ACCEPT_PREFIX}/Ignored/CreateBeforeAccept".freeze
         
         NO_NR_ENTRY_TRACESTATE_METRIC     = "#{TRACESTATE_PREFIX}/NoNrEntry".freeze
-        INVALID_TRACESTATE_METRIC         = "#{TRACESTATE_PREFIX}/InvalidEntry".freeze
+        INVALID_TRACESTATE_PAYLOAD_METRIC = "#{TRACESTATE_PREFIX}/InvalidPayload".freeze
 
         def insert_trace_context \
             format: NewRelic::Agent::TraceContext::FORMAT_HTTP,
@@ -92,7 +92,7 @@ module NewRelic
             return false
           end
           unless payload.valid?
-            NewRelic::Agent.increment_metric INVALID_TRACESTATE_METRIC
+            NewRelic::Agent.increment_metric INVALID_TRACESTATE_PAYLOAD_METRIC
             return false
           end            
           @trace_state_payload = payload
