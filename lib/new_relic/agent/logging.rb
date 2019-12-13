@@ -93,6 +93,10 @@ module NewRelic
             message.inspect.to_json
           end
         end
+
+        def clear_tags!
+          # No-op; just avoiding issues with act-fluent-logger-rails
+        end
       end
 
 
