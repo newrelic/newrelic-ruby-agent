@@ -15,7 +15,7 @@ if RUBY_VERSION.to_f < 2.7
   if Gem::VERSION.to_f < 3.0
     puts "Ruby < 2.7, upgrading RubyGems from #{Gem::VERSION}"
 
-    puts `gem update --system --force || (gem i rubygems-update -v '<3' && update_rubygems)`
+    puts `gem update --system 3.0.6 --force || (gem i rubygems-update -v '<3' && update_rubygems)`
     puts `rvm @global do gem uninstall bundler --all --executables || true`
     puts `gem uninstall bundler --all --executables || true`
     puts `gem install bundler -v=1.17.3 --force`
