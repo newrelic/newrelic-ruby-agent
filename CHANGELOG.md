@@ -37,7 +37,7 @@
     * `autostart.blacklisted_constants`: use `autostart.denylisted_constants` instead.
     * `autostart.blacklisted_executables`: use `autostart.denylisted_executables` instead.
     * `autostart.blacklisted_rake_tasks`: use `autostart.denylisted_rake_tasks` instead.
-    * `strip_exception_messages.whitelist`: use `strip_exception_messages.allowlist` instead.
+    * `strip_exception_messages.whitelist`: use `strip_exception_messages.allowed_classes` instead.
 
   * **Bugfix for module loading and constant resolution in Rails**
 

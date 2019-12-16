@@ -523,10 +523,10 @@ module NewRelic
           :description => 'Deprecated.  ' \
               'For agent versions 6.8.0 or higher, ' \
               'use <a href="#strip_exception_messages-allowlist"><code>' \
-                'strip_exception_messages.allowlist' \
+                'strip_exception_messages.allowed_classes' \
               '</code></a> instead.'
         },
-        :'strip_exception_messages.allowlist' => {
+        :'strip_exception_messages.allowed_classes' => {
           :default => '',
           :public => true,
           :type => String,

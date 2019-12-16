@@ -60,7 +60,7 @@ class NewRelic::NoticedError
   def self.passes_message_allowlist(exception_class)
     # For backwards compatibility until we remove :'strip_exception_messages.whitelist' config option
 
-    allowed = NewRelic::Agent.config[:'strip_exception_messages.allowlist'].concat(NewRelic::Agent.config[:'strip_exception_messages.whitelist'])
+    allowed = NewRelic::Agent.config[:'strip_exception_messages.allowed_classes'].concat(NewRelic::Agent.config[:'strip_exception_messages.whitelist'])
 
     allowed.any? do |klass|
       exception_class <= klass
