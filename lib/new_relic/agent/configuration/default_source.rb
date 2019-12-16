@@ -1890,7 +1890,7 @@ module NewRelic
         },
         :'distributed_tracing.format' => {
           :default => 'newrelic',
-          :public => true,
+          :public => false,
           :type => String,
           :transform => DefaultSource.enforce_fallback(
             allowed_values: ['w3c', 'newrelic'],
