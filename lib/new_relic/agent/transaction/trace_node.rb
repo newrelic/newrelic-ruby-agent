@@ -22,10 +22,15 @@ module NewRelic
           @metric_name     = metric_name || UNKNOWN_NODE_NAME
           @exit_timestamp  = relative_end
           @children        = nil
-          @params          = params.select do |p|
-            NewRelic::Agent.instance.attribute_filter.allows_key? p, AttributeFilter::DST_TRANSACTION_SEGMENTS
-          end if params
+          @params          = select_allowed_params(params)
           @parent_node     = parent
+        end
+
+        def select_allowed_params params
+          return unless params
+          params.select do |p|
+            NewRelic::Agent.instance.attribute_filter.allows_key? p, AttributeFilter::DST_TRANSACTION_SEGMENTS
+          end
         end
 
         # sets the final timestamp on a node to indicate the exit

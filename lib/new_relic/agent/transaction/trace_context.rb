@@ -129,7 +129,7 @@ module NewRelic
           return unless trace_context_enabled?
           DistributedTraceIntrinsics.copy_from_transaction \
               self,
-              @trace_state_payload,
+              trace_state_payload,
               transaction_payload
         end
 
