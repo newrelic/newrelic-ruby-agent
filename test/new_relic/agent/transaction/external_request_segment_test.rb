@@ -35,6 +35,8 @@ module NewRelic
 
         def setup
           @obfuscator = NewRelic::Agent::Obfuscator.new "jotorotoes"
+          NewRelic::Agent.agent.stubs(:connected?).returns(true)
+
           CrossAppTracing.stubs(:obfuscator).returns(@obfuscator)
           CrossAppTracing.stubs(:valid_encoding_key?).returns(true)
           nr_freeze_time
@@ -333,6 +335,25 @@ module NewRelic
           end
           assert request.headers.key?("X-NewRelic-ID"), "Expected to find X-NewRelic-ID header"
           assert request.headers.key?("X-NewRelic-Transaction"), "Expected to find X-NewRelic-Transaction header"
+        end
+
+        def test_segment_writes_outbound_request_headers_for_trace_context
+          NewRelic::Agent::Transaction.any_instance.stubs(:trace_context_enabled?).returns(true)
+          request = RequestWrapper.new
+          with_config trace_context_config do
+
+            in_transaction :category => :controller do
+              segment = Tracer.start_external_request_segment(
+                library: "Net::HTTP",
+                uri: "http://remotehost.com/blogs/index",
+                procedure: "GET"
+              )
+              segment.add_request_headers request
+              segment.finish
+            end
+          end
+          assert request.headers.key?("traceparent"), "Expected to find traceparent header"
+          assert request.headers.key?("tracestate"), "Expected to find tracestate header"
         end
 
         def test_segment_writes_synthetics_header_for_synthetics_txn
@@ -640,6 +661,7 @@ module NewRelic
         def test_segment_adds_distributed_trace_header
           distributed_tracing_config = {
             :'distributed_tracing.enabled'      => true,
+            :'distributed_tracing.format'       => 'newrelic',
             :'cross_application_tracer.enabled' => false,
             :account_id                         => "190",
             :primary_application_id             => "46954"
@@ -781,7 +803,19 @@ module NewRelic
         def distributed_tracing_config
           {
             :'distributed_tracing.enabled'      => true,
+            :'distributed_tracing.format'       => 'newrelic',
             :'cross_application_tracer.enabled' => false
+          }
+        end
+
+        def trace_context_config
+          {
+            :'distributed_tracing.enabled' => true,
+            :'distributed_tracing.format' => 'w3c',
+            :'cross_application_tracer.enabled' => false,
+            :account_id                         => "190",
+            :primary_application_id             => "46954",
+            :trusted_account_key                => "trust_this!"
           }
         end
 

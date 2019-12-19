@@ -82,6 +82,26 @@ class CoerceTest < Minitest::Test
     assert_equal "",       string(Unstringable.new)
   end
 
+  def test_int!
+    assert_equal 120, int!('120')
+  end
+
+  def test_float!
+    assert_equal 1.23456, float!('1.23456')
+  end
+
+  def test_boolean_int!
+    assert_equal 1, boolean_int!('1')
+    assert_equal 0, boolean_int!('0')
+    assert_equal 0, boolean_int!('somethignunexpected')
+  end
+
+  def test_value_or_nil
+    assert_nil value_or_nil('')
+    assert_nil value_or_nil(nil)
+    assert_equal 'not_nil', value_or_nil('not_nil')
+  end
+
   def test_string_coerce_logs_with_context
     expects_logging(:warn, all_of(includes("HERE"), includes("String")), anything)
     string(Unstringable.new, "HERE")

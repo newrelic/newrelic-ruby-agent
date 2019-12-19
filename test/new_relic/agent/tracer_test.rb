@@ -355,30 +355,6 @@ module NewRelic
         end
       end
 
-      def test_start_message_broker_segment
-        action           = :produce,
-        library          = "RabbitMQ"
-        destination_type =  :exchange,
-        destination_name = "QQ"
-        headers          = {foo: "bar"}
-        parameters       = {bar: "baz"}
-        start_time       = Time.now
-        parent           = Transaction::Segment.new("parent")
-
-        in_transaction do
-          Tracer.start_message_broker_segment(
-            action: action,
-            library: library,
-            destination_type: destination_type,
-            destination_name: destination_name,
-            headers: headers,
-            parameters: parameters,
-            start_time: start_time,
-            parent: parent
-          )
-        end
-      end
-
       def test_accept_distributed_trace_payload_delegates_to_transaction
         payload = stub(:payload)
         in_transaction do |txn|

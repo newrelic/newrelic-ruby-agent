@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+require 'new_relic/agent/distributed_trace_transport_type'
 require 'new_relic/agent/inbound_request_monitor'
 require 'new_relic/agent/cross_app_tracing'
 
@@ -21,19 +22,8 @@ module NewRelic
         return unless txn = Tracer.current_transaction
 
         if txn.accept_distributed_trace_payload payload
-          txn.distributed_trace_payload.caller_transport_type = transport_type(request)
+          txn.distributed_trace_payload.caller_transport_type = DistributedTraceTransportType.for_rack_request(request)
         end
-      end
-
-      URL_SCHEMES = {
-        'http'  => 'HTTP'.freeze,
-        'https' => 'HTTPS'.freeze
-      }
-
-      RACK_URL_SCHEME = 'rack.url_scheme'.freeze
-
-      def transport_type(request)
-        URL_SCHEMES[request[RACK_URL_SCHEME]]
       end
     end
   end

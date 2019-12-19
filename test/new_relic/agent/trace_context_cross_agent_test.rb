@@ -7,31 +7,35 @@ require 'json'
 
 module NewRelic
   module Agent
-    class DistributedTracingCrossAgentTest < Minitest::Test
+    class TraceContextCrossAgentTest < Minitest::Test
       def setup
-        NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
-        NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
+        NewRelic::Agent::Transaction.any_instance.stubs(:trace_context_enabled?).returns(true)
+        agent_event_listener = mock(:subscribe)
+        @request_monitor = TraceContextRequestMonitor.new agent_event_listener
+        NewRelic::Agent.drop_buffered_data
       end
 
       def teardown
         NewRelic::Agent.drop_buffered_data
+        TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
       end
 
-      load_cross_agent_test("distributed_tracing/distributed_tracing").each do |test_case|
+      load_cross_agent_test("distributed_tracing/trace_context").each do |test_case|
         test_case['test_name'] = test_case['test_name'].tr(" ", "_")
+
         define_method("test_#{test_case['test_name']}") do
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case["force_sampled_true"])
 
           config = {
+            :'distributed_tracing.enabled' => true,
+            :'distributed_tracing.format'  => 'w3c',
             :account_id                    => test_case['account_id'],
             :primary_application_id        => "2827902",
             :trusted_account_key           => test_case['trusted_account_key'],
-            :'span_events.enabled'         => test_case['span_events_enabled'],
-            :'distributed_tracing.enabled' => true
+            :'span_events.enabled'         => test_case['span_events_enabled']
           }
 
-          with_config(config) do
-            NewRelic::Agent.config.notify_server_source_added
+          with_server_source(config) do
             run_test_case(test_case)
           end
         end
@@ -43,7 +47,7 @@ module NewRelic
         outbound_payloads = []
 
         in_transaction(in_transaction_options(test_case)) do |txn|
-          accept_payloads(test_case, txn)
+          accept_headers(test_case, txn)
           raise_exception(test_case)
           outbound_payloads = create_payloads(test_case, txn)
         end
@@ -55,13 +59,12 @@ module NewRelic
         verify_outbound_payloads(test_case, outbound_payloads)
       end
 
-      def accept_payloads(test_case, txn)
-        inbound_payloads = payloads_for(test_case)
-        inbound_payloads.each do |payload|
-          txn.accept_distributed_trace_payload payload
-          if txn.distributed_trace_payload
-            txn.distributed_trace_payload.caller_transport_type = test_case['transport_type']
-          end
+      def accept_headers(test_case, txn)
+        inbound_headers = headers_for(test_case)
+        inbound_headers.each do |carrier|
+          DistributedTraceTransportType.stubs(:for_rack_request).returns(test_case['transport_type'])
+
+          @request_monitor.on_before_call rack_format(carrier)
         end
       end
 
@@ -77,8 +80,10 @@ module NewRelic
         if test_case['outbound_payloads']
           payloads = Array(test_case['outbound_payloads'])
           payloads.count.times do
-            payload = txn.create_distributed_trace_payload
-            outbound_payloads << payload if payload
+            outbound_headers = {}
+            if txn.insert_trace_context carrier: outbound_headers
+              outbound_payloads << outbound_headers
+            end
           end
         end
         outbound_payloads
@@ -99,9 +104,9 @@ module NewRelic
         end
       end
 
-      def payloads_for(test_case)
-        if test_case.has_key?('inbound_payloads')
-          (test_case['inbound_payloads'] || [nil]).map(&:to_json)
+      def headers_for(test_case)
+        if test_case.has_key?('inbound_headers')
+          (test_case['inbound_headers'] || [nil])
         else
           []
         end
@@ -143,7 +148,7 @@ module NewRelic
         return {} unless target_events.include? event_type
 
         common_intrinsics = intrinsics['common'] || {}
-        event_intrinsics  = intrinsics[event_type.to_sym] || {}
+        event_intrinsics  = intrinsics[event_type] || {}
 
         merge_intrinsics [common_intrinsics, event_intrinsics]
       end
@@ -153,6 +158,14 @@ module NewRelic
           assert_equal v,
                        actual_attributes[k.to_s],
                        %Q|Wrong "#{k}" #{event_type} attribute; expected #{v.inspect}, was #{actual_attributes[k.to_s].inspect}|
+        end
+
+        (test_case_attributes['notequal'] || []).each do |k, v|
+          refute_equal(
+            v,
+            actual_attributes[k.to_s],
+            "#{event_type} #{k.to_s.inspect} attribute should not equal #{v.inspect}"
+            )
         end
 
         (test_case_attributes['expected'] || []).each do |key|
@@ -191,6 +204,8 @@ module NewRelic
         return if test_case_intrinsics.empty?
 
         last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+
+        refute_empty last_span_events
         actual_intrinsics = last_span_events[0][0]
 
         verify_attributes test_case_intrinsics, actual_intrinsics, 'Span'
@@ -201,10 +216,11 @@ module NewRelic
         assert_equal test_case_payloads.count, actual_payloads.count
 
         test_case_payloads.zip(actual_payloads).each do |test_case_data, actual|
-          actual = stringify_keys_in_object(
-            NewRelic::Agent::Configuration::DottedHash.new(
-              JSON.parse(actual.text)))
-          verify_attributes test_case_data, actual, 'Payload'
+          context_hash = trace_context_headers_to_hash actual
+          dotted_context_hash = NewRelic::Agent::Configuration::DottedHash.new context_hash
+          stringified_hash = stringify_keys_in_object dotted_context_hash
+
+          verify_attributes test_case_data, stringified_hash, 'Payload'
         end
       end
 
@@ -215,6 +231,41 @@ module NewRelic
         end
 
         assert_metrics_recorded expected_metrics
+      end
+
+      def object_to_hash object
+        object.instance_variables.inject({}) do |hash, variable_name|
+          key = variable_name.to_s.sub(/^@/,'')
+          hash[key] = object.instance_variable_get(variable_name)
+          hash
+        end
+      end
+
+      def trace_context_headers_to_hash carrier
+        entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
+        header_data = NewRelic::Agent::TraceContext.parse \
+            carrier: carrier,
+            trace_state_entry_key: entry_key
+        if header_data.trace_state_payload
+          tracestate = object_to_hash header_data.trace_state_payload
+          tracestate['tenant_id'] = entry_key.sub '@nr', ''
+          tracestate['parent_type'] = header_data.trace_state_payload.parent_type
+          tracestate['parent_application_id'] = header_data.trace_state_payload.parent_app_id
+          tracestate['span_id'] = header_data.trace_state_payload.id
+        else
+          tracestate = nil
+        end
+        {
+          'traceparent' => header_data.trace_parent,
+          'tracestate' => tracestate
+        }
+      end
+
+      def rack_format carrier
+        {
+          TraceContext::TRACE_PARENT_RACK => carrier[TraceContext::TRACE_PARENT],
+          TraceContext::TRACE_STATE_RACK => carrier[TraceContext::TRACE_STATE]
+        }
       end
     end
   end

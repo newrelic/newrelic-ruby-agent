@@ -461,15 +461,20 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_record_intrinsics_on_slow_sql
     payload = nil
+    NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
     with_config({:'distributed_tracing.enabled' => true,
                  :primary_application_id => "46954",
                  :trusted_account_key => 'trust_this!',
                  :account_id => 190,
                  :'slow_sql.explain_threshold' => -1 }) do
 
+      nr_freeze_time
+
       in_transaction do |txn|
         payload = txn.create_distributed_trace_payload
       end
+
+      advance_time 2.0
 
       segment = nil
       txn = nil
@@ -492,7 +497,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       assert_equal txn.priority,                           sql_trace.params['priority']
       assert_equal sampled,                                sql_trace.params['sampled']
       assert_equal payload.caller_transport_type,          sql_trace.params['parent.transportType']
-      assert_equal txn.transport_duration,                 sql_trace.params['parent.transportDuration']
+      assert_equal 2.0, sql_trace.params['parent.transportDuration'].round
       assert_equal payload.parent_type,                    sql_trace.params['parent.type']
       assert_equal payload.parent_account_id,              sql_trace.params['parent.account']
       assert_equal payload.parent_app_id,                  sql_trace.params['parent.app']

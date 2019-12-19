@@ -218,6 +218,16 @@ module NewRelic
           end
           const_names.compact
         end
+
+        def self.enforce_fallback(allowed_values: nil, fallback: nil)
+          Proc.new do |configured_value|
+            if allowed_values.any? { |v| v =~ /#{configured_value}/i }
+              configured_value
+            else
+              fallback
+            end
+          end
+        end
       end
 
       AUTOSTART_DENYLISTED_RAKE_TASKS = [
@@ -1877,6 +1887,16 @@ module NewRelic
           :type        => Boolean,
           :allowed_from_server => false,
           :description => 'Distributed tracing lets you see the path that a request takes through your distributed system. Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the <a href="https://docs.newrelic.com/docs/transition-guide-distributed-tracing">transition guide</a> before you enable this feature.'
+        },
+        :'distributed_tracing.format' => {
+          :default => 'newrelic',
+          :public => false,
+          :type => String,
+          :transform => DefaultSource.enforce_fallback(
+            allowed_values: ['w3c', 'newrelic'],
+            fallback: 'newrelic'),
+          :allowed_from_server => false,
+          :description => 'The format to use for distributed tracing if it is enabled. Options are w3c for W3C Trace Context or newrelic for New Relic Distriburted Tracing. Defaults to New Relic Distributed Tracing.'
         },
         :trusted_account_key => {
           :default => nil,

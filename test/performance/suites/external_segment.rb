@@ -7,7 +7,7 @@ require 'new_relic/agent/obfuscator'
 
 class ExternalSegment < Performance::TestCase
 
-  CONFIG = {
+  CAT_CONFIG = {
       :license_key     => 'a' * 40,
       :'cross_application_tracer.enabled' => true,
       :cross_process_id                   => "1#1884",
@@ -15,8 +15,15 @@ class ExternalSegment < Performance::TestCase
       :trusted_account_ids                => [1]
   }
 
+  TRACE_CONTEXT_CONFIG = {
+      :'distributed_tracing.enabled' => true,
+      :'distributed_tracing.format' => 'w3c',
+      :account_id => "190",
+      :primary_application_id => "46954",
+      :disable_harvest_thread => true
+  }
+
   def setup
-    NewRelic::Agent.config.add_config_for_testing(CONFIG)
 
     NewRelic::Agent.manual_start(
       :monitor_mode   => false
@@ -36,8 +43,22 @@ class ExternalSegment < Performance::TestCase
   end
 
   def test_external_cat_request
+    NewRelic::Agent.config.add_config_for_testing(CAT_CONFIG)
+
     io_server = start_server
     reply_with_cat_headers io_server
+    measure do
+      in_transaction do
+        Net::HTTP.get(TEST_URI)
+      end
+    end
+    stop_server io_server
+  end
+
+  def test_external_trace_context_request
+    NewRelic::Agent.config.add_config_for_testing(TRACE_CONTEXT_CONFIG)
+
+    io_server = start_server
     measure do
       in_transaction do
         Net::HTTP.get(TEST_URI)
