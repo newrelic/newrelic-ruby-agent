@@ -753,6 +753,33 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert errors.first.expected, "Error should have had expected attribute set"
   end
 
+  def test_transport_duration_returned_in_seconds_when_positive
+    duration = 2.0
+    parent_timestamp, txn_start = make_transport_duration_timestamps duration
+    txn = in_transaction { |t| t.start_time = txn_start }
+    payload = stub(timestamp: parent_timestamp)
+
+    assert_equal \
+      duration,
+      txn.calculate_transport_duration(payload).round(0)
+  end
+
+  def test_transport_duration_zero_with_clock_skew
+    duration = -1.0
+    parent_timestamp, txn_start = make_transport_duration_timestamps duration
+    txn = in_transaction { |t| t.start_time = txn_start }
+    payload = stub(timestamp: parent_timestamp)
+
+    assert_equal 0, txn.calculate_transport_duration(payload)
+  end
+
+  def make_transport_duration_timestamps duration
+    transaction_start = Time.now()
+    parent_timestamp = ((transaction_start.to_f - duration) * 1000).round
+
+    return parent_timestamp, transaction_start
+  end
+
   def test_records_gc_time
     gc_start = mock('gc start')
     gc_end   = mock('gc end')
@@ -1446,6 +1473,13 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
     assert_equal "418", actual[:"httpResponseCode"]
   end
 
+  def test_trace_id
+    txn = in_transaction {}
+
+    refute_nil txn.trace_id
+    assert_equal 32, txn.trace_id.size
+  end
+
   def test_referer_in_agent_attributes
     request = stub('request', :referer => "/referered", :path => "/")
     txn = in_transaction(:request => request) do
@@ -1591,6 +1625,30 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
       refute segment_a.params.key?(:'request.parameters.uri')
       assert segment_a.params.key?(:foo)
+    end
+  end
+
+  def test_generates_guid_when_running_out_of_file_descriptors
+    # SecureRandom.hex raises an exception when the ruby interpreter
+    # uses up all of its allotted file descriptors.
+    # See also: https://github.com/newrelic/rpm/issues/303
+    file_descriptors = []
+    begin
+      # Errno::EMFILE is raised when the system runs out of file
+      # descriptors
+      # If the segment constructor fails to create a random guid, the
+      # exception would be a RuntimeError
+      assert_raises Errno::EMFILE do
+        while true do
+          file_descriptors << IO.sysopen(__FILE__)
+          transaction = in_transaction do |txn|
+            refute_nil txn.guid
+            refute_nil txn.trace_id
+          end
+        end
+      end
+    ensure
+      file_descriptors.map { |fd| IO::new(fd).close }
     end
   end
 end

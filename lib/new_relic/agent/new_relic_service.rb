@@ -92,14 +92,16 @@ module NewRelic
         token = Agent.config[:security_policies_token]
 
         if token && !token.empty?
-          response = invoke_remote(:preconnect, [{'security_policies_token' => token}])
+          response = invoke_remote(:preconnect, [{'security_policies_token' => token, 'high_security' => false}])
 
           validator = SecurityPolicySettings::Validator.new(response)
           validator.validate_matching_agent_config!
 
           response
+        elsif Agent.config[:high_security]
+          invoke_remote(:preconnect, [{'high_security' => true}])
         else
-          invoke_remote(:preconnect, [])
+          invoke_remote(:preconnect, [{'high_security' => false}])
         end
       end
 
@@ -196,10 +198,10 @@ module NewRelic
         encoding = 'identity'
         if data.size > 64 * 1024
           encoding = Agent.config[:compressed_content_encoding]
-          data = if encoding == 'gzip'
-            Encoders::Compressed::Gzip.encode(data)
-          else
+          data = if encoding == 'deflate'
             Encoders::Compressed::Deflate.encode(data)
+          else
+            Encoders::Compressed::Gzip.encode(data)
           end
         end
         check_post_size(data, endpoint)

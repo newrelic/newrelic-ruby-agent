@@ -196,6 +196,18 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     NewRelic::Agent.shutdown
   end
 
+  def test_environment_for_connect
+    assert environment_for_connect.detect{ |(k, _)|
+      k == 'Gems'
+    }, "expected connect_settings to include gems from environment"
+  end
+
+  def test_environment_for_connect_negative
+    with_config(:send_environment_info => false) do
+      assert_equal [], environment_for_connect
+    end
+  end
+
   private
 
   def mocked_control

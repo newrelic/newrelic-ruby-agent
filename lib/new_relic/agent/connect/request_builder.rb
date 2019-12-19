@@ -11,10 +11,11 @@ module NewRelic
 
       class RequestBuilder
 
-        def initialize(new_relic_service, config, event_harvest_config)
+        def initialize(new_relic_service, config, event_harvest_config, environment_report)
           @service = new_relic_service
           @config = config
           @event_harvest_config = event_harvest_config
+          @environment_report = sanitize_environment_report(environment_report)
         end
 
 
@@ -29,7 +30,7 @@ module NewRelic
             :language      => 'ruby',
             :labels        => Agent.config.parsed_labels,
             :agent_version => NewRelic::VERSION::STRING,
-            :environment   => sanitize_environment_report(environment_report),
+            :environment   => @environment_report,
             :metadata      => environment_metadata,
             :settings      => Agent.config.to_collector_hash,
             :high_security => Agent.config[:high_security],
@@ -45,15 +46,6 @@ module NewRelic
         def sanitize_environment_report(environment_report)
           return [] unless @service.valid_to_marshal?(environment_report)
           environment_report
-        end
-
-        # Checks whether we should send environment info, and if so,
-        # returns the snapshot from the local environment.
-        # Generating the EnvironmentReport has the potential to trigger
-        # require calls in Rails environments, so this method should only
-        # be called synchronously from on the main thread.
-        def environment_report
-          Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
         end
 
         def environment_metadata

@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
-require 'new_relic/agent/transaction/attributes'
+require 'new_relic/agent/attributes'
 
 class FooError < StandardError; end
 
@@ -16,7 +16,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     nr_freeze_time
     @time = Time.now
 
-    @attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+    @attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
     @attributes_from_notice_error = { :user => 'params' }
   end
 
@@ -141,42 +141,42 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     assert_equal ('1234567890' * 500)[0..4095], err.message
   end
 
-  def test_permits_messages_from_whitelisted_exceptions_in_high_security_mode
-    with_config(:'strip_exception_messages.whitelist' => 'NewRelic::TestHelpers::Exceptions::TestError') do
-      e = TestError.new('whitelisted test exception')
+  def test_permits_messages_from_allowlisted_exceptions_in_high_security_mode
+    with_config(:'strip_exception_messages.allowed_classes' => 'NewRelic::TestHelpers::Exceptions::TestError') do
+      e = TestError.new('allowlisted test exception')
       error = NewRelic::NoticedError.new(@path, e, @time)
 
-      assert_equal 'whitelisted test exception', error.message
+      assert_equal 'allowlisted test exception', error.message
     end
   end
 
-  def test_whitelisted_returns_nil_with_an_empty_whitelist
-    with_config(:'strip_exception_messages.whitelist' => '') do
-      assert_falsy NewRelic::NoticedError.passes_message_whitelist(TestError)
+  def test_allowlisted_returns_nil_with_an_empty_allowlist
+    with_config(:'strip_exception_messages.allowed_classes' => '') do
+      assert_falsy NewRelic::NoticedError.passes_message_allowlist(TestError)
     end
   end
 
-  def test_whitelisted_returns_nil_when_error_is_not_in_whitelist
-    with_config(:'strip_exception_messages.whitelist' => 'YourErrorIsInAnotherCastle') do
-      assert_falsy NewRelic::NoticedError.passes_message_whitelist(TestError)
+  def test_allowlisted_returns_nil_when_error_is_not_in_allowlist
+    with_config(:'strip_exception_messages.allowed_classes' => 'YourErrorIsInAnotherCastle') do
+      assert_falsy NewRelic::NoticedError.passes_message_allowlist(TestError)
     end
   end
 
-  def test_whitelisted_is_true_when_error_is_in_whitelist
-    with_config(:'strip_exception_messages.whitelist' => 'OtherException,NewRelic::TestHelpers::Exceptions::TestError') do
-      assert_truthy NewRelic::NoticedError.passes_message_whitelist(TestError)
+  def test_allowlisted_is_true_when_error_is_in_allowlist
+    with_config(:'strip_exception_messages.allowed_classes' => 'OtherException,NewRelic::TestHelpers::Exceptions::TestError') do
+      assert_truthy NewRelic::NoticedError.passes_message_allowlist(TestError)
     end
   end
 
-  def test_whitelisted_ignores_nonexistent_exception_types_in_whitelist
-    with_config(:'strip_exception_messages.whitelist' => 'NonExistent::Exception,NewRelic::TestHelpers::Exceptions::TestError') do
-      assert_truthy NewRelic::NoticedError.passes_message_whitelist(TestError)
+  def test_allowlisted_ignores_nonexistent_exception_types_in_allowlist
+    with_config(:'strip_exception_messages.allowed_classes' => 'NonExistent::Exception,NewRelic::TestHelpers::Exceptions::TestError') do
+      assert_truthy NewRelic::NoticedError.passes_message_allowlist(TestError)
     end
   end
 
-  def test_whitelisted_is_true_when_an_exceptions_ancestor_is_whitelisted
-    with_config(:'strip_exception_messages.whitelist' => 'NewRelic::TestHelpers::Exceptions::ParentException') do
-      assert_truthy NewRelic::NoticedError.passes_message_whitelist(ChildException)
+  def test_allowlisted_is_true_when_an_exceptions_ancestor_is_allowlisted
+    with_config(:'strip_exception_messages.allowed_classes' => 'NewRelic::TestHelpers::Exceptions::ParentException') do
+      assert_truthy NewRelic::NoticedError.passes_message_allowlist(ChildException)
     end
   end
 
@@ -198,7 +198,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_intrinsics_always_get_sent
     with_config(:'error_collector.attributes.enabled' => false) do
-      attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
       attributes.add_intrinsic_attribute(:intrinsic, "attribute")
 
       error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
@@ -211,7 +211,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_custom_attributes_sent_when_enabled
     with_config :'error_collector.attributes.enabled' => true do
-      attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
       custom_attrs = {"name" => "Ron Burgundy", "channel" => 4}
       attributes.merge_custom_attributes(custom_attrs)
 
@@ -224,7 +224,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_custom_attributes_not_sent_when_disabled
     with_config :'error_collector.attributes.enabled' => false do
-      attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
       custom_attrs = {"name" => "Ron Burgundy", "channel" => 4}
       attributes.merge_custom_attributes(custom_attrs)
 
@@ -237,7 +237,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_agent_attributes_sent_when_enabled
     with_config :'error_collector.attributes.enabled' => true do
-      attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
       attributes.add_agent_attribute :"request.headers.referer", "http://blog.site/home", NewRelic::Agent::AttributeFilter::DST_ALL
 
       error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))
@@ -250,7 +250,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
   def test_agent_attributes_not_sent_when_disabled
     with_config :'error_collector.attributes.enabled' => false do
-      attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
       attributes.add_agent_attribute :"request.headers.referer", "http://blog.site/home", NewRelic::Agent::AttributeFilter::DST_ALL
 
       error = NewRelic::NoticedError.new(@path, Exception.new("O_o"))

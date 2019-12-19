@@ -15,7 +15,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     NewRelic::Agent.instance.refresh_attribute_filter
     filter = NewRelic::Agent.instance.attribute_filter
-    @fake_attributes = NewRelic::Agent::Transaction::Attributes.new(filter)
+    @fake_attributes = NewRelic::Agent::Attributes.new(filter)
 
     @trace.attributes = @fake_attributes
   end

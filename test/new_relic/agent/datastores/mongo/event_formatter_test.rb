@@ -114,7 +114,7 @@ module NewRelic
             end
           end
 
-          def test_event_formatter_blacklists_inserts
+          def test_event_formatter_whitelists_inserts
             expected = {
               :operation => :insert,
               :database => DATABASE,
@@ -127,7 +127,7 @@ module NewRelic
             assert_equal expected, formatted
           end
 
-          def test_event_formatter_blacklists_updates
+          def test_event_formatter_whitelists_updates
             expected = {
               :operation => :update,
               :database => DATABASE,
@@ -156,7 +156,7 @@ module NewRelic
             assert_equal expected, formatted
           end
 
-          def test_event_formatter_blacklists_deletes
+          def test_event_formatter_whitelists_deletes
             expected = {
               :operation => :delete,
               :database => DATABASE,

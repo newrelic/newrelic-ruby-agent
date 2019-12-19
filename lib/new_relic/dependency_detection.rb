@@ -93,8 +93,8 @@ module DependencyDetection
       end
     end
 
-    def depends_on
-      @dependencies << Proc.new
+    def depends_on &block
+      @dependencies << block if block_given?
     end
 
     def allowed_by_config?
@@ -114,8 +114,8 @@ module DependencyDetection
       self.name = new_name
     end
 
-    def executes
-      @executes << Proc.new
+    def executes &block
+      @executes << block if block_given?
     end
   end
 end

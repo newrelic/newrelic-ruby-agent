@@ -27,7 +27,7 @@ module NewRelic
             assert_equal expected, obfuscated
           end
 
-          def test_obfuscate_selector_values_skips_whitelisted_keys
+          def test_obfuscate_selector_values_skips_allowed_keys
             selector   = {
               :benign    => 'bland data',
               :operation => :find,

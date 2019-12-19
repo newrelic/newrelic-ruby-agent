@@ -568,6 +568,12 @@ module NewRelic
     # these custom attributes will also be present in the script injected into
     # the response body, making them available on Insights PageView events.
     #
+    #
+    # @param [Hash] params      A Hash of attributes to be attached to the transaction event.
+    #                           Keys should be strings or symbols, and values
+    #                           may be strings, symbols, numeric values or
+    #                           booleans.
+    #
     # @api public
     #
     def add_custom_attributes(params) #THREAD_LOCAL_ACCESS
@@ -578,6 +584,31 @@ module NewRelic
         txn.add_custom_attributes(params) if txn
       else
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_attributes. Expected Hash but got #{params.class}")
+      end
+    end
+
+    # Add custom attributes to the span event for the current span. Attributes will be visible on spans in the
+    # New Relic Distributed Tracing UI and on span events in New Relic Insights.
+    #
+    # Custom attributes will not be transmitted when +high_security+ setting is enabled or
+    # +custom_attributes+ setting is disabled.
+    #
+    # @param [Hash] params      A Hash of attributes to be attached to the span event.
+    #                           Keys should be strings or symbols, and values
+    #                           may be strings, symbols, numeric values or
+    #                           booleans.
+    #
+    # @see https://docs.newrelic.com/docs/using-new-relic/welcome-new-relic/get-started/glossary#span
+    # @api public
+    def add_custom_span_attributes params
+      record_api_supportability_metric :add_custom_span_attributes
+
+      if params.is_a? Hash
+        if segment = NewRelic::Agent::Tracer.current_segment
+          segment.add_custom_attributes params
+        end
+      else
+        ::NewRelic::Agent.logger.warn "Bad argument passed to #add_custom_span_attributes. Expected Hash but got #{params.class}"
       end
     end
 

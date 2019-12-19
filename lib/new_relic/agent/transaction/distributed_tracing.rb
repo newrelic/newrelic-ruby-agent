@@ -3,6 +3,8 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/distributed_trace_payload'
+require 'new_relic/agent/distributed_trace_intrinsics'
+require 'new_relic/agent/distributed_trace_metrics'
 
 module NewRelic
   module Agent
@@ -10,15 +12,14 @@ module NewRelic
       module DistributedTracing
         attr_accessor :distributed_trace_payload
 
-        def distributed_trace?
-          !!distributed_trace_payload
-        end
-
         SUPPORTABILITY_CREATE_PAYLOAD_SUCCESS   = "Supportability/DistributedTrace/CreatePayload/Success".freeze
         SUPPORTABILITY_CREATE_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/CreatePayload/Exception".freeze
 
         def create_distributed_trace_payload
-          return unless Agent.config[:'distributed_tracing.enabled']
+          unless Agent.config[:'distributed_tracing.enabled'] && (Agent.config[:'distributed_tracing.format'] == NR_FORMAT)
+            NewRelic::Agent.logger.warn "Not configured to create New Relic distributed trace payload"
+            return
+          end
           self.distributed_trace_payload_created = true
           payload = DistributedTracePayload.for_transaction self
           NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_PAYLOAD_SUCCESS
@@ -33,7 +34,10 @@ module NewRelic
         SUPPORTABILITY_ACCEPT_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/AcceptPayload/Exception".freeze
 
         def accept_distributed_trace_payload payload
-          return unless Agent.config[:'distributed_tracing.enabled']
+          unless Agent.config[:'distributed_tracing.enabled'] && (Agent.config[:'distributed_tracing.format'] == NR_FORMAT)
+            NewRelic::Agent.logger.warn "Not configured to accept New Relic distributed trace payload"
+            return
+          end
           return false if check_payload_ignored(payload)
           return false unless check_payload_present(payload)
           return false unless payload = decode_payload(payload)
@@ -51,21 +55,6 @@ module NewRelic
           false
         end
 
-        def trace_id
-          if distributed_trace_payload
-            distributed_trace_payload.trace_id
-          else
-            guid
-          end
-        end
-
-        def parent_id
-          # The payload comes from our parent transaction, so its ID
-          # is our parent ID.
-          #
-          distributed_trace_payload && distributed_trace_payload.transaction_id
-        end
-
         def distributed_trace_payload_created?
           @distributed_trace_payload_created ||=  false
         end
@@ -74,29 +63,16 @@ module NewRelic
 
         def append_distributed_trace_info transaction_payload
           return unless Agent.config[:'distributed_tracing.enabled']
-          if distributed_trace_payload
-            distributed_trace_payload.assign_intrinsics self, transaction_payload
-          else
-            DistributedTracePayload.assign_initial_intrinsics self, transaction_payload
-          end
+          DistributedTraceIntrinsics.copy_from_transaction \
+            self,
+            distributed_trace_payload,
+            transaction_payload
         end
 
-        def assign_distributed_trace_intrinsics
-          return unless Agent.config[:'distributed_tracing.enabled']
-          DistributedTracePayload::INTRINSIC_KEYS.each do |key|
-            next unless @payload.key? key
-            attributes.add_intrinsic_attribute key, @payload[key]
-          end
-          nil
-        end
+        NR_FORMAT = "newrelic".freeze
 
-        # This method returns transport_duration in seconds. Transport duration
-        # is stored in milliseconds on the payload, but it's needed in seconds
-        # for metrics and intrinsics.
-        def transport_duration
-          return unless distributed_trace_payload
-          duration = (start_time.to_f * 1000 - distributed_trace_payload.timestamp) / 1000
-          duration < 0 ? 0 : duration
+        def nr_distributed_tracing_enabled?
+          Agent.config[:'distributed_tracing.enabled'] && (Agent.config[:'distributed_tracing.format'] == NR_FORMAT) && Agent.instance.connected?
         end
 
         private
@@ -189,71 +165,14 @@ module NewRelic
 
         def assign_payload_and_sampling_params(payload)
           self.distributed_trace_payload = payload
+          @trace_id = payload.trace_id
+          @parent_transaction_id = payload.transaction_id
+          @parent_span_id = payload.id
 
           unless payload.sampled.nil?
             self.sampled = payload.sampled
             self.priority = payload.priority if payload.priority
           end
-        end
-
-        ALL_SUFFIX = "all".freeze
-        ALL_WEB_SUFFIX = "allWeb".freeze
-        ALL_OTHER_SUFFIX = "allOther".freeze
-
-        def transaction_type_suffix
-          if Transaction.recording_web_transaction?
-            ALL_WEB_SUFFIX
-          else
-            ALL_OTHER_SUFFIX
-          end
-        end
-
-        def record_distributed_tracing_metrics
-          return unless Agent.config[:'distributed_tracing.enabled']
-
-          record_caller_by_duration_metrics
-          record_transport_duration_metrics
-          record_errors_by_caller_metrics
-        end
-
-        DURATION_BY_CALLER_UNKOWN_PREFIX = "DurationByCaller/Unknown/Unknown/Unknown/Unknown".freeze
-
-        def record_caller_by_duration_metrics
-          prefix = if distributed_trace?
-            payload = distributed_trace_payload
-            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
-          else
-            DURATION_BY_CALLER_UNKOWN_PREFIX
-          end
-
-          metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}",              duration
-          metrics.record_unscoped "#{prefix}/#{transaction_type_suffix}", duration
-        end
-
-        def record_transport_duration_metrics
-          return unless distributed_trace?
-
-          payload = distributed_trace_payload
-          prefix = "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
-
-          metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}",              transport_duration
-          metrics.record_unscoped "#{prefix}/#{transaction_type_suffix}", transport_duration
-        end
-
-        ERRORS_BY_CALLER_UNKOWN_PREFIX = "ErrorsByCaller/Unknown/Unknown/Unknown/Unknown".freeze
-
-        def record_errors_by_caller_metrics
-          return unless exceptions.size > 0
-
-          prefix = if distributed_trace?
-            payload = distributed_trace_payload
-            "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
-          else
-            ERRORS_BY_CALLER_UNKOWN_PREFIX
-          end
-
-          metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}",              1
-          metrics.record_unscoped "#{prefix}/#{transaction_type_suffix}", 1
         end
       end
     end

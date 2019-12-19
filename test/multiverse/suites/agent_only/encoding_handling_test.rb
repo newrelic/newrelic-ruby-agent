@@ -72,6 +72,7 @@ class EncodingHandlingTest < Minitest::Test
   end
 
   def test_handles_mis_encoded_strings_in_environment_report
+    NewRelic::Agent.instance.instance_variable_set :@environment_report, nil
     $collector.reset
     ::NewRelic::EnvironmentReport.report_on('Dummy') do
       bad_string

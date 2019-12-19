@@ -8,6 +8,9 @@ require 'new_relic/agent/configuration/yaml_source'
 
 class TestClass
   include NewRelic::Control::InstanceMethods
+  def stdout
+    @stdout ||= StringIO.new
+  end
 end
 
 class NewRelic::Control::InstanceMethodsTest < Minitest::Test
@@ -38,6 +41,24 @@ class NewRelic::Control::InstanceMethodsTest < Minitest::Test
     refute_has_config NewRelic::Agent::Configuration::HighSecuritySource
     @test.configure_agent('test', {:high_security => true})
     assert_has_config NewRelic::Agent::Configuration::HighSecuritySource
+  end
+
+  def test_configure_agent_yaml_parse_error_logs_to_stdout
+    NewRelic::Agent::Configuration::YamlSource.any_instance.stubs(:failed?).returns(true)
+    NewRelic::Agent::Configuration::YamlSource.any_instance.stubs(:failures).returns(['failure'])
+    @test.configure_agent('invalid', {})
+    assert_equal "** [NewRelic] FATAL : failure\n", @test.stdout.string
+  end
+
+  def test_configure_agent_invalid_yaml_value_logs_to_stdout
+    config_path = File.expand_path(File.join(
+      File.dirname(__FILE__),
+      '..','..', 'config','newrelic.yml')
+    )
+    @test.configure_agent('invalid', {:config_path => config_path})
+    assert NewRelic::Agent.config.instance_variable_get(:@yaml_source).failed?
+    expected_err = "** [NewRelic] FATAL : Unexpected value (cultured groats) for 'enabled' in #{config_path}\n"
+    assert_equal expected_err, @test.stdout.string
   end
 
   def refute_has_config(clazz)

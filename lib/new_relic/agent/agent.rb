@@ -19,6 +19,7 @@ require 'new_relic/agent/commands/agent_command_router'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/cross_app_monitor'
 require 'new_relic/agent/distributed_trace_monitor'
+require 'new_relic/agent/trace_context_request_monitor'
 require 'new_relic/agent/synthetics_monitor'
 require 'new_relic/agent/transaction_event_recorder'
 require 'new_relic/agent/custom_event_aggregator'
@@ -58,6 +59,7 @@ module NewRelic
         @agent_command_router      = NewRelic::Agent::Commands::AgentCommandRouter.new(@events)
         @cross_app_monitor         = NewRelic::Agent::CrossAppMonitor.new(@events)
         @distributed_trace_monitor = NewRelic::Agent::DistributedTraceMonitor.new(@events)
+        @trace_context_monitor     = NewRelic::Agent::TraceContextRequestMonitor.new(@events)
         @synthetics_monitor        = NewRelic::Agent::SyntheticsMonitor.new(@events)
         @error_collector           = NewRelic::Agent::ErrorCollector.new @events
         @transaction_rules         = NewRelic::Agent::RulesEngine.new
@@ -147,6 +149,7 @@ module NewRelic
         attr_reader :transaction_event_recorder
         attr_reader :attribute_filter
         attr_reader :adaptive_sampler
+        attr_reader :environment_report
 
         def transaction_event_aggregator
           @transaction_event_recorder.transaction_event_aggregator
@@ -482,6 +485,7 @@ module NewRelic
 
             unless in_resque_child_process?
               install_exit_handler
+              environment_for_connect
               @harvest_samplers.load_samplers unless Agent.config[:disable_samplers]
             end
 
@@ -789,7 +793,7 @@ module NewRelic
           # require calls in Rails environments, so this method should only
           # be called synchronously from on the main thread.
           def environment_for_connect
-            Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
+            @environment_report ||= Agent.config[:send_environment_info] ? Array(EnvironmentReport.new) : []
           end
 
           # Constructs and memoizes an event_harvest_config hash to be used in
@@ -805,7 +809,8 @@ module NewRelic
             request_builder = ::NewRelic::Agent::Connect::RequestBuilder.new \
               @service,
               Agent.config,
-              event_harvest_config
+              event_harvest_config,
+              environment_for_connect
             connect_response = @service.connect request_builder.connect_payload
 
             response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(self, Agent.config)

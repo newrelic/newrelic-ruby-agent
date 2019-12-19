@@ -22,6 +22,32 @@ module NewRelic
           NewRelic::Agent.drop_buffered_data
         end
 
+        def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_span_attributes
+          expects_logging(:warn, includes("add_custom_span_attributes"))
+          in_transaction do
+            NewRelic::Agent.add_custom_span_attributes('fooz')
+          end
+        end
+
+        def test_ignores_custom_attributes_when_in_high_security
+          with_config(:high_security => true) do
+            with_segment do |segment|
+              NewRelic::Agent.add_custom_span_attributes(:failure => "is an option")
+              assert_empty attributes_for(segment, :custom)
+            end
+          end
+        end
+
+        def test_adding_custom_attributes
+          with_config(:'span_events.attributes.enabled' => true) do
+            with_segment do |segment|
+              NewRelic::Agent.add_custom_span_attributes(:foo => "bar")
+              actual = segment.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
+              assert_equal({"foo" => "bar"}, actual)
+            end
+          end
+        end
+
         def test_assigns_unscoped_metrics
           segment = Segment.new  "Custom/simple/segment", "Segment/all"
           assert_equal "Custom/simple/segment", segment.name
@@ -196,6 +222,27 @@ module NewRelic
           t = Time.now
           segment = Segment.new nil, nil, t
           assert_equal t, segment.start_time
+        end
+
+        def test_generates_guid_when_running_out_of_file_descriptors
+          # SecureRandom.hex raises an exception when the ruby interpreter
+          # uses up all of its allotted file descriptors.
+          # See also: https://github.com/newrelic/rpm/issues/303
+          file_descriptors = []
+          begin
+            # Errno::EMFILE is raised when the system runs out of file
+            # descriptors
+            # If the segment constructor fails to create a random guid, the
+            # exception would be a RuntimeError
+            assert_raises Errno::EMFILE do
+              while true do
+                file_descriptors << IO.sysopen(__FILE__)
+                segment = Segment.new "Test #{file_descriptors[-1]}"
+              end
+            end
+          ensure
+            file_descriptors.map { |fd| IO::new(fd).close }
+          end
         end
       end
     end

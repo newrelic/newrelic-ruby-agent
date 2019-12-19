@@ -16,9 +16,11 @@ require 'rubygems'
 require 'rake'
 
 require 'minitest/autorun'
-require 'mocha/setup'
+require 'mocha/minitest'
 
 require 'hometown'
+require_relative 'helpers/hometown_monkey_patch'
+
 Hometown.watch(::Thread)
 
 Dir[File.expand_path('../helpers/*', __FILE__)].each {|f| require f.sub(/.*test\//,'')}

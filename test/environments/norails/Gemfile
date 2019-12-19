@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 gem 'rake', '~>10.1.1'
 
 gem 'minitest', '~>4.7.5'
-gem 'mocha', :require => false
+gem 'mocha', '~> 1.9.0', :require => false
 
 if RUBY_VERSION < '2.2.2'
   gem 'rack', '< 2.0.0'

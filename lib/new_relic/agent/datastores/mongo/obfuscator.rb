@@ -8,31 +8,31 @@ module NewRelic
       module Mongo
         module Obfuscator
 
-          WHITELIST = [:operation].freeze
+          ALLOWLIST = [:operation].freeze
 
-          def self.obfuscate_statement(source, whitelist = WHITELIST)
+          def self.obfuscate_statement(source, allowlist = ALLOWLIST)
             if source.is_a? Hash
               obfuscated = {}
               source.each do |key, value|
-                if whitelist.include?(key)
+                if allowlist.include?(key)
                   obfuscated[key] = value
                 else
-                  obfuscated[key] = obfuscate_value(value, whitelist)
+                  obfuscated[key] = obfuscate_value(value, allowlist)
                 end
               end
               obfuscated
             else
-              obfuscate_value(source, whitelist)
+              obfuscate_value(source, allowlist)
             end
           end
 
           QUESTION_MARK = '?'.freeze
 
-          def self.obfuscate_value(value, whitelist = WHITELIST)
+          def self.obfuscate_value(value, allowlist = ALLOWLIST)
             if value.is_a?(Hash)
-              obfuscate_statement(value, whitelist)
+              obfuscate_statement(value, allowlist)
             elsif value.is_a?(Array)
-              value.map {|v| obfuscate_value(v, whitelist)}
+              value.map {|v| obfuscate_value(v, allowlist)}
             else
               QUESTION_MARK
             end

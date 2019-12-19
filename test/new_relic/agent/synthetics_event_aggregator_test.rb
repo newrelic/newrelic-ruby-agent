@@ -159,7 +159,7 @@ module NewRelic
       def attributes
         if @attributes.nil?
           filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
-          @attributes = NewRelic::Agent::Transaction::Attributes.new(filter)
+          @attributes = NewRelic::Agent::Attributes.new(filter)
         end
 
         @attributes

@@ -212,7 +212,7 @@ end
 #
 # If you want to *allow* unexpected metrics matching certain patterns, use
 # the :ignore_filter option. This will allow you to specify a Regex that
-# whitelists broad swathes of metric territory (e.g. 'Supportability/').
+# allowlists broad swathes of metric territory (e.g. 'Supportability/').
 #
 def assert_metrics_recorded_exclusive(expected, options={})
   expected = _normalize_metric_expectations(expected)
@@ -343,6 +343,15 @@ def in_transaction(*args, &blk)
   end
 
   txn
+end
+
+# Convenience wrapper to stand up a transaction and provide a segment within
+# that transaction to work with.  The same arguements as provided to in_transaction
+# may be supplied.
+def with_segment *args, &blk
+  in_transaction *args do |txn|
+    yield txn.current_segment, txn
+  end
 end
 
 def stub_transaction_guid(guid)
@@ -612,17 +621,87 @@ ensure
   NewRelic::Agent.logger = orig_logger
 end
 
-def with_environment(env)
-  old_env = {}
-  env.each do |key, val|
-    old_env[key] = ENV[key]
-    ENV[key]     = val.to_s
+# The EnvUpdater was introduced due to random fails in JRuby environment
+# whereby attempting to set ENV[key] = some_value randomly failed.
+# It is conjectured that this is thread related, but may also be
+# a core bug in the JVM implementation of Ruby.  Root cause was not
+# discovered, but it was found that a combination of retrying and using
+# mutex lock around the update operation was the only consistently working
+# solution as the error continued to surface without the mutex and 
+# retry alone wasn't enough, either.
+#
+# JRUBY: oraclejdk8 + jruby-9.2.6.0
+#
+# NOTE: Singleton pattern to ensure one mutex lock for all threads
+class EnvUpdater
+  MAX_RETRIES = 5
+
+  def initialize
+    @mutex = Mutex.new
   end
-  begin
+
+  # Will attempt the given block up to MAX_RETRIES before 
+  # surfacing the exception down the chain.
+  def with_retry retry_limit=MAX_RETRIES
+    retries ||= 0
+    sleep(retries)
     yield
-  ensure
-    old_env.each { |key, old_val| ENV[key] = old_val }
+  rescue
+    (retries += 1) < retry_limit ? retry : raise
   end
+
+  # Locks and updates the ENV
+  def safe_update env
+    with_retry do
+      @mutex.synchronize do
+        env.each{ |key, val| ENV[key] = val.to_s }
+      end
+    end
+  end
+
+  # Locks and restores the ENV
+  def safe_restore old_env
+    with_retry do
+      @mutex.synchronize do
+        old_env.each{ |key, val| val ? ENV[key] = val : ENV.delete(key) }
+      end
+    end
+  end
+
+  # Singleton pattern implemented via @@instance
+  def self.instance
+    @@instance ||= EnvUpdater.new
+  end
+
+  def self.safe_update env
+    instance.safe_update env
+  end
+
+  def self.safe_restore old_env
+    instance.safe_restore old_env
+  end
+
+  # Effectively saves current ENV settings for given env's key/values,
+  # runs given block, then restores ENV to original state before returning.
+  def self.inject env, &block
+    old_env = {}
+    env.each{ |key, val| old_env[key] = ENV[key] }
+    begin
+      safe_update(env)
+      yield
+    ensure
+      safe_restore(old_env)
+    end
+  end    
+
+  # must call instance here to ensure only one @mutex for all threads.
+  instance
+end
+
+# Changes ENV settings to given and runs given block and restores ENV 
+# to original values before returning.
+def with_environment(env, &block)
+  EnvUpdater.inject(env) { yield }
 end
 
 def with_argv(argv)

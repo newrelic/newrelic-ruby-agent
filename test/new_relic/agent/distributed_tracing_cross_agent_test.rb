@@ -59,7 +59,7 @@ module NewRelic
         inbound_payloads = payloads_for(test_case)
         inbound_payloads.each do |payload|
           txn.accept_distributed_trace_payload payload
-          if txn.distributed_trace?
+          if txn.distributed_trace_payload
             txn.distributed_trace_payload.caller_transport_type = test_case['transport_type']
           end
         end

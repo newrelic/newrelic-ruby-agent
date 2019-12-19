@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/range_extensions'
-require 'securerandom'
+require 'new_relic/agent/guid_generator'
 
 module NewRelic
   module Agent
@@ -27,7 +27,7 @@ module NewRelic
         def initialize name=nil, start_time=nil
           @name = name
           @transaction = nil
-          @guid = SecureRandom.hex(8)
+          @guid = NewRelic::Agent::GuidGenerator.generate_guid
           @parent = nil
           @params = nil
           @start_time = start_time if start_time
