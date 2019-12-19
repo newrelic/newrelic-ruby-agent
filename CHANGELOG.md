@@ -1,5 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.8.0
+
   * **Initial Ruby 2.7 support**
 
     The Ruby agent has been verified to run with Ruby 2.7.0-preview1.
@@ -23,18 +25,18 @@
 
   * **Bugfix for Logs in Context combined with act-fluent-logger-rails**
 
-  Previously, when using the Ruby agent's Logs in Context logger
-  to link logging data with trace and entity metadata for an
-  improved experience in the UI, customers who were also using
-  the `act-fluent-logger-rails` gem would see a `NoMethodError`
-  for `clear_tags!` that would interfere with the use of this
-  feature. This error no longer appears, allowing customers to
-  combine the use of Logs in Context with the use of this gem.
+    Previously, when using the Ruby agent's Logs in Context logger
+    to link logging data with trace and entity metadata for an
+    improved experience in the UI, customers who were also using
+    the `act-fluent-logger-rails` gem would see a `NoMethodError`
+    for `clear_tags!` that would interfere with the use of this
+    feature. This error no longer appears, allowing customers to
+    combine the use of Logs in Context with the use of this gem.
 
-  Please note that the Logs in Context logger does not support
-  tagged logging; if you are initializing your logger with a
-  `log_tags` argument, your custom tags may not appear on the
-  final version of your logs.
+    Please note that the Logs in Context logger does not support
+    tagged logging; if you are initializing your logger with a
+    `log_tags` argument, your custom tags may not appear on the
+    final version of your logs.
 
   * **Bugfix for parsing invalid newrelic.yml**
 
