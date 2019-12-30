@@ -158,7 +158,7 @@ module NewRelic
           refute_nil transaction.distributed_trace_payload
         end
 
-        def test_accept_distributed_trace_payload_accepts_payload_when_account_id_matches_trusted_key
+        def test_accept_distributed_trace_payload_accepts_payload_when_account_id_matches_trusted_key2
           payload = create_distributed_trace_payload
           payload.trusted_account_key = nil
           payload.parent_account_id = "500"

@@ -313,7 +313,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
   end
 
   def test_custom_params_include_tripid
-    guid = nil
 
     NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
 
@@ -323,7 +322,6 @@ class NewRelic::Agent::TransactionSamplerTest < Minitest::Test
         payload = NewRelic::Agent::CrossAppPayload.new('1#666', transaction, txn_info)
         transaction.cross_app_payload = payload
         transaction.is_cross_app_caller = true
-        guid = transaction.guid
       end
     end
 

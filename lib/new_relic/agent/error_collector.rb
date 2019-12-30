@@ -74,7 +74,7 @@ module NewRelic
       end
 
       def self.ignore_error_filter
-        @ignore_filter
+        defined?(@ignore_filter) ? @ignore_filter : nil
       end
 
       # errors is an array of Exception Class Names

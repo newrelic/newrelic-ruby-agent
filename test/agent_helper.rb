@@ -349,7 +349,7 @@ end
 # that transaction to work with.  The same arguements as provided to in_transaction
 # may be supplied.
 def with_segment *args, &blk
-  in_transaction *args do |txn|
+  in_transaction(*args) do |txn|
     yield txn.current_segment, txn
   end
 end

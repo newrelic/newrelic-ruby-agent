@@ -464,7 +464,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
 
     with_config(:apdex_t => 2.0) do
       in_transaction do |txn|
-        state = NewRelic::Agent::Tracer.state
         referring_txn_info = ["another"]
          cross_app_payload = ::NewRelic::Agent::CrossAppPayload.new('1#666', txn, referring_txn_info)
         txn.cross_app_payload = cross_app_payload
@@ -1356,8 +1355,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_intrinsic_attributes_include_tripid
-    guid = nil
-
     NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
 
     txn = in_transaction do |t|
@@ -1366,7 +1363,6 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       t.cross_app_payload = payload
 
       t.is_cross_app_caller = true
-      guid = t.guid
     end
 
     result = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
@@ -1641,7 +1637,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
       assert_raises Errno::EMFILE do
         while true do
           file_descriptors << IO.sysopen(__FILE__)
-          transaction = in_transaction do |txn|
+          in_transaction do |txn|
             refute_nil txn.guid
             refute_nil txn.trace_id
           end

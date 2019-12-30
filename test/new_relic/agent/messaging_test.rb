@@ -564,14 +564,13 @@ module NewRelic
             payload = txn.create_distributed_trace_payload
           end
 
-          transaction = nil
           NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
             library: "RabbitMQ",
             destination_type: :exchange,
             destination_name: 'Default',
             headers: {'Newrelic' => Base64.strict_encode64(payload.text)}
           ) do
-            transaction = NewRelic::Agent::Tracer.current_transaction
+            NewRelic::Agent::Tracer.current_transaction
             tap.tap
           end
 

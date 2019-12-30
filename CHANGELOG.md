@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.8.1
+
+  * **Official Ruby 2.7 support**
+
+    The Ruby agent has been verified to run with Ruby 2.7.0.
+
   ## v6.8.0
 
   * **Initial Ruby 2.7 support**

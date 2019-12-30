@@ -111,14 +111,12 @@ module NewRelic
 
           carrier = {}
           child_trace_state_payload = nil
-          parent_id = nil
 
           in_transaction do |child|
             child.sampled = true
             child.accept_trace_context parent_trace_context_header_data
             child.insert_trace_context carrier: carrier
             child_trace_state_payload = child.create_trace_state_payload
-            parent_id = child.current_segment.guid
           end
 
           # We expect trace state to now have our entry at the front
@@ -315,24 +313,18 @@ module NewRelic
 
         def test_records_a_no_nr_entry_trace_state_metric
           parent_trace_context_header_data = nil
-          other_trace_state = nil
 
           in_transaction do |parent|
             parent.sampled = true
             parent_trace_context_header_data = make_trace_context_header_data trace_state: ['other=asdf,other2=jkl;']
-            other_trace_state = parent_trace_context_header_data.instance_variable_get :@trace_state_entries
           end
 
           carrier = {}
-          child_trace_state_payload = nil
-          parent_id = nil
 
           in_transaction do |child|
             child.sampled = true
             child.accept_trace_context parent_trace_context_header_data
             child.insert_trace_context carrier: carrier
-            child_trace_state_payload = child.create_trace_state_payload
-            parent_id = child.current_segment.guid
           end
 
           assert_metrics_recorded "Supportability/TraceContext/TraceState/NoNrEntry"
