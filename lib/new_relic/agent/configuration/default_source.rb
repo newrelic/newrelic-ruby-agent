@@ -395,7 +395,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'When <code>true</code>, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and <a href="https://docs.newrelic.com/docs/insights/new-relic-insights/decorating-events/error-event-default-attributes-insights">TransactionError events</a>.'
+          :description => 'When <code>true</code>, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and <a href="https://docs.newrelic.com/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241"><code>TransactionError</code> events.'
         },
         :config_path => {
           :default => DefaultSource.config_path,
@@ -540,7 +540,6 @@ module NewRelic
           :default => '',
           :public => true,
           :type => String,
-          :deprecated => true,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_constant_list),
           :description => 'Specify a list of exceptions you do not want the agent to strip when <a href="#strip_exception_messages-enabled">strip_exception_messages</a> is <code>true</code>. Separate exceptions with a comma. For example, <code>"ImportantException,PreserveMessageException"</code>.'
