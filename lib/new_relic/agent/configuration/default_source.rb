@@ -540,7 +540,6 @@ module NewRelic
           :default => '',
           :public => true,
           :type => String,
-          :deprecated => true,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_constant_list),
           :description => 'Specify a list of exceptions you do not want the agent to strip when <a href="#strip_exception_messages-enabled">strip_exception_messages</a> is <code>true</code>. Separate exceptions with a comma. For example, <code>"ImportantException,PreserveMessageException"</code>.'
