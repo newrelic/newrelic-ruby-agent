@@ -36,7 +36,7 @@ end
 module NewRelic
   module Agent
     extend self
-    def module_method_to_be_traced (x, testcase)
+    def module_method_to_be_traced(x, testcase)
       testcase.assert_equal 'x',  x
     end
   end

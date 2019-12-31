@@ -122,10 +122,10 @@ module NewRelic
     def test_reservoir_stats_reset_after_harvest
       5.times { generate_event }
 
-      reservoir_stats, samples = aggregator.harvest!
+      reservoir_stats, _ = aggregator.harvest!
       assert_equal 5, reservoir_stats[:events_seen]
 
-      reservoir_stats, samples = aggregator.harvest!
+      reservoir_stats, _ = aggregator.harvest!
       assert_equal 0, reservoir_stats[:events_seen]
     end
 

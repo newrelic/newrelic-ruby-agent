@@ -143,24 +143,6 @@ module NewRelic
         def test_accept_distributed_trace_payload_accepts_payload_when_account_id_matches_trusted_key
           payload = create_distributed_trace_payload
           payload.trusted_account_key = nil
-          payload.parent_account_id = "matching_key"
-
-          transaction = nil
-          accepted    = nil
-
-          with_config(trusted_account_key: "matching_key") do
-            transaction = in_transaction "test_txn" do |txn|
-              accepted = txn.accept_distributed_trace_payload payload.http_safe
-            end
-          end
-
-          assert accepted
-          refute_nil transaction.distributed_trace_payload
-        end
-
-        def test_accept_distributed_trace_payload_accepts_payload_when_account_id_matches_trusted_key
-          payload = create_distributed_trace_payload
-          payload.trusted_account_key = nil
           payload.parent_account_id = "500"
 
           transaction = nil

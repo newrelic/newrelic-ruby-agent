@@ -69,15 +69,6 @@ module NewRelic
           refute_metrics_recorded ["Custom/simple/segment", "Segment/all"]
         end
 
-        def test_segment_does_not_record_metrics_outside_of_txn
-          segment = Segment.new  "Custom/simple/segment", "Segment/all"
-          segment.start
-          advance_time 1.0
-          segment.finish
-
-          assert_metrics_not_recorded ["Custom/simple/segment", "Segment/all"]
-        end
-
         def test_segment_records_metrics
           in_transaction "test" do |txn|
             segment = Segment.new  "Custom/simple/segment", "Segment/all"
@@ -237,7 +228,7 @@ module NewRelic
             assert_raises Errno::EMFILE do
               while true do
                 file_descriptors << IO.sysopen(__FILE__)
-                segment = Segment.new "Test #{file_descriptors[-1]}"
+                Segment.new "Test #{file_descriptors[-1]}"
               end
             end
           ensure

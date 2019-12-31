@@ -98,11 +98,8 @@ module NewRelic
       end
 
       def test_entrypoint_attribute_added_to_first_span_only
-        txn_segment = nil
-        segment_a = nil
         in_transaction('test_txn') do |t|
           t.stubs(:sampled?).returns(true)
-          txn_segment = t.initial_segment
           segment_a = NewRelic::Agent::Tracer.start_segment(name: 'segment_a')
           segment_a.finish
         end

@@ -223,7 +223,7 @@ module NewRelic::Agent
       end
     end
 
-   def for_id(id)
+    def for_id(id)
       encoded_id = id == "" ? "" : Base64.encode64(id)
       encoded_txn_info = json_dump_and_encode([ REF_TRANSACTION_GUID, false ])
 

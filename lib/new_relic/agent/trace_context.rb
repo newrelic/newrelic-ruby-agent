@@ -179,6 +179,7 @@ module NewRelic
 
         def initialize trace_parent, trace_state_payload, trace_state_entries, trace_state_size, trace_state_vendors
           @trace_parent = trace_parent
+          @trace_state = nil
           @trace_state_entries = trace_state_entries
           @trace_state_payload = trace_state_payload
           @trace_state_size = trace_state_size
