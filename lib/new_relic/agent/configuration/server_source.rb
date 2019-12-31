@@ -70,7 +70,7 @@ module NewRelic
 
         def fix_transaction_threshold(merged_settings)
           # when value is "apdex_f" remove the config and defer to default
-          if merged_settings['transaction_tracer.transaction_threshold'] =~ /apdex_f/i
+          if merged_settings['transaction_tracer.transaction_threshold'].to_s =~ /apdex_f/i
             merged_settings.delete('transaction_tracer.transaction_threshold')
           end
         end
