@@ -395,7 +395,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'When <code>true</code>, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and <a href="https://docs.newrelic.com/attribute-dictionary?attribute_name=&amp;events_tids%5B%5D=8241"><code>TransactionError</code> events.'
+          :description => 'When <code>true</code>, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and <a href="https://docs.newrelic.com/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241"><code>TransactionError</code> events.'
         },
         :config_path => {
           :default => DefaultSource.config_path,
