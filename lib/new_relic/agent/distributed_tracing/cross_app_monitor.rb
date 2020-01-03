@@ -8,7 +8,8 @@ require 'json'
 require 'new_relic/agent/inbound_request_monitor'
 require 'new_relic/agent/tracer'
 require 'new_relic/agent/threading/agent_thread'
-require 'new_relic/agent/cross_app_payload'
+
+require_relative 'cross_app_payload'
 
 module NewRelic
   module Agent

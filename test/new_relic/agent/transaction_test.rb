@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require 'new_relic/agent/cross_app_payload'
+require 'new_relic/agent/distributed_tracing/cross_app_payload'
 
 class NewRelic::Agent::TransactionTest < Minitest::Test
 

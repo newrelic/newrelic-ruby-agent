@@ -5,8 +5,6 @@ require 'json'
 require 'base64'
 require 'set'
 
-require 'new_relic/agent/distributed_trace_transport_type'
-
 module NewRelic
   module Agent
     #

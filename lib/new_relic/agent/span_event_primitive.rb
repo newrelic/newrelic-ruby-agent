@@ -6,7 +6,7 @@
 # event for a segment.
 
 require 'new_relic/agent/payload_metric_mapping'
-require 'new_relic/agent/distributed_trace_payload'
+require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
 
 module NewRelic
   module Agent

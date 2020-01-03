@@ -4,8 +4,8 @@
 
 require File.expand_path '../../../../test_helper', __FILE__
 
-require 'new_relic/agent/trace_context'
-require 'new_relic/agent/trace_context_payload'
+require 'new_relic/agent/distributed_tracing/trace_context'
+require 'new_relic/agent/distributed_tracing/trace_context_payload'
 
 module NewRelic
   module Agent

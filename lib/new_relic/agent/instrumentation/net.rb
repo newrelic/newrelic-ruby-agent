@@ -11,7 +11,7 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing Net instrumentation'
-    require 'new_relic/agent/cross_app_tracing'
+    require 'new_relic/agent/distributed_tracing/cross_app_tracing'
     require 'new_relic/agent/http_clients/net_http_wrappers'
   end
 

@@ -3,11 +3,11 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require File.expand_path('../../../../test_helper', __FILE__)
-require 'new_relic/agent/cross_app_payload'
-require 'new_relic/agent/distributed_trace_payload'
-require 'new_relic/agent/distributed_trace_intrinsics'
+require 'new_relic/agent/distributed_tracing/cross_app_payload'
+require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
+require 'new_relic/agent/distributed_tracing/distributed_trace_intrinsics'
 require 'new_relic/agent/transaction'
-require 'new_relic/agent/distributed_tracing'
+require 'new_relic/agent/distributed_tracing/distributed_tracing'
 require 'net/http'
 
 module NewRelic
