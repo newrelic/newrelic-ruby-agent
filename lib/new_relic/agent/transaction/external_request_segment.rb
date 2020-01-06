@@ -52,7 +52,7 @@ module NewRelic
 
           return unless record_metrics?
 
-          insert_context_propagation_headers request
+          Agent.instance.monitors.insert_distributed_tracing_headers transaction, request
         rescue => e
           NewRelic::Agent.logger.error "Error in add_request_headers", e
         end
@@ -197,39 +197,6 @@ module NewRelic
           if @host_header = request.host_from_header
             update_segment_name
           end
-        end
-
-        def insert_context_propagation_headers request
-          return unless transaction
-
-          if transaction.trace_context_enabled?
-            insert_trace_context_headers request
-          elsif transaction.nr_distributed_tracing_enabled?
-            insert_distributed_trace_header request
-          elsif CrossAppTracing.cross_app_enabled?
-            insert_cross_app_header request
-          end
-        end
-
-
-        def insert_cross_app_header request
-          transaction.is_cross_app_caller = true
-          txn_guid = transaction.guid
-          trip_id   = transaction && transaction.cat_trip_id
-          path_hash = transaction && transaction.cat_path_hash
-
-          CrossAppTracing.insert_request_headers request, txn_guid, trip_id, path_hash
-        end
-
-        NEWRELIC_TRACE_HEADER = "newrelic".freeze
-
-        def insert_distributed_trace_header request
-          payload = transaction.create_distributed_trace_payload
-          request[NEWRELIC_TRACE_HEADER] = payload.http_safe if payload
-        end
-
-        def insert_trace_context_headers request
-          transaction.insert_trace_context carrier: request
         end
 
         EXTERNAL_ALL = "External/all".freeze
