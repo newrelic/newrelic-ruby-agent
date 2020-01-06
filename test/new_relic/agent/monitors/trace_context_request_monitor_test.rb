@@ -4,9 +4,6 @@
 
 require File.expand_path '../../../../test_helper', __FILE__
 
-require 'new_relic/agent/distributed_tracing/trace_context_request_monitor'
-require 'new_relic/agent/distributed_tracing/trace_context'
-
 module NewRelic
   module Agent
     class TraceContextRequestMonitorTest < Minitest::Test

@@ -2,8 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/inbound_request_monitor'
-
 module NewRelic
   module Agent
     class SyntheticsMonitor < InboundRequestMonitor

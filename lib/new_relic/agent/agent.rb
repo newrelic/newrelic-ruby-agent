@@ -17,10 +17,7 @@ require 'new_relic/agent/configuration/manager'
 require 'new_relic/agent/database'
 require 'new_relic/agent/commands/agent_command_router'
 require 'new_relic/agent/event_listener'
-
-require 'new_relic/agent/distributed_tracing/monitors'
-
-require 'new_relic/agent/synthetics_monitor'
+require 'new_relic/agent/monitors'
 require 'new_relic/agent/transaction_event_recorder'
 require 'new_relic/agent/custom_event_aggregator'
 require 'new_relic/agent/span_event_aggregator'

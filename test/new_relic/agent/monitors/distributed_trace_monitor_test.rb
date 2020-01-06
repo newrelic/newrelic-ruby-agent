@@ -4,9 +4,6 @@
 
 require File.expand_path '../../../../test_helper', __FILE__
 
-require 'new_relic/agent/distributed_tracing/distributed_trace_monitor'
-require 'net/http'
-
 module NewRelic
   module Agent
     class DistributedTraceMonitorTest < Minitest::Test

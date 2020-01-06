@@ -2,10 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/inbound_request_monitor'
-require_relative 'distributed_trace_transport_type'
-require_relative 'cross_app_tracing'
-
 module NewRelic
   module Agent
     class DistributedTraceMonitor < InboundRequestMonitor
