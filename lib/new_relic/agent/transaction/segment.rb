@@ -17,7 +17,8 @@ module NewRelic
 
         def initialize name=nil, unscoped_metrics=nil, start_time=nil
           @unscoped_metrics = unscoped_metrics
-          @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
+
+          @attributes = Attributes.new(attribute_filter)
           super name, start_time
         end
 
@@ -26,6 +27,19 @@ module NewRelic
         end
 
         private
+
+        def attribute_filter
+          # If no NewRelic::Agent instance has been started (for example, when
+          # running a test suite), create an attribute filter using default
+          # config settings. This avoids a NoMethodError caused by calling
+          # .attribute_filter on nil and provides an inoffensive default
+          # AttributeFilter.
+          if NewRelic::Agent.instance
+            NewRelic::Agent.instance.attribute_filter
+          else
+            AttributeFilter.new(NewRelic::Agent.config)
+          end
+        end
 
         def record_metrics
           if record_scoped_metric?

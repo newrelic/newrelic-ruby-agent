@@ -29,6 +29,23 @@ module NewRelic
           end
         end
 
+        def test_does_not_error_without_running_agent
+          # Stash the current agent instance
+          agent = NewRelic::Agent.instance_variable_get(:@agent)
+          # Simulate running when no agent instance exists
+          NewRelic::Agent.instance_variable_set(:@agent, nil)
+
+          begin
+            # This test passes if no error is raised, so there's no other
+            # assertion needed.
+            segment = Segment.new  "Custom/simple/segment", "Segment/all"
+          ensure
+            # Return the stashed agent to the correct location to avoid
+            # inter-test interactions.
+            NewRelic::Agent.instance_variable_set(:@agent, agent)
+          end
+        end
+
         def test_ignores_custom_attributes_when_in_high_security
           with_config(:high_security => true) do
             with_segment do |segment|
