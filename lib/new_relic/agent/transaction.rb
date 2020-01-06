@@ -23,7 +23,7 @@ module NewRelic
     # @api public
     class Transaction
       include Tracing
-      include TraceContext
+      include TxTraceContext
       include DistributedTracing
       include CrossAppTracing
 
@@ -358,8 +358,10 @@ module NewRelic
       end
 
       def best_name
-        @frozen_name  || @overridden_name ||
-          @default_name || NewRelic::Agent::UNKNOWN_METRIC
+        @frozen_name || 
+        @overridden_name ||
+        @default_name || 
+        NewRelic::Agent::UNKNOWN_METRIC
       end
 
       # For common interface with Trace

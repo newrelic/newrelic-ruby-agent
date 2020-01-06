@@ -4,9 +4,6 @@
 
 require File.expand_path '../../../../test_helper', __FILE__
 
-require 'new_relic/agent/distributed_tracing/trace_context'
-require 'new_relic/agent/distributed_tracing/trace_context_payload'
-
 module NewRelic
   module Agent
     class Transaction
@@ -94,7 +91,7 @@ module NewRelic
           assert_equal expected_trace_parent, carrier['traceparent']
 
           # We expect trace state to now have our entry at the front
-          trace_state_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
+          trace_state_entry_key = NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
           expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_payload.to_s},#{other_trace_state.join('.')}"
           assert_equal expected_trace_state, carrier['tracestate']
         end
@@ -120,7 +117,7 @@ module NewRelic
           end
 
           # We expect trace state to now have our entry at the front
-          trace_state_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
+          trace_state_entry_key = NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
           expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_payload},#{other_trace_state.join(',')}"
           assert_equal expected_trace_state, carrier['tracestate']
         end
@@ -153,7 +150,7 @@ module NewRelic
           assert_equal expected_trace_parent, carrier['traceparent']
 
           # We expect trace state to now have replaced our old entry with our new entry
-          trace_state_entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
+          trace_state_entry_key = NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
           expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_payload}"
           assert_equal expected_trace_state, carrier['tracestate']
 
@@ -180,9 +177,9 @@ module NewRelic
             txn.insert_trace_context carrier: carrier
           end
 
-          trace_context_header_data = NewRelic::Agent::TraceContext.parse \
+          trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse \
             carrier: carrier,
-            trace_state_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
+            trace_state_entry_key: NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
           child_txn = in_transaction 'new' do |txn|
             txn.accept_trace_context trace_context_header_data
           end
@@ -207,7 +204,7 @@ module NewRelic
           end
 
           with_config(disabled_config) do
-            trace_context_header_data = NewRelic::Agent::TraceContext.parse \
+            trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse \
               carrier: carrier,
               trace_state_entry_key: "nr"
 
@@ -244,9 +241,9 @@ module NewRelic
           uncache_trusted_account_key
 
           with_config(account_two) do
-            trace_context_header_data = NewRelic::Agent::TraceContext.parse \
+            trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse \
               carrier: carrier,
-              trace_state_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
+              trace_state_entry_key: NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
             txn_two = in_transaction 'child' do |txn|
               txn.accept_trace_context trace_context_header_data
             end
@@ -286,9 +283,9 @@ module NewRelic
           uncache_trusted_account_key
 
           with_config(account_two) do
-            trace_context_header_data = NewRelic::Agent::TraceContext.parse \
+            trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse \
               carrier: carrier,
-              trace_state_entry_key: NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
+              trace_state_entry_key: NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
             txn_two = in_transaction 'child' do |txn|
               txn.accept_trace_context trace_context_header_data
             end
@@ -385,7 +382,7 @@ module NewRelic
             'tracestate' => '190@nr=0-1-212311-51424-0996096a36a1cd29----1482959525577'
           }
 
-          trace_context_header_data = NewRelic::Agent::TraceContext.parse \
+          trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse \
             carrier: carrier,
             trace_state_entry_key: '190@nr'
 
@@ -414,11 +411,11 @@ module NewRelic
                                     trace_state_payload: nil,
                                     trace_state: ["other=asdf"],
                                     trace_state_vendors: ''
-            NewRelic::Agent::TraceContext::HeaderData.new trace_parent, trace_state_payload, trace_state, 10, trace_state_vendors
+            NewRelic::Agent::DistributedTracing::TraceContext::HeaderData.new trace_parent, trace_state_payload, trace_state, 10, trace_state_vendors
         end
 
         def uncache_trusted_account_key
-          NewRelic::Agent::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
+          NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
         end
       end
     end

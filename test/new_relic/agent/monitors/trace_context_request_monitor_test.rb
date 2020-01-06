@@ -9,7 +9,7 @@ module NewRelic
     class TraceContextRequestMonitorTest < Minitest::Test
       def setup
         @events  = EventListener.new
-        @monitor = TraceContextRequestMonitor.new(@events)
+        @monitor = DistributedTracing::TraceContextRequestMonitor.new(@events)
         @config = {
           :'cross_application_tracer.enabled' => false,
           :'distributed_tracing.enabled' => true,
@@ -117,7 +117,7 @@ module NewRelic
 
         parent_txn = in_transaction "referring_txn" do |txn|
           txn.sampled = true
-          txn.insert_trace_context format: TraceContext::FORMAT_RACK,
+          txn.insert_trace_context format: DistributedTracing::TraceContext::FORMAT_RACK,
                                    carrier: carrier
         end
         [parent_txn, carrier]

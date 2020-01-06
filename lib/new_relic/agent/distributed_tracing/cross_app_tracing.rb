@@ -40,10 +40,14 @@ module NewRelic
         cross_app_payload && cross_app_payload.referring_trip_id || guid
       end
 
+      def cross_app_monitor
+        NewRelic::Agent.instance.monitors.cross_app_monitor
+      end
+
       def cat_path_hash
         referring_path_hash = cat_referring_path_hash || '0'
         seed = referring_path_hash.to_i(16)
-        result = NewRelic::Agent.instance.cross_app_monitor.path_hash(best_name, seed)
+        result = cross_app_monitor.path_hash(best_name, seed)
         record_cat_path_hash(result)
         result
       end

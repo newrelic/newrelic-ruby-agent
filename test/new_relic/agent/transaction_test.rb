@@ -1355,7 +1355,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_intrinsic_attributes_include_tripid
-    NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
+    NewRelic::Agent::CrossAppMonitor.any_instance.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
 
     txn = in_transaction do |t|
       txn_info = [t.guid, true, 'PDX-NRT']
@@ -1381,7 +1381,7 @@ class NewRelic::Agent::TransactionTest < Minitest::Test
   end
 
   def test_intrinsic_attributes_dont_include_tripid_if_not_cross_app_transaction
-    NewRelic::Agent.instance.cross_app_monitor.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
+    NewRelic::Agent::CrossAppMonitor.any_instance.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
 
     txn = in_transaction do |t|
       t.is_cross_app_caller = false

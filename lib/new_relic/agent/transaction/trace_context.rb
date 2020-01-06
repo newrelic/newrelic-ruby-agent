@@ -11,7 +11,7 @@ module NewRelic
       attr_accessor :trace_context_header_data
       attr_reader   :trace_state_payload
 
-      module TraceContext
+      module TxTraceContext
         EMPTY_STRING                      = ''.freeze
         SUPPORTABILITY_PREFIX             = "Supportability/TraceContext".freeze
         CREATE_PREFIX                     = "#{SUPPORTABILITY_PREFIX}/Create".freeze
@@ -30,11 +30,11 @@ module NewRelic
         INVALID_TRACESTATE_PAYLOAD_METRIC = "#{TRACESTATE_PREFIX}/InvalidPayload".freeze
 
         def insert_trace_context \
-            format: NewRelic::Agent::TraceContext::FORMAT_HTTP,
+            format: NewRelic::Agent::DistributedTracing::TraceContext::FORMAT_HTTP,
             carrier: nil
           
           return unless trace_context_enabled?
-          NewRelic::Agent::TraceContext.insert \
+          NewRelic::Agent::DistributedTracing::TraceContext.insert \
             format: format,
             carrier: carrier,
             trace_id: trace_id,
@@ -51,11 +51,11 @@ module NewRelic
         end
 
         def create_trace_state
-          entry_key = NewRelic::Agent::TraceContext::AccountHelpers.trace_state_entry_key
+          entry_key = NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
           payload = create_trace_state_payload
 
           if payload
-            entry = NewRelic::Agent::TraceContext.create_trace_state_entry \
+            entry = NewRelic::Agent::DistributedTracing::TraceContext.create_trace_state_entry \
               entry_key,
               payload.to_s
           else

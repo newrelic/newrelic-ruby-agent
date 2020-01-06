@@ -6,8 +6,8 @@ require File.expand_path '../../../../test_helper', __FILE__
 
 require 'json'
 
-module NewRelic
-  module Agent
+module NewRelic::Agent
+  module DistributedTracing
     class DistributedTracingCrossAgentTest < Minitest::Test
       def setup
         NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)

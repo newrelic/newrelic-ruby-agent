@@ -53,22 +53,17 @@ module NewRelic
         @stats_engine              = NewRelic::Agent::StatsEngine.new
         @transaction_sampler       = NewRelic::Agent::TransactionSampler.new
         @sql_sampler               = NewRelic::Agent::SqlSampler.new
-        @agent_command_router      = NewRelic::Agent::Commands::AgentCommandRouter.new(@events)
-
-        @cross_app_monitor         = NewRelic::Agent::CrossAppMonitor.new(@events)
-        @distributed_trace_monitor = NewRelic::Agent::DistributedTraceMonitor.new(@events)
-        @trace_context_monitor     = NewRelic::Agent::TraceContextRequestMonitor.new(@events)
-
-        @synthetics_monitor        = NewRelic::Agent::SyntheticsMonitor.new(@events)
+        @agent_command_router      = NewRelic::Agent::Commands::AgentCommandRouter.new @events
+        @monitors                  = NewRelic::Agent::Monitors.new @events
         @error_collector           = NewRelic::Agent::ErrorCollector.new @events
         @transaction_rules         = NewRelic::Agent::RulesEngine.new
-        @harvest_samplers          = NewRelic::Agent::SamplerCollection.new(@events)
+        @harvest_samplers          = NewRelic::Agent::SamplerCollection.new @events
         @monotonic_gc_profiler     = NewRelic::Agent::VM::MonotonicGCProfiler.new
-        @javascript_instrumentor   = NewRelic::Agent::JavascriptInstrumentor.new(@events)
+        @javascript_instrumentor   = NewRelic::Agent::JavascriptInstrumentor.new @events
         @adaptive_sampler          = NewRelic::Agent::AdaptiveSampler.new(self.class.config[:sampling_target],
                                                                           self.class.config[:sampling_target_period_in_seconds])
 
-        @harvester       = NewRelic::Agent::Harvester.new(@events)
+        @harvester       = NewRelic::Agent::Harvester.new @events
         @after_fork_lock = Mutex.new
 
         @transaction_event_recorder = NewRelic::Agent::TransactionEventRecorder.new @events
@@ -128,13 +123,13 @@ module NewRelic
         # cross application tracing ids and encoding
         attr_reader :cross_process_id
         attr_reader :cross_app_encoding_bytes
-        attr_reader :cross_app_monitor
         # service for communicating with collector
         attr_accessor :service
         # Global events dispatcher. This will provides our primary mechanism
         # for agent-wide events, such as finishing configuration, error notification
         # and request before/after from Rack.
         attr_reader :events
+        attr_reader :monitors
         # Transaction and metric renaming rules as provided by the
         # collector on connect.  The former are applied during txns,
         # the latter during harvest.
