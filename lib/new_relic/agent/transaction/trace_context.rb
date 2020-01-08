@@ -11,7 +11,7 @@ module NewRelic
       attr_accessor :trace_context_header_data
       attr_reader   :trace_state_payload
 
-      module TxTraceContext
+      module TraceContext
         EMPTY_STRING                      = ''.freeze
         SUPPORTABILITY_PREFIX             = "Supportability/TraceContext".freeze
         CREATE_PREFIX                     = "#{SUPPORTABILITY_PREFIX}/Create".freeze

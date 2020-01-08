@@ -52,7 +52,7 @@ module NewRelic
 
           return unless record_metrics?
 
-          Agent.instance.monitors.insert_distributed_tracing_headers transaction, request
+          Agent.instance.distributed_tracing.insert_headers transaction, request
         rescue => e
           NewRelic::Agent.logger.error "Error in add_request_headers", e
         end
@@ -238,7 +238,6 @@ module NewRelic
         def record_span_event
           aggregator = ::NewRelic::Agent.agent.span_event_aggregator
           priority   = transaction.priority
-
           aggregator.record(priority: priority) do
             SpanEventPrimitive.for_external_request_segment(self)
           end

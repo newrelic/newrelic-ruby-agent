@@ -18,6 +18,7 @@ require 'new_relic/agent/database'
 require 'new_relic/agent/commands/agent_command_router'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/monitors'
+require 'new_relic/agent/distributed_tracing/interface'
 require 'new_relic/agent/transaction_event_recorder'
 require 'new_relic/agent/custom_event_aggregator'
 require 'new_relic/agent/span_event_aggregator'
@@ -49,26 +50,27 @@ module NewRelic
 
         @service = NewRelicService.new
 
-        @events                    = NewRelic::Agent::EventListener.new
-        @stats_engine              = NewRelic::Agent::StatsEngine.new
-        @transaction_sampler       = NewRelic::Agent::TransactionSampler.new
-        @sql_sampler               = NewRelic::Agent::SqlSampler.new
-        @agent_command_router      = NewRelic::Agent::Commands::AgentCommandRouter.new @events
-        @monitors                  = NewRelic::Agent::Monitors.new @events
-        @error_collector           = NewRelic::Agent::ErrorCollector.new @events
-        @transaction_rules         = NewRelic::Agent::RulesEngine.new
-        @harvest_samplers          = NewRelic::Agent::SamplerCollection.new @events
-        @monotonic_gc_profiler     = NewRelic::Agent::VM::MonotonicGCProfiler.new
-        @javascript_instrumentor   = NewRelic::Agent::JavascriptInstrumentor.new @events
-        @adaptive_sampler          = NewRelic::Agent::AdaptiveSampler.new(self.class.config[:sampling_target],
-                                                                          self.class.config[:sampling_target_period_in_seconds])
+        @events                    = EventListener.new
+        @stats_engine              = StatsEngine.new
+        @transaction_sampler       = TransactionSampler.new
+        @sql_sampler               = SqlSampler.new
+        @agent_command_router      = Commands::AgentCommandRouter.new @events
+        @monitors                  = Monitors.new @events
+        @distributed_tracing       = DistributedTracing::Interface.new
+        @error_collector           = ErrorCollector.new @events
+        @transaction_rules         = RulesEngine.new
+        @harvest_samplers          = SamplerCollection.new @events
+        @monotonic_gc_profiler     = VM::MonotonicGCProfiler.new
+        @javascript_instrumentor   = JavascriptInstrumentor.new @events
+        @adaptive_sampler          = AdaptiveSampler.new(Agent.config[:sampling_target],
+                                                         Agent.config[:sampling_target_period_in_seconds])
 
-        @harvester       = NewRelic::Agent::Harvester.new @events
+        @harvester       = Harvester.new @events
         @after_fork_lock = Mutex.new
 
-        @transaction_event_recorder = NewRelic::Agent::TransactionEventRecorder.new @events
-        @custom_event_aggregator    = NewRelic::Agent::CustomEventAggregator.new @events
-        @span_event_aggregator      = NewRelic::Agent::SpanEventAggregator.new @events
+        @transaction_event_recorder = TransactionEventRecorder.new @events
+        @custom_event_aggregator    = CustomEventAggregator.new @events
+        @span_event_aggregator      = SpanEventAggregator.new @events
 
         @connect_state      = :pending
         @connect_attempts   = 0
@@ -90,7 +92,7 @@ module NewRelic
       end
 
       def refresh_attribute_filter
-        @attribute_filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
+        @attribute_filter = AttributeFilter.new(Agent.config)
       end
 
       # contains all the class-level methods for NewRelic::Agent::Agent
@@ -144,6 +146,7 @@ module NewRelic
         attr_reader :attribute_filter
         attr_reader :adaptive_sampler
         attr_reader :environment_report
+        attr_reader :distributed_tracing
 
         def transaction_event_aggregator
           @transaction_event_recorder.transaction_event_aggregator
@@ -202,7 +205,7 @@ module NewRelic
         end
 
         def install_pipe_service(channel_id)
-          @service = NewRelic::Agent::PipeService.new(channel_id)
+          @service = PipeService.new(channel_id)
           if connected?
             @connected_pid = Process.pid
           else
@@ -233,8 +236,8 @@ module NewRelic
         end
 
         def revert_to_default_configuration
-          NewRelic::Agent.config.remove_config_type(:manual)
-          NewRelic::Agent.config.remove_config_type(:server)
+          Agent.config.remove_config_type(:manual)
+          Agent.config.remove_config_type(:server)
         end
 
         def stop_event_loop
@@ -453,11 +456,11 @@ module NewRelic
           def defer_for_resque?
             NewRelic::Agent.config[:dispatcher] == :resque &&
               NewRelic::LanguageSupport.can_fork? &&
-              !NewRelic::Agent::PipeChannelManager.listener.started?
+              !PipeChannelManager.listener.started?
           end
 
           def in_resque_child_process?
-            defined?(@service) && @service.is_a?(NewRelic::Agent::PipeService)
+            defined?(@service) && @service.is_a?(PipeService)
           end
 
           # Sanity-check the agent configuration and start the agent,
@@ -553,11 +556,11 @@ module NewRelic
         # This is necessary for cases where we're in a forked child and Ruby
         # might be holding locks for background thread that aren't there anymore.
         def reset_objects_with_locks
-          @stats_engine = NewRelic::Agent::StatsEngine.new
+          @stats_engine = StatsEngine.new
         end
 
         def flush_pipe_data
-          if connected? && @service.is_a?(::NewRelic::Agent::PipeService)
+          if connected? && @service.is_a?(PipeService)
             transmit_data
             transmit_analytic_event_data
             transmit_custom_event_data
@@ -701,7 +704,7 @@ module NewRelic
           end
 
           ::NewRelic::Agent.logger.debug "Creating Ruby Agent worker thread."
-          @worker_thread = NewRelic::Agent::Threading::AgentThread.create('Worker Loop') do
+          @worker_thread = Threading::AgentThread.create('Worker Loop') do
             deferred_work!(connection_options)
           end
         end
@@ -1018,7 +1021,7 @@ module NewRelic
         end
 
         def harvest_and_send_timeslice_data
-          NewRelic::Agent::TransactionTimeAggregator.harvest!
+          TransactionTimeAggregator.harvest!
           harvest_and_send_from_container(@stats_engine, :metric_data)
         end
 

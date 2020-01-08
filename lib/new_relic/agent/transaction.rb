@@ -23,7 +23,7 @@ module NewRelic
     # @api public
     class Transaction
       include Tracing
-      include TxTraceContext
+      include TraceContext
       include DistributedTracing
       include CrossAppTracing
 

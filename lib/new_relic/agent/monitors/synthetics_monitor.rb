@@ -38,7 +38,7 @@ module NewRelic
 
         def is_trusted?(incoming_payload)
           account_id = incoming_payload[1]
-          NewRelic::Agent.config[:trusted_account_ids].include?(account_id)
+          Agent.config[:trusted_account_ids].include?(account_id)
         end
 
         def is_valid_payload?(incoming_payload)
@@ -46,7 +46,7 @@ module NewRelic
         end
 
         def reject_messaging_synthetics_header headers
-          headers.reject {|k,_| k == NewRelic::Agent::CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER}
+          headers.reject {|k,_| k == CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER}
         end
 
       end
