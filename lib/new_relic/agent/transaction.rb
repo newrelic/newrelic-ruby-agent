@@ -9,6 +9,7 @@ require 'new_relic/agent/attributes'
 require 'new_relic/agent/transaction/request_attributes'
 require 'new_relic/agent/transaction/tracing'
 require 'new_relic/agent/transaction/trace_context'
+require 'new_relic/agent/transaction/distributed_tracer'
 require 'new_relic/agent/transaction/distributed_tracing'
 require 'new_relic/agent/distributed_tracing/cross_app_tracing'
 require 'new_relic/agent/transaction_time_aggregator'
@@ -268,6 +269,10 @@ module NewRelic
         else
           @request_attributes = nil
         end
+      end
+
+      def distributed_tracer
+        @distributed_tracer ||= DistributedTracer.new(self)
       end
 
       def sampled?

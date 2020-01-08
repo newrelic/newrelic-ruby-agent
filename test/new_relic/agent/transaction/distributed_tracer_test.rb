@@ -9,7 +9,7 @@ require 'new_relic/agent/transaction'
 
 module NewRelic::Agent
   module DistributedTracing
-    class InterfaceTest < Minitest::Test
+    class DistributedTracerTest < Minitest::Test
 
       def teardown
         NewRelic::Agent.drop_buffered_data

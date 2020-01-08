@@ -14,10 +14,12 @@ module NewRelic
       #
       # @api public
       class ExternalRequestSegment < Segment
-        attr_reader :library, :uri, :procedure
-
         NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'.freeze
+        EXTERNAL_TRANSACTION_PREFIX = 'ExternalTransaction/'.freeze
+        SLASH = '/'.freeze
+        APP_DATA_KEY = 'NewRelicAppData'.freeze
 
+        attr_reader :library, :uri, :procedure
 
         def initialize library, uri, procedure, start_time = nil # :nodoc:
           @library = library
@@ -52,7 +54,7 @@ module NewRelic
 
           return unless record_metrics?
 
-          Agent.instance.distributed_tracing.insert_headers transaction, request
+          transaction.distributed_tracer.insert_headers request
         rescue => e
           NewRelic::Agent.logger.error "Error in add_request_headers", e
         end
@@ -97,10 +99,6 @@ module NewRelic
         def cross_process_transaction_name # :nodoc:
           @app_data && @app_data[1]
         end
-
-        EXTERNAL_TRANSACTION_PREFIX = 'ExternalTransaction/'.freeze
-        SLASH = '/'.freeze
-        APP_DATA_KEY = 'NewRelicAppData'.freeze
 
         # Obtain an obfuscated +String+ suitable for delivery across public networks that identifies this application
         # and transaction to another application which is also running a New Relic agent. This +String+ can be processed

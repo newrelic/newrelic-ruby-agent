@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
 require 'new_relic/agent/distributed_tracing/distributed_trace_intrinsics'
@@ -16,7 +17,7 @@ module NewRelic
         SUPPORTABILITY_CREATE_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/CreatePayload/Exception".freeze
 
         def create_distributed_trace_payload
-          unless Agent.config[:'distributed_tracing.enabled'] && (Agent.config[:'distributed_tracing.format'] == NR_FORMAT)
+          unless distributed_tracer.nr_distributed_tracing_enabled?
             NewRelic::Agent.logger.warn "Not configured to create New Relic distributed trace payload"
             return
           end

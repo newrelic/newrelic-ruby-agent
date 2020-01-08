@@ -18,7 +18,6 @@ require 'new_relic/agent/database'
 require 'new_relic/agent/commands/agent_command_router'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/monitors'
-require 'new_relic/agent/distributed_tracing/interface'
 require 'new_relic/agent/transaction_event_recorder'
 require 'new_relic/agent/custom_event_aggregator'
 require 'new_relic/agent/span_event_aggregator'
@@ -56,7 +55,6 @@ module NewRelic
         @sql_sampler               = SqlSampler.new
         @agent_command_router      = Commands::AgentCommandRouter.new @events
         @monitors                  = Monitors.new @events
-        @distributed_tracing       = DistributedTracing::Interface.new
         @error_collector           = ErrorCollector.new @events
         @transaction_rules         = RulesEngine.new
         @harvest_samplers          = SamplerCollection.new @events
@@ -146,7 +144,6 @@ module NewRelic
         attr_reader :attribute_filter
         attr_reader :adaptive_sampler
         attr_reader :environment_report
-        attr_reader :distributed_tracing
 
         def transaction_event_aggregator
           @transaction_event_recorder.transaction_event_aggregator

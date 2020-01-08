@@ -366,7 +366,7 @@ module NewRelic
       end
 
       def consume_message_headers headers, transaction, state
-        Agent.instance.distributed_tracing.consume_headers transaction, headers, state
+        transaction.distributed_tracer.consume_headers headers, state
       end
 
     end
