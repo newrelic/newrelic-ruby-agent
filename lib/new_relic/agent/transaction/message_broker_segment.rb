@@ -100,7 +100,7 @@ module NewRelic
         def transaction_assigned
           if headers && transaction && action == :produce && record_metrics?
             insert_distributed_trace_header
-            transaction.add_message_cat_headers headers if CrossAppTracing.cross_app_enabled?
+            transaction.distributed_tracer.add_message_cat_headers headers if CrossAppTracing.cross_app_enabled?
           end
         rescue => e
           NewRelic::Agent.logger.error "Error during message header processing", e

@@ -5,6 +5,7 @@
 
 require 'new_relic/agent/transaction/trace_context'
 require 'new_relic/agent/transaction/distributed_tracing'
+require 'new_relic/agent/distributed_tracing/cross_app_tracing'
 
 module NewRelic
   module Agent
@@ -13,14 +14,15 @@ module NewRelic
         W3C_FORMAT        = "w3c" # TODO: REMOVE?
         NEWRELIC_HEADER   = "newrelic"
         CANDIDATE_HEADERS = [
-          NEWRELIC_HEADER, 
-          'NEWRELIC', 
+          NEWRELIC_HEADER,
+          'NEWRELIC',
           'NewRelic',
           'Newrelic'
         ].freeze
 
-        include TraceContext
+        include NewRelic::Agent::CrossAppTracing
         include DistributedTracing
+        include TraceContext
 
         attr_reader :transaction
 
@@ -29,7 +31,7 @@ module NewRelic
         end
 
         def trace_context_enabled?
-          Agent.config[:'distributed_tracing.enabled'] && 
+          Agent.config[:'distributed_tracing.enabled'] &&
           (Agent.config[:'distributed_tracing.format'] == W3C_FORMAT)
         end
 
@@ -38,7 +40,7 @@ module NewRelic
         end
 
         def nr_distributed_tracing_enabled?
-          Agent.config[:'distributed_tracing.enabled'] && 
+          Agent.config[:'distributed_tracing.enabled'] &&
           (Agent.config[:'distributed_tracing.format'] == NEWRELIC_HEADER)
         end
 
@@ -46,7 +48,13 @@ module NewRelic
           nr_distributed_tracing_enabled? && Agent.instance.connected?
         end
 
+        def record_metrics
+          record_cross_app_metrics
+          DistributedTraceMetrics.record_metrics_for_transaction transaction
+        end
+
         def append_payload payload
+          append_cat_info payload
           append_distributed_trace_info payload
           append_trace_context_info payload
         end
@@ -69,12 +77,20 @@ module NewRelic
           NewRelic::Agent.logger.error "Error in consume_message_headers", e
         end
 
-        private 
+        def assign_intrinsics
+          if Agent.config[:'distributed_tracing.enabled'] || trace_context_active?
+            DistributedTraceIntrinsics.copy_to_attributes transaction.payload, transaction.attributes
+          elsif is_cross_app?
+            assign_cross_app_intrinsics
+          end
+        end
+
+        private
 
         def consume_synthetics_headers headers
           synthetics_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER]
           if synthetics_header and
-             incoming_payload = ::JSON.load(CrossAppTracing.obfuscator.deobfuscate(synthetics_header)) and
+             incoming_payload = ::JSON.load(obfuscator.deobfuscate(synthetics_header)) and
              SyntheticsMonitor.is_valid_payload?(incoming_payload) and
              SyntheticsMonitor.is_supported_version?(incoming_payload) and
              SyntheticsMonitor.is_trusted?(incoming_payload)
@@ -108,12 +124,7 @@ module NewRelic
 
         def decode_txn_info headers, tracer_state
           encoded_id = headers[CrossAppTracing::NR_MESSAGE_BROKER_ID_HEADER]
-
-          decoded_id = if encoded_id.nil?
-                         EMPTY_STRING
-                       else
-                         CrossAppTracing.obfuscator.deobfuscate(encoded_id)
-                       end
+          decoded_id = encoded_id.nil? ? EMPTY_STRING : obfuscator.deobfuscate(encoded_id)
 
           if CrossAppTracing.trusted_valid_cross_app_id?(decoded_id) && tracer_state.current_transaction
             txn_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER]
@@ -121,7 +132,7 @@ module NewRelic
             txn_info   = ::JSON.load(CrossAppTracing.obfuscator.deobfuscate(txn_header))
             payload    = CrossAppPayload.new(decoded_id, txn, txn_info)
 
-            txn.cross_app_payload = payload
+            txn.distributed_tracer.cross_app_payload = payload
           end
         rescue => e
           NewRelic::Agent.logger.debug("Failure deserializing encoded header in #{self.class}, #{e.class}, #{e.message}")
@@ -129,10 +140,10 @@ module NewRelic
         end
 
         def insert_cross_app_header request
-          transaction.is_cross_app_caller = true
-          txn_guid = transaction.guid
-          trip_id   = transaction && transaction.cat_trip_id
-          path_hash = transaction && transaction.cat_path_hash
+          is_cross_app_caller = true
+          txn_guid  = transaction.guid
+          trip_id   = cat_trip_id
+          path_hash = cat_path_hash
 
           CrossAppTracing.insert_request_headers request, txn_guid, trip_id, path_hash
         end

@@ -247,7 +247,7 @@ module NewRelic
             ]
 
             payload = CrossAppPayload.new('1#666', txn, referring_txn_info)
-            txn.cross_app_payload = payload
+            txn.distributed_tracer.cross_app_payload = payload
 
             txn.distributed_tracer.create_distributed_trace_payload
           end

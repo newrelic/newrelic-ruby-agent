@@ -45,11 +45,11 @@ module NewRelic
             if id = decoded_id(env) and should_process_request?(id)
               state = NewRelic::Agent::Tracer.state
 
-              if (transaction = state.current_transaction)
+              if (txn = state.current_transaction)
                 transaction_info = referring_transaction_info(state, env)
 
-                payload = CrossAppPayload.new(id, transaction, transaction_info)
-                transaction.cross_app_payload = payload
+                payload = CrossAppPayload.new(id, txn, transaction_info)
+                txn.distributed_tracer.cross_app_payload = payload
               end
 
               CrossAppTracing.assign_intrinsic_transaction_attributes state
@@ -70,7 +70,7 @@ module NewRelic
 
         def insert_response_header(state, request_headers, response_headers)
           txn = state.current_transaction
-          unless txn.nil? || txn.cross_app_payload.nil?
+          unless txn.nil? || txn.distributed_tracer.cross_app_payload.nil?
             txn.freeze_name_and_execute_if_not_ignored do
               content_length = content_length_from_request(request_headers)
               set_response_headers(txn, response_headers, content_length)
@@ -85,7 +85,7 @@ module NewRelic
         def set_response_headers(transaction, response_headers, content_length)
           payload = obfuscator.obfuscate(
             ::JSON.dump(
-              transaction.cross_app_payload.as_json_array(content_length)))
+              transaction.distributed_tracer.cross_app_payload.as_json_array(content_length)))
 
           response_headers[NEWRELIC_APPDATA_HEADER] = payload
         end

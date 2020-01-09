@@ -33,7 +33,7 @@ module NewRelic::Agent
 
           in_transaction do |txn|
             obfuscated_id       = obfuscator.obfuscate cross_process_id
-            raw_txn_info        = [guid, false, guid, txn.cat_path_hash]
+            raw_txn_info        = [guid, false, guid, txn.distributed_tracer.cat_path_hash]
             obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
           end
 
@@ -44,10 +44,11 @@ module NewRelic::Agent
             headers: { "NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info }
           ) do
             txn = NewRelic::Agent::Tracer.current_transaction
-            assert_equal cross_process_id, txn.cross_app_payload.id
-            assert_equal txn.cross_app_payload.referring_guid,      raw_txn_info[0]
-            assert_equal txn.cross_app_payload.referring_trip_id,   raw_txn_info[2]
-            assert_equal txn.cross_app_payload.referring_path_hash, raw_txn_info[3]
+            ca_payload = txn.distributed_tracer.cross_app_payload
+            assert_equal cross_process_id, ca_payload.id
+            assert_equal ca_payload.referring_guid,      raw_txn_info[0]
+            assert_equal ca_payload.referring_trip_id,   raw_txn_info[2]
+            assert_equal ca_payload.referring_path_hash, raw_txn_info[3]
             assert_equal txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER), intrinsic_attributes
             tap.tap
           end
@@ -74,7 +75,7 @@ module NewRelic::Agent
 
           in_transaction "test_txn" do |txn|
             obfuscated_id = obfuscator.obfuscate cross_process_id
-            raw_txn_info = [guid, false, guid, txn.cat_path_hash]
+            raw_txn_info = [guid, false, guid, txn.distributed_tracer.cat_path_hash]
             obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
             synthetics_header = obfuscator.obfuscate synthetics_payload.to_json
           end
@@ -90,10 +91,11 @@ module NewRelic::Agent
             }
           ) do
             txn = Tracer.current_transaction
-            assert_equal cross_process_id, txn.cross_app_payload.id
-            assert_equal txn.cross_app_payload.referring_guid,      raw_txn_info[0]
-            assert_equal txn.cross_app_payload.referring_trip_id,   raw_txn_info[2]
-            assert_equal txn.cross_app_payload.referring_path_hash, raw_txn_info[3]
+            cat_payload = txn.distributed_tracer.cross_app_payload
+            assert_equal cross_process_id, cat_payload.id
+            assert_equal cat_payload.referring_guid,      raw_txn_info[0]
+            assert_equal cat_payload.referring_trip_id,   raw_txn_info[2]
+            assert_equal cat_payload.referring_path_hash, raw_txn_info[3]
             assert_equal synthetics_header, txn.raw_synthetics_header
             assert_equal synthetics_payload, txn.synthetics_payload
             tap.tap
@@ -151,7 +153,7 @@ module NewRelic::Agent
 
           in_transaction "test_txn" do |txn|
             obfuscated_id = obfuscator.obfuscate cross_process_id
-            raw_txn_info = [guid, false, guid, txn.cat_path_hash]
+            raw_txn_info = [guid, false, guid, txn.distributed_tracer.cat_path_hash]
             obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
           end
 

@@ -121,14 +121,14 @@ module NewRelic
               NewRelicTransaction: [
                 transaction.guid,
                 false,
-                transaction.cat_trip_id,
-                transaction.cat_path_hash
+                transaction.distributed_tracer.cat_trip_id,
+                transaction.distributed_tracer.cat_path_hash
               ]
             }
 
             # flag cross app in the state so transaction knows to add bits to paylaod
             #
-            transaction.is_cross_app_caller = true
+            transaction.distributed_tracer.is_cross_app_caller = true
 
             # add Synthetics header if we have it
             #

@@ -68,7 +68,6 @@ module NewRelic::Agent
 
     def test_encodes_transaction_name
       when_request_runs for_id(REQUEST_CROSS_APP_ID), %("'goo), APP_TIME
-
       assert_equal "\"'goo", unpacked_response[TRANSACTION_NAME_POSITION]
     end
 

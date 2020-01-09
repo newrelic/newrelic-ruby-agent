@@ -540,7 +540,7 @@ module HttpClientTestCases
           in_transaction do |txn|
             txn_info = test_case['inboundPayload']
             payload = NewRelic::Agent::CrossAppPayload.new 'someId', txn, txn_info
-            txn.cross_app_payload = payload
+            txn.distributed_tracer.cross_app_payload = payload
             stub_transaction_guid(test_case['transactionGuid'])
             test_case['outboundRequests'].each do |req|
               set_explicit_transaction_name(req['outboundTxnName'])

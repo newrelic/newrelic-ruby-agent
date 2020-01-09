@@ -519,12 +519,12 @@ module NewRelic::Agent
             assert_equal txn.guid, rmd['NewRelicTransaction'][0]
             refute rmd['NewRelicTransaction'][1]
 
-            assert_equal txn.cat_trip_id, rmd['NewRelicTransaction'][2]
-            assert_equal txn.cat_path_hash, rmd['NewRelicTransaction'][3]
+            assert_equal txn.distributed_tracer.cat_trip_id, rmd['NewRelicTransaction'][2]
+            assert_equal txn.distributed_tracer.cat_path_hash, rmd['NewRelicTransaction'][3]
 
             refute rmd.key? 'NewRelicSynthetics'
 
-            assert txn.is_cross_app_caller?
+            assert txn.distributed_tracer.is_cross_app_caller?
           end
         end
       end
@@ -783,7 +783,7 @@ module NewRelic::Agent
 
           last_span_events  = NewRelic::Agent.instance.span_event_aggregator.harvest![1]
           _, _, agent_attributes = last_span_events[0]
-  
+
           assert_equal 255,                      agent_attributes['http.url'].bytesize
           assert_equal "http://#{'a' * 245}...", agent_attributes['http.url']
         end

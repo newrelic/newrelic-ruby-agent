@@ -438,7 +438,7 @@ module NewRelic::Agent
       end
 
       in_transaction do |txn|
-        txn.is_cross_app_caller = true
+        txn.distributed_tracer.is_cross_app_caller = true
       end
 
       refute_empty guid
@@ -451,7 +451,7 @@ module NewRelic::Agent
       end
 
       in_transaction do |txn|
-        txn.is_cross_app_caller = false
+        txn.distributed_tracer.is_cross_app_caller = false
       end
 
       refute found_guid
@@ -466,8 +466,8 @@ module NewRelic::Agent
       with_config(:apdex_t => 2.0) do
         in_transaction do |txn|
           referring_txn_info = ["another"]
-           cross_app_payload = CrossAppPayload.new('1#666', txn, referring_txn_info)
-          txn.cross_app_payload = cross_app_payload
+          cross_app_payload = CrossAppPayload.new('1#666', txn, referring_txn_info)
+          txn.distributed_tracer.cross_app_payload = cross_app_payload        
         end
       end
 
@@ -483,7 +483,7 @@ module NewRelic::Agent
       in_transaction do |txn|
         referring_txn_info = ["GUID"]
         payload = CrossAppPayload.new('1#666', txn, referring_txn_info)
-        txn.cross_app_payload = payload
+        txn.distributed_tracer.cross_app_payload = payload
       end
 
       assert_equal "GUID", referring_guid
@@ -497,7 +497,7 @@ module NewRelic::Agent
 
       in_transaction do |txn|
         # Make sure we don't have referring transaction state floating around
-        txn.cross_app_payload = nil
+        txn.distributed_tracer.cross_app_payload = nil
       end
 
       refute found_referring_guid
@@ -584,7 +584,7 @@ module NewRelic::Agent
       end
 
       in_transaction do |txn|
-        txn.is_cross_app_caller = true
+        txn.distributed_tracer.is_cross_app_caller = true
       end
 
       assert_includes keys, :cat_trip_id
@@ -602,7 +602,7 @@ module NewRelic::Agent
       in_transaction do |txn|
         advance_time(10)
 
-        txn.is_cross_app_caller = false
+        txn.distributed_tracer.is_cross_app_caller = false
       end
 
       refute_includes keys, :cat_trip_id
@@ -1361,9 +1361,9 @@ module NewRelic::Agent
       txn = in_transaction do |t|
         txn_info = [t.guid, true, 'PDX-NRT']
         payload = CrossAppPayload.new('1#666', t, txn_info)
-        t.cross_app_payload = payload
+        t.distributed_tracer.cross_app_payload = payload
 
-        t.is_cross_app_caller = true
+        t.distributed_tracer.is_cross_app_caller = true
       end
 
       result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
@@ -1385,7 +1385,7 @@ module NewRelic::Agent
       DistributedTracing::CrossAppMonitor.any_instance.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
 
       txn = in_transaction do |t|
-        t.is_cross_app_caller = false
+        t.distributed_tracer.is_cross_app_caller = false
       end
 
       result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
@@ -1396,8 +1396,8 @@ module NewRelic::Agent
       path_hash = nil
 
       txn = in_transaction do |t|
-        t.is_cross_app_caller = true
-        path_hash = t.cat_path_hash
+        t.distributed_tracer.is_cross_app_caller = true
+        path_hash = t.distributed_tracer.cat_path_hash
       end
 
       result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)

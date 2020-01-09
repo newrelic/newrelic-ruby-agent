@@ -321,8 +321,8 @@ module NewRelic::Agent
         in_transaction do |transaction|
           txn_info = [transaction.guid, true, 'PDX-NRT']
           payload = CrossAppPayload.new('1#666', transaction, txn_info)
-          transaction.cross_app_payload = payload
-          transaction.is_cross_app_caller = true
+          transaction.distributed_tracer.cross_app_payload = payload
+          transaction.distributed_tracer.is_cross_app_caller = true
         end
       end
 
@@ -334,7 +334,7 @@ module NewRelic::Agent
 
       with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
         in_transaction do |transaction|
-          transaction.is_cross_app_caller = false
+          transaction.distributed_tracer.is_cross_app_caller = false
         end
       end
 
@@ -346,8 +346,8 @@ module NewRelic::Agent
 
       with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
         in_transaction do |transaction|
-          transaction.is_cross_app_caller = true
-          path_hash = transaction.cat_path_hash
+          transaction.distributed_tracer.is_cross_app_caller = true
+          path_hash = transaction.distributed_tracer.cat_path_hash
         end
       end
 

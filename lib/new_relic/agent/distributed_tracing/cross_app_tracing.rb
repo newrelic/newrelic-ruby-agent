@@ -2,6 +2,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'json'
 
@@ -9,23 +10,22 @@ module NewRelic
   module Agent
     module CrossAppTracing
       # The cross app response header for "outgoing" calls
-      NR_APPDATA_HEADER = 'X-NewRelic-App-Data'.freeze
+      NR_APPDATA_HEADER = 'X-NewRelic-App-Data'
 
       # The cross app id header for "outgoing" calls
-      NR_ID_HEADER = 'X-NewRelic-ID'.freeze
+      NR_ID_HEADER = 'X-NewRelic-ID'
 
       # The cross app transaction header for "outgoing" calls
-      NR_TXN_HEADER = 'X-NewRelic-Transaction'.freeze
+      NR_TXN_HEADER = 'X-NewRelic-Transaction'
 
-      NR_MESSAGE_BROKER_ID_HEADER  = 'NewRelicID'.freeze
-      NR_MESSAGE_BROKER_TXN_HEADER = 'NewRelicTransaction'.freeze
-      NR_MESSAGE_BROKER_SYNTHETICS_HEADER = 'NewRelicSynthetics'.freeze
+      NR_MESSAGE_BROKER_ID_HEADER  = 'NewRelicID'
+      NR_MESSAGE_BROKER_TXN_HEADER = 'NewRelicTransaction'
+      NR_MESSAGE_BROKER_SYNTHETICS_HEADER = 'NewRelicSynthetics'
 
       attr_accessor :is_cross_app_caller, :cross_app_payload, :cat_path_hashes
 
       def is_cross_app_caller?
-        @is_cross_app_caller = false unless defined? @is_cross_app_caller
-        @is_cross_app_caller
+        @is_cross_app_caller ||= false
       end
 
       def is_cross_app_callee?
@@ -37,7 +37,7 @@ module NewRelic
       end
 
       def cat_trip_id
-        cross_app_payload && cross_app_payload.referring_trip_id || guid
+        cross_app_payload && cross_app_payload.referring_trip_id || transaction.guid
       end
 
       def cross_app_monitor
@@ -47,21 +47,39 @@ module NewRelic
       def cat_path_hash
         referring_path_hash = cat_referring_path_hash || '0'
         seed = referring_path_hash.to_i(16)
-        result = cross_app_monitor.path_hash(best_name, seed)
+        result = cross_app_monitor.path_hash(transaction.best_name, seed)
         record_cat_path_hash(result)
         result
       end
 
       def add_message_cat_headers headers
-        self.is_cross_app_caller = true
-        CrossAppTracing.insert_message_headers headers,
-                                               guid,
-                                               cat_trip_id,
-                                               cat_path_hash,
-                                               raw_synthetics_header
+        @is_cross_app_caller = true
+        insert_message_headers headers, 
+          transaction.guid, 
+          cat_trip_id, 
+          cat_path_hash, 
+          transaction.raw_synthetics_header
+      end
+
+      def record_cross_app_metrics
+        if (id = cross_app_payload && cross_app_payload.id)
+          app_time_in_seconds = [Time.now.to_f - transaction.start_time.to_f, 0.0].max
+          NewRelic::Agent.record_metric "ClientApplication/#{id}/all", app_time_in_seconds
+        end
+      end
+
+      def assign_cross_app_intrinsics
+        transaction.attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)
+        transaction.attributes.add_intrinsic_attribute(:path_hash, cat_path_hash)
       end
 
       private
+
+      def insert_message_headers headers, txn_guid, trip_id, path_hash, synthetics_header
+        headers[NR_MESSAGE_BROKER_ID_HEADER]  = obfuscator.obfuscate(Agent.config[:cross_process_id])
+        headers[NR_MESSAGE_BROKER_TXN_HEADER] = obfuscator.obfuscate(::JSON.dump([txn_guid, false, trip_id, path_hash]))
+        headers[NR_MESSAGE_BROKER_SYNTHETICS_HEADER] = synthetics_header if synthetics_header
+      end
 
       def record_cat_path_hash(hash)
         @cat_path_hashes ||= []
@@ -79,8 +97,8 @@ module NewRelic
           payload[:referring_transaction_guid] = referring_guid
         end
 
-        return unless include_guid?
-        payload[:guid] = guid
+        return unless transaction.include_guid?
+        payload[:guid] = transaction.guid
 
         return unless is_cross_app?
         trip_id             = cat_trip_id
@@ -100,18 +118,6 @@ module NewRelic
         end
       end
 
-      def assign_cross_app_intrinsics
-        attributes.add_intrinsic_attribute(:trip_id, cat_trip_id)
-        attributes.add_intrinsic_attribute(:path_hash, cat_path_hash)
-      end
-
-      def record_cross_app_metrics
-        if (id = cross_app_payload && cross_app_payload.id)
-          app_time_in_seconds = [Time.now.to_f - @start_time.to_f, 0.0].max
-          NewRelic::Agent.record_metric "ClientApplication/#{id}/all", app_time_in_seconds
-        end
-      end
-
       ###############
       module_function
       ###############
@@ -123,7 +129,7 @@ module NewRelic
       end
 
       def valid_cross_process_id?
-        if NewRelic::Agent.config[:cross_process_id] && NewRelic::Agent.config[:cross_process_id].length > 0
+        if Agent.config[:cross_process_id] && Agent.config[:cross_process_id].length > 0
           true
         else
           NewRelic::Agent.logger.debug "No cross_process_id configured"
@@ -132,7 +138,7 @@ module NewRelic
       end
 
       def valid_encoding_key?
-        if NewRelic::Agent.config[:encoding_key] && NewRelic::Agent.config[:encoding_key].length > 0
+        if Agent.config[:encoding_key] && Agent.config[:encoding_key].length > 0
           true
         else
           NewRelic::Agent.logger.debug "No encoding_key set"
@@ -147,7 +153,7 @@ module NewRelic
       end
 
       def obfuscator
-        @obfuscator ||= NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:encoding_key])
+        @obfuscator ||= NewRelic::Agent::Obfuscator.new(Agent.config[:encoding_key])
       end
 
       def insert_request_headers request, txn_guid, trip_id, path_hash
@@ -192,12 +198,6 @@ module NewRelic
         !!(xp_id =~ /\A\d+#\d+\z/)
       end
 
-      def insert_message_headers headers, txn_guid, trip_id, path_hash, synthetics_header
-        headers[NR_MESSAGE_BROKER_ID_HEADER]  = obfuscator.obfuscate(NewRelic::Agent.config[:cross_process_id])
-        headers[NR_MESSAGE_BROKER_TXN_HEADER] = obfuscator.obfuscate(::JSON.dump([txn_guid, false, trip_id, path_hash]))
-        headers[NR_MESSAGE_BROKER_SYNTHETICS_HEADER] = synthetics_header if synthetics_header
-      end
-
       def message_has_crossapp_request_header? headers
         !!headers[NR_MESSAGE_BROKER_ID_HEADER]
       end
@@ -221,15 +221,15 @@ module NewRelic
       def assign_intrinsic_transaction_attributes state
         # We expect to get the before call to set the id (if we have it) before
         # this, and then write our custom parameter when the transaction starts
-        return unless (transaction       = state.current_transaction)
-        return unless (cross_app_payload = transaction.cross_app_payload)
+        return unless (txn = state.current_transaction)
+        return unless (payload = txn.distributed_tracer.cross_app_payload)
 
-        if (cross_app_id = cross_app_payload.id)
-          transaction.attributes.add_intrinsic_attribute(:client_cross_process_id, cross_app_id)
+        if (cross_app_id = payload.id)
+          txn.attributes.add_intrinsic_attribute(:client_cross_process_id, cross_app_id)
         end
 
-        if (referring_guid = cross_app_payload.referring_guid)
-          transaction.attributes.add_intrinsic_attribute(:referring_transaction_guid, referring_guid)
+        if (referring_guid = payload.referring_guid)
+          txn.attributes.add_intrinsic_attribute(:referring_transaction_guid, referring_guid)
         end
       end
     end
