@@ -28,7 +28,7 @@ module NewRelic
         # @api public
         def create_distributed_trace_payload
           if transaction = Transaction.tl_current
-            transaction.create_distributed_trace_payload
+            transaction.distributed_tracer.create_distributed_trace_payload
           end
         rescue => e
           NewRelic::Agent.logger.error 'error during create_distributed_trace_payload', e

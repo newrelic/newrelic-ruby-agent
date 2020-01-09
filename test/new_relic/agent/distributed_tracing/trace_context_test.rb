@@ -13,7 +13,7 @@ module NewRelic::Agent::DistributedTracing
         :primary_application_id => "46954",
         :disable_harvest_thread => true
       }
-      NewRelic::Agent::Transaction.any_instance.stubs(:trace_context_enabled?).returns(true)
+      NewRelic::Agent::Transaction::DistributedTracer.any_instance.stubs(:trace_context_enabled?).returns(true)
       NewRelic::Agent.config.add_config_for_testing(@config)
     end
 
@@ -267,7 +267,7 @@ module NewRelic::Agent::DistributedTracing
 
     def make_payload
       in_transaction "test_txn" do |txn|
-        return txn.create_trace_state_payload
+        return txn.distributed_tracer.create_trace_state_payload
       end
     end
   end

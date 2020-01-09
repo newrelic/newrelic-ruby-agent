@@ -36,14 +36,14 @@ module NewRelic::Agent
         payload = nil
 
         in_transaction "referring_txn" do |txn|
-          payload = txn.create_distributed_trace_payload
+          payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
         env = { NEWRELIC_TRACE_KEY => payload.http_safe }
 
         in_transaction "receiving_txn" do |txn|
           @events.notify(:before_call, env)
-          refute_nil txn.distributed_trace_payload
+          refute_nil txn.distributed_tracer.distributed_trace_payload
         end
       end
 
@@ -51,7 +51,7 @@ module NewRelic::Agent
         payload = nil
 
         in_transaction "referring_txn" do |txn|
-          payload = txn.create_distributed_trace_payload
+          payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
         env = {
@@ -61,7 +61,7 @@ module NewRelic::Agent
 
         in_transaction "receiving_txn" do |txn|
           @events.notify(:before_call, env)
-          payload = txn.distributed_trace_payload
+          payload = txn.distributed_tracer.distributed_trace_payload
         end
 
         assert_equal 'HTTP', payload.caller_transport_type
@@ -71,7 +71,7 @@ module NewRelic::Agent
         payload = nil
 
         in_transaction "referring_txn" do |txn|
-          payload = txn.create_distributed_trace_payload
+          payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
         env = {
@@ -81,7 +81,7 @@ module NewRelic::Agent
 
         in_transaction "receiving_txn" do |txn|
           @events.notify(:before_call, env)
-          payload = txn.distributed_trace_payload
+          payload = txn.distributed_tracer.distributed_trace_payload
         end
 
         assert_equal 'HTTPS', payload.caller_transport_type

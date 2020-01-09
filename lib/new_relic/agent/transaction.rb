@@ -24,8 +24,6 @@ module NewRelic
     # @api public
     class Transaction
       include Tracing
-      include TraceContext
-      include DistributedTracing
       include CrossAppTracing
 
       # for nested transactions
@@ -592,7 +590,7 @@ module NewRelic
           attributes.add_intrinsic_attribute(:synthetics_monitor_id, synthetics_monitor_id)
         end
 
-        if Agent.config[:'distributed_tracing.enabled'] || trace_context_enabled?
+        if Agent.config[:'distributed_tracing.enabled'] || distributed_tracer.trace_context_active?
           DistributedTraceIntrinsics.copy_to_attributes @payload, attributes
         elsif is_cross_app?
           assign_cross_app_intrinsics
@@ -641,8 +639,7 @@ module NewRelic
         }
 
         append_cat_info(@payload)
-        append_distributed_trace_info(@payload)
-        append_trace_context_info(@payload)
+        distributed_tracer.append_payload(@payload)
         append_apdex_perf_zone(@payload)
         append_synthetics_to(@payload)
       end

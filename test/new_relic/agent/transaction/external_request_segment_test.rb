@@ -243,14 +243,14 @@ module NewRelic::Agent
 
           with_config account_id: "190", primary_application_id: "46954" do
             in_transaction do |txn|
-              payload = txn.create_distributed_trace_payload
+              payload = txn.distributed_tracer.create_distributed_trace_payload
             end
           end
 
           NewRelic::Agent.drop_buffered_data
 
           in_transaction "test_txn2", :category => :controller do |txn|
-            txn.accept_distributed_trace_payload payload.text
+            txn.distributed_tracer.accept_distributed_trace_payload payload.text
             segment = Tracer.start_external_request_segment(
               library: "Net::HTTP",
               uri: "http://newrelic.com/blogs/index",
@@ -285,14 +285,14 @@ module NewRelic::Agent
 
           with_config account_id: "190", primary_application_id: "46954" do
             in_transaction do |txn|
-              payload = txn.create_distributed_trace_payload
+              payload = txn.distributed_tracer.create_distributed_trace_payload
             end
           end
 
           NewRelic::Agent.drop_buffered_data
 
           in_transaction "test_txn2", :category => :controller do |txn|
-            txn.accept_distributed_trace_payload payload.text
+            txn.distributed_tracer.accept_distributed_trace_payload payload.text
             segment = Tracer.start_external_request_segment(
               library: "Net::HTTP",
               uri: "http://newrelic.com/blogs/index",
@@ -338,7 +338,6 @@ module NewRelic::Agent
       end
 
       def test_segment_writes_outbound_request_headers_for_trace_context
-        NewRelic::Agent::Transaction.any_instance.stubs(:trace_context_enabled?).returns(true)
         request = RequestWrapper.new
         with_config trace_context_config do
 

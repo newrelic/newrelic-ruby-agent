@@ -43,14 +43,14 @@ module NewRelic
 
           txn = in_transaction do |t|
             t.sampled = true
-            inserted = t.insert_trace_context carrier: carrier
-            trace_state = t.create_trace_state
+            inserted = t.distributed_tracer.insert_trace_context carrier: carrier
+            trace_state = t.distributed_tracer.create_trace_state
             parent_id = t.current_segment.guid
             trace_id = t.trace_id
           end
 
           assert inserted
-          assert txn.trace_context_inserted?
+          assert txn.distributed_tracer.trace_context_inserted?
 
           expected_trace_parent = "00-#{trace_id}-#{parent_id}-01"
           assert_equal expected_trace_parent, carrier['traceparent']
@@ -67,7 +67,7 @@ module NewRelic
 
           in_transaction do |parent|
             parent.sampled = true
-            payload = parent.create_trace_state_payload
+            payload = parent.distributed_tracer.create_trace_state_payload
             trace_parent = make_trace_parent({'trace_id' => parent.trace_id, 'parent_id' => parent.guid})
             parent_trace_context_header_data = make_trace_context_header_data \
               trace_parent: trace_parent,
@@ -81,9 +81,9 @@ module NewRelic
           parent_id = nil
 
           in_transaction do |child|
-            child.accept_trace_context parent_trace_context_header_data
-            child.insert_trace_context carrier: carrier
-            child_trace_state_payload = child.create_trace_state_payload
+            child.distributed_tracer.accept_trace_context parent_trace_context_header_data
+            child.distributed_tracer.insert_trace_context carrier: carrier
+            child_trace_state_payload = child.distributed_tracer.create_trace_state_payload
             parent_id = child.current_segment.guid
           end
 
@@ -111,9 +111,9 @@ module NewRelic
 
           in_transaction do |child|
             child.sampled = true
-            child.accept_trace_context parent_trace_context_header_data
-            child.insert_trace_context carrier: carrier
-            child_trace_state_payload = child.create_trace_state_payload
+            child.distributed_tracer.accept_trace_context parent_trace_context_header_data
+            child.distributed_tracer.insert_trace_context carrier: carrier
+            child_trace_state_payload = child.distributed_tracer.create_trace_state_payload
           end
 
           # We expect trace state to now have our entry at the front
@@ -127,7 +127,7 @@ module NewRelic
 
           in_transaction do |parent|
             parent.sampled = true
-            payload = parent.create_trace_state_payload
+            payload = parent.distributed_tracer.create_trace_state_payload
             trace_parent = make_trace_parent({'trace_id' => parent.trace_id, 'parent_id' => parent.guid})
             parent_trace_context_header_data = make_trace_context_header_data \
               trace_parent: trace_parent,
@@ -140,9 +140,9 @@ module NewRelic
           parent_id = nil
 
           in_transaction do |child|
-            child.accept_trace_context parent_trace_context_header_data
-            child.insert_trace_context carrier: carrier
-            child_trace_state_payload = child.create_trace_state_payload
+            child.distributed_tracer.accept_trace_context parent_trace_context_header_data
+            child.distributed_tracer.insert_trace_context carrier: carrier
+            child_trace_state_payload = child.distributed_tracer.create_trace_state_payload
             parent_id = child.current_segment.guid
           end
 
@@ -162,10 +162,10 @@ module NewRelic
           trace_context_header_data = make_trace_context_header_data
 
           t = in_transaction do |txn|
-            txn.accept_trace_context trace_context_header_data
+            txn.distributed_tracer.accept_trace_context trace_context_header_data
           end
 
-          assert_same trace_context_header_data, t.trace_context_header_data
+          assert_same trace_context_header_data, t.distributed_tracer.trace_context_header_data
           assert_nil t.parent_transaction_id
         end
 
@@ -174,14 +174,14 @@ module NewRelic
 
           parent_txn = in_transaction 'parent' do |txn|
             txn.sampled = true
-            txn.insert_trace_context carrier: carrier
+            txn.distributed_tracer.insert_trace_context carrier: carrier
           end
 
           trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse \
             carrier: carrier,
             trace_state_entry_key: NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
           child_txn = in_transaction 'new' do |txn|
-            txn.accept_trace_context trace_context_header_data
+            txn.distributed_tracer.accept_trace_context trace_context_header_data
           end
 
           assert_equal parent_txn.guid, child_txn.parent_transaction_id
@@ -200,7 +200,7 @@ module NewRelic
 
           parent_txn = in_transaction 'parent' do |txn|
             txn.sampled = true
-            txn.insert_trace_context carrier: carrier
+            txn.distributed_tracer.insert_trace_context carrier: carrier
           end
 
           with_config(disabled_config) do
@@ -209,7 +209,7 @@ module NewRelic
               trace_state_entry_key: "nr"
 
             child_txn = in_transaction 'child' do |txn|
-              txn.accept_trace_context trace_context_header_data
+              txn.distributed_tracer.accept_trace_context trace_context_header_data
             end
           end
 
@@ -234,7 +234,7 @@ module NewRelic
           with_config(account_one) do
             txn_one = in_transaction 'parent' do |txn|
               txn.sampled = true
-              txn.insert_trace_context carrier: carrier
+              txn.distributed_tracer.insert_trace_context carrier: carrier
             end
           end
 
@@ -245,7 +245,7 @@ module NewRelic
               carrier: carrier,
               trace_state_entry_key: NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
             txn_two = in_transaction 'child' do |txn|
-              txn.accept_trace_context trace_context_header_data
+              txn.distributed_tracer.accept_trace_context trace_context_header_data
             end
           end
 
@@ -257,7 +257,7 @@ module NewRelic
           refute_equal txn_one.guid, txn_two.parent_transaction_id
           assert_nil txn_two.parent_transaction_id
           # Make sure the trace_state isn't affected either
-          assert_nil txn_two.trace_context_header_data.instance_variable_get :@trace_state_payload
+          assert_nil txn_two.distributed_tracer.trace_context_header_data.trace_state_payload
         end
 
         def test_accept_trace_context_mismatching_account_ids_matching_trust_key
@@ -276,7 +276,7 @@ module NewRelic
           with_config(account_one) do
             txn_one = in_transaction 'parent' do |txn|
               txn.sampled = true
-              txn.insert_trace_context carrier: carrier
+              txn.distributed_tracer.insert_trace_context carrier: carrier
             end
           end
 
@@ -287,7 +287,7 @@ module NewRelic
               carrier: carrier,
               trace_state_entry_key: NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
             txn_two = in_transaction 'child' do |txn|
-              txn.accept_trace_context trace_context_header_data
+              txn.distributed_tracer.accept_trace_context trace_context_header_data
             end
           end
 
@@ -299,11 +299,11 @@ module NewRelic
         def test_do_not_accept_trace_context_if_trace_context_already_accepted
           in_transaction do |txn|
             txn.sampled = true
-            trace_state_payload = txn.create_trace_state_payload
+            trace_state_payload = txn.distributed_tracer.create_trace_state_payload
             trace_context_header_data = make_trace_context_header_data trace_state_payload: trace_state_payload
 
-            assert txn.accept_trace_context(trace_context_header_data), "Expected first trace context to be accepted"
-            refute txn.accept_trace_context(trace_context_header_data), "Expected second trace context not to be accepted"
+            assert txn.distributed_tracer.accept_trace_context(trace_context_header_data), "Expected first trace context to be accepted"
+            refute txn.distributed_tracer.accept_trace_context(trace_context_header_data), "Expected second trace context not to be accepted"
           end
           assert_metrics_recorded "Supportability/TraceContext/Accept/Ignored/Multiple"
         end
@@ -320,8 +320,8 @@ module NewRelic
 
           in_transaction do |child|
             child.sampled = true
-            child.accept_trace_context parent_trace_context_header_data
-            child.insert_trace_context carrier: carrier
+            child.distributed_tracer.accept_trace_context parent_trace_context_header_data
+            child.distributed_tracer.insert_trace_context carrier: carrier
           end
 
           assert_metrics_recorded "Supportability/TraceContext/TraceState/NoNrEntry"
@@ -330,10 +330,10 @@ module NewRelic
         def test_records_an_invalid_trace_state_metric
           in_transaction do |txn|
             txn.sampled = true
-            trace_state_payload = txn.create_trace_state_payload
+            trace_state_payload = txn.distributed_tracer.create_trace_state_payload
             trace_context_header_data = make_trace_context_header_data trace_state_payload: trace_state_payload
             trace_state_payload.stubs(:valid?).returns(false)
-            refute txn.accept_trace_context(trace_context_header_data), "Expected trace context to be rejected"
+            refute txn.distributed_tracer.accept_trace_context(trace_context_header_data), "Expected trace context to be rejected"
           end
 
           assert_metrics_recorded "Supportability/TraceContext/TraceState/InvalidPayload"
@@ -344,10 +344,10 @@ module NewRelic
 
           in_transaction do |txn|
             txn.sampled = true
-            txn.insert_trace_context carrier: carrier
+            txn.distributed_tracer.insert_trace_context carrier: carrier
             trace_context_header_data = make_trace_context_header_data
 
-            refute txn.accept_trace_context trace_context_header_data
+            refute txn.distributed_tracer.accept_trace_context trace_context_header_data
           end
           assert_metrics_recorded "Supportability/TraceContext/Accept/Ignored/CreateBeforeAccept"
         end
@@ -361,7 +361,7 @@ module NewRelic
 
           txn = in_transaction do |t|
             t.sampled = true
-            payload = t.create_trace_state_payload
+            payload = t.distributed_tracer.create_trace_state_payload
             parent_id = t.current_segment.guid
           end
 
@@ -387,11 +387,11 @@ module NewRelic
             trace_state_entry_key: '190@nr'
 
           txn = in_transaction do |t|
-            t.accept_trace_context trace_context_header_data
+            t.distributed_tracer.accept_trace_context trace_context_header_data
           end
 
           assert_equal 'a8e67265afe2773a3c611b94306ee5c2', txn.trace_id
-          refute_nil txn.trace_context_header_data
+          refute_nil txn.distributed_tracer.trace_context_header_data
           assert_nil txn.parent_transaction_id
           refute_nil txn.guid
           refute_nil txn.sampled?

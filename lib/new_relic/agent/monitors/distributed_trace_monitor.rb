@@ -18,8 +18,8 @@ module NewRelic
           return unless payload = request[NEWRELIC_TRACE_KEY]
           return unless txn = Tracer.current_transaction
 
-          if txn.accept_distributed_trace_payload payload
-            txn.distributed_trace_payload.caller_transport_type = DistributedTraceTransportType.for_rack_request(request)
+          if txn.distributed_tracer.accept_distributed_trace_payload payload
+            txn.distributed_tracer.distributed_trace_payload.caller_transport_type = DistributedTraceTransportType.for_rack_request(request)
           end
         end
       end

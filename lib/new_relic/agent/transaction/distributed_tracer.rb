@@ -3,10 +3,14 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'new_relic/agent/transaction/trace_context'
+require 'new_relic/agent/transaction/distributed_tracing'
+
 module NewRelic
   module Agent
     class Transaction
       class DistributedTracer
+        W3C_FORMAT        = "w3c" # TODO: REMOVE?
         NEWRELIC_HEADER   = "newrelic"
         CANDIDATE_HEADERS = [
           NEWRELIC_HEADER, 
@@ -15,10 +19,22 @@ module NewRelic
           'Newrelic'
         ].freeze
 
+        include TraceContext
+        include DistributedTracing
+
         attr_reader :transaction
 
         def initialize transaction
           @transaction = transaction
+        end
+
+        def trace_context_enabled?
+          Agent.config[:'distributed_tracing.enabled'] && 
+          (Agent.config[:'distributed_tracing.format'] == W3C_FORMAT)
+        end
+
+        def trace_context_active?
+          trace_context_enabled? && Agent.instance.connected?
         end
 
         def nr_distributed_tracing_enabled?
@@ -30,8 +46,13 @@ module NewRelic
           nr_distributed_tracing_enabled? && Agent.instance.connected?
         end
 
+        def append_payload payload
+          append_distributed_trace_info payload
+          append_trace_context_info payload
+        end
+
         def insert_headers request
-          if transaction.trace_context_enabled?
+          if trace_context_active?
             insert_trace_context_headers request
           elsif nr_distributed_tracing_active?
             insert_distributed_trace_header request
@@ -73,8 +94,8 @@ module NewRelic
 
           return unless payload = headers[newrelic_trace_key]
 
-          if transaction.accept_distributed_trace_payload payload
-            transaction.distributed_trace_payload.caller_transport_type = RABBITMQ_TRANSPORT_TYPE
+          if accept_distributed_trace_payload payload
+            distributed_trace_payload.caller_transport_type = RABBITMQ_TRANSPORT_TYPE
           end
         end
 
@@ -117,11 +138,11 @@ module NewRelic
         end
 
         def insert_trace_context_headers request
-          transaction.insert_trace_context carrier: request
+          insert_trace_context carrier: request
         end
 
         def insert_distributed_trace_header request
-          payload = transaction.create_distributed_trace_payload
+          payload = create_distributed_trace_payload
           request[NEWRELIC_HEADER] = payload.http_safe if payload
         end
 

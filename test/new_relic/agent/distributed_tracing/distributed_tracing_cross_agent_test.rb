@@ -59,9 +59,9 @@ module NewRelic::Agent
       def accept_payloads(test_case, txn)
         inbound_payloads = payloads_for(test_case)
         inbound_payloads.each do |payload|
-          txn.accept_distributed_trace_payload payload
-          if txn.distributed_trace_payload
-            txn.distributed_trace_payload.caller_transport_type = test_case['transport_type']
+          txn.distributed_tracer.accept_distributed_trace_payload payload
+          if txn.distributed_tracer.distributed_trace_payload
+            txn.distributed_tracer.distributed_trace_payload.caller_transport_type = test_case['transport_type']
           end
         end
       end
@@ -78,7 +78,7 @@ module NewRelic::Agent
         if test_case['outbound_payloads']
           payloads = Array(test_case['outbound_payloads'])
           payloads.count.times do
-            payload = txn.create_distributed_trace_payload
+            payload = txn.distributed_tracer.create_distributed_trace_payload
             outbound_payloads << payload if payload
           end
         end

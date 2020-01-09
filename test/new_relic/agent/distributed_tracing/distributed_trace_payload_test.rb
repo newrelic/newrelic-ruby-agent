@@ -106,7 +106,7 @@ module NewRelic::Agent
       incoming_payload = nil
 
       referring_transaction = in_transaction("test_txn") do |txn|
-        incoming_payload = txn.create_distributed_trace_payload
+        incoming_payload = txn.distributed_tracer.create_distributed_trace_payload
       end
 
       payload = DistributedTracePayload.from_json incoming_payload.text
@@ -132,7 +132,7 @@ module NewRelic::Agent
       incoming_payload = nil
 
       referring_transaction = in_transaction("test_txn") do |txn|
-        incoming_payload = txn.create_distributed_trace_payload
+        incoming_payload = txn.distributed_tracer.create_distributed_trace_payload
       end
 
       payload = DistributedTracePayload.from_http_safe incoming_payload.http_safe

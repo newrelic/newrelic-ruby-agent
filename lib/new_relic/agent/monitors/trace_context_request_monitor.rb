@@ -15,24 +15,26 @@ module NewRelic
 
         def on_before_call(request)
           return unless enabled? && request[TRACEPARENT]
-          trace_context = DistributedTracing::TraceContext.parse(
-            format: DistributedTracing::TraceContext::FORMAT_RACK,
+          trace_context = TraceContext.parse(
+            format: TraceContext::FORMAT_RACK,
             carrier: request,
-            trace_state_entry_key: DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key,
+            trace_state_entry_key: TraceContext::AccountHelpers.trace_state_entry_key,
           )
           return if trace_context.nil?
 
           return unless txn = Tracer.current_transaction
 
-          if txn.accept_trace_context trace_context
-            txn.trace_state_payload.caller_transport_type = DistributedTraceTransportType.for_rack_request(request)
+          if txn.distributed_tracer.accept_trace_context trace_context
+            transport_type = DistributedTraceTransportType.for_rack_request(request)
+            txn.distributed_tracer.trace_state_payload.caller_transport_type = transport_type
           end
         end
 
         W3C_FORMAT = "w3c".freeze
 
         def enabled?
-          NewRelic::Agent.config[:'distributed_tracing.enabled'] && (NewRelic::Agent.config[:'distributed_tracing.format'] == W3C_FORMAT)
+          Agent.config[:'distributed_tracing.enabled'] && 
+          (Agent.config[:'distributed_tracing.format'] == W3C_FORMAT)
         end
       end
     end

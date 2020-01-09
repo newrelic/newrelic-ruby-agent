@@ -115,7 +115,7 @@ module NewRelic::Agent
 
           payload = nil
           parent = in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload
+            payload = txn.distributed_tracer.create_distributed_trace_payload
           end
 
           Messaging.wrap_message_broker_consume_transaction(

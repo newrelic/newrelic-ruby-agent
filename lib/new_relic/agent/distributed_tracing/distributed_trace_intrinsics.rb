@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
@@ -8,28 +9,17 @@ module NewRelic
       extend self
 
       # Intrinsic Keys
-      PARENT_TYPE_KEY                = "parent.type".freeze
-      PARENT_APP_KEY                 = "parent.app".freeze
-      PARENT_ACCOUNT_ID_KEY          = "parent.account".freeze
-      PARENT_TRANSPORT_TYPE_KEY      = "parent.transportType".freeze
-      PARENT_TRANSPORT_DURATION_KEY  = "parent.transportDuration".freeze
-      GUID_KEY                       = "guid".freeze
-      TRACE_ID_KEY                   = "traceId".freeze
-      PARENT_TRANSACTION_ID_KEY      = "parentId".freeze
-      PARENT_SPAN_ID_KEY             = "parentSpanId".freeze
-      SAMPLED_KEY                    = "sampled".freeze
-
       INTRINSIC_KEYS = [
-        PARENT_TYPE_KEY,
-        PARENT_APP_KEY,
-        PARENT_ACCOUNT_ID_KEY,
-        PARENT_TRANSPORT_TYPE_KEY,
-        PARENT_TRANSPORT_DURATION_KEY,
-        GUID_KEY,
-        TRACE_ID_KEY,
-        PARENT_TRANSACTION_ID_KEY,
-        PARENT_SPAN_ID_KEY,
-        SAMPLED_KEY
+        PARENT_TYPE_KEY                = "parent.type",
+        PARENT_APP_KEY                 = "parent.app",
+        PARENT_ACCOUNT_ID_KEY          = "parent.account",
+        PARENT_TRANSPORT_TYPE_KEY      = "parent.transportType",
+        PARENT_TRANSPORT_DURATION_KEY  = "parent.transportDuration",
+        GUID_KEY                       = "guid",
+        TRACE_ID_KEY                   = "traceId",
+        PARENT_TRANSACTION_ID_KEY      = "parentId",
+        PARENT_SPAN_ID_KEY             = "parentSpanId",
+        SAMPLED_KEY                    = "sampled",
       ].freeze
 
       # This method extracts intrinsics from the transaction_payload and

@@ -133,7 +133,7 @@ module NewRelic
           txn = Tracer.start_transaction name: txn_name, category: :message
 
           if headers
-            consume_message_headers headers, txn, state
+            txn.distributed_tracer.consume_headers headers, state
             CrossAppTracing.reject_messaging_cat_headers(headers).each do |k, v|
               txn.add_agent_attribute :"message.headers.#{k}", v, AttributeFilter::DST_NONE unless v.nil?
             end
@@ -364,11 +364,6 @@ module NewRelic
 
         transaction_name
       end
-
-      def consume_message_headers headers, transaction, state
-        transaction.distributed_tracer.consume_headers headers, state
-      end
-
     end
   end
 end

@@ -11,7 +11,7 @@ module NewRelic
     module DistributedTracing
       class TraceContextCrossAgentTest < Minitest::Test
         def setup
-          NewRelic::Agent::Transaction.any_instance.stubs(:trace_context_enabled?).returns(true)
+          NewRelic::Agent::Transaction::DistributedTracer.any_instance.stubs(:trace_context_active?).returns(true)
           agent_event_listener = mock(:subscribe)
           @request_monitor = TraceContextRequestMonitor.new agent_event_listener
           NewRelic::Agent.drop_buffered_data
@@ -83,7 +83,7 @@ module NewRelic
             payloads = Array(test_case['outbound_payloads'])
             payloads.count.times do
               outbound_headers = {}
-              if txn.insert_trace_context carrier: outbound_headers
+              if txn.distributed_tracer.insert_trace_context carrier: outbound_headers
                 outbound_payloads << outbound_headers
               end
             end

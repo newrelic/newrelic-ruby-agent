@@ -12,17 +12,32 @@ module NewRelic
     class Transaction
       module DistributedTracing
         attr_accessor :distributed_trace_payload
+        attr_writer :distributed_trace_payload_created
 
-        SUPPORTABILITY_CREATE_PAYLOAD_SUCCESS   = "Supportability/DistributedTrace/CreatePayload/Success".freeze
-        SUPPORTABILITY_CREATE_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/CreatePayload/Exception".freeze
+        SUPPORTABILITY_DISTRIBUTED_TRACE              = "Supportability/DistributedTrace"
+        SUPPORTABILITY_CREATE_PAYLOAD                 = "#{SUPPORTABILITY_DISTRIBUTED_TRACE}/CreatePayload"
+        SUPPORTABILITY_ACCEPT_PAYLOAD                 = "#{SUPPORTABILITY_DISTRIBUTED_TRACE}/AcceptPayload"
+        SUPPORTABILITY_CREATE_PAYLOAD_SUCCESS         = "#{SUPPORTABILITY_CREATE_PAYLOAD}/Success"
+        SUPPORTABILITY_CREATE_PAYLOAD_EXCEPTION       = "#{SUPPORTABILITY_CREATE_PAYLOAD}/Exception"
+        SUPPORTABILITY_ACCEPT_PAYLOAD_SUCCESS         = "#{SUPPORTABILITY_ACCEPT_PAYLOAD}/Success"
+        SUPPORTABILITY_ACCEPT_PAYLOAD_EXCEPTION       = "#{SUPPORTABILITY_ACCEPT_PAYLOAD}/Exception"
+
+        SUPPORTABILITY_CREATE_BEFORE_ACCEPT_PAYLOAD   = "#{SUPPORTABILITY_ACCEPT_PAYLOAD}/Ignored/CreateBeforeAccept"
+        SUPPORTABILITY_MULTIPLE_ACCEPT_PAYLOAD        = "#{SUPPORTABILITY_ACCEPT_PAYLOAD}/Ignored/Multiple"
+        SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_NULL    = "#{SUPPORTABILITY_ACCEPT_PAYLOAD}/Ignored/Null"
+        SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_BROWSER = "#{SUPPORTABILITY_ACCEPT_PAYLOAD}/Ignored/BrowserAgentInjected"
+
+        def distributed_trace_payload_created?
+          @distributed_trace_payload_created ||= false
+        end
 
         def create_distributed_trace_payload
-          unless distributed_tracer.nr_distributed_tracing_enabled?
+          unless nr_distributed_tracing_enabled?
             NewRelic::Agent.logger.warn "Not configured to create New Relic distributed trace payload"
             return
           end
-          self.distributed_trace_payload_created = true
-          payload = DistributedTracePayload.for_transaction self
+          @distributed_trace_payload_created = true
+          payload = DistributedTracePayload.for_transaction transaction
           NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_PAYLOAD_SUCCESS
           payload
         rescue => e
@@ -31,11 +46,8 @@ module NewRelic
           nil
         end
 
-        SUPPORTABILITY_ACCEPT_PAYLOAD_SUCCESS   = "Supportability/DistributedTrace/AcceptPayload/Success".freeze
-        SUPPORTABILITY_ACCEPT_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/AcceptPayload/Exception".freeze
-
         def accept_distributed_trace_payload payload
-          unless Agent.config[:'distributed_tracing.enabled'] && (Agent.config[:'distributed_tracing.format'] == NR_FORMAT)
+          unless nr_distributed_tracing_enabled?
             NewRelic::Agent.logger.warn "Not configured to accept New Relic distributed trace payload"
             return
           end
@@ -56,32 +68,18 @@ module NewRelic
           false
         end
 
-        def distributed_trace_payload_created?
-          @distributed_trace_payload_created ||=  false
-        end
-
-        attr_writer :distributed_trace_payload_created
-
-        def append_distributed_trace_info transaction_payload
+        def append_distributed_trace_info payload
           return unless Agent.config[:'distributed_tracing.enabled']
+
           DistributedTraceIntrinsics.copy_from_transaction \
-            self,
+            transaction,
             distributed_trace_payload,
-            transaction_payload
+            payload
         end
 
         NR_FORMAT = "newrelic".freeze
 
-        def nr_distributed_tracing_enabled?
-          Agent.config[:'distributed_tracing.enabled'] && (Agent.config[:'distributed_tracing.format'] == NR_FORMAT) && Agent.instance.connected?
-        end
-
         private
-
-        SUPPORTABILITY_CREATE_BEFORE_ACCEPT_PAYLOAD   = "Supportability/DistributedTrace/AcceptPayload/Ignored/CreateBeforeAccept".freeze
-        SUPPORTABILITY_MULTIPLE_ACCEPT_PAYLOAD        = "Supportability/DistributedTrace/AcceptPayload/Ignored/Multiple".freeze
-        SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_NULL    = "Supportability/DistributedTrace/AcceptPayload/Ignored/Null".freeze
-        SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_BROWSER = "Supportability/DistributedTrace/AcceptPayload/Ignored/BrowserAgentInjected".freeze
 
         def check_payload_ignored(payload)
           if distributed_trace_payload
@@ -165,14 +163,14 @@ module NewRelic
         end
 
         def assign_payload_and_sampling_params(payload)
-          self.distributed_trace_payload = payload
-          @trace_id = payload.trace_id
-          @parent_transaction_id = payload.transaction_id
-          @parent_span_id = payload.id
+          @distributed_trace_payload = payload
+          transaction.instance_variable_set :@trace_id, payload.trace_id
+          transaction.instance_variable_set :@parent_transaction_id, payload.transaction_id
+          transaction.instance_variable_set :@parent_span_id, payload.id
 
           unless payload.sampled.nil?
-            self.sampled = payload.sampled
-            self.priority = payload.priority if payload.priority
+            transaction.sampled = payload.sampled
+            transaction.priority = payload.priority if payload.priority
           end
         end
       end

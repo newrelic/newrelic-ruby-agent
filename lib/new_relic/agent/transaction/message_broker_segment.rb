@@ -93,7 +93,7 @@ module NewRelic
 
         def insert_distributed_trace_header
           return unless Agent.config[:'distributed_tracing.enabled']
-          payload = transaction.create_distributed_trace_payload
+          payload = transaction.distributed_tracer.create_distributed_trace_payload
           headers[NEWRELIC_TRACE_KEY] = payload.http_safe if payload
         end
 
