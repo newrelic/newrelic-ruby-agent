@@ -16,7 +16,7 @@ require 'rubygems'
 require 'rake'
 
 require 'minitest/autorun'
-require 'mocha/minitest'
+require 'mocha/setup'
 
 require 'hometown'
 require_relative 'helpers/hometown_monkey_patch'

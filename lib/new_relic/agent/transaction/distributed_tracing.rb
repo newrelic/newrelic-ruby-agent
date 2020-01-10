@@ -77,9 +77,19 @@ module NewRelic
             payload
         end
 
-        NR_FORMAT = "newrelic".freeze
-
         private
+
+        NEWRELIC_HEADER   = "newrelic"
+
+        def nr_distributed_tracing_enabled?
+          Agent.config[:'distributed_tracing.enabled'] &&
+          (Agent.config[:'distributed_tracing.format'] == NEWRELIC_HEADER)
+        end
+
+        def nr_distributed_tracing_active?
+          nr_distributed_tracing_enabled? && Agent.instance.connected?
+        end
+
 
         def check_payload_ignored(payload)
           if distributed_trace_payload
@@ -164,9 +174,9 @@ module NewRelic
 
         def assign_payload_and_sampling_params(payload)
           @distributed_trace_payload = payload
-          transaction.instance_variable_set :@trace_id, payload.trace_id
-          transaction.instance_variable_set :@parent_transaction_id, payload.transaction_id
-          transaction.instance_variable_set :@parent_span_id, payload.id
+          transaction.trace_id = payload.trace_id
+          transaction.parent_transaction_id = payload.transaction_id
+          transaction.parent_span_id = payload.id
 
           unless payload.sampled.nil?
             transaction.sampled = payload.sampled

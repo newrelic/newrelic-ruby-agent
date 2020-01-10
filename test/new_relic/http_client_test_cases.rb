@@ -262,7 +262,7 @@ module HttpClientTestCases
       path_hash = nil
       in_transaction do |txn|
         guid      = txn.guid
-        path_hash = txn.cat_path_hash
+        path_hash = txn.distributed_tracer.cat_path_hash
         get_response
       end
 

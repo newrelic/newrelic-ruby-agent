@@ -30,24 +30,6 @@ module NewRelic
           @transaction = transaction
         end
 
-        def trace_context_enabled?
-          Agent.config[:'distributed_tracing.enabled'] &&
-          (Agent.config[:'distributed_tracing.format'] == W3C_FORMAT)
-        end
-
-        def trace_context_active?
-          trace_context_enabled? && Agent.instance.connected?
-        end
-
-        def nr_distributed_tracing_enabled?
-          Agent.config[:'distributed_tracing.enabled'] &&
-          (Agent.config[:'distributed_tracing.format'] == NEWRELIC_HEADER)
-        end
-
-        def nr_distributed_tracing_active?
-          nr_distributed_tracing_enabled? && Agent.instance.connected?
-        end
-
         def record_metrics
           record_cross_app_metrics
           DistributedTraceMetrics.record_metrics_for_transaction transaction
@@ -137,15 +119,6 @@ module NewRelic
         rescue => e
           NewRelic::Agent.logger.debug("Failure deserializing encoded header in #{self.class}, #{e.class}, #{e.message}")
           nil
-        end
-
-        def insert_cross_app_header request
-          is_cross_app_caller = true
-          txn_guid  = transaction.guid
-          trip_id   = cat_trip_id
-          path_hash = cat_path_hash
-
-          CrossAppTracing.insert_request_headers request, txn_guid, trip_id, path_hash
         end
 
         def insert_trace_context_headers request

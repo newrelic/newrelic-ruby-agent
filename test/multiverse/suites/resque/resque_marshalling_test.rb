@@ -13,15 +13,6 @@ class ResqueMarshallingTest < Minitest::Test
 
   setup_and_teardown_agent
 
-  def before_teardown
-    puts
-    p $collector.agent_data.map { |post| [post.class, post.action] }
-    super
-  end
-
-  class DummyJob
-  end
-
   def invoke_hook(name, *args)
     hooks = Array(Resque.send(name))
     hooks.each { |h| h.call(*args) }

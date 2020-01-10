@@ -107,12 +107,12 @@ module NewRelic
           return false if ignore_trace_context?
           
           @trace_context_header_data = header_data
-          transaction.instance_variable_set :@trace_id, header_data.trace_id
-          transaction.instance_variable_set :@parent_span_id, header_data.parent_id
+          transaction.trace_id = header_data.trace_id
+          transaction.parent_span_id = header_data.parent_id
 
           return false unless payload = assign_trace_state_payload
 
-          transaction.instance_variable_set :@parent_transaction_id, payload.transaction_id
+          transaction.parent_transaction_id = payload.transaction_id
 
           unless payload.sampled.nil?
             transaction.sampled = payload.sampled
@@ -148,6 +148,20 @@ module NewRelic
         def trace_context_inserted?
           @trace_context_inserted ||= false
         end
+
+        private
+
+        W3C_FORMAT = "w3c"
+
+        def trace_context_enabled?
+          Agent.config[:'distributed_tracing.enabled'] &&
+          (Agent.config[:'distributed_tracing.format'] == W3C_FORMAT)
+        end
+
+        def trace_context_active?
+          trace_context_enabled? && Agent.instance.connected?
+        end
+
       end
     end
   end

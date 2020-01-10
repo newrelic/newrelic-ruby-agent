@@ -7,7 +7,6 @@ require 'new_relic/agent/distributed_tracing/cross_app_payload'
 require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
 require 'new_relic/agent/distributed_tracing/distributed_trace_intrinsics'
 require 'new_relic/agent/transaction'
-require 'new_relic/agent/distributed_tracing/api'
 require 'net/http'
 
 module NewRelic

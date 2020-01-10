@@ -52,6 +52,15 @@ module NewRelic
         result
       end
 
+      def insert_cross_app_header request
+        @is_cross_app_caller = true
+        txn_guid  = transaction.guid
+        trip_id   = cat_trip_id
+        path_hash = cat_path_hash
+
+        insert_request_headers request, txn_guid, trip_id, path_hash
+      end
+
       def add_message_cat_headers headers
         @is_cross_app_caller = true
         insert_message_headers headers, 

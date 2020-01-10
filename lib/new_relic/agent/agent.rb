@@ -129,6 +129,9 @@ module NewRelic
         # for agent-wide events, such as finishing configuration, error notification
         # and request before/after from Rack.
         attr_reader :events
+
+        # listens and responds to events that need to process headers 
+        # for synthetics and distributed tracing
         attr_reader :monitors
         # Transaction and metric renaming rules as provided by the
         # collector on connect.  The former are applied during txns,

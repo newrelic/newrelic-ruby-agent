@@ -25,6 +25,7 @@ module Multiverse
 
 end
 
+require 'multiverse/bundler_patch'
 require 'multiverse/color'
 require 'multiverse/output_collector'
 require 'multiverse/runner'

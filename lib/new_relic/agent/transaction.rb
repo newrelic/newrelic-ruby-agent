@@ -57,7 +57,10 @@ module NewRelic
                     :process_cpu_start,
                     :http_response_code,
                     :response_content_length,
-                    :response_content_type
+                    :response_content_type,
+                    :parent_transaction_id,
+                    :parent_span_id
+
 
       attr_reader :guid,
                   :metrics,
@@ -68,9 +71,7 @@ module NewRelic
                   :nesting_max_depth,
                   :segments,
                   :end_time,
-                  :duration,
-                  :parent_transaction_id,
-                  :parent_span_id
+                  :duration
 
       attr_writer :sampled,
                   :priority
@@ -279,6 +280,10 @@ module NewRelic
 
       def trace_id
         @trace_id ||= NewRelic::Agent::GuidGenerator.generate_guid 32
+      end
+
+      def trace_id=(value)
+        @trace_id = value
       end
 
       def priority
