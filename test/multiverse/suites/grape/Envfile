@@ -32,7 +32,7 @@ rack_test_version = RUBY_VERSION < "2.2.0" ? "< 0.8.0" : ">= 0.8.0"
 
 grape_versions.each do |version|
   gemfile <<-RB
-    gem 'rack'
+    gem 'rack', '< 2.1.0'
     gem 'rack-test', '#{rack_test_version}'
     gem 'grape', '~> #{version}'
   RB

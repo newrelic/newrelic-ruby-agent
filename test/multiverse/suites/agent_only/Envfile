@@ -2,6 +2,6 @@ rack_test_version = RUBY_VERSION < "2.2.0" ? "< 0.8.0" : ">= 0.8.0"
 
 gemfile <<-RB
   gem 'minitest', '4.7.5'
-  gem 'rack'
+  gem 'rack', '< 2.1.0'
   gem 'rack-test', '#{rack_test_version}'
 RB
