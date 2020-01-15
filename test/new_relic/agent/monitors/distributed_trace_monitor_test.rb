@@ -2,17 +2,15 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path('../../../test_helper', __FILE__)
-require 'new_relic/agent/distributed_trace_monitor'
-require 'net/http'
+require File.expand_path '../../../../test_helper', __FILE__
 
-module NewRelic
-  module Agent
+module NewRelic::Agent
+  module DistributedTracing
     class DistributedTraceMonitorTest < Minitest::Test
       NEWRELIC_TRACE_KEY = 'HTTP_NEWRELIC'.freeze
 
       def setup
-        NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
+        Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
 
         @events  = EventListener.new
         @monitor = DistributedTraceMonitor.new(@events)
@@ -24,28 +22,28 @@ module NewRelic
           :primary_application_id        => "46954",
           :trusted_account_key           => "trust_this!"
         }
-        NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+        DistributedTracePayload.stubs(:connected?).returns(true)
 
-        NewRelic::Agent.config.add_config_for_testing(@config)
+        Agent.config.add_config_for_testing(@config)
         @events.notify(:initial_configuration_complete)
       end
 
       def teardown
-        NewRelic::Agent.config.reset_to_defaults
+        Agent.config.reset_to_defaults
       end
 
       def test_accepts_distributed_trace_payload
         payload = nil
 
         in_transaction "referring_txn" do |txn|
-          payload = txn.create_distributed_trace_payload
+          payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
         env = { NEWRELIC_TRACE_KEY => payload.http_safe }
 
         in_transaction "receiving_txn" do |txn|
           @events.notify(:before_call, env)
-          refute_nil txn.distributed_trace_payload
+          refute_nil txn.distributed_tracer.distributed_trace_payload
         end
       end
 
@@ -53,7 +51,7 @@ module NewRelic
         payload = nil
 
         in_transaction "referring_txn" do |txn|
-          payload = txn.create_distributed_trace_payload
+          payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
         env = {
@@ -63,7 +61,7 @@ module NewRelic
 
         in_transaction "receiving_txn" do |txn|
           @events.notify(:before_call, env)
-          payload = txn.distributed_trace_payload
+          payload = txn.distributed_tracer.distributed_trace_payload
         end
 
         assert_equal 'HTTP', payload.caller_transport_type
@@ -73,7 +71,7 @@ module NewRelic
         payload = nil
 
         in_transaction "referring_txn" do |txn|
-          payload = txn.create_distributed_trace_payload
+          payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
         env = {
@@ -83,7 +81,7 @@ module NewRelic
 
         in_transaction "receiving_txn" do |txn|
           @events.notify(:before_call, env)
-          payload = txn.distributed_trace_payload
+          payload = txn.distributed_tracer.distributed_trace_payload
         end
 
         assert_equal 'HTTPS', payload.caller_transport_type

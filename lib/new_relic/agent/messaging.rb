@@ -133,7 +133,7 @@ module NewRelic
           txn = Tracer.start_transaction name: txn_name, category: :message
 
           if headers
-            consume_message_headers headers, txn, state
+            txn.distributed_tracer.consume_headers headers, state
             CrossAppTracing.reject_messaging_cat_headers(headers).each do |k, v|
               txn.add_agent_attribute :"message.headers.#{k}", v, AttributeFilter::DST_NONE unless v.nil?
             end
@@ -364,77 +364,6 @@ module NewRelic
 
         transaction_name
       end
-
-      RABBITMQ_TRANSPORT_TYPE = "RabbitMQ".freeze
-
-      def consume_message_headers headers, transaction, state
-        consume_distributed_tracing_headers headers, transaction
-        consume_cross_app_tracing_headers headers, state
-
-        assign_synthetics_header headers[CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER], transaction
-      rescue => e
-        NewRelic::Agent.logger.error "Error in consume_message_headers", e
-      end
-
-      def decode_txn_info headers, transaction_state
-        encoded_id = headers[CrossAppTracing::NR_MESSAGE_BROKER_ID_HEADER]
-
-        decoded_id = if encoded_id.nil?
-                       EMPTY_STRING
-                     else
-                       CrossAppTracing.obfuscator.deobfuscate(encoded_id)
-                     end
-
-        if CrossAppTracing.trusted_valid_cross_app_id?(decoded_id) && transaction_state.current_transaction
-          txn_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER]
-          txn        = transaction_state.current_transaction
-          txn_info   = ::JSON.load(CrossAppTracing.obfuscator.deobfuscate(txn_header))
-          payload    = CrossAppPayload.new(decoded_id, txn, txn_info)
-
-          txn.cross_app_payload = payload
-        end
-      rescue => e
-        NewRelic::Agent.logger.debug("Failure deserializing encoded header in #{self.class}, #{e.class}, #{e.message}")
-        nil
-      end
-
-      CANDIDATE_HEADERS = ['newrelic'.freeze, 'NEWRELIC'.freeze, 'Newrelic'.freeze]
-
-      def consume_distributed_tracing_headers headers, transaction
-        if Agent.config[:'distributed_tracing.enabled']
-          return unless newrelic_trace_key = CANDIDATE_HEADERS.detect do |key|
-            headers.has_key?(key)
-          end
-
-          return unless payload = headers[newrelic_trace_key]
-
-          if transaction.accept_distributed_trace_payload payload
-            transaction.distributed_trace_payload.caller_transport_type = RABBITMQ_TRANSPORT_TYPE
-          end
-        end
-      end
-
-      def consume_cross_app_tracing_headers headers, state
-        if CrossAppTracing.cross_app_enabled? && CrossAppTracing.message_has_crossapp_request_header?(headers)
-          decode_txn_info headers, state
-          CrossAppTracing.assign_intrinsic_transaction_attributes state
-        end
-      end
-
-      def assign_synthetics_header synthetics_header, transaction
-        if synthetics_header and
-           incoming_payload = ::JSON.load(CrossAppTracing.obfuscator.deobfuscate(synthetics_header)) and
-           SyntheticsMonitor.is_valid_payload?(incoming_payload) and
-           SyntheticsMonitor.is_supported_version?(incoming_payload) and
-           SyntheticsMonitor.is_trusted?(incoming_payload)
-
-          transaction.raw_synthetics_header = synthetics_header
-          transaction.synthetics_payload = incoming_payload
-        end
-      rescue => e
-        NewRelic::Agent.logger.error "Error in assign_synthetics_header", e
-      end
-
     end
   end
 end

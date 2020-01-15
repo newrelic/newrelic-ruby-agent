@@ -2,7 +2,13 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/distributed_trace_payload'
+require_relative 'distributed_tracing/cross_app_payload'
+require_relative 'distributed_tracing/cross_app_tracing'
+
+require_relative 'distributed_tracing/distributed_trace_transport_type'
+require_relative 'distributed_tracing/distributed_trace_payload'
+
+require_relative 'distributed_tracing/trace_context'
 
 module NewRelic
   module Agent
@@ -15,7 +21,6 @@ module NewRelic
     # @api public
     module DistributedTracing
       extend self
-
       # Create a payload object containing the current transaction's
       # tracing properties (e.g., duration, priority).  You can use
       # this object to generate headers to inject into a network
@@ -29,7 +34,7 @@ module NewRelic
       # @api public
       def create_distributed_trace_payload
         if transaction = Transaction.tl_current
-          transaction.create_distributed_trace_payload
+          transaction.distributed_tracer.create_distributed_trace_payload
         end
       rescue => e
         NewRelic::Agent.logger.error 'error during create_distributed_trace_payload', e

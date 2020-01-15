@@ -13,7 +13,7 @@ class RequestStatsController < ApplicationController
   end
 
   def cross_app_action
-    ::NewRelic::Agent::Transaction.tl_current.is_cross_app_caller = true
+    ::NewRelic::Agent::Transaction.tl_current.distributed_tracer.is_cross_app_caller = true
     render body:  'some stuff'
   end
 

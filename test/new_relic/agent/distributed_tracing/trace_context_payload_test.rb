@@ -2,8 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path('../../../test_helper', __FILE__)
-require 'new_relic/agent/trace_context_payload'
+require File.expand_path '../../../../test_helper', __FILE__
 
 module NewRelic
   module Agent

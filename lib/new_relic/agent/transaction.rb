@@ -8,9 +8,7 @@ require 'new_relic/agent/method_tracer_helpers'
 require 'new_relic/agent/attributes'
 require 'new_relic/agent/transaction/request_attributes'
 require 'new_relic/agent/transaction/tracing'
-require 'new_relic/agent/transaction/trace_context'
-require 'new_relic/agent/transaction/distributed_tracing'
-require 'new_relic/agent/cross_app_tracing'
+require 'new_relic/agent/transaction/distributed_tracer'
 require 'new_relic/agent/transaction_time_aggregator'
 require 'new_relic/agent/deprecator'
 require 'new_relic/agent/guid_generator'
@@ -23,9 +21,6 @@ module NewRelic
     # @api public
     class Transaction
       include Tracing
-      include TraceContext
-      include DistributedTracing
-      include CrossAppTracing
 
       # for nested transactions
       SUBTRANSACTION_PREFIX        = 'Nested/'.freeze
@@ -62,7 +57,10 @@ module NewRelic
                     :process_cpu_start,
                     :http_response_code,
                     :response_content_length,
-                    :response_content_type
+                    :response_content_type,
+                    :parent_transaction_id,
+                    :parent_span_id
+
 
       attr_reader :guid,
                   :metrics,
@@ -73,9 +71,7 @@ module NewRelic
                   :nesting_max_depth,
                   :segments,
                   :end_time,
-                  :duration,
-                  :parent_transaction_id,
-                  :parent_span_id
+                  :duration
 
       attr_writer :sampled,
                   :priority
@@ -270,6 +266,10 @@ module NewRelic
         end
       end
 
+      def distributed_tracer
+        @distributed_tracer ||= DistributedTracer.new(self)
+      end
+
       def sampled?
         return unless Agent.config[:'distributed_tracing.enabled']
         if @sampled.nil?
@@ -280,6 +280,10 @@ module NewRelic
 
       def trace_id
         @trace_id ||= NewRelic::Agent::GuidGenerator.generate_guid 32
+      end
+
+      def trace_id=(value)
+        @trace_id = value
       end
 
       def priority
@@ -358,8 +362,10 @@ module NewRelic
       end
 
       def best_name
-        @frozen_name  || @overridden_name ||
-          @default_name || NewRelic::Agent::UNKNOWN_METRIC
+        @frozen_name ||
+        @overridden_name ||
+        @default_name ||
+        NewRelic::Agent::UNKNOWN_METRIC
       end
 
       # For common interface with Trace
@@ -532,8 +538,7 @@ module NewRelic
         record_total_time_metrics
         record_apdex unless ignore_apdex?
         record_queue_time
-        record_cross_app_metrics
-        DistributedTraceMetrics.record_metrics_for_transaction self
+        distributed_tracer.record_metrics
 
         record_exceptions
         record_transaction_event
@@ -585,11 +590,7 @@ module NewRelic
           attributes.add_intrinsic_attribute(:synthetics_monitor_id, synthetics_monitor_id)
         end
 
-        if Agent.config[:'distributed_tracing.enabled'] || trace_context_enabled?
-          DistributedTraceIntrinsics.copy_to_attributes @payload, attributes
-        elsif is_cross_app?
-          assign_cross_app_intrinsics
-        end
+        distributed_tracer.assign_intrinsics
       end
 
       def calculate_gc_time
@@ -633,15 +634,13 @@ module NewRelic
           :priority             => priority
         }
 
-        append_cat_info(@payload)
-        append_distributed_trace_info(@payload)
-        append_trace_context_info(@payload)
+        distributed_tracer.append_payload(@payload)
         append_apdex_perf_zone(@payload)
         append_synthetics_to(@payload)
       end
 
       def include_guid?
-        is_cross_app? || is_synthetics_request?
+        distributed_tracer.is_cross_app? || is_synthetics_request?
       end
 
       def is_synthetics_request?

@@ -159,9 +159,9 @@ module NewRelic
       def distributed_trace_intrinsics(state)
         transaction = state.current_transaction
         params = nil
-        if transaction && transaction.distributed_trace_payload
+        if transaction && transaction.distributed_tracer.distributed_trace_payload
           params = {}
-          payload = transaction.distributed_trace_payload
+          payload = transaction.distributed_tracer.distributed_trace_payload
           DistributedTraceIntrinsics.copy_from_transaction transaction, payload, params
           params[PRIORITY] = transaction.priority
         end

@@ -78,12 +78,11 @@ module NewRelic
             segment.finish
           end
 
-          assert_metrics_recorded_exclusive [
+          assert_metrics_recorded [
             "test",
             ["Custom/simple/segment", "test"],
             "Custom/simple/segment",
             "Segment/all",
-            "Supportability/API/drop_buffered_data",
             "OtherTransactionTotalTime",
             "OtherTransactionTotalTime/test",
             "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
@@ -137,12 +136,11 @@ module NewRelic
             segment.finish
           end
 
-          assert_metrics_recorded_exclusive [
+          assert_metrics_recorded [
             "test",
             "Custom/simple/segment",
             "Segment/all",
             "Segment/allOther",
-            "Supportability/API/drop_buffered_data",
             "OtherTransactionTotalTime",
             "OtherTransactionTotalTime/test",
             "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",

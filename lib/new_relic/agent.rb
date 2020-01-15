@@ -35,7 +35,6 @@ module NewRelic
     require 'new_relic/agent/encoding_normalizer'
     require 'new_relic/agent/stats'
     require 'new_relic/agent/chained_call'
-    require 'new_relic/agent/cross_app_monitor'
     require 'new_relic/agent/agent'
     require 'new_relic/agent/method_tracer'
     require 'new_relic/agent/worker_loop'
@@ -56,7 +55,8 @@ module NewRelic
     require 'new_relic/agent/external'
     require 'new_relic/agent/deprecator'
     require 'new_relic/agent/logging'
-
+    require 'new_relic/agent/distributed_tracing'
+    
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
     require 'new_relic/agent/samplers/cpu_sampler'

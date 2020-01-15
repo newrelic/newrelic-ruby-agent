@@ -118,11 +118,7 @@ DependencyDetection.defer do
 
     # Since 1.2.0, the class `Grape::API` no longer refers to an API instance, rather, what used to be `Grape::API` is `Grape::API::Instance`
     # https://github.com/ruby-grape/grape/blob/c20a73ac1e3f3ba1082005ed61bf69452373ba87/UPGRADING.md#upgrading-to--120
-    grape_api_class = if defined?(Grape::API::Instance)
-                        ::Grape::API::Instance
-                      else
-                        ::Grape::API
-                      end
+    grape_api_class = defined?(Grape::API::Instance) ? ::Grape::API::Instance : ::Grape::API
 
     grape_api_class.class_eval do
       def call_with_new_relic(env)

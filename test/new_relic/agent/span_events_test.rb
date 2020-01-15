@@ -36,7 +36,7 @@ module NewRelic
                        start_external_request_segment library: "net/http",
                                                       uri: "http://docs.newrelic.com",
                                                       procedure: "GET"
-          payload = txn.create_distributed_trace_payload
+          payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
         assert_equal external_segment.guid, payload.id
@@ -53,11 +53,11 @@ module NewRelic
                        start_external_request_segment library: "net/http",
                                                       uri: "http://docs.newrelic.com",
                                                       procedure: "GET"
-          payload = txn.create_distributed_trace_payload
+          payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
         in_transaction('test_txn2') do |txn|
-          txn.accept_distributed_trace_payload payload.text
+          txn.distributed_tracer.accept_distributed_trace_payload payload.text
         end
 
         last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]

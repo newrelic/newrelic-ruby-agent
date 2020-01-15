@@ -2,8 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
+require File.expand_path '../../test_helper', __FILE__
 require 'new_relic/metric_data'
+
 class NewRelic::MetricDataTest < Minitest::Test
   def test_initialize_basic
     spec = mock('metric_spec')
