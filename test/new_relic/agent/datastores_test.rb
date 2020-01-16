@@ -191,6 +191,8 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
   end
 
   def test_node_created_when_exception_occurs
+    NewRelic::Agent::TransactionSampler.any_instance.stubs(:enabled?).returns(true)
+
     db = MyFirstDatabase.new
     in_transaction do
       db.find
