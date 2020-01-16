@@ -2,8 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require 'new_relic/agent/inbound_request_monitor'
+require File.expand_path '../../../../test_helper', __FILE__
 
 module NewRelic::Agent
   class InboundRequestMonitorTest < Minitest::Test

@@ -6,7 +6,7 @@
 # event for a segment.
 
 require 'new_relic/agent/payload_metric_mapping'
-require 'new_relic/agent/distributed_trace_payload'
+require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
 
 module NewRelic
   module Agent
@@ -119,12 +119,12 @@ module NewRelic
 
         if segment.parent.nil?
           intrinsics[ENTRY_POINT_KEY] = true
-          if segment.transaction
-            if segment.transaction.trace_context_header_data
-              intrinsics[TRACING_VENDORS_KEY] = segment.transaction.trace_context_header_data.trace_state_vendors
+          if txn = segment.transaction
+            if header_data = txn.distributed_tracer.trace_context_header_data
+              intrinsics[TRACING_VENDORS_KEY] = header_data.trace_state_vendors
             end
-            if segment.transaction.trace_state_payload
-              intrinsics[TRUSTED_PARENT_KEY] = segment.transaction.trace_state_payload.id
+            if trace_state_payload = txn.distributed_tracer.trace_state_payload
+              intrinsics[TRUSTED_PARENT_KEY] = trace_state_payload.id
             end
           end
         end
@@ -146,10 +146,10 @@ module NewRelic
       def parent_guid(segment)
         if segment.parent
           segment.parent.guid
-        elsif segment.transaction && segment.transaction.distributed_trace_payload
-          segment.transaction.distributed_trace_payload.id
-        elsif segment.transaction && segment.transaction.trace_context_header_data
-          segment.transaction.trace_context_header_data.parent_id
+        elsif segment.transaction && segment.transaction.distributed_tracer.distributed_trace_payload
+          segment.transaction.distributed_tracer.distributed_trace_payload.id
+        elsif segment.transaction && segment.transaction.distributed_tracer.trace_context_header_data
+          segment.transaction.distributed_tracer.trace_context_header_data.parent_id
         end
       end
 

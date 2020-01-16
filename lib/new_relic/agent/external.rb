@@ -3,8 +3,8 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'new_relic/agent/transaction/tracing'
-require 'new_relic/agent/cross_app_tracing'
-require 'new_relic/agent/cross_app_payload'
+require 'new_relic/agent/distributed_tracing/cross_app_tracing'
+require 'new_relic/agent/distributed_tracing/cross_app_payload'
 
 module NewRelic
   module Agent
@@ -78,7 +78,7 @@ module NewRelic
             #
             if txn_info = rmd[NON_HTTP_CAT_TXN_HEADER]
               payload = CrossAppPayload.new(id, transaction, txn_info)
-              transaction.cross_app_payload = payload
+              transaction.distributed_tracer.cross_app_payload = payload
 
               CrossAppTracing.assign_intrinsic_transaction_attributes state
             end
@@ -112,16 +112,16 @@ module NewRelic
         NewRelic::Agent.record_api_supportability_metric(:get_response_metadata)
         return unless CrossAppTracing.cross_app_enabled?
 
-        return unless (transaction = Tracer.current_transaction)
-        return unless (cross_app_payload = transaction.cross_app_payload)
+        return unless (txn = Tracer.current_transaction)
+        return unless (payload = txn.distributed_tracer.cross_app_payload)
 
         # must freeze the name since we're responding with it
         #
-        transaction.freeze_name_and_execute_if_not_ignored do
+        txn.freeze_name_and_execute_if_not_ignored do
           # build response payload
           #
           rmd = {
-            NewRelicAppData: cross_app_payload.as_json_array(NON_HTTP_CAT_CONTENT_LENGTH)
+            NewRelicAppData: payload.as_json_array(NON_HTTP_CAT_CONTENT_LENGTH)
           }
 
           # obfuscate the generated response metadata JSON

@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'net/http'
-require 'new_relic/agent/trace_context'
+require 'new_relic/agent/distributed_tracing/trace_context'
 require 'new_relic/agent/transaction/trace_context'
 
 class TraceContext < Performance::TestCase

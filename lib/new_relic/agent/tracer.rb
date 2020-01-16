@@ -196,7 +196,7 @@ module NewRelic
 
         def create_distributed_trace_payload
           return unless txn = current_transaction
-          txn.create_distributed_trace_payload
+          txn.distributed_tracer.create_distributed_trace_payload
         end
 
         def accept_distributed_trace_payload(payload)

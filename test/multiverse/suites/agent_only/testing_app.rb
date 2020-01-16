@@ -28,7 +28,7 @@ class TestingApp
       NewRelic::Agent.set_transaction_name(params['transaction_name'], opts)
     end
     if params['cross_app_caller']
-      NewRelic::Agent::Transaction.tl_current.is_cross_app_caller = true
+      NewRelic::Agent::Transaction.tl_current.distributed_tracer.is_cross_app_caller = true
     end
     stub_transaction_guid(params['guid']) if params['guid']
     sleep(params['sleep'].to_f) if params['sleep']

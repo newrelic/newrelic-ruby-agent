@@ -2,7 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-
 module NewRelic
   module Agent
     module DistributedTraceMetrics
@@ -25,11 +24,8 @@ module NewRelic
 
       def record_metrics_for_transaction transaction
         return unless Agent.config[:'distributed_tracing.enabled']
-        payload = if transaction.distributed_trace_payload
-          transaction.distributed_trace_payload
-        elsif transaction.trace_state_payload
-          transaction.trace_state_payload
-        end
+        dt = transaction.distributed_tracer
+        payload = dt.distributed_trace_payload || dt.trace_state_payload
 
         record_caller_by_duration_metrics transaction, payload
         record_transport_duration_metrics transaction, payload

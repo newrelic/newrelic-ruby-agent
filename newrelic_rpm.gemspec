@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.version = NewRelic::VERSION::STRING
   s.required_ruby_version = '>= 2.0.0'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = [ "Chris Pine", "Rachel Klein", "Justin Foote", "Michael Lang" ]
+  s.authors = [ "Chris Pine", "Rachel Klein", "Tanna McClure", "Michael Lang" ]
   s.date = Time.now.strftime('%Y-%m-%d')
   s.licenses    = ['New Relic']
   s.description = <<-EOS
@@ -49,6 +49,8 @@ EOS
   s.summary = "New Relic Ruby Agent"
 
   s.add_development_dependency 'rake', '12.3.3'
+  s.add_development_dependency 'rb-inotify', '0.9.10'   # locked to support < Ruby 2.3 (and listen 3.0.8)
+  s.add_development_dependency 'listen', '3.0.8'        # locked to support < Ruby 2.3
   s.add_development_dependency 'minitest', '~> 4.7.5'
   s.add_development_dependency 'mocha', '~> 1.9.0'
   s.add_development_dependency 'yard'
