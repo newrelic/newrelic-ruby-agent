@@ -32,6 +32,41 @@ module NewRelic::Agent
         Agent.config.reset_to_defaults
       end
 
+      def after_notify_event rack_scheme=nil
+        payload = nil
+
+        in_transaction "referring_txn" do |txn|
+          payload = txn.distributed_tracer.create_distributed_trace_payload
+        end
+
+        env = { NEWRELIC_TRACE_KEY => payload.http_safe }
+        env['rack.url_scheme'] = rack_scheme if rack_scheme
+
+        in_transaction "receiving_txn" do |txn|
+          @events.notify(:before_call, env)
+          yield txn
+        end
+      end
+
+      def test_accepts_distributed_trace_payload
+        after_notify_event do |txn|
+          refute_nil txn.distributed_tracer.distributed_trace_payload
+        end
+      end
+
+      def test_sets_transport_type_for_http_scheme
+        after_notify_event 'http' do |txn|
+          payload = txn.distributed_tracer.distributed_trace_payload
+          assert_equal 'HTTP', payload.caller_transport_type
+        end
+      end
+
+      def test_sets_transport_type_for_https_scheme
+        after_notify_event 'https' do |txn|
+          payload = txn.distributed_tracer.distributed_trace_payload
+          assert_equal 'HTTPS', payload.caller_transport_type
+        end
+      end
     end
   end
 end

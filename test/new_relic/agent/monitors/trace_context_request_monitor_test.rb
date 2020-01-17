@@ -75,14 +75,15 @@ module NewRelic
       end
 
       def test_does_not_accept_trace_context_if_trace_context_disabled
-        NewRelic::Agent::Configuration::DEFAULTS[:'distributed_tracing.format'][:transform] = nil
-        with_config @config.merge({ :'distributed_tracing.format' => 'somethingelse' }) do
-          _, carrier = build_parent_transaction_headers
+        with_disabled_defaults_transformer :'distributed_tracing.format' do
+          with_config @config.merge({ :'distributed_tracing.format' => 'somethingelse' }) do
+            _, carrier = build_parent_transaction_headers
 
-          child_txn = in_transaction "receiving_txn" do |txn|
-            @events.notify(:before_call, carrier)
+            child_txn = in_transaction "receiving_txn" do |txn|
+              @events.notify(:before_call, carrier)
+            end
+            assert_nil child_txn.distributed_tracer.trace_context_header_data
           end
-          assert_nil child_txn.distributed_tracer.trace_context_header_data
         end
       end
 
