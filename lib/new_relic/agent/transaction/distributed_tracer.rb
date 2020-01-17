@@ -27,8 +27,11 @@ module NewRelic
         attr_reader :transaction
 
         def accept_incoming_request request
-          accept_trace_context_incoming_request request
-          accept_distributed_tracing_incoming_request request
+          if trace_context_header_present? request
+            accept_trace_context_incoming_request request
+          else
+            accept_distributed_tracing_incoming_request request
+          end
         end
 
         def initialize transaction

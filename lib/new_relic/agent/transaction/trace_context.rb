@@ -35,9 +35,12 @@ module NewRelic
         attr_accessor :trace_context_header_data
         attr_reader   :trace_state_payload
 
+        def trace_context_header_present? request
+          request[TRACEPARENT_HEADER]
+        end
+
         def accept_trace_context_incoming_request request
-          return unless trace_context_enabled?
-          return unless request[TRACEPARENT_HEADER]
+          return unless trace_context_header_present? request
 
           header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse(
             format: NewRelic::Agent::DistributedTracing::TraceContext::FORMAT_RACK,
@@ -51,6 +54,7 @@ module NewRelic
             trace_state_payload.caller_transport_type = transport_type
           end
         end
+        private :accept_trace_context_incoming_request
 
         def insert_trace_context \
             format: NewRelic::Agent::DistributedTracing::TraceContext::FORMAT_HTTP,
@@ -121,10 +125,6 @@ module NewRelic
         end
 
         def accept_trace_context header_data
-          unless trace_context_enabled?
-            NewRelic::Agent.logger.warn "Not configured to accept WC3 trace context payload"
-            return false
-          end
           return false if ignore_trace_context?
           
           @trace_context_header_data = header_data

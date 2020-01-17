@@ -19,7 +19,6 @@ module NewRelic
             :primary_application_id => "46954",
             :trusted_account_key => "999999",
             :disable_harvest_thread => true,
-            :trace_context_enabled => true
           }
           NewRelic::Agent.agent.stubs(:connected?).returns(true)
           NewRelic::Agent.config.add_config_for_testing(@config)
@@ -188,34 +187,6 @@ module NewRelic
           assert_equal parent_txn.trace_id, child_txn.trace_id
           assert_equal parent_txn.sampled?, child_txn.sampled?
           assert_equal parent_txn.priority, child_txn.priority
-        end
-
-        def test_do_not_accept_trace_context_if_trace_context_disabled
-          carrier = {}
-          disabled_config = @config.merge({
-            :'distributed_tracing.format' => 'newrelic'
-          })
-          parent_txn = nil
-          child_txn = nil
-
-          parent_txn = in_transaction 'parent' do |txn|
-            txn.sampled = true
-            txn.distributed_tracer.insert_trace_context carrier: carrier
-          end
-
-          with_config(disabled_config) do
-            trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse \
-              carrier: carrier,
-              trace_state_entry_key: "nr"
-
-            child_txn = in_transaction 'child' do |txn|
-              txn.distributed_tracer.accept_trace_context trace_context_header_data
-            end
-          end
-
-          refute_equal parent_txn.guid, child_txn.parent_transaction_id
-          assert_nil child_txn.parent_transaction_id
-          refute_equal parent_txn.trace_id, child_txn.trace_id
         end
 
         def test_do_not_accept_trace_context_with_mismatching_account_ids
