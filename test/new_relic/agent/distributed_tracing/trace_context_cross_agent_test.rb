@@ -14,7 +14,7 @@ module NewRelic
           NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
           NewRelic::Agent::Transaction::DistributedTracer.any_instance.stubs(:trace_context_active?).returns(true)
           agent_event_listener = mock(:subscribe)
-          @request_monitor = TraceContextRequestMonitor.new agent_event_listener
+          @request_monitor = DistributedTracing::Monitor.new agent_event_listener
           NewRelic::Agent.drop_buffered_data
         end
 
