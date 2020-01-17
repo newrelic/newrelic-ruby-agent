@@ -11,6 +11,7 @@ module NewRelic
   module Agent
     class Transaction
       module TraceContext
+
         EMPTY_STRING                      = ''
         SUPPORTABILITY_PREFIX             = "Supportability/TraceContext"
         CREATE_PREFIX                     = "#{SUPPORTABILITY_PREFIX}/Create"
@@ -28,13 +29,33 @@ module NewRelic
         NO_NR_ENTRY_TRACESTATE_METRIC     = "#{TRACESTATE_PREFIX}/NoNrEntry"
         INVALID_TRACESTATE_PAYLOAD_METRIC = "#{TRACESTATE_PREFIX}/InvalidPayload"
 
+        TRACEPARENT_HEADER = 'HTTP_TRACEPARENT'
+        W3C_FORMAT = "w3c"
+
         attr_accessor :trace_context_header_data
         attr_reader   :trace_state_payload
+
+        def accept_trace_context_incoming_request request
+          return unless trace_context_enabled?
+          return unless request[TRACEPARENT_HEADER]
+
+          header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse(
+            format: NewRelic::Agent::DistributedTracing::TraceContext::FORMAT_RACK,
+            carrier: request,
+            trace_state_entry_key: NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key,
+          )
+          return if header_data.nil?
+
+          if accept_trace_context header_data
+            transport_type = DistributedTraceTransportType.for_rack_request(request)
+            trace_state_payload.caller_transport_type = transport_type
+          end
+        end
 
         def insert_trace_context \
             format: NewRelic::Agent::DistributedTracing::TraceContext::FORMAT_HTTP,
             carrier: nil
-          
+
           return unless trace_context_active?
           NewRelic::Agent::DistributedTracing::TraceContext.insert \
             format: format,
@@ -150,8 +171,6 @@ module NewRelic
         end
 
         private
-
-        W3C_FORMAT = "w3c"
 
         def trace_context_enabled?
           Agent.config[:'distributed_tracing.enabled'] &&

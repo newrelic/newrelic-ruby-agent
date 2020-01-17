@@ -27,6 +27,17 @@ module NewRelic
         SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_NULL    = "#{SUPPORTABILITY_ACCEPT_PAYLOAD}/Ignored/Null"
         SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_BROWSER = "#{SUPPORTABILITY_ACCEPT_PAYLOAD}/Ignored/BrowserAgentInjected"
 
+        NEWRELIC_TRACE_KEY = "HTTP_NEWRELIC"
+
+        def accept_distributed_tracing_incoming_request request
+          return unless NewRelic::Agent.config[:'distributed_tracing.enabled']
+          return unless payload = request[NEWRELIC_TRACE_KEY]
+
+          if accept_distributed_trace_payload payload
+            distributed_trace_payload.caller_transport_type = DistributedTraceTransportType.for_rack_request(request)
+          end
+        end
+
         def distributed_trace_payload_created?
           @distributed_trace_payload_created ||= false
         end

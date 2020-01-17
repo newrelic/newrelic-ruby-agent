@@ -7,9 +7,10 @@ require File.expand_path '../../../../test_helper', __FILE__
 module NewRelic
   module Agent
     class TraceContextRequestMonitorTest < Minitest::Test
+
       def setup
         @events  = EventListener.new
-        @monitor = DistributedTracing::TraceContextRequestMonitor.new(@events)
+        @monitor = DistributedTracing::Monitor.new(@events)
         @config = {
           :'cross_application_tracer.enabled' => false,
           :'distributed_tracing.enabled' => true,
@@ -20,9 +21,7 @@ module NewRelic
           :trusted_account_key           => "99999"
         }
 
-        NewRelic::Agent.config.add_config_for_testing(@config)
-        NewRelic::Agent::Transaction::DistributedTracer.any_instance.stubs(:trace_context_enabled?).returns(true)
-        NewRelic::Agent::Transaction::DistributedTracer.any_instance.stubs(:trace_context_active?).returns(true)
+        NewRelic::Agent.config.add_config_for_testing(@config, true)
         @events.notify(:initial_configuration_complete)
       end
 
@@ -76,13 +75,15 @@ module NewRelic
       end
 
       def test_does_not_accept_trace_context_if_trace_context_disabled
-        with_config @config.merge({ :'distributed_tracing.format' => 'somethingelse' }) do
-          _, carrier = build_parent_transaction_headers
+        with_disabled_defaults_transformer :'distributed_tracing.format' do
+          with_config @config.merge({ :'distributed_tracing.format' => 'somethingelse' }) do
+            _, carrier = build_parent_transaction_headers
 
-          child_txn = in_transaction "receiving_txn" do |txn|
-            @events.notify(:before_call, carrier)
+            child_txn = in_transaction "receiving_txn" do |txn|
+              @events.notify(:before_call, carrier)
+            end
+            assert_nil child_txn.distributed_tracer.trace_context_header_data
           end
-          assert_nil child_txn.distributed_tracer.trace_context_header_data
         end
       end
 
@@ -96,7 +97,6 @@ module NewRelic
         child_txn = in_transaction 'child' do |txn|
           @events.notify(:before_call, carrier)
         end
-
         assert_nil child_txn.distributed_tracer.trace_context_header_data
       end
 
@@ -116,11 +116,15 @@ module NewRelic
       def build_parent_transaction_headers
         carrier = {}
 
+        # stubbing contexted allows trace_context_active? to pass
+        # which, in turn, allows us to insert a trace_context header here.
         parent_txn = in_transaction "referring_txn" do |txn|
+          Agent.instance.stubs(:connected?).returns(true)
           txn.sampled = true
           txn.distributed_tracer.insert_trace_context \
             format: DistributedTracing::TraceContext::FORMAT_RACK,
             carrier: carrier
+          Agent.instance.unstub(:connected?)
         end
         [parent_txn, carrier]
       end

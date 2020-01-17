@@ -345,6 +345,17 @@ def in_transaction(*args, &blk)
   txn
 end
 
+# Temporarily disables default transformer so tests with invalid inputs can be tried
+def with_disabled_defaults_transformer key
+  begin
+    transformer = NewRelic::Agent::Configuration::DEFAULTS[key][:transform]
+    NewRelic::Agent::Configuration::DEFAULTS[key][:transform] = nil
+    yield
+  ensure
+    NewRelic::Agent::Configuration::DEFAULTS[key][:transform] = transformer
+  end
+end
+
 # Convenience wrapper to stand up a transaction and provide a segment within
 # that transaction to work with.  The same arguements as provided to in_transaction
 # may be supplied.
