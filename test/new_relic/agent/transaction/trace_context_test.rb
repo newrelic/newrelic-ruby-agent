@@ -22,13 +22,14 @@ module NewRelic
           }
           NewRelic::Agent.agent.stubs(:connected?).returns(true)
           NewRelic::Agent.config.add_config_for_testing(@config)
-          uncache_trusted_account_key
         end
 
         def teardown
           NewRelic::Agent.config.remove_config(@config)
           NewRelic::Agent.config.reset_to_defaults
+          NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
           NewRelic::Agent.drop_buffered_data
+          uncache_trusted_account_key
         end
 
         def test_insert_trace_context

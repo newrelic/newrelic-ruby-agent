@@ -12,6 +12,7 @@ module NewRelic::Agent
     class DistributedTracerTest < Minitest::Test
 
       def teardown
+        NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
         NewRelic::Agent.drop_buffered_data
       end
 
@@ -22,7 +23,7 @@ module NewRelic::Agent
           :account_id => "190",
           :primary_application_id => "46954",
           :trusted_account_key => "trust_this!"
-        }      
+        }
       end
 
       def build_trace_context_header env={}
@@ -42,7 +43,7 @@ module NewRelic::Agent
             end
           end
           return env
-        ensure 
+        ensure
           NewRelic::Agent::DistributedTracePayload.unstub(:connected?)
         end
       end
@@ -95,7 +96,7 @@ module NewRelic::Agent
           assert_nil txn.distributed_tracer.trace_context_header_data
           assert_nil txn.distributed_tracer.distributed_trace_payload
         end
-      end    
+      end
 
       def test_wrap_message_broker_consume_transaction_reads_cat_headers
         guid                 = "BEC1BC64675138B9"
@@ -167,9 +168,9 @@ module NewRelic::Agent
             destination_type: :exchange,
             destination_name: "Default",
             headers: {
-              "NewRelicID" => obfuscated_id, 
-              "NewRelicTransaction" => obfuscated_txn_info, 
-              "NewRelicSynthetics" => synthetics_header 
+              "NewRelicID" => obfuscated_id,
+              "NewRelicTransaction" => obfuscated_txn_info,
+              "NewRelicSynthetics" => synthetics_header
             }
           ) do
             txn = Tracer.current_transaction
