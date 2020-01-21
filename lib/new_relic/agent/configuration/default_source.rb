@@ -674,15 +674,6 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Number of seconds betwixt connections to the New Relic span event collection services.'
         },
-        :'data_report_periods.analytic_event_data' => {
-          :default => 60,
-          :public => false,
-          :type => Integer,
-          :deprecated => true,
-          :dynamic_name => true,
-          :allowed_from_server => true,
-          :description => 'Number of seconds between connections to the New Relic data collection service for sending transaction event data.'
-        },
         :keep_retrying => {
           :default => true,
           :public => false,
