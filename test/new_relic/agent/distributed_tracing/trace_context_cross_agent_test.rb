@@ -20,7 +20,7 @@ module NewRelic
 
         def teardown
           NewRelic::Agent.drop_buffered_data
-          TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
+          NewRelic::Agent::Transaction::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
         end
 
         load_cross_agent_test("distributed_tracing/trace_context").each do |test_case|
@@ -245,7 +245,7 @@ module NewRelic
         end
 
         def trace_context_headers_to_hash carrier
-          entry_key = TraceContext::AccountHelpers.trace_state_entry_key
+          entry_key = NewRelic::Agent::Transaction::TraceContext::AccountHelpers.trace_state_entry_key
           header_data = TraceContext.parse \
               carrier: carrier,
               trace_state_entry_key: entry_key

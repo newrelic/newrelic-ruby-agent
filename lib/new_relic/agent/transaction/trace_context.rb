@@ -3,14 +3,22 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
-require 'new_relic/agent/distributed_tracing/distributed_trace_intrinsics'
-require 'new_relic/agent/distributed_tracing/distributed_trace_metrics'
-
 module NewRelic
   module Agent
     class Transaction
       module TraceContext
+
+        module AccountHelpers
+          extend self
+
+          def trace_state_entry_key
+            @trace_state_entry_key ||= if Agent.config[:trusted_account_key]
+              "#{Agent.config[:trusted_account_key]}@nr".freeze
+            elsif Agent.config[:account_id]
+              "#{Agent.config[:account_id]}@nr".freeze
+            end
+          end
+        end
 
         EMPTY_STRING                      = ''
         SUPPORTABILITY_PREFIX             = "Supportability/TraceContext"
@@ -45,7 +53,7 @@ module NewRelic
           header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse(
             format: NewRelic::Agent::DistributedTracing::TraceContext::FORMAT_RACK,
             carrier: request,
-            trace_state_entry_key: NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key,
+            trace_state_entry_key: AccountHelpers.trace_state_entry_key,
           )
           return if header_data.nil?
 
@@ -78,7 +86,7 @@ module NewRelic
         end
 
         def create_trace_state
-          entry_key = NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
+          entry_key = AccountHelpers.trace_state_entry_key.dup
           payload = create_trace_state_payload
 
           if payload
@@ -125,7 +133,7 @@ module NewRelic
         end
 
         def accept_trace_context header_data
-          return false if ignore_trace_context?
+          return if ignore_trace_context?
           
           @trace_context_header_data = header_data
           transaction.trace_id = header_data.trace_id

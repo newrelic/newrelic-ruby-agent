@@ -12,7 +12,7 @@ module NewRelic::Agent
     class DistributedTracerTest < Minitest::Test
 
       def teardown
-        NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
+        NewRelic::Agent::Transaction::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
         NewRelic::Agent.drop_buffered_data
       end
 
