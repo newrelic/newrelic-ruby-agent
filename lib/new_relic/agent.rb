@@ -351,10 +351,9 @@ module NewRelic
     # @api public
     #
     def manual_start(options={})
-      record_api_supportability_metric(:manual_start)
-
       raise "Options must be a hash" unless Hash === options
       NewRelic::Control.instance.init_plugin({ :agent_enabled => true, :sync_startup => true }.merge(options))
+      record_api_supportability_metric(:manual_start)
     end
 
     # Register this method as a callback for processes that fork
