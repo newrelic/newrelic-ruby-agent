@@ -4,9 +4,9 @@
 
 require File.expand_path '../../../../test_helper', __FILE__
 
-module NewRelic
-  module Agent
-    class Transaction
+module NewRelic::Agent
+  class Transaction
+    module TraceContext
       class TraceContextTest < Minitest::Test
         def setup
           nr_freeze_time
@@ -19,17 +19,17 @@ module NewRelic
             :primary_application_id => "46954",
             :trusted_account_key => "999999",
             :disable_harvest_thread => true,
-            :trace_context_enabled => true
           }
           NewRelic::Agent.agent.stubs(:connected?).returns(true)
-          NewRelic::Agent.config.add_config_for_testing(@config)
-          uncache_trusted_account_key
+          Agent.config.add_config_for_testing(@config)
         end
 
         def teardown
-          NewRelic::Agent.config.remove_config(@config)
-          NewRelic::Agent.config.reset_to_defaults
+          Agent.config.remove_config(@config)
+          Agent.config.reset_to_defaults
+          AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
           NewRelic::Agent.drop_buffered_data
+          uncache_trusted_account_key
         end
 
         def test_insert_trace_context
@@ -91,7 +91,7 @@ module NewRelic
           assert_equal expected_trace_parent, carrier['traceparent']
 
           # We expect trace state to now have our entry at the front
-          trace_state_entry_key = NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
+          trace_state_entry_key = AccountHelpers.trace_state_entry_key
           expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_payload.to_s},#{other_trace_state.join('.')}"
           assert_equal expected_trace_state, carrier['tracestate']
         end
@@ -117,7 +117,7 @@ module NewRelic
           end
 
           # We expect trace state to now have our entry at the front
-          trace_state_entry_key = NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
+          trace_state_entry_key = AccountHelpers.trace_state_entry_key
           expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_payload},#{other_trace_state.join(',')}"
           assert_equal expected_trace_state, carrier['tracestate']
         end
@@ -150,7 +150,7 @@ module NewRelic
           assert_equal expected_trace_parent, carrier['traceparent']
 
           # We expect trace state to now have replaced our old entry with our new entry
-          trace_state_entry_key = NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
+          trace_state_entry_key = AccountHelpers.trace_state_entry_key
           expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_payload}"
           assert_equal expected_trace_state, carrier['tracestate']
 
@@ -179,7 +179,7 @@ module NewRelic
 
           trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse \
             carrier: carrier,
-            trace_state_entry_key: NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
+            trace_state_entry_key: AccountHelpers.trace_state_entry_key
           child_txn = in_transaction 'new' do |txn|
             txn.distributed_tracer.accept_trace_context trace_context_header_data
           end
@@ -188,34 +188,6 @@ module NewRelic
           assert_equal parent_txn.trace_id, child_txn.trace_id
           assert_equal parent_txn.sampled?, child_txn.sampled?
           assert_equal parent_txn.priority, child_txn.priority
-        end
-
-        def test_do_not_accept_trace_context_if_trace_context_disabled
-          carrier = {}
-          disabled_config = @config.merge({
-            :'distributed_tracing.format' => 'newrelic'
-          })
-          parent_txn = nil
-          child_txn = nil
-
-          parent_txn = in_transaction 'parent' do |txn|
-            txn.sampled = true
-            txn.distributed_tracer.insert_trace_context carrier: carrier
-          end
-
-          with_config(disabled_config) do
-            trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse \
-              carrier: carrier,
-              trace_state_entry_key: "nr"
-
-            child_txn = in_transaction 'child' do |txn|
-              txn.distributed_tracer.accept_trace_context trace_context_header_data
-            end
-          end
-
-          refute_equal parent_txn.guid, child_txn.parent_transaction_id
-          assert_nil child_txn.parent_transaction_id
-          refute_equal parent_txn.trace_id, child_txn.trace_id
         end
 
         def test_do_not_accept_trace_context_with_mismatching_account_ids
@@ -243,7 +215,7 @@ module NewRelic
           with_config(account_two) do
             trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse \
               carrier: carrier,
-              trace_state_entry_key: NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
+              trace_state_entry_key: AccountHelpers.trace_state_entry_key
             txn_two = in_transaction 'child' do |txn|
               txn.distributed_tracer.accept_trace_context trace_context_header_data
             end
@@ -285,7 +257,7 @@ module NewRelic
           with_config(account_two) do
             trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse \
               carrier: carrier,
-              trace_state_entry_key: NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.trace_state_entry_key
+              trace_state_entry_key: AccountHelpers.trace_state_entry_key
             txn_two = in_transaction 'child' do |txn|
               txn.distributed_tracer.accept_trace_context trace_context_header_data
             end
@@ -415,7 +387,7 @@ module NewRelic
         end
 
         def uncache_trusted_account_key
-          NewRelic::Agent::DistributedTracing::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
+          AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
         end
       end
     end

@@ -12,7 +12,11 @@ module NewRelic
         end
 
         def on_before_call(request)
-          return unless NewRelic::Agent.config[:'distributed_tracing.enabled']
+          unless NewRelic::Agent.config[:'distributed_tracing.enabled']
+            NewRelic::Agent.logger.warn "Not configured to accept distributed trace headers" 
+            return
+          end
+
           return unless txn = Tracer.current_transaction
 
           txn.distributed_tracer.accept_incoming_request request

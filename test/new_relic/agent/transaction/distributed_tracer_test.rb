@@ -12,7 +12,90 @@ module NewRelic::Agent
     class DistributedTracerTest < Minitest::Test
 
       def teardown
+        NewRelic::Agent::Transaction::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
         NewRelic::Agent.drop_buffered_data
+      end
+
+      def distributed_tracing_enabled
+        {
+          :'cross_application_tracer.enabled' => false,
+          :'distributed_tracing.enabled'      => true,
+          :account_id => "190",
+          :primary_application_id => "46954",
+          :trusted_account_key => "trust_this!"
+        }
+      end
+
+      def build_trace_context_header env={}
+        env['HTTP_TRACEPARENT'] = '00-12345678901234567890123456789012-1234567890123456-00'
+        env['HTTP_TRACESTATE'] = ''
+        return env
+      end
+
+      def build_distributed_trace_header env={}
+        begin
+          NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+          with_config distributed_tracing_enabled do
+            in_transaction "referring_txn" do |txn|
+              payload = txn.distributed_tracer.create_distributed_trace_payload
+              assert payload, "failed to build a distributed_trace payload!"
+              env['HTTP_NEWRELIC'] = payload.http_safe
+            end
+          end
+          return env
+        ensure
+          NewRelic::Agent::DistributedTracePayload.unstub(:connected?)
+        end
+      end
+
+      def tests_accepts_trace_context_header
+        env = build_trace_context_header
+        refute env['HTTP_NEWRELIC']
+        assert env['HTTP_TRACEPARENT']
+
+        with_config(distributed_tracing_enabled) do
+          in_transaction do |txn|
+            txn.distributed_tracer.accept_incoming_request env
+            assert txn.distributed_tracer.trace_context_header_data, "Expected to accept trace context headers"
+            refute txn.distributed_tracer.distributed_trace_payload, "Did not expect to accept a distributed trace payload"
+          end
+        end
+      end
+
+      def tests_accepts_distributed_trace_header
+        env = build_distributed_trace_header
+        assert env['HTTP_NEWRELIC']
+        refute env['HTTP_TRACEPARENT']
+
+        with_config(distributed_tracing_enabled) do
+          in_transaction do |txn|
+            txn.distributed_tracer.accept_incoming_request env
+            refute txn.distributed_tracer.trace_context_header_data, "Did not expect to accept trace context headers"
+            assert txn.distributed_tracer.distributed_trace_payload, "Expected to accept a distributed trace payload"
+          end
+        end
+      end
+
+      def tests_ignores_distributed_trace_header_when_context_trace_header_present
+        env = build_distributed_trace_header build_trace_context_header
+        assert env['HTTP_NEWRELIC']
+        assert env['HTTP_TRACEPARENT']
+
+        with_config(distributed_tracing_enabled) do
+          in_transaction do |txn|
+            txn.distributed_tracer.accept_incoming_request env
+            assert txn.distributed_tracer.trace_context_header_data, "Expected to accept trace context headers"
+            refute txn.distributed_tracer.distributed_trace_payload, "Did not expect to accept a distributed trace payload"
+          end
+        end
+      end
+
+      def tests_does_not_crash_when_no_distributed_trace_headers_are_present
+        in_transaction do |txn|
+          txn.distributed_tracer.accept_incoming_request({})
+          assert_nil txn.distributed_tracer.trace_context_header_data
+          assert_nil txn.distributed_tracer.distributed_trace_payload
+        end
       end
 
       def test_wrap_message_broker_consume_transaction_reads_cat_headers
@@ -85,9 +168,9 @@ module NewRelic::Agent
             destination_type: :exchange,
             destination_name: "Default",
             headers: {
-              "NewRelicID" => obfuscated_id, 
-              "NewRelicTransaction" => obfuscated_txn_info, 
-              "NewRelicSynthetics" => synthetics_header 
+              "NewRelicID" => obfuscated_id,
+              "NewRelicTransaction" => obfuscated_txn_info,
+              "NewRelicSynthetics" => synthetics_header
             }
           ) do
             txn = Tracer.current_transaction

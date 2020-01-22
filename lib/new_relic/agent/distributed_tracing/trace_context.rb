@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 require_relative 'trace_context_payload'
 
@@ -9,33 +10,42 @@ module NewRelic
     module DistributedTracing
       class TraceContext
         VERSION = 0x0
-        TRACE_PARENT = 'traceparent'.freeze
-        TRACE_STATE  = 'tracestate'.freeze
+        TRACE_PARENT = 'traceparent'
+        TRACE_STATE  = 'tracestate'
 
-        TRACE_PARENT_RACK = 'HTTP_TRACEPARENT'.freeze
-        TRACE_STATE_RACK  = 'HTTP_TRACESTATE'.freeze
+        TRACE_PARENT_RACK = 'HTTP_TRACEPARENT'
+        TRACE_STATE_RACK  = 'HTTP_TRACESTATE'
 
         FORMAT_HTTP = 0
         FORMAT_RACK = 1
 
-        TRACE_PARENT_REGEX = /\A(?<version>[a-f\d]{2})-(?<trace_id>[a-f\d]{32})-(?<parent_id>[a-f\d]{16})-(?<trace_flags>\d{2})(?<undefined_fields>-[a-zA-Z\d-]*)?\z/.freeze
+        COMMA             = ','
+        EMPTY_STRING      = ''
+        EQUALS            = '='
+        INVALID_TRACE_ID  = ('0' * 32)
+        INVALID_PARENT_ID = ('0' * 16)
+        INVALID_VERSION   = 'ff'
 
-        COMMA = ','.freeze
-        EMPTY_STRING = ''.freeze
-        EQUALS = '='.freeze
-        TRACE_ID_KEY = 'trace_id'.freeze
-        PARENT_ID_KEY = 'parent_id'.freeze
-        VERSION_KEY = 'version'.freeze
-        UNDEFINED_FIELDS_KEY = 'undefined_fields'.freeze
-        INVALID_TRACE_ID = ('0' * 32).freeze
-        INVALID_PARENT_ID = ('0' * 16).freeze
-        INVALID_VERSION = 'ff'.freeze
+        TRACE_ID_KEY          = 'trace_id'
+        TRACE_FLAGS_KEY       = 'trace_flags'
+        PARENT_ID_KEY         = 'parent_id'
+        VERSION_KEY           = 'version'
+        UNDEFINED_FIELDS_KEY  = 'undefined_fields'
+
+        TP_VERSION          = "(?<#{VERSION_KEY}>[a-f\\d]{2})"
+        TP_TRACE_ID         = "(?<#{TRACE_ID_KEY}>[a-f\\d]{32})"
+        TP_PARENT_ID        = "(?<#{PARENT_ID_KEY}>[a-f\\d]{16})"
+        TP_TRACE_FLAGS      = "(?<#{TRACE_FLAGS_KEY}>\\d{2})"
+        TP_UNDEFINED_FIELDS = "(?<#{UNDEFINED_FIELDS_KEY}>-[a-zA-Z\\d-]*)"
+        TRACE_PARENT_REGEX  = /\A#{TP_VERSION}-#{TP_TRACE_ID}-#{TP_PARENT_ID}-#{TP_TRACE_FLAGS}#{TP_UNDEFINED_FIELDS}?\z/
+
+        TRACE_PARENT_FORMAT_STRING = "%02x-%s-%s-%02x"
 
         MAX_TRACE_STATE_SIZE = 512 # bytes
         MAX_TRACE_STATE_ENTRY_SIZE = 128 # bytes
 
-        SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION = "Supportability/TraceContext/TraceParent/Parse/Exception".freeze
-        SUPPORTABILITY_TRACE_STATE_PARSE_EXCEPTION  = "Supportability/TraceContext/TraceState/Parse/Exception".freeze
+        SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION = "Supportability/TraceContext/TraceParent/Parse/Exception"
+        SUPPORTABILITY_TRACE_STATE_PARSE_EXCEPTION  = "Supportability/TraceContext/TraceState/Parse/Exception"
 
         class << self
           def insert format: FORMAT_HTTP,
@@ -75,12 +85,10 @@ module NewRelic
           end
 
           def create_trace_state_entry entry_key, payload
-            "#{entry_key}=#{payload}"
+            "#{entry_key}=#{payload}".dup
           end
 
           private
-
-          TRACE_PARENT_FORMAT_STRING = "%02x-%s-%s-%02x".freeze
 
           def format_trace_parent trace_id: nil,
                                   parent_id: nil,
@@ -136,7 +144,7 @@ module NewRelic
 
             payload = nil
             trace_state_size = 0
-            trace_state_vendors = ''
+            trace_state_vendors = ''.dup
             trace_state = header.split(COMMA).map(&:strip)
             trace_state.reject! do |entry|
               vendor_id = entry.slice 0, entry.index(EQUALS)
@@ -212,7 +220,7 @@ module NewRelic
             max_size = MAX_TRACE_STATE_SIZE - trace_state_entry_size
             return @trace_state_entries.join(COMMA).prepend(COMMA) if @trace_state_size < max_size
 
-            joined_trace_state = ''
+            joined_trace_state = ''.dup
 
             used_size = 0
 
@@ -230,17 +238,6 @@ module NewRelic
 
         end
 
-        module AccountHelpers
-          extend self
-
-          def trace_state_entry_key
-            @trace_state_entry_key ||= if Agent.config[:trusted_account_key]
-              "#{Agent.config[:trusted_account_key]}@nr".freeze
-            elsif Agent.config[:account_id]
-              "#{Agent.config[:account_id]}@nr".freeze
-            end
-          end
-        end
       end
     end
   end
