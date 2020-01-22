@@ -619,7 +619,9 @@ module NewRelic
     # apply a reasonable default based on framework routing, but in
     # cases where this is insufficient, this can be used to manually
     # control the name of the transaction.
-    # The category of transaction can be specified via the +:category+ option:
+    #
+    # The category of transaction can be specified via the +:category+ option. 
+    # The following are the only valid categories:
     #
     # * <tt>:category => :controller</tt> indicates that this is a
     #   controller action and will appear with all the other actions.
