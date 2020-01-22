@@ -27,7 +27,7 @@ module NewRelic
         attr_reader :transaction
 
         def accept_incoming_request request
-          if trace_context_header_present? request
+          if trace_parent_header_present? request
             accept_trace_context_incoming_request request
           else
             accept_distributed_tracing_incoming_request request

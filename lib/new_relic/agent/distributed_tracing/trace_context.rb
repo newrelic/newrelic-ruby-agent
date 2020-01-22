@@ -144,7 +144,7 @@ module NewRelic
 
             payload = nil
             trace_state_size = 0
-            trace_state_vendors = String.new
+            trace_state_vendors = ''.dup
             trace_state = header.split(COMMA).map(&:strip)
             trace_state.reject! do |entry|
               vendor_id = entry.slice 0, entry.index(EQUALS)
@@ -220,7 +220,7 @@ module NewRelic
             max_size = MAX_TRACE_STATE_SIZE - trace_state_entry_size
             return @trace_state_entries.join(COMMA).prepend(COMMA) if @trace_state_size < max_size
 
-            joined_trace_state = String.new
+            joined_trace_state = ''.dup
 
             used_size = 0
 

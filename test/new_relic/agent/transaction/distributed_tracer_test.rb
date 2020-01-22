@@ -56,8 +56,8 @@ module NewRelic::Agent
         with_config(distributed_tracing_enabled) do
           in_transaction do |txn|
             txn.distributed_tracer.accept_incoming_request env
-            assert txn.distributed_tracer.trace_context_header_data, "expected a trace context header"
-            refute txn.distributed_tracer.distributed_trace_payload, "refute a distributed_trace payload"
+            assert txn.distributed_tracer.trace_context_header_data, "Expected to accept trace context headers"
+            refute txn.distributed_tracer.distributed_trace_payload, "Did not expect to accept a distributed trace payload"
           end
         end
       end
@@ -70,8 +70,8 @@ module NewRelic::Agent
         with_config(distributed_tracing_enabled) do
           in_transaction do |txn|
             txn.distributed_tracer.accept_incoming_request env
-            refute txn.distributed_tracer.trace_context_header_data, "refute a trace context header"
-            assert txn.distributed_tracer.distributed_trace_payload, "expected a distributed_trace payload"
+            refute txn.distributed_tracer.trace_context_header_data, "Did not expect to accept trace context headers"
+            assert txn.distributed_tracer.distributed_trace_payload, "Expected to accept a distributed trace payload"
           end
         end
       end
@@ -84,8 +84,8 @@ module NewRelic::Agent
         with_config(distributed_tracing_enabled) do
           in_transaction do |txn|
             txn.distributed_tracer.accept_incoming_request env
-            assert txn.distributed_tracer.trace_context_header_data, "expected a trace context header"
-            refute txn.distributed_tracer.distributed_trace_payload, "refute a distributed_trace payload"
+            assert txn.distributed_tracer.trace_context_header_data, "Expected to accept trace context headers"
+            refute txn.distributed_tracer.distributed_trace_payload, "Did not expect to accept a distributed trace payload"
           end
         end
       end

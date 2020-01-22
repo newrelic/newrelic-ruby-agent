@@ -43,13 +43,11 @@ module NewRelic
         attr_accessor :trace_context_header_data
         attr_reader   :trace_state_payload
 
-        def trace_context_header_present? request
+        def trace_parent_header_present? request
           request[TRACEPARENT_HEADER]
         end
 
         def accept_trace_context_incoming_request request
-          return unless trace_context_header_present? request
-
           header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse(
             format: NewRelic::Agent::DistributedTracing::TraceContext::FORMAT_RACK,
             carrier: request,
