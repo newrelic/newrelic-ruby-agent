@@ -20,6 +20,7 @@ module NewRelic
           'Newrelic'
         ].freeze
 
+
         include NewRelic::Agent::CrossAppTracing
         include DistributedTracing
         include TraceContext
@@ -59,8 +60,8 @@ module NewRelic
           end
         end
 
-        def consume_headers headers, tracer_state
-          consume_distributed_tracing_headers headers
+        def consume_message_headers headers, tracer_state, transport_type
+          consume_distributed_tracing_headers headers, transport_type
           consume_cross_app_tracing_headers headers, tracer_state
           consume_synthetics_headers headers
         rescue => e
@@ -80,7 +81,7 @@ module NewRelic
         def consume_synthetics_headers headers
           synthetics_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER]
           if synthetics_header and
-             incoming_payload = ::JSON.load(obfuscator.deobfuscate(synthetics_header)) and
+             incoming_payload = ::JSON.load(deobfuscate(synthetics_header)) and
              SyntheticsMonitor.is_valid_payload?(incoming_payload) and
              SyntheticsMonitor.is_supported_version?(incoming_payload) and
              SyntheticsMonitor.is_trusted?(incoming_payload)
@@ -89,10 +90,10 @@ module NewRelic
             transaction.synthetics_payload = incoming_payload
           end
         rescue => e
-          NewRelic::Agent.logger.error "Error in assign_synthetics_header", e
+          NewRelic::Agent.logger.error "Error in consume_synthetics_header", e
         end
 
-        def consume_distributed_tracing_headers headers
+        def consume_distributed_tracing_headers headers, transport_type
           return unless Agent.config[:'distributed_tracing.enabled']
           return unless newrelic_trace_key = CANDIDATE_HEADERS.detect do |key|
             headers.has_key?(key)
@@ -101,32 +102,35 @@ module NewRelic
           return unless payload = headers[newrelic_trace_key]
 
           if accept_distributed_trace_payload payload
-            distributed_trace_payload.caller_transport_type = RABBITMQ_TRANSPORT_TYPE
+            distributed_trace_payload.caller_transport_type = transport_type
           end
         end
 
         def consume_cross_app_tracing_headers headers, tracer_state
-          if CrossAppTracing.cross_app_enabled? && CrossAppTracing.message_has_crossapp_request_header?(headers)
-            decode_txn_info headers, tracer_state
-            CrossAppTracing.assign_intrinsic_transaction_attributes tracer_state
-          end
+          return unless CrossAppTracing.cross_app_enabled?
+          return unless CrossAppTracing.message_has_crossapp_request_header?(headers)
+
+          accept_cross_app_payload headers, tracer_state
+          CrossAppTracing.assign_intrinsic_transaction_attributes tracer_state
         end
 
-        def decode_txn_info headers, tracer_state
+        def accept_cross_app_payload headers, tracer_state
           encoded_id = headers[CrossAppTracing::NR_MESSAGE_BROKER_ID_HEADER]
-          decoded_id = encoded_id.nil? ? EMPTY_STRING : obfuscator.deobfuscate(encoded_id)
+          decoded_id = encoded_id.nil? ? EMPTY_STRING : deobfuscate(encoded_id)
 
-          if CrossAppTracing.trusted_valid_cross_app_id?(decoded_id) && tracer_state.current_transaction
-            txn_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER]
-            txn        = tracer_state.current_transaction
-            txn_info   = ::JSON.load(CrossAppTracing.obfuscator.deobfuscate(txn_header))
-            payload    = CrossAppPayload.new(decoded_id, txn, txn_info)
+          return unless CrossAppTracing.trusted_valid_cross_app_id?(decoded_id)
+          txn_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER]
+          txn_info   = ::JSON.load(deobfuscate(txn_header))
+          payload    = CrossAppPayload.new(decoded_id, transaction, txn_info)
 
-            txn.distributed_tracer.cross_app_payload = payload
-          end
+          @cross_app_payload = payload
         rescue => e
           NewRelic::Agent.logger.debug("Failure deserializing encoded header in #{self.class}, #{e.class}, #{e.message}")
           nil
+        end
+
+        def deobfuscate message
+          CrossAppTracing.obfuscator.deobfuscate message
         end
 
         def insert_trace_context_headers request

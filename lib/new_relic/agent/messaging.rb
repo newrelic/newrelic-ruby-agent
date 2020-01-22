@@ -1,6 +1,8 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
+
 require 'new_relic/agent/transaction'
 
 module NewRelic
@@ -13,11 +15,12 @@ module NewRelic
     module Messaging
       extend self
 
+      EMPTY_STRING = ''
+      RABBITMQ_TRANSPORT_TYPE = "RabbitMQ"
+
       ATTR_DESTINATION = AttributeFilter::DST_TRANSACTION_EVENTS |
                          AttributeFilter::DST_TRANSACTION_TRACER |
                          AttributeFilter::DST_ERROR_COLLECTOR
-
-      EMPTY_STRING = ''.freeze
 
       # Start a MessageBroker segment configured to trace a messaging action.
       # Finishing this segment will handle timing and recording of the proper
@@ -133,7 +136,7 @@ module NewRelic
           txn = Tracer.start_transaction name: txn_name, category: :message
 
           if headers
-            txn.distributed_tracer.consume_headers headers, state
+            txn.distributed_tracer.consume_message_headers headers, state, RABBITMQ_TRANSPORT_TYPE
             CrossAppTracing.reject_messaging_cat_headers(headers).each do |k, v|
               txn.add_agent_attribute :"message.headers.#{k}", v, AttributeFilter::DST_NONE unless v.nil?
             end
@@ -364,6 +367,7 @@ module NewRelic
 
         transaction_name
       end
+
     end
   end
 end

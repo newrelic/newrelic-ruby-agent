@@ -7,7 +7,8 @@ ruby_options = %{-w -I"#{rake_lib_path}" "#{rake_lib_path}/rake/rake_test_loader
 guard_options = {
   spring: "bundle exec ruby #{ruby_options} ",
   test_folders: ['test/new_relic'] + test_folders, 
-  all_after_pass: false
+  all_after_pass: false,
+  all_on_start: false
 }
 
 guard :minitest, guard_options do
@@ -18,4 +19,5 @@ guard :minitest, guard_options do
   watch('test/test_helper.rb')  { "test/new_relic" }
   watch('test/agent_helper.rb') { "test/new_relic" }
   watch('lib/new_relic/agent/configuration/default_source.rb') { "test/new_relic/agent/configuration/orphan_configuration_test.rb" }
+  watch(%r{^lib/new_relic/agent/transaction/(.+).rb}) { |m| "test/new_relic/agent/distributed_tracing/#{m[1]}_cross_agent_test.rb" }
 end
