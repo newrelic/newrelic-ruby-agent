@@ -21,6 +21,7 @@ module NewRelic::Rack
 
     CONTENT_TYPE        = 'Content-Type'.freeze
     CONTENT_DISPOSITION = 'Content-Disposition'.freeze
+    CONTENT_LENGTH      = 'Content-Length'.freeze
     ATTACHMENT          = 'attachment'.freeze
     TEXT_HTML           = 'text/html'.freeze
 
@@ -35,6 +36,9 @@ module NewRelic::Rack
       js_to_inject = NewRelic::Agent.browser_timing_header
       if (js_to_inject != "") && should_instrument?(env, status, headers)
         response_string = autoinstrument_source(response, headers, js_to_inject)
+        if headers.key?(CONTENT_LENGTH)
+          headers[CONTENT_LENGTH] = response_string.size.to_s
+        end
 
         env[ALREADY_INSTRUMENTED_KEY] = true
         if response_string
