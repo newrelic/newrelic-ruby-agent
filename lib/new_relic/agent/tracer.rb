@@ -120,7 +120,7 @@ module NewRelic
         #   New-Relic-specific prefix
         #
         # @param [Symbol] category +:web+ for web transactions or
-        #   +:background+ for background transactions
+        #   +:task+ for background transactions
         #
         # @param [Hash] options reserved for New Relic internal use
         #
