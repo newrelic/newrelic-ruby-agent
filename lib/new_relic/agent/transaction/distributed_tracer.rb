@@ -28,11 +28,20 @@ module NewRelic
         attr_reader :transaction
 
         def accept_incoming_request request
+          accept_incoming_transport_type request
           if trace_parent_header_present? request
             accept_trace_context_incoming_request request
           else
             accept_distributed_tracing_incoming_request request
           end
+        end
+
+        def caller_transport_type
+          @caller_transport_type ||= "Unknown"
+        end
+
+        def accept_incoming_transport_type request
+          @caller_transport_type = DistributedTraceTransportType.for_rack_request request
         end
 
         def initialize transaction
@@ -51,19 +60,15 @@ module NewRelic
         end
 
         def insert_headers request
-          if trace_context_active?
-            insert_trace_context_headers request
-          elsif nr_distributed_tracing_active?
-            insert_distributed_trace_header request
-          elsif CrossAppTracing.cross_app_enabled?
-            insert_cross_app_header request
-          end
+          insert_trace_context_headers request
+          insert_distributed_trace_header request
+          insert_cross_app_header request
         end
 
         def consume_message_headers headers, tracer_state, transport_type
-          consume_distributed_tracing_headers headers, transport_type
-          consume_cross_app_tracing_headers headers, tracer_state
-          consume_synthetics_headers headers
+          consume_message_distributed_tracing_headers headers, transport_type
+          consume_message_cross_app_tracing_headers headers, tracer_state
+          consume_message_synthetics_headers headers
         rescue => e
           NewRelic::Agent.logger.error "Error in consume_message_headers", e
         end
@@ -78,7 +83,7 @@ module NewRelic
 
         private
 
-        def consume_synthetics_headers headers
+        def consume_message_synthetics_headers headers
           synthetics_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER]
           if synthetics_header and
              incoming_payload = ::JSON.load(deobfuscate(synthetics_header)) and
@@ -90,23 +95,22 @@ module NewRelic
             transaction.synthetics_payload = incoming_payload
           end
         rescue => e
-          NewRelic::Agent.logger.error "Error in consume_synthetics_header", e
+          NewRelic::Agent.logger.error "Error in consume_message_synthetics_header", e
         end
 
-        def consume_distributed_tracing_headers headers, transport_type
+        def consume_message_distributed_tracing_headers headers, transport_type
           return unless Agent.config[:'distributed_tracing.enabled']
           return unless newrelic_trace_key = CANDIDATE_HEADERS.detect do |key|
             headers.has_key?(key)
           end
 
+          accept_incoming_transport_type transport_type
           return unless payload = headers[newrelic_trace_key]
 
-          if accept_distributed_trace_payload payload
-            distributed_trace_payload.caller_transport_type = transport_type
-          end
+          accept_distributed_trace_payload payload
         end
 
-        def consume_cross_app_tracing_headers headers, tracer_state
+        def consume_message_cross_app_tracing_headers headers, tracer_state
           return unless CrossAppTracing.cross_app_enabled?
           return unless CrossAppTracing.message_has_crossapp_request_header?(headers)
 

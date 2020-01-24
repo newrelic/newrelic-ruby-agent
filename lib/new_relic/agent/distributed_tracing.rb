@@ -60,7 +60,7 @@ module NewRelic
       # @api public
       def accept_distributed_trace_payload payload
         if transaction = Transaction.tl_current
-          transaction.accept_distributed_trace_payload(payload)
+          transaction.distributed_tracer.accept_distributed_trace_payload(payload)
         end
         nil
       rescue => e

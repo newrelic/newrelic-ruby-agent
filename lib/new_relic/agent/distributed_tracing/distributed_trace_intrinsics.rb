@@ -43,8 +43,14 @@ module NewRelic
       end
 
       # This method takes all distributed tracing intrinsics from the transaction
-      # and the distributed_trace_payload, and populates them into the destination
-      def copy_from_transaction transaction, distributed_trace_payload, destination
+      # and the trace_payload, and populates them into the destination
+
+      # TODO: with both distributed_tracing and trace_context outgoing,
+      # TODO: we're now coming through this method twice!  REFACTOR!
+      def copy_from_transaction transaction, trace_payload, destination
+        transport_type = transaction.distributed_tracer.caller_transport_type
+        destination[PARENT_TRANSPORT_TYPE_KEY] = DistributedTraceTransportType.from transport_type
+
         destination[GUID_KEY] = transaction.guid
         destination[SAMPLED_KEY] = transaction.sampled?
         destination[TRACE_ID_KEY] = transaction.trace_id
@@ -53,13 +59,12 @@ module NewRelic
           destination[PARENT_SPAN_ID_KEY] = transaction.parent_span_id
         end
 
-        if distributed_trace_payload
-          destination[PARENT_TYPE_KEY] = distributed_trace_payload.parent_type
-          destination[PARENT_APP_KEY] = distributed_trace_payload.parent_app_id
-          destination[PARENT_ACCOUNT_ID_KEY] = distributed_trace_payload.parent_account_id
-          destination[PARENT_TRANSPORT_TYPE_KEY] = DistributedTraceTransportType.from distributed_trace_payload.caller_transport_type
+        if trace_payload
+          destination[PARENT_TYPE_KEY] = trace_payload.parent_type
+          destination[PARENT_APP_KEY] = trace_payload.parent_app_id
+          destination[PARENT_ACCOUNT_ID_KEY] = trace_payload.parent_account_id
 
-          destination[PARENT_TRANSPORT_DURATION_KEY] = transaction.calculate_transport_duration distributed_trace_payload
+          destination[PARENT_TRANSPORT_DURATION_KEY] = transaction.calculate_transport_duration trace_payload
 
           if transaction.parent_transaction_id
             destination[PARENT_TRANSACTION_ID_KEY] = transaction.parent_transaction_id

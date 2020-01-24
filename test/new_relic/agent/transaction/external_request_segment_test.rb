@@ -249,7 +249,8 @@ module NewRelic::Agent
           end
 
           NewRelic::Agent.drop_buffered_data
-
+          transport_type = nil
+          
           in_transaction "test_txn2", :category => :controller do |txn|
             txn.distributed_tracer.accept_distributed_trace_payload payload.text
             segment = Tracer.start_external_request_segment(
@@ -257,6 +258,7 @@ module NewRelic::Agent
               uri: "http://newrelic.com/blogs/index",
               procedure: "GET"
             )
+            transport_type = txn.distributed_tracer.caller_transport_type
             segment.add_request_headers request
             segment.finish
           end
@@ -265,10 +267,10 @@ module NewRelic::Agent
             "External/all",
             "External/newrelic.com/all",
             "External/allWeb",
-            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/all",
-            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/allWeb",
-            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/all",
-            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/allWeb",
+            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/all",
+            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/allWeb",
+            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/all",
+            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/allWeb",
             ["External/newrelic.com/Net::HTTP/GET", "test_txn2"]
           ]
 
@@ -291,6 +293,7 @@ module NewRelic::Agent
           end
 
           NewRelic::Agent.drop_buffered_data
+          transport_type = nil
 
           in_transaction "test_txn2", :category => :controller do |txn|
             txn.distributed_tracer.accept_distributed_trace_payload payload.text
@@ -299,6 +302,7 @@ module NewRelic::Agent
               uri: "http://newrelic.com/blogs/index",
               procedure: "GET"
             )
+            transport_type = txn.distributed_tracer.caller_transport_type
             segment.add_request_headers request
             segment.finish
             NewRelic::Agent.notice_error StandardError.new("Sorry!")
@@ -308,12 +312,12 @@ module NewRelic::Agent
             "External/all",
             "External/newrelic.com/all",
             "External/allWeb",
-            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/all",
-            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/allWeb",
-            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/all",
-            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/allWeb",
-            "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/all",
-            "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/allWeb",
+            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/all",
+            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/allWeb",
+            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/all",
+            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/allWeb",
+            "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/all",
+            "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/allWeb",
             ["External/newrelic.com/Net::HTTP/GET", "test_txn2"]
           ]
 

@@ -121,16 +121,6 @@ module NewRelic
 
       alias_method :sampled?, :sampled
 
-      attr_reader :caller_transport_type
-
-      def caller_transport_type= type
-        @caller_transport_type = DistributedTraceTransportType.from type
-      end
-
-      def initialize
-        @caller_transport_type = DistributedTraceTransportType::UNKNOWN
-      end
-
       # Represent this payload as a raw JSON string.
       #
       # @return [String] Payload translated to JSON

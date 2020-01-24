@@ -13,8 +13,7 @@ module NewRelic
         def setup
           NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
           NewRelic::Agent::Transaction::DistributedTracer.any_instance.stubs(:trace_context_active?).returns(true)
-          agent_event_listener = mock(:subscribe)
-          @request_monitor = DistributedTracing::Monitor.new agent_event_listener
+          @request_monitor = DistributedTracing::Monitor.new(EventListener.new)
           NewRelic::Agent.drop_buffered_data
         end
 
@@ -23,23 +22,37 @@ module NewRelic
           NewRelic::Agent::Transaction::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
         end
 
+        # This method, when returning a non-empty array, will cause the tests defined in the 
+        # JSON file to be skipped if they're not listed here.  Useful for focusing on specific
+        # failing tests.
+        def self.focus_tests
+          []
+        end
+
         load_cross_agent_test("distributed_tracing/trace_context").each do |test_case|
           test_case['test_name'] = test_case['test_name'].tr(" ", "_")
 
-          define_method("test_#{test_case['test_name']}") do
-            NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case["force_sampled_true"])
+          if focus_tests.empty? || focus_tests.include?(test_case['test_name'])
 
-            config = {
-              :'distributed_tracing.enabled' => true,
-              :'distributed_tracing.format'  => 'w3c',
-              :account_id                    => test_case['account_id'],
-              :primary_application_id        => "2827902",
-              :trusted_account_key           => test_case['trusted_account_key'],
-              :'span_events.enabled'         => test_case['span_events_enabled']
-            }
+            define_method("test_#{test_case['test_name']}") do
+              NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case["force_sampled_true"])
 
-            with_server_source(config) do
-              run_test_case(test_case)
+              config = {
+                :'distributed_tracing.enabled' => true,
+                :'distributed_tracing.format'  => 'w3c',
+                :account_id                    => test_case['account_id'],
+                :primary_application_id        => "2827902",
+                :trusted_account_key           => test_case['trusted_account_key'],
+                :'span_events.enabled'         => test_case['span_events_enabled']
+              }
+
+              with_server_source(config) do
+                run_test_case(test_case)
+              end
+            end
+          else
+            define_method("test_#{test_case['test_name']}") do
+              skip("marked pending by exclusion from #only_tests")
             end
           end
         end
@@ -48,7 +61,9 @@ module NewRelic
 
         def run_test_case(test_case)
           outbound_payloads = []
-
+          if test_case['test_name'] =~ /^pending|^skip/ || test_case["pending"] || test_case["skip"]
+            skip("marked pending in trace_context.json")
+          end
           in_transaction(in_transaction_options(test_case)) do |txn|
             accept_headers(test_case, txn)
             raise_exception(test_case)
@@ -64,10 +79,9 @@ module NewRelic
 
         def accept_headers(test_case, txn)
           inbound_headers = headers_for(test_case)
+          inbound_headers << nil if inbound_headers.empty?
           inbound_headers.each do |carrier|
-            DistributedTraceTransportType.stubs(:for_rack_request).returns(test_case['transport_type'])
-
-            @request_monitor.on_before_call rack_format(carrier)
+            @request_monitor.on_before_call rack_format(test_case, carrier)
           end
         end
 
@@ -82,11 +96,14 @@ module NewRelic
           outbound_payloads = []
           if test_case['outbound_payloads']
             payloads = Array(test_case['outbound_payloads'])
-            payloads.count.times do
+            [1, payloads.count].max.times do
               outbound_headers = {}
-              if txn.distributed_tracer.insert_trace_context carrier: outbound_headers
-                outbound_payloads << outbound_headers
-              end
+              # TODO: these two calls are too low-level.  We should 
+              # TODO: process at a higher-level to exercise intended
+              # TODO: real-world scenarios of the agent.
+              txn.distributed_tracer.append_payload outbound_headers
+              txn.distributed_tracer.insert_headers outbound_headers
+              outbound_payloads << outbound_headers
             end
           end
           outbound_payloads
@@ -108,11 +125,7 @@ module NewRelic
         end
 
         def headers_for(test_case)
-          if test_case.has_key?('inbound_headers')
-            (test_case['inbound_headers'] || [nil])
-          else
-            []
-          end
+          Array(test_case['inbound_headers'])
         end
 
         def merge_intrinsics(all_intrinsics)
@@ -252,7 +265,7 @@ module NewRelic
           if header_data.trace_state_payload
             tracestate = object_to_hash header_data.trace_state_payload
             tracestate['tenant_id'] = entry_key.sub '@nr', ''
-            tracestate['parent_type'] = header_data.trace_state_payload.parent_type
+            tracestate['parent_type'] = header_data.trace_state_payload.parent_type_id
             tracestate['parent_application_id'] = header_data.trace_state_payload.parent_app_id
             tracestate['span_id'] = header_data.trace_state_payload.id
           else
@@ -264,11 +277,13 @@ module NewRelic
           }
         end
 
-        def rack_format carrier
-          {
+        def rack_format test_case, carrier
+          rack_headers = test_case.has_key?('transport_type') ? {'rack.url_scheme' => test_case['transport_type'].to_s.downcase} : {}
+          carrier ||= {}
+          rack_headers.merge({
             TraceContext::TRACE_PARENT_RACK => carrier[TraceContext::TRACE_PARENT],
             TraceContext::TRACE_STATE_RACK => carrier[TraceContext::TRACE_STATE]
-          }
+          })
         end
       end
     end

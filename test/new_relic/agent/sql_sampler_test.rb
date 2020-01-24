@@ -494,10 +494,11 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
       sql_trace = last_sql_trace
       trace_payload = txn.distributed_tracer.distributed_trace_payload
+      transport_type = txn.distributed_tracer.caller_transport_type
       assert_equal trace_payload.trace_id,                 sql_trace.params['traceId']
       assert_equal txn.priority,                           sql_trace.params['priority']
       assert_equal sampled,                                sql_trace.params['sampled']
-      assert_equal payload.caller_transport_type,          sql_trace.params['parent.transportType']
+      assert_equal transport_type,                         sql_trace.params['parent.transportType']
       assert_equal 2.0, sql_trace.params['parent.transportDuration'].round
       assert_equal payload.parent_type,                    sql_trace.params['parent.type']
       assert_equal payload.parent_account_id,              sql_trace.params['parent.account']

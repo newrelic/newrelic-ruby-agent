@@ -94,12 +94,6 @@ module NewRelic
         @timestamp = timestamp
       end
 
-      attr_reader :caller_transport_type
-
-      def caller_transport_type= type
-        @caller_transport_type = DistributedTraceTransportType.from type
-      end
-
       def parent_type
         @parent_type_string ||= PARENT_TYPES[@parent_type_id]
       end

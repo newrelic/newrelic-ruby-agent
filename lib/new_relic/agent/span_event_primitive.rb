@@ -15,6 +15,7 @@ module NewRelic
       extend self
 
       # Strings for static keys of the event structure
+      EMPTY_STR            = ''.freeze
       TYPE_KEY             = 'type'.freeze
       TRACE_ID_KEY         = 'traceId'.freeze
       GUID_KEY             = 'guid'.freeze
@@ -121,7 +122,9 @@ module NewRelic
           intrinsics[ENTRY_POINT_KEY] = true
           if txn = segment.transaction
             if header_data = txn.distributed_tracer.trace_context_header_data
-              intrinsics[TRACING_VENDORS_KEY] = header_data.trace_state_vendors
+              if trace_state_vendors = header_data.trace_state_vendors
+                intrinsics[TRACING_VENDORS_KEY] = header_data.trace_state_vendors unless trace_state_vendors == EMPTY_STR
+              end
             end
             if trace_state_payload = txn.distributed_tracer.trace_state_payload
               intrinsics[TRUSTED_PARENT_KEY] = trace_state_payload.id

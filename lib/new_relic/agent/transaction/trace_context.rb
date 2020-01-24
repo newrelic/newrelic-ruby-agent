@@ -35,7 +35,7 @@ module NewRelic
         IGNORE_ACCEPT_AFTER_CREATE_METRIC = "#{ACCEPT_PREFIX}/Ignored/CreateBeforeAccept"
         
         NO_NR_ENTRY_TRACESTATE_METRIC     = "#{TRACESTATE_PREFIX}/NoNrEntry"
-        INVALID_TRACESTATE_PAYLOAD_METRIC = "#{TRACESTATE_PREFIX}/InvalidPayload"
+        INVALID_TRACESTATE_PAYLOAD_METRIC = "#{TRACESTATE_PREFIX}/InvalidNrEntry"
 
         TRACEPARENT_HEADER = 'HTTP_TRACEPARENT'
         W3C_FORMAT = "w3c"
@@ -55,10 +55,7 @@ module NewRelic
           )
           return if header_data.nil?
 
-          if accept_trace_context header_data
-            transport_type = DistributedTraceTransportType.for_rack_request(request)
-            trace_state_payload.caller_transport_type = transport_type
-          end
+          accept_trace_context header_data
         end
         private :accept_trace_context_incoming_request
 
@@ -179,8 +176,7 @@ module NewRelic
         private
 
         def trace_context_enabled?
-          Agent.config[:'distributed_tracing.enabled'] &&
-          (Agent.config[:'distributed_tracing.format'] == W3C_FORMAT)
+          Agent.config[:'distributed_tracing.enabled']
         end
 
         def trace_context_active?

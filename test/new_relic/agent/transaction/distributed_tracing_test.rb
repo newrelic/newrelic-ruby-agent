@@ -360,8 +360,9 @@ module NewRelic
 
           inbound_payload = transaction.distributed_tracer.distributed_trace_payload
 
+          transport_type = transaction.distributed_tracer.caller_transport_type
           assert_equal inbound_payload.parent_type, intrinsics["parent.type"]
-          assert_equal inbound_payload.caller_transport_type, intrinsics["parent.transportType"]
+          assert_equal transport_type, intrinsics["parent.transportType"]
           assert_equal inbound_payload.parent_app_id, intrinsics["parent.app"]
           assert_equal inbound_payload.parent_account_id, intrinsics["parent.account"]
           assert_equal inbound_payload.transaction_id, referring_transaction.guid

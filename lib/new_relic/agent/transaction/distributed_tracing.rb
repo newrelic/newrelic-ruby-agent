@@ -40,9 +40,7 @@ module NewRelic
           return unless Agent.config[:'distributed_tracing.enabled']
           return unless payload = request[NEWRELIC_TRACE_KEY]
 
-          if accept_distributed_trace_payload payload
-            distributed_trace_payload.caller_transport_type = DistributedTraceTransportType.for_rack_request(request)
-          end
+          accept_distributed_trace_payload payload
         end
 
         def distributed_trace_payload_created?

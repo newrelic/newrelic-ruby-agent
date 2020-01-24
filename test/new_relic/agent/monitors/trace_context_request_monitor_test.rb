@@ -74,19 +74,6 @@ module NewRelic
         refute_equal '00000000000000000000000000000000', txn.trace_id
       end
 
-      def test_does_not_accept_trace_context_if_trace_context_disabled
-        with_disabled_defaults_transformer :'distributed_tracing.format' do
-          with_config @config.merge({ :'distributed_tracing.format' => 'somethingelse' }) do
-            _, carrier = build_parent_transaction_headers
-
-            child_txn = in_transaction "receiving_txn" do |txn|
-              @events.notify(:before_call, carrier)
-            end
-            assert_nil child_txn.distributed_tracer.trace_context_header_data
-          end
-        end
-      end
-
       def test_does_not_accept_trace_context_if_not_in_transaction
         _, carrier = build_parent_transaction_headers
         assert_nil @monitor.on_before_call(carrier)

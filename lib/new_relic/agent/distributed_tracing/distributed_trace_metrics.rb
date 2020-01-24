@@ -1,18 +1,19 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
     module DistributedTraceMetrics
       extend self
 
-      ALL_SUFFIX = "all".freeze
-      ALL_WEB_SUFFIX = "allWeb".freeze
-      ALL_OTHER_SUFFIX = "allOther".freeze
+      ALL_SUFFIX = "all"
+      ALL_WEB_SUFFIX = "allWeb"
+      ALL_OTHER_SUFFIX = "allOther"
 
-      DURATION_BY_CALLER_UNKOWN_PREFIX = "DurationByCaller/Unknown/Unknown/Unknown/Unknown".freeze
-      ERRORS_BY_CALLER_UNKOWN_PREFIX = "ErrorsByCaller/Unknown/Unknown/Unknown/Unknown".freeze
+      DURATION_BY_CALLER_UNKOWN_PREFIX = "DurationByCaller/Unknown/Unknown/Unknown/%s"
+      ERRORS_BY_CALLER_UNKOWN_PREFIX = "ErrorsByCaller/Unknown/Unknown/Unknown/%s"
 
       def transaction_type_suffix
         if Transaction.recording_web_transaction?
@@ -34,9 +35,13 @@ module NewRelic
 
       def record_caller_by_duration_metrics transaction, payload
         prefix = if payload
-          "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
+          "DurationByCaller/" \
+          "#{payload.parent_type}/" \
+          "#{payload.parent_account_id}/" \
+          "#{payload.parent_app_id}/" \
+          "#{transaction.distributed_tracer.caller_transport_type}"
         else
-          DURATION_BY_CALLER_UNKOWN_PREFIX
+          DURATION_BY_CALLER_UNKOWN_PREFIX % transaction.distributed_tracer.caller_transport_type
         end
 
         transaction.metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}",              transaction.duration
@@ -46,7 +51,7 @@ module NewRelic
       def record_transport_duration_metrics transaction, payload
         return unless payload
 
-        prefix = "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
+        prefix = "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transaction.distributed_tracer.caller_transport_type}"
         duration = transaction.calculate_transport_duration payload
 
         transaction.metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}",              duration
@@ -57,9 +62,9 @@ module NewRelic
         return unless transaction.exceptions.size > 0
 
         prefix = if payload
-          "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
+          "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transaction.distributed_tracer.caller_transport_type}"
         else
-          ERRORS_BY_CALLER_UNKOWN_PREFIX
+          ERRORS_BY_CALLER_UNKOWN_PREFIX % transaction.distributed_tracer.caller_transport_type
         end
 
         transaction.metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}",              1

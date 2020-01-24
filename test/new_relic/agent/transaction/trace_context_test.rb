@@ -308,7 +308,7 @@ module NewRelic::Agent
             refute txn.distributed_tracer.accept_trace_context(trace_context_header_data), "Expected trace context to be rejected"
           end
 
-          assert_metrics_recorded "Supportability/TraceContext/TraceState/InvalidPayload"
+          assert_metrics_recorded "Supportability/TraceContext/TraceState/InvalidNrEntry"
         end
 
         def test_do_not_accept_trace_context_if_txn_has_already_generated_trace_context
