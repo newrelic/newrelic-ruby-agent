@@ -182,7 +182,7 @@ module NewRelic
         def assign_payload_and_sampling_params(payload)
           @distributed_trace_payload = payload
           transaction.trace_id = payload.trace_id
-          transaction.parent_transaction_id = payload.transaction_id
+          transaction.distributed_tracer.parent_transaction_id = payload.transaction_id
           transaction.parent_span_id = payload.id
 
           unless payload.sampled.nil?

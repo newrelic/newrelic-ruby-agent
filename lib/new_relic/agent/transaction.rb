@@ -58,9 +58,7 @@ module NewRelic
                     :http_response_code,
                     :response_content_length,
                     :response_content_type,
-                    :parent_transaction_id,
                     :parent_span_id
-
 
       attr_reader :guid,
                   :metrics,

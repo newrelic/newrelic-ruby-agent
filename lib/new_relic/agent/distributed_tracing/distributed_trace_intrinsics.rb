@@ -66,8 +66,8 @@ module NewRelic
 
           destination[PARENT_TRANSPORT_DURATION_KEY] = transaction.calculate_transport_duration trace_payload
 
-          if transaction.parent_transaction_id
-            destination[PARENT_TRANSACTION_ID_KEY] = transaction.parent_transaction_id
+          if parent_transaction_id = transaction.distributed_tracer.parent_transaction_id
+            destination[PARENT_TRANSACTION_ID_KEY] = parent_transaction_id
           end
         end
       end

@@ -46,6 +46,7 @@ module NewRelic
 
         SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION = "Supportability/TraceContext/TraceParent/Parse/Exception"
         SUPPORTABILITY_TRACE_STATE_PARSE_EXCEPTION  = "Supportability/TraceContext/TraceState/Parse/Exception"
+        SUPPORTABILITY_TRACE_STATE_INVALID_NR_ENTRY = "Supportability/TraceContext/TraceState/InvalidNrEntry"
 
         class << self
           def insert format: FORMAT_HTTP,
@@ -144,7 +145,7 @@ module NewRelic
 
             payload = nil
             trace_state_size = 0
-            trace_state_vendors = ''.dup
+            trace_state_vendors = String.new
             trace_state = header.split(COMMA).map(&:strip)
             trace_state.reject! do |entry|
               vendor_id = entry.slice 0, entry.index(EQUALS)
@@ -168,6 +169,11 @@ module NewRelic
 
           def decode_payload payload
             TraceContextPayload.from_s payload
+          rescue
+            if payload
+              NewRelic::Agent.increment_metric SUPPORTABILITY_TRACE_STATE_INVALID_NR_ENTRY
+            end
+            return nil
           end
         end
 

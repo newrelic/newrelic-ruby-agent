@@ -22,10 +22,15 @@ module NewRelic
           NewRelic::Agent::Transaction::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
         end
 
+        def verbose_attributes?
+          !TraceContextCrossAgentTest.focus_tests.empty?
+        end
+
         # This method, when returning a non-empty array, will cause the tests defined in the 
         # JSON file to be skipped if they're not listed here.  Useful for focusing on specific
         # failing tests.
         def self.focus_tests
+          # ["w3c_and_newrelc_headers_present_error_parsing_tracestate"]
           []
         end
 
@@ -148,11 +153,7 @@ module NewRelic
           merged
         end
 
-        ALLOWED_EVENT_TYPES = Set.new %w(
-          Transaction
-          TransactionError
-          Span
-        )
+        ALLOWED_EVENT_TYPES = %w{ Transaction TransactionError Span }
 
         def intrinsics_for_event(test_case, event_type)
           unless ALLOWED_EVENT_TYPES.include? event_type
@@ -170,6 +171,12 @@ module NewRelic
         end
 
         def verify_attributes(test_case_attributes, actual_attributes, event_type)
+          if verbose_attributes?
+            puts "", "*" * 80
+            pp actual_attributes
+            puts "*" * 80
+          end
+
           (test_case_attributes['exact'] || []).each do |k, v|
             assert_equal v,
                          actual_attributes[k.to_s],

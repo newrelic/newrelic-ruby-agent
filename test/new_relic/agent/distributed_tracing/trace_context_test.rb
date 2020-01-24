@@ -156,8 +156,10 @@ module NewRelic::Agent::DistributedTracing
       trace_context_header_data = TraceContext.parse format: TraceContext::FORMAT_HTTP,
                                              carrier: carrier,
                                              trace_state_entry_key: "190@nr"
-      refute trace_context_header_data.trace_state_payload
+
+      refute trace_context_header_data.trace_state_payload, "no payload expected"
       assert_equal 'new=entry', trace_context_header_data.trace_state('new=entry')
+      assert_metrics_recorded "Supportability/TraceContext/Parse/Exception"
       assert_metrics_recorded "Supportability/TraceContext/Parse/Exception"
     end
 

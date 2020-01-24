@@ -136,7 +136,7 @@ module NewRelic
 
           return false unless payload = assign_trace_state_payload
 
-          transaction.parent_transaction_id = payload.transaction_id
+          transaction.distributed_tracer.parent_transaction_id = payload.transaction_id
 
           unless payload.sampled.nil?
             transaction.sampled = payload.sampled

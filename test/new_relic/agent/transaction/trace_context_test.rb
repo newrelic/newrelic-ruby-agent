@@ -166,7 +166,7 @@ module NewRelic::Agent
           end
 
           assert_same trace_context_header_data, t.distributed_tracer.trace_context_header_data
-          assert_nil t.parent_transaction_id
+          assert_nil t.distributed_tracer.parent_transaction_id
         end
 
         def test_accept_trace_state_actually_sets_transaction_attributes
@@ -184,7 +184,7 @@ module NewRelic::Agent
             txn.distributed_tracer.accept_trace_context trace_context_header_data
           end
 
-          assert_equal parent_txn.guid, child_txn.parent_transaction_id
+          assert_equal parent_txn.guid, child_txn.distributed_tracer.parent_transaction_id
           assert_equal parent_txn.trace_id, child_txn.trace_id
           assert_equal parent_txn.sampled?, child_txn.sampled?
           assert_equal parent_txn.priority, child_txn.priority
@@ -226,8 +226,8 @@ module NewRelic::Agent
           assert_equal txn_one.trace_id, txn_two.trace_id
 
           # Make sure the parent transaction did not affect the child transaction's attributes
-          refute_equal txn_one.guid, txn_two.parent_transaction_id
-          assert_nil txn_two.parent_transaction_id
+          refute_equal txn_one.guid, txn_two.distributed_tracer.parent_transaction_id
+          assert_nil txn_two.distributed_tracer.parent_transaction_id
           # Make sure the trace_state isn't affected either
           assert_nil txn_two.distributed_tracer.trace_context_header_data.trace_state_payload
         end
@@ -263,8 +263,8 @@ module NewRelic::Agent
             end
           end
 
-          assert_equal txn_one.guid, txn_two.parent_transaction_id
-          assert txn_two.parent_transaction_id
+          assert_equal txn_one.guid, txn_two.distributed_tracer.parent_transaction_id
+          assert txn_two.distributed_tracer.parent_transaction_id
           assert_equal txn_one.trace_id, txn_two.trace_id
         end
 
@@ -364,7 +364,7 @@ module NewRelic::Agent
 
           assert_equal 'a8e67265afe2773a3c611b94306ee5c2', txn.trace_id
           refute_nil txn.distributed_tracer.trace_context_header_data
-          assert_nil txn.parent_transaction_id
+          assert_nil txn.distributed_tracer.parent_transaction_id
           refute_nil txn.guid
           refute_nil txn.sampled?
           refute_nil txn.priority

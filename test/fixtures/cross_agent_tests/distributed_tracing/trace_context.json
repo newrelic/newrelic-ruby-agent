@@ -976,7 +976,6 @@
         "tracestate": "33@nr=-0-33-2827902-b4a146e3237b4df1-e8b91a159289ff74-1-1.23456-1518469636035"
       }
     ],
-    "outbound_payloads": [],
     "intrinsics": {
       "target_events": ["Transaction", "Span"],
       "common":{
@@ -1627,8 +1626,7 @@
       "target_events": ["Transaction", "Span"],
       "common":{
         "exact": {
-          "traceId": "da8bc8cc6d062849b0efcf3c169afb5a",
-          "sampled": true
+          "traceId": "da8bc8cc6d062849b0efcf3c169afb5a"
         },
         "expected": ["guid", "priority"],
         "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.type", "parent.app", "parent.account", "parent.transportDuration", "parentId", "trustedParentId"]

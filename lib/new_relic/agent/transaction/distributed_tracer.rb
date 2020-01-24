@@ -26,6 +26,15 @@ module NewRelic
         include TraceContext
 
         attr_reader :transaction
+        attr_accessor :parent_transaction_id
+
+        def parent_guid
+          if trace_context_header_data
+            trace_context_header_data.parent_id
+          elsif distributed_trace_payload
+            distributed_trace_payload.parent_id
+          end
+        end
 
         def accept_incoming_request request
           accept_incoming_transport_type request

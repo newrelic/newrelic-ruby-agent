@@ -51,6 +51,7 @@ module NewRelic
           payload
         rescue => e
           handle_invalid_payload error: e
+          raise
         end
 
         private
