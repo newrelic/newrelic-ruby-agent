@@ -32,7 +32,7 @@ module NewRelic
           if trace_context_header_data
             trace_context_header_data.parent_id
           elsif distributed_trace_payload
-            distributed_trace_payload.parent_id
+            distributed_trace_payload.id
           end
         end
 

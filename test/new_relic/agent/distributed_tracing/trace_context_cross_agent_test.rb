@@ -26,12 +26,11 @@ module NewRelic
           !TraceContextCrossAgentTest.focus_tests.empty?
         end
 
-        # This method, when returning a non-empty array, will cause the tests defined in the 
+        # This method, when returning a non-empty array, will cause the tests defined in the
         # JSON file to be skipped if they're not listed here.  Useful for focusing on specific
         # failing tests.
         def self.focus_tests
-          # ["w3c_and_newrelc_headers_present_error_parsing_tracestate"]
-          []
+          ["trace_id_is_left_padded_and_priority_rounded"]
         end
 
         load_cross_agent_test("distributed_tracing/trace_context").each do |test_case|
@@ -103,7 +102,7 @@ module NewRelic
             payloads = Array(test_case['outbound_payloads'])
             [1, payloads.count].max.times do
               outbound_headers = {}
-              # TODO: these two calls are too low-level.  We should 
+              # TODO: these two calls are too low-level.  We should
               # TODO: process at a higher-level to exercise intended
               # TODO: real-world scenarios of the agent.
               txn.distributed_tracer.append_payload outbound_headers
@@ -284,6 +283,7 @@ module NewRelic
           }
         end
 
+        # TODO: Fix this to deal with New Relic DT headers as well as W3C
         def rack_format test_case, carrier
           rack_headers = test_case.has_key?('transport_type') ? {'rack.url_scheme' => test_case['transport_type'].to_s.downcase} : {}
           carrier ||= {}
