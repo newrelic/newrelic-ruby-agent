@@ -74,9 +74,9 @@ module NewRelic
       value.to_i
     end
 
-    def float! value
+    def float! value, precision=6
       return nil unless value_or_nil(value)
-      value.to_f
+      value.to_f.round(precision)
     end
 
     def value_or_nil value

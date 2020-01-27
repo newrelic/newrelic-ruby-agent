@@ -97,10 +97,15 @@ module NewRelic
           headers[NEWRELIC_TRACE_KEY] = payload.http_safe if payload
         end
 
+        def insert_cross_app_tracing_header
+          return unless CrossAppTracing.cross_app_enabled?
+          transaction.distributed_tracer.add_message_cat_headers headers
+        end
+
         def transaction_assigned
           if headers && transaction && action == :produce && record_metrics?
             insert_distributed_trace_header
-            transaction.distributed_tracer.add_message_cat_headers headers if CrossAppTracing.cross_app_enabled?
+            insert_cross_app_tracing_header
           end
         rescue => e
           NewRelic::Agent.logger.error "Error during message header processing", e

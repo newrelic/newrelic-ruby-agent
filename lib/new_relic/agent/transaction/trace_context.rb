@@ -67,7 +67,7 @@ module NewRelic
           NewRelic::Agent::DistributedTracing::TraceContext.insert \
             format: format,
             carrier: carrier,
-            trace_id: transaction.trace_id,
+            trace_id: transaction.trace_id.rjust(32, '0'),
             parent_id: transaction.current_segment.guid,
             trace_flags: transaction.sampled? ? 0x1 : 0x0,
             trace_state: create_trace_state

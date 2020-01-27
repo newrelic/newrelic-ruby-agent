@@ -48,10 +48,8 @@ module NewRelic
         end
 
         def create_distributed_trace_payload
-          unless nr_distributed_tracing_enabled?
-            NewRelic::Agent.logger.warn "Not configured to create New Relic distributed trace payload"
-            return
-          end
+          return unless Agent.config[:'distributed_tracing.enabled']
+
           @distributed_trace_payload_created = true
           payload = DistributedTracePayload.for_transaction transaction
           NewRelic::Agent.increment_metric CREATE_SUCCESS_METRIC
@@ -63,10 +61,8 @@ module NewRelic
         end
 
         def accept_distributed_trace_payload payload
-          unless nr_distributed_tracing_enabled?
-            NewRelic::Agent.logger.warn "Not configured to accept New Relic distributed trace payload"
-            return
-          end
+          return unless Agent.config[:'distributed_tracing.enabled']
+
           return false if check_payload_ignored(payload)
           return false unless check_payload_present(payload)
           return false unless payload = decode_payload(payload)
@@ -94,18 +90,6 @@ module NewRelic
         end
 
         private
-
-        NEWRELIC_HEADER   = "newrelic"
-
-        def nr_distributed_tracing_enabled?
-          Agent.config[:'distributed_tracing.enabled'] &&
-          (Agent.config[:'distributed_tracing.format'] == NEWRELIC_HEADER)
-        end
-
-        def nr_distributed_tracing_active?
-          nr_distributed_tracing_enabled? && Agent.instance.connected?
-        end
-
 
         def check_payload_ignored(payload)
           if distributed_trace_payload

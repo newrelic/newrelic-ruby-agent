@@ -151,6 +151,7 @@ module NewRelic
         end
 
         def insert_distributed_trace_header request
+          return unless Agent.config[:'distributed_tracing.enabled']
           payload = create_distributed_trace_payload
           request[NEWRELIC_HEADER] = payload.http_safe if payload
         end

@@ -30,7 +30,7 @@ module NewRelic
         # JSON file to be skipped if they're not listed here.  Useful for focusing on specific
         # failing tests.
         def self.focus_tests
-          ["w3c_and_newrelc_headers_present_error_parsing_tracestate"]
+          []
         end
 
         load_cross_agent_test("distributed_tracing/trace_context").each do |test_case|
