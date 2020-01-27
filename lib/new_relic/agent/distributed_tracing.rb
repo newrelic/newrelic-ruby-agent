@@ -20,6 +20,7 @@ module NewRelic
     #
     # @api public
     module DistributedTracing
+      extend NewRelic::SupportabilityHelper
       extend self
       # Create a payload object containing the current transaction's
       # tracing properties (e.g., duration, priority).  You can use
@@ -33,9 +34,15 @@ module NewRelic
       #
       # @api public
       def create_distributed_trace_payload
-        if transaction = Transaction.tl_current
-          transaction.distributed_tracer.create_distributed_trace_payload
+        record_api_supportability_metric(:create_distributed_trace_payload)
+
+        unless Agent.config[:'distributed_tracing.enabled']
+          NewRelic::Agent.logger.warn "Not configured to create New Relic distributed trace payload"
+          nil
         end
+
+        transaction = Transaction.tl_current
+        transaction.distributed_tracer.create_distributed_trace_payload if transaction
       rescue => e
         NewRelic::Agent.logger.error 'error during create_distributed_trace_payload', e
         nil
@@ -59,9 +66,15 @@ module NewRelic
       #
       # @api public
       def accept_distributed_trace_payload payload
-        if transaction = Transaction.tl_current
-          transaction.distributed_tracer.accept_distributed_trace_payload(payload)
+        record_api_supportability_metric(:accept_distributed_trace_payload)
+        
+        unless Agent.config[:'distributed_tracing.enabled']
+          NewRelic::Agent.logger.warn "Not configured to accept New Relic distributed trace payload"
+          nil
         end
+
+        return unless transaction = Transaction.tl_current
+        transaction.distributed_tracer.accept_distributed_trace_payload(payload)
         nil
       rescue => e
         NewRelic::Agent.logger.error 'error during accept_distributed_trace_payload', e

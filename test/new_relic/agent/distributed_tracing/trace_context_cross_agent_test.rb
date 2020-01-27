@@ -30,7 +30,7 @@ module NewRelic
         # JSON file to be skipped if they're not listed here.  Useful for focusing on specific
         # failing tests.
         def self.focus_tests
-          ["trace_id_is_left_padded_and_priority_rounded"]
+          ["w3c_and_newrelc_headers_present_error_parsing_tracestate"]
         end
 
         load_cross_agent_test("distributed_tracing/trace_context").each do |test_case|
@@ -268,6 +268,9 @@ module NewRelic
           header_data = TraceContext.parse \
               carrier: carrier,
               trace_state_entry_key: entry_key
+
+          return {} unless header_data
+
           if header_data.trace_state_payload
             tracestate = object_to_hash header_data.trace_state_payload
             tracestate['tenant_id'] = entry_key.sub '@nr', ''
@@ -283,14 +286,14 @@ module NewRelic
           }
         end
 
-        # TODO: Fix this to deal with New Relic DT headers as well as W3C
         def rack_format test_case, carrier
-          rack_headers = test_case.has_key?('transport_type') ? {'rack.url_scheme' => test_case['transport_type'].to_s.downcase} : {}
           carrier ||= {}
-          rack_headers.merge({
-            TraceContext::TRACE_PARENT_RACK => carrier[TraceContext::TRACE_PARENT],
-            TraceContext::TRACE_STATE_RACK => carrier[TraceContext::TRACE_STATE]
-          })
+          rack_headers = {}
+          rack_headers["rack.url_scheme"] = test_case['transport_type'].to_s.downcase if test_case['transport_type']
+          rack_headers["HTTP_TRACEPARENT"] = carrier['traceparent'] if carrier['traceparent']
+          rack_headers["HTTP_TRACESTATE"] = carrier['tracestate'] if carrier['tracestate']
+          rack_headers["HTTP_NEWRELIC"] = carrier["newrelic"] if carrier["newrelic"]
+          rack_headers          
         end
       end
     end

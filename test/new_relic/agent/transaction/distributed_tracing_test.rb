@@ -75,6 +75,7 @@ module NewRelic
             created_payload = NewRelic::Agent::DistributedTracing.create_distributed_trace_payload
           end
 
+          assert created_payload, "no distributed trace payload created"
           assert_equal transaction.trace_id, created_payload.trace_id
           assert_equal transaction.trace_id, inbound_payload.trace_id
         end
