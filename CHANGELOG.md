@@ -1,10 +1,19 @@
 # New Relic Ruby Agent Release Notes #
 
-  ## v6.8.1
+  ## v6.9.0
 
   * **Official Ruby 2.7 support**
 
     The Ruby agent has been verified to run with Ruby 2.7.0.
+
+  * **Bugfix for Content-Length when injecting Browser Monitoring JS**
+    
+    The Content-Length HTTP header would be incorrect after injecting the Browser Monitoring
+    JS into the HEAD tag of the HTML source with Content-Length and lead to the HTML BODY content
+    being truncated in some cases.  The Content-Length is now correctly updated after injecting the 
+    Browser Monitoring JS script.
+
+    Thanks to Slava Kardakov (ojab) for the contribution!
 
   ## v6.8.0
 
