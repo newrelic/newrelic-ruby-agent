@@ -322,7 +322,6 @@
           "parent.app",
           "parent.account",
           "parent.transportDuration",
-          "parent.transportType",
           "parentId"]
       }
     },
@@ -1160,7 +1159,7 @@
       "target_events": ["Transaction"],
       "common":{
         "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId"]
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.transportDuration", "parent.type", "parent.app", "parent.account", "parentId"]
       }
     },
     "expected_metrics": [
@@ -1580,7 +1579,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_sampled_true": true,
     "span_events_enabled": true,
     "transport_type": "HTTP",
     "inbound_headers": [
@@ -1594,7 +1593,7 @@
       "target_events": ["Transaction", "Span"],
       "common":{
         "expected": ["guid", "traceId", "priority", "sampled"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.type", "parent.app", "parent.account", "parent.transportType", "parentId", "parentSpanId", "parent.transportDuration", "tracingVendors"]
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.type", "parent.app", "parent.account", "parentId", "parentSpanId", "parent.transportDuration", "tracingVendors"]
       },
       "Span": {
         "expected": ["transactionId"]
@@ -1612,7 +1611,7 @@
     "account_id": "33",
     "web_transaction": true,
     "raises_exception": false,
-    "force_sampled_true": false,
+    "force_sampled_true": true,
     "span_events_enabled": true,
     "transport_type": "HTTP",
     "inbound_headers": [
@@ -1626,16 +1625,18 @@
       "target_events": ["Transaction", "Span"],
       "common":{
         "exact": {
-          "traceId": "da8bc8cc6d062849b0efcf3c169afb5a"
+          "traceId": "da8bc8cc6d062849b0efcf3c169afb5a",
+          "sampled": true
         },
         "expected": ["guid", "priority"],
-        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.type", "parent.app", "parent.account", "parent.transportDuration", "parentId", "trustedParentId"]
+        "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes", "parent.type", "parent.app", "parent.account", "parent.transportDuration", "trustedParentId"]
       },
       "Transaction": {
         "exact": {
           "parent.transportType": "HTTP",
           "parentSpanId": "7d3efb1b173fecfa"
-        }
+        },
+          "unexpected": ["parentId"]
       },
       "Span": {
         "exact": {
