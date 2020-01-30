@@ -11,7 +11,8 @@ module NewRelic
     module DistributedTracing
       class TraceContextCrossAgentTest < Minitest::Test
         def setup
-          NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
+          # NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
+          NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
           NewRelic::Agent::Transaction::DistributedTracer.any_instance.stubs(:trace_context_active?).returns(true)
           @request_monitor = DistributedTracing::Monitor.new(EventListener.new)
           NewRelic::Agent.drop_buffered_data
@@ -43,7 +44,6 @@ module NewRelic
 
               config = {
                 :'distributed_tracing.enabled' => true,
-                :'distributed_tracing.format'  => 'w3c',
                 :account_id                    => test_case['account_id'],
                 :primary_application_id        => "2827902",
                 :trusted_account_key           => test_case['trusted_account_key'],
@@ -56,7 +56,7 @@ module NewRelic
             end
           else
             define_method("test_#{test_case['test_name']}") do
-              skip("marked pending by exclusion from #only_tests")
+              skip("marked pending by exclusion from #focus_tests")
             end
           end
         end
@@ -65,6 +65,7 @@ module NewRelic
 
         def run_test_case(test_case)
           outbound_payloads = []
+          outbound_newrelic_payloads = []
           if test_case['test_name'] =~ /^pending|^skip/ || test_case["pending"] || test_case["skip"]
             skip("marked pending in trace_context.json")
           end
@@ -72,6 +73,7 @@ module NewRelic
             accept_headers(test_case, txn)
             raise_exception(test_case)
             outbound_payloads = create_payloads(test_case, txn)
+            outbound_newrelic_payloads = create_newrelic_payloads(test_case, txn)
           end
 
           verify_metrics(test_case)
@@ -79,6 +81,7 @@ module NewRelic
           verify_error_intrinsics(test_case)
           verify_span_intrinsics(test_case)
           verify_outbound_payloads(test_case, outbound_payloads)
+          verify_outbound_newrelic_payloads(test_case, outbound_newrelic_payloads)
         end
 
         def accept_headers(test_case, txn)
@@ -96,20 +99,32 @@ module NewRelic
           end
         end
 
-        def create_payloads(test_case, txn)
+        def create_newrelic_payloads(test_case, txn)
           outbound_payloads = []
-          if test_case['outbound_payloads']
-            payloads = Array(test_case['outbound_payloads'])
-            [1, payloads.count].max.times do
-              outbound_headers = {}
-              # TODO: these two calls are too low-level.  We should
-              # TODO: process at a higher-level to exercise intended
-              # TODO: real-world scenarios of the agent.
-              txn.distributed_tracer.append_payload outbound_headers
-              txn.distributed_tracer.insert_headers outbound_headers
-              outbound_payloads << outbound_headers
+          if test_case['outbound_newrelic_payloads']
+            payloads = Array(test_case['outbound_newrelic_payloads'])
+            payloads.count.times do
+              payload = txn.distributed_tracer.create_distributed_trace_payload
+              outbound_payloads << payload if payload
             end
           end
+          outbound_payloads
+        end
+
+        def create_payloads(test_case, txn)
+          outbound_payloads = []
+          payloads = Array(test_case['outbound_payloads'])
+
+          [1, payloads.count].max.times do
+            outbound_headers = {}
+            # TODO: these two calls are too low-level.  We should
+            # TODO: process at a higher-level to exercise intended
+            # TODO: real-world scenarios of the agent.
+            txn.distributed_tracer.append_payload outbound_headers
+            txn.distributed_tracer.insert_headers outbound_headers
+            outbound_payloads << outbound_headers
+          end
+
           outbound_payloads
         end
 
@@ -172,6 +187,7 @@ module NewRelic
         def verify_attributes(test_case_attributes, actual_attributes, event_type)
           if verbose_attributes?
             puts "", "*" * 80
+            puts event_type
             pp actual_attributes
             puts "*" * 80
           end
@@ -225,9 +241,10 @@ module NewRelic
           test_case_intrinsics = intrinsics_for_event(test_case, 'Span')
           return if test_case_intrinsics.empty?
 
-          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          harvested_events = NewRelic::Agent.agent.span_event_aggregator.harvest!
+          last_span_events = harvested_events[1]
+          refute_empty last_span_events, "no span events harvested!"
 
-          refute_empty last_span_events
           actual_intrinsics = last_span_events[0][0]
 
           verify_attributes test_case_intrinsics, actual_intrinsics, 'Span'
@@ -242,9 +259,21 @@ module NewRelic
             dotted_context_hash = NewRelic::Agent::Configuration::DottedHash.new context_hash
             stringified_hash = stringify_keys_in_object dotted_context_hash
 
-            verify_attributes test_case_data, stringified_hash, 'Payload'
+            verify_attributes test_case_data, stringified_hash, 'TraceContext Payload'
           end
         end
+
+      def verify_outbound_newrelic_payloads(test_case, actual_payloads)
+        return unless (test_case_payloads = test_case['outbound_newrelic_payloads'])
+        assert_equal test_case_payloads.count, actual_payloads.count
+
+        test_case_payloads.zip(actual_payloads).each do |test_case_data, actual|
+          actual = stringify_keys_in_object(
+            NewRelic::Agent::Configuration::DottedHash.new(
+              JSON.parse(actual.text)))
+          verify_attributes test_case_data, actual, 'DistributedTracing Payload'
+        end
+      end
 
         def verify_metrics(test_case)
           expected_metrics = test_case['expected_metrics'].inject({}) do |memo, (metric_name, call_count)|

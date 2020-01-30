@@ -159,7 +159,7 @@ module NewRelic
               end
             end
 
-            trace_state_vendors.chomp! COMMA unless trace_state_vendors.empty?
+            trace_state_vendors.chomp! COMMA
 
             HeaderData.create trace_state_payload: payload ? decode_payload(payload) : nil,
                         trace_state_entries: trace_state,

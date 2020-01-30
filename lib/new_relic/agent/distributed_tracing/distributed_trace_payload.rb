@@ -1,9 +1,10 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
+
 require 'json'
 require 'base64'
-require 'set'
 
 module NewRelic
   module Agent
@@ -14,23 +15,25 @@ module NewRelic
     #
     # @api public
     class DistributedTracePayload
-      VERSION =[0, 1].freeze
-      PARENT_TYPE = "App".freeze
-      POUND = '#'.freeze
+      extend Coerce 
+
+      VERSION     = [0, 1].freeze
+      PARENT_TYPE = "App"
+      POUND       = '#'
 
       # Key names for serialization
-      VERSION_KEY                = 'v'.freeze
-      DATA_KEY                   = 'd'.freeze
-      PARENT_TYPE_KEY            = 'ty'.freeze
-      PARENT_ACCOUNT_ID_KEY      = 'ac'.freeze
-      PARENT_APP_KEY             = 'ap'.freeze
-      TRUSTED_ACCOUNT_KEY        = 'tk'.freeze
-      ID_KEY                     = 'id'.freeze
-      TX_KEY                     = 'tx'.freeze
-      TRACE_ID_KEY               = 'tr'.freeze
-      SAMPLED_KEY                = 'sa'.freeze
-      TIMESTAMP_KEY              = 'ti'.freeze
-      PRIORITY_KEY               = 'pr'.freeze
+      VERSION_KEY           = 'v'
+      DATA_KEY              = 'd'
+      PARENT_TYPE_KEY       = 'ty'
+      PARENT_ACCOUNT_ID_KEY = 'ac'
+      PARENT_APP_KEY        = 'ap'
+      TRUSTED_ACCOUNT_KEY   = 'tk'
+      ID_KEY                = 'id'
+      TX_KEY                = 'tx'
+      TRACE_ID_KEY          = 'tr'
+      SAMPLED_KEY           = 'sa'
+      TIMESTAMP_KEY         = 'ti'
+      PRIORITY_KEY          = 'pr'
 
       class << self
 
@@ -71,7 +74,7 @@ module NewRelic
           payload.transaction_id      = payload_data[TX_KEY]
           payload.trace_id            = payload_data[TRACE_ID_KEY]
           payload.sampled             = payload_data[SAMPLED_KEY]
-          payload.priority            = payload_data[PRIORITY_KEY]
+          payload.priority            = float! payload_data[PRIORITY_KEY]
 
           payload
         end

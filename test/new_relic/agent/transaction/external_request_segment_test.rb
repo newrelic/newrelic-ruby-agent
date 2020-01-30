@@ -665,7 +665,6 @@ module NewRelic::Agent
       def test_segment_adds_distributed_trace_header
         distributed_tracing_config = {
           :'distributed_tracing.enabled'      => true,
-          :'distributed_tracing.format'       => 'newrelic',
           :'cross_application_tracer.enabled' => false,
           :account_id                         => "190",
           :primary_application_id             => "46954"
@@ -806,7 +805,6 @@ module NewRelic::Agent
       def distributed_tracing_config
         {
           :'distributed_tracing.enabled'      => true,
-          :'distributed_tracing.format'       => 'newrelic',
           :'cross_application_tracer.enabled' => false,
           :'span_events.enabled'              => true,
         }
@@ -814,8 +812,7 @@ module NewRelic::Agent
 
       def trace_context_config
         {
-          :'distributed_tracing.enabled' => true,
-          :'distributed_tracing.format' => 'w3c',
+          :'distributed_tracing.enabled'      => true,
           :'cross_application_tracer.enabled' => false,
           :account_id                         => "190",
           :primary_application_id             => "46954",

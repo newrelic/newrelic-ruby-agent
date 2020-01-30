@@ -7,6 +7,7 @@ module NewRelic
   module Agent
     class Transaction
       module TraceContext
+        include NewRelic::Coerce
 
         module AccountHelpers
           extend self
@@ -64,14 +65,17 @@ module NewRelic
             carrier: nil
 
           return unless trace_context_active?
+          
           NewRelic::Agent::DistributedTracing::TraceContext.insert \
             format: format,
             carrier: carrier,
-            trace_id: transaction.trace_id.rjust(32, '0'),
+            trace_id: transaction.trace_id.rjust(32, '0').downcase,
             parent_id: transaction.current_segment.guid,
             trace_flags: transaction.sampled? ? 0x1 : 0x0,
             trace_state: create_trace_state
+          
           @trace_context_inserted = true
+          
           NewRelic::Agent.increment_metric CREATE_SUCCESS_METRIC
           true
         rescue Exception => e
@@ -107,7 +111,7 @@ module NewRelic
               parent_app_id: Agent.config[:primary_application_id],
               transaction_id: transaction.guid,
               sampled: transaction.sampled?,
-              priority: transaction.priority,
+              priority: float!(transaction.priority, NewRelic::PRIORITY_PRECISION),
               id: transaction.current_segment.guid
           elsif trace_context_header_data
             trace_context_header_data.trace_state_payload
@@ -129,7 +133,7 @@ module NewRelic
 
         def accept_trace_context header_data
           return if ignore_trace_context?
-          
+
           @trace_context_header_data = header_data
           transaction.trace_id = header_data.trace_id
           transaction.parent_span_id = header_data.parent_id

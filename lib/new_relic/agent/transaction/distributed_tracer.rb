@@ -11,16 +11,6 @@ module NewRelic
   module Agent
     class Transaction
       class DistributedTracer
-        W3C_FORMAT        = "w3c" # TODO: REMOVE?
-        NEWRELIC_HEADER   = "newrelic"
-        CANDIDATE_HEADERS = [
-          NEWRELIC_HEADER,
-          'NEWRELIC',
-          'NewRelic',
-          'Newrelic'
-        ].freeze
-
-
         include NewRelic::Agent::CrossAppTracing
         include DistributedTracing
         include TraceContext
@@ -109,12 +99,13 @@ module NewRelic
 
         def consume_message_distributed_tracing_headers headers, transport_type
           return unless Agent.config[:'distributed_tracing.enabled']
-          return unless newrelic_trace_key = CANDIDATE_HEADERS.detect do |key|
+          
+          accept_incoming_transport_type transport_type
+          
+          newrelic_trace_key = NewRelic::CANDIDATE_NEWRELIC_KEYS.detect do |key|
             headers.has_key?(key)
           end
-
-          accept_incoming_transport_type transport_type
-          return unless payload = headers[newrelic_trace_key]
+          return unless newrelic_trace_key && (payload = headers[newrelic_trace_key])
 
           accept_distributed_trace_payload payload
         end
@@ -153,7 +144,7 @@ module NewRelic
         def insert_distributed_trace_header request
           return unless Agent.config[:'distributed_tracing.enabled']
           payload = create_distributed_trace_payload
-          request[NEWRELIC_HEADER] = payload.http_safe if payload
+          request[NewRelic::NEWRELIC_KEY] = payload.http_safe if payload
         end
 
       end

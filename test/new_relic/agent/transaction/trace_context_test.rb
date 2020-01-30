@@ -13,7 +13,6 @@ module NewRelic::Agent
 
           @config = {
             :'distributed_tracing.enabled' => true,
-            :'distributed_tracing.format' => 'w3c',
             :'span_events.enabled' => true,
             :account_id => "190",
             :primary_application_id => "46954",
@@ -66,7 +65,7 @@ module NewRelic::Agent
           trace_id = nil
 
           in_transaction do |parent|
-            parent.sampled = true
+            parent.sampled = false
             payload = parent.distributed_tracer.create_trace_state_payload
             trace_parent = make_trace_parent({'trace_id' => parent.trace_id, 'parent_id' => parent.guid})
             parent_trace_context_header_data = make_trace_context_header_data \
@@ -81,13 +80,14 @@ module NewRelic::Agent
           parent_id = nil
 
           in_transaction do |child|
+            child.sampled = false
             child.distributed_tracer.accept_trace_context parent_trace_context_header_data
             child.distributed_tracer.insert_trace_context carrier: carrier
             child_trace_state_payload = child.distributed_tracer.create_trace_state_payload
             parent_id = child.current_segment.guid
           end
 
-          expected_trace_parent = "00-#{trace_id}-#{parent_id}-01"
+          expected_trace_parent = "00-#{trace_id}-#{parent_id}-00"
           assert_equal expected_trace_parent, carrier['traceparent']
 
           # We expect trace state to now have our entry at the front
@@ -140,6 +140,7 @@ module NewRelic::Agent
           parent_id = nil
 
           in_transaction do |child|
+            child.sampled = true
             child.distributed_tracer.accept_trace_context parent_trace_context_header_data
             child.distributed_tracer.insert_trace_context carrier: carrier
             child_trace_state_payload = child.distributed_tracer.create_trace_state_payload
@@ -181,6 +182,7 @@ module NewRelic::Agent
             carrier: carrier,
             trace_state_entry_key: AccountHelpers.trace_state_entry_key
           child_txn = in_transaction 'new' do |txn|
+            txn.sampled = true
             txn.distributed_tracer.accept_trace_context trace_context_header_data
           end
 

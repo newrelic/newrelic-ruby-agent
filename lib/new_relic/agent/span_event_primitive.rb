@@ -123,7 +123,7 @@ module NewRelic
           if txn = segment.transaction
             if header_data = txn.distributed_tracer.trace_context_header_data
               if trace_state_vendors = header_data.trace_state_vendors
-                intrinsics[TRACING_VENDORS_KEY] = header_data.trace_state_vendors unless trace_state_vendors == EMPTY_STR
+                intrinsics[TRACING_VENDORS_KEY] = trace_state_vendors unless trace_state_vendors == EMPTY_STR
               end
             end
             if trace_state_payload = txn.distributed_tracer.trace_state_payload

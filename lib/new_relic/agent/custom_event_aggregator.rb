@@ -32,7 +32,7 @@ module NewRelic
           return false
         end
 
-        priority = attributes[:priority] || rand
+        priority = float!(attributes[:priority] || rand, NewRelic::PRIORITY_PRECISION)
 
         stored = @lock.synchronize do
           @buffer.append(priority: priority) do
