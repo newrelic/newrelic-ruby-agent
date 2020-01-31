@@ -125,7 +125,7 @@ module NewRelic
         def consume_message_distributed_tracing_headers headers, transport_type
           return unless Agent.config[:'distributed_tracing.enabled']
           
-          accept_incoming_transport_type transport_type
+          accept_incoming_transport_type headers, transport_type
           
           newrelic_trace_key = NewRelic::CANDIDATE_NEWRELIC_KEYS.detect do |key|
             headers.has_key?(key)
