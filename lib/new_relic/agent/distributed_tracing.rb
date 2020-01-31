@@ -39,7 +39,6 @@ module NewRelic
       #
       def create_distributed_trace_payload
         Deprecator.deprecate :create_distributed_trace_payload, :create_distributed_trace_headers
-        record_api_supportability_metric(:create_distributed_trace_payload)
 
         unless Agent.config[:'distributed_tracing.enabled']
           NewRelic::Agent.logger.warn "Not configured to create New Relic distributed trace payload"
@@ -75,7 +74,6 @@ module NewRelic
       #
       def accept_distributed_trace_payload payload
         Deprecator.deprecate :accept_distributed_trace_payload, :accept_distributed_trace_headers
-        record_api_supportability_metric(:accept_distributed_trace_payload)
         
         unless Agent.config[:'distributed_tracing.enabled']
           NewRelic::Agent.logger.warn "Not configured to accept New Relic distributed trace payload"
@@ -101,19 +99,15 @@ module NewRelic
       # New Relic distributed tracing header by default. New Relic headers may be suppressed by 
       # setting +exclude_new_relic_header+ to +true+ in your configuration file.
       #
-      # @param transport_Type  [String]     May be one of:  +HTTP+, +HTTPS+, +Kafka+, +JMS+,
-      #                                     +IronMQ+, +AMQP+, +Queue+, +Other+.  Values are 
-      #                                     case sensitive.  All other values result in +Unknown+
-      #
       # @param headers           [Hash]     Is a Hash containing the distributed trace headers and 
       #                                     values.
       #
-      # @return           [Transaction]     The transaction the headers were applied to, 
+      # @return           {Transaction}     The transaction the headers were inserted from, 
       #                                     or +nil+ if headers were not inserted.
       #
       # @api public
       #
-      def insert_distributed_trace_headers transport_type="HTTP", headers={}
+      def insert_distributed_trace_headers headers={}
         record_api_supportability_metric(:insert_distributed_trace_headers)
 
         unless Agent.config[:'distributed_tracing.enabled']
@@ -121,15 +115,16 @@ module NewRelic
           return nil
         end
 
-        if transaction = Transaction.tl_current
-          transaction.distributed_tracer.insert_headers headers
-          transaction
-        end
+        return unless valid_api_argument_class? headers, "headers", Hash
+
+        return unless transaction = Transaction.tl_current
+
+        transaction.distributed_tracer.insert_headers headers
+        transaction
       rescue => e
         NewRelic::Agent.logger.error 'error during insert_distributed_trace_headers', e
         nil
       end
-
 
       # Accepts distributed tracing information from protocols the agent does 
       # not already support by accepting distributed trace headers from another transaction.
@@ -143,25 +138,33 @@ module NewRelic
       # This method accepts both W3C trace context and New Relic distributed tracing headers.  
       # When both are present, only the W3C headers are utilized.
       #
-      # @param headers [Hash] Incoming distributed trace payload,
-      #                         either as a JSON string or as a
-      #                         header-friendly string returned from
-      #                         {DistributedTracePayload#http_safe}
+      # @param headers         [Hash]     Incoming distributed trace payload,
+      #                                   either as a JSON string or as a
+      #                                   header-friendly string returned from
+      #                                   {DistributedTracePayload#http_safe}
+      #
+      # @param transport_Type  [String]   May be one of:  +HTTP+, +HTTPS+, +Kafka+, +JMS+,
+      #                                   +IronMQ+, +AMQP+, +Queue+, +Other+.  Values are 
+      #                                   case sensitive.  All other values result in +Unknown+
       #
       # @return {Transaction} if successful, +nil+ otherwise
       #
       # @api public
       #
-      def accept_distributed_trace_headers headers
+      def accept_distributed_trace_headers headers, transport_type="HTTP"
         record_api_supportability_metric(:accept_distributed_trace_headers)
-        
+
         unless Agent.config[:'distributed_tracing.enabled']
           NewRelic::Agent.logger.warn "Not configured to accept distributed trace headers"
           return nil
         end
 
+        return unless valid_api_argument_class? headers, "headers", Hash
+        return unless valid_api_argument_class? transport_type, "transport_type", String
+
         return unless transaction = Transaction.tl_current
-        transaction.distributed_tracer.accept_distributed_trace_payload headers
+
+        transaction.distributed_tracer.accept_incoming_request headers, transport_type
         transaction
       rescue => e
         NewRelic::Agent.logger.error 'error during accept_distributed_trace_headers', e

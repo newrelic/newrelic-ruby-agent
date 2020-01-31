@@ -46,8 +46,8 @@ module NewRelic::Agent
       def test_accept_distributed_trace_headers_api
         carrier = {}
         transaction = in_transaction "test_txn" do |txn|
-          txn.distributed_tracer.expects(:accept_distributed_trace_payload)
-          DistributedTracing.accept_distributed_trace_headers carrier
+          txn.distributed_tracer.expects(:accept_incoming_request)
+          DistributedTracing.accept_distributed_trace_headers carrier, "HTTP"
         end
       end
 
@@ -55,7 +55,7 @@ module NewRelic::Agent
         carrier = {}
         transaction = in_transaction "test_txn" do |txn|
           txn.distributed_tracer.expects(:insert_headers)
-          DistributedTracing.insert_distributed_trace_headers "HTTP", carrier
+          DistributedTracing.insert_distributed_trace_headers carrier
         end
       end
 

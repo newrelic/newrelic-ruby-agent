@@ -26,8 +26,8 @@ module NewRelic
           end
         end
 
-        def accept_incoming_request request
-          accept_incoming_transport_type request
+        def accept_incoming_request request, transport_type=nil
+          accept_incoming_transport_type request, transport_type
           if trace_parent_header_present? request
             accept_trace_context_incoming_request request
           else
@@ -39,8 +39,16 @@ module NewRelic
           @caller_transport_type ||= "Unknown"
         end
 
-        def accept_incoming_transport_type request
-          @caller_transport_type = DistributedTraceTransportType.for_rack_request request
+        def accept_transport_type_from_api value
+          @caller_transport_type = DistributedTraceTransportType.from value
+        end
+
+        def accept_incoming_transport_type request, transport_type
+          if transport_type.to_s == ""
+            @caller_transport_type = DistributedTraceTransportType.for_rack_request request
+          else
+            @caller_transport_type = DistributedTraceTransportType.from transport_type
+          end
         end
 
         def initialize transaction

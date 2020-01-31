@@ -88,7 +88,9 @@ module NewRelic
           inbound_headers = headers_for(test_case)
           inbound_headers << nil if inbound_headers.empty?
           inbound_headers.each do |carrier|
-            @request_monitor.on_before_call rack_format(test_case, carrier)
+            DistributedTracing.accept_distributed_trace_headers \
+              rack_format(test_case, carrier), 
+              test_case['transport_type']
           end
         end
 
@@ -323,7 +325,6 @@ module NewRelic
         def rack_format test_case, carrier
           carrier ||= {}
           rack_headers = {}
-          rack_headers["rack.url_scheme"] = test_case['transport_type'].to_s.downcase if test_case['transport_type']
           rack_headers["HTTP_TRACEPARENT"] = carrier['traceparent'] if carrier['traceparent']
           rack_headers["HTTP_TRACESTATE"] = carrier['tracestate'] if carrier['tracestate']
           rack_headers["HTTP_NEWRELIC"] = carrier["newrelic"] if carrier["newrelic"]
