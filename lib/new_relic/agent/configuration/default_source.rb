@@ -1913,6 +1913,13 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => true,
           :description => 'Defines the maximum number of span events reported from a single harvest.'
+        },
+        :'exclude_newrelic_header' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => "Allows newrelic distributed tracing headers to be suppressed on outbound requests."
         }
       }.freeze
     end

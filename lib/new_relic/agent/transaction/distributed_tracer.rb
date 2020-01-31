@@ -80,6 +80,23 @@ module NewRelic
           end
         end
 
+        def insert_distributed_trace_header request
+          return unless Agent.config[:'distributed_tracing.enabled']
+          return if Agent.config[:'exclude_newrelic_header']
+          payload = create_distributed_trace_payload
+          request[NewRelic::NEWRELIC_KEY] = payload.http_safe if payload
+        end
+
+        def insert_cat_headers headers
+          return unless CrossAppTracing.cross_app_enabled?
+          @is_cross_app_caller = true
+          insert_message_headers headers, 
+            transaction.guid, 
+            cat_trip_id, 
+            cat_path_hash, 
+            transaction.raw_synthetics_header
+        end
+
         private
 
         def consume_message_synthetics_headers headers
@@ -139,12 +156,6 @@ module NewRelic
 
         def insert_trace_context_headers request
           insert_trace_context carrier: request
-        end
-
-        def insert_distributed_trace_header request
-          return unless Agent.config[:'distributed_tracing.enabled']
-          payload = create_distributed_trace_payload
-          request[NewRelic::NEWRELIC_KEY] = payload.http_safe if payload
         end
 
       end

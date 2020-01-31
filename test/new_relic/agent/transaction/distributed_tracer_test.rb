@@ -26,6 +26,10 @@ module NewRelic::Agent
         }
       end
 
+      def exclude_newrelic_header_setting value
+        distributed_tracing_enabled.merge :'exclude_newrelic_header' => value
+      end
+
       def build_trace_context_header env={}
         env['HTTP_TRACEPARENT'] = '00-12345678901234567890123456789012-1234567890123456-00'
         env['HTTP_TRACESTATE'] = ''
@@ -98,6 +102,41 @@ module NewRelic::Agent
         end
       end
 
+      def tests_outbound_distributed_trace_headers_present_when_exclude_is_false
+        env = build_distributed_trace_header build_trace_context_header
+        assert env['HTTP_NEWRELIC']
+        assert env['HTTP_TRACEPARENT']
+
+        with_config exclude_newrelic_header_setting(true) do
+          NewRelic::Agent.instance.stubs(:connected?).returns(true)
+          request = {}
+          in_transaction do |txn|
+            txn.distributed_tracer.accept_incoming_request env
+            txn.distributed_tracer.insert_headers request
+            assert request['traceparent'], "expected traceparent header to be present in #{request.keys}"
+            assert request['tracestate'], "expected tracestate header to be present #{request.keys}"
+            refute request['newrelic'], "expected distributed trace header to NOT be present in #{request.keys}"
+          end
+        end
+      end
+
+      def tests_outbound_distributed_trace_headers_omitted_when_exclude_is_true
+        env = build_distributed_trace_header build_trace_context_header
+        assert env['HTTP_NEWRELIC']
+        assert env['HTTP_TRACEPARENT']
+
+        with_config exclude_newrelic_header_setting(false) do
+          NewRelic::Agent.instance.stubs(:connected?).returns(true)
+          request = {}
+          in_transaction do |txn|
+            txn.distributed_tracer.accept_incoming_request env
+            txn.distributed_tracer.insert_headers request
+            assert request['traceparent'], "expected traceparent header to be present in #{request.keys}"
+            assert request['tracestate'], "expected tracestate header to be present #{request.keys}"
+            assert request['newrelic'], "expected distributed trace header to be present in #{request.keys}"
+          end
+        end
+      end
     end
   end
 end
