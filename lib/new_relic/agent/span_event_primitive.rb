@@ -127,7 +127,7 @@ module NewRelic
               end
             end
             if trace_state_payload = txn.distributed_tracer.trace_state_payload
-              intrinsics[TRUSTED_PARENT_KEY] = trace_state_payload.id
+              intrinsics[TRUSTED_PARENT_KEY] = trace_state_payload.id if trace_state_payload.id
             end
           end
         end
