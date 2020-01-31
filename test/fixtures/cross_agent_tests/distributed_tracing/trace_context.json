@@ -229,14 +229,14 @@
           "tracestate.version": 0,
           "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "33",
-          "tracestate.span_id": "7d3efb1b173fecfa",
-          "tracestate.transaction_id": "e8b91a159289ff74",
           "tracestate.sampled": true,
           "tracestate.priority": 1.23456
         },
         "expected": [
           "traceparent.parent_id",
           "tracestate.timestamp",
+          "tracestate.parent_application_id",
+          "tracestate.transaction_id",
           "tracestate.parent_application_id"
         ],
         "notequal": {
@@ -291,18 +291,18 @@
           "traceparent.version",
           "traceparent.trace_id",
           "traceparent.parent_id",
-          "traceparent.trace_flags"
-        ],
-        "unexpected": [
+          "traceparent.trace_flags",
           "tracestate.tenant_id",
           "tracestate.version",
           "tracestate.parent_type",
           "tracestate.parent_account_id",
           "tracestate.sampled",
           "tracestate.priority",
-          "tracestate.span_id",
           "tracestate.timestamp",
           "tracestate.parent_application_id"
+        ],
+        "unexpected": [
+          "tracestate.span_id"
         ]
       }
     ],
@@ -1519,7 +1519,8 @@
     ]
   },
   {
-    "test_name": "w3c_and_newrelc_headers_present",
+    "test_name": "w3c_and_newrelic_headers_present",
+    "comment": "outbound newrelic headers are built from w3c headers, ignoring inbound newrelic headers",
     "trusted_account_key": "33",
     "account_id": "33",
     "web_transaction": true,
@@ -1532,6 +1533,21 @@
         "traceparent": "00-da8bc8cc6d062849b0efcf3c169afb5a-7d3efb1b173fecfa-01",
         "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035",
         "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"Mobile\",\"ac\":\"123\",\"ap\":\"51424\",\"id\":\"5f474d64b9cc9b2a\",\"tr\":\"6e2fea0b173fdad0\",\"pr\":0.1234,\"sa\":true,\"ti\":1482959525577,\"tx\":\"27856f70d3d314b7\"}}"
+      }
+    ],
+    "outbound_newrelic_payloads": [
+      {
+        "exact": {
+          "v": [0, 1],
+          "d.ty": "App",
+          "d.ac": "33",
+          "d.ap": "2827902",
+          "d.tr": "da8bc8cc6d062849b0efcf3c169afb5a",
+          "d.pr": 1.23456,
+          "d.sa": true
+        },
+        "expected": ["d.pr", "d.ap", "d.tx", "d.ti", "d.id"],
+        "unexpected": ["d.tk"]
       }
     ],
     "intrinsics": {
@@ -1574,7 +1590,12 @@
     ]
   },
   {
-    "test_name": "w3c_and_newrelc_headers_present_error_parsing_traceparent",
+    "test_name": "w3c_and_newrelic_headers_present_error_parsing_traceparent",
+    "comment": [
+      "If the traceparent header is present on an inbound request, conforming agents MUST",
+      "use this header to continue the trace. The newrelic header MUST be used _only_ when",
+      "traceparent is _missing_."
+    ],
     "trusted_account_key": "33",
     "account_id": "33",
     "web_transaction": true,
@@ -1587,6 +1608,22 @@
         "traceparent": "garbage",
         "tracestate": "33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035",
         "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"Mobile\",\"ac\":\"123\",\"ap\":\"51424\",\"id\":\"5f474d64b9cc9b2a\",\"tr\":\"6e2fea0b173fdad0\",\"pr\":0.1234,\"sa\":true,\"ti\":1482959525577,\"tx\":\"27856f70d3d314b7\"}}"
+      }
+    ],
+    "outbound_newrelic_payloads": [
+      {
+        "exact": {
+          "v": [0, 1],
+          "d.ty": "App",
+          "d.ac": "33",
+          "d.ap": "2827902",
+          "d.sa": true
+        },
+        "notequal": {
+          "d.tr": "6e2fea0b173fdad0"
+        },
+        "expected": ["d.pr", "d.ap", "d.tx", "d.ti", "d.id", "d.tr"],
+        "unexpected": ["d.tk"]
       }
     ],
     "intrinsics": {
@@ -1606,7 +1643,7 @@
     ]
   },
   {
-    "test_name": "w3c_and_newrelc_headers_present_error_parsing_tracestate",
+    "test_name": "w3c_and_newrelic_headers_present_error_parsing_tracestate",
     "trusted_account_key": "33",
     "account_id": "33",
     "web_transaction": true,
@@ -1619,6 +1656,20 @@
         "traceparent": "00-da8bc8cc6d062849b0efcf3c169afb5a-7d3efb1b173fecfa-01",
         "tracestate": "33@nr=garbage",
         "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"Mobile\",\"ac\":\"123\",\"ap\":\"51424\",\"id\":\"5f474d64b9cc9b2a\",\"tr\":\"6e2fea0b173fdad0\",\"pr\":0.1234,\"sa\":true,\"ti\":1482959525577,\"tx\":\"27856f70d3d314b7\"}}"
+      }
+    ],
+    "outbound_newrelic_payloads": [
+      {
+        "exact": {
+          "v": [0, 1],
+          "d.ty": "App",
+          "d.ac": "33",
+          "d.ap": "2827902",
+          "d.tr": "da8bc8cc6d062849b0efcf3c169afb5a",
+          "d.sa": true
+        },
+        "expected": ["d.pr", "d.ap", "d.tx", "d.ti", "d.id"],
+        "unexpected": ["d.tk"]
       }
     ],
     "intrinsics": {
@@ -1636,7 +1687,7 @@
           "parent.transportType": "HTTP",
           "parentSpanId": "7d3efb1b173fecfa"
         },
-          "unexpected": ["parentId"]
+        "unexpected": ["parentId"]
       },
       "Span": {
         "exact": {
@@ -1653,7 +1704,13 @@
     ]
   },
   {
-    "test_name": "trace_id_is_left_padded_and_priority_rounded",
+    "test_name": "newrelic_origin_trace_id_correctly_transformed_for_w3c",
+    "comment": [
+      "Tests correct handling of newrelic headers",
+      "Agents may receive a traceId in upper-case, or shorter than 32 characters.",
+      "In this case, the traceId MUST be left-padded with zeros AND lower-cased",
+      "The outbound newrelic header, if configured, should include the traceId as-received."
+    ],
     "trusted_account_key": "33",
     "account_id": "33",
     "web_transaction": true,
@@ -1663,7 +1720,7 @@
     "transport_type": "HTTP",
     "inbound_headers": [
       {
-        "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"App\",\"ac\":\"33\",\"ap\":\"51424\",\"id\":\"5f474d64b9cc9b2a\",\"tr\":\"6e2fEA0b173fdad0\",\"pr\":1.1234321,\"sa\":true,\"ti\":1482959525577,\"tx\":\"27856f70d3d314b7\"}}"
+        "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"App\",\"ac\":\"33\",\"ap\":\"51424\",\"id\":\"5f474d64b9cc9b2a\",\"tr\":\"6E2fEA0B173FDAD0\",\"pr\":1.1234321,\"sa\":true,\"ti\":1482959525577,\"tx\":\"27856f70d3d314b7\"}}"
       }
     ],
     "outbound_newrelic_payloads": [
@@ -1673,7 +1730,7 @@
           "d.ty": "App",
           "d.ac": "33",
           "d.ap": "2827902",
-          "d.tr": "6e2fEA0b173fdad0",
+          "d.tr": "6E2fEA0B173FDAD0",
           "d.sa": true,
           "d.pr": 1.123432
         },
@@ -1707,7 +1764,7 @@
       "target_events": ["Transaction", "Span"],
       "common":{
         "exact": {
-          "traceId": "6e2fEA0b173fdad0",
+          "traceId": "6E2fEA0B173FDAD0",
           "sampled": true
         },
         "expected": ["guid", "priority"],

@@ -11,7 +11,6 @@ module NewRelic
     module DistributedTracing
       class TraceContextCrossAgentTest < Minitest::Test
         def setup
-          # NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
           NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
           NewRelic::Agent::Transaction::DistributedTracer.any_instance.stubs(:trace_context_active?).returns(true)
           @request_monitor = DistributedTracing::Monitor.new(EventListener.new)

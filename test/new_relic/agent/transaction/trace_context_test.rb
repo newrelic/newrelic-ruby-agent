@@ -348,6 +348,63 @@ module NewRelic::Agent
           assert_equal now_ms, payload.timestamp
         end
 
+        def test_omits_transaction_guid_from_payload_when_analytics_events_disabled
+          nr_freeze_time
+
+          payload = nil
+          parent_id = nil
+          now_ms = (Time.now.to_f * 1000).round
+
+          disabled_analytics_events = @config.merge({
+             :'analytics_events.enabled' => false
+          })
+
+          with_config disabled_analytics_events do
+            refute Agent.config[:'analytics_events.enabled']
+            txn = in_transaction do |t|
+              t.sampled = true
+              payload = t.distributed_tracer.create_trace_state_payload
+              parent_id = t.current_segment.guid
+            end
+
+            assert_equal '190', payload.parent_account_id
+            assert_equal '46954', payload.parent_app_id
+            assert_equal parent_id, payload.id
+            assert_equal nil, payload.transaction_id
+            assert_equal txn.sampled?, payload.sampled
+            assert_equal txn.priority, payload.priority
+            assert_equal now_ms, payload.timestamp
+          end
+        end
+
+        def test_omits_span_guid_from_payload_when_analytics_events_disabled
+          nr_freeze_time
+
+          payload = nil
+          parent_id = nil
+          now_ms = (Time.now.to_f * 1000).round
+
+          disabled_span_events = @config.merge({
+             :'span_events.enabled' => false
+          })
+
+          with_config disabled_span_events do
+            refute Agent.config[:'span_events.enabled']
+            txn = in_transaction do |t|
+              t.sampled = true
+              payload = t.distributed_tracer.create_trace_state_payload
+            end
+
+            assert_equal '190', payload.parent_account_id
+            assert_equal '46954', payload.parent_app_id
+            assert_equal nil, payload.id
+            assert_equal txn.guid, payload.transaction_id
+            assert_equal txn.sampled?, payload.sampled
+            assert_equal txn.priority, payload.priority
+            assert_equal now_ms, payload.timestamp
+          end
+        end
+
         def test_accept_trace_context_payload_from_browser
           # Browser payloads don't contain a transaction id, sampled flag, or priority
           # The transaction that receives one should come up with its own
