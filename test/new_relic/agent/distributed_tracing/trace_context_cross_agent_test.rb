@@ -214,6 +214,8 @@ module NewRelic
             refute actual_attributes.has_key?(key),
                    %Q|Unexpected #{event_type} attribute "#{key}"|
           end
+
+          # TODO: check vendors in test_case_attributes
         end
 
         def verify_transaction_intrinsics(test_case)
