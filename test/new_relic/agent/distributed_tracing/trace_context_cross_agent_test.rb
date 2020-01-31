@@ -72,7 +72,7 @@ module NewRelic
             accept_headers(test_case, txn)
             raise_exception(test_case)
             outbound_payloads = create_payloads(test_case, txn)
-            outbound_newrelic_payloads = create_newrelic_payloads(test_case, txn)
+            outbound_newrelic_payloads = create_newrelic_payloads(test_case, txn, outbound_payloads)
           end
 
           verify_metrics(test_case)
@@ -98,13 +98,16 @@ module NewRelic
           end
         end
 
-        def create_newrelic_payloads(test_case, txn)
+        def create_newrelic_payloads(test_case, txn, w3c_payloads)
           outbound_payloads = []
           if test_case['outbound_newrelic_payloads']
             payloads = Array(test_case['outbound_newrelic_payloads'])
-            payloads.count.times do
-              payload = txn.distributed_tracer.create_distributed_trace_payload
-              outbound_payloads << payload if payload
+            w3c_payloads.each do |w3c_payload|
+              if newrelic_header = w3c_payload["newrelic"]
+                outbound_payloads << DistributedTracePayload.from_http_safe(newrelic_header)
+              else
+                outbound_payloads << nil
+              end
             end
           end
           outbound_payloads
