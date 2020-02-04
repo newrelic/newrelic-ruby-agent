@@ -1,3 +1,4 @@
+
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
@@ -6,10 +7,11 @@ module NewRelic
   module Agent
     module MethodTracerHelpers
       MAX_ALLOWED_METRIC_DURATION = 1_000_000_000 # roughly 31 years
+      EMPTY_HASH = {}.freeze
 
       extend self
 
-      def trace_execution_scoped(metric_names, options={}) #THREAD_LOCAL_ACCESS
+      def trace_execution_scoped(metric_names, options=EMPTY_HASH) #THREAD_LOCAL_ACCESS
         state = NewRelic::Agent::Tracer.state
         return yield unless state.is_execution_traced?
 

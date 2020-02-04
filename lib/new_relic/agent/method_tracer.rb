@@ -47,6 +47,8 @@ module NewRelic
     #
 
     module MethodTracer
+      EMPTY_HASH = {}.freeze
+
       def self.included clazz
         clazz.extend ClassMethods
       end
@@ -67,7 +69,7 @@ module NewRelic
       #
       # @api public
       #
-      def trace_execution_scoped(metric_names, options={}) #THREAD_LOCAL_ACCESS
+      def trace_execution_scoped(metric_names, options=EMPTY_HASH) #THREAD_LOCAL_ACCESS
         NewRelic::Agent.record_api_supportability_metric :trace_execution_scoped
         NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped(metric_names, options) do
           # Using an implicit block avoids object allocation for a &block param
@@ -83,7 +85,7 @@ module NewRelic
       #
       # @api public
       #
-      def trace_execution_unscoped(metric_names, options={}) #THREAD_LOCAL_ACCESS
+      def trace_execution_unscoped(metric_names, options=EMPTY_HASH) #THREAD_LOCAL_ACCESS
         NewRelic::Agent.record_api_supportability_metric :trace_execution_unscoped
         return yield unless NewRelic::Agent.tl_is_execution_traced?
         t0 = Time.now
