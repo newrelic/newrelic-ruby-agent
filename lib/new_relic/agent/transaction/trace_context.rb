@@ -26,26 +26,26 @@ module NewRelic
         CREATE_PREFIX                     = "#{SUPPORTABILITY_PREFIX}/Create"
         ACCEPT_PREFIX                     = "#{SUPPORTABILITY_PREFIX}/Accept"
         TRACESTATE_PREFIX                 = "#{SUPPORTABILITY_PREFIX}/TraceState"
-        
+
         CREATE_SUCCESS_METRIC             = "#{CREATE_PREFIX}/Success"
         CREATE_EXCEPTION_METRIC           = "#{CREATE_PREFIX}/Exception"
-        
+
         ACCEPT_SUCCESS_METRIC             = "#{ACCEPT_PREFIX}/Success"
         ACCEPT_EXCEPTION_METRIC           = "#{ACCEPT_PREFIX}/Exception"
         IGNORE_MULTIPLE_ACCEPT_METRIC     = "#{ACCEPT_PREFIX}/Ignored/Multiple"
         IGNORE_ACCEPT_AFTER_CREATE_METRIC = "#{ACCEPT_PREFIX}/Ignored/CreateBeforeAccept"
-        
+
         NO_NR_ENTRY_TRACESTATE_METRIC     = "#{TRACESTATE_PREFIX}/NoNrEntry"
         INVALID_TRACESTATE_PAYLOAD_METRIC = "#{TRACESTATE_PREFIX}/InvalidNrEntry"
 
-        TRACEPARENT_HEADER = 'HTTP_TRACEPARENT'
         W3C_FORMAT = "w3c"
 
         attr_accessor :trace_context_header_data
         attr_reader   :trace_state_payload
 
-        def trace_parent_header_present? request
-          request[TRACEPARENT_HEADER]
+        def trace_parent_header_present? request, transport_type
+          traceparent_header = NewRelic::Agent::DistributedTracing::TraceContext.trace_parent_header_for_format transport_type
+          request[traceparent_header]
         end
 
         def accept_trace_context_incoming_request request
@@ -61,11 +61,11 @@ module NewRelic
         private :accept_trace_context_incoming_request
 
         def insert_trace_context \
-            format: NewRelic::Agent::DistributedTracing::TraceContext::FORMAT_HTTP,
+            format: NewRelic::Agent::DistributedTracing::TraceContext::FORMAT_NON_RACK,
             carrier: nil
 
           return unless trace_context_active?
-          
+
           NewRelic::Agent::DistributedTracing::TraceContext.insert \
             format: format,
             carrier: carrier,
@@ -73,9 +73,9 @@ module NewRelic
             parent_id: transaction.current_segment.guid,
             trace_flags: transaction.sampled? ? 0x1 : 0x0,
             trace_state: create_trace_state
-          
+
           @trace_context_inserted = true
-          
+
           NewRelic::Agent.increment_metric CREATE_SUCCESS_METRIC
           true
         rescue Exception => e
@@ -127,7 +127,7 @@ module NewRelic
           unless payload.valid?
             NewRelic::Agent.increment_metric INVALID_TRACESTATE_PAYLOAD_METRIC
             return false
-          end            
+          end
           @trace_state_payload = payload
         end
 
@@ -172,7 +172,7 @@ module NewRelic
           end
           false
         end
-      
+
         def trace_context_inserted?
           @trace_context_inserted ||= false
         end

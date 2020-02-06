@@ -28,7 +28,7 @@ module NewRelic
 
         def accept_incoming_request request, transport_type=nil
           accept_incoming_transport_type request, transport_type
-          if trace_parent_header_present? request
+          if trace_parent_header_present? request, transport_type
             accept_trace_context_incoming_request request
           else
             accept_distributed_tracing_incoming_request request
@@ -98,10 +98,10 @@ module NewRelic
         def insert_cat_headers headers
           return unless CrossAppTracing.cross_app_enabled?
           @is_cross_app_caller = true
-          insert_message_headers headers, 
-            transaction.guid, 
-            cat_trip_id, 
-            cat_path_hash, 
+          insert_message_headers headers,
+            transaction.guid,
+            cat_trip_id,
+            cat_path_hash,
             transaction.raw_synthetics_header
         end
 
@@ -124,9 +124,9 @@ module NewRelic
 
         def consume_message_distributed_tracing_headers headers, transport_type
           return unless Agent.config[:'distributed_tracing.enabled']
-          
+
           accept_incoming_transport_type headers, transport_type
-          
+
           newrelic_trace_key = NewRelic::CANDIDATE_NEWRELIC_KEYS.detect do |key|
             headers.has_key?(key)
           end

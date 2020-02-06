@@ -74,7 +74,7 @@ module NewRelic
       #
       def accept_distributed_trace_payload payload
         Deprecator.deprecate :accept_distributed_trace_payload, :accept_distributed_trace_headers
-        
+
         unless Agent.config[:'distributed_tracing.enabled']
           NewRelic::Agent.logger.warn "Not configured to accept New Relic distributed trace payload"
           return nil
@@ -90,19 +90,19 @@ module NewRelic
 
 
       # Adds the Distributed Trace headers so that the downstream service can participate in a
-      # distributed trace. This method should be called every time an outbound call is made 
+      # distributed trace. This method should be called every time an outbound call is made
       # since the header payload contains a timestamp.
       #
-      # Distributed Tracing must be enabled to use this method. 
+      # Distributed Tracing must be enabled to use this method.
       #
       # +insert_distributed_trace_headers+ always inserts W3C trace context headers and inserts
-      # New Relic distributed tracing header by default. New Relic headers may be suppressed by 
+      # New Relic distributed tracing header by default. New Relic headers may be suppressed by
       # setting +exclude_new_relic_header+ to +true+ in your configuration file.
       #
-      # @param headers           [Hash]     Is a Hash containing the distributed trace headers and 
+      # @param headers           [Hash]     Is a Hash containing the distributed trace headers and
       #                                     values.
       #
-      # @return           {Transaction}     The transaction the headers were inserted from, 
+      # @return           {Transaction}     The transaction the headers were inserted from,
       #                                     or +nil+ if headers were not inserted.
       #
       # @api public
@@ -126,16 +126,16 @@ module NewRelic
         nil
       end
 
-      # Accepts distributed tracing information from protocols the agent does 
+      # Accepts distributed tracing information from protocols the agent does
       # not already support by accepting distributed trace headers from another transaction.
       #
-      # Calling this method is not necessary in a typical HTTP trace as 
+      # Calling this method is not necessary in a typical HTTP trace as
       # distributed tracing is already handled by the agent.
       #
-      # When used, invoke this method as early as possible as calling after 
+      # When used, invoke this method as early as possible as calling after
       # the headers are already created will have no effect.
       #
-      # This method accepts both W3C trace context and New Relic distributed tracing headers.  
+      # This method accepts both W3C trace context and New Relic distributed tracing headers.
       # When both are present, only the W3C headers are utilized.
       #
       # @param headers         [Hash]     Incoming distributed trace payload,
@@ -144,7 +144,7 @@ module NewRelic
       #                                   {DistributedTracePayload#http_safe}
       #
       # @param transport_Type  [String]   May be one of:  +HTTP+, +HTTPS+, +Kafka+, +JMS+,
-      #                                   +IronMQ+, +AMQP+, +Queue+, +Other+.  Values are 
+      #                                   +IronMQ+, +AMQP+, +Queue+, +Other+.  Values are
       #                                   case sensitive.  All other values result in +Unknown+
       #
       # @return {Transaction} if successful, +nil+ otherwise
@@ -164,7 +164,8 @@ module NewRelic
 
         return unless transaction = Transaction.tl_current
 
-        transaction.distributed_tracer.accept_incoming_request headers, transport_type
+        distributed_tracer = transaction.distributed_tracer
+        distributed_tracer.accept_incoming_request headers, transport_type
         transaction
       rescue => e
         NewRelic::Agent.logger.error 'error during accept_distributed_trace_headers', e

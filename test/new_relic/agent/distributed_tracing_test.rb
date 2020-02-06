@@ -44,10 +44,18 @@ module NewRelic::Agent
       end
 
       def test_accept_distributed_trace_headers_api
-        carrier = {}
+        carrier = {'HTTP_TRACEPARENT' => 'pretend_this_is_valid'}
         transaction = in_transaction "test_txn" do |txn|
           txn.distributed_tracer.expects(:accept_incoming_request)
           DistributedTracing.accept_distributed_trace_headers carrier, "HTTP"
+        end
+      end
+
+      def test_accept_distributed_trace_headers_api_with_non_rack
+        carrier = {}
+        transaction = in_transaction "test_txn" do |txn|
+          txn.distributed_tracer.expects(:accept_trace_context_incoming_request)
+          DistributedTracing.accept_distributed_trace_headers carrier, "Kafka"
         end
       end
 
@@ -58,7 +66,6 @@ module NewRelic::Agent
           DistributedTracing.insert_distributed_trace_headers carrier
         end
       end
-
     end
   end
 end

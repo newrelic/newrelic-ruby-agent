@@ -16,7 +16,7 @@ module NewRelic
         TRACE_PARENT_RACK = 'HTTP_TRACEPARENT'
         TRACE_STATE_RACK  = 'HTTP_TRACESTATE'
 
-        FORMAT_HTTP = 0
+        FORMAT_NON_RACK = 0
         FORMAT_RACK = 1
 
         COMMA             = ','
@@ -49,7 +49,7 @@ module NewRelic
         SUPPORTABILITY_TRACE_STATE_INVALID_NR_ENTRY = "Supportability/TraceContext/TraceState/InvalidNrEntry"
 
         class << self
-          def insert format: FORMAT_HTTP,
+          def insert format: FORMAT_NON_RACK,
                      carrier: nil,
                      parent_id: nil,
                      trace_id: nil,
@@ -66,7 +66,7 @@ module NewRelic
             carrier[trace_state_header] = trace_state if trace_state && !trace_state.empty?
           end
 
-          def parse format: FORMAT_HTTP,
+          def parse format: FORMAT_NON_RACK,
                     carrier: nil,
                     trace_state_entry_key: nil
             trace_parent = extract_traceparent(format, carrier)
