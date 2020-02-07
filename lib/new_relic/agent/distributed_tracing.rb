@@ -164,10 +164,18 @@ module NewRelic
 
         return unless transaction = Transaction.tl_current
 
-        distributed_tracer = transaction.distributed_tracer
-        distributed_tracer.accept_incoming_request headers, transport_type
+        hdr = if transport_type.start_with? 'HTTP'
+          headers
+        else
+          {"HTTP_TRACEPARENT" => headers['traceparent'] ,"HTTP_TRACESTATE" => headers['tracestate'], "HTTP_NEWRELIC" => nil}.tap do |hdr|
+            _, hdr['HTTP_NEWRELIC'] = HASH.detect{|k, v| k.to_s.end_with? 'newrelic', 'NEWRELIC', 'NewRelic'}
+            _, hdr['HTTP_TRACEPARENT'] = HASH.detect{|k, v| k.to_s.downcase.end_with? 'traceparent'} unless hdr['HTTP_TRACEPARENT']
+            _, hdr['HTTP_TRACESTATE'] = HASH.detect{|k, v| k.to_s.downcase.end_with? 'tracestate'} unless hdr['HTTP_TRACESTATE']
+          end
+        end
+        transaction.distributed_tracer.accept_incoming_request hdr, transport_type
         transaction
-      rescue => e
+    rescue => e
         NewRelic::Agent.logger.error 'error during accept_distributed_trace_headers', e
         nil
       end
