@@ -17,7 +17,7 @@ module NewRelic::Agent
           :'distributed_tracing.enabled' => true,
           :account_id => "190",
           :primary_application_id => "46954",
-          :trusted_account_key => "trust_this!"
+          :trusted_account_key => "190"
         }
         NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
         NewRelic::Agent.config.add_config_for_testing(@config)
@@ -52,7 +52,7 @@ module NewRelic::Agent
       end
 
       def test_accept_distributed_trace_headers_api_with_non_rack
-        carrier = {}
+        carrier = {'tRaCePaReNt' => 'pretend_this_is_valid'}
         transaction = in_transaction "test_txn" do |txn|
           txn.distributed_tracer.expects(:accept_trace_context_incoming_request)
           DistributedTracing.accept_distributed_trace_headers carrier, "Kafka"
@@ -65,6 +65,28 @@ module NewRelic::Agent
           txn.distributed_tracer.expects(:insert_headers)
           DistributedTracing.insert_distributed_trace_headers carrier
         end
+      end
+
+
+      def test_accept_distributed_trace_headers_api_case_insensitive
+        carrier = {
+          'tRacEpArEnT' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+          'trAceSTatE'  => "190@nr=0-0-190-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035"
+        }
+        trace_context_header_data = nil
+        transaction = in_transaction "test_txn" do |txn|
+          DistributedTracing.accept_distributed_trace_headers carrier, "Kafka"
+          trace_context_header_data = txn.distributed_tracer.trace_context_header_data
+        end
+
+        trace_parent = trace_context_header_data.trace_parent
+  
+        assert_equal '00', trace_parent['version']
+        assert_equal 'a8e67265afe2773a3c611b94306ee5c2', trace_parent['trace_id']
+        assert_equal 'fb1010463ea28a38', trace_parent['parent_id']
+        assert_equal '01', trace_parent['trace_flags']
+  
+        assert_equal '0-0-190-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035', trace_context_header_data.trace_state_payload.to_s
       end
     end
   end

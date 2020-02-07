@@ -28,7 +28,7 @@ module NewRelic
 
         def accept_incoming_request request, transport_type=nil
           accept_incoming_transport_type request, transport_type
-          if trace_parent_header_present? request, transport_type
+          if trace_parent_header_present? request
             accept_trace_context_incoming_request request
           else
             accept_distributed_tracing_incoming_request request

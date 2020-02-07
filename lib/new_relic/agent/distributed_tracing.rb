@@ -23,6 +23,9 @@ module NewRelic
     module DistributedTracing
       extend NewRelic::SupportabilityHelper
       extend self
+      
+      EMPTY_ARRAY = [].freeze
+
       # Create a payload object containing the current transaction's
       # tracing properties (e.g., duration, priority).  You can use
       # this object to generate headers to inject into a network
@@ -164,15 +167,19 @@ module NewRelic
 
         return unless transaction = Transaction.tl_current
 
-        hdr = if transport_type.start_with? 'HTTP'
+        hdr = if transport_type.start_with? 'HTTP' 
           headers
-        else
-          {"HTTP_TRACEPARENT" => headers['traceparent'] ,"HTTP_TRACESTATE" => headers['tracestate'], "HTTP_NEWRELIC" => nil}.tap do |hdr|
-            _, hdr['HTTP_NEWRELIC'] = HASH.detect{|k, v| k.to_s.end_with? 'newrelic', 'NEWRELIC', 'NewRelic'}
-            _, hdr['HTTP_TRACEPARENT'] = HASH.detect{|k, v| k.to_s.downcase.end_with? 'traceparent'} unless hdr['HTTP_TRACEPARENT']
-            _, hdr['HTTP_TRACESTATE'] = HASH.detect{|k, v| k.to_s.downcase.end_with? 'tracestate'} unless hdr['HTTP_TRACESTATE']
-          end
+        else # find the headers and transform them to match the expected format
+          # check the most common case first
+          hdr = {"HTTP_TRACEPARENT" => headers['traceparent'] ,"HTTP_TRACESTATE" => headers['tracestate'], "HTTP_NEWRELIC" => headers['newrelic']} 
+          # if nothing was found, search for any casing for trace context headers
+          hdr['HTTP_TRACEPARENT'] ||= (headers.detect{|k, v| k.to_s.downcase.end_with? 'traceparent'} || EMPTY_ARRAY)[1]
+          hdr['HTTP_TRACESTATE'] ||= (headers.detect{|k, v| k.to_s.downcase.end_with? 'tracestate'} || EMPTY_ARRAY)[1]
+          # check for the known cases used for new relic headers
+          hdr['HTTP_NEWRELIC'] ||= (headers.detect{|k, v| k.to_s.downcase.end_with? 'newrelic', 'NEWRELIC', 'NewRelic'} || EMPTY_ARRAY)[1]
+          hdr
         end
+
         transaction.distributed_tracer.accept_incoming_request hdr, transport_type
         transaction
     rescue => e

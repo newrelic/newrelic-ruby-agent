@@ -38,14 +38,14 @@ module NewRelic
         NO_NR_ENTRY_TRACESTATE_METRIC     = "#{TRACESTATE_PREFIX}/NoNrEntry"
         INVALID_TRACESTATE_PAYLOAD_METRIC = "#{TRACESTATE_PREFIX}/InvalidNrEntry"
 
+        TRACEPARENT_HEADER = 'HTTP_TRACEPARENT'
         W3C_FORMAT = "w3c"
 
         attr_accessor :trace_context_header_data
         attr_reader   :trace_state_payload
 
-        def trace_parent_header_present? request, transport_type
-          traceparent_header = NewRelic::Agent::DistributedTracing::TraceContext.trace_parent_header_for_format transport_type
-          request[traceparent_header]
+        def trace_parent_header_present? request
+          request[TRACEPARENT_HEADER]
         end
 
         def accept_trace_context_incoming_request request
