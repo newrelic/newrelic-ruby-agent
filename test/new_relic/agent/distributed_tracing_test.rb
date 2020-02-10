@@ -17,16 +17,18 @@ module NewRelic::Agent
           :'distributed_tracing.enabled' => true,
           :account_id => "190",
           :primary_application_id => "46954",
-          :trusted_account_key => "190"
+          :trusted_account_key => "190",
+          :disable_harvest_thread => true
         }
         NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
         NewRelic::Agent.config.add_config_for_testing(@config)
+        reset_buffers_and_caches
       end
 
       def teardown
         NewRelic::Agent.config.remove_config(@config)
         NewRelic::Agent.config.reset_to_defaults
-        NewRelic::Agent.drop_buffered_data
+        reset_buffers_and_caches
       end
 
       def test_create_distributed_trace_payload_api

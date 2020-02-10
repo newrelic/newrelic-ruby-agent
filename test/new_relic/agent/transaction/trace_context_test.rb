@@ -379,7 +379,6 @@ module NewRelic::Agent
           nr_freeze_time
 
           payload = nil
-          parent_id = nil
           now_ms = (Time.now.to_f * 1000).round
 
           disabled_span_events = @config.merge({
