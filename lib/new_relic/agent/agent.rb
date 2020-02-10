@@ -248,7 +248,7 @@ module NewRelic
           # Wait the end of the event loop thread.
           if @worker_thread
             unless @worker_thread.join(3)
-              ::NewRelic::Agent.logger.error "Event loop thread did not stop whithin 3 seconds"
+              ::NewRelic::Agent.logger.error "Event loop thread did not stop within 3 seconds"
             end
           end
         end
