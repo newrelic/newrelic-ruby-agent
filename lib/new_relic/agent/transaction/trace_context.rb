@@ -150,14 +150,6 @@ module NewRelic
           false
         end
 
-        def append_trace_context_info transaction_payload
-          return unless trace_context_active?
-          DistributedTraceIntrinsics.copy_from_transaction \
-              transaction,
-              trace_state_payload,
-              transaction_payload
-        end
-
         def ignore_trace_context?
           if trace_context_header_data
             NewRelic::Agent.increment_metric IGNORE_MULTIPLE_ACCEPT_METRIC

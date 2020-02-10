@@ -62,8 +62,18 @@ module NewRelic
 
         def append_payload payload
           append_cat_info payload
-          append_distributed_trace_info payload
-          append_trace_context_info payload
+
+          if trace_context_active? && trace_state_payload
+            DistributedTraceIntrinsics.copy_from_transaction \
+              transaction,
+              trace_state_payload,
+              payload 
+          elsif Agent.config[:'distributed_tracing.enabled']
+            DistributedTraceIntrinsics.copy_from_transaction \
+              transaction,
+              distributed_trace_payload,
+              payload 
+          end
         end
 
         def insert_headers request
