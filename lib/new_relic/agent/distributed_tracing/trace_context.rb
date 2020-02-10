@@ -10,17 +10,11 @@ module NewRelic
     module DistributedTracing
       class TraceContext
         VERSION = 0x0
-        TRACE_PARENT = 'traceparent'
-        TRACE_STATE  = 'tracestate'
-
-        TRACE_PARENT_RACK = 'HTTP_TRACEPARENT'
-        TRACE_STATE_RACK  = 'HTTP_TRACESTATE'
 
         FORMAT_NON_RACK = 0
         FORMAT_RACK = 1
 
         COMMA             = ','
-        EMPTY_STRING      = ''
         EQUALS            = '='
         INVALID_TRACE_ID  = ('0' * 32)
         INVALID_PARENT_ID = ('0' * 16)
@@ -124,17 +118,17 @@ module NewRelic
 
           def trace_parent_header_for_format format
             if format == FORMAT_RACK
-              TRACE_PARENT_RACK
+              NewRelic::HTTP_TRACEPARENT_KEY
             else
-              TRACE_PARENT
+              NewRelic::TRACEPARENT_KEY
             end
           end
 
           def trace_state_header_for_format format
             if format == FORMAT_RACK
-              TRACE_STATE_RACK
+              NewRelic::HTTP_TRACESTATE_KEY
             else
-              TRACE_STATE
+              NewRelic::TRACESTATE_KEY
             end
           end
 
@@ -221,7 +215,7 @@ module NewRelic
           private
 
           def join_trace_state trace_state_entry_size
-            return @trace_state || EMPTY_STRING if @trace_state_entries.nil? || @trace_state_entries.empty?
+            return @trace_state || NewRelic::EMPTY_STR if @trace_state_entries.nil? || @trace_state_entries.empty?
 
             max_size = MAX_TRACE_STATE_SIZE - trace_state_entry_size
             return @trace_state_entries.join(COMMA).prepend(COMMA) if @trace_state_size < max_size

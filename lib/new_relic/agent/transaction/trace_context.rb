@@ -21,7 +21,6 @@ module NewRelic
           end
         end
 
-        EMPTY_STRING                      = ''
         SUPPORTABILITY_PREFIX             = "Supportability/TraceContext"
         CREATE_PREFIX                     = "#{SUPPORTABILITY_PREFIX}/Create"
         ACCEPT_PREFIX                     = "#{SUPPORTABILITY_PREFIX}/Accept"
@@ -38,14 +37,11 @@ module NewRelic
         NO_NR_ENTRY_TRACESTATE_METRIC     = "#{TRACESTATE_PREFIX}/NoNrEntry"
         INVALID_TRACESTATE_PAYLOAD_METRIC = "#{TRACESTATE_PREFIX}/InvalidNrEntry"
 
-        TRACEPARENT_HEADER = 'HTTP_TRACEPARENT'
-        W3C_FORMAT = "w3c"
-
         attr_accessor :trace_context_header_data
         attr_reader   :trace_state_payload
 
         def trace_parent_header_present? request
-          request[TRACEPARENT_HEADER]
+          request[NewRelic::HTTP_TRACEPARENT_KEY]
         end
 
         def accept_trace_context_incoming_request request
@@ -93,7 +89,7 @@ module NewRelic
               entry_key,
               payload.to_s
           else
-            entry = EMPTY_STRING
+            entry = NewRelic::EMPTY_STR
           end
 
           trace_context_header_data ? trace_context_header_data.trace_state(entry) : entry

@@ -24,8 +24,6 @@ module NewRelic
       extend NewRelic::SupportabilityHelper
       extend self
       
-      EMPTY_ARRAY = [].freeze
-
       # Create a payload object containing the current transaction's
       # tracing properties (e.g., duration, priority).  You can use
       # this object to generate headers to inject into a network
@@ -154,7 +152,7 @@ module NewRelic
       #
       # @api public
       #
-      def accept_distributed_trace_headers headers, transport_type="HTTP"
+      def accept_distributed_trace_headers headers, transport_type = NewRelic::HTTP
         record_api_supportability_metric(:accept_distributed_trace_headers)
 
         unless Agent.config[:'distributed_tracing.enabled']
@@ -167,25 +165,42 @@ module NewRelic
 
         return unless transaction = Transaction.tl_current
 
-        hdr = if transport_type.start_with? 'HTTP' 
+        # assume we have Rack conforming keys when transport_type is HTTP(S)
+        # otherwise, fish for key/value pairs regardless of prefix and case-sensitivity.
+        hdr = if transport_type.start_with? NewRelic::HTTP
           headers
-        else # find the headers and transform them to match the expected format
-          # check the most common case first
-          hdr = {"HTTP_TRACEPARENT" => headers['traceparent'] ,"HTTP_TRACESTATE" => headers['tracestate'], "HTTP_NEWRELIC" => headers['newrelic']} 
-          # if nothing was found, search for any casing for trace context headers
-          hdr['HTTP_TRACEPARENT'] ||= (headers.detect{|k, v| k.to_s.downcase.end_with? 'traceparent'} || EMPTY_ARRAY)[1]
-          hdr['HTTP_TRACESTATE'] ||= (headers.detect{|k, v| k.to_s.downcase.end_with? 'tracestate'} || EMPTY_ARRAY)[1]
-          # check for the known cases used for new relic headers
-          hdr['HTTP_NEWRELIC'] ||= (headers.detect{|k, v| k.to_s.downcase.end_with? 'newrelic', 'NEWRELIC', 'NewRelic'} || EMPTY_ARRAY)[1]
+        else 
+          # start with the most common case first
+          hdr = {
+            NewRelic::HTTP_TRACEPARENT_KEY => headers[NewRelic::TRACEPARENT_KEY],
+            NewRelic::HTTP_TRACESTATE_KEY => headers[NewRelic::TRACESTATE_KEY], 
+            NewRelic::HTTP_NEWRELIC_KEY => headers[NewRelic::NEWRELIC_KEY]
+          } 
+          
+          # when not found, search for any casing for trace context headers, ignoring potential prefixes
+          hdr[NewRelic::HTTP_TRACEPARENT_KEY] ||= variant_key_value headers, NewRelic::TRACEPARENT_KEY
+          hdr[NewRelic::HTTP_TRACESTATE_KEY] ||= variant_key_value headers, NewRelic::TRACESTATE_KEY
+          hdr[NewRelic::HTTP_NEWRELIC_KEY] ||= variant_key_value headers, NewRelic::CANDIDATE_NEWRELIC_KEYS
           hdr
         end
 
         transaction.distributed_tracer.accept_incoming_request hdr, transport_type
         transaction
-    rescue => e
+      rescue => e
         NewRelic::Agent.logger.error 'error during accept_distributed_trace_headers', e
         nil
       end
+    
+      private
+
+      def has_variant_key? key, variants
+        key.to_s.downcase.end_with?(*Array(variants))
+      end
+
+      def variant_key_value headers, variants
+        (headers.detect{|k, v| has_variant_key?(k, variants)} || NewRelic::EMPTY_ARRAY)[1]
+      end
+
     end
   end
 end

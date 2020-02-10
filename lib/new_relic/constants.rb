@@ -6,6 +6,13 @@
 module NewRelic
   PRIORITY_PRECISION = 6
 
+  EMPTY_ARRAY = [].freeze
+  EMPTY_HASH = {}.freeze
+  EMPTY_STR = ""
+
+  HTTP = "HTTP"
+  HTTPS = "HTTPS"
+
   NEWRELIC_KEY = "newrelic"
   CANDIDATE_NEWRELIC_KEYS = [
     NEWRELIC_KEY,
@@ -14,5 +21,10 @@ module NewRelic
     'Newrelic'
   ].freeze
 
+  TRACEPARENT_KEY = 'traceparent'
+  TRACESTATE_KEY = 'tracestate'
 
+  HTTP_TRACEPARENT_KEY = "HTTP_#{TRACEPARENT_KEY.upcase}"
+  HTTP_TRACESTATE_KEY = "HTTP_#{TRACESTATE_KEY.upcase}"
+  HTTP_NEWRELIC_KEY = "HTTP_#{NEWRELIC_KEY.upcase}"
 end

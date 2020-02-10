@@ -15,7 +15,6 @@ module NewRelic
     module Messaging
       extend self
 
-      EMPTY_STRING = ''
       RABBITMQ_TRANSPORT_TYPE = "RabbitMQ"
 
       ATTR_DESTINATION = AttributeFilter::DST_TRANSACTION_EVENTS |
