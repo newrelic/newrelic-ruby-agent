@@ -26,9 +26,7 @@ module NewRelic::Agent
         def teardown
           Agent.config.remove_config(@config)
           Agent.config.reset_to_defaults
-          AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
-          NewRelic::Agent.drop_buffered_data
-          uncache_trusted_account_key
+          reset_buffers_and_caches
         end
 
         def test_insert_trace_context
@@ -443,10 +441,6 @@ module NewRelic::Agent
                                     trace_state: ["other=asdf"],
                                     trace_state_vendors: ''
             NewRelic::Agent::DistributedTracing::TraceContext::HeaderData.new trace_parent, trace_state_payload, trace_state, 10, trace_state_vendors
-        end
-
-        def uncache_trusted_account_key
-          AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
         end
       end
     end

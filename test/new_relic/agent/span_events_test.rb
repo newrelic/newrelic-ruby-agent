@@ -23,8 +23,7 @@ module NewRelic
       def teardown
         NewRelic::Agent.config.remove_config(@config)
         NewRelic::Agent.config.reset_to_defaults
-        NewRelic::Agent.drop_buffered_data
-        NewRelic::Agent::Transaction::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
+        reset_buffers_and_caches
       end
 
       def test_span_ids_passed_in_payload_when_span_events_enabled

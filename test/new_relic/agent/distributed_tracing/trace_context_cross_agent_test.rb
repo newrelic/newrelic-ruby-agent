@@ -10,16 +10,16 @@ module NewRelic
   module Agent
     module DistributedTracing
       class TraceContextCrossAgentTest < Minitest::Test
+
         def setup
           NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
           NewRelic::Agent::Transaction::DistributedTracer.any_instance.stubs(:trace_context_active?).returns(true)
           @request_monitor = DistributedTracing::Monitor.new(EventListener.new)
-          NewRelic::Agent.drop_buffered_data
+          reset_buffers_and_caches
         end
 
         def teardown
-          NewRelic::Agent.drop_buffered_data
-          NewRelic::Agent::Transaction::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
+          reset_buffers_and_caches
         end
 
         def verbose_attributes?
