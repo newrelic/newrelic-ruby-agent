@@ -44,7 +44,7 @@ module NewRelic
         end
 
         def accept_incoming_transport_type request, transport_type
-          if transport_type.to_s == ""
+          if transport_type.to_s == NewRelic::EMPTY_STR
             @caller_transport_type = DistributedTraceTransportType.for_rack_request request
           else
             @caller_transport_type = DistributedTraceTransportType.from transport_type
@@ -62,18 +62,10 @@ module NewRelic
 
         def append_payload payload
           append_cat_info payload
-
-          if trace_context_active? && trace_state_payload
-            DistributedTraceIntrinsics.copy_from_transaction \
-              transaction,
-              trace_state_payload,
-              payload 
-          elsif Agent.config[:'distributed_tracing.enabled']
-            DistributedTraceIntrinsics.copy_from_transaction \
-              transaction,
-              distributed_trace_payload,
-              payload 
-          end
+          DistributedTraceIntrinsics.copy_from_transaction \
+            transaction,
+            trace_state_payload || distributed_trace_payload,
+            payload
         end
 
         def insert_headers request
