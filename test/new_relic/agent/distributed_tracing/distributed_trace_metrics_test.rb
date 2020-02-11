@@ -118,12 +118,14 @@ module NewRelic::Agent
 
     def test_record_metrics_for_transaction_with_exception_handling
       txn = in_transaction "controller_txn", :category => :controller do |txn|
-        advance_time 1.0
-        DistributedTracing.accept_distributed_trace_headers valid_trace_context_headers, NewRelic::HTTP
-        raise "oops"
-      rescue Exception => e
-        Transaction.notice_error(e)
-        DistributedTraceMetrics.record_metrics_for_transaction txn
+        begin
+          advance_time 1.0
+          DistributedTracing.accept_distributed_trace_headers valid_trace_context_headers, NewRelic::HTTP
+          raise "oops"
+        rescue Exception => e
+          Transaction.notice_error(e)
+          DistributedTraceMetrics.record_metrics_for_transaction txn
+        end
       end
 
       assert_metrics_recorded([
