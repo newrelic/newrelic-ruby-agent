@@ -29,7 +29,7 @@ module NewRelic::Agent
           reset_buffers_and_caches
         end
 
-        def test_insert_trace_context
+        def test_insert_trace_context_header
           nr_freeze_time
 
           carrier = {}
@@ -40,7 +40,7 @@ module NewRelic::Agent
 
           txn = in_transaction do |t|
             t.sampled = true
-            inserted = t.distributed_tracer.insert_trace_context carrier: carrier
+            inserted = t.distributed_tracer.insert_trace_context_header carrier
             trace_state = t.distributed_tracer.create_trace_state
             parent_id = t.current_segment.guid
             trace_id = t.trace_id
@@ -80,7 +80,7 @@ module NewRelic::Agent
           in_transaction do |child|
             child.sampled = false
             child.distributed_tracer.accept_trace_context parent_trace_context_header_data
-            child.distributed_tracer.insert_trace_context carrier: carrier
+            child.distributed_tracer.insert_trace_context_header carrier
             child_trace_state_payload = child.distributed_tracer.create_trace_state_payload
             parent_id = child.current_segment.guid
           end
@@ -110,7 +110,7 @@ module NewRelic::Agent
           in_transaction do |child|
             child.sampled = true
             child.distributed_tracer.accept_trace_context parent_trace_context_header_data
-            child.distributed_tracer.insert_trace_context carrier: carrier
+            child.distributed_tracer.insert_trace_context_header carrier
             child_trace_state_payload = child.distributed_tracer.create_trace_state_payload
           end
 
@@ -140,7 +140,7 @@ module NewRelic::Agent
           in_transaction do |child|
             child.sampled = true
             child.distributed_tracer.accept_trace_context parent_trace_context_header_data
-            child.distributed_tracer.insert_trace_context carrier: carrier
+            child.distributed_tracer.insert_trace_context_header carrier
             child_trace_state_payload = child.distributed_tracer.create_trace_state_payload
             parent_id = child.current_segment.guid
           end
@@ -173,7 +173,7 @@ module NewRelic::Agent
 
           parent_txn = in_transaction 'parent' do |txn|
             txn.sampled = true
-            txn.distributed_tracer.insert_trace_context carrier: carrier
+            txn.distributed_tracer.insert_trace_context_header carrier
           end
 
           trace_context_header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse \
@@ -206,7 +206,7 @@ module NewRelic::Agent
           with_config(account_one) do
             txn_one = in_transaction 'parent' do |txn|
               txn.sampled = true
-              txn.distributed_tracer.insert_trace_context carrier: carrier
+              txn.distributed_tracer.insert_trace_context_header carrier
             end
           end
 
@@ -248,7 +248,7 @@ module NewRelic::Agent
           with_config(account_one) do
             txn_one = in_transaction 'parent' do |txn|
               txn.sampled = true
-              txn.distributed_tracer.insert_trace_context carrier: carrier
+              txn.distributed_tracer.insert_trace_context_header carrier
             end
           end
 
@@ -293,7 +293,7 @@ module NewRelic::Agent
           in_transaction do |child|
             child.sampled = true
             child.distributed_tracer.accept_trace_context parent_trace_context_header_data
-            child.distributed_tracer.insert_trace_context carrier: carrier
+            child.distributed_tracer.insert_trace_context_header carrier
           end
 
           assert_metrics_recorded "Supportability/TraceContext/TraceState/NoNrEntry"
@@ -316,7 +316,7 @@ module NewRelic::Agent
 
           in_transaction do |txn|
             txn.sampled = true
-            txn.distributed_tracer.insert_trace_context carrier: carrier
+            txn.distributed_tracer.insert_trace_context_header carrier
             trace_context_header_data = make_trace_context_header_data
 
             refute txn.distributed_tracer.accept_trace_context trace_context_header_data

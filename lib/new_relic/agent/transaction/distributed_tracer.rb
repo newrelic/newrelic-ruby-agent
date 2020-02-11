@@ -69,7 +69,7 @@ module NewRelic
         end
 
         def insert_headers request
-          insert_trace_context_headers request
+          insert_trace_context_header request
           insert_distributed_trace_header request
           insert_cross_app_header request
         end
@@ -162,10 +162,6 @@ module NewRelic
 
         def deobfuscate message
           CrossAppTracing.obfuscator.deobfuscate message
-        end
-
-        def insert_trace_context_headers request
-          insert_trace_context carrier: request
         end
 
       end

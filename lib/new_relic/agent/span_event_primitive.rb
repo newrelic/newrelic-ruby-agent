@@ -16,7 +16,6 @@ module NewRelic
 
       # Strings for static keys of the event structure
       ELLIPSIS             = '...'.freeze
-      EMPTY_STR            = ''.freeze
       TYPE_KEY             = 'type'.freeze
       TRACE_ID_KEY         = 'traceId'.freeze
       GUID_KEY             = 'guid'.freeze
@@ -48,14 +47,11 @@ module NewRelic
       DATASTORE_CATEGORY = 'datastore'.freeze
       CLIENT             = 'client'.freeze
 
-      # To avoid allocations when we have empty custom or agent attributes
-      EMPTY_HASH = {}.freeze
-
       def for_segment segment
         intrinsics = intrinsics_for(segment)
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
 
-        [intrinsics, custom_attributes(segment.attributes), EMPTY_HASH]
+        [intrinsics, custom_attributes(segment.attributes), NewRelic::EMPTY_HASH]
       end
 
       def for_external_request_segment segment
@@ -123,7 +119,7 @@ module NewRelic
           if txn = segment.transaction
             if header_data = txn.distributed_tracer.trace_context_header_data
               if trace_state_vendors = header_data.trace_state_vendors
-                intrinsics[TRACING_VENDORS_KEY] = trace_state_vendors unless trace_state_vendors == EMPTY_STR
+                intrinsics[TRACING_VENDORS_KEY] = trace_state_vendors unless trace_state_vendors == NewRelic::EMPTY_STR
               end
             end
             if trace_state_payload = txn.distributed_tracer.trace_state_payload
@@ -143,7 +139,7 @@ module NewRelic
           result = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
           result.freeze
         else
-          EMPTY_HASH
+          NewRelic::EMPTY_HASH
         end
       end
 

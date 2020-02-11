@@ -46,7 +46,7 @@ module NewRelic
 
         def accept_trace_context_incoming_request request
           header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse(
-            format: NewRelic::Agent::DistributedTracing::TraceContext::FORMAT_RACK,
+            format: NewRelic::FORMAT_RACK,
             carrier: request,
             trace_state_entry_key: AccountHelpers.trace_state_entry_key,
           )
@@ -56,15 +56,12 @@ module NewRelic
         end
         private :accept_trace_context_incoming_request
 
-        def insert_trace_context \
-            format: NewRelic::Agent::DistributedTracing::TraceContext::FORMAT_NON_RACK,
-            carrier: nil
-
+        def insert_trace_context_header header, format=NewRelic::FORMAT_NON_RACK
           return unless Agent.config[:'distributed_tracing.enabled']
 
           NewRelic::Agent::DistributedTracing::TraceContext.insert \
             format: format,
-            carrier: carrier,
+            carrier: header,
             trace_id: transaction.trace_id.rjust(32, '0').downcase,
             parent_id: transaction.current_segment.guid,
             trace_flags: transaction.sampled? ? 0x1 : 0x0,

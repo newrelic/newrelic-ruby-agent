@@ -13,6 +13,9 @@ module NewRelic
   HTTP = "HTTP"
   HTTPS = "HTTPS"
 
+  FORMAT_NON_RACK = 0
+  FORMAT_RACK = 1
+
   NEWRELIC_KEY = "newrelic"
   CANDIDATE_NEWRELIC_KEYS = [
     NEWRELIC_KEY,

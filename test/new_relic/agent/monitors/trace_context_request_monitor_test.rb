@@ -107,9 +107,7 @@ module NewRelic
         parent_txn = in_transaction "referring_txn" do |txn|
           Agent.instance.stubs(:connected?).returns(true)
           txn.sampled = true
-          txn.distributed_tracer.insert_trace_context \
-            format: DistributedTracing::TraceContext::FORMAT_RACK,
-            carrier: carrier
+          txn.distributed_tracer.insert_trace_context_header carrier, NewRelic::FORMAT_RACK
           Agent.instance.unstub(:connected?)
         end
         [parent_txn, carrier]
