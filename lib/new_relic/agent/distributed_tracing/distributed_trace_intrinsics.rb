@@ -44,9 +44,6 @@ module NewRelic
 
       # This method takes all distributed tracing intrinsics from the transaction
       # and the trace_payload, and populates them into the destination
-
-      # TODO: with both distributed_tracing and trace_context outgoing,
-      # TODO: we're now coming through this method twice!  REFACTOR!
       def copy_from_transaction transaction, trace_payload, destination
         transport_type = transaction.distributed_tracer.caller_transport_type
         destination[PARENT_TRANSPORT_TYPE_KEY] = DistributedTraceTransportType.from transport_type
