@@ -74,7 +74,6 @@ module NewRelic
             accept_headers(test_case, txn)
             raise_exception(test_case)
             outbound_payloads = create_payloads(test_case, txn)
-            outbound_newrelic_payloads = create_newrelic_payloads(test_case, txn, outbound_payloads)
           end
 
           verify_metrics(test_case)
@@ -82,7 +81,6 @@ module NewRelic
           verify_error_intrinsics(test_case)
           verify_span_intrinsics(test_case)
           verify_outbound_payloads(test_case, outbound_payloads)
-          verify_outbound_newrelic_payloads(test_case, outbound_newrelic_payloads)
         end
 
         def accept_headers(test_case, txn)
@@ -105,7 +103,6 @@ module NewRelic
         def create_newrelic_payloads(test_case, txn, w3c_payloads)
           outbound_payloads = []
           if test_case['outbound_newrelic_payloads']
-            payloads = Array(test_case['outbound_newrelic_payloads'])
             w3c_payloads.each do |w3c_payload|
               if newrelic_header = w3c_payload["newrelic"]
                 outbound_payloads << DistributedTracePayload.from_http_safe(newrelic_header)
@@ -117,15 +114,44 @@ module NewRelic
           outbound_payloads
         end
 
+        def newrelic_key key
+          const_name = "NewRelic::Agent::DistributedTracePayload::#{key.upcase}_KEY"
+          Object.const_get const_name
+        end
+
+        def assign_not_nil_value headers, key, value
+          return if value.nil?
+          headers[newrelic_key(key)] = value
+        end
+
+        # builds a dotted hash version of newrelic header from its parsed json payload
+        def add_newrelic_entries payload, newrelic_header
+          return unless newrelic_header
+          return unless newrelic_payload = DistributedTracePayload.from_http_safe(newrelic_header)
+
+          payload["newrelic"] = {
+            newrelic_key(:version) => newrelic_payload.version,
+            newrelic_key(:data) => {}
+          }
+          data_payload = payload["newrelic"][newrelic_key(:data)]
+          assign_not_nil_value data_payload, :parent_type, newrelic_payload.parent_type
+          assign_not_nil_value data_payload, :parent_account_id, newrelic_payload.parent_account_id
+          assign_not_nil_value data_payload, :parent_app, newrelic_payload.parent_app_id
+          assign_not_nil_value data_payload, :trusted_account, newrelic_payload.trusted_account_key
+          assign_not_nil_value data_payload, :id, newrelic_payload.id
+          assign_not_nil_value data_payload, :tx, newrelic_payload.transaction_id
+          assign_not_nil_value data_payload, :trace_id, newrelic_payload.trace_id
+          assign_not_nil_value data_payload, :sampled, newrelic_payload.sampled
+          assign_not_nil_value data_payload, :timestamp, newrelic_payload.timestamp
+          assign_not_nil_value data_payload, :priority, newrelic_payload.priority
+        end
+
         def create_payloads(test_case, txn)
           outbound_payloads = []
           payloads = Array(test_case['outbound_payloads'])
 
-          [1, payloads.count].max.times do
+          [1, payloads.count].max.times do |index|
             outbound_headers = {}
-            # TODO: these two calls are too low-level.  We should
-            # TODO: process at a higher-level to exercise intended
-            # TODO: real-world scenarios of the agent.
             txn.distributed_tracer.append_payload outbound_headers
             txn.distributed_tracer.insert_headers outbound_headers
             outbound_payloads << outbound_headers
@@ -264,24 +290,13 @@ module NewRelic
 
           test_case_payloads.zip(actual_payloads).each do |test_case_data, actual|
             context_hash = trace_context_headers_to_hash actual
+            add_newrelic_entries context_hash, actual["newrelic"]
+
             dotted_context_hash = NewRelic::Agent::Configuration::DottedHash.new context_hash
             stringified_hash = stringify_keys_in_object dotted_context_hash
-
             verify_attributes test_case_data, stringified_hash, 'TraceContext Payload'
           end
         end
-
-      def verify_outbound_newrelic_payloads(test_case, actual_payloads)
-        return unless (test_case_payloads = test_case['outbound_newrelic_payloads'])
-        assert_equal test_case_payloads.count, actual_payloads.count
-
-        test_case_payloads.zip(actual_payloads).each do |test_case_data, actual|
-          actual = stringify_keys_in_object(
-            NewRelic::Agent::Configuration::DottedHash.new(
-              JSON.parse(actual.text)))
-          verify_attributes test_case_data, actual, 'DistributedTracing Payload'
-        end
-      end
 
         def verify_metrics(test_case)
           expected_metrics = test_case['expected_metrics'].inject({}) do |memo, (metric_name, call_count)|

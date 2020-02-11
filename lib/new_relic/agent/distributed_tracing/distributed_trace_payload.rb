@@ -74,7 +74,7 @@ module NewRelic
           payload.transaction_id      = payload_data[TX_KEY]
           payload.trace_id            = payload_data[TRACE_ID_KEY]
           payload.sampled             = payload_data[SAMPLED_KEY]
-          payload.priority            = float! payload_data[PRIORITY_KEY]
+          payload.priority            = payload_data[PRIORITY_KEY]
 
           payload
         end

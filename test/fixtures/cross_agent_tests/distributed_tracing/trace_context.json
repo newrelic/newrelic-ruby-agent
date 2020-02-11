@@ -1535,19 +1535,24 @@
         "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"Mobile\",\"ac\":\"123\",\"ap\":\"51424\",\"id\":\"5f474d64b9cc9b2a\",\"tr\":\"6e2fea0b173fdad0\",\"pr\":0.1234,\"sa\":true,\"ti\":1482959525577,\"tx\":\"27856f70d3d314b7\"}}"
       }
     ],
-    "outbound_newrelic_payloads": [
+    "outbound_payloads": [
       {
         "exact": {
-          "v": [0, 1],
-          "d.ty": "App",
-          "d.ac": "33",
-          "d.ap": "2827902",
-          "d.tr": "da8bc8cc6d062849b0efcf3c169afb5a",
-          "d.pr": 1.23456,
-          "d.sa": true
+          "newrelic.v": [0, 1],
+          "newrelic.d.ty": "App",
+          "newrelic.d.ac": "33",
+          "newrelic.d.ap": "2827902",
+          "newrelic.d.tr": "da8bc8cc6d062849b0efcf3c169afb5a",
+          "newrelic.d.pr": 1.23456,
+          "newrelic.d.sa": true
         },
-        "expected": ["d.pr", "d.ap", "d.tx", "d.ti", "d.id"],
-        "unexpected": ["d.tk"]
+        "expected": [
+          "newrelic.d.pr", 
+          "newrelic.d.ap", 
+          "newrelic.d.tx", 
+          "newrelic.d.ti", 
+          "newrelic.d.id"],
+        "unexpected": ["newrelic.d.tk"]
       }
     ],
     "intrinsics": {
@@ -1610,20 +1615,27 @@
         "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"Mobile\",\"ac\":\"123\",\"ap\":\"51424\",\"id\":\"5f474d64b9cc9b2a\",\"tr\":\"6e2fea0b173fdad0\",\"pr\":0.1234,\"sa\":true,\"ti\":1482959525577,\"tx\":\"27856f70d3d314b7\"}}"
       }
     ],
-    "outbound_newrelic_payloads": [
+    "outbound_payloads": [
       {
         "exact": {
-          "v": [0, 1],
-          "d.ty": "App",
-          "d.ac": "33",
-          "d.ap": "2827902",
-          "d.sa": true
+          "newrelic.v": [0, 1],
+          "newrelic.d.ty": "App",
+          "newrelic.d.ac": "33",
+          "newrelic.d.ap": "2827902",
+          "newrelic.d.sa": true
         },
         "notequal": {
-          "d.tr": "6e2fea0b173fdad0"
+          "newrelic.d.tr": "6e2fea0b173fdad0"
         },
-        "expected": ["d.pr", "d.ap", "d.tx", "d.ti", "d.id", "d.tr"],
-        "unexpected": ["d.tk"]
+        "expected": [
+          "newrelic.d.pr", 
+          "newrelic.d.ap", 
+          "newrelic.d.tx", 
+          "newrelic.d.ti", 
+          "newrelic.d.id", 
+          "newrelic.d.tr"
+        ],
+        "unexpected": ["newrelic.d.tk"]
       }
     ],
     "intrinsics": {
@@ -1658,18 +1670,24 @@
         "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"Mobile\",\"ac\":\"123\",\"ap\":\"51424\",\"id\":\"5f474d64b9cc9b2a\",\"tr\":\"6e2fea0b173fdad0\",\"pr\":0.1234,\"sa\":true,\"ti\":1482959525577,\"tx\":\"27856f70d3d314b7\"}}"
       }
     ],
-    "outbound_newrelic_payloads": [
+    "outbound_payloads": [
       {
         "exact": {
-          "v": [0, 1],
-          "d.ty": "App",
-          "d.ac": "33",
-          "d.ap": "2827902",
-          "d.tr": "da8bc8cc6d062849b0efcf3c169afb5a",
-          "d.sa": true
+          "newrelic.v": [0, 1],
+          "newrelic.d.ty": "App",
+          "newrelic.d.ac": "33",
+          "newrelic.d.ap": "2827902",
+          "newrelic.d.tr": "da8bc8cc6d062849b0efcf3c169afb5a",
+          "newrelic.d.sa": true
         },
-        "expected": ["d.pr", "d.ap", "d.tx", "d.ti", "d.id"],
-        "unexpected": ["d.tk"]
+        "expected": [
+          "newrelic.d.pr", 
+          "newrelic.d.ap", 
+          "newrelic.d.tx", 
+          "newrelic.d.ti", 
+          "newrelic.d.id"
+        ],
+        "unexpected": ["newrelic.d.tk"]
       }
     ],
     "intrinsics": {
@@ -1723,21 +1741,6 @@
         "newrelic": "{\"v\":[0,1],\"d\":{\"ty\":\"App\",\"ac\":\"33\",\"ap\":\"51424\",\"id\":\"5f474d64b9cc9b2a\",\"tr\":\"6E2fEA0B173FDAD0\",\"pr\":1.1234321,\"sa\":true,\"ti\":1482959525577,\"tx\":\"27856f70d3d314b7\"}}"
       }
     ],
-    "outbound_newrelic_payloads": [
-      {
-        "exact": {
-          "v": [0, 1],
-          "d.ty": "App",
-          "d.ac": "33",
-          "d.ap": "2827902",
-          "d.tr": "6E2fEA0B173FDAD0",
-          "d.sa": true,
-          "d.pr": 1.123432
-        },
-        "expected": ["d.ap", "d.tx", "d.ti", "d.id"],
-        "unexpected": ["d.tk"]
-      }
-    ],
     "outbound_payloads": [
       {
         "exact": {
@@ -1749,15 +1752,27 @@
           "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "33",
           "tracestate.sampled": true,
-          "tracestate.priority": 1.123432
+          "tracestate.priority": 1.123432,
+          "newrelic.v": [0, 1],
+          "newrelic.d.ty": "App",
+          "newrelic.d.ac": "33",
+          "newrelic.d.ap": "2827902",
+          "newrelic.d.tr": "6E2fEA0B173FDAD0",
+          "newrelic.d.sa": true,
+          "newrelic.d.pr": 1.1234321
         },
         "expected": [
           "traceparent.parent_id",
           "tracestate.timestamp",
           "tracestate.parent_application_id",
           "tracestate.span_id",
-          "tracestate.transaction_id"
-        ]
+          "tracestate.transaction_id",
+          "newrelic.d.ap", 
+          "newrelic.d.tx", 
+          "newrelic.d.ti", 
+          "newrelic.d.id"
+        ],
+        "unexpected": ["newrelic.d.tk"]
       }
     ],
     "intrinsics": {
@@ -1823,7 +1838,14 @@
           "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "33",
           "tracestate.sampled": true,
-          "tracestate.priority": 1.23456
+          "tracestate.priority": 1.23456,
+          "newrelic.v": [0, 1],
+          "newrelic.d.ty": "App",
+          "newrelic.d.ac": "33",
+          "newrelic.d.ap": "2827902",
+          "newrelic.d.tr": "da8bc8cc6d062849b0efcf3c169afb5a",
+          "newrelic.d.sa": true,
+          "newrelic.d.pr": 1.23456
         },
         "expected": [
           "traceparent.trace_flags",
@@ -1831,23 +1853,12 @@
           "tracestate.span_id",
           "tracestate.transaction_id",
           "tracestate.parent_application_id",
-          "tracestate.timestamp"
-        ]
-      }
-    ],
-    "outbound_newrelic_payloads": [
-      {
-        "exact": {
-          "v": [0, 1],
-          "d.ty": "App",
-          "d.ac": "33",
-          "d.ap": "2827902",
-          "d.tr": "da8bc8cc6d062849b0efcf3c169afb5a",
-          "d.sa": true,
-          "d.pr": 1.23456
-        },
-        "expected": ["d.tx", "d.ti", "d.id"],
-        "unexpected": ["d.tk"]
+          "tracestate.timestamp",
+          "newrelic.d.tx", 
+          "newrelic.d.ti", 
+          "newrelic.d.id"
+        ],
+        "unexpected": ["newrelic.d.tk"]
       }
     ],
     "expected_metrics": [
@@ -1885,7 +1896,14 @@
           "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "33",
           "tracestate.sampled": true,
-          "tracestate.priority": 1.23456
+          "tracestate.priority": 1.23456,
+          "newrelic.v": [0, 1],
+          "newrelic.d.ty": "App",
+          "newrelic.d.ac": "33",
+          "newrelic.d.ap": "2827902",
+          "newrelic.d.tr": "da8bc8cc6d062849b0efcf3c169afb5a",
+          "newrelic.d.sa": true,
+          "newrelic.d.pr": 1.23456
         },
         "expected": [
           "traceparent.trace_flags",
@@ -1893,23 +1911,12 @@
           "tracestate.span_id",
           "tracestate.transaction_id",
           "tracestate.parent_application_id",
-          "tracestate.timestamp"
-        ]
-      }
-    ],
-    "outbound_newrelic_payloads": [
-      {
-        "exact": {
-          "v": [0, 1],
-          "d.ty": "App",
-          "d.ac": "33",
-          "d.ap": "2827902",
-          "d.tr": "da8bc8cc6d062849b0efcf3c169afb5a",
-          "d.sa": true,
-          "d.pr": 1.23456
-        },
-        "expected": ["d.tx", "d.ti", "d.id"],
-        "unexpected": ["d.tk"]
+          "tracestate.timestamp",
+          "newrelic.d.tx", 
+          "newrelic.d.ti", 
+          "newrelic.d.id"
+        ],
+        "unexpected": ["newrelic.d.tk"]
       }
     ],
     "expected_metrics": [
@@ -1946,7 +1953,15 @@
           "tracestate.parent_type": 0,
           "tracestate.parent_account_id": "33",
           "tracestate.sampled": true,
-          "tracestate.priority": 1.23456
+          "tracestate.priority": 1.23456,
+          "newrelic.v": [0, 1],
+          "newrelic.d.ty": "App",
+          "newrelic.d.ac": "33",
+          "newrelic.d.ap": "2827902",
+          "newrelic.d.tr": "da8bc8cc6d062849b0efcf3c169afb5a",
+          "newrelic.d.sa": true,
+          "newrelic.d.pr": 1.23456
+
         },
         "expected": [
           "traceparent.trace_flags",
@@ -1954,23 +1969,12 @@
           "tracestate.span_id",
           "tracestate.transaction_id",
           "tracestate.parent_application_id",
-          "tracestate.timestamp"
-        ]
-      }
-    ],
-    "outbound_newrelic_payloads": [
-      {
-        "exact": {
-          "v": [0, 1],
-          "d.ty": "App",
-          "d.ac": "33",
-          "d.ap": "2827902",
-          "d.tr": "da8bc8cc6d062849b0efcf3c169afb5a",
-          "d.sa": true,
-          "d.pr": 1.23456
-        },
-        "expected": ["d.tx", "d.ti", "d.id"],
-        "unexpected": ["d.tk"]
+          "tracestate.timestamp",
+          "newrelic.d.tx", 
+          "newrelic.d.ti", 
+          "newrelic.d.id"
+        ],
+        "unexpected": ["newrelic.d.tk"]
       }
     ],
     "expected_metrics": [
