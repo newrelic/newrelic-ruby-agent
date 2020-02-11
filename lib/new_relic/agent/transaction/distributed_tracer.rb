@@ -83,7 +83,7 @@ module NewRelic
         end
 
         def assign_intrinsics
-          if Agent.config[:'distributed_tracing.enabled'] || trace_context_active?
+          if Agent.config[:'distributed_tracing.enabled']
             DistributedTraceIntrinsics.copy_to_attributes transaction.payload, transaction.attributes
           elsif is_cross_app?
             assign_cross_app_intrinsics

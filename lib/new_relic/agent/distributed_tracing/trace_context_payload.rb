@@ -109,15 +109,13 @@ module NewRelic
         false
       end
 
-      EMPTY = "".freeze
-
       def to_s
         result = version.to_s
         result << DELIMITER << parent_type_id.to_s
         result << DELIMITER << parent_account_id
         result << DELIMITER << parent_app_id
-        result << DELIMITER << (id || EMPTY)
-        result << DELIMITER << (transaction_id || EMPTY)
+        result << DELIMITER << (id || NewRelic::EMPTY_STR)
+        result << DELIMITER << (transaction_id || NewRelic::EMPTY_STR)
         result << DELIMITER << (sampled ? TRUE_CHAR : FALSE_CHAR)
         result << DELIMITER << priority.to_s
         result << DELIMITER << timestamp.to_s

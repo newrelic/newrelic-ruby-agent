@@ -60,7 +60,7 @@ module NewRelic
             format: NewRelic::Agent::DistributedTracing::TraceContext::FORMAT_NON_RACK,
             carrier: nil
 
-          return unless trace_context_active?
+          return unless Agent.config[:'distributed_tracing.enabled']
 
           NewRelic::Agent::DistributedTracing::TraceContext.insert \
             format: format,
@@ -96,7 +96,7 @@ module NewRelic
         end
 
         def create_trace_state_payload
-          unless trace_context_enabled?
+          unless Agent.config[:'distributed_tracing.enabled']
             NewRelic::Agent.logger.warn "Not configured to create WC3 trace context payload"
             return
           end
@@ -163,16 +163,6 @@ module NewRelic
 
         def trace_context_inserted?
           @trace_context_inserted ||= false
-        end
-
-        private
-
-        def trace_context_enabled?
-          Agent.config[:'distributed_tracing.enabled']
-        end
-
-        def trace_context_active?
-          trace_context_enabled? && Agent.instance.connected?
         end
 
       end

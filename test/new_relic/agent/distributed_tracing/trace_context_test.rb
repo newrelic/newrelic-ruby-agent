@@ -11,9 +11,9 @@ module NewRelic::Agent::DistributedTracing
       @config = {
         :account_id => "190",
         :primary_application_id => "46954",
-        :disable_harvest_thread => true
+        :disable_harvest_thread => true,
+        :'distributed_tracing.enabled' => true
       }
-      NewRelic::Agent::Transaction::DistributedTracer.any_instance.stubs(:trace_context_enabled?).returns(true)
       NewRelic::Agent.config.add_config_for_testing(@config)
     end
 

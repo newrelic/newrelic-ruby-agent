@@ -46,8 +46,8 @@ module NewRelic
           return nil
         end
 
-        transaction = Transaction.tl_current
-        transaction.distributed_tracer.create_distributed_trace_payload if transaction
+        return unless transaction = Transaction.tl_current
+        transaction.distributed_tracer.create_distributed_trace_payload
       rescue => e
         NewRelic::Agent.logger.error 'error during create_distributed_trace_payload', e
         nil
