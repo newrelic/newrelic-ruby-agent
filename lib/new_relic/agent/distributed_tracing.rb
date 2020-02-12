@@ -100,8 +100,8 @@ module NewRelic
       # New Relic distributed tracing header by default. New Relic headers may be suppressed by
       # setting +exclude_new_relic_header+ to +true+ in your configuration file.
       #
-      # @param headers           [Hash]     Is a Hash containing the distributed trace headers and
-      #                                     values.
+      # @param headers           [Hash]     Is a Hash to which the distributed trace headers 
+      #                                     will be inserted.
       #
       # @return           {Transaction}     The transaction the headers were inserted from,
       #                                     or +nil+ if headers were not inserted.
@@ -127,19 +127,29 @@ module NewRelic
         nil
       end
 
-      # Accepts distributed tracing information from protocols the agent does
-      # not already support by accepting distributed trace headers from another transaction.
+      # Accepts distributed tracing headers from any source that has been packaged 
+      # as a Ruby Hash, thereby allowing the user to manually inject distributed
+      # tracing headers.  It is optimized to process +HTTP_TRACEPARENT+, +HTTP_TRACESTATE+, 
+      # and +HTTP_NEWRELIC+ as the given Hash keys.  which is the most common scenario 
+      # from Rack middleware in most Ruby applications.  However, the Hash keys are 
+      # case-insensitive and the "HTTP_" prefixes may also be omitted.
       #
       # Calling this method is not necessary in a typical HTTP trace as
       # distributed tracing is already handled by the agent.
       #
-      # When used, invoke this method as early as possible as calling after
-      # the headers are already created will have no effect.
+      # When used, invoke this method as early as possible in a transaction's life-cycle
+      # as calling after the headers are already created will have no effect.
       #
       # This method accepts both W3C trace context and New Relic distributed tracing headers.
-      # When both are present, only the W3C headers are utilized.
+      # When both are present, only the W3C headers are utilized.  When W3C trace context 
+      # headers are present, New Relic headers are ignored regardless if W3C trace context
+      # headers are valid and parsable.  
       #
-      # @param headers         [Hash]     Incoming distributed trace payload,
+      # @param headers         [Hash]     Incoming distributed trace headers as a Ruby 
+      #                                   Hash object.  Hash keys are expected to be one of
+      #                                   +TRACEPARENT+, +TRACESTATE+, +NEWRELIC+ and are 
+      #                                   case-insensitive, with or without "HTTP_" prefixes.
+      #
       #                                   either as a JSON string or as a
       #                                   header-friendly string returned from
       #                                   {DistributedTracePayload#http_safe}
