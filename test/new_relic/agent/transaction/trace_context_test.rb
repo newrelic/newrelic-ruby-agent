@@ -375,7 +375,7 @@ module NewRelic::Agent
           end
         end
 
-        def test_omits_span_guid_from_payload_when_analytics_events_disabled
+        def test_omits_span_guid_from_payload_when_span_events_disabled
           nr_freeze_time
 
           payload = nil

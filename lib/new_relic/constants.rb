@@ -12,6 +12,7 @@ module NewRelic
 
   HTTP = "HTTP"
   HTTPS = "HTTPS"
+  UNKNOWN = "Unknown"
 
   FORMAT_NON_RACK = 0
   FORMAT_RACK = 1
@@ -24,8 +25,8 @@ module NewRelic
     'Newrelic'
   ].freeze
 
-  TRACEPARENT_KEY = 'traceparent'
-  TRACESTATE_KEY = 'tracestate'
+  TRACEPARENT_KEY = "traceparent"
+  TRACESTATE_KEY = "tracestate"
 
   HTTP_TRACEPARENT_KEY = "HTTP_#{TRACEPARENT_KEY.upcase}"
   HTTP_TRACESTATE_KEY = "HTTP_#{TRACESTATE_KEY.upcase}"
