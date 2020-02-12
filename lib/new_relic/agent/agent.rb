@@ -49,6 +49,7 @@ module NewRelic
       def initialize
         @started = false
         @event_loop = nil
+        @worker_thread = nil
 
         @service = NewRelicService.new
 
