@@ -6,6 +6,13 @@
 
     The Ruby agent has been verified to run with Ruby 2.7.0.
 
+  * **Reduced allocations when tracing transactions using API calls**
+
+    Default empty hashes for `options` parameter were not frozen, leading to 
+    excessive and unnecessary allocations when calling APIs for tracing transactions.
+
+    Thanks to Joel Turkel (jturkel) for the contribution! 
+
   * **Bugfix for Content-Length when injecting Browser Monitoring JS**
     
     The Content-Length HTTP header would be incorrect after injecting the Browser Monitoring
