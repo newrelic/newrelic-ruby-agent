@@ -1,9 +1,11 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
   module Coerce
+
     module_function
 
     # We really don't want to send bad values to the collector, and it doesn't
@@ -74,13 +76,13 @@ module NewRelic
       value.to_i
     end
 
-    def float! value
+    def float! value, precision=NewRelic::PRIORITY_PRECISION
       return nil unless value_or_nil(value)
-      value.to_f
+      value.to_f.round(precision)
     end
 
     def value_or_nil value
-      return nil if value.nil? || value.empty?
+      return nil if value.nil? || (value.respond_to?(:empty?) && value.empty?)
       value
     end
 

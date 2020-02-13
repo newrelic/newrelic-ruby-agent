@@ -58,9 +58,7 @@ module NewRelic
                     :http_response_code,
                     :response_content_length,
                     :response_content_type,
-                    :parent_transaction_id,
                     :parent_span_id
-
 
       attr_reader :guid,
                   :metrics,
@@ -287,11 +285,7 @@ module NewRelic
       end
 
       def priority
-        if @priority.nil?
-          @priority = rand.round(6)
-          @priority += 1 if sampled?
-        end
-        @priority
+        @priority ||= (sampled? ? 1.0 + rand : rand).round(NewRelic::PRIORITY_PRECISION)
       end
 
       def referer

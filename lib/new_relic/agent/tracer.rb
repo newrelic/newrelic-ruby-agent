@@ -201,7 +201,7 @@ module NewRelic
 
         def accept_distributed_trace_payload(payload)
           return unless txn = current_transaction
-          txn.accept_distributed_trace_payload(payload)
+          txn.distributed_tracer.accept_distributed_trace_payload(payload)
         end
 
         # Returns the currently active segment in the transaction in

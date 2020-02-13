@@ -14,7 +14,6 @@ module NewRelic
         @config = {
           :'cross_application_tracer.enabled' => false,
           :'distributed_tracing.enabled' => true,
-          :'distributed_tracing.format' => 'w3c',
           :encoding_key                  => "\0",
           :account_id                    => "190",
           :primary_application_id        => "46954",
@@ -37,7 +36,7 @@ module NewRelic
         end
 
         refute_nil child_txn.distributed_tracer.trace_context_header_data
-        assert_equal parent_txn.guid, child_txn.parent_transaction_id
+        assert_equal parent_txn.guid, child_txn.distributed_tracer.parent_transaction_id
         assert_equal parent_txn.trace_id, child_txn.trace_id
       end
 
@@ -74,19 +73,6 @@ module NewRelic
         refute_equal '00000000000000000000000000000000', txn.trace_id
       end
 
-      def test_does_not_accept_trace_context_if_trace_context_disabled
-        with_disabled_defaults_transformer :'distributed_tracing.format' do
-          with_config @config.merge({ :'distributed_tracing.format' => 'somethingelse' }) do
-            _, carrier = build_parent_transaction_headers
-
-            child_txn = in_transaction "receiving_txn" do |txn|
-              @events.notify(:before_call, carrier)
-            end
-            assert_nil child_txn.distributed_tracer.trace_context_header_data
-          end
-        end
-      end
-
       def test_does_not_accept_trace_context_if_not_in_transaction
         _, carrier = build_parent_transaction_headers
         assert_nil @monitor.on_before_call(carrier)
@@ -121,9 +107,7 @@ module NewRelic
         parent_txn = in_transaction "referring_txn" do |txn|
           Agent.instance.stubs(:connected?).returns(true)
           txn.sampled = true
-          txn.distributed_tracer.insert_trace_context \
-            format: DistributedTracing::TraceContext::FORMAT_RACK,
-            carrier: carrier
+          txn.distributed_tracer.insert_trace_context_header carrier, NewRelic::FORMAT_RACK
           Agent.instance.unstub(:connected?)
         end
         [parent_txn, carrier]

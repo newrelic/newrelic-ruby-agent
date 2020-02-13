@@ -1878,16 +1878,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Distributed tracing lets you see the path that a request takes through your distributed system. Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the <a href="https://docs.newrelic.com/docs/transition-guide-distributed-tracing">transition guide</a> before you enable this feature.'
         },
-        :'distributed_tracing.format' => {
-          :default => 'newrelic',
-          :public => false,
-          :type => String,
-          :transform => DefaultSource.enforce_fallback(
-            allowed_values: ['w3c', 'newrelic'],
-            fallback: 'newrelic'),
-          :allowed_from_server => false,
-          :description => 'The format to use for distributed tracing if it is enabled. Options are w3c for W3C Trace Context or newrelic for New Relic Distriburted Tracing. Defaults to New Relic Distributed Tracing.'
-        },
         :trusted_account_key => {
           :default => nil,
           :allow_nil => true,
@@ -1923,6 +1913,13 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => true,
           :description => 'Defines the maximum number of span events reported from a single harvest.'
+        },
+        :'exclude_newrelic_header' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => "Allows newrelic distributed tracing headers to be suppressed on outbound requests."
         }
       }.freeze
     end

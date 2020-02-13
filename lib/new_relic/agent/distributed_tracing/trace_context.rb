@@ -10,17 +10,8 @@ module NewRelic
     module DistributedTracing
       class TraceContext
         VERSION = 0x0
-        TRACE_PARENT = 'traceparent'
-        TRACE_STATE  = 'tracestate'
-
-        TRACE_PARENT_RACK = 'HTTP_TRACEPARENT'
-        TRACE_STATE_RACK  = 'HTTP_TRACESTATE'
-
-        FORMAT_HTTP = 0
-        FORMAT_RACK = 1
 
         COMMA             = ','
-        EMPTY_STRING      = ''
         EQUALS            = '='
         INVALID_TRACE_ID  = ('0' * 32)
         INVALID_PARENT_ID = ('0' * 16)
@@ -46,9 +37,10 @@ module NewRelic
 
         SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION = "Supportability/TraceContext/TraceParent/Parse/Exception"
         SUPPORTABILITY_TRACE_STATE_PARSE_EXCEPTION  = "Supportability/TraceContext/TraceState/Parse/Exception"
+        SUPPORTABILITY_TRACE_STATE_INVALID_NR_ENTRY = "Supportability/TraceContext/TraceState/InvalidNrEntry"
 
         class << self
-          def insert format: FORMAT_HTTP,
+          def insert format: NewRelic::FORMAT_NON_RACK,
                      carrier: nil,
                      parent_id: nil,
                      trace_id: nil,
@@ -65,7 +57,7 @@ module NewRelic
             carrier[trace_state_header] = trace_state if trace_state && !trace_state.empty?
           end
 
-          def parse format: FORMAT_HTTP,
+          def parse format: NewRelic::FORMAT_NON_RACK,
                     carrier: nil,
                     trace_state_entry_key: nil
             trace_parent = extract_traceparent(format, carrier)
@@ -122,18 +114,18 @@ module NewRelic
           end
 
           def trace_parent_header_for_format format
-            if format == FORMAT_RACK
-              TRACE_PARENT_RACK
+            if format == NewRelic::FORMAT_RACK
+              NewRelic::HTTP_TRACEPARENT_KEY
             else
-              TRACE_PARENT
+              NewRelic::TRACEPARENT_KEY
             end
           end
 
           def trace_state_header_for_format format
-            if format == FORMAT_RACK
-              TRACE_STATE_RACK
+            if format == NewRelic::FORMAT_RACK
+              NewRelic::HTTP_TRACESTATE_KEY
             else
-              TRACE_STATE
+              NewRelic::TRACESTATE_KEY
             end
           end
 
@@ -144,7 +136,7 @@ module NewRelic
 
             payload = nil
             trace_state_size = 0
-            trace_state_vendors = ''.dup
+            trace_state_vendors = String.new
             trace_state = header.split(COMMA).map(&:strip)
             trace_state.reject! do |entry|
               vendor_id = entry.slice 0, entry.index(EQUALS)
@@ -158,7 +150,7 @@ module NewRelic
               end
             end
 
-            trace_state_vendors.chomp! COMMA unless trace_state_vendors.empty?
+            trace_state_vendors.chomp! COMMA
 
             HeaderData.create trace_state_payload: payload ? decode_payload(payload) : nil,
                         trace_state_entries: trace_state,
@@ -168,6 +160,11 @@ module NewRelic
 
           def decode_payload payload
             TraceContextPayload.from_s payload
+          rescue
+            if payload
+              NewRelic::Agent.increment_metric SUPPORTABILITY_TRACE_STATE_INVALID_NR_ENTRY
+            end
+            return nil
           end
         end
 
@@ -215,7 +212,7 @@ module NewRelic
           private
 
           def join_trace_state trace_state_entry_size
-            return @trace_state || EMPTY_STRING if @trace_state_entries.nil? || @trace_state_entries.empty?
+            return @trace_state || NewRelic::EMPTY_STR if @trace_state_entries.nil? || @trace_state_entries.empty?
 
             max_size = MAX_TRACE_STATE_SIZE - trace_state_entry_size
             return @trace_state_entries.join(COMMA).prepend(COMMA) if @trace_state_size < max_size

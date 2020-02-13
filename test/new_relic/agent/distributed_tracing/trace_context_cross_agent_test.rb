@@ -10,36 +10,54 @@ module NewRelic
   module Agent
     module DistributedTracing
       class TraceContextCrossAgentTest < Minitest::Test
+
         def setup
+          NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
           NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
           NewRelic::Agent::Transaction::DistributedTracer.any_instance.stubs(:trace_context_active?).returns(true)
-          agent_event_listener = mock(:subscribe)
-          @request_monitor = DistributedTracing::Monitor.new agent_event_listener
-          NewRelic::Agent.drop_buffered_data
+          @request_monitor = DistributedTracing::Monitor.new(EventListener.new)
+          reset_buffers_and_caches
         end
 
         def teardown
-          NewRelic::Agent.drop_buffered_data
-          NewRelic::Agent::Transaction::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
+          reset_buffers_and_caches
+        end
+
+        def verbose_attributes?
+          !TraceContextCrossAgentTest.focus_tests.empty?
+        end
+
+        # This method, when returning a non-empty array, will cause the tests defined in the
+        # JSON file to be skipped if they're not listed here.  Useful for focusing on specific
+        # failing tests.
+        def self.focus_tests
+          []
         end
 
         load_cross_agent_test("distributed_tracing/trace_context").each do |test_case|
           test_case['test_name'] = test_case['test_name'].tr(" ", "_")
 
-          define_method("test_#{test_case['test_name']}") do
-            NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case["force_sampled_true"])
+          if focus_tests.empty? || focus_tests.include?(test_case['test_name'])
 
-            config = {
-              :'distributed_tracing.enabled' => true,
-              :'distributed_tracing.format'  => 'w3c',
-              :account_id                    => test_case['account_id'],
-              :primary_application_id        => "2827902",
-              :trusted_account_key           => test_case['trusted_account_key'],
-              :'span_events.enabled'         => test_case['span_events_enabled']
-            }
+            define_method("test_#{test_case['test_name']}") do
+              NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case["force_sampled_true"])
 
-            with_server_source(config) do
-              run_test_case(test_case)
+              config = {
+                :'distributed_tracing.enabled' => true,
+                :account_id                    => test_case['account_id'],
+                :primary_application_id        => "2827902",
+                :'analytics_events.enabled'    => test_case.fetch('transaction_events_enabled', true),
+                :trusted_account_key           => test_case['trusted_account_key'],
+                :'span_events.enabled'         => test_case.fetch('span_events_enabled', true)
+              }
+
+              with_server_source(config) do
+                run_test_case(test_case)
+              end
+            end
+          else
+            define_method("test_#{test_case['test_name']}") do
+              skip("marked pending by exclusion from #focus_tests")
             end
           end
         end
@@ -48,7 +66,10 @@ module NewRelic
 
         def run_test_case(test_case)
           outbound_payloads = []
-
+          outbound_newrelic_payloads = []
+          if test_case['test_name'] =~ /^pending|^skip/ || test_case["pending"] || test_case["skip"]
+            skip("marked pending in trace_context.json")
+          end
           in_transaction(in_transaction_options(test_case)) do |txn|
             accept_headers(test_case, txn)
             raise_exception(test_case)
@@ -64,10 +85,11 @@ module NewRelic
 
         def accept_headers(test_case, txn)
           inbound_headers = headers_for(test_case)
+          inbound_headers << nil if inbound_headers.empty?
           inbound_headers.each do |carrier|
-            DistributedTraceTransportType.stubs(:for_rack_request).returns(test_case['transport_type'])
-
-            @request_monitor.on_before_call rack_format(carrier)
+            DistributedTracing.accept_distributed_trace_headers \
+              rack_format(test_case, carrier), 
+              test_case['transport_type']
           end
         end
 
@@ -78,17 +100,63 @@ module NewRelic
           end
         end
 
-        def create_payloads(test_case, txn)
+        def create_newrelic_payloads(test_case, txn, w3c_payloads)
           outbound_payloads = []
-          if test_case['outbound_payloads']
-            payloads = Array(test_case['outbound_payloads'])
-            payloads.count.times do
-              outbound_headers = {}
-              if txn.distributed_tracer.insert_trace_context carrier: outbound_headers
-                outbound_payloads << outbound_headers
+          if test_case['outbound_newrelic_payloads']
+            w3c_payloads.each do |w3c_payload|
+              if newrelic_header = w3c_payload["newrelic"]
+                outbound_payloads << DistributedTracePayload.from_http_safe(newrelic_header)
+              else
+                outbound_payloads << nil
               end
             end
           end
+          outbound_payloads
+        end
+
+        def newrelic_key key
+          const_name = "NewRelic::Agent::DistributedTracePayload::#{key.upcase}_KEY"
+          Object.const_get const_name
+        end
+
+        def assign_not_nil_value headers, key, value
+          return if value.nil?
+          headers[newrelic_key(key)] = value
+        end
+
+        # builds a dotted hash version of newrelic header from its parsed json payload
+        def add_newrelic_entries payload, newrelic_header
+          return unless newrelic_header
+          return unless newrelic_payload = DistributedTracePayload.from_http_safe(newrelic_header)
+
+          payload["newrelic"] = {
+            newrelic_key(:version) => newrelic_payload.version,
+            newrelic_key(:data) => {}
+          }
+          data_payload = payload["newrelic"][newrelic_key(:data)]
+          assign_not_nil_value data_payload, :parent_type, newrelic_payload.parent_type
+          assign_not_nil_value data_payload, :parent_account_id, newrelic_payload.parent_account_id
+          assign_not_nil_value data_payload, :parent_app, newrelic_payload.parent_app_id
+          assign_not_nil_value data_payload, :trusted_account, newrelic_payload.trusted_account_key
+          assign_not_nil_value data_payload, :id, newrelic_payload.id
+          assign_not_nil_value data_payload, :tx, newrelic_payload.transaction_id
+          assign_not_nil_value data_payload, :trace_id, newrelic_payload.trace_id
+          assign_not_nil_value data_payload, :sampled, newrelic_payload.sampled
+          assign_not_nil_value data_payload, :timestamp, newrelic_payload.timestamp
+          assign_not_nil_value data_payload, :priority, newrelic_payload.priority
+        end
+
+        def create_payloads(test_case, txn)
+          outbound_payloads = []
+          payloads = Array(test_case['outbound_payloads'])
+
+          [1, payloads.count].max.times do |index|
+            outbound_headers = {}
+            txn.distributed_tracer.append_payload outbound_headers
+            txn.distributed_tracer.insert_headers outbound_headers
+            outbound_payloads << outbound_headers
+          end
+
           outbound_payloads
         end
 
@@ -108,11 +176,7 @@ module NewRelic
         end
 
         def headers_for(test_case)
-          if test_case.has_key?('inbound_headers')
-            (test_case['inbound_headers'] || [nil])
-          else
-            []
-          end
+          Array(test_case['inbound_headers'])
         end
 
         def merge_intrinsics(all_intrinsics)
@@ -135,11 +199,7 @@ module NewRelic
           merged
         end
 
-        ALLOWED_EVENT_TYPES = Set.new %w(
-          Transaction
-          TransactionError
-          Span
-        )
+        ALLOWED_EVENT_TYPES = %w{ Transaction TransactionError Span }
 
         def intrinsics_for_event(test_case, event_type)
           unless ALLOWED_EVENT_TYPES.include? event_type
@@ -157,6 +217,13 @@ module NewRelic
         end
 
         def verify_attributes(test_case_attributes, actual_attributes, event_type)
+          if verbose_attributes?
+            puts "", "*" * 80
+            puts event_type
+            pp actual_attributes
+            puts "*" * 80
+          end
+
           (test_case_attributes['exact'] || []).each do |k, v|
             assert_equal v,
                          actual_attributes[k.to_s],
@@ -180,6 +247,8 @@ module NewRelic
             refute actual_attributes.has_key?(key),
                    %Q|Unexpected #{event_type} attribute "#{key}"|
           end
+
+          # TODO: check vendors in test_case_attributes
         end
 
         def verify_transaction_intrinsics(test_case)
@@ -206,9 +275,10 @@ module NewRelic
           test_case_intrinsics = intrinsics_for_event(test_case, 'Span')
           return if test_case_intrinsics.empty?
 
-          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          harvested_events = NewRelic::Agent.agent.span_event_aggregator.harvest!
+          last_span_events = harvested_events[1]
+          refute_empty last_span_events, "no span events harvested!"
 
-          refute_empty last_span_events
           actual_intrinsics = last_span_events[0][0]
 
           verify_attributes test_case_intrinsics, actual_intrinsics, 'Span'
@@ -220,10 +290,11 @@ module NewRelic
 
           test_case_payloads.zip(actual_payloads).each do |test_case_data, actual|
             context_hash = trace_context_headers_to_hash actual
+            add_newrelic_entries context_hash, actual["newrelic"]
+
             dotted_context_hash = NewRelic::Agent::Configuration::DottedHash.new context_hash
             stringified_hash = stringify_keys_in_object dotted_context_hash
-
-            verify_attributes test_case_data, stringified_hash, 'Payload'
+            verify_attributes test_case_data, stringified_hash, 'TraceContext Payload'
           end
         end
 
@@ -249,10 +320,13 @@ module NewRelic
           header_data = TraceContext.parse \
               carrier: carrier,
               trace_state_entry_key: entry_key
+
+          return {} unless header_data
+
           if header_data.trace_state_payload
             tracestate = object_to_hash header_data.trace_state_payload
             tracestate['tenant_id'] = entry_key.sub '@nr', ''
-            tracestate['parent_type'] = header_data.trace_state_payload.parent_type
+            tracestate['parent_type'] = header_data.trace_state_payload.parent_type_id
             tracestate['parent_application_id'] = header_data.trace_state_payload.parent_app_id
             tracestate['span_id'] = header_data.trace_state_payload.id
           else
@@ -264,11 +338,13 @@ module NewRelic
           }
         end
 
-        def rack_format carrier
-          {
-            TraceContext::TRACE_PARENT_RACK => carrier[TraceContext::TRACE_PARENT],
-            TraceContext::TRACE_STATE_RACK => carrier[TraceContext::TRACE_STATE]
-          }
+        def rack_format test_case, carrier
+          carrier ||= {}
+          rack_headers = {}
+          rack_headers["HTTP_TRACEPARENT"] = carrier['traceparent'] if carrier['traceparent']
+          rack_headers["HTTP_TRACESTATE"] = carrier['tracestate'] if carrier['tracestate']
+          rack_headers["HTTP_NEWRELIC"] = carrier["newrelic"] if carrier["newrelic"]
+          rack_headers          
         end
       end
     end

@@ -43,16 +43,13 @@ module NewRelic
           to_debug_str(0)
         end
 
-        EMPTY_HASH = {}.freeze
-        EMPTY_ARRAY = [].freeze
-
         def to_array
-          params = @params ? @params : EMPTY_HASH
+          params = @params ? @params : NewRelic::EMPTY_HASH
           [ NewRelic::Helper.time_to_millis(@entry_timestamp),
             NewRelic::Helper.time_to_millis(@exit_timestamp),
             NewRelic::Coerce.string(@metric_name),
             params ] +
-            [ (@children ? @children.map{|s| s.to_array} : EMPTY_ARRAY) ]
+            [ (@children ? @children.map{|s| s.to_array} : NewRelic::EMPTY_ARRAY) ]
         end
 
         def path_string

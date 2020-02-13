@@ -11,8 +11,6 @@ module NewRelic
       VALUE_LIMIT = 255
       COUNT_LIMIT = 64
 
-      EMPTY_HASH = {}.freeze
-
       def initialize(filter)
         @filter = filter
 
@@ -76,7 +74,7 @@ module NewRelic
            destination == NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
           @intrinsic_attributes
         else
-          EMPTY_HASH
+          NewRelic::EMPTY_HASH
         end
       end
 
@@ -120,7 +118,7 @@ module NewRelic
 
       def for_destination(attributes, calculated_destinations, destination)
         # Avoid allocating anything if there are no attrs at all
-        return EMPTY_HASH if attributes.empty?
+        return NewRelic::EMPTY_HASH if attributes.empty?
 
         attributes.inject({}) do |memo, (key, value)|
           if @filter.allows?(calculated_destinations[key], destination)

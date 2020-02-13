@@ -16,11 +16,10 @@ class ExternalSegment < Performance::TestCase
   }
 
   TRACE_CONTEXT_CONFIG = {
-      :'distributed_tracing.enabled' => true,
-      :'distributed_tracing.format' => 'w3c',
-      :account_id => "190",
-      :primary_application_id => "46954",
-      :disable_harvest_thread => true
+      :'distributed_tracing.enabled'      => true,
+      :account_id                         => "190",
+      :primary_application_id             => "46954",
+      :disable_harvest_thread             => true
   }
 
   def setup

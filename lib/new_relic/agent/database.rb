@@ -133,10 +133,9 @@ module NewRelic
       ]
 
       SQL_COMMENT_REGEX = Regexp.new('/\*.*?\*/', Regexp::MULTILINE).freeze
-      EMPTY_STRING      = ''.freeze
 
       def parse_operation_from_query(sql)
-        sql = Helper.correctly_encoded(sql).gsub(SQL_COMMENT_REGEX, EMPTY_STRING)
+        sql = Helper.correctly_encoded(sql).gsub(SQL_COMMENT_REGEX, NewRelic::EMPTY_STR)
         if sql =~ /(\w+)/
           op = $1.downcase
           return op if KNOWN_OPERATIONS.include?(op)

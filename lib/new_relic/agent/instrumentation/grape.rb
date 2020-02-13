@@ -14,7 +14,6 @@ module NewRelic
         API_VERSION    = 'api.version'.freeze
         FORMAT_REGEX   = /\(\/?\.[\:\w]*\)/.freeze # either :format (< 0.12.0) or .ext (>= 0.12.0)
         VERSION_REGEX  = /:version(\/|$)/.freeze
-        EMPTY_STRING   = ''.freeze
         MIN_VERSION    = Gem::Version.new("0.2.0")
         PIPE_STRING    = '|'.freeze
 
@@ -33,7 +32,7 @@ module NewRelic
         end
 
         def name_for_transaction(route, class_name, version)
-          action_name = route.path.sub(FORMAT_REGEX, EMPTY_STRING)
+          action_name = route.path.sub(FORMAT_REGEX, NewRelic::EMPTY_STR)
           method_name = route.request_method
           version ||= route.version
 
@@ -42,7 +41,7 @@ module NewRelic
           version = version.join(PIPE_STRING) if Array === version
 
           if version
-            action_name = action_name.sub(VERSION_REGEX, EMPTY_STRING)
+            action_name = action_name.sub(VERSION_REGEX, NewRelic::EMPTY_STR)
             "#{class_name}-#{version}#{action_name} (#{method_name})"
           else
             "#{class_name}#{action_name} (#{method_name})"
@@ -50,12 +49,12 @@ module NewRelic
         end
 
         def name_for_transaction_deprecated(route, class_name, version)
-          action_name = route.route_path.sub(FORMAT_REGEX, EMPTY_STRING)
+          action_name = route.route_path.sub(FORMAT_REGEX, NewRelic::EMPTY_STR)
           method_name = route.route_method
           version ||= route.route_version
 
           if version
-            action_name = action_name.sub(VERSION_REGEX, EMPTY_STRING)
+            action_name = action_name.sub(VERSION_REGEX, NewRelic::EMPTY_STR)
             "#{class_name}-#{version}#{action_name} (#{method_name})"
           else
             "#{class_name}#{action_name} (#{method_name})"

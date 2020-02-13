@@ -56,15 +56,13 @@ module NewRelic::Agent
 
       def test_sets_transport_type_for_http_scheme
         after_notify_event 'http' do |txn|
-          payload = txn.distributed_tracer.distributed_trace_payload
-          assert_equal 'HTTP', payload.caller_transport_type
+          assert_equal 'HTTP', txn.distributed_tracer.caller_transport_type
         end
       end
 
       def test_sets_transport_type_for_https_scheme
         after_notify_event 'https' do |txn|
-          payload = txn.distributed_tracer.distributed_trace_payload
-          assert_equal 'HTTPS', payload.caller_transport_type
+          assert_equal 'HTTPS', txn.distributed_tracer.caller_transport_type
         end
       end
     end

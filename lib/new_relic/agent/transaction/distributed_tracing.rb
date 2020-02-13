@@ -40,9 +40,7 @@ module NewRelic
           return unless Agent.config[:'distributed_tracing.enabled']
           return unless payload = request[NEWRELIC_TRACE_KEY]
 
-          if accept_distributed_trace_payload payload
-            distributed_trace_payload.caller_transport_type = DistributedTraceTransportType.for_rack_request(request)
-          end
+          accept_distributed_trace_payload payload
         end
 
         def distributed_trace_payload_created?
@@ -50,10 +48,8 @@ module NewRelic
         end
 
         def create_distributed_trace_payload
-          unless nr_distributed_tracing_enabled?
-            NewRelic::Agent.logger.warn "Not configured to create New Relic distributed trace payload"
-            return
-          end
+          return unless Agent.config[:'distributed_tracing.enabled']
+
           @distributed_trace_payload_created = true
           payload = DistributedTracePayload.for_transaction transaction
           NewRelic::Agent.increment_metric CREATE_SUCCESS_METRIC
@@ -65,10 +61,8 @@ module NewRelic
         end
 
         def accept_distributed_trace_payload payload
-          unless nr_distributed_tracing_enabled?
-            NewRelic::Agent.logger.warn "Not configured to accept New Relic distributed trace payload"
-            return
-          end
+          return unless Agent.config[:'distributed_tracing.enabled']
+
           return false if check_payload_ignored(payload)
           return false unless check_payload_present(payload)
           return false unless payload = decode_payload(payload)
@@ -86,28 +80,7 @@ module NewRelic
           false
         end
 
-        def append_distributed_trace_info payload
-          return unless Agent.config[:'distributed_tracing.enabled']
-
-          DistributedTraceIntrinsics.copy_from_transaction \
-            transaction,
-            distributed_trace_payload,
-            payload
-        end
-
         private
-
-        NEWRELIC_HEADER   = "newrelic"
-
-        def nr_distributed_tracing_enabled?
-          Agent.config[:'distributed_tracing.enabled'] &&
-          (Agent.config[:'distributed_tracing.format'] == NEWRELIC_HEADER)
-        end
-
-        def nr_distributed_tracing_active?
-          nr_distributed_tracing_enabled? && Agent.instance.connected?
-        end
-
 
         def check_payload_ignored(payload)
           if distributed_trace_payload
@@ -183,8 +156,9 @@ module NewRelic
 
         def assign_payload_and_sampling_params(payload)
           @distributed_trace_payload = payload
+          return if transaction.distributed_tracer.trace_context_header_data
           transaction.trace_id = payload.trace_id
-          transaction.parent_transaction_id = payload.transaction_id
+          transaction.distributed_tracer.parent_transaction_id = payload.transaction_id
           transaction.parent_span_id = payload.id
 
           unless payload.sampled.nil?

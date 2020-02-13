@@ -47,10 +47,9 @@ module NewRelic
         end
 
         DOT_ACTION_CABLE = '.action_cable'.freeze
-        EMPTY_STRING = ''.freeze
 
         def action_name(name)
-          name.gsub DOT_ACTION_CABLE, EMPTY_STRING
+          name.gsub DOT_ACTION_CABLE, NewRelic::EMPTY_STR
         end
 
         def notice_error(payload)

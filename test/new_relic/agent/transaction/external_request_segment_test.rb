@@ -43,8 +43,7 @@ module NewRelic::Agent
       end
 
       def teardown
-        NewRelic::Agent::Transaction::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
-        NewRelic::Agent.drop_buffered_data
+        reset_buffers_and_caches
       end
 
       def test_generates_expected_name
@@ -249,7 +248,8 @@ module NewRelic::Agent
           end
 
           NewRelic::Agent.drop_buffered_data
-
+          transport_type = nil
+          
           in_transaction "test_txn2", :category => :controller do |txn|
             txn.distributed_tracer.accept_distributed_trace_payload payload.text
             segment = Tracer.start_external_request_segment(
@@ -257,6 +257,7 @@ module NewRelic::Agent
               uri: "http://newrelic.com/blogs/index",
               procedure: "GET"
             )
+            transport_type = txn.distributed_tracer.caller_transport_type
             segment.add_request_headers request
             segment.finish
           end
@@ -265,10 +266,10 @@ module NewRelic::Agent
             "External/all",
             "External/newrelic.com/all",
             "External/allWeb",
-            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/all",
-            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/allWeb",
-            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/all",
-            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/allWeb",
+            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/all",
+            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/allWeb",
+            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/all",
+            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/allWeb",
             ["External/newrelic.com/Net::HTTP/GET", "test_txn2"]
           ]
 
@@ -291,6 +292,7 @@ module NewRelic::Agent
           end
 
           NewRelic::Agent.drop_buffered_data
+          transport_type = nil
 
           in_transaction "test_txn2", :category => :controller do |txn|
             txn.distributed_tracer.accept_distributed_trace_payload payload.text
@@ -299,6 +301,7 @@ module NewRelic::Agent
               uri: "http://newrelic.com/blogs/index",
               procedure: "GET"
             )
+            transport_type = txn.distributed_tracer.caller_transport_type
             segment.add_request_headers request
             segment.finish
             NewRelic::Agent.notice_error StandardError.new("Sorry!")
@@ -308,12 +311,12 @@ module NewRelic::Agent
             "External/all",
             "External/newrelic.com/all",
             "External/allWeb",
-            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/all",
-            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/allWeb",
-            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/all",
-            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/allWeb",
-            "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/all",
-            "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}/allWeb",
+            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/all",
+            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/allWeb",
+            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/all",
+            "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/allWeb",
+            "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/all",
+            "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{transport_type}/allWeb",
             ["External/newrelic.com/Net::HTTP/GET", "test_txn2"]
           ]
 
@@ -661,7 +664,6 @@ module NewRelic::Agent
       def test_segment_adds_distributed_trace_header
         distributed_tracing_config = {
           :'distributed_tracing.enabled'      => true,
-          :'distributed_tracing.format'       => 'newrelic',
           :'cross_application_tracer.enabled' => false,
           :account_id                         => "190",
           :primary_application_id             => "46954"
@@ -802,7 +804,6 @@ module NewRelic::Agent
       def distributed_tracing_config
         {
           :'distributed_tracing.enabled'      => true,
-          :'distributed_tracing.format'       => 'newrelic',
           :'cross_application_tracer.enabled' => false,
           :'span_events.enabled'              => true,
         }
@@ -810,8 +811,7 @@ module NewRelic::Agent
 
       def trace_context_config
         {
-          :'distributed_tracing.enabled' => true,
-          :'distributed_tracing.format' => 'w3c',
+          :'distributed_tracing.enabled'      => true,
           :'cross_application_tracer.enabled' => false,
           :account_id                         => "190",
           :primary_application_id             => "46954",

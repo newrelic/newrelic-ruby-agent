@@ -100,7 +100,6 @@ module NewRelic
           with_config :"cross_application_tracer.enabled" => true, :cross_process_id => "321#123", :encoding_key => "abc" do
             in_transaction "test_txn" do |txn|
               txn.raw_synthetics_header = "boo"
-
               segment = NewRelic::Agent::Tracer.start_message_broker_segment(
                 action: :produce,
                 library: "RabbitMQ",

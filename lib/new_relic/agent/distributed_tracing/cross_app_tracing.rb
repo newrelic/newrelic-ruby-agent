@@ -53,6 +53,7 @@ module NewRelic
       end
 
       def insert_cross_app_header request
+        return unless CrossAppTracing.cross_app_enabled?
         @is_cross_app_caller = true
         txn_guid  = transaction.guid
         trip_id   = cat_trip_id
@@ -62,6 +63,7 @@ module NewRelic
       end
 
       def add_message_cat_headers headers
+        return unless CrossAppTracing.cross_app_enabled?
         @is_cross_app_caller = true
         insert_message_headers headers, 
           transaction.guid, 

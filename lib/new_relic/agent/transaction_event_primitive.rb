@@ -40,10 +40,6 @@ module NewRelic
       SYNTHETICS_JOB_ID_KEY          = "nr.syntheticsJobId"
       SYNTHETICS_MONITOR_ID_KEY      = "nr.syntheticsMonitorId"
 
-
-      # To avoid allocations when we have empty custom or agent attributes
-      EMPTY_HASH = {}.freeze
-
       def create(payload)
         intrinsics = {
         TIMESTAMP_KEY => float(payload[:start_timestamp]),
@@ -96,7 +92,7 @@ module NewRelic
           result = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_EVENTS)
           result.freeze
         else
-          EMPTY_HASH
+          NewRelic::EMPTY_HASH
         end
       end
 
@@ -105,7 +101,7 @@ module NewRelic
           result = attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_EVENTS)
           result.freeze
         else
-          EMPTY_HASH
+          NewRelic::EMPTY_HASH
         end
       end
     end
