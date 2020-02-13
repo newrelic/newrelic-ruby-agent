@@ -4,7 +4,7 @@
 
   * **Added support for W3C Trace Context, with easy upgrade from New Relic trace context**
 
-    [Distributed Tracing](https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/get-started/introduction-distributed-tracing) now supports W3C Trace Context headers for HTTP protocols when distributed tracing is enabled. Our implementation can accept and emit both
+    [Distributed Tracing now supports W3C Trace Context headers](https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/get-started/introduction-distributed-tracing#w3c-support) for HTTP protocols when distributed tracing is enabled. Our implementation can accept and emit both
     the W3C trace header format and the New Relic trace header format. This simplifies
     agent upgrades, allowing trace context to be propagated between services with older
     and newer releases of New Relic agents. W3C trace header format will always be
@@ -19,18 +19,18 @@
     headers along with the New Relic distributed tracing header, unless the New Relic
     trace header format is disabled by setting `exclude_newrelic_header` setting to `true`.
 
-    Added `DistributedTracing.accept_distributed_trace_headers` API for accepting both
-    New Relic and W3C TraceContext distributed traces.
+    * Added `DistributedTracing.accept_distributed_trace_headers` API for accepting both
+      New Relic and W3C TraceContext distributed traces.
 
-    Deprecated `DistributedTracing.accept_distributed_trace_payload` which will be removed
-    in a future major release.
+    * Deprecated `DistributedTracing.accept_distributed_trace_payload` which will be removed
+      in a future major release.
 
-    Added `DistributedTracing.insert_distributed_trace_headers` API for adding outbound
-    distributed trace headers. Both W3C TraceContext and New Relic formats will be
-    included unless `distributed_tracing.exclude_newrelic_header: true`.
+    * Added `DistributedTracing.insert_distributed_trace_headers` API for adding outbound
+      distributed trace headers. Both W3C TraceContext and New Relic formats will be
+      included unless `distributed_tracing.exclude_newrelic_header: true`.
 
-    Deprecated `DistributedTracing.create_distributed_trace_payload` which will be removed
-    in a future major release.
+    * Deprecated `DistributedTracing.create_distributed_trace_payload` which will be removed
+      in a future major release.
 
   * **Official Ruby 2.7 support**
 
