@@ -26,6 +26,13 @@
 
     Thanks to Joel Turkel (jturkel) for the contribution! 
 
+  * **Bugfix for Resque worker thread race conditions**
+
+    Recent changes in Rack surfaced issues marshalling data for resque, surfaced a potential race-condition with closing out the worker-threads before flushing the data pipe.  This
+    is now fixed.
+
+    Thanks to Bertrand Paquet (bpaquet) for the contribution!
+
   * **Bugfix for Content-Length when injecting Browser Monitoring JS**
     
     The Content-Length HTTP header would be incorrect after injecting the Browser Monitoring
