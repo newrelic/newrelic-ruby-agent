@@ -156,6 +156,7 @@ module NewRelic
 
         def assign_payload_and_sampling_params(payload)
           @distributed_trace_payload = payload
+          return if transaction.distributed_tracer.trace_context_header_data
           transaction.trace_id = payload.trace_id
           transaction.distributed_tracer.parent_transaction_id = payload.transaction_id
           transaction.parent_span_id = payload.id
