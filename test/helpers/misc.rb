@@ -30,40 +30,35 @@ end
 
 def fixture_tcp_socket( response )
   # Don't actually talk to Google.
-  socket = stub("socket") do
-    stubs(:closed?).returns(false)
-    stubs(:close)
-    stubs(:setsockopt)
+  socket = stub("socket").tap do |s|
+    s.stubs(:closed?).returns(false)
+    s.stubs(:close)
+    s.stubs(:setsockopt)
 
     # Simulate a bunch of socket-ey stuff since Mocha doesn't really
     # provide any other way to do it
-    class << self
-      attr_accessor :response, :write_checker
+
+    stubs(:sysread) do |size, buf=''|
+      @data ||= response.to_s
+      raise EOFError if @data.empty?
+      buf.replace @data.slice!(0, size)
+      buf
     end
 
-    def self.check_write
-      self.write_checker = Proc.new
-    end
-
-    def self.write( buf )
-      self.write_checker.call( buf ) if self.write_checker
+    stubs(:check_write) { self.write_checker = Proc.new }
+    stubs(:write) do |buf|
+      self.write_checker.call(buf) if self.write_checker
       buf.length
     end
 
-    def self.sysread( size, buf='' )
-      @data ||= response.to_s
-      raise EOFError if @data.empty?
-      buf.replace @data.slice!( 0, size )
-      buf
-    end
     class << self
+      attr_accessor :response, :write_checker
       alias_method :read_nonblock, :sysread
     end
-
   end
 
-  socket.response = response
-  TCPSocket.stubs( :open ).returns( socket )
+  socket.stubs(:response).returns(response)
+  TCPSocket.stubs(:open).returns(socket)
 
   return socket
 end

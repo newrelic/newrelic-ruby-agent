@@ -4,7 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
 require 'new_relic/agent/attribute_filter'
-require 'new_relic/agent/transaction/attributes'
+require 'new_relic/agent/attributes'
 require 'new_relic/agent/transaction_error_primitive'
 
 module NewRelic
@@ -75,7 +75,7 @@ module NewRelic
       def test_includes_custom_attributes
         attrs = {"user" => "Wes Mantooth", "channel" => 9}
 
-        attributes = Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+        attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
         attributes.merge_custom_attributes attrs
 
         _, custom_attrs, _ = create_event :error_options => {:attributes => attributes}
@@ -84,7 +84,7 @@ module NewRelic
       end
 
       def test_includes_agent_attributes
-        attributes = Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+        attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
         attributes.add_agent_attribute :'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_ERROR_COLLECTOR
         attributes.add_agent_attribute :httpResponseCode, "200", AttributeFilter::DST_ERROR_COLLECTOR
 

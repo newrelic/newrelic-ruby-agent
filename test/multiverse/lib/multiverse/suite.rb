@@ -117,7 +117,7 @@ module Multiverse
         puts "Waiting on '#{bundling_lock_file}' for our chance to bundle" if verbose?
         f.flock(File::LOCK_EX)
         puts "Let's get ready to BUNDLE!" if verbose?
-        bundler_out = ShellUtils.try_command_n_times 'bundle install --retry 3', 3
+        bundler_out = ShellUtils.try_command_n_times 'bundle install --retry 3 --jobs 4', 3
       end
       bundler_out
     end
@@ -168,29 +168,32 @@ module Multiverse
 
       gemfile = File.join(Dir.pwd, "Gemfile.#{env_index}")
       File.open(gemfile,'w') do |f|
-        f.puts '  source "https://rubygems.org"' unless local
+        f.puts 'source "https://rubygems.org"'
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
         f.puts jruby_openssl_line unless gemfile_text =~ /^\s*gem .jruby-openssl./ || (defined?(JRUBY_VERSION) && JRUBY_VERSION > '1.7')
         f.puts minitest_line unless gemfile_text =~ /^\s*gem .minitest[^_]./
         f.puts "gem 'rake'" unless gemfile_text =~ /^\s*gem .rake[^_]./ || suite == 'rake'
 
-        f.puts "  gem 'mocha', '0.14.0', :require => false"
+        f.puts "gem 'mocha', '~> 1.9.0', :require => false"
 
         if debug
-          f.puts "  gem 'pry', '~> 0.10.0'"
-          f.puts "  gem 'pry-byebug', platforms: :mri"
-          f.puts "  gem 'pry-stack_explorer', platforms: :mri"
+          f.puts "gem 'pry', '~> 0.10.0'"
+          f.puts "gem 'pry-byebug', platforms: :mri"
+          f.puts "gem 'pry-stack_explorer', platforms: :mri"
         end
       end
-      puts yellow("Gemfile.#{env_index} set to:") if verbose?
-      puts File.open(gemfile).read if verbose?
+      if verbose?
+        puts "Ruby: #{RUBY_VERSION}  Platform: #{RUBY_PLATFORM} RubyGems: #{Gem::VERSION}"
+        puts yellow("Gemfile.#{env_index} set to:")
+        puts File.open(gemfile).read
+      end
     end
 
     def newrelic_gemfile_line
       line = ENV['NEWRELIC_GEMFILE_LINE'] if ENV['NEWRELIC_GEMFILE_LINE']
       path = ENV['NEWRELIC_GEM_PATH'] || '../../../..'
-      line ||= "  gem 'newrelic_rpm', :path => '#{path}'"
+      line ||= "gem 'newrelic_rpm', :path => '#{path}'"
       line
     end
 
@@ -238,7 +241,7 @@ module Multiverse
     end
 
     def execute_child_environment(env_index)
-      with_clean_env do
+      with_unbundled_env do
         ENV["MULTIVERSE_ENV"] = env_index.to_s
         log_test_running_process
         configure_before_bundling
@@ -279,7 +282,7 @@ module Multiverse
 
       environments.each_with_index do |gemfile_text, env_index|
         puts yellow("... for Envfile entry #{env_index}")
-        with_clean_env do
+        with_unbundled_env do
           load_dependencies(gemfile_text, env_index, false)
         end
       end
@@ -344,18 +347,18 @@ module Multiverse
       return filter_env == index
     end
 
-    def with_clean_env
+    def with_unbundled_env
       if defined?(Bundler)
         # clear $BUNDLE_GEMFILE and $RUBYOPT so that the ruby subprocess can run
         # in the context of another bundle.
-        Bundler.with_clean_env { yield }
+        Bundler.with_unbundled_env { yield }
       else
         yield
       end
     end
 
     def execute_in_foreground(env)
-      with_clean_env do
+      with_unbundled_env do
         puts yellow("Running #{suite.inspect} for Envfile entry #{env}\n")
         system(child_command_line(env))
         check_for_failure(env)
@@ -363,7 +366,7 @@ module Multiverse
     end
 
     def execute_in_background(env)
-      with_clean_env do
+      with_unbundled_env do
         OutputCollector.write(suite, env, yellow("Running #{suite.inspect} for Envfile entry #{env}\n"))
 
         IO.popen(child_command_line(env)) do |io|

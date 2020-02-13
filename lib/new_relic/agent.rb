@@ -35,7 +35,6 @@ module NewRelic
     require 'new_relic/agent/encoding_normalizer'
     require 'new_relic/agent/stats'
     require 'new_relic/agent/chained_call'
-    require 'new_relic/agent/cross_app_monitor'
     require 'new_relic/agent/agent'
     require 'new_relic/agent/method_tracer'
     require 'new_relic/agent/worker_loop'
@@ -56,7 +55,8 @@ module NewRelic
     require 'new_relic/agent/external'
     require 'new_relic/agent/deprecator'
     require 'new_relic/agent/logging'
-
+    require 'new_relic/agent/distributed_tracing'
+    
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
     require 'new_relic/agent/samplers/cpu_sampler'
@@ -351,10 +351,9 @@ module NewRelic
     # @api public
     #
     def manual_start(options={})
-      record_api_supportability_metric(:manual_start)
-
       raise "Options must be a hash" unless Hash === options
       NewRelic::Control.instance.init_plugin({ :agent_enabled => true, :sync_startup => true }.merge(options))
+      record_api_supportability_metric(:manual_start)
     end
 
     # Register this method as a callback for processes that fork
@@ -568,6 +567,12 @@ module NewRelic
     # these custom attributes will also be present in the script injected into
     # the response body, making them available on Insights PageView events.
     #
+    #
+    # @param [Hash] params      A Hash of attributes to be attached to the transaction event.
+    #                           Keys should be strings or symbols, and values
+    #                           may be strings, symbols, numeric values or
+    #                           booleans.
+    #
     # @api public
     #
     def add_custom_attributes(params) #THREAD_LOCAL_ACCESS
@@ -581,6 +586,31 @@ module NewRelic
       end
     end
 
+    # Add custom attributes to the span event for the current span. Attributes will be visible on spans in the
+    # New Relic Distributed Tracing UI and on span events in New Relic Insights.
+    #
+    # Custom attributes will not be transmitted when +high_security+ setting is enabled or
+    # +custom_attributes+ setting is disabled.
+    #
+    # @param [Hash] params      A Hash of attributes to be attached to the span event.
+    #                           Keys should be strings or symbols, and values
+    #                           may be strings, symbols, numeric values or
+    #                           booleans.
+    #
+    # @see https://docs.newrelic.com/docs/using-new-relic/welcome-new-relic/get-started/glossary#span
+    # @api public
+    def add_custom_span_attributes params
+      record_api_supportability_metric :add_custom_span_attributes
+
+      if params.is_a? Hash
+        if segment = NewRelic::Agent::Tracer.current_segment
+          segment.add_custom_attributes params
+        end
+      else
+        ::NewRelic::Agent.logger.warn "Bad argument passed to #add_custom_span_attributes. Expected Hash but got #{params.class}"
+      end
+    end
+
     # @!endgroup
 
     # @!group Transaction naming
@@ -589,7 +619,9 @@ module NewRelic
     # apply a reasonable default based on framework routing, but in
     # cases where this is insufficient, this can be used to manually
     # control the name of the transaction.
-    # The category of transaction can be specified via the +:category+ option:
+    #
+    # The category of transaction can be specified via the +:category+ option. 
+    # The following are the only valid categories:
     #
     # * <tt>:category => :controller</tt> indicates that this is a
     #   controller action and will appear with all the other actions.

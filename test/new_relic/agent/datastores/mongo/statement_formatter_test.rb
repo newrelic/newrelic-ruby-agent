@@ -18,7 +18,7 @@ module NewRelic
                             :limit      => -1,
                             :order      => :ascending,
 
-                            :ignored    => "we're whitelisted!",
+                            :ignored    => "we're allowed!",
                             :documents  => [ { "name" => "soterios johnson",
                                                :_id   => "BSON::ObjectId()" } ] }.freeze
 
@@ -34,7 +34,7 @@ module NewRelic
             refute_same DOC_STATEMENT, formatted
           end
 
-          def test_statement_formatter_removes_unwhitelisted_keys
+          def test_statement_formatter_removes_disallowed_keys
             formatted = StatementFormatter.format(DOC_STATEMENT, :find)
             assert_equal_unordered(formatted.keys, StatementFormatter::PLAINTEXT_KEYS)
           end

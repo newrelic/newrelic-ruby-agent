@@ -2,12 +2,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path '../../../../test_helper', __FILE__
 
 module NewRelic::Agent
   class CrossAppMonitorTest < Minitest::Test
-    NEWRELIC_ID_HEADER        = NewRelic::Agent::CrossAppMonitor::NEWRELIC_ID_HEADER_KEY
-    NEWRELIC_TXN_HEADER       = NewRelic::Agent::CrossAppMonitor::NEWRELIC_TXN_HEADER_KEY
+    NEWRELIC_ID_HEADER        = DistributedTracing::CrossAppMonitor::NEWRELIC_ID_HEADER_KEY
+    NEWRELIC_TXN_HEADER       = DistributedTracing::CrossAppMonitor::NEWRELIC_TXN_HEADER_KEY
     CONTENT_LENGTH_KEY        = "HTTP_CONTENT_LENGTH"
 
     AGENT_CROSS_APP_ID        = "qwerty"
@@ -31,10 +31,10 @@ module NewRelic::Agent
     def setup
       NewRelic::Agent.reset_config
       NewRelic::Agent.drop_buffered_data
-      @events = NewRelic::Agent::EventListener.new
+      @events = EventListener.new
       @response = {}
 
-      @monitor = NewRelic::Agent::CrossAppMonitor.new(@events)
+      @monitor = DistributedTracing::CrossAppMonitor.new(@events)
       @config = {
         :cross_process_id       => AGENT_CROSS_APP_ID,
         :encoding_key           => ENCODING_KEY_NOOP,
@@ -59,7 +59,7 @@ module NewRelic::Agent
     #
 
     def test_adds_response_header
-      NewRelic::Agent::Transaction.any_instance.stubs(:queue_time).returns(QUEUE_TIME)
+      Transaction.any_instance.stubs(:queue_time).returns(QUEUE_TIME)
 
       when_request_runs for_id(REQUEST_CROSS_APP_ID), 'transaction', APP_TIME
 
@@ -68,7 +68,6 @@ module NewRelic::Agent
 
     def test_encodes_transaction_name
       when_request_runs for_id(REQUEST_CROSS_APP_ID), %("'goo), APP_TIME
-
       assert_equal "\"'goo", unpacked_response[TRANSACTION_NAME_POSITION]
     end
 
@@ -167,9 +166,9 @@ module NewRelic::Agent
         request = for_id(REQUEST_CROSS_APP_ID)
         @events.notify(:before_call, request)
 
-        assert !NewRelic::Agent::Transaction.tl_current.name_frozen?
+        assert !Transaction.tl_current.name_frozen?
         @events.notify(:after_call, request, [200, @response, ''])
-        assert NewRelic::Agent::Transaction.tl_current.name_frozen?
+        assert Transaction.tl_current.name_frozen?
       end
     end
 
@@ -180,7 +179,7 @@ module NewRelic::Agent
 
           @events.notify(:before_call, request)
           # Fake out our GUID for easier comparison in tests
-          NewRelic::Agent::Transaction.tl_current.stubs(:guid).returns(TRANSACTION_GUID)
+          Transaction.tl_current.stubs(:guid).returns(TRANSACTION_GUID)
           @events.notify(:after_call, request, [200, @response, ''])
         end
       end
@@ -216,14 +215,14 @@ module NewRelic::Agent
       in_transaction(name) do |txn|
         @events.notify(:before_call, request)
         # Fake out our GUID for easier comparison in tests
-        NewRelic::Agent::Transaction.tl_current.stubs(:guid).returns(TRANSACTION_GUID)
+        Transaction.tl_current.stubs(:guid).returns(TRANSACTION_GUID)
         advance_time duration if duration
         @events.notify(:after_call, request, [200, @response, ''])
         txn
       end
     end
 
-   def for_id(id)
+    def for_id(id)
       encoded_id = id == "" ? "" : Base64.encode64(id)
       encoded_txn_info = json_dump_and_encode([ REF_TRANSACTION_GUID, false ])
 

@@ -6,7 +6,7 @@
 # event for a segment.
 
 require 'new_relic/agent/payload_metric_mapping'
-require 'new_relic/agent/distributed_trace_payload'
+require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
 
 module NewRelic
   module Agent
@@ -15,6 +15,7 @@ module NewRelic
       extend self
 
       # Strings for static keys of the event structure
+      ELLIPSIS             = '...'.freeze
       TYPE_KEY             = 'type'.freeze
       TRACE_ID_KEY         = 'traceId'.freeze
       GUID_KEY             = 'guid'.freeze
@@ -36,6 +37,8 @@ module NewRelic
       PEER_HOSTNAME_KEY    = 'peer.hostname'.freeze
       SPAN_KIND_KEY        = 'span.kind'.freeze
       ENTRY_POINT_KEY      = 'nr.entryPoint'.freeze
+      TRUSTED_PARENT_KEY   = "trustedParentId".freeze
+      TRACING_VENDORS_KEY  = "tracingVendors".freeze
 
       # Strings for static values of the event structure
       EVENT_TYPE         = 'Span'.freeze
@@ -44,17 +47,14 @@ module NewRelic
       DATASTORE_CATEGORY = 'datastore'.freeze
       CLIENT             = 'client'.freeze
 
-      # To avoid allocations when we have empty custom or agent attributes
-      EMPTY_HASH = {}.freeze
-
-      def for_segment(segment)
+      def for_segment segment
         intrinsics = intrinsics_for(segment)
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
 
-        [intrinsics, EMPTY_HASH, EMPTY_HASH]
+        [intrinsics, custom_attributes(segment.attributes), NewRelic::EMPTY_HASH]
       end
 
-      def for_external_request_segment(segment)
+      def for_external_request_segment segment
         intrinsics = intrinsics_for(segment)
 
         intrinsics[COMPONENT_KEY]   = segment.library
@@ -68,10 +68,10 @@ module NewRelic
           agent_attributes[HTTP_URL_KEY] = truncate(segment.uri)
         end
 
-        [intrinsics, EMPTY_HASH, agent_attributes]
+        [intrinsics, custom_attributes(segment.attributes), agent_attributes]
       end
 
-      def for_datastore_segment(segment)
+      def for_datastore_segment segment
         intrinsics = intrinsics_for(segment)
 
         intrinsics[COMPONENT_KEY] = segment.product
@@ -96,14 +96,13 @@ module NewRelic
           agent_attributes[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, 2000)
         end
 
-        [intrinsics, EMPTY_HASH, agent_attributes]
+        [intrinsics, custom_attributes(segment.attributes), agent_attributes]
       end
 
       private
 
-      def intrinsics_for(segment)
-        intrinsics =
-        {
+      def intrinsics_for segment
+        intrinsics = {
           TYPE_KEY           => EVENT_TYPE,
           TRACE_ID_KEY       => segment.transaction.trace_id,
           GUID_KEY           => segment.guid,
@@ -115,29 +114,48 @@ module NewRelic
           NAME_KEY           => segment.name
         }
 
-        parent_id = parent_guid(segment)
-        intrinsics[PARENT_ID_KEY] = parent_id if parent_id
+        if segment.parent.nil?
+          intrinsics[ENTRY_POINT_KEY] = true
+          if txn = segment.transaction
+            if header_data = txn.distributed_tracer.trace_context_header_data
+              if trace_state_vendors = header_data.trace_state_vendors
+                intrinsics[TRACING_VENDORS_KEY] = trace_state_vendors unless trace_state_vendors == NewRelic::EMPTY_STR
+              end
+            end
+            if trace_state_payload = txn.distributed_tracer.trace_state_payload
+              intrinsics[TRUSTED_PARENT_KEY] = trace_state_payload.id if trace_state_payload.id
+            end
+          end
+        end
 
-        intrinsics[ENTRY_POINT_KEY] = true unless segment.parent
-
+        if parent_id = parent_guid(segment)
+          intrinsics[PARENT_ID_KEY] = parent_id
+        end
         intrinsics
       end
 
-      def parent_guid(segment)
-        if segment.parent
-          segment.parent.guid
-        elsif segment.transaction && segment.transaction.distributed_trace?
-          segment.transaction.distributed_trace_payload.id
+      def custom_attributes attributes
+        if attributes
+          result = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
+          result.freeze
+        else
+          NewRelic::EMPTY_HASH
         end
       end
 
-      def milliseconds_since_epoch(segment)
+      def parent_guid segment
+        if segment.parent
+          segment.parent.guid
+        elsif txn = segment.transaction
+          txn.distributed_tracer.parent_guid
+        end
+      end
+
+      def milliseconds_since_epoch segment
         Integer(segment.start_time.to_f * 1000.0)
       end
 
-      ELLIPSIS = '...'.freeze
-
-      def truncate(value, max_size=255)
+      def truncate value, max_size=255
         value = value.to_s
         if value.bytesize > max_size
           value.byteslice(0, max_size - 2).chop! << ELLIPSIS
@@ -146,7 +164,7 @@ module NewRelic
         end
       end
 
-      def allowed?(key)
+      def allowed? key
         NewRelic::Agent.instance.attribute_filter.allows_key?(key, AttributeFilter::DST_SPAN_EVENTS)
       end
     end

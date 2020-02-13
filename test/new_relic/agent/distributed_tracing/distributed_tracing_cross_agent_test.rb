@@ -2,11 +2,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path('../../../test_helper', __FILE__)
+require File.expand_path '../../../../test_helper', __FILE__
+
 require 'json'
 
-module NewRelic
-  module Agent
+module NewRelic::Agent
+  module DistributedTracing
     class DistributedTracingCrossAgentTest < Minitest::Test
       def setup
         NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
@@ -17,23 +18,37 @@ module NewRelic
         NewRelic::Agent.drop_buffered_data
       end
 
+      # This method, when returning a non-empty array, will cause the tests defined in the 
+      # JSON file to be skipped if they're not listed here.  Useful for focusing on specific
+      # failing tests.
+      def self.focus_tests
+        []
+      end
+
       load_cross_agent_test("distributed_tracing/distributed_tracing").each do |test_case|
         test_case['test_name'] = test_case['test_name'].tr(" ", "_")
-        define_method("test_#{test_case['test_name']}") do
-          NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case["force_sampled_true"])
 
-          config = {
-            :account_id                    => test_case['account_id'],
-            :primary_application_id        => "2827902",
-            :trusted_account_key           => test_case['trusted_account_key'],
-            :'span_events.enabled'         => test_case['span_events_enabled'],
-            :'distributed_tracing.enabled' => true
-          }
+        if focus_tests.empty? || focus_tests.include?(test_case['test_name'])
+          define_method("test_#{test_case['test_name']}") do
+            NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case["force_sampled_true"])
 
-          with_config(config) do
-            NewRelic::Agent.config.notify_server_source_added
-            run_test_case(test_case)
+            config = {
+              :account_id                    => test_case['account_id'],
+              :primary_application_id        => "2827902",
+              :trusted_account_key           => test_case['trusted_account_key'],
+              :'span_events.enabled'         => test_case['span_events_enabled'],
+              :'distributed_tracing.enabled' => true
+            }
+
+            with_config(config) do
+              NewRelic::Agent.config.notify_server_source_added
+              run_test_case(test_case)
+            end
           end
+        else
+          define_method("test_#{test_case['test_name']}") do
+            skip("marked pending by exclusion from #only_tests")
+          end          
         end
       end
 
@@ -41,7 +56,9 @@ module NewRelic
 
       def run_test_case(test_case)
         outbound_payloads = []
-
+        if test_case['test_name'] =~ /^pending|^skip/ || test_case["pending"] || test_case["skip"]
+          skip("marked pending in trace_context.json")
+        end
         in_transaction(in_transaction_options(test_case)) do |txn|
           accept_payloads(test_case, txn)
           raise_exception(test_case)
@@ -56,12 +73,12 @@ module NewRelic
       end
 
       def accept_payloads(test_case, txn)
+        rack_headers = test_case.has_key?('transport_type') ? {'rack.url_scheme' => test_case['transport_type'].to_s.downcase} : {}
+
         inbound_payloads = payloads_for(test_case)
         inbound_payloads.each do |payload|
-          txn.accept_distributed_trace_payload payload
-          if txn.distributed_trace?
-            txn.distributed_trace_payload.caller_transport_type = test_case['transport_type']
-          end
+          carrier = { "HTTP_NEWRELIC" => payload }
+          DistributedTracing.accept_distributed_trace_headers carrier, test_case['transport_type']
         end
       end
 
@@ -77,7 +94,7 @@ module NewRelic
         if test_case['outbound_payloads']
           payloads = Array(test_case['outbound_payloads'])
           payloads.count.times do
-            payload = txn.create_distributed_trace_payload
+            payload = txn.distributed_tracer.create_distributed_trace_payload
             outbound_payloads << payload if payload
           end
         end
@@ -127,11 +144,7 @@ module NewRelic
         merged
       end
 
-      ALLOWED_EVENT_TYPES = Set.new %w(
-        Transaction
-        TransactionError
-        Span
-      )
+      ALLOWED_EVENT_TYPES = %w{ Transaction TransactionError Span }
 
       def intrinsics_for_event(test_case, event_type)
         unless ALLOWED_EVENT_TYPES.include? event_type

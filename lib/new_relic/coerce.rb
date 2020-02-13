@@ -1,16 +1,19 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 module NewRelic
-  # We really don't want to send bad values to the collector, and it doesn't
-  # accept types like Rational that have occasionally slipped into our data.
-  #
-  # These methods are intended to safely coerce things into the form we want,
-  # to provide documentation of expected types on to_collector_array methods,
-  # and to log failures if totally invalid data gets into outgoing data
   module Coerce
+
     module_function
+
+    # We really don't want to send bad values to the collector, and it doesn't
+    # accept types like Rational that have occasionally slipped into our data.
+    #
+    # These non-bang methods are intended to safely coerce things into the form we want,
+    # to provide documentation of expected types on to_collector_array methods,
+    # and to log failures if totally invalid data gets into outgoing data
 
     def int(value, context=nil)
       Integer(value)
@@ -59,6 +62,28 @@ module NewRelic
       else
         "#<#{val.class.to_s}>"
       end
+    end
+
+    def int! value
+      return nil unless value_or_nil(value)
+      Integer(value)
+    end
+
+    # Use when you plan to perform a boolean check using the integer 1
+    # for true and the integer 0 for false
+    # String values will be converted to 0
+    def boolean_int! value
+      value.to_i
+    end
+
+    def float! value, precision=NewRelic::PRIORITY_PRECISION
+      return nil unless value_or_nil(value)
+      value.to_f.round(precision)
+    end
+
+    def value_or_nil value
+      return nil if value.nil? || (value.respond_to?(:empty?) && value.empty?)
+      value
     end
 
     def log_failure(value, type, context, error)

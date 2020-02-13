@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/transaction/abstract_segment'
 require 'new_relic/agent/span_event_primitive'
+require 'new_relic/agent/attributes'
 
 module NewRelic
   module Agent
@@ -12,11 +13,16 @@ module NewRelic
         # unscoped_metrics can be nil, a string, or array. we do this to save
         # object allocations. if allocations weren't important then we would
         # initialize it as an array that would be empty, have one item, or many items.
-        attr_reader :unscoped_metrics
+        attr_reader :unscoped_metrics, :attributes
 
         def initialize name=nil, unscoped_metrics=nil, start_time=nil
           @unscoped_metrics = unscoped_metrics
+          @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
           super name, start_time
+        end
+
+        def add_custom_attributes(p)
+          attributes.merge_custom_attributes(p)
         end
 
         private

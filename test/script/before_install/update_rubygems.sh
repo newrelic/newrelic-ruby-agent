@@ -7,4 +7,4 @@
 
 set -ev
 
-gem update --system || (gem i rubygems-update -v '<3' && update_rubygems)
+gem update --system --force || (gem i rubygems-update -v '<3' && update_rubygems)

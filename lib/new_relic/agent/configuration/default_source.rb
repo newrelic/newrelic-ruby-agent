@@ -218,9 +218,19 @@ module NewRelic
           end
           const_names.compact
         end
+
+        def self.enforce_fallback(allowed_values: nil, fallback: nil)
+          Proc.new do |configured_value|
+            if allowed_values.any? { |v| v =~ /#{configured_value}/i }
+              configured_value
+            else
+              fallback
+            end
+          end
+        end
       end
 
-      AUTOSTART_BLACKLISTED_RAKE_TASKS = [
+      AUTOSTART_DENYLISTED_RAKE_TASKS = [
         'about',
         'assets:clean',
         'assets:clobber',
@@ -385,7 +395,21 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'When <code>true</code>, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and <a href="https://docs.newrelic.com/docs/insights/new-relic-insights/decorating-events/error-event-default-attributes-insights">TransactionError events</a>.'
+          :description => 'When <code>true</code>, the agent captures HTTP request parameters ' \
+            'and attaches them to transaction traces, traced errors, and ' \
+            '<a href="https://docs.newrelic.com/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241">'\
+            '<code>TransactionError</code> events.' \
+            "\n" \
+            '<div class="callout-warning">' \
+            "\n" \
+            '<p>When using the <code>capture_params</code> setting, the Ruby agent will not attempt ' \
+            'to filter secret information. <b>Recommendation:</b> To filter secret information from ' \
+            'request parameters, use the <a href="/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby">' \
+            '<code>attributes.include</code> setting</a> instead. For more information, see the ' \
+            '<a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">' \
+            'Ruby attribute examples</a>.' \
+            "</p>\n" \
+            '</div>'
         },
         :config_path => {
           :default => DefaultSource.config_path,
@@ -420,6 +444,17 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :description => 'Deprecated.  ' \
+              'For agent versions 6.8.0 or higher, ' \
+              'use <a href="#autostart-denylisted_constants"><code>' \
+                'autostart.denylisted_constants' \
+              '</code></a> instead.'
+        },
+        :'autostart.denylisted_constants' => {
+          :default => 'Rails::Console',
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
           :description => 'Specify a list of constants that should prevent the agent from starting automatically. Separate individual constants with a comma <code>,</code>. For example, <code>Rails::Console,UninstrumentedBackgroundJob</code>.'
         },
         :'autostart.blacklisted_executables' => {
@@ -427,10 +462,32 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
+          :description => 'Deprecated.  ' \
+              'For agent versions 6.8.0 or higher, ' \
+              'use <a href="#autostart-denylisted_executables"><code>' \
+                'autostart.denylisted_executables' \
+              '</code></a> instead.'
+        },
+        :'autostart.denylisted_executables' => {
+          :default => value_of(:'autostart.blacklisted_executables'),
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
           :description => 'Defines a comma-delimited list of executables that the agent should not instrument. For example, <code>rake,my_ruby_script.rb</code>.'
         },
         :'autostart.blacklisted_rake_tasks' => {
-          :default => AUTOSTART_BLACKLISTED_RAKE_TASKS,
+          :default => AUTOSTART_DENYLISTED_RAKE_TASKS,
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'Deprecated.  ' \
+              'For agent versions 6.8.0 or higher, ' \
+              'use <a href="#autostart-denylisted_rake_tasks"><code>' \
+                'autostart.denylisted_rake_tasks' \
+              '</code></a> instead.'
+        },
+        :'autostart.denylisted_rake_tasks' => {
+          :default => value_of(:'autostart.blacklisted_rake_tasks'),
           :public => true,
           :type => String,
           :allowed_from_server => false,
@@ -478,15 +535,28 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If true, the agent strips messages from all exceptions except those in the <a href="#strip_exception_messages-whitelist">whitelist</a>. Enabled automatically in <a href="https://docs.newrelic.com/docs/accounts-partnerships/accounts/security/high-security">high security mode</a>.'
+          :description => 'If true, the agent strips messages from all exceptions except those in the <a href="#strip_exception_messages-allowlist">allowlist</a>. Enabled automatically in <a href="https://docs.newrelic.com/docs/accounts-partnerships/accounts/security/high-security">high security mode</a>.'
         },
         :'strip_exception_messages.whitelist' => {
           :default => '',
           :public => true,
           :type => String,
+          :deprecated => true,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_constant_list),
-          :description => 'Specify a whitelist of exceptions you do not want the agent to strip when <a href="#strip_exception_messages-enabled">strip_exception_messages</a> is <code>true</code>. Separate exceptions with a comma. For example, <code>"ImportantException,PreserveMessageException"</code>.'
+          :description => 'Deprecated.  ' \
+              'For agent versions 6.8.0 or higher, ' \
+              'use <a href="#strip_exception_messages.allowed_classes"><code>' \
+                'strip_exception_messages.allowed_classes' \
+              '</code></a> instead.'
+        },
+        :'strip_exception_messages.allowed_classes' => {
+          :default => '',
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :transform => DefaultSource.method(:convert_to_constant_list),
+          :description => 'Specify a list of exceptions you do not want the agent to strip when <a href="#strip_exception_messages-enabled">strip_exception_messages</a> is <code>true</code>. Separate exceptions with a comma. For example, <code>"ImportantException,PreserveMessageException"</code>.'
         },
         :host => {
           :default => DefaultSource.host,
@@ -545,7 +615,7 @@ module NewRelic
           :description => 'Use HTTP PUT requests instead of POST.'
         },
         :compressed_content_encoding => {
-          :default => 'deflate',
+          :default => 'gzip',
           :public => false,
           :type => String,
           :allowed_from_server => false,
@@ -617,15 +687,6 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => true,
           :description => 'Number of seconds betwixt connections to the New Relic span event collection services.'
-        },
-        :'data_report_periods.analytic_event_data' => {
-          :default => 60,
-          :public => false,
-          :type => Integer,
-          :deprecated => true,
-          :dynamic_name => true,
-          :allowed_from_server => true,
-          :description => 'Number of seconds between connections to the New Relic data collection service for sending transaction event data.'
         },
         :keep_retrying => {
           :default => true,
@@ -1866,6 +1927,13 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => true,
           :description => 'Defines the maximum number of span events reported from a single harvest.'
+        },
+        :'exclude_newrelic_header' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => "Allows newrelic distributed tracing headers to be suppressed on outbound requests."
         }
       }.freeze
     end

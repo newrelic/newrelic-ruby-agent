@@ -21,6 +21,7 @@ class Minitest::Test
     NewRelic::Agent.logger.info("*** #{self.class}##{test_method_name} **")
 
     @__thread_count = ruby_threads.count
+    @__threads = ruby_threads.map{|rt| Hometown.for(rt).backtrace[0]}
     super
   end
 
@@ -29,6 +30,9 @@ class Minitest::Test
 
     threads = ruby_threads
     if @__thread_count != threads.count
+      puts "*" * 80
+      puts "originally: #{@__threads.inspect}"
+      puts "*" * 80
       backtraces = threads.map do |thread|
         trace = Hometown.for(thread)
         trace.backtrace.join("\n    ")

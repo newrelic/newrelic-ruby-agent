@@ -121,13 +121,11 @@ module NewRelic
           }
         end
 
-        EMPTY_HASH = {}.freeze
-
         def trace_tree attributes_hash
           [
             NewRelic::Coerce.float(self.start_time),
-            EMPTY_HASH,
-            EMPTY_HASH,
+            NewRelic::EMPTY_HASH,
+            NewRelic::EMPTY_HASH,
             self.root_node.to_array,
             attributes_hash
           ]

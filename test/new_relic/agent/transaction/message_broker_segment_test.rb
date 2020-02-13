@@ -100,7 +100,6 @@ module NewRelic
           with_config :"cross_application_tracer.enabled" => true, :cross_process_id => "321#123", :encoding_key => "abc" do
             in_transaction "test_txn" do |txn|
               txn.raw_synthetics_header = "boo"
-
               segment = NewRelic::Agent::Tracer.start_message_broker_segment(
                 action: :produce,
                 library: "RabbitMQ",
@@ -117,6 +116,7 @@ module NewRelic
         end
 
         def test_segment_adds_distributed_trace_headers_to_message_properties_for_produce
+          NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
           with_config :"distributed_tracing.enabled" => true,
                       :account_id => "190",
                       :primary_application_id => "46954" do
@@ -133,7 +133,7 @@ module NewRelic
             end
 
             intrinsics, _, _ = last_transaction_event
-            assert_equal transaction.guid, intrinsics['traceId']
+            assert_equal transaction.trace_id, intrinsics['traceId']
           end
         end
 

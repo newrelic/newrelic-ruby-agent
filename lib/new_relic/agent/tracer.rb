@@ -120,7 +120,7 @@ module NewRelic
         #   New-Relic-specific prefix
         #
         # @param [Symbol] category +:web+ for web transactions or
-        #   +:background+ for background transactions
+        #   +:task+ for background transactions
         #
         # @param [Hash] options reserved for New Relic internal use
         #
@@ -196,12 +196,12 @@ module NewRelic
 
         def create_distributed_trace_payload
           return unless txn = current_transaction
-          txn.create_distributed_trace_payload
+          txn.distributed_tracer.create_distributed_trace_payload
         end
 
         def accept_distributed_trace_payload(payload)
           return unless txn = current_transaction
-          txn.accept_distributed_trace_payload(payload)
+          txn.distributed_tracer.accept_distributed_trace_payload(payload)
         end
 
         # Returns the currently active segment in the transaction in

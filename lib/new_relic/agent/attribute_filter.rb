@@ -121,7 +121,7 @@ module NewRelic
         @high_security = config[:high_security]
 
         setup_key_cache
-        cache_prefix_blacklist
+        cache_prefix_denylist
       end
 
       # Note the key_cache is a global cache, accessible by multiple threads,
@@ -222,16 +222,16 @@ module NewRelic
       # arguments for Sidekiq and Resque in the common case, since none of
       # these attributes are captured by default.
       #
-      def cache_prefix_blacklist
-        @prefix_blacklist = {}
-        @prefix_blacklist[:'request.parameters'] = true unless might_allow_prefix_uncached?(:'request.parameters')
-        @prefix_blacklist[:'job.sidekiq.args']   = true unless might_allow_prefix_uncached?(:'job.sidekiq.args')
-        @prefix_blacklist[:'job.resque.args']    = true unless might_allow_prefix_uncached?(:'job.resque.args')
+      def cache_prefix_denylist
+        @prefix_denylist = {}
+        @prefix_denylist[:'request.parameters'] = true unless might_allow_prefix_uncached?(:'request.parameters')
+        @prefix_denylist[:'job.sidekiq.args']   = true unless might_allow_prefix_uncached?(:'job.sidekiq.args')
+        @prefix_denylist[:'job.resque.args']    = true unless might_allow_prefix_uncached?(:'job.resque.args')
       end
 
       # Note that the given prefix *must* be a Symbol
       def might_allow_prefix?(prefix)
-        !@prefix_blacklist.include?(prefix)
+        !@prefix_denylist.include?(prefix)
       end
 
       def might_allow_prefix_uncached?(prefix)

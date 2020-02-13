@@ -5,13 +5,13 @@
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/method_tracer_helpers'
-require 'new_relic/agent/transaction/attributes'
+require 'new_relic/agent/attributes'
 require 'new_relic/agent/transaction/request_attributes'
 require 'new_relic/agent/transaction/tracing'
-require 'new_relic/agent/transaction/distributed_tracing'
-require 'new_relic/agent/cross_app_tracing'
+require 'new_relic/agent/transaction/distributed_tracer'
 require 'new_relic/agent/transaction_time_aggregator'
 require 'new_relic/agent/deprecator'
+require 'new_relic/agent/guid_generator'
 
 module NewRelic
   module Agent
@@ -21,8 +21,6 @@ module NewRelic
     # @api public
     class Transaction
       include Tracing
-      include DistributedTracing
-      include CrossAppTracing
 
       # for nested transactions
       SUBTRANSACTION_PREFIX        = 'Nested/'.freeze
@@ -59,7 +57,8 @@ module NewRelic
                     :process_cpu_start,
                     :http_response_code,
                     :response_content_length,
-                    :response_content_type
+                    :response_content_type,
+                    :parent_span_id
 
       attr_reader :guid,
                   :metrics,
@@ -242,7 +241,7 @@ module NewRelic
 
         @exceptions = {}
         @metrics = TransactionMetrics.new
-        @guid = generate_guid
+        @guid = NewRelic::Agent::GuidGenerator.generate_guid
 
         @ignore_this_transaction = false
         @ignore_apdex = options.fetch(:ignore_apdex, false)
@@ -265,6 +264,10 @@ module NewRelic
         end
       end
 
+      def distributed_tracer
+        @distributed_tracer ||= DistributedTracer.new(self)
+      end
+
       def sampled?
         return unless Agent.config[:'distributed_tracing.enabled']
         if @sampled.nil?
@@ -273,12 +276,16 @@ module NewRelic
         @sampled
       end
 
+      def trace_id
+        @trace_id ||= NewRelic::Agent::GuidGenerator.generate_guid 32
+      end
+
+      def trace_id=(value)
+        @trace_id = value
+      end
+
       def priority
-        if @priority.nil?
-          @priority = rand.round(6)
-          @priority += 1 if sampled?
-        end
-        @priority
+        @priority ||= (sampled? ? 1.0 + rand : rand).round(NewRelic::PRIORITY_PRECISION)
       end
 
       def referer
@@ -349,8 +356,10 @@ module NewRelic
       end
 
       def best_name
-        @frozen_name  || @overridden_name ||
-          @default_name || NewRelic::Agent::UNKNOWN_METRIC
+        @frozen_name ||
+        @overridden_name ||
+        @default_name ||
+        NewRelic::Agent::UNKNOWN_METRIC
       end
 
       # For common interface with Trace
@@ -523,8 +532,7 @@ module NewRelic
         record_total_time_metrics
         record_apdex unless ignore_apdex?
         record_queue_time
-        record_cross_app_metrics
-        record_distributed_tracing_metrics
+        distributed_tracer.record_metrics
 
         record_exceptions
         record_transaction_event
@@ -576,16 +584,22 @@ module NewRelic
           attributes.add_intrinsic_attribute(:synthetics_monitor_id, synthetics_monitor_id)
         end
 
-        if Agent.config[:'distributed_tracing.enabled']
-          assign_distributed_trace_intrinsics
-        elsif is_cross_app?
-          assign_cross_app_intrinsics
-        end
+        distributed_tracer.assign_intrinsics
       end
 
       def calculate_gc_time
         gc_stop_snapshot = NewRelic::Agent::StatsEngine::GCProfiler.take_snapshot
         NewRelic::Agent::StatsEngine::GCProfiler.record_delta(gc_start_snapshot, gc_stop_snapshot)
+      end
+
+      # This method returns transport_duration in seconds. Transport duration
+      # is stored in milliseconds on the payload, but it's needed in seconds
+      # for metrics and intrinsics.
+      def calculate_transport_duration distributed_trace_payload
+        return unless distributed_trace_payload
+
+        duration = (start_time.to_f * 1000 - distributed_trace_payload.timestamp) / 1000
+        duration < 0 ? 0 : duration
       end
 
       # The summary metrics recorded by this method all end up with a duration
@@ -614,14 +628,13 @@ module NewRelic
           :priority             => priority
         }
 
-        append_cat_info(@payload)
-        append_distributed_trace_info(@payload)
+        distributed_tracer.append_payload(@payload)
         append_apdex_perf_zone(@payload)
         append_synthetics_to(@payload)
       end
 
       def include_guid?
-        is_cross_app? || is_synthetics_request?
+        distributed_tracer.is_cross_app? || is_synthetics_request?
       end
 
       def is_synthetics_request?
@@ -904,18 +917,6 @@ module NewRelic
 
       def sql_sampler
         agent.sql_sampler
-      end
-
-      HEX_DIGITS = (0..15).map{|i| i.to_s(16)}
-      GUID_LENGTH = 16
-
-      # generate a random 64 bit uuid
-      def generate_guid
-        guid = ''
-        GUID_LENGTH.times do |a|
-          guid << HEX_DIGITS[rand(16)]
-        end
-        guid
       end
     end
   end

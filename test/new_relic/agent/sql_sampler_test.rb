@@ -461,22 +461,27 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_record_intrinsics_on_slow_sql
     payload = nil
+    NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
     with_config({:'distributed_tracing.enabled' => true,
                  :primary_application_id => "46954",
                  :trusted_account_key => 'trust_this!',
                  :account_id => 190,
                  :'slow_sql.explain_threshold' => -1 }) do
 
+      nr_freeze_time
+
       in_transaction do |txn|
-        payload = txn.create_distributed_trace_payload
+        payload = txn.distributed_tracer.create_distributed_trace_payload
       end
+
+      advance_time 2.0
 
       segment = nil
       txn = nil
       sampled = nil
       txn = in_web_transaction "test_txn" do |t|
         t.sampled = true
-        t.accept_distributed_trace_payload payload.text
+        t.distributed_tracer.accept_distributed_trace_payload payload.text
         sampled = t.sampled?
         segment = NewRelic::Agent::Tracer.start_datastore_segment(
           product: "SQLite",
@@ -488,11 +493,13 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       end
 
       sql_trace = last_sql_trace
-      assert_equal txn.distributed_trace_payload.trace_id, sql_trace.params['traceId']
+      trace_payload = txn.distributed_tracer.distributed_trace_payload
+      transport_type = txn.distributed_tracer.caller_transport_type
+      assert_equal trace_payload.trace_id,                 sql_trace.params['traceId']
       assert_equal txn.priority,                           sql_trace.params['priority']
       assert_equal sampled,                                sql_trace.params['sampled']
-      assert_equal payload.caller_transport_type,          sql_trace.params['parent.transportType']
-      assert_equal txn.transport_duration,                 sql_trace.params['parent.transportDuration']
+      assert_equal transport_type,                         sql_trace.params['parent.transportType']
+      assert_equal 2.0, sql_trace.params['parent.transportDuration'].round
       assert_equal payload.parent_type,                    sql_trace.params['parent.type']
       assert_equal payload.parent_account_id,              sql_trace.params['parent.account']
       assert_equal payload.parent_app_id,                  sql_trace.params['parent.app']

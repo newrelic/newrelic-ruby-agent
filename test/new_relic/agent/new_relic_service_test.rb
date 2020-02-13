@@ -317,6 +317,21 @@ class NewRelicServiceTest < Minitest::Test
     end
   end
 
+  def test_high_security_mode_sent_on_preconnect
+    with_config(:high_security => true) do
+      @service.preconnect
+      payload = @http_handle.last_request_payload.first
+      assert payload['high_security']
+    end
+
+    with_config(:high_security => false) do
+      @service.preconnect
+      payload = @http_handle.last_request_payload.first
+      refute_nil payload['high_security']
+      refute payload['high_security']
+    end
+  end
+
   def test_preliminary_security_policies_sent_on_connect
     policies = DEFAULT_PRECONNECT_POLICIES
 
@@ -558,8 +573,6 @@ class NewRelicServiceTest < Minitest::Test
   def test_supportability_metrics_for_unsuccessful_endpoint_attempts
     NewRelic::Agent.drop_buffered_data
 
-    payload = ['eggs', 'spam']
-
     @http_handle.respond_to(:metric_data, 'bad format', :code => 400)
     assert_raises NewRelic::Agent::UnrecoverableServerException do
       stats_hash = NewRelic::Agent::StatsHash.new
@@ -671,11 +684,21 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal([expected_string], field)
   end
 
-  def test_compress_request_if_needed_compresses_large_payloads
+  def test_compress_request_if_needed_compresses_large_payloads_gzip
     large_payload = 'a' * 65 * 1024
     body, encoding = @service.compress_request_if_needed(large_payload, :foobar)
-    assert_equal(large_payload, Zlib::Inflate.inflate(body))
-    assert_equal('deflate', encoding)
+    zstream = Zlib::Inflate.new(16+Zlib::MAX_WBITS)
+    assert_equal(large_payload, zstream.inflate(body))
+    assert_equal('gzip', encoding)
+  end
+
+  def test_compress_request_if_needed_compresses_large_payloads_deflate
+    with_config(:compressed_content_encoding => 'deflate') do
+      large_payload = 'a' * 65 * 1024
+      body, encoding = @service.compress_request_if_needed(large_payload, :foobar)
+      assert_equal(large_payload, Zlib::Inflate.inflate(body))
+      assert_equal('deflate', encoding)
+    end
   end
 
   def test_compress_request_if_needed_passes_thru_small_payloads
@@ -1090,9 +1113,15 @@ class NewRelicServiceTest < Minitest::Test
     def last_request_payload
       return nil unless @last_request && @last_request.body
 
-      body = @last_request.body
       content_encoding = @last_request['Content-Encoding']
-      body = Zlib::Inflate.inflate(body) if content_encoding == 'deflate'
+      body = if content_encoding == 'deflate'
+        Zlib::Inflate.inflate(@last_request.body)
+      elsif content_encoding == 'gzip'
+        zstream = Zlib::Inflate.new(16+Zlib::MAX_WBITS)
+        zstream.inflate(@last_request.body)
+      else
+        @last_request.body
+      end
 
       uri = URI.parse(@last_request.path)
       params = CGI.parse(uri.query)

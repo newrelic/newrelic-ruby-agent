@@ -257,9 +257,9 @@ module NewRelic::Agent::Configuration
       assert_truthy @manager[:'strip_exception_messages.enabled']
     end
 
-    def test_stripped_exceptions_whitelist_contains_only_valid_exception_classes
-      @manager.add_config_for_testing(:'strip_exception_messages.whitelist' => 'LocalJumpError, NonExistentException')
-      assert_equal [LocalJumpError], @manager[:'strip_exception_messages.whitelist']
+    def test_stripped_exceptions_allowlist_contains_only_valid_exception_classes
+      @manager.add_config_for_testing(:'strip_exception_messages.allowed_classes' => 'LocalJumpError, NonExistentException')
+      assert_equal [LocalJumpError], @manager[:'strip_exception_messages.allowed_classes']
     end
 
     def test_should_log_when_applying

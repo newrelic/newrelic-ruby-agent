@@ -1,39 +1,68 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
-require 'new_relic/agent/distributed_trace_payload'
+require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
+require 'new_relic/agent/distributed_tracing/distributed_trace_intrinsics'
+require 'new_relic/agent/distributed_tracing/distributed_trace_metrics'
 
 module NewRelic
   module Agent
     class Transaction
       module DistributedTracing
         attr_accessor :distributed_trace_payload
+        attr_writer :distributed_trace_payload_created
 
-        def distributed_trace?
-          !!distributed_trace_payload
+        SUPPORTABILITY_DISTRIBUTED_TRACE       = "Supportability/DistributedTrace"
+        CREATE_PREFIX                          = "#{SUPPORTABILITY_DISTRIBUTED_TRACE}/CreatePayload"
+        ACCEPT_PREFIX                          = "#{SUPPORTABILITY_DISTRIBUTED_TRACE}/AcceptPayload"
+        IGNORE_PREFIX                          = "#{ACCEPT_PREFIX}/Ignored"
+
+        CREATE_SUCCESS_METRIC                  = "#{CREATE_PREFIX}/Success"
+        CREATE_EXCEPTION_METRIC                = "#{CREATE_PREFIX}/Exception"
+        ACCEPT_SUCCESS_METRIC                  = "#{ACCEPT_PREFIX}/Success"
+        ACCEPT_EXCEPTION_METRIC                = "#{ACCEPT_PREFIX}/Exception"
+        ACCEPT_PARSE_EXCEPTION_METRIC          = "#{ACCEPT_PREFIX}/ParseException"
+
+        IGNORE_ACCEPT_AFTER_CREATE_METRIC      = "#{IGNORE_PREFIX}/CreateBeforeAccept"
+        IGNORE_MULTIPLE_ACCEPT_METRIC          = "#{IGNORE_PREFIX}/Multiple"
+        IGNORE_ACCEPT_NULL_METRIC              = "#{IGNORE_PREFIX}/Null"
+        IGNORE_ACCEPT_MAJOR_VERSION_METRIC     = "#{IGNORE_PREFIX}/MajorVersion"
+        IGNORE_ACCEPT_UNTRUSTED_ACCOUNT_METRIC = "#{IGNORE_PREFIX}/UntrustedAccount"
+
+        LBRACE = "{"
+        NULL_PAYLOAD = 'null'
+
+        NEWRELIC_TRACE_KEY = "HTTP_NEWRELIC"
+
+        def accept_distributed_tracing_incoming_request request
+          return unless Agent.config[:'distributed_tracing.enabled']
+          return unless payload = request[NEWRELIC_TRACE_KEY]
+
+          accept_distributed_trace_payload payload
         end
 
-        SUPPORTABILITY_CREATE_PAYLOAD_SUCCESS   = "Supportability/DistributedTrace/CreatePayload/Success".freeze
-        SUPPORTABILITY_CREATE_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/CreatePayload/Exception".freeze
+        def distributed_trace_payload_created?
+          @distributed_trace_payload_created ||= false
+        end
 
         def create_distributed_trace_payload
           return unless Agent.config[:'distributed_tracing.enabled']
-          self.distributed_trace_payload_created = true
-          payload = DistributedTracePayload.for_transaction self
-          NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_PAYLOAD_SUCCESS
+
+          @distributed_trace_payload_created = true
+          payload = DistributedTracePayload.for_transaction transaction
+          NewRelic::Agent.increment_metric CREATE_SUCCESS_METRIC
           payload
         rescue => e
-          NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_PAYLOAD_EXCEPTION
+          NewRelic::Agent.increment_metric CREATE_EXCEPTION_METRIC
           NewRelic::Agent.logger.warn "Failed to create distributed trace payload", e
           nil
         end
 
-        SUPPORTABILITY_ACCEPT_PAYLOAD_SUCCESS   = "Supportability/DistributedTrace/AcceptPayload/Success".freeze
-        SUPPORTABILITY_ACCEPT_PAYLOAD_EXCEPTION = "Supportability/DistributedTrace/AcceptPayload/Exception".freeze
-
         def accept_distributed_trace_payload payload
           return unless Agent.config[:'distributed_tracing.enabled']
+
           return false if check_payload_ignored(payload)
           return false unless check_payload_present(payload)
           return false unless payload = decode_payload(payload)
@@ -43,94 +72,36 @@ module NewRelic
 
           assign_payload_and_sampling_params(payload)
 
-          NewRelic::Agent.increment_metric SUPPORTABILITY_ACCEPT_PAYLOAD_SUCCESS
+          NewRelic::Agent.increment_metric ACCEPT_SUCCESS_METRIC
           true
         rescue => e
-          NewRelic::Agent.increment_metric SUPPORTABILITY_ACCEPT_PAYLOAD_EXCEPTION
+          NewRelic::Agent.increment_metric ACCEPT_EXCEPTION_METRIC
           NewRelic::Agent.logger.warn "Failed to accept distributed trace payload", e
           false
         end
 
-        def trace_id
-          if distributed_trace_payload
-            distributed_trace_payload.trace_id
-          else
-            guid
-          end
-        end
-
-        def parent_id
-          # The payload comes from our parent transaction, so its ID
-          # is our parent ID.
-          #
-          distributed_trace_payload && distributed_trace_payload.transaction_id
-        end
-
-        def distributed_trace_payload_created?
-          @distributed_trace_payload_created ||=  false
-        end
-
-        attr_writer :distributed_trace_payload_created
-
-        def append_distributed_trace_info transaction_payload
-          return unless Agent.config[:'distributed_tracing.enabled']
-          if distributed_trace_payload
-            distributed_trace_payload.assign_intrinsics self, transaction_payload
-          else
-            DistributedTracePayload.assign_initial_intrinsics self, transaction_payload
-          end
-        end
-
-        def assign_distributed_trace_intrinsics
-          return unless Agent.config[:'distributed_tracing.enabled']
-          DistributedTracePayload::INTRINSIC_KEYS.each do |key|
-            next unless @payload.key? key
-            attributes.add_intrinsic_attribute key, @payload[key]
-          end
-          nil
-        end
-
-        # This method returns transport_duration in seconds. Transport duration
-        # is stored in milliseconds on the payload, but it's needed in seconds
-        # for metrics and intrinsics.
-        def transport_duration
-          return unless distributed_trace_payload
-          duration = (start_time.to_f * 1000 - distributed_trace_payload.timestamp) / 1000
-          duration < 0 ? 0 : duration
-        end
-
         private
-
-        SUPPORTABILITY_CREATE_BEFORE_ACCEPT_PAYLOAD   = "Supportability/DistributedTrace/AcceptPayload/Ignored/CreateBeforeAccept".freeze
-        SUPPORTABILITY_MULTIPLE_ACCEPT_PAYLOAD        = "Supportability/DistributedTrace/AcceptPayload/Ignored/Multiple".freeze
-        SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_NULL    = "Supportability/DistributedTrace/AcceptPayload/Ignored/Null".freeze
-        SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_BROWSER = "Supportability/DistributedTrace/AcceptPayload/Ignored/BrowserAgentInjected".freeze
 
         def check_payload_ignored(payload)
           if distributed_trace_payload
-            NewRelic::Agent.increment_metric SUPPORTABILITY_MULTIPLE_ACCEPT_PAYLOAD
+            NewRelic::Agent.increment_metric IGNORE_MULTIPLE_ACCEPT_METRIC
             return true
           elsif distributed_trace_payload_created?
-            NewRelic::Agent.increment_metric SUPPORTABILITY_CREATE_BEFORE_ACCEPT_PAYLOAD
+            NewRelic::Agent.increment_metric IGNORE_ACCEPT_AFTER_CREATE_METRIC
             return true
           end
           false
         end
 
-        NULL_PAYLOAD = 'null'.freeze
-
         def check_payload_present(payload)
           # We might be passed a Ruby `nil` object _or_ the JSON "null"
           if payload.nil? || payload == NULL_PAYLOAD
-            NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_NULL
+            NewRelic::Agent.increment_metric IGNORE_ACCEPT_NULL_METRIC
             return nil
           end
 
           payload
         end
-
-        SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_PARSE_EXCEPTION = "Supportability/DistributedTrace/AcceptPayload/ParseException".freeze
-        LBRACE = "{".freeze
 
         def decode_payload(payload)
           decoded = if payload.start_with? LBRACE
@@ -143,7 +114,7 @@ module NewRelic
 
           decoded
         rescue => e
-          NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_PARSE_EXCEPTION
+          NewRelic::Agent.increment_metric ACCEPT_PARSE_EXCEPTION_METRIC
           NewRelic::Agent.logger.warn "Error parsing distributed trace payload", e
           nil
         end
@@ -160,100 +131,40 @@ module NewRelic
 
             true
           else
-            NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_PARSE_EXCEPTION
+            NewRelic::Agent.increment_metric ACCEPT_PARSE_EXCEPTION_METRIC
             false
           end
         end
-
-        SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_MAJOR_VERSION = "Supportability/DistributedTrace/AcceptPayload/Ignored/MajorVersion".freeze
 
         def check_valid_version(payload)
           if DistributedTracePayload.major_version_matches?(payload)
             true
           else
-            NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_IGNORED_MAJOR_VERSION
+            NewRelic::Agent.increment_metric IGNORE_ACCEPT_MAJOR_VERSION_METRIC
             false
           end
         end
 
-        SUPPORTABILITY_PAYLOAD_ACCEPT_UNTRUSTED_ACCOUNT = "Supportability/DistributedTrace/AcceptPayload/Ignored/UntrustedAccount".freeze
-
         def check_trusted_account(payload)
           compare_key = payload.trusted_account_key || payload.parent_account_id
           unless compare_key == NewRelic::Agent.config[:trusted_account_key]
-            NewRelic::Agent.increment_metric SUPPORTABILITY_PAYLOAD_ACCEPT_UNTRUSTED_ACCOUNT
+            NewRelic::Agent.increment_metric IGNORE_ACCEPT_UNTRUSTED_ACCOUNT_METRIC
             return false
           end
           true
         end
 
         def assign_payload_and_sampling_params(payload)
-          self.distributed_trace_payload = payload
+          @distributed_trace_payload = payload
+          return if transaction.distributed_tracer.trace_context_header_data
+          transaction.trace_id = payload.trace_id
+          transaction.distributed_tracer.parent_transaction_id = payload.transaction_id
+          transaction.parent_span_id = payload.id
 
           unless payload.sampled.nil?
-            self.sampled = payload.sampled
-            self.priority = payload.priority if payload.priority
+            transaction.sampled = payload.sampled
+            transaction.priority = payload.priority if payload.priority
           end
-        end
-
-        ALL_SUFFIX = "all".freeze
-        ALL_WEB_SUFFIX = "allWeb".freeze
-        ALL_OTHER_SUFFIX = "allOther".freeze
-
-        def transaction_type_suffix
-          if Transaction.recording_web_transaction?
-            ALL_WEB_SUFFIX
-          else
-            ALL_OTHER_SUFFIX
-          end
-        end
-
-        def record_distributed_tracing_metrics
-          return unless Agent.config[:'distributed_tracing.enabled']
-
-          record_caller_by_duration_metrics
-          record_transport_duration_metrics
-          record_errors_by_caller_metrics
-        end
-
-        DURATION_BY_CALLER_UNKOWN_PREFIX = "DurationByCaller/Unknown/Unknown/Unknown/Unknown".freeze
-
-        def record_caller_by_duration_metrics
-          prefix = if distributed_trace?
-            payload = distributed_trace_payload
-            "DurationByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
-          else
-            DURATION_BY_CALLER_UNKOWN_PREFIX
-          end
-
-          metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}",              duration
-          metrics.record_unscoped "#{prefix}/#{transaction_type_suffix}", duration
-        end
-
-        def record_transport_duration_metrics
-          return unless distributed_trace?
-
-          payload = distributed_trace_payload
-          prefix = "TransportDuration/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
-
-          metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}",              transport_duration
-          metrics.record_unscoped "#{prefix}/#{transaction_type_suffix}", transport_duration
-        end
-
-        ERRORS_BY_CALLER_UNKOWN_PREFIX = "ErrorsByCaller/Unknown/Unknown/Unknown/Unknown".freeze
-
-        def record_errors_by_caller_metrics
-          return unless exceptions.size > 0
-
-          prefix = if distributed_trace?
-            payload = distributed_trace_payload
-            "ErrorsByCaller/#{payload.parent_type}/#{payload.parent_account_id}/#{payload.parent_app_id}/#{payload.caller_transport_type}"
-          else
-            ERRORS_BY_CALLER_UNKOWN_PREFIX
-          end
-
-          metrics.record_unscoped "#{prefix}/#{ALL_SUFFIX}",              1
-          metrics.record_unscoped "#{prefix}/#{transaction_type_suffix}", 1
         end
       end
     end

@@ -2,8 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'bundler'
-
+require File.expand_path '../../../../multiverse/lib/multiverse/bundler_patch', __FILE__
 require File.expand_path '../../../../multiverse/lib/multiverse/color', __FILE__
 require File.expand_path '../../../../multiverse/lib/multiverse/shell_utils', __FILE__
 
@@ -11,7 +10,7 @@ module Environments
   class Runner
     include Multiverse::Color
 
-    BLACKLIST = {
+    DENYLIST = {
       "2.4.2"       => ["rails60"],
       "2.3.5"       => ["rails60"],
       "2.2.1"       => ["rails50", "rails60"],
@@ -37,8 +36,10 @@ module Environments
       failures = []
 
       puts yellow("Tests to run:\n\t#{tests_to_run.map{|s|s.gsub(env_root + "/", "")}.join("\n\t")}")
+      env_file = ENV["file"]
       tests_to_run.each do |dir|
-        Bundler.with_clean_env do
+        Bundler.with_unbundled_env do
+          ENV["file"] = env_file if env_file
           dir = File.expand_path(dir)
           puts "", yellow("Running tests for #{dir}")
           status = bundle(dir)
@@ -66,9 +67,9 @@ module Environments
       version = RUBY_VERSION
       version = "jruby-#{JRUBY_VERSION[0..2]}" if defined?(JRUBY_VERSION)
 
-      BLACKLIST.each do |check_version, blacklisted|
+      DENYLIST.each do |check_version, denylisted|
         if version.start_with?(check_version)
-          dirs.reject! {|d| blacklisted.include?(File.basename(d)) }
+          dirs.reject! {|d| denylisted.include?(File.basename(d)) }
         end
       end
 
@@ -86,12 +87,21 @@ module Environments
       dirs
     end
 
+    def explicit_bundler_version dir
+      return if RUBY_VERSION.to_f < 2.3
+      fn = File.join(dir, ".bundler-version")
+      version = File.exist?(fn) ? File.read(fn).chomp!.strip : nil
+      version.to_s == "" ? nil : "_#{version}_"
+    end
+
     def bundle(dir)
       puts "Bundling in #{dir}..."
-      result = `cd #{dir} && bundle install --local`
+      bundler_version = explicit_bundler_version(dir)
+      bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
+      result = `cd #{dir} && #{bundle_cmd} install --local`
       unless $?.success?
         puts "Failed local bundle, trying again with full bundle..."
-        command = "cd #{dir} && bundle install --retry 3"
+        command = "cd #{dir} && #{bundle_cmd} install --retry 3"
         result = Multiverse::ShellUtils.try_command_n_times(command, 3)
       end
 
@@ -102,7 +112,9 @@ module Environments
 
     def run(dir)
       puts "Starting tests..."
-      IO.popen("cd #{dir} && bundle exec rake") do |io|
+      cmd = "cd #{dir} && bundle exec rake"
+      cmd << " file=#{ENV['file']}" if ENV["file"]
+      IO.popen(cmd) do |io|
         until io.eof do
           print io.read(1)
         end

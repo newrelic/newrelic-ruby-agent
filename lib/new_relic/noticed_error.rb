@@ -39,7 +39,7 @@ class NewRelic::NoticedError
 
     # replace error message if enabled
     if NewRelic::Agent.config[:'strip_exception_messages.enabled'] &&
-       !self.class.passes_message_whitelist(exception.class)
+       !self.class.passes_message_allowlist(exception.class)
       @message = STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE
     end
 
@@ -57,8 +57,12 @@ class NewRelic::NoticedError
     end
   end
 
-  def self.passes_message_whitelist(exception_class)
-    NewRelic::Agent.config[:'strip_exception_messages.whitelist'].any? do |klass|
+  def self.passes_message_allowlist(exception_class)
+    # For backwards compatibility until we remove :'strip_exception_messages.whitelist' config option
+
+    allowed = NewRelic::Agent.config[:'strip_exception_messages.allowed_classes'].concat(NewRelic::Agent.config[:'strip_exception_messages.whitelist'])
+
+    allowed.any? do |klass|
       exception_class <= klass
     end
   end
@@ -77,8 +81,6 @@ class NewRelic::NoticedError
   AGENT_ATTRIBUTES = "agentAttributes".freeze
   INTRINSIC_ATTRIBUTES = "intrinsics".freeze
 
-  EMPTY_HASH = {}.freeze
-
   DESTINATION = NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
   # Note that we process attributes lazily and store the result. This is because
@@ -87,7 +89,7 @@ class NewRelic::NoticedError
   def processed_attributes
     @processed_attributes ||= begin
       attributes = base_parameters
-      merged_attributes = NewRelic::Agent::Transaction::Attributes.new(NewRelic::Agent.instance.attribute_filter)
+      merged_attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
       append_attributes(attributes, USER_ATTRIBUTES, merged_custom_attributes(merged_attributes))
       append_attributes(attributes, AGENT_ATTRIBUTES, build_agent_attributes(merged_attributes))
       append_attributes(attributes, INTRINSIC_ATTRIBUTES, build_intrinsic_attributes)
@@ -133,7 +135,7 @@ class NewRelic::NoticedError
     agent_attributes = if @attributes
       @attributes.agent_attributes_for(DESTINATION)
     else
-      EMPTY_HASH
+      NewRelic::EMPTY_HASH
     end
 
     # It's possible to override the request_uri from the transaction attributes
@@ -151,7 +153,7 @@ class NewRelic::NoticedError
     if @attributes
       @attributes.intrinsic_attributes_for(DESTINATION)
     else
-      EMPTY_HASH
+      NewRelic::EMPTY_HASH
     end
   end
 

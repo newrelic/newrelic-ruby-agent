@@ -28,7 +28,7 @@ module NewRelic
       end
 
       def setup_obfuscator
-        @obfuscator = NewRelic::Agent::Obfuscator.new(NewRelic::Agent.config[:encoding_key])
+        @obfuscator = Obfuscator.new(Agent.config[:encoding_key])
       end
 
       def deserialize_header(encoded_header, key)

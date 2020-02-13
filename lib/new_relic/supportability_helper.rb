@@ -11,6 +11,8 @@ module NewRelic
     # transaction, just to eke out a bit less performance hit
     #
     API_SUPPORTABILITY_METRICS = [
+      :accept_distributed_trace_headers,
+      :create_distributed_trace_headers,
       :add_custom_attributes,
       :add_instrumentation,
       :add_method_tracer,
@@ -63,6 +65,18 @@ module NewRelic
       else
         NewRelic::Agent.logger.debug "API supportability metric not found for :#{method_name}"
       end
+    end
+
+    def valid_api_argument_class? arg, name, klass
+      return true if arg.is_a?(klass)
+
+      caller_location = caller_locations.first.label
+
+      message = "Bad argument passed to ##{caller_location}. " \
+        "Expected #{klass} for `#{name}` but got #{headers.class}"
+
+      NewRelic::Agent.logger.warn message
+      nil
     end
   end
 end

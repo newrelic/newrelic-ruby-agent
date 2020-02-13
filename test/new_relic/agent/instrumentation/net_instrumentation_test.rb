@@ -5,7 +5,7 @@
 
 require 'net/http'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
-require 'new_relic/agent/cross_app_tracing'
+require 'new_relic/agent/distributed_tracing/cross_app_tracing'
 
 class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
   def setup

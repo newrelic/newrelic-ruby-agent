@@ -5,9 +5,10 @@ gem 'rake', '< 11'
 gem 'rails', '5.0.0'
 
 gem 'minitest', '5.2.3'
-gem 'mocha', '1.1', :require => false
-gem 'rack'
+gem 'mocha', '~> 1.1.0', :require => false
+gem 'rack', '< 2.1.0'
 gem 'rack-test'
+gem 'sprockets', '3.7.2'
 
 platforms :jruby do
   gem "jruby-openssl"
@@ -20,5 +21,6 @@ end
 
 gem "newrelic_rpm", :path => "../../.."
 
-gem 'pry', '~> 0.9.12'
+gem 'pry', '~> 0.12.2'
+gem 'pry-nav'
 gem 'hometown', '~> 0.2.5'

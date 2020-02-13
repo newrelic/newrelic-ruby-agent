@@ -14,10 +14,12 @@ module NewRelic
       #
       # @api public
       class ExternalRequestSegment < Segment
-        attr_reader :library, :uri, :procedure
-
         NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'.freeze
+        EXTERNAL_TRANSACTION_PREFIX = 'ExternalTransaction/'.freeze
+        SLASH = '/'.freeze
+        APP_DATA_KEY = 'NewRelicAppData'.freeze
 
+        attr_reader :library, :uri, :procedure
 
         def initialize library, uri, procedure, start_time = nil # :nodoc:
           @library = library
@@ -52,8 +54,7 @@ module NewRelic
 
           return unless record_metrics?
 
-          insert_cross_app_header         request
-          insert_distributed_trace_header request
+          transaction.distributed_tracer.insert_headers request
         rescue => e
           NewRelic::Agent.logger.error "Error in add_request_headers", e
         end
@@ -99,10 +100,6 @@ module NewRelic
           @app_data && @app_data[1]
         end
 
-        EXTERNAL_TRANSACTION_PREFIX = 'ExternalTransaction/'.freeze
-        SLASH = '/'.freeze
-        APP_DATA_KEY = 'NewRelicAppData'.freeze
-
         # Obtain an obfuscated +String+ suitable for delivery across public networks that identifies this application
         # and transaction to another application which is also running a New Relic agent. This +String+ can be processed
         # by +process_request_metadata+ on the receiving application.
@@ -124,14 +121,14 @@ module NewRelic
               NewRelicTransaction: [
                 transaction.guid,
                 false,
-                transaction.cat_trip_id,
-                transaction.cat_path_hash
+                transaction.distributed_tracer.cat_trip_id,
+                transaction.distributed_tracer.cat_path_hash
               ]
             }
 
             # flag cross app in the state so transaction knows to add bits to paylaod
             #
-            transaction.is_cross_app_caller = true
+            transaction.distributed_tracer.is_cross_app_caller = true
 
             # add Synthetics header if we have it
             #
@@ -200,25 +197,6 @@ module NewRelic
           end
         end
 
-        def insert_cross_app_header request
-          return unless CrossAppTracing.cross_app_enabled?
-
-          transaction.is_cross_app_caller = true
-          txn_guid = transaction.guid
-          trip_id   = transaction && transaction.cat_trip_id
-          path_hash = transaction && transaction.cat_path_hash
-
-          CrossAppTracing.insert_request_headers request, txn_guid, trip_id, path_hash
-        end
-
-        NEWRELIC_TRACE_HEADER = "newrelic".freeze
-
-        def insert_distributed_trace_header request
-          return unless Agent.config[:'distributed_tracing.enabled']
-          payload = transaction.create_distributed_trace_payload
-          request[NEWRELIC_TRACE_HEADER] = payload.http_safe if payload
-        end
-
         EXTERNAL_ALL = "External/all".freeze
 
         def add_unscoped_metrics
@@ -258,7 +236,6 @@ module NewRelic
         def record_span_event
           aggregator = ::NewRelic::Agent.agent.span_event_aggregator
           priority   = transaction.priority
-
           aggregator.record(priority: priority) do
             SpanEventPrimitive.for_external_request_segment(self)
           end

@@ -1,5 +1,145 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.9.0
+
+  * **Added support for W3C Trace Context, with easy upgrade from New Relic trace context**
+
+    * [Distributed Tracing now supports W3C Trace Context headers](https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/get-started/introduction-distributed-tracing#w3c-support)  for HTTP protocols when distributed tracing is enabled. Our implementation can accept and emit both
+      the W3C trace header format and the New Relic trace header format. This simplifies
+      agent upgrades, allowing trace context to be propagated between services with older
+      and newer releases of New Relic agents. W3C trace header format will always be
+      accepted and emitted. New Relic trace header format will be accepted, and you can
+      optionally disable emission of the New Relic trace header format.
+
+    * When distributed tracing is enabled by setting `distributed_tracing.enabled` to `true`,
+      the Ruby agent will now accept W3C's `traceparent` and `tracestate` headers when
+      calling `DistributedTracing.accept_distributed_trace_headers` or automatically via
+      `http` instrumentation. When calling `DistributedTracing.insert_distributed_trace_headers`,
+      or automatically via `http` instrumentation, the Ruby agent will include the W3C
+      headers along with the New Relic distributed tracing header, unless the New Relic
+      trace header format is disabled by setting `exclude_newrelic_header` setting to `true`.
+
+    * Added `DistributedTracing.accept_distributed_trace_headers` API for accepting both
+      New Relic and W3C TraceContext distributed traces.
+
+    * Deprecated `DistributedTracing.accept_distributed_trace_payload` which will be removed
+      in a future major release.
+
+    * Added `DistributedTracing.insert_distributed_trace_headers` API for adding outbound
+      distributed trace headers. Both W3C TraceContext and New Relic formats will be
+      included unless `distributed_tracing.exclude_newrelic_header: true`.
+
+    * Deprecated `DistributedTracing.create_distributed_trace_payload` which will be removed
+      in a future major release.
+
+    Known Issues and Workarounds
+
+    * If a .NET agent is initiating traces as the root service, do not upgrade your 
+      downstream Ruby New Relic agents to this agent release.
+
+  * **Official Ruby 2.7 support**
+
+    The Ruby agent has been verified to run with Ruby 2.7.0.
+
+  * **Reduced allocations when tracing transactions using API calls**
+
+    Default empty hashes for `options` parameter were not frozen, leading to 
+    excessive and unnecessary allocations when calling APIs for tracing transactions.
+
+    Thanks to Joel Turkel (jturkel) for the contribution! 
+
+  * **Bugfix for Resque worker thread race conditions**
+
+    Recent changes in Rack surfaced issues marshalling data for resque, surfaced a potential race-condition with closing out the worker-threads before flushing the data pipe.  This
+    is now fixed.
+
+    Thanks to Bertrand Paquet (bpaquet) for the contribution!
+
+  * **Bugfix for Content-Length when injecting Browser Monitoring JS**
+    
+    The Content-Length HTTP header would be incorrect after injecting the Browser Monitoring
+    JS into the HEAD tag of the HTML source with Content-Length and lead to the HTML BODY content
+    being truncated in some cases.  The Content-Length is now correctly updated after injecting the 
+    Browser Monitoring JS script.
+
+    Thanks to Slava Kardakov (ojab) for the contribution!
+
+  ## v6.8.0
+
+  * **Initial Ruby 2.7 support**
+
+    The Ruby agent has been verified to run with Ruby 2.7.0-preview1.
+
+  * **New API method to add custom attributes to Spans**
+
+    New API method for adding custom attributes to spans.  Previously, custom
+    attributes were only available at the Transaction level.  Now, with Span
+    level custom attributes, more granular tagging of events is possible for
+    easier isolation and review of trace events.  For more information:
+
+    * [`Agent#add_custom_span_attributes`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent#add_custom_span_attributes)
+
+  * **Enables ability to migrate to Configurable Security Policies (CSP) on a per agent
+  basis for accounts already using High Security Mode (HSM).**
+
+    When both [HSM](https://docs.newrelic.com/docs/agents/manage-apm-agents/configuration/high-security-mode) and [CSP](https://docs.newrelic.com/docs/agents/manage-apm-agents/configuration/enable-configurable-security-policies) are enabled for an account, an agent (this version or later)
+    can successfully connect with either `high_security: true` or the appropriate
+    `security_policies_token` configured. `high_security` has been added as part of
+    the preconnect payload.
+
+  * **Bugfix for Logs in Context combined with act-fluent-logger-rails**
+
+    Previously, when using the Ruby agent's Logs in Context logger
+    to link logging data with trace and entity metadata for an
+    improved experience in the UI, customers who were also using
+    the `act-fluent-logger-rails` gem would see a `NoMethodError`
+    for `clear_tags!` that would interfere with the use of this
+    feature. This error no longer appears, allowing customers to
+    combine the use of Logs in Context with the use of this gem.
+
+    Please note that the Logs in Context logger does not support
+    tagged logging; if you are initializing your logger with a
+    `log_tags` argument, your custom tags may not appear on the
+    final version of your logs.
+
+  * **Bugfix for parsing invalid newrelic.yml**
+
+    Previously, if the newrelic.yml configuration file was invalid, and the agent
+    could not start as a result, the agent would not log any indication of
+    the problem.
+
+    This version of the agent will emit a FATAL message to STDOUT when this scenario
+    occurs so that customers can address issues with newrelic.yml that prevent startup.
+
+  * **Configuration options containing the terms "whitelist" and "blacklist" deprecated**
+
+    The following local configuration settings have been deprecated:
+
+    * `autostart.blacklisted_constants`: use `autostart.denylisted_constants` instead.
+    * `autostart.blacklisted_executables`: use `autostart.denylisted_executables` instead.
+    * `autostart.blacklisted_rake_tasks`: use `autostart.denylisted_rake_tasks` instead.
+    * `strip_exception_messages.whitelist`: use `strip_exception_messages.allowed_classes` instead.
+
+  * **Bugfix for module loading and constant resolution in Rails**
+
+    Starting in version 6.3, the Ruby agent has caused module loading and constant
+    resolution to sometimes fail, which caused errors in some Rails applications.
+    These errors were generally `NoMethodError` exceptions or I18n errors
+    `translation missing` or `invalid locale`.  These errors would not appear if the agent
+    was removed from the application's Gemfile.
+    This version of the agent fixes these issues with module loading and constant
+    resolution, so these errors no longer occur.
+
+  * **Bugfix: failed to get urandom**
+
+    Previous versions of the agent would fail unexpectedly when the Ruby process used
+    every available file descriptor.  The failures would include this message:
+    ```
+    ERROR : RuntimeError: failed to get urandom
+    ```
+    This version of the agent uses a different strategy for generating random IDs, and
+    will not fail in the same way when no file descriptors are available.
+
   ## v6.7.0
 
   * **Trace and Entity Metadata API**

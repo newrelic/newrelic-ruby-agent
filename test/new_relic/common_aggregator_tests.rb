@@ -37,7 +37,7 @@ module NewRelic
     def test_can_disable_sampling_for_analytics
       with_container_disabled do
         generate_event
-        assert last_events.empty?
+        assert_empty last_events
       end
     end
 
@@ -122,10 +122,10 @@ module NewRelic
     def test_reservoir_stats_reset_after_harvest
       5.times { generate_event }
 
-      reservoir_stats, samples = aggregator.harvest!
+      reservoir_stats, _ = aggregator.harvest!
       assert_equal 5, reservoir_stats[:events_seen]
 
-      reservoir_stats, samples = aggregator.harvest!
+      reservoir_stats, _ = aggregator.harvest!
       assert_equal 0, reservoir_stats[:events_seen]
     end
 
@@ -169,6 +169,7 @@ module NewRelic
         memo[opt] = false
         memo
       end
+      aggregator.class.stubs(:enabled_fn).returns(Proc.new { false })
       with_server_source(options, &blk)
     end
   end
