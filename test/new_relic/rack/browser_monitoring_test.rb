@@ -2,10 +2,15 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+begin
+  require 'rack/test'
+rescue LoadError
+  nil
+end
+
 if defined?(::Rack::Test)
 require File.expand_path(File.join(File.dirname(__FILE__),'..', '..',
                                    'test_helper'))
-require 'rack/test'
 require 'new_relic/rack/browser_monitoring'
 
 ENV['RACK_ENV'] = 'test'
@@ -189,7 +194,7 @@ EOL
 
   def test_content_length_set_when_we_modify_source
     original_headers = {
-      "Content-Length" => 0,
+      "Content-Length" => "0",
       "Content-Type"   => "text/html"
     }
     headers = headers_from_request(original_headers, "<html><body></body></html>")

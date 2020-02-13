@@ -191,7 +191,7 @@ class HighSecurityTest < Minitest::Test
 
   def test_doesnt_block_intrinsic_attributes_on_transaction_traces
     in_transaction do |txn|
-      txn.is_cross_app_caller = true
+      txn.distributed_tracer.is_cross_app_caller = true
     end
 
     run_harvest
@@ -205,7 +205,7 @@ class HighSecurityTest < Minitest::Test
   def test_doesnt_block_intrinsic_attributes_on_errors
     assert_raises(RuntimeError) do
       in_transaction do |txn|
-        txn.is_cross_app_caller = true
+        txn.distributed_tracer.is_cross_app_caller = true
         raise "O_o"
       end
     end

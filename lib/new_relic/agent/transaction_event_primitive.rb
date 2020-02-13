@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This module was introduced and largely extracted from the transaction event aggregator
 # when the synthetics container was extracted from it. Its purpose is to create the data
@@ -8,7 +9,7 @@
 # the transaction event aggregator and the synthetics container.
 
 require 'new_relic/agent/payload_metric_mapping'
-require 'new_relic/agent/distributed_trace_intrinsics'
+require 'new_relic/agent/distributed_tracing/distributed_trace_intrinsics'
 
 module NewRelic
   module Agent
@@ -16,30 +17,28 @@ module NewRelic
       include NewRelic::Coerce
       extend self
 
+      COMMA = ','
+
       # The type field of the sample
-      SAMPLE_TYPE              = 'Transaction'.freeze
+      SAMPLE_TYPE              = 'Transaction'
 
       # Strings for static keys of the sample structure
-      TYPE_KEY                       = 'type'.freeze
-      TIMESTAMP_KEY                  = 'timestamp'.freeze
-      NAME_KEY                       = 'name'.freeze
-      DURATION_KEY                   = 'duration'.freeze
-      ERROR_KEY                      = 'error'.freeze
-      SAMPLED_KEY                    = 'sampled'.freeze
-      PRIORITY_KEY                   = 'priority'.freeze
-      GUID_KEY                       = 'nr.guid'.freeze
-      REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'.freeze
-      CAT_PATH_HASH_KEY              = 'nr.pathHash'.freeze
-      CAT_REFERRING_PATH_HASH_KEY    = 'nr.referringPathHash'.freeze
-      CAT_ALTERNATE_PATH_HASHES_KEY  = 'nr.alternatePathHashes'.freeze
-      APDEX_PERF_ZONE_KEY            = 'nr.apdexPerfZone'.freeze
-      SYNTHETICS_RESOURCE_ID_KEY     = "nr.syntheticsResourceId".freeze
-      SYNTHETICS_JOB_ID_KEY          = "nr.syntheticsJobId".freeze
-      SYNTHETICS_MONITOR_ID_KEY      = "nr.syntheticsMonitorId".freeze
-
-
-      # To avoid allocations when we have empty custom or agent attributes
-      EMPTY_HASH = {}.freeze
+      TYPE_KEY                       = 'type'
+      TIMESTAMP_KEY                  = 'timestamp'
+      NAME_KEY                       = 'name'
+      DURATION_KEY                   = 'duration'
+      ERROR_KEY                      = 'error'
+      SAMPLED_KEY                    = 'sampled'
+      PRIORITY_KEY                   = 'priority'
+      GUID_KEY                       = 'nr.guid'
+      REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'
+      CAT_PATH_HASH_KEY              = 'nr.pathHash'
+      CAT_REFERRING_PATH_HASH_KEY    = 'nr.referringPathHash'
+      CAT_ALTERNATE_PATH_HASHES_KEY  = 'nr.alternatePathHashes'
+      APDEX_PERF_ZONE_KEY            = 'nr.apdexPerfZone'
+      SYNTHETICS_RESOURCE_ID_KEY     = "nr.syntheticsResourceId"
+      SYNTHETICS_JOB_ID_KEY          = "nr.syntheticsJobId"
+      SYNTHETICS_MONITOR_ID_KEY      = "nr.syntheticsMonitorId"
 
       def create(payload)
         intrinsics = {
@@ -53,7 +52,7 @@ module NewRelic
 
         intrinsics[SAMPLED_KEY] = payload[:sampled] if payload.key?(:sampled)
 
-        NewRelic::Agent::PayloadMetricMapping.append_mapped_metrics(payload[:metrics], intrinsics)
+        PayloadMetricMapping.append_mapped_metrics(payload[:metrics], intrinsics)
         append_optional_attributes(intrinsics, payload)
         DistributedTraceIntrinsics.copy_to_hash payload, intrinsics
 
@@ -76,8 +75,6 @@ module NewRelic
         append_cat_alternate_path_hashes(sample, payload)
       end
 
-      COMMA = ','.freeze
-
       def append_cat_alternate_path_hashes(sample, payload)
         if payload.include?(:cat_alternate_path_hashes)
           sample[CAT_ALTERNATE_PATH_HASHES_KEY] = payload[:cat_alternate_path_hashes].sort.join(COMMA)
@@ -92,19 +89,19 @@ module NewRelic
 
       def custom_attributes attributes
         if attributes
-          result = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+          result = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_EVENTS)
           result.freeze
         else
-          EMPTY_HASH
+          NewRelic::EMPTY_HASH
         end
       end
 
       def agent_attributes attributes
         if attributes
-          result = attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+          result = attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_EVENTS)
           result.freeze
         else
-          EMPTY_HASH
+          NewRelic::EMPTY_HASH
         end
       end
     end

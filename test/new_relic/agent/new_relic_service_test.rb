@@ -573,8 +573,6 @@ class NewRelicServiceTest < Minitest::Test
   def test_supportability_metrics_for_unsuccessful_endpoint_attempts
     NewRelic::Agent.drop_buffered_data
 
-    payload = ['eggs', 'spam']
-
     @http_handle.respond_to(:metric_data, 'bad format', :code => 400)
     assert_raises NewRelic::Agent::UnrecoverableServerException do
       stats_hash = NewRelic::Agent::StatsHash.new

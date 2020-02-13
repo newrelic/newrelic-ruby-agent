@@ -28,7 +28,6 @@ module NewRelic
       end
 
       def test_instance_metric_for
-        instance_id = "localhost/1337807"
         host = "localhost"
         port = "1337807"
         expected = "Datastore/instance/JonanDB/#{host}/#{port}"

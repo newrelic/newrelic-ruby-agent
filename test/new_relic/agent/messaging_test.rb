@@ -420,7 +420,7 @@ module NewRelic
 
           in_transaction do |txn|
             obfuscated_id       = obfuscator.obfuscate cross_process_id
-            raw_txn_info        = [guid, false, guid, txn.cat_path_hash]
+            raw_txn_info        = [guid, false, guid, txn.distributed_tracer.cat_path_hash]
             obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
           end
 
@@ -431,57 +431,14 @@ module NewRelic
             headers: { "NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info }
           ) do
             txn = NewRelic::Agent::Tracer.current_transaction
-            assert_equal cross_process_id, txn.cross_app_payload.id
-            assert_equal txn.cross_app_payload.referring_guid,      raw_txn_info[0]
-            assert_equal txn.cross_app_payload.referring_trip_id,   raw_txn_info[2]
-            assert_equal txn.cross_app_payload.referring_path_hash, raw_txn_info[3]
+            payload = txn.distributed_tracer.cross_app_payload
+            assert_equal cross_process_id, payload.id
+            assert_equal payload.referring_guid,      raw_txn_info[0]
+            assert_equal payload.referring_trip_id,   raw_txn_info[2]
+            assert_equal payload.referring_path_hash, raw_txn_info[3]
             assert_equal txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER), intrinsic_attributes
             tap.tap
           end
-        end
-      end
-
-      def test_wrap_message_broker_consume_transaction_reads_synthetics_and_cat_headers
-        cross_process_id     = "321#123"
-        guid                 = "BEC1BC64675138B9"
-        obfuscated_id        = nil
-        raw_txn_info         = nil
-        obfuscated_txn_info  = nil
-
-        synthetics_payload   = [1, 321, 'abc', 'def', 'ghe']
-        synthetics_header    = nil
-
-        tap = mock 'tap'
-        tap.expects :tap
-
-        with_config :"cross_application_tracer.enabled" => true,
-                    :cross_process_id => cross_process_id,
-                    :trusted_account_ids => [321],
-                    :encoding_key => "abc" do
-
-          in_transaction "test_txn" do |txn|
-            obfuscated_id = obfuscator.obfuscate cross_process_id
-            raw_txn_info = [guid, false, guid, txn.cat_path_hash]
-            obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
-            synthetics_header = obfuscator.obfuscate synthetics_payload.to_json
-          end
-
-          NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
-            library: "RabbitMQ",
-            destination_type: :exchange,
-            destination_name: "Default",
-            headers: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info, "NewRelicSynthetics" => synthetics_header }
-          ) do
-            txn = NewRelic::Agent::Tracer.current_transaction
-            assert_equal cross_process_id, txn.cross_app_payload.id
-            assert_equal txn.cross_app_payload.referring_guid,      raw_txn_info[0]
-            assert_equal txn.cross_app_payload.referring_trip_id,   raw_txn_info[2]
-            assert_equal txn.cross_app_payload.referring_path_hash, raw_txn_info[3]
-            assert_equal synthetics_header, txn.raw_synthetics_header
-            assert_equal synthetics_payload, txn.synthetics_payload
-            tap.tap
-          end
-
         end
       end
 
@@ -502,11 +459,11 @@ module NewRelic
 
           in_transaction "test_txn" do |txn|
             obfuscated_id = obfuscator.obfuscate cross_process_id
-            raw_txn_info = [guid, false, guid, txn.cat_path_hash]
+            raw_txn_info = [guid, false, guid, txn.distributed_tracer.cat_path_hash]
             obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
           end
 
-          NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
+          Messaging.wrap_message_broker_consume_transaction(
             library: "RabbitMQ",
             destination_type: :exchange,
             destination_name: "Default",
@@ -516,68 +473,6 @@ module NewRelic
           end
 
           assert_metrics_recorded "ClientApplication/#{cross_process_id}/all"
-        end
-      end
-
-      def test_wrap_message_broker_consume_transaction_tolerates_empty_headers
-        cross_process_id     = "321#123"
-
-        tap = mock 'tap'
-        tap.expects :tap
-
-        NewRelic::Agent::Messaging.expects(:consume_message_headers).never
-
-        with_config :"cross_application_tracer.enabled" => true,
-                    :cross_process_id => cross_process_id,
-                    :trusted_account_ids => [321],
-                    :encoding_key => "abc" do
-
-          NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
-            library: "RabbitMQ",
-            destination_type: :exchange,
-            destination_name: "Default",
-            routing_key: "my.queue",
-            headers: nil
-          ) do
-            tap.tap
-          end
-
-          assert_metrics_recorded "OtherTransaction/Message/RabbitMQ/Exchange/Named/Default"
-          # we do not expect cat to be linked up with empty headers
-          refute_metrics_recorded "ClientApplication/#{cross_process_id}/all"
-        end
-      end
-
-      def test_wrap_message_broker_consume_transaction_reads_distributed_trace_headers
-        tap = mock 'tap'
-        tap.expects :tap
-
-        NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
-        with_config :"cross_application_tracer.enabled" => false,
-                    :"distributed_tracing.enabled" => true,
-                    :account_id => "190",
-                    :primary_application_id => "46954",
-                    :trusted_account_key => "trust_this!" do
-
-          payload = nil
-          parent = in_transaction do |txn|
-            payload = txn.create_distributed_trace_payload
-          end
-
-          transaction = nil
-          NewRelic::Agent::Messaging.wrap_message_broker_consume_transaction(
-            library: "RabbitMQ",
-            destination_type: :exchange,
-            destination_name: 'Default',
-            headers: {'Newrelic' => Base64.strict_encode64(payload.text)}
-          ) do
-            transaction = NewRelic::Agent::Tracer.current_transaction
-            tap.tap
-          end
-
-          intrinsics, _, _ = last_transaction_event
-
-          assert_equal parent.guid, intrinsics['parentId']
         end
       end
 

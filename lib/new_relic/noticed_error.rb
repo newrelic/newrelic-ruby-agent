@@ -81,8 +81,6 @@ class NewRelic::NoticedError
   AGENT_ATTRIBUTES = "agentAttributes".freeze
   INTRINSIC_ATTRIBUTES = "intrinsics".freeze
 
-  EMPTY_HASH = {}.freeze
-
   DESTINATION = NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
   # Note that we process attributes lazily and store the result. This is because
@@ -137,7 +135,7 @@ class NewRelic::NoticedError
     agent_attributes = if @attributes
       @attributes.agent_attributes_for(DESTINATION)
     else
-      EMPTY_HASH
+      NewRelic::EMPTY_HASH
     end
 
     # It's possible to override the request_uri from the transaction attributes
@@ -155,7 +153,7 @@ class NewRelic::NoticedError
     if @attributes
       @attributes.intrinsic_attributes_for(DESTINATION)
     else
-      EMPTY_HASH
+      NewRelic::EMPTY_HASH
     end
   end
 

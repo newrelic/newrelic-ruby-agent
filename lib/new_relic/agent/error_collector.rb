@@ -74,7 +74,7 @@ module NewRelic
       end
 
       def self.ignore_error_filter
-        @ignore_filter
+        defined?(@ignore_filter) ? @ignore_filter : nil
       end
 
       # errors is an array of Exception Class Names
@@ -227,13 +227,11 @@ module NewRelic
         truncated_trace
       end
 
-      EMPTY_STRING = ''.freeze
-
       def create_noticed_error(exception, options)
-        error_metric = options.delete(:metric) || EMPTY_STRING
+        error_metric = options.delete(:metric) || NewRelic::EMPTY_STR
 
         noticed_error = NewRelic::NoticedError.new(error_metric, exception)
-        noticed_error.request_uri = options.delete(:uri) || EMPTY_STRING
+        noticed_error.request_uri = options.delete(:uri) || NewRelic::EMPTY_STR
         noticed_error.request_port = options.delete(:port)
         noticed_error.attributes  = options.delete(:attributes)
 

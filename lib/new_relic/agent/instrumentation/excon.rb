@@ -42,7 +42,7 @@ DependencyDetection.defer do
   end
 
   def install_excon_instrumentation(excon_version)
-    require 'new_relic/agent/cross_app_tracing'
+    require 'new_relic/agent/distributed_tracing/cross_app_tracing'
     require 'new_relic/agent/http_clients/excon_wrappers'
 
     if excon_version >= EXCON_MIDDLEWARE_MIN_VERSION

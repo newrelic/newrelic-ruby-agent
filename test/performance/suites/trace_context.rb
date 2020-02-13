@@ -3,14 +3,13 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
 require 'net/http'
-require 'new_relic/agent/trace_context'
+require 'new_relic/agent/distributed_tracing/trace_context'
 require 'new_relic/agent/transaction/trace_context'
 
 class TraceContext < Performance::TestCase
 
   CONFIG = {
       :'distributed_tracing.enabled' => true,
-      :'distributed_tracing.format' => 'w3c',
       :account_id => "190",
       :primary_application_id => "46954",
       :disable_harvest_thread => true

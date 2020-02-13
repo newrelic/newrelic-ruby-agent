@@ -2,7 +2,6 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/distributed_trace_transport_type'
 require 'new_relic/coerce'
 
 module NewRelic
@@ -52,6 +51,7 @@ module NewRelic
           payload
         rescue => e
           handle_invalid_payload error: e
+          raise
         end
 
         private
@@ -95,12 +95,6 @@ module NewRelic
         @timestamp = timestamp
       end
 
-      attr_reader :caller_transport_type
-
-      def caller_transport_type= type
-        @caller_transport_type = DistributedTraceTransportType.from type
-      end
-
       def parent_type
         @parent_type_string ||= PARENT_TYPES[@parent_type_id]
       end
@@ -115,15 +109,13 @@ module NewRelic
         false
       end
 
-      EMPTY = "".freeze
-
       def to_s
         result = version.to_s
         result << DELIMITER << parent_type_id.to_s
         result << DELIMITER << parent_account_id
         result << DELIMITER << parent_app_id
-        result << DELIMITER << (id || EMPTY)
-        result << DELIMITER << (transaction_id || EMPTY)
+        result << DELIMITER << (id || NewRelic::EMPTY_STR)
+        result << DELIMITER << (transaction_id || NewRelic::EMPTY_STR)
         result << DELIMITER << (sampled ? TRUE_CHAR : FALSE_CHAR)
         result << DELIMITER << priority.to_s
         result << DELIMITER << timestamp.to_s

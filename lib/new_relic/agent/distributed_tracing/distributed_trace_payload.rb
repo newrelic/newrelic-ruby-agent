@@ -1,11 +1,10 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
+
 require 'json'
 require 'base64'
-require 'set'
-
-require 'new_relic/agent/distributed_trace_transport_type'
 
 module NewRelic
   module Agent
@@ -16,23 +15,25 @@ module NewRelic
     #
     # @api public
     class DistributedTracePayload
-      VERSION =[0, 1].freeze
-      PARENT_TYPE = "App".freeze
-      POUND = '#'.freeze
+      extend Coerce 
+
+      VERSION     = [0, 1].freeze
+      PARENT_TYPE = "App"
+      POUND       = '#'
 
       # Key names for serialization
-      VERSION_KEY                = 'v'.freeze
-      DATA_KEY                   = 'd'.freeze
-      PARENT_TYPE_KEY            = 'ty'.freeze
-      PARENT_ACCOUNT_ID_KEY      = 'ac'.freeze
-      PARENT_APP_KEY             = 'ap'.freeze
-      TRUSTED_ACCOUNT_KEY        = 'tk'.freeze
-      ID_KEY                     = 'id'.freeze
-      TX_KEY                     = 'tx'.freeze
-      TRACE_ID_KEY               = 'tr'.freeze
-      SAMPLED_KEY                = 'sa'.freeze
-      TIMESTAMP_KEY              = 'ti'.freeze
-      PRIORITY_KEY               = 'pr'.freeze
+      VERSION_KEY           = 'v'
+      DATA_KEY              = 'd'
+      PARENT_TYPE_KEY       = 'ty'
+      PARENT_ACCOUNT_ID_KEY = 'ac'
+      PARENT_APP_KEY        = 'ap'
+      TRUSTED_ACCOUNT_KEY   = 'tk'
+      ID_KEY                = 'id'
+      TX_KEY                = 'tx'
+      TRACE_ID_KEY          = 'tr'
+      SAMPLED_KEY           = 'sa'
+      TIMESTAMP_KEY         = 'ti'
+      PRIORITY_KEY          = 'pr'
 
       class << self
 
@@ -122,16 +123,6 @@ module NewRelic
                     :timestamp
 
       alias_method :sampled?, :sampled
-
-      attr_reader :caller_transport_type
-
-      def caller_transport_type= type
-        @caller_transport_type = DistributedTraceTransportType.from type
-      end
-
-      def initialize
-        @caller_transport_type = DistributedTraceTransportType::UNKNOWN
-      end
 
       # Represent this payload as a raw JSON string.
       #

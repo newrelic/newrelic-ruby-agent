@@ -35,7 +35,6 @@ module NewRelic
     require 'new_relic/agent/encoding_normalizer'
     require 'new_relic/agent/stats'
     require 'new_relic/agent/chained_call'
-    require 'new_relic/agent/cross_app_monitor'
     require 'new_relic/agent/agent'
     require 'new_relic/agent/method_tracer'
     require 'new_relic/agent/worker_loop'
@@ -56,7 +55,8 @@ module NewRelic
     require 'new_relic/agent/external'
     require 'new_relic/agent/deprecator'
     require 'new_relic/agent/logging'
-
+    require 'new_relic/agent/distributed_tracing'
+    
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
     require 'new_relic/agent/samplers/cpu_sampler'
@@ -351,10 +351,9 @@ module NewRelic
     # @api public
     #
     def manual_start(options={})
-      record_api_supportability_metric(:manual_start)
-
       raise "Options must be a hash" unless Hash === options
       NewRelic::Control.instance.init_plugin({ :agent_enabled => true, :sync_startup => true }.merge(options))
+      record_api_supportability_metric(:manual_start)
     end
 
     # Register this method as a callback for processes that fork
@@ -620,7 +619,9 @@ module NewRelic
     # apply a reasonable default based on framework routing, but in
     # cases where this is insufficient, this can be used to manually
     # control the name of the transaction.
-    # The category of transaction can be specified via the +:category+ option:
+    #
+    # The category of transaction can be specified via the +:category+ option. 
+    # The following are the only valid categories:
     #
     # * <tt>:category => :controller</tt> indicates that this is a
     #   controller action and will appear with all the other actions.

@@ -22,6 +22,7 @@ if RUBY_VERSION.to_f < 2.7
 
   else
     puts "Ruby < 2.7, but RubyGems already at #{Gem::VERSION}"
+    puts `gem install bundler -v=1.17.3 --force`
   end
 else
   puts "Ruby >= 2.7, keeping RubyGems at #{Gem::VERSION}"

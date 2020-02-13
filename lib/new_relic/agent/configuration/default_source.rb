@@ -395,7 +395,21 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'When <code>true</code>, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and <a href="https://docs.newrelic.com/docs/insights/new-relic-insights/decorating-events/error-event-default-attributes-insights">TransactionError events</a>.'
+          :description => 'When <code>true</code>, the agent captures HTTP request parameters ' \
+            'and attaches them to transaction traces, traced errors, and ' \
+            '<a href="https://docs.newrelic.com/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241">'\
+            '<code>TransactionError</code> events.' \
+            "\n" \
+            '<div class="callout-warning">' \
+            "\n" \
+            '<p>When using the <code>capture_params</code> setting, the Ruby agent will not attempt ' \
+            'to filter secret information. <b>Recommendation:</b> To filter secret information from ' \
+            'request parameters, use the <a href="/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby">' \
+            '<code>attributes.include</code> setting</a> instead. For more information, see the ' \
+            '<a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">' \
+            'Ruby attribute examples</a>.' \
+            "</p>\n" \
+            '</div>'
         },
         :config_path => {
           :default => DefaultSource.config_path,
@@ -532,7 +546,7 @@ module NewRelic
           :transform => DefaultSource.method(:convert_to_constant_list),
           :description => 'Deprecated.  ' \
               'For agent versions 6.8.0 or higher, ' \
-              'use <a href="#strip_exception_messages-allowlist"><code>' \
+              'use <a href="#strip_exception_messages.allowed_classes"><code>' \
                 'strip_exception_messages.allowed_classes' \
               '</code></a> instead.'
         },
@@ -540,7 +554,6 @@ module NewRelic
           :default => '',
           :public => true,
           :type => String,
-          :deprecated => true,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_constant_list),
           :description => 'Specify a list of exceptions you do not want the agent to strip when <a href="#strip_exception_messages-enabled">strip_exception_messages</a> is <code>true</code>. Separate exceptions with a comma. For example, <code>"ImportantException,PreserveMessageException"</code>.'
@@ -674,15 +687,6 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => true,
           :description => 'Number of seconds betwixt connections to the New Relic span event collection services.'
-        },
-        :'data_report_periods.analytic_event_data' => {
-          :default => 60,
-          :public => false,
-          :type => Integer,
-          :deprecated => true,
-          :dynamic_name => true,
-          :allowed_from_server => true,
-          :description => 'Number of seconds between connections to the New Relic data collection service for sending transaction event data.'
         },
         :keep_retrying => {
           :default => true,
@@ -1888,16 +1892,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Distributed tracing lets you see the path that a request takes through your distributed system. Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the <a href="https://docs.newrelic.com/docs/transition-guide-distributed-tracing">transition guide</a> before you enable this feature.'
         },
-        :'distributed_tracing.format' => {
-          :default => 'newrelic',
-          :public => false,
-          :type => String,
-          :transform => DefaultSource.enforce_fallback(
-            allowed_values: ['w3c', 'newrelic'],
-            fallback: 'newrelic'),
-          :allowed_from_server => false,
-          :description => 'The format to use for distributed tracing if it is enabled. Options are w3c for W3C Trace Context or newrelic for New Relic Distriburted Tracing. Defaults to New Relic Distributed Tracing.'
-        },
         :trusted_account_key => {
           :default => nil,
           :allow_nil => true,
@@ -1933,6 +1927,13 @@ module NewRelic
           :type => Integer,
           :allowed_from_server => true,
           :description => 'Defines the maximum number of span events reported from a single harvest.'
+        },
+        :'exclude_newrelic_header' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => "Allows newrelic distributed tracing headers to be suppressed on outbound requests."
         }
       }.freeze
     end

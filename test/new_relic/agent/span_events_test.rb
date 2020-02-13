@@ -23,7 +23,7 @@ module NewRelic
       def teardown
         NewRelic::Agent.config.remove_config(@config)
         NewRelic::Agent.config.reset_to_defaults
-        NewRelic::Agent.drop_buffered_data
+        reset_buffers_and_caches
       end
 
       def test_span_ids_passed_in_payload_when_span_events_enabled
@@ -36,7 +36,7 @@ module NewRelic
                        start_external_request_segment library: "net/http",
                                                       uri: "http://docs.newrelic.com",
                                                       procedure: "GET"
-          payload = txn.create_distributed_trace_payload
+          payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
         assert_equal external_segment.guid, payload.id
@@ -53,11 +53,11 @@ module NewRelic
                        start_external_request_segment library: "net/http",
                                                       uri: "http://docs.newrelic.com",
                                                       procedure: "GET"
-          payload = txn.create_distributed_trace_payload
+          payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
         in_transaction('test_txn2') do |txn|
-          txn.accept_distributed_trace_payload payload.text
+          txn.distributed_tracer.accept_distributed_trace_payload payload.text
         end
 
         last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
@@ -98,11 +98,8 @@ module NewRelic
       end
 
       def test_entrypoint_attribute_added_to_first_span_only
-        txn_segment = nil
-        segment_a = nil
         in_transaction('test_txn') do |t|
           t.stubs(:sampled?).returns(true)
-          txn_segment = t.initial_segment
           segment_a = NewRelic::Agent::Tracer.start_segment(name: 'segment_a')
           segment_a.finish
         end
