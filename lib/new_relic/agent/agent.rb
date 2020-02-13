@@ -49,6 +49,7 @@ module NewRelic
       def initialize
         @started = false
         @event_loop = nil
+        @worker_thread = nil
 
         @service = NewRelicService.new
 
@@ -245,6 +246,12 @@ module NewRelic
 
         def stop_event_loop
           @event_loop.stop if @event_loop
+          # Wait the end of the event loop thread.
+          if @worker_thread
+            unless @worker_thread.join(3)
+              ::NewRelic::Agent.logger.error "Event loop thread did not stop within 3 seconds"
+            end
+          end
         end
 
         def trap_signals_for_litespeed
