@@ -1,7 +1,7 @@
 test_folders = Dir.glob("test/new_relic/*").select{|f| File.directory?(f)}
 test_folders += Dir.glob("test/new_relic/**/*").select{|f| File.directory?(f)}
 
-rake_lib_path = `bundle exec gem which rake`.chomp.gsub("lib/rake.rb", "lib")
+rake_lib_path = Bundler.with_unbundled_env{ `bundle exec gem which rake`.chomp.gsub("lib/rake.rb", "lib") }
 ruby_options = %{-w -I"#{rake_lib_path}" "#{rake_lib_path}/rake/rake_test_loader.rb"}
 
 guard_options = {
