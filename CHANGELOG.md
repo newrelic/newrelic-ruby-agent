@@ -2,6 +2,19 @@
 
   ## v6.9.0
 
+  * **Support for W3C Trace Context, with easy upgrade from New Relic Distributed Trace**
+
+    Previously, New Relic Distributed Trace and W3C Trace Context tracing were completely separate.
+    This release now allows the two to seamlessly interoperate to preserve the trace in a heterogeneous environment.  That is, a down stream service can send either W3C Trace Context OR New Relic Distributed Trace and the Ruby Agent will propagate both W3C Trace Context and New Relic Distributed Trace headers.  This interoperability enables a painless upgrade path to utilizing W3C Trace Context across all participants in the distributed trace.
+
+    * Distributed tracing is enabled by setting `distributed_tracing.enabled` to `true`.
+    * Downstream W3C Trace Context headers and New Relic headers are accepted.  
+    * Downstream New Relic headers are discarded if W3C Trace Context headers are present.
+    * Upstream W3C and New Relic headers are emitted by default.
+    * Upstream New Relic headers may be turned off by setting `exclude_newrelic_header` setting to `true`.
+    * `DistributedTracing.accept_distributed_trace_headers` and `DistributedTracing.insert_distributed_trace_headers` are new API endpoints for manually participating in the distributed trace in scenarios where the Agent does not automatically do so.  These methods will process distributed trace headers as outlined above.
+    * `DistributedTracing.create_distributed_trace_payload` and `DistributedTracing.accept_distributed_trace_payload` are now deprecated.  Their continued use may break interoperability support.
+
   * **Official Ruby 2.7 support**
 
     The Ruby agent has been verified to run with Ruby 2.7.0.
