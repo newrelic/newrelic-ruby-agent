@@ -395,7 +395,21 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'When <code>true</code>, the agent captures HTTP request parameters and attaches them to transaction traces, traced errors, and <a href="https://docs.newrelic.com/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241"><code>TransactionError</code> events.'
+          :description => 'When <code>true</code>, the agent captures HTTP request parameters ' \
+            'and attaches them to transaction traces, traced errors, and ' \
+            '<a href="https://docs.newrelic.com/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241">'\
+            '<code>TransactionError</code> events.' \
+            "\n" \
+            '<div class="callout-warning">' \
+            "\n" \
+            '<p>When using the <code>capture_params</code> setting, the Ruby agent will not attempt ' \
+            'to filter secret information. <b>Recommendation:</b> To filter secret information from ' \
+            'request parameters, use the <a href="/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby">' \
+            '<code>attributes.include</code> setting</a> instead. For more information, see the ' \
+            '<a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">' \
+            'Ruby attribute examples</a>.' \
+            "</p>\n" \
+            '</div>'
         },
         :config_path => {
           :default => DefaultSource.config_path,
@@ -532,7 +546,7 @@ module NewRelic
           :transform => DefaultSource.method(:convert_to_constant_list),
           :description => 'Deprecated.  ' \
               'For agent versions 6.8.0 or higher, ' \
-              'use <a href="#strip_exception_messages-allowlist"><code>' \
+              'use <a href="#strip_exception_messages.allowed_classes"><code>' \
                 'strip_exception_messages.allowed_classes' \
               '</code></a> instead.'
         },
