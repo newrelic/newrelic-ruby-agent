@@ -139,14 +139,18 @@ module NewRelic
             trace_state_vendors = String.new
             trace_state = header.split(COMMA).map(&:strip)
             trace_state.reject! do |entry|
-              vendor_id = entry.slice 0, entry.index(EQUALS)
-              if vendor_id == trace_state_entry_key
-                payload = entry.slice! trace_state_entry_key.size + 1, entry.size
-                true
-              else
-                trace_state_size += entry.size
-                trace_state_vendors << vendor_id << COMMA
+              if entry == NewRelic::EMPTY_STR
                 false
+              else
+                vendor_id = entry.slice 0, entry.index(EQUALS)
+                if vendor_id == trace_state_entry_key
+                  payload = entry.slice! trace_state_entry_key.size + 1, entry.size
+                  true
+                else
+                  trace_state_size += entry.size
+                  trace_state_vendors << vendor_id << COMMA
+                  false
+                end
               end
             end
 
