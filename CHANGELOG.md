@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.9.1
+
+  * **BUGFIX: DecoratingFormatter now logs timestamps as millisecond Integers**
+
+    Previously the agent sent timestamps as a Float with milliseconds as part of the 
+    fractional value.  Log in Context was changed to only accept Integer values and this
+    release changes DecoratingFormatter to match. 
+
   ## v6.9.0
 
   * **Added support for W3C Trace Context, with easy upgrade from New Relic trace context**
