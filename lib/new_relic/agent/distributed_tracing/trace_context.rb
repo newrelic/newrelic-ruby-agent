@@ -63,7 +63,7 @@ module NewRelic
             trace_parent = extract_traceparent(format, carrier)
             unless trace_parent_valid? trace_parent
               NewRelic::Agent.increment_metric SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION
-              return
+              return nil
             end
 
             begin
@@ -73,6 +73,7 @@ module NewRelic
               end
             rescue Exception
               NewRelic::Agent.increment_metric SUPPORTABILITY_TRACE_STATE_PARSE_EXCEPTION
+              return nil
             end
           end
 
