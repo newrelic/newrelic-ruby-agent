@@ -1,5 +1,9 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.9.1
+
+  * **Added --force option to `newrelic install` cli command to allow overwriting newrelic.yml** 
+  
   ## v6.9.0
 
   * **Added support for W3C Trace Context, with easy upgrade from New Relic trace context**

@@ -40,8 +40,8 @@ class NewRelic::Cli::Install < NewRelic::Cli::Command
 
   def run
     dest_file = File.expand_path(@dest_dir + "/newrelic.yml")
-    if File.exist?(dest_file)
-      raise NewRelic::Cli::Command::CommandFailure, "newrelic.yml file already exists.  Move it out of the way."
+    if File.exist?(dest_file) && !@force
+      raise NewRelic::Cli::Command::CommandFailure, "newrelic.yml file already exists.  Use --force flag to overwrite."
     end
     File.open(dest_file, 'w') { | out | out.puts(content) }
 
@@ -73,6 +73,7 @@ Visit support.newrelic.com if you are experiencing installation issues.
 
   def options
     OptionParser.new "Usage: #{$0} #{self.class.command} [ OPTIONS] 'application name'", 40 do |o|
+      o.on("-f", "--force", "Overwrite newrelic.yml if it exists") { | e | @force = true }
       o.on("-l", "--license_key=NAME", String,
              "Use the given license key") { | e | @license_key = e }
       o.on("-d", "--destdir=name", String,
