@@ -8,8 +8,9 @@
     fractional value.  Logs in Context was changed to only accept Integer values and this
     release changes DecoratingFormatter to match.
 
-  * **Added --force option to `newrelic install` cli command to allow overwriting newrelic.yml**
-
+  * **Added --force option to `newrelic install` cli command to allow overwriting newrelic.yml** 
+  * **Bugfix: The fully qualified hostname now works correctly for *BSD and Solaris**
+    
   ## v6.9.0
 
   * **Added support for W3C Trace Context, with easy upgrade from New Relic trace context**
