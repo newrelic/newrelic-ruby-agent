@@ -176,6 +176,11 @@ module NewRelic
           super
         end
 
+        def process_response_headers response # :nodoc:
+          set_http_status_code response
+          read_response_headers response
+        end
+
         private
 
         def insert_synthetics_header request, header

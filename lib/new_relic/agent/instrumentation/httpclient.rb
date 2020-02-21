@@ -43,7 +43,7 @@ DependencyDetection.defer do
           conn.push response
 
           wrapped_response = ::NewRelic::Agent::HTTPClients::HTTPClientResponse.new(response)
-          segment.read_response_headers wrapped_response
+          segment.process_response_headers wrapped_response
 
           response
         ensure

@@ -177,7 +177,7 @@ DependencyDetection.defer do
         request._nr_original_on_complete = original_callback
         request.on_complete do |finished_request|
           begin
-            segment.read_response_headers wrapped_response
+            segment.process_response_headers wrapped_response
           ensure
             segment.finish if segment
             # Make sure the existing completion callback is run, and restore the
