@@ -109,7 +109,7 @@ module NewRelic::Agent
               procedure: "GET"
             )
             segment.add_request_headers request
-            segment.read_response_headers response
+            segment.process_response_headers response
             segment.finish
           end
         end
@@ -144,7 +144,7 @@ module NewRelic::Agent
               procedure: "GET"
             )
             segment.add_request_headers request
-            segment.read_response_headers response
+            segment.process_response_headers response
             segment.finish
           end
         end
@@ -180,7 +180,7 @@ module NewRelic::Agent
               procedure: "GET"
             )
             segment.add_request_headers request
-            segment.read_response_headers response
+            segment.process_response_headers response
             segment.finish
           end
         end
@@ -213,7 +213,7 @@ module NewRelic::Agent
               uri: "http://newrelic.com/blogs/index",
               procedure: "GET"
             )
-            segment.read_response_headers response
+            segment.process_response_headers response
             segment.finish
           end
         end
@@ -405,7 +405,7 @@ module NewRelic::Agent
               uri: "http://remotehost.com/blogs/index",
               procedure: "GET"
             )
-            segment.read_response_headers response
+            segment.process_response_headers response
             segment.finish
 
             assert segment.cross_app_request?
@@ -428,7 +428,7 @@ module NewRelic::Agent
               uri: "http://remotehost.com/blogs/index",
               procedure: "GET"
             )
-            segment.read_response_headers response
+            segment.process_response_headers response
             segment.finish
 
             refute segment.cross_app_request?
@@ -451,7 +451,7 @@ module NewRelic::Agent
               uri: "http://remotehost.com/blogs/index",
               procedure: "GET"
             )
-            segment.read_response_headers response
+            segment.process_response_headers response
             segment.finish
 
             refute segment.cross_app_request?
@@ -495,7 +495,7 @@ module NewRelic::Agent
               uri: "http://remotehost.com/blogs/index",
               procedure: "GET"
             )
-            segment.read_response_headers response
+            segment.process_response_headers response
             segment.finish
           end
         end
