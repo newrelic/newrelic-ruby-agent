@@ -93,7 +93,8 @@ module NewRelic
 
           callback = Proc.new do
             wrapped_response = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(request.response)
-            segment.read_response_headers wrapped_response
+
+            segment.process_response_headers wrapped_response
             segment.finish if segment
           end
           request.on_complete.unshift(callback)

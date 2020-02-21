@@ -53,7 +53,7 @@ module ::Excon
 
             if datum[:response]
               wrapped_response = ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(datum[:response])
-              segment.read_response_headers wrapped_response
+              segment.process_response_headers wrapped_response
             end
           ensure
             segment.finish if segment

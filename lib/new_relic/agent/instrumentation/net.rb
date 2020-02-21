@@ -33,10 +33,10 @@ DependencyDetection.defer do
           # RUBY-1244 Disable further tracing in request to avoid double
           # counting if connection wasn't started (which calls request again).
           NewRelic::Agent.disable_all_tracing do
-            response = request_without_newrelic_trace( request, *args, &block )
+            response = request_without_newrelic_trace(request, *args, &block)
           end
 
-          segment.read_response_headers response
+          segment.process_response_headers response
           response
         ensure
           segment.finish
