@@ -7,6 +7,8 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/transaction/external_request_segment'
 
+require 'net/http/status'
+
 module NewRelic::Agent
   class Transaction
     class ExternalRequestSegmentTest < Minitest::Test
@@ -416,12 +418,63 @@ module NewRelic::Agent
         end
       end
 
+      # Can pass :status_code and any HTTP code in headers to alter 
+      # default 200 (OK) HTTP status code
+      def with_external_segment headers, config, segment_params
+        segment = nil
+        http_response = nil
+        with_config config do
+          in_transaction :category => :controller do |txn|
+            segment = Tracer.start_external_request_segment(segment_params)
+            segment.add_request_headers headers
+            http_response = mock_http_response headers
+            segment.process_response_headers http_response
+            yield if block_given?
+            segment.finish
+          end
+        end
+        return [segment, http_response]
+      end
+
       def test_read_response_headers_ignores_invalid_appdata
-        response = {
+        headers = {
           'X-NewRelic-App-Data' => "this#is#not#valid#appdata"
         }
+        segment_params = {
+          library: "Net::HTTP",
+          uri: "http://remotehost.com/blogs/index",
+          procedure: "GET"
+        }
+        segment, http_response = with_external_segment(headers, cat_config, segment_params)
 
-        with_config cat_config do
+        refute segment.cross_app_request?
+        assert_equal 200, segment.http_status_code
+        assert_nil segment.cross_process_id
+        assert_nil segment.cross_process_transaction_name
+        assert_nil segment.transaction_guid
+      end
+
+      def test_sets_http_status_code_ok
+        headers = {
+          'X-NewRelic-App-Data' => "this#is#not#valid#appdata",
+          'status_code' => 200,
+        }
+        segment_params = {
+          library: "Net::HTTP",
+          uri: "http://remotehost.com/blogs/index",
+          procedure: "GET"
+        }
+        segment, http_response = with_external_segment(headers, cat_config, segment_params)
+
+        assert_equal 200, segment.http_status_code
+        refute_metrics_recorded "External/remotehost.com/Net::HTTP/GET/Error"
+      end
+
+      def test_unknown_response_records_supportability_metric
+        response = {
+          'X-NewRelic-App-Data' => make_app_data_payload("1#1884", "txn-name", 2, 8, 0, TRANSACTION_GUID)
+        }
+        with_config trace_context_config do
           in_transaction :category => :controller do |txn|
             segment = Tracer.start_external_request_segment(
               library: "Net::HTTP",
@@ -432,11 +485,31 @@ module NewRelic::Agent
             segment.finish
 
             refute segment.cross_app_request?
-            assert_nil segment.cross_process_id
-            assert_nil segment.cross_process_transaction_name
-            assert_nil segment.transaction_guid
+            refute segment.http_status_code, "No http_status_code expected!"
           end
         end
+        expected_metrics = [
+          "External/remotehost.com/Net::HTTP/GET/MissingHTTPStatusCode",
+          "External/remotehost.com/Net::HTTP/GET",
+          "External/allWeb",
+        ]
+       assert_metrics_recorded expected_metrics
+      end
+
+      def test_sets_http_status_code_not_found
+        headers = {
+          'X-NewRelic-App-Data' => "this#is#not#valid#appdata",
+          'status_code' => 404,
+        }
+
+        segment_params = {
+          library: "Net::HTTP",
+          uri: "http://remotehost.com/blogs/index",
+          procedure: "GET"
+        }
+        segment, http_response = with_external_segment(headers, cat_config, segment_params)
+        assert_equal 404, segment.http_status_code
+        refute_metrics_recorded "External/remotehost.com/Net::HTTP/GET/MissingHTTPStatusCode"
       end
 
       def test_read_response_headers_ignores_invalid_cross_app_id
