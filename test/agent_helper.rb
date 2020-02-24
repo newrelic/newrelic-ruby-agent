@@ -815,3 +815,16 @@ def reset_buffers_and_caches
   NewRelic::Agent.drop_buffered_data
   uncache_trusted_account_key
 end
+
+# wraps the given headers in a Net::HTTPResponse which has accompanying 
+# http status code associated with it.
+# a "status_code" may be passed in the headers to alter the HTTP Status Code
+# that is wrapped in the response.
+def mock_http_response headers
+  status_code = (headers.delete("status_code") || 200).to_i
+  net_http_resp = Net::HTTPResponse.new(1.0, status_code, Net::HTTP::STATUS_CODES[status_code])
+  headers.each do |key, value|
+    net_http_resp.add_field key.to_s, value
+  end
+  net_http_resp
+end
