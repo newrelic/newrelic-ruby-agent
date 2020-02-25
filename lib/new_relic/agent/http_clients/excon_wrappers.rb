@@ -26,6 +26,10 @@ module NewRelic
         def to_hash
           @normalized_headers.dup
         end
+
+        def code
+          @response.respond_to?(:status) ? @response.status : @response[:status]
+        end
       end
 
       class ExconHTTPRequest < AbstractRequest
