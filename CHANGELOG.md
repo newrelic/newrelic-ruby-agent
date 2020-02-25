@@ -9,8 +9,11 @@
     release changes DecoratingFormatter to match.
 
   * **Added --force option to `newrelic install` cli command to allow overwriting newrelic.yml** 
+
   * **Bugfix: The fully qualified hostname now works correctly for *BSD and Solaris**
-    
+
+    Previously, when running on systems such as BSD and Solaris, the agent was unable to determine the fully qualified domain name, which is used to help link Ruby agent data with data from New Relic Infrastructure. This information is now successfully collected on various BSD distros and Solaris.
+
   ## v6.9.0
 
   * **Added support for W3C Trace Context, with easy upgrade from New Relic trace context**
