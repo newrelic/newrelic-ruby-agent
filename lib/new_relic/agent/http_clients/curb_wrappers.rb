@@ -50,7 +50,19 @@ module NewRelic
       class CurbResponse < AbstractResponse
 
         def initialize(curlobj)
+          @headers = {}
           @curlobj = curlobj
+        end
+
+        def [](key)
+          @headers[ key.downcase ]
+        end
+
+        def append_header_data( data )
+          key, value = data.split( /:\s*/, 2 )
+          @headers[ key.downcase ] = value
+          @curlobj._nr_header_str ||= String.new
+          @curlobj._nr_header_str << data
         end
 
         def status_code
