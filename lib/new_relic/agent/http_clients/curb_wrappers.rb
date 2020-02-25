@@ -69,6 +69,9 @@ module NewRelic
           @curlobj._nr_header_str << data
         end
 
+        def code
+          @curlobj.response_code
+        end
       end
 
     end
