@@ -22,7 +22,7 @@ module NewRelic
         EXTERNAL_ALL_WEB = "External/allWeb"
         EXTERNAL_ALL_OTHER = "External/allOther"
         MISSING_STATUS_CODE = "MissingHTTPStatusCode"
-        
+
         attr_reader :library, :uri, :procedure
         attr_reader :http_status_code
 
@@ -183,6 +183,7 @@ module NewRelic
         end
 
         def process_response_headers response # :nodoc:
+          # require 'pry'; binding.pry
           set_http_status_code response
           read_response_headers response
         end

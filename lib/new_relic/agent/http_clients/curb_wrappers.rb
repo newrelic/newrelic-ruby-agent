@@ -1,17 +1,18 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
-require 'new_relic/agent/http_clients/abstract_request'
+require_relative 'abstract'
 
 module NewRelic
   module Agent
     module HTTPClients
 
       class CurbRequest
-        CURB = 'Curb'.freeze
-        LHOST = 'host'.freeze
-        UHOST = 'Host'.freeze
+        CURB = 'Curb'
+        LHOST = 'host'
+        UHOST = 'Host'
 
         def initialize( curlobj )
           @curlobj = curlobj
@@ -46,30 +47,13 @@ module NewRelic
         end
       end
 
-
-      class CurbResponse < AbstractRequest
+      class CurbResponse < AbstractResponse
 
         def initialize(curlobj)
-          @headers = {}
           @curlobj = curlobj
         end
 
-        def [](key)
-          @headers[ key.downcase ]
-        end
-
-        def to_hash
-          @headers.dup
-        end
-
-        def append_header_data( data )
-          key, value = data.split( /:\s*/, 2 )
-          @headers[ key.downcase ] = value
-          @curlobj._nr_header_str ||= ''
-          @curlobj._nr_header_str << data
-        end
-
-        def code
+        def status_code
           @curlobj.response_code
         end
       end
