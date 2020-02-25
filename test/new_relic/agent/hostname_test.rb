@@ -17,6 +17,11 @@ module NewRelic
         NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
       end
 
+      def test_get_fqdn
+        fqdn = NewRelic::Agent::Hostname.get_fqdn.to_s
+        refute_equal '', fqdn
+      end
+
       def test_get_returns_socket_hostname
         assert_equal 'Rivendell', NewRelic::Agent::Hostname.get
       end
