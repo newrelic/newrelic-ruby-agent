@@ -8,7 +8,7 @@ require_relative 'abstract'
 module NewRelic
   module Agent
     module HTTPClients
-      class TyphoeusHTTPResponse
+      class TyphoeusHTTPResponse < AbstractResponse
         def initialize(response)
           @response = response
         end
@@ -29,6 +29,10 @@ module NewRelic
             hash[k] = v
           end
           hash
+        end
+
+        def code
+          @response.code if @response.respond_to?(:code)
         end
 
         private
@@ -83,9 +87,6 @@ module NewRelic
         def uri
           @uri
         end
-      end
-
-      class TyphoeusHTTPResponse < AbstractResponse
       end
     end
   end
