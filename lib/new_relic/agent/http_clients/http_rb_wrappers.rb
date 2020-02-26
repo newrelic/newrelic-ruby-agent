@@ -23,6 +23,10 @@ module NewRelic
         def to_hash
           response.headers
         end
+
+        def code
+          @response.code if @response.respond_to?(:code)
+        end
       end
 
       class HTTPRequest < AbstractRequest

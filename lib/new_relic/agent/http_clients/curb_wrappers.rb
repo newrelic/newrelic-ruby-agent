@@ -65,8 +65,8 @@ module NewRelic
           @curlobj._nr_header_str << data
         end
 
-        def status_code
-          @curlobj.response_code
+        def code
+          @curlobj.response_code  if @curlobj.respond_to?(:response_code)
         end
       end
 

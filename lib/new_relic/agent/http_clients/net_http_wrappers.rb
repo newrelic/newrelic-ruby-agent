@@ -9,8 +9,8 @@ module NewRelic
   module Agent
     module HTTPClients
       class NetHTTPResponse < AbstractResponse
-        def status_code
-          @response.code if @response
+        def code
+          @response.code.to_i if @response.respond_to?(:code) && @response.code
         end
       end
 
