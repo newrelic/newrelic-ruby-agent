@@ -6,6 +6,8 @@
 module NewRelic
   module Agent
     module HTTPClients
+      MUST_IMPLEMENT_ERROR = "Subclasses of %s must implement a :%s method"
+      WHINY_NIL_ERROR = "%s cannot initialize with a nil wrapped_response object."
 
       # This class provides a public interface for wrapping HTTP requests. This
       # may be used to create wrappers that are compatible with New Relic's
@@ -13,34 +15,60 @@ module NewRelic
       #
       # @api public
       class AbstractRequest
-        ERROR_MESSAGE = 'Subclasses of NewRelic::Agent::HTTPClients::AbstractRequest must implement a'
 
         def []
-          raise NotImplementedError, "#{ERROR_MESSAGE} :[] method"
+          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
         end
 
         def []=
-          raise NotImplementedError, "#{ERROR_MESSAGE} :[]= method"
+          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
+        end
+
+        def type
+          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
         end
 
         def host_from_header
-          raise NotImplementedError, "#{ERROR_MESSAGE} :host_from_header method"
+          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
+        end
+
+        def host
+          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
+        end
+
+        def method
+          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
         end
       end
 
-      # This class provides a public interface for wrapping HTTP responses. This
-      # is used internally adaptor patterns onto various HTTP client response objects.
-      #
-      # @api private
+      # This class implements the adaptor pattern and is used internally provide 
+      # uniform access to the underlying HTTP Client's response object
+      # NOTE: response_object should be non-nil!
       class AbstractResponse # :nodoc:
-        ERROR_MESSAGE = 'Subclasses of NewRelic::Agent::HTTPClients::AbstractResponse must implement a'
 
-        def initialize response
-          @response = response
+        def initialize wrapped_response
+          if wrapped_response.nil? 
+            raise ArgumentError, WHINY_NIL_ERROR % self.class
+          end
+          @wrapped_response = wrapped_response
         end
 
+        def has_status_code?
+          !!status_code
+        end
+
+        # most HTTP client libraries report the HTTP status code as an integer, so 
+        # we expect status_code to be set only if a non-zero value is present
         def status_code
-          raise NotImplementedError, "#{ERROR_MESSAGE} :status_code method"
+          @status_code ||= get_status_code
+        end
+
+        private 
+
+        # Override this method to memoize a non-zero Integer representation 
+        # of HTTP status code from the response object
+        def get_status_code
+          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
         end
       end
     end

@@ -9,8 +9,21 @@ module NewRelic
   module Agent
     module HTTPClients
       class NetHTTPResponse < AbstractResponse
-        def code
-          @response.code.to_i if @response.respond_to?(:code) && @response.code
+
+        def [](key)
+          @wrapped_response[key]
+        end
+
+        def to_hash
+          @wrapped_response.to_hash
+        end
+
+        private
+
+        def get_status_code
+          return unless @wrapped_response.respond_to?(:code)
+          code = @wrapped_response.code.to_i
+          code.zero? ? nil : code
         end
       end
 
@@ -20,14 +33,14 @@ module NewRelic
           @request = request
         end
 
-        NET_HTTP = 'Net::HTTP'.freeze
+        NET_HTTP = 'Net::HTTP'
 
         def type
           NET_HTTP
         end
 
-        HOST = 'host'.freeze
-        COLON = ':'.freeze
+        HOST = 'host'
+        COLON = ':'
 
         def host_from_header
           if hostname = self[HOST]

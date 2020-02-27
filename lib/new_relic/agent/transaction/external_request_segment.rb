@@ -183,18 +183,18 @@ module NewRelic
         end
 
         def process_response_headers response # :nodoc:
-          # require 'pry'; binding.pry
           set_http_status_code response
           read_response_headers response
         end
 
         private
 
+        # Only sets the http_status_code if response.status_code is non-empty value
         def set_http_status_code response
-          if response && response.respond_to?(:code)
-            @http_status_code = response.code
+          if response.respond_to?(:status_code)
+            @http_status_code = response.status_code if response.has_status_code?
           else
-            ::NewRelic::Agent.logger.warn "Cannot extract HTTP Status Code from response #{response.class.to_s}"
+            NewRelic::Agent.logger.warn "Cannot extract HTTP Status Code from response #{response.class.to_s}"
             NewRelic::Agent.record_metric "#{name}/#{MISSING_STATUS_CODE}", 1
           end
         end

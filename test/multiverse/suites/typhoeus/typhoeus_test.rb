@@ -38,6 +38,10 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
       Typhoeus::Request.get(url || default_url, options)
     end
 
+    def get_wrapped_response url
+      NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new get_response url
+    end
+    
     def head_response
       Typhoeus::Request.head(default_url, ssl_option)
     end

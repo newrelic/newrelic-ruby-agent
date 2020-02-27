@@ -8,14 +8,14 @@ require_relative 'abstract'
 module NewRelic
   module Agent
     module HTTPClients
-      class ExconHTTPResponse
-        def initialize(response)
-          @response = response
+      class ExconHTTPResponse < AbstractResponse
+        def initialize wrapped_response
+          super wrapped_response
+
           # Since HTTP headers are case-insensitive, we normalize all of them to
           # upper case here, and then also in our [](key) implementation.
           @normalized_headers = {}
-          headers = response.respond_to?(:headers) ? response.headers : response[:headers]
-          (headers || {}).each do |key, val|
+          (get_attribute(:headers) || {}).each do |key, val|
             @normalized_headers[key.upcase] = val
           end
         end
@@ -28,18 +28,29 @@ module NewRelic
           @normalized_headers.dup
         end
 
-        def code
-          @response.respond_to?(:status) ? @response.status : @response[:status]
+        private
+
+        def get_attribute name
+          if @wrapped_response.respond_to?(name) 
+            @wrapped_response.send(name) 
+          else
+            @wrapped_response[name]
+          end
+        end
+
+        def get_status_code
+          code = get_attribute(:status).to_i
+          code.zero? ? nil : code
         end
       end
 
       class ExconHTTPRequest < AbstractRequest
         attr_reader :method
 
-        EXCON = "Excon".freeze
-        LHOST = 'host'.freeze
-        UHOST = 'Host'.freeze
-        COLON = ':'.freeze
+        EXCON = "Excon"
+        LHOST = 'host'
+        UHOST = 'Host'
+        COLON = ':'
 
         def initialize(datum)
           @datum = datum
@@ -75,9 +86,8 @@ module NewRelic
         end
 
         def uri
-          ::NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(
-            "#{@scheme}://#{host}:#{@port}#{@path}"
-            )
+          url = "#{@scheme}://#{host}:#{@port}#{@path}"
+          URIUtil.parse_and_normalize_url url
         end
       end
     end

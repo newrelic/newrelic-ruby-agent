@@ -17,6 +17,10 @@ class HTTPClientTest < Minitest::Test
     HTTPClient.get(url || default_url, :header => headers)
   end
 
+  def get_wrapped_response url
+    NewRelic::Agent::HTTPClients::HTTPClientResponse.new get_response url
+  end
+
   def head_response
     HTTPClient.head(default_url)
   end
@@ -43,7 +47,7 @@ class HTTPClientTest < Minitest::Test
     headers.each do |k, v|
       httpclient_resp.http_header[k] = v
     end
-    NewRelic::Agent::HTTPClients::HTTPClientResponse.new(httpclient_resp)
+    NewRelic::Agent::HTTPClients::HTTPClientResponse.new httpclient_resp
   end
 
   def test_still_records_tt_node_when_pop_raises_an_exception

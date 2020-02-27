@@ -53,7 +53,7 @@ DependencyDetection.defer do
 
 
       # Hook the #http method to set the verb.
-      def http_with_newrelic( verb )
+      def http_with_newrelic verb
         self._nr_http_verb = verb.to_s.upcase
         http_without_newrelic( verb )
       end
@@ -72,9 +72,9 @@ DependencyDetection.defer do
       alias_method :perform, :perform_with_newrelic
 
       # Record the HTTP verb for future #perform calls
-      def method_with_newrelic(m)
-        self._nr_http_verb = m.upcase
-        method_without_newrelic(m)
+      def method_with_newrelic verb
+        self._nr_http_verb = verb.upcase
+        method_without_newrelic(verb)
       end
 
       alias_method :method_without_newrelic, :method
@@ -101,12 +101,12 @@ DependencyDetection.defer do
       include NewRelic::Agent::MethodTracer
 
       # Add CAT with callbacks if the request is serial
-      def add_with_newrelic(curl) #THREAD_LOCAL_ACCESS
+      def add_with_newrelic(curl)
         if curl.respond_to?(:_nr_serial) && curl._nr_serial
           hook_pending_request(curl) if NewRelic::Agent::Tracer.tracing_enabled?
         end
 
-        return add_without_newrelic( curl )
+        return add_without_newrelic curl
       end
 
       alias_method :add_without_newrelic, :add
@@ -125,9 +125,9 @@ DependencyDetection.defer do
       alias_method :perform, :perform_with_newrelic
 
 
-      # Instrument the specified +request+ (a Curl::Easy object) and set up cross-application
-      # tracing if it's enabled.
-      def hook_pending_request(request) #THREAD_LOCAL_ACCESS
+      # Instrument the specified +request+ (a Curl::Easy object)
+      # and set up cross-application tracing if it's enabled.
+      def hook_pending_request(request)
         wrapped_request, wrapped_response = wrap_request(request)
 
         segment = NewRelic::Agent::Tracer.start_external_request_segment(
@@ -149,23 +149,26 @@ DependencyDetection.defer do
 
 
       # Create request and response adapter objects for the specified +request+
+      # NOTE: Although strange to wrap request and response at once, it works
+      # because curb's callback mechanism updates the instantiated wrappers
+      # during the life-cycle of external request
       def wrap_request(request)
         return NewRelic::Agent::HTTPClients::CurbRequest.new(request),
                NewRelic::Agent::HTTPClients::CurbResponse.new(request)
       end
 
 
-      # Install a callback that will record the response headers to enable
-      # CAT linking
-      def install_header_callback( request, wrapped_response )
+      # Install a callback that will record the response headers
+      # to enable CAT linking
+      def install_header_callback(request, wrapped_response)
         original_callback = request.on_header
         request._nr_original_on_header = original_callback
         request._nr_header_str = nil
         request.on_header do |header_data|
           if original_callback
-            original_callback.call( header_data )
+            original_callback.call header_data
           else
-            wrapped_response.append_header_data( header_data )
+            wrapped_response.append_header_data header_data
             header_data.length
           end
         end
