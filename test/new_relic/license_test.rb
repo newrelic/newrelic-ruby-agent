@@ -29,6 +29,7 @@ class LicenseTest < Minitest::Test
     ['/LICENSE', '(c)'] => 1,
     ['/LICENSE', 'Copyright'] => 1,
     ['/LICENSE', 'rights reserved'] => 1,
+    ['/CHANGELOG.md', 'BSD'] => 2,
     ['/lib/new_relic/agent/system_info.rb', 'BSD'] => 4, # reference to BSD the operating system, not BSD the license
     ['/test/new_relic/agent/system_info_test.rb', 'BSD'] => 2 # reference to BSD the operating system, not BSD the license
   }

@@ -7,8 +7,6 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_h
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/transaction/external_request_segment'
 
-require 'net/http/status'
-
 module NewRelic::Agent
   class Transaction
     class ExternalRequestSegmentTest < Minitest::Test
