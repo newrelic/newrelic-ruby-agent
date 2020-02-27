@@ -820,11 +820,12 @@ end
 # http status code associated with it.
 # a "status_code" may be passed in the headers to alter the HTTP Status Code
 # that is wrapped in the response.
-def mock_http_response headers
+def mock_http_response headers, wrap_it=true
   status_code = (headers.delete("status_code") || 200).to_i
   net_http_resp = Net::HTTPResponse.new(1.0, status_code, Net::HTTP::STATUS_CODES[status_code])
   headers.each do |key, value|
     net_http_resp.add_field key.to_s, value
   end
-  net_http_resp
+  return net_http_resp unless wrap_it
+  NewRelic::Agent::HTTPClients::NetHTTPResponse.new(net_http_resp)
 end

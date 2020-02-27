@@ -177,6 +177,10 @@ class CurbTest < Minitest::Test
     end
   end
 
+  def get_wrapped_response url
+    NewRelic::Agent::HTTPClients::CurbResponse.new get_response url
+  end
+
   def head_response
     Curl::Easy.http_head( default_url )
   end
@@ -193,16 +197,16 @@ class CurbTest < Minitest::Test
     Curl::Easy.http_delete( default_url )
   end
 
-  def body(res)
+  def body res
     res.body_str
   end
 
   def request_instance
-    NewRelic::Agent::HTTPClients::CurbRequest.new(Curl::Easy.new)
+    NewRelic::Agent::HTTPClients::CurbRequest.new(Curl::Easy.new("http://localhost"))
   end
 
-  def response_instance( headers={} )
-    res = NewRelic::Agent::HTTPClients::CurbResponse.new(Curl::Easy.new)
+  def response_instance headers={}
+    res = NewRelic::Agent::HTTPClients::CurbResponse.new(Curl::Easy.new("http://localhost"))
     headers.each do |hdr, val|
       res.append_header_data( "#{hdr}: #{val}")
     end

@@ -8,15 +8,10 @@ require_relative 'abstract'
 module NewRelic
   module Agent
     module HTTPClients
-      class HTTPClientResponse
-        attr_reader :response
-
-        def initialize(response)
-          @response = response
-        end
+      class HTTPClientResponse < AbstractResponse
 
         def [](key)
-          response.headers.each do |k,v|
+          @wrapped_response.headers.each do |k,v|
             if key.downcase == k.downcase
               return v
             end
@@ -25,16 +20,20 @@ module NewRelic
         end
 
         def to_hash
-          response.headers
+          @wrapped_response.headers
         end
 
-        def code
-          @response.code if @response.respond_to?(:code)
+        private
+
+        def get_status_code
+          return unless @wrapped_response.respond_to?(:code)
+          code = @wrapped_response.code.to_i
+          code.zero? ? nil : code
         end
       end
 
       class HTTPClientRequest < AbstractRequest
-        attr_reader :request, :uri
+        attr_reader :request
 
         HTTP_CLIENT = "HTTPClient".freeze
         LHOST = 'host'.freeze
@@ -43,7 +42,6 @@ module NewRelic
 
         def initialize(request)
           @request = request
-          @uri = request.header.request_uri
         end
 
         def type
@@ -62,6 +60,10 @@ module NewRelic
 
         def host
           host_from_header || uri.host.to_s
+        end
+
+        def uri
+          @uri ||= URIUtil.parse_and_normalize_url(request.header.request_uri)
         end
 
         def [](key)

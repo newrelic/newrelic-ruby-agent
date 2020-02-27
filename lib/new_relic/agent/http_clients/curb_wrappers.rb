@@ -14,7 +14,7 @@ module NewRelic
         LHOST = 'host'
         UHOST = 'Host'
 
-        def initialize( curlobj )
+        def initialize curlobj
           @curlobj = curlobj
         end
 
@@ -35,38 +35,46 @@ module NewRelic
         end
 
         def []( key )
-          @curlobj.headers[ key ]
+          @curlobj.headers[key]
         end
 
-        def []=( key, value )
-          @curlobj.headers[ key ] = value
+        def []=(key, value)
+          @curlobj.headers[key] = value
         end
 
         def uri
-          @uri ||= NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(@curlobj.url)
+          @uri ||= URIUtil.parse_and_normalize_url(@curlobj.url)
         end
       end
 
       class CurbResponse < AbstractResponse
 
-        def initialize(curlobj)
+        def initialize wrapped_response
+          super wrapped_response
           @headers = {}
-          @curlobj = curlobj
         end
 
         def [](key)
-          @headers[ key.downcase ]
+          @headers[key.downcase]
         end
 
-        def append_header_data( data )
-          key, value = data.split( /:\s*/, 2 )
-          @headers[ key.downcase ] = value
-          @curlobj._nr_header_str ||= String.new
-          @curlobj._nr_header_str << data
+        def to_hash
+          @headers.dup
         end
 
-        def code
-          @curlobj.response_code  if @curlobj.respond_to?(:response_code)
+        def append_header_data data
+          key, value = data.split(/:\s*/, 2)
+          @headers[key.downcase] = value
+          @wrapped_response._nr_header_str ||= String.new
+          @wrapped_response._nr_header_str << data
+        end
+
+        private
+
+        def get_status_code
+          return unless @wrapped_response.respond_to? :response_code
+          code = @wrapped_response.response_code.to_i
+          code.zero? ? nil : code
         end
       end
 

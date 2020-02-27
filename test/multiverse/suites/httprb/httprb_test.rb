@@ -21,6 +21,10 @@ class HTTPTest < Minitest::Test
     HTTP.get(url || default_url, :headers => headers)
   end
 
+  def get_wrapped_response url
+    NewRelic::Agent::HTTPClients::HTTPResponse.new get_response url
+  end
+
   def head_response
     HTTP.head(default_url)
   end
@@ -65,14 +69,9 @@ class HTTPTest < Minitest::Test
       body: ''
     }
 
-    httprb_resp =
-      if is_unsupported_1x?
-        HTTP::Response.new(*options.values)
-      else
-        HTTP::Response.new(options)
-      end
+    httprb_resp = is_unsupported_1x? ? HTTP::Response.new(*options.values) : HTTP::Response.new(options)
 
-    ::NewRelic::Agent::HTTPClients::HTTPResponse.new(httprb_resp)
+    NewRelic::Agent::HTTPClients::HTTPResponse.new(httprb_resp)
   end
 
 end

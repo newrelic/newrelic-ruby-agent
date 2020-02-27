@@ -25,6 +25,10 @@ class NetHttpTest < Minitest::Test
     start(uri) { |http| http.get(path, headers) }
   end
 
+  def get_wrapped_response url
+    NewRelic::Agent::HTTPClients::NetHTTPResponse.new get_response url
+  end
+
   def get_response_multi(url, n)
     uri = URI(url)
     responses = []
@@ -80,7 +84,7 @@ class NetHttpTest < Minitest::Test
     headers.each do |k,v|
       response[k] = v
     end
-    response
+    NewRelic::Agent::HTTPClients::NetHTTPResponse.new response
   end
 
   #

@@ -1,22 +1,23 @@
+SUPPORTED_TYPHOEUS_VERSIONS = [
+  '1.3.0',
+  '1.1.2',
+  '1.0.2',
+  '0.8.0',
+  '0.7.3',
+  '0.6.9',
+]
+
 gemfile <<-RB
-  gem 'typhoeus', '~> 1.3.0' # there is no 1.2
+  gem 'typhoeus' # latest version
   gem 'rack'
 RB
 
+SUPPORTED_TYPHOEUS_VERSIONS.each do |version|
 gemfile <<-RB
-  gem 'typhoeus', '~> 1.1.2'
+  gem 'typhoeus', '~> #{version}'
   gem 'rack'
 RB
-
-gemfile <<-RB
-  gem 'typhoeus', '~> 1.0.2'
-  gem 'rack'
-RB
-
-gemfile <<-RB
-  gem 'typhoeus', '~> 0.8.0'
-  gem 'rack'
-RB
+end
 
 gemfile <<-RB
   gem 'typhoeus', '~> 0.7.3'
@@ -25,16 +26,6 @@ gemfile <<-RB
   # We try translating URIs through Addressable if it's there, so test with it.
   gem 'addressable', :require => 'addressable/uri'
   gem 'public_suffix', '< 3.0.0' if RUBY_VERSION < "2.1.0"
-RB
-
-gemfile <<-RB
-  gem 'typhoeus', '~> 0.7.3'
-  gem 'rack'
-RB
-
-gemfile <<-RB
-  gem 'typhoeus', '~> 0.6.9'
-  gem 'rack'
 RB
 
 if RUBY_VERSION < '2.4.0'

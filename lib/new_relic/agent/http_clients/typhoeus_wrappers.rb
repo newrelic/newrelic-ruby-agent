@@ -9,9 +9,6 @@ module NewRelic
   module Agent
     module HTTPClients
       class TyphoeusHTTPResponse < AbstractResponse
-        def initialize(response)
-          @response = response
-        end
 
         def [](key)
           unless headers.nil?
@@ -31,14 +28,16 @@ module NewRelic
           hash
         end
 
-        def code
-          @response.code if @response.respond_to?(:code)
-        end
-
         private
 
+        def get_status_code
+          return unless @wrapped_response.respond_to?(:code)
+          code = @wrapped_response.code.to_i
+          code.zero? ? nil : code
+        end
+
         def headers
-          @response.headers
+          @wrapped_response.headers
         end
       end
 
