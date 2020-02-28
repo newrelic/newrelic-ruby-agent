@@ -2,7 +2,7 @@
 # We have tests to assert unsupported versions of MongoDB, 
 # hence the reason they appear in this list
 MONGO_VERSIONS = [
-  # all newer versions supported by 3rd party extension
+  '2.5.0',
   '2.4.0',
   '2.1.0',
   '2.0.0',
