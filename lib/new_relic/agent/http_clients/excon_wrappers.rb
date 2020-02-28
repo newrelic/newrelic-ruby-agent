@@ -40,7 +40,7 @@ module NewRelic
 
         def get_status_code
           code = get_attribute(:status).to_i
-          code.zero? ? nil : code
+          code == 0 ? nil : code
         end
       end
 

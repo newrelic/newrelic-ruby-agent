@@ -72,9 +72,7 @@ module NewRelic
         private
 
         def get_status_code
-          return unless @wrapped_response.respond_to? :response_code
-          code = @wrapped_response.response_code.to_i
-          code.zero? ? nil : code
+          get_status_code_using :response_code
         end
       end
 

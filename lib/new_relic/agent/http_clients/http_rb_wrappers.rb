@@ -17,14 +17,6 @@ module NewRelic
         def to_hash
           @wrapped_response.headers
         end
-
-        private
-
-        def get_status_code
-          return unless @wrapped_response.respond_to? :code
-          code = @wrapped_response.code.to_i
-          code.zero? ? nil : code
-        end
       end
 
       class HTTPRequest < AbstractRequest

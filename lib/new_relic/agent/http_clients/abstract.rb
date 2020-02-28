@@ -65,10 +65,16 @@ module NewRelic
 
         private 
 
+        def get_status_code_using method_name
+          return unless @wrapped_response.respond_to?(method_name)
+          code = @wrapped_response.send(method_name).to_i
+          code == 0 ? nil : code
+        end
+
         # Override this method to memoize a non-zero Integer representation 
         # of HTTP status code from the response object
         def get_status_code
-          raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
+          get_status_code_using :code
         end
       end
     end
