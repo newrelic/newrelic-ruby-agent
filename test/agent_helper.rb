@@ -6,6 +6,8 @@
 # itself, and should be usable from within any multiverse suite.
 
 require 'json'
+require 'net/http'
+require 'net/http/status'
 
 class ArrayLogDevice
   def initialize( array=[] )

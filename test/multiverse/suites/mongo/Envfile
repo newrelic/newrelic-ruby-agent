@@ -1,33 +1,30 @@
-gemfile <<-RB
-  gem 'mongo', '~>2.4.3'
-RB
-gemfile <<-RB
-  gem 'mongo', '~>2.1.0'
-RB
-gemfile <<-RB
-  gem 'mongo', '~>2.0.1'
-RB
-
-gemfile <<-RB
-  gem 'mongo', '1.10.0'
-  gem 'bson_ext', :platforms => :ruby
-RB
-
-gemfile <<-RB
-  gem 'mongo', '1.9.2'
-  gem 'bson_ext', :platforms => :ruby
-RB
-
-gemfile <<-RB
-  gem 'mongo', '~>1.8.6'
-  gem 'bson_ext', :platforms => :ruby
-RB
-
 # Versions <= 1.7.1 are not supported and never will be.
-gemfile <<-RB
-  gem 'mongo', '~>1.7.1'
-  gem 'bson_ext', :platforms => :ruby
-RB
+# We have tests to assert unsupported versions of MongoDB, 
+# hence the reason they appear in this list
+MONGO_VERSIONS = [
+  '2.4.3',
+  '2.1.0',
+  '2.0.1',
+  '1.10.0',
+  '1.9.2',
+  '1.8.6',
+  '1.7.1',
+]
+
+bson_ext_needed_before_version = Gem::Version::new("1.10.0")
+
+MONGO_VERSIONS.each do |mongo_version|
+  if Gem::Version.new(mongo_version) < bson_ext_needed_before_version
+    gemfile <<-RB
+      gem 'mongo', '~>#{mongo_version}'
+      gem 'bson_ext', :platforms => :ruby
+    RB
+  else
+    gemfile <<-RB
+      gem 'mongo', '~>#{mongo_version}'
+    RB
+  end
+end
 
 require 'timeout'
 require 'socket'
