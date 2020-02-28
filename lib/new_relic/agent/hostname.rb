@@ -17,8 +17,14 @@ module NewRelic
         end
       end
 
+      # calling hostname with -f on some OS's (NetBSD, FreeBSD, Solaris)
+      # produces invalid option error, but doesn't raise exception.  Instead,
+      # we get back empty string.  So, solution here is to check for non-zero 
+      # exit status and retry the command without the -f flag.
       def self.get_fqdn
-        %x[hostname -f].chomp!
+        fqdn = %x[hostname -f].chomp!
+        fqdn = %x[hostname].chomp! unless $?.exitstatus.zero?
+        fqdn
       rescue => e
         NewRelic::Agent.logger.debug "Unable to determine fqdn #{e}"
         nil
