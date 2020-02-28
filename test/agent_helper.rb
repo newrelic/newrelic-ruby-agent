@@ -6,6 +6,12 @@
 # itself, and should be usable from within any multiverse suite.
 
 require 'json'
+require 'net/http'
+begin
+  require 'net/http/status' 
+rescue LoadError
+  # NOP -- Net::HTTP::STATUS_CODES was introduced in Ruby 2.5
+end
 
 class ArrayLogDevice
   def initialize( array=[] )
@@ -814,4 +820,32 @@ end
 def reset_buffers_and_caches
   NewRelic::Agent.drop_buffered_data
   uncache_trusted_account_key
+end
+
+def message_for_status_code code
+  # Net::HTTP::STATUS_CODES was introduced in Ruby 2.5 
+  if defined?(Net::HTTP::STATUS_CODES)
+    return Net::HTTP::STATUS_CODES[code]
+  end
+
+  case code
+  when 200 then "OK"
+  when 404 then "Not Found"
+  when 403 then "Forbidden"
+  else "Unknown"  
+  end
+end
+
+# wraps the given headers in a Net::HTTPResponse which has accompanying 
+# http status code associated with it.
+# a "status_code" may be passed in the headers to alter the HTTP Status Code
+# that is wrapped in the response.
+def mock_http_response headers, wrap_it=true
+  status_code = (headers.delete("status_code") || 200).to_i
+  net_http_resp = Net::HTTPResponse.new(1.0, status_code, message_for_status_code(status_code))
+  headers.each do |key, value|
+    net_http_resp.add_field key.to_s, value
+  end
+  return net_http_resp unless wrap_it
+  NewRelic::Agent::HTTPClients::NetHTTPResponse.new(net_http_resp)
 end

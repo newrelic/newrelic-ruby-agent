@@ -384,7 +384,13 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             #
             result.delete('writeConcern')
 
-            assert_equal expected, result
+            if expected.is_a?(String)
+              assert_equal expected, result
+            else
+              expected.each do |key, value|
+                assert_equal value, result[key]
+              end
+            end
           end
 
           def test_noticed_nosql_includes_operation

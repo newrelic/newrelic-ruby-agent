@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 require "excon"
 require "newrelic_rpm"
@@ -15,6 +16,10 @@ class ExconTest < Minitest::Test
 
   def get_response(url=nil, headers=nil)
     Excon.get(url || default_url, :headers => (headers || {}))
+  end
+
+  def get_wrapped_response url
+    NewRelic::Agent::HTTPClients::ExconHTTPResponse.new get_response url
   end
 
   def get_response_multi(url, n)
@@ -42,7 +47,15 @@ class ExconTest < Minitest::Test
   end
 
   def request_instance
-    NewRelic::Agent::HTTPClients::ExconHTTPRequest.new({:headers => ""})
+    params = {
+      :method => "get",
+      :scheme => "http",
+      :host => "localhost",
+      :port => 80,
+      :path => "",
+      :headers => {}
+    }
+    NewRelic::Agent::HTTPClients::ExconHTTPRequest.new params
   end
 
   def response_instance(headers = {})

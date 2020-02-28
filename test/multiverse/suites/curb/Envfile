@@ -2,8 +2,37 @@ suite_condition("Curb is not useful on JRuby") do
   RUBY_PLATFORM != 'java'
 end
 
+# Gem Version Release Date  libcurl versions
+# 0.9.8 Jan 2019  7.58 - 7.63
+# 0.9.7 Nov 2018  7.56 - 7.60
+# 0.9.6 May 2018  7.51 - 7.59
+# 0.9.5 May 2018  7.51 - 7.59
+# 0.9.4 Aug 2017  7.41 - 7.58
+# 0.9.3 Apr 2016  7.26 - 7.58
+# https://curl.haxx.se/docs/releases.html
+
+def curl_version
+  @curl_version ||= `curl --version`.scan(/curl\s([^\s]+)/).join.to_f
+end
+
+# Supported versions of curb WRT libcurl taken from 
+# https://github.com/taf2/curb#version-compatibility-chart
+def curb_gem_version
+  if curl_version.between? 7.58, Float::INFINITY
+    '~> 0.9.8'
+  elsif curl_version.between? 7.56, 7.60
+    '0.9.7'
+  elsif curl_version.between? 7.51, 7.59
+    '0.9.6'
+  elsif curl_version.between? 7.41, 7.58
+    '0.9.4'
+  else
+    '0.9.3'
+  end
+end
+  
 gemfile <<-RB
-  gem 'curb', '~> 0.9.4'
+  gem 'curb', '#{curb_gem_version}'
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
 
@@ -13,19 +42,17 @@ gemfile <<-RB
 RB
 
 gemfile <<-RB
-  gem 'curb', '0.9.4'
+  gem 'curb', '#{curb_gem_version}'
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
 RB
 
-gemfile <<-RB
-  gem 'curb', '~> 0.9.8'
-  gem 'rack'
-  gem 'json', :platforms => [:rbx, :mri_18]
-RB
-
-# Older curb's than 0.8.6 don't build against Ruby 2.2.0
-if RUBY_VERSION < "2.2.0"
+# Older curbs require older libcurl binaries!
+# We'll use 0.8.1 since this is known to compile and work
+# w/o issue on older versions of Ruby whereas 0.8.6 was 
+# reported to have issues.
+# NOTE: instrumentation looks for CURB_MIN_VERSION = '0.8.1'
+if RUBY_VERSION < "2.2.0" && curl_version < 7.41
 gemfile <<-RB
   gem 'curb', '0.8.1'
   gem 'rack'

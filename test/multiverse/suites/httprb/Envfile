@@ -2,7 +2,13 @@ suite_condition("http.rb is only supported for versions >= 2.0.0") do
   RUBY_VERSION >= '2.0.0'
 end
 
-httprb_versions = %w(3.0.0
+gemfile <<-RB
+  gem 'http' # latest version
+  gem 'public_suffix', '< 3.0.0' if RUBY_VERSION < "2.1.0"
+  gem 'rack'
+RB
+
+HTTPRB_VERSIONS = %w(3.0.0
                      2.2.2
                      2.1.0
                      2.0.3
@@ -11,7 +17,7 @@ httprb_versions = %w(3.0.0
                      0.8.14
                      0.7.4)
 
-httprb_versions.each do |httprb_version|
+HTTPRB_VERSIONS.each do |httprb_version|
   gemfile <<-RB
     gem 'http', '~> #{httprb_version}'
     gem 'public_suffix', '< 3.0.0' if RUBY_VERSION < "2.1.0"

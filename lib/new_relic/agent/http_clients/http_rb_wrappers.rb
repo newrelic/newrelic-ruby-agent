@@ -1,39 +1,35 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
-require 'new_relic/agent/http_clients/abstract_request'
+require_relative 'abstract'
 
 module NewRelic
   module Agent
     module HTTPClients
-      class HTTPResponse
-        attr_reader :response
-
-        def initialize(response)
-          @response = response
-        end
-
+      class HTTPResponse < AbstractResponse
         def [](key)
-          _, value = response.headers.find { |k,_| key.downcase == k.downcase }
+          _, value = @wrapped_response.headers.find{ |k, _| key.downcase == k.downcase }
           value unless value.nil?
         end
 
         def to_hash
-          response.headers
+          @wrapped_response.headers
         end
       end
 
       class HTTPRequest < AbstractRequest
-        HTTP_RB = 'http.rb'.freeze
-        HOST    = 'host'.freeze
-        COLON   = ':'.freeze
+        HTTP_RB = 'http.rb'
+        HOST    = 'host'
+        COLON   = ':'
 
-        attr_reader :request, :uri
+        def initialize wrapped_request
+          @wrapped_request = wrapped_request
+        end
 
-        def initialize(request)
-          @request = request
-          @uri = request.uri
+        def uri
+          @uri ||= URIUtil.parse_and_normalize_url(@wrapped_request.uri)
         end
 
         def type
@@ -47,19 +43,19 @@ module NewRelic
         end
 
         def host
-          host_from_header || request.host
+          host_from_header || @wrapped_request.host
         end
 
         def method
-          request.verb.upcase
+          @wrapped_request.verb.upcase
         end
 
         def [](key)
-          request.headers[key]
+          @wrapped_request.headers[key]
         end
 
         def []=(key, value)
-          request.headers[key] = value
+          @wrapped_request.headers[key] = value
         end
       end
     end

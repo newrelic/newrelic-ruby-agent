@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 require "newrelic_rpm"
 require "fake_external_server"
@@ -62,20 +63,52 @@ module HttpClientTestCases
 
   # Tests
 
+  def refute_raises *exp
+    msg = "#{exp.pop}.\n" if String === exp.last
+
+    begin
+      yield
+    rescue MiniTest::Skip => e
+      puts "SKIP REPORTS: #{e.inspect}"
+      return e if exp.include? MiniTest::Skip
+      raise e
+    rescue Exception => e
+      puts "EXCEPTION RAISED: #{e.inspect}\n#{e.backtrace}"
+      exp = exp.first if exp.size == 1
+      flunk msg || "unexpected exception raised: #{e}"
+    end
+  end
+
+  def assert_implements instance, method, *args
+    fail_message = "expected #{instance.class}##{method} method to be implemented"
+    refute_raises NotImplementedError, fail_message do
+      instance.send(method, *args)
+    end
+  end
+
   def test_validate_request_wrapper
     req = request_instance
-    req.respond_to?(:type)
-    req.respond_to?(:host)
-    req.respond_to?(:method)
-    req.respond_to?(:[])
-    req.respond_to?(:[]=)
-    req.respond_to?(:uri)
+    assert_implements req, :type
+    assert_implements req, :host
+    assert_implements req, :host_from_header
+    assert_implements req, :method
+    assert_implements req, :[], "foo"
+    assert_implements req, :[]=, "foo", "bar"
+    assert_implements req, :uri
   end
 
   def test_validate_response_wrapper
     res = response_instance
-    res.respond_to?(:[])
-    res.respond_to?(:to_hash)
+    assert_implements res, :get_status_code
+    assert_implements res, :[], "foo"
+    assert_implements res, :to_hash
+  end
+
+  # This test is early warning an HTTP client's library
+  # has made breaking changes on their Response objects
+  def test_status_code_is_present
+    res = get_wrapped_response default_url
+    assert_equal 200, res.status_code
   end
 
   # Some libraries (older Typhoeus), have had odd behavior around [] for

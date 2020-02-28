@@ -179,6 +179,7 @@ module NewRelic::Agent
 
     def test_update_apdex_records_correct_apdex_for_non_key_transaction
       nr_freeze_time
+      advance_time(1.0)
       with_config(KEY_TRANSACTION_CONFIG) do
         # apdex_s
         in_web_transaction('Controller/other/txn') do

@@ -4,8 +4,9 @@
 
 module ::Excon
   class Connection
+    # @connection is deprecated in newer excon versions and replaced with @data
     def newrelic_connection_params
-      (@connection || @data)
+      (@data || @connection)
     end
 
     def newrelic_resolved_request_params(request_params)
@@ -30,7 +31,7 @@ module ::Excon
         response = request_without_newrelic_trace(resolved_params, &block)
 
         wrapped_response = ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(response)
-        segment.read_response_headers wrapped_response
+        segment.process_response_headers wrapped_response
 
         response
       ensure

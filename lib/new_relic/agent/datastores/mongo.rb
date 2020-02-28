@@ -12,7 +12,7 @@ module NewRelic
         end
 
         def self.is_monitoring_enabled?
-          defined?(::Mongo::Monitoring)
+          defined?(::Mongo::Monitoring) # @since 2.1.0
         end
 
         def self.is_unsupported_2x?
