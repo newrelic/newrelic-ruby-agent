@@ -192,7 +192,7 @@ module NewRelic
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
-      def notice_error(exception, options={}) #THREAD_LOCAL_ACCESS
+      def notice_error(exception, options={}, span_id=nil) #THREAD_LOCAL_ACCESS
         return if skip_notice_error?(exception)
 
         tag_exception(exception)
@@ -205,8 +205,10 @@ module NewRelic
 
         noticed_error = create_noticed_error(exception, options)
         error_trace_aggregator.add_to_error_queue(noticed_error)
-        payload = state.current_transaction ? state.current_transaction.payload : nil
-        error_event_aggregator.record(noticed_error, payload)
+        transaction = state.current_transaction
+        payload = transaction ? transaction.payload : nil
+        span_id ||= (transaction && transaction.current_segment) ? transaction.current_segment.guid : nil
+        error_event_aggregator.record(noticed_error, payload, span_id)
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing error '#{exception}':", e)

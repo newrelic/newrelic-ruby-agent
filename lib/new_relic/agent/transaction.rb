@@ -708,13 +708,16 @@ module NewRelic
           options[:metric]     = best_name
           options[:attributes] = @attributes
 
-          error_recorded = !!agent.error_collector.notice_error(exception, options) || error_recorded
+          span_id = options[:span_id]
+          error_recorded = !!agent.error_collector.notice_error(exception, options, span_id) || error_recorded
         end
         payload[:error] = error_recorded if payload
       end
 
       # Do not call this.  Invoke the class method instead.
       def notice_error(error, options={}) # :nodoc:
+        options[:span_id] = @current_segment.guid if @current_segment
+
         if @exceptions[error]
           @exceptions[error].merge! options
         else

@@ -41,7 +41,9 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_records_error_outside_of_transaction
-    @error_collector.notice_error StandardError.new
+    in_transaction do
+      @error_collector.notice_error StandardError.new
+    end
     traces = harvest_error_traces
     events = harvest_error_events
 
@@ -62,10 +64,15 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_exclude_later_config_changes
-    @error_collector.notice_error(IOError.new("message"))
+    in_transaction do
+      @error_collector.notice_error(IOError.new("message"))
+    end
 
     NewRelic::Agent.config.add_config_for_testing(:'error_collector.ignore_errors' => "IOError")
-    @error_collector.notice_error(IOError.new("message"))
+
+    in_transaction do
+      @error_collector.notice_error(IOError.new("message"))
+    end
 
     traces = harvest_error_traces
     events = harvest_error_events
@@ -77,8 +84,10 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   def test_exclude_block
     @error_collector.class.ignore_error_filter = wrapped_filter_proc
 
-    @error_collector.notice_error(IOError.new("message"), :metric => 'path')
-    @error_collector.notice_error(StandardError.new("message"), :metric => 'path')
+    in_transaction do
+      @error_collector.notice_error(IOError.new("message"), :metric => 'path')
+      @error_collector.notice_error(StandardError.new("message"), :metric => 'path')
+    end
 
     traces = harvest_error_traces
     events = harvest_error_events
@@ -92,7 +101,9 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
       raise "HAHAHAHAH, error in the filter for ignoring errors!"
     end
 
-    @error_collector.notice_error(StandardError.new("message"))
+    in_transaction do
+      @error_collector.notice_error(StandardError.new("message"))
+    end
 
     traces = harvest_error_traces
     events = harvest_error_events
@@ -400,7 +411,9 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_expected_error_sets_expected_attribute_to_true
-    @error_collector.notice_error(StandardError.new, :expected => true)
+    in_transaction do
+      @error_collector.notice_error(StandardError.new, :expected => true)
+    end
     traces = harvest_error_traces
     events = harvest_error_events
     event_attrs = events[0][0]
@@ -411,7 +424,9 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_unexpected_error_sets_expected_attribute_to_false
-    @error_collector.notice_error(StandardError.new)
+    in_transaction do
+      @error_collector.notice_error(StandardError.new)
+    end
     traces = harvest_error_traces
     events = harvest_error_events
     event_attrs = events[0][0]
@@ -423,7 +438,9 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_expected_error_does_not_increment_metrics
-    @error_collector.notice_error(StandardError.new, :expected => true)
+    in_transaction do
+      @error_collector.notice_error(StandardError.new, :expected => true)
+    end
     traces = harvest_error_traces
     events = harvest_error_events
 
@@ -433,7 +450,9 @@ class NewRelic::Agent::ErrorCollectorTest < Minitest::Test
   end
 
   def test_expected_error_not_recorded_as_custom_attribute
-    @error_collector.notice_error(StandardError.new, :expected => true)
+    in_transaction do
+      @error_collector.notice_error(StandardError.new, :expected => true)
+    end
     traces = harvest_error_traces
     events = harvest_error_events
 

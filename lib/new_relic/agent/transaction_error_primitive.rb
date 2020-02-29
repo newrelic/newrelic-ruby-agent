@@ -32,16 +32,17 @@ module NewRelic
       SYNTHETICS_JOB_ID_KEY          = "nr.syntheticsJobId".freeze
       SYNTHETICS_MONITOR_ID_KEY      = "nr.syntheticsMonitorId".freeze
       PRIORITY_KEY                   = "priority".freeze
+      SPAN_ID_KEY                    = "spanId".freeze
 
-      def create noticed_error, payload
+      def create noticed_error, payload, span_id
         [
-          intrinsic_attributes_for(noticed_error, payload),
+          intrinsic_attributes_for(noticed_error, payload, span_id),
           noticed_error.custom_attributes,
           noticed_error.agent_attributes
         ]
       end
 
-      def intrinsic_attributes_for noticed_error, payload
+      def intrinsic_attributes_for noticed_error, payload, span_id
         attrs = {
           TYPE_KEY => SAMPLE_TYPE,
           ERROR_CLASS_KEY => noticed_error.exception_class_name,
@@ -50,6 +51,7 @@ module NewRelic
           TIMESTAMP_KEY => noticed_error.timestamp.to_f
         }
 
+        attrs[SPAN_ID_KEY] = span_id if span_id
         attrs[PORT_KEY] = noticed_error.request_port if noticed_error.request_port
 
         if payload
