@@ -201,6 +201,14 @@ EOL
     assert_equal "344", headers["Content-Length"]
   end
 
+  def test_content_length_set_when_we_modify_source_containing_unicode
+    original_headers = {
+      "Content-Length" => "0",
+      "Content-Type"   => "text/html"
+    }
+    headers = headers_from_request(original_headers, "<html><body>☃</body></html>")
+    assert_equal "347", headers["Content-Length"]
+  end
   def headers_from_request(headers, content)
     app = mock('app', :call => [200, headers, [content]])
     browser_monitoring = NewRelic::Rack::BrowserMonitoring.new(app)
