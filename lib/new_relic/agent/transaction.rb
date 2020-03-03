@@ -150,7 +150,7 @@ module NewRelic
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
-      def self.notice_error(e, options={}) #THREAD_LOCAL_ACCESS
+      def self.notice_error(e, options={})
         txn = Tracer.current_transaction
         if txn
           txn.notice_error(e, options)
@@ -708,7 +708,7 @@ module NewRelic
           options[:metric]     = best_name
           options[:attributes] = @attributes
 
-          span_id = options[:span_id]
+          span_id = options.delete :span_id
           error_recorded = !!agent.error_collector.notice_error(exception, options, span_id) || error_recorded
         end
         payload[:error] = error_recorded if payload
@@ -716,7 +716,12 @@ module NewRelic
 
       # Do not call this.  Invoke the class method instead.
       def notice_error(error, options={}) # :nodoc:
-        options[:span_id] = @current_segment.guid if @current_segment
+
+        # Only the last error is kept
+        if @current_segment
+          @current_segment.set_error error, options
+          options[:span_id] = @current_segment.guid
+        end
 
         if @exceptions[error]
           @exceptions[error].merge! options

@@ -49,11 +49,28 @@ module NewRelic
       DATASTORE_CATEGORY = 'datastore'
       CLIENT             = 'client'
 
+      ERROR_PREFIX_KEY   = 'error'
+      ERROR_MESSAGE_KEY  = "#{ERROR_PREFIX_KEY}.message"
+      ERROR_CLASS_KEY    = "#{ERROR_PREFIX_KEY}.class"
+
+      # Builds a Hash of error attributes as well as the Span ID when
+      # an error is present.  Otherwise, returns nil when no error present.
+      def error_hash segment
+        return unless segment.error
+        return if Agent.config[:high_security]
+        # TODO: handle security policies [LASP]
+
+        {
+          ERROR_MESSAGE_KEY => segment.error.message,
+          ERROR_CLASS_KEY   => segment.error.class.to_s
+        }
+      end
+
       def for_segment segment
         intrinsics = intrinsics_for(segment)
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
 
-        [intrinsics, custom_attributes(segment.attributes), NewRelic::EMPTY_HASH]
+        [intrinsics, custom_attributes(segment.attributes), error_hash(segment) || NewRelic::EMPTY_HASH]
       end
 
       def for_external_request_segment segment
@@ -65,7 +82,7 @@ module NewRelic
         intrinsics[CATEGORY_KEY]    = HTTP_CATEGORY
         intrinsics[SPAN_KIND_KEY]   = CLIENT
 
-        agent_attributes = {}
+        agent_attributes = error_hash(segment) || {}
 
         if allowed?(HTTP_URL_KEY)
           agent_attributes[HTTP_URL_KEY] = truncate(segment.uri)
@@ -81,7 +98,7 @@ module NewRelic
         intrinsics[SPAN_KIND_KEY] = CLIENT
         intrinsics[CATEGORY_KEY] = DATASTORE_CATEGORY
 
-        agent_attributes = {}
+        agent_attributes = error_hash(segment) || {}
 
         if segment.database_name && allowed?(DB_INSTANCE_KEY)
           agent_attributes[DB_INSTANCE_KEY] = truncate(segment.database_name)

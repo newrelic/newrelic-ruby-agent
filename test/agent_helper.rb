@@ -366,9 +366,12 @@ end
 # that transaction to work with.  The same arguements as provided to in_transaction
 # may be supplied.
 def with_segment *args, &blk
-  in_transaction(*args) do |txn|
-    yield txn.current_segment, txn
+  segment = nil
+  txn = in_transaction(*args) do |txn|
+    segment = txn.current_segment
+    yield segment, txn
   end
+  [segment, txn]
 end
 
 def stub_transaction_guid(guid)

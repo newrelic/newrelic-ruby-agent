@@ -23,6 +23,7 @@ module NewRelic
         attr_reader :start_time, :end_time, :duration, :exclusive_duration, :guid
         attr_accessor :name, :parent, :children_time, :transaction
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
+        attr_reader :error
 
         def initialize name=nil, start_time=nil
           @name = name
@@ -42,6 +43,7 @@ module NewRelic
           @record_metrics = true
           @record_scoped_metric = true
           @record_on_finish = false
+          @error = nil
         end
 
         def start
@@ -117,6 +119,15 @@ module NewRelic
 
         # callback for subclasses to override
         def transaction_assigned
+        end
+
+        def set_error error, options
+          if @error
+            NewRelic::Agent.logger.debug \
+              "Segment: #{name} overwriting previously set " \
+              "error: #{@error.inspect} with: #{error.inspect}"
+          end
+          @error = error
         end
 
         protected

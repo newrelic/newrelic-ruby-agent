@@ -192,7 +192,7 @@ module NewRelic
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
-      def notice_error(exception, options={}, span_id=nil) #THREAD_LOCAL_ACCESS
+      def notice_error(exception, options={}, span_id=nil)
         return if skip_notice_error?(exception)
 
         tag_exception(exception)

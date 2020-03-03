@@ -19,7 +19,7 @@ module NewRelic
 
         def teardown
           NewRelic::Agent.config.remove_config(@additional_config)
-          NewRelic::Agent.drop_buffered_data
+          reset_buffers_and_caches
         end
 
         def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_span_attributes
@@ -35,6 +35,49 @@ module NewRelic
               NewRelic::Agent.add_custom_span_attributes(:failure => "is an option")
               assert_empty attributes_for(segment, :custom)
             end
+          end
+        end
+
+        def test_records_error_attributes_on_segment
+          test_segment = nil
+          begin
+            with_segment do |segment|
+              test_segment = segment
+              raise "oops!"
+            end
+          rescue Exception => err
+            # NOP 
+          end
+
+          harvested_entries = NewRelic::Agent.agent.span_event_aggregator.harvest![-1]
+          agent_attributes = harvested_entries[-1][-1]
+          
+          refute_empty agent_attributes
+          assert_equal "oops!", agent_attributes["error.message"]
+          assert_equal "RuntimeError", agent_attributes["error.class"]
+        end
+
+        def test_produces_empty_agent_attributes_on_segment_with_no_error
+          test_segment, _ = with_segment do |segment|
+            # A perfectly fine walk through segment-land
+          end
+
+          harvested_entries = NewRelic::Agent.agent.span_event_aggregator.harvest![-1]
+          agent_attributes = harvested_entries[-1][-1]
+          
+          assert_empty agent_attributes, "expected agent attributes to be empty!"
+        end
+
+        def test_ignores_error_attributes_when_in_high_security
+          with_config(:high_security => true) do
+            segment, _ = with_segment do |segment|
+              begin
+                raise "oops!"
+              rescue Exception
+                # NOP
+              end
+            end
+            assert_empty attributes_for(segment, :agent)
           end
         end
 
