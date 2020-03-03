@@ -2,13 +2,21 @@
 
   ## v6.10.0
 
-  * **BUGFIX: DecoratingFormatter now logs timestamps as millisecond Integers**
+  * **Bugfix: Calculate Content-Length**
+
+    Previously, the Content-Length HTTP header would be incorrect after injecting the Browser Monitoring
+    JS when the response contained Unicode characters because the value was not calculated in bytes.
+    The Content-Length is now correctly updated.
+
+    Thanks to thaim for the contribution!
+
+  * **Bugfix: DecoratingFormatter now logs timestamps as millisecond Integers**
 
     Previously the agent sent timestamps as a Float with milliseconds as part of the
     fractional value.  Logs in Context was changed to only accept Integer values and this
     release changes DecoratingFormatter to match.
 
-  * **Added --force option to `newrelic install` cli command to allow overwriting newrelic.yml** 
+  * **Added --force option to `newrelic install` cli command to allow overwriting newrelic.yml**
 
   * **Bugfix: The fully qualified hostname now works correctly for *BSD and Solaris**
 
