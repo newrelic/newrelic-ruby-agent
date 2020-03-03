@@ -37,7 +37,7 @@ module NewRelic::Rack
       if (js_to_inject != "") && should_instrument?(env, status, headers)
         response_string = autoinstrument_source(response, headers, js_to_inject)
         if headers.key?(CONTENT_LENGTH)
-          headers[CONTENT_LENGTH] = response_string.size.to_s
+          headers[CONTENT_LENGTH] = response_string.bytesize.to_s
         end
 
         env[ALREADY_INSTRUMENTED_KEY] = true
