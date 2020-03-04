@@ -201,8 +201,19 @@ EOL
     assert_equal "344", headers["Content-Length"]
   end
 
+  def test_content_length_set_when_response_is_nil
+    original_headers = {
+      "Content-Length" => "0",
+      "Content-Type"   => "text/html"
+    }
+    headers = headers_from_request(original_headers, nil)
+    assert_equal "0", headers["Content-Length"]
+  end
+
   def headers_from_request(headers, content)
-    app = mock('app', :call => [200, headers, [content]])
+    content = Array(content) if content
+
+    app = mock('app', :call => [200, headers, content])
     browser_monitoring = NewRelic::Rack::BrowserMonitoring.new(app)
     _, headers, _ = browser_monitoring.call({})
     headers
