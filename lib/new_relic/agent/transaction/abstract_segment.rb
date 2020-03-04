@@ -23,7 +23,7 @@ module NewRelic
         attr_reader :start_time, :end_time, :duration, :exclusive_duration, :guid
         attr_accessor :name, :parent, :children_time, :transaction
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
-        attr_reader :error
+        attr_reader :noticed_error
 
         def initialize name=nil, start_time=nil
           @name = name
@@ -43,7 +43,7 @@ module NewRelic
           @record_metrics = true
           @record_scoped_metric = true
           @record_on_finish = false
-          @error = nil
+          @noticed_error = nil
         end
 
         def start
@@ -121,13 +121,23 @@ module NewRelic
         def transaction_assigned
         end
 
-        def set_error error, options
-          if @error
+        def set_noticed_error noticed_error
+          if @noticed_error
             NewRelic::Agent.logger.debug \
-              "Segment: #{name} overwriting previously set " \
-              "error: #{@error.inspect} with: #{error.inspect}"
+              "Segment: #{name} overwriting previously noticed " \
+              "error: #{@noticed_error.inspect} with: #{noticed_error.inspect}"
           end
-          @error = error
+          @noticed_error = noticed_error
+        end
+
+        def notice_error exception
+          if Agent.config[:high_security]
+            NewRelic::Agent.logger.debug \
+              "Segment: #{name} ignores notice_error for " \
+              "error: #{exception.inspect} because :high_security is enabled"
+          else
+            NewRelic::Agent.instance.error_collector.notice_segment_error self, exception
+          end
         end
 
         protected

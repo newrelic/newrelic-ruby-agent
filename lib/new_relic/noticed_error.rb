@@ -131,6 +131,10 @@ class NewRelic::NoticedError
     end
   end
 
+  def build_segment_error_attributes(segment)
+    
+  end
+
   def build_agent_attributes(merged_attributes)
     agent_attributes = if @attributes
       @attributes.agent_attributes_for(DESTINATION)

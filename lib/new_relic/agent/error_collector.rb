@@ -168,10 +168,11 @@ module NewRelic
       end
 
       def skip_notice_error?(exception)
-        disabled? ||
-          error_is_ignored?(exception) ||
-          exception.nil? ||
+        [ disabled?,
+          error_is_ignored?(exception),
+          exception.nil?,
           exception_tagged?(exception)
+        ].any?
       end
 
       # calls a method on an object, if it responds to it - used for
@@ -189,6 +190,23 @@ module NewRelic
                              exception
                            end
         sense_method(actual_exception, :backtrace) || '<no stack trace>'
+      end
+
+      ERROR_PREFIX_KEY   = 'error'
+      ERROR_MESSAGE_KEY  = "#{ERROR_PREFIX_KEY}.message"
+      ERROR_CLASS_KEY    = "#{ERROR_PREFIX_KEY}.class"
+
+
+      def notice_segment_error(segment, exception)
+        return if skip_notice_error?(exception)
+        segment.set_noticed_error create_noticed_error(exception, {
+          ERROR_MESSAGE_KEY => exception.message,
+          ERROR_CLASS_KEY   => exception.class.to_s
+        })
+        exception
+      rescue => e
+        ::NewRelic::Agent.logger.warn("Failure when capturing segment error '#{exception}':", e)
+        nil
       end
 
       # See NewRelic::Agent.notice_error for options and commentary

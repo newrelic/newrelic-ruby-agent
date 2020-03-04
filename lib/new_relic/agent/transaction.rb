@@ -719,8 +719,7 @@ module NewRelic
 
         # Only the last error is kept
         if @current_segment
-          @current_segment.set_error error, options
-          options[:span_id] = @current_segment.guid
+          options[:span_id] = @current_segment.guid # TODO: remove?
         end
 
         if @exceptions[error]
