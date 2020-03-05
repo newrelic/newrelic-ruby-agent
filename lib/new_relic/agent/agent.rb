@@ -134,7 +134,7 @@ module NewRelic
         # and request before/after from Rack.
         attr_reader :events
 
-        # listens and responds to events that need to process headers 
+        # listens and responds to events that need to process headers
         # for synthetics and distributed tracing
         attr_reader :monitors
         # Transaction and metric renaming rules as provided by the
@@ -249,7 +249,7 @@ module NewRelic
           # Wait the end of the event loop thread.
           if @worker_thread
             unless @worker_thread.join(3)
-              ::NewRelic::Agent.logger.error "Event loop thread did not stop within 3 seconds"
+              ::NewRelic::Agent.logger.debug "Event loop thread did not stop within 3 seconds"
             end
           end
         end
