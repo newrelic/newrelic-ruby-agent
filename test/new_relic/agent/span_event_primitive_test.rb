@@ -21,48 +21,46 @@ module NewRelic
           reset_buffers_and_caches
         end
 
-        def test_error_hash_returns_nil_when_no_error
+        def test_error_attributes_returns_nil_when_no_error
           with_segment do |segment|
-            assert segment
-            eh = SpanEventPrimitive::error_hash(segment)
-            refute segment.error, "segment.error expected to be nil!"
+            eh = SpanEventPrimitive::error_attributes(segment)
+            refute segment.noticed_error, "segment.noticed_error expected to be nil!"
             refute eh, "expected nil when no error present on segment"
           end            
         end
 
-        def test_error_hash_returns_populated_hash_when_error_present
-          begin
-            segment_with_error = nil
-            with_segment do |segment|
-              segment_with_error = segment
-              raise "oops!"
-            end            
-          rescue Exception => exception
-            assert segment_with_error
-            eh = SpanEventPrimitive::error_hash(segment_with_error)
-            assert  segment_with_error.error, "segment.error should NOT be nil!"
-            assert eh.is_a?(Hash), "expected a Hash when error present on segment"
-            assert_equal "oops!", eh["error.message"]
-            assert_equal "RuntimeError", eh["error.class"]
-          end
+        def test_error_attributes_returns_populated_attributes_when_error_present
+            segment, _ = capture_segment_with_error
+
+          eh = SpanEventPrimitive::error_attributes(segment)
+          assert segment.noticed_error, "segment.noticed_error should NOT be nil!"
+          assert eh.is_a?(Hash), "expected a Hash when error present on segment"
+          assert_equal "oops!", eh["error.message"]
+          assert_equal "RuntimeError", eh["error.class"]
         end
 
         def test_does_not_add_error_attributes_in_high_security
           with_config(:high_security => true) do
-            begin
-              segment_with_error = nil
-              with_segment do |segment|
-                segment_with_error = segment
-                raise "oops!"
-              end            
-            rescue Exception => exception
-              assert segment_with_error
-              eh = SpanEventPrimitive::error_hash(segment_with_error)
-              assert  segment_with_error.error, "segment.error should NOT be nil!"
-              refute eh, "expected nil when error present on segment and high_security is enabled"
-            end
+            segment, _ = capture_segment_with_error
+      
+            eh = SpanEventPrimitive::error_attributes(segment)
+            refute  segment.noticed_error, "segment.noticed_error should be nil!"
+            refute eh, "expected nil when error present on segment and high_security is enabled"
           end
         end
+
+        def test_does_not_add_error_message_when_strip_message_enabled
+          with_config(:'strip_exception_messages.enabled' => true) do
+            segment, _ = capture_segment_with_error
+
+            eh = SpanEventPrimitive::error_attributes(segment)
+            assert segment.noticed_error, "segment.noticed_error should NOT be nil!"
+            assert eh.is_a?(Hash), "expected a Hash when error present on segment"
+            assert eh["error.message"].start_with?("Message removed by")
+            assert_equal "RuntimeError", eh["error.class"]
+          end
+        end
+
       end
     end
   end

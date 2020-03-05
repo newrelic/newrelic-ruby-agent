@@ -14,6 +14,7 @@ module NewRelic
       # memory and data retention
       MAX_ERROR_QUEUE_LENGTH = 20
       EXCEPTION_TAG_IVAR = :'@__nr_seen_exception'
+      EXCEPTION_SEGMENT_TAG_IVAR = :'@__nr_segment_seen_exception'
 
       attr_reader :error_trace_aggregator, :error_event_aggregator
 
@@ -31,7 +32,6 @@ module NewRelic
           initialize_ignored_errors(ignore_errors)
         end
       end
-
 
       def initialize_ignored_errors(ignore_errors)
         @ignore.clear
@@ -117,19 +117,26 @@ module NewRelic
         NewRelic::LanguageSupport.jruby? && exception.respond_to?(:java_class)
       end
 
-      def exception_tagged?(exception)
+      def exception_tagged_with?(ivar, exception)
         return false if exception_is_java_object?(exception)
-        exception.instance_variable_defined?(EXCEPTION_TAG_IVAR)
+        exception.instance_variable_defined?(ivar)
       end
 
-      def tag_exception(exception)
-        return if exception_is_java_object?(exception)
-        return if exception.frozen?
+      def tag_exception_using(ivar, exception)
+        return if exception_is_java_object?(exception) || exception.frozen?
         begin
-          exception.instance_variable_set(EXCEPTION_TAG_IVAR, true)
+          exception.instance_variable_set(ivar, true)
         rescue => e
           NewRelic::Agent.logger.warn("Failed to tag exception: #{exception}: ", e)
         end
+      end
+
+      def tag_exception(exception)
+        tag_exception_using EXCEPTION_TAG_IVAR, exception
+      end
+
+      def tag_segment_exception(exception)
+        tag_exception_using EXCEPTION_SEGMENT_TAG_IVAR, exception
       end
 
       def blamed_metric_name(txn, options)
@@ -167,11 +174,11 @@ module NewRelic
         end
       end
 
-      def skip_notice_error?(exception)
+      def skip_notice_error?(exception, ivar=EXCEPTION_TAG_IVAR)
         [ disabled?,
           error_is_ignored?(exception),
           exception.nil?,
-          exception_tagged?(exception)
+          exception_tagged_with?(ivar, exception)
         ].any?
       end
 
@@ -192,17 +199,12 @@ module NewRelic
         sense_method(actual_exception, :backtrace) || '<no stack trace>'
       end
 
-      ERROR_PREFIX_KEY   = 'error'
-      ERROR_MESSAGE_KEY  = "#{ERROR_PREFIX_KEY}.message"
-      ERROR_CLASS_KEY    = "#{ERROR_PREFIX_KEY}.class"
-
-
       def notice_segment_error(segment, exception)
-        return if skip_notice_error?(exception)
-        segment.set_noticed_error create_noticed_error(exception, {
-          ERROR_MESSAGE_KEY => exception.message,
-          ERROR_CLASS_KEY   => exception.class.to_s
-        })
+        return if skip_notice_error?(exception, EXCEPTION_SEGMENT_TAG_IVAR)
+
+        tag_segment_exception(exception)
+        segment.set_noticed_error create_noticed_error(exception, {})
+        
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing segment error '#{exception}':", e)

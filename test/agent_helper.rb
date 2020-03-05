@@ -374,6 +374,30 @@ def with_segment *args, &blk
   [segment, txn]
 end
 
+# building error attributes on segments are deferred until it's time
+# to publish/harvest them as spans, so for testing, we'll explicitly
+# build 'em as appropriate so we can test 'em
+def build_deferred_error_attributes segment
+  return unless segment.noticed_error
+  segment.noticed_error.build_error_attributes
+end
+
+def capture_segment_with_error
+  begin
+    segment_with_error = nil
+    with_segment do |segment|
+      segment_with_error = segment
+      raise "oops!"
+    end            
+  rescue Exception => exception
+    assert segment_with_error, "expected to have a segment_with_error"
+    build_deferred_error_attributes segment_with_error
+    return segment_with_error, exception
+  end
+end
+
+
+
 def stub_transaction_guid(guid)
   NewRelic::Agent::Transaction.tl_current.instance_variable_set(:@guid, guid)
 end

@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/helper'
 require 'new_relic/agent/attribute_filter'
@@ -17,9 +18,19 @@ class NewRelic::NoticedError
 
   attr_reader   :exception_id, :is_internal
 
-  STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE = "Message removed by New Relic 'strip_exception_messages' setting".freeze
-  UNKNOWN_ERROR_CLASS_NAME = 'Error'.freeze
-  NIL_ERROR_MESSAGE = '<no message>'.freeze
+  STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE = "Message removed by New Relic 'strip_exception_messages' setting"
+  UNKNOWN_ERROR_CLASS_NAME = 'Error'
+  NIL_ERROR_MESSAGE = '<no message>'
+
+  USER_ATTRIBUTES = "userAttributes"
+  AGENT_ATTRIBUTES = "agentAttributes"
+  INTRINSIC_ATTRIBUTES = "intrinsics"
+
+  DESTINATION = NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+
+  ERROR_PREFIX_KEY   = 'error'
+  ERROR_MESSAGE_KEY  = "#{ERROR_PREFIX_KEY}.message"
+  ERROR_CLASS_KEY    = "#{ERROR_PREFIX_KEY}.class"
 
   def initialize(path, exception, timestamp = Time.now)
     @exception_id = exception.object_id
@@ -77,12 +88,6 @@ class NewRelic::NoticedError
       processed_attributes ]
   end
 
-  USER_ATTRIBUTES = "userAttributes".freeze
-  AGENT_ATTRIBUTES = "agentAttributes".freeze
-  INTRINSIC_ATTRIBUTES = "intrinsics".freeze
-
-  DESTINATION = NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
-
   # Note that we process attributes lazily and store the result. This is because
   # there is a possibility that a noticed error will be discarded and not sent back
   # as a traced error or TransactionError.
@@ -131,8 +136,12 @@ class NewRelic::NoticedError
     end
   end
 
-  def build_segment_error_attributes(segment)
-    
+  def build_error_attributes
+    @attributes_from_notice_error ||= {}
+    @attributes_from_notice_error.merge!({
+      ERROR_MESSAGE_KEY => string(message),
+      ERROR_CLASS_KEY => string(exception_class_name)
+    })
   end
 
   def build_agent_attributes(merged_attributes)

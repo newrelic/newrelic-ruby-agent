@@ -140,6 +140,11 @@ module NewRelic
           end
         end
 
+        def noticed_error_attributes
+          return unless @noticed_error
+          @noticed_error.attributes_from_notice_error
+        end
+
         protected
 
         attr_writer :range_recorded

@@ -39,44 +39,46 @@ module NewRelic
         end
 
         def test_records_error_attributes_on_segment
-          test_segment = nil
-          begin
-            with_segment do |segment|
-              test_segment = segment
-              raise "oops!"
-            end
-          rescue Exception => err
-            # NOP 
-          end
+          test_segment, err = capture_segment_with_error
+          current_noticed_error = test_segment.noticed_error
 
-          harvested_entries = NewRelic::Agent.agent.span_event_aggregator.harvest![-1]
-          agent_attributes = harvested_entries[-1][-1]
-          
-          refute_empty agent_attributes
-          assert_equal "oops!", agent_attributes["error.message"]
-          assert_equal "RuntimeError", agent_attributes["error.class"]
+          assert current_noticed_error, "expected noticed_error to not be nil"
+
+          test_segment.noticed_error.build_error_attributes
+          attributes = test_segment.noticed_error_attributes
+          assert attributes, "expected noticed_error_attributes to not be nil"
+
+          refute_empty attributes
+          assert_equal "oops!", attributes["error.message"]
+          assert_equal "RuntimeError", attributes["error.class"]
+
+          # segment tagging should preserve current noticed error!
+          test_segment.notice_error err
+          assert current_noticed_error.equal?(test_segment.noticed_error), 
+            "did not expect a new instance of noticed_error"
         end
 
-        def test_produces_empty_agent_attributes_on_segment_with_no_error
-          test_segment, _ = with_segment do |segment|
-            # A perfectly fine walk through segment-land
+        def test_segment_with_no_error_does_not_produce_error_attributes
+          segment, _ = with_segment do |segment|
+            # A perfectly fine walk through segmentland
           end
+          refute segment.noticed_error_attributes
+        end
 
-          harvested_entries = NewRelic::Agent.agent.span_event_aggregator.harvest![-1]
-          agent_attributes = harvested_entries[-1][-1]
-          
-          assert_empty agent_attributes, "expected agent attributes to be empty!"
+        def test_segment_has_error_attributes_after_error
+          segment, error = capture_segment_with_error
+          refute_empty segment.noticed_error_attributes
+        end
+
+        def test_nested_segment_has_error_attributes_after_error
+          nested_segment, parent_segment, error = capture_nested_segment_with_error
+          refute parent_segment.noticed_error_attributes
+          refute_empty nested_segment.noticed_error_attributes
         end
 
         def test_ignores_error_attributes_when_in_high_security
           with_config(:high_security => true) do
-            segment, _ = with_segment do |segment|
-              begin
-                raise "oops!"
-              rescue Exception
-                # NOP
-              end
-            end
+            segment, error = capture_segment_with_error
             assert_empty attributes_for(segment, :agent)
           end
         end
@@ -276,6 +278,29 @@ module NewRelic
             file_descriptors.map { |fd| IO::new(fd).close }
           end
         end
+
+        private 
+
+        # Similar to capture_segment_with_error, but we're capturing 
+        # a child/nested segment within which we raise an error
+        def capture_nested_segment_with_error
+          begin
+            segment_with_error = nil
+            parent_segment = nil
+            with_segment do |segment|
+              parent_segment = segment
+              segment_with_error = Tracer.start_segment(name: "nested_test", parent: segment)
+              raise "oops!"
+            end            
+          rescue Exception => exception
+            segment_with_error.finish
+            assert segment_with_error, "expected to have a segment_with_error"
+            build_deferred_error_attributes segment_with_error
+            refute_equal parent_segment, segment_with_error
+            return segment_with_error, parent_segment, exception
+          end
+        end
+
       end
     end
   end
