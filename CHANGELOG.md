@@ -2,13 +2,20 @@
 
   ## v6.10.0
 
-  * **Bugfix: Calculate Content-Length**
+  * **Bugfix: Calculate Content-Length in bytes**
 
     Previously, the Content-Length HTTP header would be incorrect after injecting the Browser Monitoring
     JS when the response contained Unicode characters because the value was not calculated in bytes.
     The Content-Length is now correctly updated.
 
     Thanks to thaim for the contribution!
+
+  * **Bugfix: Fix Content-Length calculation when response is nil**
+
+    Previously, calculating the Content-Length HTTP header would result in a `NoMethodError` in the case of
+    a nil response. These errors will no longer occur in such a case.
+
+    Thanks to Johan Van Ryseghem for the contribution!
 
   * **Bugfix: DecoratingFormatter now logs timestamps as millisecond Integers**
 
