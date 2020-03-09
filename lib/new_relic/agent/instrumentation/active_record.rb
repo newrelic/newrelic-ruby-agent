@@ -78,7 +78,9 @@ module NewRelic
           segment._notice_sql(sql, @config, EXPLAINER)
 
           begin
-            log_without_newrelic_instrumentation(*args, &block)
+            NewRelic::Agent::Tracer.capture_segment_error segment do
+              log_without_newrelic_instrumentation(*args, &block)
+            end
           ensure
             segment.finish if segment
           end

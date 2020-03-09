@@ -42,7 +42,9 @@ DependencyDetection.defer do
         instance_variable_set :@__newrelic_hydra_segment, segment
 
         begin
-          run_without_newrelic(*args)
+          NewRelic::Agent::Tracer.capture_segment_error segment do
+            run_without_newrelic(*args)
+          end
         ensure
           segment.finish if segment
         end
@@ -92,7 +94,9 @@ module NewRelic
           segment.add_request_headers wrapped_request
 
           callback = Proc.new do
-            wrapped_response = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(request.response)
+            wrapped_response = NewRelic::Agent::Tracer.capture_segment_error segment do
+              ::NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(request.response)
+            end
 
             segment.process_response_headers wrapped_response
             segment.finish if segment

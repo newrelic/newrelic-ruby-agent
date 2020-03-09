@@ -361,6 +361,23 @@ module NewRelic
           log_error('start_external_request_segment', e)
         end
 
+        # Will potentially capture and notice an error at the
+        # segment that was executing when error occurred.
+        # if passed +segment+ is something that doesn't 
+        # respond to +notice_segment_error+ then this method
+        # is effectively no operation performed
+        def capture_segment_error(segment)
+          return unless block_given?
+          begin
+            yield
+          rescue Exception => exception
+            if segment && segment.respond_to?(:notice_segment_error)
+              segment.notice_segment_error exception
+            end
+            raise
+          end
+        end
+
         # For New Relic internal use only.
         def start_message_broker_segment(action: nil,
                                          library: nil,

@@ -460,9 +460,9 @@ module NewRelic
 
         nest_initial_segment if nesting_max_depth == 1
         nested_name = self.class.nested_transaction_name options[:transaction_name]
-        result = create_segment nested_name
+        segment = create_segment nested_name
         set_default_transaction_name(options[:transaction_name], category)
-        result
+        segment
       end
 
       def nest_initial_segment

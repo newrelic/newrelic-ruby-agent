@@ -38,7 +38,9 @@ DependencyDetection.defer do
           response = nil
           segment.add_request_headers wrapped_request
 
-          do_get_block_without_newrelic(req, proxy, conn, &block)
+          NewRelic::Agent::Tracer.capture_segment_error segment do
+            do_get_block_without_newrelic(req, proxy, conn, &block)
+          end
           response = conn.pop
           conn.push response
 

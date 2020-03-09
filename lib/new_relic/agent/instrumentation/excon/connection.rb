@@ -30,7 +30,9 @@ module ::Excon
 
         response = request_without_newrelic_trace(resolved_params, &block)
 
-        wrapped_response = ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(response)
+        wrapped_response = NewRelic::Agent::Tracer.capture_segment_error segment do
+          ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(response)
+        end
         segment.process_response_headers wrapped_response
 
         response

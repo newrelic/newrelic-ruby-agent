@@ -66,7 +66,9 @@ module NewRelic
                 ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, self)
 
                 begin
-                  send_multiget_without_newrelic_trace(keys)
+                  NewRelic::Agent::Tracer.capture_segment_error segment do                  
+                    send_multiget_without_newrelic_trace(keys)
+                  end
                 ensure
                   if ::NewRelic::Agent.config[:capture_memcache_keys]
                     segment.notice_nosql_statement "#{SEND_MULTIGET_METRIC_NAME} #{keys.inspect}"
@@ -87,7 +89,9 @@ module NewRelic
               define_method method_name do |*args, &block|
                 segment = NewRelic::Agent::Tracer.start_segment name: "Ruby/Memcached/Dalli/#{method_name}"
                 begin
-                  __send__ method_name_without, *args, &block
+                  NewRelic::Agent::Tracer.capture_segment_error segment do                  
+                    __send__ method_name_without, *args, &block
+                  end
                 ensure
                   segment.finish if segment
                 end
