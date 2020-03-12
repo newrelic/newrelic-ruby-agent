@@ -378,6 +378,17 @@ module NewRelic
           end
         end
 
+        def capture_current_segment_error txn
+          return unless block_given?
+          if segment = txn.current_segment
+            capture_segment_error segment do 
+              yield
+            end
+          else
+            yield
+          end
+        end
+
         # For New Relic internal use only.
         def start_message_broker_segment(action: nil,
                                          library: nil,
