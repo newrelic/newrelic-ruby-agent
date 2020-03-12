@@ -65,7 +65,7 @@ DependencyDetection.defer do
         }
       rescue => e
         NewRelic::Agent.logger.error("Failure during deserializing YAML for Sidekiq::Extensions::DelayedClass", e)
-        NewRelic::SidekiqInstrumentation.default_trace_args(msg)
+        NewRelic::SidekiqInstrumentation::Server.default_trace_args(msg)
       end
     end
 
