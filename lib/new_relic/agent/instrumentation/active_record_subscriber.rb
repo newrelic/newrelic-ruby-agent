@@ -59,7 +59,11 @@ module NewRelic
           return unless state.is_execution_traced?
 
           segment = pop_segment(id)
-          segment.finish if segment
+          if segment
+            segment.notice_error(payload[:exception_object]) if payload[:exception_object]
+            segment.finish
+          end
+
         rescue => e
           log_notification_error(e, name, 'finish')
         end

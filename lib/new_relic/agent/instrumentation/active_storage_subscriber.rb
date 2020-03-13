@@ -29,8 +29,10 @@ module NewRelic
         end
 
         def finish_segment id
-          segment = pop_segment id
-          segment.finish if segment
+          if segment = pop_segment(id)
+            segment.finish if segment
+            segment.notice_error(payload[:exception_object]) if payload[:exception_object]
+          end
         end
 
         def metric_name name, payload
