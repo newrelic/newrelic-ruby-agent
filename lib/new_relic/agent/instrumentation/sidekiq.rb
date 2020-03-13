@@ -45,7 +45,7 @@ DependencyDetection.defer do
         end
       end
       class Client
-        def call(worker_class, job, queue, redis_pool)
+        def call(_worker_class, job, *_)
           distributed_trace_payload = ::NewRelic::Agent::DistributedTracing.create_distributed_trace_payload
           distributed_trace_payload = distributed_trace_payload.http_safe if distributed_trace_payload
           job["newrelic"] = distributed_trace_payload
