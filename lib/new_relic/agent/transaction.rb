@@ -726,7 +726,7 @@ module NewRelic
 
         # Only the last error is kept
         if @current_segment
-          options[:span_id] = @current_segment.guid # TODO: remove?
+          options[:span_id] = @current_segment.guid
           @current_segment.notice_error error
         end
 

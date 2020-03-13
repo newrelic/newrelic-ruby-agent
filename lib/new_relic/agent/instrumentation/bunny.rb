@@ -44,7 +44,11 @@ DependencyDetection.defer do
           end
 
           begin
-            publish_without_new_relic payload, opts
+            if segment
+              NewRelic::Agent::Tracer.capture_segment_error segment do
+                publish_without_new_relic payload, opts
+              end
+            end
           ensure
             segment.finish if segment
           end
@@ -100,7 +104,11 @@ DependencyDetection.defer do
           end
 
           begin
-            purge_without_new_relic(*args)
+            if segment
+              NewRelic::Agent::Tracer.capture_segment_error segment do
+                purge_without_new_relic(*args)
+              end
+            end
           ensure
             segment.finish if segment
           end
