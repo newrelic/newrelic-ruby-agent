@@ -115,8 +115,9 @@ module MarshallingTestCases
   def test_sends_error_events
     t0 = nr_freeze_time(Time.at(Time.now.to_i))
 
+    span_id = nil
     with_around_hook do
-      Transactioner.new.break_it
+      span_id = Transactioner.new.break_it
     end
 
     transmit_data
@@ -134,6 +135,7 @@ module MarshallingTestCases
         "error.message" => "Sorry!",
         "error.expected" => false,
         "timestamp" => t0.to_f,
+        "spanId" => span_id,
         "transactionName" => "TestTransaction/break_it",
         "duration" => 0.0
       },
@@ -165,6 +167,7 @@ module MarshallingTestCases
     def break_it
       NewRelic::Agent.set_transaction_name("break_it", :category => "TestTransaction")
       NewRelic::Agent.notice_error StandardError.new("Sorry!")
+      NewRelic::Agent::Tracer.current_span_id
     end
 
     add_transaction_tracer :break_it
