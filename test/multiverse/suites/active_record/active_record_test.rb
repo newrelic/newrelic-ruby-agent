@@ -260,6 +260,38 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
+  def test_noticed_error_at_segment_and_txn_when_violating_unique_contraints
+    txn = nil
+    begin
+      in_web_transaction do |web_txn|
+        txn = web_txn
+        u = User.create(:name => 'thom yorke')
+        u2 = User.create(u.attributes)
+      end
+    rescue StandardError => e
+      # NOP -- allowing span and transaction to notice error
+    end
+
+    assert_segment_noticed_error txn, /create/i, ActiveRecord::RecordNotUnique, /duplicate entry/i
+    assert_transaction_noticed_error txn, ActiveRecord::RecordNotUnique
+  end
+
+  def test_noticed_error_at_segment_only_when_violating_unique_contraints
+    txn = nil
+    in_web_transaction do |web_txn|
+      begin
+        txn = web_txn
+        u = User.create(:name => 'thom yorke')
+        u2 = User.create(u.attributes)
+      rescue StandardError => e
+        # NOP -- allowing ONLY span to notice error
+      end
+    end
+
+    assert_segment_noticed_error txn, /create/i, ActiveRecord::RecordNotUnique, /duplicate entry/i
+    refute_transaction_noticed_error txn, ActiveRecord::RecordNotUnique
+  end
+
   def test_create_via_association_shovel
     in_web_transaction do
       u = User.create(:name => 'thom yorke')

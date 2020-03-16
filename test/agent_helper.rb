@@ -876,3 +876,39 @@ def mock_http_response headers, wrap_it=true
   return net_http_resp unless wrap_it
   NewRelic::Agent::HTTPClients::NetHTTPResponse.new(net_http_resp)
 end
+
+# +expected+ can be a string or regular expression
+def assert_match_or_equal expected, value, message=nil
+  message ||= "expected #{value.inspect} to match #{expected.inspect}"
+  if expected.is_a?(Regexp)
+    assert_match expected, value, message
+  else
+    assert_equal expected, value, message
+  end
+end
+
+# selects the last segment with a noticed_error and checks 
+# the expectations against it.
+def assert_segment_noticed_error txn, segment_name, error_class, error_message
+  error_segment = txn.segments.reverse.detect{|s| s.noticed_error}
+  assert error_segment, "expected at least one segment with a noticed_error"
+
+  assert_match_or_equal segment_name, error_segment.name, 
+    "expected noticed_error to be present on a #{segment_name.inspect} segment"
+
+  noticed_error = error_segment.noticed_error
+
+  assert_match_or_equal error_class.name, noticed_error.exception_class_name
+  assert_match_or_equal %r{duplicate entry}i, noticed_error.message
+end
+
+def assert_transaction_noticed_error txn, error_class
+  refute_empty txn.exceptions, "expected transaction to notice the error"
+  assert_equal error_class, txn.exceptions.keys.first.class
+end
+
+def refute_transaction_noticed_error txn, error_class
+  error_segment = txn.segments.reverse.detect{|s| s.noticed_error}
+  assert error_segment, "expected at least one segment with a noticed_error"
+  assert_empty txn.exceptions, "expected transaction to NOT notice any segment errors"
+end
