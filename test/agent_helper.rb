@@ -889,7 +889,7 @@ end
 
 # selects the last segment with a noticed_error and checks 
 # the expectations against it.
-def assert_segment_noticed_error txn, segment_name, error_class, error_message
+def assert_segment_noticed_error txn, segment_name, error_classes, error_message
   error_segment = txn.segments.reverse.detect{|s| s.noticed_error}
   assert error_segment, "expected at least one segment with a noticed_error"
 
@@ -898,13 +898,13 @@ def assert_segment_noticed_error txn, segment_name, error_class, error_message
 
   noticed_error = error_segment.noticed_error
 
-  assert_match_or_equal error_class.name, noticed_error.exception_class_name
+  assert_match_or_equal error_classes, noticed_error.exception_class_name
   assert_match_or_equal %r{duplicate entry}i, noticed_error.message
 end
 
-def assert_transaction_noticed_error txn, error_class
+def assert_transaction_noticed_error txn, error_classes
   refute_empty txn.exceptions, "expected transaction to notice the error"
-  assert_equal error_class, txn.exceptions.keys.first.class
+  assert_match_or_equal error_classes, txn.exceptions.keys.first.class.name
 end
 
 def refute_transaction_noticed_error txn, error_class
