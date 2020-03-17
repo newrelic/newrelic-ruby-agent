@@ -671,8 +671,8 @@ module NewRelic
     # @param [String] method the name of the finder method or other method to
     # identify the operation with.
     #
-    def with_database_metric_name(model, method = nil, product = nil, &block) #THREAD_LOCAL_ACCESS
-      if txn = Transaction.tl_current
+    def with_database_metric_name(model, method = nil, product = nil, &block)
+      if txn = Tracer.current_transaction
         txn.with_database_metric_name(model, method, product, &block)
       else
         yield

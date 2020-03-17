@@ -273,7 +273,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       in_web_transaction do |web_txn|
         txn = web_txn
         u = User.create(:name => 'thom yorke')
-    require 'pry'; binding.pry
         u2 = User.create(u.attributes)
       end
     rescue StandardError => e

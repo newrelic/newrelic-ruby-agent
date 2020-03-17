@@ -102,9 +102,9 @@ module NewRelic
             # only wrap the yield to be absolutely sure we don't report agent
             # problems as app errors
             yield
-          rescue => e
-            current_transaction.notice_error(e)
-            raise e
+          rescue => exception
+            current_transaction.notice_error(exception)
+            raise
           ensure
             finishable.finish if finishable
           end
@@ -157,8 +157,8 @@ module NewRelic
 
         rescue ArgumentError
           raise
-        rescue => e
-          log_error('start_transaction_or_segment', e)
+        rescue => exception
+          log_error('start_transaction_or_segment', exception)
         end
 
         # Takes name or partial_name and a category.
@@ -190,8 +190,8 @@ module NewRelic
                                             options)
         rescue ArgumentError
           raise
-        rescue => e
-          log_error('start_transaction', e)
+        rescue => exception
+          log_error('start_transaction', exception)
         end
 
         def create_distributed_trace_payload
@@ -251,8 +251,8 @@ module NewRelic
 
         rescue ArgumentError
           raise
-        rescue => e
-          log_error('start_segment', e)
+        rescue => exception
+          log_error('start_segment', exception)
         end
 
         UNKNOWN = "Unknown".freeze
@@ -310,8 +310,8 @@ module NewRelic
 
         rescue ArgumentError
           raise
-        rescue => e
-          log_error('start_datastore_segment', e)
+        rescue => exception
+          log_error('start_datastore_segment', exception)
         end
 
         # Creates and starts an external request segment using the
@@ -357,8 +357,8 @@ module NewRelic
 
         rescue ArgumentError
           raise
-        rescue => e
-          log_error('start_external_request_segment', e)
+        rescue => exception
+          log_error('start_external_request_segment', exception)
         end
 
         # Will potentially capture and notice an error at the
@@ -368,14 +368,12 @@ module NewRelic
         # is effectively no operation performed
         def capture_segment_error(segment)
           return unless block_given?
-          begin
-            yield
-          rescue Exception => exception
-            if segment && segment.respond_to?(:notice_segment_error)
-              segment.notice_segment_error exception
-            end
-            raise
+          yield
+        rescue => exception
+          if segment && segment.respond_to?(:notice_segment_error)
+            segment.notice_segment_error exception
           end
+          raise
         end
 
         def capture_current_segment_error txn
@@ -418,8 +416,8 @@ module NewRelic
 
         rescue ArgumentError
           raise
-        rescue => e
-          log_error('start_datastore_segment', e)
+        rescue => exception
+          log_error('start_datastore_segment', exception)
         end
 
         # This method should only be used by Tracer for access to the
