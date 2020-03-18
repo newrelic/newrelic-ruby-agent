@@ -91,8 +91,11 @@ module Multiverse
         generate_gemfile(gemfile_text, env_index)
         ensure_bundle(env_index)
       rescue => e
-        puts "#{e.class}: #{e}"
-        puts "Fast local bundle failed.  Attempting to install from rubygems.org"
+        if verbose?
+          puts "#{e.class}: #{e}"
+          puts e.backtrace
+          puts "Fast local bundle failed.  Attempting to install from rubygems.org"
+        end
         clean_gemfiles(env_index)
         generate_gemfile(gemfile_text, env_index, false)
         ensure_bundle(env_index)
@@ -100,12 +103,69 @@ module Multiverse
       print_environment if should_print
     end
 
+    def with_potentially_mismatched_bundler
+      yield
+    rescue Bundler::LockfileError => error
+      raise if @retried
+      if verbose?
+        puts "Encountered Bundler error: #{error.message}"
+        puts "Currently Active Bundler Version: #{Bundler::VERSION}"
+      end
+      change_lock_version(`pwd`, ENV["BUNDLE_GEMFILE"])
+      @retried = true
+      retry
+    end
+
     def bundling_lock_file
-      File.join(Bundler.bundle_path, 'multiverse-bundler.lock')
+      with_potentially_mismatched_bundler do
+        File.join(Bundler.bundle_path, 'multiverse-bundler.lock')
+      end
     end
 
     def bundler_cache_dir
-      File.join(Bundler.bundle_path, 'multiverse-cache')
+      with_potentially_mismatched_bundler do
+        File.join(Bundler.bundle_path, 'multiverse-cache')
+      end
+    end
+
+    def explicit_bundler_version dir
+      return if RUBY_VERSION.to_f < 2.3
+      fn = File.join(dir, ".bundler-version")
+      version = File.exist?(fn) ? File.read(fn).chomp.to_s.strip : nil
+      version.to_s == "" ? nil : "_#{version}_"
+    end
+
+    def bundle_install(dir, exact_version=nil)
+      puts "Bundling in #{dir}..."
+      bundler_version = exact_version || explicit_bundler_version(dir)
+      bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
+      full_bundle_cmd = "#{bundle_cmd} install --retry 3 --jobs 4"
+      result = ShellUtils.try_command_n_times full_bundle_cmd, 3      
+      unless $?.success?
+        puts "Failed local bundle, trying again without the version lock..."
+        change_lock_version(dir, ENV["BUNDLE_GEMFILE"])
+        result = ShellUtils.try_command_n_times full_bundle_cmd, 3      
+      end
+
+      result = red(result) unless $?.success?
+      puts result
+      $?
+    end
+
+    def change_lock_version filepath, gemfile, new_version=Bundler::VERSION
+      lock_filename = File.join filepath.chomp!, "#{gemfile}.lock"
+      return unless File.exist? lock_filename
+
+      lock_contents = File.read(lock_filename).split("\n")
+      old_version = lock_contents.pop.strip
+
+      lock_contents << "   #{new_version}"
+      File.open(lock_filename, 'w'){|f| f.puts lock_contents}
+
+      if verbose?
+        puts "Changing the Bundler version lock in #{lock_filename}"
+        puts "  Changed: #{old_version} to #{new_version}"
+      end
     end
 
     # Running the bundle should only happen one at a time per Ruby version or
@@ -117,7 +177,8 @@ module Multiverse
         puts "Waiting on '#{bundling_lock_file}' for our chance to bundle" if verbose?
         f.flock(File::LOCK_EX)
         puts "Let's get ready to BUNDLE!" if verbose?
-        bundler_out = ShellUtils.try_command_n_times 'bundle install --retry 3 --jobs 4', 3
+
+        bundler_out = bundle_install(`pwd`.chomp!)
       end
       bundler_out
     end
@@ -130,7 +191,9 @@ module Multiverse
       else
         ensure_bundle_uncached(env_index)
       end
-      Bundler.require
+      with_potentially_mismatched_bundler do
+        Bundler.require
+      end
     end
 
     def envfile_hash
@@ -232,10 +295,12 @@ module Multiverse
 
     def print_environment
       puts yellow("Environment loaded with:") if verbose?
-      gems = Bundler.definition.specs.inject([]) do |m, s|
-        next m if s.name == 'bundler'
-        m.push "#{s.name} (#{s.version})"
-        m
+      gems = with_potentially_mismatched_bundler do
+        Bundler.definition.specs.inject([]) do |m, s|
+          next m if s.name == 'bundler'
+          m.push "#{s.name} (#{s.version})"
+          m
+        end
       end.sort
       puts(gems.join(', '))
     end
@@ -348,12 +413,15 @@ module Multiverse
     end
 
     def with_unbundled_env
-      if defined?(Bundler)
-        # clear $BUNDLE_GEMFILE and $RUBYOPT so that the ruby subprocess can run
-        # in the context of another bundle.
-        Bundler.with_unbundled_env { yield }
-      else
-        yield
+      with_potentially_mismatched_bundler do
+        if defined?(Bundler)
+          # clear $BUNDLE_GEMFILE and $RUBYOPT so that the ruby subprocess can run
+          # in the context of another bundle.
+
+          Bundler.with_unbundled_env { yield }
+        else
+          yield
+        end
       end
     end
 
