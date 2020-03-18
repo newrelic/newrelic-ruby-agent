@@ -32,6 +32,7 @@ module NewRelic
       HTTP_URL_KEY         = 'http.url'
       HTTP_METHOD_KEY      = 'http.method'
       HTTP_STATUS_CODE_KEY = 'http.statusCode'
+      ERROR_STATUS_KEY     = 'error.status'
       COMPONENT_KEY        = 'component'
       DB_INSTANCE_KEY      = 'db.instance'
       DB_STATEMENT_KEY     = 'db.statement'
@@ -70,6 +71,7 @@ module NewRelic
         intrinsics[COMPONENT_KEY]   = segment.library
         intrinsics[HTTP_METHOD_KEY] = segment.procedure
         intrinsics[HTTP_STATUS_CODE_KEY] = segment.http_status_code if segment.http_status_code
+        intrinsics[ERROR_STATUS_KEY] = segment.error_status if segment.error_status
         intrinsics[CATEGORY_KEY]    = HTTP_CATEGORY
         intrinsics[SPAN_KIND_KEY]   = CLIENT
 
