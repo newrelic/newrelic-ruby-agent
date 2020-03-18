@@ -370,8 +370,8 @@ module NewRelic
           return unless block_given?
           yield
         rescue => exception
-          if segment && segment.respond_to?(:notice_segment_error)
-            segment.notice_segment_error exception
+          if segment && segment.is_a?(Transaction::AbstractSegment)
+            segment.notice_error exception
           end
           raise
         end
