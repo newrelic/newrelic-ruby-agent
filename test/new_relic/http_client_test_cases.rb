@@ -682,4 +682,33 @@ module HttpClientTestCases
     end
   end
 
+  def test_noticed_error_at_segment_and_txn_on_error
+    txn = nil
+    begin
+      in_transaction do |ext_txn|
+        txn = ext_txn
+        simulate_error_response
+      end
+    rescue StandardError => e
+      # NOP -- allowing span and transaction to notice error
+    end
+    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout/i
+    assert_transaction_noticed_error txn, timeout_error_class.name
+  end
+
+  def test_noticed_error_at_segment_only_when_violating_unique_contraints
+    txn = nil
+    in_transaction do |ext_txn|
+      begin
+        txn = ext_txn
+        simulate_error_response
+      rescue StandardError => e
+        # NOP -- allowing ONLY span to notice error
+      end
+    end
+
+    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout/i
+    refute_transaction_noticed_error txn, timeout_error_class.name
+  end
+  
 end

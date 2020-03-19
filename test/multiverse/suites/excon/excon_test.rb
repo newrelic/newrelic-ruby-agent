@@ -14,6 +14,15 @@ class ExconTest < Minitest::Test
     "Excon"
   end
 
+  def timeout_error_class
+    Excon::Errors::Timeout
+  end
+
+  def simulate_error_response
+    Excon::Socket.any_instance.stubs(:read).raises(timeout_error_class.new('read timeout reached'))
+    get_response
+  end
+
   def get_response(url=nil, headers=nil)
     Excon.get(url || default_url, :headers => (headers || {}))
   end
