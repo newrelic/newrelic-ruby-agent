@@ -140,6 +140,23 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     )
   end
 
+  def test_records_span_level_error
+    exception = StandardError.new(msg='Natural 1')
+    params = { :exception_object => exception }
+
+    txn = nil
+
+    in_transaction do |test_txn|
+      txn = test_txn
+      @subscriber.start('render_template.action_view', :id, params)
+      @subscriber.start('!render_template.action_view', :id, params)
+      @subscriber.finish('!render_template!.action_view', :id, params)
+      @subscriber.finish('render_template.action_view', :id, params)
+    end
+
+    assert_segment_noticed_error txn, /rendering/i, "StandardError", /Natural 1/i
+  end
+
   def test_records_nothing_if_tracing_disabled
     params = { :identifier => '/root/app/views/model/_user.html.erb' }
 
