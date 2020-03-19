@@ -4,7 +4,6 @@
 
 require File.expand_path('../../../../test_helper', __FILE__)
 require 'new_relic/agent/instrumentation/active_storage_subscriber'
-require 'securerandom'
 
 module NewRelic
   module Agent
@@ -13,7 +12,7 @@ module NewRelic
         def setup
           nr_freeze_time
           @subscriber = ActiveStorageSubscriber.new
-          @id = SecureRandom.hex
+          @id = fake_guid(32)
 
           NewRelic::Agent.drop_buffered_data
         end
@@ -98,7 +97,7 @@ module NewRelic
         private
 
         def generate_event(event_name, attributes = {})
-          defaults = {key: SecureRandom.hex, service: "Disk"}
+          defaults = {key: fake_guid(32), service: "Disk"}
           payload = defaults.merge(attributes)
           @subscriber.start event_name, @id, payload
           yield if block_given?

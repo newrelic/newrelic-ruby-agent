@@ -528,7 +528,7 @@ module MongoOperationTests
   end
 
   def unique_field_name
-    "field#{SecureRandom.hex(10)}"
+    "field#{fake_guid(10)}"
   end
 
   def ensure_collection_exists

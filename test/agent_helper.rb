@@ -13,24 +13,49 @@ rescue LoadError
   # NOP -- Net::HTTP::STATUS_CODES was introduced in Ruby 2.5
 end
 
+module MiniTest
+  module Assertions
+    # The failure message is backwards.  This patch reverses the message
+    # Note: passing +msg+ caused two failure messages to be shown on failure
+    # and was more confusing than patching here.
+    def assert_match matcher, obj, msg = nil
+      msg = message(msg) { "Expected #{mu_pp obj} to match #{mu_pp matcher}" }
+      assert_respond_to matcher, :"=~"
+      matcher = Regexp.new Regexp.escape matcher if String === matcher
+      assert matcher =~ obj, msg
+    end
+  end
+end
+
 class ArrayLogDevice
-  def initialize( array=[] )
+  def initialize array=[]
     @array = array
   end
   attr_reader :array
 
-  def write( message )
+  def write message
     @array << message
   end
 
   def close; end
 end
 
-def assert_between(floor, ceiling, value, message="expected #{floor} <= #{value} <= #{ceiling}")
+def fake_guid length=16
+  NewRelic::Agent::GuidGenerator.generate_guid length
+end
+
+def assert_match matcher, obj, msg = nil
+  msg = message(msg) { "Expected #{mu_pp matcher} to match #{mu_pp obj}" }
+  assert_respond_to matcher, :"=~"
+  matcher = Regexp.new Regexp.escape matcher if String === matcher
+  assert matcher =~ obj, msg
+end
+
+def assert_between floor, ceiling, value, message="expected #{floor} <= #{value} <= #{ceiling}"
   assert((floor <= value && value <= ceiling), message)
 end
 
-def assert_in_delta(expected, actual, delta)
+def assert_in_delta expected, actual, delta
   assert_between((expected - delta), (expected + delta), actual)
 end
 
@@ -42,7 +67,7 @@ def reset_error_traces!
   NewRelic::Agent.instance.error_collector.error_trace_aggregator.reset!
 end
 
-def assert_has_traced_error(error_class)
+def assert_has_traced_error error_class
   errors = harvest_error_traces!
   assert \
     errors.find {|e| e.exception_class_name == error_class.name} != nil, \
@@ -69,38 +94,38 @@ def last_error_event
   harvest_error_events!.last.last
 end
 
-unless defined?( assert_block )
-  def assert_block(*msgs)
+unless defined? assert_block
+  def assert_block *msgs
     assert yield, *msgs
   end
 end
 
-unless defined?( assert_includes )
-  def assert_includes( collection, member, msg=nil )
+unless defined? assert_includes
+  def assert_includes collection, member, msg=nil
     msg = "Expected #{collection.inspect} to include #{member.inspect}"
     assert_block( msg ) { collection.include?(member) }
   end
 end
 
-unless defined?( assert_not_includes )
-  def assert_not_includes( collection, member, msg=nil )
+unless defined? assert_not_includes
+  def assert_not_includes collection, member, msg=nil
     msg = "Expected #{collection.inspect} not to include #{member.inspect}"
     assert !collection.include?(member), msg
   end
 end
 
-unless defined?( assert_empty )
-  def assert_empty(collection, msg=nil)
+unless defined? assert_empty
+  def assert_empty collection, msg=nil
     assert collection.empty?, msg
   end
 end
 
-def assert_equal_unordered(left, right)
+def assert_equal_unordered left, right
   assert_equal(left.length, right.length, "Lengths don't match. #{left.length} != #{right.length}")
   left.each { |element| assert_includes(right, element) }
 end
 
-def assert_audit_log_contains(audit_log_contents, needle)
+def assert_audit_log_contains audit_log_contents, needle
   # Original request bodies dumped to the log have symbol keys, but once
   # they go through a dump/load, they're strings again, so we strip
   # double-quotes and colons from the log, and the strings we searching for.
@@ -118,7 +143,7 @@ end
 # orderings of the key/value pairs in Hashes that were embedded in the request
 # body). So, this method traverses an object graph and only makes assertions
 # about the terminal (non-Array-or-Hash) nodes therein.
-def assert_audit_log_contains_object(audit_log_contents, o, format = :json)
+def assert_audit_log_contains_object audit_log_contents, o, format = :json
   case o
   when Hash
     o.each do |k,v|
@@ -136,12 +161,12 @@ def assert_audit_log_contains_object(audit_log_contents, o, format = :json)
   end
 end
 
-def compare_metrics(expected, actual)
+def compare_metrics expected, actual
   actual.delete_if {|a| a.include?('GC/Transaction/') }
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
 end
 
-def metric_spec_from_specish(specish)
+def metric_spec_from_specish specish
   spec = case specish
   when String then NewRelic::MetricSpec.new(specish)
   when Array  then NewRelic::MetricSpec.new(*specish)
@@ -149,7 +174,7 @@ def metric_spec_from_specish(specish)
   spec
 end
 
-def _normalize_metric_expectations(expectations)
+def _normalize_metric_expectations expectations
   case expectations
   when Array
     hash = {}
@@ -163,7 +188,7 @@ def _normalize_metric_expectations(expectations)
   end
 end
 
-def dump_stats(stats)
+def dump_stats stats
   str =  "  Call count:           #{stats.call_count}\n"
   str << "  Total call time:      #{stats.total_call_time}\n"
   str << "  Total exclusive time: #{stats.total_exclusive_time}\n"
@@ -176,7 +201,7 @@ def dump_stats(stats)
   str
 end
 
-def assert_stats_has_values(stats, expected_spec, expected_attrs)
+def assert_stats_has_values stats, expected_spec, expected_attrs
   expected_attrs.each do |attr, expected_value|
     actual_value = stats.send(attr)
     if attr == :call_count
@@ -189,7 +214,7 @@ def assert_stats_has_values(stats, expected_spec, expected_attrs)
   end
 end
 
-def assert_metrics_recorded(expected)
+def assert_metrics_recorded expected
   expected = _normalize_metric_expectations(expected)
   expected.each do |specish, expected_attrs|
     expected_spec = metric_spec_from_specish(specish)
@@ -220,7 +245,7 @@ end
 # the :ignore_filter option. This will allow you to specify a Regex that
 # allowlists broad swathes of metric territory (e.g. 'Supportability/').
 #
-def assert_metrics_recorded_exclusive(expected, options={})
+def assert_metrics_recorded_exclusive expected, options={}
   expected = _normalize_metric_expectations(expected)
   assert_metrics_recorded(expected)
 
@@ -258,7 +283,7 @@ def clear_metrics!
   NewRelic::Agent.instance.stats_engine.reset_for_test!
 end
 
-def assert_metrics_not_recorded(not_expected)
+def assert_metrics_not_recorded not_expected
   not_expected = _normalize_metric_expectations(not_expected)
   found_but_not_expected = []
   not_expected.each do |specish, _|
@@ -272,7 +297,7 @@ end
 
 alias :refute_metrics_recorded :assert_metrics_not_recorded
 
-def assert_no_metrics_match(regex)
+def assert_no_metrics_match regex
   matching_metrics = []
   NewRelic::Agent.instance.stats_engine.to_h.keys.map(&:to_s).each do |metric|
     matching_metrics << metric if metric.match regex
@@ -287,30 +312,30 @@ end
 
 alias :refute_metrics_match :assert_no_metrics_match
 
-def format_metric_spec_list(specs)
+def format_metric_spec_list specs
   spec_strings = specs.map do |spec|
     "#{spec.name} (#{spec.scope.empty? ? '<unscoped>' : spec.scope})"
   end
   "[\n  #{spec_strings.join(",\n  ")}\n]"
 end
 
-def assert_truthy(expected, msg = nil)
+def assert_truthy expected, msg=nil
   msg ||= "Expected #{expected.inspect} to be truthy"
   assert !!expected, msg
 end
 
-def assert_falsy(expected, msg = nil)
+def assert_falsy expected, msg=nil
   msg ||= "Expected #{expected.inspect} to be falsy"
   assert !expected, msg
 end
 
-unless defined?( assert_false )
-  def assert_false(expected)
+unless defined? assert_false
+  def assert_false expected
     assert_equal false, expected
   end
 end
 
-unless defined?(refute)
+unless defined? refute
   alias refute assert_false
 end
 
@@ -332,7 +357,7 @@ end
 # With a transaction name plus category:
 #   in_transaction('foobar', :category => :controller) { ... }
 #
-def in_transaction(*args, &blk)
+def in_transaction *args, &blk
   opts     = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
   category = (opts && opts.delete(:category)) || :other
 
@@ -398,25 +423,25 @@ end
 
 
 
-def stub_transaction_guid(guid)
+def stub_transaction_guid guid
   NewRelic::Agent::Transaction.tl_current.instance_variable_set(:@guid, guid)
 end
 
 # Convenience wrapper around in_transaction that sets the category so that it
 # looks like we are in a web transaction
-def in_web_transaction(name='dummy')
+def in_web_transaction name='dummy'
   in_transaction(name, :category => :controller, :request => stub(:path => '/')) do |txn|
     yield txn
   end
 end
 
-def in_background_transaction(name='silly')
+def in_background_transaction name='silly'
   in_transaction(name, :category => :task) do |txn|
     yield txn
   end
 end
 
-def refute_contains_request_params(attributes)
+def refute_contains_request_params attributes
   attributes.keys.each do |key|
     refute_match(/^request\.parameters\./, key.to_s)
   end
@@ -435,7 +460,7 @@ def last_transaction_trace_request_params
   end
 end
 
-def find_sql_trace(metric_name)
+def find_sql_trace metric_name
   NewRelic::Agent.agent.sql_sampler.sql_traces.values.detect do |trace|
     trace.database_metric_name == metric_name
   end
@@ -445,7 +470,7 @@ def last_sql_trace
   NewRelic::Agent.agent.sql_sampler.sql_traces.values.last
 end
 
-def find_last_transaction_node(transaction_sample=nil)
+def find_last_transaction_node transaction_sample=nil
   if transaction_sample
     root_node = transaction_sample.root_node
   else
@@ -458,7 +483,7 @@ def find_last_transaction_node(transaction_sample=nil)
   return last_node
 end
 
-def find_node_with_name(transaction_sample, name)
+def find_node_with_name transaction_sample, name
   transaction_sample.root_node.each_node do |node|
     if node.metric_name == name
       return node
@@ -468,7 +493,7 @@ def find_node_with_name(transaction_sample, name)
   nil
 end
 
-def find_node_with_name_matching(transaction_sample, regex)
+def find_node_with_name_matching transaction_sample, regex
   transaction_sample.root_node.each_node do |node|
     if node.metric_name.match regex
       return node
@@ -478,7 +503,7 @@ def find_node_with_name_matching(transaction_sample, regex)
   nil
 end
 
-def find_all_nodes_with_name_matching(transaction_sample, regexes)
+def find_all_nodes_with_name_matching transaction_sample, regexes
   regexes = [regexes].flatten
   matching_nodes = []
 
@@ -493,7 +518,7 @@ def find_all_nodes_with_name_matching(transaction_sample, regexes)
   matching_nodes
 end
 
-def with_config(config_hash, at_start=true)
+def with_config config_hash, at_start=true
   config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
   NewRelic::Agent.config.add_config_for_testing(config, at_start)
   NewRelic::Agent.instance.refresh_attribute_filter
@@ -512,13 +537,13 @@ def with_server_source config_hash, at_start=true
   end
 end
 
-def with_config_low_priority(config_hash)
+def with_config_low_priority config_hash
   with_config(config_hash, false) do
     yield
   end
 end
 
-def with_transaction_renaming_rules(rule_specs)
+def with_transaction_renaming_rules rule_specs
   original_engine = NewRelic::Agent.agent.instance_variable_get(:@transaction_rules)
   begin
     new_engine = NewRelic::Agent::RulesEngine.create_transaction_rules('transaction_name_rules' => rule_specs)
@@ -544,7 +569,7 @@ unless Time.respond_to?(:__original_now)
   end
 end
 
-def nr_freeze_time(now=Time.now)
+def nr_freeze_time now=Time.now
   Time.__frozen_now = now
 end
 
@@ -552,11 +577,11 @@ def nr_unfreeze_time
   Time.__frozen_now = nil
 end
 
-def advance_time(seconds)
+def advance_time seconds
   Time.__frozen_now = Time.now + seconds
 end
 
-def with_constant_defined(constant_symbol, implementation=Module.new)
+def with_constant_defined constant_symbol, implementation=Module.new
   const_path = constant_path(constant_symbol.to_s)
 
   if const_path
@@ -576,7 +601,7 @@ def with_constant_defined(constant_symbol, implementation=Module.new)
   end
 end
 
-def constant_path(name, opts={})
+def constant_path name, opts={}
   allow_partial = opts[:allow_partial]
   path = [Object]
   parts = name.gsub(/^::/, '').split('::')
@@ -589,13 +614,13 @@ def constant_path(name, opts={})
   path
 end
 
-def get_parent(constant_name)
+def get_parent constant_name
   parent_name = constant_name.gsub(/::[^:]*$/, '')
   const_path = constant_path(parent_name)
   const_path ? const_path[-1] : nil
 end
 
-def undefine_constant(constant_symbol)
+def undefine_constant constant_symbol
   const_str = constant_symbol.to_s
   parent = get_parent(const_str)
   const_name = const_str.gsub(/.*::/, '')
@@ -619,11 +644,11 @@ ensure
   NewRelic::Agent.logger = orig_logger
 end
 
-def create_agent_command(args = {})
+def create_agent_command args={}
   NewRelic::Agent::Commands::AgentCommand.new([-1, { "name" => "command_name", "arguments" => args}])
 end
 
-def wait_for_backtrace_service_poll(opts={})
+def wait_for_backtrace_service_poll opts={}
   defaults = {
     :timeout => 10.0,
     :service => NewRelic::Agent.agent.agent_command_router.backtrace_service,
@@ -649,7 +674,7 @@ def wait_for_backtrace_service_poll(opts={})
   end
 end
 
-def with_array_logger(level=:info)
+def with_array_logger level=:info
   orig_logger = NewRelic::Agent.logger
   config = { :log_level => level }
   logdev = ArrayLogDevice.new
@@ -744,11 +769,11 @@ end
 
 # Changes ENV settings to given and runs given block and restores ENV 
 # to original values before returning.
-def with_environment(env, &block)
+def with_environment env, &block
   EnvUpdater.inject(env) { yield }
 end
 
-def with_argv(argv)
+def with_argv argv
   old_argv = ARGV.dup
   ARGV.clear
   ARGV.concat(argv)
@@ -761,7 +786,7 @@ def with_argv(argv)
   end
 end
 
-def with_ignore_error_filter(filter, &blk)
+def with_ignore_error_filter filter, &blk
   original_filter = NewRelic::Agent.ignore_error_filter
   NewRelic::Agent.ignore_error_filter(&filter)
 
@@ -770,7 +795,7 @@ ensure
   NewRelic::Agent::ErrorCollector.ignore_error_filter = original_filter
 end
 
-def json_dump_and_encode(object)
+def json_dump_and_encode object
   Base64.encode64(::JSON.dump(object))
 end
 
@@ -778,7 +803,7 @@ def get_last_analytics_event
   NewRelic::Agent.agent.transaction_event_aggregator.harvest![1].last
 end
 
-def swap_instance_method(target, method_name, new_method_implementation, &blk)
+def swap_instance_method target, method_name, new_method_implementation, &blk
   old_method_implementation = target.instance_method(method_name)
   target.send(:define_method, method_name, new_method_implementation)
   yield
@@ -793,7 +818,7 @@ def cross_agent_tests_dir
   File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', 'cross_agent_tests'))
 end
 
-def load_cross_agent_test(name)
+def load_cross_agent_test name
   test_file_path = File.join(cross_agent_tests_dir, "#{name}.json")
   data = File.read(test_file_path)
   data.gsub!('callCount', 'call_count')
@@ -802,13 +827,13 @@ def load_cross_agent_test(name)
   data
 end
 
-def each_cross_agent_test(options)
+def each_cross_agent_test options
   options = {:dir => nil, :pattern => "*"}.update(options)
   path = File.join [cross_agent_tests_dir, options[:dir], options[:pattern]].compact
   Dir.glob(path).each { |file| yield file}
 end
 
-def assert_event_attributes(event, test_name, expected_attributes, non_expected_attributes)
+def assert_event_attributes event, test_name, expected_attributes, non_expected_attributes
   incorrect_attributes = []
 
   event_attrs = event[0]
@@ -836,7 +861,7 @@ def assert_event_attributes(event, test_name, expected_attributes, non_expected_
   end
 end
 
-def attributes_for(sample, type)
+def attributes_for sample, type
   sample.attributes.instance_variable_get("@#{type}_attributes")
 end
 
@@ -878,12 +903,11 @@ def mock_http_response headers, wrap_it=true
 end
 
 # +expected+ can be a string or regular expression
-def assert_match_or_equal expected, value, message=nil
-  message ||= "expected #{value.inspect} to match #{expected.inspect}"
+def assert_match_or_equal expected, value
   if expected.is_a?(Regexp)
-    assert_match expected, value, message
+    assert_match expected, value
   else
-    assert_equal expected, value, message
+    assert_equal expected, value
   end
 end
 
@@ -891,24 +915,23 @@ end
 # the expectations against it.
 def assert_segment_noticed_error txn, segment_name, error_classes, error_message
   error_segment = txn.segments.reverse.detect{|s| s.noticed_error}
-  assert error_segment, "expected at least one segment with a noticed_error"
+  assert error_segment, "Expected at least one segment with a noticed_error"
 
-  assert_match_or_equal segment_name, error_segment.name, 
-    "expected noticed_error to be present on a #{segment_name.inspect} segment"
+  assert_match_or_equal segment_name, error_segment.name
 
   noticed_error = error_segment.noticed_error
 
   assert_match_or_equal error_classes, noticed_error.exception_class_name
-  assert_match_or_equal %r{duplicate entry}i, noticed_error.message
+  assert_match_or_equal error_message, noticed_error.message
 end
 
 def assert_transaction_noticed_error txn, error_classes
-  refute_empty txn.exceptions, "expected transaction to notice the error"
+  refute_empty txn.exceptions, "Expected transaction to notice the error"
   assert_match_or_equal error_classes, txn.exceptions.keys.first.class.name
 end
 
 def refute_transaction_noticed_error txn, error_class
   error_segment = txn.segments.reverse.detect{|s| s.noticed_error}
-  assert error_segment, "expected at least one segment with a noticed_error"
-  assert_empty txn.exceptions, "expected transaction to NOT notice any segment errors"
+  assert error_segment, "Expected at least one segment with a noticed_error"
+  assert_empty txn.exceptions, "Expected transaction to NOT notice any segment errors"
 end

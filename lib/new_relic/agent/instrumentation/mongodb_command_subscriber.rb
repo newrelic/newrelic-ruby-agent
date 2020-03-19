@@ -19,10 +19,23 @@ module NewRelic
           end
         end
 
+        ERROR_KEYS = %w{ writeErrors writeConcernError writeConcernErrors }.freeze
+
+        def error_present?(event)
+          if reply = event.reply
+            ERROR_KEYS.detect{ |key| reply[key] }
+          end
+        end
+
         def completed(event)
           begin
             return unless NewRelic::Agent::Tracer.tracing_enabled?
             segment = segments.delete(event.operation_id)
+            if segment && (error_key = error_present?(event))
+              # taking the last error as there can potentially be many
+              attributes = event.reply[error_key][-1]
+              segment.notice_error Mongo::Error.new("%s (%s)" % [attributes["errmsg"], attributes["code"]])
+            end
             segment.finish if segment
           rescue Exception => e
             log_notification_error('completed', e)

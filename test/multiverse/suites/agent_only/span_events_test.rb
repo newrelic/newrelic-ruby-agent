@@ -1,7 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
-require 'securerandom'
 
 class SpanEventsTest < Minitest::Test
   include MultiverseHelpers
@@ -52,7 +51,7 @@ class SpanEventsTest < Minitest::Test
   end
 
   def generate_event(name, options = {})
-    guid = SecureRandom.hex(16)
+    guid = fake_guid(16)
     [
       {
       'name' => name,

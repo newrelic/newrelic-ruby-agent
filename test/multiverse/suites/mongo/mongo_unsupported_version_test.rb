@@ -7,12 +7,15 @@ require 'newrelic_rpm'
 require 'new_relic/agent/datastores/mongo'
 
 if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
+  require File.join(File.dirname(__FILE__), 'helpers', 'mongo_helpers')
+
   class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < Minitest::Test
     include Mongo
+    include NewRelic::MongoHelpers
 
     def setup
       @database_name = "multiverse"
-      @collection_name = "tribbles-#{SecureRandom.hex(16)}"
+      @collection_name = "tribbles-#{fake_guid(16)}"
       @tribble = {'name' => 'soterios johnson'}
 
       setup_collection
@@ -50,7 +53,12 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
 
     module Mongo2xUnsupported
       def setup_collection
-        client = Mongo::Client.new(["#{$mongo.host}:#{$mongo.port}"], :database => @database_name, :connect => :direct)
+        Mongo::Logger.logger = mongo_logger
+        client = Mongo::Client.new(
+          ["#{$mongo.host}:#{$mongo.port}"], 
+          database: @database_name, 
+          connect: :direct
+        )
         @collection = client[@collection_name]
       end
 
