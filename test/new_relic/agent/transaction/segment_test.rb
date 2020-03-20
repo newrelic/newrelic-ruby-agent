@@ -51,11 +51,6 @@ module NewRelic
           refute_empty attributes
           assert_equal "oops!", attributes["error.message"]
           assert_equal "RuntimeError", attributes["error.class"]
-
-          # segment tagging should preserve current noticed error!
-          test_segment.notice_error err
-          assert current_noticed_error.equal?(test_segment.noticed_error), 
-            "did not expect a new instance of noticed_error"
         end
 
         def test_segment_with_no_error_does_not_produce_error_attributes

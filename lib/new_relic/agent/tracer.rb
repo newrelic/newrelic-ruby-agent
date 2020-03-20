@@ -365,8 +365,8 @@ module NewRelic
         # segment that was executing when error occurred.
         # if passed +segment+ is something that doesn't 
         # respond to +notice_segment_error+ then this method
-        # is effectively no operation performed
-        def capture_segment_error(segment)
+        # is effectively just a yield to the given &block
+        def capture_segment_error segment
           return unless block_given?
           yield
         rescue => exception
@@ -374,17 +374,6 @@ module NewRelic
             segment.notice_error exception
           end
           raise
-        end
-
-        def capture_current_segment_error txn
-          return unless block_given?
-          if segment = txn.current_segment
-            capture_segment_error segment do 
-              yield
-            end
-          else
-            yield
-          end
         end
 
         # For New Relic internal use only.

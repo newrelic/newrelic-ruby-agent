@@ -14,7 +14,6 @@ module NewRelic
       # memory and data retention
       MAX_ERROR_QUEUE_LENGTH = 20
       EXCEPTION_TAG_IVAR = :'@__nr_seen_exception'
-      EXCEPTION_SEGMENT_TAG_IVAR = :'@__nr_segment_seen_exception'
 
       attr_reader :error_trace_aggregator, :error_event_aggregator
 
@@ -132,11 +131,12 @@ module NewRelic
       end
 
       def tag_exception(exception)
-        tag_exception_using EXCEPTION_TAG_IVAR, exception
-      end
-
-      def tag_segment_exception(exception)
-        tag_exception_using EXCEPTION_SEGMENT_TAG_IVAR, exception
+        return if exception_is_java_object?(exception) || exception.frozen?
+        begin
+          exception.instance_variable_set(EXCEPTION_TAG_IVAR, true)
+        rescue => e
+          NewRelic::Agent.logger.warn("Failed to tag exception: #{exception}: ", e)
+        end
       end
 
       def blamed_metric_name(txn, options)
@@ -174,11 +174,11 @@ module NewRelic
         end
       end
 
-      def skip_notice_error?(exception, ivar=EXCEPTION_TAG_IVAR)
+      def skip_notice_error?(exception)
         [ disabled?,
           error_is_ignored?(exception),
           exception.nil?,
-          exception_tagged_with?(ivar, exception)
+          exception_tagged_with?(EXCEPTION_TAG_IVAR, exception)
         ].any?
       end
 
@@ -200,11 +200,9 @@ module NewRelic
       end
 
       def notice_segment_error(segment, exception)
-        return if skip_notice_error?(exception, EXCEPTION_SEGMENT_TAG_IVAR)
+        return if skip_notice_error?(exception)
 
-        tag_segment_exception(exception)
         segment.set_noticed_error create_noticed_error(exception, {})
-        
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing segment error '#{exception}':", e)
