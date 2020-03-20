@@ -310,6 +310,22 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_metrics_recorded('Datastore/instance/Redis/unknown/unknown')
   end
 
+  def test_noticed_error_at_segment_and_txn_on_error
+    txn = nil
+    redis = Redis.new
+    begin
+      in_transaction do |redis_txn|
+        redis.stubs(:get).raises StandardError.new(msg='Natural 1')
+        txn = redis_txn
+        redis.get "foo"
+      end
+    rescue StandardError => e
+      # NOOP -- allowing span and transaction to notice error
+    end
+    assert_segment_noticed_error txn, "dummy", "StandardError", /Natural 1/i
+    assert_transaction_noticed_error txn, "StandardError"
+  end
+
   def test_instrumentation_returns_expected_values
     assert_equal 0, @redis.del('foo')
 
