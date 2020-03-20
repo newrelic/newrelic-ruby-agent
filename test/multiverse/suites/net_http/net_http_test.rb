@@ -17,6 +17,15 @@ class NetHttpTest < Minitest::Test
     "Net::HTTP"
   end
 
+  def timeout_error_class
+    Net::ReadTimeout
+  end
+
+  def simulate_error_response
+    Net::HTTP.any_instance.stubs(:transport_request).raises(timeout_error_class.new)
+    get_response
+  end
+
   def get_response(url=nil, headers={})
     uri = default_uri
     uri = URI.parse(url) unless url.nil?
