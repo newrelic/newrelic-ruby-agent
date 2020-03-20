@@ -16,7 +16,7 @@ module NewRelic
           sampled: true,
           priority: 0.123
 
-        assert_equal "0-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-#{payload.timestamp}", payload.to_s
+        assert_equal "0-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123000-#{payload.timestamp}", payload.to_s
       end
 
       def test_to_s_with_nil_id
@@ -30,7 +30,21 @@ module NewRelic
           sampled: true,
           priority: 0.123
 
-        assert_equal "0-0-12345-6789--164d3b4b0d09cb05-1-0.123-#{payload.timestamp}", payload.to_s
+        assert_equal "0-0-12345-6789--164d3b4b0d09cb05-1-0.123000-#{payload.timestamp}", payload.to_s
+      end
+
+      def test_to_s_does_not_convert_to_scientific_notation
+        # The id field will be nil if span events are disabled or the transaction is not sampled,
+        # and to_s should be able to deal with that.
+
+        payload = TraceContextPayload.create \
+          parent_account_id: "12345",
+          parent_app_id: "6789",
+          transaction_id: "164d3b4b0d09cb05",
+          sampled: true,
+          priority: 0.000012
+
+        assert_equal "0-0-12345-6789--164d3b4b0d09cb05-1-0.000012-#{payload.timestamp}", payload.to_s
       end
 
       def test_from_s
