@@ -34,6 +34,15 @@ class SidekiqTest < Minitest::Test
     string_logger = ::Logger.new(@sidekiq_log)
     string_logger.formatter = Sidekiq.logger.formatter
     Sidekiq.logger = string_logger
+
+    @config = {
+      :'distributed_tracing.enabled' => true,
+      :account_id => "190",
+      :primary_application_id => "46954",
+      :trusted_account_key => "trust_this!"
+    }
+    NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+    NewRelic::Agent.config.add_config_for_testing(@config)
   end
 
   def teardown
@@ -42,11 +51,22 @@ class SidekiqTest < Minitest::Test
       @sidekiq_log.rewind
       puts @sidekiq_log.read
     end
+    NewRelic::Agent.config.remove_config(@config)
+    NewRelic::Agent.config.reset_to_defaults
+    NewRelic::Agent.drop_buffered_data
   end
 
   def run_jobs
     run_and_transmit do |i|
       TestWorker.perform_async('jobs_completed', i + 1)
+    end
+  end
+
+  def run_jobs_in_transaction
+    transaction = in_transaction 'test_txn' do |t|
+      run_and_transmit do |i|
+        TestWorker.perform_async('jobs_completed', i + 1)
+      end
     end
   end
 
@@ -86,6 +106,14 @@ class SidekiqTest < Minitest::Test
     completed_jobs = Set.new(TestWorker.records_for('jobs_completed').map(&:to_i))
     expected_completed_jobs = Set.new((1..JOB_COUNT).to_a)
     assert_equal(expected_completed_jobs, completed_jobs)
+  end
+
+  def test_distributed_trace_instrumentation
+    run_jobs_in_transaction
+    # require 'pry'; binding.pry
+    assert_metric_and_call_count "Supportability/DistributedTrace/AcceptPayload/Success", JOB_COUNT # method for metrics created on server side
+    assert_metric_and_call_count "Supportability/DistributedTrace/CreatePayload/Success", JOB_COUNT # method for metrics created on server side
+    # assert_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success" # method for metrics created on the client side
   end
 
   def test_agent_posts_correct_metric_data
