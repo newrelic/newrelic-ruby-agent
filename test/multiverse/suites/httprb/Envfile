@@ -8,14 +8,13 @@ gemfile <<-RB
   gem 'rack'
 RB
 
-HTTPRB_VERSIONS = %w(3.0.0
+HTTPRB_VERSIONS = %w(4.2.0
+                     3.0.0
                      2.2.2
                      2.1.0
                      2.0.3
                      1.0.4
-                     0.9.9
-                     0.8.14
-                     0.7.4)
+                     0.9.9)
 
 HTTPRB_VERSIONS.each do |httprb_version|
   gemfile <<-RB
