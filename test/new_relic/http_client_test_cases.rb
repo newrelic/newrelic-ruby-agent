@@ -692,7 +692,7 @@ module HttpClientTestCases
     rescue StandardError => e
       # NOP -- allowing span and transaction to notice error
     end
-    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout/i
+    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
     assert_transaction_noticed_error txn, timeout_error_class.name
   end
 
@@ -707,7 +707,7 @@ module HttpClientTestCases
       end
     end
 
-    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout/i
+    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
     refute_transaction_noticed_error txn, timeout_error_class.name
   end
   

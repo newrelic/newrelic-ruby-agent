@@ -190,6 +190,9 @@ class NewRelic::NoticedError
     if exception.nil?
       @exception_class_name = UNKNOWN_ERROR_CLASS_NAME
       @message = NIL_ERROR_MESSAGE
+    elsif exception.is_a? NewRelic::Agent::NoticibleError
+      @exception_class_name = exception.class_name
+      @message = exception.message
     else
       if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR < 5 && exception.respond_to?(:original_exception)
         exception = exception.original_exception || exception

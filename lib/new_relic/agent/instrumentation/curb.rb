@@ -22,10 +22,12 @@ DependencyDetection.defer do
     class Curl::Easy
 
       attr_accessor :_nr_instrumented,
+                    :_nr_failure_instrumented,
                     :_nr_http_verb,
                     :_nr_header_str,
                     :_nr_original_on_header,
                     :_nr_original_on_complete,
+                    :_nr_original_on_failure,
                     :_nr_serial
 
       # We have to hook these three methods separately, as they don't use
@@ -141,6 +143,7 @@ DependencyDetection.defer do
         unless request._nr_instrumented
           install_header_callback(request, wrapped_response)
           install_completion_callback(request, wrapped_response, segment)
+          install_failure_callback(request, wrapped_response, segment)
           request._nr_instrumented = true
         end
       rescue => err
@@ -175,7 +178,7 @@ DependencyDetection.defer do
       end
 
       # Install a callback that will finish the trace.
-      def install_completion_callback(request, wrapped_response, segment) #THREAD_LOCAL_ACCESS
+      def install_completion_callback(request, wrapped_response, segment)
         original_callback = request.on_complete
         request._nr_original_on_complete = original_callback
         request.on_complete do |finished_request|
@@ -188,6 +191,33 @@ DependencyDetection.defer do
             original_callback.call(finished_request) if original_callback
             remove_instrumentation_callbacks(request)
           end
+        end
+      end
+
+      # Install a callback that will fire on failures
+      # NOTE:  on_failure is not always called, so we're not always
+      # unhooking the callback.  No harm/no foul in production, but
+      # definitely something to beware of if debugging callback issues
+      # _nr_failure_instrumented exists to prevent infinitely chaining
+      # our on_failure callback hook.
+      def install_failure_callback(request, wrapped_response, segment)
+        return if request._nr_failure_instrumented
+        original_callback = request.on_failure
+        request._nr_original_on_failure = original_callback
+        request.on_failure do |failed_request, error|
+          begin
+            if segment
+              noticible_error = NewRelic::Agent::NoticibleError.new error[0].name, error[-1]
+              segment.notice_error noticible_error
+            end
+          ensure
+            # on_failure fires _after_ on_complete, so
+            # uninstalling hooks is two-step process.
+            original_callback.call(failed_request, error) if original_callback
+            failed_request.on_failure(&failed_request._nr_original_on_failure)
+            failed_request._nr_failure_instrumented = false
+          end
+          request._nr_failure_instrumented = true 
         end
       end
 
