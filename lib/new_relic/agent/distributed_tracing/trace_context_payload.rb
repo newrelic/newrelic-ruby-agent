@@ -117,7 +117,7 @@ module NewRelic
         result << DELIMITER << (id || NewRelic::EMPTY_STR)
         result << DELIMITER << (transaction_id || NewRelic::EMPTY_STR)
         result << DELIMITER << (sampled ? TRUE_CHAR : FALSE_CHAR)
-        result << DELIMITER << '%.6f' % priority
+        result << DELIMITER << sprintf("%.6f", priority)
         result << DELIMITER << timestamp.to_s
         result
       end
