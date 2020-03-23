@@ -74,4 +74,13 @@ class HTTPTest < Minitest::Test
     NewRelic::Agent::HTTPClients::HTTPResponse.new(httprb_resp)
   end
 
+  def timeout_error_class
+    HTTP::TimeoutError
+  end
+
+  def simulate_error_response
+    HTTP::Connection.any_instance.stubs(:send_proxy_connect_request).raises(timeout_error_class.new)
+    get_response
+  end
+
 end
