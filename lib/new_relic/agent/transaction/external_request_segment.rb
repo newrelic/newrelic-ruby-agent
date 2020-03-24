@@ -24,7 +24,7 @@ module NewRelic
         MISSING_STATUS_CODE = "MissingHTTPStatusCode"
 
         attr_reader :library, :uri, :procedure
-        attr_reader :http_status_code, :error_status
+        attr_reader :http_status_code
 
         def initialize library, uri, procedure, start_time = nil # :nodoc:
           @library = library
@@ -33,7 +33,6 @@ module NewRelic
           @host_header = nil
           @app_data = nil
           @http_status_code = nil
-          @error_status = nil
           super(nil, nil, start_time)
         end
 
@@ -193,11 +192,7 @@ module NewRelic
         # Only sets the http_status_code if response.status_code is non-empty value
         def set_http_status_code response
           if response.respond_to? :status_code
-            if response.has_status_code?
-              if (@http_status_code = response.status_code) >= 400
-                @error_status = @http_status_code
-              end
-            end
+            @http_status_code = response.status_code if response.has_status_code?
           else
             NewRelic::Agent.logger.warn "Cannot extract HTTP Status Code from response #{response.class.to_s}"
             NewRelic::Agent.record_metric "#{name}/#{MISSING_STATUS_CODE}", 1

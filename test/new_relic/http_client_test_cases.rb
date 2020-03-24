@@ -711,4 +711,49 @@ module HttpClientTestCases
     refute_transaction_noticed_error txn, timeout_error_class.name
   end
   
+  def simulate_server_error server_class, port
+    server = server_class.new(port)
+    server.run
+    get_response "http://localhost:#{port}"
+  ensure
+    server.stop
+  end
+
+  def test_noticed_forbidden_error
+    txn = nil
+    response = nil
+    in_transaction do |ext_txn|
+      begin
+        txn = ext_txn
+        response = simulate_server_error NewRelic::FakeForbiddenServer, 4403
+      rescue StandardError => e
+        require 'pry'; binding.pry
+        # NOP
+      end
+    end
+
+    segment = txn.segments.detect{|s| s.name =~ /GET$/}
+    assert segment, "Expected a .../GET Segment for #{client_name} HTTP Client instrumentation."
+
+    assert_equal 403, segment.http_status_code
+  end
+
+  def test_noticed_internal_server_error
+    txn = nil
+    response = nil
+    in_transaction do |ext_txn|
+      begin
+        txn = ext_txn
+        response = simulate_server_error NewRelic::FakeInternalErrorServer, 5500
+      rescue StandardError => e
+        # NOP
+      end
+    end
+
+    segment = txn.segments.detect{|s| s.name =~ /GET$/}
+    assert segment, "Expected a .../GET Segment for #{client_name} HTTP Client instrumentation."
+
+    assert_equal 500, segment.http_status_code
+  end
+
 end
