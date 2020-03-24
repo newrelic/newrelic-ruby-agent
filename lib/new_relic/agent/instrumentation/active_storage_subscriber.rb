@@ -16,7 +16,7 @@ module NewRelic
 
         def finish name, id, payload
           return unless state.is_execution_traced?
-          finish_segment id
+          finish_segment id, payload
         rescue => e
           log_notification_error e, name, 'finish'
         end
@@ -28,7 +28,7 @@ module NewRelic
           push_segment id, segment
         end
 
-        def finish_segment id
+        def finish_segment id, payload
           if segment = pop_segment(id)
             segment.finish if segment
             segment.notice_error(payload[:exception_object]) if payload[:exception_object]
