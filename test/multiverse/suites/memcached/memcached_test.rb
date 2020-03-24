@@ -15,7 +15,6 @@ if defined?(Memcached)
     def simulate_error
       Memcached.any_instance.stubs("check_return_code").raises(simulated_error_class, "No server available")
       key = set_key_for_testcase
-      require 'pry'; binding.pry
       @cache.get(key)
     end
 
