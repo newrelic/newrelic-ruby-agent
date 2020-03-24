@@ -5,6 +5,7 @@
 require "./memcache_test_cases"
 
 if defined?(Dalli)
+
   class DalliTest < Minitest::Test
     include MemcacheTestCases
 
@@ -12,6 +13,16 @@ if defined?(Dalli)
 
     def setup
       @cache = Dalli::Client.new("127.0.0.1:11211", :socket_timeout => 2.0)
+    end
+
+    def simulate_error
+      Dalli::Client.any_instance.stubs("perform").raises(simulated_error_class, "No server available")
+      key = set_key_for_testcase
+      @cache.get(key)
+    end
+
+    def simulated_error_class
+      Dalli::RingError
     end
 
     if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_datastore_instances?

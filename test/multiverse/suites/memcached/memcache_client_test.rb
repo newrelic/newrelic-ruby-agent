@@ -21,5 +21,17 @@ if defined?(MemCache)
     if MemCache::VERSION <= "1.7.0"
       undef_method :test_cas_in_web, :test_cas_in_background
     end
+
+    def simulate_error
+      MemCache.any_instance.stubs("with_server").raises(simulated_error_class, "No server available")
+      MemCache.any_instance.stubs("request_setup").raises(simulated_error_class, "No server available")
+      key = set_key_for_testcase
+      @cache.get(key)
+    end
+
+    def simulated_error_class
+      MemCache::MemCacheError
+    end
+
   end
 end
