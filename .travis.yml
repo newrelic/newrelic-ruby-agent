@@ -4,6 +4,10 @@ services:
   - memcached
   - rabbitmq
 
+notifications:
+  slack:
+    secure: Ziq6vzXmc1S+SZnJF7DyjprRgzZKvVK5TXtnNJAoH4EFchziCqko+75hMxDZ/6Y2kShcijgbzZSkIIVSiuYyx0Jgxdsmwed7yrs91uv2WsUw2/l+taOTBIAMa/m9PZppsRqmkywxWeeTPL6cf65Vg3PYRuqzj83nczUFJo4UNrA=
+
 language: ruby
 
 dist: precise
