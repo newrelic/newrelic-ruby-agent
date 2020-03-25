@@ -82,13 +82,13 @@ module NewRelic::Agent
         end
 
         trace_parent = trace_context_header_data.trace_parent
-  
+
         assert_equal '00', trace_parent['version']
         assert_equal 'a8e67265afe2773a3c611b94306ee5c2', trace_parent['trace_id']
         assert_equal 'fb1010463ea28a38', trace_parent['parent_id']
         assert_equal '01', trace_parent['trace_flags']
-  
-        assert_equal '0-0-190-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035', trace_context_header_data.trace_state_payload.to_s
+
+        assert_equal '0-0-190-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234560-1518469636035', trace_context_header_data.trace_state_payload.to_s
       end
     end
   end
