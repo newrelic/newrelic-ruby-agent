@@ -94,19 +94,19 @@ module NewRelic
           end
         end
 
-      def test_records_span_level_error
-        exception = StandardError.new(msg='Natural 1')
-        params = { :exception_object => exception }
+        def test_records_span_level_error
+          exception = StandardError.new(msg='Natural 1')
+          params = { :exception_object => exception }
 
-        txn = nil
+          txn = nil
 
-        in_transaction do |test_txn|
-          txn = test_txn
-          generate_event 'service_upload.active_storage', params
+          in_transaction do |test_txn|
+            txn = test_txn
+            generate_event 'service_upload.active_storage', params
+          end
+
+          assert_segment_noticed_error txn, /upload/i, "StandardError", /Natural 1/i
         end
-
-        assert_segment_noticed_error txn, /upload/i, "StandardError", /Natural 1/i
-      end
 
         private
 

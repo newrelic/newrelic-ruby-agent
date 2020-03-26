@@ -710,7 +710,7 @@ module HttpClientTestCases
     assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
     refute_transaction_noticed_error txn, timeout_error_class.name
   end
-  
+
   def simulate_server_error server_class, port
     server = server_class.new(port)
     server.run
@@ -727,7 +727,6 @@ module HttpClientTestCases
         txn = ext_txn
         response = simulate_server_error NewRelic::FakeForbiddenServer, 4403
       rescue StandardError => e
-        require 'pry'; binding.pry
         # NOP
       end
     end
