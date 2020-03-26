@@ -302,6 +302,22 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     sample = last_transaction_trace
     assert_equal('666', attributes_for(sample, :custom)['number'])
   end
+
+  def test_records_span_level_error
+  exception = StandardError.new(msg='Natural 1')
+  params = @exit_payload.merge({ :exception_object => exception })
+
+  txn = nil
+
+  in_transaction do |test_txn|
+    txn = test_txn
+      @entry_payload[:params]['password'] = 'secret'
+      @subscriber.start('process_action.action_controller', :id, @entry_payload)
+      @subscriber.finish('process_action.action_controller', :id, params)
+  end
+
+  assert_segment_noticed_error txn, /controller/i, "StandardError", /Natural 1/i
+end
 end if ::Rails::VERSION::MAJOR.to_i >= 4
 
 else
