@@ -75,7 +75,7 @@ module NewRelic
           # we don't expect this to be called more than once, but we're being
           # defensive.
           return if defined?(exception_object)
-
+          return unless defined?(::Rails)
           if ::Rails::VERSION::STRING < "5.0.0"
             # Earlier versions of Rails did not add the exception itself to the
             # payload asssessible via :exception_object, so we create a stand-in
@@ -85,7 +85,7 @@ module NewRelic
             def exception_object(payload)
               exception_class, message = payload[:exception]
               return nil unless exception_class
-              Object.const_get(exception_class).new message
+              NewRelic::Agent::NoticibleError.new exception_class, message
             end
           else
             def exception_object(payload)
