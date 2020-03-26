@@ -316,7 +316,7 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
 
   def simulate_read_error
     redis = Redis.new
-    redis._client.stubs("establish_connection").raises(simulated_error_class, "Error connecting to Redis")
+    redis.send(client).stubs("establish_connection").raises(simulated_error_class, "Error connecting to Redis")
     redis.get "foo"
   ensure
 
