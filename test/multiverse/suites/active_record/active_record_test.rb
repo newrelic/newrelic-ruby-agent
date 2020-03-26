@@ -283,7 +283,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     assert_transaction_noticed_error txn, expected_error_class
   end
 
-  def test_noticed_error_at_segment_only_when_violating_unique_contraints
+  def test_noticed_error_only_at_segment_when_violating_unique_contraints
     expected_error_class = mysql_not_unique_error_class
     txn = nil
     in_web_transaction do |web_txn|

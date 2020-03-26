@@ -42,9 +42,7 @@ DependencyDetection.defer do
         instance_variable_set :@__newrelic_hydra_segment, segment
 
         begin
-          NewRelic::Agent::Tracer.capture_segment_error segment do
-            run_without_newrelic(*args)
-          end
+          run_without_newrelic(*args)
         ensure
           segment.finish if segment
         end

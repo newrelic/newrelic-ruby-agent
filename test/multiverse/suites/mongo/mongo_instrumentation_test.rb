@@ -50,7 +50,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
       assert_transaction_noticed_error txn, expected_error_class
     end
 
-    def test_noticed_error_at_segment_only_when_violating_unique_contraints
+    def test_noticed_error_only_at_segment_when_violating_unique_contraints
       expected_error_class = "Mongo::OperationFailure"
       txn = nil
       in_transaction do |db_txn|

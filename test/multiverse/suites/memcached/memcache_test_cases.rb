@@ -65,7 +65,7 @@ module MemcacheTestCases
     assert_transaction_noticed_error txn, simulated_error_class.name
   end
 
-  def test_noticed_error_at_segment_only_when_violating_unique_contraints
+  def test_noticed_error_only_at_segment_on_error
     txn = nil
     in_web_transaction("Controller/#{self.class}/action") do |web_txn|
       begin

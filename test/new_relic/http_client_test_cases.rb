@@ -696,7 +696,7 @@ module HttpClientTestCases
     assert_transaction_noticed_error txn, timeout_error_class.name
   end
 
-  def test_noticed_error_at_segment_only_when_violating_unique_contraints
+  def test_noticed_error_only_at_segment_on_error
     txn = nil
     in_transaction do |ext_txn|
       begin

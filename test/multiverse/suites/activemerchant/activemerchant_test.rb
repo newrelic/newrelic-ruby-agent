@@ -59,7 +59,7 @@ class ActiveMerchantTest < Minitest::Test
     assert_merchant_transaction(:unstore, "1")
   end
 
-  def test_noticed_error_at_segment_and_txn_when_violating_unique_contraints
+  def test_noticed_error_at_segment_and_txn_on_error
     expected_error_class = "StandardError"
     txn = nil
     gateway = BadGateway.new
@@ -75,7 +75,7 @@ class ActiveMerchantTest < Minitest::Test
     assert_transaction_noticed_error txn, expected_error_class
   end
 
-  def test_noticed_error_at_segment_only_when_violating_unique_contraints
+  def test_noticed_error_only_at_segment_on_error
     expected_error_class = "StandardError"
     txn = nil
     gateway = BadGateway.new

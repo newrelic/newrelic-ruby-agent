@@ -273,7 +273,7 @@ class BunnyTest < Minitest::Test
     assert_transaction_noticed_error txn, "Timeout::Error"
   end
 
-  def test_noticed_error_at_segment_only_on_error
+  def test_noticed_error_only_at_segment_on_error
     txn = nil
     with_queue false do |queue|
       Bunny::Channel.any_instance.stubs("basic_get").raises(Timeout::Error)
