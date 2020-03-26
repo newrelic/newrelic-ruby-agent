@@ -421,8 +421,6 @@ def capture_segment_with_error
   end
 end
 
-
-
 def stub_transaction_guid guid
   NewRelic::Agent::Transaction.tl_current.instance_variable_set(:@guid, guid)
 end

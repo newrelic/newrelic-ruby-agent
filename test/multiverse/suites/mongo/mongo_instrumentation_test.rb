@@ -46,7 +46,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
         # NOP -- allowing span and transaction to notice error
       end
 
-      assert_segment_noticed_error txn, /insert/i, expected_error_class, /'insert' failed/i
+      assert_segment_noticed_error txn, /insert/i, expected_error_class, /duplicate key error|'insert' failed/i
       assert_transaction_noticed_error txn, expected_error_class
     end
 
@@ -63,7 +63,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
         end
       end
 
-      assert_segment_noticed_error txn, /insert/i, expected_error_class, /'insert' failed/i
+      assert_segment_noticed_error txn, /insert/i, expected_error_class, /duplicate key error|'insert' failed/i
       refute_transaction_noticed_error txn, expected_error_class
     end
 

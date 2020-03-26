@@ -263,7 +263,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   # Can be Mysql2::Error or ActiveRecord::RecordNotUnique
   # depending on gem versions in play
   def mysql_not_unique_error_class
-    /Mysql2\:\:Error|ActiveRecord\:\:RecordNotUnique/
+    /Mysql2\:\:Error|ActiveRecord\:\:RecordNotUnique|ActiveRecord\:\:JDBCError/
   end
 
   def test_noticed_error_at_segment_and_txn_when_violating_unique_contraints
