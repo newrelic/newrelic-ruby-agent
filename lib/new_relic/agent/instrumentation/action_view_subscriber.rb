@@ -25,7 +25,10 @@ module NewRelic
 
         def finish(name, id, payload) #THREAD_LOCAL_ACCESS
           if segment = pop_segment(id)
-            segment.notice_error(payload[:exception_object]) if payload[:exception_object]
+
+          if exception = exception_object(payload)
+            segment.notice_error exception
+          end
             segment.finish
           end
         rescue => e
