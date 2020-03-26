@@ -140,6 +140,7 @@ DependencyDetection.defer do
 
         segment.add_request_headers wrapped_request
 
+        # install all callbacks
         unless request._nr_instrumented
           install_header_callback(request, wrapped_response)
           install_completion_callback(request, wrapped_response, segment)
@@ -159,7 +160,6 @@ DependencyDetection.defer do
         return NewRelic::Agent::HTTPClients::CurbRequest.new(request),
                NewRelic::Agent::HTTPClients::CurbResponse.new(request)
       end
-
 
       # Install a callback that will record the response headers
       # to enable CAT linking
@@ -211,20 +211,28 @@ DependencyDetection.defer do
               segment.notice_error noticible_error
             end
           ensure
-            # on_failure fires _after_ on_complete, so
-            # uninstalling hooks is two-step process.
             original_callback.call(failed_request, error) if original_callback
-            failed_request.on_failure(&failed_request._nr_original_on_failure)
-            failed_request._nr_failure_instrumented = false
+            remove_failure_callback(failed_request)
           end
           request._nr_failure_instrumented = true 
         end
       end
 
+      # on_failure callbacks cannot be removed in the on_complete
+      # callback where this method is invoked because on_complete
+      # fires before the on_failure!
       def remove_instrumentation_callbacks(request)
         request.on_complete(&request._nr_original_on_complete)
         request.on_header(&request._nr_original_on_header)
         request._nr_instrumented = false
+      end
+
+      # We execute customer's on_failure callback (if any) and 
+      # uninstall our hook here since the on_complete callback 
+      # fires before the on_failure callback.
+      def remove_failure_callback(request)
+        request.on_failure(&request._nr_original_on_failure)
+        request._nr_failure_instrumented = false
       end
 
       private
