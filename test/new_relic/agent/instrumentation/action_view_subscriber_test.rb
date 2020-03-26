@@ -141,8 +141,11 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
   end
 
   def test_records_span_level_error
-    exception = StandardError.new(msg='Natural 1')
-    params = { :exception_object => exception }
+    exception_class = StandardError
+    exception_msg = "Natural 1"
+    exception = exception_class.new(msg=exception_msg)
+    # :exception_object was added in Rails 5 and above
+    params = { :exception_object => exception, :exception => [exception_class, exception_msg] }
 
     txn = nil
 
