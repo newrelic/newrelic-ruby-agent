@@ -8,15 +8,31 @@ gemfile <<-RB
   gem 'rack'
 RB
 
-HTTPRB_VERSIONS = %w(4.2.0
-                     3.0.0
-                     2.2.2
-                     2.1.0
-                     2.0.3
-                     1.0.4
-                     0.9.9)
+# NOTE, some versions of HTTP gem implements body with
+# String.new("").force_encoding(@encoding) which won't work 
+# with Ruby 2.7 and it's automatic freezing of string literals.
+# Those versions are capped at Ruby 2.6
+
+# Either just the gem version or Array of gem version and last supported Ruby version
+HTTPRB_VERSIONS = [
+  '4.4.0',
+  '4.3.0',
+  ['4.2.0', 2.6],
+  '3.0.0',
+  '2.2.2',
+  '2.1.0',
+  '2.0.3',
+  '1.0.4',
+  '0.9.9'
+]
 
 HTTPRB_VERSIONS.each do |httprb_version|
+  if httprb_version.is_a?(Array)
+    last_supported_ruby_version = httprb_version[1]
+    next if RUBY_VERSION.to_f > last_supported_ruby_version
+    httprb_version = httprb_version[0]
+  end
+
   gemfile <<-RB
     gem 'http', '~> #{httprb_version}'
     gem 'public_suffix', '< 3.0.0' if RUBY_VERSION < "2.1.0"
