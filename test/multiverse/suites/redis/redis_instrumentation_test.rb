@@ -310,20 +310,46 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     assert_metrics_recorded('Datastore/instance/Redis/unknown/unknown')
   end
 
+  def simulated_error_class
+    Redis::CannotConnectError
+  end
+
+  def simulate_read_error
+    redis = Redis.new
+    redis._client.stubs("establish_connection").raises(simulated_error_class, "Error connecting to Redis")
+    redis.get "foo"
+  ensure
+
+  end
+
   def test_noticed_error_at_segment_and_txn_on_error
     txn = nil
-    redis = Redis.new
     begin
       in_transaction do |redis_txn|
-        redis.stubs(:get).raises StandardError.new(msg='Natural 1')
         txn = redis_txn
-        redis.get "foo"
+        simulate_read_error
       end
     rescue StandardError => e
       # NOOP -- allowing span and transaction to notice error
     end
-    assert_segment_noticed_error txn, "dummy", "StandardError", /Natural 1/i
-    assert_transaction_noticed_error txn, "StandardError"
+
+    assert_segment_noticed_error txn, /Redis\/connect$/, simulated_error_class.name, /error connecting/i
+    assert_transaction_noticed_error txn, simulated_error_class.name
+  end
+
+  def test_noticed_error_only_at_segment_on_error
+    txn = nil
+    in_transaction do |redis_txn|
+      begin
+        txn = redis_txn
+        simulate_read_error
+      rescue StandardError => e
+        # NOP -- allowing ONLY span to notice error
+      end
+    end
+
+    assert_segment_noticed_error txn, /Redis\/connect$/, simulated_error_class.name, /error connecting/i
+    refute_transaction_noticed_error txn, simulated_error_class.name
   end
 
   def test_instrumentation_returns_expected_values
