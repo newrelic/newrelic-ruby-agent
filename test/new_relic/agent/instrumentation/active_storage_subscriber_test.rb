@@ -108,7 +108,6 @@ module NewRelic
         assert_segment_noticed_error txn, /upload/i, "StandardError", /Natural 1/i
       end
 
-
         private
 
         def generate_event(event_name, attributes = {})

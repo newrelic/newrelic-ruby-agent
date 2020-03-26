@@ -392,6 +392,22 @@ class DataMapperTest < Minitest::Test
     refute last_traced_error.message.include?(invalid_query)
   end
 
+  def test_error_noticing_on_segments
+    invalid_query = "select * from users where password='Slurms McKenzie' limit 1"
+    txn = nil
+
+    begin
+      in_transaction do |test_txn|
+        txn = test_txn
+        DataMapper.repository.adapter.select(invalid_query)
+      end
+    rescue => e
+      # No-op for error noticing
+    end
+
+    assert_segment_noticed_error txn, /DataMapper\/select/i, "DataObjects::SyntaxError", /no such table: users/i
+  end
+
   def test_splice_user_password_from_sqlerror
     begin
       in_transaction do

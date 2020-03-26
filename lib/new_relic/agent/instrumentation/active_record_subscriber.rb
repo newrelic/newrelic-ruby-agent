@@ -15,7 +15,6 @@ module NewRelic
 
         def initialize
           define_cachedp_method
-          define_exception_method
           # We cache this in an instance variable to avoid re-calling method
           # on each query.
           @explainer = method(:get_explain_plan)
@@ -40,29 +39,6 @@ module NewRelic
           else
             def cached?(payload)
               payload[:name] == CACHED_QUERY_NAME
-            end
-          end
-        end
-
-        def define_exception_method
-          # we don't expect this to be called more than once, but we're being
-          # defensive.
-          return if defined?(exception_object)
-
-          if defined?(::ActiveRecord) && ::ActiveRecord::VERSION::STRING < "5.0.0"
-            # Earlier versions of Rails did not add the exception itself to the 
-            # payload asssessible via :exception_object, so we create a stand-in
-            # error object from the given class name and message.
-            # NOTE: no backtrace available this way, but we can notice the error
-            # well enough to send the necessary info the UI requires to present it.
-            def exception_object(payload)
-              exception_class, message = payload[:exception]
-              return nil unless exception_class
-              Object.const_get(exception_class).new message
-            end
-          else
-            def exception_object(payload)
-              payload[:exception_object]
             end
           end
         end
