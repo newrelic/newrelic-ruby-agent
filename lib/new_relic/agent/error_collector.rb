@@ -175,11 +175,10 @@ module NewRelic
       end
 
       def skip_notice_error?(exception)
-        [ disabled?,
-          error_is_ignored?(exception),
-          exception.nil?,
-          exception_tagged_with?(EXCEPTION_TAG_IVAR, exception)
-        ].any?
+        disabled? ||
+        error_is_ignored?(exception) ||
+        exception.nil? ||
+        exception_tagged_with?(EXCEPTION_TAG_IVAR, exception)
       end
 
       # calls a method on an object, if it responds to it - used for
