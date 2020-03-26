@@ -35,7 +35,10 @@ module NewRelic
           if state.is_execution_traced? \
               && !should_ignore(payload, controller_class(payload))
 
-            finishable.notice_error(payload[:exception_object]) if payload[:exception_object]
+            if exception = exception_object(payload)
+              finishable.notice_error(exception)
+            end
+
             finishable.finish
           else
             Agent.instance.pop_trace_execution_flag

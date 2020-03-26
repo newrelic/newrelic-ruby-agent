@@ -8,6 +8,7 @@ module NewRelic
       class NotificationsSubscriber
         def initialize
           @queue_key = ['NewRelic', self.class.name, object_id].join('-')
+          define_exception_method
         end
 
         def self.subscribed?
@@ -22,7 +23,7 @@ module NewRelic
 
           notifier = ActiveSupport::Notifications.notifier
 
-          instance_variable_names.each do |name| 
+          instance_variable_names.each do |name|
             if notifier.instance_variable_defined?(name)
               subscribers = notifier.instance_variable_get(name)
               if subscribers.is_a? Array
@@ -68,6 +69,29 @@ module NewRelic
 
         def state
           NewRelic::Agent::Tracer.state
+        end
+
+        def define_exception_method
+          # we don't expect this to be called more than once, but we're being
+          # defensive.
+          return if defined?(exception_object)
+
+          if ::Rails::VERSION::STRING < "5.0.0"
+            # Earlier versions of Rails did not add the exception itself to the
+            # payload asssessible via :exception_object, so we create a stand-in
+            # error object from the given class name and message.
+            # NOTE: no backtrace available this way, but we can notice the error
+            # well enough to send the necessary info the UI requires to present it.
+            def exception_object(payload)
+              exception_class, message = payload[:exception]
+              return nil unless exception_class
+              Object.const_get(exception_class).new message
+            end
+          else
+            def exception_object(payload)
+              payload[:exception_object]
+            end
+          end
         end
       end
 
