@@ -75,8 +75,11 @@ module NewRelic
         def self.response_message(response)
           if response.respond_to?(:response_message)
             response.response_message
-          else
+          elsif response.respond_to?(:return_message)
             response.return_message
+          else
+            # 0.5.4 seems to have lost xxxx_message methods altogether.
+            "timeout" 
           end
         end
 

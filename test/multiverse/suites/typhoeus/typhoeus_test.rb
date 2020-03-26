@@ -87,6 +87,7 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
           simulate_error_response
         end
       rescue StandardError => e
+        require 'pry'; binding.pry
         # NOP -- allowing span and transaction to notice error
       end
       assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
