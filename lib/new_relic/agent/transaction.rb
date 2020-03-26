@@ -726,8 +726,8 @@ module NewRelic
 
         # Only the last error is kept
         if @current_segment
+          @current_segment.notice_error error, expected: options[:expected]
           options[:span_id] = @current_segment.guid
-          @current_segment.notice_error error
         end
 
         if @exceptions[error]

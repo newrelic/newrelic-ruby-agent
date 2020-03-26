@@ -199,10 +199,10 @@ module NewRelic
         sense_method(actual_exception, :backtrace) || '<no stack trace>'
       end
 
-      def notice_segment_error(segment, exception)
+      def notice_segment_error(segment, exception, options={})
         return if skip_notice_error?(exception)
 
-        segment.set_noticed_error create_noticed_error(exception, {})
+        segment.set_noticed_error create_noticed_error(exception, options)
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing segment error '#{exception}':", e)

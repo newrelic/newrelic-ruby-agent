@@ -31,6 +31,7 @@ class NewRelic::NoticedError
   ERROR_PREFIX_KEY   = 'error'
   ERROR_MESSAGE_KEY  = "#{ERROR_PREFIX_KEY}.message"
   ERROR_CLASS_KEY    = "#{ERROR_PREFIX_KEY}.class"
+  ERROR_EXPECTED_KEY = "#{ERROR_PREFIX_KEY}.expected"
 
   def initialize(path, exception, timestamp = Time.now)
     @exception_id = exception.object_id
@@ -142,6 +143,8 @@ class NewRelic::NoticedError
       ERROR_MESSAGE_KEY => string(message),
       ERROR_CLASS_KEY => string(exception_class_name)
     })
+    
+    @attributes_from_notice_error[ERROR_EXPECTED_KEY] = true if expected
   end
 
   def build_agent_attributes(merged_attributes)

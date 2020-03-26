@@ -477,12 +477,63 @@ module NewRelic::Agent
           assert_equal NewRelic::EMPTY_HASH, segment.noticed_error.attributes_from_notice_error
 
           # now, let's build and see the error attributes
+          segment.noticed_error.build_error_attributes
+          recorded_error_attributes = SpanEventPrimitive.error_attributes segment
+
           expected_error_attributes = {
             "error.message" => "Oops!", 
             "error.class"   => "StandardError"
           }
-          segment.noticed_error.build_error_attributes
           assert_equal expected_error_attributes, segment.noticed_error.attributes_from_notice_error
+          assert_equal expected_error_attributes, recorded_error_attributes
+        end
+
+        assert_nothing_harvested_for_segment_errors
+      end
+
+      def test_segment_error_attributes_for_expected_error
+        with_segment do |segment|
+          @error_collector.notice_segment_error(segment, StandardError.new("Oops!"), {expected: true})
+          assert segment.noticed_error, "expected segment.noticed_error to not be nil"
+
+          # we defer building the error attributes until segments are turned into spans!
+          assert_equal NewRelic::EMPTY_HASH, segment.noticed_error.attributes_from_notice_error
+
+          # now, let's build and see the error attributes
+          segment.noticed_error.build_error_attributes
+          recorded_error_attributes = SpanEventPrimitive.error_attributes segment
+
+          expected_error_attributes = {
+            "error.message"   => "Oops!", 
+            "error.class"     => "StandardError",
+            "error.expected"  => true
+          }
+          assert_equal expected_error_attributes, segment.noticed_error.attributes_from_notice_error
+          assert_equal expected_error_attributes, recorded_error_attributes
+        end
+
+        assert_nothing_harvested_for_segment_errors
+      end
+
+      def test_segment_error_attributes_for_tx_notice_error_api_call
+        with_segment do |segment|
+          NewRelic::Agent::Transaction.notice_error StandardError.new("Oops!"), {expected: true}
+          assert segment.noticed_error, "expected segment.noticed_error to not be nil"
+
+          # we defer building the error attributes until segments are turned into spans!
+          assert_equal NewRelic::EMPTY_HASH, segment.noticed_error.attributes_from_notice_error
+
+          # now, let's build and see the error attributes
+          segment.noticed_error.build_error_attributes
+          recorded_error_attributes = SpanEventPrimitive.error_attributes segment
+
+          expected_error_attributes = {
+            "error.message"   => "Oops!", 
+            "error.class"     => "StandardError",
+            "error.expected"  => true
+          }
+          assert_equal expected_error_attributes, segment.noticed_error.attributes_from_notice_error
+          assert_equal expected_error_attributes, recorded_error_attributes
         end
 
         assert_nothing_harvested_for_segment_errors

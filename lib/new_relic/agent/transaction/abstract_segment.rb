@@ -130,13 +130,13 @@ module NewRelic
           @noticed_error = noticed_error
         end
 
-        def notice_error exception
+        def notice_error exception, options={}
           if Agent.config[:high_security]
             NewRelic::Agent.logger.debug \
               "Segment: #{name} ignores notice_error for " \
               "error: #{exception.inspect} because :high_security is enabled"
           else
-            NewRelic::Agent.instance.error_collector.notice_segment_error self, exception
+            NewRelic::Agent.instance.error_collector.notice_segment_error self, exception, options
           end
         end
 
