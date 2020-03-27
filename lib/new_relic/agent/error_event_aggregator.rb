@@ -19,14 +19,14 @@ module NewRelic
                    :'error_collector.capture_events'
       buffer_class PrioritySampledBuffer
 
-      def record noticed_error, transaction_payload = nil
+      def record noticed_error, transaction_payload = nil, span_id = nil
         return unless enabled?
 
         priority = float!((transaction_payload && transaction_payload[:priority]) || rand)
 
         @lock.synchronize do
           @buffer.append(priority: priority) do
-            create_event(noticed_error, transaction_payload)
+            create_event(noticed_error, transaction_payload, span_id)
           end
           notify_if_full
         end
@@ -34,8 +34,8 @@ module NewRelic
 
       private
 
-      def create_event noticed_error, transaction_payload
-        TransactionErrorPrimitive.create noticed_error, transaction_payload
+      def create_event noticed_error, transaction_payload, span_id
+        TransactionErrorPrimitive.create noticed_error, transaction_payload, span_id
       end
     end
   end

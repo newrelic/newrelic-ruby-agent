@@ -468,7 +468,7 @@ module NewRelic::Agent
         in_transaction do |txn|
           referring_txn_info = ["another"]
           cross_app_payload = CrossAppPayload.new('1#666', txn, referring_txn_info)
-          txn.distributed_tracer.cross_app_payload = cross_app_payload        
+          txn.distributed_tracer.cross_app_payload = cross_app_payload
         end
       end
 
@@ -752,6 +752,24 @@ module NewRelic::Agent
 
       errors = harvest_error_traces!
       assert errors.first.expected, "Error should have had expected attribute set"
+    end
+
+    def test_notice_error_does_not_set_span_id_attribute_on_error_event_outside_transaction
+      Transaction.notice_error(RuntimeError.new, expected: true)
+
+      error_event = last_error_event
+      refute error_event[0].has_key?("spanId"), "Did not expect spanId intrinsic attribute"
+    end
+
+    def test_notice_error_sets_span_id_attribute_on_error_event_in_transaction
+      span_id = nil
+      in_transaction do |txn|
+        span_id = txn.current_segment.guid
+        Transaction.notice_error(RuntimeError.new, expected: true)
+      end
+
+      error_event = last_error_event
+      assert_equal span_id, error_event[0]["spanId"]
     end
 
     def test_transport_duration_returned_in_seconds_when_positive

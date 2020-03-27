@@ -58,8 +58,13 @@ module NewRelic
           return if cached?(payload)
           return unless state.is_execution_traced?
 
-          segment = pop_segment(id)
-          segment.finish if segment
+          if segment = pop_segment(id)
+            if exception = exception_object(payload)
+              segment.notice_error(exception)
+            end
+            segment.finish
+          end
+
         rescue => e
           log_notification_error(e, name, 'finish')
         end

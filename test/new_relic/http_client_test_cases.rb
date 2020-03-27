@@ -63,29 +63,6 @@ module HttpClientTestCases
 
   # Tests
 
-  def refute_raises *exp
-    msg = "#{exp.pop}.\n" if String === exp.last
-
-    begin
-      yield
-    rescue MiniTest::Skip => e
-      puts "SKIP REPORTS: #{e.inspect}"
-      return e if exp.include? MiniTest::Skip
-      raise e
-    rescue Exception => e
-      puts "EXCEPTION RAISED: #{e.inspect}\n#{e.backtrace}"
-      exp = exp.first if exp.size == 1
-      flunk msg || "unexpected exception raised: #{e}"
-    end
-  end
-
-  def assert_implements instance, method, *args
-    fail_message = "expected #{instance.class}##{method} method to be implemented"
-    refute_raises NotImplementedError, fail_message do
-      instance.send(method, *args)
-    end
-  end
-
   def test_validate_request_wrapper
     req = request_instance
     assert_implements req, :type
@@ -680,6 +657,79 @@ module HttpClientTestCases
         "External/#{host}/all"                    => counts
       )
     end
+  end
+
+  def test_noticed_error_at_segment_and_txn_on_error
+    txn = nil
+    begin
+      in_transaction do |ext_txn|
+        txn = ext_txn
+        simulate_error_response
+      end
+    rescue StandardError => e
+      # NOP -- allowing span and transaction to notice error
+    end
+    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
+    assert_transaction_noticed_error txn, timeout_error_class.name
+  end
+
+  def test_noticed_error_only_at_segment_on_error
+    txn = nil
+    in_transaction do |ext_txn|
+      begin
+        txn = ext_txn
+        simulate_error_response
+      rescue StandardError => e
+        # NOP -- allowing ONLY span to notice error
+      end
+    end
+
+    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
+    refute_transaction_noticed_error txn, timeout_error_class.name
+  end
+
+  def simulate_server_error server_class, port
+    server = server_class.new(port)
+    server.run
+    get_response "http://localhost:#{port}"
+  ensure
+    server.stop
+  end
+
+  def test_noticed_forbidden_error
+    txn = nil
+    response = nil
+    in_transaction do |ext_txn|
+      begin
+        txn = ext_txn
+        response = simulate_server_error NewRelic::FakeForbiddenServer, 4403
+      rescue StandardError => e
+        # NOP
+      end
+    end
+
+    segment = txn.segments.detect{|s| s.name =~ /GET$/}
+    assert segment, "Expected a .../GET Segment for #{client_name} HTTP Client instrumentation."
+
+    assert_equal 403, segment.http_status_code
+  end
+
+  def test_noticed_internal_server_error
+    txn = nil
+    response = nil
+    in_transaction do |ext_txn|
+      begin
+        txn = ext_txn
+        response = simulate_server_error NewRelic::FakeInternalErrorServer, 5500
+      rescue StandardError => e
+        # NOP
+      end
+    end
+
+    segment = txn.segments.detect{|s| s.name =~ /GET$/}
+    assert segment, "Expected a .../GET Segment for #{client_name} HTTP Client instrumentation."
+
+    assert_equal 500, segment.http_status_code
   end
 
 end

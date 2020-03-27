@@ -1,3 +1,5 @@
+require './test/multiverse/lib/multiverse/bundler_patch'
+
 test_folders = Dir.glob("test/new_relic/*").select{|f| File.directory?(f)}
 test_folders += Dir.glob("test/new_relic/**/*").select{|f| File.directory?(f)}
 

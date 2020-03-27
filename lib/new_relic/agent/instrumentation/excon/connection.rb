@@ -28,7 +28,9 @@ module ::Excon
         response = nil
         segment.add_request_headers wrapped_request
 
-        response = request_without_newrelic_trace(resolved_params, &block)
+        response = NewRelic::Agent::Tracer.capture_segment_error segment do
+          request_without_newrelic_trace(resolved_params, &block)
+        end
 
         wrapped_response = ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(response)
         segment.process_response_headers wrapped_response

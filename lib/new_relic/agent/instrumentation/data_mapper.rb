@@ -140,7 +140,9 @@ module NewRelic
             )
 
             begin
-              self.send("#{method_name}_without_newrelic", *args, &blk)
+              NewRelic::Agent::Tracer.capture_segment_error segment do
+                self.send("#{method_name}_without_newrelic", *args, &blk)
+              end
             rescue ::DataObjects::ConnectionError => e
               raise
             rescue ::DataObjects::SQLError => e

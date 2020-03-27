@@ -73,7 +73,7 @@ module NewRelic::Agent
       end
 
       def accept_payloads(test_case, txn)
-        rack_headers = test_case.has_key?('transport_type') ? {'rack.url_scheme' => test_case['transport_type'].to_s.downcase} : {}
+        test_case.has_key?('transport_type') ? {'rack.url_scheme' => test_case['transport_type'].to_s.downcase} : {}
 
         inbound_payloads = payloads_for(test_case)
         inbound_payloads.each do |payload|

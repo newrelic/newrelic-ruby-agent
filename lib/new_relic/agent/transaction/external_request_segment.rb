@@ -191,7 +191,7 @@ module NewRelic
 
         # Only sets the http_status_code if response.status_code is non-empty value
         def set_http_status_code response
-          if response.respond_to?(:status_code)
+          if response.respond_to? :status_code
             @http_status_code = response.status_code if response.has_status_code?
           else
             NewRelic::Agent.logger.warn "Cannot extract HTTP Status Code from response #{response.class.to_s}"

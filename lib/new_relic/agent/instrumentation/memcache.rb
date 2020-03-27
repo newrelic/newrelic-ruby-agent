@@ -46,7 +46,9 @@ module NewRelic
                   operation: method_name
                 )
                 begin
-                  send method_name_without, *args, &block
+                  NewRelic::Agent::Tracer.capture_segment_error segment do
+                    send method_name_without, *args, &block
+                  end
                 ensure
                   if NewRelic::Agent.config[:capture_memcache_keys]
                     segment.notice_nosql_statement "#{method_name} #{args.first.inspect}"

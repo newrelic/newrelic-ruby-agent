@@ -71,7 +71,9 @@ DependencyDetection.defer do
         )
         begin
           segment.notice_nosql_statement(statement) if statement
-          call_without_new_relic(*args, &block)
+          NewRelic::Agent::Tracer.capture_segment_error segment do
+            call_without_new_relic(*args, &block)
+          end
         ensure
           segment.finish if segment
         end
@@ -96,7 +98,9 @@ DependencyDetection.defer do
         )
         begin
           segment.notice_nosql_statement(statement)
-          call_pipeline_without_new_relic(*args, &block)
+          NewRelic::Agent::Tracer.capture_segment_error segment do
+            call_pipeline_without_new_relic(*args, &block)
+          end
         ensure
           segment.finish if segment
         end
@@ -117,7 +121,9 @@ DependencyDetection.defer do
         )
 
         begin
-          connect_without_new_relic(*args, &block)
+          NewRelic::Agent::Tracer.capture_segment_error segment do
+            connect_without_new_relic(*args, &block)
+          end
         ensure
           segment.finish if segment
         end

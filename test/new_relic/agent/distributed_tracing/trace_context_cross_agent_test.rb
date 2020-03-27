@@ -66,7 +66,6 @@ module NewRelic
 
         def run_test_case(test_case)
           outbound_payloads = []
-          outbound_newrelic_payloads = []
           if test_case['test_name'] =~ /^pending|^skip/ || test_case["pending"] || test_case["skip"]
             skip("marked pending in trace_context.json")
           end

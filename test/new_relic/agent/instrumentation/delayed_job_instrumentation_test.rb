@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path '../../../../test_helper', __FILE__
 require 'new_relic/agent/instrumentation/delayed_job_instrumentation'
 
 module NewRelic::Agent::Instrumentation

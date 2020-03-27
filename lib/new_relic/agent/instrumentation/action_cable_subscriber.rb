@@ -29,7 +29,10 @@ module NewRelic
         def finish(name, id, payload) #THREAD_LOCAL_ACCESS
           return unless state.is_execution_traced?
 
-          notice_error payload if payload.key? :exception
+          if exception = exception_object(payload)
+            NewRelic::Agent.notice_error exception
+          end
+
           finishable = pop_segment(id)
           finishable.finish if finishable
         rescue => e
@@ -50,10 +53,6 @@ module NewRelic
 
         def action_name(name)
           name.gsub DOT_ACTION_CABLE, NewRelic::EMPTY_STR
-        end
-
-        def notice_error(payload)
-          NewRelic::Agent.notice_error payload[:exception_object]
         end
       end
     end

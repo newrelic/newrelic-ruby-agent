@@ -41,6 +41,9 @@ class HTTPTest < Minitest::Test
     HTTP.delete(default_url, :body => "")
   end
 
+  # NOTE, some versions of HTTPrb gem implements body with
+  # String.new("").force_encoding(@encoding) which won't work 
+  # with Ruby 2.7 and it's automatic freezing of string literals.
   def body(res)
     res.body.to_s
   end
@@ -72,6 +75,15 @@ class HTTPTest < Minitest::Test
     httprb_resp = is_unsupported_1x? ? HTTP::Response.new(*options.values) : HTTP::Response.new(options)
 
     NewRelic::Agent::HTTPClients::HTTPResponse.new(httprb_resp)
+  end
+
+  def timeout_error_class
+    HTTP::TimeoutError
+  end
+
+  def simulate_error_response
+    HTTP::Connection.any_instance.stubs(:send_proxy_connect_request).raises(timeout_error_class.new)
+    get_response
   end
 
 end

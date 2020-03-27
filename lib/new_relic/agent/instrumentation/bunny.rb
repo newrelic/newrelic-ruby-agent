@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 DependencyDetection.defer do
   named :bunny
@@ -41,10 +42,11 @@ DependencyDetection.defer do
             )
           rescue => e
             NewRelic::Agent.logger.error "Error starting message broker segment in Bunny::Exchange#publish", e
-          end
-
-          begin
             publish_without_new_relic payload, opts
+          else
+            NewRelic::Agent::Tracer.capture_segment_error segment do
+              publish_without_new_relic payload, opts
+            end
           ensure
             segment.finish if segment
           end
@@ -55,28 +57,40 @@ DependencyDetection.defer do
         alias_method :pop_without_new_relic, :pop
 
         def pop(opts = {:manual_ack => false}, &block)
-          t0 = Time.now
-          msg = pop_without_new_relic opts, &block
-          delivery_info, message_properties, _payload = msg
+          bunny_error, delivery_info, message_properties, _payload = nil, nil, nil, nil
+          begin
+            t0 = Time.now
+            msg = pop_without_new_relic opts, &block
+            delivery_info, message_properties, _payload = msg
+          rescue StandardError => error
+            bunny_error = error
+          end
 
           begin
-            if delivery_info
-              exchange_name = NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange)
-              exchange_type = NewRelic::Agent::Instrumentation::Bunny.exchange_type(delivery_info, channel)
-
-              segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
-                library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
-                destination_name: exchange_name,
-                delivery_info: delivery_info,
-                message_properties: message_properties,
-                exchange_type: exchange_type,
-                queue_name: name,
-                start_time: t0
-              )
+            exchange_name, exchange_type = if delivery_info
+              [ NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange),
+                NewRelic::Agent::Instrumentation::Bunny.exchange_type(delivery_info, channel) ]
+            else
+              [ NewRelic::Agent::Instrumentation::Bunny.exchange_name(NewRelic::EMPTY_STR),
+                NewRelic::Agent::Instrumentation::Bunny.exchange_type({}, channel) ]
             end
 
+            segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
+              library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
+              destination_name: exchange_name,
+              delivery_info: (delivery_info || {}),
+              message_properties: (message_properties || {headers: {}}),
+              exchange_type: exchange_type,
+              queue_name: name,
+              start_time: t0
+            )
           rescue => e
             NewRelic::Agent.logger.error "Error starting message broker segment in Bunny::Queue#pop", e
+          else
+            if bunny_error
+              segment.notice_error bunny_error
+              raise bunny_error
+            end
           ensure
             segment.finish if segment
           end
@@ -97,10 +111,11 @@ DependencyDetection.defer do
             )
           rescue => e
             NewRelic::Agent.logger.error "Error starting message broker segment in Bunny::Queue#purge", e
-          end
-
-          begin
             purge_without_new_relic(*args)
+          else
+            NewRelic::Agent::Tracer.capture_segment_error segment do
+              purge_without_new_relic(*args)
+            end
           ensure
             segment.finish if segment
           end
@@ -134,18 +149,20 @@ module NewRelic
   module Agent
     module Instrumentation
       module Bunny
-        LIBRARY = 'RabbitMQ'.freeze
-        DEFAULT = 'Default'.freeze
-        SLASH   = '/'.freeze
+        LIBRARY = 'RabbitMQ'
+        DEFAULT_NAME = 'Default'
+        DEFAULT_TYPE = :direct
+
+        SLASH   = '/'
 
         class << self
           def exchange_name name
-            name.empty? ? DEFAULT : name
+            name.empty? ? DEFAULT_NAME : name
           end
 
           def exchange_type delivery_info, channel
             if di_exchange = delivery_info[:exchange]
-              return :direct if di_exchange.empty?
+              return DEFAULT_TYPE if di_exchange.empty?
               return channel.exchanges[delivery_info[:exchange]].type if channel.exchanges[di_exchange]
             end
           end

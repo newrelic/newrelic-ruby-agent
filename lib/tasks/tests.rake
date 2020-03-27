@@ -33,7 +33,7 @@ if defined? Rake::TestTask
 
       t.libs << "#{agent_home}/test"
       t.libs << "#{agent_home}/lib"
-      t.pattern = file_pattern
+      t.pattern = Array(file_pattern).join(",")
       t.verbose = true
     end
 

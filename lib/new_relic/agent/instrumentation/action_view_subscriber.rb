@@ -24,8 +24,13 @@ module NewRelic
         end
 
         def finish(name, id, payload) #THREAD_LOCAL_ACCESS
-          event = pop_segment(id)
-          event.finish if event
+          if segment = pop_segment(id)
+
+          if exception = exception_object(payload)
+            segment.notice_error exception
+          end
+            segment.finish
+          end
         rescue => e
           log_notification_error(e, name, 'finish')
         end
@@ -96,6 +101,10 @@ module NewRelic
 
         def finish
           @finishable.finish if @finishable
+        end
+
+        def notice_error error
+          @finishable.notice_error error if @finishable
         end
       end
     end

@@ -51,6 +51,35 @@ module MemcacheTestCases
     assert_metrics_recorded_exclusive expected_metrics, :filter => /^datastore.*/i
   end
 
+  def test_noticed_error_at_segment_and_txn_on_error
+    txn = nil
+    begin
+      in_web_transaction("Controller/#{self.class}/action") do |web_txn|
+        txn = web_txn
+        simulate_error
+      end
+    rescue StandardError => e
+      # NOP -- allowing span and transaction to notice error
+    end
+    assert_segment_noticed_error txn, /Memcached\/set$/, simulated_error_class.name, /No server available/i
+    assert_transaction_noticed_error txn, simulated_error_class.name
+  end
+
+  def test_noticed_error_only_at_segment_on_error
+    txn = nil
+    in_web_transaction("Controller/#{self.class}/action") do |web_txn|
+      begin
+        txn = web_txn
+        simulate_error
+      rescue StandardError => e
+        # NOP -- allowing ONLY span to notice error
+      end
+    end
+
+    assert_segment_noticed_error txn, /Memcached\/set$/, simulated_error_class.name, /No server available/i
+    refute_transaction_noticed_error txn, simulated_error_class.name
+  end
+
   def test_get_in_web
     key = set_key_for_testcase
 

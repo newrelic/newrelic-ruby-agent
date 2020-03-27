@@ -115,8 +115,9 @@ module MarshallingTestCases
   def test_sends_error_events
     t0 = nr_freeze_time(Time.at(Time.now.to_i))
 
+    span_id = nil
     with_around_hook do
-      Transactioner.new.break_it
+      span_id = Transactioner.new.break_it
     end
 
     transmit_data
@@ -127,20 +128,6 @@ module MarshallingTestCases
     events = result.first.events
     assert_equal 1, events.length
 
-    expected_event = [
-      {
-        "type" => "TransactionError",
-        "error.class" => "StandardError",
-        "error.message" => "Sorry!",
-        "error.expected" => false,
-        "timestamp" => t0.to_f,
-        "transactionName" => "TestTransaction/break_it",
-        "duration" => 0.0
-      },
-      {},
-      {}
-    ]
-
     event = events.first
 
     # this is only present on REE, and we don't really care - the point of this
@@ -150,7 +137,20 @@ module MarshallingTestCases
     # we don't care about the specific priority for this test
     event[0].delete("priority")
 
-    assert_equal(expected_event, event)
+    assert_equal event[0]["type"], "TransactionError"
+    assert_equal event[0]["error.class"], "StandardError"
+    assert_equal event[0]["error.message"], "Sorry!"
+    assert_equal event[0]["error.expected"], false
+    assert_equal event[0]["timestamp"], t0.to_f
+    assert_equal event[0]["transactionName"], "TestTransaction/break_it"
+    assert_equal event[0]["duration"], 0.0
+    assert event[0]["spanId"] != nil
+    assert_equal event[0].size, 8
+    
+    assert_equal event[1], {}
+    assert_equal event[2], {}
+
+    assert_equal event.size, 3
   end
 
   class Transactioner
@@ -165,6 +165,7 @@ module MarshallingTestCases
     def break_it
       NewRelic::Agent.set_transaction_name("break_it", :category => "TestTransaction")
       NewRelic::Agent.notice_error StandardError.new("Sorry!")
+      NewRelic::Agent::Tracer.current_span_id
     end
 
     add_transaction_tracer :break_it

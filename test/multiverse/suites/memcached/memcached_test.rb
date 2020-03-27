@@ -12,6 +12,16 @@ if defined?(Memcached)
       @cache = Memcached.new('localhost', :support_cas => true)
     end
 
+    def simulate_error
+      Memcached.any_instance.stubs("check_return_code").raises(simulated_error_class, "No server available")
+      key = set_key_for_testcase
+      @cache.get(key)
+    end
+
+    def simulated_error_class
+      Memcached::ServerError
+    end
+
     def additional_web_metrics_for command
       [
         "Datastore/operation/Memcached/#{command}",
