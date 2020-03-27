@@ -13,11 +13,11 @@ RB
 # with Ruby 2.7 and it's automatic freezing of string literals.
 # Those versions are capped at Ruby 2.6
 
-# Either just the gem version or Array of gem version and last supported Ruby version
+# Either just the gem version or Array of gem version and last and supported Ruby versions
 HTTPRB_VERSIONS = [
-  '4.4.0',
-  '4.3.0',
-  ['4.2.0', 2.6],
+  ['4.4.0', 2.3, 2.6],
+  ['4.3.0', 2.3, 2.6],
+  ['4.2.0', 2.3, 2.6],
   '3.0.0',
   '2.2.2',
   '2.1.0',
@@ -28,9 +28,9 @@ HTTPRB_VERSIONS = [
 
 HTTPRB_VERSIONS.each do |httprb_version|
   if httprb_version.is_a?(Array)
-    last_supported_ruby_version = httprb_version[1]
-    next if RUBY_VERSION.to_f > last_supported_ruby_version
-    httprb_version = httprb_version[0]
+    httprb_version, first_supported_ruby_version, last_supported_ruby_version = httprb_version
+    next if last_supported_ruby_version && RUBY_VERSION.to_f > last_supported_ruby_version
+    next if RUBY_VERSION.to_f < first_supported_ruby_version
   end
 
   gemfile <<-RB

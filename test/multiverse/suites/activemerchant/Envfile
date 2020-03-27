@@ -3,8 +3,9 @@ if RUBY_VERSION >= '2.3.0'
     gem 'activemerchant', '~>1.106.0'
     gem 'rack'
 
-    gem 'activesupport'
+    gem 'activesupport', '~> 4.2.0'
     gem 'nokogiri'
+    gem 'minitest', '~> 5.1.0'
 
     # Need to load newrelic_rpm after ActiveMerchant Gateways are required
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
