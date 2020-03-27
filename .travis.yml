@@ -82,6 +82,7 @@ env:
     - TYPE=UNIT ENVIRONMENT=rails42
     - TYPE=UNIT ENVIRONMENT=rails50
     - TYPE=UNIT ENVIRONMENT=rails51
+    - TYPE=UNIT ENVIRONMENT=rails52
     - TYPE=UNIT ENVIRONMENT=rails60
     - TYPE=UNIT ENVIRONMENT=norails
     - TYPE=FUNCTIONAL GROUP=agent
@@ -122,6 +123,8 @@ matrix:
     - rvm: 2.7.0
       env: TYPE=UNIT ENVIRONMENT=rails51  # rails (= 5.1.0) depends on bundler (< 2.0, >= 1.3.0)
     - rvm: 2.7.0
+      env: TYPE=UNIT ENVIRONMENT=rails52  # rails (= 5.2.0) depends on bundler (< 2.0, >= 1.3.0)
+    - rvm: 2.7.0
       env: TYPE=FUNCTIONAL GROUP=api      # blocked: https://github.com/solnic/coercible/issues/27
     - rvm: 2.7.0
       env: TYPE=FUNCTIONAL GROUP=sinatra  # padrino (~> 0.14.0) depends on bundler (~> 1.0)
@@ -132,6 +135,8 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails50  # rails (= 5.0.0) depends on bundler (< 2.0, >= 1.3.0)
     - rvm: 2.7.0
       env: TYPE=UNIT ENVIRONMENT=rails51  # rails (= 5.1.0) depends on bundler (< 2.0, >= 1.3.0)
+    - rvm: 2.7.0
+      env: TYPE=UNIT ENVIRONMENT=rails52  # rails (= 5.2.0) depends on bundler (< 2.0, >= 1.3.0)
     - rvm: 2.7.0
       env: TYPE=FUNCTIONAL GROUP=api      # blocked: https://github.com/solnic/coercible/issues/27
     - rvm: 2.7.0
@@ -189,6 +194,8 @@ matrix:
     - rvm: 2.1.10
       env: TYPE=UNIT ENVIRONMENT=rails51
     - rvm: 2.1.10
+      env: TYPE=UNIT ENVIRONMENT=rails52
+    - rvm: 2.1.10
       env: TYPE=UNIT ENVIRONMENT=rails60
 
     # 2.0
@@ -196,6 +203,8 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails50
     - rvm: 2.0.0-p648
       env: TYPE=UNIT ENVIRONMENT=rails51
+    - rvm: 2.0.0-p648
+      env: TYPE=UNIT ENVIRONMENT=rails52
     - rvm: 2.0.0-p648
       env: TYPE=UNIT ENVIRONMENT=rails60
 
