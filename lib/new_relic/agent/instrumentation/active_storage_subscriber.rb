@@ -30,10 +30,10 @@ module NewRelic
 
         def finish_segment id, payload
           if segment = pop_segment(id)
-            segment.finish if segment
             if exception = exception_object(payload)
               segment.notice_error(exception)
             end
+            segment.finish
           end
         end
 
