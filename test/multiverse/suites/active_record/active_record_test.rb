@@ -279,7 +279,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       # NOP -- allowing span and transaction to notice error
     end
 
-    assert_segment_noticed_error txn, /^Datastore\/statement\/MySQL/i, expected_error_class, /duplicate entry/i
+    assert_segment_noticed_error txn, /create|insert/i, expected_error_class, /duplicate entry/i
     assert_transaction_noticed_error txn, expected_error_class
   end
 
@@ -296,7 +296,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       end
     end
 
-    assert_segment_noticed_error txn, /^Datastore\/statement\/MySQL/i, expected_error_class, /duplicate entry/i
+    assert_segment_noticed_error txn, /create|insert/i, expected_error_class, /duplicate entry/i
     refute_transaction_noticed_error txn, expected_error_class
   end
 

@@ -153,7 +153,13 @@ module Multiverse
     end
 
     def change_lock_version filepath, gemfile, new_version=Bundler::VERSION
-      lock_filename = File.join filepath.chomp!, "#{gemfile}.lock"
+      begin
+        lock_filename = File.join filepath.chomp!, "#{gemfile}.lock"
+      rescue => e
+        puts "ERROR: #{e.inspect}"
+        puts "ERROR: on lock_filename #{filepath.inspect} / #{gemfile.inspect}"
+        raise
+      end
       return unless File.exist? lock_filename
 
       lock_contents = File.read(lock_filename).split("\n")
