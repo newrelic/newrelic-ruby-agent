@@ -63,29 +63,6 @@ module HttpClientTestCases
 
   # Tests
 
-  def refute_raises *exp
-    msg = "#{exp.pop}.\n" if String === exp.last
-
-    begin
-      yield
-    rescue MiniTest::Skip => e
-      puts "SKIP REPORTS: #{e.inspect}"
-      return e if exp.include? MiniTest::Skip
-      raise e
-    rescue Exception => e
-      puts "EXCEPTION RAISED: #{e.inspect}\n#{e.backtrace}"
-      exp = exp.first if exp.size == 1
-      flunk msg || "unexpected exception raised: #{e}"
-    end
-  end
-
-  def assert_implements instance, method, *args
-    fail_message = "expected #{instance.class}##{method} method to be implemented"
-    refute_raises NotImplementedError, fail_message do
-      instance.send(method, *args)
-    end
-  end
-
   def test_validate_request_wrapper
     req = request_instance
     assert_implements req, :type

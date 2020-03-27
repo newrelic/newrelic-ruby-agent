@@ -933,3 +933,38 @@ def refute_transaction_noticed_error txn, error_class
   assert error_segment, "Expected at least one segment with a noticed_error"
   assert_empty txn.exceptions, "Expected transaction to NOT notice any segment errors"
 end
+
+def refute_raises *exp
+  msg = "#{exp.pop}.\n" if String === exp.last
+
+  begin
+    yield
+  rescue MiniTest::Skip => e
+    puts "SKIP REPORTS: #{e.inspect}"
+    return e if exp.include? MiniTest::Skip
+    raise e
+  rescue Exception => e
+    puts "EXCEPTION RAISED: #{e.inspect}\n#{e.backtrace}"
+    exp = exp.first if exp.size == 1
+    flunk msg || "unexpected exception raised: #{e}"
+  end
+end
+
+def assert_implements instance, method, *args
+  fail_message = "expected #{instance.class}##{method} method to be implemented"
+  refute_raises NotImplementedError, fail_message do
+    instance.send(method, *args)
+  end
+end
+
+def defer_testing_to_min_supported_rails test_file, min_rails_version, supports_jruby=true
+  if defined?(::Rails) &&
+    defined?(::Rails::VERSION::STRING) &&
+    (::Rails::VERSION::STRING.to_f >= min_rails_version) &&
+    (supports_jruby || !NewRelic::LanguageSupport.jruby?)
+
+    yield
+  else
+    puts "Skipping tests in #{test_file} because Rails >= #{min_rails_version} is unavailable"
+  end
+end

@@ -443,7 +443,7 @@ module NewRelic::Agent
           uri: "http://remotehost.com/blogs/index",
           procedure: "GET"
         }
-        segment, http_response = with_external_segment(headers, cat_config, segment_params)
+        segment, _http_response = with_external_segment(headers, cat_config, segment_params)
 
         refute segment.cross_app_request?
         assert_equal 200, segment.http_status_code
@@ -462,7 +462,7 @@ module NewRelic::Agent
           uri: "http://remotehost.com/blogs/index",
           procedure: "GET"
         }
-        segment, http_response = with_external_segment(headers, cat_config, segment_params)
+        segment, _http_response = with_external_segment(headers, cat_config, segment_params)
 
         assert_equal 200, segment.http_status_code
         refute_metrics_recorded "External/remotehost.com/Net::HTTP/GET/Error"
@@ -505,7 +505,7 @@ module NewRelic::Agent
           uri: "http://remotehost.com/blogs/index",
           procedure: "GET"
         }
-        segment, http_response = with_external_segment(headers, cat_config, segment_params)
+        segment, _http_response = with_external_segment(headers, cat_config, segment_params)
         assert_equal 404, segment.http_status_code
         refute_metrics_recorded "External/remotehost.com/Net::HTTP/GET/MissingHTTPStatusCode"
       end

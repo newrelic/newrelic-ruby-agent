@@ -540,10 +540,6 @@ module NewRelic::Agent
       end
 
       def test_segment_error_filtered
-        expected_error_attributes = {
-          "error.message" => "Oops!", 
-          "error.class"   => "StandardError"
-        }
         with_config(:'error_collector.ignore_errors' => 'StandardError') do
           with_segment do |segment|
             @error_collector.notice_segment_error(segment, StandardError.new("Oops!"))

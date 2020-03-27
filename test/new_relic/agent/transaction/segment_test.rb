@@ -39,7 +39,7 @@ module NewRelic
         end
 
         def test_records_error_attributes_on_segment
-          test_segment, err = capture_segment_with_error
+          test_segment, _error = capture_segment_with_error
           current_noticed_error = test_segment.noticed_error
 
           assert current_noticed_error, "expected noticed_error to not be nil"
@@ -61,19 +61,19 @@ module NewRelic
         end
 
         def test_segment_has_error_attributes_after_error
-          segment, error = capture_segment_with_error
+          segment, _error = capture_segment_with_error
           refute_empty segment.noticed_error_attributes
         end
 
         def test_nested_segment_has_error_attributes_after_error
-          nested_segment, parent_segment, error = capture_nested_segment_with_error
+          nested_segment, parent_segment, _error = capture_nested_segment_with_error
           refute parent_segment.noticed_error_attributes
           refute_empty nested_segment.noticed_error_attributes
         end
 
         def test_ignores_error_attributes_when_in_high_security
           with_config(:high_security => true) do
-            segment, error = capture_segment_with_error
+            segment, _error = capture_segment_with_error
             assert_empty attributes_for(segment, :agent)
           end
         end
