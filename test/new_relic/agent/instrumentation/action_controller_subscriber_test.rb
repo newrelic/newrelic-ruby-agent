@@ -319,7 +319,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
         @subscriber.finish('process_action.action_controller', :id, params)
     end
 
-    assert_segment_noticed_error txn, /controller/i, "StandardError", /Natural 1/i
+    assert_segment_noticed_error txn, /controller/i, exception_class.to_s, /Natural 1/i
   end
 
 end if ::Rails::VERSION::MAJOR.to_i >= 4

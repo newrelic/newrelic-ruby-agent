@@ -157,7 +157,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.finish('render_template.action_view', :id, params)
     end
 
-    assert_segment_noticed_error txn, /rendering/i, "StandardError", /Natural 1/i
+    assert_segment_noticed_error txn, /rendering/i, exception_class.to_s, /Natural 1/i
   end
 
   def test_records_nothing_if_tracing_disabled

@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
+if defined?(::Rails)
+
 require File.expand_path('../../../../test_helper', __FILE__)
 require 'new_relic/agent/instrumentation/active_storage_subscriber'
 
@@ -108,7 +110,7 @@ module NewRelic
             generate_event 'service_upload.active_storage', params
           end
 
-          assert_segment_noticed_error txn, /upload/i, "StandardError", /Natural 1/i
+          assert_segment_noticed_error txn, /upload/i, exception_class.to_s, /Natural 1/i
         end
 
         private
@@ -124,3 +126,8 @@ module NewRelic
     end
   end
 end
+
+else
+  puts "Skipping tests in #{__FILE__} because Rails is unavailable"
+end
+
