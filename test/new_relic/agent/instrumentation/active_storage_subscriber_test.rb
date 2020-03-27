@@ -101,7 +101,7 @@ module NewRelic
           exception_msg = "Natural 1"
           exception = exception_class.new(msg=exception_msg)
           # :exception_object was added in Rails 5 and above
-          params = { :exception_object => exception, :exception => [exception_class, exception_msg] }
+          params = { :exception_object => exception, :exception => [exception_class.to_s, exception_msg] }
 
           txn = nil
 
