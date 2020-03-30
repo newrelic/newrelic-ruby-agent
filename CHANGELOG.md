@@ -2,6 +2,13 @@
 
   ## v6.10.0
 
+  * **Added tests for latest Grape / Rack combination
+
+    For a short period of time, Grape and Rack had issues working.  Generally, Rack 2.1.0
+    should be avoided in all cases due to breaking changes in many gems reliant on Rack.  
+    We recommend using either Rack <= 2.0.9, or using latest Rack when using Grape (2.2.2 at 
+    the time of this writing).
+    
   * **Bugfix: Calculate Content-Length in bytes**
 
     Previously, the Content-Length HTTP header would be incorrect after injecting the Browser Monitoring

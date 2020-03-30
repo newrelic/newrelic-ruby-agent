@@ -1,4 +1,8 @@
 grape_versions = []
+if RUBY_VERSION >= '2.4.0'
+  grape_versions << '~> 1.3.1'
+  grape_versions << '~> 1.2.4'
+end
 if RUBY_VERSION >= '2.2.0'
   grape_versions << '1.2.3'
   grape_versions << '1.2.0'
@@ -9,31 +13,42 @@ end
 if RUBY_VERSION >= '2.1.0'
   grape_versions << '0.18.0'
 end
-grape_versions += ['0.17.0',
-    '0.16.2',
-    '0.15.0',
-    '0.14.0',
-    '0.13.0',
-    '0.12.0',
-    '0.11.0',
-    '0.10.0',
-    '0.9.0',
-    '0.8.0',
-    '0.7.0',
-    '0.6.1',
-    '0.5.0',
-    '0.4.1',
-    '0.3.2',
+grape_versions += [
+    '~> 0.17.0',
+    '~> 0.16.0',
+    '~> 0.15.0',
+    '~> 0.14.0',
+    '~> 0.13.0',
+    '~> 0.12.0',
+    '~> 0.11.0',
+    '~> 0.10.0',
+    '~> 0.9.0',
+    '~> 0.8.0',
+    '~> 0.7.0',
+    '~> 0.6.0',
+    '~> 0.5.0',
+    '~> 0.4.1',
+    '~> 0.3.2',
     '0.2.6',
-    '0.2.0',
-    '0.1.5']
+    '0.1.5'
+]
 
 rack_test_version = RUBY_VERSION < "2.2.0" ? "< 0.8.0" : ">= 0.8.0"
+
+# Tests latest Grape / Rack combo
+if RUBY_VERSION >= "2.5.0"
+  gemfile <<-RB
+    gem 'rack', '> 2.1.0'
+    gem 'rack-test', '#{rack_test_version}'
+    gem 'grape'
+  RB
+end
 
 grape_versions.each do |version|
   gemfile <<-RB
     gem 'rack', '< 2.1.0' # rack >= 2.1.0 breaks grape <= 0.12.0
     gem 'rack-test', '#{rack_test_version}'
-    gem 'grape', '~> #{version}'
+    gem 'grape', '#{version}'
   RB
 end
+
