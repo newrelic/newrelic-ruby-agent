@@ -48,7 +48,7 @@
 
   * **Added --force option to `newrelic install` cli command to allow overwriting newrelic.yml**
 
-  * **Bugfix: The fully qualified hostname now works correctly for *BSD and Solaris**
+  * **Bugfix: The fully qualified hostname now works correctly for BSD and Solaris**
 
     Previously, when running on systems such as BSD and Solaris, the agent was unable to determine the fully
     qualified domain name, which is used to help link Ruby agent data with data from New Relic Infrastructure.
