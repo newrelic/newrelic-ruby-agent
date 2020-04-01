@@ -16,7 +16,7 @@
 
     If multiple errors occur on the same span, only the most recent error information is added to the attributes. Prior errors on the same span are overwritten.
 
-    These span event attributes conform to <a href="https://docs.newrelic.com/docs/agents/manage-apm-agents/agent-data/manage-errors-apm-collect-ignore-or-mark-expected#ignore>ignored errors</a> and <a href="https://docs.newrelic.com/docs/agents/manage-apm-agents/agent-data/manage-errors-apm-collect-ignore-or-mark-expected#expected">expected errors</a>.
+    These span event attributes conform to <a href="https://docs.newrelic.com/docs/agents/manage-apm-agents/agent-data/manage-errors-apm-collect-ignore-or-mark-expected#ignore">ignored errors</a> and <a href="https://docs.newrelic.com/docs/agents/manage-apm-agents/agent-data/manage-errors-apm-collect-ignore-or-mark-expected#expected">expected errors</a>.
 
   * **Added tests for latest Grape / Rack combination**
 
