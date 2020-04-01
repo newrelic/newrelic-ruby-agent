@@ -69,7 +69,9 @@ class LicenseTest < Minitest::Test
       # skip multiverse auto-generated db/schema
       path =~ %r{/test/multiverse/suites/.*/db/schema.rb$} ||
       # skip the artifacts directory
-      path =~ %r{/artifacts/}
+      path =~ %r{/artifacts/} ||
+      # skip the changelog
+      path =~ %r{CHANGELOG.md}
     )
   end
 
