@@ -2,13 +2,29 @@
 
   ## v6.10.0
 
-  * **Added tests for latest Grape / Rack combination
+  * **Error attributes now added to each span that exits with an error or exception**
 
-    For a short period of time, Grape and Rack had issues working.  Generally, Rack 2.1.0
-    should be avoided in all cases due to breaking changes in many gems reliant on Rack.  
-    We recommend using either Rack <= 2.0.9, or using latest Rack when using Grape (2.2.2 at 
-    the time of this writing).
-    
+    Error attributes `error.class` and `error.message` are now included on the span event in which an error
+    or exception was noticed, and, in the case of unhandled exceptions, on any ancestor spans that also exit with an error.
+    The public API method `notice_error` now attaches these error attributes to the currently executing span.
+
+    <a href="https://docs.newrelic.com/docs/apm/distributed-tracing/ui-data/understand-use-distributed-tracing-data#rules-limits">Spans with error details are now highlighted red in the Distributed Tracing UI</a>, and error details will expose the associated
+    `error.class` and `error.message`.  It is also now possible to see when an exception leaves the boundary of the span,
+    and if it is caught in an ancestor span without reaching the entry span. NOTE: This “bubbling up” of exceptions will impact
+    the error count when compared to prior behavior for the same trace. It is possible to have a trace that now has span errors
+    without the trace level showing an error.
+
+    If multiple errors occur on the same span, only the most recent error information is added to the attributes. Prior errors on the same span are overwritten.
+
+    These span event attributes conform to <a href="https://docs.newrelic.com/docs/agents/manage-apm-agents/agent-data/manage-errors-apm-collect-ignore-or-mark-expected#ignore>ignored errors</a> and <a href="https://docs.newrelic.com/docs/agents/manage-apm-agents/agent-data/manage-errors-apm-collect-ignore-or-mark-expected#expected">expected errors</a>.
+
+  * **Added tests for latest Grape / Rack combination**
+
+    For a short period of time, the latest versions of Grape and Rack had compatibility issues.
+    Generally, Rack 2.1.0 should be avoided in all cases due to breaking changes in many gems
+    reliant on Rack. We recommend using either Rack <= 2.0.9, or using latest Rack when using Grape
+    (2.2.2 at the time of this writing).
+
   * **Bugfix: Calculate Content-Length in bytes**
 
     Previously, the Content-Length HTTP header would be incorrect after injecting the Browser Monitoring
@@ -34,7 +50,9 @@
 
   * **Bugfix: The fully qualified hostname now works correctly for *BSD and Solaris**
 
-    Previously, when running on systems such as BSD and Solaris, the agent was unable to determine the fully qualified domain name, which is used to help link Ruby agent data with data from New Relic Infrastructure. This information is now successfully collected on various BSD distros and Solaris.
+    Previously, when running on systems such as BSD and Solaris, the agent was unable to determine the fully
+    qualified domain name, which is used to help link Ruby agent data with data from New Relic Infrastructure.
+    This information is now successfully collected on various BSD distros and Solaris.
 
   ## v6.9.0
 
