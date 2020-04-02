@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This module builds the data structures necessary to create a Span
 # event for a segment.
@@ -15,43 +16,52 @@ module NewRelic
       extend self
 
       # Strings for static keys of the event structure
-      ELLIPSIS             = '...'.freeze
-      TYPE_KEY             = 'type'.freeze
-      TRACE_ID_KEY         = 'traceId'.freeze
-      GUID_KEY             = 'guid'.freeze
-      PARENT_ID_KEY        = 'parentId'.freeze
-      GRANDPARENT_ID_KEY   = 'grandparentId'.freeze
-      TRANSACTION_ID_KEY   = 'transactionId'.freeze
-      SAMPLED_KEY          = 'sampled'.freeze
-      PRIORITY_KEY         = 'priority'.freeze
-      TIMESTAMP_KEY        = 'timestamp'.freeze
-      DURATION_KEY         = 'duration'.freeze
-      NAME_KEY             = 'name'.freeze
-      CATEGORY_KEY         = 'category'.freeze
-      HTTP_URL_KEY         = 'http.url'.freeze
-      HTTP_METHOD_KEY      = 'http.method'.freeze
-      COMPONENT_KEY        = 'component'.freeze
-      DB_INSTANCE_KEY      = 'db.instance'.freeze
-      DB_STATEMENT_KEY     = 'db.statement'.freeze
-      PEER_ADDRESS_KEY     = 'peer.address'.freeze
-      PEER_HOSTNAME_KEY    = 'peer.hostname'.freeze
-      SPAN_KIND_KEY        = 'span.kind'.freeze
-      ENTRY_POINT_KEY      = 'nr.entryPoint'.freeze
-      TRUSTED_PARENT_KEY   = "trustedParentId".freeze
-      TRACING_VENDORS_KEY  = "tracingVendors".freeze
+      ELLIPSIS             = '...'
+      TYPE_KEY             = 'type'
+      TRACE_ID_KEY         = 'traceId'
+      GUID_KEY             = 'guid'
+      PARENT_ID_KEY        = 'parentId'
+      GRANDPARENT_ID_KEY   = 'grandparentId'
+      TRANSACTION_ID_KEY   = 'transactionId'
+      SAMPLED_KEY          = 'sampled'
+      PRIORITY_KEY         = 'priority'
+      TIMESTAMP_KEY        = 'timestamp'
+      DURATION_KEY         = 'duration'
+      NAME_KEY             = 'name'
+      CATEGORY_KEY         = 'category'
+      HTTP_URL_KEY         = 'http.url'
+      HTTP_METHOD_KEY      = 'http.method'
+      HTTP_STATUS_CODE_KEY = 'http.statusCode'
+      COMPONENT_KEY        = 'component'
+      DB_INSTANCE_KEY      = 'db.instance'
+      DB_STATEMENT_KEY     = 'db.statement'
+      PEER_ADDRESS_KEY     = 'peer.address'
+      PEER_HOSTNAME_KEY    = 'peer.hostname'
+      SPAN_KIND_KEY        = 'span.kind'
+      ENTRY_POINT_KEY      = 'nr.entryPoint'
+      TRUSTED_PARENT_KEY   = "trustedParentId"
+      TRACING_VENDORS_KEY  = "tracingVendors"
 
       # Strings for static values of the event structure
-      EVENT_TYPE         = 'Span'.freeze
-      GENERIC_CATEGORY   = 'generic'.freeze
-      HTTP_CATEGORY      = 'http'.freeze
-      DATASTORE_CATEGORY = 'datastore'.freeze
-      CLIENT             = 'client'.freeze
+      EVENT_TYPE         = 'Span'
+      GENERIC_CATEGORY   = 'generic'
+      HTTP_CATEGORY      = 'http'
+      DATASTORE_CATEGORY = 'datastore'
+      CLIENT             = 'client'
+
+      # Builds a Hash of error attributes as well as the Span ID when
+      # an error is present.  Otherwise, returns nil when no error present.
+      def error_attributes segment
+        return if Agent.config[:high_security] || !segment.noticed_error
+        segment.noticed_error.build_error_attributes
+        segment.noticed_error_attributes
+      end
 
       def for_segment segment
         intrinsics = intrinsics_for(segment)
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
 
-        [intrinsics, custom_attributes(segment.attributes), NewRelic::EMPTY_HASH]
+        [intrinsics, custom_attributes(segment.attributes), error_attributes(segment) || NewRelic::EMPTY_HASH]
       end
 
       def for_external_request_segment segment
@@ -59,10 +69,11 @@ module NewRelic
 
         intrinsics[COMPONENT_KEY]   = segment.library
         intrinsics[HTTP_METHOD_KEY] = segment.procedure
+        intrinsics[HTTP_STATUS_CODE_KEY] = segment.http_status_code if segment.http_status_code
         intrinsics[CATEGORY_KEY]    = HTTP_CATEGORY
         intrinsics[SPAN_KIND_KEY]   = CLIENT
 
-        agent_attributes = {}
+        agent_attributes = error_attributes(segment) || {}
 
         if allowed?(HTTP_URL_KEY)
           agent_attributes[HTTP_URL_KEY] = truncate(segment.uri)
@@ -78,7 +89,7 @@ module NewRelic
         intrinsics[SPAN_KIND_KEY] = CLIENT
         intrinsics[CATEGORY_KEY] = DATASTORE_CATEGORY
 
-        agent_attributes = {}
+        agent_attributes = error_attributes(segment) || {}
 
         if segment.database_name && allowed?(DB_INSTANCE_KEY)
           agent_attributes[DB_INSTANCE_KEY] = truncate(segment.database_name)

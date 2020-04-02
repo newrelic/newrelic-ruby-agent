@@ -254,6 +254,45 @@ class BunnyTest < Minitest::Test
     end
   end
 
+  def test_noticed_error_at_segment_and_txn_on_error
+    txn = nil
+    begin
+      with_queue false do |queue|
+        Bunny::Channel.any_instance.stubs("basic_get").raises(Timeout::Error)
+        in_transaction do |msg_txn|
+          txn = msg_txn
+          queue.publish "test"
+          queue.pop
+        end
+      end
+    rescue StandardError => e
+      # NOP -- allowing span and transaction to notice error
+    end
+
+    assert_segment_noticed_error txn, /^MessageBroker\/RabbitMQ/, "Timeout::Error", /timeout/i
+    assert_transaction_noticed_error txn, "Timeout::Error"
+  end
+
+  def test_noticed_error_only_at_segment_on_error
+    txn = nil
+    with_queue false do |queue|
+      Bunny::Channel.any_instance.stubs("basic_get").raises(Timeout::Error)
+      in_transaction do |msg_txn|
+        begin
+          txn = msg_txn
+          queue.publish "test"
+          queue.pop
+        rescue StandardError => e
+          # NOP -- allowing ONLY span to notice error
+        end
+      end
+    end
+
+    assert_segment_noticed_error txn, /^MessageBroker\/RabbitMQ/, "Timeout::Error", /timeout/i
+    refute_transaction_noticed_error txn, "Timeout::Error"
+  end
+
+
   def test_error_starting_message_broker_segment_does_not_interfere_with_transaction
     with_queue do |queue|
       NewRelic::Agent::Tracer.stubs(:start_message_broker_segment).raises(StandardError.new("Boo"))

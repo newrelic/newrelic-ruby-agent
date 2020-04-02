@@ -5,7 +5,6 @@
 require 'mongo'
 require 'newrelic_rpm'
 require 'new_relic/agent/datastores/mongo'
-require 'securerandom'
 
 if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
     !NewRelic::Agent::Datastores::Mongo.is_monitoring_enabled?
@@ -23,7 +22,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
       @client = Mongo::Connection.new($mongo.host, $mongo.port)
       @database_name = "multiverse"
       @database = @client.db(@database_name)
-      @collection_name = "tribbles-#{SecureRandom.hex(16)}"
+      @collection_name = "tribbles-#{fake_guid(16)}"
       @collection = @database.collection(@collection_name)
 
       @tribble = {'name' => 'soterios johnson'}

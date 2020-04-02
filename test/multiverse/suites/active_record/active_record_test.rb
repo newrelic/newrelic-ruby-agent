@@ -260,6 +260,46 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
+  # Can be Mysql2::Error or ActiveRecord::RecordNotUnique
+  # depending on gem versions in play
+  def mysql_not_unique_error_class
+    /Mysql2\:\:Error|ActiveRecord\:\:RecordNotUnique|ActiveRecord\:\:JDBCError/
+  end
+
+  def test_noticed_error_at_segment_and_txn_when_violating_unique_contraints
+    expected_error_class = mysql_not_unique_error_class
+    txn = nil
+    begin
+      in_web_transaction do |web_txn|
+        txn = web_txn
+        u = User.create(:name => 'thom yorke')
+        u2 = User.create(u.attributes)
+      end
+    rescue StandardError => e
+      # NOP -- allowing span and transaction to notice error
+    end
+
+    assert_segment_noticed_error txn, /create|insert/i, expected_error_class, /duplicate entry/i
+    assert_transaction_noticed_error txn, expected_error_class
+  end
+
+  def test_noticed_error_only_at_segment_when_violating_unique_contraints
+    expected_error_class = mysql_not_unique_error_class
+    txn = nil
+    in_web_transaction do |web_txn|
+      begin
+        txn = web_txn
+        u = User.create(:name => 'thom yorke')
+        u2 = User.create(u.attributes)
+      rescue StandardError => e
+        # NOP -- allowing ONLY span to notice error
+      end
+    end
+
+    assert_segment_noticed_error txn, /create|insert/i, expected_error_class, /duplicate entry/i
+    refute_transaction_noticed_error txn, expected_error_class
+  end
+
   def test_create_via_association_shovel
     in_web_transaction do
       u = User.create(:name => 'thom yorke')
@@ -413,7 +453,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_still_records_metrics_in_error_cases
     # Let's trigger an active record SQL StatemntInvalid error
-    assert_raises ::ActiveRecord::StatementInvalid do 
+    assert_raises ::ActiveRecord::StatementInvalid do
       in_web_transaction do
         Order.connection.select_rows "select * from askdjfhkajsdhflkjh"
       end

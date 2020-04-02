@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/transaction/segment'
 require 'new_relic/agent/http_clients/uri_util'
@@ -14,12 +15,16 @@ module NewRelic
       #
       # @api public
       class ExternalRequestSegment < Segment
-        NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'.freeze
-        EXTERNAL_TRANSACTION_PREFIX = 'ExternalTransaction/'.freeze
-        SLASH = '/'.freeze
-        APP_DATA_KEY = 'NewRelicAppData'.freeze
+        NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'
+        APP_DATA_KEY = 'NewRelicAppData'
+
+        EXTERNAL_ALL = "External/all"
+        EXTERNAL_ALL_WEB = "External/allWeb"
+        EXTERNAL_ALL_OTHER = "External/allOther"
+        MISSING_STATUS_CODE = "MissingHTTPStatusCode"
 
         attr_reader :library, :uri, :procedure
+        attr_reader :http_status_code
 
         def initialize library, uri, procedure, start_time = nil # :nodoc:
           @library = library
@@ -27,6 +32,7 @@ module NewRelic
           @procedure = procedure
           @host_header = nil
           @app_data = nil
+          @http_status_code = nil
           super(nil, nil, start_time)
         end
 
@@ -176,7 +182,22 @@ module NewRelic
           super
         end
 
+        def process_response_headers response # :nodoc:
+          set_http_status_code response
+          read_response_headers response
+        end
+
         private
+
+        # Only sets the http_status_code if response.status_code is non-empty value
+        def set_http_status_code response
+          if response.respond_to? :status_code
+            @http_status_code = response.status_code if response.has_status_code?
+          else
+            NewRelic::Agent.logger.warn "Cannot extract HTTP Status Code from response #{response.class.to_s}"
+            NewRelic::Agent.record_metric "#{name}/#{MISSING_STATUS_CODE}", 1
+          end
+        end
 
         def insert_synthetics_header request, header
           request[NR_SYNTHETICS_HEADER] = header
@@ -197,8 +218,6 @@ module NewRelic
           end
         end
 
-        EXTERNAL_ALL = "External/all".freeze
-
         def add_unscoped_metrics
           @unscoped_metrics = [ EXTERNAL_ALL,
             "External/#{host}/all",
@@ -209,9 +228,6 @@ module NewRelic
             @unscoped_metrics << "ExternalApp/#{host}/#{cross_process_id}/all"
           end
         end
-
-        EXTERNAL_ALL_WEB = "External/allWeb".freeze
-        EXTERNAL_ALL_OTHER = "External/allOther".freeze
 
         def suffixed_rollup_metric
           if Transaction.recording_web_transaction?

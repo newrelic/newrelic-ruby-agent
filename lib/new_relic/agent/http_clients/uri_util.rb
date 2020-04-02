@@ -2,6 +2,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 # This module includes utilities for manipulating URIs, particularly from the
 # context of Net::HTTP requests. We don't always have direct access to the full
@@ -41,10 +42,10 @@ module NewRelic
           uri
         end
 
-        QUESTION_MARK = "?".freeze
+        QUESTION_MARK = "?"
 
         def self.strip_query_string(fragment)
-          if(fragment.include?(QUESTION_MARK))
+          if fragment.include? QUESTION_MARK
             fragment.split(QUESTION_MARK).first
           else
             fragment

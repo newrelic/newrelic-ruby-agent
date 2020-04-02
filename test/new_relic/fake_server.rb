@@ -101,4 +101,38 @@ module NewRelic
       self.ports.first
     end
   end
+
+  class FakeForbiddenServer < FakeServer
+    def reset
+      # NOP
+    end
+
+    def call(env)
+      req = ::Rack::Request.new(env)
+      res = ::Rack::Response.new
+      res.status = 403
+      res.body = ["Forbidden\n"]
+      res.finish
+    end
+
+    def app
+      inner_app = NewRelic::Rack::AgentHooks.new(self)
+      Proc.new{ |env| inner_app.call(env) }
+    end
+  end
+
+  class FakeInternalErrorServer < FakeServer
+    def reset
+      # NOP
+    end
+
+    def call(env)
+      raise "something went wrong!"
+    end
+
+    def app
+      inner_app = NewRelic::Rack::AgentHooks.new(self)
+      Proc.new{ |env| inner_app.call(env) }
+    end
+  end
 end

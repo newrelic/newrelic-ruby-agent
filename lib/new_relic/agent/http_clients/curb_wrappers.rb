@@ -1,19 +1,20 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
-require 'new_relic/agent/http_clients/abstract_request'
+require_relative 'abstract'
 
 module NewRelic
   module Agent
     module HTTPClients
 
       class CurbRequest
-        CURB = 'Curb'.freeze
-        LHOST = 'host'.freeze
-        UHOST = 'Host'.freeze
+        CURB = 'Curb'
+        LHOST = 'host'
+        UHOST = 'Host'
 
-        def initialize( curlobj )
+        def initialize curlobj
           @curlobj = curlobj
         end
 
@@ -34,41 +35,45 @@ module NewRelic
         end
 
         def []( key )
-          @curlobj.headers[ key ]
+          @curlobj.headers[key]
         end
 
-        def []=( key, value )
-          @curlobj.headers[ key ] = value
+        def []=(key, value)
+          @curlobj.headers[key] = value
         end
 
         def uri
-          @uri ||= NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(@curlobj.url)
+          @uri ||= URIUtil.parse_and_normalize_url(@curlobj.url)
         end
       end
 
+      class CurbResponse < AbstractResponse
 
-      class CurbResponse < AbstractRequest
-
-        def initialize(curlobj)
+        def initialize wrapped_response
+          super wrapped_response
           @headers = {}
-          @curlobj = curlobj
         end
 
         def [](key)
-          @headers[ key.downcase ]
+          @headers[key.downcase]
         end
 
         def to_hash
           @headers.dup
         end
 
-        def append_header_data( data )
-          key, value = data.split( /:\s*/, 2 )
-          @headers[ key.downcase ] = value
-          @curlobj._nr_header_str ||= ''
-          @curlobj._nr_header_str << data
+        def append_header_data data
+          key, value = data.split(/:\s*/, 2)
+          @headers[key.downcase] = value
+          @wrapped_response._nr_header_str ||= String.new
+          @wrapped_response._nr_header_str << data
         end
 
+        private
+
+        def get_status_code
+          get_status_code_using :response_code
+        end
       end
 
     end

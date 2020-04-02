@@ -49,11 +49,12 @@ module ::Excon
         segment = datum[:connection] && datum[:connection].instance_variable_get(TRACE_DATA_IVAR)
         if segment
           begin
+            segment.notice_error(datum[:error]) if datum[:error]
             datum[:connection].instance_variable_set(TRACE_DATA_IVAR, nil)
 
             if datum[:response]
               wrapped_response = ::NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(datum[:response])
-              segment.read_response_headers wrapped_response
+              segment.process_response_headers wrapped_response
             end
           ensure
             segment.finish if segment

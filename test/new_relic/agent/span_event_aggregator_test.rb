@@ -6,7 +6,6 @@ require File.expand_path('../../../test_helper', __FILE__)
 require File.expand_path('../../data_container_tests', __FILE__)
 require File.expand_path('../../common_aggregator_tests', __FILE__)
 require 'new_relic/agent/span_event_aggregator'
-require 'securerandom'
 
 module NewRelic
   module Agent
@@ -43,7 +42,7 @@ module NewRelic
       # Helpers for CommonAggregatorTests
 
       def generate_event(name='operation_name', options = {})
-        guid = SecureRandom.hex(16)
+        guid = fake_guid(16)
 
         event = [
           {

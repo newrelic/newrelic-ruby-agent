@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 require "newrelic_rpm"
 require "fake_external_server"
@@ -64,18 +65,27 @@ module HttpClientTestCases
 
   def test_validate_request_wrapper
     req = request_instance
-    req.respond_to?(:type)
-    req.respond_to?(:host)
-    req.respond_to?(:method)
-    req.respond_to?(:[])
-    req.respond_to?(:[]=)
-    req.respond_to?(:uri)
+    assert_implements req, :type
+    assert_implements req, :host
+    assert_implements req, :host_from_header
+    assert_implements req, :method
+    assert_implements req, :[], "foo"
+    assert_implements req, :[]=, "foo", "bar"
+    assert_implements req, :uri
   end
 
   def test_validate_response_wrapper
     res = response_instance
-    res.respond_to?(:[])
-    res.respond_to?(:to_hash)
+    assert_implements res, :get_status_code
+    assert_implements res, :[], "foo"
+    assert_implements res, :to_hash
+  end
+
+  # This test is early warning an HTTP client's library
+  # has made breaking changes on their Response objects
+  def test_status_code_is_present
+    res = get_wrapped_response default_url
+    assert_equal 200, res.status_code
   end
 
   # Some libraries (older Typhoeus), have had odd behavior around [] for
@@ -647,6 +657,79 @@ module HttpClientTestCases
         "External/#{host}/all"                    => counts
       )
     end
+  end
+
+  def test_noticed_error_at_segment_and_txn_on_error
+    txn = nil
+    begin
+      in_transaction do |ext_txn|
+        txn = ext_txn
+        simulate_error_response
+      end
+    rescue StandardError => e
+      # NOP -- allowing span and transaction to notice error
+    end
+    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
+    assert_transaction_noticed_error txn, timeout_error_class.name
+  end
+
+  def test_noticed_error_only_at_segment_on_error
+    txn = nil
+    in_transaction do |ext_txn|
+      begin
+        txn = ext_txn
+        simulate_error_response
+      rescue StandardError => e
+        # NOP -- allowing ONLY span to notice error
+      end
+    end
+
+    assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
+    refute_transaction_noticed_error txn, timeout_error_class.name
+  end
+
+  def simulate_server_error server_class, port
+    server = server_class.new(port)
+    server.run
+    get_response "http://localhost:#{port}"
+  ensure
+    server.stop
+  end
+
+  def test_noticed_forbidden_error
+    txn = nil
+    response = nil
+    in_transaction do |ext_txn|
+      begin
+        txn = ext_txn
+        response = simulate_server_error NewRelic::FakeForbiddenServer, 4403
+      rescue StandardError => e
+        # NOP
+      end
+    end
+
+    segment = txn.segments.detect{|s| s.name =~ /GET$/}
+    assert segment, "Expected a .../GET Segment for #{client_name} HTTP Client instrumentation."
+
+    assert_equal 403, segment.http_status_code
+  end
+
+  def test_noticed_internal_server_error
+    txn = nil
+    response = nil
+    in_transaction do |ext_txn|
+      begin
+        txn = ext_txn
+        response = simulate_server_error NewRelic::FakeInternalErrorServer, 5500
+      rescue StandardError => e
+        # NOP
+      end
+    end
+
+    segment = txn.segments.detect{|s| s.name =~ /GET$/}
+    assert segment, "Expected a .../GET Segment for #{client_name} HTTP Client instrumentation."
+
+    assert_equal 500, segment.http_status_code
   end
 
 end

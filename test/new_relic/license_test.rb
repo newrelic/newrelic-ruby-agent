@@ -29,6 +29,7 @@ class LicenseTest < Minitest::Test
     ['/LICENSE', '(c)'] => 1,
     ['/LICENSE', 'Copyright'] => 1,
     ['/LICENSE', 'rights reserved'] => 1,
+    ['/CHANGELOG.md', 'BSD'] => 2, # reference to BSD the operating system, not BSD the license
     ['/lib/new_relic/agent/system_info.rb', 'BSD'] => 4, # reference to BSD the operating system, not BSD the license
     ['/test/new_relic/agent/system_info_test.rb', 'BSD'] => 2 # reference to BSD the operating system, not BSD the license
   }
@@ -68,7 +69,9 @@ class LicenseTest < Minitest::Test
       # skip multiverse auto-generated db/schema
       path =~ %r{/test/multiverse/suites/.*/db/schema.rb$} ||
       # skip the artifacts directory
-      path =~ %r{/artifacts/}
+      path =~ %r{/artifacts/} ||
+      # skip the changelog
+      path =~ %r{CHANGELOG.md}
     )
   end
 

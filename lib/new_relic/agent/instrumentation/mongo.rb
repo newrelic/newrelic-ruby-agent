@@ -87,7 +87,9 @@ DependencyDetection.defer do
 
         begin
           result = NewRelic::Agent.disable_all_tracing do
-            instrument_without_new_relic_trace(name, payload, &block)
+            NewRelic::Agent::Tracer.capture_segment_error segment do
+              instrument_without_new_relic_trace(name, payload, &block)
+            end
           end
 
           new_relic_notice_statement(segment, payload, name) if segment
@@ -109,7 +111,9 @@ DependencyDetection.defer do
 
         begin
           result = NewRelic::Agent.disable_all_tracing do
-            save_without_new_relic_trace(doc, opts, &block)
+            NewRelic::Agent::Tracer.capture_segment_error segment do
+              save_without_new_relic_trace(doc, opts, &block)
+            end
           end
 
           new_relic_notice_statement(segment, doc, :save) if segment
@@ -131,7 +135,9 @@ DependencyDetection.defer do
 
         begin
           result = NewRelic::Agent.disable_all_tracing do
-            ensure_index_without_new_relic_trace(spec, opts, &block)
+            NewRelic::Agent::Tracer.capture_segment_error segment do
+              ensure_index_without_new_relic_trace(spec, opts, &block)
+            end
           end
 
           spec = case spec

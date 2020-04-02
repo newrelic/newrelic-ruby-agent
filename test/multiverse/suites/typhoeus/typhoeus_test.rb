@@ -31,6 +31,14 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
       "Typhoeus"
     end
 
+    def timeout_error_class
+      Typhoeus::Errors::TyphoeusError
+    end
+
+    def simulate_error_response
+      get_response "http://localhost:666/evil"
+    end
+
     # We use the Typhoeus::Request rather than right on Typhoeus to support
     # prior to convenience methods being added on the top-level module (0.5.x)
     def get_response(url=nil, headers=nil)
@@ -38,6 +46,10 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
       Typhoeus::Request.get(url || default_url, options)
     end
 
+    def get_wrapped_response url
+      NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new get_response url
+    end
+    
     def head_response
       Typhoeus::Request.head(default_url, ssl_option)
     end
@@ -64,6 +76,24 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
       end.join("\r\n")
 
       NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(Typhoeus::Response.new(:response_headers => headers))
+    end
+
+    # NOTE: this definition replaces the one defined in HttpClientTestCases!
+    def test_noticed_error_at_segment_and_txn_on_error
+      txn = nil
+      begin
+        in_transaction do |ext_txn|
+          txn = ext_txn
+          simulate_error_response
+        end
+      rescue StandardError => e
+        # NOP -- allowing span and transaction to notice error
+      end
+      assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
+
+      # Typhoeus doesn't raise errors, so transactions never see it, 
+      # which diverges from behavior of other HTTP client libraries
+      refute_transaction_noticed_error txn, timeout_error_class.name
     end
 
     def test_maintains_on_complete_callback_ordering
@@ -135,6 +165,31 @@ if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
 
       assert hydra.params[:exclusive_duration_millis] > 0, "Expected a positive exclusive duration"
     end
+
+    def test_noticed_error_at_segment_and_txn_on_error_for_hydra
+      txn = nil
+      begin
+        in_transaction do |ext_txn|
+          txn = ext_txn
+          hydra = Typhoeus::Hydra.new
+          5.times { hydra.queue(Typhoeus::Request.new("http://localhost:666/evil", ssl_option)) }
+          hydra.run
+        end
+      rescue StandardError => e
+        # NOP -- allowing span and transaction to notice error
+      end
+
+      assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
+
+      get_segments = txn.segments.select{|s| s.name =~ /GET$/}
+      assert_equal 5, get_segments.size
+      assert get_segments.all?{|s| s.noticed_error}, "Expected every GET to notice an error"
+
+      # Typhoeus doesn't raise errors, so transactions never see it, 
+      # which diverges from behavior of other HTTP client libraries
+      refute_transaction_noticed_error txn, timeout_error_class.name
+    end
+
 
     if CURRENT_TYPHOEUS_VERSION >= SUPPORTS_URI_OBJECT_VERSION
       def test_get_with_uri

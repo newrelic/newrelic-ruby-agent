@@ -6,12 +6,14 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require 'new_relic/agent/attribute_filter'
 require 'new_relic/agent/attributes'
 require 'new_relic/agent/transaction_error_primitive'
+require 'new_relic/agent/guid_generator'
 
 module NewRelic
   module Agent
     class TransactionErrorPrimitiveTest < Minitest::Test
       def setup
         nr_freeze_time
+        @span_id = NewRelic::Agent::GuidGenerator.generate_guid
       end
 
 
@@ -26,6 +28,7 @@ module NewRelic
         assert_equal "Controller/blogs/index", intrinsics['transactionName']
         assert_equal 0.1, intrinsics['duration']
         assert_equal 80, intrinsics['port']
+        assert_equal @span_id, intrinsics['spanId']
       end
 
       def test_event_includes_expected_errors
@@ -97,7 +100,7 @@ module NewRelic
       def create_event options = {}
         payload = generate_payload options[:payload_options] || {}
         error = create_noticed_error options[:error_options] || {}
-        TransactionErrorPrimitive.create error, payload
+        TransactionErrorPrimitive.create error, payload, @span_id
       end
 
       def generate_payload options = {}

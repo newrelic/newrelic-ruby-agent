@@ -6,6 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
 require File.expand_path(File.join(File.dirname(__FILE__),'..','common_aggregator_tests'))
 require 'new_relic/agent/error_event_aggregator'
+require 'new_relic/agent/guid_generator'
 
 module NewRelic
   module Agent
@@ -15,6 +16,7 @@ module NewRelic
         NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
 
         events = NewRelic::Agent.instance.events
+        @span_id = NewRelic::Agent::GuidGenerator.generate_guid
         @error_event_aggregator = ErrorEventAggregator.new events
       end
 
@@ -33,7 +35,8 @@ module NewRelic
         n.times do
           error = NewRelic::NoticedError.new "Controller/blogs/index", RuntimeError.new("Big Controller")
           payload = in_transaction{}.payload
-          @error_event_aggregator.record error, payload
+
+          @error_event_aggregator.record error, payload, @span_id
         end
       end
 
@@ -62,7 +65,7 @@ module NewRelic
       # Tests specific to ErrorEventAggregator
 
       def test_generates_event_without_payload
-        aggregator.record create_noticed_error('blogs/index'), nil
+        aggregator.record create_noticed_error('blogs/index'), nil, @span_id
 
         intrinsics, *_ = last_error_event
 
@@ -116,7 +119,7 @@ module NewRelic
         with_config aggregator.class.capacity_key => 5 do
           5.times { generate_event }
           aggregator.expects(:create_event).never
-          aggregator.record(ImpossibleError.new, { priority: -999.0 })
+          aggregator.record(ImpossibleError.new, { priority: -999.0 }, @span_id)
         end
       end
 
@@ -170,7 +173,7 @@ module NewRelic
         payload_options[:priority] = options[:priority] if options[:priority]
         payload = create_transaction_payload name, payload_options
 
-        @error_event_aggregator.record error, payload
+        @error_event_aggregator.record error, payload, @span_id
       end
     end
   end

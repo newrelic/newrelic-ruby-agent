@@ -1,16 +1,14 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
-require 'new_relic/agent/http_clients/abstract_request'
+require_relative 'abstract'
 
 module NewRelic
   module Agent
     module HTTPClients
-      class TyphoeusHTTPResponse
-        def initialize(response)
-          @response = response
-        end
+      class TyphoeusHTTPResponse < AbstractResponse
 
         def [](key)
           unless headers.nil?
@@ -33,7 +31,7 @@ module NewRelic
         private
 
         def headers
-          @response.headers
+          @wrapped_response.headers
         end
       end
 

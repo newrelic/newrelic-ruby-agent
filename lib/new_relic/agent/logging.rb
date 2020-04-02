@@ -74,7 +74,7 @@ module NewRelic
           end
 
           message << COMMA
-          message << QUOTE << TIMESTAMP_KEY << QUOTE << COLON << time.to_f.to_s
+          message << QUOTE << TIMESTAMP_KEY << QUOTE << COLON << (time.to_f * 1000).round.to_s
           message << CLOSING_BRACE << NEWLINE
         end
 

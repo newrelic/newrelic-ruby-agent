@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/instrumentation/queue_time'
 require 'new_relic/agent/transaction_metrics'
@@ -23,22 +24,36 @@ module NewRelic
       include Tracing
 
       # for nested transactions
-      SUBTRANSACTION_PREFIX        = 'Nested/'.freeze
-      CONTROLLER_PREFIX            = 'Controller/'.freeze
-      MIDDLEWARE_PREFIX            = 'Middleware/Rack/'.freeze
-      TASK_PREFIX                  = 'OtherTransaction/Background/'.freeze
-      RAKE_PREFIX                  = 'OtherTransaction/Rake/'.freeze
-      MESSAGE_PREFIX               = 'OtherTransaction/Message/'.freeze
-      RACK_PREFIX                  = 'Controller/Rack/'.freeze
-      SINATRA_PREFIX               = 'Controller/Sinatra/'.freeze
-      GRAPE_PREFIX                 = 'Controller/Grape/'.freeze
-      ACTION_CABLE_PREFIX          = 'Controller/ActionCable/'.freeze
-      OTHER_TRANSACTION_PREFIX     = 'OtherTransaction/'.freeze
+      NESTED_TRANSACTION_PREFIX    = "Nested/"
+      CONTROLLER_PREFIX            = "Controller/"
+      MIDDLEWARE_PREFIX            = "Middleware/Rack/"
+      OTHER_TRANSACTION_PREFIX     = "OtherTransaction/"
+      TASK_PREFIX                  = "#{OTHER_TRANSACTION_PREFIX}Background/"
+      RAKE_PREFIX                  = "#{OTHER_TRANSACTION_PREFIX}Rake/"
+      MESSAGE_PREFIX               = "#{OTHER_TRANSACTION_PREFIX}Message/"
+      RACK_PREFIX                  = "#{CONTROLLER_PREFIX}Rack/"
+      SINATRA_PREFIX               = "#{CONTROLLER_PREFIX}Sinatra/"
+      GRAPE_PREFIX                 = "#{CONTROLLER_PREFIX}Grape/"
+      ACTION_CABLE_PREFIX          = "#{CONTROLLER_PREFIX}ActionCable/"
 
       WEB_TRANSACTION_CATEGORIES   = [:web, :controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
       TRANSACTION_NAMING_SOURCES   = [:child, :api].freeze
 
-      MIDDLEWARE_SUMMARY_METRICS   = ['Middleware/all'.freeze].freeze
+      MIDDLEWARE_SUMMARY_METRICS   = ["Middleware/all"].freeze
+      WEB_SUMMARY_METRIC           = "HttpDispatcher"
+      OTHER_SUMMARY_METRIC         = "#{OTHER_TRANSACTION_PREFIX}all"
+      QUEUE_TIME_METRIC            = "WebFrontend/QueueTime"
+
+      APDEX_S                       = "S"
+      APDEX_T                       = "T"
+      APDEX_F                       = "F"
+      APDEX_ALL_METRIC              = "ApdexAll"
+      APDEX_METRIC                  = "Apdex"
+      APDEX_OTHER_METRIC            = "ApdexOther"
+      APDEX_TXN_METRIC_PREFIX       = "Apdex/"
+      APDEX_OTHER_TXN_METRIC_PREFIX = "ApdexOther/Transaction/"
+
+      JRUBY_CPU_TIME_ERROR = "Error calculating JRuby CPU Time"
 
       # reference to the transaction state managing this transaction
       attr_accessor :state
@@ -136,23 +151,22 @@ module NewRelic
 
       def self.nested_transaction_name(name)
         if name.start_with?(CONTROLLER_PREFIX) || name.start_with?(OTHER_TRANSACTION_PREFIX)
-          "#{SUBTRANSACTION_PREFIX}#{name}"
+          "#{NESTED_TRANSACTION_PREFIX}#{name}"
         else
           name
         end
       end
 
-      # Indicate that you don't want to keep the currently saved transaction
-      # information
-      def self.abort_transaction! #THREAD_LOCAL_ACCESS
-        txn = Tracer.current_transaction
-        txn.abort_transaction! if txn
+      # discards the currently saved transaction information
+      def self.abort_transaction!
+        if txn = Tracer.current_transaction
+          txn.abort_transaction!
+        end
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
-      def self.notice_error(e, options={}) #THREAD_LOCAL_ACCESS
-        txn = Tracer.current_transaction
-        if txn
+      def self.notice_error(e, options={})
+        if txn = Tracer.current_transaction
           txn.notice_error(e, options)
         elsif NewRelic::Agent.instance
           NewRelic::Agent.instance.error_collector.notice_error(e, options)
@@ -446,9 +460,9 @@ module NewRelic
 
         nest_initial_segment if nesting_max_depth == 1
         nested_name = self.class.nested_transaction_name options[:transaction_name]
-        result = create_segment nested_name
+        segment = create_segment nested_name
         set_default_transaction_name(options[:transaction_name], category)
-        result
+        segment
       end
 
       def nest_initial_segment
@@ -461,9 +475,6 @@ module NewRelic
       def abort_transaction!
         @ignore_trace = true
       end
-
-      WEB_SUMMARY_METRIC   = 'HttpDispatcher'.freeze
-      OTHER_SUMMARY_METRIC = 'OtherTransaction/all'.freeze
 
       def summary_metrics
         if @frozen_name.start_with?(CONTROLLER_PREFIX)
@@ -666,10 +677,6 @@ module NewRelic
         info[4]
       end
 
-      APDEX_S = 'S'.freeze
-      APDEX_T = 'T'.freeze
-      APDEX_F = 'F'.freeze
-
       def append_apdex_perf_zone(payload)
         if recording_web_transaction?
           bucket = apdex_bucket(duration, apdex_t)
@@ -708,13 +715,21 @@ module NewRelic
           options[:metric]     = best_name
           options[:attributes] = @attributes
 
-          error_recorded = !!agent.error_collector.notice_error(exception, options) || error_recorded
+          span_id = options.delete :span_id
+          error_recorded = !!agent.error_collector.notice_error(exception, options, span_id) || error_recorded
         end
         payload[:error] = error_recorded if payload
       end
 
       # Do not call this.  Invoke the class method instead.
       def notice_error(error, options={}) # :nodoc:
+
+        # Only the last error is kept
+        if @current_segment
+          @current_segment.notice_error error, expected: options[:expected]
+          options[:span_id] = @current_segment.guid
+        end
+
         if @exceptions[error]
           @exceptions[error].merge! options
         else
@@ -725,8 +740,6 @@ module NewRelic
       def record_transaction_event
         agent.transaction_event_recorder.record payload
       end
-
-      QUEUE_TIME_METRIC = 'WebFrontend/QueueTime'.freeze
 
       def queue_time
         @apdex_start ? @start_time - @apdex_start : 0
@@ -743,17 +756,9 @@ module NewRelic
         end
       end
 
-      APDEX_ALL_METRIC   = 'ApdexAll'.freeze
-
-      APDEX_METRIC       = 'Apdex'.freeze
-      APDEX_OTHER_METRIC = 'ApdexOther'.freeze
-
-      APDEX_TXN_METRIC_PREFIX       = 'Apdex/'.freeze
-      APDEX_OTHER_TXN_METRIC_PREFIX = 'ApdexOther/Transaction/'.freeze
-
       def had_error_affecting_apdex?
         @exceptions.each do |exception, options|
-          ignored        = NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
+          ignored = NewRelic::Agent.instance.error_collector.error_is_ignored?(exception)
           expected = options[:expected]
 
           return true unless ignored || expected
@@ -892,7 +897,6 @@ module NewRelic
         p.stime + p.utime
       end
 
-      JRUBY_CPU_TIME_ERROR = "Error calculating JRuby CPU Time".freeze
       def jruby_cpu_time
         return nil unless @@java_classes_loaded
         threadMBean = Java::JavaLangManagement::ManagementFactory.getThreadMXBean()

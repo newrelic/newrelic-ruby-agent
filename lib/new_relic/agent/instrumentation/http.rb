@@ -29,9 +29,12 @@ DependencyDetection.defer do
 
           segment.add_request_headers wrapped_request
 
-          response = perform_without_newrelic_trace(request, options)
+          response = NewRelic::Agent::Tracer.capture_segment_error segment do
+            perform_without_newrelic_trace(request, options)
+          end
+
           wrapped_response = ::NewRelic::Agent::HTTPClients::HTTPResponse.new response
-          segment.read_response_headers wrapped_response
+          segment.process_response_headers wrapped_response
 
           response
         ensure

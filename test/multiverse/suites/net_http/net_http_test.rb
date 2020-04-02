@@ -17,12 +17,25 @@ class NetHttpTest < Minitest::Test
     "Net::HTTP"
   end
 
+  def timeout_error_class
+    Net::ReadTimeout
+  end
+
+  def simulate_error_response
+    Net::HTTP.any_instance.stubs(:transport_request).raises(timeout_error_class.new)
+    get_response
+  end
+
   def get_response(url=nil, headers={})
     uri = default_uri
     uri = URI.parse(url) unless url.nil?
     path = uri.path.empty? ? '/' : uri.path
 
     start(uri) { |http| http.get(path, headers) }
+  end
+
+  def get_wrapped_response url
+    NewRelic::Agent::HTTPClients::NetHTTPResponse.new get_response url
   end
 
   def get_response_multi(url, n)
@@ -80,7 +93,7 @@ class NetHttpTest < Minitest::Test
     headers.each do |k,v|
       response[k] = v
     end
-    response
+    NewRelic::Agent::HTTPClients::NetHTTPResponse.new response
   end
 
   #

@@ -43,7 +43,7 @@ module NewRelic
           end
         end
 
-        def log_with_newrelic_instrumentation(*args, &block) #THREAD_LOCAL_ACCESS
+        def log_with_newrelic_instrumentation(*args, &block)
           state = NewRelic::Agent::Tracer.state
 
           if !state.is_execution_traced?
@@ -78,7 +78,9 @@ module NewRelic
           segment._notice_sql(sql, @config, EXPLAINER)
 
           begin
-            log_without_newrelic_instrumentation(*args, &block)
+            NewRelic::Agent::Tracer.capture_segment_error segment do
+              log_without_newrelic_instrumentation(*args, &block)
+            end
           ensure
             segment.finish if segment
           end

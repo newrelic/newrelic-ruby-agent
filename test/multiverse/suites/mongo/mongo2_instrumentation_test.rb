@@ -9,22 +9,31 @@ require 'helpers/mongo_metric_builder'
 
 if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
     NewRelic::Agent::Datastores::Mongo.is_monitoring_enabled?
+
+  require File.join(File.dirname(__FILE__), 'helpers', 'mongo_helpers')
+
   module NewRelic
     module Agent
       module Instrumentation
         class Mongo2InstrumentationTest < Minitest::Test
           include Mongo
           include TestHelpers::MongoMetricBuilder
+          include NewRelic::MongoHelpers
 
           def setup
+            Mongo::Logger.logger = mongo_logger
             @database_name = "multiverse"
-            @client = Mongo::Client.new(["#{$mongo.host}:#{$mongo.port}"], :database => @database_name)
+            @client = Mongo::Client.new(
+              ["#{$mongo.host}:#{$mongo.port}"], 
+              database: @database_name
+            )
             @database = @client.database
 
-            @collection_name = "tribbles-#{SecureRandom.hex(16)}"
+            @collection_name = "tribbles-#{fake_guid(16)}"
             @collection = @database.collection(@collection_name)
 
             @tribbles = [{'name' => 'soterios johnson', 'count' => 1}, {'name' => 'wes mantooth', 'count' => 2}]
+            @tribble = {:_id => 1, 'name' => 'soterios johnson'}
 
             NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
             NewRelic::Agent.drop_buffered_data
@@ -33,6 +42,40 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           def teardown
             NewRelic::Agent.drop_buffered_data
             @collection.drop
+          end
+
+          def test_noticed_error_at_segment_and_txn_when_violating_unique_contraints
+            expected_error_class = /Mongo\:\:Error/
+            txn = nil
+            begin
+              in_transaction do |db_txn|
+                txn = db_txn
+                @collection.insert_one(@tribble)
+                @collection.insert_one(@tribble)
+              end
+            rescue StandardError => e
+              # NOP -- allowing span and transaction to notice error
+            end
+
+            assert_segment_noticed_error txn, /insert/i, expected_error_class, /duplicate key error/i
+            assert_transaction_noticed_error txn, expected_error_class
+          end
+
+          def test_noticed_error_only_at_segment_when_violating_unique_constraints
+            expected_error_class = /Mongo\:\:Error/
+            txn = nil
+            in_transaction do |db_txn|
+              begin
+                txn = db_txn
+                @collection.insert_one(_id: 1)
+                @collection.insert_one(_id: 1)
+              rescue Mongo::Error::OperationFailure => e
+                # NOP -- allowing ONLY span to notice error
+              end
+            end
+
+            assert_segment_noticed_error txn, /insert/i, expected_error_class, /duplicate key error/i
+            refute_transaction_noticed_error txn, expected_error_class
           end
 
           def test_records_metrics_for_insert_one
@@ -384,7 +427,13 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             #
             result.delete('writeConcern')
 
-            assert_equal expected, result
+            if expected.is_a?(String)
+              assert_equal expected, result
+            else
+              expected.each do |key, value|
+                assert_equal value, result[key]
+              end
+            end
           end
 
           def test_noticed_nosql_includes_operation

@@ -32,7 +32,6 @@ module NewRelic
         end
       end
 
-
       def initialize_ignored_errors(ignore_errors)
         @ignore.clear
         ignore_errors = ignore_errors.split(",") if ignore_errors.is_a? String
@@ -117,14 +116,22 @@ module NewRelic
         NewRelic::LanguageSupport.jruby? && exception.respond_to?(:java_class)
       end
 
-      def exception_tagged?(exception)
+      def exception_tagged_with?(ivar, exception)
         return false if exception_is_java_object?(exception)
-        exception.instance_variable_defined?(EXCEPTION_TAG_IVAR)
+        exception.instance_variable_defined?(ivar)
+      end
+
+      def tag_exception_using(ivar, exception)
+        return if exception_is_java_object?(exception) || exception.frozen?
+        begin
+          exception.instance_variable_set(ivar, true)
+        rescue => e
+          NewRelic::Agent.logger.warn("Failed to tag exception: #{exception}: ", e)
+        end
       end
 
       def tag_exception(exception)
-        return if exception_is_java_object?(exception)
-        return if exception.frozen?
+        return if exception_is_java_object?(exception) || exception.frozen?
         begin
           exception.instance_variable_set(EXCEPTION_TAG_IVAR, true)
         rescue => e
@@ -169,9 +176,9 @@ module NewRelic
 
       def skip_notice_error?(exception)
         disabled? ||
-          error_is_ignored?(exception) ||
-          exception.nil? ||
-          exception_tagged?(exception)
+        error_is_ignored?(exception) ||
+        exception.nil? ||
+        exception_tagged_with?(EXCEPTION_TAG_IVAR, exception)
       end
 
       # calls a method on an object, if it responds to it - used for
@@ -191,8 +198,18 @@ module NewRelic
         sense_method(actual_exception, :backtrace) || '<no stack trace>'
       end
 
+      def notice_segment_error(segment, exception, options={})
+        return if skip_notice_error?(exception)
+
+        segment.set_noticed_error create_noticed_error(exception, options)
+        exception
+      rescue => e
+        ::NewRelic::Agent.logger.warn("Failure when capturing segment error '#{exception}':", e)
+        nil
+      end
+
       # See NewRelic::Agent.notice_error for options and commentary
-      def notice_error(exception, options={}) #THREAD_LOCAL_ACCESS
+      def notice_error(exception, options={}, span_id=nil)
         return if skip_notice_error?(exception)
 
         tag_exception(exception)
@@ -205,8 +222,10 @@ module NewRelic
 
         noticed_error = create_noticed_error(exception, options)
         error_trace_aggregator.add_to_error_queue(noticed_error)
-        payload = state.current_transaction ? state.current_transaction.payload : nil
-        error_event_aggregator.record(noticed_error, payload)
+        transaction = state.current_transaction
+        payload = transaction ? transaction.payload : nil
+        span_id ||= (transaction && transaction.current_segment) ? transaction.current_segment.guid : nil
+        error_event_aggregator.record(noticed_error, payload, span_id)
         exception
       rescue => e
         ::NewRelic::Agent.logger.warn("Failure when capturing error '#{exception}':", e)

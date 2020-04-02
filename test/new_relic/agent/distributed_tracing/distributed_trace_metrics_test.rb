@@ -75,7 +75,7 @@ module NewRelic::Agent
     end
 
     def test_record_metrics_for_transaction_with_payload
-      txn = in_transaction "controller_txn", :category => :controller do |txn|
+      in_transaction "controller_txn", :category => :controller do |txn|
         advance_time 1.0
         DistributedTracing.accept_distributed_trace_headers valid_trace_context_headers, NewRelic::HTTP
         DistributedTraceMetrics.record_metrics_for_transaction txn
@@ -96,7 +96,7 @@ module NewRelic::Agent
     end
 
     def test_record_metrics_for_transaction_with_garbage_transport_type
-      txn = in_transaction "controller_txn", :category => :controller do |txn|
+      in_transaction "controller_txn", :category => :controller do |txn|
         advance_time 1.0
         DistributedTracing.accept_distributed_trace_headers valid_trace_context_headers, "garbage"
         DistributedTraceMetrics.record_metrics_for_transaction txn
@@ -117,7 +117,7 @@ module NewRelic::Agent
     end
 
     def test_record_metrics_for_transaction_with_exception_handling
-      txn = in_transaction "controller_txn", :category => :controller do |txn|
+      in_transaction "controller_txn", :category => :controller do |txn|
         begin
           advance_time 1.0
           DistributedTracing.accept_distributed_trace_headers valid_trace_context_headers, NewRelic::HTTP

@@ -1,26 +1,38 @@
-suite_condition("only test on < 2.4"){ RUBY_VERSION < '2.4.0' }
+if RUBY_VERSION >= '2.3.0'
+  gemfile <<-RB
+    gem 'activemerchant', '~>1.106.0'
+    gem 'rack'
 
-gemfile <<-RB
-  gem 'activemerchant', '~>1.43.1'
-  gem 'rack'
+    gem 'activesupport', '~> 4.2.0'
+    gem 'nokogiri'
+    gem 'minitest', '~> 5.1.0'
 
-  gem 'activesupport', '~>4.0.4'
-  gem 'nokogiri', '~>1.6.1'
+    # Need to load newrelic_rpm after ActiveMerchant Gateways are required
+    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
+  RB
+end
 
-  # Need to load newrelic_rpm after ActiveMerchant Gateways are required
-  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-RB
+if RUBY_VERSION < '2.4.0'
+  gemfile <<-RB
+    gem 'activemerchant', '~>1.43.1'
+    gem 'rack'
 
-gemfile <<-RB
-  gem 'activemerchant', '~>1.25.0'
-  gem 'active_utils', '2.2.3'
-  gem 'rack'
+    gem 'activesupport', '~>4.0.4'
+    gem 'nokogiri', '~>1.6.1'
 
-  gem 'activesupport', '~>4.0.4'
-  gem 'nokogiri', '~>1.5.11'
+    # Need to load newrelic_rpm after ActiveMerchant Gateways are required
+    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
+  RB
 
-  # Need to load newrelic_rpm after ActiveMerchant Gateways are required
-  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-RB
+  gemfile <<-RB
+    gem 'activemerchant', '~>1.25.0'
+    gem 'active_utils', '2.2.3'
+    gem 'rack'
 
-# vim: ft=ruby
+    gem 'activesupport', '~>4.0.4'
+    gem 'nokogiri', '~>1.5.11'
+
+    # Need to load newrelic_rpm after ActiveMerchant Gateways are required
+    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
+  RB
+end

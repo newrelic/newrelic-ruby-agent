@@ -19,7 +19,7 @@ module NewRelic
 
         def teardown
           NewRelic::Agent.config.remove_config(@additional_config)
-          NewRelic::Agent.drop_buffered_data
+          reset_buffers_and_caches
         end
 
         def test_logs_warning_if_a_non_hash_arg_is_passed_to_add_custom_span_attributes
@@ -35,6 +35,46 @@ module NewRelic
               NewRelic::Agent.add_custom_span_attributes(:failure => "is an option")
               assert_empty attributes_for(segment, :custom)
             end
+          end
+        end
+
+        def test_records_error_attributes_on_segment
+          test_segment, _error = capture_segment_with_error
+          current_noticed_error = test_segment.noticed_error
+
+          assert current_noticed_error, "expected noticed_error to not be nil"
+
+          test_segment.noticed_error.build_error_attributes
+          attributes = test_segment.noticed_error_attributes
+          assert attributes, "expected noticed_error_attributes to not be nil"
+
+          refute_empty attributes
+          assert_equal "oops!", attributes["error.message"]
+          assert_equal "RuntimeError", attributes["error.class"]
+        end
+
+        def test_segment_with_no_error_does_not_produce_error_attributes
+          segment, _ = with_segment do |segment|
+            # A perfectly fine walk through segmentland
+          end
+          refute segment.noticed_error_attributes
+        end
+
+        def test_segment_has_error_attributes_after_error
+          segment, _error = capture_segment_with_error
+          refute_empty segment.noticed_error_attributes
+        end
+
+        def test_nested_segment_has_error_attributes_after_error
+          nested_segment, parent_segment, _error = capture_nested_segment_with_error
+          refute parent_segment.noticed_error_attributes
+          refute_empty nested_segment.noticed_error_attributes
+        end
+
+        def test_ignores_error_attributes_when_in_high_security
+          with_config(:high_security => true) do
+            segment, _error = capture_segment_with_error
+            assert_empty attributes_for(segment, :agent)
           end
         end
 
@@ -233,6 +273,29 @@ module NewRelic
             file_descriptors.map { |fd| IO::new(fd).close }
           end
         end
+
+        private 
+
+        # Similar to capture_segment_with_error, but we're capturing 
+        # a child/nested segment within which we raise an error
+        def capture_nested_segment_with_error
+          begin
+            segment_with_error = nil
+            parent_segment = nil
+            with_segment do |segment|
+              parent_segment = segment
+              segment_with_error = Tracer.start_segment(name: "nested_test", parent: segment)
+              raise "oops!"
+            end            
+          rescue Exception => exception
+            segment_with_error.finish
+            assert segment_with_error, "expected to have a segment_with_error"
+            build_deferred_error_attributes segment_with_error
+            refute_equal parent_segment, segment_with_error
+            return segment_with_error, parent_segment, exception
+          end
+        end
+
       end
     end
   end

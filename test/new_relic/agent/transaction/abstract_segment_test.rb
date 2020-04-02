@@ -26,6 +26,13 @@ module NewRelic
           NewRelic::Agent.drop_buffered_data
         end
 
+        def test_segment_notices_error
+          with_segment do |segment|
+            segment.notice_error RuntimeError.new "notice me!"
+            assert segment.noticed_error, "Expected an error to be noticed"
+          end
+        end
+
         def test_segment_is_nameable
           segment = BasicSegment.new  "Custom/basic/segment"
           assert_equal "Custom/basic/segment", segment.name

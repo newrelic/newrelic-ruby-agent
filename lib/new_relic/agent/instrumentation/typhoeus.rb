@@ -60,16 +60,27 @@ module NewRelic
     module Instrumentation
       module TyphoeusTracing
 
-        HYDRA_SEGMENT_NAME = "External/Multiple/Typhoeus::Hydra/run"
-
+        HYDRA_SEGMENT_NAME    = "External/Multiple/Typhoeus::Hydra/run"
+        NOTICIBLE_ERROR_CLASS = "Typhoeus::Errors::TyphoeusError"
+      
         EARLIEST_VERSION = Gem::Version.new("0.5.3")
-
         def self.is_supported_version?
           Gem::Version.new(Typhoeus::VERSION) >= NewRelic::Agent::Instrumentation::TyphoeusTracing::EARLIEST_VERSION
         end
 
         def self.request_is_hydra_enabled?(request)
           request.respond_to?(:hydra) && request.hydra
+        end
+
+        def self.response_message(response)
+          if response.respond_to?(:response_message)
+            response.response_message
+          elsif response.respond_to?(:return_message)
+            response.return_message
+          else
+            # 0.5.4 seems to have lost xxxx_message methods altogether.
+            "timeout" 
+          end
         end
 
         def self.trace(request)
@@ -92,8 +103,14 @@ module NewRelic
           segment.add_request_headers wrapped_request
 
           callback = Proc.new do
-            wrapped_response = ::NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new(request.response)
-            segment.read_response_headers wrapped_response
+            wrapped_response = HTTPClients::TyphoeusHTTPResponse.new(request.response)
+
+            segment.process_response_headers wrapped_response
+
+            if request.response.code == 0
+              segment.notice_error NoticibleError.new NOTICIBLE_ERROR_CLASS, response_message(request.response)
+            end
+           
             segment.finish if segment
           end
           request.on_complete.unshift(callback)

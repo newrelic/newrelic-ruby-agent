@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require File.expand_path('../../../../test_helper', __FILE__)
+require File.expand_path '../../../../test_helper', __FILE__
 require 'new_relic/agent/instrumentation/sinatra'
 
 class NewRelic::Agent::Instrumentation::SinatraTest < Minitest::Test

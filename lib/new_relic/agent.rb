@@ -30,6 +30,7 @@ module NewRelic
     require 'new_relic/metric_spec'
     require 'new_relic/metric_data'
     require 'new_relic/noticed_error'
+    require 'new_relic/agent/noticible_error'
     require 'new_relic/supportability_helper'
 
     require 'new_relic/agent/encoding_normalizer'
@@ -671,8 +672,8 @@ module NewRelic
     # @param [String] method the name of the finder method or other method to
     # identify the operation with.
     #
-    def with_database_metric_name(model, method = nil, product = nil, &block) #THREAD_LOCAL_ACCESS
-      if txn = Transaction.tl_current
+    def with_database_metric_name(model, method = nil, product = nil, &block)
+      if txn = Tracer.current_transaction
         txn.with_database_metric_name(model, method, product, &block)
       else
         yield

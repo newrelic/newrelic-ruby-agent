@@ -27,7 +27,7 @@ module NewRelic
         end
 
         begin
-          yield
+          Tracer.capture_segment_error(segment) { yield }
         ensure
           segment.finish if segment
         end

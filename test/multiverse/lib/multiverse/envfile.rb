@@ -25,8 +25,12 @@ module Multiverse
       @condition = block
     end
 
+    def strip_leading_spaces content
+      content.split("\n").map(&:strip).join("\n") << "\n"
+    end
+
     def gemfile(content)
-      @gemfiles.push content
+      @gemfiles.push strip_leading_spaces(content)
     end
 
     def omit_collector!
