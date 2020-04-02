@@ -25,6 +25,12 @@
     reliant on Rack. We recommend using either Rack <= 2.0.9, or using latest Rack when using Grape
     (2.2.2 at the time of this writing).
 
+  * **Bugfix: Cross Application Tracing (CAT) adds a missing field to response
+
+    Previously, the CAT header was missing a reserved field that would lead to an error
+    in the Go Agent's processing of incoming headers from the Ruby Agent.  This fix 
+    adds that missing field to the headers.  
+    
   * **Bugfix: Calculate Content-Length in bytes**
 
     Previously, the Content-Length HTTP header would be incorrect after injecting the Browser Monitoring
