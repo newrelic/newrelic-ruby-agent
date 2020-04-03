@@ -25,13 +25,13 @@ DependencyDetection.defer do
           else
             self.class.default_trace_args(msg)
           end
-          trace_info = msg.delete("newrelic")
+          trace_headers = msg.delete(NewRelic::NEWRELIC_KEY)
           
           perform_action_with_newrelic_trace(trace_args) do
             NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(msg['args'], :'job.sidekiq.args',
               NewRelic::Agent::AttributeFilter::DST_NONE)
-              
-            ::NewRelic::Agent::DistributedTracing.accept_distributed_trace_payload(trace_info) if trace_info
+
+            ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, "Other")
             yield
           end
         end
@@ -46,11 +46,15 @@ DependencyDetection.defer do
       end
       class Client
         def call(_worker_class, job, *_)
-          distributed_trace_payload = ::NewRelic::Agent::DistributedTracing.create_distributed_trace_payload
-          distributed_trace_payload = distributed_trace_payload.http_safe if distributed_trace_payload
-          job["newrelic"] = distributed_trace_payload
+          job[NewRelic::NEWRELIC_KEY] = distributed_tracing_headers
           yield
-        end 
+        end
+
+        def distributed_tracing_headers
+          headers = {}
+          ::NewRelic::Agent::DistributedTracing.insert_distributed_trace_headers(headers)
+          headers
+        end
       end
     end
 
