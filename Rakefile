@@ -2,6 +2,7 @@ require 'rubygems'
 require 'rake/testtask'
 require 'yard'
 require "#{File.dirname(__FILE__)}/lib/tasks/all.rb"
+require "#{File.dirname(__FILE__)}/infinite_tracing/tasks/all.rb"
 
 YARD::Rake::YardocTask.new
 
@@ -136,3 +137,4 @@ task :console do
   ARGV.clear
   Pry.start
 end
+
