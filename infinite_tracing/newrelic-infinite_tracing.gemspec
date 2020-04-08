@@ -1,39 +1,48 @@
 #-*- coding: utf-8 -*-
+# frozen_string_literal: true
+
+agent_lib = File.expand_path('../../lib', __FILE__)
+$LOAD_PATH.unshift(agent_lib) unless $LOAD_PATH.include?(agent_lib)
 
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+
 require 'new_relic/version'
-require 'new_relic/latest_changes'
 
 Gem::Specification.new do |s|
-  s.name = "newrelic_rpm"
+  s.name = "newrelic-infinite_tracing"
   s.version = NewRelic::VERSION::STRING
-  s.required_ruby_version = '>= 2.0.0'
+  s.required_ruby_version = '>= 2.3.0'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = [ "Chris Pine", "Rachel Klein", "Tanna McClure", "Michael Lang" ]
+  s.authors = [ "Rachel Klein", "Tanna McClure", "Michael Lang" ]
   s.date = Time.now.strftime('%Y-%m-%d')
-  s.licenses    = ['New Relic']
+  s.licenses = ['New Relic']
   s.description = <<-EOS
+The New Relic Ruby agent requires the gem newrelic_rpm, and it includes distributed 
+tracing that uses head-based sampling (standard distributed tracing). 
+
+If you want distributed tracing to use tail-based sampling (Infinite Tracing), 
+you need to add both newrelic_rpm and newrelic-infinite_tracing to your application's 
+Gemfile.  For more information, see: https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/get-started/introduction-distributed-tracing
+
 New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
-in production. The New Relic Ruby agent is dual-purposed as a either a
-Gem or plugin, hosted on
-https://github.com/newrelic/rpm/
+in production. The New Relic Ruby Agent is dual-purposed as a either a
+Gem or plugin, hosted on https://github.com/newrelic/rpm/
 EOS
+
   s.email = "support@newrelic.com"
-  s.executables = [ "mongrel_rpm", "newrelic_cmd", "newrelic", "nrdebug" ]
+  s.executables = []
   s.extra_rdoc_files = [
     "CHANGELOG.md",
     "LICENSE",
-    "README.md",
-    "CONTRIBUTING.md",
-    "newrelic.yml"
+    "README.md"
   ]
 
   s.metadata = {
     'bug_tracker_uri' => 'https://support.newrelic.com/',
-    'changelog_uri' => 'https://github.com/newrelic/rpm/blob/master/CHANGELOG.md',
+    'changelog_uri' => 'https://github.com/newrelic/rpm/blob/master/infinite_tracing/CHANGELOG.md',
     'documentation_uri' => 'https://docs.newrelic.com/docs/agents/ruby-agent',
     'source_code_uri' => 'https://github.com/newrelic/rpm'
   }
@@ -43,10 +52,10 @@ EOS
   file_list << build_file_path if File.exist?(build_file_path)
   s.files = file_list
 
-  s.homepage = "https://github.com/newrelic/rpm"
+  s.homepage = "https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/get-started/introduction-distributed-tracing"
   s.require_paths = ["lib"]
   s.rubygems_version = Gem::VERSION
-  s.summary = "New Relic Ruby Agent"
+  s.summary = "New Relic Infinite Tracing for the Ruby agent"
 
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'rb-inotify', '0.9.10'   # locked to support < Ruby 2.3 (and listen 3.0.8)
