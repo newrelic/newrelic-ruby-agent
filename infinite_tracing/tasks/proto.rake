@@ -5,7 +5,7 @@ namespace :proto do
     output_path = File.expand_path(File.join(File.dirname(__FILE__), '..', 'proto'))
     proto_path = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 
-    cmd = "protoc --ruby_out=#{output_path} #{proto_file} --proto_path=#{proto_path}"
+    cmd = "grpc_tools_ruby_protoc -I #{proto_path} --ruby_out=#{output_path} --grpc_out=#{output_path} #{proto_file}"
     success = system(cmd)
 
     if success

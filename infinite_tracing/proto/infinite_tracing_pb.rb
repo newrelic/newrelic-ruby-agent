@@ -29,9 +29,9 @@ module Com
   module Newrelic
     module Trace
       module V1
-        Span = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("com.newrelic.trace.v1.Span").msgclass
-        AttributeValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("com.newrelic.trace.v1.AttributeValue").msgclass
-        RecordStatus = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("com.newrelic.trace.v1.RecordStatus").msgclass
+        Span = Google::Protobuf::DescriptorPool.generated_pool.lookup("com.newrelic.trace.v1.Span").msgclass
+        AttributeValue = Google::Protobuf::DescriptorPool.generated_pool.lookup("com.newrelic.trace.v1.AttributeValue").msgclass
+        RecordStatus = Google::Protobuf::DescriptorPool.generated_pool.lookup("com.newrelic.trace.v1.RecordStatus").msgclass
       end
     end
   end
