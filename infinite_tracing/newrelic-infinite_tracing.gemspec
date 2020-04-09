@@ -52,8 +52,8 @@ EOS
   file_list << build_file_path if File.exist?(build_file_path)
   s.files = file_list
 
-  s.homepage = "https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/get-started/introduction-distributed-tracing"
-  s.require_paths = ["lib"]
+  s.homepage = "https://github.com/newrelic/rpm/tree/master/infinite_tracing"
+  s.require_paths = ["lib", "infinite_tracing"]
   s.rubygems_version = Gem::VERSION
   s.summary = "New Relic Infinite Tracing for the Ruby agent"
 
@@ -69,4 +69,6 @@ EOS
   s.add_development_dependency 'guard-minitest', '~> 2.4.0'
   s.add_development_dependency 'hometown', '~> 0.2.5'
   s.add_development_dependency 'bundler'
+
+  s.add_dependency 'grpc', '1.27.0'
 end

@@ -38,7 +38,7 @@ EOS
     'source_code_uri' => 'https://github.com/newrelic/rpm'
   }
 
-  file_list = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/(?!agent_helper.rb)}) }
+  file_list = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features|infinite_tracing)/(?!agent_helper.rb)}) }
   build_file_path = 'lib/new_relic/build.rb'
   file_list << build_file_path if File.exist?(build_file_path)
   s.files = file_list
