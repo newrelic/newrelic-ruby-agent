@@ -7,6 +7,9 @@ $LOAD_PATH.unshift(agent_lib) unless $LOAD_PATH.include?(agent_lib)
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
+proto = File.expand_path('../proto', __FILE__)
+$LOAD_PATH.unshift(proto) unless $LOAD_PATH.include?(proto)
+
 require 'new_relic/version'
 
 Gem::Specification.new do |s|
