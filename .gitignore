@@ -28,3 +28,4 @@ lib/new_relic/build.rb
 artifacts/
 test/performance/log/
 test/performance/script/log/
+infinite_tracing/log/
