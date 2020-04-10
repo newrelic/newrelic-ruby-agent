@@ -1,3 +1,7 @@
 source 'https://rubygems.org'
 
-gemspec
+gemspec name: "newrelic-infinite_tracing"
+
+group :development do
+  gem 'newrelic_rpm', path: '..'
+end

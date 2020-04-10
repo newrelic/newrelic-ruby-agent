@@ -13,6 +13,24 @@ $LOAD_PATH.unshift(proto) unless $LOAD_PATH.include?(proto)
 require 'new_relic/version'
 
 Gem::Specification.new do |s|
+
+  def self.copy_files filelist
+    subfolder = File.expand_path File.dirname(__FILE__)
+
+    filelist.each do |filename|
+      source_full_filename = File.expand_path(filename)
+      dest_full_filename = File.join(subfolder, File.basename(filename))
+      FileUtils.cp source_full_filename, dest_full_filename
+    end
+  end
+
+  shared_files = [
+    "../LICENSE",
+    "../CONTRIBUTING.md",
+  ]
+
+  self.copy_files shared_files
+
   s.name = "newrelic-infinite_tracing"
   s.version = NewRelic::VERSION::STRING
   s.required_ruby_version = '>= 2.3.0'
@@ -44,21 +62,22 @@ EOS
   ]
 
   s.metadata = {
-    'bug_tracker_uri' => 'https://support.newrelic.com/',
-    'changelog_uri' => 'https://github.com/newrelic/rpm/blob/master/infinite_tracing/CHANGELOG.md',
+    'bug_tracker_uri'   => 'https://support.newrelic.com/',
+    'changelog_uri'     => 'https://github.com/newrelic/rpm/blob/master/infinite_tracing/CHANGELOG.md',
     'documentation_uri' => 'https://docs.newrelic.com/docs/agents/ruby-agent',
-    'source_code_uri' => 'https://github.com/newrelic/rpm'
+    'source_code_uri'   => 'https://github.com/newrelic/rpm'
   }
 
-  file_list = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/(?!agent_helper.rb)}) }
-  build_file_path = 'lib/new_relic/build.rb'
-  file_list << build_file_path if File.exist?(build_file_path)
+  file_list = `git ls-files . -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/(?!agent_helper.rb)}) }
   s.files = file_list
 
   s.homepage = "https://github.com/newrelic/rpm/tree/master/infinite_tracing"
   s.require_paths = ["lib", "infinite_tracing"]
   s.rubygems_version = Gem::VERSION
   s.summary = "New Relic Infinite Tracing for the Ruby agent"
+
+  s.add_dependency 'newrelic_rpm', NewRelic::VERSION::STRING
+  s.add_dependency 'grpc', '1.27.0'
 
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'rb-inotify', '0.9.10'   # locked to support < Ruby 2.3 (and listen 3.0.8)
@@ -73,5 +92,5 @@ EOS
   s.add_development_dependency 'hometown', '~> 0.2.5'
   s.add_development_dependency 'bundler'
 
-  s.add_dependency 'grpc', '1.27.0'
+  s.add_development_dependency 'grpc-tools', "~> 1.14.0"
 end

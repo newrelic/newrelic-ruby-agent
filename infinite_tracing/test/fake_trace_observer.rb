@@ -1,6 +1,8 @@
-#!/usr/bin/env ruby
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'infinite_tracing_services_pb'
+require 'test_helper'
 
 class FakeTraceObserver < Com::Newrelic::Trace::V1::IngestService::Service
   def initialize

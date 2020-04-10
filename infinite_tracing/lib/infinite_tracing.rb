@@ -2,5 +2,4 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-source 'https://rubygems.org'
-gemspec name: "newrelic_rpm"
+require 'infinite_tracing/proto'

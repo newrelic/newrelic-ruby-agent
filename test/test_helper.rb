@@ -9,7 +9,6 @@ ENV['RAILS_ENV'] = 'test'
 
 $: << File.expand_path('../../lib', __FILE__)
 $: << File.expand_path('../../test', __FILE__)
-$: << File.expand_path('../../ui/helpers', __FILE__) # TODO remove after #1493 merges
 $:.uniq!
 
 require 'rubygems'
