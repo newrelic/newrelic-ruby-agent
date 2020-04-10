@@ -7,9 +7,8 @@ module NewRelic; TEST = true; end unless defined? NewRelic::TEST
 
 ENV['RAILS_ENV'] = 'test'
 
-# $: << File.expand_path('../../lib', __FILE__)
-# $: << File.expand_path('../../test', __FILE__)
-# $:.uniq!
+agent_test_path = File.expand_path('../../../test', __FILE__)
+$LOAD_PATH << agent_test_path
 
 require 'rubygems'
 require 'rake'

@@ -3,5 +3,6 @@ source 'https://rubygems.org'
 gemspec name: "newrelic-infinite_tracing"
 
 group :development do
+  gem 'minitest', '~>4.7.5'
   gem 'newrelic_rpm', path: '..'
 end
