@@ -14,16 +14,16 @@ task :console do
   Pry.start
 end
 
+namespace :test do
+  Rake::TestTask.new do |t|
+    ROOT = File.join File.dirname(__FILE__)
+    $LOAD_PATH << ROOT
 
-Rake::TestTask.new do |t|
-  
-  ROOT = File.join File.dirname(__FILE__)
-  $LOAD_PATH << ROOT
+    file_pattern = "#{ROOT}/**/*_test.rb"
 
-  file_pattern = "#{ROOT}/**/*_test.rb"
-
-  t.libs << "#{ROOT}/test"
-  t.libs << "#{ROOT}/lib"
-  t.pattern = Array(file_pattern).join(",")
-  t.verbose = ENV["VERBOSE"]
+    t.libs << "#{ROOT}/test"
+    t.libs << "#{ROOT}/lib"
+    t.pattern = Array(file_pattern).join(",")
+    t.verbose =  ENV["VERBOSE"]
+  end
 end
