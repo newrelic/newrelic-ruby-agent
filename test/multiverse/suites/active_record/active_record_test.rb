@@ -479,7 +479,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
         Order.first
       end
     end
-    assert_nil last_transaction_trace
+    refute last_transaction_trace
     assert_metrics_recorded_exclusive([
       "Supportability/API/disable_all_tracing",
       "Supportability/API/drop_buffered_data"

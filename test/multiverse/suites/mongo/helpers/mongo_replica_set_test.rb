@@ -52,7 +52,7 @@ class MongoReplicaSetTest < Test::Unit::TestCase
   def test_config_returns_nil_unless_servers_are_running
     @replica.start
     @replica.stop
-    assert_nil @replica.config
+    refute @replica.config
   end
 
   def test_started_replica_set_servers_have_unique_ports

@@ -23,7 +23,7 @@ class PipeManagerTest < Minitest::Test
     sleep 2
     @listener.start
     sleep 0.5 # give the thread some time to start, and clean things up
-    assert_nil NewRelic::Agent::PipeChannelManager.channels[:timeout_test]
+    refute NewRelic::Agent::PipeChannelManager.channels[:timeout_test]
   end
 
   def test_pipes_are_regularly_checked_for_freshness
@@ -36,6 +36,6 @@ class PipeManagerTest < Minitest::Test
     assert NewRelic::Agent::PipeChannelManager.channels[:select_test]
 
     sleep 1.5
-    assert_nil NewRelic::Agent::PipeChannelManager.channels[:select_test]
+    refute NewRelic::Agent::PipeChannelManager.channels[:select_test]
   end
 end
