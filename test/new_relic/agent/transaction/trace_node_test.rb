@@ -16,8 +16,8 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     t = Time.now
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', t)
     assert_equal(t, s.entry_timestamp)
-    assert_equal(nil, s.exit_timestamp)
-    assert_equal(nil, s.parent_node)
+    assert_nil(s.exit_timestamp)
+    assert_nil(s.parent_node)
     assert_equal('Custom/test/metric', s.metric_name)
   end
 
@@ -309,14 +309,14 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
   def test_children_equals
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Time.now)
-    assert_equal(nil, s.instance_eval { @children })
+    assert_nil(s.instance_eval { @children })
     s.children = [1, 2, 3]
     assert_equal([1, 2, 3], s.instance_eval { @children })
   end
 
   def test_parent_node_equals
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Time.now)
-    assert_equal(nil, s.parent_node)
+    assert_nil(s.parent_node)
     fake_node = mock('node')
     s.send(:parent_node=, fake_node)
     assert_equal(fake_node, s.parent_node)

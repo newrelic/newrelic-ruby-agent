@@ -257,7 +257,7 @@ module NewRelic
     end
 
     def test_get_transaction_name_returns_nil_outside_transaction
-      assert_equal nil, NewRelic::Agent.get_transaction_name
+      assert_nil NewRelic::Agent.get_transaction_name
     end
 
     def test_get_transaction_name_returns_the_default_txn_name
@@ -419,7 +419,7 @@ module NewRelic
       begin
         raise "WTF"
       rescue => e
-        assert_equal nil, ::NewRelic::Agent.notice_error(e)
+        assert_nil ::NewRelic::Agent.notice_error(e)
       end
     end
 

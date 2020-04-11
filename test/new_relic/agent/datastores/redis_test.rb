@@ -40,7 +40,7 @@ class NewRelic::Agent::Datastores::RedisTest < Minitest::Test
   def test_format_command_with_record_arguments_false
     with_config(:'transaction_tracer.record_redis_arguments' => false) do
       result = NewRelic::Agent::Datastores::Redis.format_command([:set, 'foo', 'bar'])
-      assert_equal nil, result
+      assert_nil result
     end
   end
 

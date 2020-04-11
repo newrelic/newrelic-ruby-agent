@@ -170,7 +170,7 @@ module NewRelic::Agent::DistributedTracing
       trace_context_header_data = TraceContext.parse format: NewRelic::FORMAT_NON_RACK,
                                              carrier: carrier,
                                              trace_state_entry_key: "190@nr"
-      assert_equal nil, trace_context_header_data.trace_state_payload
+      assert_nil trace_context_header_data.trace_state_payload
       assert_equal 'new=entry,other=asdf', trace_context_header_data.trace_state('new=entry')
     end
 

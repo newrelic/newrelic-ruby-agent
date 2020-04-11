@@ -82,7 +82,7 @@ EOS
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'rb-inotify', '0.9.10'   # locked to support < Ruby 2.3 (and listen 3.0.8)
   s.add_development_dependency 'listen', '3.0.8'        # locked to support < Ruby 2.3
-  s.add_development_dependency 'minitest', '~> 4.7.5'
+  s.add_development_dependency 'minitest', '~> 5.11.3'
   s.add_development_dependency 'mocha', '~> 1.9.0'
   s.add_development_dependency 'yard'
   s.add_development_dependency 'pry-nav', '~> 0.3.0'

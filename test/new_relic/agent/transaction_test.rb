@@ -851,7 +851,7 @@ module NewRelic::Agent
       in_transaction do |txn|
         txn.instance_variable_set(:@process_cpu_start, nil)
         txn.expects(:process_cpu).never
-        assert_equal nil, txn.normal_cpu_burn
+        assert_nil txn.normal_cpu_burn
       end
     end
 
@@ -859,7 +859,7 @@ module NewRelic::Agent
       in_transaction do |txn|
         txn.instance_variable_set(:@jruby_cpu_start, nil)
         txn.expects(:jruby_cpu_time).never
-        assert_equal nil, txn.jruby_cpu_burn
+        assert_nil txn.jruby_cpu_burn
       end
     end
 

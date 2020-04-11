@@ -35,9 +35,9 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
       define_method("test_#{File.basename(file)}") do
         cpuinfo = File.read(file)
         info = @sysinfo.parse_cpuinfo(cpuinfo)
-        assert_equal(nil, info[:num_physical_package])
-        assert_equal(nil, info[:num_physical_cores])
-        assert_equal(nil, info[:num_logical_processors])
+        assert_nil(info[:num_physical_package])
+        assert_nil(info[:num_physical_cores])
+        assert_nil(info[:num_logical_processors])
       end
     else
       fail "Bad filename: #{file}"

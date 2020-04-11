@@ -212,7 +212,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       data.sql_data.concat(queries)
       @sampler.save_slow_sql data
       sql_traces = @sampler.harvest!
-      assert_equal(nil, sql_traces[0].params[:explain_plan])
+      assert_nil(sql_traces[0].params[:explain_plan])
     end
   end
 
