@@ -18,6 +18,11 @@ require 'mocha/setup'
 
 require 'newrelic_rpm'
 
+unless defined?(Minitest::Test)
+  Minitest::Test = MiniTest::Unit::TestCase
+end
+
 # This is the public method recommended for plugin developers to share our
 # agent helpers. Use it so we don't accidentally break it.
 NewRelic::Agent.require_test_helper
+
