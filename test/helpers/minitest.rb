@@ -30,9 +30,7 @@ class Minitest::Test
 
     threads = ruby_threads
     if @__thread_count != threads.count
-      puts "*" * 80
-      puts "originally: #{@__threads.inspect}"
-      puts "*" * 80
+      puts "", "=" * 80, "originally: #{@__threads.inspect}", "=" * 80
       backtraces = threads.map do |thread|
         trace = Hometown.for(thread)
         trace.backtrace.join("\n    ")

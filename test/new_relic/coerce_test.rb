@@ -78,7 +78,7 @@ class CoerceTest < Minitest::Test
     assert_equal "string", string("string")
     assert_equal "1/100",  string(Rational(1, 100))
     assert_equal "yeah",   string(:yeah)
-    assert_nil      string(nil)
+    assert_nil             string(nil)
     assert_equal "",       string(Unstringable.new)
   end
 

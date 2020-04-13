@@ -376,6 +376,10 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     ]
 
     encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
-    assert_equal expected, @trace.to_collector_array(encoder)[indices.index(key)]
+    if expected.nil?
+      assert_nil @trace.to_collector_array(encoder)[indices.index(key)]
+    else
+      assert_equal expected, @trace.to_collector_array(encoder)[indices.index(key)]
+    end
   end
 end
