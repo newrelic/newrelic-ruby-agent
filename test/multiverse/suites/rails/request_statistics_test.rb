@@ -81,7 +81,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
 
       post = $collector.calls_for('analytic_event_data').first
 
-      refute post
+      refute_nil post
       assert_kind_of Array, post.events
       assert_kind_of Array, post.events.first
 
