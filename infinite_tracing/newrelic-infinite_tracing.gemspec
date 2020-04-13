@@ -39,11 +39,11 @@ Gem::Specification.new do |s|
   s.date = Time.now.strftime('%Y-%m-%d')
   s.licenses = ['New Relic']
   s.description = <<-EOS
-The New Relic Ruby agent requires the gem newrelic_rpm, and it includes distributed 
-tracing that uses head-based sampling (standard distributed tracing). 
+The New Relic Ruby agent requires the gem newrelic_rpm, and it includes distributed
+tracing that uses head-based sampling (standard distributed tracing).
 
-If you want distributed tracing to use tail-based sampling (Infinite Tracing), 
-you need to add both newrelic_rpm and newrelic-infinite_tracing to your application's 
+If you want distributed tracing to use tail-based sampling (Infinite Tracing),
+you need to add both newrelic_rpm and newrelic-infinite_tracing to your application's
 Gemfile.  For more information, see: https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/get-started/introduction-distributed-tracing
 
 New Relic is a performance management system, developed by New Relic,
@@ -77,7 +77,7 @@ EOS
   s.summary = "New Relic Infinite Tracing for the Ruby agent"
 
   s.add_dependency 'newrelic_rpm', NewRelic::VERSION::STRING
-  s.add_dependency 'grpc', '1.27.0'
+  s.add_dependency 'grpc', '1.28.0'
 
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'rb-inotify', '0.9.10'   # locked to support < Ruby 2.3 (and listen 3.0.8)

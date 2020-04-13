@@ -232,7 +232,5 @@ matrix:
       env: TYPE=FUNCTIONAL GROUP=infinite_tracing
     - rvm: 2.2.8
       env: TYPE=FUNCTIONAL GROUP=infinite_tracing
-    - rvm: 2.7.0
-      env: TYPE=FUNCTIONAL GROUP=infinite_tracing
     - rvm: jruby-9.2.6.0
       env: TYPE=FUNCTIONAL GROUP=infinite_tracing
