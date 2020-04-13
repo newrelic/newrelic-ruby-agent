@@ -20,9 +20,8 @@ namespace :proto do
       license_terms = extract_license_terms File.readlines(File.join(gemspec_path, "Gemfile"))
       Dir.glob(File.join output_path, "*.rb") do |filename|
         contents = File.readlines filename
-        contents.select{|s| s =~ /^\s*require\s.*$/}.each{ |c| puts c }
         contents.reject!{|r| r =~ /^\s*require\s.*$/}
-        File.open(filename, 'w') do |output| 
+        File.open(filename, 'w') do |output|
           output.puts license_terms
           output.puts contents
         end
@@ -40,7 +39,7 @@ namespace :proto do
       "--ruby_out=#{output_path}",
       "--grpc_out=#{output_path} #{proto_filename}"
     ].join(" ")
-   
+
     if system cmd
       puts "Proto file generated!"
       add_license_preamble_and_remove_requires output_path
