@@ -95,6 +95,7 @@ env:
     - TYPE=FUNCTIONAL GROUP=sinatra
     - TYPE=FUNCTIONAL GROUP=rest
     - TYPE=FUNCTIONAL GROUP=background_2
+    - TYPE=FUNCTIONAL GROUP=infinite_tracing
     - TYPE=NULLVERSE
 
 matrix:
@@ -223,3 +224,13 @@ matrix:
       env: TYPE=UNIT ENVIRONMENT=rails60
     - rvm: jruby-9.2.6.0
       env: TYPE=UNIT ENVIRONMENT=rails52
+
+    # Excluding unsupported Rubies for grpc
+    - rvm: 2.0.0-p648
+      env: TYPE=FUNCTIONAL GROUP=infinite_tracing
+    - rvm: 2.1.10
+      env: TYPE=FUNCTIONAL GROUP=infinite_tracing
+    - rvm: 2.2.8
+      env: TYPE=FUNCTIONAL GROUP=infinite_tracing
+    - rvm: jruby-9.2.6.0
+      env: TYPE=FUNCTIONAL GROUP=infinite_tracing

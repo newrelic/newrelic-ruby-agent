@@ -68,7 +68,7 @@ class IgnoredActionsTest < ActionDispatch::IntegrationTest
   def test_should_not_write_cat_response_headers_for_ignored_transactions
     get '/ignored/action_to_ignore',
       headers: {'X-NewRelic-ID' => Base64.encode64('1#234')}
-    assert_nil @response.headers["X-NewRelic-App-Data"]
+    refute @response.headers["X-NewRelic-App-Data"]
   end
 
   def test_apdex_ignored_if_ignored_in_parent_class

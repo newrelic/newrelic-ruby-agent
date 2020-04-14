@@ -53,7 +53,11 @@ module NewRelic::Agent::Configuration
       default_values = @default_source.default_values
 
       @defaults.each do |key, value|
-        assert_equal value[:default], default_values[key]
+        if value[:default].nil?
+          assert_nil default_values[key]
+        else
+          assert_equal value[:default], default_values[key]
+        end
       end
     end
 

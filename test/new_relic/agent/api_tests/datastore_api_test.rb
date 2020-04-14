@@ -51,17 +51,41 @@ module NewRelic
         trace = last_transaction_trace
         segment = find_node_with_name trace, segment_name
 
-        assert_equal host, segment[:host]
-        assert_equal port_path_or_id, segment[:port_path_or_id]
-        assert_equal database_name, segment[:database_name]
+        if host.nil?
+          assert_nil segment[:host]
+        else
+          assert_equal host, segment[:host]
+        end
+        if port_path_or_id.nil?
+          assert_nil segment[:port_path_or_id]
+        else
+          assert_equal port_path_or_id, segment[:port_path_or_id]
+        end
+        if database_name.nil?
+          assert_nil segment[:database_name]
+        else
+          assert_equal database_name, segment[:database_name]
+        end
       end
 
       def assert_expected_slow_sql_params host, port_path_or_id, database_name
         sql_trace = last_sql_trace
 
-        assert_equal host, sql_trace.params[:host]
-        assert_equal port_path_or_id, sql_trace.params[:port_path_or_id]
-        assert_equal database_name, sql_trace.params[:database_name]
+        if host.nil?
+          assert_nil sql_trace.params[:host]
+        else
+          assert_equal host, sql_trace.params[:host]
+        end
+        if port_path_or_id.nil?
+          assert_nil sql_trace.params[:port_path_or_id]
+        else
+          assert_equal port_path_or_id, sql_trace.params[:port_path_or_id]
+        end
+        if database_name.nil?
+          assert_nil sql_trace.params[:database_name]
+        else
+          assert_equal database_name, sql_trace.params[:database_name]
+        end
       end
     end
   end

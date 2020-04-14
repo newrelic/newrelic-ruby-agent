@@ -102,7 +102,7 @@ module NewRelic::Agent::Configuration
       @manager.add_config_for_testing(test_source)
       @manager.remove_config(test_source)
 
-      assert_equal nil, @manager['test_config_accessor']
+      assert_nil @manager['test_config_accessor']
     end
 
     def test_should_read_license_key_from_env
@@ -183,7 +183,7 @@ module NewRelic::Agent::Configuration
       if supported
         refute_nil reported_config[:'thread_profiler.enabled']
       else
-        assert_equal nil, reported_config[:'thread_profiler.enabled']
+        assert_nil reported_config[:'thread_profiler.enabled']
       end
     end
 

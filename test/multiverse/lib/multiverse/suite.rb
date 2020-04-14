@@ -248,7 +248,7 @@ module Multiverse
 
         if debug
           f.puts "gem 'pry', '~> 0.10.0'"
-          f.puts "gem 'pry-byebug', platforms: :mri"
+          f.puts "gem 'pry-nav'"
           f.puts "gem 'pry-stack_explorer', platforms: :mri"
         end
       end

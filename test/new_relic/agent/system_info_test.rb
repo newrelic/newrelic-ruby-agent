@@ -27,17 +27,31 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
         info = @sysinfo.parse_cpuinfo(cpuinfo)
 
-        assert_equal(num_physical_packages , info[:num_physical_packages ])
-        assert_equal(num_physical_cores    , info[:num_physical_cores    ])
-        assert_equal(num_logical_processors, info[:num_logical_processors])
+        if num_physical_packages.nil?
+          assert_nil info[:num_physical_packages]
+        else
+          assert_equal num_physical_packages, info[:num_physical_packages]
+        end
+
+        if num_physical_cores.nil?
+          assert_nil info[:num_physical_cores]
+        else
+          assert_equal num_physical_cores, info[:num_physical_cores]
+        end
+        
+        if num_logical_processors.nil?
+          assert_nil info[:num_logical_processors]
+        else
+          assert_equal num_logical_processors, info[:num_logical_processors]
+        end
       end
     elsif File.basename(file) =~ /malformed/
       define_method("test_#{File.basename(file)}") do
         cpuinfo = File.read(file)
         info = @sysinfo.parse_cpuinfo(cpuinfo)
-        assert_equal(nil, info[:num_physical_package])
-        assert_equal(nil, info[:num_physical_cores])
-        assert_equal(nil, info[:num_logical_processors])
+        assert_nil(info[:num_physical_package])
+        assert_nil(info[:num_physical_cores])
+        assert_nil(info[:num_logical_processors])
       end
     else
       fail "Bad filename: #{file}"
@@ -57,7 +71,11 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
       container_id = @sysinfo.parse_docker_container_id(input)
 
       message = "Parsed incorrect Docker container ID from #{filename}"
-      assert_equal(test_case['containerId'], container_id, message)
+      if test_case['containerId']
+        assert_equal test_case['containerId'], container_id, message
+      else
+        assert_nil container_id, message
+      end
 
       if test_case['expectedMetrics']
         assert_metrics_recorded test_case['expectedMetrics']

@@ -68,8 +68,8 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
       assert_kind_of Float, sample['duration']
       assert_kind_of Float, sample['timestamp']
 
-      assert_nil sample['nr.guid']
-      assert_nil sample['nr.referringTransactionGuid']
+      refute sample['nr.guid']
+      refute sample['nr.referringTransactionGuid']
     end
   end
 
@@ -81,7 +81,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
 
       post = $collector.calls_for('analytic_event_data').first
 
-      refute_nil( post )
+      refute_nil post
       assert_kind_of Array, post.events
       assert_kind_of Array, post.events.first
 

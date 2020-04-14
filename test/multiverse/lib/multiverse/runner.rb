@@ -92,6 +92,7 @@ module Multiverse
       "serialization" => ["json", "marshalling", "yajl"],
       "sinatra"       => ["sinatra", "padrino"],
       "background_2"  => ["resque"],
+      "infinite_tracing" => ["infinite_tracing"],
 
       "rest"          => []  # Specially handled below
     }

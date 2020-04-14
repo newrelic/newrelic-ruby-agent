@@ -148,13 +148,13 @@ class MongoServerTest < Test::Unit::TestCase
   def test_stop_sets_client_to_nil
     @server.start
     @server.stop
-    assert_nil @server.client
+    refute @server.client
   end
 
   def test_ping_returns_nil_for_stopped_server
     @server.start
     @server.stop
-    assert_nil @server.ping
+    refute @server.ping
   end
 
   def test_servers_in_different_threads_use_unique_ports

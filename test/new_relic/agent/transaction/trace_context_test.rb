@@ -368,7 +368,7 @@ module NewRelic::Agent
             assert_equal '190', payload.parent_account_id
             assert_equal '46954', payload.parent_app_id
             assert_equal parent_id, payload.id
-            assert_equal nil, payload.transaction_id
+            assert_nil payload.transaction_id
             assert_equal txn.sampled?, payload.sampled
             assert_equal txn.priority, payload.priority
             assert_equal now_ms, payload.timestamp
@@ -394,7 +394,7 @@ module NewRelic::Agent
 
             assert_equal '190', payload.parent_account_id
             assert_equal '46954', payload.parent_app_id
-            assert_equal nil, payload.id
+            assert_nil payload.id
             assert_equal txn.guid, payload.transaction_id
             assert_equal txn.sampled?, payload.sampled
             assert_equal txn.priority, payload.priority

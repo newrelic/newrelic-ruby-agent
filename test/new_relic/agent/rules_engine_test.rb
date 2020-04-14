@@ -119,7 +119,11 @@ class RulesEngineTest < Minitest::Test
       engine = NewRelic::Agent::RulesEngine.create_metric_rules('metric_name_rules' => testcase['rules'])
 
       testcase["tests"].each do |test|
-        assert_equal(test["expected"], engine.rename(test["input"]), "Input: #{test['input'].inspect}")
+        if test["expected"].nil?
+          assert_nil engine.rename(test["input"]), "Input: #{test['input'].inspect}"
+        else
+          assert_equal test["expected"], engine.rename(test["input"]), "Input: #{test['input'].inspect}"
+        end
       end
     end
   end

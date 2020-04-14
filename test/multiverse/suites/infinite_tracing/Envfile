@@ -1,0 +1,3 @@
+gemfile <<-RB
+  gem 'newrelic-infinite_tracing', :path => '../../../../infinite_tracing'
+RB
