@@ -6,6 +6,8 @@
 module NewRelic::Agent
   module InfiniteTracing
     class StreamingBuffer
+      include Enumerable
+      
       attr_reader :seen, :sent, :max
 
       FLUSH_DELAY_LOOP = 0.005

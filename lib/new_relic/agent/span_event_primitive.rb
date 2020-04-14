@@ -118,12 +118,16 @@ module NewRelic
           TRACE_ID_KEY       => segment.transaction.trace_id,
           GUID_KEY           => segment.guid,
           TRANSACTION_ID_KEY => segment.transaction.guid,
-          SAMPLED_KEY        => segment.transaction.sampled?,
           PRIORITY_KEY       => segment.transaction.priority,
           TIMESTAMP_KEY      => milliseconds_since_epoch(segment),
           DURATION_KEY       => segment.duration,
           NAME_KEY           => segment.name
         }
+
+        # with infinite-tracing, transactions may or may not be sampled!
+        if segment.transaction.sampled?
+          intrinsics[SAMPLED_KEY] = true
+        end
 
         if segment.parent.nil?
           intrinsics[ENTRY_POINT_KEY] = true
