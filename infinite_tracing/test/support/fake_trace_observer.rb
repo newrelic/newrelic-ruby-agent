@@ -1,8 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
-
-require 'test_helper'
+# frozen_string_literal: true
 
 class FakeTraceObserver < Com::Newrelic::Trace::V1::IngestService::Service
   def initialize
@@ -17,7 +16,6 @@ class FakeTraceObserver < Com::Newrelic::Trace::V1::IngestService::Service
   end
 
   def record_status
-    puts "RECORDS SEEN: #{@seen}" unless quiet?
     Com::Newrelic::Trace::V1::RecordStatus.new(messages_seen: @seen)
   end
 
@@ -36,10 +34,13 @@ class FakeTraceObserver < Com::Newrelic::Trace::V1::IngestService::Service
 end
 
 class Server
+  attr_reader :trace_observer
+
   def initialize(port)
-    @server = GRPC::RpcServer.new(pool_size: 1024, max_waiting_requests: 1024)
-    @port = @server.add_http2_port("0.0.0.0:" + port.to_s, :this_port_is_insecure)
-    @server.handle(FakeTraceObserver.new)
+    @server = GRPC::RpcServer.new pool_size: 1024, max_waiting_requests: 1024
+    @port = @server.add_http2_port "0.0.0.0:" + port.to_s, :this_port_is_insecure
+    @trace_observer = FakeTraceObserver.new
+    @server.handle @trace_observer
   end
 
   def run
