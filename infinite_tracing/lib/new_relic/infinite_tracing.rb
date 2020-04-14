@@ -3,17 +3,17 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 # frozen_string_literal: true
 
+require 'uri'
+
 require 'newrelic_rpm'
 
-module NewRelic
-  module Agent
-    module InfiniteTracing
-    end
-  end
-end
-
 require 'new_relic/infinite_tracing/version'
-require 'new_relic/infinite_tracing/proto'
+require 'new_relic/infinite_tracing/config'
 
-require 'new_relic/infinite_tracing/transformer'
-require 'new_relic/infinite_tracing/streaming_buffer'
+if NewRelic::Agent::InfiniteTracing::Config.should_load?
+  require 'new_relic/infinite_tracing/proto'
+
+  require 'new_relic/infinite_tracing/transformer'
+  require 'new_relic/infinite_tracing/streaming_buffer'
+  require 'new_relic/infinite_tracing/client'
+end

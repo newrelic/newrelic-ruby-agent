@@ -8,12 +8,17 @@ require File.expand_path('../../../test_helper', __FILE__)
 module NewRelic
   module Agent
     module InfiniteTracing
-      class StreamingBufferTest < Minitest::Test
+      class ClientTest < Minitest::Test
+
+        def setup
+          # start_fake_server
+        end
 
         def teardown
           reset_buffers_and_caches
         end
 
+        # NOTE: these tests may likely survive unchanged!
         def test_streams_single_segment
           buffer, segments = emulate_streaming_segments 1
 
@@ -63,6 +68,7 @@ module NewRelic
         private
 
         def emulate_streaming_segments count, max_buffer_size=100_000
+          # TODO: Change this to stream through the client to the fake trace observer
           buffer = StreamingBuffer.new max_buffer_size
           segments = []
           count.times do |index|

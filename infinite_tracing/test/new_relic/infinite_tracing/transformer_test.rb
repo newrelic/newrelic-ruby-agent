@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'test_helper'
+require File.expand_path('../../../test_helper', __FILE__)
 
 module NewRelic
   module Agent
@@ -21,7 +21,7 @@ module NewRelic
           assert_empty span_event["user_attributes"]
           assert_empty span_event["agent_attributes"]
         end
-        
+
         def test_transforms_single_full_span_event
           span_event = Transformer.transform span_event_fixture :single_full_attributes
           assert_kind_of Hash, span_event
@@ -46,7 +46,7 @@ module NewRelic
           end
 
         end
-        
+
       end
     end
   end

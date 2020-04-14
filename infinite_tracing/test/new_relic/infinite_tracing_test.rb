@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'test_helper'
+require File.expand_path('../../test_helper', __FILE__)
 
 module NewRelic
   module Agent
@@ -23,6 +23,7 @@ module NewRelic
           assert_kind_of Hash, span_event[1]
           assert_kind_of Hash, span_event[2]
         end
+
       end
     end
   end

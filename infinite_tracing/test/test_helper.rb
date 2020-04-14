@@ -14,15 +14,17 @@ $LOAD_PATH << agent_test_path
 require 'rubygems'
 require 'rake'
 
-# gem "minitest"
-
 require 'minitest/autorun'
 require 'mocha/setup'
 
 require 'newrelic_rpm'
 require 'new_relic/infinite_tracing'
 
-Dir[File.expand_path('../support/*', __FILE__)].each {|f| require f.sub(/.*test\//,'')}
+agent_helper_path = File.join(agent_test_path, 'helpers')
+require File.join(agent_helper_path, 'file_searching.rb')
+require File.join(agent_helper_path, 'config_scanning.rb')
+
+Dir[File.expand_path('../support/*', __FILE__)].each { |f| require f }
 
 # This is the public method recommended for plugin developers to share our
 # agent helpers. Use it so we don't accidentally break it.
