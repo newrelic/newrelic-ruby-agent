@@ -118,7 +118,7 @@ module NewRelic::Agent
 
       def record_spans streaming_buffer
         streaming_buffer.start
-        response = client.record_span(publisher, metadata: metadata)
+        response = client.record_span(streaming_buffer, metadata: metadata)
       end
     end
 

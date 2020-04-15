@@ -15,7 +15,7 @@ module NewRelic
         end
 
         def test_streams_single_segment
-          buffer, segments = emulate_streaming_segments 1
+          buffer, segments = emulate_streaming_segments_and_finish 1
 
           buffer.each do |span|
             assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
@@ -30,7 +30,7 @@ module NewRelic
         end
 
         def test_streams_multiple_segments
-          buffer, _segments = emulate_streaming_segments 5
+          buffer, _segments = emulate_streaming_segments_and_finish 5
 
           spans = buffer.map(&:itself)
 
@@ -45,7 +45,7 @@ module NewRelic
         end
 
         def test_drops_queue_when_max_reached
-          buffer, segments = emulate_streaming_segments 9, 4
+          buffer, segments = emulate_streaming_segments_and_finish 9, 4
 
           spans = buffer.map(&:itself)
 
@@ -60,8 +60,8 @@ module NewRelic
           })
         end
 
-        def test_nothing_dropped_when_closed
-          buffer, segments = emulate_streaming_segments 9, 4
+        def test_nothing_dropped_when_restarted
+          buffer, segments = emulate_streaming_segments_and_finish 9, 4
 
           spans = []
           buffer.each_with_index do |span, index|
@@ -82,7 +82,7 @@ module NewRelic
           })
         end
 
-        def test_can_close_an_empty_buffer
+        def test_can_restart_an_empty_buffer
           # Primes the streaming buffer and adds one span to the queue
           buffer, segments = emulate_streaming_segments 1
 
@@ -90,19 +90,20 @@ module NewRelic
           spans = []
           buffer.each_with_index do |span, index|
             spans << span
+            break
           end
 
           # restarts the streaming buffer
           buffer.restart
 
-          # emulates gRPC's thread when making a real server call
-          Thread.new { buffer.finish } 
 
           with_segment do |segment|
             segments << segment
             buffer << segment
           end
 
+          Thread.new { buffer.finish } 
+          
           spans += buffer.map(&:itself)
 
           assert_equal 2, spans.size
@@ -115,6 +116,8 @@ module NewRelic
           })
         end
 
+        #TODO add test to make sure queue remains closed if restart happens while emptying big queue that is
+
         private
 
         def emulate_streaming_segments count, max_buffer_size=100_000
@@ -126,8 +129,11 @@ module NewRelic
               buffer << segment
             end
           end
+          return buffer, segments
+        end
 
-          # emulates gRPC's thread when making a real server call
+        def emulate_streaming_segments_and_finish count, max_buffer_size=100_000
+          buffer, segments = emulate_streaming_segments count, max_buffer_size
           Thread.new { buffer.finish }
           return buffer, segments
         end

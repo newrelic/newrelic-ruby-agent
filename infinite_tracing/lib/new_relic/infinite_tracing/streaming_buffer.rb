@@ -40,19 +40,25 @@ module NewRelic::Agent
 
       def start
         if @queue
-          old_queue = @queue
-          @queue = Queue.new
-          @queue.push old_queue.pop until old_queue.empty?
+          #todo?
         else
           @queue = Queue.new
         end
-        @closing = false
+        # @closing = false
       end
 
       def restart
-        @closing = true
-        @queue << RESTART_TOKEN unless @queue.closed?
-        start
+        # @closing = true
+        if @queue.empty?
+          @queue << RESTART_TOKEN unless @queue.closed?
+        else
+          @queue.close
+          old_queue = @queue
+          @queue = Queue.new
+          @queue << RESTART_TOKEN
+          @queue.push old_queue.pop until old_queue.empty?
+          @queue.close if old_queue.closed?
+        end
       end
 
       # Implements a blocking enumerator on the queue.  We loop indefinitely
