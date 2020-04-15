@@ -56,7 +56,7 @@ module NewRelic
           end
         end
 
-        def test_trace_observer_port_trumps_port_from_host_entry
+        def test_trace_observer_port_overridden_by_port_from_host_entry
           hostnames = [
             ['example.com', 443],
             ['example.com:80', 80],

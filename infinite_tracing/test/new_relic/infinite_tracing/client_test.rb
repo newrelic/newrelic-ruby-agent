@@ -18,6 +18,11 @@ module NewRelic
           reset_buffers_and_caches
         end
 
+        def test_tracks_agent_id_assignments
+          client = Client.new
+          assert_equal 'x', client.agent_id
+        end
+
         # NOTE: these tests may likely survive unchanged!
         def test_streams_single_segment
           buffer, segments = emulate_streaming_segments 1

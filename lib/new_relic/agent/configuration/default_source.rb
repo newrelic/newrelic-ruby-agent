@@ -1921,6 +1921,14 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'If <code>true</code>, enables span event sampling.'
         },
+        :'span_events.queue_size' => {
+          :default => 10_000,
+          :public => false,
+          :type => Integer,
+          :allowed_from_server => false,
+          :external => :infinite_tracing,
+          :description => "Sets the maximum number of span events to buffer when streaming to the trace observer."
+        },
         :'span_events.max_samples_stored' => {
           :default => 1000,
           :public => true,
@@ -1953,14 +1961,6 @@ module NewRelic
           :allowed_from_server => false,
           :external => :infinite_tracing,
           :description => "Configures the TCP/IP port for the Trace Observer Host"
-        },
-        :'span_events.queue_size' => {
-          :default => 10_000,
-          :public => false,
-          :type => Integer,
-          :allowed_from_server => false,
-          :external => :infinite_tracing,
-          :description => "Sets the buffer/queue size for sending recorded spans to a Trace Observer"
         }
       }.freeze
     end
