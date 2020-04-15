@@ -30,7 +30,7 @@ module NewRelic
         end
 
         def test_streams_multiple_segments
-          buffer, segments = emulate_streaming_segments 5
+          buffer, _segments = emulate_streaming_segments 5
 
           spans = buffer.map(&:itself)
 
@@ -60,6 +60,61 @@ module NewRelic
           })
         end
 
+        def test_nothing_dropped_when_closed
+          buffer, segments = emulate_streaming_segments 9, 4
+
+          spans = []
+          buffer.each_with_index do |span, index|
+            spans << span
+            buffer.restart if index == 3
+          end
+
+          spans += buffer.map(&:itself)
+
+          assert_equal 1, spans.size
+          assert_equal segments[-1].transaction.trace_id, spans[0]["trace_id"]
+          assert_equal segments[-1].transaction.trace_id, spans[0]["intrinsics"]["traceId"].string_value
+
+          assert_metrics_recorded({
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 9},
+            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 1},
+            "Supportability/InfiniteTracing/Span/AgentQueueDumped" => {:call_count => 2}
+          })
+        end
+
+        def test_can_close_an_empty_buffer
+          # Primes the streaming buffer and adds one span to the queue
+          buffer, segments = emulate_streaming_segments 1
+
+          # empties the queue and leaves us waiting to pop!
+          spans = []
+          buffer.each_with_index do |span, index|
+            spans << span
+          end
+
+          # restarts the streaming buffer
+          buffer.restart
+
+          # emulates gRPC's thread when making a real server call
+          Thread.new { buffer.finish } 
+
+          with_segment do |segment|
+            segments << segment
+            buffer << segment
+          end
+
+          spans += buffer.map(&:itself)
+
+          assert_equal 2, spans.size
+          assert_equal segments[-1].transaction.trace_id, spans[-1]["trace_id"]
+          assert_equal segments[-1].transaction.trace_id, spans[-1]["intrinsics"]["traceId"].string_value
+
+          assert_metrics_recorded({
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 2},
+            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 2}
+          })
+        end
+
         private
 
         def emulate_streaming_segments count, max_buffer_size=100_000
@@ -71,6 +126,8 @@ module NewRelic
               buffer << segment
             end
           end
+
+          # emulates gRPC's thread when making a real server call
           Thread.new { buffer.finish }
           return buffer, segments
         end

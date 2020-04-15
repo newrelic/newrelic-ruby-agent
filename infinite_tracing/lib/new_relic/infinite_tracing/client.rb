@@ -15,15 +15,25 @@ module NewRelic::Agent
         @port = port
         @response = nil
         @watch = nil
-        start_agent
+        @streaming_buffer = nil
+        register_configuration_added_callback
       end
 
-      def local?
-        Config.local?
+      def register_configuration_added_callback
+        events = NewRelic::Agent.agent.events
+        events.subscribe(:server_source_configuration_added) do
+          close_streaming_buffer
+          start_streaming_buffer
+        end
       end
 
+      def close_streaming_buffer
+        return unless @streaming_buffer
+        @streaming_buffer.finish
+      end
+      
       def channel_creds
-        local? ? :this_channel_is_insecure : GRPC::Core::ChannelCredentials.new
+        Config.local? ? :this_channel_is_insecure : GRPC::Core::ChannelCredentials.new
       end
 
       def grpc_host
@@ -59,22 +69,26 @@ module NewRelic::Agent
       end
 
       def start_agent
-        return if NewRelic::Agent.agent.connected?
-        NewRelic::Agent.manual_start
+        # return if NewRelic::Agent.agent.connected?
+        # NewRelic::Agent.manual_start
 
-        # Wait for the agent to connect so we'll have an agent run token
-        sleep(0.05) while !NewRelic::Agent.agent.connected?
+        # # Wait for the agent to connect so we'll have an agent run token
+        # sleep(0.05) while !NewRelic::Agent.agent.connected?
+      end
+
+      def agent_id
+        NewRelic::Agent.agent.service.agent_id
+      end
+
+      def license_key
+        NewRelic::Agent.agent.service.license_key
       end
 
       def agent_run_token
         @agent_run_token ||= begin
           start_agent
-          NewRelic::Agent.agent.service.agent_id
+          agent_id
         end
-      end
-
-      def license_key
-        "BOGUS"
       end
 
       def metadata

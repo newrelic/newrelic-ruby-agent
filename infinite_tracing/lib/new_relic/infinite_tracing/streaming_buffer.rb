@@ -8,53 +8,92 @@ module NewRelic::Agent
     class StreamingBuffer
       include Enumerable
       
-      attr_reader :seen, :sent, :max
-
+      SPANS_SEEN_METRIC   = "Supportability/InfiniteTracing/Span/Seen"
+      SPANS_SENT_METRIC   = "Supportability/InfiniteTracing/Span/Sent"
+      QUEUE_DUMPED_METRIC = "Supportability/InfiniteTracing/Span/AgentQueueDumped"
+        
       FLUSH_DELAY_LOOP = 0.005
+      RESTART_TOKEN = Object.new.freeze
 
       def initialize max_size = 10_000
         @max_size = max_size
-        @semaphore = Mutex.new
+        @queue = nil
         start
       end
 
       def << segment
-        NewRelic::Agent.increment_metric("Supportability/InfiniteTracing/Span/Seen")
+        NewRelic::Agent.increment_metric SPANS_SEEN_METRIC
         clear_queue if @queue.size >= @max_size
         @queue.push segment
       end
 
       def clear_queue
         @queue.clear
-        NewRelic::Agent.increment_metric("Supportability/InfiniteTracing/Span/AgentQueueDumped")
+        NewRelic::Agent.increment_metric QUEUE_DUMPED_METRIC
       end
 
-      # Also call SpanEventPrimative decorators!
+      def finish
+        @queue.close
+        sleep(FLUSH_DELAY_LOOP) while !@queue.empty?
+        @closing = true
+      end
+
+      def start
+        if @queue
+          old_queue = @queue
+          @queue = Queue.new
+          @queue.push old_queue.pop until old_queue.empty?
+        else
+          @queue = Queue.new
+        end
+        @closing = false
+      end
+
+      def restart
+        @closing = true
+        @queue << RESTART_TOKEN unless @queue.closed?
+        start
+      end
+
+      # Implements a blocking enumerator on the queue.  We loop indefinitely
+      # until queue is closed (i.e. when popping the queue returns +nil+)
+      #
+      # @closing here indicates the Agent is reconnecting to the collector
+      # server and possibly has a new config.  This requires also reconnecting
+      # to the Trace Observer with new agent run token.
+      def each
+        loop do
+          # Block pop waits until there's something to take off the queue
+          if span = @queue.pop(false)
+
+            return if span == RESTART_TOKEN
+
+            # We popped a span from the queue, so update metrics and stream it
+            NewRelic::Agent.increment_metric SPANS_SENT_METRIC
+            yield transform(span)
+
+          # popped nothing, so assume we're closing and return
+          else
+            return
+          end
+        end
+      end
+
+      private
+
       def transform segment
         span_event = NewRelic::Agent::SpanEventPrimitive.for_segment segment
         annotated_span = Transformer.transform span_event
         Com::Newrelic::Trace::V1::Span.new annotated_span
       end
 
-      def finish
-        @queue.close
-        sleep(FLUSH_DELAY_LOOP) while !@queue.empty?
+      # pushes span back onto queue if it is not the restart token
+      # and resets closing status (this is how we break the loop)
+      # cleanly w/o data loss.
+      def close_queue span
+        @closing = false
       end
 
-      def start
-        @queue = Queue.new
-      end
-
-      def each
-        loop do
-          if span = @queue.pop(false)
-            NewRelic::Agent.increment_metric("Supportability/InfiniteTracing/Span/Sent")
-            yield transform(span)
-          else
-            return
-          end
-        end
-      end
     end
   end
 end

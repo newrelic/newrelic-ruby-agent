@@ -65,11 +65,11 @@ module NewRelic
         # clear out our cached values whenever the run ID changes.
         #
         reset_remote_method_uris
-
         @agent_id = id
       end
 
       def connect(settings={})
+        require 'pry'; binding.pry
         @request_headers_map = nil
         security_policies = nil
         if response = preconnect

@@ -11,17 +11,55 @@ module NewRelic
       class ClientTest < Minitest::Test
 
         def setup
-          # start_fake_server
+          NewRelic::Agent.drop_buffered_data
+          NewRelic::Agent.reset_config
+          NewRelic::Agent.instance.stubs(:start_worker_thread)
         end
 
         def teardown
           reset_buffers_and_caches
         end
 
-        def test_tracks_agent_id_assignments
-          client = Client.new
-          assert_equal 'x', client.agent_id
+        def default_config
+          { 
+            :'distributed_tracing.enabled' => true,
+            :'span_events.enabled' => true,
+            :'infinite_tracing.trace_observer.host' => "localhost:80"
+          }
         end
+
+        def test_tracks_agent_id_assignments
+          response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(
+              NewRelic::Agent.instance, NewRelic::Agent.config)
+
+          config = {
+            'agent_run_id' => 'fishsticks',
+            'collect_traces' => true,
+            'collect_errors' => true,
+            'sample_rate' => 10,
+            'agent_config' => { 'transaction_tracer.record_sql' => 'raw' }
+          }
+
+          client = Client.new
+          with_config_low_priority(config) do
+            assert_nil NewRelic::Agent.agent.service.agent_id
+            with_server_source 'agent_run_id' => 'Foo' do
+              response_handler.configure_agent('agent_run_id' => 'Foo')
+              # NewRelic::Agent.config.notify_server_source_added
+              assert_equal "Foo", NewRelic::Agent.agent.service.agent_id
+            end
+          end
+        end
+
+        #   client = Client.new
+        #   assert_nil client.agent_id, "Agent ID expected to be nil until Agent connects"
+        #   with_config default_config do
+        #     with_server_source 'agent_run_id' => "foo" do
+
+        #       assert_equal "foo", client.agent_id
+        #     end
+        #   end
+        # end
 
         # NOTE: these tests may likely survive unchanged!
         def test_streams_single_segment

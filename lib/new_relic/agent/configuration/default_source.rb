@@ -1923,7 +1923,7 @@ module NewRelic
         },
         :'span_events.queue_size' => {
           :default => 10_000,
-          :public => false,
+          :public => true,
           :type => Integer,
           :allowed_from_server => false,
           :external => :infinite_tracing,
