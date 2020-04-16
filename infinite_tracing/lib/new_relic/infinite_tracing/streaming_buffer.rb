@@ -21,6 +21,10 @@ module NewRelic::Agent
         start
       end
 
+      def empty?
+        @queue.empty?
+      end
+
       def << segment
         NewRelic::Agent.increment_metric SPANS_SEEN_METRIC
         clear_queue if @queue.size >= @max_size
@@ -35,30 +39,20 @@ module NewRelic::Agent
       def finish
         @queue.close
         sleep(FLUSH_DELAY_LOOP) while !@queue.empty?
-        @closing = true
       end
 
       def start
-        if @queue
-          #todo?
-        else
-          @queue = Queue.new
-        end
-        # @closing = false
+        @restart_flag = false
+        @queue = Queue.new
       end
 
       def restart
-        # @closing = true
-        if @queue.empty?
-          @queue << RESTART_TOKEN unless @queue.closed?
-        else
-          @queue.close
-          old_queue = @queue
-          @queue = Queue.new
-          @queue << RESTART_TOKEN
-          @queue.push old_queue.pop until old_queue.empty?
-          @queue.close if old_queue.closed?
-        end
+        raise ClosedQueueError
+        @restart_flag = true
+      end
+
+      def restart?
+        @restart_flag
       end
 
       # Implements a blocking enumerator on the queue.  We loop indefinitely
@@ -69,18 +63,21 @@ module NewRelic::Agent
       # to the Trace Observer with new agent run token.
       def each
         loop do
+          raise ClosedQueueError if restart?
           # Block pop waits until there's something to take off the queue
           if span = @queue.pop(false)
+            # if a restart was received, put span back on queue and return nothing
+            if restart?
+              @queue.push span
+              raise ClosedQueueError
+            end
 
-            return if span == RESTART_TOKEN
-
-            # We popped a span from the queue, so update metrics and stream it
             NewRelic::Agent.increment_metric SPANS_SENT_METRIC
             yield transform(span)
 
           # popped nothing, so assume we're closing and return
           else
-            return
+            raise ClosedQueueError
           end
         end
       end
@@ -91,13 +88,6 @@ module NewRelic::Agent
         span_event = NewRelic::Agent::SpanEventPrimitive.for_segment segment
         annotated_span = Transformer.transform span_event
         Com::Newrelic::Trace::V1::Span.new annotated_span
-      end
-
-      # pushes span back onto queue if it is not the restart token
-      # and resets closing status (this is how we break the loop)
-      # cleanly w/o data loss.
-      def close_queue span
-        @closing = false
       end
 
     end

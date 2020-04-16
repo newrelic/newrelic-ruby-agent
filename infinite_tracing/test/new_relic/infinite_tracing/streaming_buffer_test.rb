@@ -15,12 +15,14 @@ module NewRelic
         end
 
         def test_streams_single_segment
-          buffer, segments = emulate_streaming_segments_and_finish 1
+          total_spans = 1
+          generator, buffer, segments = prepare_to_stream_segments total_spans
 
-          buffer.each do |span|
-            assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
-            assert_equal segments[0].transaction.trace_id, span["trace_id"]
-          end
+          # consumes the queue as it fills
+          spans, consumer = prepare_to_consume_spans buffer
+
+          generator.join
+          buffer.finish
 
           refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
           assert_metrics_recorded({
@@ -30,112 +32,149 @@ module NewRelic
         end
 
         def test_streams_multiple_segments
-          buffer, _segments = emulate_streaming_segments_and_finish 5
+          total_spans = 5
+          generator, buffer, segments = prepare_to_stream_segments total_spans
 
-          spans = buffer.map(&:itself)
+          # consumes the queue as it fills
+          spans, consumer = prepare_to_consume_spans buffer
 
-          assert_equal 5, spans.size
-          spans.each{ |span| assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span }
+          generator.join
+          buffer.finish
+
+          assert_equal total_spans, spans.size
+          spans.each_with_index do |span, index|
+            assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
+            assert_equal segments[index].transaction.trace_id, span["trace_id"]
+          end
 
           refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
           assert_metrics_recorded({
-            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 5},
-            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 5}
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans}
           })
         end
 
         def test_drops_queue_when_max_reached
-          buffer, segments = emulate_streaming_segments_and_finish 9, 4
+          total_spans = 9
+          max_queue_size = 4
+          generator, buffer, segments = prepare_to_stream_segments total_spans, max_queue_size
 
-          spans = buffer.map(&:itself)
-
-          assert_equal 1, spans.size
-          assert_equal segments[-1].transaction.trace_id, spans[0]["trace_id"]
-          assert_equal segments[-1].transaction.trace_id, spans[0]["intrinsics"]["traceId"].string_value
-
-          assert_metrics_recorded({
-            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 9},
-            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 1},
-            "Supportability/InfiniteTracing/Span/AgentQueueDumped" => {:call_count => 2}
-          })
-        end
-
-        def test_nothing_dropped_when_restarted
-          buffer, segments = emulate_streaming_segments_and_finish 9, 4
-
-          spans = []
-          buffer.each_with_index do |span, index|
-            spans << span
-            buffer.restart if index == 3
-          end
-
-          spans += buffer.map(&:itself)
-
-          assert_equal 1, spans.size
-          assert_equal segments[-1].transaction.trace_id, spans[0]["trace_id"]
-          assert_equal segments[-1].transaction.trace_id, spans[0]["intrinsics"]["traceId"].string_value
-
-          assert_metrics_recorded({
-            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 9},
-            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 1},
-            "Supportability/InfiniteTracing/Span/AgentQueueDumped" => {:call_count => 2}
-          })
-        end
-
-        def test_can_restart_an_empty_buffer
-          # Primes the streaming buffer and adds one span to the queue
-          buffer, segments = emulate_streaming_segments 1
-
-          # empties the queue and leaves us waiting to pop!
-          spans = []
-          buffer.each_with_index do |span, index|
-            spans << span
-            break
-          end
-
-          # restarts the streaming buffer
-          buffer.restart
-
-
-          with_segment do |segment|
-            segments << segment
-            buffer << segment
-          end
-
-          Thread.new { buffer.finish } 
+          generator.join
           
-          spans += buffer.map(&:itself)
+          sleep(0.001) while generator.alive?
 
-          assert_equal 2, spans.size
-          assert_equal segments[-1].transaction.trace_id, spans[-1]["trace_id"]
-          assert_equal segments[-1].transaction.trace_id, spans[-1]["intrinsics"]["traceId"].string_value
+          # consumes the queue as it fills
+          spans, consumer = prepare_to_consume_spans buffer
+          buffer.finish
+
+          assert_equal 1, spans.size
+          assert_equal segments[-1].transaction.trace_id, spans[0]["trace_id"]
+          assert_equal segments[-1].transaction.trace_id, spans[0]["intrinsics"]["traceId"].string_value
 
           assert_metrics_recorded({
-            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 2},
-            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 2}
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 9},
+            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 1},
+            "Supportability/InfiniteTracing/Span/AgentQueueDumped" => {:call_count => 2}
           })
         end
 
-        #TODO add test to make sure queue remains closed if restart happens while emptying big queue that is
+        def test_nothing_dropped_when_restarted_mid_consumption
+          total_spans = 9
+          generator, buffer, segments = prepare_to_stream_segments total_spans
+
+          # consumes the queue as it fills
+          spans, consumer = prepare_to_consume_spans buffer
+
+          # restarts the streaming buffer after a few were streamed
+          restarted = false
+          fully_consumed = false
+          restarter = Thread.new do 
+            loop do
+              if spans.size > 3
+                restarted = true
+                fully_consumed = spans.size == total_spans
+                buffer.restart
+                break
+              end
+            end
+          end
+
+          restarter.join
+          generator.join
+          buffer.finish
+
+          assert_equal total_spans, spans.size
+
+          assert_metrics_recorded({
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans},
+          })
+
+          assert restarted, "failed to restart!"
+          refute fully_consumed, "all spans consumed before restarting"
+        end
+
+        def test_can_close_an_empty_buffer
+          total_spans = 10
+          generator, buffer, segments = prepare_to_stream_segments total_spans
+
+          # consumes the queue as it fills
+          spans, consumer = prepare_to_consume_spans buffer
+
+          # closes the streaming buffer after queue is emptied
+          closed = false
+          closer = Thread.new do 
+            loop do
+              if spans.size == total_spans 
+                if buffer.empty?
+                  closed = true
+                  buffer.finish
+                  break
+                else
+                  refute "oops!", "spans streamed reached total but buffer not empty!"
+                end
+              end
+            end
+          end
+
+          closer.join
+          generator.join
+
+          assert closed, "failed to close the buffer"
+          assert_equal total_spans, segments.size
+          assert_equal total_spans, spans.size
+
+          assert_metrics_recorded({
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans}
+          })
+        end
 
         private
 
-        def emulate_streaming_segments count, max_buffer_size=100_000
+        def prepare_to_consume_spans buffer
+          spans = []
+          consumer = Thread.new { buffer.each{ |span| spans << span } }
+
+          return spans, consumer
+        end          
+
+        def prepare_to_stream_segments count, max_buffer_size=100_000
           buffer = StreamingBuffer.new max_buffer_size
           segments = []
-          count.times do |index|
-            with_segment do |segment|
-              segments << segment
-              buffer << segment
+
+          # generates segments that are streamed as spans
+          generator = Thread.new do
+            count.times do |index|
+              with_segment do |segment|
+                segments << segment
+                buffer << segment
+              end
+              sleep(0.0001) # uncommenting this adds 1.4 seconds to test runtime!
             end
           end
-          return buffer, segments
-        end
 
-        def emulate_streaming_segments_and_finish count, max_buffer_size=100_000
-          buffer, segments = emulate_streaming_segments count, max_buffer_size
-          Thread.new { buffer.finish }
-          return buffer, segments
+          return generator, buffer, segments
         end
 
       end
