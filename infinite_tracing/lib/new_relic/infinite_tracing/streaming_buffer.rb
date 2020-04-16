@@ -18,6 +18,8 @@ module NewRelic::Agent
       def initialize max_size = 10_000
         @max_size = max_size
         @queue = nil
+        @restart_flag = false
+        @restart_mutex = Mutex.new
         start
       end
 
@@ -27,8 +29,10 @@ module NewRelic::Agent
 
       def << segment
         NewRelic::Agent.increment_metric SPANS_SEEN_METRIC
-        clear_queue if @queue.size >= @max_size
-        @queue.push segment
+        @restart_mutex.synchronize do
+          clear_queue if @queue.size >= @max_size
+          @queue.push segment
+        end
       end
 
       def clear_queue
@@ -36,19 +40,41 @@ module NewRelic::Agent
         NewRelic::Agent.increment_metric QUEUE_DUMPED_METRIC
       end
 
-      def finish
+      def close_queue
+        @queue.push(nil) if waiting? && @queue.empty?
         @queue.close
+      end
+
+      def flush
         sleep(FLUSH_DELAY_LOOP) while !@queue.empty?
       end
 
+      def finish
+        @restart_mutex.synchronize do
+          close_queue
+          flush
+        end
+      end
+
       def start
-        @restart_flag = false
         @queue = Queue.new
       end
 
       def restart
-        raise ClosedQueueError
         @restart_flag = true
+        @restart_mutex.synchronize do
+          close_queue
+          start
+        end
+        @restart_flag = false
+      end
+
+      def wait_count
+        @queue.num_waiting
+      end
+
+      def waiting?
+        @queue.num_waiting > 0
       end
 
       def restart?
@@ -63,19 +89,14 @@ module NewRelic::Agent
       # to the Trace Observer with new agent run token.
       def each
         loop do
-          raise ClosedQueueError if restart?
-          # Block pop waits until there's something to take off the queue
+          # blocking pop waits until there's something to take off the queue
           if span = @queue.pop(false)
-            # if a restart was received, put span back on queue and return nothing
-            if restart?
-              @queue.push span
-              raise ClosedQueueError
-            end
+            @queue.push(span) and raise ClosedQueueError if restart?
 
             NewRelic::Agent.increment_metric SPANS_SENT_METRIC
             yield transform(span)
 
-          # popped nothing, so assume we're closing and return
+          # popped nothing, so assume we're closing...
           else
             raise ClosedQueueError
           end
