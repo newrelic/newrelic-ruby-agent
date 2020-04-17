@@ -23,10 +23,9 @@ module NewRelic
           generator, buffer, _segments = prepare_to_stream_segments total_spans
 
           # consumes the queue as it fills
-          prepare_to_consume_spans buffer
+          spans, _consumer = prepare_to_consume_spans buffer
 
           generator.join
-          buffer.finish
 
           refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
           assert_metrics_recorded({
@@ -44,7 +43,6 @@ module NewRelic
           spans, _consumer = prepare_to_consume_spans buffer
 
           generator.join
-          buffer.finish
 
           assert_equal total_spans, spans.size
           spans.each_with_index do |span, index|
@@ -65,11 +63,10 @@ module NewRelic
           max_queue_size = 4
           generator, buffer, segments = prepare_to_stream_segments total_spans, max_queue_size
 
+          # generate all spans before we attempt to consume
           generator.join
           
-          sleep(0.001) while generator.alive?
-
-          # consumes the queue as it fills
+          # consumes the queue after we've filled it
           spans, _consumer = prepare_to_consume_spans buffer
           buffer.finish
 
@@ -140,7 +137,7 @@ module NewRelic
               if spans.size == total_spans 
                 emptied = buffer.empty?
                 closed = true
-                buffer.finish
+                buffer.finish # TODO this line can be commented out and test still passes. Why?
                 break
               end
             end
@@ -164,14 +161,10 @@ module NewRelic
         private
 
         def assert_watched_threads_finished buffer
-          # wait_for_running_threads
+          buffer.finish
           @threads.each do |thread_name, thread|
             refute thread.alive?, "Thread #{thread_name} is still alive #{ buffer.wait_count}!"
           end
-        end
-
-        def wait_for_running_threads
-          @threads.each(&:join)
         end
 
         def watch_thread name, &block
