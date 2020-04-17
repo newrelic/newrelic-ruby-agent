@@ -8,6 +8,8 @@ module NewRelic::Agent
     module Config
       extend self
 
+      TRACE_OBSERVER_NOT_CONFIGURED_ERROR = "Trace Observer host not configured!"
+
       # We only want to load the infinite tracing gem's files when
       #   a) we're inside test framework and running tests
       #   b) the trace observer host is configured
@@ -78,7 +80,12 @@ module NewRelic::Agent
 
       # The uniform resource identifier of the Trace Observer host constructed from all the parts.
       def trace_observer_uri
-        URI("#{trace_observer_scheme}://#{trace_observer_host}:#{trace_observer_port}")
+        if trace_observer_configured?
+          URI("#{trace_observer_scheme}://#{trace_observer_host}:#{trace_observer_port}")
+        else
+          ::NewRelic::Agent.logger.error TRACE_OBSERVER_NOT_CONFIGURED_ERROR
+          raise TRACE_OBSERVER_NOT_CONFIGURED_ERROR
+        end
       end
 
       # The maximum number of span events the Streaming Buffer can hold when buffering 

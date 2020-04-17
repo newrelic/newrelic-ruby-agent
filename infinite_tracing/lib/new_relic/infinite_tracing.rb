@@ -15,5 +15,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
   require 'new_relic/infinite_tracing/transformer'
   require 'new_relic/infinite_tracing/streaming_buffer'
+  require 'new_relic/infinite_tracing/channel'
   require 'new_relic/infinite_tracing/client'
 end

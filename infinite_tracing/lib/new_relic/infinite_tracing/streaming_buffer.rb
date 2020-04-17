@@ -15,8 +15,7 @@ module NewRelic::Agent
       QUEUE_DUMPED_METRIC = "Supportability/InfiniteTracing/Span/AgentQueueDumped"
 
       DEFAULT_QUEUE_SIZE = 10_000        
-      FLUSH_DELAY_LOOP = 0.005
-      RESTART_TOKEN = Object.new.freeze
+      FLUSH_DELAY = 0.005
 
       def initialize max_size = DEFAULT_QUEUE_SIZE
         @max_size = max_size
@@ -68,7 +67,7 @@ module NewRelic::Agent
       # Waits for the queue to be fully consumed or for the 
       # waiting consumers to release.
       def flush_queue
-        sleep(FLUSH_DELAY_LOOP) while !@queue.empty?
+        sleep(FLUSH_DELAY) while !@queue.empty?
       end
 
       def close_queue
@@ -118,7 +117,7 @@ module NewRelic::Agent
             NewRelic::Agent.increment_metric SPANS_SENT_METRIC
             yield transform(span)
 
-          # popped nothing, so assume we're closing...
+          # popped nil, so assume we're closing...
           else
             raise ClosedQueueError
           end

@@ -69,7 +69,6 @@ module NewRelic
       end
 
       def connect(settings={})
-        require 'pry'; binding.pry
         @request_headers_map = nil
         security_policies = nil
         if response = preconnect

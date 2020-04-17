@@ -106,11 +106,13 @@ module NewRelic
           generator.join
 
           # restarting also means restarting the consumer
-          # (i.e. reconnecting to gRPC server)
+          # (i.e. closing and reopening the stream on gRPC server)
+          # thus, we start another consumer here.
           more_spans, _consumer = prepare_to_consume_spans buffer
           buffer.finish
 
           assert_equal total_spans, spans.size + more_spans.size
+          assert spans.size > 0, "Expected at least one span via first consumer"
 
           assert_metrics_recorded({
             "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
@@ -161,7 +163,7 @@ module NewRelic
         private
 
         def assert_watched_threads_finished buffer
-          buffer.finish
+          buffer.finish # Commenting this out leads to failures.  Why?
           @threads.each do |thread_name, thread|
             refute thread.alive?, "Thread #{thread_name} is still alive #{ buffer.wait_count}!"
           end
@@ -184,7 +186,7 @@ module NewRelic
 
           # generates segments that are streamed as spans
           generator = watch_thread(:generator) do
-            count.times do |each_with_index7|
+            count.times do
               with_segment do |segment|
                 segments << segment
                 buffer << segment

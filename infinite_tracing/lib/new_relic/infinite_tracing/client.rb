@@ -14,66 +14,56 @@ module NewRelic::Agent
       def initialize port=10000
         @port = port
         @response = nil
-        @watch = nil
+        @record_status_stream = nil
+        @metadata = nil
         @streaming_buffer = nil
-        register_configuration_added_callback
+        @mutex = Mutex.new
+        @connected = NewRelic::Agent.agent.connected?
+        @agent_started = ConditionVariable.new
+        register_config_callback
       end
 
-      def register_configuration_added_callback
+      def register_config_callback
         events = NewRelic::Agent.agent.events
         events.subscribe(:server_source_configuration_added) do
-          close_streaming_buffer
-          start_streaming_buffer
+          @metadata = nil
+          @mutex.synchronize do
+            @connected = true
+            @agent_started.signal
+            restart_streaming
+          end
         end
       end
 
-      def close_streaming_buffer
-        return unless @streaming_buffer
-        @streaming_buffer.finish
+      def close_stream
+        if @record_status_stream
+          @record_status_stream.exit
+          @record_status_stream = nil
+        end
+      end
+
+      def restart_streaming
+        close_stream
+
+        if @streaming_buffer
+          @streaming_buffer.restart
+        else
+          @streaming_buffer = StreamingBuffer.new Config.span_events_queue_size
+        end
+  
+        start_streaming @streaming_buffer
+      end
+
+      def start_streaming streaming_buffer
+        stream_record_status rpc.record_span(streaming_buffer, metadata: metadata)
       end
       
-      def channel_creds
-        Config.local? ? :this_channel_is_insecure : GRPC::Core::ChannelCredentials.new
-      end
-
-      def grpc_host
-        Config.trace_observer_uri
-      end
-
-      def channel
-        return @channel if @channel
-
-        channel_args = {
-          'grpc.minimal_stack' => 1,
-          # 'grpc.arg_max_connection_idle_ms' => FOREVER,
-          # 'grpc.keepalive_time_ms' => THIRTY_SECONDS,
-          # 'grpc.keepalive_timeout_ms' => THIRTY_SECONDS,
-          # 'grpc.keepalive_permit_without_calls' => THIRTY_SECONDS,
-          # 'grpc.arg_max_concurrent_streams' => 10,
-          # 'grpc.max_concurrent_streams' => 10,
-          # 'grpc.max_connection_age_ms' => FOREVER,
-          # 'grpc.enable_deadline_checking' => 0,
-          # 'grpc.http2.max_pings_without_data' => 0,
-          # 'grpc.http2.min_time_between_pings_ms' => 10000,
-          # 'grpc.http2.min_ping_interval_without_data_ms' => 5000,
-         }
-        @channel = GRPC::ClientStub.setup_channel(nil, grpc_host, channel_creds, channel_args)
-      end
-
-      def build_stub_for_client
-        Com::Newrelic::Trace::V1::IngestService::Stub.new(grpc_host, channel_creds, channel_override: channel, timeout: 10)
-      end
-
-      def client
-        @client ||= build_stub_for_client
-      end
-
-      def start_agent
-        # return if NewRelic::Agent.agent.connected?
-        # NewRelic::Agent.manual_start
-
-        # # Wait for the agent to connect so we'll have an agent run token
-        # sleep(0.05) while !NewRelic::Agent.agent.connected?
+      def rpc
+        @rpc ||= Com::Newrelic::Trace::V1::IngestService::Stub.new(
+          Channel.instance.host, 
+          Channel.instance.credentials, 
+          channel_override: Channel.instance
+        )
       end
 
       def agent_id
@@ -81,44 +71,35 @@ module NewRelic::Agent
       end
 
       def license_key
-        NewRelic::Agent.agent.service.license_key
-      end
-
-      def agent_run_token
-        @agent_run_token ||= begin
-          start_agent
-          agent_id
-        end
+        NewRelic::Agent.config[:license_key]
       end
 
       def metadata
-        @metadata ||= {
-          "license_key" => license_key,
-          "agent_run_token" => agent_run_token
-        }
-      end
+        return @metadata if @metadata
 
-      def finish
-        @watch.exit if @watch
+        @mutex.synchronize do
+          @agent_started.wait(@mutex) if !@connected
+
+          @metadata = {
+            "license_key" => license_key,
+            "agent_run_token" => agent_id
+          }
+        end
       end
 
       def stream_record_status record_status_stream
-        @watch = Thread.new do
+        @record_status_stream = Thread.new do
           begin
             record_status_stream.each do |r|
-              puts "RECORD STATUS: #{r.inspect}"
+              NewRelic::Agent.logger.info "RECORD STATUS: #{r.inspect}"
             end
           rescue => e
+            # TODO: RECONNECT!
             puts "THREAD EX! #{e.inspect}"
           end
         end
       rescue => e
         puts e.inspect
-      end
-
-      def record_spans streaming_buffer
-        streaming_buffer.start
-        response = client.record_span(streaming_buffer, metadata: metadata)
       end
     end
 

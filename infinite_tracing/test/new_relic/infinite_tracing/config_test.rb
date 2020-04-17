@@ -76,6 +76,13 @@ module NewRelic
           end
         end
 
+        def test_unset_trace_observer_host_raises_error
+          error = assert_raises RuntimeError do
+            Config.trace_observer_uri
+          end
+          assert_match /not configured/, error.message
+        end
+
         private
 
         def non_test_files
