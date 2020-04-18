@@ -29,9 +29,11 @@ module NewRelic::Agent
       }
       if RUBY_VERSION < '2.4.0'
         KLASS_TO_ARG[Fixnum] = :int_value
-        KLASS_TO_ARG[BigDecimal] = :double_value
       end
-
+      if defined? BigDecimal
+        KLASS_TO_ARG[BigDecimal] = :double_value 
+      end
+      
       def safe_param_name value
         KLASS_TO_ARG[value.class] || raise("Unhandled class #{value.class.name}")
       end
