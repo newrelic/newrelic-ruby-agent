@@ -7,16 +7,22 @@ $LOAD_PATH.unshift INFINITE_TRACING_TEST_PATH
 
 require 'test_helper'
 
-class InfiniteTracingTest < Minitest::Test
+if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
-  def self.load_test_files pattern
-    Dir.glob(File.join(INFINITE_TRACING_TEST_PATH, pattern)).each{ |fn| require fn }
+  class InfiniteTracingTest < Minitest::Test
+
+    def self.load_test_files pattern
+      Dir.glob(File.join(INFINITE_TRACING_TEST_PATH, pattern)).each{ |fn| require fn }
+    end
+
+    load_test_files '*_test.rb'
+    load_test_files '**/*_test.rb'
+
+    def test_ok
+      true
+    end
   end
 
-  load_test_files '*_test.rb'
-  load_test_files '**/*_test.rb'
-
-  def test_ok
-    true
-  end
+else
+  puts "Skipping tests in #{__FILE__} because Infinite Tracing is not configured to load"
 end

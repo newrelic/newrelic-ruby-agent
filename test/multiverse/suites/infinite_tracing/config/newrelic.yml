@@ -2,10 +2,11 @@
 development:
   distributed_tracing:
     enabled: true
+  span_events:
+    enabled: true
   infinite_tracing:
     trace_observer:
-        host: <%= ENV["TEST_TRACE_OBSERVER_HOST"] %>
-        port: <%= ENV["TEST_TRACE_OBSERVER_PORT"] %>
+        host: http://localhost
   monitor_mode: true
   license_key: bootstrap_newrelic_admin_license_key_000
   ca_bundle_path: ../../../config/test.cert.crt
