@@ -70,7 +70,7 @@ module NewRelic
     report_on('OS version'        ) { ::NewRelic::Agent::SystemInfo.os_version             }
     report_on('OS'                ) { ::NewRelic::Agent::SystemInfo.ruby_os_identifier     }
     report_on('Database adapter'  ) do
-      ActiveRecord::Base.configurations[NewRelic::Control.instance.env]['adapter']
+      ActiveRecord::Base.configs_for(env_name: NewRelic::Control.instance.env)['adapter']
     end
     report_on('Framework'       ) { Agent.config[:framework].to_s  }
     report_on('Dispatcher'      ) { Agent.config[:dispatcher].to_s }
