@@ -72,7 +72,7 @@ module NewRelic
     report_on('Database adapter'  ) do
       begin
         ActiveRecord::Base.configurations.configs_for(env_name: NewRelic::Control.instance.env, spec_name: "primary").config['adapter']
-      rescue NoMethodError => error
+      rescue NoMethodError
         ActiveRecord::Base.configurations[NewRelic::Control.instance.env]['adapter']
       end
     end

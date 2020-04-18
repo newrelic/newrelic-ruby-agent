@@ -15,7 +15,7 @@ module NewRelic::Agent
       #   b) the trace observer host is configured
       #
       def should_load?
-        test_framework? || trace_obsever_configured?
+        test_framework? || trace_observer_configured?
       end
 
       # Infinite Tracing support is enabled when the following conditions are true:
