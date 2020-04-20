@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.11.0
+
+  * **Added distributed tracing to Sidekiq jobs** 
+
+    Thanks to andreaseger for the contribution!
+
+
   ## v6.10.0
 
   * **Error attributes now added to each span that exits with an error or exception**
@@ -53,10 +60,6 @@
     Previously, when running on systems such as BSD and Solaris, the agent was unable to determine the fully
     qualified domain name, which is used to help link Ruby agent data with data from New Relic Infrastructure.
     This information is now successfully collected on various BSD distros and Solaris.
-
-  * **Added distributed tracing to Sidekiq jobs** 
-
-    Thanks to andreaseger for the contribution!
 
 
   ## v6.9.0
