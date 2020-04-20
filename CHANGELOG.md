@@ -6,6 +6,11 @@
 
     Thanks to andreaseger for the contribution!
 
+  * **Bugfix: Cross Application Tracing (CAT) adds a missing field to response**
+
+    Previously, the CAT header was missing a reserved field that would lead to an error
+    in the Go Agent's processing of incoming headers from the Ruby Agent.  This fix 
+    adds that missing field to the headers.  
 
   ## v6.10.0
 
