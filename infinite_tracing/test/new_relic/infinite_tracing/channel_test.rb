@@ -10,16 +10,6 @@ module NewRelic
     module InfiniteTracing
       class ChannelTest < Minitest::Test
 
-        def setup
-          NewRelic::Agent.drop_buffered_data
-          NewRelic::Agent.reset_config
-          NewRelic::Agent.instance.stubs(:start_worker_thread)
-        end
-
-        def teardown
-          reset_buffers_and_caches
-        end
-
         def local_config 
           { 
             :'distributed_tracing.enabled' => true,
@@ -58,6 +48,25 @@ module NewRelic
           Config.stubs(:test_framework?).returns(false)
 
           with_config remote_config do
+            channel = Channel.new
+            credentials = channel.send(:credentials)
+    
+            assert_equal "https://example.com", channel.send(:host)
+            assert_kind_of GRPC::Core::ChannelCredentials, credentials
+          end
+
+        ensure
+          Config.unstub(:test_framework?)
+        end
+
+        def test_channel_is_really_secure_for_remote_host
+          Config.stubs(:test_framework?).returns(false)
+          # HTTP instead of HTTPS...
+          insecure_remote_config = remote_config.merge({
+            :'infinite_tracing.trace_observer.host' => "http://example.com"
+          })
+
+          with_config insecure_remote_config do
             channel = Channel.new
             credentials = channel.send(:credentials)
     

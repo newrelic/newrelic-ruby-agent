@@ -119,12 +119,6 @@ module NewRelic
           end
         end
 
-        # def test_waits_for_agent_id
-        #   client = Client.new
-        #   assert_equal "x", client.metadata
-        #   raise 'oops'
-        # end
-
         #   client = Client.new
         #   assert_nil client.agent_id, "Agent ID expected to be nil until Agent connects"
         #   with_config default_config do

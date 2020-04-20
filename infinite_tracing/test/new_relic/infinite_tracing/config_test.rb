@@ -77,6 +77,7 @@ module NewRelic
         end
 
         def test_unset_trace_observer_host_raises_error
+          NewRelic::Agent.config.remove_config_type :yaml
           error = assert_raises RuntimeError do
             Config.trace_observer_uri
           end

@@ -8,9 +8,6 @@ module NewRelic::Agent
     class Client
       include Com::Newrelic::Trace::V1
  
-      # FOREVER = (2**(4 * 8 -2) -1)
-      # THIRTY_SECONDS = 30_000
- 
       def initialize port=10000
         @port = port
         @response = nil
