@@ -10,6 +10,16 @@
     "expectedMetrics": null
   },
   {
+    "filename": "docker-custom-prefix.txt",
+    "containerId": "e6aaf072b17c345d900987ce04e37031d198b02314f8636df2c0edf6538c08c7",
+    "expectedMetrics": null
+  },
+  {
+    "filename": "docker-too-long.txt",
+    "containerId": null,
+    "expectedMetrics": null
+  },
+  {
     "filename": "docker-1.1.2-lxc-driver.txt",
     "containerId": "cb8c113e5f3cf8332f5231f8154adc429ea910f7c29995372de4f571c55d3159",
     "expectedMetrics": null
@@ -27,6 +37,11 @@
   {
     "filename": "docker-1.3.txt",
     "containerId": "47cbd16b77c50cbf71401c069cd2189f0e659af17d5a2daca3bddf59d8a870b2",
+    "expectedMetrics": null
+  },
+  {
+    "filename": "docker-gcp.txt",
+    "containerId": "f96c541a87e1376f25461f1386cb60208cea35750eac1e24e11566f078715920",
     "expectedMetrics": null
   },
   {
@@ -57,11 +72,7 @@
   {
     "filename": "invalid-characters.txt",
     "containerId": null,
-    "expectedMetrics": {
-      "Supportability/utilization/docker/error": {
-        "callCount": 1
-      }
-    }
+    "expectedMetrics": null
   },
   {
     "filename": "invalid-length.txt",
@@ -71,5 +82,10 @@
         "callCount": 1
       }
     }
+  },
+  {
+    "filename": "no_cpu_subsystem.txt",
+    "containerId": null,
+    "expectedMetrics": null
   }
 ]
