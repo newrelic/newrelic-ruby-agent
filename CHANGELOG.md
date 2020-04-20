@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.11.0
+
+  * **Bugfix: Cross Application Tracing (CAT) adds a missing field to response**
+
+    Previously, the CAT header was missing a reserved field that would lead to an error
+    in the Go Agent's processing of incoming headers from the Ruby Agent.  This fix 
+    adds that missing field to the headers.  
+
   ## v6.10.0
 
   * **Error attributes now added to each span that exits with an error or exception**

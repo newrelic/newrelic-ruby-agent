@@ -29,7 +29,8 @@ module NewRelic
           queue_time_in_seconds.to_f,
           app_time_in_seconds.to_f,
           content_length,
-          transaction.guid
+          transaction.guid,
+          false
         ]
       end
 
