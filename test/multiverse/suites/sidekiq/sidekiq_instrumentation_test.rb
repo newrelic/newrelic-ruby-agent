@@ -110,10 +110,8 @@ class SidekiqTest < Minitest::Test
 
   def test_distributed_trace_instrumentation
     run_jobs_in_transaction
-    # require 'pry'; binding.pry
-    assert_metric_and_call_count "Supportability/DistributedTrace/AcceptPayload/Success", JOB_COUNT # method for metrics created on server side
-    assert_metric_and_call_count "Supportability/DistributedTrace/CreatePayload/Success", JOB_COUNT # method for metrics created on server side
-    # assert_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success" # method for metrics created on the client side
+    assert_metric_and_call_count "Supportability/TraceContext/Accept/Success", JOB_COUNT # method for metrics created on server side
+    assert_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success" # method for metrics created on the client side
   end
 
   def test_agent_posts_correct_metric_data
