@@ -54,6 +54,11 @@
     qualified domain name, which is used to help link Ruby agent data with data from New Relic Infrastructure.
     This information is now successfully collected on various BSD distros and Solaris.
 
+  * **Added distributed tracing to Sidekiq jobs** 
+
+    Thanks to andreaseger for the contribution!
+
+
   ## v6.9.0
 
   * **Added support for W3C Trace Context, with easy upgrade from New Relic trace context**
