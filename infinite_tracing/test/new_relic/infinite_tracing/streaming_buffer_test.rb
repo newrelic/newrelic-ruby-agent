@@ -65,7 +65,7 @@ module NewRelic
 
           # generate all spans before we attempt to consume
           generator.join
-          
+
           # consumes the queue after we've filled it
           spans, _consumer = prepare_to_consume_spans buffer
           buffer.finish
@@ -87,12 +87,12 @@ module NewRelic
           generator, buffer, _segments = prepare_to_stream_segments total_spans
 
           # consumes the queue as it fills
-          spans, _consumer = prepare_to_consume_spans buffer
+          spans, _consumer = prepare_to_consume_spans buffer, 0.25
 
           # restarts the streaming buffer after a few were streamed
           restarted = false
           fully_consumed = false
-          watch_thread(:restarter) do 
+          watch_thread(:restarter) do
             loop do
               if spans.size > 3
                 restarted = true
@@ -108,7 +108,7 @@ module NewRelic
           # restarting also means restarting the consumer
           # (i.e. closing and reopening the stream on gRPC server)
           # thus, we start another consumer here.
-          more_spans, _consumer = prepare_to_consume_spans buffer
+          more_spans, _consumer = prepare_to_consume_spans buffer, 0.25
           buffer.finish
 
           assert_equal total_spans, spans.size + more_spans.size
@@ -134,9 +134,9 @@ module NewRelic
           # closes the streaming buffer after queue is emptied
           closed = false
           emptied = false
-          closer = watch_thread(:closer) do 
+          closer = watch_thread(:closer) do
             loop do
-              if spans.size == total_spans 
+              if spans.size == total_spans
                 emptied = buffer.empty?
                 closed = true
                 buffer.finish # TODO this line can be commented out and test still passes. Why?
@@ -173,12 +173,17 @@ module NewRelic
           @threads[name] = Thread.new(&block)
         end
 
-        def prepare_to_consume_spans buffer
+        def prepare_to_consume_spans buffer, sleep_delay=0
           spans = []
-          consumer = watch_thread(:consumer) { buffer.each{ |span| spans << span } }
+          consumer = watch_thread(:consumer) do
+            buffer.each do |span|
+              sleep(sleep_delay)
+              spans << span
+            end
+          end
 
           return spans, consumer
-        end          
+        end
 
         def prepare_to_stream_segments count, max_buffer_size=100_000
           buffer = StreamingBuffer.new max_buffer_size
@@ -194,7 +199,7 @@ module NewRelic
               Thread.pass # avoids intermittent failures
             end
           end
-          
+
           return generator, buffer, segments
         end
 
