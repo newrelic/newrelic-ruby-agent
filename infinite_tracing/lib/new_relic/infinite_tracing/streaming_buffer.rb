@@ -3,19 +3,21 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 # frozen_string_literal: true
 
-# The StreamingBuffer class provides an Enumerator to the standard Ruby Queue 
+# The StreamingBuffer class provides an Enumerator to the standard Ruby Queue
 # class.  The enumerator is blocking while the queue is empty.
 module NewRelic::Agent
   module InfiniteTracing
     class StreamingBuffer
       include Enumerable
-      
+
       SPANS_SEEN_METRIC   = "Supportability/InfiniteTracing/Span/Seen"
       SPANS_SENT_METRIC   = "Supportability/InfiniteTracing/Span/Sent"
       QUEUE_DUMPED_METRIC = "Supportability/InfiniteTracing/Span/AgentQueueDumped"
 
-      DEFAULT_QUEUE_SIZE = 10_000        
+      DEFAULT_QUEUE_SIZE = 10_000
       FLUSH_DELAY = 0.005
+
+      attr_reader :queue
 
       def initialize max_size = DEFAULT_QUEUE_SIZE
         @max_size = max_size
@@ -40,12 +42,12 @@ module NewRelic::Agent
         @queue.num_waiting
       end
 
-      # Pushes the segment given onto the queue.  
+      # Pushes the segment given onto the queue.
       #
-      # If the queue is at capacity, it is dumped and a 
+      # If the queue is at capacity, it is dumped and a
       # supportability metric is recorded for the event.
-      # 
-      # When a restart signal is received, the queue is 
+      #
+      # When a restart signal is received, the queue is
       # locked with a mutex, blocking the push until
       # the queue has restarted.
       def << segment
@@ -64,7 +66,7 @@ module NewRelic::Agent
         NewRelic::Agent.increment_metric QUEUE_DUMPED_METRIC
       end
 
-      # Waits for the queue to be fully consumed or for the 
+      # Waits for the queue to be fully consumed or for the
       # waiting consumers to release.
       def flush_queue
         sleep(FLUSH_DELAY) while !@queue.empty?
@@ -90,19 +92,24 @@ module NewRelic::Agent
 
       # Locks the queue before closing and restarting it
       def restart
+        puts "\nNumber of spans in queue 1: #{@queue.length}"
         @restart_mutex.synchronize do
           @restart_flag = true
+          puts "\nNumber of spans in queue 2: #{@queue.length}"
           close_queue
+          puts "\nNumber of spans in queue 3: #{@queue.length}"
+          old_queue = @queue
           start_queue
+          @queue.push old_queue.pop until old_queue.empty?
           @restart_flag = false
         end
       end
 
-      # Implements a blocking enumerator on the queue.  
+      # Implements a blocking enumerator on the queue.
       # Loops indefinitely until +nil+ is popped from the queue.
       # (i.e. when popping the queue returns +nil+)
       #
-      # A restart can be initiated at any point and indicates we need to 
+      # A restart can be initiated at any point and indicates we need to
       # re-establish a connection to the server.  As such, if we pop
       # during a restart event, the span is pushed back on the queue so
       # it may be sent over the new server connection.
