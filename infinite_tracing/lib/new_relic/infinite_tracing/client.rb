@@ -6,7 +6,27 @@
 module NewRelic::Agent
   module InfiniteTracing
     class Client
-      include Com::Newrelic::Trace::V1
+      # def initialize port=10000
+      #   @connection = Connection.new port
+      #   @response_handler = record_spans
+      # end
+
+      # def transfer previous_client
+      #   previous_client.buffer.transfer buffer
+      #   return self
+      # end
+
+      # def buffer
+      #   @buffer ||= StreamingBuffer.new
+      # end
+
+      # def record_spans
+      #   ResponseHandler.new @connection.record_spans(buffer.enumerator)
+      # end
+
+      # def flush
+      #   buffer.flush
+      # end
  
       def initialize port=10000
         @port = port
@@ -20,26 +40,26 @@ module NewRelic::Agent
         register_config_callback
       end
 
-      def register_config_callback
-        events = NewRelic::Agent.agent.events
-        events.subscribe(:server_source_configuration_added) do
-          @metadata = nil
-          @mutex.synchronize do
-            @connected = true
-            @agent_started.signal
-            restart_streaming
-          end
+      def << segment
+        puts "<<"
+        @mutex.synchronize do
+          puts "..<<.."
+          @agent_started.wait(@mutex) if !@connected
+          puts "..<<!.."
+          @streaming_buffer << segment
         end
       end
 
       def close_stream
         if @record_status_stream
+          puts "CLOSE_STREAM EXIT!"
           @record_status_stream.exit
           @record_status_stream = nil
         end
       end
 
       def restart_streaming
+        puts 'RS'
         close_stream
 
         if @streaming_buffer
@@ -48,18 +68,38 @@ module NewRelic::Agent
           @streaming_buffer = StreamingBuffer.new Config.span_events_queue_size
         end
   
-        start_streaming @streaming_buffer
+        start_streaming
       end
 
-      def start_streaming streaming_buffer
-        stream_record_status rpc.record_span(streaming_buffer, metadata: metadata)
+      private
+
+      def register_config_callback
+        events = NewRelic::Agent.agent.events
+        puts "RCC"
+        events.subscribe(:server_source_configuration_added) do
+          @metadata = nil
+          @mutex.synchronize do
+          puts "..RCC.."
+            @connected = true
+            @agent_started.signal
+            restart_streaming
+          end
+        end
+      end
+
+      def start_streaming
+        raise "no streaming buffer" if @streaming_buffer.nil?
+        puts "SS #{Channel.instance.host}"
+        rpc.record_span(@streaming_buffer, metadata: metadata)
+      rescue => e
+        puts e.inspect
       end
       
       def rpc
         @rpc ||= Com::Newrelic::Trace::V1::IngestService::Stub.new(
           Channel.instance.host, 
           Channel.instance.credentials, 
-          channel_override: Channel.instance
+          channel_override: Channel.instance.channel
         )
       end
 
@@ -74,8 +114,11 @@ module NewRelic::Agent
       def metadata
         return @metadata if @metadata
 
+        puts "MD"
         @mutex.synchronize do
+          puts "..MD.."
           @agent_started.wait(@mutex) if !@connected
+          puts "..MD!.."
 
           @metadata = {
             "license_key" => license_key,

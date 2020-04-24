@@ -9,6 +9,8 @@ module NewRelic::Agent
   module InfiniteTracing
     class StreamingBuffer
       include Enumerable
+      extend Forwardable
+      def_delegators :@queue, :empty?, :num_waiting
       
       SPANS_SEEN_METRIC   = "Supportability/InfiniteTracing/Span/Seen"
       SPANS_SENT_METRIC   = "Supportability/InfiniteTracing/Span/Sent"
@@ -19,25 +21,17 @@ module NewRelic::Agent
 
       def initialize max_size = DEFAULT_QUEUE_SIZE
         @max_size = max_size
-        @restart_flag = false
-        @restart_mutex = Mutex.new
-        start_queue
+        @mutex = Mutex.new
+        @queue = Queue.new
       end
 
-      def restart?
-        @restart_flag
-      end
-
-      def empty?
-        @queue.empty?
-      end
-
-      def waiting?
-        wait_count > 0
-      end
-
-      def wait_count
-        @queue.num_waiting
+      # Dumps the contents of this streaming buffer onto 
+      # the given buffer and closes the queue
+      def transfer new_buffer
+        @mutex.synchronize do
+          until @queue.empty? do new_buffer.push @queue.pop end
+          @queue.close
+        end
       end
 
       # Pushes the segment given onto the queue.  
@@ -49,9 +43,8 @@ module NewRelic::Agent
       # locked with a mutex, blocking the push until
       # the queue has restarted.
       def << segment
-        @restart_mutex.synchronize do
+        @mutex.synchronize do
           clear_queue if @queue.size >= @max_size
-
           NewRelic::Agent.increment_metric SPANS_SEEN_METRIC
           @queue.push segment
         end
@@ -67,57 +60,30 @@ module NewRelic::Agent
       # Waits for the queue to be fully consumed or for the 
       # waiting consumers to release.
       def flush_queue
-        sleep(FLUSH_DELAY) while !@queue.empty?
+        @queue.num_waiting.times { @queue.push nil }
+        close_queue
+        until @queue.empty? do sleep(FLUSH_DELAY) end
       end
 
       def close_queue
-        unless @queue.closed?
-          @queue.push(nil) if @queue.empty?
-          @queue.close
-        end
+        @mutex.synchronize { @queue.close }
       end
 
-      def finish
-        @restart_mutex.synchronize do
-          close_queue
-          flush_queue
-        end
-      end
-
-      def start_queue
-        @queue = Queue.new
-      end
-
-      # Locks the queue before closing and restarting it
-      def restart
-        @restart_mutex.synchronize do
-          @restart_flag = true
-          close_queue
-          start_queue
-          @restart_flag = false
-        end
-      end
-
-      # Implements a blocking enumerator on the queue.  
-      # Loops indefinitely until +nil+ is popped from the queue.
-      # (i.e. when popping the queue returns +nil+)
+      # Returns the blocking enumerator that will pop
+      # items off the queue while any items are present
+      # If +nil+ is popped, the queue is closing.
       #
-      # A restart can be initiated at any point and indicates we need to 
-      # re-establish a connection to the server.  As such, if we pop
-      # during a restart event, the span is pushed back on the queue so
-      # it may be sent over the new server connection.
-      def each
+      # The segment is transformed into a serializable 
+      # span here so processing is taking place within
+      # the gRPC call's thread rather than in the main 
+      # application thread.
+      def enumerator
+        return enum_for(:enumerator) unless block_given?
         loop do
-          # blocking pop waits until there's something to take off the queue
-          if span = @queue.pop(false)
-            # if restarting, push back on queue
-            @queue.push(span) and raise ClosedQueueError if restart?
-
-            # otherwise, yield the serializable span
+          if segment = @queue.pop(false)
             NewRelic::Agent.increment_metric SPANS_SENT_METRIC
-            yield transform(span)
+            yield transform(segment)
 
-          # popped nil, so assume we're closing...
           else
             raise ClosedQueueError
           end

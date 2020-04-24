@@ -29,7 +29,8 @@ module NewRelic
         def test_channel_instance_is_singleton
           with_config local_config do
             channel = Channel.instance
-            assert_kind_of GRPC::Core::Channel, channel
+            assert_kind_of Channel, channel
+            assert_kind_of GRPC::Core::Channel, channel.channel
             assert_same channel, Channel.instance
           end
         end

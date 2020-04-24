@@ -5,7 +5,7 @@
 
 module NewRelic::Agent
   module InfiniteTracing
-    class Channel
+    class Connection
 
       def self.instance
         @instance ||= new
