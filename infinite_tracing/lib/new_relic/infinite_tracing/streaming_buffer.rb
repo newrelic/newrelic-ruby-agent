@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 # frozen_string_literal: true
 
-# The StreamingBuffer class provides an Enumerator to the standard Ruby Queue 
+# The StreamingBuffer class provides an Enumerator to the standard Ruby Queue
 # class.  The enumerator is blocking while the queue is empty.
 module NewRelic::Agent
   module InfiniteTracing
@@ -16,8 +16,10 @@ module NewRelic::Agent
       SPANS_SENT_METRIC   = "Supportability/InfiniteTracing/Span/Sent"
       QUEUE_DUMPED_METRIC = "Supportability/InfiniteTracing/Span/AgentQueueDumped"
 
-      DEFAULT_QUEUE_SIZE = 10_000        
+      DEFAULT_QUEUE_SIZE = 10_000
       FLUSH_DELAY = 0.005
+
+      attr_reader :queue
 
       def initialize max_size = DEFAULT_QUEUE_SIZE
         @max_size = max_size
@@ -34,12 +36,12 @@ module NewRelic::Agent
         end
       end
 
-      # Pushes the segment given onto the queue.  
+      # Pushes the segment given onto the queue.
       #
-      # If the queue is at capacity, it is dumped and a 
+      # If the queue is at capacity, it is dumped and a
       # supportability metric is recorded for the event.
-      # 
-      # When a restart signal is received, the queue is 
+      #
+      # When a restart signal is received, the queue is
       # locked with a mutex, blocking the push until
       # the queue has restarted.
       def << segment
@@ -57,7 +59,7 @@ module NewRelic::Agent
         NewRelic::Agent.increment_metric QUEUE_DUMPED_METRIC
       end
 
-      # Waits for the queue to be fully consumed or for the 
+      # Waits for the queue to be fully consumed or for the
       # waiting consumers to release.
       def flush_queue
         @queue.num_waiting.times { @queue.push nil }

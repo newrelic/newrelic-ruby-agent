@@ -166,9 +166,9 @@ module NewRelic
           # closes the streaming buffer after queue is emptied
           closed = false
           emptied = false
-          closer = watch_thread(:closer) do 
+          closer = watch_thread(:closer) do
             loop do
-              if spans.size == total_spans 
+              if spans.size == total_spans
                 emptied = buffer.empty?
                 closed = true
                 break
@@ -208,12 +208,12 @@ module NewRelic
           @threads[name] = Thread.new(&block)
         end
 
-        def prepare_to_consume_spans buffer
+        def prepare_to_consume_spans buffer, sleep_delay=0
           spans = []
           consumer = watch_thread(:consumer) { buffer.enumerator.each{ |span| spans << span } }
 
           return spans, consumer
-        end          
+        end
 
         # pops all the serializable spans off the buffer and returns them.
         def consume_spans buffer
@@ -234,7 +234,7 @@ module NewRelic
               end
             end
           end
-          
+
           return generator, buffer, segments
         end
 

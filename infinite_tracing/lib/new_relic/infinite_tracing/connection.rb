@@ -7,46 +7,46 @@ module NewRelic::Agent
   module InfiniteTracing
     class Connection
 
-      def self.instance
-        @instance ||= new
+      def record_spans streaming_buffer
+        rpc.record_span streaming_buffer, metadata: metadata
       end
 
       def channel
-        GRPC::ClientStub.setup_channel(nil, host, credentials, settings)
+        Channel.instance.channel
       end
 
-      def credentials
-        if Config.local?
-          :this_channel_is_insecure 
-        else
-          # Uses system configured certificates by default
-          GRPC::Core::ChannelCredentials.new
+      def build_stub
+        Com::Newrelic::Trace::V1::IngestService::Stub.new(grpc_host, channel_creds, channel_override: channel, timeout: 10)
+      end
+
+      def rpc
+        @rpc ||= build_stub
+      end
+
+      def start_agent
+        return if local?
+
+        return if NewRelic::Agent.agent.connected?
+        NewRelic::Agent.manual_start
+
+        # Wait for the agent to connect so we'll have an agent run token
+        puts 'waiting...'
+        sleep(0.05) while !NewRelic::Agent.agent.connected?
+      end
+
+      def agent_run_token
+        return "local_token" if local?
+
+        @agent_run_token ||= begin
+          start_agent
+          NewRelic::Agent.agent.service.agent_id
         end
       end
 
-      def host
-        Config.trace_observer_uri.to_s
-      end
-
-      # FOREVER = (2**(4 * 8 -2) -1)
-      # THIRTY_SECONDS = 30_000
- 
-      # TODO: decide what defaults we want to use
-
-      def settings
-        {
-          'grpc.minimal_stack' => 1,
-          # 'grpc.arg_max_connection_idle_ms' => FOREVER,
-          # 'grpc.keepalive_time_ms' => THIRTY_SECONDS,
-          # 'grpc.keepalive_timeout_ms' => THIRTY_SECONDS,
-          # 'grpc.keepalive_permit_without_calls' => THIRTY_SECONDS,
-          # 'grpc.arg_max_concurrent_streams' => 10,
-          # 'grpc.max_concurrent_streams' => 10,
-          # 'grpc.max_connection_age_ms' => FOREVER,
-          # 'grpc.enable_deadline_checking' => 0,
-          # 'grpc.http2.max_pings_without_data' => 0,
-          # 'grpc.http2.min_time_between_pings_ms' => 10000,
-          # 'grpc.http2.min_ping_interval_without_data_ms' => 5000,
+      def metadata
+        @metadata ||= {
+          "license_key" => "something",
+          "agent_run_token" => agent_run_token
         }
       end
 

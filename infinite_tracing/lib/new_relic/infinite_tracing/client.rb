@@ -20,24 +20,17 @@ module NewRelic::Agent
       #   @buffer ||= StreamingBuffer.new
       # end
 
-      # def record_spans
-      #   ResponseHandler.new @connection.record_spans(buffer.enumerator)
-      # end
-
       # def flush
       #   buffer.flush
       # end
  
       def initialize port=10000
         @port = port
-        @response = nil
-        @record_status_stream = nil
         @metadata = nil
-        @streaming_buffer = nil
-        @mutex = Mutex.new
         @connected = NewRelic::Agent.agent.connected?
         @agent_started = ConditionVariable.new
         register_config_callback
+        start_streaming
       end
 
       def << segment
@@ -58,18 +51,22 @@ module NewRelic::Agent
         end
       end
 
-      def restart_streaming
-        puts 'RS'
-        close_stream
+      # def record_spans
+      #   ResponseHandler.new @connection.record_spans(buffer.enumerator)
+      # end
 
-        if @streaming_buffer
-          @streaming_buffer.restart
-        else
-          @streaming_buffer = StreamingBuffer.new Config.span_events_queue_size
-        end
+      # def restart_streaming
+      #   puts 'RS'
+      #   close_stream
+
+      #   if @streaming_buffer
+      #     @streaming_buffer.restart
+      #   else
+      #     @streaming_buffer = StreamingBuffer.new Config.span_events_queue_size
+      #   end
   
-        start_streaming
-      end
+      #   start_streaming
+      # end
 
       private
 
@@ -88,11 +85,9 @@ module NewRelic::Agent
       end
 
       def start_streaming
-        raise "no streaming buffer" if @streaming_buffer.nil?
-        puts "SS #{Channel.instance.host}"
-        rpc.record_span(@streaming_buffer, metadata: metadata)
-      rescue => e
-        puts e.inspect
+        @response_handler = ResponseHandler.new rpc.record_span(buffer, metadata: metadata)
+      rescue => err
+        NewRelic::Agent.logger.error "gRPC failed to start streaming to record_span", err
       end
       
       def rpc
