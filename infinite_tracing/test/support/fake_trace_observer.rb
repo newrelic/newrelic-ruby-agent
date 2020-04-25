@@ -43,7 +43,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
         t = Thread.new do
           begin
             incoming_spans.each do |span|
-              puts '3'
               @spans << span
               @seen += 1
               if @seen >= @next_seen_hurdle
@@ -66,19 +65,18 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
         Com::Newrelic::Trace::V1::RecordStatus.new(messages_seen: @seen)
       end
 
-      # def handle
-      #   return enum_for(:handle) unless block_given?
-      #   @record_spans.each do |span|
-      #     puts '3'
-      #     @spans << span
-      #     @seen += 1
-      #     if @seen >= @next_seen_hurdle
-      #       @next_seen_hurdle += 10
-      #       yield record_status
-      #     end
-      #   end
-      #   yield record_status
-      # end
+      def handle
+        return enum_for(:handle) unless block_given?
+        @record_spans.each do |span|
+          @spans << span
+          @seen += 1
+          if @seen >= @next_seen_hurdle
+            @next_seen_hurdle += 10
+            yield record_status
+          end
+        end
+        yield record_status
+      end
     end
 
     class FakeTraceObserverServer
@@ -101,7 +99,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       end
 
       def start
-        puts "START"
         @worker = Thread.new do
           @server.run_till_terminated_or_interrupted([1, 'int'.dup, 'SIGQUIT'.dup])
         end

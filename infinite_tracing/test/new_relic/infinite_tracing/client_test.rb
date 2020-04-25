@@ -15,9 +15,11 @@ module NewRelic
         def setup
           NewRelic::Agent.instance.stubs(:start_worker_thread)
           @response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(
-            NewRelic::Agent.instance, 
+            NewRelic::Agent.instance,
             NewRelic::Agent.config
           )
+          @agent = NewRelic::Agent.instance
+          @agent.service.agent_id = 666
         end
 
         def teardown
@@ -25,7 +27,7 @@ module NewRelic
         end
 
         def test_config
-          { 
+          {
             :'distributed_tracing.enabled' => true,
             :'span_events.enabled' => true,
             :'infinite_tracing.trace_observer.host' => "localhost:80",
@@ -34,7 +36,7 @@ module NewRelic
         end
 
         def fake_server_config
-          { 
+          {
             :'distributed_tracing.enabled' => true,
             :'span_events.enabled' => true,
             :'infinite_tracing.trace_observer.host' => "localhost",
@@ -63,6 +65,9 @@ module NewRelic
         def simulate_connect_to_collector config
           Thread.new do
             sleep(0.01)
+            # TODO: Handle stubbing connected in the tests themselves,
+            # or come up with some other solution, because otherwise
+            # mocha complains
             NewRelic::Agent.instance.stubs(:connected?).returns(true)
             @response_handler.configure_agent config
           end
@@ -71,6 +76,9 @@ module NewRelic
         # Used to emulate when a force reconnect
         # happens and a new agent run token is presented.
         def simulate_reconnect_to_collector config
+          # TODO: Handle stubbing connected in the tests themselves,
+          # or come up with some other solution, because otherwise
+          # mocha complains
           NewRelic::Agent.instance.stubs(:connected?).returns(true)
           @response_handler.configure_agent config
         end
@@ -96,7 +104,7 @@ module NewRelic
 
         #     simulate_connect_to_collector(fiddlesticks_config).join
         #     client = Client.new
-            
+
         #     metadata = client.send :metadata
         #     assert_equal "swiss_cheese", metadata["license_key"]
         #     assert_equal "fiddlesticks", metadata["agent_run_token"]
@@ -110,7 +118,7 @@ module NewRelic
 
         #     simulate_connect_to_collector fiddlesticks_config
         #     client = Client.new
-            
+
         #     metadata = client.send :metadata
         #     assert_equal "swiss_cheese", metadata["license_key"]
         #     assert_equal "fiddlesticks", metadata["agent_run_token"]
@@ -137,12 +145,15 @@ module NewRelic
         # end
 
         def test_streams_single_segment
+          NewRelic::Agent.instance.stubs(:connected?).returns(true)
           spans, segments = emulate_streaming_segments 1
 
           spans.each do |span|
             assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
             assert_equal segments[0].transaction.trace_id, span["trace_id"]
           end
+
+          assert_equal 1, spans.size
 
           refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
           assert_metrics_recorded({
@@ -204,7 +215,6 @@ module NewRelic
             count.times do |index|
               with_segment do |segment|
                 segments << segment
-                # require 'pry'; binding.pry
                 client << segment
               end
             end

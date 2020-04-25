@@ -6,41 +6,32 @@
 module NewRelic::Agent
   module InfiniteTracing
     class Client
-      # def initialize port=10000
-      #   @connection = Connection.new port
-      #   @response_handler = record_spans
-      # end
 
       # def transfer previous_client
       #   previous_client.buffer.transfer buffer
       #   return self
       # end
 
-      # def buffer
-      #   @buffer ||= StreamingBuffer.new
-      # end
+      def buffer
+        @buffer ||= StreamingBuffer.new
+      end
 
       # def flush
       #   buffer.flush
       # end
- 
+
       def initialize port=10000
         @port = port
         @metadata = nil
         @connected = NewRelic::Agent.agent.connected?
         @agent_started = ConditionVariable.new
+        @mutex = Mutex.new
         register_config_callback
         start_streaming
       end
 
       def << segment
-        puts "<<"
-        @mutex.synchronize do
-          puts "..<<.."
-          @agent_started.wait(@mutex) if !@connected
-          puts "..<<!.."
-          @streaming_buffer << segment
-        end
+        buffer << segment
       end
 
       def close_stream
@@ -64,7 +55,7 @@ module NewRelic::Agent
       #   else
       #     @streaming_buffer = StreamingBuffer.new Config.span_events_queue_size
       #   end
-  
+
       #   start_streaming
       # end
 
@@ -72,11 +63,9 @@ module NewRelic::Agent
 
       def register_config_callback
         events = NewRelic::Agent.agent.events
-        puts "RCC"
         events.subscribe(:server_source_configuration_added) do
           @metadata = nil
           @mutex.synchronize do
-          puts "..RCC.."
             @connected = true
             @agent_started.signal
             restart_streaming
@@ -85,21 +74,24 @@ module NewRelic::Agent
       end
 
       def start_streaming
+        require 'pry'; binding.pry #RLK
         @response_handler = ResponseHandler.new rpc.record_span(buffer, metadata: metadata)
       rescue => err
         NewRelic::Agent.logger.error "gRPC failed to start streaming to record_span", err
+        puts err
+        puts err.backtrace
       end
-      
+
       def rpc
         @rpc ||= Com::Newrelic::Trace::V1::IngestService::Stub.new(
-          Channel.instance.host, 
-          Channel.instance.credentials, 
+          Channel.instance.host,
+          Channel.instance.credentials,
           channel_override: Channel.instance.channel
         )
       end
 
       def agent_id
-        NewRelic::Agent.agent.service.agent_id
+        NewRelic::Agent.agent.service.agent_id.to_s
       end
 
       def license_key
@@ -109,11 +101,8 @@ module NewRelic::Agent
       def metadata
         return @metadata if @metadata
 
-        puts "MD"
         @mutex.synchronize do
-          puts "..MD.."
           @agent_started.wait(@mutex) if !@connected
-          puts "..MD!.."
 
           @metadata = {
             "license_key" => license_key,

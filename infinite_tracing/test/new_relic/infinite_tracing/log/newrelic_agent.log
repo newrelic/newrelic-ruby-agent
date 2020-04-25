@@ -1,0 +1,21 @@
+# Logfile created on 2020-04-14 17:24:57 -0700 by logger.rb/66358
+[2020-04-14 17:24:57 -0700 C02VW092HTD8 (32966)] INFO : Starting the New Relic agent version 6.11.0 in "test" environment.
+[2020-04-14 17:24:57 -0700 C02VW092HTD8 (32966)] INFO : To prevent agent startup add a NEW_RELIC_AGENT_ENABLED=false environment variable or modify the "test" section of your newrelic.yml.
+[2020-04-14 17:24:57 -0700 C02VW092HTD8 (32966)] INFO : Reading configuration from /Users/rklein/newrelic/ruby_agent/test/config/newrelic.yml (/Users/rklein/newrelic/ruby_agent/infinite_tracing/test/new_relic/infinite_tracing)
+[2020-04-14 17:24:57 -0700 C02VW092HTD8 (32966)] WARN : Agent is configured to send raw SQL to the service
+[2020-04-14 17:24:57 -0700 C02VW092HTD8 (32966)] INFO : Environment: test
+[2020-04-14 17:24:57 -0700 C02VW092HTD8 (32966)] INFO : No known dispatcher detected.
+[2020-04-14 17:24:57 -0700 C02VW092HTD8 (32966)] INFO : Application: a, b, c
+[2020-04-14 17:24:57 -0700 C02VW092HTD8 (32966)] WARN : Agent configured not to send data in this environment.
+[2020-04-14 17:24:57 -0700 C02VW092HTD8 (32966)] INFO : Installing Net instrumentation
+[2020-04-14 17:24:57 -0700 C02VW092HTD8 (32966)] INFO : Finished instrumentation
+[2020-04-14 17:25:22 -0700 C02VW092HTD8 (33226)] INFO : Starting the New Relic agent version 6.11.0 in "test" environment.
+[2020-04-14 17:25:22 -0700 C02VW092HTD8 (33226)] INFO : To prevent agent startup add a NEW_RELIC_AGENT_ENABLED=false environment variable or modify the "test" section of your newrelic.yml.
+[2020-04-14 17:25:22 -0700 C02VW092HTD8 (33226)] INFO : Reading configuration from /Users/rklein/newrelic/ruby_agent/test/config/newrelic.yml (/Users/rklein/newrelic/ruby_agent/infinite_tracing/test/new_relic/infinite_tracing)
+[2020-04-14 17:25:22 -0700 C02VW092HTD8 (33226)] WARN : Agent is configured to send raw SQL to the service
+[2020-04-14 17:25:22 -0700 C02VW092HTD8 (33226)] INFO : Environment: test
+[2020-04-14 17:25:22 -0700 C02VW092HTD8 (33226)] INFO : No known dispatcher detected.
+[2020-04-14 17:25:22 -0700 C02VW092HTD8 (33226)] INFO : Application: a, b, c
+[2020-04-14 17:25:22 -0700 C02VW092HTD8 (33226)] WARN : Agent configured not to send data in this environment.
+[2020-04-14 17:25:22 -0700 C02VW092HTD8 (33226)] INFO : Installing Net instrumentation
+[2020-04-14 17:25:22 -0700 C02VW092HTD8 (33226)] INFO : Finished instrumentation
