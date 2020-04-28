@@ -28,6 +28,10 @@ module Com
             # Accepts a stream of Span messages, and returns an irregular stream of
             # RecordStatus messages.
             rpc :RecordSpan, stream(Span), stream(RecordStatus)
+            # Accepts a stream of SpanBatch messages, and returns an irregular
+            # stream of RecordStatus messages. This endpoint can be used to improve
+            # throughput when Span messages are small
+            rpc :RecordSpanBatch, stream(SpanBatch), stream(RecordStatus)
           end
 
           Stub = Service.rpc_stub_class

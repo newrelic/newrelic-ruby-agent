@@ -6,48 +6,89 @@
 module NewRelic::Agent
   module InfiniteTracing
     class Connection
+      include Singleton
 
-      def record_spans streaming_buffer
-        rpc.record_span streaming_buffer, metadata: metadata
+      # def self.instance
+      #   @instance ||= new
+      # end
+
+      def record_spans enumerator
+        rpc.record_span enumerator, metadata: metadata
       end
 
-      def channel
-        Channel.instance.channel
+      def record_span_batches enumerator
+        rpc.record_span_batch enumerator, metadata: metadata
       end
 
-      def build_stub
-        Com::Newrelic::Trace::V1::IngestService::Stub.new(grpc_host, channel_creds, channel_override: channel, timeout: 10)
+      private
+
+      def initialize
+        @rpc = nil
+        @metadata = nil
+
+        @connected = NewRelic::Agent.agent.connected?
+        @agent_started = ConditionVariable.new
+        @lock = Mutex.new
+
+        register_config_callback
       end
 
-      def rpc
-        @rpc ||= build_stub
-      end
-
-      def start_agent
-        return if local?
-
-        return if NewRelic::Agent.agent.connected?
-        NewRelic::Agent.manual_start
-
-        # Wait for the agent to connect so we'll have an agent run token
-        puts 'waiting...'
-        sleep(0.05) while !NewRelic::Agent.agent.connected?
-      end
-
-      def agent_run_token
-        return "local_token" if local?
-
-        @agent_run_token ||= begin
-          start_agent
-          NewRelic::Agent.agent.service.agent_id
+      def register_config_callback
+        events = NewRelic::Agent.agent.events
+        events.subscribe(:server_source_configuration_added) do
+          @rpc = nil
+          @metadata = nil
+          @lock.synchronize do
+            @connected = true
+            @agent_started.signal
+          end
         end
       end
 
+      private
+
+      def rpc
+        @rpc ||= Com::Newrelic::Trace::V1::IngestService::Stub.new(
+          Channel.instance.host,
+          Channel.instance.credentials,
+          channel_override: Channel.instance.channel
+        )
+      end
+
+      def agent_id
+        NewRelic::Agent.agent.service.agent_id.to_s
+      end
+
+      def license_key
+        NewRelic::Agent.config[:license_key]
+      end
+
+      # The metadata for the RPC calls is a blocking call
+      # waiting for the Agent to connect and receive the 
+      # server side configuration, which contains the license_key
+      # as well as the agent_id (agent_run_token).
       def metadata
-        @metadata ||= {
-          "license_key" => "something",
-          "agent_run_token" => agent_run_token
-        }
+        return @metadata if @metadata
+
+        @lock.synchronize do
+          @agent_started.wait(@lock) if !@connected
+
+          @metadata = {
+            "license_key" => license_key,
+            "agent_run_token" => agent_id
+          }
+        end
+      end
+
+      def register_config_callback
+        events = NewRelic::Agent.agent.events
+        events.subscribe(:server_source_configuration_added) do
+          @metadata = nil
+          @lock.synchronize do
+            @connected = true
+            @agent_started.signal
+          end
+        end
       end
 
     end

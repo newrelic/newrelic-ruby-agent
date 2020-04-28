@@ -7,6 +7,8 @@
 # class.  The enumerator is blocking while the queue is empty.
 module NewRelic::Agent
   module InfiniteTracing
+    BATCH_SIZE = 100
+
     class StreamingBuffer
       include Enumerable
       extend Forwardable
@@ -25,6 +27,7 @@ module NewRelic::Agent
         @max_size = max_size
         @mutex = Mutex.new
         @queue = Queue.new
+        @batch = Array.new
       end
 
       # Dumps the contents of this streaming buffer onto 
@@ -87,6 +90,37 @@ module NewRelic::Agent
             yield transform(segment)
 
           else
+            raise ClosedQueueError
+          end
+        end
+      end
+
+      # Returns the blocking enumerator that will pop
+      # items off the queue while any items are present
+      # 
+      # yielding is deferred until batch_size spans is 
+      # reached.
+      #
+      # If +nil+ is popped, the queue is closing. A 
+      # final yield on non-empty batch is fired.
+      #
+      # The segment is transformed into a serializable 
+      # span here so processing is taking place within
+      # the gRPC call's thread rather than in the main 
+      # application thread.
+      def batch_enumerator
+        return enum_for(:enumerator) unless block_given?
+        loop do
+          if segment = @queue.pop(false)
+            NewRelic::Agent.increment_metric SPANS_SENT_METRIC
+            @batch << transform(segment)
+            if @batch.size >= BATCH_SIZE
+              yield SpanBatch.new(spans: @batch)
+              @batch.clear
+            end
+
+          else
+            yield SpanBatch.new(spans: @batch) unless @batch.empty?
             raise ClosedQueueError
           end
         end

@@ -16,17 +16,12 @@ module NewRelic::Agent
         @buffer ||= StreamingBuffer.new
       end
 
-      # def flush
-      #   buffer.flush
-      # end
+      def flush
+        buffer.flush
+      end
 
       def initialize port=10000
         @port = port
-        @metadata = nil
-        @connected = NewRelic::Agent.agent.connected?
-        @agent_started = ConditionVariable.new
-        @mutex = Mutex.new
-        register_config_callback
         start_streaming
       end
 
@@ -42,9 +37,21 @@ module NewRelic::Agent
         end
       end
 
-      # def record_spans
-      #   ResponseHandler.new @connection.record_spans(buffer.enumerator)
-      # end
+      def start_streaming
+        record_spans
+      end
+
+      def connection
+        @connection ||= Connection.new
+      end
+
+      def record_spans
+        RecordStatusHandler.new connection.record_spans(buffer.enumerator)
+      end
+
+      def record_span_batches
+        RecordStatusHandler.new connection.record_span_batches(buffer.batch_enumerator)
+      end
 
       # def restart_streaming
       #   puts 'RS'
@@ -61,55 +68,31 @@ module NewRelic::Agent
 
       private
 
-      def register_config_callback
-        events = NewRelic::Agent.agent.events
-        events.subscribe(:server_source_configuration_added) do
-          @metadata = nil
-          @mutex.synchronize do
-            @connected = true
-            @agent_started.signal
-            restart_streaming
-          end
-        end
-      end
+      # def start_streaming
+      #   require 'pry'; binding.pry #RLK
+      #   RecordStatusHandler.new rpc.record_span(buffer, metadata: metadata)
+      # rescue => err
+      #   NewRelic::Agent.logger.error "gRPC failed to start streaming to record_span", err
+      #   puts err
+      #   puts err.backtrace
+      # end
 
-      def start_streaming
-        require 'pry'; binding.pry #RLK
-        @response_handler = ResponseHandler.new rpc.record_span(buffer, metadata: metadata)
-      rescue => err
-        NewRelic::Agent.logger.error "gRPC failed to start streaming to record_span", err
-        puts err
-        puts err.backtrace
-      end
+      # def start_streaming_batches
+      #   require 'pry'; binding.pry #RLK
+      #   ResponseHandler.new rpc.record_span_batch(buffer, metadata: metadata)
+      # rescue => err
+      #   NewRelic::Agent.logger.error "gRPC failed to start streaming to record_span_batch", err
+      #   puts err
+      #   puts err.backtrace
+      # end
 
-      def rpc
-        @rpc ||= Com::Newrelic::Trace::V1::IngestService::Stub.new(
-          Channel.instance.host,
-          Channel.instance.credentials,
-          channel_override: Channel.instance.channel
-        )
-      end
-
-      def agent_id
-        NewRelic::Agent.agent.service.agent_id.to_s
-      end
-
-      def license_key
-        NewRelic::Agent.config[:license_key]
-      end
-
-      def metadata
-        return @metadata if @metadata
-
-        @mutex.synchronize do
-          @agent_started.wait(@mutex) if !@connected
-
-          @metadata = {
-            "license_key" => license_key,
-            "agent_run_token" => agent_id
-          }
-        end
-      end
+      # def rpc
+      #   @rpc ||= Com::Newrelic::Trace::V1::IngestService::Stub.new(
+      #     Channel.instance.host,
+      #     Channel.instance.credentials,
+      #     channel_override: Channel.instance.channel
+      #   )
+      # end
 
       def stream_record_status record_status_stream
         @record_status_stream = Thread.new do

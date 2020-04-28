@@ -12,6 +12,7 @@ require_relative 'proto/infinite_tracing_services_pb'
 # Mapping gRPC namespaced classes into New Relic's
 module NewRelic::Agent::InfiniteTracing
   Span = Com::Newrelic::Trace::V1::Span
+  SpanBatch = Com::Newrelic::Trace::V1::SpanBatch
   AttributeValue = Com::Newrelic::Trace::V1::AttributeValue
   RecordStatus = Com::Newrelic::Trace::V1::RecordStatus
 end

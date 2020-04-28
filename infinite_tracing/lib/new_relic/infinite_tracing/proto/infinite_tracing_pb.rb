@@ -8,6 +8,9 @@
 
 
 Google::Protobuf::DescriptorPool.generated_pool.build do
+  add_message "com.newrelic.trace.v1.SpanBatch" do
+    repeated :spans, :message, 1, "com.newrelic.trace.v1.Span"
+  end
   add_message "com.newrelic.trace.v1.Span" do
     optional :trace_id, :string, 1
     map :intrinsics, :string, :message, 2, "com.newrelic.trace.v1.AttributeValue"
@@ -31,6 +34,7 @@ module Com
   module Newrelic
     module Trace
       module V1
+        SpanBatch = Google::Protobuf::DescriptorPool.generated_pool.lookup("com.newrelic.trace.v1.SpanBatch").msgclass
         Span = Google::Protobuf::DescriptorPool.generated_pool.lookup("com.newrelic.trace.v1.Span").msgclass
         AttributeValue = Google::Protobuf::DescriptorPool.generated_pool.lookup("com.newrelic.trace.v1.AttributeValue").msgclass
         RecordStatus = Google::Protobuf::DescriptorPool.generated_pool.lookup("com.newrelic.trace.v1.RecordStatus").msgclass

@@ -29,10 +29,12 @@ module NewRelic::Agent
         trace_observer_configured?
       end
 
+      # Distributed Tracing must be enabled for Infinite Tracing
       def distributed_tracing_enabled?
         NewRelic::Agent.config[:'distributed_tracing.enabled']
       end
 
+      # Span Events must be enabled for Infinite Tracing
       def span_events_enabled?
         NewRelic::Agent.config[:'span_events.enabled']
       end

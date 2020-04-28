@@ -28,7 +28,7 @@ end
 module NewRelic
   module Agent
     module InfiniteTracing
-      class ResponseHandlerTest < Minitest::Test
+      class RecordStatusHandlerTest < Minitest::Test
 
         def process_queue handler, queue
           Thread.pass until queue.empty?

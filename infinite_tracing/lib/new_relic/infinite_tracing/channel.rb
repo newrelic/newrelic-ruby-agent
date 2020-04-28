@@ -25,7 +25,7 @@ module NewRelic::Agent
       end
 
       def host
-        Config.trace_observer_uri.to_s
+        Config.trace_observer_uri.to_s.gsub("http://", '').gsub("https://",'')
       end
 
       # FOREVER = (2**(4 * 8 -2) -1)
