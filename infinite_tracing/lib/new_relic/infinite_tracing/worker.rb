@@ -14,13 +14,13 @@ module NewRelic::Agent
         @job = job
         @error = nil
         @worker_thread = nil
-        @mutex = Mutex.new
-        @mutex.synchronize { start_thread }
+        @lock = Mutex.new
+        @lock.synchronize { start_thread }
       end
 
       def status
         return "error" if error?
-        @mutex.synchronize do
+        @lock.synchronize do
           return "stopped" if @worker_thread.nil?
           @worker_thread.status || "idle"
         end
@@ -36,7 +36,7 @@ module NewRelic::Agent
       end
 
       def stop
-        @mutex.synchronize do 
+        @lock.synchronize do 
           return unless @worker_thread
           NewRelic::Agent.logger.debug "stopping worker #{@name} thread..."
           @worker_thread.kill

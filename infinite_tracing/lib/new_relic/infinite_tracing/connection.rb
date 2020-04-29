@@ -33,6 +33,10 @@ module NewRelic::Agent
           instance.client = client
           instance.rpc.record_span_batch enumerator, metadata: metadata
         end
+
+        def metadata
+          instance.metadata
+        end
       end
 
       def client= new_client
@@ -48,6 +52,23 @@ module NewRelic::Agent
           Channel.instance.host_and_port,
           Channel.instance.credentials,
           channel_override: Channel.instance.channel
+        end
+      end
+
+      # The metadata for the RPC calls is a blocking call
+      # waiting for the Agent to connect and receive the 
+      # server side configuration, which contains the license_key
+      # as well as the agent_id (agent_run_token).
+      def metadata
+        return @metadata if @metadata
+
+        @lock.synchronize do
+          @agent_started.wait(@lock) if !@connected
+
+          @metadata = {
+            "license_key" => license_key,
+            "agent_run_token" => agent_id
+          }
         end
       end
 
@@ -85,35 +106,6 @@ module NewRelic::Agent
       def license_key
         NewRelic::Agent.config[:license_key]
       end
-
-      # The metadata for the RPC calls is a blocking call
-      # waiting for the Agent to connect and receive the 
-      # server side configuration, which contains the license_key
-      # as well as the agent_id (agent_run_token).
-      def metadata
-        return @metadata if @metadata
-
-        @lock.synchronize do
-          @agent_started.wait(@lock) if !@connected
-
-          @metadata = {
-            "license_key" => license_key,
-            "agent_run_token" => agent_id
-          }
-        end
-      end
-
-      def register_config_callback
-        events = NewRelic::Agent.agent.events
-        events.subscribe(:server_source_configuration_added) do
-          @metadata = nil
-          @lock.synchronize do
-            @connected = true
-            @agent_started.signal
-          end
-        end
-      end
-
     end
   end
 end

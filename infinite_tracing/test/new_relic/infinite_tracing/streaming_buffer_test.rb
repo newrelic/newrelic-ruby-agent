@@ -21,7 +21,7 @@ module NewRelic
         def test_streams_single_segment
           total_spans = 1
           buffer, _segments = stream_segments total_spans
-          spans = consume_spans buffer
+          consume_spans buffer
 
           refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
           assert_metrics_recorded({
@@ -35,7 +35,7 @@ module NewRelic
           generator, buffer, _segments = prepare_to_stream_segments total_spans
 
           # consumes the queue as it fills
-          spans, _consumer = prepare_to_consume_spans buffer
+          _spans, _consumer = prepare_to_consume_spans buffer
 
           generator.join
           buffer.flush_queue
@@ -73,7 +73,7 @@ module NewRelic
           generator, buffer, segments = prepare_to_stream_segments total_spans
 
           # consumes the queue as it fills
-          spans, consumer = prepare_to_consume_spans buffer
+          spans, _consumer = prepare_to_consume_spans buffer
 
           generator.join
           buffer.flush_queue
@@ -184,7 +184,7 @@ module NewRelic
           assert closed, "failed to close the buffer"
           assert_equal total_spans, segments.size
           assert_equal total_spans, spans.size
-
+          sleep(0.1)
           assert_metrics_recorded({
             "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
             "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans}

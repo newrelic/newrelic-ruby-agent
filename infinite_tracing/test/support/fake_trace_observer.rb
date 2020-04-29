@@ -4,78 +4,28 @@
 # frozen_string_literal: true
 
 if NewRelic::Agent::InfiniteTracing::Config.should_load?
-  module NewRelic::InfiniteTracing
 
-    # A EnumeratorQueue wraps a Queue to yield the items added to it.
-    class EnumeratorQueue
-      extend Forwardable
-      def_delegators :@q, :push
+  module NewRelic::Agent::InfiniteTracing
 
-      def initialize(sentinel)
-        @q = Queue.new
-        @sentinel = sentinel
-      end
-
-      def each_item
-        return enum_for(:each_item) unless block_given?
-        loop do
-          r = @q.pop
-          break if r.equal?(@sentinel)
-          fail r if r.is_a? Exception
-          yield r
-        end
-      end
-    end
-
-    class TraceObserverHandler < Com::Newrelic::Trace::V1::IngestService::Service
-      attr_reader :spans, :seen
+    class InfiniteTracer < Com::Newrelic::Trace::V1::IngestService::Service
+      attr_reader :spans
+      attr_reader :seen
 
       def initialize
         @seen = 0
-        @next_seen_hurdle = 10
         @spans = []
+        @active_calls = []
       end
 
-      def record_span(incoming_spans, _call)
-        # requests is an lazy Enumerator of the requests sent by the client.
-        puts "RECORD_SPAN"
-        q = EnumeratorQueue.new(self)
-        t = Thread.new do
-          begin
-            incoming_spans.each do |span|
-              @spans << span
-              @seen += 1
-              if @seen >= @next_seen_hurdle
-                @next_seen_hurdle += 10
-                q.push record_status
-              end
-              Thread.pass  # let the internal Bidi threads run
-            end
-            q.push(self)
-          rescue StandardError => e
-            q.push(e)  # share the exception with the enumerator
-            raise e
-          end
-        end
-        t.priority = -2  # hint that the div_many thread should not be favoured
-        q.each_item
+      def notice_span span
+        @seen += 1
+        @spans << span
       end
 
-      def record_status
-        Com::Newrelic::Trace::V1::RecordStatus.new(messages_seen: @seen)
-      end
-
-      def handle
-        return enum_for(:handle) unless block_given?
-        @record_spans.each do |span|
-          @spans << span
-          @seen += 1
-          if @seen >= @next_seen_hurdle
-            @next_seen_hurdle += 10
-            yield record_status
-          end
-        end
-        yield record_status
+      def record_span(record_spans)
+        span_handler = RecordSpanHandler.new(self, record_spans, @active_calls.size + 1)
+        @active_calls << span_handler
+        span_handler.enumerator
       end
     end
 
@@ -83,37 +33,37 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       attr_reader :trace_observer, :worker
 
       def initialize(port)
-        @server = GRPC::RpcServer.new pool_size: 10, max_waiting_requests: 255
-        @port = @server.add_http2_port "localhost:#{port}", :this_port_is_insecure
-        @trace_observer = TraceObserverHandler.new
-        @server.handle @trace_observer
+        @server = GRPC::RpcServer.new(pool_size: 24, max_waiting_requests: 24)
+        @port = @server.add_http2_port("0.0.0.0:#{port}", :this_port_is_insecure)
+        @tracer = InfiniteTracer.new
+        @server.handle(@tracer)
         @worker = nil
       end
 
       def spans
-        @trace_observer.spans
+        @tracer.spans
       end
 
-      def seen
-        @trace_observer.seen
-      end
-
-      def start
-        @worker = Thread.new do
-          @server.run_till_terminated_or_interrupted([1, 'int'.dup, 'SIGQUIT'.dup])
+      def run
+        @worker = NewRelic::Agent::InfiniteTracing::Worker.new "Server" do
+          @server.run
         end
-        @worker.abort_on_exception
+        @server.wait_till_running
       end
 
-      def get_port
-        @port
+      def stop_worker
+        return unless @worker
+        @worker.stop
+        @worker = nil
       end
 
       def stop
+        stop_worker
         @server.stop
       end
     end
   end
+
 else
   puts "Skipping tests in #{__FILE__} because Infinite Tracing is not configured to load"
 end

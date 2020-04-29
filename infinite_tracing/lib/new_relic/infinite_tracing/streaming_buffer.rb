@@ -12,20 +12,21 @@ module NewRelic::Agent
     class StreamingBuffer
       include Enumerable
       extend Forwardable
-      def_delegators :@queue, :empty?, :num_waiting
+      def_delegators :@queue, :empty?, :num_waiting, :push
       
       SPANS_SEEN_METRIC   = "Supportability/InfiniteTracing/Span/Seen"
       SPANS_SENT_METRIC   = "Supportability/InfiniteTracing/Span/Sent"
       QUEUE_DUMPED_METRIC = "Supportability/InfiniteTracing/Span/AgentQueueDumped"
 
       DEFAULT_QUEUE_SIZE = 10_000
-      FLUSH_DELAY = 0.005
-
+      FLUSH_DELAY        = 0.005
+      MAX_FLUSH_WAIT     = 3 # three seconds
+      
       attr_reader :queue
 
       def initialize max_size = DEFAULT_QUEUE_SIZE
         @max_size = max_size
-        @mutex = Mutex.new
+        @lock = Mutex.new
         @queue = Queue.new
         @batch = Array.new
       end
@@ -33,7 +34,7 @@ module NewRelic::Agent
       # Dumps the contents of this streaming buffer onto 
       # the given buffer and closes the queue
       def transfer new_buffer
-        @mutex.synchronize do
+        @lock.synchronize do
           until @queue.empty? do new_buffer.push @queue.pop end
           @queue.close
         end
@@ -48,7 +49,7 @@ module NewRelic::Agent
       # locked with a mutex, blocking the push until
       # the queue has restarted.
       def << segment
-        @mutex.synchronize do
+        @lock.synchronize do
           clear_queue if @queue.size >= @max_size
           NewRelic::Agent.increment_metric SPANS_SEEN_METRIC
           @queue.push segment
@@ -62,16 +63,34 @@ module NewRelic::Agent
         NewRelic::Agent.increment_metric QUEUE_DUMPED_METRIC
       end
 
+      # # Waits for the queue to be fully consumed or for the
+      # # waiting consumers to release.
+      # def flush_queue
+      #   @queue.num_waiting.times { @queue.push nil }
+      #   close_queue
+      #   until @queue.empty? do sleep(FLUSH_DELAY) end
+      # end
+
       # Waits for the queue to be fully consumed or for the
       # waiting consumers to release.
       def flush_queue
         @queue.num_waiting.times { @queue.push nil }
         close_queue
-        until @queue.empty? do sleep(FLUSH_DELAY) end
+
+        # Logs if we're throwing away spans because nothing's 
+        # waiting to take them off the queue.
+        if @queue.num_waiting == 0 && !@queue.empty?
+          NewRelic::Agent.logger.warn "Discarding #{@queue.size} segments on Streaming Buffer"
+          return
+        end
+
+        # Only wait a short while for queue to flush
+        cutoff = Time.now + MAX_FLUSH_WAIT
+        until @queue.empty? || Time.now >= cutoff do sleep(FLUSH_DELAY) end
       end
 
       def close_queue
-        @mutex.synchronize { @queue.close }
+        @lock.synchronize { @queue.close }
       end
 
       # Returns the blocking enumerator that will pop

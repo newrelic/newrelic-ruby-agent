@@ -9,8 +9,8 @@ module NewRelic::Agent
       def initialize enumerator
         @enumerator = enumerator
         @messages_seen = nil
-        @mutex = Mutex.new
-        @mutex.synchronize { @worker = start_handler }
+        @lock = Mutex.new
+        @lock.synchronize { @worker = start_handler }
       end
 
       def messages_seen
@@ -22,12 +22,12 @@ module NewRelic::Agent
           begin
             @enumerator.each do |response|
               break if response.nil? || response.is_a?(Exception)
-              @mutex.synchronize { @messages_seen = response }
+              @lock.synchronize { @messages_seen = response }
             end
           rescue GRPC::DeadlineExceeded => err
             NewRelic::Agent.record_metric("Supportability/InfiniteTracing/Span/Response/Error", 0.0)
             NewRelic::Agent.logger.error "gRPC Deadline Exceeded", err
-          rescue => error
+          rescue => err
             NewRelic::Agent.record_metric("Supportability/InfiniteTracing/Span/Response/Error", 0.0)
             NewRelic::Agent.logger.error "gRPC Unexpected Error", err
           end
@@ -38,7 +38,7 @@ module NewRelic::Agent
 
       def stop
         return if @worker.nil?
-        @mutex.synchronize do
+        @lock.synchronize do
           NewRelic::Agent.logger.debug "gRPC Stopping Response Handler"
           @worker.stop
           @worker = nil

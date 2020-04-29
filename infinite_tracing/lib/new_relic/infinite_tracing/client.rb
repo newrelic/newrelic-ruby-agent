@@ -7,6 +7,10 @@ module NewRelic::Agent
   module InfiniteTracing
     class Client
 
+      def << segment
+        buffer << segment
+      end
+
       # Transfers spans in streaming buffer from previous 
       # client (if any) and returns self (so we chain the call)
       def transfer previous_client
@@ -20,7 +24,7 @@ module NewRelic::Agent
       end
 
       def flush
-        buffer.flush
+        buffer.flush_queue
       end
 
       def initialize
@@ -30,7 +34,7 @@ module NewRelic::Agent
       def restart
         old_buffer = @buffer
         @buffer = StreamingBuffer.new
-        old_buffer.transfer_to @buffer
+        old_buffer.transfer @buffer
         start_streaming
       end
 
@@ -39,32 +43,12 @@ module NewRelic::Agent
       end
 
       def record_spans
-        RecordStatusHandler.new Connection.record_spans(buffer.enumerator)
+        RecordStatusHandler.new Connection.record_spans(self, buffer.enumerator)
       end
 
       def record_span_batches
-        RecordStatusHandler.new Connection.record_span_batches(buffer.batch_enumerator)
+        RecordStatusHandler.new Connection.record_span_batches(self, buffer.batch_enumerator)
       end
-
-      private
-
-      # def start_streaming
-      #   require 'pry'; binding.pry #RLK
-      #   RecordStatusHandler.new rpc.record_span(buffer, metadata: metadata)
-      # rescue => err
-      #   NewRelic::Agent.logger.error "gRPC failed to start streaming to record_span", err
-      #   puts err
-      #   puts err.backtrace
-      # end
-
-      # def start_streaming_batches
-      #   require 'pry'; binding.pry #RLK
-      #   ResponseHandler.new rpc.record_span_batch(buffer, metadata: metadata)
-      # rescue => err
-      #   NewRelic::Agent.logger.error "gRPC failed to start streaming to record_span_batch", err
-      #   puts err
-      #   puts err.backtrace
-      # end
 
     end
 

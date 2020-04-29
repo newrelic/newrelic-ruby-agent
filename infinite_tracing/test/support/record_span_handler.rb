@@ -15,8 +15,8 @@ module NewRelic::Agent
         @id = id
         @next_seen_hurdle = seen + HURDLE_INCREMENT
         @record_status_stream = EnumeratorQueue.new
-        @mutex = Mutex.new
-        @mutex.synchronize { @worker = start_handler }
+        @lock = Mutex.new
+        @lock.synchronize { @worker = start_handler }
       end
 
       def seen
@@ -28,17 +28,14 @@ module NewRelic::Agent
       end
 
       def record_status
-        puts "#{@id}: RECORDS SEEN: #{seen}" unless quiet?
         Com::Newrelic::Trace::V1::RecordStatus.new(messages_seen: seen)
       end
 
       def start_handler
-        puts "#{@id}: RECORDING SPANS!"
-        Worker.new "RecordSpanHandler[#{@id}]" do
+        Worker.new "RecordSpanHandler" do
           begin
             @record_spans.each do |span|
               @server.notice_span span
-              puts "#{@id}: receiving #{seen}"
               if seen >= @next_seen_hurdle
                 @next_seen_hurdle += HURDLE_INCREMENT
                 @record_status_stream.push(record_status)
@@ -50,20 +47,19 @@ module NewRelic::Agent
             puts "SERVER ERROR", e.inspect
             raise e
           ensure
-            @mutex.synchronize { @worker, @record_spans = nil }
+            @lock.synchronize { @worker, @record_spans = nil }
           end
         end
       end
 
       def flush
         return unless @worker
-        @worker.join while @mutex.synchronize { @record_spans }
+        @worker.join while @lock.synchronize { @record_spans }
       end
 
       def stop
         return unless @worker
-        @mutex.synchronize do
-          puts "#{@id}: Stopping Record Span Handler"
+        @lock.synchronize do
           @worker.stop
           @worker = nil
         end

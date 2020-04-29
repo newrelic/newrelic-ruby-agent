@@ -11,8 +11,6 @@ module NewRelic::Agent
       def channel
         GRPC::ClientStub.setup_channel(nil, host_and_port, credentials, settings)
       end
-
-      private
       
       def credentials
         if Config.local?
