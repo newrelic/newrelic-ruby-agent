@@ -7,10 +7,13 @@ module NewRelic::Agent
   module InfiniteTracing
     class Client
 
-      # def transfer previous_client
-      #   previous_client.buffer.transfer buffer
-      #   return self
-      # end
+      # Transfers spans in streaming buffer from previous 
+      # client (if any) and returns self (so we chain the call)
+      def transfer previous_client
+        return self unless previous_client
+        previous_client.buffer.transfer buffer
+        self
+      end
 
       def buffer
         @buffer ||= StreamingBuffer.new
@@ -20,51 +23,28 @@ module NewRelic::Agent
         buffer.flush
       end
 
-      def initialize port=10000
-        @port = port
+      def initialize
         start_streaming
       end
 
-      def << segment
-        buffer << segment
-      end
-
-      def close_stream
-        if @record_status_stream
-          puts "CLOSE_STREAM EXIT!"
-          @record_status_stream.exit
-          @record_status_stream = nil
-        end
+      def restart
+        old_buffer = @buffer
+        @buffer = StreamingBuffer.new
+        old_buffer.transfer_to @buffer
+        start_streaming
       end
 
       def start_streaming
-        record_spans
-      end
-
-      def connection
-        @connection ||= Connection.new
+        @response_handler = record_spans
       end
 
       def record_spans
-        RecordStatusHandler.new connection.record_spans(buffer.enumerator)
+        RecordStatusHandler.new Connection.record_spans(buffer.enumerator)
       end
 
       def record_span_batches
-        RecordStatusHandler.new connection.record_span_batches(buffer.batch_enumerator)
+        RecordStatusHandler.new Connection.record_span_batches(buffer.batch_enumerator)
       end
-
-      # def restart_streaming
-      #   puts 'RS'
-      #   close_stream
-
-      #   if @streaming_buffer
-      #     @streaming_buffer.restart
-      #   else
-      #     @streaming_buffer = StreamingBuffer.new Config.span_events_queue_size
-      #   end
-
-      #   start_streaming
-      # end
 
       private
 
@@ -86,28 +66,6 @@ module NewRelic::Agent
       #   puts err.backtrace
       # end
 
-      # def rpc
-      #   @rpc ||= Com::Newrelic::Trace::V1::IngestService::Stub.new(
-      #     Channel.instance.host,
-      #     Channel.instance.credentials,
-      #     channel_override: Channel.instance.channel
-      #   )
-      # end
-
-      def stream_record_status record_status_stream
-        @record_status_stream = Thread.new do
-          begin
-            record_status_stream.each do |r|
-              NewRelic::Agent.logger.info "RECORD STATUS: #{r.inspect}"
-            end
-          rescue => e
-            # TODO: RECONNECT!
-            puts "THREAD EX! #{e.inspect}"
-          end
-        end
-      rescue => e
-        puts e.inspect
-      end
     end
 
   end

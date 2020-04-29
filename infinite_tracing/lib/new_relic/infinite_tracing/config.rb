@@ -83,11 +83,16 @@ module NewRelic::Agent
       # The uniform resource identifier of the Trace Observer host constructed from all the parts.
       def trace_observer_uri
         if trace_observer_configured?
-          URI("#{trace_observer_scheme}://#{trace_observer_host}:#{trace_observer_port}")
+          URI("#{trace_observer_scheme}://#{trace_observer_host_and_port}")
         else
           ::NewRelic::Agent.logger.error TRACE_OBSERVER_NOT_CONFIGURED_ERROR
           raise TRACE_OBSERVER_NOT_CONFIGURED_ERROR
         end
+      end
+
+      # returns host and port together expressed as +hostname:port+ string.
+      def trace_observer_host_and_port
+        "#{trace_observer_host}:#{trace_observer_port}"
       end
 
       # The maximum number of span events the Streaming Buffer can hold when buffering 

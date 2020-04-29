@@ -37,10 +37,10 @@ module NewRelic
 
         def test_channel_is_insecure_for_local_host
           with_config local_config do
-            channel = Channel.new
+            channel = Channel.instance
             credentials = channel.send(:credentials)
     
-            assert_equal "http://localhost", channel.send(:host)
+            assert_equal "localhost:80", channel.send(:host_and_port)
             assert_equal :this_channel_is_insecure, credentials
           end
         end
@@ -49,10 +49,10 @@ module NewRelic
           Config.stubs(:test_framework?).returns(false)
 
           with_config remote_config do
-            channel = Channel.new
+            channel = Channel.instance
             credentials = channel.send(:credentials)
     
-            assert_equal "https://example.com", channel.send(:host)
+            assert_equal "example.com:443", channel.send(:host_and_port)
             assert_kind_of GRPC::Core::ChannelCredentials, credentials
           end
 
@@ -68,10 +68,10 @@ module NewRelic
           })
 
           with_config insecure_remote_config do
-            channel = Channel.new
+            channel = Channel.instance
             credentials = channel.send(:credentials)
     
-            assert_equal "https://example.com", channel.send(:host)
+            assert_equal "example.com:443", channel.send(:host_and_port)
             assert_kind_of GRPC::Core::ChannelCredentials, credentials
           end
 

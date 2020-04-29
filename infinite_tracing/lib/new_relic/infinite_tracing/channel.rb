@@ -6,15 +6,14 @@
 module NewRelic::Agent
   module InfiniteTracing
     class Channel
-
-      def self.instance
-        @instance ||= new
-      end
+      include Singleton
 
       def channel
-        GRPC::ClientStub.setup_channel(nil, host, credentials, settings)
+        GRPC::ClientStub.setup_channel(nil, host_and_port, credentials, settings)
       end
 
+      private
+      
       def credentials
         if Config.local?
           :this_channel_is_insecure 
@@ -24,8 +23,8 @@ module NewRelic::Agent
         end
       end
 
-      def host
-        Config.trace_observer_uri.to_s.gsub("http://", '').gsub("https://",'')
+      def host_and_port
+        Config.trace_observer_host_and_port
       end
 
       # FOREVER = (2**(4 * 8 -2) -1)

@@ -76,6 +76,27 @@ module NewRelic
           end
         end
 
+        def test_trace_observer_host_and_port
+          hostnames = [
+            ['example.com', 'example.com:443'],
+            ['example.com:80', 'example.com:80'],
+            ['example.com:443', 'example.com:443'],
+            ['http://example.com', 'example.com:443'],
+            ['https://example.com', 'example.com:443'],
+            ['https://example.com:80', 'example.com:80'],
+          ]
+          hostnames.each do |hostname, host_and_port|
+            config = {
+              :'infinite_tracing.trace_observer.host' => hostname,
+            }
+            with_config(config) do
+              assert_equal host_and_port, 
+                Config.trace_observer_host_and_port, 
+                "expected #{host_and_port.inspect} when host is: #{hostname.inspect}"
+            end
+          end
+        end
+
         def test_unset_trace_observer_host_raises_error
           NewRelic::Agent.config.remove_config_type :yaml
           error = assert_raises RuntimeError do

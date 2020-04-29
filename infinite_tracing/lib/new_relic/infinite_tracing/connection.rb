@@ -3,26 +3,58 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 # frozen_string_literal: true
 
+# The connection class manages the channel and connection to the gRPC server.
+#
+# Calls to the gRPC server are blocked until the agent connects to the collector
+# and obtains a license_key and agent_run_token from the server side configuration.
+#
+# If the agent is instructed to reconnect by the collector, that event triggers
+# server_source_configuration_added, which this connection is subscribed to and will
+# also notify the client to restart and re-establish its bi-directional streaming
+# with the gRPC server.
+#
+# NOTE: Connection is implemented as a Singleton and it also only ever expects *one*
+# client instance by design.
 module NewRelic::Agent
   module InfiniteTracing
     class Connection
-      include Singleton
 
-      # def self.instance
-      #   @instance ||= new
-      # end
+      class << self
+        def instance
+          @@instance ||= new
+        end
+       
+        def record_spans client, enumerator
+          instance.client = client
+          instance.rpc.record_span enumerator, metadata: metadata
+        end
 
-      def record_spans enumerator
-        rpc.record_span enumerator, metadata: metadata
+        def record_span_batches client, enumerator
+          instance.client = client
+          instance.rpc.record_span_batch enumerator, metadata: metadata
+        end
       end
 
-      def record_span_batches enumerator
-        rpc.record_span_batch enumerator, metadata: metadata
+      def client= new_client
+        if !@client.nil? && @client != new_client
+          NewRelic::Agent.logger.warn "Infinite Tracing's Connection is discarding its @client reference unexpectedly!"
+        end
+        @client = new_client
       end
 
-      private
+      def rpc
+       @rpc ||= @lock.synchronize do
+          Com::Newrelic::Trace::V1::IngestService::Stub.new \
+          Channel.instance.host_and_port,
+          Channel.instance.credentials,
+          channel_override: Channel.instance.channel
+        end
+      end
+
+      private 
 
       def initialize
+        @client = nil
         @rpc = nil
         @metadata = nil
 
@@ -36,23 +68,14 @@ module NewRelic::Agent
       def register_config_callback
         events = NewRelic::Agent.agent.events
         events.subscribe(:server_source_configuration_added) do
-          @rpc = nil
-          @metadata = nil
           @lock.synchronize do
+            @rpc = nil
+            @metadata = nil
             @connected = true
             @agent_started.signal
           end
+          @client.restart if @client
         end
-      end
-
-      private
-
-      def rpc
-        @rpc ||= Com::Newrelic::Trace::V1::IngestService::Stub.new(
-          Channel.instance.host,
-          Channel.instance.credentials,
-          channel_override: Channel.instance.channel
-        )
       end
 
       def agent_id

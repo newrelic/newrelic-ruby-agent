@@ -26,15 +26,6 @@ module NewRelic
           reset_buffers_and_caches
         end
 
-        def test_config
-          {
-            :'distributed_tracing.enabled' => true,
-            :'span_events.enabled' => true,
-            :'infinite_tracing.trace_observer.host' => "localhost:80",
-            :'license_key' => "swiss_cheese"
-          }
-        end
-
         def fake_server_config
           {
             :'distributed_tracing.enabled' => true,
@@ -62,14 +53,13 @@ module NewRelic
         # simulates applying a server-side config to the agent instance.
         # the sleep 0.01 allows us to choose whether to join and wait
         # or set it up and continue with test scenario's flow.
-        def simulate_connect_to_collector config
-          Thread.new do
-            sleep(0.01)
-            # TODO: Handle stubbing connected in the tests themselves,
-            # or come up with some other solution, because otherwise
-            # mocha complains
+        def connect_to_collector config
+          begin
             NewRelic::Agent.instance.stubs(:connected?).returns(true)
             @response_handler.configure_agent config
+            yield
+          ensure
+            NewRelic::Agent.instance.unstub(:connected?)
           end
         end
 
@@ -83,23 +73,23 @@ module NewRelic
           @response_handler.configure_agent config
         end
 
-        def test_streams_single_segment
-          NewRelic::Agent.instance.stubs(:connected?).returns(true)
-          spans, segments = emulate_streaming_segments 1
+        # def test_streams_single_segment
+        #   NewRelic::Agent.instance.stubs(:connected?).returns(true)
+        #   spans, segments = emulate_streaming_segments 1
 
-          spans.each do |span|
-            assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
-            assert_equal segments[0].transaction.trace_id, span["trace_id"]
-          end
+        #   spans.each do |span|
+        #     assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
+        #     assert_equal segments[0].transaction.trace_id, span["trace_id"]
+        #   end
 
-          assert_equal 1, spans.size
+        #   assert_equal 1, spans.size
 
-          refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
-          assert_metrics_recorded({
-            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 1},
-            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 1}
-          })
-        end
+        #   refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
+        #   assert_metrics_recorded({
+        #     "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 1},
+        #     "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 1}
+        #   })
+        # end
 
         # def test_streams_multiple_segments
         #   buffer, segments = emulate_streaming_segments 5
@@ -147,7 +137,7 @@ module NewRelic
         def emulate_streaming_segments count, max_buffer_size=100_000
           start_fake_trace_observer_server
           with_config fake_server_config do
-            client = Client.new FAKE_SERVER_PORT
+            client = Client.new
             simulate_connect_to_collector fake_server_config
 
             segments = []
