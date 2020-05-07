@@ -23,14 +23,16 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           end
 
           def teardown
-            Connection.reset
+            Connection.reset!
+            # NewRelic::Agent.agent.events.clear
             reset_buffers_and_caches
           end
 
           # reset is not used in production code and only needed for 
           # testing purposes, so its implemented here
           class NewRelic::Agent::InfiniteTracing::Connection
-            def self.reset
+            def self.reset!
+              self.reset
               @@instance = nil
             end
           end
@@ -40,6 +42,16 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             @server.run
           end
 
+          def start_unimplemented_trace_observer_server
+            @server = FakeTraceObserverServer.new FAKE_SERVER_PORT, UnimplementedInfiniteTracer
+            @server.run
+          end
+
+          def restart_fake_trace_observer_server
+            stop_fake_trace_observer_server
+            start_fake_trace_observer_server
+          end
+          
           def stop_fake_trace_observer_server
             return unless @server          
             @server.stop
@@ -105,6 +117,34 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
               simulate_connect_to_collector fake_server_config do |simulator|
                 # starts server and simulated agent connection
                 start_fake_trace_observer_server
+                simulator.join
+
+                # starts client and streams count segments             
+                client = Client.new
+                segments = []
+                count.times do |index|
+                  with_segment do |segment|
+                    segments << segment
+                    client << segment
+                    yield(client, segments) if block_given?
+                  end
+                end
+
+                # ensures all segments consumed then returns the
+                # spans the server saw along with the segments sent
+                client.flush
+                return @server.spans, segments
+              end
+            end
+          ensure
+            stop_fake_trace_observer_server
+          end
+
+          def emulate_streaming_to_unimplemented count, max_buffer_size=100_000
+            with_config fake_server_config do
+              simulate_connect_to_collector fake_server_config do |simulator|
+                # starts server and simulated agent connection
+                start_unimplemented_trace_observer_server
                 simulator.join
 
                 # starts client and streams count segments             

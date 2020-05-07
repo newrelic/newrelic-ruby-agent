@@ -29,13 +29,34 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       end
     end
 
+    class UnimplementedInfiniteTracer < Com::Newrelic::Trace::V1::IngestService::Service
+      attr_reader :spans
+      attr_reader :seen
+
+      def initialize
+        @seen = 0
+        @spans = []
+        @active_calls = []
+      end
+
+      def notice_span span
+        @seen += 1
+        @spans << span
+      end
+
+      def record_span(record_spans)
+        msg = "You shall not pass!"
+        raise GRPC::BadStatus.new(GRPC::Core::StatusCodes::UNIMPLEMENTED, msg)
+      end
+    end
+
     class FakeTraceObserverServer
       attr_reader :trace_observer, :worker
 
-      def initialize(port)
+      def initialize(port, tracer_class=InfiniteTracer)
         @server = GRPC::RpcServer.new(pool_size: 24, max_waiting_requests: 24)
         @port = @server.add_http2_port("0.0.0.0:#{port}", :this_port_is_insecure)
-        @tracer = InfiniteTracer.new
+        @tracer = tracer_class.new
         @server.handle(@tracer)
         @worker = nil
       end
@@ -51,6 +72,14 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
         @server.wait_till_running
       end
 
+      def restart
+        stop
+        @server = GRPC::RpcServer.new(pool_size: 24, max_waiting_requests: 24)
+        @tracer = InfiniteTracer.new
+        @server.handle(@tracer)
+        run
+      end
+
       def stop_worker
         return unless @worker
         @worker.stop
@@ -58,8 +87,9 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       end
 
       def stop
-        stop_worker
         @server.stop
+        @worker.join(2)
+        stop_worker
       end
     end
   end

@@ -6,10 +6,16 @@
 module NewRelic::Agent
   module InfiniteTracing
     class Channel
-      include Singleton
+
+      def stub
+        Com::Newrelic::Trace::V1::IngestService::Stub.new \
+          host_and_port, 
+          credentials, 
+          channel_override: channel
+      end
 
       def channel
-        GRPC::ClientStub.setup_channel(nil, host_and_port, credentials, settings)
+        GRPC::Core::Channel.new(host_and_port, settings, credentials)
       end
       
       def credentials

@@ -26,18 +26,9 @@ module NewRelic
           }
         end
 
-        def test_channel_instance_is_singleton
-          with_config local_config do
-            channel = Channel.instance
-            assert_kind_of Channel, channel
-            assert_kind_of GRPC::Core::Channel, channel.channel
-            assert_same channel, Channel.instance
-          end
-        end
-
         def test_channel_is_insecure_for_local_host
           with_config local_config do
-            channel = Channel.instance
+            channel = Channel.new
             credentials = channel.send(:credentials)
     
             assert_equal "localhost:80", channel.send(:host_and_port)
@@ -49,7 +40,7 @@ module NewRelic
           Config.stubs(:test_framework?).returns(false)
 
           with_config remote_config do
-            channel = Channel.instance
+            channel = Channel.new
             credentials = channel.send(:credentials)
     
             assert_equal "example.com:443", channel.send(:host_and_port)
@@ -68,7 +59,7 @@ module NewRelic
           })
 
           with_config insecure_remote_config do
-            channel = Channel.instance
+            channel = Channel.new
             credentials = channel.send(:credentials)
     
             assert_equal "example.com:443", channel.send(:host_and_port)

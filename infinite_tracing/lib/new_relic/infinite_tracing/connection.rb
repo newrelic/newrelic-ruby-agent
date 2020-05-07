@@ -23,6 +23,11 @@ module NewRelic::Agent
         def instance
           @@instance ||= new
         end
+
+        def reset
+          @@instance.reset if defined?(@@instance) && @@instance
+          @@instance = new
+        end
        
         def record_spans client, enumerator
           instance.client = client
@@ -46,13 +51,12 @@ module NewRelic::Agent
         @client = new_client
       end
 
+      def initialize_stub
+        @lock.synchronize { Channel.new.stub }
+      end
+
       def rpc
-       @rpc ||= @lock.synchronize do
-          Com::Newrelic::Trace::V1::IngestService::Stub.new \
-          Channel.instance.host_and_port,
-          Channel.instance.credentials,
-          channel_override: Channel.instance.channel
-        end
+       @rpc ||= Channel.new.stub
       end
 
       # The metadata for the RPC calls is a blocking call
@@ -63,13 +67,18 @@ module NewRelic::Agent
         return @metadata if @metadata
 
         @lock.synchronize do
-          @agent_started.wait(@lock) if !@connected
+          @agent_started.wait(@lock) if !@agent_connected
 
           @metadata = {
             "license_key" => license_key,
             "agent_run_token" => agent_id
           }
         end
+      end
+
+      def reset
+        return unless @callback_handler
+        @callback_handler.unsubscribe
       end
 
       private 
@@ -79,20 +88,19 @@ module NewRelic::Agent
         @rpc = nil
         @metadata = nil
 
-        @connected = NewRelic::Agent.agent.connected?
+        @agent_connected = NewRelic::Agent.agent.connected?
         @agent_started = ConditionVariable.new
         @lock = Mutex.new
-
         register_config_callback
       end
 
       def register_config_callback
         events = NewRelic::Agent.agent.events
-        events.subscribe(:server_source_configuration_added) do
+        @callback_handler = events.subscribe(:server_source_configuration_added) do
           @lock.synchronize do
             @rpc = nil
             @metadata = nil
-            @connected = true
+            @agent_connected = true
             @agent_started.signal
           end
           @client.restart if @client

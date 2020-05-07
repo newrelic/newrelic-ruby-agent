@@ -6,7 +6,8 @@
 module NewRelic::Agent
   module InfiniteTracing
     class RecordStatusHandler
-      def initialize enumerator
+      def initialize client, enumerator
+        @client = client
         @enumerator = enumerator
         @messages_seen = nil
         @lock = Mutex.new
@@ -24,16 +25,12 @@ module NewRelic::Agent
               break if response.nil? || response.is_a?(Exception)
               @lock.synchronize { @messages_seen = response }
             end
-          rescue GRPC::DeadlineExceeded => err
-            NewRelic::Agent.record_metric("Supportability/InfiniteTracing/Span/Response/Error", 0.0)
-            NewRelic::Agent.logger.error "gRPC Deadline Exceeded", err
-          rescue => err
-            NewRelic::Agent.record_metric("Supportability/InfiniteTracing/Span/Response/Error", 0.0)
-            NewRelic::Agent.logger.error "gRPC Unexpected Error", err
+          rescue => error
+            @lock.synchronize { @client.handle_error error }
           end
         end
-      rescue => err
-        NewRelic::Agent.logger.error "gRPC Worker Error", err
+      rescue => error
+        NewRelic::Agent.logger.error "gRPC Worker Error", error
       end
 
       def stop

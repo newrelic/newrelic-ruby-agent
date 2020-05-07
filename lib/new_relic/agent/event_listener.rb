@@ -10,6 +10,28 @@ module NewRelic::Agent
   # your eventing needs should be met by the agent's instance.
   class EventListener
 
+    class NotifyHandler
+      attr_reader :listener
+      attr_reader :event
+      attr_reader :handler
+
+      def initialize listener, event, &handler
+        @listener = listener
+        @event = event
+        @handler = handler
+      end
+
+      def unsubscribe
+        @listener.unsubscribe event, self
+      end
+
+      def call(*args)
+        @handler.call(*args)
+      rescue => err
+        NewRelic::Agent.logger.debug("Failure during notify for #{event}", err)
+      end
+    end
+
     attr_accessor :runaway_threshold
 
     def initialize
@@ -19,8 +41,15 @@ module NewRelic::Agent
 
     def subscribe(event, &handler)
       @events[event] ||= []
-      @events[event] << handler
+      notifier = NotifyHandler.new(self, event, &handler)
+      @events[event] << notifier
       check_for_runaway_subscriptions(event)
+      return notifier
+    end
+
+    def unsubscribe event, handler
+      return unless @events.has_key?(event)
+      @events[event].reject!{|h| h == handler}
     end
 
     def check_for_runaway_subscriptions(event)
@@ -34,14 +63,7 @@ module NewRelic::Agent
 
     def notify(event, *args)
       return unless @events.has_key?(event)
-
-      @events[event].each do |handler|
-        begin
-          handler.call(*args)
-        rescue => err
-          NewRelic::Agent.logger.debug("Failure during notify for #{event}", err)
-        end
-      end
+      @events[event].each{ |handler| handler.call(*args) }
     end
   end
 end

@@ -102,7 +102,7 @@ module NewRelic
           error = assert_raises RuntimeError do
             Config.trace_observer_uri
           end
-          assert_match /not configured/, error.message
+          assert_match(/not configured/, error.message)
         end
 
         private

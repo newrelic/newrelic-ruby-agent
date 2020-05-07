@@ -31,3 +31,9 @@ Dir[File.expand_path('../support/*', __FILE__)].each { |f| require f }
 # agent helpers. Use it so we don't accidentally break it.
 NewRelic::Agent.require_test_helper
 
+def timeout_cap duration=3
+  Timeout::timeout(duration) { yield }
+rescue => error
+  refute true, "Unexpected timeout occurred. #{error.backtrace.reject{|r| r =~ /gems\/minitest/}.join("\n")}"
+end
+

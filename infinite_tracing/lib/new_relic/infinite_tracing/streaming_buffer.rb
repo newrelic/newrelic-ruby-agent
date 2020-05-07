@@ -7,17 +7,15 @@
 # class.  The enumerator is blocking while the queue is empty.
 module NewRelic::Agent
   module InfiniteTracing
+
     BATCH_SIZE = 100
 
     class StreamingBuffer
+      include Constants
       include Enumerable
       extend Forwardable
       def_delegators :@queue, :empty?, :num_waiting, :push
       
-      SPANS_SEEN_METRIC   = "Supportability/InfiniteTracing/Span/Seen"
-      SPANS_SENT_METRIC   = "Supportability/InfiniteTracing/Span/Sent"
-      QUEUE_DUMPED_METRIC = "Supportability/InfiniteTracing/Span/AgentQueueDumped"
-
       DEFAULT_QUEUE_SIZE = 10_000
       FLUSH_DELAY        = 0.005
       MAX_FLUSH_WAIT     = 3 # three seconds

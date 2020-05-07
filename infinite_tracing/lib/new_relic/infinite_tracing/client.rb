@@ -6,6 +6,7 @@
 module NewRelic::Agent
   module InfiniteTracing
     class Client
+      include Constants
 
       def << segment
         buffer << segment
@@ -19,8 +20,15 @@ module NewRelic::Agent
         self
       end
 
+      # provides the correct streaming buffer instance based on whether the
+      # client is currently suspended.
+      def new_streaming_buffer
+        buffer_class = suspended? ? SuspendedStreamingBuffer : StreamingBuffer
+        buffer_class.new Config.span_events_queue_size
+      end
+
       def buffer
-        @buffer ||= StreamingBuffer.new
+        @buffer ||= new_streaming_buffer
       end
 
       def flush
@@ -31,23 +39,66 @@ module NewRelic::Agent
         start_streaming
       end
 
+      # Literal codes are all mapped to unique class names, so we can deduce the 
+      # name of the error to report in the metric from the error's class name.
+      def grpc_error_metric_name error
+        name = error.class.name.split(":")[-1].upcase
+        GRPC_ERROR_NAME % name
+      end
+
+      # Reports AND logs general response metric along with a more specific error metric
+      def record_error_metrics_and_log error
+        NewRelic::Agent.record_metric RESPONSE_ERROR_METRIC, 0.0
+        if error.is_a? GRPC::BadStatus
+          NewRelic::Agent.record_metric grpc_error_metric_name(error), 0.0
+        else
+          NewRelic::Agent.record_metric GRPC_OTHER_ERROR, 0.0
+        end
+        NewRelic::Agent.logger.error "gRPC response error received.", error
+      end
+
+      def handle_error error
+        puts "HANDLE ERROR: #{error.inspect}"
+        record_error_metrics_and_log error
+
+        case error
+        when GRPC::Unavailable then restart
+        when GRPC::Unimplemented then suspend
+        else
+          NewRelic::Agent.logger.error "Unhandled error in gRPC client!", error
+          raise error
+        end 
+      end
+
+      def suspended?
+        @suspended ||= false
+      end
+
+      def suspend
+        @suspended = true
+        @buffer = new_streaming_buffer
+      end
+
       def restart
         old_buffer = @buffer
-        @buffer = StreamingBuffer.new
+        @buffer = new_streaming_buffer
         old_buffer.transfer @buffer
         start_streaming
       end
 
       def start_streaming
+        return if suspended?
         @response_handler = record_spans
       end
 
       def record_spans
-        RecordStatusHandler.new Connection.record_spans(self, buffer.enumerator)
+        return if suspended?
+        RecordStatusHandler.new self, Connection.record_spans(self, buffer.enumerator)
       end
 
       def record_span_batches
-        RecordStatusHandler.new Connection.record_span_batches(self, buffer.batch_enumerator)
+        return if suspended?
+        RecordStatusHandler.new self, Connection.record_span_batches(self, buffer.batch_enumerator)
       end
 
     end
