@@ -61,8 +61,8 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
       def server_options
         {
-          pool_size: 3, 
-          max_waiting_requests: 3,
+          pool_size: 10, 
+          max_waiting_requests: 10,
           server_args: {
             'grpc.so_reuseport' => 0, # eliminsates chance of cross-talks
           }
@@ -81,6 +81,12 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
         @tracer.spans
       end
 
+      def flush expected
+        # TODO: helps stop intermittent failures.  Can we eliminate by actually detecting when
+        # server finishes process all inbound data and is closing it's stream?
+        sleep(0.01)
+      end
+
       def run
         @worker = NewRelic::Agent::InfiniteTracing::Worker.new("Server") { @server.run }
         @server.wait_till_running
@@ -94,13 +100,13 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
       def stop_worker
         return unless @worker
+        @worker.join(2)
         @worker.stop
         @worker = nil
       end
 
       def stop
         @server.stop
-        @worker.join(2)
         stop_worker
       end
     end

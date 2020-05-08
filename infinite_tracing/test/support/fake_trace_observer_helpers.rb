@@ -53,19 +53,19 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             end
           end
 
-          def start_fake_trace_observer_server
-            @server = FakeTraceObserverServer.new FAKE_SERVER_PORT
+          def start_fake_trace_observer_server tracer_class
+            @server = FakeTraceObserverServer.new FAKE_SERVER_PORT, tracer_class
             @server.run
           end
 
-          def start_unimplemented_trace_observer_server
-            @server = FakeTraceObserverServer.new FAKE_SERVER_PORT, UnimplementedInfiniteTracer
-            @server.run
-          end
+          # def start_unimplemented_trace_observer_server
+          #   @server = FakeTraceObserverServer.new FAKE_SERVER_PORT, UnimplementedInfiniteTracer
+          #   @server.run
+          # end
 
-          def restart_fake_trace_observer_server
+          def restart_fake_trace_observer_server tracer_class=InfiniteTracer
             stop_fake_trace_observer_server
-            start_fake_trace_observer_server
+            start_fake_trace_observer_server tracer_class
           end
           
           def stop_fake_trace_observer_server
@@ -128,11 +128,11 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             @response_handler.configure_agent config
           end
 
-          def emulate_streaming_segments count, max_buffer_size=100_000
+          def emulate_streaming_with_tracer tracer_class, count, max_buffer_size, &block
             with_config fake_server_config do
               simulate_connect_to_collector fake_server_config do |simulator|
                 # starts server and simulated agent connection
-                start_fake_trace_observer_server
+                start_fake_trace_observer_server tracer_class
                 simulator.join
 
                 # starts client and streams count segments             
@@ -142,13 +142,17 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
                   with_segment do |segment|
                     segments << segment
                     client << segment
-                    yield(client, segments) if block_given?
+
+                    # If you want opportunity to do something after each segment
+                    # is pushed, invoke this method with a block and do it.
+                    block.call(client, segments) if block_given?
                   end
                 end
 
                 # ensures all segments consumed then returns the
                 # spans the server saw along with the segments sent
                 client.flush
+                @server.flush count
                 return @server.spans, segments
               end
             end
@@ -156,32 +160,12 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             stop_fake_trace_observer_server
           end
 
-          def emulate_streaming_to_unimplemented count, max_buffer_size=100_000
-            with_config fake_server_config do
-              simulate_connect_to_collector fake_server_config do |simulator|
-                # starts server and simulated agent connection
-                start_unimplemented_trace_observer_server
-                simulator.join
+          def emulate_streaming_segments count, max_buffer_size=100_000, &block
+            emulate_streaming_with_tracer InfiniteTracer, count, max_buffer_size, &block
+          end
 
-                # starts client and streams count segments             
-                client = Client.new
-                segments = []
-                count.times do |index|
-                  with_segment do |segment|
-                    segments << segment
-                    client << segment
-                    yield(client, segments) if block_given?
-                  end
-                end
-
-                # ensures all segments consumed then returns the
-                # spans the server saw along with the segments sent
-                client.flush
-                return @server.spans, segments
-              end
-            end
-          ensure
-            stop_fake_trace_observer_server
+          def emulate_streaming_to_unimplemented count, max_buffer_size=100_000, &block
+            emulate_streaming_with_tracer UnimplementedInfiniteTracer, count, max_buffer_size, &block
           end
 
         end
