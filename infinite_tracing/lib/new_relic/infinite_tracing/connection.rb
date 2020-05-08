@@ -19,21 +19,34 @@ module NewRelic::Agent
   module InfiniteTracing
     class Connection
 
+      # listens for server side configurations added to the agent.  When a new config is
+      # added, we have a new agent run token and need to restart the client's RPC stream
+      # with the new metadata information.
+      NewRelic::Agent.agent.events.subscribe(:server_source_configuration_added) do
+        Connection.instance.notify_agent_started
+      end
+
       class << self
+
         def instance
           @@instance ||= new
         end
 
         def reset
-          @@instance.reset if defined?(@@instance) && @@instance
           @@instance = new
         end
        
+        # RPC calls will pass the calling client instance in.  We track this
+        # so we're able to signal the client to restart when connectivity to the 
+        # server is disrupted.
         def record_spans client, enumerator
           instance.client = client
           instance.rpc.record_span enumerator, metadata: metadata
         end
 
+        # RPC calls will pass the calling client instance in.  We track this
+        # so we're able to signal the client to restart when connectivity to the 
+        # server is disrupted.
         def record_span_batches client, enumerator
           instance.client = client
           instance.rpc.record_span_batch enumerator, metadata: metadata
@@ -44,6 +57,9 @@ module NewRelic::Agent
         end
       end
 
+      # the client instance is passed through on the RPC calls.  Although client is not a Singleton
+      # pattern per se, we are _not_ expecting it to be different between rpc calls.  The guard clause
+      # here ensures we're coding per this expectation.
       def client= new_client
         if !@client.nil? && @client != new_client
           NewRelic::Agent.logger.warn "Infinite Tracing's Connection is discarding its @client reference unexpectedly!"
@@ -51,23 +67,19 @@ module NewRelic::Agent
         @client = new_client
       end
 
-      def initialize_stub
-        @lock.synchronize { Channel.new.stub }
-      end
-
+      # acquires the new channel stub for the RPC calls.
       def rpc
        @rpc ||= Channel.new.stub
       end
 
-      # The metadata for the RPC calls is a blocking call
-      # waiting for the Agent to connect and receive the 
-      # server side configuration, which contains the license_key
+      # The metadata for the RPC calls is a blocking call waiting for the Agent to 
+      # connect and receive the server side configuration, which contains the license_key
       # as well as the agent_id (agent_run_token).
       def metadata
         return @metadata if @metadata
 
         @lock.synchronize do
-          @agent_started.wait(@lock) if !@agent_connected
+          @agent_started.wait(@lock) if !@agent_connected 
 
           @metadata = {
             "license_key" => license_key,
@@ -76,13 +88,20 @@ module NewRelic::Agent
         end
       end
 
-      def reset
-        return unless @callback_handler
-        @callback_handler.unsubscribe
+      def notify_agent_started
+        @lock.synchronize do
+          @rpc = nil
+          @metadata = nil
+          @agent_connected = true
+          @agent_started.signal
+        end
+        @client.restart if @client
       end
 
       private 
 
+      # prepares the connection to wait for the agent to connect and have an
+      # agent_run_token ready for metadata on rpc calls.
       def initialize
         @client = nil
         @rpc = nil
@@ -91,22 +110,10 @@ module NewRelic::Agent
         @agent_connected = NewRelic::Agent.agent.connected?
         @agent_started = ConditionVariable.new
         @lock = Mutex.new
-        register_config_callback
       end
 
-      def register_config_callback
-        events = NewRelic::Agent.agent.events
-        @callback_handler = events.subscribe(:server_source_configuration_added) do
-          @lock.synchronize do
-            @rpc = nil
-            @metadata = nil
-            @agent_connected = true
-            @agent_started.signal
-          end
-          @client.restart if @client
-        end
-      end
-
+      # The agent run token, which is only available after a server source configuration has
+      # been added to the agent's config stack.
       def agent_id
         NewRelic::Agent.agent.service.agent_id.to_s
       end

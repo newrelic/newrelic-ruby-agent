@@ -54,10 +54,9 @@ module NewRelic
           timeout_cap do
             with_config localhost_config do
               simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
-                connection = Connection.instance
-
-                metadata = connection.send :metadata
                 simulator.join # ensure our simulation happens!
+                connection = Connection.instance
+                metadata = connection.send :metadata
 
                 assert_equal "swiss_cheese", metadata["license_key"]
                 assert_equal "fiddlesticks", metadata["agent_run_token"]

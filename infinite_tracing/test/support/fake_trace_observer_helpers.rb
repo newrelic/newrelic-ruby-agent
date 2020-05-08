@@ -7,6 +7,15 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
   module NewRelic
     module Agent
+      # This lets us peek into the Event Listener to see what events 
+      # are subscribed.
+      class EventListener
+        def still_subscribed event
+          return [] if @events[event].nil?
+          @events[event].select{|e| e.handler.inspect =~ /infinite_tracing/}
+        end
+      end
+
       module InfiniteTracing
         module FakeTraceObserverHelpers
 
@@ -22,14 +31,21 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             @agent.service.agent_id = 666
           end
 
-          def teardown
-            Connection.reset!
-            # NewRelic::Agent.agent.events.clear
-            reset_buffers_and_caches
+          def assert_only_one_subscription_notifier
+            still_subscribed = NewRelic::Agent.agent.events.still_subscribed(:server_source_configuration_added)
+            assert_equal 1, still_subscribed.size
           end
 
-          # reset is not used in production code and only needed for 
+          def teardown
+            Connection.reset!
+            reset_buffers_and_caches
+            assert_only_one_subscription_notifier
+          end
+
+          # reset! is not used in production code and only needed for 
           # testing purposes, so its implemented here
+          # Must clear the @@instance between tests to ensure 
+          # a clean start with each test scenario
           class NewRelic::Agent::InfiniteTracing::Connection
             def self.reset!
               self.reset

@@ -53,10 +53,26 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
     class FakeTraceObserverServer
       attr_reader :trace_observer, :worker
 
-      def initialize(port, tracer_class=InfiniteTracer)
-        @server = GRPC::RpcServer.new(pool_size: 24, max_waiting_requests: 24)
-        @port = @server.add_http2_port("0.0.0.0:#{port}", :this_port_is_insecure)
-        @tracer = tracer_class.new
+      def initialize(port_no, tracer_class=InfiniteTracer)
+        @port_no = port_no
+        @tracer_class = tracer_class
+        start
+      end
+
+      def server_options
+        {
+          pool_size: 3, 
+          max_waiting_requests: 3,
+          server_args: {
+            'grpc.so_reuseport' => 0, # eliminsates chance of cross-talks
+          }
+        }
+      end
+
+      def start
+        @server = GRPC::RpcServer.new(**server_options)
+        @port = @server.add_http2_port("0.0.0.0:#{@port_no}", :this_port_is_insecure)
+        @tracer = @tracer_class.new
         @server.handle(@tracer)
         @worker = nil
       end
@@ -66,17 +82,13 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       end
 
       def run
-        @worker = NewRelic::Agent::InfiniteTracing::Worker.new "Server" do
-          @server.run
-        end
+        @worker = NewRelic::Agent::InfiniteTracing::Worker.new("Server") { @server.run }
         @server.wait_till_running
       end
 
       def restart
         stop
-        @server = GRPC::RpcServer.new(pool_size: 24, max_waiting_requests: 24)
-        @tracer = InfiniteTracer.new
-        @server.handle(@tracer)
+        start
         run
       end
 
