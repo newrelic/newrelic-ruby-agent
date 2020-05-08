@@ -114,48 +114,6 @@ module NewRelic
           assert_watched_threads_finished buffer
         end
 
-        def test_nothing_dropped_when_restarted_mid_consumption
-          total_spans = 9
-          generator, buffer, _segments = prepare_to_stream_segments total_spans
-
-          # consumes the queue as it fills
-          spans, _consumer = prepare_to_consume_spans buffer
-
-          # restarts the streaming buffer after a few were streamed
-          restarted = false
-          fully_consumed = false
-          watch_thread(:restarter) do 
-            loop do
-              if spans.size > 3
-                restarted = true
-                fully_consumed = spans.size == total_spans
-                buffer.restart
-                break
-              end
-            end
-          end
-
-          generator.join
-
-          # restarting also means restarting the consumer
-          # (i.e. closing and reopening the stream on gRPC server)
-          # thus, we start another consumer here.
-          more_spans, _consumer = prepare_to_consume_spans buffer
-          buffer.finish
-
-          assert_equal total_spans, spans.size + more_spans.size
-          assert spans.size > 0, "Expected at least one span via first consumer"
-
-          assert_metrics_recorded({
-            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans},
-          })
-
-          assert restarted, "failed to restart!"
-          refute fully_consumed, "all spans consumed before restarting"
-          assert_watched_threads_finished buffer
-        end
-
         def test_can_close_an_empty_buffer
           total_spans = 10
           generator, buffer, segments = prepare_to_stream_segments total_spans

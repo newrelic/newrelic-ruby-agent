@@ -23,7 +23,13 @@ module NewRelic::Agent
       # added, we have a new agent run token and need to restart the client's RPC stream
       # with the new metadata information.
       NewRelic::Agent.agent.events.subscribe(:server_source_configuration_added) do
-        Connection.instance.notify_agent_started
+        begin
+          Connection.instance.notify_agent_started
+        rescue => error
+          NewRelic::Agent.logger.error \
+            "Error during notify :server_source_configuration_added event", 
+            error
+        end
       end
 
       class << self

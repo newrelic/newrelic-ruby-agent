@@ -13,7 +13,6 @@ module NewRelic::Agent
       extend Forwardable
       def_delegators :@empty_buffer, :empty?, :push
 
-
       def initialize max_size = DEFAULT_QUEUE_SIZE
         @empty_buffer = NewRelic::EMPTY_ARRAY
       end
