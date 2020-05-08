@@ -75,7 +75,7 @@ module NewRelic::Agent
 
       # acquires the new channel stub for the RPC calls.
       def rpc
-       @rpc ||= Channel.new.stub
+        @rpc ||= with_backoff_reconnect { Channel.new.stub }
       end
 
       # The metadata for the RPC calls is a blocking call waiting for the Agent to 
@@ -127,6 +127,19 @@ module NewRelic::Agent
       def license_key
         NewRelic::Agent.config[:license_key]
       end
+
+      def with_backoff_reconnect 
+        retries = 0
+        backoff_strategy = [15, 15, 30, 60, 120, 300]
+        begin
+          yield
+        rescue => exception
+          sleep backoff_strategy[retries] || backoff_strategy[-1]
+          retries += 1 
+          retry
+        end
+      end
+
     end
   end
 end

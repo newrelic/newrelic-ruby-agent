@@ -59,7 +59,7 @@ module NewRelic
             if segments.size == total_spans - leftover_spans
               restart_fake_trace_observer_server
               # Connection.reset
-              # client.restart
+              client.restart
             end
           end
 

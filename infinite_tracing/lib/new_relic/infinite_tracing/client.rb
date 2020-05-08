@@ -80,6 +80,7 @@ module NewRelic::Agent
       end
 
       def restart
+        Connection.reset
         old_buffer = @buffer
         @buffer = new_streaming_buffer
         old_buffer.transfer @buffer
