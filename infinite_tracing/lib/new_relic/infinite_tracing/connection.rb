@@ -19,6 +19,8 @@ module NewRelic::Agent
   module InfiniteTracing
     class Connection
 
+      CONNECTION_BACKOFF_PERIODS = [15, 15, 30, 60, 120, 300]
+
       # listens for server side configurations added to the agent.  When a new config is
       # added, we have a new agent run token and need to restart the client's RPC stream
       # with the new metadata information.
@@ -75,7 +77,7 @@ module NewRelic::Agent
 
       # acquires the new channel stub for the RPC calls.
       def rpc
-        @rpc ||= with_backoff_reconnect { Channel.new.stub }
+        @rpc ||= with_reconnection_backoff { Channel.new.stub }
       end
 
       # The metadata for the RPC calls is a blocking call waiting for the Agent to 
@@ -112,7 +114,7 @@ module NewRelic::Agent
         @client = nil
         @rpc = nil
         @metadata = nil
-
+        @connection_attempts = 0
         @agent_connected = NewRelic::Agent.agent.connected?
         @agent_started = ConditionVariable.new
         @lock = Mutex.new
@@ -128,16 +130,26 @@ module NewRelic::Agent
         NewRelic::Agent.config[:license_key]
       end
 
-      def with_backoff_reconnect 
-        retries = 0
-        backoff_strategy = [15, 15, 30, 60, 120, 300]
+      # Continues retrying the connection at backoff intervals until a successful connection is made
+      def with_reconnection_backoff
         begin
           yield
         rescue => exception
-          sleep backoff_strategy[retries] || backoff_strategy[-1]
-          retries += 1 
+          ::NewRelic::Agent.logger.error "Error establishing connection with infinite tracing service:", exception
+          ::NewRelic::Agent.logger.info "Will re-attempt infinte tracing connection in #{retry_connection_period} seconds"
+          sleep retry_connection_period
+          note_connect_failure
           retry
         end
+      end
+
+      def retry_connection_period
+        CONNECTION_BACKOFF_PERIODS[@connection_attempts] || CONNECTION_BACKOFF_PERIODS[-1]
+      end
+
+      # broken out to help for testing
+      def note_connect_failure
+        @connection_attempts += 1
       end
 
     end
