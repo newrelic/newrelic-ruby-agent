@@ -48,8 +48,7 @@ module NewRelic::Agent
         # so we're able to signal the client to restart when connectivity to the 
         # server is disrupted.
         def record_spans client, enumerator
-          instance.client = client
-          instance.rpc.record_span enumerator, metadata: metadata
+          instance.record_spans client, enumerator
         end
 
         # RPC calls will pass the calling client instance in.  We track this
@@ -65,6 +64,13 @@ module NewRelic::Agent
         end
       end
 
+      # We attempt to connect and record spans with reconnection backoff in order to deal with 
+      # unavailable errors coming from the stub being created and record_span call
+      def record_spans client, enumerator
+          @client = client
+          with_reconnection_backoff { rpc.record_span enumerator, metadata: metadata }
+      end
+
       # the client instance is passed through on the RPC calls.  Although client is not a Singleton
       # pattern per se, we are _not_ expecting it to be different between rpc calls.  The guard clause
       # here ensures we're coding per this expectation.
@@ -77,7 +83,7 @@ module NewRelic::Agent
 
       # acquires the new channel stub for the RPC calls.
       def rpc
-        @rpc ||= with_reconnection_backoff { Channel.new.stub }
+        @rpc ||= Channel.new.stub
       end
 
       # The metadata for the RPC calls is a blocking call waiting for the Agent to 

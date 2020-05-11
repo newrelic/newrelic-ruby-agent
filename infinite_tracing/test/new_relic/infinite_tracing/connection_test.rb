@@ -121,7 +121,7 @@ module NewRelic
         end
 
         def test_handling_unresponsive_server
-          Timeout::timeout(30) do
+          timeout_cap do
             total_spans = 5
             active_client = nil
 
