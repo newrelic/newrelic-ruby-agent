@@ -59,7 +59,9 @@ module NewRelic::Agent
           end
         end
         @worker_thread.abort_on_exception = true
-        @worker_thread.report_on_exception = NewRelic::Agent.config[:log_level] == "debug"
+        if @worker_thread.respond_to? :report_on_exception
+          @worker_thread.report_on_exception = NewRelic::Agent.config[:log_level] == "debug"
+        end
       end
     end
 
