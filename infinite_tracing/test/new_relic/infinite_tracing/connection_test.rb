@@ -99,10 +99,45 @@ module NewRelic
         def test_handling_unimplemented_server_response
           timeout_cap do
             total_spans = 5
-            spans, segments = emulate_streaming_to_unimplemented total_spans
+            active_client = nil
+
+            spans, segments = emulate_streaming_to_unimplemented(total_spans) do |client, segments|
+              active_client = client
+            end
+
+            assert_kind_of SuspendedStreamingBuffer, active_client.buffer
+            assert active_client.suspended?, "expected client to be suspended."
+
             assert_equal total_spans, segments.size
             assert_equal 0, spans.size
+
+            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
             assert_metrics_recorded({
+              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+              "Supportability/InfiniteTracing/Span/Response/Error" => {:call_count => 1},
+              "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED" => {:call_count => 1}
+            })
+          end
+        end
+
+        def test_handling_unresponsive_server
+          Timeout::timeout(30) do
+            total_spans = 5
+            active_client = nil
+
+            spans, segments = emulate_streaming_to_unresponsive_server(total_spans) do |client, segments|
+              active_client = client
+            end
+
+            assert_kind_of SuspendedStreamingBuffer, active_client.buffer
+            assert active_client.suspended?, "expected client to be suspended."
+
+            assert_equal total_spans, segments.size
+            assert_equal 0, spans.size
+
+            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
+            assert_metrics_recorded({
+              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
               "Supportability/InfiniteTracing/Span/Response/Error" => {:call_count => 1},
               "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED" => {:call_count => 1}
             })

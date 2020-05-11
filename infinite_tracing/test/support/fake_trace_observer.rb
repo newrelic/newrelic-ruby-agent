@@ -15,11 +15,16 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
         @seen = 0
         @spans = []
         @active_calls = []
+        @lock = Mutex.new
+        @noticed = ConditionVariable.new
       end
 
       def notice_span span
-        @seen += 1
-        @spans << span
+        @lock.synchronize do
+          @seen += 1
+          @spans << span
+          @noticed.signal
+        end
       end
 
       def record_span(record_spans)
@@ -37,14 +42,31 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
         @seen = 0
         @spans = []
         @active_calls = []
+        @lock = Mutex.new
+        @noticed = ConditionVariable.new
+        @waited = false
       end
 
       def notice_span span
-        @seen += 1
-        @spans << span
+        @lock.synchronize do
+          @seen += 1
+          @spans << span
+          @noticed.signal
+        end
+      end
+
+      # TODO: this may not be useful
+      def wait_for_notice
+        return if @waited
+        @lock.synchronize do
+          @noticed.wait(@lock)
+          @waited = true
+        end
+        Thread.pass
       end
 
       def record_span(record_spans)
+        @lock.synchronize { @noticed.signal }
         msg = "You shall not pass!"
         raise GRPC::BadStatus.new(GRPC::Core::StatusCodes::UNIMPLEMENTED, msg)
       end
@@ -85,6 +107,10 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
         # TODO: helps stop intermittent failures.  Can we eliminate by actually detecting when
         # server finishes process all inbound data and is closing it's stream?
         sleep(0.01)
+      end
+
+      def wait_for_notice
+        @tracer.wait_for_notice
       end
 
       def run

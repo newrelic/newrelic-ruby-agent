@@ -36,6 +36,8 @@ module NewRelic::Agent
       end
 
       def initialize
+        @suspended = false
+        @lock = Mutex.new
         start_streaming
       end
 
@@ -54,7 +56,7 @@ module NewRelic::Agent
         else
           NewRelic::Agent.record_metric GRPC_OTHER_ERROR, 0.0
         end
-        NewRelic::Agent.logger.error "gRPC response error received.", error
+        NewRelic::Agent.logger.warn "gRPC response error received.", error
       end
 
       def handle_error error
@@ -71,34 +73,36 @@ module NewRelic::Agent
       end
 
       def suspended?
-        @suspended ||= false
+        @suspended
       end
 
       def suspend
-        @suspended = true
-        @buffer = new_streaming_buffer
+        @lock.synchronize do
+          @suspended = true
+          @buffer = new_streaming_buffer
+        end
       end
 
       def restart
-        Connection.reset
-        old_buffer = @buffer
-        @buffer = new_streaming_buffer
-        old_buffer.transfer @buffer
+        @lock.synchronize do
+          Connection.reset
+          old_buffer = @buffer
+          @buffer = new_streaming_buffer
+          old_buffer.transfer @buffer
+        end
         start_streaming
       end
 
       def start_streaming
         return if suspended?
-        @response_handler = record_spans
+        @lock.synchronize { @response_handler = record_spans }
       end
 
       def record_spans
-        return if suspended?
         RecordStatusHandler.new self, Connection.record_spans(self, buffer.enumerator)
       end
 
       def record_span_batches
-        return if suspended?
         RecordStatusHandler.new self, Connection.record_span_batches(self, buffer.batch_enumerator)
       end
 
