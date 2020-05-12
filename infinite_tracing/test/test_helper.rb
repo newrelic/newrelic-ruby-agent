@@ -33,7 +33,7 @@ NewRelic::Agent.require_test_helper
 
 def timeout_cap duration=3
   Timeout::timeout(duration) { yield }
-rescue => error
-  refute true, "Unexpected timeout occurred. #{error.backtrace.reject{|r| r =~ /gems\/minitest/}.join("\n")}"
+rescue Timeout::Error => error
+  refute true, "Unexpected timeout occurred after #{duration} seconds. #{error.backtrace.reject{|r| r =~ /gems\/minitest/}.join("\n")}"
 end
 
