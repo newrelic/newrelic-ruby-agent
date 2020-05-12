@@ -78,6 +78,18 @@ module NewRelic
           })
         end
 
+        def test_stores_spans_when_not_connected
+          client = Client.new
+
+          5.times do
+            with_segment do |segment|
+              client << segment
+            end
+          end
+
+          assert_equal 5, client.buffer.queue.length
+        end
+
       end
     end
   end
