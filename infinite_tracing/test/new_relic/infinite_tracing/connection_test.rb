@@ -120,28 +120,22 @@ module NewRelic
           end
         end
 
-        def test_handling_unresponsive_server
-          timeout_cap do
-            total_spans = 5
-            active_client = nil
+        def test_reconnection_backoff
+          connection = Connection.instance
+          connection.stubs(:retry_connection_period).returns(0) 
+          connection.stubs(:note_connect_failure).returns(0).then.raises(NewRelic::TestHelpers::Exceptions::TestError) # reattempt once and then forcibly break out of with_reconnection_backoff
 
-            spans, segments = emulate_streaming_to_unresponsive_server(total_spans) do |client, segments|
-              active_client = client
+          attempts = 0
+          begin
+            connection.send :with_reconnection_backoff do
+              attempts += 1
+              raise NewRelic::TestHelpers::Exceptions::TestRuntimeError # simulate grpc raising connection error
             end
-
-            assert_kind_of SuspendedStreamingBuffer, active_client.buffer
-            assert active_client.suspended?, "expected client to be suspended."
-
-            assert_equal total_spans, segments.size
-            assert_equal 0, spans.size
-
-            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
-            assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-              "Supportability/InfiniteTracing/Span/Response/Error" => {:call_count => 1},
-              "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED" => {:call_count => 1}
-            })
+          rescue NewRelic::TestHelpers::Exceptions::TestError => e
+            # broke out of with_reconnection_backoff method
           end
+
+          assert_equal 2, attempts
         end
 
         # Testing the backoff similarly to connect_test.rb

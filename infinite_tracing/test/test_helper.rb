@@ -27,6 +27,8 @@ require File.join(agent_helper_path, 'misc.rb')
 
 Dir[File.expand_path('../support/*', __FILE__)].each { |f| require f }
 
+require File.expand_path(File.join(File.dirname(__FILE__), '..',  '..', 'test', 'helpers', 'exceptions'))
+
 # This is the public method recommended for plugin developers to share our
 # agent helpers. Use it so we don't accidentally break it.
 NewRelic::Agent.require_test_helper
