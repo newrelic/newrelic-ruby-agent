@@ -137,6 +137,8 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
                 # starts client and streams count segments             
                 client = Client.new
+                client.start_streaming
+
                 segments = []
                 count.times do |index|
                   with_segment do |segment|
@@ -166,35 +168,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           def emulate_streaming_to_unimplemented count, max_buffer_size=100_000, &block
             emulate_streaming_with_tracer UnimplementedInfiniteTracer, count, max_buffer_size, &block
-          end
-
-          def emulate_streaming_to_unresponsive_server count, max_buffer_size=100_000, &block
-            with_config fake_server_config do
-              simulate_connect_to_collector fake_server_config do |simulator|
-                # NO SERVER STARTED
-                simulator.join
-
-                # starts client and streams count segments             
-                client = Client.new
-                segments = []
-                count.times do |index|
-                  with_segment do |segment|
-                    segments << segment
-                    client << segment
-
-                    # If you want opportunity to do something after each segment
-                    # is pushed, invoke this method with a block and do it.
-                    block.call(client, segments) if block_given?
-                  end
-                end
-
-                # ensures all segments consumed then returns the
-                # spans the server saw along with the segments sent
-                client.flush
-                @server.flush count
-                return @server.spans, segments
-              end
-            end
           end
 
         end

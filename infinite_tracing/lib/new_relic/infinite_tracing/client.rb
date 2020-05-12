@@ -8,6 +8,11 @@ module NewRelic::Agent
     class Client
       include Constants
 
+      def initialize
+        @suspended = false
+        @lock = Mutex.new
+      end
+
       def << segment
         buffer << segment
       end
@@ -33,12 +38,6 @@ module NewRelic::Agent
 
       def flush
         buffer.flush_queue
-      end
-
-      def initialize
-        @suspended = false
-        @lock = Mutex.new
-        start_streaming
       end
 
       # Literal codes are all mapped to unique class names, so we can deduce the 
