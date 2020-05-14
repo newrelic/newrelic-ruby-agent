@@ -122,7 +122,7 @@ module NewRelic
 
         def test_reconnection_backoff
           connection = Connection.instance
-          connection.stubs(:retry_connection_period).returns(0) 
+          connection.stubs(:get_retry_connection_period).returns(0)
           connection.stubs(:note_connect_failure).returns(0).then.raises(NewRelic::TestHelpers::Exceptions::TestError) # reattempt once and then forcibly break out of with_reconnection_backoff
 
           attempts = 0
@@ -131,7 +131,7 @@ module NewRelic
               attempts += 1
               raise NewRelic::TestHelpers::Exceptions::TestRuntimeError # simulate grpc raising connection error
             end
-          rescue NewRelic::TestHelpers::Exceptions::TestError => e
+          rescue NewRelic::TestHelpers::Exceptions::TestError
             # broke out of with_reconnection_backoff method
           end
 
@@ -150,10 +150,10 @@ module NewRelic
           assert_equal 300, next_retry_period
         end
 
-        private 
+        private
 
         def next_retry_period
-          result = Connection.instance.send(:retry_connection_period)
+          result = Connection.instance.send(:get_retry_connection_period)
           Connection.instance.send(:note_connect_failure)
           result
         end

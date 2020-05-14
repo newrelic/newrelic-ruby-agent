@@ -34,6 +34,39 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       end
     end
 
+    class ErroringInfiniteTracer < Com::Newrelic::Trace::V1::IngestService::Service
+      attr_reader :spans
+      attr_reader :seen
+
+      def initialize
+        @seen = 0
+        @spans = []
+        @active_calls = []
+        @lock = Mutex.new
+        @first_attempt = true
+      end
+
+      def notice_span span
+        @lock.synchronize do
+          @seen += 1
+          @spans << span
+        end
+      end
+
+      def record_span(record_spans)
+        span_handler = RecordSpanHandler.new(self, record_spans, @active_calls.size + 1)
+        if @first_attempt
+          msg = "You shall not pass!"
+          error = GRPC::PermissionDenied.new(details = msg)
+          @first_attempt = false
+          raise error
+        else
+          @active_calls << span_handler
+          span_handler.enumerator
+        end
+      end
+    end
+
     class UnimplementedInfiniteTracer < Com::Newrelic::Trace::V1::IngestService::Service
       attr_reader :spans
       attr_reader :seen
@@ -67,7 +100,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
       def record_span(record_spans)
         @lock.synchronize { @noticed.signal }
-        msg = "You shall not pass!"
+        msg = "I don't exist!"
         raise GRPC::BadStatus.new(GRPC::Core::StatusCodes::UNIMPLEMENTED, msg)
       end
     end
@@ -83,7 +116,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
       def server_options
         {
-          pool_size: 10, 
+          pool_size: 10,
           max_waiting_requests: 10,
           server_args: {
             'grpc.so_reuseport' => 0, # eliminsates chance of cross-talks

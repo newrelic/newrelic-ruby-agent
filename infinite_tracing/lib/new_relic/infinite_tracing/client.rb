@@ -17,7 +17,7 @@ module NewRelic::Agent
         buffer << segment
       end
 
-      # Transfers spans in streaming buffer from previous 
+      # Transfers spans in streaming buffer from previous
       # client (if any) and returns self (so we chain the call)
       def transfer previous_client
         return self unless previous_client
@@ -40,11 +40,13 @@ module NewRelic::Agent
         buffer.flush_queue
       end
 
-      # Literal codes are all mapped to unique class names, so we can deduce the 
+      # Literal codes are all mapped to unique class names, so we can deduce the
       # name of the error to report in the metric from the error's class name.
       def grpc_error_metric_name error
-        name = error.class.name.split(":")[-1].upcase
-        GRPC_ERROR_NAME % name
+        # Class name should be converted from camelcase to upper snake case
+        class_name = error.class.name.split(":")[-1]
+        formatted_class_name = (class_name.gsub!(/(.)([A-Z])/,'\1_\2') || class_name).upcase
+        GRPC_ERROR_NAME_METRIC % formatted_class_name
       end
 
       # Reports AND logs general response metric along with a more specific error metric
@@ -59,16 +61,15 @@ module NewRelic::Agent
       end
 
       def handle_error error
-        puts "HANDLE ERROR: #{error.inspect}"
         record_error_metrics_and_log error
 
         case error
         when GRPC::Unavailable then restart
         when GRPC::Unimplemented then suspend
         else
-          NewRelic::Agent.logger.error "Unhandled error in gRPC client!", error
-          raise error
-        end 
+          # Set exponential backoff to false so we'll reconnect at periodic (15 second) intervals instead
+          start_streaming false
+        end
       end
 
       def suspended?
@@ -92,17 +93,17 @@ module NewRelic::Agent
         start_streaming
       end
 
-      def start_streaming
+      def start_streaming exponential_backoff=true
         return if suspended?
-        @lock.synchronize { @response_handler = record_spans }
+        @lock.synchronize { @response_handler = record_spans exponential_backoff }
       end
 
-      def record_spans
-        RecordStatusHandler.new self, Connection.record_spans(self, buffer.enumerator)
+      def record_spans exponential_backoff
+        RecordStatusHandler.new self, Connection.record_spans(self, buffer.enumerator, exponential_backoff)
       end
 
-      def record_span_batches
-        RecordStatusHandler.new self, Connection.record_span_batches(self, buffer.batch_enumerator)
+      def record_span_batches exponential_backoff
+        RecordStatusHandler.new self, Connection.record_span_batches(self, buffer.batch_enumerator, exponential_backoff)
       end
 
     end

@@ -39,7 +39,7 @@ module NewRelic
 
           assert_equal total_spans, segments.size
           assert_equal total_spans, spans.size
-        
+
           span_ids = spans.map{|s| s["trace_id"]}.sort
           segment_ids = segments.map{|s| s.transaction.trace_id}.sort
 
@@ -65,7 +65,7 @@ module NewRelic
 
           assert_equal total_spans, segments.size
           assert_equal leftover_spans, spans.size
-        
+
           span_ids = spans.map{|s| s["trace_id"]}.sort
           segment_ids = segments.slice(-leftover_spans, leftover_spans).map{|s| s.transaction.trace_id}.sort
 
@@ -75,6 +75,28 @@ module NewRelic
           assert_metrics_recorded({
             "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 5},
             "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 5}
+          })
+        end
+
+        def test_handles_server_error_responses
+          connection = Connection.instance
+          connection.stubs(:get_retry_connection_period).returns(0)
+
+          num_spans = 2
+          spans, segments = emulate_streaming_with_initial_error num_spans
+
+          # span_ids = spans.map{|s| s["trace_id"]}.sort
+          # segment_ids = segments.map{|s| s.transaction.trace_id}.sort
+          # assert_equal segment_ids, span_ids
+
+          # assert_equal num_spans, segments.size
+          # assert_equal num_spans, spans.size
+
+          assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
+          assert_metrics_recorded({
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => num_spans},
+            "Supportability/InfiniteTracing/Span/Response/Error" => {:call_count => 1},
+            "Supportability/InfiniteTracing/Span/gRPC/PERMISSION_DENIED" => {:call_count => 1}
           })
         end
 

@@ -7,7 +7,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
   module NewRelic
     module Agent
-      # This lets us peek into the Event Listener to see what events 
+      # This lets us peek into the Event Listener to see what events
       # are subscribed.
       class EventListener
         def still_subscribed event
@@ -42,9 +42,9 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             assert_only_one_subscription_notifier
           end
 
-          # reset! is not used in production code and only needed for 
+          # reset! is not used in production code and only needed for
           # testing purposes, so its implemented here
-          # Must clear the @@instance between tests to ensure 
+          # Must clear the @@instance between tests to ensure
           # a clean start with each test scenario
           class NewRelic::Agent::InfiniteTracing::Connection
             def self.reset!
@@ -67,12 +67,12 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             stop_fake_trace_observer_server
             start_fake_trace_observer_server tracer_class
           end
-          
+
           def stop_fake_trace_observer_server
-            return unless @server          
+            return unless @server
             @server.stop
           end
-  
+
           def localhost_config
             {
               :'distributed_tracing.enabled' => true,
@@ -111,7 +111,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           # or set it up and continue with test scenario's flow.
           def simulate_connect_to_collector config, delay=0.01
             thread = Thread.new do
-              sleep delay 
+              sleep delay
               NewRelic::Agent.instance.stubs(:connected?).returns(true)
               @response_handler.configure_agent config
             end
@@ -135,7 +135,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
                 start_fake_trace_observer_server tracer_class
                 simulator.join
 
-                # starts client and streams count segments             
+                # starts client and streams count segments
                 client = Client.new
                 client.start_streaming
 
@@ -170,6 +170,9 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             emulate_streaming_with_tracer UnimplementedInfiniteTracer, count, max_buffer_size, &block
           end
 
+          def emulate_streaming_with_initial_error count, max_buffer_size=100_000, &block
+            emulate_streaming_with_tracer ErroringInfiniteTracer, count, max_buffer_size, &block
+          end
         end
       end
     end
