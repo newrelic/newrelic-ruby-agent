@@ -23,4 +23,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
   require 'new_relic/infinite_tracing/channel'
   require 'new_relic/infinite_tracing/connection'
   require 'new_relic/infinite_tracing/client'
+
+  require 'new_relic/infinite_tracing/agent_integrations'
 end
