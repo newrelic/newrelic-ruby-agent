@@ -27,8 +27,19 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
               NewRelic::Agent.instance,
               NewRelic::Agent.config
             )
+            stub_reconnection
             @agent = NewRelic::Agent.instance
             @agent.service.agent_id = 666
+          end
+
+          def stub_reconnection
+            Connection.any_instance.stubs(:note_connect_failure).returns(0).then.raises(NewRelic::TestHelpers::Exceptions::TestError) # reattempt once and then forcibly break out of with_reconnection_backoff
+            Connection.any_instance.stubs(:get_retry_connection_period).returns(0)
+          end
+
+          def unstub_reconnection
+            Connection.any_instance.unstub(:note_connect_failure)
+            Connection.any_instance.unstub(:get_retry_connection_period)
           end
 
           def assert_only_one_subscription_notifier

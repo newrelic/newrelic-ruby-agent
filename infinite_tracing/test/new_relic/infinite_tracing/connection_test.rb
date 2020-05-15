@@ -140,6 +140,7 @@ module NewRelic
 
         # Testing the backoff similarly to connect_test.rb
         def test_increment_retry_period
+          unstub_reconnection
           assert_equal  15, next_retry_period
           assert_equal  15, next_retry_period
           assert_equal  30, next_retry_period
