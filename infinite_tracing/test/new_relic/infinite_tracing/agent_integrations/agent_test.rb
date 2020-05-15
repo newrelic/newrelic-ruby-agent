@@ -17,6 +17,7 @@ module NewRelic
         end
 
         def test_streams_multiple_segments
+          NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
           total_spans = 5
           with_config fake_server_config do
             # Suppresses intermittent fails from server not ready to accept streaming
