@@ -128,9 +128,9 @@ module NewRelic::Agent
       def batch_enumerator
         return enum_for(:enumerator) unless block_given?
         loop do
-          if segment = @queue.pop(false)
+          if proc_or_segment = @queue.pop(false)
             NewRelic::Agent.increment_metric SPANS_SENT_METRIC
-            @batch << transform(segment)
+            @batch << transform(proc_or_segment)
             if @batch.size >= BATCH_SIZE
               yield SpanBatch.new(spans: @batch)
               @batch.clear
@@ -145,9 +145,16 @@ module NewRelic::Agent
 
       private
 
-      def transform segment
-        span_event = SpanEventPrimitive.for_segment segment
-        Span.new Transformer.transform(span_event)
+      def span_event proc_or_segment
+        if proc_or_segment.is_a?(Proc)
+          proc_or_segment.call 
+        else
+          SpanEventPrimitive.for_segment(proc_or_segment)
+        end
+      end
+
+      def transform proc_or_segment
+        Span.new Transformer.transform(span_event proc_or_segment)
       end
 
     end

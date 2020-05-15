@@ -136,7 +136,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
         @tracer.spans
       end
 
-      def flush expected
+      def flush expected=100
         # TODO: helps stop intermittent failures.  Can we eliminate by actually detecting when
         # server finishes process all inbound data and is closing it's stream?
         sleep(0.01)

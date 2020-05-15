@@ -58,7 +58,6 @@ module NewRelic
           spans, segments = emulate_streaming_segments total_spans do |client, segments|
             if segments.size == total_spans - leftover_spans
               restart_fake_trace_observer_server
-              # Connection.reset
               client.restart
             end
           end
@@ -105,7 +104,7 @@ module NewRelic
 
           5.times do
             with_segment do |segment|
-              client << segment
+              client << deferred_span(segment)
             end
           end
 

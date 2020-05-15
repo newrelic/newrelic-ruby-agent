@@ -4,48 +4,18 @@
 # frozen_string_literal: true
 
 module NewRelic::Agent
-  module InfiniteTracing
-    require 'pry'; binding.pry
+  Agent.class_eval do
 
-    ::NewRelic::Agent::Agent.class_eval do
-      def instance
-        @instance ||= self.new.tap do |agent|
-          require 'pry'; binding.pry
-          agent.instance_variable_set :@infinite_tracer, Client.new 
-        end
+    def new_infinite_tracer
+      # We must start streaming in a thread or we block/deadlock the
+      # entire start up process for the Agent.
+      InfiniteTracing::Client.new.tap do |client| 
+        Thread.new{ client.start_streaming }
       end
     end
 
-    module AgentIntegration
-
-      def initialize *args
-        super
-        require 'pry'; binding.pry
-        @infinite_tracer = Client.new
-      end
-    end
-  
-    ::NewRelic::Agent::Agent.extend AgentIntegration
-  end
-end
-
-DependencyDetection.defer do
-  @name = :infinite_tracing
-
-  depends_on do
-    defined?(NewRelic::Agent::Agent)
-  end
-
-  executes do
-    ::NewRelic::Agent.logger.info 'Installing Infinite Tracing'
-  end
-
-  executes do
-    NewRelic::Agent::Agent::ClassMethods.class_eval do
-      def initialize *args
-        super
-        @infinite_tracer = ::NewRelic::Agent::InfiniteTracing::Client.new
-      end
+    def infinite_tracer
+      @infinite_tracer ||= new_infinite_tracer
     end
   end
 end

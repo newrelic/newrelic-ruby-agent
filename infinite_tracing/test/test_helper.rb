@@ -39,3 +39,12 @@ rescue Timeout::Error => error
   refute true, "Unexpected timeout occurred after #{duration} seconds. #{error.backtrace.reject{|r| r =~ /gems\/minitest/}.join("\n")}"
 end
 
+def deferred_span segment
+  Proc.new { NewRelic::Agent::SpanEventPrimitive.for_segment(segment) }
+end
+
+def reset_infinite_tracer
+  ::NewRelic::Agent.instance.instance_variable_set(:@infinite_tracer, nil)
+end
+
+

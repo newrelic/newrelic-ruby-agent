@@ -6,10 +6,15 @@
 module NewRelic
   module Agent
     class Transaction
-      class DatastoreSegment
+      class Segment
+
+        def segment_complete
+          record_span_event
+        end
+
         def record_span_event
           tracer = ::NewRelic::Agent.agent.infinite_tracer
-          tracer << Proc.new { SpanEventPrimitive.for_datastore_segment self }
+          tracer << Proc.new { SpanEventPrimitive.for_segment self }
         end
       end
     end

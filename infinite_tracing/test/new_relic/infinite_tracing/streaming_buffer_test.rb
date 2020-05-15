@@ -12,6 +12,7 @@ module NewRelic
 
         def setup
           @threads = {}
+          NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
         end
 
         def teardown
@@ -188,7 +189,7 @@ module NewRelic
             count.times do
               with_segment do |segment|
                 segments << segment
-                buffer << segment
+                buffer << deferred_span(segment)
               end
             end
           end
@@ -210,7 +211,7 @@ module NewRelic
           count.times do
             with_segment do |segment|
               segments << segment
-              buffer << segment
+              buffer << deferred_span(segment)
             end
           end
 

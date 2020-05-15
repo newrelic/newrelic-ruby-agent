@@ -6,10 +6,10 @@
 module NewRelic
   module Agent
     class Transaction
-      class DatastoreSegment
+      class ExternalRequestSegment
         def record_span_event
           tracer = ::NewRelic::Agent.agent.infinite_tracer
-          tracer << Proc.new { SpanEventPrimitive.for_datastore_segment self }
+          tracer << Proc.new { SpanEventPrimitive.for_external_request_segment self }
         end
       end
     end

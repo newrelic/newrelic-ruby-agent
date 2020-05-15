@@ -40,6 +40,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             Connection.reset!
             reset_buffers_and_caches
             assert_only_one_subscription_notifier
+            reset_infinite_tracer
           end
 
           # reset! is not used in production code and only needed for
@@ -129,6 +130,8 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           end
 
           def emulate_streaming_with_tracer tracer_class, count, max_buffer_size, &block
+            NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
+  
             with_config fake_server_config do
               simulate_connect_to_collector fake_server_config do |simulator|
                 # starts server and simulated agent connection
@@ -143,7 +146,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
                 count.times do |index|
                   with_segment do |segment|
                     segments << segment
-                    client << segment
+                    client << deferred_span(segment)
 
                     # If you want opportunity to do something after each segment
                     # is pushed, invoke this method with a block and do it.
@@ -173,6 +176,38 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           def emulate_streaming_with_initial_error count, max_buffer_size=100_000, &block
             emulate_streaming_with_tracer ErroringInfiniteTracer, count, max_buffer_size, &block
           end
+
+          # This helper is used to setup and teardown streaming to the fake trace observer
+          # A block that generates segments is expected and yielded to by this methd
+          # The spans collected by the server are returned for further inspection
+          def generate_and_stream_segments
+            with_config fake_server_config do
+              # Suppresses intermittent fails from server not ready to accept streaming
+              # (the retry loop goes _much_ faster)
+              Connection.instance.stubs(:get_retry_connection_period).returns(0.01)
+              nr_freeze_time
+
+              simulate_connect_to_collector fake_server_config do |simulator|
+                # starts server and simulated agent connection
+                start_fake_trace_observer_server InfiniteTracer
+                simulator.join
+
+                yield
+
+                # ensures all segments consumed
+                NewRelic::Agent.agent.infinite_tracer.flush
+                @server.flush
+
+                return @server.spans
+              ensure
+                Connection.instance.unstub(:get_retry_connection_period)
+                stop_fake_trace_observer_server
+                reset_infinite_tracer
+                nr_unfreeze_time
+              end
+            end
+          end
+
         end
       end
     end
