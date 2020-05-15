@@ -148,8 +148,8 @@ module NewRelic::Agent
         # Otherwise, we get stuck in an infinite loop here every time we introduce a bug during development!
         rescue => exception
           retry_connection_period = get_retry_connection_period(exponential_backoff)
-          ::NewRelic::Agent.logger.error "Error establishing connection with infinite tracing service:", exception
-          ::NewRelic::Agent.logger.info "Will re-attempt infinte tracing connection in #{retry_connection_period} seconds"
+          NewRelic::Agent.logger.error "Error establishing connection with infinite tracing service:", exception
+          NewRelic::Agent.logger.info "Will re-attempt infinte tracing connection in #{retry_connection_period} seconds"
           sleep retry_connection_period
           note_connect_failure
           retry

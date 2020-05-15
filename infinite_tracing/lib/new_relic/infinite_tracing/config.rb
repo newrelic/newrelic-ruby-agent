@@ -63,7 +63,7 @@ module NewRelic::Agent
       def port_from_host_entry
         port_str = NewRelic::Agent.config[:'infinite_tracing.trace_observer.host'].scan(%r{:(\d+)$}).flatten
         if port = (port_str[0] and port_str[0].to_i)
-          ::NewRelic::Agent.logger.warn(":'infinite_tracing.trace_observer.port' is ignored if present because :'infinite_tracing.trace_observer.host' specifies the port")
+          NewRelic::Agent.logger.warn(":'infinite_tracing.trace_observer.port' is ignored if present because :'infinite_tracing.trace_observer.host' specifies the port")
           return port
         end
       end
@@ -85,7 +85,7 @@ module NewRelic::Agent
         if trace_observer_configured?
           URI("#{trace_observer_scheme}://#{trace_observer_host_and_port}")
         else
-          ::NewRelic::Agent.logger.error TRACE_OBSERVER_NOT_CONFIGURED_ERROR
+          NewRelic::Agent.logger.error TRACE_OBSERVER_NOT_CONFIGURED_ERROR
           raise TRACE_OBSERVER_NOT_CONFIGURED_ERROR
         end
       end

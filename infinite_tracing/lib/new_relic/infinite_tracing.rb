@@ -7,22 +7,34 @@ require 'uri'
 
 require 'newrelic_rpm'
 
+NewRelic::Agent.logger.debug "Detected New Relic Infinite Tracing Gem"
+
 require 'new_relic/infinite_tracing/version'
 require 'new_relic/infinite_tracing/config'
 
-if NewRelic::Agent::InfiniteTracing::Config.should_load?
-  require 'new_relic/infinite_tracing/proto'
+DependencyDetection.defer do
+  named :infinite_tracing
 
-  require 'new_relic/infinite_tracing/constants'
-  require 'new_relic/infinite_tracing/worker'
-  require 'new_relic/infinite_tracing/record_status_handler'
+  depends_on do
+    NewRelic::Agent::InfiniteTracing::Config.should_load?
+  end
 
-  require 'new_relic/infinite_tracing/transformer'
-  require 'new_relic/infinite_tracing/streaming_buffer'
-  require 'new_relic/infinite_tracing/suspended_streaming_buffer'
-  require 'new_relic/infinite_tracing/channel'
-  require 'new_relic/infinite_tracing/connection'
-  require 'new_relic/infinite_tracing/client'
+  executes do
+    NewRelic::Agent.logger.debug "Loading New Relic Infinite Tracing Libary"
 
-  require 'new_relic/infinite_tracing/agent_integrations'
+    require 'new_relic/infinite_tracing/proto'
+
+    require 'new_relic/infinite_tracing/constants'
+    require 'new_relic/infinite_tracing/worker'
+    require 'new_relic/infinite_tracing/record_status_handler'
+
+    require 'new_relic/infinite_tracing/transformer'
+    require 'new_relic/infinite_tracing/streaming_buffer'
+    require 'new_relic/infinite_tracing/suspended_streaming_buffer'
+    require 'new_relic/infinite_tracing/channel'
+    require 'new_relic/infinite_tracing/connection'
+    require 'new_relic/infinite_tracing/client'
+
+    require 'new_relic/infinite_tracing/agent_integrations'
+  end
 end
