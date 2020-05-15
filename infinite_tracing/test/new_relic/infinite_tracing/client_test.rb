@@ -10,8 +10,8 @@ module NewRelic
     module InfiniteTracing
       class ClientTest < Minitest::Test
         include FakeTraceObserverHelpers
-
         def test_streams_multiple_segments
+          NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
           total_spans = 5
           spans, segments = emulate_streaming_segments total_spans
 
@@ -30,6 +30,7 @@ module NewRelic
         end
 
         def test_streams_across_reconnects
+          NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
           total_spans = 5
           spans, segments = emulate_streaming_segments total_spans do |client, segments|
             if segments.size == 3
@@ -53,6 +54,10 @@ module NewRelic
         end
 
         def test_handles_server_disconnects
+          unstub_reconnection
+          Connection.any_instance.stubs(:retry_connection_period).returns(0)
+          NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
+
           total_spans = 5
           leftover_spans = 2
           spans, segments = emulate_streaming_segments total_spans do |client, segments|
@@ -78,28 +83,23 @@ module NewRelic
         end
 
         def test_handles_server_error_responses
+          NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
           connection = Connection.instance
-          connection.stubs(:get_retry_connection_period).returns(0)
+          connection.stubs(:retry_connection_period).returns(0)
 
           num_spans = 2
           spans, segments = emulate_streaming_with_initial_error num_spans
 
-          # span_ids = spans.map{|s| s["trace_id"]}.sort
-          # segment_ids = segments.map{|s| s.transaction.trace_id}.sort
-          # assert_equal segment_ids, span_ids
-
-          # assert_equal num_spans, segments.size
-          # assert_equal num_spans, spans.size
-
           assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
+          assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
           assert_metrics_recorded({
             "Supportability/InfiniteTracing/Span/Seen" => {:call_count => num_spans},
-            "Supportability/InfiniteTracing/Span/Response/Error" => {:call_count => 1},
             "Supportability/InfiniteTracing/Span/gRPC/PERMISSION_DENIED" => {:call_count => 1}
           })
         end
 
         def test_stores_spans_when_not_connected
+          NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
           client = Client.new
 
           5.times do
