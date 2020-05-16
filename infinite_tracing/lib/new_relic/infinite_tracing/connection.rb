@@ -144,19 +144,19 @@ module NewRelic::Agent
         @connection_attempts = 0
         begin
           yield
-        # TODO: We need to rescue only very specific errors eminating from attempting to connect!  
+        # TODO: We need to rescue only very specific errors eminating from attempting to connect!
         # Otherwise, we get stuck in an infinite loop here every time we introduce a bug during development!
         rescue => exception
-          retry_connection_period = get_retry_connection_period(exponential_backoff)
-          NewRelic::Agent.logger.error "Error establishing connection with infinite tracing service:", exception
-          NewRelic::Agent.logger.info "Will re-attempt infinte tracing connection in #{retry_connection_period} seconds"
+          retry_connection_period = retry_connection_period(exponential_backoff)
+          ::NewRelic::Agent.logger.error "Error establishing connection with infinite tracing service:", exception
+          ::NewRelic::Agent.logger.info "Will re-attempt infinte tracing connection in #{retry_connection_period} seconds"
           sleep retry_connection_period
           note_connect_failure
           retry
         end
       end
 
-      def get_retry_connection_period exponential_backoff=true
+      def retry_connection_period exponential_backoff=true
         if exponential_backoff
           CONNECTION_BACKOFF_PERIODS[@connection_attempts] || CONNECTION_BACKOFF_PERIODS[-1]
         else

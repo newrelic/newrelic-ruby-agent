@@ -104,7 +104,6 @@ module NewRelic
             spans, segments = emulate_streaming_to_unimplemented(total_spans) do |client, segments|
               active_client = client
             end
-
             assert_kind_of SuspendedStreamingBuffer, active_client.buffer
             assert active_client.suspended?, "expected client to be suspended."
 
@@ -112,9 +111,10 @@ module NewRelic
             assert_equal 0, spans.size
 
             assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
+            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+
             assert_metrics_recorded({
               "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-              "Supportability/InfiniteTracing/Span/Response/Error" => {:call_count => 1},
               "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED" => {:call_count => 1}
             })
           end
@@ -122,7 +122,7 @@ module NewRelic
 
         def test_reconnection_backoff
           connection = Connection.instance
-          connection.stubs(:get_retry_connection_period).returns(0)
+          connection.stubs(:retry_connection_period).returns(0)
           connection.stubs(:note_connect_failure).returns(0).then.raises(NewRelic::TestHelpers::Exceptions::TestError) # reattempt once and then forcibly break out of with_reconnection_backoff
 
           attempts = 0
@@ -154,7 +154,7 @@ module NewRelic
         private
 
         def next_retry_period
-          result = Connection.instance.send(:get_retry_connection_period)
+          result = Connection.instance.send(:retry_connection_period)
           Connection.instance.send(:note_connect_failure)
           result
         end

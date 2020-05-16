@@ -21,7 +21,7 @@ module NewRelic
           total_spans = 5
           with_config fake_server_config do
             # Suppresses intermittent fails from server not ready to accept streaming
-            Connection.instance.stubs(:get_retry_connection_period).returns(0.01)
+            Connection.instance.stubs(:retry_connection_period).returns(0.01)
 
             simulate_connect_to_collector fake_server_config do |simulator|
               # starts server and simulated agent connection
@@ -40,14 +40,14 @@ module NewRelic
               # ensures all segments consumed
               NewRelic::Agent.agent.infinite_tracer.flush
               @server.flush total_spans
-        
+
               assert_equal total_spans, @server.spans.size
               assert_equal total_spans, segments.size
             end
           end
 
         ensure
-          Connection.instance.unstub(:get_retry_connection_period)
+          Connection.instance.unstub(:retry_connection_period)
           stop_fake_trace_observer_server
         end
       end
