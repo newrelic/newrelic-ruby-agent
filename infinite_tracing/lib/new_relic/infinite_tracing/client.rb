@@ -67,7 +67,7 @@ module NewRelic::Agent
         # TODO: Implement immediate reconnection when appropriate.
         # The following line does not reconnect immediately! start_streaming now defaults to
         # reconnecting using exponential backoff.
-        # when GRPC::Unavailable then restart
+        when GRPC::Unavailable then restart
         when GRPC::Unimplemented then suspend
         else
           # Set exponential backoff to false so we'll reconnect at periodic (15 second) intervals instead
