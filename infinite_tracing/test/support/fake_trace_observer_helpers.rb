@@ -22,6 +22,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           FAKE_SERVER_PORT = 10_000
 
           def setup
+            Connection.reset!
             NewRelic::Agent.instance.stubs(:start_worker_thread)
             @response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(
               NewRelic::Agent.instance,
@@ -34,12 +35,12 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           def stub_reconnection
             Connection.any_instance.stubs(:note_connect_failure).returns(0).then.raises(NewRelic::TestHelpers::Exceptions::TestError) # reattempt once and then forcibly break out of with_reconnection_backoff
-            Connection.any_instance.stubs(:get_retry_connection_period).returns(0)
+            Connection.any_instance.stubs(:retry_connection_period).returns(0)
           end
 
           def unstub_reconnection
             Connection.any_instance.unstub(:note_connect_failure)
-            Connection.any_instance.unstub(:get_retry_connection_period)
+            Connection.any_instance.unstub(:retry_connection_period)
           end
 
           def assert_only_one_subscription_notifier
@@ -48,10 +49,11 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           end
 
           def teardown
-            Connection.reset!
             reset_buffers_and_caches
             assert_only_one_subscription_notifier
             reset_infinite_tracer
+            unstub_reconnection
+            Connection.reset!
           end
 
           # reset! is not used in production code and only needed for
@@ -69,11 +71,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             @server = FakeTraceObserverServer.new FAKE_SERVER_PORT, tracer_class
             @server.run
           end
-
-          # def start_unimplemented_trace_observer_server
-          #   @server = FakeTraceObserverServer.new FAKE_SERVER_PORT, UnimplementedInfiniteTracer
-          #   @server.run
-          # end
 
           def restart_fake_trace_observer_server tracer_class=InfiniteTracer
             stop_fake_trace_observer_server
@@ -142,7 +139,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           def emulate_streaming_with_tracer tracer_class, count, max_buffer_size, &block
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
-  
+
             with_config fake_server_config do
               simulate_connect_to_collector fake_server_config do |simulator|
                 # starts server and simulated agent connection
@@ -192,10 +189,11 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           # A block that generates segments is expected and yielded to by this methd
           # The spans collected by the server are returned for further inspection
           def generate_and_stream_segments
+            unstub_reconnection
             with_config fake_server_config do
               # Suppresses intermittent fails from server not ready to accept streaming
               # (the retry loop goes _much_ faster)
-              Connection.instance.stubs(:get_retry_connection_period).returns(0.01)
+              Connection.instance.stubs(:retry_connection_period).returns(0.01)
               nr_freeze_time
 
               simulate_connect_to_collector fake_server_config do |simulator|
@@ -211,7 +209,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
                 return @server.spans
               ensure
-                Connection.instance.unstub(:get_retry_connection_period)
+                Connection.instance.unstub(:retry_connection_period)
                 stop_fake_trace_observer_server
                 reset_infinite_tracer
                 nr_unfreeze_time
