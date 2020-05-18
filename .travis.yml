@@ -16,6 +16,8 @@ jdk:
   - oraclejdk8
 
 before_install:
+  - sudo apt-get install libgmp3-dev
+
   # RUBY-2072 Prevent Travis setup failure before our test even starts
   - jdk_switcher use oraclejdk8
   - sudo rm -f /etc/apt/sources.list.d/travis_ci_zeromq3.list
