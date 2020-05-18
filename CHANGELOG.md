@@ -2,13 +2,19 @@
 
   ## v6.11.0
 
-    * **Infinite Tracing**
+  * **Infinite Tracing**
 
     This release adds support for [Infinite Tracing](https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/enable-configure/enable-distributed-tracing). Infinite Tracing observes 100% of your distributed traces and provides visualizations for the most actionable data. With Infinite Tracing, you get examples of errors and long-running traces so you can better diagnose and troubleshoot your systems.
 
     Configure your agent to send traces to a trace observer in New Relic Edge. View distributed traces through New Relic’s UI. There is no need to install a collector on your network.
 
     Infinite Tracing is currently available on a sign-up basis. If you would like to participate, please contact your sales representative.
+
+  * **Bugfix: Cross Application Tracing (CAT) adds a missing field to response**
+
+    Previously, the CAT header was missing a reserved field that would lead to an error
+    in the Go Agent's processing of incoming headers from the Ruby Agent.  This fix 
+    adds that missing field to the headers.  
 
   ## v6.10.0
 

@@ -15,7 +15,7 @@ module NewRelic
     #
     # @api public
     class DistributedTracePayload
-      extend Coerce 
+      extend Coerce
 
       VERSION     = [0, 1].freeze
       PARENT_TYPE = "App"
@@ -99,8 +99,7 @@ module NewRelic
         end
 
         def current_segment_id(transaction)
-          if Agent.config[:'span_events.enabled'] && transaction.sampled? &&
-              transaction.current_segment
+          if Agent.config[:'span_events.enabled'] && transaction.current_segment
             transaction.current_segment.guid
           end
         end

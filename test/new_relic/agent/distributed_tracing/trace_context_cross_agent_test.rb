@@ -87,7 +87,7 @@ module NewRelic
           inbound_headers << nil if inbound_headers.empty?
           inbound_headers.each do |carrier|
             DistributedTracing.accept_distributed_trace_headers \
-              rack_format(test_case, carrier), 
+              rack_format(test_case, carrier),
               test_case['transport_type']
           end
         end
@@ -323,11 +323,20 @@ module NewRelic
           return {} unless header_data
 
           if header_data.trace_state_payload
-            tracestate = object_to_hash header_data.trace_state_payload
+            tracestate = {}
+            tracestate_str = header_data.trace_state_payload.to_s
+            tracestate_values = tracestate_str.split('-')
+
             tracestate['tenant_id'] = entry_key.sub '@nr', ''
-            tracestate['parent_type'] = header_data.trace_state_payload.parent_type_id
-            tracestate['parent_application_id'] = header_data.trace_state_payload.parent_app_id
-            tracestate['span_id'] = header_data.trace_state_payload.id
+            tracestate['version'] = tracestate_values[0]
+            tracestate['parent_type'] = tracestate_values[1]
+            tracestate['parent_account_id'] = tracestate_values[2]
+            tracestate['parent_application_id'] = tracestate_values[3]
+            tracestate['span_id'] = tracestate_values[4] unless tracestate_values[4].empty?
+            tracestate['transaction_id'] = tracestate_values[5] unless tracestate_values[5].empty?
+            tracestate['sampled'] = tracestate_values[6]
+            tracestate['priority'] = tracestate_values[7].chomp("0")
+            tracestate['timestamp'] = tracestate_values[8]
           else
             tracestate = nil
           end
@@ -343,7 +352,7 @@ module NewRelic
           rack_headers["HTTP_TRACEPARENT"] = carrier['traceparent'] if carrier['traceparent']
           rack_headers["HTTP_TRACESTATE"] = carrier['tracestate'] if carrier['tracestate']
           rack_headers["HTTP_NEWRELIC"] = carrier["newrelic"] if carrier["newrelic"]
-          rack_headers          
+          rack_headers
         end
       end
     end
