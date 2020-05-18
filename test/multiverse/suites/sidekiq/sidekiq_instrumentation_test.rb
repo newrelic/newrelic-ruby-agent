@@ -154,6 +154,8 @@ class SidekiqTest < Minitest::Test
   def test_captures_errors_from_job
     TestWorker.fail = true
     run_jobs
+    # wait for jobs to finish before asserting
+    sleep(1) until Sidekiq::Workers.new.size == 0 && Sidekiq::Queue.new.size == 0
     assert_error_for_each_job
   ensure
     TestWorker.fail = false
