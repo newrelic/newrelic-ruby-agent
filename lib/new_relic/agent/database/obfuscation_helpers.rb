@@ -11,7 +11,7 @@ module NewRelic
           :double_quotes => /"(?:[^"]|"")*?(?:\\".*|"(?!"))/,
           :dollar_quotes => /(\$(?!\d)[^$]*?\$).*?(?:\1|$)/,
           :uuids => /\{?(?:[0-9a-fA-F]\-*){32}\}?/,
-          :numeric_literals => /\b-?(?:[0-9]+\.)?[0-9]+([eE][+-]?[0-9]+)?\b/,
+          :numeric_literals => /-?\b(?:[0-9]+\.)?[0-9]+([eE][+-]?[0-9]+)?\b/,
           :boolean_literals => /\b(?:true|false|null)\b/i,
           :hexadecimal_literals => /0x[0-9a-fA-F]+/,
           :comments => /(?:#|--).*?(?=\r|\n|$)/i,
