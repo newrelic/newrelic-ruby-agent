@@ -32,6 +32,7 @@ addons:
   apt:
     update: true
     packages:
+      - libgmp3-dev
       - openssl
       - libssl-dev
       - build-essential
