@@ -64,9 +64,6 @@ module NewRelic::Agent
         record_error_metrics_and_log error
 
         case error
-        # TODO: Implement immediate reconnection when appropriate.
-        # The following line does not reconnect immediately! start_streaming now defaults to
-        # reconnecting using exponential backoff.
         when GRPC::Unavailable then restart
         when GRPC::Unimplemented then suspend
         else
