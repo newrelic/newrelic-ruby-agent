@@ -29,3 +29,4 @@ artifacts/
 test/performance/log/
 test/performance/script/log/
 infinite_tracing/log/
+infinite_tracing/test/new_relic/infinite_tracing/log
