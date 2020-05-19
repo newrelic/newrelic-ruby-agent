@@ -3,6 +3,10 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 # frozen_string_literal: true
 
+# The Worker class makes it easy to stop and start a thread at will.
+# Some basic error handling/capture is wrapped around the Thread to help 
+# propagate the exceptions arising from the threaded processes to the main process
+# where the main agent code lives.
 module NewRelic::Agent
   module InfiniteTracing
 

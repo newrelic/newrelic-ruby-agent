@@ -19,7 +19,6 @@ module NewRelic::Agent
   module InfiniteTracing
     class Connection
 
-      CONNECTION_BACKOFF_PERIODS = [15, 15, 30, 60, 120, 300]
 
       # listens for server side configurations added to the agent.  When a new config is
       # added, we have a new agent run token and need to restart the client's RPC stream
@@ -144,8 +143,6 @@ module NewRelic::Agent
         @connection_attempts = 0
         begin
           yield
-        # TODO: We need to rescue only very specific errors eminating from attempting to connect!
-        # Otherwise, we get stuck in an infinite loop here every time we introduce a bug during development!
         rescue => exception
           retry_connection_period = retry_connection_period(exponential_backoff)
           ::NewRelic::Agent.logger.error "Error establishing connection with infinite tracing service:", exception
@@ -158,9 +155,9 @@ module NewRelic::Agent
 
       def retry_connection_period exponential_backoff=true
         if exponential_backoff
-          CONNECTION_BACKOFF_PERIODS[@connection_attempts] || CONNECTION_BACKOFF_PERIODS[-1]
+          NewRelic::CONNECT_RETRY_PERIODS[@connection_attempts] || NewRelic::MAX_RETRY_PERIOD
         else
-          15
+          NewRelic::MIN_RETRY_PERIOD
         end
       end
 

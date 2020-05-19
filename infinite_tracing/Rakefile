@@ -9,7 +9,7 @@ task :default => :test
 
 task :console do
   require 'pry'
-  require 'new_relic/infinite_tracing'
+  require 'infinite_tracing'
   ARGV.clear
   Pry.start
 end

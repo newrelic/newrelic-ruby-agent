@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../../../test_helper', __FILE__)
+require File.expand_path('../../../test_helper', __FILE__)
 
 module NewRelic
   module Agent

@@ -18,7 +18,7 @@ require 'minitest/autorun'
 require 'mocha/setup'
 
 require 'newrelic_rpm'
-require 'new_relic/infinite_tracing'
+require 'infinite_tracing'
 
 # This is the public method recommended for plugin developers to share our
 # agent helpers. Use it so we don't accidentally break it.
