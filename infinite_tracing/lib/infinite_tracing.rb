@@ -20,7 +20,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    NewRelic::Agent.logger.debug "Loading New Relic Infinite Tracing Libary"
+    NewRelic::Agent.logger.debug "Loading New Relic Infinite Tracing Library"
 
     require 'infinite_tracing/proto'
 
