@@ -16,6 +16,14 @@
     in the Go Agent's processing of incoming headers from the Ruby Agent.  This fix 
     adds that missing field to the headers.  
 
+  * **Bugfix: Environment Report now supports Rails >= 6.1
+
+    The API changed for how database connections are accessed in Rails versions starting with 6.1 to 
+    support multiple database feature.  The Environment report was enhanced to use the Rails >= 6.1 
+    API with fallback to old API when that fails.
+
+    Thanks to Sébastien Dubois (sedubois) for reporting this issue and contribution!
+
   ## v6.10.0
 
   * **Error attributes now added to each span that exits with an error or exception**
