@@ -23,7 +23,10 @@ module NewRelic::Agent
           begin
             @enumerator.each do |response|
               break if response.nil? || response.is_a?(Exception)
-              @lock.synchronize { @messages_seen = response }
+              @lock.synchronize do
+                @messages_seen = response
+                NewRelic::Agent.logger.debug "gRPC Infinite Tracer Observer saw #{messages_seen} messages"
+              end
             end
           rescue => error
             @lock.synchronize { @client.handle_error error }

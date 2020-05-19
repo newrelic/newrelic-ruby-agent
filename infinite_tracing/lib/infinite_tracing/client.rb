@@ -48,13 +48,16 @@ module NewRelic::Agent
         buffer.flush_queue
       end
 
+      # Turns camelcase base class name into upper snake case version of the name.
+      def formatted_class_name class_name
+        class_name = class_name.split(":")[-1]
+        formatted_class_name = (class_name.gsub!(/(.)([A-Z])/,'\1_\2') || class_name).upcase
+      end
+
       # Literal codes are all mapped to unique class names, so we can deduce the
       # name of the error to report in the metric from the error's class name.
       def grpc_error_metric_name error
-        # Class name should be converted from camelcase to upper snake case
-        class_name = error.class.name.split(":")[-1]
-        formatted_class_name = (class_name.gsub!(/(.)([A-Z])/,'\1_\2') || class_name).upcase
-        GRPC_ERROR_NAME_METRIC % formatted_class_name
+        GRPC_ERROR_NAME_METRIC % formatted_class_name(error.class.name)
       end
 
       # Reports AND logs general response metric along with a more specific error metric

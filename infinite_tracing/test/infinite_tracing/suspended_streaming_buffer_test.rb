@@ -53,15 +53,13 @@ module NewRelic
           closed = false
           emptied = false
           closer = watch_thread(:closer) do
-            timeout =  Time.now + 2
-            loop do
-              if Time.now >= timeout
-                raise "TIMED OUT!"
-              end
-              if segments.size == total_spans
-                emptied = buffer.empty?
-                closed = true
-                break
+            timeout_cap do
+              loop do
+                if segments.size == total_spans
+                  emptied = buffer.empty?
+                  closed = true
+                  break
+                end
               end
             end
           end

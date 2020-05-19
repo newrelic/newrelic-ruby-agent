@@ -17,10 +17,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
     load_test_files '*_test.rb'
     load_test_files '**/*_test.rb'
-
-    def test_ok
-      true
-    end
   end
 
 else
