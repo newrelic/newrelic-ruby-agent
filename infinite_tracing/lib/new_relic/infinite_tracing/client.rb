@@ -3,6 +3,14 @@
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 # frozen_string_literal: true
 
+# The Client class manages the streaming buffer with respect to the gRPC Connection.
+#
+# Restarting the client will cause a new connection to the gRPC server.
+# When the client is restarted, a new streaming buffer is started and contents of old
+# buffer are transferred to the new buffer.  
+#
+# Suspending the client will prevent the client from attempting to reconnect to the 
+# gRPC server, but will still continue to record the span events `seen` metric.
 module NewRelic::Agent
   module InfiniteTracing
     class Client
@@ -76,10 +84,16 @@ module NewRelic::Agent
         @suspended
       end
 
+      # Places the client into suspended state whereby client will no longer attempt to 
+      # reconnect to the gRPC server nor will it attempt to send span events henceforth.
+      # The Suspended Streaming Buffer will be installed in this state.
       def suspend
+        return if suspended?
         @lock.synchronize do
           @suspended = true
           @buffer = new_streaming_buffer
+          NewRelic::Agent.logger.warn "The Trace Observer host signaled to suspend streaming span events. " \
+            "No more span events will be sent during this session."
         end
       end
 

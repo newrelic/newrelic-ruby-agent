@@ -98,6 +98,28 @@ module NewRelic
           })
         end
 
+        def test_handles_suspended_state
+          NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
+          connection = Connection.instance
+          connection.stubs(:retry_connection_period).returns(0)
+
+          total_spans = 5
+          spans, segments = emulate_streaming_segments total_spans do |client, segments|
+            if segments.size == 3
+              client.handle_error GRPC::Unimplemented.new "suspend me!"
+            end
+          end
+
+          assert_metrics_recorded "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED"
+          assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
+          assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+          assert_metrics_recorded({
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 3},
+            "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED" => {:call_count => 1}
+          })
+        end
+
         def test_stores_spans_when_not_connected
           NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
           client = Client.new
