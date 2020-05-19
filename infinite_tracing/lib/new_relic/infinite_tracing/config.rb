@@ -106,7 +106,7 @@ module NewRelic::Agent
         NewRelic::Agent.config[:framework] == :test
       end
 
-      # Infinite Tracing is configured when a non
+      # Infinite Tracing is configured when a non empty string is set as the host
       def trace_observer_configured?
         trace_observer_host != NewRelic::EMPTY_STR
       end
