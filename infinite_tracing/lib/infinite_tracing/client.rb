@@ -66,7 +66,7 @@ module NewRelic::Agent
         if error.is_a? GRPC::BadStatus
           NewRelic::Agent.record_metric grpc_error_metric_name(error), 0.0
         else
-          NewRelic::Agent.record_metric GRPC_OTHER_ERROR, 0.0
+          NewRelic::Agent.record_metric GRPC_OTHER_ERROR_METRIC, 0.0
         end
         NewRelic::Agent.logger.warn "gRPC response error received.", error
       end

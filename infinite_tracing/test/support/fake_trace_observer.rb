@@ -125,11 +125,24 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       end
 
       def start
-        @server = GRPC::RpcServer.new(**server_options)
-        @port = @server.add_http2_port("0.0.0.0:#{@port_no}", :this_port_is_insecure)
+        @rpc_server = GRPC::RpcServer.new(**server_options)
+        @port = add_http2_port
         @tracer = @tracer_class.new
-        @server.handle(@tracer)
+        @rpc_server.handle(@tracer)
         @worker = nil
+      end
+
+      def add_http2_port
+        retries = 0
+        begin
+          @rpc_server.add_http2_port("0.0.0.0:#{@port_no}", :this_port_is_insecure)
+        rescue RuntimeError => error
+          raise unless error.message =~ /could not add port/
+          retries += 1
+          raise "ran out of retries" if retries > 5
+          sleep(0.01)
+          retry
+        end
       end
 
       def spans
@@ -147,8 +160,8 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       end
 
       def run
-        @worker = NewRelic::Agent::InfiniteTracing::Worker.new("Server") { @server.run }
-        @server.wait_till_running
+        @worker = NewRelic::Agent::InfiniteTracing::Worker.new("Server") { @rpc_server.run }
+        @rpc_server.wait_till_running
       end
 
       def restart
@@ -165,7 +178,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       end
 
       def stop
-        @server.stop
+        @rpc_server.stop
         stop_worker
       end
     end
