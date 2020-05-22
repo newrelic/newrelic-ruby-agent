@@ -757,10 +757,8 @@ module NewRelic
           # /agents/agent-specs/Collector-Response-Handling.md, retry
           # connections after a specific backoff sequence to prevent
           # hammering the server.
-          CONNECT_RETRY_PERIODS = [15, 15, 30, 60, 120, 300]
-
           def connect_retry_period
-            CONNECT_RETRY_PERIODS[connect_attempts] || 300
+            NewRelic::CONNECT_RETRY_PERIODS[connect_attempts] || NewRelic::MAX_RETRY_PERIOD
           end
 
           def note_connect_failure

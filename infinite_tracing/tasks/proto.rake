@@ -16,7 +16,7 @@ namespace :proto do
     # adds the NewRelic License notice to the top of the generated files
     # Removes require lines since these are replicated in the proto.rb file.
     def add_license_preamble_and_remove_requires output_path
-      gemspec_path = File.expand_path(File.join(output_path, '..', '..', '..', '..'))
+      gemspec_path = File.expand_path(File.join(output_path, '..', '..', '..', '..', '..'))
       license_terms = extract_license_terms File.readlines(File.join(gemspec_path, "Gemfile"))
       Dir.glob(File.join output_path, "*.rb") do |filename|
         contents = File.readlines filename
@@ -29,13 +29,13 @@ namespace :proto do
     end
 
     gem_folder = File.expand_path File.join(File.dirname(__FILE__), "..")
-    proto_filename = File.join gem_folder, "lib", "proto", "infinite_tracing.proto"
-    output_path = File.join gem_folder, "lib", "infinite_tracing", "proto"
+    proto_filename = File.join gem_folder, "lib", "new_relic", "proto", "infinite_tracing.proto"
+    output_path = File.join gem_folder, "lib", "new_relic", "infinite_tracing", "proto"
 
     FileUtils.mkdir_p output_path
     cmd = [
       "grpc_tools_ruby_protoc",
-      "-I#{gem_folder}/lib/proto",
+      "-I#{gem_folder}/lib/new_relic/proto",
       "--ruby_out=#{output_path}",
       "--grpc_out=#{output_path} #{proto_filename}"
     ].join(" ")

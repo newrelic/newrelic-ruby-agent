@@ -7,9 +7,6 @@ $LOAD_PATH.unshift(agent_lib) unless $LOAD_PATH.include?(agent_lib)
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
-proto = File.expand_path('../proto', __FILE__)
-$LOAD_PATH.unshift(proto) unless $LOAD_PATH.include?(proto)
-
 require 'new_relic/version'
 
 Gem::Specification.new do |s|
@@ -77,14 +74,13 @@ EOS
   s.summary = "New Relic Infinite Tracing for the Ruby agent"
 
   s.add_dependency 'newrelic_rpm', NewRelic::VERSION::STRING
-  s.add_dependency 'grpc', '1.28.0'
+  s.add_dependency 'grpc', '~> 1.28.0'
 
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'rb-inotify', '0.9.10'   # locked to support < Ruby 2.3 (and listen 3.0.8)
   s.add_development_dependency 'listen', '3.0.8'        # locked to support < Ruby 2.3
-  s.add_development_dependency 'minitest', '4.7.5'
+  s.add_development_dependency 'minitest', '~> 5.14.0'
   s.add_development_dependency 'mocha', '~> 1.9.0'
-  s.add_development_dependency 'yard'
   s.add_development_dependency 'pry-nav', '~> 0.3.0'
   s.add_development_dependency 'pry-stack_explorer', '~> 0.4.9'
   s.add_development_dependency 'guard', '~> 2.16.0'

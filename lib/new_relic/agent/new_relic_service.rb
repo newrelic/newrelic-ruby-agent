@@ -65,7 +65,6 @@ module NewRelic
         # clear out our cached values whenever the run ID changes.
         #
         reset_remote_method_uris
-
         @agent_id = id
       end
 

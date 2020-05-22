@@ -1921,6 +1921,14 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'If <code>true</code>, enables span event sampling.'
         },
+        :'span_events.queue_size' => {
+          :default => 10_000,
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => false,
+          :external => :infinite_tracing,
+          :description => "Sets the maximum number of span events to buffer when streaming to the trace observer."
+        },
         :'span_events.max_samples_stored' => {
           :default => 1000,
           :public => true,
@@ -1934,6 +1942,25 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => true,
           :description => "Allows newrelic distributed tracing headers to be suppressed on outbound requests."
+        },
+        :'infinite_tracing.trace_observer.host' => {
+          :default => '',
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :external => :infinite_tracing,
+          :description => "Configures the hostname for the Trace Observer Host. " \
+            "When configured, enables tail-based sampling by sending all recorded spans " \
+            "to a Trace Observer for further sampling decisions, irrespective of any usual " \
+            "agent sampling decision."
+        },
+        :'infinite_tracing.trace_observer.port' => {
+          :default => 443,
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => false,
+          :external => :infinite_tracing,
+          :description => "Configures the TCP/IP port for the Trace Observer Host"
         }
       }.freeze
     end
