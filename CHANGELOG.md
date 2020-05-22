@@ -13,16 +13,24 @@
   * **Bugfix: Cross Application Tracing (CAT) adds a missing field to response**
 
     Previously, the CAT header was missing a reserved field that would lead to an error
-    in the Go Agent's processing of incoming headers from the Ruby Agent.  This fix 
-    adds that missing field to the headers.  
+    in the Go Agent's processing of incoming headers from the Ruby Agent.  This fix
+    adds that missing field to the headers.
 
-  * **Bugfix: Environment Report now supports Rails >= 6.1
+  * **Bugfix: Environment Report now supports Rails >= 6.1**
 
-    The API changed for how database connections are accessed in Rails versions starting with 6.1 to 
-    support multiple database feature.  The Environment report was enhanced to use the Rails >= 6.1 
+    The API changed for how database connections are accessed in Rails versions starting with 6.1 to
+    support multiple database feature.  The Environment report was enhanced to use the Rails >= 6.1
     API with fallback to old API when that fails.
 
     Thanks to Sébastien Dubois (sedubois) for reporting this issue and contribution!
+
+  * **Bugfix: Eliminate warnings appearing when using `add_method_tracer` with Ruby 2.7**
+
+    Previously, using `add_method_tracer` with Ruby 2.7 to trace a method that included keyword arguments resulted in warning messages:
+    `warning: Using the last argument as keyword parameters is deprecated; maybe ** should be added to the call`. These messages no
+    longer appear.
+
+    Thanks to Harm de Wit and Atsuo Fukaya for reporting the issue!
 
   ## v6.10.0
 
