@@ -18,6 +18,7 @@ module NewRelic::Agent
 
       def initialize
         @suspended = false
+        @response_handler = nil
         @lock = Mutex.new
       end
 
@@ -108,6 +109,14 @@ module NewRelic::Agent
           old_buffer.transfer @buffer
         end
         start_streaming
+      end
+
+      def stop
+        return unless @response_handler
+        @lock.synchronize do
+          @response_handler.stop
+          @response_handler = nil
+        end
       end
 
       def start_streaming exponential_backoff=true

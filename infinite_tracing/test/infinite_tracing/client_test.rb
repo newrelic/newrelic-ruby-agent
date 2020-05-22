@@ -60,18 +60,18 @@ module NewRelic
 
           total_spans = 5
           leftover_spans = 2
-          spans, segments = emulate_streaming_segments total_spans do |client, segments|
+          spans, segments = emulate_streaming_segments total_spans do |client, segments, server|
             if segments.size == total_spans - leftover_spans
-              restart_fake_trace_observer_server
+              server.restart
               client.restart
             end
           end
 
           assert_equal total_spans, segments.size
-          assert_equal leftover_spans, spans.size
+          assert_equal total_spans, spans.size
 
           span_ids = spans.map{|s| s["trace_id"]}.sort
-          segment_ids = segments.slice(-leftover_spans, leftover_spans).map{|s| s.transaction.trace_id}.sort
+          segment_ids = segments.map{|s| s.transaction.trace_id}.sort
 
           assert_equal segment_ids, span_ids
 

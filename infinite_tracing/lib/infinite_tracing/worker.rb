@@ -36,7 +36,8 @@ module NewRelic::Agent
 
       def join timeout=nil
         return unless @worker_thread
-        @worker_thread.join timeout
+        NewRelic::Agent.logger.debug "joining worker #{@name} thread..."
+        @worker_thread.join timeout 
       end
 
       def stop

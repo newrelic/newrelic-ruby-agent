@@ -36,10 +36,10 @@ require File.join(agent_helper_path, 'exceptions.rb')
 
 Dir[File.expand_path('../support/*', __FILE__)].each { |f| require f }
 
-def timeout_cap duration=3
+def timeout_cap duration=1.0
   Timeout::timeout(duration) { yield }
 rescue Timeout::Error => error
-  refute true, "Unexpected timeout occurred after #{duration} seconds. #{error.backtrace.reject{|r| r =~ /gems\/minitest/}.join("\n")}"
+  raise Timeout::Error, "Unexpected timeout occurred after #{duration} seconds. #{error.backtrace.reject{|r| r =~ /gems\/minitest/}.join("\n")}"
 end
 
 def deferred_span segment

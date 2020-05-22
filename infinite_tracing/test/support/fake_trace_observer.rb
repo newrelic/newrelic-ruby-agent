@@ -132,6 +132,17 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
         @worker = nil
       end
 
+      # A simple debug helper that returns list of server context statuses.
+      # When there are intermittent errors happening, usually, instead of seeing
+      # everything in :stopped state, we'll see one or more server contexts in
+      # :running state.  
+      #
+      # This is our hint to research into what's not being shutdown properly!
+      def running_contexts
+        contexts = FakeTraceObserverHelpers::RUNNING_SERVER_CONTEXTS
+        contexts.map{|k,v| v}.inspect
+      end
+
       def add_http2_port
         retries = 0
         begin
@@ -139,7 +150,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
         rescue RuntimeError => error
           raise unless error.message =~ /could not add port/
           retries += 1
-          raise "ran out of retries" if retries > 5
+          raise "ran out of retries #{running_contexts}" if retries > 5
           sleep(0.01)
           retry
         end
@@ -147,12 +158,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
       def spans
         @tracer.spans
-      end
-
-      def flush expected=100
-        # TODO: helps stop intermittent failures.  Can we eliminate by actually detecting when
-        # server finishes process all inbound data and is closing it's stream?
-        sleep(0.01)
       end
 
       def wait_for_notice

@@ -12,11 +12,18 @@ module NewRelic::Agent
       # We must start streaming in a thread or we block/deadlock the
       # entire start up process for the Agent.
       InfiniteTracing::Client.new.tap do |client| 
-        Thread.new do 
+        @infinite_tracer_thread = InfiniteTracing::Worker.new(:infinite_tracer) do 
           NewRelic::Agent.logger.debug "Opening Infinite Tracer Stream with gRPC server"
           client.start_streaming
         end
       end
+    end
+
+    def close_infinite_tracer
+      return unless @infinite_tracer_thread
+      @infinite_tracer_thread.join
+      @infinite_tracer_thread.stop
+      @infinite_tracer_thread = nil
     end
 
     def infinite_tracer

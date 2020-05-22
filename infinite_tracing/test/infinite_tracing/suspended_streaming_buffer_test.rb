@@ -72,7 +72,7 @@ module NewRelic
           assert closed, "failed to close the buffer"
           assert_equal total_spans, segments.size
           assert_equal 0, spans.size
-          sleep(0.1)
+
           refute_metrics_recorded([
             "Supportability/InfiniteTracing/Span/AgentQueueDumped",
             "Supportability/InfiniteTracing/Span/Sent"
