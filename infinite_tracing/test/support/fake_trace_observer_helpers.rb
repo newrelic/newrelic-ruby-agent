@@ -111,10 +111,11 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             # rather than fewer.  On the other hand, simply sleeping when there's more than
             # one Thread in a "run" state solves the issues altogether.
             def wait_for_agent_infinite_tracer_thread_to_close
-              timeout_cap(0.05) do
+              timeout_cap(1.0) do
                 while Thread.list.select{|t| t.status == "run"}.size > 1
-                  sleep(0.01)
+                  sleep(0.05)
                 end
+                sleep(0.01)
               end
             end
 
