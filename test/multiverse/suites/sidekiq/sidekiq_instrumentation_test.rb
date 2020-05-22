@@ -34,15 +34,6 @@ class SidekiqTest < Minitest::Test
     string_logger = ::Logger.new(@sidekiq_log)
     string_logger.formatter = Sidekiq.logger.formatter
     Sidekiq.logger = string_logger
-
-    @config = {
-      :'distributed_tracing.enabled' => true,
-      :account_id => "190",
-      :primary_application_id => "46954",
-      :trusted_account_key => "trust_this!"
-    }
-    NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
-    NewRelic::Agent.config.add_config_for_testing(@config)
   end
 
   def teardown
@@ -51,22 +42,11 @@ class SidekiqTest < Minitest::Test
       @sidekiq_log.rewind
       puts @sidekiq_log.read
     end
-    NewRelic::Agent.config.remove_config(@config)
-    NewRelic::Agent.config.reset_to_defaults
-    NewRelic::Agent.drop_buffered_data
   end
 
   def run_jobs
     run_and_transmit do |i|
       TestWorker.perform_async('jobs_completed', i + 1)
-    end
-  end
-
-  def run_jobs_in_transaction
-    transaction = in_transaction 'test_txn' do |t|
-      run_and_transmit do |i|
-        TestWorker.perform_async('jobs_completed', i + 1)
-      end
     end
   end
 
@@ -109,9 +89,26 @@ class SidekiqTest < Minitest::Test
   end
 
   def test_distributed_trace_instrumentation
-    run_jobs_in_transaction
-    assert_metric_and_call_count "Supportability/TraceContext/Accept/Success", JOB_COUNT # method for metrics created on server side
-    assert_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success" # method for metrics created on the client side
+    @config = {
+      :'distributed_tracing.enabled' => true,
+      :account_id => "190",
+      :primary_application_id => "46954",
+      :trusted_account_key => "trust_this!"
+    }
+    NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+    NewRelic::Agent.config.add_config_for_testing(@config)
+
+    in_transaction 'test_txn' do |t|
+      run_jobs
+      sleep 1
+    end
+  
+    # assert_metric_and_call_count "Supportability/TraceContext/Accept/Success", JOB_COUNT # method for metrics created on server side
+    # assert_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success" # method for metrics created on the client side
+
+    NewRelic::Agent.config.remove_config(@config)
+    NewRelic::Agent.config.reset_to_defaults
+    NewRelic::Agent.drop_buffered_data 
   end
 
   def test_agent_posts_correct_metric_data
@@ -154,8 +151,6 @@ class SidekiqTest < Minitest::Test
   def test_captures_errors_from_job
     TestWorker.fail = true
     run_jobs
-    # wait for jobs to finish before asserting
-    sleep(1) until Sidekiq::Workers.new.size == 0 && Sidekiq::Queue.new.size == 0
     assert_error_for_each_job
   ensure
     TestWorker.fail = false
