@@ -1,0 +1,15 @@
+---
+- type: Span
+  traceId: cb4925eee573c1f9c786fdb2b296459b
+  guid: 0400ca1d25603072
+  transactionId: fc81b7e3ba0476e3
+  sampled: true
+  priority: 1.274452
+  timestamp: 1586870228134
+  duration: 0.0
+  name: Nested/Controller/Rack/Example::Application/call
+  nr.entryPoint: true
+  category: generic
+- luke: Skywalker
+  white: Walker
+- {}

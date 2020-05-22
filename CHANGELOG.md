@@ -2,15 +2,31 @@
 
   ## v6.11.0
 
-  * **Added distributed tracing to Sidekiq jobs** 
+  * **Infinite Tracing**
 
-    Thanks to andreaseger for the contribution!
+    This release adds support for [Infinite Tracing](https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/enable-configure/enable-distributed-tracing). Infinite Tracing observes 100% of your distributed traces and provides visualizations for the most actionable data. With Infinite Tracing, you get examples of errors and long-running traces so you can better diagnose and troubleshoot your systems.
+
+    Configure your agent to send traces to a trace observer in New Relic Edge. View distributed traces through New Relic’s UI. There is no need to install a collector on your network.
+
+    Infinite Tracing is currently available on a sign-up basis. If you would like to participate, please contact your sales representative.
 
   * **Bugfix: Cross Application Tracing (CAT) adds a missing field to response**
 
     Previously, the CAT header was missing a reserved field that would lead to an error
     in the Go Agent's processing of incoming headers from the Ruby Agent.  This fix 
     adds that missing field to the headers.  
+
+  * **Bugfix: Environment Report now supports Rails >= 6.1**
+
+    The API changed for how database connections are accessed in Rails versions starting with 6.1 to 
+    support multiple database feature.  The Environment report was enhanced to use the Rails >= 6.1 
+    API with fallback to old API when that fails.
+
+    Thanks to Sébastien Dubois (sedubois) for reporting this issue and contribution!
+
+  * **Added distributed tracing to Sidekiq jobs** 
+
+    Thanks to andreaseger for the contribution!
 
   ## v6.10.0
 
