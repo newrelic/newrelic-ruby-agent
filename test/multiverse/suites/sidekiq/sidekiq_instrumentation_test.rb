@@ -100,8 +100,9 @@ class SidekiqTest < Minitest::Test
 
     in_transaction 'test_txn' do |t|
       run_jobs
-      sleep 0.01
+      sleep 1
     end
+    sleep 1
   
     assert_metric_and_call_count "Supportability/TraceContext/Accept/Success", JOB_COUNT # method for metrics created on server side
     assert_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success" # method for metrics created on the client side
