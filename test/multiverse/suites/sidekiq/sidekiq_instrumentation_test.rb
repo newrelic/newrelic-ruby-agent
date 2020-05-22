@@ -98,9 +98,9 @@ class SidekiqTest < Minitest::Test
     NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
     NewRelic::Agent.config.add_config_for_testing(@config)
 
-    in_transaction 'test_txn' do |t|
+    # in_transaction 'test_txn' do |t|
       run_jobs
-    end
+    # end
   
     assert_metric_and_call_count "Supportability/TraceContext/Accept/Success", JOB_COUNT # method for metrics created on server side
     assert_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success" # method for metrics created on the client side
