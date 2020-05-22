@@ -100,11 +100,11 @@ class SidekiqTest < Minitest::Test
 
     in_transaction 'test_txn' do |t|
       run_jobs
-      sleep 1
+      sleep 0.01
     end
   
-    # assert_metric_and_call_count "Supportability/TraceContext/Accept/Success", JOB_COUNT # method for metrics created on server side
-    # assert_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success" # method for metrics created on the client side
+    assert_metric_and_call_count "Supportability/TraceContext/Accept/Success", JOB_COUNT # method for metrics created on server side
+    assert_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success" # method for metrics created on the client side
 
     NewRelic::Agent.config.remove_config(@config)
     NewRelic::Agent.config.reset_to_defaults
