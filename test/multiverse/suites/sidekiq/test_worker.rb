@@ -52,9 +52,10 @@ class TestWorker
 
   def self.wait
     # Don't hang out forever, but shouldn't count on the timeout functionally
-    Timeout.timeout(60) do
+    Timeout.timeout(15) do
       @done_at.times do
         @done.pop
+        sleep(0.01)
       end
     end
   end
