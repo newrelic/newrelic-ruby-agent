@@ -42,6 +42,7 @@ module NewRelic
             end
           end
 
+          assert_equal 2, span_events.size
           external_intrinsics       = span_events[0]['intrinsics']
           external_agent_attributes = span_events[0]['agent_attributes']
           root_span_event           = span_events[1]['intrinsics']
