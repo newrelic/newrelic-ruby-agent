@@ -35,7 +35,6 @@
     longer appear.
 
     Thanks to Harm de Wit and Atsuo Fukaya for reporting the issue!
->>>>>>> dev
 
   ## v6.10.0
 
