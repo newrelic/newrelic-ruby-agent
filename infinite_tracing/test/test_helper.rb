@@ -50,4 +50,12 @@ def reset_infinite_tracer
   ::NewRelic::Agent.instance.instance_variable_set(:@infinite_tracer, nil)
 end
 
+CLIENT_MUTEX = Mutex.new
+
+# Prevent parallel runs against the client in this test suite
+def with_serial_lock
+  timeout_cap(15) do
+    CLIENT_MUTEX.synchronize { yield }
+  end
+end
 

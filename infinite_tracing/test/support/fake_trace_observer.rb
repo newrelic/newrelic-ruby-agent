@@ -151,7 +151,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           raise unless error.message =~ /could not add port/
           retries += 1
           raise "ran out of retries #{running_contexts}" if retries > 5
-          sleep(0.01)
+          sleep(0.05)
           retry
         end
       end
