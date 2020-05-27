@@ -12,19 +12,22 @@
 
   * **Bugfix: Cross Application Tracing (CAT) adds a missing field to response**
 
-    Previously, the CAT header was missing a reserved field that would lead to an error
-    in the Go Agent's processing of incoming headers from the Ruby Agent.  This fix
-    adds that missing field to the headers.
+    Previously, the Ruby agent's Cross Application Tracing header was missing a reserved field that would lead to an error
+    in the Go agent's processing of incoming headers from the Ruby agent. This fix adds that missing field to the headers, eliminating
+    the issue with traces involving the Ruby agent and the Go agent.
 
   * **Bugfix: Environment Report now supports Rails >= 6.1**
 
-    The API changed for how database connections are accessed in Rails versions starting with 6.1 to
-    support multiple database feature.  The Environment report was enhanced to use the Rails >= 6.1
-    API with fallback to old API when that fails.
+    Previously, users of Rails 6.1 would see the following deprecation warning appear when the Ruby agent attempted to
+    collect enviroment data: `DEPRECATION WARNING: [] is deprecated and will be removed from Rails 6.2`. These deprecation methods
+    no longer appear.
 
-    Thanks to Sébastien Dubois (sedubois) for reporting this issue and contribution!
+    Thanks to Sébastien Dubois (sedubois) for reporting this issue and for the contribution!
 
-  * **Added distributed tracing to Sidekiq jobs** 
+  * **Added distributed tracing to Sidekiq jobs**
+
+    Previously, Sidekiq jobs were not included in portions of <a href="https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/get-started/introduction-distributed-tracing">distributed traces</a> captured by the Ruby agent. Now you can view distributed
+    traces that include Sidekiq jobs instrumented by the Ruby agent.
 
     Thanks to andreaseger for the contribution!
 
