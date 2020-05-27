@@ -88,6 +88,28 @@ class SidekiqTest < Minitest::Test
     assert_equal(expected_completed_jobs, completed_jobs)
   end
 
+  def test_distributed_trace_instrumentation
+    @config = {
+      :'distributed_tracing.enabled' => true,
+      :account_id => "190",
+      :primary_application_id => "46954",
+      :trusted_account_key => "trust_this!"
+    }
+    NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+    NewRelic::Agent.config.add_config_for_testing(@config)
+
+    in_transaction 'test_txn' do |t|
+      run_jobs
+    end
+  
+    assert_metric_and_call_count "Supportability/TraceContext/Accept/Success", JOB_COUNT # method for metrics created on server side
+    assert_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success" # method for metrics created on the client side
+
+    NewRelic::Agent.config.remove_config(@config)
+    NewRelic::Agent.config.reset_to_defaults
+    NewRelic::Agent.drop_buffered_data 
+  end
+
   def test_agent_posts_correct_metric_data
     run_jobs
     assert_metric_and_call_count(ROLLUP_METRIC, JOB_COUNT)

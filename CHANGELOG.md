@@ -24,6 +24,10 @@
 
     Thanks to Sébastien Dubois (sedubois) for reporting this issue and contribution!
 
+  * **Added distributed tracing to Sidekiq jobs** 
+
+    Thanks to andreaseger for the contribution!
+
   * **Bugfix: Eliminate warnings appearing when using `add_method_tracer` with Ruby 2.7**
 
     Previously, using `add_method_tracer` with Ruby 2.7 to trace a method that included keyword arguments resulted in warning messages:
@@ -85,6 +89,7 @@
     Previously, when running on systems such as BSD and Solaris, the agent was unable to determine the fully
     qualified domain name, which is used to help link Ruby agent data with data from New Relic Infrastructure.
     This information is now successfully collected on various BSD distros and Solaris.
+
 
   ## v6.9.0
 
