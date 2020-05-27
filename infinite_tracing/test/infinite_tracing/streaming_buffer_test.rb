@@ -20,147 +20,135 @@ module NewRelic
         end
 
         def test_streams_single_segment
-          with_serial_lock do
-            total_spans = 1
-            buffer, _segments = stream_segments total_spans
-            consume_spans buffer
+          total_spans = 1
+          buffer, _segments = stream_segments total_spans
+          consume_spans buffer
 
-            refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
-            assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 1},
-              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 1}
-            })
-          end
+          refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
+          assert_metrics_recorded({
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 1},
+            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 1}
+          })
         end
 
         def test_streams_single_segment_in_threads
-          with_serial_lock do
-            total_spans = 1
-            generator, buffer, _segments = prepare_to_stream_segments total_spans
+          total_spans = 1
+          generator, buffer, _segments = prepare_to_stream_segments total_spans
 
-            # consumes the queue as it fills
-            _spans, _consumer = prepare_to_consume_spans buffer
+          # consumes the queue as it fills
+          _spans, _consumer = prepare_to_consume_spans buffer
 
-            generator.join
-            buffer.flush_queue
+          generator.join
+          buffer.flush_queue
 
-            refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
-            assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 1},
-              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 1}
-            })
-            assert_watched_threads_finished buffer
-          end
+          refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
+          assert_metrics_recorded({
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 1},
+            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 1}
+          })
+          assert_watched_threads_finished buffer
         end
 
         def test_streams_multiple_segments
-          with_serial_lock do
-            total_spans = 5
-            buffer, segments = stream_segments total_spans
+          total_spans = 5
+          buffer, segments = stream_segments total_spans
 
-            spans = consume_spans buffer
+          spans = consume_spans buffer
 
-            assert_equal total_spans, spans.size
-            spans.each_with_index do |span, index|
-              assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
-              assert_equal segments[index].transaction.trace_id, span["trace_id"]
-            end
-
-            refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
-            assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans}
-            })
-            assert_watched_threads_finished buffer
+          assert_equal total_spans, spans.size
+          spans.each_with_index do |span, index|
+            assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
+            assert_equal segments[index].transaction.trace_id, span["trace_id"]
           end
+
+          refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
+          assert_metrics_recorded({
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans}
+          })
+          assert_watched_threads_finished buffer
         end
 
         def test_streams_multiple_segments_in_threads
-          with_serial_lock do
-            total_spans = 5
-            generator, buffer, segments = prepare_to_stream_segments total_spans
+          total_spans = 5
+          generator, buffer, segments = prepare_to_stream_segments total_spans
 
-            # consumes the queue as it fills
-            spans, _consumer = prepare_to_consume_spans buffer
+          # consumes the queue as it fills
+          spans, _consumer = prepare_to_consume_spans buffer
 
-            generator.join
-            buffer.flush_queue
+          generator.join
+          buffer.flush_queue
 
-            assert_equal total_spans, spans.size
-            spans.each_with_index do |span, index|
-              assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
-              assert_equal segments[index].transaction.trace_id, span["trace_id"]
-            end
-
-            refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
-            assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans}
-            })
-            assert_watched_threads_finished buffer
+          assert_equal total_spans, spans.size
+          spans.each_with_index do |span, index|
+            assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
+            assert_equal segments[index].transaction.trace_id, span["trace_id"]
           end
+
+          refute_metrics_recorded(["Supportability/InfiniteTracing/Span/AgentQueueDumped"])
+          assert_metrics_recorded({
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans}
+          })
+          assert_watched_threads_finished buffer
         end
 
         def test_drops_queue_when_max_reached
-          with_serial_lock do
-            total_spans = 9
-            max_queue_size = 4
+          total_spans = 9
+          max_queue_size = 4
 
-            # generate all spans before we attempt to consume
-            buffer, segments = stream_segments total_spans, max_queue_size
+          # generate all spans before we attempt to consume
+          buffer, segments = stream_segments total_spans, max_queue_size
 
-            # consumes the queue after we've filled it
-            spans = consume_spans buffer
+          # consumes the queue after we've filled it
+          spans = consume_spans buffer
 
-            assert_equal 1, spans.size
-            assert_equal segments[-1].transaction.trace_id, spans[0]["trace_id"]
-            assert_equal segments[-1].transaction.trace_id, spans[0]["intrinsics"]["traceId"].string_value
+          assert_equal 1, spans.size
+          assert_equal segments[-1].transaction.trace_id, spans[0]["trace_id"]
+          assert_equal segments[-1].transaction.trace_id, spans[0]["intrinsics"]["traceId"].string_value
 
-            assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 9},
-              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 1},
-              "Supportability/InfiniteTracing/Span/AgentQueueDumped" => {:call_count => 2}
-            })
-            assert_watched_threads_finished buffer
-          end
+          assert_metrics_recorded({
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => 9},
+            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 1},
+            "Supportability/InfiniteTracing/Span/AgentQueueDumped" => {:call_count => 2}
+          })
+          assert_watched_threads_finished buffer
         end
 
         def test_can_close_an_empty_buffer
-          with_serial_lock do
-            total_spans = 10
-            generator, buffer, segments = prepare_to_stream_segments total_spans
+          total_spans = 10
+          generator, buffer, segments = prepare_to_stream_segments total_spans
 
-            # consumes the queue as it fills
-            spans, _consumer = prepare_to_consume_spans buffer
+          # consumes the queue as it fills
+          spans, _consumer = prepare_to_consume_spans buffer
 
-            # closes the streaming buffer after queue is emptied
-            closed = false
-            emptied = false
-            closer = watch_thread(:closer) do
-              loop do
-                if spans.size == total_spans
-                  emptied = buffer.empty?
-                  closed = true
-                  break
-                end
+          # closes the streaming buffer after queue is emptied
+          closed = false
+          emptied = false
+          closer = watch_thread(:closer) do
+            loop do
+              if spans.size == total_spans
+                emptied = buffer.empty?
+                closed = true
+                break
               end
             end
-
-            closer.join
-            generator.join
-            buffer.flush_queue
-
-            assert emptied, "spans streamed reached total but buffer not empty!"
-            assert closed, "failed to close the buffer"
-            assert_equal total_spans, segments.size
-            assert_equal total_spans, spans.size
-
-            assert_metrics_recorded({
-              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans}
-            })
-            assert_watched_threads_finished buffer
           end
+
+          closer.join
+          generator.join
+          buffer.flush_queue
+
+          assert emptied, "spans streamed reached total but buffer not empty!"
+          assert closed, "failed to close the buffer"
+          assert_equal total_spans, segments.size
+          assert_equal total_spans, spans.size
+
+          assert_metrics_recorded({
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+            "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans}
+          })
+          assert_watched_threads_finished buffer
         end
 
         private
