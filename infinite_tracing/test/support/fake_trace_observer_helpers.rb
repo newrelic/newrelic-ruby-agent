@@ -115,7 +115,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
                 while Thread.list.select{|t| t.status == "run"}.size > 1
                   sleep(0.05)
                 end
-                sleep(0.01)
+                sleep(0.05)
               end
             end
 
