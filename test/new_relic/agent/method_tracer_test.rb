@@ -194,6 +194,19 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     assert_metrics_recorded metric => {:call_count => 1}
   end
 
+  def test_add_method_tracer_keyword_args
+    # Test we are not raising errors in e.g. Ruby 2.7
+    self.class.add_method_tracer :method_with_kwargs
+
+    in_transaction do
+      _out, err = capture_io do
+        method_with_kwargs('baz', arg2: false)
+      end
+      # We shouldn't be seeing warning messages in stdout
+      refute_match %r%warn%, err
+    end
+  end
+
   def test_method_traced?
     assert !self.class.method_traced?(:method_to_be_traced, METRIC)
     self.class.add_method_tracer :method_to_be_traced, METRIC
@@ -425,6 +438,11 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     assert y == 2
     assert z == 3
     yield
+  end
+
+  def method_with_kwargs(arg1, arg2: true)
+    advance_time 0.05
+    arg1 == arg2
   end
 
   def method_c1

@@ -65,6 +65,66 @@
         ]
     },
     {
+        "test_name": "high_priority_but_sampled_false",
+        "comment": "this should never happen, but is here to verify your agent only creates a span event if sampled=true, not just based off of priority",
+        "trusted_account_key": "33",
+        "account_id": "33",
+        "web_transaction": true,
+        "raises_exception": false,
+        "force_sampled_true": false,
+        "span_events_enabled": true,
+        "major_version": 0,
+        "minor_version": 1,
+        "transport_type": "HTTP",
+        "inbound_payloads": [
+            {
+                "v": [0, 1],
+                "d": {
+                    "ac": "33",
+                    "ap": "2827902",
+                    "id": "7d3efb1b173fecfa",
+                    "tx": "e8b91a159289ff74",
+                    "pr": 1.234567,
+                    "sa": false,
+                    "ti": 1518469636035,
+                    "tr": "d6b4ba0c3a712ca",
+                    "ty": "App"
+                }
+            }
+        ],
+        "intrinsics": {
+            "target_events": ["Transaction"],
+            "common":{
+                "exact": {
+                    "traceId": "d6b4ba0c3a712ca",
+                    "priority": 1.234567,
+                    "sampled": false
+                },
+                "expected": ["guid"],
+                "unexpected": ["grandparentId", "cross_process_id", "nr.tripId", "nr.pathHash", "nr.referringPathHash", "nr.guid", "nr.referringTransactionGuid", "nr.alternatePathHashes"]
+            },
+            "Transaction": {
+                "exact": {
+                    "parent.type": "App",
+                    "parent.app": "2827902",
+                    "parent.account": "33",
+                    "parent.transportType": "HTTP",
+                    "parentId": "e8b91a159289ff74",
+                    "parentSpanId": "7d3efb1b173fecfa"
+                },
+                "expected": ["parent.transportDuration"]
+            },
+            "unexpected_events": ["Span"]
+        },
+        "expected_metrics": [
+            ["DurationByCaller/App/33/2827902/HTTP/all", 1],
+            ["DurationByCaller/App/33/2827902/HTTP/allWeb", 1],
+            ["TransportDuration/App/33/2827902/HTTP/all", 1],
+            ["TransportDuration/App/33/2827902/HTTP/allWeb", 1],
+            ["Supportability/DistributedTrace/AcceptPayload/Success", 1]
+        ]
+    },
+    {
         "test_name": "multiple_accept_calls",
         "trusted_account_key": "33",
         "account_id": "33",
@@ -774,8 +834,8 @@
                     "d.tk": "44",
                     "d.ty": "App"
                 },
-                "expected": ["d.ap", "d.tx", "d.ti"],
-                "unexpected": ["d.id"]
+                "expected": ["d.ap", "d.tx", "d.ti", "d.id"],
+                "unexpected": []
             }
         ],
         "intrinsics": {

@@ -254,7 +254,7 @@ module NewRelic::Agent
       def test_sense_method
         object = Object.new
         object.extend(Winner)
-        assert_equal nil,   @error_collector.sense_method(object, 'blab')
+        assert_nil   @error_collector.sense_method(object, 'blab')
         assert_equal 'yay', @error_collector.sense_method(object, 'winner')
       end
 

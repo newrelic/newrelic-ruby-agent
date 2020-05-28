@@ -1,5 +1,44 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.11.0
+
+  * **Infinite Tracing**
+
+    This release adds support for [Infinite Tracing](https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/enable-configure/enable-distributed-tracing). Infinite Tracing observes 100% of your distributed traces and provides visualizations for the most actionable data. With Infinite Tracing, you get examples of errors and long-running traces so you can better diagnose and troubleshoot your systems.
+
+    Configure your agent to send traces to a trace observer in New Relic Edge. View distributed traces through New Relic’s UI. There is no need to install a collector on your network.
+
+    Infinite Tracing is currently available on a sign-up basis. If you would like to participate, please contact your sales representative.
+
+  * **Bugfix: Cross Application Tracing (CAT) adds a missing field to response**
+
+    Previously, the Ruby agent's Cross Application Tracing header was missing a reserved field that would lead to an error
+    in the Go agent's processing of incoming headers from the Ruby agent. This fix adds that missing field to the headers, eliminating
+    the issue with traces involving the Ruby agent and the Go agent.
+
+  * **Bugfix: Environment Report now supports Rails >= 6.1**
+
+    Previously, users of Rails 6.1 would see the following deprecation warning appear when the Ruby agent attempted to
+    collect enviroment data: `DEPRECATION WARNING: [] is deprecated and will be removed from Rails 6.2`. These deprecation methods
+    no longer appear.
+
+    Thanks to Sébastien Dubois (sedubois) for reporting this issue and for the contribution!
+
+  * **Added distributed tracing to Sidekiq jobs**
+
+    Previously, Sidekiq jobs were not included in portions of <a href="https://docs.newrelic.com/docs/understand-dependencies/distributed-tracing/get-started/introduction-distributed-tracing">distributed traces</a> captured by the Ruby agent. Now you can view distributed
+    traces that include Sidekiq jobs instrumented by the Ruby agent.
+
+    Thanks to andreaseger for the contribution!
+
+  * **Bugfix: Eliminate warnings appearing when using `add_method_tracer` with Ruby 2.7**
+
+    Previously, using `add_method_tracer` with Ruby 2.7 to trace a method that included keyword arguments resulted in warning messages:
+    `warning: Using the last argument as keyword parameters is deprecated; maybe ** should be added to the call`. These messages no
+    longer appear.
+
+    Thanks to Harm de Wit and Atsuo Fukaya for reporting the issue!
+
   ## v6.10.0
 
   * **Error attributes now added to each span that exits with an error or exception**
@@ -53,6 +92,7 @@
     Previously, when running on systems such as BSD and Solaris, the agent was unable to determine the fully
     qualified domain name, which is used to help link Ruby agent data with data from New Relic Infrastructure.
     This information is now successfully collected on various BSD distros and Solaris.
+
 
   ## v6.9.0
 

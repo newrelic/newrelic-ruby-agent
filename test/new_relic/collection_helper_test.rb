@@ -55,7 +55,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
   def test_nil
     np = normalize_params({ nil => 1.0, 'two' => nil})
     assert_equal "1.0", np['']
-    assert_equal nil, np['two']
+    assert_nil np['two']
   end
   def test_hash
     val = ('A'..'Z').to_a.join * 100

@@ -166,7 +166,7 @@ if defined?(Dalli)
         end
 
         assert_memcache_metrics_recorded expected_metrics
-        assert_equal nil, @cache.get(@cas_key)
+        assert_nil @cache.get(@cas_key)
       end
 
     end

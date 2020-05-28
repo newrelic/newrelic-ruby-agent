@@ -855,7 +855,7 @@ def assert_event_attributes event, test_name, expected_attributes, non_expected_
   assert(incorrect_attributes.empty?, msg)
 
   non_expected_attributes.each do |name|
-    assert_nil(event_attrs[name], "Found value '#{event_attrs[name]}' for attribute '#{name}', but expected nothing in #{test_name}")
+    refute event_attrs[name], "Found value '#{event_attrs[name]}' for attribute '#{name}', but expected nothing in #{test_name}"
   end
 end
 

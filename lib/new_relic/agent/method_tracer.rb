@@ -178,15 +178,25 @@ module NewRelic
             header
           end
 
+          # Positional and Keyword arguments are separated beginning with Ruby 2.7
+          def arguments_for_ruby_version
+            if RUBY_VERSION < "2.7.0"
+              "(*args, &block)"
+            else
+              "(*args, **kwargs, &block)"
+            end
+          end
+
           # returns an eval-able string that contains the traced
           # method code used if the agent is not creating a scope for
           # use in scoped metrics.
           def method_without_push_scope(method_name, metric_name_code, options)
-            "def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
+            arguments = arguments_for_ruby_version
+            "def #{_traced_method_name(method_name, metric_name_code)}#{arguments}
               #{assemble_code_header(method_name, metric_name_code, options)}
               t0 = Time.now
               begin
-                #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)\n
+                #{_untraced_method_name(method_name, metric_name_code)}#{arguments}\n
               ensure
                 duration = (Time.now - t0).to_f
                 NewRelic::Agent.record_metric(\"#{metric_name_code}\", duration)
@@ -198,11 +208,12 @@ module NewRelic
           # returns an eval-able string that contains the tracing code
           # for a fully traced metric including scoping
           def method_with_push_scope(method_name, metric_name_code, options)
-            "def #{_traced_method_name(method_name, metric_name_code)}(*args, &block)
+            arguments = arguments_for_ruby_version
+            "def #{_traced_method_name(method_name, metric_name_code)}#{arguments}
               #{options[:code_header]}
               result = ::NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped(\"#{metric_name_code}\",
                         :metric => #{options[:metric]}) do
-                #{_untraced_method_name(method_name, metric_name_code)}(*args, &block)
+                #{_untraced_method_name(method_name, metric_name_code)}#{arguments}
               end
               #{options[:code_footer]}
               result

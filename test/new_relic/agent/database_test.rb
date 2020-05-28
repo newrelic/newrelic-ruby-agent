@@ -298,7 +298,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
   def test_explain_sql_no_sql
     statement = NewRelic::Agent::Database::Statement.new('', nil)
-    assert_equal(nil, NewRelic::Agent::Database.explain_sql(statement))
+    assert_nil(NewRelic::Agent::Database.explain_sql(statement))
   end
 
   def test_explain_sql_non_select
@@ -368,7 +368,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
   def test_explain_sql_no_connection_config
     statement = NewRelic::Agent::Database::Statement.new('select foo', nil)
-    assert_equal(nil, NewRelic::Agent::Database.explain_sql(statement))
+    assert_nil(NewRelic::Agent::Database.explain_sql(statement))
   end
 
   def test_explain_sql_one_select_no_connection

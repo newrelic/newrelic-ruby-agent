@@ -113,6 +113,7 @@ namespace :cross_agent_tests do
   cross_agent_tests_upstream_path = File.expand_path(File.join(File.dirname(__FILE__), '..', 'cross_agent_tests'))
   cross_agent_tests_local_path    = File.expand_path(File.join(File.dirname(__FILE__), 'test', 'fixtures', 'cross_agent_tests'))
 
+  # Note: before you pull, make sure your local repo is on the correct, synced branch!
   desc 'Pull latest changes from cross_agent_tests repo'
   task :pull do
     puts "Updating embedded cross_agent_tests from #{cross_agent_tests_upstream_path}..."
@@ -136,3 +137,4 @@ task :console do
   ARGV.clear
   Pry.start
 end
+

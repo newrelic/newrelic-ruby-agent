@@ -116,7 +116,7 @@ module NewRelic::Agent
       assert_equal([], @sampler.harvest!)
 
       # make sure the samples have been cleared
-      assert_equal(nil, @sampler.instance_variable_get('@last_sample'))
+      assert_nil(@sampler.instance_variable_get('@last_sample'))
     end
 
     def test_harvest_no_data

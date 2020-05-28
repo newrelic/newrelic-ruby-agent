@@ -34,8 +34,8 @@ class CoerceTest < Minitest::Test
     assert_equal 1, int_or_nil("1")
     assert_equal 1, int_or_nil(1.0)
     assert_equal 1, int_or_nil(Rational(1, 1))
-    assert_equal nil, int_or_nil("invalid")
-    assert_equal nil, int_or_nil(nil)
+    assert_nil int_or_nil("invalid")
+    assert_nil int_or_nil(nil)
   end
 
   def test_int_or_nil_coerce_logs_with_context
@@ -78,7 +78,7 @@ class CoerceTest < Minitest::Test
     assert_equal "string", string("string")
     assert_equal "1/100",  string(Rational(1, 100))
     assert_equal "yeah",   string(:yeah)
-    assert_equal nil,      string(nil)
+    assert_nil             string(nil)
     assert_equal "",       string(Unstringable.new)
   end
 

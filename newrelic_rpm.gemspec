@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
 New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
-in production. The New Relic Ruby Agent is dual-purposed as a either a
+in production. The New Relic Ruby agent is dual-purposed as a either a
 Gem or plugin, hosted on
 https://github.com/newrelic/rpm/
 EOS
@@ -38,7 +38,7 @@ EOS
     'source_code_uri' => 'https://github.com/newrelic/rpm'
   }
 
-  file_list = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/(?!agent_helper.rb)}) }
+  file_list = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features|infinite_tracing)/(?!agent_helper.rb)}) }
   build_file_path = 'lib/new_relic/build.rb'
   file_list << build_file_path if File.exist?(build_file_path)
   s.files = file_list
@@ -51,7 +51,7 @@ EOS
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'rb-inotify', '0.9.10'   # locked to support < Ruby 2.3 (and listen 3.0.8)
   s.add_development_dependency 'listen', '3.0.8'        # locked to support < Ruby 2.3
-  s.add_development_dependency 'minitest', '~> 4.7.5'
+  s.add_development_dependency 'minitest', '4.7.5'
   s.add_development_dependency 'mocha', '~> 1.9.0'
   s.add_development_dependency 'yard'
   s.add_development_dependency 'pry-nav', '~> 0.3.0'

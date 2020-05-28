@@ -181,7 +181,11 @@ else
       rescue NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError
       end
 
-      assert_equal original_profile, @profiler.harvest
+      if original_profile.nil?
+        assert_nil @profiler.harvest
+      else
+        assert_equal original_profile, @profiler.harvest
+      end
     end
 
     def test_start_command_sent_twice_raises_error

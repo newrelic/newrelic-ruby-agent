@@ -253,7 +253,7 @@ module NewRelic
         end
 
         event = last_transaction_event
-        assert_equal nil, event[2][:"message.routingKey"]
+        assert_nil event[2][:"message.routingKey"]
       end
 
       def test_agent_attributes_not_assigned_when_not_subscribed_nor_in_transaction

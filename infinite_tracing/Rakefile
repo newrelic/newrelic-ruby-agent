@@ -1,0 +1,24 @@
+require 'rubygems'
+require 'rake/testtask'
+require "#{File.dirname(__FILE__)}/tasks/all.rb"
+
+task :default => :test
+
+task :console do
+  require 'pry'
+  require 'infinite_tracing'
+  ARGV.clear
+  Pry.start
+end
+
+Rake::TestTask.new do |t|
+  ROOT = File.join File.dirname(__FILE__)
+  $LOAD_PATH << ROOT
+
+  file_pattern = "#{ROOT}/**/*_test.rb"
+
+  t.libs << "#{ROOT}/test"
+  t.libs << "#{ROOT}/lib"
+  t.pattern = Array(file_pattern).join(",")
+  t.verbose =  ENV["VERBOSE"]
+end

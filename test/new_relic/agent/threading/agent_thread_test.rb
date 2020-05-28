@@ -116,7 +116,7 @@ module NewRelic::Agent::Threading
     end
 
     def assert_thread_died_from_exception(t)
-      assert_equal nil, t.status
+      assert_nil t.status
     end
 
     def with_thread_report_on_exception_disabled(&blk)

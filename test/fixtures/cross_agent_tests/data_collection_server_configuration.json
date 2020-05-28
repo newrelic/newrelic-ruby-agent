@@ -1,0 +1,219 @@
+[
+  {
+    "test_name": "collect_span_events_disabled",
+    "connect_response": {
+      "collect_span_events": false
+    },
+    "expected_data_seen": [
+      {
+        "type": "span_event",
+        "count": 0
+      }
+    ],
+    "expected_endpoint_calls": [
+      {
+        "method": "span_event_data",
+        "count": 0
+      }
+    ]
+  },
+  {
+    "test_name": "collect_span_events_enabled",
+    "connect_response": {
+      "collect_span_events": true
+    },
+    "expected_data_seen": [
+      {
+        "type": "span_event",
+        "count": 1
+      }
+    ],
+    "expected_endpoint_calls": [
+      {
+        "method": "span_event_data",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "test_name": "collect_custom_events_disabled",
+    "connect_response": {
+      "collect_custom_events": false
+    },
+    "expected_data_seen": [
+      {
+        "type": "custom_event",
+        "count": 0
+      }
+    ],
+    "expected_endpoint_calls": [
+      {
+        "method": "custom_event_data",
+        "count": 0
+      }
+    ]
+  },
+  {
+    "test_name": "collect_custom_events_enabled",
+    "connect_response": {
+      "collect_custom_events": true
+    },
+    "expected_data_seen": [
+      {
+        "type": "custom_event",
+        "count": 1
+      }
+    ],
+    "expected_endpoint_calls": [
+      {
+        "method": "custom_event_data",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "test_name": "collect_analytics_events_disabled",
+    "connect_response": {
+      "collect_analytics_events": false
+    },
+    "expected_data_seen": [
+      {
+        "type": "transaction_event",
+        "count": 0
+      }
+    ],
+    "expected_endpoint_calls": [
+      {
+        "method": "analytic_event_data",
+        "count": 0
+      }
+    ]
+  },
+  {
+    "test_name": "collect_analytics_events_enabled",
+    "connect_response": {
+      "collect_analytics_events": true
+    },
+    "expected_data_seen": [
+      {
+        "type": "transaction_event",
+        "count": 1
+      }
+    ],
+
+    "expected_endpoint_calls": [
+      {
+        "method": "analytic_event_data",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "test_name": "collect_error_events_disabled",
+    "connect_response": {
+      "collect_error_events": false
+    },
+    "expected_data_seen": [
+      {
+        "type": "error_event",
+        "count": 0
+      }
+    ],
+    "expected_endpoint_calls": [
+      {
+        "method": "error_event_data",
+        "count": 0
+      }
+    ]
+  },
+  {
+    "test_name": "collect_error_events_enabled",
+    "connect_response": {
+      "collect_error_events": true
+    },
+    "expected_data_seen": [
+      {
+        "type": "error_event",
+        "count": 1
+      }
+    ],
+    "expected_endpoint_calls": [
+      {
+        "method": "error_event_data",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "test_name": "collect_errors_disabled",
+    "connect_response": {
+      "collect_errors": false
+    },
+    "expected_data_seen": [
+      {
+        "type": "error_trace",
+        "count": 0
+      }
+    ],
+    "expected_endpoint_calls": [
+      {
+        "method": "error_data",
+        "count": 0
+      }
+    ]
+  },
+  {
+    "test_name": "collect_errors_enabled",
+    "connect_response": {
+      "collect_errors": true
+    },
+    "expected_data_seen": [
+      {
+        "type": "error_trace",
+        "count": 1
+      }
+    ],
+    "expected_endpoint_calls": [
+      {
+        "method": "error_data",
+        "count": 1
+      }
+    ]
+  },
+  {
+    "test_name": "collect_traces_disabled",
+    "connect_response": {
+      "collect_traces": false
+    },
+    "expected_data_seen": [
+      {
+        "type": "transaction_trace",
+        "count": 0
+      }
+    ],
+    "expected_endpoint_calls": [
+      {
+        "method": "transaction_sample_data",
+        "count": 0
+      }
+    ]
+  },
+  {
+    "test_name": "collect_traces_enabled",
+    "connect_response": {
+      "collect_traces": true
+    },
+    "expected_data_seen": [
+      {
+        "type": "transaction_trace",
+        "count": 1
+      }
+    ],
+    "expected_endpoint_calls": [
+      {
+        "method": "transaction_sample_data",
+        "count": 1
+      }
+    ]
+  }
+]

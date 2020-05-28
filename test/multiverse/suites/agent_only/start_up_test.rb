@@ -109,7 +109,7 @@ RUBY
 
           inner_txn_name = Marshal.load(result)
 
-          assert_nil inner_txn_name
+          refute inner_txn_name
         end
       end
     end

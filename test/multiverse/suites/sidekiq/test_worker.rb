@@ -14,12 +14,14 @@ class TestWorker
   @done = Queue.new
 
   def self.register_signal(key)
-    return if @registered_signal
+    @jobs_mutex.synchronize do
+      return if @registered_signal
 
-    NewRelic::Agent.subscribe(:transaction_finished) do |payload|
-      @done.push(true)
+      NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+        @done.push(true)
+      end
+      @registered_signal = true
     end
-    @registered_signal = true
   end
 
   def self.run_jobs(count)
@@ -31,8 +33,10 @@ class TestWorker
   end
 
   def self.reset(done_at)
-    @jobs = {}
-    @done_at = done_at
+    @jobs_mutex.synchronize do 
+      @jobs = {}
+      @done_at = done_at
+    end
   end
 
   def self.record(key, val)
@@ -48,9 +52,10 @@ class TestWorker
 
   def self.wait
     # Don't hang out forever, but shouldn't count on the timeout functionally
-    Timeout.timeout(60) do
+    Timeout.timeout(15) do
       @done_at.times do
         @done.pop
+        sleep(0.01)
       end
     end
   end

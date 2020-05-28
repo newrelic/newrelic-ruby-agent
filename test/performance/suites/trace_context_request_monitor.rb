@@ -2,8 +2,11 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
 
-require 'new_relic/agent/distributed_tracing/trace_context_request_monitor'
-require 'new_relic/agent/distributed_tracing/trace_context'
+require 'new_relic/coerce'
+require 'new_relic/constants'
+require 'new_relic/supportability_helper'
+require 'new_relic/agent/monitors'
+require 'new_relic/agent/distributed_tracing'
 
 class TraceContextRequestMonitor < Performance::TestCase
 

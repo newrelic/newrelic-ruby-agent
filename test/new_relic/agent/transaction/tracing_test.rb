@@ -187,7 +187,7 @@ module NewRelic
 
         def test_segments_are_properly_parented
           in_transaction "test_txn" do |txn|
-            assert_equal nil, txn.initial_segment.parent
+            assert_nil txn.initial_segment.parent
 
             ds_segment = Tracer.start_datastore_segment(
               product: "SQLite",

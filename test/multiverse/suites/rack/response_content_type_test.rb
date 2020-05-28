@@ -37,11 +37,11 @@ class HttpResponseContentTypeTest < Minitest::Test
     with_config(:disable_middleware_instrumentation => true) do
       rsp = get '/', { 'override-content-type' => 'application/json' }
       assert_equal('application/json', rsp.headers['Content-Type'])
-      assert_nil get_last_analytics_event[2][:'response.headers.contentType']
+      refute get_last_analytics_event[2][:'response.headers.contentType']
 
       rsp = get '/', { 'override-content-type' => 'application/xml' }
       assert_equal('application/xml', rsp.headers['Content-Type'])
-      assert_nil get_last_analytics_event[2][:'response.headers.contentType']
+      refute get_last_analytics_event[2][:'response.headers.contentType']
     end
   end
 end

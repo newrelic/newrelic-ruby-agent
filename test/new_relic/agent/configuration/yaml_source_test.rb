@@ -49,7 +49,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_ignore_apdex_f_setting_for_transaction_threshold
-      assert_equal nil, @source[:'transaction_tracer.transaction_threshold']
+      assert_nil @source[:'transaction_tracer.transaction_threshold']
     end
 
     def test_should_correctly_handle_floats
