@@ -54,8 +54,7 @@ EOS
   s.executables = []
   s.extra_rdoc_files = [
     "CHANGELOG.md",
-    "LICENSE",
-    "README.md"
+    "LICENSE"
   ]
 
   s.metadata = {
