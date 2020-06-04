@@ -26,7 +26,7 @@ module NewRelic
             eh = SpanEventPrimitive::error_attributes(segment)
             refute segment.noticed_error, "segment.noticed_error expected to be nil!"
             refute eh, "expected nil when no error present on segment"
-          end            
+          end
         end
 
         def test_error_attributes_returns_populated_attributes_when_error_present
@@ -42,7 +42,7 @@ module NewRelic
         def test_does_not_add_error_attributes_in_high_security
           with_config(:high_security => true) do
             segment, _ = capture_segment_with_error
-      
+
             eh = SpanEventPrimitive::error_attributes(segment)
             refute  segment.noticed_error, "segment.noticed_error should be nil!"
             refute eh, "expected nil when error present on segment and high_security is enabled"
@@ -61,6 +61,19 @@ module NewRelic
           end
         end
 
+        def test_root_span_gets_transaction_name_attribute
+          root_span_event = nil
+          root_segment = nil
+
+          txn = in_transaction do |txn|
+            root_segment = txn.current_segment
+          end
+
+          root_span_event = SpanEventPrimitive.for_segment(root_segment)
+
+          # There should be a transaction.name attribute on the root span equal to the final txn name
+          assert_equal txn.best_name, root_span_event[0]["transaction.name"]
+        end
       end
     end
   end

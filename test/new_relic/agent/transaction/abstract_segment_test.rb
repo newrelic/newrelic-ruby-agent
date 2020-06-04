@@ -187,6 +187,20 @@ module NewRelic
             refute segment_c.concurrent_children?
           end
         end
+
+        def test_root_segment_gets_transaction_name_attribute
+          root_segment = nil
+          transaction = nil
+
+          with_segment do |segment, txn|
+            root_segment = segment
+            transaction = txn
+          end
+
+          # Once transaction finishes, root segment should have transaction_name that matches transaction name
+          assert root_segment.transaction_name, "Expected root segment to have a transaction_name"
+          assert_equal transaction.best_name, root_segment.transaction_name
+        end
       end
     end
   end
