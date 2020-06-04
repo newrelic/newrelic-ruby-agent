@@ -1,5 +1,6 @@
 gemfile <<-RB
   gem 'json'
+  gem 'connection_pool', '2.2.2'
   gem 'sidekiq', '~> 3.4.2'
   gem 'rack'
 
@@ -7,7 +8,7 @@ gemfile <<-RB
 RB
 
 if RUBY_VERSION >= '2.2.2'
-  # in Ruby < 2.3, we can't use later than redis 4.1.0 (because >= 4.1.1 
+  # in Ruby < 2.3, we can't use later than redis 4.1.0 (because >= 4.1.1
   # references Enumerable#grep_v, which didn't exist prior to ruby 2.3)
   gemfile <<-RB
     gem 'json'
@@ -31,6 +32,7 @@ end
 
 gemfile <<-RB
   gem 'json'
+  gem 'connection_pool', '2.2.2'
   gem 'sidekiq', '~> 4.2.10'
   gem 'rack'
 
@@ -39,6 +41,7 @@ RB
 
 gemfile <<-RB
   gem 'json'
+  gem 'connection_pool', '2.2.2'
   gem 'sidekiq', '~> 4.1.4'
   gem 'rack'
 
@@ -47,6 +50,7 @@ RB
 
 gemfile <<-RB
   gem 'json'
+  gem 'connection_pool', '2.2.2'
   gem 'sidekiq', '~> 4.0.2'
   gem 'rack'
   gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
@@ -57,6 +61,7 @@ if RUBY_VERSION < '2.4.0' && RUBY_PLATFORM != 'java'
   # https://github.com/mperham/sidekiq/issues/2703
   gemfile <<-RB
     gem 'json'
+    gem 'connection_pool', '2.2.2'
     gem 'sidekiq', '~> 3.5.3'
     gem 'rack'
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
@@ -65,6 +70,7 @@ end
 
 gemfile <<-RB
   gem 'json'
+  gem 'connection_pool', '2.2.2'
   gem 'sidekiq', '~> 2.17.8'
   gem 'rack'
   gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
@@ -73,6 +79,7 @@ RB
 gemfile <<-RB
   # Almost oldest supported version
   gem 'json'
+  gem 'connection_pool', '~> 1.0'
   gem 'sidekiq', '~> 2.9.0'
   gem 'timers', '~> 1.1.0'
   gem 'rack'
