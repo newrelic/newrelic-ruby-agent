@@ -26,7 +26,7 @@ module NewRelic
             eh = SpanEventPrimitive::error_attributes(segment)
             refute segment.noticed_error, "segment.noticed_error expected to be nil!"
             refute eh, "expected nil when no error present on segment"
-          end            
+          end
         end
 
         def test_error_attributes_returns_populated_attributes_when_error_present
@@ -42,7 +42,7 @@ module NewRelic
         def test_does_not_add_error_attributes_in_high_security
           with_config(:high_security => true) do
             segment, _ = capture_segment_with_error
-      
+
             eh = SpanEventPrimitive::error_attributes(segment)
             refute  segment.noticed_error, "segment.noticed_error should be nil!"
             refute eh, "expected nil when error present on segment and high_security is enabled"
@@ -61,6 +61,19 @@ module NewRelic
           end
         end
 
+        def test_empty_error_message_can_override_previous_error_message_attribute
+          begin
+            with_segment do |segment|
+              segment.notice_error RuntimeError.new "oops!"
+              segment.notice_error StandardError.new
+              error_attributes = SpanEventPrimitive::error_attributes(segment)
+              assert segment.noticed_error, "segment.noticed_error should NOT be nil!"
+              assert_equal "StandardError", error_attributes["error.class"]
+              # If no message given, we should see the class name as the new error message
+              assert_equal "StandardError", error_attributes["error.message"]
+            end
+          end
+        end
       end
     end
   end
