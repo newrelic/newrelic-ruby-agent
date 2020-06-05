@@ -41,6 +41,7 @@ module NewRelic
       ENTRY_POINT_KEY      = 'nr.entryPoint'
       TRUSTED_PARENT_KEY   = "trustedParentId"
       TRACING_VENDORS_KEY  = "tracingVendors"
+      TRANSACTION_NAME_KEY = 'transaction.name'
 
       # Strings for static values of the event structure
       EVENT_TYPE         = 'Span'
@@ -60,8 +61,9 @@ module NewRelic
       def for_segment segment
         intrinsics = intrinsics_for(segment)
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
+        agent_attributes = error_attributes(segment)
 
-        [intrinsics, custom_attributes(segment.attributes), error_attributes(segment) || NewRelic::EMPTY_HASH]
+        [intrinsics, custom_attributes(segment.attributes), agent_attributes || NewRelic::EMPTY_HASH]
       end
 
       def for_external_request_segment segment
@@ -146,6 +148,11 @@ module NewRelic
         if parent_id = parent_guid(segment)
           intrinsics[PARENT_ID_KEY] = parent_id
         end
+
+        if segment.transaction_name
+          intrinsics[TRANSACTION_NAME_KEY] = segment.transaction_name
+        end
+
         intrinsics
       end
 

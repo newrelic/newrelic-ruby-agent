@@ -61,6 +61,20 @@ module NewRelic
           end
         end
 
+        def test_root_span_gets_transaction_name_attribute
+          root_span_event = nil
+          root_segment = nil
+
+          txn = in_transaction do |txn|
+            root_segment = txn.current_segment
+          end
+
+          root_span_event = SpanEventPrimitive.for_segment(root_segment)
+
+          # There should be a transaction.name attribute on the root span equal to the final txn name
+          assert_equal txn.best_name, root_span_event[0]["transaction.name"]
+        end
+
         def test_empty_error_message_can_override_previous_error_message_attribute
           begin
             with_segment do |segment|
@@ -74,6 +88,7 @@ module NewRelic
             end
           end
         end
+        
       end
     end
   end

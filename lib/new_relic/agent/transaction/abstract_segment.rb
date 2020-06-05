@@ -21,12 +21,13 @@ module NewRelic
         # calculation in all other cases.
         #
         attr_reader :start_time, :end_time, :duration, :exclusive_duration, :guid
-        attr_accessor :name, :parent, :children_time, :transaction
+        attr_accessor :name, :parent, :children_time, :transaction, :transaction_name
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
         attr_reader :noticed_error
 
         def initialize name=nil, start_time=nil
           @name = name
+          @transaction_name = nil
           @transaction = nil
           @guid = NewRelic::Agent::GuidGenerator.generate_guid
           @parent = nil

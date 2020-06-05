@@ -507,6 +507,7 @@ module NewRelic
           initial_segment.name = @frozen_name
         end
 
+        initial_segment.transaction_name = @frozen_name
         initial_segment.finish
 
         NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
