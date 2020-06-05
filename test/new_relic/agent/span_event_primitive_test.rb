@@ -74,6 +74,21 @@ module NewRelic
           # There should be a transaction.name attribute on the root span equal to the final txn name
           assert_equal txn.best_name, root_span_event[0]["transaction.name"]
         end
+
+        def test_empty_error_message_can_override_previous_error_message_attribute
+          begin
+            with_segment do |segment|
+              segment.notice_error RuntimeError.new "oops!"
+              segment.notice_error StandardError.new
+              error_attributes = SpanEventPrimitive::error_attributes(segment)
+              assert segment.noticed_error, "segment.noticed_error should NOT be nil!"
+              assert_equal "StandardError", error_attributes["error.class"]
+              # If no message given, we should see the class name as the new error message
+              assert_equal "StandardError", error_attributes["error.message"]
+            end
+          end
+        end
+        
       end
     end
   end

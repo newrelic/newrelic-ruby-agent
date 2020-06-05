@@ -33,6 +33,15 @@ module NewRelic
           end
         end
 
+        def test_segment_keeps_most_recent_error
+          with_segment do |segment|
+            segment.notice_error RuntimeError.new "notice me!"
+            segment.notice_error RuntimeError.new "no, notice me!"
+            assert segment.noticed_error, "Expected an error to be noticed"
+            assert_equal "no, notice me!", segment.noticed_error.message
+          end
+        end
+
         def test_segment_is_nameable
           segment = BasicSegment.new  "Custom/basic/segment"
           assert_equal "Custom/basic/segment", segment.name
