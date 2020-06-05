@@ -157,9 +157,14 @@ module NewRelic
       end
 
       def custom_attributes attributes
+        transaction = NewRelic::Agent::Tracer.current_transaction
+        transaction_attributes = transaction.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
         if attributes
-          result = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
+          span_attributes = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
+          result = transaction_attributes.merge(span_attributes)
           result.freeze
+        elsif transaction_attributes
+          transaction_attributes
         else
           NewRelic::EMPTY_HASH
         end

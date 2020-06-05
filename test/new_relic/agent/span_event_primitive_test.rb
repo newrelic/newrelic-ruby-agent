@@ -88,7 +88,56 @@ module NewRelic
             end
           end
         end
-        
+
+        def test_transaction_level_custom_attributes_added_to_span_events
+          with_config(:'span_events.attributes.enabled' => true) do
+            with_segment do |segment|
+              NewRelic::Agent.add_custom_attributes(:foo => "bar")
+              txn = NewRelic::Agent::Tracer.current_transaction
+              span_event = SpanEventPrimitive.for_segment(segment)
+
+              transaction_custom_attributes = txn.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+              span_custom_attributes = span_event[1]
+
+              assert_equal({"foo" => "bar"}, span_custom_attributes)
+              assert_equal transaction_custom_attributes, span_custom_attributes
+            end
+          end
+        end
+
+        def test_span_level_custom_attributes_always_override_transaction_level_custom_attributes
+          with_config(:'span_events.attributes.enabled' => true) do
+            # Attributes added via add_custom_span_attributes should override those added via add_custom_attributes
+            with_segment do |segment|
+              NewRelic::Agent.add_custom_attributes(:foo => "bar")
+              NewRelic::Agent.add_custom_span_attributes(:foo => "baz")
+
+              txn = NewRelic::Agent::Tracer.current_transaction
+              span_event = SpanEventPrimitive.for_segment(segment)
+
+              transaction_custom_attributes = txn.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+              span_custom_attributes = span_event[1]
+
+              assert_equal({"foo" => "baz"}, span_custom_attributes)
+              refute_equal transaction_custom_attributes, span_custom_attributes
+            end
+
+            # Span attributes should still be preferred even if add_custom_span_attributes is called before add_custom_attributes
+            with_segment do |segment|
+              NewRelic::Agent.add_custom_span_attributes(:foo => "baz")
+              NewRelic::Agent.add_custom_attributes(:foo => "bar")
+
+              txn = NewRelic::Agent::Tracer.current_transaction
+              span_event = SpanEventPrimitive.for_segment(segment)
+
+              transaction_custom_attributes = txn.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+              span_custom_attributes = span_event[1]
+
+              assert_equal({"foo" => "baz"}, span_custom_attributes)
+              refute_equal transaction_custom_attributes, span_custom_attributes
+            end
+          end
+        end
       end
     end
   end

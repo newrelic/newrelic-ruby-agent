@@ -582,7 +582,6 @@ module NewRelic
       if params.is_a? Hash
         txn = Transaction.tl_current
         txn.add_custom_attributes(params) if txn
-        add_custom_span_attributes(params)
       else
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_attributes. Expected Hash but got #{params.class}")
       end
