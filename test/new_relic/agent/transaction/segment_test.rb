@@ -88,6 +88,19 @@ module NewRelic
           end
         end
 
+        def test_adding_custom_attributes_via_transaction_method
+          with_config(:'span_events.attributes.enabled' => true) do
+            with_segment do |segment|
+              NewRelic::Agent.add_custom_attributes(:foo => "bar")
+              transaction_custom_attributes = segment.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+              span_custom_attributes = segment.attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
+
+              assert_equal({"foo" => "bar"}, span_custom_attributes)
+              assert_equal transaction_custom_attributes, span_custom_attributes
+            end
+          end
+        end
+
         def test_assigns_unscoped_metrics
           segment = Segment.new  "Custom/simple/segment", "Segment/all"
           assert_equal "Custom/simple/segment", segment.name
@@ -274,9 +287,9 @@ module NewRelic
           end
         end
 
-        private 
+        private
 
-        # Similar to capture_segment_with_error, but we're capturing 
+        # Similar to capture_segment_with_error, but we're capturing
         # a child/nested segment within which we raise an error
         def capture_nested_segment_with_error
           begin
@@ -286,7 +299,7 @@ module NewRelic
               parent_segment = segment
               segment_with_error = Tracer.start_segment(name: "nested_test", parent: segment)
               raise "oops!"
-            end            
+            end
           rescue Exception => exception
             segment_with_error.finish
             assert segment_with_error, "expected to have a segment_with_error"

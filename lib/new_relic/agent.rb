@@ -57,7 +57,7 @@ module NewRelic
     require 'new_relic/agent/deprecator'
     require 'new_relic/agent/logging'
     require 'new_relic/agent/distributed_tracing'
-    
+
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
     require 'new_relic/agent/samplers/cpu_sampler'
@@ -582,6 +582,7 @@ module NewRelic
       if params.is_a? Hash
         txn = Transaction.tl_current
         txn.add_custom_attributes(params) if txn
+        add_custom_span_attributes(params)
       else
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_attributes. Expected Hash but got #{params.class}")
       end
@@ -621,7 +622,7 @@ module NewRelic
     # cases where this is insufficient, this can be used to manually
     # control the name of the transaction.
     #
-    # The category of transaction can be specified via the +:category+ option. 
+    # The category of transaction can be specified via the +:category+ option.
     # The following are the only valid categories:
     #
     # * <tt>:category => :controller</tt> indicates that this is a
