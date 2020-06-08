@@ -63,7 +63,7 @@ module NewRelic
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
         agent_attributes = error_attributes(segment)
 
-        [intrinsics, custom_attributes(segment), error_attributes(segment) || NewRelic::EMPTY_HASH]
+        [intrinsics, custom_attributes(segment), agent_attributes || NewRelic::EMPTY_HASH]
       end
 
       def for_external_request_segment segment
