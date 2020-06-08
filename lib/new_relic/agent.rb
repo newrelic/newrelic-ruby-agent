@@ -57,6 +57,7 @@ module NewRelic
     require 'new_relic/agent/deprecator'
     require 'new_relic/agent/logging'
     require 'new_relic/agent/distributed_tracing'
+    require 'new_relic/agent/attribute_processing'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
@@ -582,6 +583,9 @@ module NewRelic
       if params.is_a? Hash
         txn = Transaction.tl_current
         txn.add_custom_attributes(params) if txn
+
+        segment = ::NewRelic::Agent::Tracer.current_segment
+        segment.custom_transaction_attributes.merge!(::NewRelic::Agent::AttributeProcessing.flatten_and_coerce params) if segment
       else
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_attributes. Expected Hash but got #{params.class}")
       end

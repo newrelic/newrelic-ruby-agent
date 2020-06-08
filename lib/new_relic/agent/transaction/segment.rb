@@ -13,11 +13,14 @@ module NewRelic
         # unscoped_metrics can be nil, a string, or array. we do this to save
         # object allocations. if allocations weren't important then we would
         # initialize it as an array that would be empty, have one item, or many items.
-        attr_reader :unscoped_metrics, :attributes
+      attr_reader :unscoped_metrics, :attributes, :custom_transaction_attributes
 
         def initialize name=nil, unscoped_metrics=nil, start_time=nil
           @unscoped_metrics = unscoped_metrics
           @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
+          # Store custom attributes recorded with Agent#add_custom_attributes so they can
+          # be added to the span event later
+          @custom_transaction_attributes = {}
           super name, start_time
         end
 
