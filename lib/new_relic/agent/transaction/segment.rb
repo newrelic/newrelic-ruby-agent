@@ -18,9 +18,6 @@ module NewRelic
         def initialize name=nil, unscoped_metrics=nil, start_time=nil
           @unscoped_metrics = unscoped_metrics
           @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
-          # Store custom attributes recorded with Agent#add_custom_attributes so they can
-          # be added to the span event later
-          @custom_transaction_attributes = {}
           super name, start_time
         end
 

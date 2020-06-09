@@ -158,13 +158,9 @@ module NewRelic
 
       def custom_attributes segment
         attributes = segment.attributes
-        transaction_attributes = segment.custom_transaction_attributes
         if attributes
-          span_attributes = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
-          result = transaction_attributes.merge(span_attributes)
+          result = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
           result.freeze
-        elsif transaction_attributes
-          transaction_attributes
         else
           NewRelic::EMPTY_HASH
         end

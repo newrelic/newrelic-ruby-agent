@@ -585,7 +585,12 @@ module NewRelic
         txn.add_custom_attributes(params) if txn
 
         segment = ::NewRelic::Agent::Tracer.current_segment
-        segment.custom_transaction_attributes.merge!(::NewRelic::Agent::AttributeProcessing.flatten_and_coerce params) if segment
+        if segment
+          # Make sure not to override existing segment-level custom attributes
+          segment_custom_keys = segment.attributes.custom_attributes.keys
+          segment_custom_keys.each { |k| params.delete k.to_sym }
+          segment.add_custom_attributes(params)
+        end
       else
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_attributes. Expected Hash but got #{params.class}")
       end
