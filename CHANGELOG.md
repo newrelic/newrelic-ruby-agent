@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.12.0
+
+
+  * **Eliminate warnings for distributed tracing in sidekiq instrumentation**
+
+    Thanks to fabioxgn for bringing this to our attention!
+
   ## v6.11.0
 
   * **Infinite Tracing**
