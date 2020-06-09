@@ -55,29 +55,57 @@ DependencyDetection.defer do
     Redis::Client.class_eval do
       alias_method :call_without_new_relic, :call
 
-      def call(*args, &block)
-        operation = args[0][0]
-        statement = ::NewRelic::Agent::Datastores::Redis.format_command(args[0])
-
-        hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
-        port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
-
-        segment = NewRelic::Agent::Tracer.start_datastore_segment(
-          product: NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
-          operation: operation,
-          host: hostname,
-          port_path_or_id: port_path_or_id,
-          database_name: db
-        )
-        begin
-          segment.notice_nosql_statement(statement) if statement
-          NewRelic::Agent::Tracer.capture_segment_error segment do
-            call_without_new_relic(*args, &block)
+      if RUBY_VERSION < "2.7.0"
+        def call(*args, &block)
+          operation = args[0][0]
+          statement = ::NewRelic::Agent::Datastores::Redis.format_command(args[0])
+  
+          hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
+          port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
+  
+          segment = NewRelic::Agent::Tracer.start_datastore_segment(
+            product: NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
+            operation: operation,
+            host: hostname,
+            port_path_or_id: port_path_or_id,
+            database_name: db
+          )
+          begin
+            segment.notice_nosql_statement(statement) if statement
+            NewRelic::Agent::Tracer.capture_segment_error segment do
+              call_without_new_relic(*args, &block)
+            end
+          ensure
+            segment.finish if segment
           end
-        ensure
-          segment.finish if segment
+        end
+      else
+        def call(*args, **kwargs, &block)
+          operation = args[0][0]
+          statement = ::NewRelic::Agent::Datastores::Redis.format_command(args[0])
+  
+          hostname = NewRelic::Agent::Instrumentation::Redis.host_for(self)
+          port_path_or_id = NewRelic::Agent::Instrumentation::Redis.port_path_or_id_for(self)
+  
+          segment = NewRelic::Agent::Tracer.start_datastore_segment(
+            product: NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
+            operation: operation,
+            host: hostname,
+            port_path_or_id: port_path_or_id,
+            database_name: db
+          )
+          begin
+            segment.notice_nosql_statement(statement) if statement
+            NewRelic::Agent::Tracer.capture_segment_error segment do
+              call_without_new_relic(*args, **kwargs, &block)
+            end
+          ensure
+            segment.finish if segment
+          end
         end
       end
+
+
 
       alias_method :call_pipeline_without_new_relic, :call_pipeline
 

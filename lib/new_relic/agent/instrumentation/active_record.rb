@@ -43,6 +43,7 @@ module NewRelic
           end
         end
 
+        # 
         def log_with_newrelic_instrumentation(*args, &block)
           state = NewRelic::Agent::Tracer.state
 

@@ -86,11 +86,20 @@ module NewRelic
 
           task.instance_variable_set(:@__newrelic_instrumented_execute, true)
           task.instance_eval do
-            def execute(*args, &block)
-              NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/#{self.name}") do
-                super
+            if RUBY_VERSION < "2.7.0"
+              def execute(*args, &block)
+                NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/#{self.name}") do
+                  super
+                end
+              end
+            else
+              def execute(*args, **kwargs, &block)
+                NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/#{self.name}") do
+                  super
+                end
               end
             end
+
           end
 
           instrument_execute_on_prereqs(task)
