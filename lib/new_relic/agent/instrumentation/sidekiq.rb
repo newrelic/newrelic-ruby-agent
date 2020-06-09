@@ -31,7 +31,7 @@ DependencyDetection.defer do
             NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(msg['args'], :'job.sidekiq.args',
               NewRelic::Agent::AttributeFilter::DST_NONE)
 
-            ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, "Other")
+            ::NewRelic::Agent::DistributedTracing::accept_distributed_trace_headers(trace_headers, "Other") if Agent.config[:'distributed_tracing.enabled']
             yield
           end
         end
@@ -46,7 +46,7 @@ DependencyDetection.defer do
       end
       class Client
         def call(_worker_class, job, *_)
-          job[NewRelic::NEWRELIC_KEY] = distributed_tracing_headers
+          job[NewRelic::NEWRELIC_KEY] = distributed_tracing_headers if Agent.config[:'distributed_tracing.enabled']
           yield
         end
 
