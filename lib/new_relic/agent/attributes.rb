@@ -11,6 +11,8 @@ module NewRelic
       VALUE_LIMIT = 255
       COUNT_LIMIT = 64
 
+      attr_reader :custom_attributes
+
       def initialize(filter)
         @filter = filter
 

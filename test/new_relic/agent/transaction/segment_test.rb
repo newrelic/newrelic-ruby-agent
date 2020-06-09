@@ -274,9 +274,9 @@ module NewRelic
           end
         end
 
-        private 
+        private
 
-        # Similar to capture_segment_with_error, but we're capturing 
+        # Similar to capture_segment_with_error, but we're capturing
         # a child/nested segment within which we raise an error
         def capture_nested_segment_with_error
           begin
@@ -286,7 +286,7 @@ module NewRelic
               parent_segment = segment
               segment_with_error = Tracer.start_segment(name: "nested_test", parent: segment)
               raise "oops!"
-            end            
+            end
           rescue Exception => exception
             segment_with_error.finish
             assert segment_with_error, "expected to have a segment_with_error"

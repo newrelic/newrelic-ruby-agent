@@ -63,7 +63,7 @@ module NewRelic
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
         agent_attributes = error_attributes(segment)
 
-        [intrinsics, custom_attributes(segment.attributes), agent_attributes || NewRelic::EMPTY_HASH]
+        [intrinsics, custom_attributes(segment), agent_attributes || NewRelic::EMPTY_HASH]
       end
 
       def for_external_request_segment segment
@@ -81,7 +81,7 @@ module NewRelic
           agent_attributes[HTTP_URL_KEY] = truncate(segment.uri)
         end
 
-        [intrinsics, custom_attributes(segment.attributes), agent_attributes]
+        [intrinsics, custom_attributes(segment), agent_attributes]
       end
 
       def for_datastore_segment segment
@@ -109,7 +109,7 @@ module NewRelic
           agent_attributes[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, 2000)
         end
 
-        [intrinsics, custom_attributes(segment.attributes), agent_attributes]
+        [intrinsics, custom_attributes(segment), agent_attributes]
       end
 
       private
@@ -156,7 +156,8 @@ module NewRelic
         intrinsics
       end
 
-      def custom_attributes attributes
+      def custom_attributes segment
+        attributes = segment.attributes
         if attributes
           result = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
           result.freeze
