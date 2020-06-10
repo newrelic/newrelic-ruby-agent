@@ -5,7 +5,10 @@
 
   * **Bugfix: Eliminate warnings for distributed tracing when using sidekiq**
 
-    Previously, using sidekiq with distributed tracing disabled resulted in warning messages (WARN : Not configured to accept distributed trace headers, WARN : Not configured to insert distributed trace headers). These messages no longer appear. 
+    Previously, using sidekiq with distributed tracing disabled resulted in warning messages\
+    `WARN : Not configured to accept distributed trace headers`\
+    ` WARN : Not configured to insert distributed trace headers`\
+    These messages no longer appear. 
 
   ## v6.11.0
 
