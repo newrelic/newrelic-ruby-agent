@@ -286,8 +286,6 @@ module NewRelic
         end
 
         def test_transaction_response_attributes_included_in_agent_attributes
-          segment = nil
-
           txn = in_transaction do |t|
             t.http_response_code = 418
             t.response_content_length = 100
@@ -299,6 +297,17 @@ module NewRelic
           assert_equal "418", actual[:"httpResponseCode"]
           assert_equal 100, actual[:"response.headers.contentLength"]
           assert_equal "application/json", actual[:"response.headers.contentType"]
+        end
+
+        def test_referer_in_agent_attributes
+          segment = nil
+          request = stub('request', :referer => "/referered", :path => "/")
+          txn = in_transaction(:request => request) do
+          end
+
+          segment = txn.segments[0]
+          actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+          assert_equal "/referered", actual[:'request.headers.referer']
         end
 
         private
