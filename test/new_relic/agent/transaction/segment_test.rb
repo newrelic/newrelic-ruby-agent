@@ -274,6 +274,17 @@ module NewRelic
           end
         end
 
+        def test_adding_agent_attributes
+          with_config(:'span_events.attributes.enabled' => true) do
+            in_transaction do |txn|
+              txn.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
+              segment = NewRelic::Agent::Tracer.current_segment
+              actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+              assert_equal({:foo => "bar"}, actual)
+            end
+          end
+        end
+
         private
 
         # Similar to capture_segment_with_error, but we're capturing

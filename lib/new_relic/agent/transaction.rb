@@ -208,6 +208,8 @@ module NewRelic
 
       def add_agent_attribute(key, value, default_destinations)
         @attributes.add_agent_attribute(key, value, default_destinations)
+        segment = NewRelic::Agent::Tracer.current_segment
+        segment.add_agent_attribute(key, value, AttributeFilter::DST_SPAN_EVENTS)
       end
 
       def self.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)

@@ -21,6 +21,10 @@ module NewRelic
           super name, start_time
         end
 
+        def add_agent_attribute(key, value, default_destinations)
+          @attributes.add_agent_attribute(key, value, default_destinations)
+        end
+
         def add_custom_attributes(p)
           attributes.merge_custom_attributes(p)
         end
