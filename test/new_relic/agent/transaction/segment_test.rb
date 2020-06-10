@@ -285,6 +285,22 @@ module NewRelic
           end
         end
 
+        def test_transaction_response_attributes_included_in_agent_attributes
+          segment = nil
+
+          txn = in_transaction do |t|
+            t.http_response_code = 418
+            t.response_content_length = 100
+            t.response_content_type = 'application/json'
+          end
+
+          segment = txn.segments[0]
+          actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+          assert_equal "418", actual[:"httpResponseCode"]
+          assert_equal 100, actual[:"response.headers.contentLength"]
+          assert_equal "application/json", actual[:"response.headers.contentType"]
+        end
+
         private
 
         # Similar to capture_segment_with_error, but we're capturing

@@ -510,6 +510,7 @@ module NewRelic
         end
 
         initial_segment.transaction_name = @frozen_name
+        assign_agent_attributes
         initial_segment.finish
 
         NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
@@ -533,8 +534,6 @@ module NewRelic
 
       def commit!(outermost_node_name)
         generate_payload
-
-        assign_agent_attributes
         assign_intrinsics
 
         finalize_segments
