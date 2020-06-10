@@ -3,9 +3,9 @@
   ## v6.12.0
 
 
-  * **Eliminate warnings for distributed tracing in sidekiq instrumentation**
+  * **Bugfix: Eliminate warnings for distributed tracing when using sidekiq**
 
-    Thanks to fabioxgn for bringing this to our attention!
+    Previously, using sidekiq with distributed tracing disabled resulted in warning messages (warning: Not configured to insert distributed trace headers). These messages no longer appear. 
 
   ## v6.11.0
 
