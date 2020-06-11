@@ -214,6 +214,24 @@ module NewRelic
           end
         end
 
+        def test_transaction_level_agent_attributes_added_to_span_events
+          span_event = nil
+
+          with_config(:'span_events.attributes.enabled' => true) do
+            segment, transaction = with_segment do |segment|
+              txn = NewRelic::Agent::Tracer.current_transaction
+              txn.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
+              span_event = SpanEventPrimitive.for_segment(segment)
+            end
+
+            transaction_agent_attributes = transaction.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+            span_agent_attributes = span_event[2]
+
+            assert_equal({:foo => "bar"}, span_agent_attributes)
+            assert_equal transaction_agent_attributes, span_agent_attributes
+          end
+        end
+
       end
     end
   end
