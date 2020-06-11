@@ -275,15 +275,51 @@ module NewRelic
         end
 
         def test_adding_agent_attributes
-          with_config(:'span_events.attributes.enabled' => true) do
-            in_transaction do |txn|
-              txn.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
-              segment = NewRelic::Agent::Tracer.current_segment
-              actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
-              assert_equal({:foo => "bar"}, actual)
-            end
+          in_transaction do |txn|
+            txn.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
+            segment = NewRelic::Agent::Tracer.current_segment
+            actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+            assert_equal({:foo => "bar"}, actual)
           end
         end
+
+        def test_request_params_included_in_agent_attributes
+          txn = with_config(:capture_params => true) do
+            in_transaction(:filtered_params => {:foo => "bar"}) do
+            end
+          end
+
+          segment = txn.segments[0]
+          actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+          assert_equal "bar", actual['request.parameters.foo']
+        end
+
+        def test_request_attributes_in_agent_attributes
+          request_attributes = {
+            :referer => "/referered",
+            :path => "/",
+            :content_length => 0,
+            :content_type => "application/json",
+            :host => "foo.foo",
+            :user_agent => "Use This!",
+            :request_method => "GET"
+          }
+          request = stub("request", request_attributes)
+          txn = in_transaction(:request => request) do
+          end
+
+          segment = txn.segments[0]
+          actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+
+          assert_equal "/referered", actual[:'request.headers.referer']
+          assert_equal "/", actual[:'request.uri']
+          assert_equal 0, actual[:'request.headers.contentLength']
+          assert_equal "application/json", actual[:"request.headers.contentType"]
+          assert_equal "foo.foo", actual[:'request.headers.host']
+          assert_equal "Use This!", actual[:'request.headers.userAgent']
+          assert_equal "GET", actual[:'request.method']
+        end
+
 
         def test_transaction_response_attributes_included_in_agent_attributes
           txn = in_transaction do |t|
