@@ -283,17 +283,6 @@ module NewRelic
           end
         end
 
-        def test_request_params_included_in_agent_attributes
-          txn = with_config(:capture_params => true) do
-            in_transaction(:filtered_params => {:foo => "bar"}) do
-            end
-          end
-
-          segment = txn.segments[0]
-          actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
-          assert_equal "bar", actual['request.parameters.foo']
-        end
-
         def test_request_attributes_in_agent_attributes
           request_attributes = {
             :referer => "/referered",
