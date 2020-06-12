@@ -423,7 +423,7 @@ module NewRelic
         ignore! if user_defined_rules_ignore?
 
         create_initial_segment
-        current_segment.attributes.merge_untrusted_agent_attributes(@filtered_params, :'request.parameters', AttributeFilter::DST_SPAN_EVENTS)
+        NewRelic::Agent::Transaction::Segment.merge_untrusted_agent_attributes(@filtered_params, :'request.parameters', AttributeFilter::DST_SPAN_EVENTS)
       end
 
       def initial_segment
