@@ -218,7 +218,7 @@ module NewRelic
           span_event = nil
 
           with_config(:'span_events.attributes.enabled' => true) do
-            segment, transaction = with_segment do |segment|
+            _segment, transaction = with_segment do |segment|
               txn = NewRelic::Agent::Tracer.current_transaction
               txn.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
               span_event = SpanEventPrimitive.for_segment(segment)
