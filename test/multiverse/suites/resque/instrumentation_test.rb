@@ -73,12 +73,18 @@ class ResqueTest < Minitest::Test
   end
 
   def test_doesnt_capture_args_by_default
+    NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
+    NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
+
     run_jobs
     refute_attributes_on_transaction_traces
     refute_attributes_on_events
   end
 
   def test_isnt_influenced_by_global_capture_params
+    NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
+    NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
+
     with_config(:capture_params => true) do
       run_jobs
     end
@@ -88,6 +94,9 @@ class ResqueTest < Minitest::Test
   end
 
   def test_agent_posts_captured_args_to_job
+    NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
+    NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
+
     with_config(:'resque.capture_params' => true) do
       run_jobs
     end
@@ -97,6 +106,9 @@ class ResqueTest < Minitest::Test
   end
 
   def test_arguments_are_captured_on_transaction_events_when_enabled
+    NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
+    NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
+
     with_config(:'attributes.include' => 'job.resque.args.*') do
       run_jobs
     end
@@ -139,20 +151,21 @@ class ResqueTest < Minitest::Test
   end
 
   def assert_attributes_on_events
-    event_posts = $collector.calls_for('analytic_event_data')
-    event_posts.each do |post|
-      post.events.each do |event|
-        assert_equal ["job.resque.args.0"], event[2].keys
-      end
+    transaction_event_posts = $collector.calls_for('analytic_event_data')[0].events
+    span_event_posts = $collector.calls_for('span_event_data')[0].events
+    events = transaction_event_posts + span_event_posts
+    events.each do |event|
+      assert_equal ["job.resque.args.0"], event[2].keys
     end
   end
 
   def refute_attributes_on_events
-    event_posts = $collector.calls_for('analytic_event_data')
-    event_posts.each do |post|
-      post.events.each do |event|
-        assert event[2].keys.none? { |k| k.start_with?("job.resque.args") }, "Found unexpected resque arguments"
-      end
+    transaction_event_posts = $collector.calls_for('analytic_event_data')[0].events
+    span_event_posts = $collector.calls_for('span_event_data')[0].events
+    events = transaction_event_posts + span_event_posts
+
+    events.each do |event|
+      assert event[2].keys.none? { |k| k.start_with?("job.resque.args") }, "Found unexpected resque arguments"
     end
   end
 end

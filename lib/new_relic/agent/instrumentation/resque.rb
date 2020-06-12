@@ -40,6 +40,11 @@ DependencyDetection.defer do
                 :'job.resque.args',
                 NewRelic::Agent::AttributeFilter::DST_NONE)
 
+              NewRelic::Agent::Transaction::Segment.merge_untrusted_agent_attributes(
+                args,
+                :'job.resque.args',
+                NewRelic::Agent::AttributeFilter::DST_NONE)
+
               perform_without_instrumentation
             end
           ensure
