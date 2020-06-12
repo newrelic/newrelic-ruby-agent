@@ -72,7 +72,7 @@ module NewRelic
         'analytic_event_data'     => Response.new(200, {'return_value' => nil}),
         'custom_event_data'       => Response.new(200, {'return_value' => nil}),
         'error_event_data'        => Response.new(200, {'return_value' => nil}),
-        'span_event_data'        => Response.new(200, {'return_value' => nil})
+        'span_event_data'         => Response.new(200, {'return_value' => nil})
       }
       reset
     end

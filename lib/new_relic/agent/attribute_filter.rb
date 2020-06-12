@@ -151,7 +151,7 @@ module NewRelic
 
       def include_destinations_for_capture_params(capturing)
         if capturing
-          DST_TRANSACTION_TRACER | DST_ERROR_COLLECTOR | DST_SPAN_EVENTS
+          DST_TRANSACTION_TRACER | DST_ERROR_COLLECTOR
         else
           DST_NONE
         end
