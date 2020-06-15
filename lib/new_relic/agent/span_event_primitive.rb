@@ -167,11 +167,11 @@ module NewRelic
 
       def agent_attributes segment
         attributes = segment.attributes
+        agent_attributes = attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
         error_attributes = error_attributes(segment)
-        if attributes || error_attributes
-          result = attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
-          result.merge!(error_attributes) if error_attributes
-          result.freeze
+        if agent_attributes || error_attributes
+          agent_attributes.merge!(error_attributes) if error_attributes
+          agent_attributes.freeze
         else
           NewRelic::EMPTY_HASH
         end
