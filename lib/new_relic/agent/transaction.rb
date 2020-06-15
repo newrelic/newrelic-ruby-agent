@@ -221,6 +221,7 @@ module NewRelic
 
       def merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
         @attributes.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
+        current_segment.merge_untrusted_agent_attributes(attributes, prefix, default_destinations) if current_segment
       end
 
       @@java_classes_loaded = false
