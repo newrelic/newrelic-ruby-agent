@@ -91,7 +91,7 @@ module NewRelic
 
         def queue_start(request)
           if request && request.respond_to?(:env)
-            QueueTime.parse_frontend_timestamp(request.env, Time.now)
+            QueueTime.frontend_timestamp(request.env, Time.now)
           end
         end
       end

@@ -462,7 +462,7 @@ module NewRelic
         def detect_queue_start_time(request)
           headers = newrelic_request_headers(request)
 
-          QueueTime.parse_frontend_timestamp(headers) if headers
+          QueueTime.frontend_timestamp(headers) if headers
         end
       end
     end

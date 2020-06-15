@@ -27,7 +27,23 @@ module NewRelic
 
         module_function
 
-        def parse_frontend_timestamp(headers, now=Time.now)
+        def frontend_timestamp(headers, now=Time.now)
+          parsed_timestamp = parse_frontend_timestamp(headers, now)
+
+          # When enabled, this will return an adjusted timestamp
+          # with request buffer time subtracted.  This is the time
+          # spent waiting for the HTTP request body to be received.
+          if parsed_timestamp && NewRelic::Agent.config[:'queue_time_subtract_buffering']
+            # Currently, only Puma is supported
+            request_buffering_in_seconds = headers.fetch('puma.request_body_wait', 0).to_f / 1000
+
+            parsed_timestamp -= request_buffering_in_seconds
+          end
+
+          parsed_timestamp
+        end
+
+        def parse_frontend_timestamp(headers, now)
           earliest = nil
 
           CANDIDATE_HEADERS.each do |header|
