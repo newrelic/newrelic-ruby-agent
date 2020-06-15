@@ -513,7 +513,7 @@ module NewRelic
 
         if dt_payload = distributed_tracer.trace_state_payload || distributed_tracer.distributed_trace_payload
           parent_attributes = {}
-          DistributedTraceIntrinsics.copy_parent_attributes self, dt_payload, parent_attributes
+          DistributedTraceIntrinsics.copy_parent_attributes self, parent_attributes, dt_payload
           parent_attributes.each { |k, v| initial_segment.add_agent_attribute k, v, AttributeFilter::DST_SPAN_EVENTS }
         end
 

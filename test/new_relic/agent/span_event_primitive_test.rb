@@ -107,6 +107,10 @@ module NewRelic
           last_span_event = NewRelic::Agent.agent.span_event_aggregator.harvest![-1][-1]
 
           assert last_span_event[2]["parent.type"], "Expected parent.type in agent attributes"
+          assert last_span_event[2]["parent.app"], "Expected parent.app in agent attributes"
+          assert last_span_event[2]["parent.account"], "Expected parent.account in agent attributes"
+          assert last_span_event[2]["parent.transportType"], "Expected parent.transportType in agent attributes"
+          assert last_span_event[2]["parent.transportDuration"], "Expected parent.transportDuration in agent attributes"
         end
 
 

@@ -64,8 +64,8 @@ module NewRelic
           append_cat_info payload
           DistributedTraceIntrinsics.copy_from_transaction \
             transaction,
-            trace_state_payload || distributed_trace_payload,
-            payload
+            payload,
+            trace_state_payload || distributed_trace_payload
         end
 
         def insert_headers request
