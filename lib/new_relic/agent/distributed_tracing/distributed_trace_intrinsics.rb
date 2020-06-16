@@ -44,7 +44,7 @@ module NewRelic
 
       # This method takes all distributed tracing intrinsics from the transaction
       # and the trace_payload, and populates them into the destination
-      def copy_from_transaction transaction, destination, trace_payload
+      def copy_from_transaction transaction, trace_payload, destination
         destination[GUID_KEY] = transaction.guid
         destination[SAMPLED_KEY] = transaction.sampled?
         destination[TRACE_ID_KEY] = transaction.trace_id
@@ -53,10 +53,10 @@ module NewRelic
           destination[PARENT_SPAN_ID_KEY] = transaction.parent_span_id
         end
 
-        copy_parent_attributes transaction, destination, trace_payload
+        copy_parent_attributes transaction, trace_payload, destination
       end
 
-      def copy_parent_attributes transaction, destination, trace_payload=nil
+      def copy_parent_attributes transaction, trace_payload, destination
         transport_type = transaction.distributed_tracer.caller_transport_type
         destination[PARENT_TRANSPORT_TYPE_KEY] = DistributedTraceTransportType.from transport_type
 
