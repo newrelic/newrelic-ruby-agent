@@ -244,10 +244,10 @@ module NewRelic
           Agent.config.remove_config_type(:server)
         end
 
-        # If the @orker_thread encounters an error during the attempt to connect to the collector
-        # then the connect attempts enter exponential backoff retry loop.  To avoid potential 
+        # If the @worker_thread encounters an error during the attempt to connect to the collector
+        # then the connect attempts enter an exponential backoff retry loop.  To avoid potential
         # race conditions with shutting down while also attempting to reconnect, we join the
-        # worker_thread with a timeout threshold.  This allows potentially connecting and flushing
+        # @worker_thread with a timeout threshold.  This allows potentially connecting and flushing
         # pending data to the server, but without waiting indefinitely for a reconnect to succeed.
         # The use-case where this typically arises is in cronjob scheduled rake tasks where there's
         # also some network stability/latency issues happening.
