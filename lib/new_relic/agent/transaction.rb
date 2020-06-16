@@ -572,6 +572,9 @@ module NewRelic
 
         if http_response_code
           add_agent_attribute(:httpResponseCode, http_response_code.to_s, default_destinations)
+          # Sending status code as an int with http.statusCode key is correct
+          # The above attribute is deprecated and should be removed in agent version 7.0.0
+          add_agent_attribute(:'http.statusCode', http_response_code, default_destinations)
         end
 
         if response_content_length
