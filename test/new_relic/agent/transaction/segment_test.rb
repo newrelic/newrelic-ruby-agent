@@ -74,7 +74,10 @@ module NewRelic
         def test_ignores_error_attributes_when_in_high_security
           with_config(:high_security => true) do
             segment, _error = capture_segment_with_error
-            assert_empty attributes_for(segment, :agent)
+            agent_attributes = attributes_for(segment, :agent)
+
+            # No error attributes
+            assert_equal({"parent.transportType"=>"Unknown"}, agent_attributes)
           end
         end
 

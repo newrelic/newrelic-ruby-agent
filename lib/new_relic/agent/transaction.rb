@@ -511,13 +511,7 @@ module NewRelic
         end
 
         initial_segment.transaction_name = @frozen_name
-
-        if dt_payload = distributed_tracer.trace_state_payload || distributed_tracer.distributed_trace_payload
-          parent_attributes = {}
-          DistributedTraceIntrinsics.copy_parent_attributes self, parent_attributes, dt_payload
-          parent_attributes.each { |k, v| initial_segment.add_agent_attribute k, v, AttributeFilter::DST_SPAN_EVENTS }
-        end
-
+        assign_segment_dt_attributes
         assign_agent_attributes
         initial_segment.finish
 
@@ -559,6 +553,13 @@ module NewRelic
         record_transaction_event
         merge_metrics
         send_transaction_finished_event
+      end
+
+      def assign_segment_dt_attributes
+        dt_payload = distributed_tracer.trace_state_payload || distributed_tracer.distributed_trace_payload
+        parent_attributes = {}
+        DistributedTraceIntrinsics.copy_parent_attributes self, parent_attributes, dt_payload
+        parent_attributes.each { |k, v| initial_segment.add_agent_attribute k, v, AttributeFilter::DST_SPAN_EVENTS }
       end
 
       def assign_agent_attributes
