@@ -117,8 +117,7 @@ class SidekiqTest < Minitest::Test
   end
 
   def test_doesnt_capture_args_by_default
-    NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
-    NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
+    stub_for_span_collection
 
     run_jobs
     refute_attributes_on_transaction_trace
@@ -126,8 +125,7 @@ class SidekiqTest < Minitest::Test
   end
 
   def test_isnt_influenced_by_global_capture_params
-    NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
-    NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
+    stub_for_span_collection
 
     with_config(:capture_params => true) do
       run_jobs
@@ -137,8 +135,7 @@ class SidekiqTest < Minitest::Test
   end
 
   def test_agent_posts_captured_args_to_job
-    NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
-    NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
+    stub_for_span_collection
 
     with_config(:'sidekiq.capture_params' => true) do
       run_jobs
@@ -149,8 +146,7 @@ class SidekiqTest < Minitest::Test
   end
 
   def test_arguments_are_captured_on_transaction_and_span_events_when_enabled
-    NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
-    NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
+    stub_for_span_collection
 
     with_config(:'attributes.include' => 'job.sidekiq.args.*') do
       run_jobs
@@ -227,7 +223,8 @@ class SidekiqTest < Minitest::Test
     span_event_posts = $collector.calls_for('span_event_data')[0].events
     events = transaction_event_posts + span_event_posts
     events.each do |event|
-      assert_equal Set.new(["job.sidekiq.args.0", "job.sidekiq.args.1"]), event[2].keys.to_set
+      assert_includes event[2].keys, "job.sidekiq.args.0"
+      assert_includes event[2].keys, "job.sidekiq.args.1"
     end
   end
 
