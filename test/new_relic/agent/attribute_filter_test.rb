@@ -112,7 +112,7 @@ module NewRelic::Agent
       end
     end
 
-    def test_sidekiq_capture_params_true_allows_request_params_for_traces_and_errors
+    def test_sidekiq_capture_params_true_allows_request_params_for_traces_errors
       with_config(:'sidekiq.capture_params' => true) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
         result = filter.apply 'job.sidekiq.args.*', AttributeFilter::DST_NONE

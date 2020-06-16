@@ -165,6 +165,9 @@ module NewRelic
       end
 
       def test_agent_attributes_assigned_for_generic_wrap_consume_transaction
+        NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
+        NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
+
         tap = mock 'tap'
         tap.expects :tap
 
@@ -175,12 +178,16 @@ module NewRelic
           routing_key: "red"
         ) { tap.tap }
 
-        event = last_transaction_event
-        assert Array === event, "expected Array, actual: #{event.class}"
-        assert_equal 3, event.length, "expected Array of 3 elements, actual: #{event.length}"
-        assert event.all? {|e| Hash === e}, "expected Array of 3 hashes, actual: [#{event.map(&:class).join(',')}]"
-        assert event[2].key?(:'message.routingKey'), "expected 3rd hash to have key :'message.routingKey', actual: #{event[2].keys.join(',')}"
-        assert_equal "red", event[2][:'message.routingKey']
+        transaction_event = last_transaction_event
+        assert Array === transaction_event, "expected Array, actual: #{transaction_event.class}"
+        assert_equal 3, transaction_event.length, "expected Array of 3 elements, actual: #{transaction_event.length}"
+        assert transaction_event.all? {|e| Hash === e}, "expected Array of 3 hashes, actual: [#{transaction_event.map(&:class).join(',')}]"
+        assert transaction_event[2].key?(:'message.routingKey'), "expected transaction event attributes to have key :'message.routingKey', actual: #{transaction_event[2].keys.join(',')}"
+        assert_equal "red", transaction_event[2][:'message.routingKey']
+
+        span_event = last_span_event
+        assert span_event[2].key?(:'message.routingKey'), "expected span event attributes to have key :'message.routingKey', actual: #{span_event[2].keys.join(',')}"
+        assert_equal "red", span_event[2][:'message.routingKey']
       end
 
       def test_header_attributes_assigned_for_generic_wrap_consume_transaction
@@ -236,6 +243,9 @@ module NewRelic
       end
 
       def test_agent_attributes_not_assigned_when_in_transaction_but_not_subscribed
+        NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
+        NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
+
         in_transaction "test_txn" do
           message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
           delivery_info      = {routing_key: "red", exchange_name: "foobar"}
@@ -252,8 +262,11 @@ module NewRelic
           segment.finish
         end
 
-        event = last_transaction_event
-        assert_nil event[2][:"message.routingKey"]
+        transaction_event = last_transaction_event
+        assert_nil transaction_event[2][:"message.routingKey"]
+
+        span_event = last_span_event
+        assert_nil span_event[2][:"message.routingKey"]
       end
 
       def test_agent_attributes_not_assigned_when_not_subscribed_nor_in_transaction
@@ -361,6 +374,9 @@ module NewRelic
       end
 
       def test_agent_attributes_assigned_for_amqp_wrap_consume_transaction
+        NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
+        NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
+
         with_config :"attributes.include" => ["message.headers.*", "message.replyTo", "message.correlationId", "message.exchangeType"] do
           tap = mock 'tap'
           tap.expects :tap
@@ -374,14 +390,23 @@ module NewRelic
             queue_name: 'some.queue',
           ) { tap.tap }
 
-          event = last_transaction_event
-          assert_equal "blue", event[2][:'message.routingKey']
-          assert_equal "reply.key", event[2][:'message.replyTo']
-          assert_equal "correlate", event[2][:'message.correlationId']
-          assert_equal :fanout, event[2][:'message.exchangeType']
-          assert_equal "some.queue", event[2][:'message.queueName']
-          assert_equal "bar", event[2][:'message.headers.foo']
-          refute event[2].has_key?(:'message.headers.NewRelicID')
+          transaction_event = last_transaction_event
+          assert_equal "blue", transaction_event[2][:'message.routingKey']
+          assert_equal "reply.key", transaction_event[2][:'message.replyTo']
+          assert_equal "correlate", transaction_event[2][:'message.correlationId']
+          assert_equal :fanout, transaction_event[2][:'message.exchangeType']
+          assert_equal "some.queue", transaction_event[2][:'message.queueName']
+          assert_equal "bar", transaction_event[2][:'message.headers.foo']
+          refute transaction_event[2].has_key?(:'message.headers.NewRelicID')
+
+          span_event = last_span_event
+          assert_equal "blue", span_event[2][:'message.routingKey']
+          assert_equal "reply.key", span_event[2][:'message.replyTo']
+          assert_equal "correlate", span_event[2][:'message.correlationId']
+          assert_equal :fanout, span_event[2][:'message.exchangeType']
+          assert_equal "some.queue", span_event[2][:'message.queueName']
+          assert_equal "bar", span_event[2][:'message.headers.foo']
+          refute span_event[2].has_key?(:'message.headers.NewRelicID')
         end
       end
 

@@ -208,6 +208,7 @@ module NewRelic
 
       def add_agent_attribute(key, value, default_destinations)
         @attributes.add_agent_attribute(key, value, default_destinations)
+        current_segment.add_agent_attribute(key, value) if current_segment
       end
 
       def self.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
@@ -220,6 +221,7 @@ module NewRelic
 
       def merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
         @attributes.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
+        current_segment.merge_untrusted_agent_attributes(attributes, prefix, default_destinations) if current_segment
       end
 
       @@java_classes_loaded = false
@@ -421,6 +423,10 @@ module NewRelic
         ignore! if user_defined_rules_ignore?
 
         create_initial_segment
+        Segment.merge_untrusted_agent_attributes \
+          @filtered_params,
+          :'request.parameters',
+          AttributeFilter::DST_SPAN_EVENTS
       end
 
       def initial_segment
@@ -508,6 +514,8 @@ module NewRelic
         end
 
         initial_segment.transaction_name = @frozen_name
+        assign_segment_dt_attributes
+        assign_agent_attributes
         initial_segment.finish
 
         NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
@@ -531,8 +539,6 @@ module NewRelic
 
       def commit!(outermost_node_name)
         generate_payload
-
-        assign_agent_attributes
         assign_intrinsics
 
         finalize_segments
@@ -550,6 +556,13 @@ module NewRelic
         record_transaction_event
         merge_metrics
         send_transaction_finished_event
+      end
+
+      def assign_segment_dt_attributes
+        dt_payload = distributed_tracer.trace_state_payload || distributed_tracer.distributed_trace_payload
+        parent_attributes = {}
+        DistributedTraceAttributes.copy_parent_attributes self, dt_payload, parent_attributes
+        parent_attributes.each { |k, v| initial_segment.add_agent_attribute k, v }
       end
 
       def assign_agent_attributes

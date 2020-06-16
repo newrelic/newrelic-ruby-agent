@@ -75,6 +75,45 @@ module NewRelic
           assert_equal txn.best_name, root_span_event[0]["transaction.name"]
         end
 
+        def test_root_span_gets_dt_parent_attributes
+          NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
+          NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
+          NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+
+          @config = {
+            :'distributed_tracing.enabled' => true,
+            :account_id => "190",
+            :primary_application_id => "46954",
+            :trusted_account_key => "trust_this!"
+          }
+
+          NewRelic::Agent.config.add_config_for_testing(@config)
+
+          payload = nil
+          external_segment = nil
+          in_transaction('test_txn') do |txn|
+            external_segment = NewRelic::Agent::Tracer.\
+                         start_external_request_segment library: "net/http",
+                                                        uri: "http://docs.newrelic.com",
+                                                        procedure: "GET"
+            payload = txn.distributed_tracer.create_distributed_trace_payload
+          end
+
+          in_transaction('test_txn2') do |txn|
+            incoming_payload = payload.text
+            txn.distributed_tracer.accept_distributed_trace_payload incoming_payload
+          end
+
+          last_span_event = NewRelic::Agent.agent.span_event_aggregator.harvest![-1][-1]
+
+          assert last_span_event[2]["parent.type"], "Expected parent.type in agent attributes"
+          assert last_span_event[2]["parent.app"], "Expected parent.app in agent attributes"
+          assert last_span_event[2]["parent.account"], "Expected parent.account in agent attributes"
+          assert last_span_event[2]["parent.transportType"], "Expected parent.transportType in agent attributes"
+          assert last_span_event[2]["parent.transportDuration"], "Expected parent.transportDuration in agent attributes"
+        end
+
+
         def test_empty_error_message_can_override_previous_error_message_attribute
           begin
             with_segment do |segment|
@@ -214,6 +253,23 @@ module NewRelic
           end
         end
 
+        def test_transaction_level_agent_attributes_added_to_span_events
+          span_event = nil
+
+          with_config(:'span_events.attributes.enabled' => true) do
+            _segment, transaction = with_segment do |segment|
+              txn = NewRelic::Agent::Tracer.current_transaction
+              txn.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
+              span_event = SpanEventPrimitive.for_segment(segment)
+            end
+
+            transaction_agent_attributes = transaction.attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS)
+            span_agent_attributes = span_event[2]
+
+            assert_equal({:foo => "bar"}, span_agent_attributes)
+            assert_equal transaction_agent_attributes, span_agent_attributes
+          end
+        end
       end
     end
   end
