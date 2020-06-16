@@ -62,7 +62,7 @@ module NewRelic
 
         def append_payload payload
           append_cat_info payload
-          DistributedTraceIntrinsics.copy_from_transaction \
+          DistributedTraceAttributes.copy_from_transaction \
             transaction,
             trace_state_payload || distributed_trace_payload,
             payload
@@ -84,7 +84,7 @@ module NewRelic
 
         def assign_intrinsics
           if Agent.config[:'distributed_tracing.enabled']
-            DistributedTraceIntrinsics.copy_to_attributes transaction.payload, transaction.attributes
+            DistributedTraceAttributes.copy_to_attributes transaction.payload, transaction.attributes
           elsif is_cross_app?
             assign_cross_app_intrinsics
           end

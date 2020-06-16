@@ -5,7 +5,7 @@
 
 module NewRelic
   module Agent
-    module DistributedTraceIntrinsics
+    module DistributedTraceAttributes
       extend self
 
       # Intrinsic Keys

@@ -9,7 +9,7 @@
 
 require 'new_relic/agent/payload_metric_mapping'
 require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
-require 'new_relic/agent/distributed_tracing/distributed_trace_intrinsics'
+require 'new_relic/agent/distributed_tracing/distributed_trace_attributes'
 
 module NewRelic
   module Agent
@@ -61,7 +61,7 @@ module NewRelic
           attrs[PRIORITY_KEY] = payload[:priority]
           append_synthetics payload, attrs
           append_cat payload, attrs
-          DistributedTraceIntrinsics.copy_to_hash payload, attrs
+          DistributedTraceAttributes.copy_to_hash payload, attrs
           PayloadMetricMapping.append_mapped_metrics payload[:metrics], attrs
         end
 
