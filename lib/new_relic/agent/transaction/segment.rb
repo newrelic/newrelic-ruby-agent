@@ -21,7 +21,7 @@ module NewRelic
           super name, start_time
         end
 
-        def add_agent_attribute(key, value, default_destinations)
+        def add_agent_attribute(key, value, default_destinations=AttributeFilter::DST_SPAN_EVENTS)
           @attributes.add_agent_attribute(key, value, default_destinations)
         end
 

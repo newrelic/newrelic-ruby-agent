@@ -208,7 +208,7 @@ module NewRelic
 
       def add_agent_attribute(key, value, default_destinations)
         @attributes.add_agent_attribute(key, value, default_destinations)
-        current_segment.add_agent_attribute(key, value, AttributeFilter::DST_SPAN_EVENTS) if current_segment
+        current_segment.add_agent_attribute(key, value) if current_segment
       end
 
       def self.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
@@ -562,7 +562,7 @@ module NewRelic
         dt_payload = distributed_tracer.trace_state_payload || distributed_tracer.distributed_trace_payload
         parent_attributes = {}
         DistributedTraceAttributes.copy_parent_attributes self, dt_payload, parent_attributes
-        parent_attributes.each { |k, v| initial_segment.add_agent_attribute k, v, AttributeFilter::DST_SPAN_EVENTS }
+        parent_attributes.each { |k, v| initial_segment.add_agent_attribute k, v }
       end
 
       def assign_agent_attributes
