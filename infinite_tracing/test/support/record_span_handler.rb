@@ -66,5 +66,25 @@ module NewRelic::Agent
       end
     end
 
+    class OkCloseSpanHandler < RecordSpanHandler
+      def start_handler
+        Worker.new "RecordSpanHandler" do
+          begin
+            @record_spans.each do |span|
+              @server.notice_span span
+              puts "---- span handler #{span}"
+              break
+            end
+            @record_status_stream.push(record_status)
+            @record_status_stream.push(nil)
+          rescue StandardError => e
+            puts "SERVER ERROR", e.inspect
+            raise e
+          ensure
+            @lock.synchronize { @worker, @record_spans = nil }
+          end
+        end
+      end
+    end
   end
 end

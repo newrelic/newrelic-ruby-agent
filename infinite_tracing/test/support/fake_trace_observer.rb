@@ -55,8 +55,9 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       end
 
       def record_span(record_spans)
-        notice_span record_spans
-        [record_status]
+        span_handler = OkCloseSpanHandler.new(self, record_spans, @active_calls.size + 1)
+        @active_calls << span_handler
+        span_handler.enumerator
       end
     end
 

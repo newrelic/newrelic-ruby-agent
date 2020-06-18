@@ -63,6 +63,7 @@ module NewRelic::Agent
 
       # Reports AND logs general response metric along with a more specific error metric
       def record_error_metrics_and_log error
+        puts "#{error}"
         NewRelic::Agent.record_metric RESPONSE_ERROR_METRIC, 0.0
         if error.is_a? GRPC::BadStatus
           NewRelic::Agent.record_metric grpc_error_metric_name(error), 0.0
@@ -91,7 +92,8 @@ module NewRelic::Agent
       # This method is called when the server closes the record status stream without
       # raising an error.
       def handle_close
-        reset
+        puts "handle_closebuff: #{@buffer.queue.size}"
+        start_streaming
       end
 
       # Places the client into suspended state whereby client will no longer attempt to 

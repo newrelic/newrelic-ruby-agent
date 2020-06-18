@@ -133,7 +133,7 @@ module NewRelic
         end
 
         def test_handling_ok_and_close_server_response
-          timeout_cap do
+          timeout_cap 2 do
             total_spans = 5
             buffers = []
 
