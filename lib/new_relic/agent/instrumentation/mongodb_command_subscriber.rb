@@ -37,7 +37,7 @@ module NewRelic
 
             # operations that succeed buy have errors return CommandSucceeded 
             # with an error_key that is populated with error specfics
-            if segment && (error_key = error_key_present?(event))
+            if error_key = error_key_present?(event)
               # taking the last error as there can potentially be many
               attributes = event.reply[error_key][-1]
               segment.notice_error Mongo::Error.new("%s (%s)" % [attributes["errmsg"], attributes["code"]])
@@ -47,7 +47,7 @@ module NewRelic
             elsif event.is_a? Mongo::Monitoring::Event::CommandFailed
               segment.notice_error Mongo::Error.new(event.message)
             end
-            segment.finish if segment
+            segment.finish
           rescue Exception => e
             log_notification_error('completed', e)
           end
