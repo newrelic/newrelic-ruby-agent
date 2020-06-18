@@ -254,6 +254,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           # A block that generates segments is expected and yielded to by this methd
           # The spans collected by the server are returned for further inspection
           def generate_and_stream_segments
+            NewRelic::Agent::InfiniteTracing::Client.any_instance.stubs(:handle_close).returns(nil) 
             unstub_reconnection
             server = nil
             with_config fake_server_config do
