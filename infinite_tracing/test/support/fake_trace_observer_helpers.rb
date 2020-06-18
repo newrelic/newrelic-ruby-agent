@@ -196,7 +196,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           def emulate_streaming_with_tracer tracer_class, count, max_buffer_size, &block
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
-            NewRelic::Agent::InfiniteTracing::Client.any_instance.stubs(:handle_close).returns(nil)
+            NewRelic::Agent::InfiniteTracing::Client.any_instance.stubs(:handle_close).returns(nil) unless tracer_class == OkCloseInfiniteTracer
             client = nil
             server = nil
 

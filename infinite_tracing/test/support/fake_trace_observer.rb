@@ -55,7 +55,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       end
 
       def record_span(record_spans)
-        notice_span record_span
+        notice_span record_spans
         [record_status]
       end
     end
