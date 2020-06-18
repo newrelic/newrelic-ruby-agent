@@ -192,7 +192,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               @collection.find_one_and_delete(@tribbles.first)
             end
 
-            metrics = build_test_metrics(:findandmodify, true)
+            metrics = build_test_metrics(:findAndModify, true)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
@@ -206,7 +206,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               @collection.find_one_and_replace(@tribbles[0], @tribbles[1])
             end
 
-            metrics = build_test_metrics(:findandmodify, true)
+            metrics = build_test_metrics(:findAndModify, true)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
@@ -220,7 +220,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               @collection.find_one_and_update(@tribbles[0], "$set" => @tribbles[1])
             end
 
-            metrics = build_test_metrics(:findandmodify, true)
+            metrics = build_test_metrics(:findAndModify, true)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)

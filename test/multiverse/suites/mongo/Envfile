@@ -2,6 +2,9 @@
 # We have tests to assert unsupported versions of MongoDB, 
 # hence the reason they appear in this list
 MONGO_VERSIONS = [
+  '2.12.0',
+  '2.9.0',
+  '2.7.0',
   '2.5.0',
   '2.4.0',
   '2.1.0',
@@ -32,6 +35,11 @@ MONGO_VERSIONS.each do |mongo_version|
       gem 'mongo', '~>#{mongo_version}'
       gem 'bson', '< 4.8'
       gem 'bson_ext', :platforms => :ruby
+    RB
+  elsif Gem::Version.new(mongo_version) >= Gem::Version.new("2.12.0")
+    gemfile <<-RB
+      gem 'mongo', '~>#{mongo_version}'
+      gem 'bson', '~> 4.8'
     RB
   else
     gemfile <<-RB
