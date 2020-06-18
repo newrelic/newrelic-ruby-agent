@@ -4,7 +4,7 @@
 # frozen_string_literal: true
 
 require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
-require 'new_relic/agent/distributed_tracing/distributed_trace_intrinsics'
+require 'new_relic/agent/distributed_tracing/distributed_trace_attributes'
 require 'new_relic/agent/distributed_tracing/distributed_trace_metrics'
 
 module NewRelic

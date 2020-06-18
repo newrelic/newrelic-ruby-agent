@@ -26,7 +26,7 @@ DependencyDetection.defer do
             self.class.default_trace_args(msg)
           end
           trace_headers = msg.delete(NewRelic::NEWRELIC_KEY)
-          
+
           perform_action_with_newrelic_trace(trace_args) do
             NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(msg['args'], :'job.sidekiq.args',
               NewRelic::Agent::AttributeFilter::DST_NONE)
@@ -77,7 +77,7 @@ DependencyDetection.defer do
         chain.add NewRelic::SidekiqInstrumentation::Client
       end
     end
-    
+
     Sidekiq.configure_server do |config|
       config.client_middleware do |chain|
         chain.add NewRelic::SidekiqInstrumentation::Client

@@ -101,13 +101,13 @@ class SidekiqTest < Minitest::Test
     in_transaction 'test_txn' do |t|
       run_jobs
     end
-  
+
     assert_metric_and_call_count "Supportability/TraceContext/Accept/Success", JOB_COUNT # method for metrics created on server side
     assert_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success" # method for metrics created on the client side
 
     NewRelic::Agent.config.remove_config(@config)
     NewRelic::Agent.config.reset_to_defaults
-    NewRelic::Agent.drop_buffered_data 
+    NewRelic::Agent.drop_buffered_data
   end
 
   def test_agent_posts_correct_metric_data
@@ -117,12 +117,16 @@ class SidekiqTest < Minitest::Test
   end
 
   def test_doesnt_capture_args_by_default
+    stub_for_span_collection
+
     run_jobs
     refute_attributes_on_transaction_trace
     refute_attributes_on_events
   end
 
   def test_isnt_influenced_by_global_capture_params
+    stub_for_span_collection
+
     with_config(:capture_params => true) do
       run_jobs
     end
@@ -131,6 +135,8 @@ class SidekiqTest < Minitest::Test
   end
 
   def test_agent_posts_captured_args_to_job
+    stub_for_span_collection
+
     with_config(:'sidekiq.capture_params' => true) do
       run_jobs
     end
@@ -139,7 +145,9 @@ class SidekiqTest < Minitest::Test
     refute_attributes_on_events
   end
 
-  def test_arguments_are_captured_on_transaction_events_when_enabled
+  def test_arguments_are_captured_on_transaction_and_span_events_when_enabled
+    stub_for_span_collection
+
     with_config(:'attributes.include' => 'job.sidekiq.args.*') do
       run_jobs
     end
@@ -211,20 +219,22 @@ class SidekiqTest < Minitest::Test
   end
 
   def assert_attributes_on_events
-    event_posts = $collector.calls_for('analytic_event_data')
-    event_posts.each do |post|
-      post.events.each do |event|
-        assert_equal Set.new(["job.sidekiq.args.0", "job.sidekiq.args.1"]), event[2].keys.to_set
-      end
+    transaction_event_posts = $collector.calls_for('analytic_event_data')[0].events
+    span_event_posts = $collector.calls_for('span_event_data')[0].events
+    events = transaction_event_posts + span_event_posts
+    events.each do |event|
+      assert_includes event[2].keys, "job.sidekiq.args.0"
+      assert_includes event[2].keys, "job.sidekiq.args.1"
     end
   end
 
   def refute_attributes_on_events
-    event_posts = $collector.calls_for('analytic_event_data')
-    event_posts.each do |post|
-      post.events.each do |event|
-        assert event[2].keys.none? { |k| k.start_with?("job.sidekiq.args") }, "Found unexpected sidekiq arguments"
-      end
+    transaction_event_posts = $collector.calls_for('analytic_event_data')[0].events
+    span_event_posts = $collector.calls_for('span_event_data')[0].events
+    events = transaction_event_posts + span_event_posts
+
+    events.each do |event|
+      assert event[2].keys.none? { |k| k.start_with?("job.sidekiq.args") }, "Found unexpected sidekiq arguments"
     end
   end
 

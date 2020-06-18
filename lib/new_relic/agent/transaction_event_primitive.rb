@@ -9,7 +9,7 @@
 # the transaction event aggregator and the synthetics container.
 
 require 'new_relic/agent/payload_metric_mapping'
-require 'new_relic/agent/distributed_tracing/distributed_trace_intrinsics'
+require 'new_relic/agent/distributed_tracing/distributed_trace_attributes'
 
 module NewRelic
   module Agent
@@ -54,7 +54,7 @@ module NewRelic
 
         PayloadMetricMapping.append_mapped_metrics(payload[:metrics], intrinsics)
         append_optional_attributes(intrinsics, payload)
-        DistributedTraceIntrinsics.copy_to_hash payload, intrinsics
+        DistributedTraceAttributes.copy_to_hash payload, intrinsics
 
         attributes = payload[:attributes]
 

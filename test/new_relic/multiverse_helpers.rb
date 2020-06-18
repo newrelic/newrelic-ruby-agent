@@ -128,6 +128,11 @@ module MultiverseHelpers
     ENV["NEWRELIC_OMIT_FAKE_COLLECTOR"] == "true"
   end
 
+  def stub_for_span_collection
+    NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
+    NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
+  end
+
   def run_harvest
     NewRelic::Agent.instance.send(:transmit_data)
     NewRelic::Agent.instance.send(:transmit_analytic_event_data)

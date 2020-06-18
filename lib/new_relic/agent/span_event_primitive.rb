@@ -61,9 +61,8 @@ module NewRelic
       def for_segment segment
         intrinsics = intrinsics_for(segment)
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
-        agent_attributes = error_attributes(segment)
 
-        [intrinsics, custom_attributes(segment), agent_attributes || NewRelic::EMPTY_HASH]
+        [intrinsics, custom_attributes(segment), agent_attributes(segment)]
       end
 
       def for_external_request_segment segment
@@ -161,6 +160,18 @@ module NewRelic
         if attributes
           result = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
           result.freeze
+        else
+          NewRelic::EMPTY_HASH
+        end
+      end
+
+      def agent_attributes segment
+        attributes = segment.attributes
+        agent_attributes = attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
+        error_attributes = error_attributes(segment)
+        if agent_attributes || error_attributes
+          agent_attributes.merge!(error_attributes) if error_attributes
+          agent_attributes.freeze
         else
           NewRelic::EMPTY_HASH
         end

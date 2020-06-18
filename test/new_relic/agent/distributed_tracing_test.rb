@@ -5,7 +5,7 @@
 require File.expand_path('../../../test_helper', __FILE__)
 require 'new_relic/agent/distributed_tracing/cross_app_payload'
 require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
-require 'new_relic/agent/distributed_tracing/distributed_trace_intrinsics'
+require 'new_relic/agent/distributed_tracing/distributed_trace_attributes'
 require 'new_relic/agent/transaction'
 require 'net/http'
 

@@ -13,12 +13,34 @@
     Additionally, a bug in recording the metric for "findAndModify" as all lowercased "findandmodify" 
     for versions 2.1 through 2.5 was fixed.
 
+  * **Additional Transaction Information applied to Span Events**
+
+    When Distributed Tracing and/or Infinite Tracing are enabled, the Agent will now incorporate additional information from the Transaction Event on to the root Span Event of the transaction.
+
+    The following items are affected:
+      * Custom attribute values applied to the Transaction via our [add_custom_attributes](http://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent#add_custom_attributes-instance_method) API method.
+      * Request parameters: `request.parameters.*`
+      * Request headers: `request.headers.*`
+      * Response headers: `response.headers.*`
+      * Resque job arguments: `job.resque.args.*`
+      * Sidekiq job arguments: `job.sidekiq.args.*`
+      * Messaging arguments: `message.*`
+      * `httpResponseCode`
+      * `request.uri`
+      * `response.status`
+
+  * **Security Recommendation**
+
+    Review your Transaction attributes [include](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#transaction_events-attributes-include) and [exclude](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#transaction_events-attributes-exclude) configurations.  Any attribute include or exclude settings specific to Transaction Events should be applied
+    to your Span attributes [include](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#span-events-attributes-include) and [exclude](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#span-events-attributes-exclude) configuration or your global attributes [include](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#attributes-include) and [exclude](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#attributes-exclude) configuration.
+
+
   * **Bugfix: Eliminate warnings for distributed tracing when using sidekiq**
 
     Previously, using sidekiq with distributed tracing disabled resulted in warning messages\
     `WARN : Not configured to accept distributed trace headers`\
     ` WARN : Not configured to insert distributed trace headers`\
-    These messages no longer appear. 
+    These messages no longer appear.
 
   ## v6.11.0
 

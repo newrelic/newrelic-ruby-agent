@@ -74,7 +74,10 @@ module NewRelic
         def test_ignores_error_attributes_when_in_high_security
           with_config(:high_security => true) do
             segment, _error = capture_segment_with_error
-            assert_empty attributes_for(segment, :agent)
+            agent_attributes = attributes_for(segment, :agent)
+
+            # No error attributes
+            assert_equal({"parent.transportType"=>"Unknown"}, agent_attributes)
           end
         end
 
@@ -272,6 +275,67 @@ module NewRelic
           ensure
             file_descriptors.map { |fd| IO::new(fd).close }
           end
+        end
+
+        def test_adding_agent_attributes
+          in_transaction do |txn|
+            txn.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
+            segment = NewRelic::Agent::Tracer.current_segment
+            actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+            assert_equal({:foo => "bar"}, actual)
+          end
+        end
+
+        def test_request_attributes_in_agent_attributes
+          request_attributes = {
+            :referer => "/referered",
+            :path => "/",
+            :content_length => 0,
+            :content_type => "application/json",
+            :host => "foo.foo",
+            :user_agent => "Use This!",
+            :request_method => "GET"
+          }
+          request = stub("request", request_attributes)
+          txn = in_transaction(:request => request) do
+          end
+
+          segment = txn.segments[0]
+          actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+
+          assert_equal "/referered", actual[:'request.headers.referer']
+          assert_equal "/", actual[:'request.uri']
+          assert_equal 0, actual[:'request.headers.contentLength']
+          assert_equal "application/json", actual[:"request.headers.contentType"]
+          assert_equal "foo.foo", actual[:'request.headers.host']
+          assert_equal "Use This!", actual[:'request.headers.userAgent']
+          assert_equal "GET", actual[:'request.method']
+        end
+
+
+        def test_transaction_response_attributes_included_in_agent_attributes
+          txn = in_transaction do |t|
+            t.http_response_code = 418
+            t.response_content_length = 100
+            t.response_content_type = 'application/json'
+          end
+
+          segment = txn.segments[0]
+          actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+          assert_equal "418", actual[:"httpResponseCode"]
+          assert_equal 100, actual[:"response.headers.contentLength"]
+          assert_equal "application/json", actual[:"response.headers.contentType"]
+        end
+
+        def test_referer_in_agent_attributes
+          segment = nil
+          request = stub('request', :referer => "/referered", :path => "/")
+          txn = in_transaction(:request => request) do
+          end
+
+          segment = txn.segments[0]
+          actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+          assert_equal "/referered", actual[:'request.headers.referer']
         end
 
         private

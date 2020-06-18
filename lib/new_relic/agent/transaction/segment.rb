@@ -21,6 +21,22 @@ module NewRelic
           super name, start_time
         end
 
+        def add_agent_attribute(key, value, default_destinations=AttributeFilter::DST_SPAN_EVENTS)
+          @attributes.add_agent_attribute(key, value, default_destinations)
+        end
+
+        def self.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
+          if segment = NewRelic::Agent::Tracer.current_segment
+            segment.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
+          else
+            NewRelic::Agent.logger.debug "Attempted to merge untrusted attributes without segment"
+          end
+        end
+
+        def merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
+          @attributes.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
+        end
+
         def add_custom_attributes(p)
           attributes.merge_custom_attributes(p)
         end

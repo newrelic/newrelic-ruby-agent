@@ -156,13 +156,13 @@ module NewRelic
 
       PRIORITY = "priority".freeze
 
-      def distributed_trace_intrinsics(state)
+      def distributed_trace_attributes(state)
         transaction = state.current_transaction
         params = nil
         if transaction && transaction.distributed_tracer.distributed_trace_payload
           params = {}
           payload = transaction.distributed_tracer.distributed_trace_payload
-          DistributedTraceIntrinsics.copy_from_transaction transaction, payload, params
+          DistributedTraceAttributes.copy_from_transaction transaction, payload, params
           params[PRIORITY] = transaction.priority
         end
         params
@@ -176,7 +176,7 @@ module NewRelic
         if state.is_sql_recorded?
           if duration > Agent.config[:'slow_sql.explain_threshold']
             backtrace = caller.join("\n")
-            params = distributed_trace_intrinsics state
+            params = distributed_trace_attributes state
             data.sql_data << SlowSql.new(statement, metric_name, duration, backtrace, params)
           end
         end

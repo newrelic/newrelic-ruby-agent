@@ -5,7 +5,7 @@
 require File.expand_path('../../../../test_helper', __FILE__)
 require 'new_relic/agent/distributed_tracing/cross_app_payload'
 require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
-require 'new_relic/agent/distributed_tracing/distributed_trace_intrinsics'
+require 'new_relic/agent/distributed_tracing/distributed_trace_attributes'
 require 'new_relic/agent/transaction'
 require 'net/http'
 
@@ -288,7 +288,7 @@ module NewRelic
           assert_equal inbound_payload.transaction_id,        parent_transaction.guid
         end
 
-        def test_assign_distributed_trace_intrinsics_properly_assigned_on_receiving_dt
+        def test_assign_distributed_trace_attributes_properly_assigned_on_receiving_dt
           payload = create_distributed_trace_payload(sampled: false)
           payload.id = "abc123"
 
@@ -298,12 +298,12 @@ module NewRelic
 
           intrinsics = txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
 
-          NewRelic::Agent::DistributedTraceIntrinsics::INTRINSIC_KEYS.each do |key|
+          NewRelic::Agent::DistributedTraceAttributes::INTRINSIC_KEYS.each do |key|
             assert intrinsics.key?(key), "Expected to find #{key} as an intrinsic, but did not"
           end
         end
 
-        def test_assign_distributed_trace_intrinsics_properly_assigned_on_initial_trace
+        def test_assign_distributed_trace_attributes_properly_assigned_on_initial_trace
           payload = create_distributed_trace_payload(sampled: false)
 
           txn = in_transaction "test_txn" do |t|
