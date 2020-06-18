@@ -132,6 +132,28 @@ module NewRelic
           end
         end
 
+        def test_handling_ok_and_close_server_response
+          timeout_cap do
+            total_spans = 5
+            buffers = []
+
+            spans, segments = emulate_streaming_with_ok_close_response(total_spans) do |client, segments|
+              buffers << client.buffer
+            end
+            assert_equal total_spans, buffers.size
+
+            assert_equal total_spans, segments.size
+            assert_equal total_spans, spans.size
+
+            refute_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+
+            assert_metrics_recorded({
+              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans},
+            })
+          end
+        end
+
         def test_reconnection_backoff
           with_serial_lock do
             connection = Connection.instance

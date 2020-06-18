@@ -196,6 +196,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           def emulate_streaming_with_tracer tracer_class, count, max_buffer_size, &block
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
+            NewRelic::Agent::InfiniteTracing::Client.any_instance.stubs(:handle_close).returns(nil)
             client = nil
             server = nil
 
@@ -243,6 +244,10 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           def emulate_streaming_with_initial_error count, max_buffer_size=100_000, &block
             emulate_streaming_with_tracer ErroringInfiniteTracer, count, max_buffer_size, &block
+          end
+
+          def emulate_streaming_with_ok_close_response count, max_buffer_size=100_000, &block
+            emulate_streaming_with_tracer OkCloseInfiniteTracer, count, max_buffer_size, &block
           end
 
           # This helper is used to setup and teardown streaming to the fake trace observer

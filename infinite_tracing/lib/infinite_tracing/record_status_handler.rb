@@ -28,6 +28,7 @@ module NewRelic::Agent
                 NewRelic::Agent.logger.debug "gRPC Infinite Tracer Observer saw #{messages_seen} messages"
               end
             end
+            @lock.synchronize { @client.handle_close }
           rescue => error
             @lock.synchronize { @client.handle_error error }
           end

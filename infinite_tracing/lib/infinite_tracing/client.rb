@@ -88,6 +88,12 @@ module NewRelic::Agent
         @suspended
       end
 
+      # This method is called when the server closes the record status stream without
+      # raising an error.
+      def handle_close
+        reset
+      end
+
       # Places the client into suspended state whereby client will no longer attempt to 
       # reconnect to the gRPC server nor will it attempt to send span events henceforth.
       # The Suspended Streaming Buffer will be installed in this state.
@@ -101,13 +107,18 @@ module NewRelic::Agent
         end
       end
 
-      def restart
+      def reset
         @lock.synchronize do
           Connection.reset
           old_buffer = @buffer
           @buffer = new_streaming_buffer
           old_buffer.transfer @buffer
         end
+      end
+
+
+      def restart
+        reset
         start_streaming
       end
 

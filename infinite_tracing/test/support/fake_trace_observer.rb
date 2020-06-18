@@ -34,6 +34,32 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       end
     end
 
+    class OkCloseInfiniteTracer < Com::Newrelic::Trace::V1::IngestService::Service
+      attr_reader :spans
+      attr_reader :seen
+
+      def initialize
+        @seen = 0
+        @spans = []
+        @active_calls = []
+        @lock = Mutex.new
+        @noticed = ConditionVariable.new
+      end
+
+      def notice_span span
+        @lock.synchronize do
+          @seen += 1
+          @spans << span
+          @noticed.signal
+        end
+      end
+
+      def record_span(record_spans)
+        notice_span record_span
+        [record_status]
+      end
+    end
+
     class ErroringInfiniteTracer < Com::Newrelic::Trace::V1::IngestService::Service
       attr_reader :spans
       attr_reader :seen
