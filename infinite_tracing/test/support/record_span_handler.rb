@@ -72,11 +72,15 @@ module NewRelic::Agent
           begin
             @record_spans.each do |span|
               @server.notice_span span
-              puts "---- span handler #{span}"
-              break
+              if seen >= @next_seen_hurdle
+                @next_seen_hurdle += HURDLE_INCREMENT
+                @record_status_stream.push(record_status)
+              end
             end
             @record_status_stream.push(record_status)
             @record_status_stream.push(nil)
+          rescue ::GRPC::Ok => e 
+            retry
           rescue StandardError => e
             puts "SERVER ERROR", e.inspect
             raise e

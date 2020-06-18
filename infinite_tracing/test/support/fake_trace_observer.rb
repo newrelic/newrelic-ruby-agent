@@ -51,6 +51,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           @seen += 1
           @spans << span
           @noticed.signal
+          raise GRPC::Ok
         end
       end
 
