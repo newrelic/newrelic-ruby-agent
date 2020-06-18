@@ -78,6 +78,21 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             refute_transaction_noticed_error txn, expected_error_class
           end
 
+          def test_noticed_error_only_at_segment_when_command_fails
+            expected_error_class = /Mongo\:\:Error/
+            txn = nil
+            in_transaction do |db_txn|
+              begin
+                txn = db_txn
+                @database.collection("bogus").drop
+              rescue Mongo::Error::OperationFailure => e
+                # NOP -- allowing ONLY span to notice error
+              end
+            end
+            assert_segment_noticed_error txn, /bogus\/drop/i, expected_error_class, /ns not found/i
+            refute_transaction_noticed_error txn, expected_error_class
+          end
+
           def test_records_metrics_for_insert_one
             in_transaction do
               @collection.insert_one(@tribbles.first)
