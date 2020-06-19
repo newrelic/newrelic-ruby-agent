@@ -31,8 +31,10 @@
       * Sidekiq job arguments: `job.sidekiq.args.*`
       * Messaging arguments: `message.*`
       * `httpResponseCode` (deprecated in this version; see note below)/`http.statusCode`
-      * `request.uri`
       * `response.status`
+      * `request.uri`
+      * `request.method`
+      * `host.displayName`
 
   * **Security Recommendation**
 
