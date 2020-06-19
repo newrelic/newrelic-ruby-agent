@@ -25,7 +25,7 @@ module NewRelic
           if reply = event.reply
             ERROR_KEYS.detect{ |key| reply[key] }
           end
-        rescue => error
+        rescue
           false
         end
 
@@ -35,7 +35,7 @@ module NewRelic
             segment = segments.delete(event.operation_id)
             return unless segment
 
-            # operations that succeed buy have errors return CommandSucceeded 
+            # operations that succeed but have errors return CommandSucceeded 
             # with an error_key that is populated with error specfics
             if error_key = error_key_present?(event)
               # taking the last error as there can potentially be many
