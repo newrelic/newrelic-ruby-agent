@@ -1,19 +1,35 @@
 # Versions <= 1.7.1 are not supported and never will be.
 # We have tests to assert unsupported versions of MongoDB, 
 # hence the reason they appear in this list
-MONGO_VERSIONS = [
-  '2.12.0',
-  '2.9.0',
-  '2.7.0',
-  '2.5.0',
-  '2.4.0',
-  '2.1.0',
-  '2.0.0',
-  '1.10.0',
-  ['1.9.2', 2.6],
-  ['1.8.6', 2.6],
-  '1.7.1'
-]
+# newer versions of mongo support 2.3+
+if RUBY_VERSION >= '2.3.0'
+  mongo_versions = [
+    '2.12.0',
+    '2.9.0',
+    '2.7.0',
+    '2.5.0',
+    '2.4.0',
+    '2.1.0',
+    '2.0.0',
+    '1.10.0',
+    ['1.9.2', 2.6],
+    ['1.8.6', 2.6],
+    '1.7.1'
+  ]
+else 
+  mongo_versions = [
+    '2.9.0',
+    '2.7.0',
+    '2.5.0',
+    '2.4.0',
+    '2.1.0',
+    '2.0.0',
+    '1.10.0',
+    ['1.9.2', 2.6],
+    ['1.8.6', 2.6],
+    '1.7.1'
+  ]
+end
 
 bson_ext_needed_before_version = Gem::Version::new("1.10.0")
 
@@ -21,7 +37,7 @@ def installed_mongo_server_version
   @mongo_server_version ||= `mongo --version`.scan(/version\sv([\d\.]+)/).join.to_f
 end
 
-MONGO_VERSIONS.each do |mongo_version|
+mongo_versions.each do |mongo_version|
   if mongo_version.is_a?(Array)
     last_supported_server_version = mongo_version[1]
     if installed_mongo_server_version > last_supported_server_version
