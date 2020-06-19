@@ -21,22 +21,33 @@ module NewRelic
 
         ERROR_KEYS = %w{ writeErrors writeConcernError writeConcernErrors }.freeze
 
-        def error_present?(event)
+        def error_key_present?(event)
           if reply = event.reply
             ERROR_KEYS.detect{ |key| reply[key] }
           end
+        rescue
+          false
         end
 
         def completed(event)
           begin
             return unless NewRelic::Agent::Tracer.tracing_enabled?
             segment = segments.delete(event.operation_id)
-            if segment && (error_key = error_present?(event))
+            return unless segment
+
+            # operations that succeed but have errors return CommandSucceeded 
+            # with an error_key that is populated with error specfics
+            if error_key = error_key_present?(event)
               # taking the last error as there can potentially be many
               attributes = event.reply[error_key][-1]
               segment.notice_error Mongo::Error.new("%s (%s)" % [attributes["errmsg"], attributes["code"]])
+
+            # failing commands return a CommandFailed event with an error message
+            # in the form of "% (%s)" for the message and code
+            elsif event.is_a? Mongo::Monitoring::Event::CommandFailed
+              segment.notice_error Mongo::Error.new(event.message)
             end
-            segment.finish if segment
+            segment.finish
           rescue Exception => e
             log_notification_error('completed', e)
           end
@@ -52,7 +63,7 @@ module NewRelic
           port_path_or_id = port_path_or_id_from_address event.address
           segment = NewRelic::Agent::Tracer.start_datastore_segment(
             product: MONGODB,
-            operation: event.command_name,
+            operation: operation(event.command_name),
             collection: collection(event),
             host: host,
             port_path_or_id: port_path_or_id,
@@ -60,6 +71,15 @@ module NewRelic
           )
           segment.notice_nosql_statement(generate_statement(event))
           segment
+        end
+
+        def operation(command_name)
+          # from 2.0 to 2.5, :findandmodify was the command_name
+          if command_name == :findandmodify
+            :findAndModify 
+          else
+            command_name
+          end
         end
 
         def collection(event)

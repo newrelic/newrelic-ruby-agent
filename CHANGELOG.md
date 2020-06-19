@@ -2,6 +2,22 @@
 
   ## v6.12.0
 
+  * **Added support for auto-instrumenting Mongo gem versions 2.6 to 2.12**
+  
+  * **Bugfix: MongoDB instrumentation did not handle CommandFailed events when noticing errors**
+
+    The mongo gem sometimes returns a CommandFailed object instead of a CommandSucceeded object with
+    error attributes populated.  The instrumentation did not handle noticing errors on CommandFailed
+    objects and resulted in logging an error and backtrace to the log file.
+
+    Additionally, a bug in recording the metric for "findAndModify" as all lowercased "findandmodify" 
+    for versions 2.1 through 2.5 was fixed.
+
+  * **Bugfix: Priority Sampler causes crash in high throughput environents in rare cases**
+
+    Previously, the priority sampling buffer would, in rare cases, generate an error in high-throughput
+    environments once capacity is reached and the sampling algorthym engages.  This issue is fixed.
+    
   * **Additional Transaction Information applied to Span Events**
 
     When Distributed Tracing and/or Infinite Tracing are enabled, the Agent will now incorporate additional information from the Transaction Event on to the root Span Event of the transaction.
@@ -14,7 +30,7 @@
       * Resque job arguments: `job.resque.args.*`
       * Sidekiq job arguments: `job.sidekiq.args.*`
       * Messaging arguments: `message.*`
-      * `httpResponseCode`
+      * `httpResponseCode` (deprecated in this version; see note below)/`http.statusCode`
       * `response.status`
       * `request.uri`
       * `request.method`
@@ -24,6 +40,11 @@
 
     Review your Transaction attributes [include](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#transaction_events-attributes-include) and [exclude](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#transaction_events-attributes-exclude) configurations.  Any attribute include or exclude settings specific to Transaction Events should be applied
     to your Span attributes [include](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#span-events-attributes-include) and [exclude](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#span-events-attributes-exclude) configuration or your global attributes [include](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#attributes-include) and [exclude](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#attributes-exclude) configuration.
+
+  * **Agent attribute deprecation: httpResponseCode**
+
+    Starting in this agent version, the [agent attribute](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/ruby-agent-attributes#attributes) `httpResponseCode` (string value) has been deprecated. Customers can begin using `http.statusCode`
+    (integer value) immediately, and `httpResponseCode` will be removed in the agent's next major version update.
 
   * **Bugfix: Eliminate warnings for distributed tracing when using sidekiq**
 
