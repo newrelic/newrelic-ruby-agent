@@ -2,6 +2,17 @@
 
   ## v6.12.0
 
+  * **Added support for auto-instrumenting Mongo gem versions 2.6 to 2.12**
+  
+  * **Bugfix: MongoDB instrumentation did not handle CommandFailed events when noticing errors**
+
+    The mongo gem sometimes returns a CommandFailed object instead of a CommandSucceeded object with
+    error attributes populated.  The instrumentation did not handle noticing errors on CommandFailed
+    objects and resulted in logging an error and backtrace to the log file.
+
+    Additionally, a bug in recording the metric for "findAndModify" as all lowercased "findandmodify" 
+    for versions 2.1 through 2.5 was fixed.
+
   * **Bugfix: Priority Sampler causes crash in high throughput environents in rare cases**
 
     Previously, the priority sampling buffer would, in rare cases, generate an error in high-throughput

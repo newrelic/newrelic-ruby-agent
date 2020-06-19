@@ -78,6 +78,21 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             refute_transaction_noticed_error txn, expected_error_class
           end
 
+          def test_noticed_error_only_at_segment_when_command_fails
+            expected_error_class = /Mongo\:\:Error/
+            txn = nil
+            in_transaction do |db_txn|
+              begin
+                txn = db_txn
+                @database.collection("bogus").drop
+              rescue Mongo::Error::OperationFailure => e
+                # NOP -- allowing ONLY span to notice error
+              end
+            end
+            assert_segment_noticed_error txn, /bogus\/drop/i, expected_error_class, /ns not found/i
+            refute_transaction_noticed_error txn, expected_error_class
+          end
+
           def test_records_metrics_for_insert_one
             in_transaction do
               @collection.insert_one(@tribbles.first)
@@ -192,7 +207,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               @collection.find_one_and_delete(@tribbles.first)
             end
 
-            metrics = build_test_metrics(:findandmodify, true)
+            metrics = build_test_metrics(:findAndModify, true)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
@@ -206,7 +221,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               @collection.find_one_and_replace(@tribbles[0], @tribbles[1])
             end
 
-            metrics = build_test_metrics(:findandmodify, true)
+            metrics = build_test_metrics(:findAndModify, true)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
@@ -220,7 +235,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               @collection.find_one_and_update(@tribbles[0], "$set" => @tribbles[1])
             end
 
-            metrics = build_test_metrics(:findandmodify, true)
+            metrics = build_test_metrics(:findAndModify, true)
             expected = metrics_with_attributes(metrics)
 
             assert_metrics_recorded(expected)
