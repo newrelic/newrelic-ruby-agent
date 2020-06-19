@@ -19,7 +19,7 @@
       * Resque job arguments: `job.resque.args.*`
       * Sidekiq job arguments: `job.sidekiq.args.*`
       * Messaging arguments: `message.*`
-      * `httpResponseCode`
+      * `httpResponseCode` (deprecated in this version; see note below)/`http.statusCode`
       * `request.uri`
       * `response.status`
 
@@ -27,6 +27,11 @@
 
     Review your Transaction attributes [include](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#transaction_events-attributes-include) and [exclude](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#transaction_events-attributes-exclude) configurations.  Any attribute include or exclude settings specific to Transaction Events should be applied
     to your Span attributes [include](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#span-events-attributes-include) and [exclude](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#span-events-attributes-exclude) configuration or your global attributes [include](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#attributes-include) and [exclude](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#attributes-exclude) configuration.
+
+  * **Agent attribute deprecation: httpResponseCode**
+
+    Starting in this agent version, the [agent attribute](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/ruby-agent-attributes#attributes) `httpResponseCode` (string value) has been deprecated. Customers can begin using `http.statusCode`
+    (integer value) immediately, and `httpResponseCode` will be removed in the agent's next major version update.
 
   * **Bugfix: Eliminate warnings for distributed tracing when using sidekiq**
 
