@@ -2,6 +2,11 @@
 
   ## v6.12.0
 
+  * **Bugfix: Priority Sampler causes crash in high throughput environents in rare cases**
+
+    Previously, the priority sampling buffer would, in rare cases, generate an error in high-throughput
+    environments once capacity is reached and the sampling algorthym engages.  This issue is fixed.
+    
   * **Additional Transaction Information applied to Span Events**
 
     When Distributed Tracing and/or Infinite Tracing are enabled, the Agent will now incorporate additional information from the Transaction Event on to the root Span Event of the transaction.
