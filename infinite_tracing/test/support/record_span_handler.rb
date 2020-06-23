@@ -65,30 +65,5 @@ module NewRelic::Agent
         end
       end
     end
-
-    class OkCloseSpanHandler < RecordSpanHandler
-      def start_handler
-        Worker.new "RecordSpanHandler" do
-          begin
-            @record_spans.each do |span|
-              @server.notice_span span
-              if seen >= @next_seen_hurdle
-                @next_seen_hurdle += HURDLE_INCREMENT
-                @record_status_stream.push(record_status)
-              end
-            end
-            @record_status_stream.push(record_status)
-            @record_status_stream.push(nil)
-          rescue ::GRPC::Ok => e 
-            retry
-          rescue StandardError => e
-            puts "SERVER ERROR", e.inspect
-            raise e
-          ensure
-            @lock.synchronize { @worker, @record_spans = nil }
-          end
-        end
-      end
-    end
   end
 end

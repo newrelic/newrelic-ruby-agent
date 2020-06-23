@@ -55,10 +55,13 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
         end
       end
 
+      def record_status
+        Com::Newrelic::Trace::V1::RecordStatus.new(messages_seen: seen)
+      end
+
       def record_span(record_spans)
-        span_handler = OkCloseSpanHandler.new(self, record_spans, @active_calls.size + 1)
-        @active_calls << span_handler
-        span_handler.enumerator
+        record_spans.each{ |span| notice_span span }
+        [record_status].enumerator
       end
     end
 

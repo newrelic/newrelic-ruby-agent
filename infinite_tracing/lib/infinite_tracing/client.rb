@@ -91,6 +91,10 @@ module NewRelic::Agent
       # This method is called when the server closes the record status stream without
       # raising an error.
       def handle_close
+        @closed_count ||= 0
+        puts "HANDLE CLOSE! #{@closed_count += 1}"
+        transfer_buffer
+        sleep(0.1)
         start_streaming
       end
 
@@ -107,18 +111,23 @@ module NewRelic::Agent
         end
       end
 
-      def reset
+      def reset_connection
         @lock.synchronize do
           Connection.reset
+        end
+      end
+
+      def transfer_buffer
+        @lock.synchronize do
           old_buffer = @buffer
           @buffer = new_streaming_buffer
           old_buffer.transfer @buffer
         end
       end
 
-
       def restart
-        reset
+        reset_connection
+        transfer_buffer
         start_streaming
       end
 
