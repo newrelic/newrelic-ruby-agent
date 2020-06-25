@@ -136,13 +136,11 @@ module NewRelic
           timeout_cap 5 do
             with_detailed_trace do 
               total_spans = 5
-              buffers = []
-
+              expects_logging(:debug, all_of(includes("closed the stream"), includes("OK response.")), anything)
+            
               spans, segments = emulate_streaming_with_ok_close_response(total_spans) do |client, segments, server|
-                buffers << client.buffer
                 server.wait_for_notice
               end
-              assert_equal 1, buffers.uniq.size, "buffers should not transfer!"
 
               assert_equal total_spans, segments.size
               assert_equal total_spans, spans.size, "spans got dropped/discarded?"

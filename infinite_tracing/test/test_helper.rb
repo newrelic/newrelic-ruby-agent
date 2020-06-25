@@ -32,6 +32,7 @@ agent_helper_path = File.join(agent_test_path, 'helpers')
 require File.join(agent_helper_path, 'file_searching.rb')
 require File.join(agent_helper_path, 'config_scanning.rb')
 require File.join(agent_helper_path, 'misc.rb')
+require File.join(agent_helper_path, 'logging.rb')
 require File.join(agent_helper_path, 'exceptions.rb')
 
 Dir[File.expand_path('../support/*', __FILE__)].each { |f| require f }
