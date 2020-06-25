@@ -89,12 +89,13 @@ module NewRelic::Agent
       end
 
       # This method is called when the server closes the record status stream without
-      # raising an error.
+      # raising an error.  The Channel/Connection is not closed or reset in this case.
+      # We simply start streaming again, which will reuse the channel/connection to the 
+      # server and re-establish the gRPC bi-directional stream.  Useful for the server
+      # to initiate a load-balancing scheme.
       def handle_close
-        @closed_count ||= 0
-        puts "HANDLE CLOSE! #{@closed_count += 1}"
-        transfer_buffer
-        sleep(0.1)
+        NewRelic::Agent.logger.debug "The gRPC Trace Observer closed the stream with OK response. " \
+          "Restarting the stream."
         start_streaming
       end
 

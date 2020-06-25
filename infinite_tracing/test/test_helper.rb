@@ -59,3 +59,37 @@ def with_serial_lock
   end
 end
 
+TRACE_POINT_ENABLED = false
+
+def trace 
+  @trace ||= TracePoint.new(:call, :b_call) do |tp|
+    next unless tp.defined_class.to_s =~ /InfiniteTracing/
+    next unless [
+      :record_spans, 
+      :record_span, 
+      :emulate_streaming_with_ok_close_response,
+      :handle_error,
+      :handle_close,
+      :notice_span,
+      :transfer_buffer,
+      :start,
+      :stop,
+      :rpc,
+      :start_streaming,
+      :notice_span,
+      :wait_for_notice,
+    ].include? tp.method_id
+    p [tp.lineno, tp.defined_class, tp.method_id, tp.event]
+  end
+end
+
+def with_detailed_trace
+  if TRACE_POINT_ENABLED
+    trace.enable { yield }
+  else
+    yield
+  end
+end
+
+
+

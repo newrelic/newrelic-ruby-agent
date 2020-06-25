@@ -61,14 +61,6 @@ module NewRelic::Agent
         NewRelic::Agent.increment_metric QUEUE_DUMPED_METRIC
       end
 
-      # # Waits for the queue to be fully consumed or for the
-      # # waiting consumers to release.
-      # def flush_queue
-      #   @queue.num_waiting.times { @queue.push nil }
-      #   close_queue
-      #   until @queue.empty? do sleep(FLUSH_DELAY) end
-      # end
-
       # Waits for the queue to be fully consumed or for the
       # waiting consumers to release.
       def flush_queue
