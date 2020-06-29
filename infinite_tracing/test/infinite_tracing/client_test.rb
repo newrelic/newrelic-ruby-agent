@@ -114,7 +114,7 @@ module NewRelic
             connection.stubs(:retry_connection_period).returns(0)
 
             total_spans = 5
-            spans, segments = emulate_streaming_segments total_spans do |client, segments|
+            emulate_streaming_segments total_spans do |client, segments|
               if segments.size == 3
                 client.handle_error GRPC::Unimplemented.new "suspend me!"
               end

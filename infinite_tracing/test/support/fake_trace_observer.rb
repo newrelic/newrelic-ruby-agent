@@ -7,26 +7,44 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
   module NewRelic::Agent::InfiniteTracing
 
-    class InfiniteTracer < Com::Newrelic::Trace::V1::IngestService::Service
+    class BaseInfiniteTracer < Com::Newrelic::Trace::V1::IngestService::Service
       attr_reader :spans
       attr_reader :seen
 
       def initialize
         @seen = 0
-        @spans = []
         @active_calls = []
         @lock = Mutex.new
         @noticed = ConditionVariable.new
       end
 
+      # Spans are tracked in the ServerContext object now so they can accumulate
+      # regardless of which Tracer is in play.
+      def set_server_context server_context
+        @server_context = server_context
+      end
+
       def notice_span span
         @lock.synchronize do
           @seen += 1
-          @spans << span
+          @server_context.spans << span if defined?(@server_context)
           @noticed.signal
         end
       end
 
+      def record_status
+        Com::Newrelic::Trace::V1::RecordStatus.new(messages_seen: seen)
+      end
+
+      def wait_for_notice
+        @lock.synchronize do
+          @noticed.wait(@lock) if !@noticed
+        end
+      end
+
+    end
+
+    class InfiniteTracer < BaseInfiniteTracer
       def record_span(record_spans)
         span_handler = RecordSpanHandler.new(self, record_spans, @active_calls.size + 1)
         @active_calls << span_handler
@@ -34,70 +52,34 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       end
     end
 
-    class ErroringInfiniteTracer < Com::Newrelic::Trace::V1::IngestService::Service
-      attr_reader :spans
-      attr_reader :seen
+    class OkCloseInfiniteTracer < BaseInfiniteTracer
+      def record_span(record_spans)
+        record_spans.each{ |span| notice_span span }
+        [record_status]
+      end
+    end
 
+    class ErroringInfiniteTracer < BaseInfiniteTracer
       def initialize
-        @seen = 0
-        @spans = []
-        @active_calls = []
-        @lock = Mutex.new
+        super
         @first_attempt = true
       end
 
-      def notice_span span
-        @lock.synchronize do
-          @seen += 1
-          @spans << span
-        end
-      end
-
       def record_span(record_spans)
-        span_handler = RecordSpanHandler.new(self, record_spans, @active_calls.size + 1)
         if @first_attempt
           msg = "You shall not pass!"
           error = GRPC::PermissionDenied.new(details = msg)
           @first_attempt = false
           raise error
         else
+          span_handler = RecordSpanHandler.new(self, record_spans, @active_calls.size + 1)
           @active_calls << span_handler
           span_handler.enumerator
         end
       end
     end
 
-    class UnimplementedInfiniteTracer < Com::Newrelic::Trace::V1::IngestService::Service
-      attr_reader :spans
-      attr_reader :seen
-
-      def initialize
-        @seen = 0
-        @spans = []
-        @active_calls = []
-        @lock = Mutex.new
-        @noticed = ConditionVariable.new
-        @waited = false
-      end
-
-      def notice_span span
-        @lock.synchronize do
-          @seen += 1
-          @spans << span
-          @noticed.signal
-        end
-      end
-
-      # TODO: this may not be useful
-      def wait_for_notice
-        return if @waited
-        @lock.synchronize do
-          @noticed.wait(@lock)
-          @waited = true
-        end
-        Thread.pass
-      end
-
+    class UnimplementedInfiniteTracer < BaseInfiniteTracer
       def record_span(record_spans)
         @lock.synchronize { @noticed.signal }
         msg = "I don't exist!"
@@ -112,6 +94,10 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
         @port_no = port_no
         @tracer_class = tracer_class
         start
+      end
+
+      def set_server_context server_context
+        @tracer.set_server_context server_context
       end
 
       def server_options

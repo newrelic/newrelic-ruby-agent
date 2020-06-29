@@ -132,6 +132,29 @@ module NewRelic
           end
         end
 
+        def test_handling_ok_and_close_server_response
+          timeout_cap 5 do
+            with_detailed_trace do 
+              total_spans = 5
+              expects_logging(:debug, all_of(includes("closed the stream"), includes("OK response.")), anything)
+            
+              spans, segments = emulate_streaming_with_ok_close_response(total_spans) do |client, segments, server|
+                server.wait_for_notice
+              end
+
+              assert_equal total_spans, segments.size
+              assert_equal total_spans, spans.size, "spans got dropped/discarded?"
+
+              refute_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+
+              assert_metrics_recorded({
+                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+                "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans},
+              })
+            end
+          end
+        end
+
         def test_reconnection_backoff
           with_serial_lock do
             connection = Connection.instance

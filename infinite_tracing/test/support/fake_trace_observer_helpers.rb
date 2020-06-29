@@ -69,10 +69,15 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           RUNNING_SERVER_CONTEXTS = {}
 
+          # ServerContext lets us centralize starting/stopping the Fake Trace Observer Server
+          # and track spans the server receives across multiple Tracers and Server restarts.  
+          # One ServerContext instance per unit test is expected and is in play for 
+          # the duration of the unit test.
           class ServerContext
             attr_reader :port
             attr_reader :tracer_class
             attr_reader :server
+            attr_reader :spans
 
             def initialize port, tracer_class
               @port = port
@@ -86,6 +91,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
               @lock.synchronize do
                 @flushed = false
                 @server = FakeTraceObserverServer.new port, tracer_class
+                @server.set_server_context self
                 @server.run
                 RUNNING_SERVER_CONTEXTS[self] = :running
               end
@@ -98,9 +104,8 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
               end
             end
 
-            def spans
-              raise "server not flushed!" unless @flushed
-              @spans
+            def wait_for_notice
+              @server.wait_for_notice
             end
 
             # We really shouldn't have to sleep, but this workaround gets us past
@@ -111,18 +116,17 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             # rather than fewer.  On the other hand, simply sleeping when there's more than
             # one Thread in a "run" state solves the issues altogether.
             def wait_for_agent_infinite_tracer_thread_to_close
-              timeout_cap(1.0) do
+              timeout_cap(3.0) do
                 while Thread.list.select{|t| t.status == "run"}.size > 1
-                  sleep(0.1)
+                  sleep(0.01)
                 end
-                sleep(0.1)
+                sleep(0.01)
               end
             end
 
             def flush count=0
               wait_for_agent_infinite_tracer_thread_to_close
               @lock.synchronize do
-                @spans += @server.spans
                 @flushed = true
               end
             end
@@ -196,6 +200,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           def emulate_streaming_with_tracer tracer_class, count, max_buffer_size, &block
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
+            NewRelic::Agent::InfiniteTracing::Client.any_instance.stubs(:handle_close).returns(nil) unless tracer_class == OkCloseInfiniteTracer
             client = nil
             server = nil
 
@@ -245,12 +250,17 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             emulate_streaming_with_tracer ErroringInfiniteTracer, count, max_buffer_size, &block
           end
 
+          def emulate_streaming_with_ok_close_response count, max_buffer_size=100_000, &block
+            emulate_streaming_with_tracer OkCloseInfiniteTracer, count, max_buffer_size, &block
+          end
+
           # This helper is used to setup and teardown streaming to the fake trace observer
           # A block that generates segments is expected and yielded to by this methd
           # The spans collected by the server are returned for further inspection
           def generate_and_stream_segments
+            NewRelic::Agent::InfiniteTracing::Client.any_instance.stubs(:handle_close).returns(nil) 
             unstub_reconnection
-            server = nil
+            server_context = nil
             with_config fake_server_config do
               # Suppresses intermittent fails from server not ready to accept streaming
               # (the retry loop goes _much_ faster)
@@ -259,21 +269,21 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
               simulate_connect_to_collector fake_server_config do |simulator|
                 # starts server and simulated agent connection
-                server = ServerContext.new FAKE_SERVER_PORT, InfiniteTracer
+                server_context = ServerContext.new FAKE_SERVER_PORT, InfiniteTracer
                 simulator.join
 
                 yield
 
                 # ensures all segments consumed
                 NewRelic::Agent.agent.infinite_tracer.flush
-                server.flush
-                server.stop
+                server_context.flush
+                server_context.stop
 
-                return server.spans
+                return server_context.spans
               ensure
                 Connection.instance.unstub(:retry_connection_period)
                 NewRelic::Agent.agent.infinite_tracer.stop
-                server.stop unless server.nil?
+                server_context.stop unless server_context.nil?
                 reset_infinite_tracer
                 nr_unfreeze_time
               end

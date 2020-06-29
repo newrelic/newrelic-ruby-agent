@@ -65,6 +65,5 @@ module NewRelic::Agent
         end
       end
     end
-
   end
 end
