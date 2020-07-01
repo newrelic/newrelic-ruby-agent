@@ -17,7 +17,7 @@ jobs:
       - name: Bundle
         run: bundle install
       - name: Run Snyk
-        uses: snyk/actions/gradle-jdk11@master
+        uses: snyk/actions/ruby@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
