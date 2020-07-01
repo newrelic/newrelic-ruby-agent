@@ -13,7 +13,7 @@ jobs:
       - name: Setup Ruby
         uses: actions/setup-ruby@v1
         with:
-          ruby-version: 2.6.x
+          ruby-version: 2.6
       - name: Bundle
         run: bundle install
       - name: Run Snyk
