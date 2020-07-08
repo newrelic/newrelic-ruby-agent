@@ -34,7 +34,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = [ "Rachel Klein", "Tanna McClure", "Michael Lang" ]
   s.date = Time.now.strftime('%Y-%m-%d')
-  s.licenses = ['New Relic']
+  s.licenses = ['Apache-2.0']
   s.description = <<-EOS
 The New Relic Ruby agent requires the gem newrelic_rpm, and it includes distributed
 tracing that uses head-based sampling (standard distributed tracing).
