@@ -423,7 +423,7 @@ module NewRelic::Agent
         http_response = nil
         with_config config do
           in_transaction :category => :controller do |txn|
-            segment = Tracer.start_external_request_segment(segment_params)
+            segment = Tracer.start_external_request_segment(**segment_params)
             segment.add_request_headers headers
             http_response = mock_http_response headers
             segment.process_response_headers http_response
