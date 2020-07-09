@@ -16,21 +16,45 @@ painless.
 You can invoke this via rake
 
     rake test:multiverse
+  
+The first time you run this command on a new Ruby installation, it will take quite a long time (up to 1 hour). This is because bundler must download and install each tested version of each 3rd-party dependency. After the first run through, almost all external gem dependencies will be cached, so things won't take as long.
 
-If you only want to run some test suites you can filter by their names
+## Running Specific Tests and Environments
 
-    rake test:multiverse[sinatra]
+Multiverse tests live in the test/multiverse directory and are organized into 'suites'. Generally speaking, a suite is a group of tests that share a common 3rd-party dependency (or set of dependencies). You can run a specific suite by providing a parameter (which gets loosely matched against suite names)
 
-You can run tests of multiverse itself with
+    rake test:multiverse[agent_only]
 
-    rake test:multiverse:self
+You can pass additional parameters to the test:multiverse rake task to control how tests are run:
 
-### Adding a test suite
+- name= only tests with names matching string will be executed
+- env= only the Nth environment will be executed (may be specified multiple times)
+- file= only tests in specified file will be executed
+- debug environments for each suite will be executed in serial rather than parallel (the default), and the pry gem will be automatically included, so that you can use it to help debug tests.
+
+```
+rake test:multiverse[agent_only,name=test_resets_event_report_period_on_reconnect,env=0,debug]
+```
+
+
+### Cleanup
+Occasionally, it may be necessary to clean up your environment when migration scripts change or Gemfile lock files get out of sync.  Similar to Rails' rake assets:clobber, multiverse has a clobber task that will drop all multiverse databases in MySQL and remove all Gemfile.* and Gemfile.*.lock files housed under test/multiverse/suites/**
+
+    rake test:multiverse:clobber
+
+
+
+
+
+
+
+
+## Adding a test suite
 
 To add tests add a directory to the `suites` directory.  This directory should
 contain at least two files.
 
-#### Envfile
+### Envfile
 
 The Envfile is a meta gem file.  It allows you to specify one or more gemset
 that the tests in this directory should be run against.  For example:
@@ -59,7 +83,7 @@ The default gemfile line is
 `ENV['NEWRELIC_GEM_PATH']` will override the `:path` option in the default line.
 
 
-#### Test files
+### Test files
 
 All files in a test suite directory that end with .rb will be executed as test
 files.  These should use test unit.
@@ -80,6 +104,6 @@ For example:
 
 ## Testing Multiverse
 
-Multiverse has a suite of tests in the `test` directory for testing the
-framework itself (sooo meta).  These help confirm that the system is working as
-expected.
+You can run tests of multiverse itself with
+
+    rake test:multiverse:self
