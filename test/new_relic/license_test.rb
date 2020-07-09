@@ -26,12 +26,14 @@ class LicenseTest < Minitest::Test
   # unless listed here the expectation is that these terms will not occur in
   # the source code.
   EXPECTED_LICENSE_OCCURRENCES = {
-    ['/LICENSE', '(c)'] => 1,
-    ['/LICENSE', 'Copyright'] => 1,
-    ['/LICENSE', 'rights reserved'] => 1,
-    ['/infinite_tracing/LICENSE', '(c)'] => 1,
-    ['/infinite_tracing/LICENSE', 'Copyright'] => 1,
-    ['/infinite_tracing/LICENSE', 'rights reserved'] => 1,
+    ['/LICENSE', '(c)'] => 2,
+    ['/LICENSE', 'Copyright'] => 12,
+    ['/LICENSE', 'Apache'] => 7,
+    ['/newrelic_rpm.gemspec', 'Apache'] => 1,
+    ['/infinite_tracing/LICENSE', '(c)'] => 2,
+    ['/infinite_tracing/LICENSE', 'Copyright'] => 12,
+    ['/infinite_tracing/LICENSE', 'Apache'] => 7,
+    ['/infinite_tracing/newrelic-infinite_tracing.gemspec', 'Apache'] => 1,
     ['/CHANGELOG.md', 'BSD'] => 2, # reference to BSD the operating system, not BSD the license
     ['/lib/new_relic/agent/system_info.rb', 'BSD'] => 4, # reference to BSD the operating system, not BSD the license
     ['/test/new_relic/agent/system_info_test.rb', 'BSD'] => 2 # reference to BSD the operating system, not BSD the license

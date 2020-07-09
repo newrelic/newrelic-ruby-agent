@@ -17,8 +17,8 @@ we can't assume the presence of any specific libraries, including `ActiveSupport
 
 ## Branches
 
-The head of master will generally have New Relic's latest release. However,
-New Relic reserves the ability to push an edge to the master. If you download a
+The head of `main` will generally have New Relic's latest release. However,
+New Relic reserves the ability to push an edge to the `main`. If you download a
 release from this repo, use the appropriate tag. New Relic usually pushes beta
 versions of a release to a working branch before tagging them for General
 Availability.
@@ -74,15 +74,22 @@ These tests can be run by invoking:
     bundle exec rake test:multiverse
 
 More details are available in
-[test/multiverse/README.md](https://github.com/newrelic/rpm/blob/master/test/multiverse/README.md).
+[test/multiverse/README.md](https://github.com/newrelic/rpm/blob/main/test/multiverse/README.md).
+
+### Contributor License Agreement
+
+Keep in mind that when you submit your Pull Request, you'll need to sign the CLA via the click-through using CLA-Assistant. If you'd like to execute our corporate CLA, or if you have any questions, please drop us an email at opensource@newrelic.com.
+
+For more information about CLAs, please check out Alex Russell’s excellent post,
+[“Why Do I Need to Sign This?”](https://infrequently.org/2008/06/why-do-i-need-to-sign-this/).
+
+### Slack
+
+We host a public Slack with a dedicated channel for contributors and maintainers of open source projects hosted by New Relic.  If you are contributing to this project, you're welcome to request access to the #oss-contributors channel in the newrelicusers.slack.com workspace.  To request access, see https://newrelicusers-signup.herokuapp.com/.
 
 ### And Finally...
 
-You are welcome to send pull requests to us - however, by doing so you agree
-that you are granting New Relic a non-exclusive, non-revokable, no-cost license
-to use the code, algorithms, patents, and ideas in that code in our products if
-we so choose. Fortunately, you also agree the code is provided as-is and you provide no
-warranties as to its fitness or correctness for any purpose.
+Please note, we only accept pull requests for versions of this project v6.12.0 or greater.
 
 If you have any feedback on how we can make contributing easier, please get in
 touch at [support.newrelic.com](http://support.newrelic.com) and let us know!
