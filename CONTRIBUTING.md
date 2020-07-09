@@ -76,18 +76,35 @@ These tests can be run by invoking:
 More details are available in
 [test/multiverse/README.md](https://github.com/newrelic/rpm/blob/main/test/multiverse/README.md).
 
-### Contributor License Agreement
+## Contributor License Agreement
 
-Keep in mind that when you submit your Pull Request, you'll need to sign the CLA via the click-through using CLA-Assistant. If you'd like to execute our corporate CLA, or if you have any questions, please drop us an email at opensource@newrelic.com.
+Keep in mind that when you submit your Pull Request, you'll need to sign the CLA
+via the click-through using CLA-Assistant. If you'd like to execute our
+corporate CLA, or if you have any questions, please drop us an email at
+opensource@newrelic.com.
 
 For more information about CLAs, please check out Alex Russell’s excellent post,
 [“Why Do I Need to Sign This?”](https://infrequently.org/2008/06/why-do-i-need-to-sign-this/).
 
-### Slack
+## Slack
 
-We host a public Slack with a dedicated channel for contributors and maintainers of open source projects hosted by New Relic.  If you are contributing to this project, you're welcome to request access to the #oss-contributors channel in the newrelicusers.slack.com workspace.  To request access, see https://newrelicusers-signup.herokuapp.com/.
+We host a public Slack with a dedicated channel for contributors and maintainers
+of open source projects hosted by New Relic.  If you are contributing to this
+project, you're welcome to request access to the #oss-contributors channel in
+the newrelicusers.slack.com workspace.  To request access, see
+https://newrelicusers-signup.herokuapp.com/.
 
-### And Finally...
+## Explorer's Hub
+
+New Relic hosts and moderates an online forum where customers can interact with
+New Relic employees as well as other customers to get help and share best
+practices. Like all official New Relic open source projects, there's a related
+Community topic in the New Relic Explorers Hub. You can find this project's
+topic/threads here:
+
+[Explorer's Hub](https://discuss.newrelic.com/c/support-products-agents/ruby-agent)
+
+## And Finally...
 
 Please note, we only accept pull requests for versions of this project v6.12.0 or greater.
 
