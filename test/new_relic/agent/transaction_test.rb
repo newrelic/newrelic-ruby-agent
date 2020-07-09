@@ -1647,7 +1647,7 @@ module NewRelic::Agent
     def test_generates_guid_when_running_out_of_file_descriptors
       # SecureRandom.hex raises an exception when the ruby interpreter
       # uses up all of its allotted file descriptors.
-      # See also: https://github.com/newrelic/rpm/issues/303
+      # See also: https://github.com/newrelic/newrelic-ruby-agent/issues/303
       file_descriptors = []
       begin
         # Errno::EMFILE is raised when the system runs out of file

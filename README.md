@@ -1,12 +1,13 @@
 # New Relic Ruby Agent
 
 New Relic is a performance management system, developed by
-New Relic, Inc (http://www.newrelic.com).  It provides you with deep
+New Relic, Inc (https://newrelic.com).  It provides you with deep
 information about the performance of your Rails or Ruby
 application as it runs in production and transmits them to
 newrelic.com where you can monitor them in real time. The New Relic
 Ruby Agent is dual-purposed as a either a Gem or a Rails plugin,
-hosted on [github](https://github.com/newrelic/rpm/tree/master).
+hosted on [github](https://github.com/newrelic/newrelic-ruby-agent/tree/main).
+
 
 ## Supported Environments
 
@@ -16,21 +17,24 @@ can be found on [our docs site](http://docs.newrelic.com/docs/ruby/supported-fra
 You can also monitor non-web applications. Refer to the "Other
 Environments" section under "Getting Started".
 
+
 ## Contributing Code
 
 We welcome code contributions (in the form of pull requests) from our user
 community.  Before submitting a pull request please review
 [these guidelines](https://github.com/newrelic/newrelic-ruby-agent/blob/main/CONTRIBUTING.md).
 
-Following these helps us efficiently review and incorporate your contribution
-and avoid breaking your code with future changes to the agent.
+Adhering to our contributing guide helps us efficiently review and incorporate your 
+contribution and avoid breaking your code with future changes to the agent.
 
 
 ## Getting Started
 
 Add the Ruby Agent to your project's Gemfile.
 
-    gem 'newrelic_rpm'
+```ruby
+gem 'newrelic_rpm'
+```
 
 To monitor your applications in production, create an account at
 http://newrelic.com/ .  There you can
@@ -40,7 +44,9 @@ Once you receive the welcome email with a license key and
 `newrelic.yml` file, you can copy the `newrelic.yml` file into your app config
 directory OR can generate the file manually with command:
 
-    newrelic install --license_key="YOUR_KEY" "My application"
+```bash
+newrelic install --license_key="YOUR_KEY" "My application"
+```
 
 The initial configuration is done in the `newrelic.yml` file.  This file
 is by default read from the `config` directory of the application root
@@ -57,13 +63,25 @@ For Bundler:
 
 Add the following line to your Gemfile:
 
-    gem 'newrelic_rpm'
+```ruby
+gem 'newrelic_rpm'
+```
+
+and run `bundle install` to activate the new gem.
 
 For Rails 2.x without Bundler:
 
-edit `environment.rb` and add to the initalizer block:
+Install the gem using this command line:
 
-    config.gem "newrelic_rpm"
+```bash
+gem install newrelic_rpm
+```
+
+Edit `environment.rb` and add to the initalizer block:
+
+```ruby
+config.gem "newrelic_rpm"
+```
 
 #### Sinatra Installation
 

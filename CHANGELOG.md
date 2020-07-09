@@ -2,6 +2,8 @@
 
   ## v6.12.0
 
+  * **Ruby agent license is now open source under Apache 2.0**
+
   * **Added support for auto-instrumenting Mongo gem versions 2.6 to 2.12**
   
   * **Bugfix: MongoDB instrumentation did not handle CommandFailed events when noticing errors**
@@ -23,7 +25,7 @@
     When Distributed Tracing and/or Infinite Tracing are enabled, the Agent will now incorporate additional information from the Transaction Event on to the root Span Event of the transaction.
 
     The following items are affected:
-      * Custom attribute values applied to the Transaction via our [add_custom_attributes](http://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent#add_custom_attributes-instance_method) API method.
+      * Custom attribute values applied to the Transaction via our [add_custom_attributes](http://www.rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent#add_custom_attributes-instance_method) API method.
       * Request parameters: `request.parameters.*`
       * Request headers: `request.headers.*`
       * Response headers: `response.headers.*`
@@ -224,7 +226,7 @@
     level custom attributes, more granular tagging of events is possible for
     easier isolation and review of trace events.  For more information:
 
-    * [`Agent#add_custom_span_attributes`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent#add_custom_span_attributes)
+    * [`Agent#add_custom_span_attributes`](https://www.rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent#add_custom_span_attributes)
 
   * **Enables ability to migrate to Configurable Security Policies (CSP) on a per agent
   basis for accounts already using High Security Mode (HSM).**
@@ -292,10 +294,10 @@
   * **Trace and Entity Metadata API**
 
     Several new API methods have been added to the agent:
-    * [`Agent#linking_metadata`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent#linking_metadata-instance_method)
-    * [`Tracer#trace_id`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent/Tracer#trace_id-class_method)
-    * [`Tracer#span_id`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent/Tracer#span_id-class_method)
-    * [`Tracer#sampled?`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent/Tracer#sampled?-class_method)
+    * [`Agent#linking_metadata`](https://www.rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent#linking_metadata-instance_method)
+    * [`Tracer#trace_id`](https://www.rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent/Tracer#trace_id-class_method)
+    * [`Tracer#span_id`](https://www.rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent/Tracer#span_id-class_method)
+    * [`Tracer#sampled?`](https://www.rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent/Tracer#sampled?-class_method)
 
     These API methods allow you to access information that can be used to link data of your choosing to a trace or entity.
 

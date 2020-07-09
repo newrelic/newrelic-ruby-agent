@@ -19,7 +19,7 @@ Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
 in production. The New Relic Ruby agent is dual-purposed as a either a
 Gem or plugin, hosted on
-https://github.com/newrelic/rpm/
+https://github.com/newrelic/newrelic-ruby-agent/
 EOS
   s.email = "support@newrelic.com"
   s.executables = [ "mongrel_rpm", "newrelic_cmd", "newrelic", "nrdebug" ]
