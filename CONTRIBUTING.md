@@ -74,7 +74,7 @@ These tests can be run by invoking:
     bundle exec rake test:multiverse
 
 More details are available in
-[test/multiverse/README.md](https://github.com/newrelic/rpm/blob/main/test/multiverse/README.md).
+[test/multiverse/README.md](https://github.com/newrelic/newrelic-ruby-agent/blob/main/test/multiverse/README.md).
 
 ### Contributor License Agreement
 

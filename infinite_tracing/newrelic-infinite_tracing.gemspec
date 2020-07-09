@@ -58,10 +58,11 @@ EOS
   ]
 
   s.metadata = {
-    'bug_tracker_uri'   => 'https://support.newrelic.com/',
+    'bug_tracker_uri'   => 'https://github.com/newrelic/newrelic-ruby-agent/issues',
     'changelog_uri'     => 'https://github.com/newrelic/newrelic-ruby-agent/blob/main/infinite_tracing/CHANGELOG.md',
     'documentation_uri' => 'https://docs.newrelic.com/docs/agents/ruby-agent',
-    'source_code_uri'   => 'https://github.com/newrelic/rpm'
+    'source_code_uri'   => 'https://github.com/newrelic/newrelic-ruby-agent',
+    "homepage_uri"      => "https://newrelic.com/products/edge-infinite-tracing",
   }
 
   file_list = `git ls-files . -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/(?!agent_helper.rb)}) }
