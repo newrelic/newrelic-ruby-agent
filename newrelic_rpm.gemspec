@@ -34,7 +34,7 @@ EOS
 
   s.metadata = {
     'bug_tracker_uri' => 'https://support.newrelic.com/',
-    'changelog_uri' => 'https://github.com/newrelic/rpm/blob/master/CHANGELOG.md',
+    'changelog_uri' => 'https://github.com/newrelic/newrelic-ruby-agent/blob/main/CHANGELOG.md',
     'documentation_uri' => 'https://docs.newrelic.com/docs/agents/ruby-agent',
     'source_code_uri' => 'https://github.com/newrelic/rpm'
   }

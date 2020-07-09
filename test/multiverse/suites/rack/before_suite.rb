@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 # this is a bit ugly, but Puma::Rack::Bundler isn't required by puma unless it's
 # running as a webserver. This terrible hack is to install our instrumentation
