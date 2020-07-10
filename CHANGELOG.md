@@ -4,10 +4,10 @@
 
   * **Bugfix: fixes an error capturing content length in middleware on multi-part responses**
 
-    The middleware tracing, the Content-Length header is sometimes returned as an array of 
+    In the middleware tracing, the `Content-Length` header is sometimes returned as an array of 
     values when content is a multi-part response.  Previously, the agent would fail with 
     "NoMethodError: undefined method `to_i` for Array" Error.  This bug is now fixed and 
-    multi-part content lengths are summed for a total when an Array is present.
+    multi-part content lengths are summed for a total when an `Array` is present.
     
   * **Added support for auto-instrumenting Mongo gem versions 2.6 to 2.12**
   
