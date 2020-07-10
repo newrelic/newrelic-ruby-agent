@@ -2,6 +2,14 @@
 
   ## v6.12.0
 
+  * **Security: Updated all uses of Rake to >= 12.3.3**
+
+    All versions of Rake testing prior to 12.3.3 were removed to address
+    [CVE-2020-8130](https://nvd.nist.gov/vuln/detail/CVE-2020-8130).
+    No functionality in the agent was removed nor deprecated with this change, and older versions
+    of rake are expected to continue to work as they have in the past.  However, versions of 
+    rake < 12.3.3 are no longer tested nor supported.
+
   * **Bugfix: fixes an error capturing content length in middleware on multi-part responses**
 
     In the middleware tracing, the `Content-Length` header is sometimes returned as an array of 

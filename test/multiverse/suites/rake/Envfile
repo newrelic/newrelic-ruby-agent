@@ -1,48 +1,37 @@
-gemfile <<-RB
-  gem 'rack'
-  gem 'rake', '~> 12.3.0'
-RB
+
+# NOTE:  Effective July, 2020, all the older versions of Rake prior to 12.3.3 are 
+#        eliminated from the test suite due to security vulnerability.  Because of 
+#        this and the fact that rake 12.3.3 supports Rubies going back to 2.0.0
+#        users are encouraged to upgrade their rake version to 12.3.3 rather than
+#        continue to rely on older versions of rake.  
+#
+# NOTE:  older versions of rake going back to 10.0.0 are presumed to continue to work
+#        as no code changes were made to deprecate.  However, do be aware that over 
+#        time these versions may cease to work if we change instrumentation around rake
+#        in the future.
+
+# These two are kept as comments to mark oldest supported and latest unsupported.
+# There are no plans to re-enable these going forward.
+# gemfile <<-RB
+#   gem 'rack'
+#   gem 'rake', '10.0.0' # Oldest supported version
+# RB
+
+# gemfile <<-RB
+#   gem 'rack'
+#   gem 'rake', '0.9.6' # Newest unsupported version
+# RB
 
 gemfile <<-RB
   gem 'rack'
-  gem 'rake', '~> 12.2.1'
-RB
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'rake', '~> 12.1.0'
-RB
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'rake', '~> 12.0.0'
-RB
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'rake', '~> 11.3.0'
-RB
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'rake', '~> 11.2.2'
-RB
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'rake', '~> 11.1.2'
-RB
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'rake', '~> 10.4'
+  gem 'rake', '~> 12.3.3'
 RB
 
 # No single Rails version works everywhere, so split it up
 if RUBY_VERSION < '2.4.0'
   gemfile <<-RB
     gem 'rack'
-    gem 'rake', '~> 10.4'
+    gem 'rake', '~> 12.3.3'
     gem 'rails', '~> 4.2.1'
     gem 'minitest', '5.2.3'
     gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
@@ -51,18 +40,7 @@ end
 
 gemfile <<-RB
   gem 'rack'
-  gem 'rake', '10.0.0' # Oldest supported version
-RB
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'rake', '0.9.6' # Newest unsupported version
-RB
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'rake', '~> 10.4'
+  gem 'rake', '~> 12.3.3'
   gem 'newrelic-rake', :require => false # Can't coexist with third-party instrumentation
 RB
 
-# vim: ft=ruby
