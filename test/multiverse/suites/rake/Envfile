@@ -24,6 +24,11 @@
 
 gemfile <<-RB
   gem 'rack'
+  gem 'rake', '~> 13.0.0'
+RB
+
+gemfile <<-RB
+  gem 'rack'
   gem 'rake', '~> 12.3.3'
 RB
 
