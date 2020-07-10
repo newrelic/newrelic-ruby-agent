@@ -11,16 +11,31 @@ module NewRelic
         ACTIVE_RECORD = 'ActiveRecord'.freeze
 
         module BaseExtensions
-          def save(*args, &blk)
-            ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
-              super
-            end
-          end
 
-          def save!(*args, &blk)
-            ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
-              super
+          if RUBY_VERSION < "2.7.0"
+            def save(*args, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+                super
+              end
             end
+            def save!(*args, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+                super
+              end
+            end
+
+          else
+            def save(*args, **kwargs, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+                super
+              end
+            end
+            def save!(*args, **kwargs, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+                super
+              end
+            end  
+
           end
         end
 
@@ -30,42 +45,85 @@ module NewRelic
           # Starting in v5.1.6, this call no longer happens. We'll
           # have to set the database metrics explicitly now.
           #
-          def touch(*args, &blk)
-            ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
-              super
+          if RUBY_VERSION < "2.7.0"
+            def touch(*args, **kwargs, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+                super
+              end
+            end
+          else
+            def touch(*args, **kwargs, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+                super
+              end
             end
           end
+
         end
 
         module RelationExtensions
-          def update_all(*args, &blk)
-            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-              super
+          if RUBY_VERSION < "2.7.0"
+            def update_all(*args, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                super
+              end
             end
-          end
+  
+            def delete_all(*args, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                super
+              end
+            end
+  
+            def destroy_all(*args, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                super
+              end
+            end
+  
+            def calculate(*args, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                super
+              end
+            end
+  
+            def pluck(*args, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                super
+              end
+            end
+            
+          else
+            def update_all(*args, **kwargs, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                super
+              end
+            end
+  
+            def delete_all(*args, **kwargs, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                super
+              end
+            end
+  
+            def destroy_all(*args, **kwargs, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                super
+              end
+            end
+  
+            def calculate(*args, **kwargs, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                super
+              end
+            end
+  
+            def pluck(*args, **kwargs, &blk)
+              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                super
+              end
+            end
 
-          def delete_all(*args, &blk)
-            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-              super
-            end
-          end
-
-          def destroy_all(*args, &blk)
-            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-              super
-            end
-          end
-
-          def calculate(*args, &blk)
-            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-              super
-            end
-          end
-
-          def pluck(*args, &blk)
-            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-              super
-            end
           end
         end
       end
