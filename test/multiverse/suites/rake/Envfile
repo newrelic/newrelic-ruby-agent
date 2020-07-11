@@ -22,6 +22,13 @@
 #   gem 'rake', '0.9.6' # Newest unsupported version
 # RB
 
+if RUBY_VERSION >= '2.2.0'
+  gemfile <<-RB
+    gem 'rack'
+    gem 'rake', '~> 13.0.0'
+  RB
+end
+
 gemfile <<-RB
   gem 'rack'
   gem 'rake', '~> 12.3.3'
