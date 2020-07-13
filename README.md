@@ -19,11 +19,13 @@ An up-to-date list of Ruby versions and frameworks for the latest agent
 can be found on [our docs site](http://docs.newrelic.com/docs/ruby/supported-frameworks).
 
 You can also monitor non-web applications. Refer to the "Other
-Environments" section under "Getting Started".
+Environments" section below.
 
 ## Installing and Using
 
 ### Quick Start
+
+#### With Bundler
 
 For using with Bundler, add the Ruby Agent to your project's Gemfile.
 
@@ -33,19 +35,23 @@ gem 'newrelic_rpm'
 
 and run `bundle install` to activate the new gem.
 
-With Bundler, install the gem with:
+#### Without Bundler
+
+If you are not using Bundler, install the gem with:
 
 ```bash
 gem install newrelic_rpm
 ```
 
-and then require the New Relic Ruby agent in your Ruby start-up chain:
+and then require the New Relic Ruby agent in your Ruby start-up sequence:
 
 ```ruby
 require 'newrelic_rpm'
 ```
 
-Some frameworks and non-framework environments may require you to also add the following line after the above require:
+#### Oher Environments
+
+Assuming you have installed the agent per above, you may also need to tell the Ruby agent to start for some frameworks and non-framework environments. To do so, add the following to your Ruby start-up sequence start the agent:
 
 ```ruby
 NewRelic::Agent.manual_start
