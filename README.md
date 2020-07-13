@@ -2,13 +2,14 @@
 
 # New Relic Ruby Agent
 
-New Relic is a performance management system, developed by
-New Relic, Inc (https://newrelic.com).  It provides you with deep
-information about the performance of your Rails or Ruby
-application as it runs in production and transmits them to
-newrelic.com where you can monitor them in real time. The New Relic
-Ruby Agent is dual-purposed as a either a Gem or a Rails plugin,
-hosted on [github](https://github.com/newrelic/newrelic-ruby-agent/tree/main).
+The New Relic Ruby agent monitors your applications to help you 
+[identify and solve performance issues](https://docs.newrelic.com/docs/agents/ruby-agent/getting-started/introduction-new-relic-ruby#monitor-performance). 
+You can also extend the agent's performance monitoring to 
+[collect and analyze business data](https://docs.newrelic.com/docs/agents/ruby-agent/getting-started/introduction-new-relic-ruby#business-data) 
+to help you improve the customer experience and make data-driven business decisions.
+
+The New Relic Ruby Agent is dual-purposed as a either a Gem or a Rails plugin,
+hosted on [github](https://github.com/newrelic/newrelic-ruby-agent).
 
 The New Relic Ruby agent is released approximately ten to twelve times a year.
 
@@ -98,7 +99,10 @@ If you have any questions, or to execute our corporate CLA, required if your con
 
 If you would like to contribute to this project, please review [these guidelines](./CONTRIBUTING.md).
 
+To [all contributors](https://github.com/newrelic/newrelic-ruby-agent/graphs/contributors), we thank you!  Without your contribution, this project would not be what it is today.
+
 ## License
+
 The New Relic Ruby agent is licensed under the [Apache 2.0](http://apache.org/licenses/LICENSE-2.0.txt) License.
 The New Relic Ruby agent also uses source code from third-party libraries. Full details on which libraries are used and the terms under which they are licensed can be found in the [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).
 
