@@ -72,7 +72,7 @@ For complete documentation on Getting started with the New Relic Ruby agent, see
 * [Background Jobs](https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs)
 * [Uninstall the Ruby agent](https://docs.newrelic.com/docs/agents/ruby-agent/installation/uninstall-ruby-agent)
 
-Refer to the [New Relic's Docs](http://newrelic.com/docs) for details on how to
+Refer to the extensive [New Relic Documentation](http://newrelic.com/docs) site for details on how to
 monitor other web frameworks, background jobs, and daemons.
 
 ### Production Mode
@@ -100,7 +100,7 @@ https://discuss.newrelic.com/c/support-products-agents/ruby-agent
 
 ## Contributing
 
-We encourage contributions to improve the New Relice Ruby agent! Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
+We encourage contributions to improve the New Relic Ruby agent! Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
 If you have any questions, or to execute our corporate CLA, required if your contribution is on behalf of a company,  please drop us an email at opensource@newrelic.com.
 
 If you would like to contribute to this project, please review [these guidelines](./CONTRIBUTING.md).
