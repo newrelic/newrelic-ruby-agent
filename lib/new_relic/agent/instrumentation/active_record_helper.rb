@@ -19,20 +19,38 @@ module NewRelic
         def instrument_save_methods
           ::ActiveRecord::Base.class_eval do
             alias_method :save_without_newrelic, :save
-
-            def save(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
-                save_without_newrelic(*args, &blk)
+            
+            if RUBY_VERSION < "2.7.0"
+              def save(*args, &blk)
+                ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+                  save_without_newrelic(*args, &blk)
+                end
               end
+            else
+              def save(*args, **kwargs, &blk)
+                ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+                  save_without_newrelic(*args, **kwargs, &blk)
+                end
+              end
+
             end
 
             alias_method :save_without_newrelic!, :save!
 
-            def save!(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
-                save_without_newrelic!(*args, &blk)
+            if RUBY_VERSION < "2.7.0"
+              def save!(*args, &blk)
+                ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+                  save_without_newrelic!(*args, &blk)
+                end
+              end
+            else
+              def save!(*args, **kwargs, &blk)
+                ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
+                  save_without_newrelic!(*args, **kwargs, &blk)
+                end
               end
             end
+
           end
         end
 
@@ -40,42 +58,82 @@ module NewRelic
           ::ActiveRecord::Relation.class_eval do
             alias_method :update_all_without_newrelic, :update_all
 
-            def update_all(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                update_all_without_newrelic(*args, &blk)
+            if RUBY_VERSION < "2.7.0"
+              def update_all(*args, &blk)
+                ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                  update_all_without_newrelic(*args, &blk)
+                end
+              end
+            else
+              def update_all(*args, **kwargs, &blk)
+                ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                  update_all_without_newrelic(*args, **kwargs, &blk)
+                end
               end
             end
-
+            
             alias_method :delete_all_without_newrelic, :delete_all
 
-            def delete_all(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                delete_all_without_newrelic(*args, &blk)
+            if RUBY_VERSION < "2.7.0"
+              def delete_all(*args, &blk)
+                ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                  delete_all_without_newrelic(*args, &blk)
+                end
+              end
+            else
+              def delete_all(*args, **kwargs, &blk)
+                ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                  delete_all_without_newrelic(*args, **kwargs, &blk)
+                end
               end
             end
 
             alias_method :destroy_all_without_newrelic, :destroy_all
 
-            def destroy_all(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                destroy_all_without_newrelic(*args, &blk)
+            if RUBY_VERSION < "2.7.0"
+              def destroy_all(*args, &blk)
+                ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                  destroy_all_without_newrelic(*args, &blk)
+                end
+              end
+            else
+              def destroy_all(*args, **kwargs, &blk)
+                ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                  destroy_all_without_newrelic(*args, **kwargs, &blk)
+                end
               end
             end
 
             alias_method :calculate_without_newrelic, :calculate
 
-            def calculate(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                calculate_without_newrelic(*args, &blk)
+            if RUBY_VERSION < "2.7.0"
+              def calculate(*args, &blk)
+                ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                  calculate_without_newrelic(*args, &blk)
+                end
+              end
+            else
+              def calculate(*args, **kwargs, &blk)
+                ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                  calculate_without_newrelic(*args, **kwargs, &blk)
+                end
               end
             end
 
             if method_defined?(:pluck)
               alias_method :pluck_without_newrelic, :pluck
 
-              def pluck(*args, &blk)
-                ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                  pluck_without_newrelic(*args, &blk)
+              if RUBY_VERSION < "2.7.0"
+                def pluck(*args, &blk)
+                  ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                    pluck_without_newrelic(*args, &blk)
+                  end
+                end
+              else
+                def pluck(*args, **kwargs, &blk)
+                  ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+                    pluck_without_newrelic(*args, **kwargs, &blk)
+                  end
                 end
               end
             end

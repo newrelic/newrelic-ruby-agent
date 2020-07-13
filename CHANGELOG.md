@@ -2,8 +2,21 @@
 
   ## v6.12.0
 
-  * **Ruby agent license is now open source under Apache 2.0**
+  * **Security: Updated all uses of Rake to >= 12.3.3**
 
+    All versions of Rake testing prior to 12.3.3 were removed to address
+    [CVE-2020-8130](https://nvd.nist.gov/vuln/detail/CVE-2020-8130).
+    No functionality in the agent was removed nor deprecated with this change, and older versions
+    of rake are expected to continue to work as they have in the past.  However, versions of 
+    rake < 12.3.3 are no longer tested nor supported.
+
+  * **Bugfix: fixes an error capturing content length in middleware on multi-part responses**
+
+    In the middleware tracing, the `Content-Length` header is sometimes returned as an array of 
+    values when content is a multi-part response.  Previously, the agent would fail with 
+    "NoMethodError: undefined method `to_i` for Array" Error.  This bug is now fixed and 
+    multi-part content lengths are summed for a total when an `Array` is present.
+    
   * **Added support for auto-instrumenting Mongo gem versions 2.6 to 2.12**
   
   * **Bugfix: MongoDB instrumentation did not handle CommandFailed events when noticing errors**

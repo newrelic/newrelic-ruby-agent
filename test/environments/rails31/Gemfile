@@ -3,7 +3,7 @@ source 'https://rubygems.org'
 gem 'rails', '~>3.1.12'
 gem 'i18n', '0.6.11'
 
-gem 'rake', '~>10.1.1'
+gem 'rake', '~> 12.3.3'
 gem 'minitest', '~>4.7.5'
 gem 'mocha', '~> 1.9.0', :require => false
 gem 'rack', '< 2.0.0'

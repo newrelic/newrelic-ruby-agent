@@ -29,6 +29,8 @@ class LicenseTest < Minitest::Test
     ['/LICENSE', '(c)'] => 2,
     ['/LICENSE', 'Copyright'] => 12,
     ['/LICENSE', 'Apache'] => 7,
+    ['/THIRD_PARTY_NOTICES.md', '(c)'] => 3,
+    ['/THIRD_PARTY_NOTICES.md', 'Copyright'] => 3,
     ['/newrelic_rpm.gemspec', 'Apache'] => 1,
     ['/infinite_tracing/LICENSE', '(c)'] => 2,
     ['/infinite_tracing/LICENSE', 'Copyright'] => 12,
