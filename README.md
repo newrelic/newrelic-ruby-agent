@@ -59,7 +59,7 @@ NewRelic::Agent.manual_start
 
 ### Complete Install Instructions
 
-For complete documentation on Getting started with the New Relic Ruby agent, see the following links:
+For complete documentation on installing the New Relic Ruby agent, see the following links:
 
 * [Introduction](https://docs.newrelic.com/docs/agents/ruby-agent/getting-started/introduction-new-relic-ruby)
 * [Install the New Relic Ruby agent](https://docs.newrelic.com/docs/agents/ruby-agent/installation/install-new-relic-ruby-agent)
@@ -71,19 +71,6 @@ For complete documentation on Getting started with the New Relic Ruby agent, see
 * [Ruby agent and Heroku](https://docs.newrelic.com/docs/agents/ruby-agent/installation/ruby-agent-heroku)
 * [Background Jobs](https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs)
 * [Uninstall the Ruby agent](https://docs.newrelic.com/docs/agents/ruby-agent/installation/uninstall-ruby-agent)
-
-Refer to the extensive [New Relic Documentation](http://newrelic.com/docs) site for details on how to
-monitor other web frameworks, background jobs, and daemons.
-
-### Production Mode
-
-When your application runs in the production environment, the New
-Relic agent runs in production mode. It connects to the New Relic
-service and sends deep performance data to the UI for your
-analysis. To view this data, log in to http://rpm.newrelic.com.
-
-NOTE: You must have a valid account and license key to view this data
-online.  Refer to instructions in *Getting Started*.
 
 ### Recording Deploys
 
