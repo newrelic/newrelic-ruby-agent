@@ -99,7 +99,8 @@ If you have any questions, or to execute our corporate CLA, required if your con
 
 If you would like to contribute to this project, please review [these guidelines](./CONTRIBUTING.md).
 
-To [all contributors](https://github.com/newrelic/newrelic-ruby-agent/graphs/contributors), we thank you!  Without your contribution, this project would not be what it is today.
+To [all contributors](https://github.com/newrelic/newrelic-ruby-agent/graphs/contributors), we thank you!  Without your contribution, this project would not be what it is today.  We also host a community project page dedicated to 
+the [New Relic Ruby agent](https://opensource.newrelic.com/projects/newrelic/newrelic-ruby-agent).
 
 ## License
 
