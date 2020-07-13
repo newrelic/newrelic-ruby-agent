@@ -26,13 +26,14 @@ class LicenseTest < Minitest::Test
   # unless listed here the expectation is that these terms will not occur in
   # the source code.
   EXPECTED_LICENSE_OCCURRENCES = {
-    ['/LICENSE', '(c)'] => 2,
+    ['/LICENSE', '(c)'] => 1,
     ['/LICENSE', 'Copyright'] => 12,
+    ['/README.md', 'Apache'] => 1,
     ['/LICENSE', 'Apache'] => 7,
     ['/THIRD_PARTY_NOTICES.md', '(c)'] => 3,
     ['/THIRD_PARTY_NOTICES.md', 'Copyright'] => 3,
     ['/newrelic_rpm.gemspec', 'Apache'] => 1,
-    ['/infinite_tracing/LICENSE', '(c)'] => 2,
+    ['/infinite_tracing/LICENSE', '(c)'] => 1,
     ['/infinite_tracing/LICENSE', 'Copyright'] => 12,
     ['/infinite_tracing/LICENSE', 'Apache'] => 7,
     ['/infinite_tracing/newrelic-infinite_tracing.gemspec', 'Apache'] => 1,
