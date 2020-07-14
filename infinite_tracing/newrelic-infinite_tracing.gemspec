@@ -47,7 +47,7 @@ New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
 in production. The New Relic Ruby Agent is dual-purposed as a either a
-Gem or plugin, hosted on https://github.com/newrelic/rpm/
+Gem or plugin, hosted on https://github.com/newrelic/newrelic-ruby-agent/
 EOS
 
   s.email = "support@newrelic.com"
@@ -58,16 +58,17 @@ EOS
   ]
 
   s.metadata = {
-    'bug_tracker_uri'   => 'https://support.newrelic.com/',
-    'changelog_uri'     => 'https://github.com/newrelic/rpm/blob/master/infinite_tracing/CHANGELOG.md',
+    'bug_tracker_uri'   => 'https://github.com/newrelic/newrelic-ruby-agent/issues',
+    'changelog_uri'     => 'https://github.com/newrelic/newrelic-ruby-agent/blob/main/infinite_tracing/CHANGELOG.md',
     'documentation_uri' => 'https://docs.newrelic.com/docs/agents/ruby-agent',
-    'source_code_uri'   => 'https://github.com/newrelic/rpm'
+    'source_code_uri'   => 'https://github.com/newrelic/newrelic-ruby-agent',
+    "homepage_uri"      => "https://newrelic.com/products/edge-infinite-tracing",
   }
 
   file_list = `git ls-files . -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/(?!agent_helper.rb)}) }
   s.files = file_list
 
-  s.homepage = "https://github.com/newrelic/rpm/tree/master/infinite_tracing"
+  s.homepage = "https://github.com/newrelic/newrelic-ruby-agent/tree/main/infinite_tracing"
   s.require_paths = ["lib", "infinite_tracing"]
   s.rubygems_version = Gem::VERSION
   s.summary = "New Relic Infinite Tracing for the Ruby agent"
