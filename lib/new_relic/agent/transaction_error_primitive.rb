@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 # This module was introduced and largely extracted from the transaction event aggregator
 # when the synthetics container was extracted from it. Its purpose is to create the data
@@ -9,7 +9,7 @@
 
 require 'new_relic/agent/payload_metric_mapping'
 require 'new_relic/agent/distributed_tracing/distributed_trace_payload'
-require 'new_relic/agent/distributed_tracing/distributed_trace_intrinsics'
+require 'new_relic/agent/distributed_tracing/distributed_trace_attributes'
 
 module NewRelic
   module Agent
@@ -61,7 +61,7 @@ module NewRelic
           attrs[PRIORITY_KEY] = payload[:priority]
           append_synthetics payload, attrs
           append_cat payload, attrs
-          DistributedTraceIntrinsics.copy_to_hash payload, attrs
+          DistributedTraceAttributes.copy_to_hash payload, attrs
           PayloadMetricMapping.append_mapped_metrics payload[:metrics], attrs
         end
 

@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'forwardable'
 
@@ -57,7 +57,8 @@ module NewRelic
     require 'new_relic/agent/deprecator'
     require 'new_relic/agent/logging'
     require 'new_relic/agent/distributed_tracing'
-    
+    require 'new_relic/agent/attribute_processing'
+
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 
     require 'new_relic/agent/samplers/cpu_sampler'
@@ -582,6 +583,14 @@ module NewRelic
       if params.is_a? Hash
         txn = Transaction.tl_current
         txn.add_custom_attributes(params) if txn
+
+        segment = ::NewRelic::Agent::Tracer.current_segment
+        if segment
+          # Make sure not to override existing segment-level custom attributes
+          segment_custom_keys = segment.attributes.custom_attributes.keys
+          segment_custom_keys.each { |k| params.delete k.to_sym }
+          segment.add_custom_attributes(params)
+        end
       else
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_attributes. Expected Hash but got #{params.class}")
       end
@@ -621,7 +630,7 @@ module NewRelic
     # cases where this is insufficient, this can be used to manually
     # control the name of the transaction.
     #
-    # The category of transaction can be specified via the +:category+ option. 
+    # The category of transaction can be specified via the +:category+ option.
     # The following are the only valid categories:
     #
     # * <tt>:category => :controller</tt> indicates that this is a

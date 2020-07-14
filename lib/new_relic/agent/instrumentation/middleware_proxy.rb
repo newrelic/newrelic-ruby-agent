@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/method_tracer'
 require 'new_relic/agent/transaction'
@@ -27,10 +27,18 @@ module NewRelic
             @middleware_class = middleware_class
           end
 
-          def new(*args, &blk)
-            middleware_instance = @middleware_class.new(*args, &blk)
-            MiddlewareProxy.wrap(middleware_instance)
+          if RUBY_VERSION < "2.7.0"
+            def new(*args, &blk)
+              middleware_instance = @middleware_class.new(*args, &blk)
+              MiddlewareProxy.wrap(middleware_instance)
+            end
+          else
+            def new(*args, **kwargs, &blk)
+              middleware_instance = @middleware_class.new(*args, **kwargs, &blk)
+              MiddlewareProxy.wrap(middleware_instance)
+            end
           end
+
         end
 
         def self.is_sinatra_app?(target)

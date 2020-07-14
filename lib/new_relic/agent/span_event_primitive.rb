@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
 # This module builds the data structures necessary to create a Span
@@ -41,6 +41,7 @@ module NewRelic
       ENTRY_POINT_KEY      = 'nr.entryPoint'
       TRUSTED_PARENT_KEY   = "trustedParentId"
       TRACING_VENDORS_KEY  = "tracingVendors"
+      TRANSACTION_NAME_KEY = 'transaction.name'
 
       # Strings for static values of the event structure
       EVENT_TYPE         = 'Span'
@@ -61,7 +62,7 @@ module NewRelic
         intrinsics = intrinsics_for(segment)
         intrinsics[CATEGORY_KEY] = GENERIC_CATEGORY
 
-        [intrinsics, custom_attributes(segment.attributes), error_attributes(segment) || NewRelic::EMPTY_HASH]
+        [intrinsics, custom_attributes(segment), agent_attributes(segment)]
       end
 
       def for_external_request_segment segment
@@ -79,7 +80,7 @@ module NewRelic
           agent_attributes[HTTP_URL_KEY] = truncate(segment.uri)
         end
 
-        [intrinsics, custom_attributes(segment.attributes), agent_attributes]
+        [intrinsics, custom_attributes(segment), agent_attributes]
       end
 
       def for_datastore_segment segment
@@ -107,7 +108,7 @@ module NewRelic
           agent_attributes[DB_STATEMENT_KEY] = truncate(segment.nosql_statement, 2000)
         end
 
-        [intrinsics, custom_attributes(segment.attributes), agent_attributes]
+        [intrinsics, custom_attributes(segment), agent_attributes]
       end
 
       private
@@ -146,13 +147,31 @@ module NewRelic
         if parent_id = parent_guid(segment)
           intrinsics[PARENT_ID_KEY] = parent_id
         end
+
+        if segment.transaction_name
+          intrinsics[TRANSACTION_NAME_KEY] = segment.transaction_name
+        end
+
         intrinsics
       end
 
-      def custom_attributes attributes
+      def custom_attributes segment
+        attributes = segment.attributes
         if attributes
           result = attributes.custom_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
           result.freeze
+        else
+          NewRelic::EMPTY_HASH
+        end
+      end
+
+      def agent_attributes segment
+        attributes = segment.attributes
+        agent_attributes = attributes.agent_attributes_for(NewRelic::Agent::AttributeFilter::DST_SPAN_EVENTS)
+        error_attributes = error_attributes(segment)
+        if agent_attributes || error_attributes
+          agent_attributes.merge!(error_attributes) if error_attributes
+          agent_attributes.freeze
         else
           NewRelic::EMPTY_HASH
         end

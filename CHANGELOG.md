@@ -1,5 +1,73 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.12.0
+
+  * **Security: Updated all uses of Rake to >= 12.3.3**
+
+    All versions of Rake testing prior to 12.3.3 were removed to address
+    [CVE-2020-8130](https://nvd.nist.gov/vuln/detail/CVE-2020-8130).
+    No functionality in the agent was removed nor deprecated with this change, and older versions
+    of rake are expected to continue to work as they have in the past.  However, versions of 
+    rake < 12.3.3 are no longer tested nor supported.
+
+  * **Bugfix: fixes an error capturing content length in middleware on multi-part responses**
+
+    In the middleware tracing, the `Content-Length` header is sometimes returned as an array of 
+    values when content is a multi-part response.  Previously, the agent would fail with 
+    "NoMethodError: undefined method `to_i` for Array" Error.  This bug is now fixed and 
+    multi-part content lengths are summed for a total when an `Array` is present.
+    
+  * **Added support for auto-instrumenting Mongo gem versions 2.6 to 2.12**
+  
+  * **Bugfix: MongoDB instrumentation did not handle CommandFailed events when noticing errors**
+
+    The mongo gem sometimes returns a CommandFailed object instead of a CommandSucceeded object with
+    error attributes populated.  The instrumentation did not handle noticing errors on CommandFailed
+    objects and resulted in logging an error and backtrace to the log file.
+
+    Additionally, a bug in recording the metric for "findAndModify" as all lowercased "findandmodify" 
+    for versions 2.1 through 2.5 was fixed.
+
+  * **Bugfix: Priority Sampler causes crash in high throughput environents in rare cases**
+
+    Previously, the priority sampling buffer would, in rare cases, generate an error in high-throughput
+    environments once capacity is reached and the sampling algorthym engages.  This issue is fixed.
+    
+  * **Additional Transaction Information applied to Span Events**
+
+    When Distributed Tracing and/or Infinite Tracing are enabled, the Agent will now incorporate additional information from the Transaction Event on to the root Span Event of the transaction.
+
+    The following items are affected:
+      * Custom attribute values applied to the Transaction via our [add_custom_attributes](http://www.rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent#add_custom_attributes-instance_method) API method.
+      * Request parameters: `request.parameters.*`
+      * Request headers: `request.headers.*`
+      * Response headers: `response.headers.*`
+      * Resque job arguments: `job.resque.args.*`
+      * Sidekiq job arguments: `job.sidekiq.args.*`
+      * Messaging arguments: `message.*`
+      * `httpResponseCode` (deprecated in this version; see note below)/`http.statusCode`
+      * `response.status`
+      * `request.uri`
+      * `request.method`
+      * `host.displayName`
+
+  * **Security Recommendation**
+
+    Review your Transaction attributes [include](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#transaction_events-attributes-include) and [exclude](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#transaction_events-attributes-exclude) configurations.  Any attribute include or exclude settings specific to Transaction Events should be applied
+    to your Span attributes [include](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#span-events-attributes-include) and [exclude](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#span-events-attributes-exclude) configuration or your global attributes [include](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#attributes-include) and [exclude](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby#attributes-exclude) configuration.
+
+  * **Agent attribute deprecation: httpResponseCode**
+
+    Starting in this agent version, the [agent attribute](https://docs.newrelic.com/docs/agents/ruby-agent/attributes/ruby-agent-attributes#attributes) `httpResponseCode` (string value) has been deprecated. Customers can begin using `http.statusCode`
+    (integer value) immediately, and `httpResponseCode` will be removed in the agent's next major version update.
+
+  * **Bugfix: Eliminate warnings for distributed tracing when using sidekiq**
+
+    Previously, using sidekiq with distributed tracing disabled resulted in warning messages\
+    `WARN : Not configured to accept distributed trace headers`\
+    ` WARN : Not configured to insert distributed trace headers`\
+    These messages no longer appear.
+
   ## v6.11.0
 
   * **Infinite Tracing**
@@ -171,7 +239,7 @@
     level custom attributes, more granular tagging of events is possible for
     easier isolation and review of trace events.  For more information:
 
-    * [`Agent#add_custom_span_attributes`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent#add_custom_span_attributes)
+    * [`Agent#add_custom_span_attributes`](https://www.rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent#add_custom_span_attributes)
 
   * **Enables ability to migrate to Configurable Security Policies (CSP) on a per agent
   basis for accounts already using High Security Mode (HSM).**
@@ -239,10 +307,10 @@
   * **Trace and Entity Metadata API**
 
     Several new API methods have been added to the agent:
-    * [`Agent#linking_metadata`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent#linking_metadata-instance_method)
-    * [`Tracer#trace_id`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent/Tracer#trace_id-class_method)
-    * [`Tracer#span_id`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent/Tracer#span_id-class_method)
-    * [`Tracer#sampled?`](https://www.rubydoc.info/github/newrelic/rpm/NewRelic/Agent/Tracer#sampled?-class_method)
+    * [`Agent#linking_metadata`](https://www.rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent#linking_metadata-instance_method)
+    * [`Tracer#trace_id`](https://www.rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent/Tracer#trace_id-class_method)
+    * [`Tracer#span_id`](https://www.rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent/Tracer#span_id-class_method)
+    * [`Tracer#sampled?`](https://www.rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent/Tracer#sampled?-class_method)
 
     These API methods allow you to access information that can be used to link data of your choosing to a trace or entity.
 

@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/instrumentation/active_record_prepend'
 
@@ -43,46 +43,91 @@ module NewRelic
           end
         end
 
-        def log_with_newrelic_instrumentation(*args, &block)
-          state = NewRelic::Agent::Tracer.state
-
-          if !state.is_execution_traced?
-            return log_without_newrelic_instrumentation(*args, &block)
-          end
-
-          sql, name, _ = args
-
-          product, operation, collection = ActiveRecordHelper.product_operation_collection_for(
-            NewRelic::Helper.correctly_encoded(name),
-            NewRelic::Helper.correctly_encoded(sql),
-            @config && @config[:adapter])
-
-          host = nil
-          port_path_or_id = nil
-          database = nil
-
-          if ActiveRecordHelper::InstanceIdentification.supported_adapter?(@config)
-            host = ActiveRecordHelper::InstanceIdentification.host(@config)
-            port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(@config)
-            database = @config && @config[:database]
-          end
-
-          segment = NewRelic::Agent::Tracer.start_datastore_segment(
-            product: product,
-            operation: operation,
-            collection: collection,
-            host: host,
-            port_path_or_id: port_path_or_id,
-            database_name: database
-          )
-          segment._notice_sql(sql, @config, EXPLAINER)
-
-          begin
-            NewRelic::Agent::Tracer.capture_segment_error segment do
-              log_without_newrelic_instrumentation(*args, &block)
+        if RUBY_VERSION < "2.7.0"
+          def log_with_newrelic_instrumentation(*args, &block)
+            state = NewRelic::Agent::Tracer.state
+  
+            if !state.is_execution_traced?
+              return log_without_newrelic_instrumentation(*args, &block)
             end
-          ensure
-            segment.finish if segment
+  
+            sql, name, _ = args
+  
+            product, operation, collection = ActiveRecordHelper.product_operation_collection_for(
+              NewRelic::Helper.correctly_encoded(name),
+              NewRelic::Helper.correctly_encoded(sql),
+              @config && @config[:adapter])
+  
+            host = nil
+            port_path_or_id = nil
+            database = nil
+  
+            if ActiveRecordHelper::InstanceIdentification.supported_adapter?(@config)
+              host = ActiveRecordHelper::InstanceIdentification.host(@config)
+              port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(@config)
+              database = @config && @config[:database]
+            end
+  
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
+              product: product,
+              operation: operation,
+              collection: collection,
+              host: host,
+              port_path_or_id: port_path_or_id,
+              database_name: database
+            )
+            segment._notice_sql(sql, @config, EXPLAINER)
+  
+            begin
+              NewRelic::Agent::Tracer.capture_segment_error segment do
+                log_without_newrelic_instrumentation(*args, &block)
+              end
+            ensure
+              segment.finish if segment
+            end
+          end
+        else 
+          def log_with_newrelic_instrumentation(*args, **kwargs, &block)
+            state = NewRelic::Agent::Tracer.state
+  
+            if !state.is_execution_traced?
+              return log_without_newrelic_instrumentation(*args, **kwargs, &block)
+            end
+  
+            sql, name, _ = args
+  
+            product, operation, collection = ActiveRecordHelper.product_operation_collection_for(
+              NewRelic::Helper.correctly_encoded(name),
+              NewRelic::Helper.correctly_encoded(sql),
+              @config && @config[:adapter])
+  
+            host = nil
+            port_path_or_id = nil
+            database = nil
+  
+            if ActiveRecordHelper::InstanceIdentification.supported_adapter?(@config)
+              host = ActiveRecordHelper::InstanceIdentification.host(@config)
+              port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(@config)
+              database = @config && @config[:database]
+            end
+  
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
+              product: product,
+              operation: operation,
+              collection: collection,
+              host: host,
+              port_path_or_id: port_path_or_id,
+              database_name: database
+            )
+            segment._notice_sql(sql, @config, EXPLAINER)
+  
+            begin
+              NewRelic::Agent::Tracer.capture_segment_error segment do
+                log_without_newrelic_instrumentation(*args, **kwargs, &block)
+              end
+            ensure
+              segment.finish if segment
+            end
           end
         end
       end

@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
@@ -30,6 +30,15 @@ module NewRelic
           with_segment do |segment|
             segment.notice_error RuntimeError.new "notice me!"
             assert segment.noticed_error, "Expected an error to be noticed"
+          end
+        end
+
+        def test_segment_keeps_most_recent_error
+          with_segment do |segment|
+            segment.notice_error RuntimeError.new "notice me!"
+            segment.notice_error RuntimeError.new "no, notice me!"
+            assert segment.noticed_error, "Expected an error to be noticed"
+            assert_equal "no, notice me!", segment.noticed_error.message
           end
         end
 
@@ -186,6 +195,20 @@ module NewRelic
             refute segment_b.concurrent_children?
             refute segment_c.concurrent_children?
           end
+        end
+
+        def test_root_segment_gets_transaction_name_attribute
+          root_segment = nil
+          transaction = nil
+
+          with_segment do |segment, txn|
+            root_segment = segment
+            transaction = txn
+          end
+
+          # Once transaction finishes, root segment should have transaction_name that matches transaction name
+          assert root_segment.transaction_name, "Expected root segment to have a transaction_name"
+          assert_equal transaction.best_name, root_segment.transaction_name
         end
       end
     end

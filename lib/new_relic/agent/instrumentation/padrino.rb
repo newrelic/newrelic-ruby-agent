@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/instrumentation/sinatra'
 
@@ -43,25 +43,49 @@ module NewRelic
   module Agent
     module Instrumentation
       module Padrino
-        def invoke_route_with_newrelic(*args, &block)
-          begin
-            env["newrelic.last_route"] = args[0].original_path
-          rescue => e
-            ::NewRelic::Agent.logger.debug("Failed determining last route in Padrino", e)
-          end
 
-          begin
-            txn_name = ::NewRelic::Agent::Instrumentation::Sinatra::TransactionNamer.transaction_name_for_route(env, request)
-            unless txn_name.nil?
-              ::NewRelic::Agent::Transaction.set_default_transaction_name(
-                "#{self.class.name}/#{txn_name}", :sinatra)
+        if RUBY_VERSION < "2.7.0"
+          def invoke_route_with_newrelic(*args, &block)
+            begin
+              env["newrelic.last_route"] = args[0].original_path
+            rescue => e
+              ::NewRelic::Agent.logger.debug("Failed determining last route in Padrino", e)
             end
-          rescue => e
-            ::NewRelic::Agent.logger.debug("Failed during invoke_route to set transaction name", e)
+  
+            begin
+              txn_name = ::NewRelic::Agent::Instrumentation::Sinatra::TransactionNamer.transaction_name_for_route(env, request)
+              unless txn_name.nil?
+                ::NewRelic::Agent::Transaction.set_default_transaction_name(
+                  "#{self.class.name}/#{txn_name}", :sinatra)
+              end
+            rescue => e
+              ::NewRelic::Agent.logger.debug("Failed during invoke_route to set transaction name", e)
+            end
+  
+            invoke_route_without_newrelic(*args, &block)
           end
-
-          invoke_route_without_newrelic(*args, &block)
+        else
+          def invoke_route_with_newrelic(*args, **kwargs, &block)
+            begin
+              env["newrelic.last_route"] = args[0].original_path
+            rescue => e
+              ::NewRelic::Agent.logger.debug("Failed determining last route in Padrino", e)
+            end
+  
+            begin
+              txn_name = ::NewRelic::Agent::Instrumentation::Sinatra::TransactionNamer.transaction_name_for_route(env, request)
+              unless txn_name.nil?
+                ::NewRelic::Agent::Transaction.set_default_transaction_name(
+                  "#{self.class.name}/#{txn_name}", :sinatra)
+              end
+            rescue => e
+              ::NewRelic::Agent.logger.debug("Failed during invoke_route to set transaction name", e)
+            end
+  
+            invoke_route_without_newrelic(*args, **kwargs, &block)
+          end
         end
+
       end
     end
   end

@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
 # The Client class manages the streaming buffer with respect to the gRPC Connection.
@@ -88,6 +88,17 @@ module NewRelic::Agent
         @suspended
       end
 
+      # This method is called when the server closes the record status stream without
+      # raising an error.  The Channel/Connection is not closed or reset in this case.
+      # We simply start streaming again, which will reuse the channel/connection to the 
+      # server and re-establish the gRPC bi-directional stream.  Useful for the server
+      # to initiate a load-balancing scheme.
+      def handle_close
+        NewRelic::Agent.logger.debug "The gRPC Trace Observer closed the stream with OK response. " \
+          "Restarting the stream."
+        start_streaming
+      end
+
       # Places the client into suspended state whereby client will no longer attempt to 
       # reconnect to the gRPC server nor will it attempt to send span events henceforth.
       # The Suspended Streaming Buffer will be installed in this state.
@@ -101,13 +112,23 @@ module NewRelic::Agent
         end
       end
 
-      def restart
+      def reset_connection
         @lock.synchronize do
           Connection.reset
+        end
+      end
+
+      def transfer_buffer
+        @lock.synchronize do
           old_buffer = @buffer
           @buffer = new_streaming_buffer
           old_buffer.transfer @buffer
         end
+      end
+
+      def restart
+        reset_connection
+        transfer_buffer
         start_streaming
       end
 

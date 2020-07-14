@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
 module NewRelic::Agent
@@ -28,8 +28,10 @@ module NewRelic::Agent
                 NewRelic::Agent.logger.debug "gRPC Infinite Tracer Observer saw #{messages_seen} messages"
               end
             end
+            NewRelic::Agent.logger.debug "gRPC Infinite Tracer Observer closed the stream"
+            @client.handle_close
           rescue => error
-            @lock.synchronize { @client.handle_error error }
+            @client.handle_error error
           end
         end
       rescue => error

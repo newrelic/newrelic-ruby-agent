@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'fake_server'
 
@@ -171,7 +171,7 @@ class HighSecurityTest < Minitest::Test
 
     run_harvest
 
-    expected = { "httpResponseCode" => "200" }
+    expected = { "httpResponseCode" => "200", "http.statusCode" => 200 }
     assert_equal expected, single_transaction_trace_posted.agent_attributes
   end
 
@@ -185,7 +185,7 @@ class HighSecurityTest < Minitest::Test
 
     run_harvest
 
-    expected = { "httpResponseCode" => "500" }
+    expected = { "httpResponseCode" => "500", "http.statusCode" => 500 }
     assert_equal expected, single_error_posted.agent_attributes
   end
 

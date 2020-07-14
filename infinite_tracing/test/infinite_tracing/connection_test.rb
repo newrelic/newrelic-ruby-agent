@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
 require File.expand_path('../../test_helper', __FILE__)
@@ -127,6 +127,29 @@ module NewRelic
               assert_metrics_recorded({
                 "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
                 "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED" => {:call_count => 1}
+              })
+            end
+          end
+        end
+
+        def test_handling_ok_and_close_server_response
+          timeout_cap 5 do
+            with_detailed_trace do 
+              total_spans = 5
+              expects_logging(:debug, all_of(includes("closed the stream"), includes("OK response.")), anything)
+            
+              spans, segments = emulate_streaming_with_ok_close_response(total_spans) do |client, segments, server|
+                server.wait_for_notice
+              end
+
+              assert_equal total_spans, segments.size
+              assert_equal total_spans, spans.size, "spans got dropped/discarded?"
+
+              refute_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+
+              assert_metrics_recorded({
+                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+                "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans},
               })
             end
           end

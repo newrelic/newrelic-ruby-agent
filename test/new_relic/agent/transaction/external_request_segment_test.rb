@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
@@ -423,7 +423,7 @@ module NewRelic::Agent
         http_response = nil
         with_config config do
           in_transaction :category => :controller do |txn|
-            segment = Tracer.start_external_request_segment(segment_params)
+            segment = Tracer.start_external_request_segment(**segment_params)
             segment.add_request_headers headers
             http_response = mock_http_response headers
             segment.process_response_headers http_response

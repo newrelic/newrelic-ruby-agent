@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/attribute_processing'
 
@@ -10,6 +10,8 @@ module NewRelic
       KEY_LIMIT   = 255
       VALUE_LIMIT = 255
       COUNT_LIMIT = 64
+
+      attr_reader :custom_attributes
 
       def initialize(filter)
         @filter = filter

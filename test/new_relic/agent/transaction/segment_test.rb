@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
 
@@ -74,7 +74,10 @@ module NewRelic
         def test_ignores_error_attributes_when_in_high_security
           with_config(:high_security => true) do
             segment, _error = capture_segment_with_error
-            assert_empty attributes_for(segment, :agent)
+            agent_attributes = attributes_for(segment, :agent)
+
+            # No error attributes
+            assert_equal({"parent.transportType"=>"Unknown"}, agent_attributes)
           end
         end
 
@@ -256,7 +259,7 @@ module NewRelic
         def test_generates_guid_when_running_out_of_file_descriptors
           # SecureRandom.hex raises an exception when the ruby interpreter
           # uses up all of its allotted file descriptors.
-          # See also: https://github.com/newrelic/rpm/issues/303
+          # See also: https://github.com/newrelic/newrelic-ruby-agent/issues/303
           file_descriptors = []
           begin
             # Errno::EMFILE is raised when the system runs out of file
@@ -274,9 +277,70 @@ module NewRelic
           end
         end
 
-        private 
+        def test_adding_agent_attributes
+          in_transaction do |txn|
+            txn.add_agent_attribute(:foo, "bar", AttributeFilter::DST_ALL)
+            segment = NewRelic::Agent::Tracer.current_segment
+            actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+            assert_equal({:foo => "bar"}, actual)
+          end
+        end
 
-        # Similar to capture_segment_with_error, but we're capturing 
+        def test_request_attributes_in_agent_attributes
+          request_attributes = {
+            :referer => "/referered",
+            :path => "/",
+            :content_length => 0,
+            :content_type => "application/json",
+            :host => "foo.foo",
+            :user_agent => "Use This!",
+            :request_method => "GET"
+          }
+          request = stub("request", request_attributes)
+          txn = in_transaction(:request => request) do
+          end
+
+          segment = txn.segments[0]
+          actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+
+          assert_equal "/referered", actual[:'request.headers.referer']
+          assert_equal "/", actual[:'request.uri']
+          assert_equal 0, actual[:'request.headers.contentLength']
+          assert_equal "application/json", actual[:"request.headers.contentType"]
+          assert_equal "foo.foo", actual[:'request.headers.host']
+          assert_equal "Use This!", actual[:'request.headers.userAgent']
+          assert_equal "GET", actual[:'request.method']
+        end
+
+
+        def test_transaction_response_attributes_included_in_agent_attributes
+          txn = in_transaction do |t|
+            t.http_response_code = 418
+            t.response_content_length = 100
+            t.response_content_type = 'application/json'
+          end
+
+          segment = txn.segments[0]
+          actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+          assert_equal "418", actual[:"httpResponseCode"]
+          assert_equal 100, actual[:"response.headers.contentLength"]
+          assert_equal "application/json", actual[:"response.headers.contentType"]
+        end
+
+        def test_referer_in_agent_attributes
+          segment = nil
+          request = stub('request', :referer => "/referered", :path => "/")
+          txn = in_transaction(:request => request) do
+          end
+
+          segment = txn.segments[0]
+          actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
+          assert_equal "/referered", actual[:'request.headers.referer']
+        end
+
+        private
+
+        # Similar to capture_segment_with_error, but we're capturing
         # a child/nested segment within which we raise an error
         def capture_nested_segment_with_error
           begin
@@ -286,7 +350,7 @@ module NewRelic
               parent_segment = segment
               segment_with_error = Tracer.start_segment(name: "nested_test", parent: segment)
               raise "oops!"
-            end            
+            end
           rescue Exception => exception
             segment_with_error.finish
             assert segment_with_error, "expected to have a segment_with_error"

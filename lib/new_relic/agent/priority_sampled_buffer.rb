@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/heap'
 require 'new_relic/agent/event_buffer'
@@ -18,19 +18,22 @@ module NewRelic
         @seen_lifetime     = 0
       end
 
+      def heapify_items_array
+        if @items.is_a?(Array)
+          @items = Heap.new(@items) { |x| priority_for(x) } 
+        end
+      end
+
       # expects priority and a block, or an event as a hash with a `priority` key.
       def append(priority: nil, event: nil, &blk)
         increment_seen
 
         return if @capacity == 0
 
-        if @seen == @capacity
-          @items = Heap.new(@items) { |x| priority_for(x) }
-        end
-
         if full?
           priority ||= priority_for(event)
           if priority_for(@items[0]) < priority
+            heapify_items_array
             incoming = event || blk.call
             @items[0] = incoming
             @items.fix(0)

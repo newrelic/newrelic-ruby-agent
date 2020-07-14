@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "agent_helper"))
 
@@ -126,6 +126,11 @@ module MultiverseHelpers
 
   def omit_collector?
     ENV["NEWRELIC_OMIT_FAKE_COLLECTOR"] == "true"
+  end
+
+  def stub_for_span_collection
+    NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
+    NewRelic::Agent::Transaction.any_instance.stubs(:sampled?).returns(true)
   end
 
   def run_harvest
@@ -283,7 +288,7 @@ module MultiverseHelpers
 
   def agent_attributes_for_single_event_posted_without_ignored_attributes
     ignored_keys = ["httpResponseCode", "request.headers.referer",
-      "request.parameters.controller", "request.parameters.action"]
+      "request.parameters.controller", "request.parameters.action", "http.statusCode"]
     attrs = agent_attributes_for_single_event_posted
     ignored_keys.each { |k| attrs.delete(k) }
     attrs

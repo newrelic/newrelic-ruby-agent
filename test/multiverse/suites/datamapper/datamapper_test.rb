@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 DataMapper::Logger.new("/dev/null", :debug)
 DataMapper.setup(:default, 'sqlite::memory:')
@@ -362,8 +362,8 @@ class DataMapperTest < Minitest::Test
   end
 
   # https://support.newrelic.com/tickets/2101
-  # https://github.com/newrelic/rpm/pull/42
-  # https://github.com/newrelic/rpm/pull/45
+  # https://github.com/newrelic/newrelic-ruby-agent/pull/42
+  # https://github.com/newrelic/newrelic-ruby-agent/pull/45
   def test_should_not_bomb_out_if_a_query_is_in_an_invalid_encoding
     db = DummyConnection.new
     q = "select ICS95095010000000000083320000BS01030000004100+\xFF00000000000000000"

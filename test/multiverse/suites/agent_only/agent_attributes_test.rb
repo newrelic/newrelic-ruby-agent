@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class AgentAttributesTest < Minitest::Test
 
@@ -15,6 +15,7 @@ class AgentAttributesTest < Minitest::Test
 
     assert_transaction_trace_has_agent_attribute("httpResponseCode", "418")
     assert_event_has_agent_attribute("httpResponseCode", "418")
+    assert_event_has_agent_attribute("http.statusCode", 418)
     assert_error_has_agent_attribute("httpResponseCode", "418")
 
     refute_browser_monitoring_has_agent_attribute("httpResponseCode")
