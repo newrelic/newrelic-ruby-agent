@@ -11,8 +11,6 @@ to help you improve the customer experience and make data-driven business decisi
 The New Relic Ruby Agent is dual-purposed as a either a Gem or a Rails plugin,
 hosted on [github](https://github.com/newrelic/newrelic-ruby-agent).
 
-The New Relic Ruby agent is released approximately ten to twelve times a year.
-
 ## Supported Environments
 
 An up-to-date list of Ruby versions and frameworks for the latest agent
