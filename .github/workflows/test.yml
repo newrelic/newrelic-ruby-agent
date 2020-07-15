@@ -15,7 +15,7 @@ jobs:
       - name: Setup Ruby
         uses: actions/setup-ruby@v1
         with:
-          ruby-version: 2.6
+          ruby-version: 2.5
       - name: show ulimit
         run:  ulimit -S -n 4096 && ulimit -n
       - name: Bundle
