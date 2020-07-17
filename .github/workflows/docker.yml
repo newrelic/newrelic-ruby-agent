@@ -1,4 +1,5 @@
 name: Docker Test
+on: [push, pull_request]
 inputs:
   who-to-greet:  # id of input
     description: 'Who to greet'
