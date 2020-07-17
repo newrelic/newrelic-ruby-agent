@@ -16,7 +16,7 @@ jobs:
     - uses: ./.github/actions/ruby-build-action
       id: ruby
       with:
-        ruby-version: 2.0.0
+        ruby-version: 2.0.0-p195
         cache-available: ${{ steps.cache.outputs.cache-hit == 'true' }}
     - name: Print version
       run: ${{ steps.ruby.outputs.ruby-path }} --version
