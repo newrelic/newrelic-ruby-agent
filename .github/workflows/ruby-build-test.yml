@@ -12,7 +12,7 @@ jobs:
       id: cache
       with:
         path: ~/local/rubies
-        key: ruby-2.6.5
+        key: ruby-2.0
     - uses: ./.github/actions/ruby-build-action
       id: ruby
       with:
