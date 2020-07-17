@@ -1,4 +1,4 @@
-name: Install of Ruby 2.6.5 (cached)
+name: Install of Ruby 2.0.0 (cached)
 
 on: push
 
@@ -16,7 +16,7 @@ jobs:
     - uses: ./.github/actions/ruby-build-action
       id: ruby
       with:
-        ruby-version: 2.6.5
+        ruby-version: 2.0.0
         cache-available: ${{ steps.cache.outputs.cache-hit == 'true' }}
     - name: Print version
       run: ${{ steps.ruby.outputs.ruby-path }} --version
