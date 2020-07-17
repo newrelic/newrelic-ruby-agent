@@ -13,7 +13,7 @@ jobs:
       with:
         path: ~/local/rubies
         key: ruby-2.6.5
-    - uses: ./containers/ruby-build-action
+    - uses: ./.github/actions/ruby-build-action
       id: ruby
       with:
         ruby-version: 2.6.5
