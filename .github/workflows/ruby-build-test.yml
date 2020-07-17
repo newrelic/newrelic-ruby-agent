@@ -4,7 +4,7 @@ on: push
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
 
     steps:
     - uses: actions/checkout@v1
@@ -20,4 +20,6 @@ jobs:
         cache-available: ${{ steps.cache.outputs.cache-hit == 'true' }}
     - name: Print version
       run: ${{ steps.ruby.outputs.ruby-path }} --version
+    - name: Print OpenSSL version
+      run: ${{ steps.ruby.outputs.ruby-path }} -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
       
