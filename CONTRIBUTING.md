@@ -53,7 +53,7 @@ such breaking changes will require a major version bump whereas non-breaking
 additions only lead to minor version bumps.  
 
 Please be aware that the maintainers of New Relic’s agents aim to have as much
-commonality of functionality across all language agents as makes sense, so are 
+commonality of functionality across all language agents as makes sense, so we are 
 always working to reconcile language-specific changes against the cross-language 
 community set of agreements.
 
