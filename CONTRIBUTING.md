@@ -17,6 +17,46 @@ we can't assume the presence of any specific libraries, including `ActiveSupport
 
 ## Process
 
+### Version Support
+
+When contributing, keep in mind that New Relic customers (that's you!) are
+running many different versions of Ruby, some of them pretty old. Changes that
+depend on the newest version of Ruby will probably be rejected, especially if
+they replace something backwards compatible.
+
+Be aware that the instrumentation needs to work with a wide range of versions of
+the instrumented modules, and that code that looks nonsensical or
+overcomplicated may be that way for compatibility-related reasons. Read all the
+comments and check the related tests before deciding whether existing code is
+incorrect.
+
+If you are planning on contributing a new feature or an otherwise complex
+contribution, we kindly ask you to start a conversation with the maintainer team
+by opening up an Github issue first. 
+
+
+### General Guidelines
+The Ruby agent avoids requiring any dependencies in the main agent code base. 
+Instrumentations and features that would otherwise require a dependency (such as
+Infinite Tracing, which require gRPC and protobuf) are built as separate gems. 
+If you have a feature or instrumentation request that would require a
+dependency, please open an Issue to discuss with the maintainers before
+proceeding.
+
+Your code will be evaluated for completeness and accuracy in
+implementation and must be accompanied with appropriate unit tests.  New
+additions that do not break existing tests are the easiest and quickest to be
+accepted and merged.  New features and improvements that break existing
+functionality are slower to be accepted and merged as they require agreement
+with maintainers across a majority of the languages New Relic supports.  Any
+such breaking changes will require a major version bump whereas non-breaking
+additions only lead to minor version bumps.  
+
+Please be aware that the maintainers of New Relic’s agents aim to have as much
+commonality of functionality across all language agents as makes sense, so we are 
+always working to reconcile language-specific changes against the cross-language 
+community set of agreements.
+
 ### Feature Requests
 
 Feature requests should be submitted in the [Issue tracker](../../issues), with
