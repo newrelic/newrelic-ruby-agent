@@ -102,6 +102,12 @@ At New Relic we take your privacy and the security of your information seriously
 We define “Personal Data” as any information relating to an identified or identifiable individual, including, for example, your name, phone number, post code or zip code, Device ID, IP address and email address.
 
 Please review [New Relic’s General Data Privacy Notice](https://newrelic.com/termsandconditions/privacy) for more information.
+<<<<<<< HEAD
+=======
+
+## Roadmap
+See our [roadmap](/ROADMAP.md), to learn more about our product vision, understand our plans, and provide us valuable feedback.
+>>>>>>> upstream/main
 
 ## Contributing
 
