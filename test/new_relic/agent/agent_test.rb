@@ -733,6 +733,44 @@ module NewRelic
         refute_empty matching_lines, 'logs should say the agent is discarding'
       end
 
+      # This test reproduces a bug in Net::HTTP related to Gzip decoding
+      # that can trigger the Agent's worker thread to hang on shutdown.
+      # See also:
+      # https://bugs.ruby-lang.org/issues/13882#note-4
+      # https://github.com/newrelic/newrelic-ruby-agent/issues/340
+      def test_exit_connecting_worker_thread
+        # Mock HTTP-server thread that sends an unfinished gzip-encoded response,
+        # simulating intermittent network latency.
+        server = TCPServer.new('localhost', 0)
+        Thread.new do
+          # Write HTTP response with partial gzip content, leaving connection open.
+          gzip = Zlib.gzip('Hello World!')
+          server.accept.write <<~HTTP.gsub("\n", "\r\n").chomp
+            HTTP/1.1 200
+            Content-Encoding: gzip
+            Content-Length: #{gzip.length}
+
+            #{gzip.byteslice(0..-2)}
+          HTTP
+        end
+
+        @agent.unstub(:start_worker_thread)
+        @agent.service = NewRelic::Agent::NewRelicService.new(
+          'license-key',
+          NewRelic::Control::Server.new('localhost', server.addr[1])
+        )
+        @agent.service.stubs(:setup_connection_for_ssl)
+
+        @agent.setup_and_start_agent
+
+        # Simulate Ruby shutdown by calling #shutdown on the agent (`at_exit` handler),
+        # followed by #kill on the worker thread (main-thread exit handler).
+        @agent.shutdown
+        worker = @agent.instance_variable_get(:@worker_thread)
+        worker.kill
+
+        assert worker.join(1), 'Worker thread hang on shutdown'
+      end
     end
 
     class AgentStartingTest < Minitest::Test

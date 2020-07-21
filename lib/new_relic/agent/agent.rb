@@ -953,6 +953,10 @@ module NewRelic
         rescue NewRelic::Agent::UnrecoverableAgentException => e
           handle_unrecoverable_agent_error(e)
         rescue StandardError, Timeout::Error, NewRelic::Agent::ServerConnectionException => e
+          # Allow a killed (aborting) thread to continue exiting during shutdown.
+          # See: https://github.com/newrelic/newrelic-ruby-agent/issues/340
+          raise if Thread.current.status == 'aborting'
+
           log_error(e)
           if opts[:keep_retrying]
             note_connect_failure
