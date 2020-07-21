@@ -32,13 +32,13 @@ incorrect.
 
 If you are planning on contributing a new feature or an otherwise complex
 contribution, we kindly ask you to start a conversation with the maintainer team
-by opening up an Github issue first. 
+by opening up an Github issue first.
 
 
 ### General Guidelines
-The Ruby agent avoids requiring any dependencies in the main agent code base. 
+The Ruby agent avoids requiring any dependencies in the main agent code base.
 Instrumentations and features that would otherwise require a dependency (such as
-Infinite Tracing, which require gRPC and protobuf) are built as separate gems. 
+Infinite Tracing, which require gRPC and protobuf) are built as separate gems.
 If you have a feature or instrumentation request that would require a
 dependency, please open an Issue to discuss with the maintainers before
 proceeding.
@@ -50,11 +50,11 @@ accepted and merged.  New features and improvements that break existing
 functionality are slower to be accepted and merged as they require agreement
 with maintainers across a majority of the languages New Relic supports.  Any
 such breaking changes will require a major version bump whereas non-breaking
-additions only lead to minor version bumps.  
+additions only lead to minor version bumps.
 
 Please be aware that the maintainers of New Relic’s agents aim to have as much
-commonality of functionality across all language agents as makes sense, so we are 
-always working to reconcile language-specific changes against the cross-language 
+commonality of functionality across all language agents as makes sense, so we are
+always working to reconcile language-specific changes against the cross-language
 community set of agreements.
 
 ### Feature Requests
@@ -62,7 +62,7 @@ community set of agreements.
 Feature requests should be submitted in the [Issue tracker](../../issues), with
 a description of the expected behavior & use case. Before submitting an Issue,
 please search for similar ones in the [closed
-issues](../../issues?q=is%3Aissue+is%3Aclosed+label%3Aenhancement).
+issues](../../issues?q=is%3Aissue+is%3Aclosed).
 
 ### Pull Requests
 
