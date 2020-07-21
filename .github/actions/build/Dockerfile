@@ -30,4 +30,4 @@ RUN wget http://ftp.ruby-lang.org/pub/ruby/2.0/ruby-2.0.0-p648.tar.gz && \
     ./configure --disable-install-rdoc && make && make install
 
 RUN gem install bundler -v 1.17.3 --no-document
-ENTRYPOINT ruby --version && ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
+RUN bundle install
