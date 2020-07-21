@@ -13,7 +13,5 @@ jobs:
         uses: ./.github/actions/build
         with:
           ruby-version: "2.0.0-p648"
-      - name: Bundle
-        run: bundle install
       - name: rake test
-        run: bundle exec rake test TESTOPTS="--verbose"
+        entrypoint: "unit_test.sh"
