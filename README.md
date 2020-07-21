@@ -103,6 +103,9 @@ We define “Personal Data” as any information relating to an identified or id
 
 Please review [New Relic’s General Data Privacy Notice](https://newrelic.com/termsandconditions/privacy) for more information.
 
+## Roadmap
+See our [roadmap](/ROADMAP.md), to learn more about our product vision, understand our plans, and provide us valuable feedback.
+
 ## Contributing
 
 We encourage contributions to improve the New Relic Ruby agent! Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
