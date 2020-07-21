@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build Ruby
     steps:
+      - uses: actions/checkout@v1
       - name: Build that Ruby
         uses: ./.github/actions/build
         with:
