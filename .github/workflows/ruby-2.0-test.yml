@@ -13,5 +13,3 @@ jobs:
         uses: ./.github/actions/build
         with:
           ruby-version: "2.0.0-p648"
-      - name: rake test
-        entrypoint: "unit_test.sh"
