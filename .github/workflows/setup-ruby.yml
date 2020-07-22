@@ -7,6 +7,6 @@ jobs:
     - uses: actions/checkout@v2
     - uses: mwlang/setup-ruby@v1
       with:
-        ruby-version: 2.0.0-p648 # Not needed with a .ruby-version file
+        ruby-version: 2.0 # Not needed with a .ruby-version file
     - run: bundle install
     - run: bundle exec rake test
