@@ -3,7 +3,7 @@ on: push
 
 jobs:
   simple-build:
-    if: true
+    if: false
     runs-on: ubuntu-latest
 
     steps:
@@ -73,13 +73,13 @@ jobs:
 
   # Ruby <= 2.3 needs OpenSSL 1.0.2 which cannot be installed on Ubuntu 16.04 and macos-latest.
   # To workaround that, we use ruby-build which builds its own OpenSSL.
-  build23:
-    if: false
+  ruby-build:
+    if: true
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-18.04 ]
-        ruby-version: [ "2.1.9" ]
+        ruby-version: [ "2.0.0-p648" ]
         # ruby-version: [ "2.3.0", "2.3.1", "2.3.2", "2.3.3", "2.3.4", "2.3.5", "2.3.6", "2.3.7", "2.3.8" ]
     runs-on: ${{ matrix.os }}
     steps:
@@ -123,6 +123,7 @@ jobs:
     - run: echo "::add-path::$HOME/.rubies/ruby-${{ matrix.ruby-version }}/bin"
     - run: ruby --version
     - run: ruby -ropen-uri -e 'puts open("https://rubygems.org/") { |f| f.read(1024) }'
+    - run: ${{ steps.ruby.outputs.ruby-path }} -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
     - run: gem install json:2.2.0 --no-document
     - run: bundle --version
     - run: bundle install
