@@ -2,6 +2,10 @@
 
   ## v6.12.0
 
+  * The New Relic Ruby Agent is now open source under the [Apache 2 license](LICENSE) 
+    and you can now observe the project roadmap. See our [Contributing guide](CONTRIBUTING.md) 
+    and [Code of Conduct](CODE_OF_CONDUCT.md) for details on contributing!
+
   * **Security: Updated all uses of Rake to >= 12.3.3**
 
     All versions of Rake testing prior to 12.3.3 were removed to address

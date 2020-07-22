@@ -71,9 +71,9 @@ licensing restrictions.
 
 ### Code of Conduct
 
-Before contributing please read the [code of conduct](./CODE_OF_CONDUCT.md)
+Before contributing please read the [code of conduct](CODE_OF_CONDUCT.md)
 
-Note that our [code of conduct](./CODE_OF_CONDUCT.md) applies to all platforms
+Note that our [code of conduct](CODE_OF_CONDUCT.md) applies to all platforms
 and venues related to this project; please follow it in all your interactions
 with the project and its participants.
 
