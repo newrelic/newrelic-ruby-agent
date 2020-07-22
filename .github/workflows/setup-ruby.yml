@@ -1,0 +1,12 @@
+name: Using Setup Ruby
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: mwlang/setup-ruby@v1
+      with:
+        ruby-version: 2.6 # Not needed with a .ruby-version file
+    - run: bundle install
+    - run: bundle exec rake test
