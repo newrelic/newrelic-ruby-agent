@@ -104,7 +104,7 @@ We define “Personal Data” as any information relating to an identified or id
 Please review [New Relic’s General Data Privacy Notice](https://newrelic.com/termsandconditions/privacy) for more information.
 
 ## Roadmap
-See our [roadmap](/ROADMAP.md), to learn more about our product vision, understand our plans, and provide us valuable feedback.
+See our [roadmap](https://github.com/newrelic/newrelic-ruby-agent/blob/main/ROADMAP.md), to learn more about our product vision, understand our plans, and provide us valuable feedback.
 
 ## Contributing
 
@@ -117,7 +117,7 @@ As noted in our [security policy](https://github.com/newrelic/newrelic-ruby-agen
 
 If you believe you have found a security vulnerability in this project or any of New Relic's products or websites, we welcome and greatly appreciate you reporting it to New Relic through [HackerOne](https://hackerone.com/newrelic).
 
-If you would like to contribute to this project, please review [these guidelines](./CONTRIBUTING.md).
+If you would like to contribute to this project, please review [these guidelines](https://github.com/newrelic/newrelic-ruby-agent/blob/main/CONTRIBUTING.md).
 
 To [all contributors](https://github.com/newrelic/newrelic-ruby-agent/graphs/contributors), we thank you!  Without your contribution, this project would not be what it is today.  We also host a community project page dedicated to
 the [New Relic Ruby agent](https://opensource.newrelic.com/projects/newrelic/newrelic-ruby-agent).
@@ -125,7 +125,7 @@ the [New Relic Ruby agent](https://opensource.newrelic.com/projects/newrelic/new
 ## License
 
 The New Relic Ruby agent is licensed under the [Apache 2.0](http://apache.org/licenses/LICENSE-2.0.txt) License.
-The New Relic Ruby agent also uses source code from third-party libraries. Full details on which libraries are used and the terms under which they are licensed can be found in the [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).
+The New Relic Ruby agent also uses source code from third-party libraries. Full details on which libraries are used and the terms under which they are licensed can be found in the [THIRD_PARTY_NOTICES.md](https://github.com/newrelic/newrelic-ruby-agent/blob/main/THIRD_PARTY_NOTICES.md).
 
 ## Thank You
 

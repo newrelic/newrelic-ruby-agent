@@ -1,4 +1,4 @@
-_Before contributing, please read our [contributing guidelines](./CONTRIBUTING.md) and [code of conduct](./CODE_OF_CONDUCT.md)._
+_Before contributing, please read our [contributing guidelines](https://github.com/newrelic/newrelic-ruby-agent/blob/main/CONTRIBUTING.md) and [code of conduct](https://github.com/newrelic/.github/blob/master/CODE_OF_CONDUCT.md)._
 
 # Overview
 Describe the changes present in the pull request

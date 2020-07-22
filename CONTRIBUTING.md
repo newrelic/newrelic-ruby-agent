@@ -6,8 +6,8 @@ development team.
 
 When contributing, keep in mind that the agent runs in a wide variety of Ruby
 language implementations (e.g. 2.x.x, jruby, etc.) as well as a wide variety of
-application environments (e.g. Rails, Sinatra, roll-your-own, etc.) See
-https://docs.newrelic.com/docs/agents/ruby-agent/getting-started/ruby-agent-requirements-supported-frameworks
+application environments (e.g. Rails, Sinatra, roll-your-own, etc.) See [Ruby agent requirements and supported frameworks]
+(https://docs.newrelic.com/docs/agents/ruby-agent/getting-started/ruby-agent-requirements-supported-frameworks)
 for the current full list.
 
 Because of this, we need to be more defensive in our coding practices than most
@@ -71,9 +71,9 @@ licensing restrictions.
 
 ### Code of Conduct
 
-Before contributing please read the [code of conduct](./CODE_OF_CONDUCT.md)
+Before contributing please read the [code of conduct](https://github.com/newrelic/.github/blob/master/CODE_OF_CONDUCT.md)
 
-Note that our [code of conduct](./CODE_OF_CONDUCT.md) applies to all platforms
+Note that our [code of conduct](https://github.com/newrelic/.github/blob/master/CODE_OF_CONDUCT.md) applies to all platforms
 and venues related to this project; please follow it in all your interactions
 with the project and its participants.
 
