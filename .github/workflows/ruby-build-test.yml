@@ -24,7 +24,7 @@ jobs:
       run: ${{ steps.ruby.outputs.ruby-path }} -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
       
   ruby-install-build:
-    if: true
+    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -123,9 +123,8 @@ jobs:
     - run: echo "::add-path::$HOME/.rubies/ruby-${{ matrix.ruby-version }}/bin"
     - run: ruby --version
     - run: ruby -ropen-uri -e 'puts open("https://rubygems.org/") { |f| f.read(1024) }'
-    - run: ${{ steps.ruby.outputs.ruby-path }} -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
-    - run: gem install json:2.2.0 --no-document
     - run: bundle --version
+    - run: ${{ steps.ruby.outputs.ruby-path }} -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
     - run: bundle install
     - run: bundle exec rake --version
     - run: bundle exec rake test
