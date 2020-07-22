@@ -1,10 +1,10 @@
-name: Install of Ruby 2.0.0 (cached)
-
+name: Build me a Ruby
 on: push
 
 jobs:
-  build:
-    runs-on: ubuntu-16.04
+  simple-build:
+    if: true
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v1
@@ -23,3 +23,109 @@ jobs:
     - name: Print OpenSSL version
       run: ${{ steps.ruby.outputs.ruby-path }} -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
       
+  ruby-install-build:
+    if: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-18.04 ]
+        ruby: [ ruby-2.0.0-p648 ]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set tag name
+      id: info
+      run: |
+        tag=enable-shared
+        echo "::set-output name=tag::$tag"
+    - name: Clone ruby-install
+      run: git clone https://github.com/postmodern/ruby-install.git
+    - name: Install ruby-install
+      run: sudo make install
+      working-directory: ./ruby-install
+
+    - name: List versions
+      run: ruby-install
+
+      # Install packages
+    - run: sudo apt-get update
+      if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.ruby, 'ruby-')
+    - run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev
+      if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.ruby, 'ruby-')
+
+    - name: Build Ruby
+      run: ruby-install --no-install-deps -j4 ${{ matrix.ruby }} -- --enable-shared --disable-install-doc
+      env:
+        CPPFLAGS: "-DENABLE_PATH_CHECK=0" # https://github.com/actions/virtual-environments/issues/267
+    - name: Install Bundler if needed
+      run: |
+        if [ ! -e ~/.rubies/${{ matrix.ruby }}/bin/bundle ]; then
+          export PATH="$HOME/.rubies/${{ matrix.ruby }}/bin:$PATH"
+          gem install bundler -v '~> 1' --no-document
+        fi
+
+    - run: ruby --version
+    - run: ruby -ropen-uri -e 'puts open("https://rubygems.org/") { |f| f.read(1024) }'
+    - run: bundle --version
+    - run: bundle install
+    - run: bundle exec rake --version
+    - run: bundle exec rake test
+
+  # Ruby <= 2.3 needs OpenSSL 1.0.2 which cannot be installed on Ubuntu 16.04 and macos-latest.
+  # To workaround that, we use ruby-build which builds its own OpenSSL.
+  build23:
+    if: false
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-18.04 ]
+        ruby-version: [ "2.1.9" ]
+        # ruby-version: [ "2.3.0", "2.3.1", "2.3.2", "2.3.3", "2.3.4", "2.3.5", "2.3.6", "2.3.7", "2.3.8" ]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set tag name
+      id: info
+      run: |
+        tag=enable-shared
+        echo "::set-output name=tag::$tag"
+    - name: Check if already built
+      run: '! curl -s --head --fail https://github.com/mwlang/newrelic-ruby-agent/download/${{ steps.info.outputs.tag }}/ruby-${{ matrix.ruby-version }}-${{ matrix.os }}.tar.gz'
+
+    - name: Clone ruby-build
+      run: git clone --branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git
+    - name: Install ruby-build
+      run: sudo ./ruby-build/install.sh
+
+    - name: List versions
+      run: ruby-build --definitions
+
+      # Install packages
+    - run: sudo apt-get update
+      if: startsWith(matrix.os, 'ubuntu')
+    - run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev
+      if: startsWith(matrix.os, 'ubuntu')
+
+    - name: Build Ruby
+      run: ruby-build --verbose ${{ matrix.ruby-version }} $HOME/.rubies/ruby-${{ matrix.ruby-version }}
+      env:
+        RUBY_CONFIGURE_OPTS: --enable-shared --disable-install-doc
+        CPPFLAGS: "-DENABLE_PATH_CHECK=0" # https://github.com/actions/virtual-environments/issues/267
+    - name: Create archive
+      run: tar czf ruby-${{ matrix.ruby-version }}-${{ matrix.os }}.tar.gz -C ~/.rubies ruby-${{ matrix.ruby-version }}
+    - name: Install Bundler if needed
+      run: |
+        if [ ! -e ~/.rubies/ruby-${{ matrix.ruby-version }}/bin/bundle ]; then
+          export PATH="$HOME/.rubies/ruby-${{ matrix.ruby-version }}/bin:$PATH"
+          gem install bundler -v '~> 1' --no-document
+        fi
+
+    - run: echo "::add-path::$HOME/.rubies/ruby-${{ matrix.ruby-version }}/bin"
+    - run: ruby --version
+    - run: ruby -ropen-uri -e 'puts open("https://rubygems.org/") { |f| f.read(1024) }'
+    - run: gem install json:2.2.0 --no-document
+    - run: bundle --version
+    - run: bundle install
+    - run: bundle exec rake --version
+    - run: bundle exec rake test
+

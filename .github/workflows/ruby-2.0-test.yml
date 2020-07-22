@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Build Ruby
     steps:
-      - uses: actions/checkout@v1
       - name: Build that Ruby
-        uses: ./.github/actions/build
         with:
           ruby-version: "2.0.0-p648"
+          test-suite: test
+        uses: ./.github/actions/build
