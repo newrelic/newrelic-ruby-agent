@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: mwlang/setup-ruby@v1
+    - uses: mwlang/setup-ruby@master
       with:
         ruby-version: 2.0.0 # Not needed with a .ruby-version file
     - run: bundle install
