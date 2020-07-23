@@ -124,7 +124,7 @@ jobs:
     - run: ruby --version
     - run: ruby -ropen-uri -e 'puts open("https://rubygems.org/") { |f| f.read(1024) }'
     - run: bundle --version
-    - run: ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
+    - run: "ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'"
     - run: bundle install
     - run: bundle exec rake --version
     - run: bundle exec rake test
