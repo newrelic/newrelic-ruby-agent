@@ -117,11 +117,21 @@ jobs:
         ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
         bundle --version
 
+
+    - uses: actions/cache@v2
+      id: bundler
+      with:
+        path: vendor/bundle
+        key: ${{ runner.os }}-${{ matrix.ruby-version }}-gems-${{ hashFiles('**/*.gemspec') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.ruby-version }}-gems-
+
     - name: Bundler install
+      if: steps.bundler.outputs.cache-hit != 'true'
       run: bundle install
 
     - name: Run unit tests
       run: |
-        bundle exec rake --version
+        bundle list
         bundle exec rake test
 
