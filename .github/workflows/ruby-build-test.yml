@@ -87,8 +87,9 @@ jobs:
         CPPFLAGS: "-DENABLE_PATH_CHECK=0" # https://github.com/actions/virtual-environments/issues/267
 
     - name: add Ruby to PATH
-      run: export PATH="$HOME/.rubies/ruby-${{ matrix.ruby-version }}/bin:$PATH"
-      run: echo "::add-path::$HOME/.rubies/ruby-${{ matrix.ruby-version }}/bin"
+      run: |
+        export PATH="$HOME/.rubies/ruby-${{ matrix.ruby-version }}/bin:$PATH"
+        echo "::add-path::$HOME/.rubies/ruby-${{ matrix.ruby-version }}/bin"
 
     - name: Install Bundler if needed
       run: |
