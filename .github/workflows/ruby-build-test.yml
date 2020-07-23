@@ -116,11 +116,12 @@ jobs:
         ruby --version
         ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
         bundle --version
-        bundle exec rake --version
 
     - name: Bundler install
       run: bundle install
 
     - name: Run unit tests
-      run: bundle exec rake test
+      run: |
+        bundle exec rake --version
+        bundle exec rake test
 
