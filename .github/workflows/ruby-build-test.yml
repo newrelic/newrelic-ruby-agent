@@ -116,7 +116,7 @@ jobs:
         ruby --version
         ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
         bundle --version
-        ls ~/runners
+        ls ~/runners/**/*
 
     - uses: actions/cache@v2
       id: bundler
