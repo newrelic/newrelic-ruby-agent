@@ -65,6 +65,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       LANG: C.UTF-8
+      RUBY_CONFIGURE_OPTS: --enable-shared --disable-install-doc
+      CPPFLAGS: "-DENABLE_PATH_CHECK=0" # https://github.com/actions/virtual-environments/issues/267
     steps:
     - uses: actions/checkout@v2
 
@@ -78,35 +80,24 @@ jobs:
 
     - name: Clone ruby-build
       if: steps.build-ruby.outputs.cache-hit != 'true'
-    
-      - name: "checkout ruby-build repository"
-        run: "git clone --branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git $HOME/ruby-build"
-    
-      - name: Install ruby-build
-        run: sudo $HOME/ruby-build/install.sh
+      run: |
+        "git clone --branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git $HOME/ruby-build"
+        sudo $HOME/ruby-build/install.sh
+        ruby-build --definitions
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev
+        ruby-build --verbose ${{ matrix.ruby-version }} $HOME/.rubies/ruby-${{ matrix.ruby-version }}
+ 
+    - name: add Ruby to PATH
+      run: |
+        export PATH="$HOME/.rubies/ruby-${{ matrix.ruby-version }}/bin:$PATH"
+        echo "::add-path::$HOME/.rubies/ruby-${{ matrix.ruby-version }}/bin"
 
-      - name: List versions
-        run: ruby-build --definitions
-
-      - run: sudo apt-get update
-      - run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev
-
-      - name: Build Ruby
-        run: ruby-build --verbose ${{ matrix.ruby-version }} $HOME/.rubies/ruby-${{ matrix.ruby-version }}
-        env:
-          RUBY_CONFIGURE_OPTS: --enable-shared --disable-install-doc
-          CPPFLAGS: "-DENABLE_PATH_CHECK=0" # https://github.com/actions/virtual-environments/issues/267
-
-      - name: add Ruby to PATH
-        run: |
-          export PATH="$HOME/.rubies/ruby-${{ matrix.ruby-version }}/bin:$PATH"
-          echo "::add-path::$HOME/.rubies/ruby-${{ matrix.ruby-version }}/bin"
-
-      - name: Install Bundler if needed
-        run: |
-          if [ ! -e ~/.rubies/ruby-${{ matrix.ruby-version }}/bin/bundle ]; then
-            gem install bundler -v '~> 1' --no-document
-          fi
+    - name: Install Bundler if needed
+      run: |
+        if [ ! -e ~/.rubies/ruby-${{ matrix.ruby-version }}/bin/bundle ]; then
+          gem install bundler -v '~> 1' --no-document
+        fi
 
     - run: ruby --version
     - run: ruby -ropen-uri -e 'puts open("https://rubygems.org/") { |f| f.read(1024) }'
