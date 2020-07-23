@@ -116,14 +116,14 @@ jobs:
         ruby --version
         ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
         bundle --version
-        ls /home/runner/work/newrelic-ruby-agent/*
+        ls ~/**/*
 
     - uses: actions/cache@v2
       id: bundler
       with:
         path: |
           vendor/bundle
-          ~/Gemfile.lock
+          /home/runner/work/newrelic-ruby-agent/Gemfile.lock
         key: ${{ runner.os }}-${{ matrix.ruby-version }}-gems-${{ hashFiles('**/*.gemspec') }}
         restore-keys: |
           ${{ runner.os }}-${{ matrix.ruby-version }}-gems-${{ hashFiles('**/*.gemspec') }}
