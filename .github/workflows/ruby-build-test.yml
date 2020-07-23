@@ -69,19 +69,19 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Clone ruby-build
-      run: git clone --branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git $HOME/ruby-build
+      run: "git clone --branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git $HOME/ruby-build"
     - name: Install ruby-build
-      run: sudo $HOME/ruby-build/ruby-build/install.sh
+      run: sudo $HOME/ruby-build/install.sh
 
     - name: List versions
-      run: $HOME/ruby-build/ruby-build --definitions
+      run: $HOME/ruby-build --definitions
 
       # Install packages
     - run: sudo apt-get update
     - run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev
 
     - name: Build Ruby
-      run: $HOME/ruby-build/ruby-build --verbose ${{ matrix.ruby-version }} $HOME/.rubies/ruby-${{ matrix.ruby-version }}
+      run: $HOME/ruby-build --verbose ${{ matrix.ruby-version }} $HOME/.rubies/ruby-${{ matrix.ruby-version }}
       env:
         RUBY_CONFIGURE_OPTS: --enable-shared --disable-install-doc
         CPPFLAGS: "-DENABLE_PATH_CHECK=0" # https://github.com/actions/virtual-environments/issues/267
