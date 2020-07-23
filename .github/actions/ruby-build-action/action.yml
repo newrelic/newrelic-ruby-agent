@@ -1,0 +1,14 @@
+name: 'Build Ruby'
+author: 'New Relic'
+description: 'Builds a Ruby Container'
+inputs:
+  ruby-version:
+    description: 'Ruby version'
+    required: true
+    default: '2.0.0-p648'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env:
+    RUBY_VERSION: ${{ inputs.ruby-version }}
+  entrypoint: "unit_test.sh"
