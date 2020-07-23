@@ -108,7 +108,7 @@ jobs:
     - name: Install Bundler if needed
       run: |
         if [ ! -e ~/.rubies/ruby-${{ matrix.ruby-version }}/bin/bundle ]; then
-          gem install bundler -v '~> 1' --no-document
+          sudo gem install bundler -v '~> 1' --no-document
         fi
 
     - name: Show versions
