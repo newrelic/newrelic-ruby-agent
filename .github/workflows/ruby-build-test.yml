@@ -129,7 +129,7 @@ jobs:
           ${{ runner.os }}-${{ matrix.ruby-version }}-gems-${{ hashFiles('**/*.gemspec') }}
 
     - name: Bundler install
-      # if: steps.bundler.outputs.cache-hit != 'true'
+      if: steps.bundler.outputs.cache-hit != 'true'
       run: bundle install
 
     - name: Show Gemfile
