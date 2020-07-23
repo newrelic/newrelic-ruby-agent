@@ -45,12 +45,16 @@ jobs:
           gem install bundler -v '~> 1' --no-document
         fi
 
-    - run: ruby --version
-    - run: ruby -ropen-uri -e 'puts open("https://rubygems.org/") { |f| f.read(1024) }'
-    - run: bundle --version
-    - run: bundle install
-    - run: bundle exec rake --version
-    - run: bundle exec rake test
+    - name: Show versions
+      run: |
+        ruby --version
+        bundle --version
+        bundle exec rake --version
+    - name: Bundler install
+      run: bundle install
+
+    - name: Run unit tests
+      run: bundle exec rake test
 
   # Ruby <= 2.3 needs OpenSSL 1.0.2 which cannot be installed on Ubuntu 16.04 and macos-latest.
   # To workaround that, we use ruby-build which builds its own OpenSSL.
@@ -92,7 +96,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev
 
-    - name: build Ruby {{ matrix.ruby-version }}
+    - name: build Ruby ${{ matrix.ruby-version }}
       if: steps.build-ruby.outputs.cache-hit != 'true'
       run: ruby-build --verbose ${{ matrix.ruby-version }} $HOME/.rubies/ruby-${{ matrix.ruby-version }}
  
@@ -107,11 +111,16 @@ jobs:
           gem install bundler -v '~> 1' --no-document
         fi
 
-    - run: ruby --version
-    - run: ruby -ropen-uri -e 'puts open("https://rubygems.org/") { |f| f.read(1024) }'
-    - run: bundle --version
-    - run: "ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'"
-    - run: bundle install
-    - run: bundle exec rake --version
-    - run: bundle exec rake test
+    - name: Show versions
+      run: |
+        ruby --version
+        ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
+        bundle --version
+        bundle exec rake --version
+
+    - name: Bundler install
+      run: bundle install
+
+    - name: Run unit tests
+      run: bundle exec rake test
 
