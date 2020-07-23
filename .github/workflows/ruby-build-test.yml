@@ -120,9 +120,12 @@ jobs:
     - uses: actions/cache@v2
       id: bundler
       with:
-        path: vendor/bundle
-        key: ${{ runner.os }}-${{ matrix.ruby-version }}-gems-${{ hashFiles('**/*.gemspec') }}
+        path: |
+          vendor/bundle
+          **/Gemfile.lock
+        key: ${{ runner.os }}-${{ matrix.ruby-version }}-gems-${{ hashFiles('**/Gemfile.lock') }}
         restore-keys: |
+          ${{ runner.os }}-${{ matrix.ruby-version }}-gems-${{ hashFiles('**/Gemfile.lock') }}
           ${{ runner.os }}-${{ matrix.ruby-version }}-gems-
 
     - name: Bundler install
