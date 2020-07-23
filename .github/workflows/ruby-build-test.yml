@@ -80,13 +80,21 @@ jobs:
 
     - name: Clone ruby-build
       if: steps.build-ruby.outputs.cache-hit != 'true'
+      run: "git clone --branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git $HOME/ruby-build"
+
+    - name: install ruby-build
+      if: steps.build-ruby.outputs.cache-hit != 'true'
+      run: sudo $HOME/ruby-build/install.sh && ruby-build --definitions
+
+    - name: apt-get updates
+      if: steps.build-ruby.outputs.cache-hit != 'true'
       run: |
-        "git clone --branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git $HOME/ruby-build"
-        sudo $HOME/ruby-build/install.sh
-        ruby-build --definitions
         sudo apt-get update
         sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev
-        ruby-build --verbose ${{ matrix.ruby-version }} $HOME/.rubies/ruby-${{ matrix.ruby-version }}
+
+    - name: build Ruby {{ matrix.ruby-version }}
+      if: steps.build-ruby.outputs.cache-hit != 'true'
+      run: ruby-build --verbose ${{ matrix.ruby-version }} $HOME/.rubies/ruby-${{ matrix.ruby-version }}
  
     - name: add Ruby to PATH
       run: |
