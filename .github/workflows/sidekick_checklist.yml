@@ -10,8 +10,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          msg: "- [ ] Perform code review
-- [ ] Add performance label
-- [ ] Perform appropriate level of performance testing
-- [ ] Confirm all checks passed
-- [ ] Add version label prior to acceptance"
+          msg: "PR review checklist:\n
+- [ ] Perform code review\n
+- [ ] Add performance label\n
+- [ ] Perform appropriate level of performance testing\n
+- [ ] Confirm all checks passed\n
+- [ ] Add version label prior to acceptance"  
