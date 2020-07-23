@@ -117,17 +117,16 @@ jobs:
         ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
         bundle --version
         ls ~/
-        
+
     - uses: actions/cache@v2
       id: bundler
       with:
         path: |
           vendor/bundle
           ~/Gemfile.lock
-        key: ${{ runner.os }}-${{ matrix.ruby-version }}-gems-${{ hashFiles('~/Gemfile.lock') }}
+        key: ${{ runner.os }}-${{ matrix.ruby-version }}-gems-${{ hashFiles('**/*.gemspec') }}
         restore-keys: |
-          ${{ runner.os }}-${{ matrix.ruby-version }}-gems-${{ hashFiles('~/Gemfile.lock') }}
-          ${{ runner.os }}-${{ matrix.ruby-version }}-gems-
+          ${{ runner.os }}-${{ matrix.ruby-version }}-gems-${{ hashFiles('**/*.gemspec') }}
 
     - name: Bundler install
       if: steps.bundler.outputs.cache-hit != 'true'
