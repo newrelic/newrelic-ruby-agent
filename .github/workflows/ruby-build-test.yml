@@ -71,14 +71,14 @@ jobs:
     - name: Clone ruby-build
       run: git clone --branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git
     - name: Install ruby-build
-      run: ./ruby-build/install.sh
+      run: sudo ./ruby-build/install.sh
 
     - name: List versions
       run: ruby-build --definitions
 
       # Install packages
-    - run: apt-get update
-    - run: apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev
+    - run: sudo apt-get update
+    - run: sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev
 
     - name: Build Ruby
       run: ruby-build --verbose ${{ matrix.ruby-version }} $HOME/.rubies/ruby-${{ matrix.ruby-version }}
