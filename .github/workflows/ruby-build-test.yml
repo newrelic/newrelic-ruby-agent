@@ -27,9 +27,9 @@ jobs:
       id: ruby-cache
       with:
         path: ~/.rubies/ruby-${{ matrix.ruby-version }}
-        key: ruby-cache-${{ matrix.ruby-version }}-${{ runner.os }}
+        key: v1-ruby-cache-${{ matrix.ruby-version }}-${{ runner.os }}
         restore-keys: |
-          ruby-cache-${{ matrix.ruby-version }}-${{ runner.os }}
+          v1-ruby-cache-${{ matrix.ruby-version }}-${{ runner.os }}
 
     - name: Clone ruby-build
       if: steps.ruby-cache.outputs.cache-hit != 'true'
@@ -50,6 +50,7 @@ jobs:
       run: ruby-build --verbose ${{ matrix.ruby-version }} ~/.rubies/ruby-${{ matrix.ruby-version }}
 
     - name: upgrade rubygems
+      if: steps.ruby-cache.outputs.cache-hit != 'true'
       run: gem update --system 3.0.6 --force || (gem i rubygems-update -v '<3' && update_rubygems) 
 
     - name: Install Bundler if needed
