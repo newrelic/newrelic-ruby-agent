@@ -19,6 +19,7 @@ jobs:
       run: |
         export PATH="~/.rubies/ruby-${{ matrix.ruby-version }}/bin:$PATH"
         echo "::add-path::~/.rubies/ruby-${{ matrix.ruby-version }}/bin"
+        echo $PATH
 
     - uses: actions/checkout@v2
 
@@ -51,14 +52,14 @@ jobs:
     - name: Install Bundler if needed
       run: |
         if [ ! -e ~/.rubies/ruby-${{ matrix.ruby-version }}/bin/bundle ]; then
-          sudo gem install bundler -v '~> 1' --no-document
+          sudo gem install bundler -v '~> 1' --no-document -​-bindir ~/.rubies/ruby-${{ matrix.ruby-version }}/bin
         fi
 
     - name: Show versions
       run: |
         sudo rm /usr/bin/ruby /usr/bin/gem 
-        find / -name bundle
-        ls ~/.rubies/**/*
+        echo $PATH
+        ls ~/.rubies/**/bin/*
         ruby --version
         ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
         which bundle
