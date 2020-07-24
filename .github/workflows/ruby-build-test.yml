@@ -73,9 +73,9 @@ jobs:
       with:
         path: |
           ~/.bundle
-        key: v2-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/newrelic-ruby-agent/newrelic_rpm.gemspec') }}
+        key: v3-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('$GITHUB_WORKSPACE/newrelic_rpm.gemspec') }}
         restore-keys: |
-          v2-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/newrelic-ruby-agent/newrelic_rpm.gemspec') }}
+          v3-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('$GITHUB_WORKSPACE/newrelic_rpm.gemspec') }}
 
     - name: Bundler install
       if: steps.bundler-cache.outputs.cache-hit != 'true'
@@ -84,20 +84,19 @@ jobs:
     - name: Install tree
       run: |
         sudo apt-get install tree
-        echo $GITHUB_WORKSPACE
         tree $GITHUB_WORKSPACE
 
     - name: Stash Gemfile.lock
       if: steps.bundler-cache.outputs.cache-hit != 'true'
-      run: cp ~/work/newrelic-ruby-agent/newrelic-ruby-agent/Gemfile.lock ~/.bundle/
+      run: cp $GITHUB_WORKSPACE/Gemfile.lock ~/.bundle/
 
     - name: Restore Gemfile.lock
       if: steps.bundler-cache.outputs.cache-hit == 'true'
-      run: cp  ~/.bundle/Gemfile.lock ~/work/newrelic-ruby-agent/newrelic-ruby-agent/
+      run: cp  ~/.bundle/Gemfile.lock $GITHUB_WORKSPACE/
 
     - name: Show Gemfile
       run: |
-        ls ~/work/newrelic-ruby-agent/newrelic-ruby-agent/*
+        ls $GITHUB_WORKSPACE/*
 
     - name: Run unit tests
       run: |
