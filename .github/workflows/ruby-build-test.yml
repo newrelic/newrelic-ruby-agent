@@ -73,9 +73,9 @@ jobs:
       with:
         path: |
           ~/.bundle
-        key: v1-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/newrelic-ruby-agent/newrelic_rpm.gemspec') }}
+        key: v2-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/newrelic-ruby-agent/newrelic_rpm.gemspec') }}
         restore-keys: |
-          v1-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/newrelic-ruby-agent/newrelic_rpm.gemspec') }}
+          v2-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/newrelic-ruby-agent/newrelic_rpm.gemspec') }}
 
     - name: Bundler install
       if: steps.bundler-cache.outputs.cache-hit != 'true'
