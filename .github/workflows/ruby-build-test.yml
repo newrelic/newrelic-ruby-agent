@@ -74,14 +74,19 @@ jobs:
       with:
         path: |
           ~/.bundle
-          ~/work/newrelic-ruby-agent/Gemfile.lock
-        key: ${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/newrelic_rpm.gemspec') }}
+        key: v1-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/newrelic_rpm.gemspec') }}
         restore-keys: |
-          ${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/newrelic_rpm.gemspec') }}
+          v1-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/newrelic_rpm.gemspec') }}
 
     - name: Bundler install
       if: steps.bundler-cache.outputs.cache-hit != 'true'
-      run: bundle install --path ~/.bundle
+      run: |
+        bundle install --path ~/.bundle
+        cp ~/work/newrelic-ruby-agent/Gemfile.lock ~/.bundle/
+
+    - name: Restore Gemfile.lock
+      if: steps.bundler-cache.outputs.cache-hit = 'true'
+      run: cp  ~/.bundle/Gemfile.lock ~/work/newrelic-ruby-agent/
 
     - name: Show Gemfile
       run: |
