@@ -51,13 +51,58 @@ jobs:
 
     - name: upgrade rubygems
       run: gem update --system 3.0.6 --force || (gem i rubygems-update -v '<3' && update_rubygems) 
-      
+
     - name: Install Bundler if needed
       run: |
         if [ ! -e ~/.rubies/ruby-${{ matrix.ruby-version }}/bin/bundle ]; then
           sudo gem install bundler -v '~> 1' --no-document -​-bindir ~/.rubies/ruby-${{ matrix.ruby-version }}/bin
         fi
 
+    - name: find ~/.rubies/ruby-2.0.0-p648/bin bundle
+      run: find ~/.rubies/ruby-2.0.0-p648/bin bundle
+
+    - name: find /home/linuxbrew/.linuxbrew/bin bundle
+      run: find /home/linuxbrew/.linuxbrew/bin bundle
+
+    - name: find /home/linuxbrew/.linuxbrew/sbin bundle
+      run: find /home/linuxbrew/.linuxbrew/sbin bundle
+
+    - name: find /usr/share/rust/.cargo/bin bundle
+      run: find /usr/share/rust/.cargo/bin bundle
+
+    - name: find /home/runner/.config/composer/vendor/bin bundle
+      run: find /home/runner/.config/composer/vendor/bin bundle
+
+    - name: find /home/runner/.dotnet/tools bundle
+      run: find /home/runner/.dotnet/tools bundle
+
+    - name: find /snap/bin bundle
+      run: find /snap/bin bundle
+
+    - name: find /usr/local/sbin bundle
+      run: find /usr/local/sbin bundle
+
+    - name: find /usr/local/bin bundle
+      run: find /usr/local/bin bundle
+
+    - name: find /usr/sbin bundle
+      run: find /usr/sbin bundle
+
+    - name: find /usr/bin bundle
+      run: find /usr/bin bundle
+
+    - name: find /sbin bundle
+      run: find /sbin bundle
+
+    - name: find /bin bundle
+      run: find /bin bundle
+
+    - name: find /usr/games bundle
+      run: find /usr/games bundle
+
+    - name: find /usr/local/games
+      run: find /usr/local/games
+  
     - name: Show versions
       run: |
         sudo rm /usr/bin/ruby /usr/bin/gem 
