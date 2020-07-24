@@ -85,7 +85,7 @@ jobs:
         cp ~/work/newrelic-ruby-agent/Gemfile.lock ~/.bundle/
 
     - name: Restore Gemfile.lock
-      if: steps.bundler-cache.outputs.cache-hit = 'true'
+      if: steps.bundler-cache.outputs.cache-hit == 'true'
       run: cp  ~/.bundle/Gemfile.lock ~/work/newrelic-ruby-agent/
 
     - name: Show Gemfile
