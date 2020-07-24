@@ -84,7 +84,7 @@ jobs:
     - name: Install tree
       run: |
         sudo apt-get install tree
-        tree $GITHUB_WORKSPACE
+        tree ~/.bundle
 
     - name: Stash Gemfile.lock
       if: steps.bundler-cache.outputs.cache-hit != 'true'
