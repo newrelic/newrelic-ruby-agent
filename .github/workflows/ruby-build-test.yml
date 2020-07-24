@@ -56,7 +56,7 @@ jobs:
 
     - name: Show versions
       run: |
-        rm /usr/bin/ruby /usr/bin/gem
+        sudo rm /usr/bin/ruby /usr/bin/gem
         which ruby
         which gem
         echo $PATH
