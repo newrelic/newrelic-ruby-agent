@@ -67,37 +67,36 @@ jobs:
         ruby --version
         ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
         bundle --version
-        ls ~/work/newrelic-ruby-agent/*
 
-    # - uses: actions/cache@v2
-    #   id: bundler-cache
-    #   with:
-    #     path: |
-    #       ~/.bundle
-    #     key: v1-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/newrelic_rpm.gemspec') }}
-    #     restore-keys: |
-    #       v1-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/newrelic_rpm.gemspec') }}
+    - uses: actions/cache@v2
+      id: bundler-cache
+      with:
+        path: |
+          ~/.bundle
+        key: v1-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/newrelic-ruby-agent/newrelic_rpm.gemspec') }}
+        restore-keys: |
+          v1-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/newrelic-ruby-agent/newrelic_rpm.gemspec') }}
 
     - name: Bundler install
-      # if: steps.bundler-cache.outputs.cache-hit != 'true'
+      if: steps.bundler-cache.outputs.cache-hit != 'true'
       run: bundle install --path ~/.bundle
 
     - name: Install tree
       run: sudo apt-get install tree
-      
+
     - name: Keep Gemfile.lock
-      # if: steps.bundler-cache.outputs.cache-hit != 'true'
+      if: steps.bundler-cache.outputs.cache-hit != 'true'
       run: |
         tree ~/work
-        cp ~/work/newrelic-ruby-agent/Gemfile.lock ~/.bundle/
+        cp ~/work/newrelic-ruby-agent/newrelic-ruby-agent/Gemfile.lock ~/.bundle/
 
-    # - name: Restore Gemfile.lock
-    #   if: steps.bundler-cache.outputs.cache-hit == 'true'
-    #   run: cp  ~/.bundle/Gemfile.lock ~/work/newrelic-ruby-agent/
+    - name: Restore Gemfile.lock
+      if: steps.bundler-cache.outputs.cache-hit == 'true'
+      run: cp  ~/.bundle/Gemfile.lock ~/work/newrelic-ruby-agent/newrelic-ruby-agent/
 
     - name: Show Gemfile
       run: |
-        ls ~/work/newrelic-ruby-agent/*
+        ls ~/work/newrelic-ruby-agent/newrelic-ruby-agent/*
 
     - name: Run unit tests
       run: |
