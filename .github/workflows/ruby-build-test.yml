@@ -20,7 +20,7 @@ jobs:
     - uses: actions/cache@v2
       id: ruby-cache
       with:
-        path: /home/runner/.rubies/ruby-${{ matrix.ruby-version }}
+        path: ~/.rubies/ruby-${{ matrix.ruby-version }}
         key: ruby-cache-${{ matrix.ruby-version }}-${{ runner.os }}
         restore-keys: |
           ruby-cache-${{ matrix.ruby-version }}-${{ runner.os }}
@@ -41,16 +41,16 @@ jobs:
 
     - name: build Ruby ${{ matrix.ruby-version }}
       if: steps.ruby-cache.outputs.cache-hit != 'true'
-      run: ruby-build --verbose ${{ matrix.ruby-version }} /home/runner/.rubies/ruby-${{ matrix.ruby-version }}
+      run: ruby-build --verbose ${{ matrix.ruby-version }} ~/.rubies/ruby-${{ matrix.ruby-version }}
  
     - name: add Ruby to PATH
       run: |
-        export PATH="/home/runner/.rubies/ruby-${{ matrix.ruby-version }}/bin:$PATH"
-        echo "::add-path::/home/runner/.rubies/ruby-${{ matrix.ruby-version }}/bin"
+        export PATH="~/.rubies/ruby-${{ matrix.ruby-version }}/bin:$PATH"
+        echo "::add-path::~/.rubies/ruby-${{ matrix.ruby-version }}/bin"
 
     - name: Install Bundler if needed
       run: |
-        if [ ! -e /home/runner/.rubies/ruby-${{ matrix.ruby-version }}/bin/bundle ]; then
+        if [ ! -e ~/.rubies/ruby-${{ matrix.ruby-version }}/bin/bundle ]; then
           sudo gem install bundler -v '~> 1' --no-document
         fi
 
@@ -58,7 +58,7 @@ jobs:
       run: |
         which ruby
         echo $PATH
-        ls /home/runner/.rubies/**/*
+        ls ~/.rubies/**/*
         ruby --version
         ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
         bundle --version
