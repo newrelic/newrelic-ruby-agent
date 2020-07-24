@@ -80,7 +80,7 @@ jobs:
           ${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/newrelic_rpm.gemspec') }}
 
     - name: Bundler install
-      # if: steps.bundler-cache.outputs.cache-hit != 'true'
+      if: steps.bundler-cache.outputs.cache-hit != 'true'
       run: bundle install --path ~/.bundle
 
     - name: Show Gemfile
