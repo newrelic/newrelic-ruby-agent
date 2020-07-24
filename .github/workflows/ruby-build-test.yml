@@ -15,6 +15,11 @@ jobs:
       RUBY_CONFIGURE_OPTS: --enable-shared --disable-install-doc
       CPPFLAGS: "-DENABLE_PATH_CHECK=0" # https://github.com/actions/virtual-environments/issues/267
     steps:
+    - name: add Ruby to PATH
+      run: |
+        export PATH="~/.rubies/ruby-${{ matrix.ruby-version }}/bin:$PATH"
+        echo "::add-path::~/.rubies/ruby-${{ matrix.ruby-version }}/bin"
+
     - uses: actions/checkout@v2
 
     - uses: actions/cache@v2
@@ -43,12 +48,8 @@ jobs:
       if: steps.ruby-cache.outputs.cache-hit != 'true'
       run: ruby-build --verbose ${{ matrix.ruby-version }} ~/.rubies/ruby-${{ matrix.ruby-version }}
  
-    - name: add Ruby to PATH
-      run: |
-        export PATH="~/.rubies/ruby-${{ matrix.ruby-version }}/bin:$PATH"
-        echo "::add-path::~/.rubies/ruby-${{ matrix.ruby-version }}/bin"
-
     - name: Install Bundler if needed
+      if: steps.ruby-cache.outputs.cache-hit != 'true'
       run: |
         if [ ! -e ~/.rubies/ruby-${{ matrix.ruby-version }}/bin/bundle ]; then
           sudo gem install bundler -v '~> 1' --no-document
