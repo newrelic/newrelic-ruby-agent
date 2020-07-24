@@ -6,7 +6,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-18.04 ]
+        os: [ ubuntu-20.04 ]
         ruby-version: [ "2.0.0-p648" ]
         # ruby-version: [ "2.3.0", "2.3.1", "2.3.2", "2.3.3", "2.3.4", "2.3.5", "2.3.6", "2.3.7", "2.3.8" ]
     runs-on: ${{ matrix.os }}
