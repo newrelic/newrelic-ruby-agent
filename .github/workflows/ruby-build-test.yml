@@ -73,26 +73,25 @@ jobs:
       with:
         path: |
           ~/.bundle
-        key: v3-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('$GITHUB_WORKSPACE/newrelic_rpm.gemspec') }}
+        key: v4-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('$GITHUB_WORKSPACE/newrelic_rpm.gemspec') }}
         restore-keys: |
-          v3-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('$GITHUB_WORKSPACE/newrelic_rpm.gemspec') }}
-
-    - name: Bundler install
-      if: steps.bundler-cache.outputs.cache-hit != 'true'
-      run: bundle install --path ~/.bundle
-
-    - name: Install tree
-      run: |
-        sudo apt-get install tree
-        tree ~/.bundle
-
-    - name: Stash Gemfile.lock
-      if: steps.bundler-cache.outputs.cache-hit != 'true'
-      run: cp $GITHUB_WORKSPACE/Gemfile.lock ~/.bundle/
+          v4-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('$GITHUB_WORKSPACE/newrelic_rpm.gemspec') }}
 
     - name: Restore Gemfile.lock
       if: steps.bundler-cache.outputs.cache-hit == 'true'
       run: cp  ~/.bundle/Gemfile.lock $GITHUB_WORKSPACE/
+
+    - name: Bundler install
+      run: bundle install --path ~/.bundle
+
+    # - name: Install tree
+    #   run: |
+    #     sudo apt-get install tree
+    #     tree ~/.bundle
+
+    - name: Stash Gemfile.lock
+      if: steps.bundler-cache.outputs.cache-hit != 'true'
+      run: cp $GITHUB_WORKSPACE/Gemfile.lock ~/.bundle/
 
     - name: Show Gemfile
       run: |
