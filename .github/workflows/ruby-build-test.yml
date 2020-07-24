@@ -89,5 +89,6 @@ jobs:
     - name: Run unit tests
       run: |
         bundle list
+        bundle exec ruby --version
         # bundle exec rake test
 
