@@ -87,6 +87,7 @@ jobs:
     - name: Keep Gemfile.lock
       if: steps.bundler-cache.outputs.cache-hit != 'true'
       run: |
+        echo $GITHUB_WORKSPACE
         tree ~/work
         cp ~/work/newrelic-ruby-agent/newrelic-ruby-agent/Gemfile.lock ~/.bundle/
 
