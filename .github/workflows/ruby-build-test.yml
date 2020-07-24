@@ -57,13 +57,9 @@ jobs:
     - name: Show versions
       run: |
         sudo rm /usr/bin/ruby /usr/bin/gem
-        which ruby
-        which gem
-        echo $PATH
         ls ~/.rubies/**/*
         ruby --version
         ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
-        which bundle
         bundle --version
         ls ~/work/newrelic-ruby-agent/*
 
