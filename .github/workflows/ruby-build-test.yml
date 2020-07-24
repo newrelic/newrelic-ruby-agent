@@ -65,7 +65,6 @@ jobs:
         ls ~/.rubies/**/bin/*
         ruby --version
         ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
-        which bundle
         bundle --version
         ls ~/work/newrelic-ruby-agent/*
 
