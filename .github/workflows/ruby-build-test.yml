@@ -43,17 +43,16 @@ jobs:
       if: steps.ruby-cache.outputs.cache-hit != 'true'
       run: ruby-build --verbose ${{ matrix.ruby-version }} /home/runner/.rubies/ruby-${{ matrix.ruby-version }}
  
-    - name: Install Bundler if needed
-      if: steps.ruby-cache.outputs.cache-hit != 'true'
-      run: |
-        if [ ! -e /home/runner/.rubies/ruby-${{ matrix.ruby-version }}/bin/bundle ]; then
-          sudo gem install bundler -v '~> 1' --no-document
-        fi
-
     - name: add Ruby to PATH
       run: |
         export PATH="/home/runner/.rubies/ruby-${{ matrix.ruby-version }}/bin:$PATH"
         echo "::add-path::/home/runner/.rubies/ruby-${{ matrix.ruby-version }}/bin"
+
+    - name: Install Bundler if needed
+      run: |
+        if [ ! -e /home/runner/.rubies/ruby-${{ matrix.ruby-version }}/bin/bundle ]; then
+          sudo gem install bundler -v '~> 1' --no-document
+        fi
 
     - name: Show versions
       run: |
