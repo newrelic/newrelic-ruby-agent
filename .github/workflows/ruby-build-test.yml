@@ -84,22 +84,15 @@ jobs:
     - name: Bundler install
       run: bundle install --path ~/.bundle
 
-    # - name: Install tree
-    #   run: |
-    #     sudo apt-get install tree
-    #     tree ~/.bundle
-
     - name: Stash Gemfile.lock
       if: steps.bundler-cache.outputs.cache-hit != 'true'
       run: cp $GITHUB_WORKSPACE/Gemfile.lock ~/.bundle/
 
-    - name: Show Gemfile
+    - name: bundle list
       run: |
-        ls $GITHUB_WORKSPACE/*
+        bundle exec ruby --version
+        bundle list
 
     - name: Run unit tests
-      run: |
-        bundle list
-        bundle exec ruby --version
-        # bundle exec rake test
+      run: bundle exec rake test
 
