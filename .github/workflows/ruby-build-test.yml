@@ -48,7 +48,10 @@ jobs:
     - name: build Ruby ${{ matrix.ruby-version }}
       if: steps.ruby-cache.outputs.cache-hit != 'true'
       run: ruby-build --verbose ${{ matrix.ruby-version }} ~/.rubies/ruby-${{ matrix.ruby-version }}
- 
+
+    - name: upgrade rubygems
+      run: gem update --system 3.0.6 --force || (gem i rubygems-update -v '<3' && update_rubygems) 
+      
     - name: Install Bundler if needed
       run: |
         if [ ! -e ~/.rubies/ruby-${{ matrix.ruby-version }}/bin/bundle ]; then
