@@ -113,6 +113,8 @@ jobs:
 
     - name: Show versions
       run: |
+        which ruby
+        echo $PATH
         ruby --version
         ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
         bundle --version
