@@ -58,51 +58,6 @@ jobs:
           sudo gem install bundler -v '~> 1' --no-document -​-bindir ~/.rubies/ruby-${{ matrix.ruby-version }}/bin
         fi
 
-    - name: find ~/.rubies/ruby-2.0.0-p648/bin -name bundle
-      run: find ~/.rubies/ruby-2.0.0-p648/bin -name bundle
-
-    - name: find /home/linuxbrew/.linuxbrew/bin -name bundle
-      run: find /home/linuxbrew/.linuxbrew/bin -name bundle
-
-    - name: find /home/linuxbrew/.linuxbrew/sbin -name bundle
-      run: find /home/linuxbrew/.linuxbrew/sbin -name bundle
-
-    - name: find /usr/share/rust/.cargo/bin -name bundle
-      run: find /usr/share/rust/.cargo/bin -name bundle
-
-    - name: find /home/runner/.config/composer/vendor/bin -name bundle
-      run: find /home/runner/.config/composer/vendor/bin -name bundle
-
-    - name: find /home/runner/.dotnet/tools -name bundle
-      run: find /home/runner/.dotnet/tools -name bundle
-
-    - name: find /snap/bin -name bundle
-      run: find /snap/bin -name bundle
-
-    - name: find /usr/local/sbin -name bundle
-      run: find /usr/local/sbin -name bundle
-
-    - name: find /usr/local/bin -name bundle
-      run: find /usr/local/bin -name bundle
-
-    - name: find /usr/sbin -name bundle
-      run: find /usr/sbin -name bundle
-
-    - name: find /usr/bin -name bundle
-      run: find /usr/bin -name bundle
-
-    - name: find /sbin -name bundle
-      run: find /sbin -name bundle
-
-    - name: find /bin -name bundle
-      run: find /bin -name bundle
-
-    - name: find /usr/games -name bundle
-      run: find /usr/games -name bundle
-
-    - name: find /usr/local/games -name bundle
-      run: find /usr/local/games -name bundle  
-  
     - name: Show versions
       run: |
         sudo rm /usr/bin/ruby /usr/bin/gem 
