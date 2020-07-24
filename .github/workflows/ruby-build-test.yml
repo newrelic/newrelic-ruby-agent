@@ -85,7 +85,7 @@ jobs:
       run: |
         ls ~/.bundle/*
         ls ~/.bundle/**/*
-        ls ~/work/**/*
+        ls ~/work/newrelic-ruby-agent/newrelic-ruby-agent/Gemfile*
 
     - name: Run unit tests
       run: |
