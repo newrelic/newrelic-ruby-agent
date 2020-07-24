@@ -121,14 +121,14 @@ jobs:
         bundle --version
         ls ~/work/newrelic-ruby-agent/*
 
-    - uses: actions/cache@v2
-      id: bundler
-      with:
-        path: |
-          ~/.bundle
-        key: ${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/Gemfile.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/Gemfile.lock') }}
+    # - uses: actions/cache@v2
+    #   id: bundler
+    #   with:
+    #     path: |
+    #       ~/.bundle
+    #     key: ${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/Gemfile.lock') }}
+    #     restore-keys: |
+    #       ${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/Gemfile.lock') }}
 
     - name: Bundler install
       run: bundle install --path ~/.bundle
