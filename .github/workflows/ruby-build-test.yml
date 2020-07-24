@@ -82,14 +82,14 @@ jobs:
       run: bundle install --path ~/.bundle
 
     - name: Install tree
-      run: sudo apt-get install tree
-
-    - name: Keep Gemfile.lock
-      if: steps.bundler-cache.outputs.cache-hit != 'true'
       run: |
+        sudo apt-get install tree
         echo $GITHUB_WORKSPACE
-        tree ~/work
-        cp ~/work/newrelic-ruby-agent/newrelic-ruby-agent/Gemfile.lock ~/.bundle/
+        tree $GITHUB_WORKSPACE
+
+    - name: Stash Gemfile.lock
+      if: steps.bundler-cache.outputs.cache-hit != 'true'
+      run: cp ~/work/newrelic-ruby-agent/newrelic-ruby-agent/Gemfile.lock ~/.bundle/
 
     - name: Restore Gemfile.lock
       if: steps.bundler-cache.outputs.cache-hit == 'true'
