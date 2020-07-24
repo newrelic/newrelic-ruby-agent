@@ -49,7 +49,6 @@ jobs:
       run: ruby-build --verbose ${{ matrix.ruby-version }} ~/.rubies/ruby-${{ matrix.ruby-version }}
  
     - name: Install Bundler if needed
-      if: steps.ruby-cache.outputs.cache-hit != 'true'
       run: |
         if [ ! -e ~/.rubies/ruby-${{ matrix.ruby-version }}/bin/bundle ]; then
           sudo gem install bundler -v '~> 1' --no-document
@@ -62,6 +61,7 @@ jobs:
         ls ~/.rubies/**/*
         ruby --version
         ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
+        which bundle
         bundle --version
         ls ~/work/newrelic-ruby-agent/*
 
