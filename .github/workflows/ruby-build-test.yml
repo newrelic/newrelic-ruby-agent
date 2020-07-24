@@ -115,6 +115,7 @@ jobs:
       run: |
         which ruby
         echo $PATH
+        ls /home/runner/.rubies/ruby-2.0.0-p648/bin/*
         ruby --version
         ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
         bundle --version
