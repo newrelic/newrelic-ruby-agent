@@ -2,64 +2,7 @@ name: Build me a Ruby
 on: push
 
 jobs:
-  ruby-install-build:
-    if: false
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ ubuntu-latest ]
-        ruby: [ ruby-2.6.6 ]
-    runs-on: ${{ matrix.os }}
-    env:
-      LANG: C.UTF-8
-    steps:
-    - uses: actions/checkout@v2
-    - name: Set tag name
-      id: info
-      run: |
-        tag=enable-shared
-        echo "::set-output name=tag::$tag"
-    - name: Clone ruby-install
-      run: git clone https://github.com/postmodern/ruby-install.git
-    - name: Install ruby-install
-      run: make install
-      working-directory: ./ruby-install
-
-    - name: List versions
-      run: ruby-install
-
-      # Install packages
-    - run: apt-get update
-      if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.ruby, 'ruby-')
-    - run: apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev
-      if: startsWith(matrix.os, 'ubuntu') && startsWith(matrix.ruby, 'ruby-')
-
-    - name: Build Ruby
-      run: ruby-install --no-install-deps -j4 ${{ matrix.ruby }} -- --enable-shared --disable-install-doc
-      env:
-        CPPFLAGS: "-DENABLE_PATH_CHECK=0" # https://github.com/actions/virtual-environments/issues/267
-    - name: Install Bundler if needed
-      run: |
-        if [ ! -e ~/.rubies/${{ matrix.ruby }}/bin/bundle ]; then
-          export PATH="$HOME/.rubies/${{ matrix.ruby }}/bin:$PATH"
-          gem install bundler -v '~> 1' --no-document
-        fi
-
-    - name: Show versions
-      run: |
-        ruby --version
-        bundle --version
-        bundle exec rake --version
-    - name: Bundler install
-      run: bundle install
-
-    - name: Run unit tests
-      run: bundle exec rake test
-
-  # Ruby <= 2.3 needs OpenSSL 1.0.2 which cannot be installed on Ubuntu 16.04 and macos-latest.
-  # To workaround that, we use ruby-build which builds its own OpenSSL.
   ruby-build:
-    if: true
     strategy:
       fail-fast: false
       matrix:
@@ -115,7 +58,7 @@ jobs:
       run: |
         which ruby
         echo $PATH
-        ls /home/runner/.rubies/ruby-2.0.0-p648/bin/*
+        ls $HOME/.rubies/ruby-2.0.0-p648/*
         ruby --version
         ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
         bundle --version
