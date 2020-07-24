@@ -27,9 +27,9 @@ jobs:
       id: ruby-cache
       with:
         path: ~/.rubies/ruby-${{ matrix.ruby-version }}
-        key: v1-ruby-cache-${{ matrix.ruby-version }}-${{ runner.os }}
+        key: v1-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
         restore-keys: |
-          v1-ruby-cache-${{ matrix.ruby-version }}-${{ runner.os }}
+          v1-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
 
     - name: Clone ruby-build
       if: steps.ruby-cache.outputs.cache-hit != 'true'
@@ -73,9 +73,9 @@ jobs:
       with:
         path: |
           ~/.bundle
-        key: v4-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('$GITHUB_WORKSPACE/newrelic_rpm.gemspec') }}
+        key: v1-${{ matrix.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('$GITHUB_WORKSPACE/newrelic_rpm.gemspec') }}
         restore-keys: |
-          v4-${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('$GITHUB_WORKSPACE/newrelic_rpm.gemspec') }}
+          v1-${{ matrix.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('$GITHUB_WORKSPACE/newrelic_rpm.gemspec') }}
 
     - name: Restore Gemfile.lock
       if: steps.bundler-cache.outputs.cache-hit == 'true'
