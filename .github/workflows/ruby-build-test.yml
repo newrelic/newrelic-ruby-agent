@@ -57,6 +57,7 @@ jobs:
     - name: Show versions
       run: |
         which ruby
+        which gem
         echo $PATH
         ls ~/.rubies/**/*
         ruby --version
