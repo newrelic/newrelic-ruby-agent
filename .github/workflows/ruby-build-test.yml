@@ -56,7 +56,7 @@ jobs:
 
     - name: Show versions
       run: |
-        sudo rm /usr/bin/ruby /usr/bin/gem
+        sudo rm /usr/bin/ruby /usr/bin/gem /usr/local/bin/bundle
         ls ~/.rubies/**/*
         ruby --version
         ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
