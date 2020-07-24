@@ -122,19 +122,18 @@ jobs:
       id: bundler
       with:
         path: |
-          vendor/bundle
-          ~/work/newrelic-ruby-agent/Gemfile.lock
-        key: ${{ runner.os }}-${{ matrix.ruby-version }}-gems-${{ hashFiles('**/*.gemspec') }}
+          ~/.bundle
+        key: ${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/Gemfile.lock') }}
         restore-keys: |
-          ${{ runner.os }}-${{ matrix.ruby-version }}-gems-${{ hashFiles('**/*.gemspec') }}
+          ${{ runner.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('~/work/newrelic-ruby-agent/Gemfile.lock') }}
 
     - name: Bundler install
-      if: steps.bundler.outputs.cache-hit != 'true'
-      run: bundle install
+      run: bundle install --path ~/.bundle
 
     - name: Show Gemfile
       run: |
-        ls ~/work/newrelic-ruby-agent/*
+        ls ~/.bundle/*
+        ls ~/.bundle/**/*
 
     - name: Run unit tests
       run: |
