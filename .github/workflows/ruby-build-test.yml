@@ -16,7 +16,7 @@ jobs:
     steps:
     - name: add Ruby to PATH
       run: |
-        echo "::add-path::~/.rubies/ruby-${{ matrix.ruby-version }}/bin"
+        export PATH="~/.rubies/ruby-${{ matrix.ruby-version }}/bin:$PATH"
         echo $PATH
 
     - uses: actions/checkout@v2
@@ -31,7 +31,7 @@ jobs:
 
     - name: Clone ruby-build
       if: steps.ruby-cache.outputs.cache-hit != 'true'
-      run: "git clone --branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git $HOME/ruby-build"
+      run: "git clone --branch ruby23-openssl-linux https://github.com/rbenv/ruby-build $HOME/ruby-build"
 
     - name: install ruby-build
       if: steps.ruby-cache.outputs.cache-hit != 'true'
