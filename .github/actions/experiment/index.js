@@ -21,6 +21,8 @@ async function run() {
       core.setOutput('results', 'outputVal');
     });
 
+    core.setOutput('results', 'outputVal');
+
   } catch (error) {
     core.setFailed(error.message);
   }
