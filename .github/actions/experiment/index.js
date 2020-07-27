@@ -17,7 +17,9 @@ try {
         console.log(`stderr: ${stderr}`);
         return;
     }
-    core.setOutput("output", $stdout);
+    output = $stdout;
+    console.log(output);
+    core.setOutput("output", output);
   });
 
   // Get the JSON webhook payload for the event that triggered the workflow
