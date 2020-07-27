@@ -13,10 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Setup Ruby
+        id: setup-ruby
         uses: ./.github/actions/experiment
         with:
           ruby-version: 2.3
       - name: show output
-        run: echo ${{ output }}
+        run: echo "${{ steps.setup-ruby.outputs.output }}"
       - name: show me something
         run: ruby --version
