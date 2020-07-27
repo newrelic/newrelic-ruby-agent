@@ -7,7 +7,7 @@ async function run() {
     const rubyVersion = core.getInput('ruby-version');
     console.log(`Using ${rubyVersion}`);
     
-    await exec.exec("ruby ./.github/actions/experiment/index.rb", (error, stdout, stderr) => {
+    output = await exec.exec("ruby ./.github/actions/experiment/index.rb", (error, stdout, stderr) => {
       if (error) {
           core.setFailed(error.message);
           return;
@@ -16,11 +16,11 @@ async function run() {
           core.setFailed(stderr);
           return;
       }
-      output = stdout;
-      console.log(output);
-      core.setOutput('results', output);
+      return stdout;
     });
 
+    console.log(output);
+    core.setOutput('results', output);
 
   } catch (error) {
     core.setFailed(error.message);
