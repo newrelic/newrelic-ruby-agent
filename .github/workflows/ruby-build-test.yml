@@ -17,6 +17,7 @@ jobs:
     - name: add Ruby to PATH
       run: |
         export PATH="~/.rubies/ruby-${{ matrix.ruby-version }}/bin:$PATH"
+        echo "::add-path::~/.rubies/ruby-${{ matrix.ruby-version }}/bin"
         echo $PATH
 
     - uses: actions/checkout@v2
