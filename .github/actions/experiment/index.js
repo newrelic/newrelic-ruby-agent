@@ -9,7 +9,7 @@ try {
   const rubyVersion = core.getInput('ruby-version');
   console.log(`Using ${rubyVersion}`);
   
-  exec.exec("/usr/bin/ruby ./.github/actions/experiment/index.rb", (error, stdout, stderr) => {
+  await exec.exec("/usr/bin/ruby ./.github/actions/experiment/index.rb", (error, stdout, stderr) => {
     if (error) {
         core.setFailed(error.message);
         return;
