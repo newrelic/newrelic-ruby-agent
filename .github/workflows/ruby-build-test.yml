@@ -26,13 +26,13 @@ jobs:
       id: ruby-cache
       with:
         path: ~/.rubies/ruby-${{ matrix.ruby-version }}
-        key: v1-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
+        key: v2-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
         restore-keys: |
-          v1-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
+          v2-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
 
     - name: Clone ruby-build
       if: steps.ruby-cache.outputs.cache-hit != 'true'
-      run: "git clone --branch ruby23-openssl-linux https://github.com/rbenv/ruby-build $HOME/ruby-build"
+      run: "git clone https://github.com/rbenv/ruby-build $HOME/ruby-build"
 
     - name: install ruby-build
       if: steps.ruby-cache.outputs.cache-hit != 'true'
