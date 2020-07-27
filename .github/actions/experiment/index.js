@@ -18,7 +18,7 @@ async function run() {
       }
     });
 
-    output = $stdout;
+    output = `$stdout`;
     console.log(output);
     core.setOutput('results', output);
 
