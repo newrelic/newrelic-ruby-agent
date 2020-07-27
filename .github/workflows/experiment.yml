@@ -16,5 +16,7 @@ jobs:
         uses: ./.github/actions/experiment
         with:
           ruby-version: 2.3
+      - name: show output
+        run: echo ${{ output }}
       - name: show me something
         run: ruby --version
