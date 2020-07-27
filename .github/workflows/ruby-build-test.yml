@@ -31,11 +31,11 @@ jobs:
           v2-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
 
     - name: Clone rbenv/ruby-build
-      if: steps.ruby-cache.outputs.cache-hit != 'true' && ${{ matrix.ruby-version >= "2.4.0" }}
+      if: steps.ruby-cache.outputs.cache-hit != 'true' && ${{ matrix.ruby-version }} >= "2.4.0"
       run: "git clone https://github.com/rbenv/ruby-build $HOME/ruby-build"
 
     - name: Clone eregon/ruby-build
-      if: steps.ruby-cache.outputs.cache-hit != 'true' && ${{ matrix.ruby-version < "2.4.0" }}
+      if: steps.ruby-cache.outputs.cache-hit != 'true' && ${{ matrix.ruby-version }} < "2.4.0"
       run: "git clone --branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git $HOME/ruby-build"
 
     - name: install ruby-build
