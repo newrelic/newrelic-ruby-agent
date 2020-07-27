@@ -1,12 +1,12 @@
 name: 'Hello World'
 description: 'Greet someone and record the time'
 inputs:
-  ruby-version:  # id of input
+  ruby-version:
     description: 'Version of Ruby we want to use'
     required: true
     default: '2.0.0-p648'
 outputs:
-  output: # id of output
+  results: 
     description: 'The output!'
 runs:
   using: 'node12'

@@ -20,7 +20,7 @@ try {
     }
     output = $stdout;
     console.log(output);
-    core.setOutput("output", output);
+    core.setOutput("results", "it works");
   });
 
   // // Get the JSON webhook payload for the event that triggered the workflow
