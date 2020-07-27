@@ -6,7 +6,7 @@ inputs:
     required: true
     default: '2.0.0-p648'
 outputs:
-  results: # id of output
+  output: # id of output
     description: 'The output!'
 runs:
   using: 'node12'
