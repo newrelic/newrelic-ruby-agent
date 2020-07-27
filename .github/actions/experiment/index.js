@@ -16,12 +16,11 @@ async function run() {
           core.setFailed(stderr);
           return;
       }
-      // output = $stdout;
-      // console.log(output);
-      core.setOutput('results', 'outputVal');
     });
 
-    core.setOutput('results', 'outputVal');
+    output = $stdout;
+    console.log(output);
+    core.setOutput('results', output);
 
   } catch (error) {
     core.setFailed(error.message);
