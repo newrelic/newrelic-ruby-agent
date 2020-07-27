@@ -1,13 +1,13 @@
 name: 'Hello World'
 description: 'Greet someone and record the time'
 inputs:
-  who-to-greet:  # id of input
-    description: 'Who to greet'
+  ruby-version:  # id of input
+    description: 'Version of Ruby we want to use'
     required: true
-    default: 'World'
+    default: '2.0.0-p648'
 outputs:
-  time: # id of output
-    description: 'The time we greeted you'
+  results: # id of output
+    description: 'The output!'
 runs:
   using: 'node12'
   main: 'index.js'
