@@ -20,7 +20,7 @@ jobs:
           ruby-version: 2.3
 
       - name: show output
-        run: echo "${{ steps.setup-ruby.outputs.output }}"
+        run: echo "${{ steps.setup-ruby.outputs.results }}"
 
       - name: show me something
         run: ruby --version
