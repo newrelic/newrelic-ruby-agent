@@ -1,14 +1,14 @@
 const core = require('@actions/core');
 const github = require('@actions/github');
 
-const { exec } = require("child_process");
+// const { exec } = require("child_process");
 
 
 try {
   const rubyVersion = core.getInput('ruby-version');
   console.log(`Using ${rubyVersion}`);
   
-  exec("/usr/bin/ruby ./.github/actions/experiment/index.rb", (error, stdout, stderr) => {
+  await exec("/usr/bin/ruby ./.github/actions/experiment/index.rb", (error, stdout, stderr) => {
     if (error) {
         console.log(`error: ${error.message}`);
         return;
