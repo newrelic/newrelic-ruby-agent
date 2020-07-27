@@ -12,14 +12,15 @@ jobs:
       LANG: C.UTF-8
     steps:
       - uses: actions/checkout@v2
-      - name: fix world writable errors
-        run:  sudo chmod -R 755 /home/linuxbrew /usr/share
+
       - name: Setup Ruby
         id: setup-ruby
         uses: ./.github/actions/experiment
         with:
           ruby-version: 2.3
+
       - name: show output
         run: echo "${{ steps.setup-ruby.outputs.output }}"
+
       - name: show me something
         run: ruby --version
