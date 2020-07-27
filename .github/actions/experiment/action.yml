@@ -9,5 +9,5 @@ outputs:
   time: # id of output
     description: 'The time we greeted you'
 runs:
-  using: 'ruby'
-  main: 'index.rb'
+  using: 'node12'
+  main: 'index.js'
