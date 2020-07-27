@@ -6,8 +6,8 @@ inputs:
     required: true
     default: '2.0.0-p648'
 outputs:
-  results: 
-    description: 'The output!'
+  results:
+    description: 'The output'
 runs:
   using: 'node12'
   main: 'index.js'
