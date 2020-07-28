@@ -90,16 +90,22 @@ async function buildRuby(rubyVersion) {
   core.endGroup()
 }
 
-async function getGemVersion() {
-  return await execute('gem --version')
+function chomp(raw_text)
+{
+  return raw_text.replace(/(\n|\r)+$/, '');
+}
+
+function getGemVersion() {
+  return await chomp(execute('gem --version')).trim()
 }
 
 async function upgradeRubyGems(rubyVersion) {
   core.startGroup(`Upgrade RubyGems`)
 
-  const gemVersionStr = await getGemVersion()
+  const gemVersionStr = getGemVersion()
 
   console.log(`Current RubyGems is ${gemVersionStr}`)
+
   if (parseFloat(rubyVersion) < 2.7) {
 
     if (parseFloat(gemVersionStr) < 3.0) {
