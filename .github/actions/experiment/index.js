@@ -85,7 +85,7 @@ async function buildRuby(rubyVersion) {
   core.endGroup()
 }
 
-async function getGemVersion {
+async function getGemVersion() {
   await execRuby("Gem::VERSION")
 }
 
