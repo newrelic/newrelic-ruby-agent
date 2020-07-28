@@ -32,7 +32,7 @@ function execute(command) {
 
 async function execRuby(command, options = '') {
   try {
-    const result = await execute(`ruby ${options} -c ${command}`)
+    const result = await execute(`ruby ${options} -c "${command}"`)
     console.log(`executing Ruby returns: ${result}`)
     return result
   } 
