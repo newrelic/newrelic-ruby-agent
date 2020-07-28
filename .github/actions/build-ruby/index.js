@@ -31,16 +31,9 @@ function execute(command) {
 }
 
 async function execRuby(command, options = '') {
-  try {
-    const result = await execute(`ruby ${options} -c "${command}"`)
-    console.log(`executing Ruby returns: ${result}`)
-    return result
-  } 
-  catch (error) {
-    errorStr = error.toString()
-    console.error(errorStr)
-    core.setFailed(errorStr)
-  }  
+  const result = await execute(`ruby ${options} -c "${command}"`)
+  console.log(`executing Ruby returns: ${result}`)
+  return result
 }
 
 async function installSystemDependencies() {
@@ -96,7 +89,7 @@ async function buildRuby(rubyVersion) {
 }
 
 async function getGemVersion() {
-  await execRuby('puts Gem::VERSION', '')
+  return await execute('gem --version')
 }
 
 async function upgradeRubyGems() {
