@@ -130,7 +130,6 @@ async function installBundler(rubyVersion) {
   const bundlePath = `${process.env.HOME}/.rubies/ruby-${rubyVersion}/bin`
 
   if (!fs.existsSync(`${bundlePath}/bundle`)) {
-    await exec.exec('sudo', ['gem', 'update', '--system', '3.0.6', '--force'])
     await exec.exec('sudo', ['gem', 'install', 'bundler', '-v', '~> 1', '--no-document', '--bindir', bundlePath])
   }
 
@@ -144,9 +143,9 @@ async function buildThatRuby() {
     setupBuildEnvironment()
     addRubyToPath(rubyVersion)
 
-    // await installRubyBuild(rubyVersion)
-    // await installSystemDependencies()
-    // await buildRuby(rubyVersion)
+    await installRubyBuild(rubyVersion)
+    await installSystemDependencies()
+    await buildRuby(rubyVersion)
     await upgradeRubyGems(rubyVersion)
     await installBundler(rubyVersion)
 
