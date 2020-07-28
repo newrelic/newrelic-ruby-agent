@@ -45,7 +45,7 @@ async function installSystemDependencies() {
   console.log(`installing system dependencies ${dependencyList}`)
 
   await exec.exec('sudo apt-get update')
-  await exec.exec('sudo apt-get install -y --no-install-recommends ${dependencyList}')
+  await exec.exec(`sudo apt-get install -y --no-install-recommends ${dependencyList}`)
 
   core.endGroup()
 }
