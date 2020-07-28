@@ -136,11 +136,11 @@ async function buildThatRuby() {
     setupBuildEnvironment()
     addRubyToPath(rubyVersion)
 
-    await installRubyBuild(rubyVersion)
-    await installSystemDependencies()
-    await buildRuby(rubyVersion)
+    // await installRubyBuild(rubyVersion)
+    // await installSystemDependencies()
+    // await buildRuby(rubyVersion)
     await upgradeRubyGems(rubyVersion)
-    await installBundler(rubyVersion)
+    // await installBundler(rubyVersion)
 
   }
   catch (error) {
