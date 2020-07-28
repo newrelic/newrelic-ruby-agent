@@ -10,11 +10,17 @@ function execute(command) {
   return new Promise(function(resolve, reject) {
     exec.exec(command, function(error, standardOutput, standardError) {
       if (error) {
+        errorStr = error.toString()
+        console.error(errorStr)
+        core.setFailed(errorStr)
         reject()
         return
       }
 
       if (standardError) {
+        errorStr = standardError.toString()
+        console.error(errorStr)
+        core.setFailed(errorStr)
         reject(standardError)
         return
       }
@@ -24,9 +30,9 @@ function execute(command) {
   })
 }
 
-async function execRuby(command) {
+async function execRuby(command, options = '') {
   try {
-    const result = await execute(`ruby ${command}`)
+    const result = await execute(`ruby ${options} -c ${command}`)
     console.log(`executing Ruby returns: ${result}`)
     return result
   } 
@@ -90,7 +96,7 @@ async function buildRuby(rubyVersion) {
 }
 
 async function getGemVersion() {
-  await execRuby("Gem::VERSION")
+  await execRuby('puts Gem::VERSION', '')
 }
 
 async function upgradeRubyGems() {
