@@ -54,13 +54,14 @@ async function installRubyBuild(rubyVersion) {
   core.startGroup(`Installing ruby-build`)
 
   const buildDir = `${process.env.HOME}/ruby-build`
+  var repoPath
 
   if (rubyVersion.match(/^2\.[012]/)) {
     console.log('cloning eregon/ruby-build')
-    const repoPath = '--branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git'
+    repoPath = '--branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git'
   } else {
     console.log('cloning rbenv/ruby-build')
-    const repoPath = 'https://github.com/rbenv/ruby-build.git'
+    repoPath = 'https://github.com/rbenv/ruby-build.git'
   }
 
   await exec.exec(`git clone ${repoPath} ${buildDir}`)
