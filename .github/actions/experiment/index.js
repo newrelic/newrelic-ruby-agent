@@ -124,7 +124,7 @@ async function installBundler(rubyVersion) {
   core.endGroup()
 }
 
-try {
+async try {
   const rubyVersion = core.getInput('ruby-version');
 
   setupBuildEnvironment()
