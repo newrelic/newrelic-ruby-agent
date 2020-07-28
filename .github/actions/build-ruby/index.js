@@ -7,19 +7,19 @@ const github = require('@actions/github')
 const exec = require('@actions/exec')
 
 async function execute(command) {
-  let outputStr = '';
-  let errorStr = '';
+  let outputStr = ''
+  let errorStr = ''
 
-  const options = {};
+  const options = {}
   options.listeners = {
     stdout: (data: Buffer) => {
-      outputStr += data.toString();
+      outputStr += data.toString()
     },
     stderr: (data: Buffer) => {
-      errorStr += data.toString();
+      errorStr += data.toString()
     }
-  };
-  options.cwd = './lib';  
+  }
+  options.cwd = './lib'
 
   await exec.exec(command, [], options)
   if (errorStr === '') {
