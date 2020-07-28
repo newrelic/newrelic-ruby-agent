@@ -110,7 +110,7 @@ async function upgradeRubyGems(rubyVersion) {
 
     if (parseFloat(gemVersionStr) < 3.0) {
       console.log(`Ruby < 2.7, upgrading RubyGems from ${gemVersionStr}`)
-      await exec.exec("gem update --system 3.0.6 --force || (gem i rubygems-update -v '<3' && update_rubygems)")
+      await exec.exec('sudo', ['gem', 'update', '--system', '3.0.6', '--force'])
     }
     else {
       console.log(`Ruby < 2.7, but RubyGems already at ${gemVersionStr}`)
@@ -130,6 +130,7 @@ async function installBundler(rubyVersion) {
   const bundlePath = `${process.env.HOME}/.rubies/ruby-${rubyVersion}/bin`
 
   if (!fs.existsSync(`${bundlePath}/bundle`)) {
+    await exec.exec('sudo', ['gem', 'update', '--system', '3.0.6', '--force'])
     await exec.exec('sudo', ['gem', 'install', 'bundler', '-v', '~> 1', '--no-document', '--bindir', bundlePath])
   }
 
