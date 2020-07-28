@@ -17,9 +17,10 @@ async function execute(command) {
     },
     stderr: (data) => {
       errorStr += data.toString()
-    }
+    },
+    cwd: './lib'
   }
-  options.cwd = './lib'
+  // options.cwd = './lib'
 
   await exec.exec(command, [], options)
   if (errorStr === '') {
