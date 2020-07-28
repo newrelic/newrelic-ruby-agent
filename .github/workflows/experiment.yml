@@ -22,7 +22,7 @@ jobs:
       - name: Show versions
         run: |
           echo $PATH
-          ls ~/.rubies/**/bin/*
+          ls $HOME/.rubies/**/bin/*
           which ruby
           ruby --version
           ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
