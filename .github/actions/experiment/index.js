@@ -80,12 +80,12 @@ function setupBuildEnvironment() {
 }
 
 function addRubyToPath(rubyVersion) {
-  core.addPath(`~/.rubies/ruby-${rubyVersion}/bin`)
+  core.addPath(`${process.env.HOME}/.rubies/ruby-${rubyVersion}/bin`)
 }
 
 async function buildRuby(rubyVersion) {
   core.startGroup(`Build Ruby ${rubyVersion}`)
-  await exec.exec(`ruby-build --verbose ${rubyVersion} ~/.rubies/ruby-${rubyVersion}`) 
+  await exec.exec(`ruby-build --verbose ${rubyVersion} ${process.env.HOME}/.rubies/ruby-${rubyVersion}`) 
   core.endGroup()
 }
 
@@ -119,7 +119,7 @@ async function upgradeRubyGems() {
 async function installBundler(rubyVersion) {
   core.startGroup(`Install bundler`)
 
-  const bundlePath = `~/.rubies/ruby-${rubyVersion}/bin`
+  const bundlePath = `${process.env.HOME}/.rubies/ruby-${rubyVersion}/bin`
 
   if (!fs.existsSync(`${bundlePath}/bundle`)) {
     await exec.exec(`sudo gem install bundler -v '~> 1' --no-document -​-bindir ${bundlePath}`)
