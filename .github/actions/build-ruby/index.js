@@ -96,7 +96,7 @@ function chomp(raw_text)
 }
 
 function getGemVersion() {
-  return await chomp(execute('gem --version')).trim()
+  return chomp(await execute('gem --version')).trim()
 }
 
 async function upgradeRubyGems(rubyVersion) {
