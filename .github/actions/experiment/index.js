@@ -40,7 +40,7 @@ async function execRuby(command) {
 async function installSystemDependencies() {
   core.startGroup(`Installing system dependencies`)
 
-  const dependencyList = 'libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev libcurl4-openssl-dev zlib1g-dev libffi-dev'
+  const dependencyList = 'libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev'
 
   console.log(`installing system dependencies ${dependencyList}`)
 
