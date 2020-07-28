@@ -1,14 +1,14 @@
 {
   "name": "experiment",
   "version": "1.0.0",
-  "description": "",
+  "description": "Builds various flavors of Ruby on Ubuntu",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "New Relic",
+  "license": "Apache 2.0",
   "dependencies": {
     "@actions/core": "^1.2.4",
     "@actions/exec": "^1.0.4",

@@ -1,13 +1,14 @@
-name: 'Hello World'
-description: 'Greet someone and record the time'
+name: 'Build Ruby'
+description: 'Builds the given Ruby version'
+author: New Relic
+branding:
+  color: red
+  icon: code
 inputs:
   ruby-version:
-    description: 'Version of Ruby we want to use'
+    description: 'Ruby version'
     required: true
     default: '2.0.0-p648'
-outputs:
-  results:
-    description: 'The output'
 runs:
   using: 'node12'
   main: 'index.js'
