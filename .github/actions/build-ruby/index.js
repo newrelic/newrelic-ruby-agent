@@ -90,19 +90,19 @@ async function buildRuby(rubyVersion) {
   core.endGroup()
 }
 
-function chomp(raw_text)
-{
-  return raw_text.replace(/(\n|\r)+$/, '');
+function chomp(raw_text) {
+  return raw_text.replace(/(\n|\r)+$/, '')
 }
 
-function getGemVersion() {
-  return chomp(execute('gem --version')).trim()
+async function getGemVersion() {
+  result = await execute('gem --version')
+  return chomp(result).trim()
 }
 
 async function upgradeRubyGems(rubyVersion) {
   core.startGroup(`Upgrade RubyGems`)
 
-  const gemVersionStr = getGemVersion()
+  const gemVersionStr = await getGemVersion()
 
   console.log(`Current RubyGems is ${gemVersionStr}`)
 
