@@ -124,7 +124,7 @@ async function installBundler(rubyVersion) {
   core.endGroup()
 }
 
-async try {
+async function buildThatRuby() {
   const rubyVersion = core.getInput('ruby-version');
 
   setupBuildEnvironment()
@@ -140,3 +140,4 @@ catch (error) {
   core.setFailed(error.message);
 }
 
+await buildThatRuby()
