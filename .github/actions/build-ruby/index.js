@@ -131,8 +131,7 @@ async function installBundler(rubyVersion) {
 
   if (!fs.existsSync(`${bundlePath}/bundle`)) {
     core.exportVariable('BUNDLE_PATH', bundlePath)
-    await exec.exec("pwd")
-    await exec.exec("./scripts/install_bundler.sh")
+    await exec.exec("./.github/actions/build-ruby/scripts/install_bundler.sh")
   }
 
   core.endGroup()
