@@ -20,7 +20,6 @@ async function execute(command) {
     },
     cwd: './lib'
   }
-  // options.cwd = './lib'
 
   await exec.exec(command, [], options)
   if (errorStr === '') {
@@ -95,11 +94,12 @@ async function getGemVersion() {
   return await execute('gem --version')
 }
 
-async function upgradeRubyGems() {
+async function upgradeRubyGems(rubyVersion) {
   core.startGroup(`Upgrade RubyGems`)
 
   const gemVersionStr = await getGemVersion()
 
+  console.log(`Current RubyGems is ${gemVersionStr}`)
   if (parseFloat(rubyVersion) < 2.7) {
 
     if (parseFloat(gemVersionStr) < 3.0) {
