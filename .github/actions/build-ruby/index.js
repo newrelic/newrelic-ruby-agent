@@ -12,10 +12,10 @@ async function execute(command) {
 
   const options = {}
   options.listeners = {
-    stdout: (data: Buffer) => {
+    stdout: (data) => {
       outputStr += data.toString()
     },
-    stderr: (data: Buffer) => {
+    stderr: (data) => {
       errorStr += data.toString()
     }
   }
