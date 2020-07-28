@@ -143,4 +143,4 @@ async function buildThatRuby() {
   }
 }
 
-await buildThatRuby()
+buildThatRuby()
