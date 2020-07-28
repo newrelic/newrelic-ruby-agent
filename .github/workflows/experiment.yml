@@ -17,7 +17,7 @@ jobs:
         id: build-that-ruby
         uses: ./.github/actions/experiment
         with:
-          ruby-version: 2.3
+          ruby-version: 2.3.8
 
       - name: Show versions
         run: |
