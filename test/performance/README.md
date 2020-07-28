@@ -13,29 +13,6 @@ There are two main goals driving the development of this framework:
 
 ## Examples
 
-### Invoking via rake task
-
-Basic performance test invocations can be done using a rake task provided in the
-newrelic_rpm Rakefile.
-
-Run all performance tests, reporting results to the console:
-
-```
-$ rake test:performance
-```
-
-Run one specific suite:
-
-```
-$ rake test:performance[TransactionTracingPerfTests]
-```
-
-Run one specific suite and test (test name matching is via regex):
-
-```
-$ rake test:performance[TransactionTracingPerfTests,test_short_transactions]
-```
-
 ### Invoking via the runner directly
 
 More advanced options can be specified by invoking the runner script directly.
