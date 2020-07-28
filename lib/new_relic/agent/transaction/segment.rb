@@ -17,12 +17,15 @@ module NewRelic
 
         def initialize name=nil, unscoped_metrics=nil, start_time=nil
           @unscoped_metrics = unscoped_metrics
-          @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
           super name, start_time
         end
 
+        def attributes
+          @attributes ||= Attributes.new(NewRelic::Agent.instance.attribute_filter)
+        end
+
         def add_agent_attribute(key, value, default_destinations=AttributeFilter::DST_SPAN_EVENTS)
-          @attributes.add_agent_attribute(key, value, default_destinations)
+          attributes.add_agent_attribute(key, value, default_destinations)
         end
 
         def self.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
@@ -33,8 +36,9 @@ module NewRelic
           end
         end
 
-        def merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
-          @attributes.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
+        def merge_untrusted_agent_attributes(agent_attributes, prefix, default_destinations)
+          return if agent_attributes.nil?
+          attributes.merge_untrusted_agent_attributes(agent_attributes, prefix, default_destinations)
         end
 
         def add_custom_attributes(p)
