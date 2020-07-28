@@ -6,28 +6,30 @@ const core = require('@actions/core')
 const github = require('@actions/github')
 const exec = require('@actions/exec')
 
-function execute(command) {
-  return new Promise(function(resolve, reject) {
-    exec.exec(command, function(error, standardOutput, standardError) {
-      if (error) {
-        errorStr = error.toString()
-        console.error(errorStr)
-        core.setFailed(errorStr)
-        reject()
-        return
-      }
+async function execute(command) {
+  let outputStr = '';
+  let errorStr = '';
 
-      if (standardError) {
-        errorStr = standardError.toString()
-        console.error(errorStr)
-        core.setFailed(errorStr)
-        reject(standardError)
-        return
-      }
+  const options = {};
+  options.listeners = {
+    stdout: (data: Buffer) => {
+      outputStr += data.toString();
+    },
+    stderr: (data: Buffer) => {
+      errorStr += data.toString();
+    }
+  };
+  options.cwd = './lib';  
 
-      resolve(standardOutput)
-    })
-  })
+  await exec.exec(command, [], options)
+  if (errorStr === '') {
+    console.error(errorStr)
+    core.setFailed(errorStr)
+    return errorStr
+  }
+  else {
+    return outputStr
+  }
 }
 
 async function execRuby(command, options = '') {
