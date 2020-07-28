@@ -125,19 +125,22 @@ async function installBundler(rubyVersion) {
 }
 
 async function buildThatRuby() {
-  const rubyVersion = core.getInput('ruby-version');
+  const rubyVersion = core.getInput('ruby-version')
 
-  setupBuildEnvironment()
-  addRubyToPath(rubyVersion)
+  try {
+    setupBuildEnvironment()
+    addRubyToPath(rubyVersion)
 
-  await installRubyBuild(rubyVersion)
-  await installSystemDependencies()
-  await buildRuby(rubyVersion)
-  await upgradeRubyGems(rubyVersion)
-  await installBundler(rubyVersion)
-}
-catch (error) {
-  core.setFailed(error.message);
+    await installRubyBuild(rubyVersion)
+    await installSystemDependencies()
+    await buildRuby(rubyVersion)
+    await upgradeRubyGems(rubyVersion)
+    await installBundler(rubyVersion)
+
+  }
+  catch (error) {
+    core.setFailed(error.message)
+  }
 }
 
 await buildThatRuby()
