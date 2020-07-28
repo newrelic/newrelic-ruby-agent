@@ -56,9 +56,12 @@ async function installRubyBuild(rubyVersion) {
   const buildDir = `${process.env.HOME}/ruby-build`
   var repoPath
 
-  if (rubyVersion.match(/^2\.[012]/)) {
+  // Rubies 2.0 ... 2.3 (these need OpenSSL 1.0 and eregon provides it for us)
+  if (rubyVersion.match(/^2\.[0123]/)) {
     console.log('cloning eregon/ruby-build')
     repoPath = '--branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git'
+
+  // all the other Rubies
   } else {
     console.log('cloning rbenv/ruby-build')
     repoPath = 'https://github.com/rbenv/ruby-build.git'
