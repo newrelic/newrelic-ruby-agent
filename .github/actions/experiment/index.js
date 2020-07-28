@@ -24,7 +24,7 @@ function execute(command) {
   })
 }
 
-await function execRuby(command) {
+async function execRuby(command) {
   try {
     const result = await execute(`ruby ${command}`)
     console.log(`executing Ruby returns: ${result}`)
