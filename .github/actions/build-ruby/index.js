@@ -121,6 +121,10 @@ async function upgradeRubyGems(rubyVersion) {
     console.log(`Ruby >= 2.7, keeping RubyGems at ${gemVersionStr}`)
   }
 
+  await exec.exec("gem update --system 3.0.6 --force || (gem i rubygems-update -v '<3' && update_rubygems)")
+  const gemVersionStr2 = await getGemVersion()
+
+  console.log(`Current RubyGems is ${gemVersionStr2}`)
   core.endGroup()
 }
 
