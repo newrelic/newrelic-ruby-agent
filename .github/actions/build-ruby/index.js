@@ -130,7 +130,7 @@ async function installBundler(rubyVersion) {
   const bundlePath = `${process.env.HOME}/.rubies/ruby-${rubyVersion}/bin`
 
   if (!fs.existsSync(`${bundlePath}/bundle`)) {
-    await exec.exec(`gem install bundler -v "~> 1" --no-document -​-bindir "${bundlePath}"`)
+    await exec.exec(`"sudo gem install bundler -v '1.17.3' --no-document -​-bindir ${bundlePath}"`)
   }
 
   core.endGroup()
