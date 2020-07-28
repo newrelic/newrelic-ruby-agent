@@ -7,17 +7,30 @@ on: [push]
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   experiment:
-    runs-on: ubuntu-latest
     env:
       LANG: C.UTF-8
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: [ "2.3.8" ]
+        # ruby-version: [ "2.0.0-p648", "2.1.10", "2.2.10", "2.3.8", "2.4.10", "2.5.8", "2.6.6", "2.7.1" ]
     steps:
       - uses: actions/checkout@v2
 
+      # - uses: actions/cache@v2
+      #   id: ruby-cache
+      #   with:
+      #     path: $HOME/.rubies/ruby-${{ matrix.ruby-version }}
+      #     key: v3-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
+      #     restore-keys: |
+      #       v2-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
+
       - name: Build that Ruby
         id: build-that-ruby
-        uses: ./.github/actions/experiment
+        uses: ./.github/actions/build-ruby
         with:
-          ruby-version: 2.3.8
+          ruby-version: ${{ matrix.ruby-version }}
 
       - name: Show versions
         run: |
