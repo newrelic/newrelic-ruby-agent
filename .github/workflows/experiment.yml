@@ -18,16 +18,17 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # - uses: actions/cache@v2
-      #   id: ruby-cache
-      #   with:
-      #     path: $HOME/.rubies/ruby-${{ matrix.ruby-version }}
-      #     key: v3-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
-      #     restore-keys: |
-      #       v2-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
+      - uses: actions/cache@v2
+        id: ruby-cache
+        with:
+          path: $HOME/.rubies/ruby-${{ matrix.ruby-version }}
+          key: v1-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
+          restore-keys: |
+            v1-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
 
-      - name: Build that Ruby
-        id: build-that-ruby
+      - name: Build Ruby ${{ matrix.ruby-version }}
+        if: steps.ruby-cache.outputs.cache-hit != 'true'
+        id: build-ruby
         uses: ./.github/actions/build-ruby
         with:
           ruby-version: ${{ matrix.ruby-version }}
