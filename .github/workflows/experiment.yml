@@ -7,8 +7,6 @@ on: [push]
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   experiment:
-    env:
-      LANG: C.UTF-8
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -22,9 +20,9 @@ jobs:
         id: ruby-cache
         with:
           path: $HOME/.rubies/ruby-${{ matrix.ruby-version }}
-          key: v1-ruby-cache-${{ matrix.ruby-version }}-${{ runner.os }}
+          key: v2-ruby-cache-${{ matrix.ruby-version }}
           restore-keys: |
-            v1-ruby-cache-${{ matrix.ruby-version }}-${{ runner.os }}
+            v2-ruby-cache-${{ matrix.ruby-version }}
 
       - name: Build Ruby ${{ matrix.ruby-version }}
         id: build-ruby
