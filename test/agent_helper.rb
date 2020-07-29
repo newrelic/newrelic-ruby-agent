@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 # These helpers should not have any gem dependencies except on newrelic_rpm
 # itself, and should be usable from within any multiverse suite.
@@ -8,7 +8,7 @@
 require 'json'
 require 'net/http'
 begin
-  require 'net/http/status' 
+  require 'net/http/status'
 rescue LoadError
   # NOP -- Net::HTTP::STATUS_CODES was introduced in Ruby 2.5
 end
@@ -84,6 +84,14 @@ end
 
 def last_transaction_event
   harvest_transaction_events!.last.last
+end
+
+def harvest_span_events!
+  NewRelic::Agent.instance.span_event_aggregator.harvest!
+end
+
+def last_span_event
+  harvest_span_events!.last.last
 end
 
 def harvest_error_events!
@@ -413,7 +421,7 @@ def capture_segment_with_error
     with_segment do |segment|
       segment_with_error = segment
       raise "oops!"
-    end            
+    end
   rescue Exception => exception
     assert segment_with_error, "expected to have a segment_with_error"
     build_deferred_error_attributes segment_with_error
@@ -694,7 +702,7 @@ end
 # a core bug in the JVM implementation of Ruby.  Root cause was not
 # discovered, but it was found that a combination of retrying and using
 # mutex lock around the update operation was the only consistently working
-# solution as the error continued to surface without the mutex and 
+# solution as the error continued to surface without the mutex and
 # retry alone wasn't enough, either.
 #
 # JRUBY: oraclejdk8 + jruby-9.2.6.0
@@ -707,7 +715,7 @@ class EnvUpdater
     @mutex = Mutex.new
   end
 
-  # Will attempt the given block up to MAX_RETRIES before 
+  # Will attempt the given block up to MAX_RETRIES before
   # surfacing the exception down the chain.
   def with_retry retry_limit=MAX_RETRIES
     retries ||= 0
@@ -759,13 +767,13 @@ class EnvUpdater
     ensure
       safe_restore(old_env)
     end
-  end    
+  end
 
   # must call instance here to ensure only one @mutex for all threads.
   instance
 end
 
-# Changes ENV settings to given and runs given block and restores ENV 
+# Changes ENV settings to given and runs given block and restores ENV
 # to original values before returning.
 def with_environment env, &block
   EnvUpdater.inject(env) { yield }
@@ -873,7 +881,7 @@ def reset_buffers_and_caches
 end
 
 def message_for_status_code code
-  # Net::HTTP::STATUS_CODES was introduced in Ruby 2.5 
+  # Net::HTTP::STATUS_CODES was introduced in Ruby 2.5
   if defined?(Net::HTTP::STATUS_CODES)
     return Net::HTTP::STATUS_CODES[code]
   end
@@ -882,11 +890,11 @@ def message_for_status_code code
   when 200 then "OK"
   when 404 then "Not Found"
   when 403 then "Forbidden"
-  else "Unknown"  
+  else "Unknown"
   end
 end
 
-# wraps the given headers in a Net::HTTPResponse which has accompanying 
+# wraps the given headers in a Net::HTTPResponse which has accompanying
 # http status code associated with it.
 # a "status_code" may be passed in the headers to alter the HTTP Status Code
 # that is wrapped in the response.
@@ -909,7 +917,7 @@ def assert_match_or_equal expected, value
   end
 end
 
-# selects the last segment with a noticed_error and checks 
+# selects the last segment with a noticed_error and checks
 # the expectations against it.
 def assert_segment_noticed_error txn, segment_name, error_classes, error_message
   error_segment = txn.segments.reverse.detect{|s| s.noticed_error}

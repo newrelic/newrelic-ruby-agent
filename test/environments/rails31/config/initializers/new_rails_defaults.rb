@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 # These settings change the behavior of Rails 2 apps and will be defaults
 # for Rails 3. You can remove this initializer when Rails 3 is released.

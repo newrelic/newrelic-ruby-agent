@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/range_extensions'
 require 'new_relic/agent/guid_generator'
@@ -21,12 +21,13 @@ module NewRelic
         # calculation in all other cases.
         #
         attr_reader :start_time, :end_time, :duration, :exclusive_duration, :guid
-        attr_accessor :name, :parent, :children_time, :transaction
+        attr_accessor :name, :parent, :children_time, :transaction, :transaction_name
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
         attr_reader :noticed_error
 
         def initialize name=nil, start_time=nil
           @name = name
+          @transaction_name = nil
           @transaction = nil
           @guid = NewRelic::Agent::GuidGenerator.generate_guid
           @parent = nil

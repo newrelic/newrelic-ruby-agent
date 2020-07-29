@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
 # The StreamingBuffer class provides an Enumerator to the standard Ruby Queue
@@ -60,14 +60,6 @@ module NewRelic::Agent
         @queue.clear
         NewRelic::Agent.increment_metric QUEUE_DUMPED_METRIC
       end
-
-      # # Waits for the queue to be fully consumed or for the
-      # # waiting consumers to release.
-      # def flush_queue
-      #   @queue.num_waiting.times { @queue.push nil }
-      #   close_queue
-      #   until @queue.empty? do sleep(FLUSH_DELAY) end
-      # end
 
       # Waits for the queue to be fully consumed or for the
       # waiting consumers to release.

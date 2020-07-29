@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 
@@ -81,22 +81,45 @@ module NewRelic
       end
 
       module RackBuilder
-        def run_with_newrelic(app, *args)
-          if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
-            wrapped_app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
-            run_without_newrelic(wrapped_app, *args)
-          else
-            run_without_newrelic(app, *args)
+
+        if RUBY_VERSION < "2.7.0"
+          def run_with_newrelic(app, *args)
+            if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
+              wrapped_app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
+              run_without_newrelic(wrapped_app, *args)
+            else
+              run_without_newrelic(app, *args)
+            end
           end
+        else
+          def run_with_newrelic(app, *args, **kwargs)
+            if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
+              wrapped_app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
+              run_without_newrelic(wrapped_app, *args, **kwargs)
+            else
+              run_without_newrelic(app, *args, **kwargs)
+            end
+          end          
         end
 
-        def use_with_newrelic(middleware_class, *args, &blk)
-          if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
-            wrapped_middleware_class = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
-            use_without_newrelic(wrapped_middleware_class, *args, &blk)
-          else
-            use_without_newrelic(middleware_class, *args, &blk)
+        if RUBY_VERSION < "2.7.0"
+          def use_with_newrelic(middleware_class, *args, &blk)
+            if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
+              wrapped_middleware_class = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
+              use_without_newrelic(wrapped_middleware_class, *args, &blk)
+            else
+              use_without_newrelic(middleware_class, *args, &blk)
+            end
           end
+        else
+          def use_with_newrelic(middleware_class, *args, **kwargs, &blk)
+            if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
+              wrapped_middleware_class = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
+              use_without_newrelic(wrapped_middleware_class, *args, **kwargs, &blk)
+            else
+              use_without_newrelic(middleware_class, *args, **kwargs, &blk)
+            end
+          end  
         end
 
         # We patch this method for a reason that actually has nothing to do with

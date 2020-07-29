@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# frozen_string_literal: true
 
 require 'new_relic/agent/method_tracer'
 require 'new_relic/agent/transaction'
@@ -26,7 +27,10 @@ module NewRelic
   module Agent
     module Instrumentation
       module MiddlewareTracing
-        TXN_STARTED_KEY = 'newrelic.transaction_started'.freeze
+
+        TXN_STARTED_KEY = 'newrelic.transaction_started'
+        CONTENT_TYPE    = 'Content-Type'
+        CONTENT_LENGTH  = 'Content-Length'
 
         def _nr_has_middleware_tracing
           true
@@ -56,8 +60,6 @@ module NewRelic
           end
         end
 
-        CONTENT_TYPE = 'Content-Type'.freeze
-
         def capture_response_content_type(state, result)
           if result.is_a?(Array) && state.current_transaction
             _, headers, _ = result
@@ -65,12 +67,12 @@ module NewRelic
           end
         end
 
-        CONTENT_LENGTH = 'Content-Length'.freeze
-
         def capture_response_content_length(state, result)
           if result.is_a?(Array) && state.current_transaction
             _, headers, _ = result
-            state.current_transaction.response_content_length = headers[CONTENT_LENGTH]
+            length = headers[CONTENT_LENGTH]
+            length = length.reduce(0){|sum, h| sum + h.to_i} if length.is_a?(Array)
+            state.current_transaction.response_content_length = length
           end
         end
 

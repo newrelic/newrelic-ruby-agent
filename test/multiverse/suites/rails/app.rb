@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.expand_path('../middlewares', __FILE__)
 require File.expand_path('../rails3_app/app_rails3_plus', __FILE__)

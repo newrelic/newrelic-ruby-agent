@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'rubygems'
 require 'rack'
@@ -72,7 +72,7 @@ module NewRelic
         'analytic_event_data'     => Response.new(200, {'return_value' => nil}),
         'custom_event_data'       => Response.new(200, {'return_value' => nil}),
         'error_event_data'        => Response.new(200, {'return_value' => nil}),
-        'span_event_data'        => Response.new(200, {'return_value' => nil})
+        'span_event_data'         => Response.new(200, {'return_value' => nil})
       }
       reset
     end

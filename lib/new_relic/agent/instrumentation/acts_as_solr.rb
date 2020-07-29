@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/database'
 
@@ -8,15 +8,31 @@ module NewRelic
   module Instrumentation
     module ActsAsSolrInstrumentation
       module ParserMethodsInstrumentation
-        def parse_query_with_newrelic(*args)
-          self.class.trace_execution_scoped(["SolrClient/ActsAsSolr/query"]) do
-            begin
-              parse_query_without_newrelic(*args)
-            ensure
-              return unless txn = ::NewRelic::Agent::Tracer.current_transaction
-              txn.current_segment.params[:statement] = ::NewRelic::Agent::Database.truncate_query(args.first.inspect) rescue nil
+
+        if RUBY_VERSION < "2.7.0"
+          def parse_query_with_newrelic(*args)
+            self.class.trace_execution_scoped(["SolrClient/ActsAsSolr/query"]) do
+              begin
+                parse_query_without_newrelic(*args)
+              ensure
+                return unless txn = ::NewRelic::Agent::Tracer.current_transaction
+                txn.current_segment.params[:statement] = ::NewRelic::Agent::Database.truncate_query(args.first.inspect) rescue nil
+              end
             end
           end
+  
+        else
+          def parse_query_with_newrelic(*args, **kwargs)
+            self.class.trace_execution_scoped(["SolrClient/ActsAsSolr/query"]) do
+              begin
+                parse_query_without_newrelic(*args, **kwargs)
+              ensure
+                return unless txn = ::NewRelic::Agent::Tracer.current_transaction
+                txn.current_segment.params[:statement] = ::NewRelic::Agent::Database.truncate_query(args.first.inspect) rescue nil
+              end
+            end
+          end
+  
         end
       end
     end

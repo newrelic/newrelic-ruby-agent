@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
 require "newrelic_rpm"
@@ -115,7 +115,7 @@ module HttpClientTestCases
   # Although rare, some clients do explicitly set the "host" header on their
   # http requests. Respect that rather than the host IP on the request if so.
   #
-  # https://github.com/newrelic/rpm/pull/124
+  # https://github.com/newrelic/newrelic-ruby-agent/pull/124
   def test_get_with_host_header
     uri = default_uri
     uri.host = '127.0.0.1'

@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 DependencyDetection.defer do
   named :curb
@@ -32,24 +32,48 @@ DependencyDetection.defer do
 
       # We have to hook these three methods separately, as they don't use
       # Curl::Easy#http
-      def http_head_with_newrelic(*args, &blk)
-        self._nr_http_verb = :HEAD
-        http_head_without_newrelic(*args, &blk)
+      if RUBY_VERSION < "2.7.0"
+        def http_head_with_newrelic(*args, &blk)
+          self._nr_http_verb = :HEAD
+          http_head_without_newrelic(*args, &blk)
+        end
+      else
+        def http_head_with_newrelic(*args, **kwargs, &blk)
+          self._nr_http_verb = :HEAD
+          http_head_without_newrelic(*args, **kwargs, &blk)
+        end
       end
+
       alias_method :http_head_without_newrelic, :http_head
       alias_method :http_head, :http_head_with_newrelic
 
-      def http_post_with_newrelic(*args, &blk)
-        self._nr_http_verb = :POST
-        http_post_without_newrelic(*args, &blk)
+      if RUBY_VERSION < "2.7.0"
+        def http_post_with_newrelic(*args, &blk)
+          self._nr_http_verb = :POST
+          http_post_without_newrelic(*args, &blk)
+        end
+      else
+        def http_post_with_newrelic(*args, **kwargs, &blk)
+          self._nr_http_verb = :POST
+          http_post_without_newrelic(*args, **kwargs, &blk)
+        end
       end
+
       alias_method :http_post_without_newrelic, :http_post
       alias_method :http_post, :http_post_with_newrelic
 
-      def http_put_with_newrelic(*args, &blk)
-        self._nr_http_verb = :PUT
-        http_put_without_newrelic(*args, &blk)
+      if RUBY_VERSION < "2.7.0"
+        def http_put_with_newrelic(*args, &blk)
+          self._nr_http_verb = :PUT
+          http_put_without_newrelic(*args, &blk)
+        end
+      else
+        def http_put_with_newrelic(*args, **kwargs, &blk)
+          self._nr_http_verb = :PUT
+          http_put_without_newrelic(*args, **kwargs, &blk)
+        end
       end
+
       alias_method :http_put_without_newrelic, :http_put
       alias_method :http_put, :http_put_with_newrelic
 

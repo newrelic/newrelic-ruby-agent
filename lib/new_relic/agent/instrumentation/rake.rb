@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 DependencyDetection.defer do
   # Why not :rake? newrelic-rake used that name, so avoid conflicting
@@ -23,26 +23,51 @@ DependencyDetection.defer do
       class Task
         alias_method :invoke_without_newrelic, :invoke
 
-        def invoke(*args)
-          unless NewRelic::Agent::Instrumentation::RakeInstrumentation.should_trace? name
-            return invoke_without_newrelic(*args)
+
+        if RUBY_VERSION < "2.7.0"
+          def invoke(*args)
+            unless NewRelic::Agent::Instrumentation::RakeInstrumentation.should_trace? name
+              return invoke_without_newrelic(*args)
+            end
+  
+            begin
+              timeout = NewRelic::Agent.config[:'rake.connect_timeout']
+              NewRelic::Agent.instance.wait_on_connect(timeout)
+            rescue => e
+              NewRelic::Agent.logger.error("Exception in wait_on_connect", e)
+              return invoke_without_newrelic(*args)
+            end
+  
+            NewRelic::Agent::Instrumentation::RakeInstrumentation.before_invoke_transaction(self)
+  
+            NewRelic::Agent::Tracer.in_transaction(name: "OtherTransaction/Rake/invoke/#{name}", category: :rake) do
+              NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
+              invoke_without_newrelic(*args)
+            end
           end
-
-          begin
-            timeout = NewRelic::Agent.config[:'rake.connect_timeout']
-            NewRelic::Agent.instance.wait_on_connect(timeout)
-          rescue => e
-            NewRelic::Agent.logger.error("Exception in wait_on_connect", e)
-            return invoke_without_newrelic(*args)
-          end
-
-          NewRelic::Agent::Instrumentation::RakeInstrumentation.before_invoke_transaction(self)
-
-          NewRelic::Agent::Tracer.in_transaction(name: "OtherTransaction/Rake/invoke/#{name}", category: :rake) do
-            NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
-            invoke_without_newrelic(*args)
+        else
+          def invoke(*args, **kwargs)
+            unless NewRelic::Agent::Instrumentation::RakeInstrumentation.should_trace? name
+              return invoke_without_newrelic(*args, **kwargs)
+            end
+  
+            begin
+              timeout = NewRelic::Agent.config[:'rake.connect_timeout']
+              NewRelic::Agent.instance.wait_on_connect(timeout)
+            rescue => e
+              NewRelic::Agent.logger.error("Exception in wait_on_connect", e)
+              return invoke_without_newrelic(*args, **kwargs)
+            end
+  
+            NewRelic::Agent::Instrumentation::RakeInstrumentation.before_invoke_transaction(self)
+  
+            NewRelic::Agent::Tracer.in_transaction(name: "OtherTransaction/Rake/invoke/#{name}", category: :rake) do
+              NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
+              invoke_without_newrelic(*args, **kwargs)
+            end
           end
         end
+
       end
     end
   end
@@ -86,11 +111,20 @@ module NewRelic
 
           task.instance_variable_set(:@__newrelic_instrumented_execute, true)
           task.instance_eval do
-            def execute(*args, &block)
-              NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/#{self.name}") do
-                super
+            if RUBY_VERSION < "2.7.0"
+              def execute(*args, &block)
+                NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/#{self.name}") do
+                  super
+                end
+              end
+            else
+              def execute(*args, **kwargs, &block)
+                NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/#{self.name}") do
+                  super
+                end
               end
             end
+
           end
 
           instrument_execute_on_prereqs(task)

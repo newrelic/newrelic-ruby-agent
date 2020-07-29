@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/transaction/abstract_segment'
 require 'new_relic/agent/span_event_primitive'
@@ -13,12 +13,28 @@ module NewRelic
         # unscoped_metrics can be nil, a string, or array. we do this to save
         # object allocations. if allocations weren't important then we would
         # initialize it as an array that would be empty, have one item, or many items.
-        attr_reader :unscoped_metrics, :attributes
+      attr_reader :unscoped_metrics, :attributes, :custom_transaction_attributes
 
         def initialize name=nil, unscoped_metrics=nil, start_time=nil
           @unscoped_metrics = unscoped_metrics
           @attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
           super name, start_time
+        end
+
+        def add_agent_attribute(key, value, default_destinations=AttributeFilter::DST_SPAN_EVENTS)
+          @attributes.add_agent_attribute(key, value, default_destinations)
+        end
+
+        def self.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
+          if segment = NewRelic::Agent::Tracer.current_segment
+            segment.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
+          else
+            NewRelic::Agent.logger.debug "Attempted to merge untrusted attributes without segment"
+          end
+        end
+
+        def merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
+          @attributes.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
         end
 
         def add_custom_attributes(p)

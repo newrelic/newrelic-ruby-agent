@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
 require File.expand_path('../../test_helper', __FILE__)
@@ -114,7 +114,7 @@ module NewRelic
             connection.stubs(:retry_connection_period).returns(0)
 
             total_spans = 5
-            spans, segments = emulate_streaming_segments total_spans do |client, segments|
+            emulate_streaming_segments total_spans do |client, segments|
               if segments.size == 3
                 client.handle_error GRPC::Unimplemented.new "suspend me!"
               end

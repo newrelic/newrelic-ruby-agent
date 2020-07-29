@@ -10,16 +10,16 @@ Gem::Specification.new do |s|
   s.version = NewRelic::VERSION::STRING
   s.required_ruby_version = '>= 2.0.0'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = [ "Chris Pine", "Rachel Klein", "Tanna McClure", "Michael Lang" ]
+  s.authors = [ "Rachel Klein", "Tanna McClure", "Michael Lang" ]
   s.date = Time.now.strftime('%Y-%m-%d')
-  s.licenses    = ['New Relic']
+  s.licenses    = ['Apache-2.0']
   s.description = <<-EOS
 New Relic is a performance management system, developed by New Relic,
 Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
 in production. The New Relic Ruby agent is dual-purposed as a either a
 Gem or plugin, hosted on
-https://github.com/newrelic/rpm/
+https://github.com/newrelic/newrelic-ruby-agent/
 EOS
   s.email = "support@newrelic.com"
   s.executables = [ "mongrel_rpm", "newrelic_cmd", "newrelic", "nrdebug" ]
@@ -28,14 +28,16 @@ EOS
     "LICENSE",
     "README.md",
     "CONTRIBUTING.md",
+    "CODE_OF_CONDUCT.md",
     "newrelic.yml"
   ]
 
   s.metadata = {
-    'bug_tracker_uri' => 'https://support.newrelic.com/',
-    'changelog_uri' => 'https://github.com/newrelic/rpm/blob/master/CHANGELOG.md',
+    'bug_tracker_uri'   => 'https://github.com/newrelic/newrelic-ruby-agent/issues',
+    'changelog_uri'     => 'https://github.com/newrelic/newrelic-ruby-agent/blob/main/CHANGELOG.md',
     'documentation_uri' => 'https://docs.newrelic.com/docs/agents/ruby-agent',
-    'source_code_uri' => 'https://github.com/newrelic/rpm'
+    'source_code_uri'   => 'https://github.com/newrelic/newrelic-ruby-agent',
+    "homepage_uri"      => "https://newrelic.com/ruby",
   }
 
   file_list = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features|infinite_tracing)/(?!agent_helper.rb)}) }

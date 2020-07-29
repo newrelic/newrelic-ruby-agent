@@ -1,6 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
-# See https://github.com/newrelic/rpm/blob/master/LICENSE for complete details.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 # This module powers the Busy calculation for the Capacity report in
 # APM (https://rpm.newrelic.com/accounts/.../applications/.../optimize/capacity_analysis).
