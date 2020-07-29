@@ -1,5 +1,5 @@
 {
-  "name": "experiment",
+  "name": "build Ruby",
   "version": "1.0.0",
   "description": "Builds various flavors of Ruby on Ubuntu",
   "main": "index.js",
