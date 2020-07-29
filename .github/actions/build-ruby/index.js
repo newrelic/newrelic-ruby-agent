@@ -6,7 +6,6 @@ const core = require('@actions/core')
 const github = require('@actions/github')
 const exec = require('@actions/exec')
 
-
 function chomp(raw_text) {
   return raw_text.replace(/(\n|\r)+$/, '')
 }
@@ -130,18 +129,26 @@ async function installBundler(rubyVersion) {
 
 async function buildThatRuby() {
   const rubyVersion = core.getInput('ruby-version')
+  const envOnly = core.getInput('env-only')
 
   try {
     setupBuildEnvironment()
     addRubyToPath(rubyVersion)
+  } 
+  catch (error) {
+    core.setFailed(error.message);
+    return;
+  }
 
+  if (envOnly) return;
+
+  try {
     await installRubyBuild(rubyVersion)
     await installSystemDependencies()
     await buildRuby(rubyVersion)
     await upgradeRubyGems(rubyVersion)
     await installBundler(rubyVersion)
-
-  }
+  } 
   catch (error) {
     core.setFailed(error.message)
   }

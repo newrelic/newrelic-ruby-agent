@@ -26,6 +26,12 @@ jobs:
           restore-keys: |
             v1-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
 
+      - name: Setup Ruby environment
+        uses: ./.github/actions/build-ruby
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          env-only: true
+                    
       - name: Build Ruby ${{ matrix.ruby-version }}
         if: steps.ruby-cache.outputs.cache-hit != 'true'
         id: build-ruby
