@@ -61,17 +61,11 @@ function chomp(raw_text) {
   return raw_text.replace(/(\n|\r)+$/, '')
 }
 
-gemVer().then(res => { console.log(res); });
-
 async function getGemVersion() {
   gemVersion = ''
   execute('gem', ['--version']).then(result => { gemVersion = result })
   return chomp(gemVersion).trim();
 }
-
-// async function gemVer() {
-//   await execute('gem', ['--version']).then(res => { version = res; });
-// }
 
 async function execRuby(command, options = '') {
   const result = await execute(`ruby ${options} -c "${command}"`)
