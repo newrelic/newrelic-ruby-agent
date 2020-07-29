@@ -6,10 +6,6 @@ inputs:
     description: 'Ruby version'
     required: true
     default: '2.0.0-p648'
-  env-only:
-    description: 'Sets up the Ruby environment'
-    required: true
-    default: false
 runs:
   using: 'node12'
   main: 'index.js'
