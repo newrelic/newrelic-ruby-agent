@@ -27,13 +27,6 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-      - name: Show versions
-        run: |
-          ruby --version
-          ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
-          gem --version
-          bundle --version
-
       - name: Bundler install
         run: bundle install --path ~/.bundle
 

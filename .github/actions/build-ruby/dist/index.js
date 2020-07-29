@@ -3031,6 +3031,17 @@ function setupRubyEnvironment() {
   core.exportVariable('CPPFLAGS', '-DENABLE_PATH_CHECK=0')
 }
 
+async function showVersions() {
+  core.beginGroup("Show Versions")
+
+  await exec.exec('ruby', ['--version'])
+  await exec.exec('ruby', ['-ropenssl', '-e', "'puts OpenSSL::OPENSSL_LIBRARY_VERSION'"])
+  await exec.exec('gem', ['--version'])
+  await exec.exec('bundle', ['--version'])
+
+  core.endGroup()
+}
+
 function rubyPath(rubyVersion) {
   return `${process.env.HOME}/.rubies/ruby-${rubyVersion}`
 }
@@ -3098,6 +3109,7 @@ async function main() {
   try {
     setupRubyEnvironment()
     addRubyToPath(rubyVersion)
+    await showVersions()
   } 
   catch (error) {
     core.setFailed(error.message)
