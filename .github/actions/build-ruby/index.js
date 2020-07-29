@@ -135,18 +135,20 @@ async function installBundler(rubyVersion) {
 async function main() {
   const rubyVersion = core.getInput('ruby-version')
   const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
-  const envOnly = fs.existsSync(`${rubyBinPath}/ruby`)
 
   try {
     setupRubyEnvironment()
     addRubyToPath(rubyVersion)
   } 
   catch (error) {
-    core.setFailed(error.message);
-    return;
+    core.setFailed(error.message)
+    return
   }
 
-  if (envOnly) return;
+  if (fs.existsSync(`${rubyBinPath}/ruby`)) {
+    console.log("Ruby already built.  Skipping the build process!")
+    return
+  }
 
   try {
     await installRubyBuild(rubyVersion)
