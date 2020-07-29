@@ -22,18 +22,11 @@ jobs:
         id: ruby-cache
         with:
           path: $HOME/.rubies/ruby-${{ matrix.ruby-version }}
-          key: v1-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
+          key: v1-ruby-cache-${{ matrix.ruby-version }}-${{ runner.os }}
           restore-keys: |
-            v1-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
+            v1-ruby-cache-${{ matrix.ruby-version }}-${{ runner.os }}
 
-      - name: Setup Ruby environment
-        uses: ./.github/actions/build-ruby
-        with:
-          ruby-version: ${{ matrix.ruby-version }}
-          env-only: true
-                    
       - name: Build Ruby ${{ matrix.ruby-version }}
-        if: steps.ruby-cache.outputs.cache-hit != 'true'
         id: build-ruby
         uses: ./.github/actions/build-ruby
         with:

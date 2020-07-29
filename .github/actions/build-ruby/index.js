@@ -129,7 +129,8 @@ async function installBundler(rubyVersion) {
 
 async function buildThatRuby() {
   const rubyVersion = core.getInput('ruby-version')
-  const envOnly = core.getInput('env-only')
+  const rubyBinPath = `${process.env.HOME}/.rubies/ruby-${rubyVersion}/bin`
+  const envOnly = fs.existsSync(`${rubyBinPath}/ruby`)
 
   try {
     setupBuildEnvironment()
