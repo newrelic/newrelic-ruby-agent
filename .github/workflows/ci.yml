@@ -32,10 +32,13 @@ jobs:
 
       - name: Show versions
         run: |
-          echo $PATH
-          ls $HOME/.rubies/**/bin/*
-          which ruby
           ruby --version
           ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
           gem --version
           bundle --version
+
+      - name: Bundler install
+        run: bundle install --path ~/.bundle
+
+      - name: Run unit tests
+        run: bundle exec rake test
