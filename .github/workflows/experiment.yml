@@ -19,10 +19,10 @@ jobs:
       - uses: actions/cache@v2
         id: ruby-cache
         with:
-          path: ${{ env.HOME }}/.rubies/ruby-${{ matrix.ruby-version }}
-          key: v3-ruby-cache-${{ matrix.ruby-version }}
+          path: ~/.rubies/ruby-${{ matrix.ruby-version }}
+          key: v4-ruby-cache-${{ matrix.ruby-version }}
           restore-keys: |
-            v3-ruby-cache-${{ matrix.ruby-version }}
+            v4-ruby-cache-${{ matrix.ruby-version }}
 
       - name: Build Ruby ${{ matrix.ruby-version }}
         id: build-ruby
