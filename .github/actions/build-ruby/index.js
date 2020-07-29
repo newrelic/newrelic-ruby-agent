@@ -159,10 +159,10 @@ async function upgradeRubyGems(rubyVersion) {
 async function installBundler(rubyVersion) {
   core.startGroup(`Install bundler`)
 
-  const bundlePath = `${rubyPath(rubyVersion)}/bin`
+  const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
 
-  if (!fs.existsSync(`${bundlePath}/bundle`)) {
-    await exec.exec('sudo', ['gem', 'install', 'bundler', '-v', '~> 1', '--no-document', '--bindir', bundlePath])
+  if (!fs.existsSync(`${rubyBinPath}/bundle`)) {
+    await exec.exec('gem', ['install', 'bundler', '-v', '~> 1', '--no-document', '--bindir', rubyBinPath])
   }
 
   core.endGroup()
