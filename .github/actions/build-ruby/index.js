@@ -3,7 +3,6 @@ const fs = require('fs')
 const path = require('path')
 
 const core = require('@actions/core')
-const github = require('@actions/github')
 const exec = require('@actions/exec')
 
 // removes trailing newlines and linefeeds from the given text string
