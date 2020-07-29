@@ -3148,7 +3148,6 @@ async function main() {
   try {
     setupRubyEnvironment()
     addRubyToPath(rubyVersion)
-    await showVersions()
   } 
   catch (error) {
     core.setFailed(error.message)
@@ -3156,6 +3155,7 @@ async function main() {
   }
 
   if (fs.existsSync(`${rubyBinPath}/ruby`)) {
+    await showVersions()
     console.log("Ruby already built.  Skipping the build process!")
     return
   }
@@ -3166,6 +3166,7 @@ async function main() {
     await buildRuby(rubyVersion)
     await upgradeRubyGems(rubyVersion)
     await installBundler(rubyVersion)
+    await showVersions()
   } 
   catch (error) {
     core.setFailed(error.message)
