@@ -1,0 +1,33 @@
+name: Continuous Integration
+
+on: [push]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: [ "2.0.0-p648", "2.1.10", "2.2.10", "2.3.8", "2.4.10", "2.5.8", "2.6.6", "2.7.1", "jruby-9.2.12.0" ]
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        id: ruby-cache
+        with:
+          path: ~/.rubies/ruby-${{ matrix.ruby-version }}
+          key: v5-ruby-cache-${{ matrix.ruby-version }}
+          restore-keys: |
+            v5-ruby-cache-${{ matrix.ruby-version }}
+
+      - name: Build Ruby ${{ matrix.ruby-version }}
+        id: build-ruby
+        uses: ./.github/actions/build-ruby
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Bundler install
+        run: bundle install --path ~/.bundle
+
+      - name: Run unit tests
+        run: bundle exec rake test
