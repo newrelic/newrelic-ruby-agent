@@ -1,4 +1,5 @@
-#!/usr/bin/sh
+#!/bin/sh
 set -e
+cd .github/actions/build-ruby 
 yarn run package
 exec git add dist/index.js
