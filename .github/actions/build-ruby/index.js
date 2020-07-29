@@ -6,7 +6,7 @@ const core = require('@actions/core')
 const github = require('@actions/github')
 const exec = require('@actions/exec')
 
-async function execute(command) {
+async function execute(command, args=[]) {
   let outputStr = ''
   let errorStr = ''
 
@@ -22,6 +22,7 @@ async function execute(command) {
   }
 
   await exec.exec(command, [], options)
+
   if (errorStr === '') {
     console.error(errorStr)
     core.setFailed(errorStr)
@@ -30,6 +31,10 @@ async function execute(command) {
   else {
     return outputStr
   }
+}
+
+async function gemVer() {
+  await execute('gem', ['--version']).then(res => { version = res; });
 }
 
 async function execRuby(command, options = '') {
@@ -95,8 +100,8 @@ function chomp(raw_text) {
 }
 
 async function getGemVersion() {
-  result = await execute('gem --version')
-  return chomp(result).trim()
+  result = await gemVer();
+  return chomp(result).trim();
 }
 
 async function upgradeRubyGems(rubyVersion) {
@@ -104,7 +109,7 @@ async function upgradeRubyGems(rubyVersion) {
 
   const gemVersionStr = await getGemVersion()
 
-  console.log(`Current RubyGems is ${gemVersionStr}`)
+  console.log(`Current RubyGems is "${gemVersionStr}"`)
 
   if (parseFloat(rubyVersion) < 2.7) {
 
@@ -143,9 +148,9 @@ async function buildThatRuby() {
     setupBuildEnvironment()
     addRubyToPath(rubyVersion)
 
-    await installRubyBuild(rubyVersion)
-    await installSystemDependencies()
-    await buildRuby(rubyVersion)
+    // await installRubyBuild(rubyVersion)
+    // await installSystemDependencies()
+    // await buildRuby(rubyVersion)
     await upgradeRubyGems(rubyVersion)
     await installBundler(rubyVersion)
 
