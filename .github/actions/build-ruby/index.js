@@ -76,7 +76,7 @@ async function showVersions() {
   core.startGroup("Show Versions")
 
   await exec.exec('ruby', ['--version'])
-  await exec.exec('ruby', ['-ropenssl', '-e', "'puts OpenSSL::OPENSSL_LIBRARY_VERSION'"])
+  await exec.exec('ruby', ['-ropenssl', '-e', "puts OpenSSL::OPENSSL_LIBRARY_VERSION"])
   await exec.exec('gem', ['--version'])
   await exec.exec('bundle', ['--version'])
 
