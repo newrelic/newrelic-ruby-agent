@@ -8,4 +8,4 @@ inputs:
     default: '2.0.0-p648'
 runs:
   using: 'node12'
-  main: 'index.js'
+  main: 'dist/index.js'
