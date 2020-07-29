@@ -61,10 +61,10 @@ function chomp(raw_text) {
   return raw_text.replace(/(\n|\r)+$/, '')
 }
 
-function getGemVersion() {
+async function getGemVersion() {
   gemVersion = ''
   execute('gem', ['--version']).then(result => { gemVersion = result })
-  return chomp(gemVersion).trim();
+  return gemVersion
 }
 
 async function execRuby(command, options = '') {
@@ -128,7 +128,8 @@ async function buildRuby(rubyVersion) {
 async function upgradeRubyGems(rubyVersion) {
   core.startGroup(`Upgrade RubyGems`)
 
-  const gemVersionStr = getGemVersion()
+  let gemVersionStr = '';
+  getGemVersion().then(res => { gemVersionStr = res });
 
   console.log(`Current RubyGems is "${gemVersionStr}"`)
 
