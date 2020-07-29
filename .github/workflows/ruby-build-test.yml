@@ -1,0 +1,102 @@
+name: Build me a Ruby
+on: push
+
+jobs:
+  ruby-build:
+    if: false
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-20.04 ]
+        ruby-version: [ "2.0.0-p648", "2.1.10", "2.2.10", "2.3.8", "2.4.10", "2.5.8", "2.6.6", "2.7.1" ]
+    runs-on: ${{ matrix.os }}
+    env:
+      LANG: C.UTF-8
+      RUBY_CONFIGURE_OPTS: --enable-shared --disable-install-doc
+      CPPFLAGS: "-DENABLE_PATH_CHECK=0" # https://github.com/actions/virtual-environments/issues/267
+    steps:
+    - name: add Ruby to PATH
+      run: |
+        export PATH="~/.rubies/ruby-${{ matrix.ruby-version }}/bin:$PATH"
+        echo "::add-path::~/.rubies/ruby-${{ matrix.ruby-version }}/bin"
+        echo $PATH
+
+    - uses: actions/checkout@v2
+
+    - uses: actions/cache@v2
+      id: ruby-cache
+      with:
+        path: ~/.rubies/ruby-${{ matrix.ruby-version }}
+        key: v2-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
+        restore-keys: |
+          v2-ruby-cache-${{ matrix.ruby-version }}-${{ matrix.os }}
+
+    - name: Clone rbenv/ruby-build
+      if: (steps.ruby-cache.outputs.cache-hit != 'true') && !(startsWith(matrix.ruby_version, '2.0') || startsWith(matrix.ruby_version, '2.1') || startsWith(matrix.ruby_version, '2.2') || startsWith(matrix.ruby_version, '2.3'))
+      run: "git clone https://github.com/rbenv/ruby-build $HOME/ruby-build"
+
+    - name: Clone eregon/ruby-build
+      if: (steps.ruby-cache.outputs.cache-hit != 'true') && (startsWith(matrix.ruby_version, '2.0') || startsWith(matrix.ruby_version, '2.1') || startsWith(matrix.ruby_version, '2.2') || startsWith(matrix.ruby_version, '2.3'))
+      run: "git clone --branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git $HOME/ruby-build"
+
+    - name: install ruby-build
+      if: steps.ruby-cache.outputs.cache-hit != 'true'
+      run: sudo $HOME/ruby-build/install.sh && ruby-build --definitions
+
+    - name: apt-get updates
+      if: steps.ruby-cache.outputs.cache-hit != 'true'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev
+
+    - name: build Ruby ${{ matrix.ruby-version }}
+      if: steps.ruby-cache.outputs.cache-hit != 'true'
+      run: ruby-build --verbose ${{ matrix.ruby-version }} ~/.rubies/ruby-${{ matrix.ruby-version }}
+
+    - name: upgrade rubygems
+      if: steps.ruby-cache.outputs.cache-hit != 'true'
+      run: gem update --system 3.0.6 --force || (gem i rubygems-update -v '<3' && update_rubygems) 
+
+    - name: Install Bundler if needed
+      run: |
+        if [ ! -e ~/.rubies/ruby-${{ matrix.ruby-version }}/bin/bundle ]; then
+          sudo gem install bundler -v '~> 1' --no-document -​-bindir ~/.rubies/ruby-${{ matrix.ruby-version }}/bin
+        fi
+
+    - name: Show versions
+      run: |
+        sudo rm /usr/bin/ruby /usr/bin/gem 
+        echo $PATH
+        ls ~/.rubies/**/bin/*
+        ruby --version
+        ruby -ropenssl -e 'puts OpenSSL::OPENSSL_LIBRARY_VERSION'
+        bundle --version
+
+    - uses: actions/cache@v2
+      id: bundler-cache
+      with:
+        path: |
+          ~/.bundle
+        key: v1-${{ matrix.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('$GITHUB_WORKSPACE/newrelic_rpm.gemspec') }}
+        restore-keys: |
+          v1-${{ matrix.os }}-${{ matrix.ruby-version }}-bundle-cache-${{ hashFiles('$GITHUB_WORKSPACE/newrelic_rpm.gemspec') }}
+
+    - name: Restore Gemfile.lock
+      if: steps.bundler-cache.outputs.cache-hit == 'true'
+      run: cp  ~/.bundle/Gemfile.lock $GITHUB_WORKSPACE/
+
+    - name: Bundler install
+      run: bundle install --path ~/.bundle
+
+    - name: Stash Gemfile.lock
+      if: steps.bundler-cache.outputs.cache-hit != 'true'
+      run: cp $GITHUB_WORKSPACE/Gemfile.lock ~/.bundle/
+
+    - name: bundle list
+      run: |
+        bundle exec ruby --version
+        bundle list
+
+    - name: Run unit tests
+      run: bundle exec rake test
+

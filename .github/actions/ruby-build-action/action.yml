@@ -1,0 +1,14 @@
+name: 'Build Ruby'
+description: 'Builds the given Ruby version'
+author: New Relic
+branding:
+  color: red
+  icon: code
+inputs:
+  ruby-version:
+    description: 'Ruby version'
+    required: true
+    default: '2.0.0.p648'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'  
