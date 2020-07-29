@@ -93,7 +93,10 @@ async function upgradeRubyGems(rubyVersion) {
 
     if (parseFloat(gemVersionStr) < 3.0) {
       console.log(`Ruby < 2.7, upgrading RubyGems from ${gemVersionStr}`)
-      await exec.exec('sudo', ['gem', 'update', '--system', '3.0.6', '--force'])
+
+      await exec.exec('sudo', ["gem", "update", "--system", "3.0.6", "--force", "||",
+        "(gem", "i", "rubygems-update", "-v", "'<3'", "&&", "update_rubygems)"])
+      
     }
     else {
       console.log(`Ruby < 2.7, but RubyGems already at ${gemVersionStr}`)
@@ -126,9 +129,9 @@ async function buildThatRuby() {
     setupBuildEnvironment()
     addRubyToPath(rubyVersion)
 
-    // await installRubyBuild(rubyVersion)
-    // await installSystemDependencies()
-    // await buildRuby(rubyVersion)
+    await installRubyBuild(rubyVersion)
+    await installSystemDependencies()
+    await buildRuby(rubyVersion)
     await upgradeRubyGems(rubyVersion)
     await installBundler(rubyVersion)
 
