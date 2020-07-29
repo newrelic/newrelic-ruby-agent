@@ -6,45 +6,72 @@ const core = require('@actions/core')
 const github = require('@actions/github')
 const exec = require('@actions/exec')
 
+
 async function execute(command, args=[]) {
-  let outputStr = ''
-  let errorStr = ''
+  try {
+    let myOutput = ''
+    let myError = ''
 
-  const options = {}
-  options.listeners = {
-    stdout: (data) => {
-      outputStr += data.toString()
-    },
-    stderr: (data) => {
-      errorStr += data.toString()
-    },
-    cwd: './lib'
-  }
+    const options = {}
+    options.listeners = {
+      stdout: (data) => {
+        myOutput += data.toString()
+      },
+      stderr: (data) => {
+        myError += data.toString()
+      }
+    }
 
-  await exec.exec(command, args, options);
-
-  if (errorStr === '') {
-    console.error(errorStr)
-    core.setFailed(errorStr)
-    return errorStr
-  }
-  else {
-    return outputStr
+    await exec.exec(command, args, options)
+    return myOutput
+  } 
+  catch (error) {
+    console.error(error.toString())
   }
 }
+
+// async function execute(command, args=[]) {
+//   let outputStr = ''
+//   let errorStr = ''
+
+//   const options = {}
+//   options.listeners = {
+//     stdout: (data) => {
+//       outputStr += data.toString()
+//     },
+//     stderr: (data) => {
+//       errorStr += data.toString()
+//     },
+//     cwd: './lib'
+//   }
+
+//   await exec.exec(command, args, options);
+
+//   if (errorStr === '') {
+//     console.error(errorStr)
+//     core.setFailed(errorStr)
+//     return errorStr
+//   }
+//   else {
+//     return outputStr
+//   }
+// }
 
 function chomp(raw_text) {
   return raw_text.replace(/(\n|\r)+$/, '')
 }
 
+gemVer().then(res => { console.log(res); });
+
 async function getGemVersion() {
-  result = await gemVer();
-  return chomp(result).trim();
+  gemVersion = ''
+  execute('gem', ['--version']).then(result => { gemVersion = result })
+  return chomp(gemVersion).trim();
 }
 
-async function gemVer() {
-  await execute('gem', ['--version']).then(res => { version = res; });
-}
+// async function gemVer() {
+//   await execute('gem', ['--version']).then(res => { version = res; });
+// }
 
 async function execRuby(command, options = '') {
   const result = await execute(`ruby ${options} -c "${command}"`)
