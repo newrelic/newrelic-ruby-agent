@@ -483,9 +483,8 @@ async function installRubyBuild(rubyVersion) {
     repoPath = 'https://github.com/rbenv/ruby-build.git'
   }
 
-  await exec.exec('git', ['clone', repoPath, buildDir])
-  await exec.exec(`${buildDir}/install.sh`)
-  await exec.exec('ruby-build', ['--definitions'])
+  await exec.exec(`git clone ${repoPath} ${buildDir}`)
+  await exec.exec(`${buildDir}/install.sh && ruby-build --definitions`)
 
   core.endGroup()
 }
