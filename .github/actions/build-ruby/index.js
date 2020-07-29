@@ -7,70 +7,27 @@ const github = require('@actions/github')
 const exec = require('@actions/exec')
 
 
-async function execute(command, args=[]) {
-  try {
-    let myOutput = ''
-    let myError = ''
-
-    const options = {}
-    options.listeners = {
-      stdout: (data) => {
-        myOutput += data.toString()
-      },
-      stderr: (data) => {
-        myError += data.toString()
-      }
-    }
-
-    await exec.exec(command, args, options)
-    return myOutput
-  } 
-  catch (error) {
-    console.error(error.toString())
-  }
-}
-
-// async function execute(command, args=[]) {
-//   let outputStr = ''
-//   let errorStr = ''
-
-//   const options = {}
-//   options.listeners = {
-//     stdout: (data) => {
-//       outputStr += data.toString()
-//     },
-//     stderr: (data) => {
-//       errorStr += data.toString()
-//     },
-//     cwd: './lib'
-//   }
-
-//   await exec.exec(command, args, options);
-
-//   if (errorStr === '') {
-//     console.error(errorStr)
-//     core.setFailed(errorStr)
-//     return errorStr
-//   }
-//   else {
-//     return outputStr
-//   }
-// }
-
 function chomp(raw_text) {
   return raw_text.replace(/(\n|\r)+$/, '')
 }
 
-async function getGemVersion() {
-  gemVersion = ''
-  execute('gem', ['--version']).then(result => { gemVersion = result })
-  return gemVersion
-}
+async function execute(command) {
+ try {
+   let outputStr = ''
 
-async function execRuby(command, options = '') {
-  const result = await execute(`ruby ${options} -c "${command}"`)
-  console.log(`executing Ruby returns: ${result}`)
-  return result
+   const options = {}
+   options.listeners = {
+     stdout: (data) => { outputStr += data.toString() },
+     stderr: (data) => { console.log(data.toString()) }
+   }
+
+   await exec.exec(command, [], options)
+
+   return chomp(outputStr);
+
+ } catch (error) {
+   console.error(error.toString())
+ }
 }
 
 async function installSystemDependencies() {
@@ -128,8 +85,7 @@ async function buildRuby(rubyVersion) {
 async function upgradeRubyGems(rubyVersion) {
   core.startGroup(`Upgrade RubyGems`)
 
-  let gemVersionStr = '';
-  getGemVersion().then(res => { gemVersionStr = res });
+  await execute('gem --version').then(res => { gemVersionStr = res; });
 
   console.log(`Current RubyGems is "${gemVersionStr}"`)
 
