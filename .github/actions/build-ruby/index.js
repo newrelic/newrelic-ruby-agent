@@ -94,9 +94,14 @@ async function upgradeRubyGems(rubyVersion) {
     if (parseFloat(gemVersionStr) < 3.0) {
       console.log(`Ruby < 2.7, upgrading RubyGems from ${gemVersionStr}`)
 
-      await exec.exec('sudo', ["gem", "update", "--system", "3.0.6", "--force", "--no-ri", "--no-rdoc"])
-      // await exec.exec('sudo', ["gem", "update", "--system", "3.0.6", "--force", "||",
-      //   "(gem", "i", "rubygems-update", "&&", "update_rubygems)"])
+      exec.exec('sudo', ['gem', 'update', '--system', '3.0.6', '--force']).then(
+        exitCode => {
+          if (exitCode != 0) {
+            await exec.exec('sudo', ['gem', 'install', 'rubygems-update', '-v', '<3'])
+            await exec.exec('sudo', ['update_rubygems'])
+          };
+        }
+      );
       
     }
     else {
