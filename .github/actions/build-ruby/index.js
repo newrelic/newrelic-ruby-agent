@@ -65,19 +65,24 @@ async function installRubyBuild(rubyVersion) {
   core.endGroup()
 }
 
-function setupBuildEnvironment() {
+function setupRubyEnvironment() {
+  core.exportVariable('LANG', 'C.UTF-8')
   core.exportVariable('RUBY_CONFIGURE_OPTS', '--enable-shared --disable-install-doc')
   // https://github.com/actions/virtual-environments/issues/267
   core.exportVariable('CPPFLAGS', '-DENABLE_PATH_CHECK=0')
 }
 
+function rubyPath(rubyVersion) {
+  return `${process.env.HOME}/.rubies/ruby-${rubyVersion}`
+}
+
 function addRubyToPath(rubyVersion) {
-  core.addPath(`${process.env.HOME}/.rubies/ruby-${rubyVersion}/bin`)
+  core.addPath(`${rubyPath(rubyVersion)}/bin`)
 }
 
 async function buildRuby(rubyVersion) {
   core.startGroup(`Build Ruby ${rubyVersion}`)
-  await exec.exec(`ruby-build --verbose ${rubyVersion} ${process.env.HOME}/.rubies/ruby-${rubyVersion}`) 
+  await exec.exec(`ruby-build --verbose ${rubyVersion} ${rubyPath(rubyVersion)}`) 
   core.endGroup()
 }
 
@@ -118,7 +123,7 @@ async function upgradeRubyGems(rubyVersion) {
 async function installBundler(rubyVersion) {
   core.startGroup(`Install bundler`)
 
-  const bundlePath = `${process.env.HOME}/.rubies/ruby-${rubyVersion}/bin`
+  const bundlePath = `${rubyPath(rubyVersion)}/bin`
 
   if (!fs.existsSync(`${bundlePath}/bundle`)) {
     await exec.exec('sudo', ['gem', 'install', 'bundler', '-v', '~> 1', '--no-document', '--bindir', bundlePath])
@@ -127,13 +132,13 @@ async function installBundler(rubyVersion) {
   core.endGroup()
 }
 
-async function buildThatRuby() {
+async function main() {
   const rubyVersion = core.getInput('ruby-version')
-  const rubyBinPath = `${process.env.HOME}/.rubies/ruby-${rubyVersion}/bin`
+  const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
   const envOnly = fs.existsSync(`${rubyBinPath}/ruby`)
 
   try {
-    setupBuildEnvironment()
+    setupRubyEnvironment()
     addRubyToPath(rubyVersion)
   } 
   catch (error) {
@@ -155,4 +160,4 @@ async function buildThatRuby() {
   }
 }
 
-buildThatRuby()
+main()
