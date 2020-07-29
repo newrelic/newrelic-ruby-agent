@@ -21,7 +21,7 @@ async function execute(command, args=[]) {
     cwd: './lib'
   }
 
-  await exec.exec(command, [], options)
+  await exec.exec(command, args, options);
 
   if (errorStr === '') {
     console.error(errorStr)
@@ -31,6 +31,15 @@ async function execute(command, args=[]) {
   else {
     return outputStr
   }
+}
+
+function chomp(raw_text) {
+  return raw_text.replace(/(\n|\r)+$/, '')
+}
+
+async function getGemVersion() {
+  result = await gemVer();
+  return chomp(result).trim();
 }
 
 async function gemVer() {
@@ -93,15 +102,6 @@ async function buildRuby(rubyVersion) {
   core.startGroup(`Build Ruby ${rubyVersion}`)
   await exec.exec(`ruby-build --verbose ${rubyVersion} ${process.env.HOME}/.rubies/ruby-${rubyVersion}`) 
   core.endGroup()
-}
-
-function chomp(raw_text) {
-  return raw_text.replace(/(\n|\r)+$/, '')
-}
-
-async function getGemVersion() {
-  result = await gemVer();
-  return chomp(result).trim();
 }
 
 async function upgradeRubyGems(rubyVersion) {
