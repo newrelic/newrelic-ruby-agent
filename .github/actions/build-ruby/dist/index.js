@@ -3032,7 +3032,7 @@ function setupRubyEnvironment() {
 }
 
 async function showVersions() {
-  core.beginGroup("Show Versions")
+  core.startGroup("Show Versions")
 
   await exec.exec('ruby', ['--version'])
   await exec.exec('ruby', ['-ropenssl', '-e', "'puts OpenSSL::OPENSSL_LIBRARY_VERSION'"])
