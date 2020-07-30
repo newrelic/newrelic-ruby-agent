@@ -32,6 +32,11 @@ jobs:
   multiverse_test:
     needs: build
     runs-on: ubuntu-latest
+    env:
+      MONGODB: "2.6.11"
+      SERIALIZE: "1"
+      TESTOPTS: "-v"
+      VERBOSE: "1"
     services:
       redis:
         image: redis
@@ -68,11 +73,6 @@ jobs:
             multiverse: sinatra
           - ruby-version: "jruby-9.2.12.0"
             multiverse: agent
-      env:
-        MONGODB: "2.6.11"
-        SERIALIZE: "1"
-        TESTOPTS: "-v"
-        VERBOSE: "1"
     steps:
       - uses: actions/checkout@v2
 
