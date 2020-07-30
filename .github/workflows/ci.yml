@@ -4,6 +4,7 @@ on: [push]
 
 jobs:
   ci:
+    if: false
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
