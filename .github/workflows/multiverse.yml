@@ -68,12 +68,12 @@ jobs:
             multiverse: sinatra
           - ruby-version: "jruby-9.2.12.0"
             multiverse: agent
-    steps:
       env:
-        MONGODB: 2.6.11
-        SERIALIZE: 1
+        MONGODB: "2.6.11"
+        SERIALIZE: "1"
         TESTOPTS: "-v"
-        VERBOSE: 1
+        VERBOSE: "1"
+    steps:
       - uses: actions/checkout@v2
 
       - uses: actions/cache@v2
