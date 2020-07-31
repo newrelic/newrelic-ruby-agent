@@ -29,12 +29,9 @@ jobs:
 
       - name: bundler environment
         run: bundle env
-        
+
       - name: Bundler install
         run: bundle install --path ~/.bundle --retry 3 --jobs 4
-
-      - name: install mysql2 gem
-        run: gem install mysql2 
 
       - name: install rack gem
         run: gem install rack -v 1.6.13
@@ -42,5 +39,5 @@ jobs:
       - name: install tilt gem
         run: gem install tilt -v 1.4.1
 
-      # - name: Run unit tests
-      #   run: bundle exec rake test
+      - name: Run unit tests
+        run: bundle exec rake test:multiverse[group=agent,verbose,nocache]
