@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   ci:
-    if: false
+    if: true
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -17,9 +17,9 @@ jobs:
         id: ruby-cache
         with:
           path: ~/.rubies/ruby-${{ matrix.ruby-version }}
-          key: v5-ruby-cache-${{ matrix.ruby-version }}
+          key: v6-ruby-cache-${{ matrix.ruby-version }}
           restore-keys: |
-            v5-ruby-cache-${{ matrix.ruby-version }}
+            v6-ruby-cache-${{ matrix.ruby-version }}
 
       - name: Build Ruby ${{ matrix.ruby-version }}
         id: build-ruby
@@ -27,8 +27,20 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
+      - name: bundler environment
+        run: bundle env
+        
       - name: Bundler install
-        run: bundle install --path ~/.bundle
+        run: bundle install --path ~/.bundle --retry 3 --jobs 4
 
-      - name: Run unit tests
-        run: bundle exec rake test
+      - name: install mysql2 gem
+        run: gem install mysql2 
+
+      - name: install rack gem
+        run: gem install rack -v 1.6.13
+
+      - name: install tilt gem
+        run: gem install tilt -v 1.4.1
+
+      # - name: Run unit tests
+      #   run: bundle exec rake test
