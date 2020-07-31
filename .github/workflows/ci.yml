@@ -40,4 +40,6 @@ jobs:
         run: gem install tilt -v 1.4.1
 
       - name: Run unit tests
+        env:
+          BUNDLE_PATH: ~/.bundle/${{ matrix.ruby-version }}/multiverse/agent/
         run: bundle exec rake test:multiverse[group=agent,verbose,nocache]
