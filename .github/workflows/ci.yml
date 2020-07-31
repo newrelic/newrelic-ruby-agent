@@ -31,8 +31,6 @@ jobs:
         run: bundle env
 
       - name: Run unit tests
-        env:
-          SERIALIZE: "1"
         run: |
           bundle install --retry 3 --jobs 4
           bundle exec rake test:multiverse[group=agent,verbose]
