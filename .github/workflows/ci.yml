@@ -34,7 +34,7 @@ jobs:
         env:
           SERIALIZE: "1"
         run: |
-          bundle install --path ~/.bundle --retry 3 --jobs 4
+          bundle install --retry 3 --jobs 4
           gem install rack -v 1.6.13
           gem install tilt -v 1.4.1
           bundle exec rake test:multiverse[deferred_instrumentation,verbose]
