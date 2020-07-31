@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [ "2.0.0-p648" ] #, "2.1.10", "2.2.10", "2.3.8", "2.4.10", "2.5.8", "2.6.6", "2.7.1", "jruby-9.2.12.0" ]
+        ruby-version: [ "2.0.0-p648" , "2.1.10", "2.2.10", "2.3.8", "2.4.10", "2.5.8", "2.6.6", "2.7.1", "jruby-9.2.12.0" ]
     steps:
       - uses: actions/checkout@v2
 
@@ -35,6 +35,4 @@ jobs:
           SERIALIZE: "1"
         run: |
           bundle install --retry 3 --jobs 4
-          gem install rack -v 1.6.13
-          gem install tilt -v 1.4.1
-          bundle exec rake test:multiverse[deferred_instrumentation,verbose]
+          bundle exec rake test:multiverse[group=agent,verbose]
