@@ -503,6 +503,13 @@ function setupRubyEnvironment() {
 
   // https://github.com/actions/virtual-environments/issues/267
   core.exportVariable('CPPFLAGS', '-DENABLE_PATH_CHECK=0')
+
+  // Ensures Bundler retries failed attempts before giving up
+  core.exportVariable('BUNDLE_RETRY', 3)
+
+  // Number of jobs in parallel 
+  core.exportVariable('BUNDLE_JOBS', 4)
+
 }
 
 // Shows some version love!

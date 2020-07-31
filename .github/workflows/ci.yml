@@ -42,4 +42,4 @@ jobs:
       - name: Run unit tests
         env:
           BUNDLE_PATH: ~/.bundle/${{ matrix.ruby-version }}/multiverse/agent/
-        run: bundle exec rake test:multiverse[group=agent,verbose,nocache]
+        run: bundle exec rake test:multiverse[group=agent,verbose]
