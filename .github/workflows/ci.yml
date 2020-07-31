@@ -27,10 +27,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-      - name: bundler environment
-        run: bundle env
-
       - name: Run unit tests
         run: |
-          bundle install --retry 3 --jobs 4
+          bundle install
           bundle exec rake test:multiverse[group=agent,verbose]
