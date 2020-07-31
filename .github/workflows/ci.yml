@@ -31,6 +31,8 @@ jobs:
         run: bundle env
 
       - name: Run unit tests
+        env:
+          SERIALIZE: "1"
         run: |
           bundle install --path ~/.bundle --retry 3 --jobs 4
           gem install rack -v 1.6.13
