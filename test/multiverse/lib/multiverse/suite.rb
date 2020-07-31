@@ -135,7 +135,7 @@ module Multiverse
       version.to_s == "" ? nil : "_#{version}_"
     end
 
-    def bundle_env stub
+    def bundle_env bundle_cmd
       puts `#{bundle_cmd} env`
     end
 
