@@ -9,17 +9,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [ "2.0.0-p648", "2.1.10", "2.2.10", "2.3.8", "2.4.10", "2.5.8", "2.6.6", "2.7.1", "jruby-9.2.12.0" ]
+        ruby-version: [ "2.0.0-p648" ] #, "2.1.10", "2.2.10", "2.3.8", "2.4.10", "2.5.8", "2.6.6", "2.7.1", "jruby-9.2.12.0" ]
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/cache@v2
-        id: ruby-cache
-        with:
-          path: ~/.rubies/ruby-${{ matrix.ruby-version }}
-          key: v6-ruby-cache-${{ matrix.ruby-version }}
-          restore-keys: |
-            v6-ruby-cache-${{ matrix.ruby-version }}
+      # - uses: actions/cache@v2
+      #   id: ruby-cache
+      #   with:
+      #     path: ~/.rubies/ruby-${{ matrix.ruby-version }}
+      #     key: v6-ruby-cache-${{ matrix.ruby-version }}
+      #     restore-keys: |
+      #       v6-ruby-cache-${{ matrix.ruby-version }}
 
       - name: Build Ruby ${{ matrix.ruby-version }}
         id: build-ruby
