@@ -11,11 +11,13 @@ gem 'rack-test'
 
 gem 'newrelic_rpm', :path => '../../..'
 
-if (RUBY_PLATFORM == 'java')
+platforms :java, :jruby do
   gem "activerecord-jdbcmysql-adapter"
   gem "activerecord-jdbcsqlite3-adapter"
   gem "jruby-openssl"
-else
+end
+
+platforms :ruby, :rbx do
   gem "mysql", "~>2.9.1"
   gem "sqlite3-ruby"
 end

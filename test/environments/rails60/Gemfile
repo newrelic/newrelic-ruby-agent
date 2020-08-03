@@ -10,11 +10,11 @@ gem 'rack', '< 2.1.0'
 gem 'rack-test'
 gem 'sprockets', '3.7.2'
 
-platforms :jruby do
+platforms :jruby, :java do
   gem "jruby-openssl"
 end
 
-platforms :ruby do
+platforms :ruby, :rbx do
   gem "mysql2"
   gem 'sqlite3', '~> 1.4'
 end
