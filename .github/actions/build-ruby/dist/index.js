@@ -464,7 +464,7 @@ async function installDependencies(kind, dependencyList) {
 async function installBuildDependencies() {
   const dependencyList = 'libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev'
 
-  installDependencies(dependencyList);
+  installDependencies('ruby-build', dependencyList);
 }
 
 // Returns if Ruby version is <= 2.3
@@ -645,12 +645,12 @@ async function installBundler(rubyVersion) {
 //       ruby-cache-${{ matrix.ruby-version }}
 //
 async function main() {
-  const dependencies = core.getInput('dependencies')
+  const dependencyList = core.getInput('dependencies')
   const rubyVersion = core.getInput('ruby-version')
   const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
 
   try {
-    installDependencies(dependencies)
+    installDependencies('workflow', dependencyList)
     setupRubyEnvironment(rubyVersion)
     addRubyToPath(rubyVersion)
   } 
