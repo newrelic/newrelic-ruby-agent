@@ -85,6 +85,7 @@ function setupRubyEnvironment(rubyVersion) {
   let opensslDir = '';
 
   if (usesOldOpenSsl(rubyVersion)) {
+    core.exportVariable('OPENSSL_DIR', rubyOpenSslPath(rubyVersion))
     core.exportVariable('LDFLAGS', `${rubyOpenSslPath(rubyVersion)}/lib`)
     core.exportVariable('CPPFLAGS', `${rubyOpenSslPath(rubyVersion)}/include`)
 
@@ -102,7 +103,7 @@ function setupRubyEnvironment(rubyVersion) {
   core.exportVariable('CPPFLAGS', '-DENABLE_PATH_CHECK=0')
 
   // Ensures Bundler retries failed attempts before giving up
-  core.exportVariable('BUNDLE_RETRY', 3)
+  core.exportVariable('BUNDLE_RETRY', 1)
 
   // Number of jobs in parallel 
   core.exportVariable('BUNDLE_JOBS', 4)
