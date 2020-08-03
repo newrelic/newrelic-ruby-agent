@@ -505,10 +505,10 @@ function setupRubyEnvironment(rubyVersion) {
     core.exportVariable('LDFLAGS', `${rubyOpenSslPath(rubyVersion)}/lib`)
     core.exportVariable('CPPFLAGS', `${rubyOpenSslPath(rubyVersion)}/include`)
 
-    opensslDir = `--with-openssl-dir=${rubyOpenSslPath(rubyVersion)}`
-    core.exportVariable('CONFIGURE_OPTS', opensslDir)
+    // opensslDir = `--with-openssl-dir=${rubyOpenSslPath(rubyVersion)}`
+    // core.exportVariable('CONFIGURE_OPTS', opensslDir)
 
-    core.exportVariable('PKG_CONFIG_PATH', `${rubyOpenSslPath(rubyVersion)}/lib/pkgconfig:${process.env['PKG_CONFIG_PATH']}`)
+    core.exportVariable('PKG_CONFIG_PATH', `${rubyOpenSslPath(rubyVersion)}/lib/pkgconfig:${process.env.PKG_CONFIG_PATH}`)
   }
 
   // LANG environment must be set or Ruby will default external_encoding to US-ASCII i
