@@ -48,7 +48,7 @@ async function installDependencies(kind, dependencyList) {
 async function installBuildDependencies() {
   const dependencyList = 'libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev'
 
-  installDependencies('ruby-build', dependencyList);
+  await installDependencies('ruby-build', dependencyList);
 }
 
 // Returns if Ruby version is <= 2.3
@@ -85,7 +85,7 @@ async function installRubyBuild(rubyVersion) {
 
 // Add the environment variables needed to correctly build ruby and later run ruby tests.
 // this function is invoked even if ruby is cached and compile step is skipped.
-function setupRubyEnvironment(rubyVersion) {
+async function setupRubyEnvironment(rubyVersion) {
 
   // LANG environment must be set or Ruby will default external_encoding to US-ASCII i
   // instead of UTF-8 and this will fail many tests.
@@ -105,7 +105,7 @@ function setupRubyEnvironment(rubyVersion) {
   core.exportVariable(`RUBY_CONFIGURE_OPTS', '--enable-shared --disable-install-doc`)
 }
 
-function setupRubyEnvironmentAfterBuild(rubyVersion) {
+async function setupRubyEnvironmentAfterBuild(rubyVersion) {
   if (!usesOldOpenSsl(rubyVersion)) { return }
 
   const openSslPath = rubyOpenSslPath(rubyVersion);
@@ -234,9 +234,9 @@ async function main() {
   const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
 
   try {
-    installDependencies('workflow', dependencyList)
-    setupRubyEnvironment(rubyVersion)
-    addRubyToPath(rubyVersion)
+    await installDependencies('workflow', dependencyList)
+    await setupRubyEnvironment(rubyVersion)
+    await addRubyToPath(rubyVersion)
   } 
   catch (error) {
     core.setFailed(error.message)
@@ -244,7 +244,7 @@ async function main() {
   }
 
   if (fs.existsSync(`${rubyBinPath}/ruby`)) {
-    setupRubyEnvironmentAfterBuild(rubyVersion)
+    await setupRubyEnvironmentAfterBuild(rubyVersion)
     await showVersions()
     console.log("Ruby already built.  Skipping the build process!")
     return
@@ -257,7 +257,7 @@ async function main() {
     await upgradeRubyGems(rubyVersion)
     await installBundler(rubyVersion)
 
-    setupRubyEnvironmentAfterBuild(rubyVersion)
+    await setupRubyEnvironmentAfterBuild(rubyVersion)
     await showVersions()
   } 
   catch (error) {
