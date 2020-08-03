@@ -462,6 +462,11 @@ async function installSystemDependencies() {
   core.endGroup()
 }
 
+// Returns if Ruby version is <= 2.3
+function usesOldOpenSsl(rubyVersion) {
+  return rubyVersion.match(/^2\.[0123]/);
+}
+
 // ruby-build is used to compile Ruby and it's various executables
 // rbenv's ruby-build doesn't fully support EOL rubies (< 2.4 at time of this writing).
 // setup-ruby also doesn't correctly build the older rubies with openssl support.
@@ -473,7 +478,7 @@ async function installRubyBuild(rubyVersion) {
   var repoPath
 
   // Rubies 2.0 ... 2.3 (these need OpenSSL 1.0 and eregon provides it for us)
-  if (rubyVersion.match(/^2\.[0123]/)) {
+  if (usesOldOpenSsl(rubyVersion)) {
     console.log('cloning eregon/ruby-build')
     repoPath = '--branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git'
 
@@ -491,15 +496,23 @@ async function installRubyBuild(rubyVersion) {
 
 // Add the environment variables needed to correctly build ruby and later run ruby tests.
 // this function is invoked even if ruby is cached and compile step is skipped.
-function setupRubyEnvironment() {
+function setupRubyEnvironment(rubyVersion) {
+
+  let opensslDir = '';
+
+  if (usesOldOpenSsl(rubyVersion)) {
+    core.exportVariable('LDFLAGS', `${rubyOpenSslPath(rubyVersion)}/lib`)
+    core.exportVariable('CPPFLAGS', `${rubyOpenSslPath(rubyVersion)}/include`)
+
+    opensslDir = `--with-openssl-dir=${rubyOpenSslPath(rubyVersion)}`
+    core.exportVariable('CONFIGURE_OPTS', opensslDir)
+
+    core.exportVariable('PKG_CONFIG_PATH', `${rubyOpenSslPath(rubyVersion)}/lib/pkgconfig:$PKG_CONFIG_PATH`)
+  }
 
   // LANG environment must be set or Ruby will default external_encoding to US-ASCII i
   // instead of UTF-8 and this will fail many tests.
   core.exportVariable('LANG', 'C.UTF-8')
-
-  // enable-shared prevents native extension gems from breaking if they're cached
-  // independently of the ruby binaries
-  core.exportVariable('RUBY_CONFIGURE_OPTS', '--enable-shared --disable-install-doc')
 
   // https://github.com/actions/virtual-environments/issues/267
   core.exportVariable('CPPFLAGS', '-DENABLE_PATH_CHECK=0')
@@ -509,6 +522,10 @@ function setupRubyEnvironment() {
 
   // Number of jobs in parallel 
   core.exportVariable('BUNDLE_JOBS', 4)
+
+  // enable-shared prevents native extension gems from breaking if they're cached
+  // independently of the ruby binaries
+  core.exportVariable(`RUBY_CONFIGURE_OPTS', '${opensslDir} --enable-shared --disable-install-doc`)
 
 }
 
@@ -520,7 +537,7 @@ async function showVersions() {
   await exec.exec('ruby', ['-ropenssl', '-e', "puts OpenSSL::OPENSSL_LIBRARY_VERSION"])
   await exec.exec('gem', ['--version'])
   await exec.exec('bundle', ['--version'])
-
+  await exec.exec('openssl', ['version'])
   core.endGroup()
 }
 
@@ -530,9 +547,24 @@ function rubyPath(rubyVersion) {
   return `${process.env.HOME}/.rubies/ruby-${rubyVersion}`
 }
 
+// Returns the path to openSSL that this version of Ruby was compiled with.
+// NOTE: throws an error if called for Rubies that are compiled against the system OpenSSL
+function rubyOpenSslPath(rubyVersion) {
+  if (usesOldOpenSsl(rubyVersion)) {
+    return `${rubyPath(rubyVersion)}/openssl`;
+  }
+  else {
+    throw `custom OpenSSL path not needed for this version of Ruby ${rubyVersion}`;
+  }
+}
+
 // This "activates" our newly built ruby so it comes first in the path
 function addRubyToPath(rubyVersion) {
-  core.addPath(`${rubyPath(rubyVersion)}/bin`)
+  core.addPath(`${rubyPath(rubyVersion)}/bin`);
+
+  if (usesOldOpenSsl(rubyVersion)) {
+    core.addPath(`${rubyPath(rubyVersion)}/openssl/bin`);
+  }
 }
 
 // kicks off the ruby build process.
@@ -609,7 +641,7 @@ async function main() {
   const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
 
   try {
-    setupRubyEnvironment()
+    setupRubyEnvironment(rubyVersion)
     addRubyToPath(rubyVersion)
   } 
   catch (error) {
