@@ -10,7 +10,7 @@ gem 'rack-test'
 
 gem 'newrelic_rpm', :path => '../../..'
 
-platforms :java, :jruby do
+platforms :jruby do
   gem "activerecord-jdbcmysql-adapter"
   gem "activerecord-jdbcsqlite3-adapter"
   gem "jruby-openssl"
