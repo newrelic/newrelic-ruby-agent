@@ -31,19 +31,23 @@ async function execute(command) {
  }
 }
 
-// installs system dependencies needed to successfully build the ruby executables
-// NOTE: Ubuntu specific!
-async function installSystemDependencies() {
-  core.startGroup(`Installing system dependencies`)
+async function installDependencies(kind, dependencyList) {
+  core.startGroup(`Installing ${kind} dependencies`)
 
-  const dependencyList = 'libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev'
+  console.log(`installing ${kind} dependencies ${dependencyList}`)
 
-  console.log(`installing system dependencies ${dependencyList}`)
-
-  await exec.exec('sudo apt-get update')
+  await exec.exec(`sudo apt-get update`)
   await exec.exec(`sudo apt-get install -y --no-install-recommends ${dependencyList}`)
 
   core.endGroup()
+}
+
+// installs system dependencies needed to successfully build the ruby executables
+// NOTE: Ubuntu specific!
+async function installBuildDependencies() {
+  const dependencyList = 'libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev'
+
+  installDependencies(dependencyList);
 }
 
 // Returns if Ruby version is <= 2.3
@@ -224,10 +228,12 @@ async function installBundler(rubyVersion) {
 //       ruby-cache-${{ matrix.ruby-version }}
 //
 async function main() {
+  const dependencies = core.getInput('dependencies')
   const rubyVersion = core.getInput('ruby-version')
   const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
 
   try {
+    installDependencies(dependencies)
     setupRubyEnvironment(rubyVersion)
     addRubyToPath(rubyVersion)
   } 
@@ -245,7 +251,7 @@ async function main() {
 
   try {
     await installRubyBuild(rubyVersion)
-    await installSystemDependencies()
+    await installBuildDependencies()
     await buildRuby(rubyVersion)
     await upgradeRubyGems(rubyVersion)
     await installBundler(rubyVersion)

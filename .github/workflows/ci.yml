@@ -28,14 +28,13 @@ jobs:
         uses: ./.github/actions/build-ruby
         with:
           ruby-version: ${{ matrix.ruby-version }}
+          dependencies:
+            - libcurl4-nss-dev
+            - build-essential 
+            - haveged
 
       - name: Bundler install
         run: bundle install
-
-      - name: curl-config
-        run: |
-          sudo apt-get install libcurl4-nss-dev
-          curl-config --version
 
       - name: install curb gem
         run: gem install curb -v '0.9.10'
