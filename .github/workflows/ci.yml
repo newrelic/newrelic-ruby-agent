@@ -146,6 +146,7 @@ jobs:
         run:  bundle exec rake test:env[${{ matrix.rails }}] TESTOPTS="--verbose"
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_PASSWORD: root
 
   multiverse_test:
     needs: build_ruby
@@ -218,4 +219,5 @@ jobs:
         run: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_PASSWORD: root
 
