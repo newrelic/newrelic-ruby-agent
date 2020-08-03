@@ -82,19 +82,6 @@ async function installRubyBuild(rubyVersion) {
 // this function is invoked even if ruby is cached and compile step is skipped.
 function setupRubyEnvironment(rubyVersion) {
 
-  let opensslDir = '';
-
-  if (usesOldOpenSsl(rubyVersion)) {
-    core.exportVariable('OPENSSL_DIR', rubyOpenSslPath(rubyVersion))
-    core.exportVariable('LDFLAGS', `${rubyOpenSslPath(rubyVersion)}/lib`)
-    core.exportVariable('CPPFLAGS', `${rubyOpenSslPath(rubyVersion)}/include`)
-
-    // opensslDir = `--with-openssl-dir=${rubyOpenSslPath(rubyVersion)}`
-    // core.exportVariable('CONFIGURE_OPTS', opensslDir)
-
-    core.exportVariable('PKG_CONFIG_PATH', `${rubyOpenSslPath(rubyVersion)}/lib/pkgconfig:${process.env.PKG_CONFIG_PATH}`)
-  }
-
   // LANG environment must be set or Ruby will default external_encoding to US-ASCII i
   // instead of UTF-8 and this will fail many tests.
   core.exportVariable('LANG', 'C.UTF-8')
@@ -111,6 +98,22 @@ function setupRubyEnvironment(rubyVersion) {
   // enable-shared prevents native extension gems from breaking if they're cached
   // independently of the ruby binaries
   core.exportVariable(`RUBY_CONFIGURE_OPTS', '--enable-shared --disable-install-doc`)
+}
+
+function setupRubyEnvironmentAfterBuild(rubyVersion) {
+  if (!usesOldOpenSsl(rubyVersion)) { return }
+
+  const openSslPath = rubyOpenSslPath(rubyVersion);
+
+  core.exportVariable('OPENSSL_DIR', openSslPath)
+  core.exportVariable('LDFLAGS', `${openSslPath}/lib`)
+  core.exportVariable('CPPFLAGS', `${openSslPath}/include`)
+
+  core.exportVariable('PKG_CONFIG_PATH', `${openSslPath}/lib/pkgconfig:${process.env.PKG_CONFIG_PATH}`)
+
+  openSslOption = `--with-openssl-dir=${openSslPath}`
+  core.exportVariable('CONFIGURE_OPTS', openSslOption)
+  core.exportVariable('RUBY_CONFIGURE_OPTS', `${openSslOption} ${process.env.RUBY_CONFIGURE_OPTS}`)
 }
 
 // Shows some version love!
@@ -234,6 +237,7 @@ async function main() {
   }
 
   if (fs.existsSync(`${rubyBinPath}/ruby`)) {
+    setupRubyEnvironmentAfterBuild(rubyVersion)
     await showVersions()
     console.log("Ruby already built.  Skipping the build process!")
     return
@@ -245,6 +249,8 @@ async function main() {
     await buildRuby(rubyVersion)
     await upgradeRubyGems(rubyVersion)
     await installBundler(rubyVersion)
+
+    setupRubyEnvironmentAfterBuild(rubyVersion)
     await showVersions()
   } 
   catch (error) {
