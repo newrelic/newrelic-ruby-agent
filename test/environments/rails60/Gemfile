@@ -10,7 +10,7 @@ gem 'rack', '< 2.1.0'
 gem 'rack-test'
 gem 'sprockets', '3.7.2'
 
-platforms :java do
+platforms :jruby do
   gem "jruby-openssl"
 end
 

@@ -136,7 +136,8 @@ module Multiverse
     end
 
     def bundle_env bundle_cmd
-      puts `#{bundle_cmd} env`
+      return unless ENV["BUNDLE_ENV"]
+      puts `#{bundle_cmd} env` 
     end
 
     def bundle_install(dir, exact_version=nil)
