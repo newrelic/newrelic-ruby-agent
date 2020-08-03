@@ -103,6 +103,8 @@ async function setupRubyEnvironment(rubyVersion) {
   // enable-shared prevents native extension gems from breaking if they're cached
   // independently of the ruby binaries
   core.exportVariable('RUBY_CONFIGURE_OPTS', '--enable-shared --disable-install-doc')
+
+  core.exportVariable('SERIALIZE', 1)
 }
 
 async function setupRubyEnvironmentAfterBuild(rubyVersion) {
