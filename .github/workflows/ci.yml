@@ -1,6 +1,12 @@
 name: Continuous Integration
 
-on: [push]
+on: 
+  push: 
+    branches:
+      - main
+      - dev
+      - setup_services_and_unit_tests
+  pull_request:
 
 jobs:
   build_ruby:
