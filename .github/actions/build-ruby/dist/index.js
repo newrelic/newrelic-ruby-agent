@@ -530,7 +530,11 @@ async function setupRubyEnvironmentAfterBuild(rubyVersion) {
   core.exportVariable('LDFLAGS', `${openSslPath}/lib`)
   core.exportVariable('CPPFLAGS', `${openSslPath}/include`)
 
-  core.exportVariable('PKG_CONFIG_PATH', `${openSslPath}/lib/pkgconfig:${process.env.PKG_CONFIG_PATH}`)
+  let pkgConfigPath = `${openSslPath}/lib/pkgconfig`;
+  if (process.env.PKG_CONFIG_PATH != undefined) {
+    pkgConfigPath += `:${process.env.PKG_CONFIG_PATH}`
+  }
+  core.exportVariable('PKG_CONFIG_PATH', pkgConfigPath);
 
   openSslOption = `--with-openssl-dir=${openSslPath}`
   core.exportVariable('CONFIGURE_OPTS', openSslOption)
