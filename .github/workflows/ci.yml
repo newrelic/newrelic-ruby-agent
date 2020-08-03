@@ -32,7 +32,10 @@ jobs:
       - name: Bundler install
         run: bundle install
 
-      - name: Run unit tests
-        run: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+      - name: install curb gem
+        run: gem install curb -v '0.9.10'
+        
+      # - name: Run unit tests
+      #   run: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
 
 
