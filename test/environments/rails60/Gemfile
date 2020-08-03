@@ -14,7 +14,7 @@ platforms :jruby do
   gem "jruby-openssl"
 end
 
-platforms :ruby do
+platforms :ruby, :rbx do
   gem "mysql2"
   gem 'sqlite3', '~> 1.4'
 end

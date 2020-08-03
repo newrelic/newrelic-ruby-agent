@@ -135,10 +135,16 @@ module Multiverse
       version.to_s == "" ? nil : "_#{version}_"
     end
 
+    def bundle_env bundle_cmd
+      return unless ENV["BUNDLE_ENV"]
+      puts `#{bundle_cmd} env` 
+    end
+
     def bundle_install(dir, exact_version=nil)
       puts "Bundling in #{dir}..."
       bundler_version = exact_version || explicit_bundler_version(dir)
       bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
+      bundle_env bundle_cmd
       full_bundle_cmd = "#{bundle_cmd} install --retry 3 --jobs 4"
       result = ShellUtils.try_command_n_times full_bundle_cmd, 3      
       unless $?.success?
