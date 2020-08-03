@@ -26,7 +26,7 @@ jobs:
         uses: ./.github/actions/build-ruby
         with:
           ruby-version: ${{ matrix.ruby-version }}
-          dependencies: libcurl4-nss-dev build-essential haveged
+          dependencies: libcurl4-nss-dev build-essential
 
       - name: Bundler install
         run: bundle install
