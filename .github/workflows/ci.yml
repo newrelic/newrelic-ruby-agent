@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - dev
-      - setup_services_and_unit_tests
   pull_request:
 
 jobs:
