@@ -448,6 +448,7 @@ async function execute(command) {
 }
 
 async function installDependencies(kind, dependencyList) {
+  if (dependencyList === '') { return }
   core.startGroup(`Installing ${kind} dependencies`)
 
   console.log(`installing ${kind} dependencies ${dependencyList}`)

@@ -6,6 +6,10 @@ inputs:
     description: 'Ruby version'
     required: true
     default: '2.0.0-p648'
+  dependencies:
+    description: 'A list of ubuntu package names to install'
+    required: true
+    default: ''
 runs:
   using: 'node12'
   main: 'dist/index.js'
