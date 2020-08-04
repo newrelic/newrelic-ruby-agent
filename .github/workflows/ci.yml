@@ -1,15 +1,196 @@
 name: Continuous Integration
 
-on: [push]
+on: 
+  push: 
+    branches:
+      - main
+      - dev
+  pull_request:
 
 jobs:
-  ci:
+  build_ruby:
     runs-on: ubuntu-latest
+    strategy: 
+      matrix: 
+        ruby-version: [ "2.0.0-p648", "2.1.10", "2.2.10", "2.3.8", "2.4.10", "2.5.8", "2.6.6", "2.7.1", "jruby-9.2.12.0" ]
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        id: ruby-cache
+        with:
+          path: ~/.rubies/ruby-${{ matrix.ruby-version }}
+          key: v5-ruby-cache-${{ matrix.ruby-version }}
+          restore-keys: |
+            v5-ruby-cache-${{ matrix.ruby-version }}
+
+      - name: Build Ruby ${{ matrix.ruby-version }}
+        id: build-ruby
+        uses: ./.github/actions/build-ruby
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+  
+  unit_test:
+    needs: build_ruby
+    runs-on: ubuntu-latest
+    strategy: 
+      fail-fast: false
+      matrix: 
+        ruby-version: [ "2.0.0-p648", "2.1.10", "2.2.10", "2.3.8", "2.4.10", "2.5.8", "2.6.6", "2.7.1", "jruby-9.2.12.0" ]
+        rails: [norails, rails60, rails52, rails51, rails42, rails41, rails40, rails32, rails31, rails30]
+        exclude:
+          - ruby-version: "2.7.1"
+            rails: rails30
+          - ruby-version: "2.7.1"
+            rails: rails31
+          - ruby-version: "2.7.1"
+            rails: rails32
+          - ruby-version: "2.7.1"
+            rails: rails40
+          - ruby-version: "2.7.1"
+            rails: rails41
+          - ruby-version: "2.7.1"
+            rails: rails42
+          - ruby-version: "2.7.1"
+            rails: rails50
+          - ruby-version: "2.7.1"
+            rails: rails51
+          - ruby-version: "2.7.1"
+            rails: rails52
+          - ruby-version: "2.6.6"
+            rails: rails30
+          - ruby-version: "2.6.6"
+            rails: rails31
+          - ruby-version: "2.6.6"
+            rails: rails32
+          - ruby-version: "2.6.6"
+            rails: rails40
+          - ruby-version: "2.6.6"
+            rails: rails41
+          - ruby-version: "2.5.8"
+            rails: rails30
+          - ruby-version: "2.5.8"
+            rails: rails31
+          - ruby-version: "2.5.8"
+            rails: rails40
+          - ruby-version: "2.5.8"
+            rails: rails41
+          - ruby-version: "2.4.10"
+            rails: rails30
+          - ruby-version: "2.4.10"
+            rails: rails31
+          - ruby-version: "2.4.10"
+            rails: rails40
+          - ruby-version: "2.4.10"
+            rails: rails41
+          - ruby-version: "2.4.10"
+            rails: rails60
+          - ruby-version: "2.3.8"
+            rails: rails60
+          - ruby-version: "2.2.10"
+            rails: rails60
+          - ruby-version: "2.1.10"
+            rails: rails50
+          - ruby-version: "2.1.10"
+            rails: rails51
+          - ruby-version: "2.1.10"
+            rails: rails52
+          - ruby-version: "2.1.10"
+            rails: rails60
+          - ruby-version: "2.0.0-p648"
+            rails: rails50
+          - ruby-version: "2.0.0-p648"
+            rails: rails51
+          - ruby-version: "2.0.0-p648"
+            rails: rails52
+          - ruby-version: "2.0.0-p648"
+            rails: rails60
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails30
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails31
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails32
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails40
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails41
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails60
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails52
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        id: ruby-cache
+        with:
+          path: ~/.rubies/ruby-${{ matrix.ruby-version }}
+          key: v5-ruby-cache-${{ matrix.ruby-version }}
+          restore-keys: |
+            v5-ruby-cache-${{ matrix.ruby-version }}
+
+      - name: Build Ruby ${{ matrix.ruby-version }}
+        id: build-ruby
+        uses: ./.github/actions/build-ruby
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Start mysql
+        run: sudo systemctl start mysql
+
+      - name: Bundler install
+        run: bundle install 
+
+      - name: rake test
+        run:  bundle exec rake test:env[${{ matrix.rails }}] TESTOPTS="--verbose"
+        env:
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_PASSWORD: root
+
+  multiverse_test:
+    needs: build_ruby
+    runs-on: ubuntu-latest
+    services:
+      # Label used to access the service container
+      redis:
+        # Docker Hub image
+        image: redis
+        # Set health checks to wait until redis has started
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps port 6379 on service container to the host
+          - 6379:6379
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
+      rabbitmq:
+        image: rabbitmq:latest
+        ports:
+          - 5672:5672
+        options: --health-cmd "rabbitmqctl node_health_check" --health-interval 10s --health-timeout 5s --health-retries 5
+      memcached:
+        image: memcached:latest
+        ports:
+          - 11211:11211
+        options: --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'" --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       fail-fast: false
       matrix:
+        multiverse: [agent, api, background, background_2, database, httpclients, rails, rest, serialization, sinatra]
         ruby-version: [ "2.0.0-p648", "2.1.10", "2.2.10", "2.3.8", "2.4.10", "2.5.8", "2.6.6", "2.7.1", "jruby-9.2.12.0" ]
-        multiverse: [ "agent", "api", "background", "database", "httpclients", "rails", "serialization", "sinatra", "background_2", "infinite_tracing" ]
+        exclude:
+          - ruby-version: "2.7.1"
+            multiverse: api
+          - ruby-version: "2.7.1"
+            multiverse: sinatra
+          - ruby-version: "jruby-9.2.12.0"
+            multiverse: agent
     steps:
       - uses: actions/checkout@v2
 
@@ -26,12 +207,17 @@ jobs:
         uses: ./.github/actions/build-ruby
         with:
           ruby-version: ${{ matrix.ruby-version }}
-          dependencies: libcurl4-nss-dev build-essential
+          dependencies: libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
 
       - name: Bundler install
         run: bundle install
 
+      - name: Start mysql
+        run: sudo systemctl start mysql
+
       - name: Run unit tests
         run: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
-
+        env:
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_PASSWORD: root
 
