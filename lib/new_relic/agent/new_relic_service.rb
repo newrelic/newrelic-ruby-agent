@@ -294,7 +294,7 @@ module NewRelic
         if @use_bundled_certs || NewRelic::Agent.config[:ca_bundle_path]
           conn.cert_store  = ssl_cert_store
         else
-          ::NewRelic::Agent.logger.info("Using default security certificates")
+          ::NewRelic::Agent.logger.debug("Using default security certificates")
         end
       rescue StandardError, LoadError
         msg = "SSL is not available in the environment; please install SSL support."
@@ -344,7 +344,7 @@ module NewRelic
         conn
       rescue Timeout::Error => e
         if @use_bundled_certs == false
-          ::NewRelic::Agent.logger.debug("Unable to connect. Falling back to bundled security certificates")
+          ::NewRelic::Agent.logger.info("Unable to connect. Falling back to bundled security certificates")
           @use_bundled_certs = true
           retry 
         else
