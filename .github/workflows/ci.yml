@@ -8,7 +8,8 @@ on:
   pull_request:
 
 jobs:
-  build_ruby:
+  build-ruby:
+    if: false
     runs-on: ubuntu-latest
     strategy: 
       matrix: 
@@ -30,8 +31,9 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
   
-  unit_test:
-    needs: build_ruby
+  mini-env:
+    if: false
+    needs: build-ruby
     runs-on: ubuntu-latest
     strategy: 
       fail-fast: false
@@ -148,8 +150,9 @@ jobs:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
           MYSQL_PASSWORD: root
 
-  multiverse_test:
-    needs: build_ruby
+  multiverse:
+    if: false
+    needs: build-ruby
     runs-on: ubuntu-latest
     services:
       # Label used to access the service container

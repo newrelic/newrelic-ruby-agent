@@ -523,6 +523,19 @@ async function setupRubyEnvironment(rubyVersion) {
   core.exportVariable('SERIALIZE', 1)
 }
 
+async function configureBundleOptions(rubyVersion) {
+  if (!usesOldOpenSsl(rubyVersion)) { return }
+
+  const openSslPath = rubyOpenSslPath(rubyVersion);
+  
+  // https://stackoverflow.com/questions/30834421/error-when-trying-to-install-app-with-mysql2-gem
+  await exec.exec('bundle', [
+    'config', '--global', 'build.mysql2',
+      `--with-ldflags=-L${openSslPath}/lib`, 
+      `--with-cppflags=-I${openSslPath}/include`
+  ]);
+}
+
 async function setupRubyEnvironmentAfterBuild(rubyVersion) {
   if (!usesOldOpenSsl(rubyVersion)) { return }
 
@@ -541,6 +554,12 @@ async function setupRubyEnvironmentAfterBuild(rubyVersion) {
   openSslOption = `--with-openssl-dir=${openSslPath}`
   core.exportVariable('CONFIGURE_OPTS', openSslOption)
   core.exportVariable('RUBY_CONFIGURE_OPTS', `${openSslOption} ${process.env.RUBY_CONFIGURE_OPTS}`)
+
+  let libraryPath = `${openSslPath}/lib`;
+  if (process.env.LIBRARY_PATH) {
+    libraryPath += `:${process.env.LIBRARY_PATH}`
+  }
+  core.exportVariable('LIBRARY_PATH', libraryPath);
 }
 
 // Shows some version love!
@@ -552,6 +571,7 @@ async function showVersions() {
   await exec.exec('gem', ['--version'])
   await exec.exec('bundle', ['--version'])
   await exec.exec('openssl', ['version'])
+
   core.endGroup()
 }
 
@@ -667,6 +687,7 @@ async function main() {
 
   if (fs.existsSync(`${rubyBinPath}/ruby`)) {
     await setupRubyEnvironmentAfterBuild(rubyVersion)
+    await configureBundleOptions(rubyVersion)
     await showVersions()
     console.log("Ruby already built.  Skipping the build process!")
     return
