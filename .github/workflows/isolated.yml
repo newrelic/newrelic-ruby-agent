@@ -28,7 +28,7 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
           dependencies: libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev patch ruby-dev zlib1g-dev liblzma-dev
 
-      - run: gem install nokogiri -v '1.9.1'
+      - run: gem install nokogiri -v '1.9.1' -- --use-system-libraries
       - if: ${{ always() }}
         run: cat  /home/runner/.rubies/ruby-2.1.10/lib/ruby/gems/2.1.0/extensions/x86_64-linux/2.1.0/nokogiri-1.9.1/mkmf.log
 
