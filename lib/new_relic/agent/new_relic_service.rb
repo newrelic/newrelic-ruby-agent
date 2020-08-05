@@ -40,6 +40,7 @@ module NewRelic
         @collector = collector
         @request_timeout = Agent.config[:timeout]
         @ssl_cert_store = nil
+        @use_bundled_certs = false
         @in_session = nil
         @agent_id = nil
         @shared_tcp_connection = nil
@@ -290,7 +291,11 @@ module NewRelic
         # installed
         conn.use_ssl     = true
         conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        conn.cert_store  = ssl_cert_store
+        if @use_bundled_certs || NewRelic::Agent.config[:ca_bundle_path]
+          conn.cert_store  = ssl_cert_store
+        else
+          ::NewRelic::Agent.logger.info("Using default security certificates")
+        end
       rescue StandardError, LoadError
         msg = "SSL is not available in the environment; please install SSL support."
         raise UnrecoverableAgentException.new(msg)
@@ -337,6 +342,14 @@ module NewRelic
         conn = create_http_connection
         start_connection(conn)
         conn
+      rescue Timeout::Error => e
+        if @use_bundled_certs == false
+          ::NewRelic::Agent.logger.debug("Unable to connect. Falling back to bundled security certificates")
+          @use_bundled_certs = true
+          retry 
+        else
+          raise
+        end
       end
 
       # The path to the certificate file used to verify the SSL
