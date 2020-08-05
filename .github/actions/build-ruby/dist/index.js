@@ -529,11 +529,11 @@ async function configureBundleOptions(rubyVersion) {
   const openSslPath = rubyOpenSslPath(rubyVersion);
   
   // https://stackoverflow.com/questions/30834421/error-when-trying-to-install-app-with-mysql2-gem
-  // await exec.exec('bundle', [
-  //   'config', '--global', 'build.mysql2',
-  //     `--with-ldflags=-L${openSslPath}/lib`, 
-  //     `--with-cppflags=-I${openSslPath}/include`
-  // ]);
+  await exec.exec('bundle', [
+    'config', '--global', 'build.mysql2',
+      `--with-ldflags=-L${openSslPath}/lib`, 
+      `--with-cppflags=-I${openSslPath}/include`
+  ]);
 }
 
 function prependEnv(envName, envValue, divider=' ') {
@@ -552,7 +552,7 @@ async function setupRubyEnvironmentAfterBuild(rubyVersion) {
   core.exportVariable('OPENSSL_DIR', openSslPath)
 
   prependEnv('LDFLAGS', `-L${openSslPath}/lib`)
-  prependEnv('CPPFLAGS', `-I${openSslPath}/include ${process.env.CPPFLAGS}`)
+  prependEnv('CPPFLAGS', `-I${openSslPath}/include`)
   prependEnv('PKG_CONFIG_PATH', `${openSslPath}/lib/pkgconfig`, ':')
 
   openSslOption = `--with-openssl-dir=${openSslPath}`
