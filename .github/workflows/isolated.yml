@@ -4,6 +4,7 @@ on: push
 
 jobs:
   multiverse_test:
+    if: false
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
