@@ -292,7 +292,6 @@ module NewRelic
         conn.use_ssl     = true
         conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
         if @use_bundled_certs || NewRelic::Agent.config[:ca_bundle_path]
-          Agent.record_metric("Supportability/Ruby/BundledCertsRequired", 0.0)
           conn.cert_store  = ssl_cert_store
         else
           ::NewRelic::Agent.logger.debug("Using default security certificates")
@@ -360,6 +359,7 @@ module NewRelic
           NewRelic::Agent.logger.warn("Couldn't find CA bundle from configured ca_bundle_path: #{path_override}") unless File.exist? path_override
           path_override
         else
+          Agent.record_metric("Supportability/Ruby/BundledCertsRequired", 0.0)
           File.expand_path(File.join(control.newrelic_root, 'cert', 'cacert.pem'))
         end
       end
