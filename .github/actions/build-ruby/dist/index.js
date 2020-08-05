@@ -531,8 +531,8 @@ async function configureBundleOptions(rubyVersion) {
   // https://stackoverflow.com/questions/30834421/error-when-trying-to-install-app-with-mysql2-gem
   await exec.exec('bundle', [
     'config', '--global', 'build.mysql2',
-      '--with-ldflags=-L' + openSslPath + '/lib', 
-      `--with-cppflags=-I${openSslPath}/include`
+      `"--with-ldflags=-L${openSslPath}/lib"`,
+      `"--with-cppflags=-I${openSslPath}/include"`
   ]);
 }
 
