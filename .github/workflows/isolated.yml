@@ -122,8 +122,10 @@ jobs:
         run: gem install pkg-config -v "~> 1.1.7"
 
       - name: downgrade openSSL
-        run: sudo apt-get install -y --allow-downgrades openssl1.0=1.0.2n-1ubuntu5.1 
-        
+        run: |
+          wget https://launchpad.net/~ubuntu-security/+archive/ubuntu/ppa/+build/7531893/+files/openssl_1.0.1-4ubuntu5.31_amd64.deb
+          sudo dpkg -i openssl_1.0.1-4ubuntu5.31_amd64.deb
+
       - name: Bundler install
         run: bundle install 
 
