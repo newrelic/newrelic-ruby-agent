@@ -587,9 +587,8 @@ module NewRelic
         segment = ::NewRelic::Agent::Tracer.current_segment
         if segment
           # Make sure not to override existing segment-level custom attributes
-          segment_custom_keys = segment.attributes.custom_attributes.keys
-          segment_custom_keys.each { |k| params.delete k.to_sym }
-          segment.add_custom_attributes(params)
+          segment_custom_keys = segment.attributes.custom_attributes.keys.map(&:to_sym)
+          segment.add_custom_attributes(params.reject { |k, _v| segment_custom_keys.include?(k.to_sym) })
         end
       else
         ::NewRelic::Agent.logger.warn("Bad argument passed to #add_custom_attributes. Expected Hash but got #{params.class}")
