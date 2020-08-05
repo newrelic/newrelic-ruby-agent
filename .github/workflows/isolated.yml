@@ -121,6 +121,9 @@ jobs:
       - name: pkgconfig install
         run: gem install pkg-config -v "~> 1.1.7"
 
+      - name: downgrade openSSL
+        run: sudo apt-get install -y --allow-downgrades openssl1.0=1.0.2u-1ubuntu5.1 
+
       - name: Bundler install
         run: bundle install 
 
