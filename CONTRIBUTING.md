@@ -164,7 +164,7 @@ practices. Like all official New Relic open source projects, there's a related
 Community topic in the New Relic Explorers Hub. You can find this project's
 topic/threads here:
 
-[Explorer's Hub](https://discuss.newrelic.com/c/support-products-agents/ruby-agent)
+[Explorer's Hub](https://discuss.newrelic.com/tags/rubyagent)
 
 ## And Finally...
 
