@@ -120,24 +120,28 @@ async function configureBundleOptions(rubyVersion) {
   // ]);
 }
 
+function prependEnv(envName, envValue, divider=' ') {
+  let existingValue = process.env[envName];
+  if (existingValue) {
+    envValue += `${divider}${existingValue}`
+  }
+  core.exportVariable(envName, envValue);
+}
+
 async function setupRubyEnvironmentAfterBuild(rubyVersion) {
   if (!usesOldOpenSsl(rubyVersion)) { return }
 
   const openSslPath = rubyOpenSslPath(rubyVersion);
 
   core.exportVariable('OPENSSL_DIR', openSslPath)
-  core.exportVariable('LDFLAGS', `-L${openSslPath}/lib ${process.env.LDFLAGS}`)
-  core.exportVariable('CPPFLAGS', `-I${openSslPath}/include ${process.env.CPPFLAGS}`)
 
-  let pkgConfigPath = `${openSslPath}/lib/pkgconfig`;
-  if (process.env.PKG_CONFIG_PATH) {
-    pkgConfigPath += `:${process.env.PKG_CONFIG_PATH}`
-  }
-  core.exportVariable('PKG_CONFIG_PATH', pkgConfigPath);
+  prependEnv('LDFLAGS', `-L${openSslPath}/lib`)
+  prependEnv('CPPFLAGS', `-I${openSslPath}/include ${process.env.CPPFLAGS}`)
+  prependEnv('PKG_CONFIG_PATH', `${openSslPath}/lib/pkgconfig`, ':')
 
   openSslOption = `--with-openssl-dir=${openSslPath}`
   core.exportVariable('CONFIGURE_OPTS', openSslOption)
-  core.exportVariable('RUBY_CONFIGURE_OPTS', `${openSslOption} ${process.env.RUBY_CONFIGURE_OPTS}`)
+  prependEnv('RUBY_CONFIGURE_OPTS', openSslOption)
 
   // let libraryPath = `${openSslPath}/lib`;
   // if (process.env.LIBRARY_PATH) {
