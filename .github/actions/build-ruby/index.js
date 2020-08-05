@@ -110,14 +110,14 @@ async function setupRubyEnvironment(rubyVersion) {
 async function configureBundleOptions(rubyVersion) {
   if (!usesOldOpenSsl(rubyVersion)) { return }
 
-  // const openSslPath = rubyOpenSslPath(rubyVersion);
+  const openSslPath = rubyOpenSslPath(rubyVersion);
   
-  // // https://stackoverflow.com/questions/30834421/error-when-trying-to-install-app-with-mysql2-gem
-  // await exec.exec('bundle', [
-  //   'config', '--global', 'build.mysql2',
-  //     `--with-ldflags=-L${openSslPath}/lib`, 
-  //     `--with-cppflags=-I${openSslPath}/include`
-  // ]);
+  // https://stackoverflow.com/questions/30834421/error-when-trying-to-install-app-with-mysql2-gem
+  await exec.exec('bundle', [
+    'config', '--global', 'build.mysql2',
+      `--with-ldflags=-L${openSslPath}/lib`, 
+      `--with-cppflags=-I${openSslPath}/include`
+  ]);
 }
 
 async function setupRubyEnvironmentAfterBuild(rubyVersion) {
