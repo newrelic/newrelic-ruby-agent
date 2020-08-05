@@ -529,11 +529,11 @@ async function configureBundleOptions(rubyVersion) {
   const openSslPath = rubyOpenSslPath(rubyVersion);
   
   // https://stackoverflow.com/questions/30834421/error-when-trying-to-install-app-with-mysql2-gem
-  await exec.exec('bundle', [
-    'config', '--global', 'build.mysql2',
-      `--with-ldflags=-L${openSslPath}/lib`, 
-      `--with-cppflags=-I${openSslPath}/include`
-  ]);
+  // await exec.exec('bundle', [
+  //   'config', '--global', 'build.mysql2',
+  //     `--with-ldflags=-L${openSslPath}/lib`, 
+  //     `--with-cppflags=-I${openSslPath}/include`
+  // ]);
 }
 
 async function setupRubyEnvironmentAfterBuild(rubyVersion) {
@@ -542,8 +542,8 @@ async function setupRubyEnvironmentAfterBuild(rubyVersion) {
   const openSslPath = rubyOpenSslPath(rubyVersion);
 
   core.exportVariable('OPENSSL_DIR', openSslPath)
-  core.exportVariable('LDFLAGS', `${openSslPath}/lib`)
-  core.exportVariable('CPPFLAGS', `${openSslPath}/include`)
+  core.exportVariable('LDFLAGS', `-L${openSslPath}/lib ${process.env.LDFLAGS}`)
+  core.exportVariable('CPPFLAGS', `-I${openSslPath}/include ${process.env.CPPFLAGS}`)
 
   let pkgConfigPath = `${openSslPath}/lib/pkgconfig`;
   if (process.env.PKG_CONFIG_PATH) {
@@ -555,11 +555,11 @@ async function setupRubyEnvironmentAfterBuild(rubyVersion) {
   core.exportVariable('CONFIGURE_OPTS', openSslOption)
   core.exportVariable('RUBY_CONFIGURE_OPTS', `${openSslOption} ${process.env.RUBY_CONFIGURE_OPTS}`)
 
-  let libraryPath = `${openSslPath}/lib`;
-  if (process.env.LIBRARY_PATH) {
-    libraryPath += `:${process.env.LIBRARY_PATH}`
-  }
-  core.exportVariable('LIBRARY_PATH', libraryPath);
+  // let libraryPath = `${openSslPath}/lib`;
+  // if (process.env.LIBRARY_PATH) {
+  //   libraryPath += `:${process.env.LIBRARY_PATH}`
+  // }
+  // core.exportVariable('LIBRARY_PATH', libraryPath);
 }
 
 // Shows some version love!
