@@ -292,6 +292,7 @@ module NewRelic
         conn.use_ssl     = true
         conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
         if @use_bundled_certs || NewRelic::Agent.config[:ca_bundle_path]
+          Agent.record_metric("Supportability/Ruby/BundledCertsRequired", 0.0)
           conn.cert_store  = ssl_cert_store
         else
           ::NewRelic::Agent.logger.debug("Using default security certificates")
