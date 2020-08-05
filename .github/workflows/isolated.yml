@@ -26,9 +26,9 @@ jobs:
         uses: ./.github/actions/build-ruby
         with:
           ruby-version: ${{ matrix.ruby-version }}
-          dependencies: libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev patch ruby-dev zlib1g-dev liblzma-dev
+          dependencies: libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
 
-      - run: gem install nokogiri -v '< 1.7' -- --use-system-libraries
+      - run: gem install nokogiri -v '1.9.1'
       - if: ${{ always() }}
         run: cat  /home/runner/.rubies/ruby-2.*/lib/ruby/gems/2.*/extensions/x86_64-linux/2.*/nokogiri-*/mkmf.log
 
