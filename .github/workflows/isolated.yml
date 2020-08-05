@@ -3,58 +3,8 @@ name: The Droids You're Looking For
 on: push
 
 jobs:
-  build_ruby:
-    runs-on: ubuntu-latest
-    strategy: 
-      matrix: 
-        ruby-version: [ "2.1.10" ]
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/cache@v2
-        id: ruby-cache
-        with:
-          path: ~/.rubies/ruby-${{ matrix.ruby-version }}
-          key: v5-ruby-cache-${{ matrix.ruby-version }}
-          restore-keys: |
-            v5-ruby-cache-${{ matrix.ruby-version }}
-      - name: Build Ruby ${{ matrix.ruby-version }}
-        id: build-ruby
-        uses: ./.github/actions/build-ruby
-        with:
-          ruby-version: ${{ matrix.ruby-version }}
-
   multiverse_test:
-    needs: build_ruby
     runs-on: ubuntu-latest
-    services:
-      # Label used to access the service container
-      redis:
-        # Docker Hub image
-        image: redis
-        # Set health checks to wait until redis has started
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          # Maps port 6379 on service container to the host
-          - 6379:6379
-      mongodb:
-        image: mongo
-        ports:
-          - 27017:27017
-      rabbitmq:
-        image: rabbitmq:latest
-        ports:
-          - 5672:5672
-        options: --health-cmd "rabbitmqctl node_health_check" --health-interval 10s --health-timeout 5s --health-retries 5
-      memcached:
-        image: memcached:latest
-        ports:
-          - 11211:11211
-        options: --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'" --health-interval 10s --health-timeout 5s --health-retries 5
     strategy:
       fail-fast: false
       matrix:
@@ -78,9 +28,9 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
           dependencies: libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
 
-      - run: gem install nokogiri -v '1.9.1'
+      - run: gem install nokogiri
       - if: ${{ always() }}
-        run: cat  /home/runner/.rubies/ruby-2.1.10/lib/ruby/gems/2.1.0/extensions/x86_64-linux/2.1.0/nokogiri-1.9.1/mkmf.log
+        run: cat  /home/runner/.rubies/ruby-2.1.10/lib/ruby/gems/2.1.0/extensions/x86_64-linux/2.1.0/nokogiri-*/mkmf.log
 
       # - run: cat /home/runner/.rubies/ruby-${{ matrix.ruby-version }}/lib/ruby/gems/${{ matrix.ruby-version }}/extensions/x86_64-linux/${{ matrix.ruby-version }}/memcached-1.8.0/mkmf.log
       # - if: ${{ always() }}
