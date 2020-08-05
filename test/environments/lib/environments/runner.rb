@@ -94,14 +94,19 @@ module Environments
       version.to_s == "" ? nil : "_#{version}_"
     end
 
+    def configure_bundler dir, bundle_cmd
+      `cd #{dir} && #{bundle_cmd} config build.nokogiri --use-system-libraries`
+    end
+
     def bundle(dir)
       puts "Bundling in #{dir}..."
       bundler_version = explicit_bundler_version(dir)
       bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
+      configure_bundler dir, bundle_cmd
       result = `cd #{dir} && #{bundle_cmd} install --local`
       unless $?.success?
         puts "Failed local bundle, trying again with full bundle..."
-        command = "cd #{dir} && #{bundle_cmd} install --retry 3"
+        command = "cd #{dir} && #{bundle_cmd} install"
         result = Multiverse::ShellUtils.try_command_n_times(command, 3)
       end
 
