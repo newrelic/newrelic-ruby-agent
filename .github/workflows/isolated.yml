@@ -129,7 +129,7 @@ jobs:
           wget https://mirrors.mediatemple.net/debian-security/pool/updates/main/m/mysql-5.5/libmysqlclient18_5.5.62-0%2Bdeb8u1_amd64.deb
           sudo dpkg -i libmysqlclient18_5.5.62-0+deb8u1_amd64.deb
           wget https://mirrors.mediatemple.net/debian-security/pool/updates/main/m/mysql-5.5/libmysqlclient-dev_5.5.62-0%2Bdeb8u1_amd64.deb
-          sudo dpkg -i libmysqlclient-dev_5.5.62-0+Bdeb8u1_amd64.deb
+          sudo dpkg -i libmysqlclient-dev_5.5.62-0+deb8u1_amd64.deb
 
       - name: Bundler install
         run: bundle install 
