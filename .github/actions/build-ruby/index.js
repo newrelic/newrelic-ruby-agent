@@ -291,11 +291,13 @@ async function installBundler(rubyVersion) {
 //       ruby-cache-${{ matrix.ruby-version }}
 //
 async function main() {
+  const systemDependencyList = "libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev"
   const dependencyList = core.getInput('dependencies')
   const rubyVersion = core.getInput('ruby-version')
   const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
 
   try {
+    await installDependencies('system', systemDependencyList)
     await installDependencies('workflow', dependencyList)
     await setupRubyEnvironment(rubyVersion)
     await addRubyToPath(rubyVersion)

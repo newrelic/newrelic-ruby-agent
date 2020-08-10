@@ -30,8 +30,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
   
-  infinite_tracing_test:
-    if: false
+  infinite-tracing:
     needs: build-ruby
     runs-on: ubuntu-latest
     strategy:
@@ -54,7 +53,6 @@ jobs:
         uses: ./.github/actions/build-ruby
         with:
           ruby-version: ${{ matrix.ruby-version }}
-          dependencies: libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
 
       - name: Bundler install
         run: bundle install
