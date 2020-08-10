@@ -359,7 +359,7 @@ module NewRelic
           NewRelic::Agent.logger.warn("Couldn't find CA bundle from configured ca_bundle_path: #{path_override}") unless File.exist? path_override
           path_override
         else
-          ::NewRelic::Agent.increment_metric("Supportability/Ruby/BundledCertsRequired")
+          ::NewRelic::Agent.increment_metric("Supportability/Ruby/Certificate/BundleRequired ")
           File.expand_path(File.join(control.newrelic_root, 'cert', 'cacert.pem'))
         end
       end
