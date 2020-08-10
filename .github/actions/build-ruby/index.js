@@ -162,7 +162,7 @@ async function setupAllRubyEnvironments() {
   core.startGroup("Setup for all Ruby Environments")
 
   // required for some combinations of rails and rubies in the mini-env test matrix
-  await exec.exec('gem', ['install', 'bundle', '-v',  '~> 1.17.2', '--no-document'])
+  await exec.exec('gem', ['install', 'bundle', '-v',  '1.17.2', '--no-document'])
 
   core.endGroup()
 }
