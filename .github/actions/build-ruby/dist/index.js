@@ -595,7 +595,7 @@ async function setupRubyEnvironmentAfterBuild(rubyVersion) {
   // }
   // core.exportVariable('LIBRARY_PATH', libraryPath);
 
-  await exec.exec('gem', ['install', 'pkg-config', '-v',  '~> 1.1.7'])
+  await exec.exec('gem', ['install', 'pkg-config', '-v',  '~> 1.1.7', '--no-document'])
 }
 
 // Shows some version love!
