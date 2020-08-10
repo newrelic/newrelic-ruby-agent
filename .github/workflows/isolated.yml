@@ -124,12 +124,11 @@ jobs:
       - name: downgrade openSSL
         run: |
           sudo apt-get remove mysql-client
-          # wget https://launchpad.net/~ubuntu-security/+archive/ubuntu/ppa/+build/7531893/+files/openssl_1.0.1-4ubuntu5.31_amd64.deb
-          # sudo dpkg -i openssl_1.0.1-4ubuntu5.31_amd64.deb
           wget https://mirrors.mediatemple.net/debian-security/pool/updates/main/m/mysql-5.5/libmysqlclient18_5.5.62-0%2Bdeb8u1_amd64.deb
           sudo dpkg -i libmysqlclient18_5.5.62-0+deb8u1_amd64.deb
           wget https://mirrors.mediatemple.net/debian-security/pool/updates/main/m/mysql-5.5/libmysqlclient-dev_5.5.62-0%2Bdeb8u1_amd64.deb
           sudo dpkg -i libmysqlclient-dev_5.5.62-0+deb8u1_amd64.deb
+          rm *.deb
 
       - name: Bundler install
         run: bundle install 

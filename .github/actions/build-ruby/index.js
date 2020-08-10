@@ -128,6 +128,32 @@ function prependEnv(envName, envValue, divider=' ') {
   core.exportVariable(envName, envValue);
 }
 
+async function downgradeMySQL() {
+  core.startGroup(`Downgrade MySQL`)
+
+  const pkgDir = `${process.env.HOME}/packages`
+  const mirrorUrl = 'https://mirrors.mediatemple.net/debian-security/pool/updates/main/m/mysql-5.5'
+  
+  let a = exec.exec('apt-get', ['remove', 'mysql-client']);
+  let b = exec.exec('wget', '-P', pkgDir, `${mirrorUrl}/libmysqlclient18_5.5.62-0%2Bdeb8u1_amd64.deb`);
+  let c = exec.exec('wget', '-P', pkgDir, `${mirrorUrl}/libmysqlclient-dev_5.5.62-0%2Bdeb8u1_amd64.deb`);
+
+  await a;
+  await b;
+  await c;
+
+  await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient18_5.5.62-0+deb8u1_amd64.deb`]);
+  await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient-dev_5.5.62-0+deb8u1_amd64.deb`]);
+
+  core.endGroup()
+}
+
+async function downgradeSystemPackages(rubyVersion) {
+  if (!usesOldOpenSsl(rubyVersion)) { return }
+
+  await downgradeMySQL();
+}
+
 async function setupRubyEnvironmentAfterBuild(rubyVersion) {
   if (!usesOldOpenSsl(rubyVersion)) { return }
 
@@ -274,6 +300,7 @@ async function main() {
   }
 
   if (fs.existsSync(`${rubyBinPath}/ruby`)) {
+    await downgradeSystemPackages(rubyVersion)
     await setupRubyEnvironmentAfterBuild(rubyVersion)
     await configureBundleOptions(rubyVersion)
     await showVersions()
@@ -288,6 +315,7 @@ async function main() {
     await upgradeRubyGems(rubyVersion)
     await installBundler(rubyVersion)
 
+    await downgradeSystemPackages(rubyVersion)
     await setupRubyEnvironmentAfterBuild(rubyVersion)
     await showVersions()
   } 
