@@ -8,12 +8,11 @@ on:
   pull_request:
 
 jobs:
-  build_ruby:
-    if: false
+  build-ruby:
     runs-on: ubuntu-latest
     strategy: 
       matrix: 
-        ruby-version: [ "2.5.8", "2.6.6", "2.7.1" ]
+        ruby-version: [ 2.5.8, 2.6.6, 2.7.1 ]
     steps:
       - uses: actions/checkout@v2
 
@@ -33,12 +32,12 @@ jobs:
   
   infinite_tracing_test:
     if: false
-    needs: build_ruby
+    needs: build-ruby
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: ["2.5.8", "2.6.6", "2.7.1"]
+        ruby-version: [ 2.5.8, 2.6.6, 2.7.1 ]
     steps:
       - uses: actions/checkout@v2
 
@@ -55,10 +54,11 @@ jobs:
         uses: ./.github/actions/build-ruby
         with:
           ruby-version: ${{ matrix.ruby-version }}
+          dependencies: libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
 
       - name: Bundler install
         run: bundle install
 
       - name: rake test
-        run: bundle exec rake test:multiverse[group=infinite_tracing,verbose,nocache]
+        run: bundle exec rake test:multiverse[group=infinite_tracing,verbose]
   
