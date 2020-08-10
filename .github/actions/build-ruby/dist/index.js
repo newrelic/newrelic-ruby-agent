@@ -589,13 +589,11 @@ async function setupRubyEnvironmentAfterBuild(rubyVersion) {
   core.exportVariable('CONFIGURE_OPTS', openSslOption)
   prependEnv('RUBY_CONFIGURE_OPTS', openSslOption)
 
-  // let libraryPath = `${openSslPath}/lib`;
-  // if (process.env.LIBRARY_PATH) {
-  //   libraryPath += `:${process.env.LIBRARY_PATH}`
-  // }
-  // core.exportVariable('LIBRARY_PATH', libraryPath);
-
+  // required for some versions of nokogiri
   await exec.exec('gem', ['install', 'pkg-config', '-v',  '~> 1.1.7', '--no-document'])
+
+  // required for some combinations of rails and rubies in the mini-env test matrix
+  await exec.exec('gem', ['install', 'bundle', '-v',  '~> 1.17.2', '--no-document'])
 }
 
 // Shows some version love!
