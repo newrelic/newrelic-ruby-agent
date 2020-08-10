@@ -9,7 +9,6 @@ on:
 
 jobs:
   build-ruby:
-    if: false
     runs-on: ubuntu-latest
     strategy: 
       matrix: 
