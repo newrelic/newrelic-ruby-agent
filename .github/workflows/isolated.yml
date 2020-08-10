@@ -114,7 +114,7 @@ jobs:
         uses: ./.github/actions/build-ruby
         with:
           ruby-version: ${{ matrix.ruby-version }}
-          dependencies: libxslt
+          dependencies: libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
 
       - name: Start mysql
         run: sudo systemctl start mysql
