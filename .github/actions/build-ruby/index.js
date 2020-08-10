@@ -158,8 +158,19 @@ async function downgradeSystemPackages(rubyVersion) {
   await downgradeMySQL();
 }
 
-async function setupRubyEnvironmentAfterBuild(rubyVersion) {
+async function setupAllRubyEnvironments() {
+  core.startGroup("Setup for all Ruby Environments")
+
+  // required for some combinations of rails and rubies in the mini-env test matrix
+  await exec.exec('gem', ['install', 'bundle', '-v',  '~> 1.17.2', '--no-document'])
+
+  core.endGroup()
+}
+
+async function setupOldRubyEnvironments(rubyVersion) {
   if (!usesOldOpenSsl(rubyVersion)) { return }
+
+  core.startGroup("Setup for EOL Ruby Environments")
 
   const openSslPath = rubyOpenSslPath(rubyVersion);
 
@@ -176,8 +187,12 @@ async function setupRubyEnvironmentAfterBuild(rubyVersion) {
   // required for some versions of nokogiri
   await exec.exec('gem', ['install', 'pkg-config', '-v',  '~> 1.1.7', '--no-document'])
 
-  // required for some combinations of rails and rubies in the mini-env test matrix
-  await exec.exec('gem', ['install', 'bundle', '-v',  '~> 1.17.2', '--no-document'])
+  core.endGroup()
+}
+
+async function setupRubyEnvironmentAfterBuild(rubyVersion) {
+  await setupAllRubyEnvironments()
+  await setupOldRubyEnvironments(rubyVersion)
 }
 
 // Shows some version love!
@@ -275,6 +290,13 @@ async function installBundler(rubyVersion) {
   core.endGroup()
 }
 
+async function postBuildSetup(rubyVersion) {
+  await downgradeSystemPackages(rubyVersion)
+  await setupRubyEnvironmentAfterBuild(rubyVersion)
+  await configureBundleOptions(rubyVersion)
+  await showVersions()
+}
+
 // Will set up the Ruby environment so the desired Ruby binaries are used in the unit tests
 // If Ruby hasn't been built and cached, yet, we also compile the Ruby binaries.
 // 
@@ -306,10 +328,7 @@ async function main() {
   }
 
   if (fs.existsSync(`${rubyBinPath}/ruby`)) {
-    await downgradeSystemPackages(rubyVersion)
-    await setupRubyEnvironmentAfterBuild(rubyVersion)
-    await configureBundleOptions(rubyVersion)
-    await showVersions()
+    await postBuildSetup(rubyVersion)
     console.log("Ruby already built.  Skipping the build process!")
     return
   }
@@ -321,9 +340,7 @@ async function main() {
     await upgradeRubyGems(rubyVersion)
     await installBundler(rubyVersion)
 
-    await downgradeSystemPackages(rubyVersion)
-    await setupRubyEnvironmentAfterBuild(rubyVersion)
-    await showVersions()
+    await postBuildSetup(rubyVersion)
   } 
   catch (error) {
     core.setFailed(error.message)
