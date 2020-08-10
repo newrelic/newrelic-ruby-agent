@@ -9,7 +9,6 @@ on:
 
 jobs:
   build-ruby:
-    if: false
     runs-on: ubuntu-latest
     strategy: 
       matrix: 
@@ -32,7 +31,6 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
   
   mini-env:
-    if: false
     needs: build-ruby
     runs-on: ubuntu-latest
     strategy: 
@@ -151,7 +149,6 @@ jobs:
           MYSQL_PASSWORD: root
 
   multiverse:
-    if: false
     needs: build-ruby
     runs-on: ubuntu-latest
     services:
