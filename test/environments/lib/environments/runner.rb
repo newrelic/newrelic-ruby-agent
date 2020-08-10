@@ -88,7 +88,7 @@ module Environments
     end
 
     def explicit_bundler_version dir
-      return if RUBY_VERSION.to_f < 2.3
+      return if RUBY_VERSION.to_f <= 2.3
       fn = File.join(dir, ".bundler-version")
       version = File.exist?(fn) ? File.read(fn).chomp!.strip : nil
       version.to_s == "" ? nil : "_#{version}_"
