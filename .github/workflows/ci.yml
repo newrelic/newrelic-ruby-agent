@@ -145,7 +145,7 @@ jobs:
       - name: rake test
         run:  bundle exec rake test:env[${{ matrix.rails }}] TESTOPTS="--verbose"
         env:
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          DB_PORT: 3306
           MYSQL_PASSWORD: root
 
   multiverse:
@@ -222,5 +222,5 @@ jobs:
       - name: Run unit tests
         run: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
-          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          DB_PORT: 3306
           MYSQL_PASSWORD: root

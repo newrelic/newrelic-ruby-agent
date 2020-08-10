@@ -94,21 +94,25 @@ module Environments
       version.to_s == "" ? nil : "_#{version}_"
     end
 
+    # Ensures we bundle will recognize an explicit version number on command line
+    def safe_explicit version
+      return version if version == ""
+      test_version = `bundle #{version} --version` =~ /Could not find command/
+      test_version ? "" : version
+    end
+
     def bundle_config dir, bundle_cmd
       `cd #{dir} && #{bundle_cmd} config build.nokogiri --use-system-libraries`
     end
 
     def bundle(dir)
       puts "Bundling in #{dir}..."
-      bundler_version = explicit_bundler_version(dir)
+      bundler_version = safe_explicit explicit_bundler_version(dir)
       bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
       bundle_config dir, bundle_cmd
-      result = `cd #{dir} && #{bundle_cmd} install --local`
-      unless $?.success?
-        puts "Failed local bundle, trying again with full bundle..."
-        command = "cd #{dir} && #{bundle_cmd} install"
-        result = Multiverse::ShellUtils.try_command_n_times(command, 3)
-      end
+
+      command = "cd #{dir} && #{bundle_cmd} install"
+      result = Multiverse::ShellUtils.try_command_n_times(command, 3)
 
       result = red(result) unless $?.success?
       puts result
