@@ -9,6 +9,7 @@ on:
 
 jobs:
   build-ruby:
+    if: false
     runs-on: ubuntu-latest
     strategy: 
       matrix: 
@@ -31,6 +32,7 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
   
   infinite-tracing:
+    if: false
     needs: build-ruby
     runs-on: ubuntu-latest
     strategy:
