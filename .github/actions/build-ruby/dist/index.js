@@ -544,6 +544,9 @@ function prependEnv(envName, envValue, divider=' ') {
   core.exportVariable(envName, envValue);
 }
 
+// The older Rubies also need older MySQL that was built against the older OpenSSL libraries.
+// Otherwise mysql adapter will segfault in Ruby because it attempts to dynamically link 
+// to the 1.1 series while Ruby links against the 1.0 series.
 async function downgradeMySQL() {
   core.startGroup(`Downgrade MySQL`)
 
@@ -591,6 +594,8 @@ async function setupRubyEnvironmentAfterBuild(rubyVersion) {
   //   libraryPath += `:${process.env.LIBRARY_PATH}`
   // }
   // core.exportVariable('LIBRARY_PATH', libraryPath);
+
+  await exec.exec('gem', ['install', 'pkg-config', '-v',  '"~> 1.1.7"'])
 }
 
 // Shows some version love!

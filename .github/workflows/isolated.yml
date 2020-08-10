@@ -118,9 +118,6 @@ jobs:
       - name: Start mysql
         run: sudo systemctl start mysql
 
-      - name: pkgconfig install
-        run: gem install pkg-config -v "~> 1.1.7"
-
       - name: Bundler install
         run: bundle install 
 
