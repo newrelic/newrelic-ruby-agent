@@ -122,6 +122,9 @@ jobs:
       - name: Bundler install
         run: bundle install 
 
+      - name: Show Gemfile.lock
+        run: cat /home/runner/work/newrelic-ruby-agent/newrelic-ruby-agent/Gemfile.lock
+        
       - name: rake test
         run:  bundle exec rake test:env[${{ matrix.rails }}] TESTOPTS="--verbose"
         env:
