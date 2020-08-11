@@ -9,7 +9,6 @@ on:
 
 jobs:
   infinite-tracing:
-    needs: build-ruby
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
