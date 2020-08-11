@@ -8,31 +8,7 @@ on:
   pull_request:
 
 jobs:
-  if: false
-  build-ruby:
-    runs-on: ubuntu-latest
-    strategy: 
-      matrix: 
-        ruby-version: [ 2.5.8, 2.6.6, 2.7.1 ]
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/cache@v2
-        id: ruby-cache
-        with:
-          path: ~/.rubies/ruby-${{ matrix.ruby-version }}
-          key: v5-ruby-cache-${{ matrix.ruby-version }}
-          restore-keys: |
-            v5-ruby-cache-${{ matrix.ruby-version }}
-
-      - name: Build Ruby ${{ matrix.ruby-version }}
-        id: build-ruby
-        uses: ./.github/actions/build-ruby
-        with:
-          ruby-version: ${{ matrix.ruby-version }}
-  
   infinite-tracing:
-    if: false
     needs: build-ruby
     runs-on: ubuntu-latest
     strategy:
@@ -42,16 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/cache@v2
-        id: ruby-cache
-        with:
-          path: ~/.rubies/ruby-${{ matrix.ruby-version }}
-          key: v5-ruby-cache-${{ matrix.ruby-version }}
-          restore-keys: |
-            v5-ruby-cache-${{ matrix.ruby-version }}
-
       - name: Build Ruby ${{ matrix.ruby-version }}
-        id: build-ruby
         uses: ./.github/actions/build-ruby
         with:
           ruby-version: ${{ matrix.ruby-version }}
