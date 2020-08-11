@@ -105,9 +105,9 @@ jobs:
         id: ruby-cache
         with:
           path: ~/.rubies/ruby-${{ matrix.ruby-version }}
-          key: v5-ruby-cache-${{ matrix.ruby-version }}
+          key: v1-ruby-cache-${{ matrix.ruby-version }}
           restore-keys: |
-            v5-ruby-cache-${{ matrix.ruby-version }}
+            v1-ruby-cache-${{ matrix.ruby-version }}
 
       - name: Build Ruby ${{ matrix.ruby-version }}
         id: build-ruby
@@ -124,7 +124,7 @@ jobs:
 
       - name: Show Gemfile.lock
         run: cat /home/runner/work/newrelic-ruby-agent/newrelic-ruby-agent/Gemfile.lock
-        
+
       - name: rake test
         run:  bundle exec rake test:env[${{ matrix.rails }}] TESTOPTS="--verbose"
         env:
