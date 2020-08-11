@@ -8,6 +8,7 @@ on:
   pull_request:
 
 jobs:
+  if: false
   build-ruby:
     runs-on: ubuntu-latest
     strategy: 
