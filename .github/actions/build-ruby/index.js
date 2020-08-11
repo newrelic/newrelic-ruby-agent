@@ -302,7 +302,7 @@ async function installBundler(rubyVersion) {
   else {
     await execute('bundle --version').then(res => { bundleVersionStr = res; });
     if (bundleVersionStr.match(/1\.17\.2/)) { 
-     console.log(`found bundle ${res}.  Upgrading to 1.17.3`)
+     console.log(`found bundle ${bundleVersionStr}.  Upgrading to 1.17.3`)
      await gemInstall('bundler', '~> 1.17.3', rubyBinPath) 
     }
   }
