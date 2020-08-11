@@ -421,6 +421,8 @@ const path = __webpack_require__(622)
 const core = __webpack_require__(968)
 const exec = __webpack_require__(198)
 
+let aptUpdated = false;
+
 // removes trailing newlines and linefeeds from the given text string
 function chomp(text) {
   return text.replace(/(\n|\r)+$/, '')
@@ -453,7 +455,10 @@ async function installDependencies(kind, dependencyList) {
 
   console.log(`installing ${kind} dependencies ${dependencyList}`)
 
-  await exec.exec(`sudo apt-get update`)
+  if (!aptUpdated) {
+    await exec.exec(`sudo apt-get update`)
+    aptUpdated = true
+  }
   await exec.exec(`sudo apt-get install -y --no-install-recommends ${dependencyList}`)
 
   core.endGroup()
@@ -575,12 +580,11 @@ async function downgradeSystemPackages(rubyVersion) {
 }
 
 async function setupAllRubyEnvironments() {
-  core.startGroup("Setup for all Ruby Environments")
+  // core.startGroup("Setup for all Ruby Environments")
 
-  // required for some combinations of rails and rubies in the mini-env test matrix
-  await exec.exec('gem', ['install', 'bundler', '-v',  '1.17.3', '--no-document'])
+  // // No-Op
 
-  core.endGroup()
+  // core.endGroup()
 }
 
 async function setupOldRubyEnvironments(rubyVersion) {
@@ -601,7 +605,7 @@ async function setupOldRubyEnvironments(rubyVersion) {
   prependEnv('RUBY_CONFIGURE_OPTS', openSslOption)
 
   // required for some versions of nokogiri
-  await exec.exec('gem', ['install', 'pkg-config', '-v',  '~> 1.1.7', '--no-document'])
+  gemInstall('pkg-config', '~> 1.1.7')
 
   core.endGroup()
 }
@@ -673,7 +677,7 @@ async function upgradeRubyGems(rubyVersion) {
 
       await exec.exec('gem', ['update', '--system', '3.0.6', '--force']).then(res => { exitCode = res });
       if (exitCode != 0) {
-        await exec.exec('gem', ['install', 'rubygems-update', '-v', '<3'])
+        gemInstall('rubygems-update', '<3')
         await exec.exec('update_rubygems')
       };
       
@@ -693,6 +697,15 @@ async function upgradeRubyGems(rubyVersion) {
   core.endGroup()
 }
 
+async function gemInstall(name, version = undefined, binPath = undefined) {
+  let options = ['install', name]
+
+  if (version) { options.push('-v', version) }
+  if (binPath) { options.push('--bindir', binPath) }
+
+  await exec.exec('gem', options)
+}
+
 // install Bundler 1.17.3 (or thereabouts)
 async function installBundler(rubyVersion) {
   core.startGroup(`Install bundler`)
@@ -700,10 +713,14 @@ async function installBundler(rubyVersion) {
   const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
 
   if (!fs.existsSync(`${rubyBinPath}/bundle`)) {
-    await exec.exec('gem', ['install', 'bundler', '-v', '~> 1.17.3', '--no-document', '--bindir', rubyBinPath])
+    await gemInstall('bundler', '~> 1.17.3', rubyBinPath)
   }
   else {
-    await execute('bundle --version').then(res => { console.log(`found bundle ${res}`); });
+    await execute('bundle --version').then(res => { bundleVersionStr = res; });
+    if (bundleVersionStr == '1.17.2') { 
+     console.log(`found bundle ${res}.  Upgrading to 1.17.3`)
+     await gemInstall('bundler', '~> 1.17.3', rubyBinPath) 
+    }
   }
 
   core.endGroup()
