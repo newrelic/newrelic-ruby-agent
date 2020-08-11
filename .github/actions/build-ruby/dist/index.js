@@ -12307,7 +12307,7 @@ const core = __webpack_require__(968)
 const exec = __webpack_require__(198)
 const cache = __webpack_require__(945)
 
-let aptUpdated = false;
+let aptUpdated = false; // only `sudo apt-get update` once!
 
 // removes trailing newlines and linefeeds from the given text string
 function chomp(text) {
@@ -12335,12 +12335,15 @@ async function execute(command) {
  }
 }
 
+// given one or more space-separated (not comma-delimited) dependency 
+// names, invokes the package manager to install them.
 async function installDependencies(kind, dependencyList) {
   if (dependencyList === '') { return }
   core.startGroup(`Installing ${kind} dependencies`)
 
   console.log(`installing ${kind} dependencies ${dependencyList}`)
 
+  // only update package list once per workflow invocation.
   if (!aptUpdated) {
     await exec.exec(`sudo apt-get update`)
     aptUpdated = true
@@ -12414,6 +12417,8 @@ async function setupRubyEnvironment(rubyVersion) {
   core.exportVariable('SERIALIZE', 1)
 }
 
+// Sets up any options at the bundler level so that when gems that 
+// need specific settings are installed, their specific flags are relayed.
 async function configureBundleOptions(rubyVersion) {
   if (!usesOldOpenSsl(rubyVersion)) { return }
 
@@ -12427,6 +12432,7 @@ async function configureBundleOptions(rubyVersion) {
   ]);
 }
 
+// prepends the given value to the environment variable
 function prependEnv(envName, envValue, divider=' ') {
   let existingValue = process.env[envName];
   if (existingValue) {
@@ -12444,27 +12450,34 @@ async function downgradeMySQL() {
   const pkgDir = `${process.env.HOME}/packages`
   const pkgOption = `--directory-prefix=${pkgDir}/`
   const mirrorUrl = 'https://mirrors.mediatemple.net/debian-security/pool/updates/main/m/mysql-5.5'
-  
+
+
+  // executes the following all in parallel  
   let a = exec.exec('sudo', ['apt-get', 'remove', 'mysql-client']);
   let b = exec.exec('wget', [pkgOption, `${mirrorUrl}/libmysqlclient18_5.5.62-0%2Bdeb8u1_amd64.deb`]);
   let c = exec.exec('wget', [pkgOption, `${mirrorUrl}/libmysqlclient-dev_5.5.62-0%2Bdeb8u1_amd64.deb`]);
 
+  // wait for the parallel processes to finish
   await a;
   await b;
   await c;
 
+  // executes serially
   await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient18_5.5.62-0+deb8u1_amd64.deb`]);
   await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient-dev_5.5.62-0+deb8u1_amd64.deb`]);
 
   core.endGroup()
 }
 
+// mySQL (and others) must be downgraded for EOL rubies for native extension
+// gems to install correctly and against the right openSSL libraries.
 async function downgradeSystemPackages(rubyVersion) {
   if (!usesOldOpenSsl(rubyVersion)) { return }
 
   await downgradeMySQL();
 }
 
+// any settings needed in all Ruby environments from EOL'd rubies to current
 async function setupAllRubyEnvironments() {
   // core.startGroup("Setup for all Ruby Environments")
 
@@ -12473,6 +12486,7 @@ async function setupAllRubyEnvironments() {
   // core.endGroup()
 }
 
+// any settings needed specifically for the EOL'd rubies
 async function setupOldRubyEnvironments(rubyVersion) {
   if (!usesOldOpenSsl(rubyVersion)) { return }
 
@@ -12496,6 +12510,8 @@ async function setupOldRubyEnvironments(rubyVersion) {
   core.endGroup()
 }
 
+// setup the Ruby environment settings after Ruby has been built
+// or restored from cache.
 async function setupRubyEnvironmentAfterBuild(rubyVersion) {
   await setupAllRubyEnvironments()
   await setupOldRubyEnvironments(rubyVersion)
@@ -12583,6 +12599,7 @@ async function upgradeRubyGems(rubyVersion) {
   core.endGroup()
 }
 
+// utility function to standardize installing ruby gems.
 async function gemInstall(name, version = undefined, binPath = undefined) {
   let options = ['install', name]
 
@@ -12593,6 +12610,9 @@ async function gemInstall(name, version = undefined, binPath = undefined) {
 }
 
 // install Bundler 1.17.3 (or thereabouts)
+// Ruby 2.6 is first major Ruby to ship with bundle, but it also ships 
+// with incompatible 1.17.2 version that must be upgraded to 1.17.3
+// for some test environments/suites to function correctly.
 async function installBundler(rubyVersion) {
   core.startGroup(`Install bundler`)
 
@@ -12612,15 +12632,7 @@ async function installBundler(rubyVersion) {
   core.endGroup()
 }
 
-
-// - uses: actions/cache@v2
-//   id: ruby-cache
-//   with:
-//     path: ~/.rubies/ruby-${{ matrix.ruby-version }}
-//     key: v1-ruby-cache-${{ matrix.ruby-version }}
-//     restore-keys: |
-//       v1-ruby-cache-${{ matrix.ruby-version }}
-
+// will attempt to restore the previously built Ruby environment if one exists.
 async function restoreRubyFromCache(rubyVersion) {
   core.startGroup(`Restore Ruby from Cache`)
   
@@ -12631,6 +12643,7 @@ async function restoreRubyFromCache(rubyVersion) {
   core.endGroup()
 }
 
+// Causes current Ruby environment to be archived and cached.
 async function saveRubyToCache(rubyVersion) {
   core.startGroup(`Save Ruby to Cache`)
 
@@ -12641,6 +12654,7 @@ async function saveRubyToCache(rubyVersion) {
   core.endGroup()
 }
 
+// Ensures working, properly configured environment for running test suites.
 async function postBuildSetup(rubyVersion) {
   await downgradeSystemPackages(rubyVersion)
   await setupRubyEnvironmentAfterBuild(rubyVersion)
@@ -12667,6 +12681,7 @@ async function main() {
   const rubyVersion = core.getInput('ruby-version')
   const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
 
+  // Premable steps necessary for building/running the correct Ruby
   try {
     await installDependencies('system', systemDependencyList)
     await installDependencies('workflow', dependencyList)
@@ -12678,14 +12693,17 @@ async function main() {
     return
   }
 
+  // restores from cache if this ruby version was previously built and cached
   await restoreRubyFromCache(rubyVersion)
 
+  // skip build process and just setup environment if successfully restored
   if (fs.existsSync(`${rubyBinPath}/ruby`)) {
     await postBuildSetup(rubyVersion)
     console.log("Ruby already built.  Skipping the build process!")
     return
   }
 
+  // otherwise, build Ruby, cache it, then setup environment
   try {
     await installRubyBuild(rubyVersion)
     await installBuildDependencies()
