@@ -284,7 +284,7 @@ async function installBundler(rubyVersion) {
   const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
 
   if (!fs.existsSync(`${rubyBinPath}/bundle`)) {
-    await exec.exec('gem', ['install', 'bundler', '-v', '~> 1', '--no-document', '--bindir', rubyBinPath])
+    await exec.exec('gem', ['install', 'bundler', '-v', '~> 1.17.3', '--no-document', '--bindir', rubyBinPath])
   }
 
   core.endGroup()
@@ -328,6 +328,7 @@ async function main() {
   }
 
   if (fs.existsSync(`${rubyBinPath}/ruby`)) {
+    await installBundler(rubyVersion)
     await postBuildSetup(rubyVersion)
     console.log("Ruby already built.  Skipping the build process!")
     return
