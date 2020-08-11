@@ -101,20 +101,19 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/cache@v2
-        id: ruby-cache
-        with:
-          path: ~/.rubies/ruby-${{ matrix.ruby-version }}
-          key: v1-ruby-cache-${{ matrix.ruby-version }}
-          restore-keys: |
-            v1-ruby-cache-${{ matrix.ruby-version }}
+      # - uses: actions/cache@v2
+      #   id: ruby-cache
+      #   with:
+      #     path: ~/.rubies/ruby-${{ matrix.ruby-version }}
+      #     key: v1-ruby-cache-${{ matrix.ruby-version }}
+      #     restore-keys: |
+      #       v1-ruby-cache-${{ matrix.ruby-version }}
 
       - name: Build Ruby ${{ matrix.ruby-version }}
         id: build-ruby
         uses: ./.github/actions/build-ruby
         with:
           ruby-version: ${{ matrix.ruby-version }}
-          dependencies: libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev
 
       - name: Start mysql
         run: sudo systemctl start mysql

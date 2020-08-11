@@ -4,6 +4,7 @@ const path = require('path')
 
 const core = require('@actions/core')
 const exec = require('@actions/exec')
+const cache = require('@actions/cache')
 
 let aptUpdated = false;
 
@@ -310,10 +311,33 @@ async function installBundler(rubyVersion) {
   core.endGroup()
 }
 
+
+// - uses: actions/cache@v2
+//   id: ruby-cache
+//   with:
+//     path: ~/.rubies/ruby-${{ matrix.ruby-version }}
+//     key: v1-ruby-cache-${{ matrix.ruby-version }}
+//     restore-keys: |
+//       v1-ruby-cache-${{ matrix.ruby-version }}
+
+const rubyCachePaths = [ `${process.env.HOME}/.rubies/ruby-${rubyVersion}` ]
+const rubyCacheKey = `v1-ruby-cache-${rubyVersion}`
+
+async function restoreRubyFromCache(rubyVersion) {
+  core.startGroup(`Restore Ruby from Cache`)
+  await cache.restoreCache(rubyCachePaths, rubyCacheKey, [rubyCacheKey])
+  core.endGroup()
+}
+
+async function saveRubyToCache(rubyVersion) {
+  core.startGroup(`Save Ruby to Cache`)
+  await cache.saveCache(rubyCachePaths, rubyCacheKey)
+  core.endGroup()
+}
+
 async function postBuildSetup(rubyVersion) {
   await downgradeSystemPackages(rubyVersion)
   await setupRubyEnvironmentAfterBuild(rubyVersion)
-  await installBundler(rubyVersion)
   await configureBundleOptions(rubyVersion)
   await showVersions()
 }
@@ -348,6 +372,8 @@ async function main() {
     return
   }
 
+  await restoreRubyFromCache(rubyVersion)
+
   if (fs.existsSync(`${rubyBinPath}/ruby`)) {
     await postBuildSetup(rubyVersion)
     console.log("Ruby already built.  Skipping the build process!")
@@ -359,6 +385,9 @@ async function main() {
     await installBuildDependencies()
     await buildRuby(rubyVersion)
     await upgradeRubyGems(rubyVersion)
+    await installBundler(rubyVersion)
+
+    await saveRubyToCache(rubyVersion)
 
     await postBuildSetup(rubyVersion)
   } 
