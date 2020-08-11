@@ -150,20 +150,17 @@ async function downgradeMySQL() {
   const pkgOption = `--directory-prefix=${pkgDir}/`
   const mirrorUrl = 'https://mirrors.mediatemple.net/debian-security/pool/updates/main/m/mysql-5.5'
 
-
   // executes the following all in parallel  
-  let a = exec.exec('sudo', ['apt-get', 'remove', 'mysql-client']);
-  let b = exec.exec('wget', [pkgOption, `${mirrorUrl}/libmysqlclient18_5.5.62-0%2Bdeb8u1_amd64.deb`]);
-  let c = exec.exec('wget', [pkgOption, `${mirrorUrl}/libmysqlclient-dev_5.5.62-0%2Bdeb8u1_amd64.deb`]);
+  const promise1 = exec.exec('sudo', ['apt-get', 'remove', 'mysql-client'])
+  const promise2 = exec.exec('wget', [pkgOption, `${mirrorUrl}/libmysqlclient18_5.5.62-0%2Bdeb8u1_amd64.deb`])
+  const promise3 = exec.exec('wget', [pkgOption, `${mirrorUrl}/libmysqlclient-dev_5.5.62-0%2Bdeb8u1_amd64.deb`])
 
   // wait for the parallel processes to finish
-  await a;
-  await b;
-  await c;
+  await Promise.all([promise1, promise2, promise3])
 
   // executes serially
-  await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient18_5.5.62-0+deb8u1_amd64.deb`]);
-  await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient-dev_5.5.62-0+deb8u1_amd64.deb`]);
+  exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient18_5.5.62-0+deb8u1_amd64.deb`])
+  exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient-dev_5.5.62-0+deb8u1_amd64.deb`])
 
   core.endGroup()
 }

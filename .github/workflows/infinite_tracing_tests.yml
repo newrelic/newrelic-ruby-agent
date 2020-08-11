@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [ 2.5.8, 2.6.6, 2.7.1 ]
+        ruby-version: [2.5.8, 2.6.6, 2.7.1]
     steps:
       - uses: actions/checkout@v2
 
