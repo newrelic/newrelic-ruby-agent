@@ -301,7 +301,7 @@ async function installBundler(rubyVersion) {
   }
   else {
     await execute('bundle --version').then(res => { bundleVersionStr = res; });
-    if (bundleVersionStr == '1.17.2') { 
+    if (bundleVersionStr.match(/1\.17\.2/)) { 
      console.log(`found bundle ${res}.  Upgrading to 1.17.3`)
      await gemInstall('bundler', '~> 1.17.3', rubyBinPath) 
     }
@@ -313,6 +313,7 @@ async function installBundler(rubyVersion) {
 async function postBuildSetup(rubyVersion) {
   await downgradeSystemPackages(rubyVersion)
   await setupRubyEnvironmentAfterBuild(rubyVersion)
+  await installBundler(rubyVersion)
   await configureBundleOptions(rubyVersion)
   await showVersions()
 }
@@ -358,7 +359,6 @@ async function main() {
     await installBuildDependencies()
     await buildRuby(rubyVersion)
     await upgradeRubyGems(rubyVersion)
-    await installBundler(rubyVersion)
 
     await postBuildSetup(rubyVersion)
   } 
