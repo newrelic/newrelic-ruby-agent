@@ -320,18 +320,23 @@ async function installBundler(rubyVersion) {
 //     restore-keys: |
 //       v1-ruby-cache-${{ matrix.ruby-version }}
 
-const rubyCachePaths = [ `${process.env.HOME}/.rubies/ruby-${rubyVersion}` ]
-const rubyCacheKey = `v1-ruby-cache-${rubyVersion}`
-
 async function restoreRubyFromCache(rubyVersion) {
   core.startGroup(`Restore Ruby from Cache`)
+  
+  const rubyCachePaths = [ `${process.env.HOME}/.rubies/ruby-${rubyVersion}` ]
+  const rubyCacheKey = `v1-ruby-cache-${rubyVersion}`
   await cache.restoreCache(rubyCachePaths, rubyCacheKey, [rubyCacheKey])
+  
   core.endGroup()
 }
 
 async function saveRubyToCache(rubyVersion) {
   core.startGroup(`Save Ruby to Cache`)
+
+  const rubyCachePaths = [ `${process.env.HOME}/.rubies/ruby-${rubyVersion}` ]
+  const rubyCacheKey = `v1-ruby-cache-${rubyVersion}`
   await cache.saveCache(rubyCachePaths, rubyCacheKey)
+  
   core.endGroup()
 }
 
