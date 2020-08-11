@@ -1,4 +1,4 @@
-name: PR Sidekick Checklist
+name: PR Review Checklist
 on: pull_request
 jobs:
   sidekick_checklist:
