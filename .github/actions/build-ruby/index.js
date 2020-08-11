@@ -159,12 +159,12 @@ async function downgradeSystemPackages(rubyVersion) {
 }
 
 async function setupAllRubyEnvironments() {
-  core.startGroup("Setup for all Ruby Environments")
+  // core.startGroup("Setup for all Ruby Environments")
 
-  // required for some combinations of rails and rubies in the mini-env test matrix
-  await exec.exec('gem', ['install', 'bundler', '-v',  '1.17.2', '--no-document'])
+  // // required for some combinations of rails and rubies in the mini-env test matrix
+  // await exec.exec('gem', ['install', 'bundler', '-v',  '1.17.2', '--no-document'])
 
-  core.endGroup()
+  // core.endGroup()
 }
 
 async function setupOldRubyEnvironments(rubyVersion) {
@@ -286,6 +286,9 @@ async function installBundler(rubyVersion) {
   if (!fs.existsSync(`${rubyBinPath}/bundle`)) {
     await exec.exec('gem', ['install', 'bundler', '-v', '~> 1.17.3', '--no-document', '--bindir', rubyBinPath])
   }
+  else {
+    await execute('bundle --version').then(res => { console.log(`found bundle ${res}`); });
+  }
 
   core.endGroup()
 }
@@ -328,7 +331,6 @@ async function main() {
   }
 
   if (fs.existsSync(`${rubyBinPath}/ruby`)) {
-    await installBundler(rubyVersion)
     await postBuildSetup(rubyVersion)
     console.log("Ruby already built.  Skipping the build process!")
     return
