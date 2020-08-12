@@ -1,5 +1,5 @@
 name: PR Review Checklist
-on: pull_request_target
+on: pull_request
 jobs:
   sidekick_checklist:
     name: 
