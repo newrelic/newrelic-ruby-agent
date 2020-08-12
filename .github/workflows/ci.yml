@@ -31,9 +31,22 @@ jobs:
         ruby-version: [2.0.0-p648, 2.1.10, 2.2.10, 2.3.8, 2.4.10, 2.5.8, 2.6.6, 2.7.1, jruby-9.2.12.0]
         exclude:
           - ruby-version: "2.7.1"
-            rails: [rails52, rails51, rails42, rails41, rails40, rails32, rails31, rails30]
+            rails: 
+              - rails52
+              - rails51
+              - rails42
+              - rails41
+              - rails40
+              - rails32
+              - rails31
+              - rails30
           - ruby-version: "2.5.8"
-            rails: [rails41, rails40, rails32, rails31, rails30]
+            rails: 
+              - rails41
+              - rails40
+              - rails32
+              - rails31
+              - rails30
           - ruby-version: "2.6.6"
             rails: [rails41, rails40, rails32, rails31, rails30]
           - ruby-version: "2.4.10"
