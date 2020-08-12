@@ -424,6 +424,7 @@ async function restoreBundleFromCache(rubyVersion) {
   core.startGroup(`Restore Bundle from Cache`)
  
   const key = bundleCacheKey(rubyVersion)
+  console.log(`restore using ${key}`)
   await cache.restoreCache(bundleCachePath(rubyVersion), key, [key])
   
   core.endGroup()
