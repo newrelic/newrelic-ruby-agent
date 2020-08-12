@@ -12603,7 +12603,7 @@ async function upgradeRubyGems(rubyVersion) {
 
 // utility function to standardize installing ruby gems.
 async function gemInstall(name, version = undefined, binPath = undefined) {
-  let options = ['install', name]
+  let options = ['install', name, '--no-document']
 
   if (version) { options.push('-v', version) }
   if (binPath) { options.push('--bindir', binPath) }

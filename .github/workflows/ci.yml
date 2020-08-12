@@ -193,6 +193,10 @@ jobs:
       - name: Start mysql
         run: sudo systemctl start mysql
 
+      - name: show me the tree
+        run: |
+          sudo apt-get install tree
+          tree .
       - name: Run unit tests
         run: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
