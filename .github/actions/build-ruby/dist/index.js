@@ -12311,6 +12311,7 @@ const crypto = __webpack_require__(417)
 const core = __webpack_require__(968)
 const exec = __webpack_require__(198)
 const cache = __webpack_require__(945)
+const io = __webpack_require__(2)
 
 let aptUpdated = false; // only `sudo apt-get update` once!
 
@@ -12713,7 +12714,7 @@ function fileHash(filename) {
 
 function bundleCacheKey(rubyVersion) {
   const keyHash = fileHash(`${process.env.GITHUB_WORKSPACE}/newrelic_rpm.gemspec`)
-  return `v1-bundle-cache-${rubyVersion}-${keyHash}`
+  return `v2-bundle-cache-${rubyVersion}-${keyHash}`
 }
 
 function gemspecFilePath(rubyVersion) {
@@ -12747,6 +12748,7 @@ async function saveBundleToCache(rubyVersion) {
 
 async function setupTestEnvironment(rubyVersion) {
   core.startGroup('Setup Test Environment')
+  
   const filePath = gemspecFilePath(rubyVersion)
   const workspacePath = process.env.GITHUB_WORKSPACE
 
@@ -12755,15 +12757,17 @@ async function setupTestEnvironment(rubyVersion) {
   // skip bundle process and just restore the Gemfile.lock if successfully restored
   if (fs.existsSync(`${filePath}/Gemfile.lock`)) {
     console.log("Skipping the bundle install process!")
-    await exec.exec('cp', `${filePath}/Gemfile.lock`, `${workspacePath}/Gemfile.lock`)
+    await io.cp(`${filePath}/Gemfile.lock`, `${workspacePath}/Gemfile.lock`)
   }
 
   // otherwise, bundle install and cache it
   else {
     await exec.exec('bundle', ['install', '--path', filePath])
-    await exec.exec('cp', `${workspacePath}/Gemfile.lock`, `${filePath}/Gemfile.lock`)
+    await io.cp(`${workspacePath}/Gemfile.lock`, `${filePath}/Gemfile.lock`)
     await saveBundleToCache(rubyVersion)
   }
+
+  core.endGroup()
 }
 
 // Will set up the Ruby environment so the desired Ruby binaries are used in the unit tests
