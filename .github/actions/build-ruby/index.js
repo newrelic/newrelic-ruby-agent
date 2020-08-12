@@ -404,7 +404,7 @@ async function setupRuby(rubyVersion){
 
 function bundleCacheKey(rubyVersion) {
   const gemspecFile = `${process.env.GITHUB_WORKSPACE}/newrelic_rpm.gemspec`
-  const keyHash = cache.hashFiles(gemspecFile)
+  const keyHash = hashFiles(gemspecFile)
 
   return `v1-bundle-cache-${rubyVersion}-${keyHash}`
 }
