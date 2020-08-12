@@ -12629,13 +12629,20 @@ async function installBundler(rubyVersion) {
   core.endGroup()
 }
 
+function rubyCachePaths(rubyVersion) {
+  return [ `${process.env.HOME}/.rubies/ruby-${rubyVersion}` ]
+}
+
+function rubyCacheKey(rubyVersion) {
+  return `v8-ruby-cache-${rubyVersion}`
+}
+
 // will attempt to restore the previously built Ruby environment if one exists.
 async function restoreRubyFromCache(rubyVersion) {
   core.startGroup(`Restore Ruby from Cache`)
-  
-  const rubyCachePaths = [ `${process.env.HOME}/.rubies/ruby-${rubyVersion}` ]
-  const rubyCacheKey = `v1-ruby-cache-${rubyVersion}`
-  await cache.restoreCache(rubyCachePaths, rubyCacheKey, [rubyCacheKey])
+ 
+  const key = rubyCacheKey(rubyVersion)
+  await cache.restoreCache(rubyCachePaths(rubyVersion), key, [key])
   
   core.endGroup()
 }
@@ -12644,9 +12651,8 @@ async function restoreRubyFromCache(rubyVersion) {
 async function saveRubyToCache(rubyVersion) {
   core.startGroup(`Save Ruby to Cache`)
 
-  const rubyCachePaths = [ `${process.env.HOME}/.rubies/ruby-${rubyVersion}` ]
-  const rubyCacheKey = `v1-ruby-cache-${rubyVersion}`
-  await cache.saveCache(rubyCachePaths, rubyCacheKey)
+  const key = rubyCacheKey(rubyVersion)
+  await cache.saveCache(rubyCachePaths(rubyVersion), key)
   
   core.endGroup()
 }
