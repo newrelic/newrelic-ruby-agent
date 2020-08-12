@@ -128,29 +128,41 @@ module Multiverse
       end
     end
 
+    # Ensures we bundle will recognize an explicit version number on command line
+    def safe_explicit version
+      return version if version.to_s == ""
+      test_version = `bundle #{version} --version` =~ /Could not find command/
+      test_version ? "" : version
+    end
+
     def explicit_bundler_version dir
       return if RUBY_VERSION.to_f < 2.3
       fn = File.join(dir, ".bundler-version")
       version = File.exist?(fn) ? File.read(fn).chomp.to_s.strip : nil
-      version.to_s == "" ? nil : "_#{version}_"
+      safe_explicit(version.to_s == "" ? nil : "_#{version}_")
     end
 
-    def bundle_env bundle_cmd
-      return unless ENV["BUNDLE_ENV"]
+    def bundle_show_env bundle_cmd
+      return unless ENV["BUNDLE_SHOW_ENV"]
       puts `#{bundle_cmd} env` 
+    end
+
+    def bundle_config dir, bundle_cmd
+      `cd #{dir} && #{bundle_cmd} config build.nokogiri --use-system-libraries`
     end
 
     def bundle_install(dir, exact_version=nil)
       puts "Bundling in #{dir}..."
       bundler_version = exact_version || explicit_bundler_version(dir)
       bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
-      bundle_env bundle_cmd
-      full_bundle_cmd = "#{bundle_cmd} install --retry 3 --jobs 4"
-      result = ShellUtils.try_command_n_times full_bundle_cmd, 3      
+      bundle_config dir, bundle_cmd
+      bundle_show_env bundle_cmd
+      full_bundle_cmd = "#{bundle_cmd} install"
+      result = ShellUtils.try_command_n_times full_bundle_cmd, 3
       unless $?.success?
         puts "Failed local bundle, trying again without the version lock..."
         change_lock_version(dir, ENV["BUNDLE_GEMFILE"])
-        result = ShellUtils.try_command_n_times full_bundle_cmd, 3      
+        result = ShellUtils.try_command_n_times full_bundle_cmd, 3
       end
 
       result = red(result) unless $?.success?

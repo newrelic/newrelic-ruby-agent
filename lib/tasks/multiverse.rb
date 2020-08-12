@@ -63,6 +63,14 @@ namespace :test do
       end
     end
 
+    def remove_generated_gemfile_lockfiles
+      file_path = File.expand_path "test/environments"
+      Dir.glob(File.join file_path, "**", "Gemfile.lock").each do |fn|
+        puts "Removing #{fn.gsub(file_path,'.../environments')}"
+        FileUtils.rm fn
+      end
+    end
+
     task :env do
       # ENV['SUITES_DIRECTORY'] = File.expand_path('../../test/multiverse/suites', __FILE__)
       require File.expand_path('../../../test/multiverse/lib/multiverse', __FILE__)
@@ -71,6 +79,7 @@ namespace :test do
     task :clobber do
       remove_local_multiverse_databases
       remove_generated_gemfiles
+      remove_generated_gemfile_lockfiles
     end
 
     desc "Clean cached gemfiles from Bundler.bundle_path"

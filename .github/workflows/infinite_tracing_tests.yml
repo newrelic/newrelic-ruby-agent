@@ -8,48 +8,17 @@ on:
   pull_request:
 
 jobs:
-  build_ruby:
-    runs-on: ubuntu-latest
-    strategy: 
-      matrix: 
-        ruby-version: [ "2.5.8", "2.6.6", "2.7.1" ]
-    steps:
-      - uses: actions/checkout@v2
-
-      - uses: actions/cache@v2
-        id: ruby-cache
-        with:
-          path: ~/.rubies/ruby-${{ matrix.ruby-version }}
-          key: v5-ruby-cache-${{ matrix.ruby-version }}
-          restore-keys: |
-            v5-ruby-cache-${{ matrix.ruby-version }}
-
-      - name: Build Ruby ${{ matrix.ruby-version }}
-        id: build-ruby
-        uses: ./.github/actions/build-ruby
-        with:
-          ruby-version: ${{ matrix.ruby-version }}
-  
-  infinite_tracing_test:
-    needs: build_ruby
+  if: false
+  infinite-tracing:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: ["2.5.8", "2.6.6", "2.7.1"]
+        ruby-version: [2.5.8, 2.6.6, 2.7.1]
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/cache@v2
-        id: ruby-cache
-        with:
-          path: ~/.rubies/ruby-${{ matrix.ruby-version }}
-          key: v5-ruby-cache-${{ matrix.ruby-version }}
-          restore-keys: |
-            v5-ruby-cache-${{ matrix.ruby-version }}
-
       - name: Build Ruby ${{ matrix.ruby-version }}
-        id: build-ruby
         uses: ./.github/actions/build-ruby
         with:
           ruby-version: ${{ matrix.ruby-version }}
@@ -58,5 +27,5 @@ jobs:
         run: bundle install
 
       - name: rake test
-        run: bundle exec rake test:multiverse[group=infinite_tracing,verbose,nocache]
+        run: bundle exec rake test:multiverse[group=infinite_tracing,verbose]
   

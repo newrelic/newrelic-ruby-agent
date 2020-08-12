@@ -18,7 +18,7 @@ platforms :jruby do
 end
 
 platforms :ruby, :rbx do
-  gem "mysql", "~>2.9.1"
+  gem "mysql2", '~> 0.3.10'
   gem 'sqlite3', '~> 1.3.13'
 end
 
