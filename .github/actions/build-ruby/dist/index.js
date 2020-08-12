@@ -12306,6 +12306,7 @@ module.exports = require("string_decoder");
 const os = __webpack_require__(87)
 const fs = __webpack_require__(747)
 const path = __webpack_require__(622)
+const crypto = __webpack_require__(417)
 
 const core = __webpack_require__(968)
 const exec = __webpack_require__(198)
@@ -12703,10 +12704,15 @@ async function setupRuby(rubyVersion){
   await postBuildSetup(rubyVersion)
 }
 
-function bundleCacheKey(rubyVersion) {
-  const gemspecFile = `${process.env.GITHUB_WORKSPACE}/newrelic_rpm.gemspec`
-  const keyHash = hashFiles(gemspecFile)
+// fingerprints the given filename, returning hex string representation
+function fileHash(filename) {
+  let sum = crypto.createHash('md5');
+  sum.update(fs.readFileSync(filename));
+  return sum.digest('hex');
+}
 
+function bundleCacheKey(rubyVersion) {
+  const keyHash = fileHash(`${process.env.GITHUB_WORKSPACE}/newrelic_rpm.gemspec`)
   return `v1-bundle-cache-${rubyVersion}-${keyHash}`
 }
 

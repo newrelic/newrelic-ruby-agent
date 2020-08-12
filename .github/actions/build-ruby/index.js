@@ -5,6 +5,7 @@
 const os = require('os')
 const fs = require('fs')
 const path = require('path')
+const crypto = require('crypto')
 
 const core = require('@actions/core')
 const exec = require('@actions/exec')
@@ -402,10 +403,15 @@ async function setupRuby(rubyVersion){
   await postBuildSetup(rubyVersion)
 }
 
-function bundleCacheKey(rubyVersion) {
-  const gemspecFile = `${process.env.GITHUB_WORKSPACE}/newrelic_rpm.gemspec`
-  const keyHash = hashFiles(gemspecFile)
+// fingerprints the given filename, returning hex string representation
+function fileHash(filename) {
+  let sum = crypto.createHash('md5');
+  sum.update(fs.readFileSync(filename));
+  return sum.digest('hex');
+}
 
+function bundleCacheKey(rubyVersion) {
+  const keyHash = fileHash(`${process.env.GITHUB_WORKSPACE}/newrelic_rpm.gemspec`)
   return `v1-bundle-cache-${rubyVersion}-${keyHash}`
 }
 
