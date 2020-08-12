@@ -457,6 +457,7 @@ async function setupTestEnvironment(rubyVersion) {
   if (fs.existsSync(`${filePath}/Gemfile.lock`)) {
     console.log("Skipping the bundle install process!")
     await io.cp(`${filePath}/Gemfile.lock`, `${workspacePath}/Gemfile.lock`)
+    await exec.exec('bundle', ['install', '--path', filePath])
   }
 
   // otherwise, bundle install and cache it
