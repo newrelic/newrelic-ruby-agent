@@ -8,7 +8,6 @@ on:
   pull_request:
 
 jobs:
-  if: false
   infinite-tracing:
     runs-on: ubuntu-latest
     strategy:
@@ -26,6 +25,9 @@ jobs:
       - name: Bundler install
         run: bundle install
 
-      - name: rake test
-        run: bundle exec rake test:multiverse[group=infinite_tracing,verbose]
-  
+      - name: Run Infinite Tracing Tests
+        uses: nick-invision/retry@v1.0.0
+        with:
+          timeout_minutes: 20
+          max_attempts: 4
+          command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]

@@ -124,8 +124,12 @@ jobs:
       - name: Bundler install
         run: bundle install 
 
-      - name: rake test
-        run:  bundle exec rake test:env[${{ matrix.rails }}] TESTOPTS="--verbose"
+      - name: Run Unit Tests
+        uses: nick-invision/retry@v1.0.0
+        with:
+          timeout_minutes: 20
+          max_attempts: 2
+          command:  bundle exec rake test:env[${{ matrix.rails }}] TESTOPTS="--verbose"
         env:
           DB_PORT: 3306
           MYSQL_PASSWORD: root
@@ -192,8 +196,12 @@ jobs:
       - name: Start mysql
         run: sudo systemctl start mysql
 
-      - name: Run unit tests
-        run: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+      - name: Run Multiverse Tests
+        uses: nick-invision/retry@v1.0.0
+        with:
+          timeout_minutes: 30
+          max_attempts: 2
+          command:  bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
           DB_PORT: 3306
           MYSQL_PASSWORD: root
