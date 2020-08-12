@@ -405,9 +405,9 @@ async function setupRuby(rubyVersion){
 
 // fingerprints the given filename, returning hex string representation
 function fileHash(filename) {
-  let sum = crypto.createHash('md5');
-  sum.update(fs.readFileSync(filename));
-  return sum.digest('hex');
+  let sum = crypto.createHash('md5')
+  sum.update(fs.readFileSync(filename))
+  return sum.digest('hex')
 }
 
 function bundleCacheKey(rubyVersion) {
@@ -415,8 +415,12 @@ function bundleCacheKey(rubyVersion) {
   return `v1-bundle-cache-${rubyVersion}-${keyHash}`
 }
 
-function bundleCachePath(rubyVersion) {
+function gemspecFilePath(rubyVersion) {
   return `${rubyPath(rubyVersion)}/.bundle-cache`
+}
+
+function bundleCachePaths(rubyVersion) {
+  return [ gemspecFilePath(rubyVersion) ]
 }
 
 // will attempt to restore the previously built Ruby environment if one exists.
@@ -425,7 +429,7 @@ async function restoreBundleFromCache(rubyVersion) {
  
   const key = bundleCacheKey(rubyVersion)
   console.log(`restore using ${key}`)
-  await cache.restoreCache(bundleCachePath(rubyVersion), key, [key])
+  await cache.restoreCache(bundleCachePaths(rubyVersion), key, [key])
   
   core.endGroup()
 }
@@ -435,28 +439,28 @@ async function saveBundleToCache(rubyVersion) {
   core.startGroup(`Save Bundle to Cache`)
 
   const key = bundleCacheKey(rubyVersion)
-  await cache.saveCache(bundleCachePath(rubyVersion), key)
+  await cache.saveCache(bundleCachePaths(rubyVersion), key)
   
   core.endGroup()
 }
 
 async function setupTestEnvironment(rubyVersion) {
   core.startGroup('Setup Test Environment')
-  const cachePath = bundleCachePath(rubyVersion)
+  const filePath = gemspecFilePath(rubyVersion)
   const workspacePath = process.env.GITHUB_WORKSPACE
 
   await restoreBundleFromCache(rubyVersion)
 
   // skip bundle process and just restore the Gemfile.lock if successfully restored
-  if (fs.existsSync(`${cachePath}/Gemfile.lock`)) {
+  if (fs.existsSync(`${filePath}/Gemfile.lock`)) {
     console.log("Skipping the bundle install process!")
-    await exec.exec('cp', `${cachePath}/Gemfile.lock`, `${workspacePath}/Gemfile.lock`)
+    await exec.exec('cp', `${filePath}/Gemfile.lock`, `${workspacePath}/Gemfile.lock`)
   }
 
   // otherwise, bundle install and cache it
   else {
-    await exec.exec('bundle', ['install', '--path', cachePath])
-    await exec.exec('cp', `${workspacePath}/Gemfile.lock`, `${cachePath}/Gemfile.lock`)
+    await exec.exec('bundle', ['install', '--path', filePath])
+    await exec.exec('cp', `${workspacePath}/Gemfile.lock`, `${filePath}/Gemfile.lock`)
     await saveBundleToCache(rubyVersion)
   }
 }
