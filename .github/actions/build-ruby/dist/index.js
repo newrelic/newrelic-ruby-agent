@@ -12299,6 +12299,10 @@ module.exports = require("string_decoder");
 /* 305 */
 /***/ (function(__unusedmodule, __unusedexports, __webpack_require__) {
 
+//
+// NOTE: This action script is Ubuntu specific!
+//
+
 const os = __webpack_require__(87)
 const fs = __webpack_require__(747)
 const path = __webpack_require__(622)
@@ -12354,7 +12358,6 @@ async function installDependencies(kind, dependencyList) {
 }
 
 // installs system dependencies needed to successfully build the ruby executables
-// NOTE: Ubuntu specific!
 async function installBuildDependencies() {
   const dependencyList = 'libyaml-dev libgdbm-dev libreadline-dev libncurses5-dev zlib1g-dev libffi-dev'
 
@@ -12665,49 +12668,29 @@ async function postBuildSetup(rubyVersion) {
   await showVersions()
 }
 
-// Will set up the Ruby environment so the desired Ruby binaries are used in the unit tests
-// If Ruby hasn't been built and cached, yet, we also compile the Ruby binaries.
-// 
-// The binaries, once built, can be cached with the following in the workflow .yml file:
-//
-// - uses: actions/cache@v2
-//   id: ruby-cache
-//   with:
-//     path: ~/.rubies/ruby-${{ matrix.ruby-version }}
-//     key: ruby-cache-${{ matrix.ruby-version }}
-//     restore-keys: |
-//       ruby-cache-${{ matrix.ruby-version }}
-//
-async function main() {
+// Premable steps necessary for building/running the correct Ruby
+async function setupEnvironment(rubyVersion, dependencyList) { 
   const systemDependencyList = "libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev"
-  const dependencyList = core.getInput('dependencies')
-  const rubyVersion = core.getInput('ruby-version')
-  const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
 
-  // Premable steps necessary for building/running the correct Ruby
-  try {
-    await installDependencies('system', systemDependencyList)
-    await installDependencies('workflow', dependencyList)
-    await setupRubyEnvironment(rubyVersion)
-    await addRubyToPath(rubyVersion)
-  } 
-  catch (error) {
-    core.setFailed(error.message)
-    return
-  }
+  await installDependencies('system', systemDependencyList)
+  await installDependencies('workflow', dependencyList)
+  await setupRubyEnvironment(rubyVersion)
+  await addRubyToPath(rubyVersion)
+}
+
+async function setupRuby(rubyVersion){
+  const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
 
   // restores from cache if this ruby version was previously built and cached
   await restoreRubyFromCache(rubyVersion)
 
   // skip build process and just setup environment if successfully restored
   if (fs.existsSync(`${rubyBinPath}/ruby`)) {
-    await postBuildSetup(rubyVersion)
     console.log("Ruby already built.  Skipping the build process!")
-    return
   }
 
   // otherwise, build Ruby, cache it, then setup environment
-  try {
+  else {
     await installRubyBuild(rubyVersion)
     await installBuildDependencies()
     await buildRuby(rubyVersion)
@@ -12715,12 +12698,78 @@ async function main() {
     await installBundler(rubyVersion)
 
     await saveRubyToCache(rubyVersion)
+  }
 
-    await postBuildSetup(rubyVersion)
+  await postBuildSetup(rubyVersion)
+}
+
+function bundleCacheKey(rubyVersion) {
+  const gemspecFile = `${process.env.GITHUB_WORKSPACE}/newrelic_rpm.gemspec`
+  const keyHash = cache.hashFiles(gemspecFile)
+
+  return `v1-bundle-cache-${rubyVersion}-${keyHash}`
+}
+
+function bundleCachePath(rubyVersion) {
+  return `${rubyPath(rubyVersion)}/.bundle-cache`
+}
+
+// will attempt to restore the previously built Ruby environment if one exists.
+async function restoreBundleFromCache(rubyVersion) {
+  core.startGroup(`Restore Bundle from Cache`)
+ 
+  const key = bundleCacheKey(rubyVersion)
+  await cache.restoreCache(bundleCachePath(rubyVersion), key, [key])
+  
+  core.endGroup()
+}
+
+// Causes current Ruby environment to be archived and cached.
+async function saveBundleToCache(rubyVersion) {
+  core.startGroup(`Save Bundle to Cache`)
+
+  const key = bundleCacheKey(rubyVersion)
+  await cache.saveCache(bundleCachePath(rubyVersion), key)
+  
+  core.endGroup()
+}
+
+async function setupTestEnvironment(rubyVersion) {
+  core.startGroup('Setup Test Environment')
+  const cachePath = bundleCachePath(rubyVersion)
+  const workspacePath = process.env.GITHUB_WORKSPACE
+
+  await restoreBundleFromCache(rubyVersion)
+
+  // skip bundle process and just restore the Gemfile.lock if successfully restored
+  if (fs.existsSync(`${cachePath}/Gemfile.lock`)) {
+    console.log("Skipping the bundle install process!")
+    await exec.exec('cp', `${cachePath}/Gemfile.lock`, `${workspacePath}/Gemfile.lock`)
+  }
+
+  // otherwise, bundle install and cache it
+  else {
+    await exec.exec('bundle', ['install', '--path', cachePath])
+    await exec.exec('cp', `${workspacePath}/Gemfile.lock`, `${cachePath}/Gemfile.lock`)
+    await saveBundleToCache(rubyVersion)
+  }
+}
+
+// Will set up the Ruby environment so the desired Ruby binaries are used in the unit tests
+// If Ruby hasn't been built and cached, yet, we also compile the Ruby binaries.
+async function main() {
+  const dependencyList = core.getInput('dependencies')
+  const rubyVersion = core.getInput('ruby-version')
+
+  try {
+    await setupEnvironment(rubyVersion, dependencyList)
+    await setupRuby(rubyVersion)
+    await setupTestEnvironment(rubyVersion)
   } 
   catch (error) {
     core.setFailed(error.message)
   }
+
 }
 
 main()
