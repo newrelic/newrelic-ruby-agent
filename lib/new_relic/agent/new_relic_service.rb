@@ -346,7 +346,7 @@ module NewRelic
         conn = create_http_connection
         start_connection(conn)
         conn
-      rescue Timeout::Error => e
+      rescue Timeout::Error
         if @use_bundled_certs == false
           ::NewRelic::Agent.logger.info("Unable to connect. Falling back to bundled security certificates")
           @use_bundled_certs = true
