@@ -9,7 +9,7 @@ async function main() {
   try {
 
     if (fs.existsSync(errorFilename)) {
-      let lines = fs.readFileSync(errorFilename)
+      let lines = fs.readFileSync(errorFilename).toString('utf8')
       command.issueCommand('error', undefined, lines)
     }
     else {
