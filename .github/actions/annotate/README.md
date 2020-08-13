@@ -49,7 +49,7 @@ If you're developing or working on the index.js script, it can be handy to try o
 locally.  To do that, use Node to start up a REPL shell by running it from the action's folder:
 
 ```
-cd .github/workflow/actions/build-ruby
+cd .github/workflow/actions/annotate
 node
 ```
 

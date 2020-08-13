@@ -72,6 +72,8 @@ module Multiverse
         red("*" * 80)]
     end
 
+    # Saves the failing out put to the working directory of the container
+    # where it is later read and output as annotations of the github workflow
     def self.save_output_to_error_file(lines)
       @output_lock.synchronize do
         filepath = ENV["GITHUB_WORKSPACE"]
