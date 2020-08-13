@@ -28,7 +28,7 @@ async function execute(command) {
    const options = {}
    options.listeners = {
      stdout: (data) => { outputStr += data.toString() },
-     stderr: (data) => { console.log(data.toString()) }
+     stderr: (data) => { core.error(data.toString()) }
    }
 
    await exec.exec(command, [], options)
@@ -46,7 +46,7 @@ async function installDependencies(kind, dependencyList) {
   if (dependencyList === '') { return }
   core.startGroup(`Installing ${kind} dependencies`)
 
-  console.log(`installing ${kind} dependencies ${dependencyList}`)
+  core.info(`installing ${kind} dependencies ${dependencyList}`)
 
   // only update package list once per workflow invocation.
   if (!aptUpdated) {
@@ -82,12 +82,12 @@ async function installRubyBuild(rubyVersion) {
 
   // Rubies 2.0 ... 2.3 (these need OpenSSL 1.0 and eregon provides it for us)
   if (usesOldOpenSsl(rubyVersion)) {
-    console.log('cloning eregon/ruby-build')
+    core.info('cloning eregon/ruby-build')
     repoPath = '--branch ruby23-openssl-linux https://github.com/eregon/ruby-build.git'
 
   // all the other Rubies
   } else {
-    console.log('cloning rbenv/ruby-build')
+    core.info('cloning rbenv/ruby-build')
     repoPath = 'https://github.com/rbenv/ruby-build.git'
   }
 
@@ -113,6 +113,9 @@ async function setupRubyEnvironment(rubyVersion) {
 
   // Number of jobs in parallel 
   core.exportVariable('BUNDLE_JOBS', 4)
+
+  // Where to keep the gem files
+  core.exportVariable('BUNDLE_PATH', gemspecFilePath(rubyVersion))
 
   // enable-shared prevents native extension gems from breaking if they're cached
   // independently of the ruby binaries
@@ -271,12 +274,12 @@ async function upgradeRubyGems(rubyVersion) {
 
   await execute('gem --version').then(res => { gemVersionStr = res; });
 
-  console.log(`Current RubyGems is "${gemVersionStr}"`)
+  core.info(`Current RubyGems is "${gemVersionStr}"`)
 
   if (parseFloat(rubyVersion) < 2.7) {
 
     if (parseFloat(gemVersionStr) < 3.0) {
-      console.log(`Ruby < 2.7, upgrading RubyGems from ${gemVersionStr}`)
+      core.info(`Ruby < 2.7, upgrading RubyGems from ${gemVersionStr}`)
 
       await exec.exec('gem', ['update', '--system', '3.0.6', '--force']).then(res => { exitCode = res });
       if (exitCode != 0) {
@@ -286,16 +289,16 @@ async function upgradeRubyGems(rubyVersion) {
       
     }
     else {
-      console.log(`Ruby < 2.7, but RubyGems already at ${gemVersionStr}`)
+      core.info(`Ruby < 2.7, but RubyGems already at ${gemVersionStr}`)
     }
   } 
 
   else {
-    console.log(`Ruby >= 2.7, keeping RubyGems at ${gemVersionStr}`)
+    core.info(`Ruby >= 2.7, keeping RubyGems at ${gemVersionStr}`)
   }
 
-  await execute('which gem').then(res => { console.log("which gem: " + res) });
-  await execute('gem --version').then(res => { console.log("New RubyGems is: " + res) });
+  await execute('which gem').then(res => { core.info("which gem: " + res) });
+  await execute('gem --version').then(res => { core.info("New RubyGems is: " + res) });
 
   core.endGroup()
 }
@@ -325,7 +328,7 @@ async function installBundler(rubyVersion) {
   else {
     await execute('bundle --version').then(res => { bundleVersionStr = res; });
     if (bundleVersionStr.match(/1\.17\.2/)) { 
-     console.log(`found bundle ${bundleVersionStr}.  Upgrading to 1.17.3`)
+     core.info(`found bundle ${bundleVersionStr}.  Upgrading to 1.17.3`)
      await gemInstall('bundler', '~> 1.17.3', rubyBinPath) 
     }
   }
@@ -387,7 +390,7 @@ async function setupRuby(rubyVersion){
 
   // skip build process and just setup environment if successfully restored
   if (fs.existsSync(`${rubyBinPath}/ruby`)) {
-    console.log("Ruby already built.  Skipping the build process!")
+    core.info("Ruby already built.  Skipping the build process!")
   }
 
   // otherwise, build Ruby, cache it, then setup environment
@@ -429,7 +432,7 @@ async function restoreBundleFromCache(rubyVersion) {
   core.startGroup(`Restore Bundle from Cache`)
  
   const key = bundleCacheKey(rubyVersion)
-  console.log(`restore using ${key}`)
+  core.info(`restore using ${key}`)
   await cache.restoreCache(bundleCachePaths(rubyVersion), key, [key])
   
   core.endGroup()
@@ -456,12 +459,12 @@ async function setupTestEnvironment(rubyVersion) {
   // restore the Gemfile.lock to working folder if cache-hit
   if (fs.existsSync(`${filePath}/Gemfile.lock`)) {
     await io.cp(`${filePath}/Gemfile.lock`, `${workspacePath}/Gemfile.lock`)
-    await exec.exec('bundle', ['install', '--path', filePath])
+    await exec.exec('bundle', ['install'])
   }
 
   // otherwise, bundle install and cache it
   else {
-    await exec.exec('bundle', ['install', '--path', filePath])
+    await exec.exec('bundle', ['install'])
     await io.cp(`${workspacePath}/Gemfile.lock`, `${filePath}/Gemfile.lock`)
     await saveBundleToCache(rubyVersion)
   }
@@ -476,7 +479,6 @@ async function main() {
   const rubyVersion = core.getInput('ruby-version')
 
   try {
-    core.info('Here goes nothing')
     await setupEnvironment(rubyVersion, dependencyList)
     await setupRuby(rubyVersion)
     await setupTestEnvironment(rubyVersion)
