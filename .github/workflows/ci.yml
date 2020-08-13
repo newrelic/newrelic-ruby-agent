@@ -197,7 +197,8 @@ jobs:
         run: sudo systemctl start mysql
 
       - name: Run unit tests
-        run: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+        # run: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+        run: bundle exec rake test:multiverse[httpclient,env=1]
         env:
           DB_PORT: 3306
           MYSQL_PASSWORD: root
