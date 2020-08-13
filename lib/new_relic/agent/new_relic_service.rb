@@ -291,14 +291,18 @@ module NewRelic
         # installed
         conn.use_ssl     = true
         conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
+        set_cert_store(conn)
+      rescue StandardError, LoadError
+        msg = "SSL is not available in the environment; please install SSL support."
+        raise UnrecoverableAgentException.new(msg)
+      end
+
+      def set_cert_store(conn)
         if @use_bundled_certs || NewRelic::Agent.config[:ca_bundle_path]
           conn.cert_store  = ssl_cert_store
         else
           ::NewRelic::Agent.logger.debug("Using default security certificates")
         end
-      rescue StandardError, LoadError
-        msg = "SSL is not available in the environment; please install SSL support."
-        raise UnrecoverableAgentException.new(msg)
       end
 
       def start_connection(conn)
