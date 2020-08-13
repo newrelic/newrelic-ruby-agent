@@ -12315,6 +12315,7 @@ const io = __webpack_require__(2)
 
 let aptUpdated = false; // only `sudo apt-get update` once!
 
+
 // removes trailing newlines and linefeeds from the given text string
 function chomp(text) {
   return text.replace(/(\n|\r)+$/, '')
@@ -12422,7 +12423,8 @@ async function setupRubyEnvironment(rubyVersion) {
   // independently of the ruby binaries
   core.exportVariable('RUBY_CONFIGURE_OPTS', '--enable-shared --disable-install-doc')
 
-  // core.exportVariable('SERIALIZE', 1)
+  // many multiverse suite tests end up in resource contention when run in parallel
+  core.exportVariable('SERIALIZE', 1)
 }
 
 // Sets up any options at the bundler level so that when gems that 
