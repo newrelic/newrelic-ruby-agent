@@ -83,6 +83,6 @@ class HTTPClientTest < Minitest::Test
     end
 
     last_node = find_last_transaction_node()
-    assert_equal("External/localhost/HTTPClient/GET", last_node.metric_name)
+    assert_equal("External/localhost/HTTPClient/FOO", last_node.metric_name)
   end
 end
