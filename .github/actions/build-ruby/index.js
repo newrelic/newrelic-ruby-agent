@@ -121,7 +121,7 @@ async function setupRubyEnvironment(rubyVersion) {
   // independently of the ruby binaries
   core.exportVariable('RUBY_CONFIGURE_OPTS', '--enable-shared --disable-install-doc')
 
-  core.exportVariable('SERIALIZE', 1)
+  // core.exportVariable('SERIALIZE', 1)
 }
 
 // Sets up any options at the bundler level so that when gems that 

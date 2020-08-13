@@ -154,7 +154,7 @@ module Multiverse
     def bundle_install(dir, exact_version=nil)
       puts "Bundling in #{dir}..."
       bundler_version = exact_version || explicit_bundler_version(dir)
-      bundle_cmd = "cd #{dir} && bundle #{explicit_bundler_version(dir)}".strip
+      bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
       bundle_config dir, bundle_cmd
       bundle_show_env bundle_cmd
       full_bundle_cmd = "#{bundle_cmd} install"
