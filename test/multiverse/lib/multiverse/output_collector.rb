@@ -52,6 +52,7 @@ module Multiverse
       else
         to_output = failing_output_header + failing_output + failing_output_footer
         output(*to_output)
+        save_output_to_error_file(failing_output)
       end
     end
 
@@ -69,6 +70,25 @@ module Multiverse
         "",
         @failing_suites.map { |suite, env| red("#{suite} failed in env #{env}") },
         red("*" * 80)]
+    end
+
+    def self.save_output_to_error_file(lines)
+      @output_lock.synchronize do
+        filepath = ENV["GITHUB_WORKSPACE"]
+        output_file = File.join(filepath, "errors.txt")
+
+        existing_lines = []
+        if File.exist?(output_file)
+          existing_lines += File.read(output_file).split("\n")
+        end
+
+        lines = lines.split("\n") if lines.is_a?(String)
+        File.open(output_file, 'w') do |f|
+          f.puts existing_lines
+          f.puts "*" * 80
+          f.puts lines
+        end
+      end
     end
 
     # Because the various environments potentially run in separate threads to
