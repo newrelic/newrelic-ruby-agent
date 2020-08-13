@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ruby/setup-ruby.git"
+    "url": "git+https://github.com/newrelic/newrelic-ruby-agent.git"
   },
   "keywords": [
     "NewRelic",
