@@ -1,10 +1,5 @@
 const fs = require('fs')
-
 const core = require('@actions/core')
-const exec = require('@actions/exec')
-const cache = require('@actions/cache')
-const io = require('@actions/io')
-
 const command = require('@actions/core/lib/command')
 
 async function main() {
