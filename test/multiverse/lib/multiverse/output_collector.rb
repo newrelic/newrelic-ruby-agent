@@ -52,7 +52,6 @@ module Multiverse
       else
         to_output = failing_output_header + failing_output + failing_output_footer
         output(*to_output)
-        output_error(failing_output)
       end
     end
 
@@ -78,11 +77,6 @@ module Multiverse
       @output_lock.synchronize do
         puts(*args)
       end
-    end
-
-    def self.output_error(lines)
-      lines = lines.split("\n") if lines.is_a?(String)
-      puts("::error::#{lines.join('%0A')}")
     end
   end
 end
