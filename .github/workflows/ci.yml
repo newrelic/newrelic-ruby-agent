@@ -203,5 +203,6 @@ jobs:
           MYSQL_PASSWORD: root
 
       - name: Annotate errors
+        if: ${{ always() }}
         uses: ./.github/actions/annotate
 
