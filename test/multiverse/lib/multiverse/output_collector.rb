@@ -83,9 +83,7 @@ module Multiverse
     def self.output_error(lines)
       lines = lines.split("\n") if lines.is_a?(String)
       @output_lock.synchronize do
-        lines.each do |line|
-          puts("::error::#{line}")
-        end
+        puts("::error::#{lines.join("\n")}")
       end
     end
   end
