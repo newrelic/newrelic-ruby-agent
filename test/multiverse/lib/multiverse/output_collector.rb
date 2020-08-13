@@ -52,6 +52,7 @@ module Multiverse
       else
         to_output = failing_output_header + failing_output + failing_output_footer
         output(*to_output)
+        output_error(*to_output)
       end
     end
 
@@ -76,6 +77,12 @@ module Multiverse
     def self.output(*args)
       @output_lock.synchronize do
         puts(*args)
+      end
+    end
+
+    def self.output_error(*args)
+      @output_lock.synchronize do
+        STDERR.puts(*args)
       end
     end
   end
