@@ -12754,9 +12754,8 @@ async function setupTestEnvironment(rubyVersion) {
 
   await restoreBundleFromCache(rubyVersion)
 
-  // skip bundle process and just restore the Gemfile.lock if successfully restored
+  // restore the Gemfile.lock to working folder if cache-hit
   if (fs.existsSync(`${filePath}/Gemfile.lock`)) {
-    console.log("Skipping the bundle install process!")
     await io.cp(`${filePath}/Gemfile.lock`, `${workspacePath}/Gemfile.lock`)
     await exec.exec('bundle', ['install', '--path', filePath])
   }
@@ -12778,12 +12777,13 @@ async function main() {
   const rubyVersion = core.getInput('ruby-version')
 
   try {
+    core.info('Here goes nothing')
     await setupEnvironment(rubyVersion, dependencyList)
     await setupRuby(rubyVersion)
     await setupTestEnvironment(rubyVersion)
   } 
   catch (error) {
-    core.setFailed(error.message)
+    core.setFailed(`Action failed with error ${error}`)
   }
 
 }
