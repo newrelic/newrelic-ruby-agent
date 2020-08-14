@@ -12687,7 +12687,7 @@ async function setupEnvironment(rubyVersion, dependencyList) {
 
 async function setupRuby(rubyVersion){
   // skip build process and just setup environment if successfully restored
-  if (isRubyBuilt()) {
+  if (isRubyBuilt(rubyVersion)) {
     core.info("Ruby already built.  Skipping the build process!")
   }
 
@@ -12778,7 +12778,7 @@ function isBuildJob() {
 }
 
 // Returns true if Ruby was restored from cache
-function isRubyBuilt() {
+function isRubyBuilt(rubyVersion) {
   const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
 
   return fs.existsSync(`${rubyBinPath}/ruby`)
@@ -12795,7 +12795,7 @@ async function main() {
     await restoreRubyFromCache(rubyVersion)
 
     // skip setting up environment when we're only building and Ruby's already built!
-    if (isRubyBuilt() && isBuildJob()) { return }
+    if (isRubyBuilt(rubyVersion) && isBuildJob()) { return }
 
     await setupEnvironment(rubyVersion, dependencyList)
     await setupRuby(rubyVersion)
