@@ -12781,7 +12781,7 @@ async function main() {
   const dependencyList = core.getInput('dependencies')
   const rubyVersion = core.getInput('ruby-version')
 
-  await exec.exec('ENV')
+  console.log(process.env)
 
   try {
     await setupEnvironment(rubyVersion, dependencyList)
