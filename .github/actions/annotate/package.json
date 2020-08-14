@@ -1,7 +1,7 @@
 {
-  "name": "newrelic-build-ruby",
+  "name": "newrelic-annotate",
   "version": "1.0.0",
-  "description": "Builds various flavors of Ruby on Ubuntu",
+  "description": "will write errors.txt file to annotations pane",
   "main": "index.js",
   "scripts": {
     "lint": "eslint *.js",
@@ -23,9 +23,7 @@
   "author": "New Relic",
   "license": "Apache-2.0",
   "dependencies": {
-    "@actions/cache": "^1.0.2",
     "@actions/core": "^1.2.4",
-    "@actions/exec": "^1.0.4",
     "@actions/io": "^1.0.2",
     "ncc": "^0.3.6"
   }
