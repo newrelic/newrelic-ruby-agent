@@ -12781,6 +12781,8 @@ async function main() {
   const dependencyList = core.getInput('dependencies')
   const rubyVersion = core.getInput('ruby-version')
 
+  core.info(`Running in job: ${process.env.GITHUB_ACTION}`)
+  
   try {
     await setupEnvironment(rubyVersion, dependencyList)
     await setupRuby(rubyVersion)
