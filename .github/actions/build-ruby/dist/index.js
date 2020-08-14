@@ -12686,13 +12686,8 @@ async function setupEnvironment(rubyVersion, dependencyList) {
 }
 
 async function setupRuby(rubyVersion){
-  const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
-
-  // restores from cache if this ruby version was previously built and cached
-  await restoreRubyFromCache(rubyVersion)
-
   // skip build process and just setup environment if successfully restored
-  if (fs.existsSync(`${rubyBinPath}/ruby`)) {
+  if (isRubyBuilt()) {
     core.info("Ruby already built.  Skipping the build process!")
   }
 
@@ -12775,15 +12770,33 @@ async function setupTestEnvironment(rubyVersion) {
   core.endGroup()
 }
 
+// Detects if we're expected to build Ruby vs. running the test suite
+// This conditional controls whether we go through pain of setting up the 
+// environment when Ruby was previously built and cached.
+function isBuildJob() { 
+  return process.env.GITHUB_JOB.match(/build/)
+}
+
+// Returns true if Ruby was restored from cache
+function isRubyBuilt() {
+  const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
+
+  return fs.existsSync(`${rubyBinPath}/ruby`)
+}
+
 // Will set up the Ruby environment so the desired Ruby binaries are used in the unit tests
 // If Ruby hasn't been built and cached, yet, we also compile the Ruby binaries.
 async function main() {
   const dependencyList = core.getInput('dependencies')
   const rubyVersion = core.getInput('ruby-version')
 
-  console.log(process.env)
-
   try {
+    // restores from cache if this ruby version was previously built and cached
+    await restoreRubyFromCache(rubyVersion)
+
+    // skip setting up environment when we're only building and Ruby's already built!
+    if (isRubyBuilt() && isBuildJob()) { return }
+
     await setupEnvironment(rubyVersion, dependencyList)
     await setupRuby(rubyVersion)
     await setupTestEnvironment(rubyVersion)
