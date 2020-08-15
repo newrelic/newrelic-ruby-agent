@@ -68,8 +68,12 @@ class UtilizationDataCollectionTest < Minitest::Test
     NewRelic::Agent::Utilization::GCP.any_instance.stubs(:detect).returns(false)
 
     # this will trigger the agent to connect and send utilization data
-    setup_agent
-
+    setup_agent({
+      'utilization.detect_aws' => false,
+      'utilization.detect_gcp' => false,
+      'utilization.detect_azure' => false,
+      'utilization.detect_pcf' => false
+    })
     assert_equal expected, single_connect_posted.utilization
   end
 

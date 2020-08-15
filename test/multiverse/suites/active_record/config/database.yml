@@ -7,6 +7,7 @@ mysql: &mysql
     end %>
   socket: <%= (`uname -s` =~ /Linux/ ) ? "" :"/tmp/mysql.sock" %>
   username: root
+  password: <%= ENV["MYSQL_PASSWORD"] %>
   host: localhost
   database: <%= db = "#{ENV['DATABASE_NAME']}"; db.empty? ? "rails_blog" : db %>
 

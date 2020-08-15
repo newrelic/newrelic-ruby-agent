@@ -22,6 +22,11 @@ class NewRelicServiceTest < Minitest::Test
     @service.stubs(:create_http_connection).returns(@http_handle)
   end
 
+  def teardown 
+    NewRelic::Agent.config.reset_to_defaults
+    reset_buffers_and_caches
+  end
+
   def create_http_handle(name='connection')
     HTTPHandle.new(name)
   end
@@ -206,6 +211,16 @@ class NewRelicServiceTest < Minitest::Test
     with_config(:ca_bundle_path => fake_cert_path) do
       assert_equal @service.cert_file_path, fake_cert_path
     end
+  end
+
+  def test_metric_recorded_when_using_bundled_certs
+    assert @service.cert_file_path
+    assert_metrics_recorded("Supportability/Ruby/Certificate/BundleRequired")
+  end
+
+  def test_system_certs_by_default
+    @service.set_cert_store(nil)
+    assert_metrics_not_recorded("Supportability/Ruby/Certificate/BundleRequired")
   end
 
   def test_initialize_uses_license_key_from_config
