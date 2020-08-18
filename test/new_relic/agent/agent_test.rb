@@ -745,13 +745,14 @@ module NewRelic
         Thread.new do
           # Write HTTP response with partial gzip content, leaving connection open.
           gzip = Zlib.gzip('Hello World!')
-          server.accept.write <<~HTTP.gsub("\n", "\r\n").chomp
+          headers = <<~HTTP
             HTTP/1.1 200
             Content-Encoding: gzip
             Content-Length: #{gzip.length}
-
             #{gzip.byteslice(0..-2)}
           HTTP
+
+          server.accept.write headers
         end
 
         @agent.unstub(:start_worker_thread)
