@@ -1,5 +1,16 @@
 # New Relic Ruby Agent Release Notes #
 
+  * **Prevent connecting agent thread from hanging on shutdown**
+
+    A bug in `Net::HTTP`'s Gzip decoder can cause the (un-catchable)
+    thread-kill exception to be replaced with a (catchable) `Zlib` exception,
+    which prevents a connecting agent thread from exiting during shutdown,
+    causing the Ruby process to hang indefinitely.
+    This workaround checks for an `aborting` thread in the `#connect` exception handler
+    and re-raises the exception, allowing a killed thread to continue exiting.
+  
+    Thanks to Will Jordan (@wjordan) for chasing this one down and patching with tests.
+
   * **Fix error messages about Rake instrumentation**
 
     When running a Rails application with rake tasks, customers could see the following error in logs resulting from
