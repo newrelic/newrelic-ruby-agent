@@ -7,54 +7,54 @@ require 'new_relic/agent/http_clients/uri_util'
 
 class URIUtilTest < Minitest::Test
 
-  def test_filter_uri
-    assert_filtered("http://foo.com/bar/baz",
-                    "http://foo.com/bar/baz")
+  def test_obfuscated
+    assert_obfuscated("http://foo.com/bar/baz",
+                     "http://foo.com/bar/baz")
   end
 
-  def test_filter_uri_custom_port
-    assert_filtered("http://foo.com:1234/bar/baz",
-                    "http://foo.com:1234/bar/baz")
+  def test_obfuscated_custom_port
+    assert_obfuscated("http://foo.com:1234/bar/baz",
+                     "http://foo.com:1234/bar/baz")
   end
 
-  def test_filtered_uri_omits_query_params
-    assert_filtered("http://foo.com/bar/baz?a=1&b=2",
-                    "http://foo.com/bar/baz")
+  def test_obfuscated_omits_query_params
+    assert_obfuscated("http://foo.com/bar/baz?a=1&b=2",
+                     "http://foo.com/bar/baz")
   end
 
-  def test_filtered_uri_omits_fragment
-    assert_filtered("http://foo.com/bar/baz#fragment",
-                    "http://foo.com/bar/baz")
+  def test_obfuscated_omits_fragment
+    assert_obfuscated("http://foo.com/bar/baz#fragment",
+                     "http://foo.com/bar/baz")
   end
 
-  def test_filtered_uri_omits_query_params_and_fragment
-    assert_filtered("http://foo.com/bar/baz?a=1&b=2#fragment",
-                    "http://foo.com/bar/baz")
+  def test_obfuscated_omits_query_params_and_fragment
+    assert_obfuscated("http://foo.com/bar/baz?a=1&b=2#fragment",
+                     "http://foo.com/bar/baz")
   end
 
-  def test_filtered_uri_reflects_use_of_ssl
-    assert_filtered("https://foo.com/bar/baz",
-                    "https://foo.com/bar/baz")
+  def test_obfuscated_reflects_use_of_ssl
+    assert_obfuscated("https://foo.com/bar/baz",
+                      "https://foo.com/bar/baz")
   end
 
-  def test_filtered_uri_reflects_use_of_ssl_with_custom_port
-    assert_filtered("https://foo.com:9999/bar/baz",
-                    "https://foo.com:9999/bar/baz")
+  def test_obfuscated_reflects_use_of_ssl_with_custom_port
+    assert_obfuscated("https://foo.com:9999/bar/baz",
+                      "https://foo.com:9999/bar/baz")
   end
 
-  def test_filter_uri_with_full_uri_request_path
-    assert_filtered("http://foo.com/bar/baz?a=1&b=2#fragment",
-                    "http://foo.com/bar/baz")
+  def test_obfuscated_with_full_uri_request_path
+    assert_obfuscated("http://foo.com/bar/baz?a=1&b=2#fragment",
+                      "http://foo.com/bar/baz")
   end
 
-  def test_filter_uri_with_full_uri_request_path_https
-    assert_filtered("https://foo.com/bar/baz?a=1&b=2#fragment",
-                    "https://foo.com/bar/baz")
+  def test_obfuscated_with_full_uri_request_path_https
+    assert_obfuscated("https://foo.com/bar/baz?a=1&b=2#fragment",
+                      "https://foo.com/bar/baz")
   end
 
   def test_strips_credentials_embedded_in_uri
-    assert_filtered("http://user:pass@foo.com/bar/baz",
-                    "http://foo.com/bar/baz")
+    assert_obfuscated("http://user:pass@foo.com/bar/baz",
+                      "http://foo.com/bar/baz")
   end
 
   def test_invalid_url_normalization
@@ -62,8 +62,8 @@ class URIUtilTest < Minitest::Test
                       "foobarbaz")
   end
 
-  def assert_filtered(original, expected)
-    assert_equal(expected, NewRelic::Agent::HTTPClients::URIUtil.filter_uri(URI(original)))
+  def assert_obfuscated(original, expected)
+    assert_equal expected, NewRelic::Agent::HTTPClients::URIUtil.obfuscated_uri(original).to_s
   end
 
   def assert_normalized(original, expected)

@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
+  * **Bugfix: `http.url` query parameters spans are now obfuscated**
+
+    Previously, the agent was recording the full URL of the external requests, including
+    the query and fragment parts of the URL as part of the attributes on the external request
+    span.  This has been fixed so that the URL is obfuscated to filter out potentially sensitive data.
+
   * **Prevent connecting agent thread from hanging on shutdown**
 
     A bug in `Net::HTTP`'s Gzip decoder can cause the (un-catchable)
