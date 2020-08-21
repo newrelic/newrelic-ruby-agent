@@ -829,11 +829,6 @@ module NewRelic::Agent
 
       def test_urls_are_filtered
         with_config(distributed_tracing_config) do
-          trace_id  = nil
-          txn_guid  = nil
-          sampled   = nil
-          priority  = nil
-          timestamp = nil
           segment   = nil
           filtered_url = "https://remotehost.com/bar/baz"                                      
 
@@ -847,25 +842,14 @@ module NewRelic::Agent
             segment.start
             advance_time 1.0
             segment.finish
-
-            timestamp = Integer(segment.start_time.to_f * 1000.0)
-
-            trace_id = txn.trace_id
-            txn_guid = txn.guid
-            sampled  = txn.sampled?
-            priority = txn.priority
           end
 
           last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           assert_equal 2, last_span_events.size
-          external_intrinsics, _, external_agent_attributes = last_span_events[0]
-          root_span_event   = last_span_events[1][0]
-          root_guid         = root_span_event['guid']
+          _, _, external_agent_attributes = last_span_events[0]
 
-          expected_name = 'External/remotehost.com/Typhoeus/GET'
-
-          assert_equal filtered_url,      segment.uri.to_s
-          assert_equal filtered_url,      external_agent_attributes.fetch('http.url')
+          assert_equal filtered_url, segment.uri.to_s
+          assert_equal filtered_url, external_agent_attributes.fetch('http.url')
         end
       end
 
