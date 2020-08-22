@@ -38,6 +38,7 @@ module NewRelic
       def initialize(license_key=nil, collector=control.server)
         @license_key = license_key
         @collector = collector
+        @generic_collector = collector
         @request_timeout = Agent.config[:timeout]
         @ssl_cert_store = nil
         @use_bundled_certs = false
@@ -350,7 +351,7 @@ module NewRelic
         if @use_bundled_certs == false
           ::NewRelic::Agent.logger.info("Unable to connect. Falling back to bundled security certificates")
           @use_bundled_certs = true
-          retry 
+          retry
         else
           raise
         end
@@ -433,15 +434,18 @@ module NewRelic
         data, encoding = compress_request_if_needed(data, method)
         size = data.size
 
+        # Preconnect needs to always use the generic collector host, not the redirect host
+        endpoint_specific_collector = (method == :preconnect) ? @generic_collector : @collector
+
         uri = remote_method_uri(method)
-        full_uri = "#{@collector}#{uri}"
+        full_uri = "#{endpoint_specific_collector}#{uri}"
 
         @audit_logger.log_request(full_uri, payload, @marshaller)
         request_send_ts = Time.now
         response = send_request(:data      => data,
                                 :uri       => uri,
                                 :encoding  => encoding,
-                                :collector => @collector,
+                                :collector => endpoint_specific_collector,
                                 :endpoint  => method)
         response_check_ts = Time.now
         @marshaller.load(decompress_response(response))
