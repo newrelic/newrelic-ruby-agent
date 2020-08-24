@@ -269,7 +269,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def test_preconnect_never_uses_redirect_host
-    # Use generic collector for initial preconnect
+    # Use locally configured collector for initial preconnect
     initial_preconnect_log = with_array_logger(level=:debug) { @service.preconnect }
     assert_log_contains initial_preconnect_log, 'Sending request to somewhere.example.com'
 
@@ -277,7 +277,7 @@ class NewRelicServiceTest < Minitest::Test
     initial_connect_log = with_array_logger(level=:debug) { @service.connect }
     assert_log_contains initial_connect_log, 'Sending request to localhost'
 
-    # If we need to reconnect, preconnect should use the generic collector again
+    # If we need to reconnect, preconnect should use the locally configured collector again
     reconnect_log = with_array_logger(level=:debug) { @service.preconnect }
     assert_log_contains reconnect_log, 'Sending request to somewhere.example.com'
   end
