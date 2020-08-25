@@ -434,7 +434,7 @@ module NewRelic
         data, encoding = compress_request_if_needed(data, method)
         size = data.size
 
-        # Preconnect needs to always use the generic collector host, not the redirect host
+        # Preconnect needs to always use the configured collector host, not the redirect host
         endpoint_specific_collector = (method == :preconnect) ? @configured_collector : @collector
 
         uri = remote_method_uri(method)
