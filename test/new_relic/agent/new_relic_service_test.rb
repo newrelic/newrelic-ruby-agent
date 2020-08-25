@@ -22,7 +22,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.stubs(:create_http_connection).returns(@http_handle)
   end
 
-  def teardown 
+  def teardown
     NewRelic::Agent.config.reset_to_defaults
     reset_buffers_and_caches
   end
@@ -266,6 +266,20 @@ class NewRelicServiceTest < Minitest::Test
 
     @service.connect
     assert_equal 666, @service.agent_id
+  end
+
+  def test_preconnect_never_uses_redirect_host
+    # Use locally configured collector for initial preconnect
+    initial_preconnect_log = with_array_logger(level=:debug) { @service.preconnect }
+    assert_log_contains initial_preconnect_log, 'Sending request to somewhere.example.com'
+
+    # Connect has set the redirect host as the collector
+    initial_connect_log = with_array_logger(level=:debug) { @service.connect }
+    assert_log_contains initial_connect_log, 'Sending request to localhost'
+
+    # If we need to reconnect, preconnect should use the locally configured collector again
+    reconnect_log = with_array_logger(level=:debug) { @service.preconnect }
+    assert_log_contains reconnect_log, 'Sending request to somewhere.example.com'
   end
 
   def test_preconnect_with_no_token_and_no_lasp

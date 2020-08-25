@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+  * **Bugfix: never use redirect host when accessing preconnect endpoint**
+
+    When connecting to New Relic, the Ruby Agent uses the value in `Agent.config[:host]` to post a request to the New Relic preconnect endpoint. This endpoint returns a "redirect host" which is the URL to which agents send data from that point on.
+
+    Previously, if the agent needed to reconnect to the collector, it would incorrectly use this redirect host to call the preconnect
+    endpoint, when it should have used the original configured value in `Agent.config[:host]`. The agent now uses the correct host
+    for all calls to preconnect.
+
   * **Bugfix: `http.url` query parameters spans are now obfuscated**
 
     Previously, the agent was recording the full URL of the external requests, including
@@ -14,7 +22,7 @@
     causing the Ruby process to hang indefinitely.
     This workaround checks for an `aborting` thread in the `#connect` exception handler
     and re-raises the exception, allowing a killed thread to continue exiting.
-  
+
     Thanks to Will Jordan (@wjordan) for chasing this one down and patching with tests.
 
   * **Fix error messages about Rake instrumentation**
