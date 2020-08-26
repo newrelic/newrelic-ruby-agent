@@ -10,6 +10,14 @@
     endpoint, when it should have used the original configured value in `Agent.config[:host]`. The agent now uses the correct host
     for all calls to preconnect.
 
+  * **Bugfix: calling `add_custom_attributes` no longer modifies the params of the caller**
+
+    The previous agent's improvements to recording attributes at the span level had an unexpected
+    side-effect of modifying the params passed to the API call as duplicated attributes were deleted
+    in the process. This is now fixed and params passed in are no longer modified.
+
+    Thanks to Pete Johns (@johnsyweb) for the PR that resolves this bug.
+
   * **Bugfix: `http.url` query parameters spans are now obfuscated**
 
     Previously, the agent was recording the full URL of the external requests, including
@@ -57,7 +65,7 @@
 
   * **Remove NewRelic::Metrics**
 
-    The `NewRelic::Metrics:: module has been removed from the agent since it is no longer used.
+    The `NewRelic::Metrics` module has been removed from the agent since it is no longer used.
 
     Thanks to @csaura for the contribution!
 
