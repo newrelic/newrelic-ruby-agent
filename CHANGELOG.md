@@ -1,5 +1,7 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.13.0
+
   * **Bugfix: never use redirect host when accessing preconnect endpoint**
 
     When connecting to New Relic, the Ruby Agent uses the value in `Agent.config[:host]` to post a request to the New Relic preconnect endpoint. This endpoint returns a "redirect host" which is the URL to which agents send data from that point on.
@@ -8,11 +10,33 @@
     endpoint, when it should have used the original configured value in `Agent.config[:host]`. The agent now uses the correct host
     for all calls to preconnect.
 
+  * **Bugfix: calling `add_custom_attributes` no longer modifies the params of the caller**
+
+    The previous agent's improvements to recording attributes at the span level had an unexpected
+    side-effect of modifying the params passed to the API call as duplicated attributes were deleted
+    in the process. This is now fixed and params passed in are no longer modified.
+
+    Thanks to Pete Johns (@johnsyweb) for the PR that resolves this bug.
+
   * **Bugfix: `http.url` query parameters spans are now obfuscated**
 
     Previously, the agent was recording the full URL of the external requests, including
     the query and fragment parts of the URL as part of the attributes on the external request
     span.  This has been fixed so that the URL is obfuscated to filter out potentially sensitive data.
+
+  * **Use system SSL certificates by default**
+
+    The Ruby agent previously used a root SSL/TLS certificate bundle by default. Now the agent will attempt to use
+    the default system certificates, but will fall back to the bundled certs if there is an issue (and log that this occurred).
+
+  * **Bugfix: reduce allocations for segment attributes**
+
+    Previously, every segment received an `Attributes` object on initialization. The agent now lazily creates attributes
+    on segments, resulting in a significant reduction in object allocations for a typical transaction.
+
+  * **Bugfix: eliminate errors around Rake::VERSION with Rails**
+
+    When running a Rails application with rake tasks, customers could see the following error:
 
   * **Prevent connecting agent thread from hanging on shutdown**
 
@@ -38,6 +62,12 @@
     Such error messages should no longer appear in this context.
 
     Thanks to @CamilleDrapier for pointing out this issue.
+
+  * **Remove NewRelic::Metrics**
+
+    The `NewRelic::Metrics` module has been removed from the agent since it is no longer used.
+
+    Thanks to @csaura for the contribution!
 
   ## v6.12.0
 
