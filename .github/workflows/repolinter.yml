@@ -1,0 +1,31 @@
+# NOTE: This file should always be named `repolinter.yml` to allow
+# workflow_dispatch to work properly
+name: Repolinter Action
+
+# NOTE: This workflow will ONLY check the default branch!
+# Currently there is no elegant way to specify the default
+# branch in the event filtering, so branches are instead
+# filtered in the "Test Default Branch" step.
+on: [push, workflow_dispatch]
+
+jobs:
+  repolint:
+    name: Run Repolinter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test Default Branch
+        id: default-branch
+        uses: actions/github-script@v2
+        with:
+          script: |
+            const data = await github.repos.get(context.repo)
+            return data.data && data.data.default_branch === context.ref.split('/').slice(-1)[0]
+      - name: Checkout Self
+        if: ${{ steps.default-branch.outputs.result == 'true' }}
+        uses: actions/checkout@v2
+      - name: Run Repolinter
+        if: ${{ steps.default-branch.outputs.result == 'true' }}
+        uses: newrelic/repolinter-action@v1
+        with:
+          config_url: https://raw.githubusercontent.com/newrelic/.github/main/repolinter-rulesets/community-plus.yml
+          output_type: issue
