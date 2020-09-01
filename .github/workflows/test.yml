@@ -22,7 +22,7 @@ jobs:
         cd ..
     - name: Determine version
       run: |
-        echo ::set-env name=VERSION::$(`ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\\1")'`)
+        echo ::set-env name=VERSION::$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\\1")')
     - name: Install rotp
       run: gem install rotp
     - name: Get Rubygems OTP
