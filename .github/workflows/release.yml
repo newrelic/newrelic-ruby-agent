@@ -1,0 +1,84 @@
+name: Release
+
+on: 
+  push: 
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install rotp
+      run: gem install rotp
+    - name: Configure gem credentials
+      run: |
+        if [ -f ~/.gem/credentials ]; then
+          echo 'Using credentials in ~/.gem/credentials'
+        else
+          echo -e "---\n:rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }} > ~/.gem/credentials
+          chmod 0600 ~/.gem/credentials
+        fi
+    - name: Build newrelic_rpm gem
+      run: gem build newrelic_rpm.gemspec
+    - name: Build newrelic-infinite_tracing gem
+      run: |
+        cd infinite_tracing
+        gem build newrelic-infinite_tracing.gemspec
+        cd ..
+    - name: Determine version
+      run: |
+        echo ::set-env name=VERSION::$(`ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")'`)
+    - name: Tag new version
+      run: |
+        git tag ${{ env.VERSION }}
+        git push origin ${{ env.VERSION }}
+    - name: Get Rubygems OTP for newrelic_rpm
+      run: echo ::set-env name=RUBYGEMS_OTP::$(ruby ./.github/scripts/ruby-gems-authenticate.rb ${{ secrets.RUBYGEMS_API_KEY }})
+    - name: Publish newrelic_rpm to Rubygems
+      run: |
+        REMOTE_GEMS=`gem list newrelic_rpm -ra --prerelease | grep ${{ env.VERSION }}, || true`
+        if [ "x$REMOTE_GEMS" == "x" ]; then
+          gem push --otp ${{ env.RUBYGEMS_OTP }} newrelic_rpm-${{ env.VERSION }}.gem
+        else
+          echo "Already see newrelic_rpm ${{ env.VERSION }} out on rubygems, skipping push"
+        fi
+    - name: Get Rubygems OTP for newrelic-infinite_tracing
+      run: echo ::set-env name=RUBYGEMS_OTP::$(ruby ./ruby-gems-authenticate.rb ${{ secrets.RUBYGEMS_API_KEY }})
+    - name: Publish newrelic-infinite_tracing to Rubygems
+      run: |
+        REMOTE_GEMS=`gem list newrelic-infinite_tracing -ra --prerelease | grep ${{ env.VERSION }}, || true`
+        if [ "x$REMOTE_GEMS" == "x" ]; then
+          gem push --otp ${{ env.RUBYGEMS_OTP }} newrelic-infinite_tracing-${{ env.VERSION }}.gem
+        else
+          echo "Already see newrelic-infinite_tracing ${{ env.VERSION }} out on rubygems, skipping push"
+        fi
+    - name: Update system configuration page
+      run: |
+        PAYLOAD="{
+             \"system_configuration\": {
+               \"key\":   \"ruby_agent_version\",
+               \"value\": \"${{ env.VERSION }}\"
+            }
+          }"
+        CONTENT_TYPE='Content-Type: application/json'
+
+        # STAGING
+        curl -X POST 'https://staging-api.newrelic.com/v2/system_configuration.json' \
+          -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_STAGING }}" -i \
+          -H "$CONTENT_TYPE" \
+          -d "$PAYLOAD"
+
+        # PRODUCTION
+        curl -X POST 'https://api.newrelic.com/v2/system_configuration.json' \
+          -H "X-Api-Key:${{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
+          -H "$CONTENT_TYPE" \
+          -d "$PAYLOAD"
+
+        # EU PRODUCTION
+        curl -X POST 'https://api.eu.newrelic.com/v2/system_configuration.json' \
+          -H "X-Api-Key:$ {{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
+          -H "$CONTENT_TYPE" \
+          -d "$PAYLOAD"
+
