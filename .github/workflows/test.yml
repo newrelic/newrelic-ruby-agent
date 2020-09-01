@@ -1,0 +1,30 @@
+name: Test
+
+on: 
+  push: 
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build newrelic_rpm gem
+      run: gem build newrelic_rpm.gemspec
+    - name: Build newrelic-infinite_tracing gem
+      run: |
+        cd infinite_tracing
+        gem build newrelic-infinite_tracing.gemspec
+        cd ..
+    - name: Determine version
+      run: |
+        echo ::set-env name=VERSION::$(`ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\\1")'`)
+    - name: Install rotp
+      run: gem install rotp
+    - name: Get Rubygems OTP
+      run: echo ::set-env name=RUBYGEMS_OTP::$(ruby ./scripts/otp.rb)
+    - name: Check values
+      run: |
+          echo ${{ env.VERSION}}
+          echo ${{ env.RUBYGEMS_OTP }}

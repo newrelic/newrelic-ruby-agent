@@ -1,0 +1,3 @@
+require 'rotp'
+
+puts "OMGOTP"
