@@ -26,7 +26,7 @@ jobs:
     - name: Install rotp
       run: gem install rotp
     - name: Get Rubygems OTP
-      run: echo ::set-env name=RUBYGEMS_OTP::$(ruby ./scripts/otp.rb)
+      run: echo ::set-env name=RUBYGEMS_OTP::$(ruby ./.github/scripts/otp.rb)
     - name: Check values
       run: |
           echo ${{ env.VERSION}}
