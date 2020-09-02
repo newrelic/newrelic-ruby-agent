@@ -17,7 +17,7 @@ jobs:
         if [ -f ~/.gem/credentials ]; then
           echo 'Using credentials in ~/.gem/credentials'
         else
-          echo -e "---\n:rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }} > ~/.gem/credentials
+          echo -e "---\n:rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }}" > ~/.gem/credentials
           chmod 0600 ~/.gem/credentials
         fi
     - name: Build newrelic_rpm gem
