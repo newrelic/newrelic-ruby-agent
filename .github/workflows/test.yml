@@ -10,9 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-ruby@v1
-      with:
-        ruby-version: '2.6'
     - name: Build newrelic_rpm gem
       run: gem build newrelic_rpm.gemspec
     - name: Build newrelic-infinite_tracing gem
@@ -24,7 +21,7 @@ jobs:
       run: |
         echo ::set-env name=VERSION::$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')
     - name: Install rotp
-      run: gem install rotp
+      run: sudo gem install rotp
     - name: Get Rubygems OTP
       run: echo ::set-env name=RUBYGEMS_OTP::$(ruby ./.github/scripts/otp.rb)
     - name: Check values
