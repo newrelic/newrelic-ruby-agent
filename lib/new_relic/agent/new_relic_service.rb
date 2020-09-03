@@ -38,8 +38,10 @@ module NewRelic
       def initialize(license_key=nil, collector=control.server)
         @license_key = license_key
         @collector = collector
+        @configured_collector = collector
         @request_timeout = Agent.config[:timeout]
         @ssl_cert_store = nil
+        @use_bundled_certs = false
         @in_session = nil
         @agent_id = nil
         @shared_tcp_connection = nil
@@ -290,10 +292,18 @@ module NewRelic
         # installed
         conn.use_ssl     = true
         conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
-        conn.cert_store  = ssl_cert_store
+        set_cert_store(conn)
       rescue StandardError, LoadError
         msg = "SSL is not available in the environment; please install SSL support."
         raise UnrecoverableAgentException.new(msg)
+      end
+
+      def set_cert_store(conn)
+        if @use_bundled_certs || NewRelic::Agent.config[:ca_bundle_path]
+          conn.cert_store  = ssl_cert_store
+        else
+          ::NewRelic::Agent.logger.debug("Using default security certificates")
+        end
       end
 
       def start_connection(conn)
@@ -337,6 +347,14 @@ module NewRelic
         conn = create_http_connection
         start_connection(conn)
         conn
+      rescue Timeout::Error
+        if @use_bundled_certs == false
+          ::NewRelic::Agent.logger.info("Unable to connect. Falling back to bundled security certificates")
+          @use_bundled_certs = true
+          retry
+        else
+          raise
+        end
       end
 
       # The path to the certificate file used to verify the SSL
@@ -346,6 +364,7 @@ module NewRelic
           NewRelic::Agent.logger.warn("Couldn't find CA bundle from configured ca_bundle_path: #{path_override}") unless File.exist? path_override
           path_override
         else
+          ::NewRelic::Agent.increment_metric("Supportability/Ruby/Certificate/BundleRequired")
           File.expand_path(File.join(control.newrelic_root, 'cert', 'cacert.pem'))
         end
       end
@@ -415,15 +434,18 @@ module NewRelic
         data, encoding = compress_request_if_needed(data, method)
         size = data.size
 
+        # Preconnect needs to always use the configured collector host, not the redirect host
+        endpoint_specific_collector = (method == :preconnect) ? @configured_collector : @collector
+
         uri = remote_method_uri(method)
-        full_uri = "#{@collector}#{uri}"
+        full_uri = "#{endpoint_specific_collector}#{uri}"
 
         @audit_logger.log_request(full_uri, payload, @marshaller)
         request_send_ts = Time.now
         response = send_request(:data      => data,
                                 :uri       => uri,
                                 :encoding  => encoding,
-                                :collector => @collector,
+                                :collector => endpoint_specific_collector,
                                 :endpoint  => method)
         response_check_ts = Time.now
         @marshaller.load(decompress_response(response))
