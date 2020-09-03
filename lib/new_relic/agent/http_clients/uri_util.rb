@@ -15,13 +15,13 @@ module NewRelic
     module HTTPClients
       module URIUtil
 
-        def self.obfuscated_uri(url)
-          parse_and_normalize_url(url).tap do |obfuscated|
-            obfuscated.user = nil
-            obfuscated.password = nil
-            obfuscated.query = nil
-            obfuscated.fragment = nil
-          end
+        def self.filter_uri(original)
+          filtered = original.dup
+          filtered.user = nil
+          filtered.password = nil
+          filtered.query = nil
+          filtered.fragment = nil
+          filtered.to_s
         end
 
         # There are valid URI strings that some HTTP client libraries will
