@@ -1,78 +1,9 @@
 # New Relic Ruby Agent Release Notes #
 
-  ## v6.13.0
-
-  * **Bugfix: never use redirect host when accessing preconnect endpoint**
-
-    When connecting to New Relic, the Ruby Agent uses the value in `Agent.config[:host]` to post a request to the New Relic preconnect endpoint. This endpoint returns a "redirect host" which is the URL to which agents send data from that point on.
-
-    Previously, if the agent needed to reconnect to the collector, it would incorrectly use this redirect host to call the preconnect
-    endpoint, when it should have used the original configured value in `Agent.config[:host]`. The agent now uses the correct host
-    for all calls to preconnect.
-
-  * **Bugfix: calling `add_custom_attributes` no longer modifies the params of the caller**
-
-    The previous agent's improvements to recording attributes at the span level had an unexpected
-    side-effect of modifying the params passed to the API call as duplicated attributes were deleted
-    in the process. This is now fixed and params passed in are no longer modified.
-
-    Thanks to Pete Johns (@johnsyweb) for the PR that resolves this bug.
-
-  * **Bugfix: `http.url` query parameters spans are now obfuscated**
-
-    Previously, the agent was recording the full URL of the external requests, including
-    the query and fragment parts of the URL as part of the attributes on the external request
-    span.  This has been fixed so that the URL is obfuscated to filter out potentially sensitive data.
-
-  * **Use system SSL certificates by default**
-
-    The Ruby agent previously used a root SSL/TLS certificate bundle by default. Now the agent will attempt to use
-    the default system certificates, but will fall back to the bundled certs if there is an issue (and log that this occurred).
-
-  * **Bugfix: reduce allocations for segment attributes**
-
-    Previously, every segment received an `Attributes` object on initialization. The agent now lazily creates attributes
-    on segments, resulting in a significant reduction in object allocations for a typical transaction.
-
-  * **Bugfix: eliminate errors around Rake::VERSION with Rails**
-
-    When running a Rails application with rake tasks, customers could see the following error:
-
-  * **Prevent connecting agent thread from hanging on shutdown**
-
-    A bug in `Net::HTTP`'s Gzip decoder can cause the (un-catchable)
-    thread-kill exception to be replaced with a (catchable) `Zlib` exception,
-    which prevents a connecting agent thread from exiting during shutdown,
-    causing the Ruby process to hang indefinitely.
-    This workaround checks for an `aborting` thread in the `#connect` exception handler
-    and re-raises the exception, allowing a killed thread to continue exiting.
-
-    Thanks to Will Jordan (@wjordan) for chasing this one down and patching with tests.
-
-  * **Fix error messages about Rake instrumentation**
-
-    When running a Rails application with rake tasks, customers could see the following error in logs resulting from
-    a small part of rake functionality being loaded with the Rails test runner:
-
-    ```
-    ERROR : Error while detecting rake_instrumentation:
-    ERROR : NameError: uninitialized constant Rake::VERSION
-    ```
-
-    Such error messages should no longer appear in this context.
-
-    Thanks to @CamilleDrapier for pointing out this issue.
-
-  * **Remove NewRelic::Metrics**
-
-    The `NewRelic::Metrics` module has been removed from the agent since it is no longer used.
-
-    Thanks to @csaura for the contribution!
-
   ## v6.12.0
 
-  * The New Relic Ruby Agent is now open source under the [Apache 2 license](LICENSE)
-    and you can now observe the project roadmap. See our [Contributing guide](https://github.com/newrelic/newrelic-ruby-agent/blob/main/CONTRIBUTING.md)
+  * The New Relic Ruby Agent is now open source under the [Apache 2 license](LICENSE) 
+    and you can now observe the project roadmap. See our [Contributing guide](https://github.com/newrelic/newrelic-ruby-agent/blob/main/CONTRIBUTING.md) 
     and [Code of Conduct](https://github.com/newrelic/.github/blob/master/CODE_OF_CONDUCT.md) for details on contributing!
 
   * **Security: Updated all uses of Rake to >= 12.3.3**
@@ -80,32 +11,32 @@
     All versions of Rake testing prior to 12.3.3 were removed to address
     [CVE-2020-8130](https://nvd.nist.gov/vuln/detail/CVE-2020-8130).
     No functionality in the agent was removed nor deprecated with this change, and older versions
-    of rake are expected to continue to work as they have in the past.  However, versions of
+    of rake are expected to continue to work as they have in the past.  However, versions of 
     rake < 12.3.3 are no longer tested nor supported.
 
   * **Bugfix: fixes an error capturing content length in middleware on multi-part responses**
 
-    In the middleware tracing, the `Content-Length` header is sometimes returned as an array of
-    values when content is a multi-part response.  Previously, the agent would fail with
-    "NoMethodError: undefined method `to_i` for Array" Error.  This bug is now fixed and
+    In the middleware tracing, the `Content-Length` header is sometimes returned as an array of 
+    values when content is a multi-part response.  Previously, the agent would fail with 
+    "NoMethodError: undefined method `to_i` for Array" Error.  This bug is now fixed and 
     multi-part content lengths are summed for a total when an `Array` is present.
-
+    
   * **Added support for auto-instrumenting Mongo gem versions 2.6 to 2.12**
-
+  
   * **Bugfix: MongoDB instrumentation did not handle CommandFailed events when noticing errors**
 
     The mongo gem sometimes returns a CommandFailed object instead of a CommandSucceeded object with
     error attributes populated.  The instrumentation did not handle noticing errors on CommandFailed
     objects and resulted in logging an error and backtrace to the log file.
 
-    Additionally, a bug in recording the metric for "findAndModify" as all lowercased "findandmodify"
+    Additionally, a bug in recording the metric for "findAndModify" as all lowercased "findandmodify" 
     for versions 2.1 through 2.5 was fixed.
 
   * **Bugfix: Priority Sampler causes crash in high throughput environents in rare cases**
 
     Previously, the priority sampling buffer would, in rare cases, generate an error in high-throughput
     environments once capacity is reached and the sampling algorthym engages.  This issue is fixed.
-
+    
   * **Additional Transaction Information applied to Span Events**
 
     When Distributed Tracing and/or Infinite Tracing are enabled, the Agent will now incorporate additional information from the Transaction Event on to the root Span Event of the transaction.

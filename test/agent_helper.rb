@@ -133,12 +133,6 @@ def assert_equal_unordered left, right
   left.each { |element| assert_includes(right, element) }
 end
 
-def assert_log_contains(log, message)
-  lines = log.array
-  failure_message = "Did not find '#{message}' in log. Log contained:\n#{lines.join('')}"
-  assert (lines.any? { |line| line.match(message) }), failure_message
-end
-
 def assert_audit_log_contains audit_log_contents, needle
   # Original request bodies dumped to the log have symbol keys, but once
   # they go through a dump/load, they're strings again, so we strip

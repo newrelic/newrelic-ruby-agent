@@ -28,7 +28,7 @@ module NewRelic
 
         def initialize library, uri, procedure, start_time = nil # :nodoc:
           @library = library
-          @uri = HTTPClients::URIUtil.obfuscated_uri(uri)
+          @uri = HTTPClients::URIUtil.parse_and_normalize_url(uri)
           @procedure = procedure
           @host_header = nil
           @app_data = nil
@@ -204,7 +204,7 @@ module NewRelic
         end
 
         def segment_complete
-          params[:uri] = uri.to_s
+          params[:uri] = HTTPClients::URIUtil.filter_uri(uri)
           if cross_app_request?
             params[:transaction_guid] = transaction_guid
           end

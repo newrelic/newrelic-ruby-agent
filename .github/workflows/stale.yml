@@ -15,7 +15,7 @@ jobs:
         days-before-stale: 30
         days-before-close: 5
         stale-issue-label: 'stale'
-        exempt-issue-labels: 'good first issue,help wanted,in progress,on hold,in review,roadmap'
+        exempt-issue-labels: 'good first issue,help wanted,in progress,on hold,in review'
         stale-pr-label: 'stale'
         exempt-pr-labels: 'on hold,in review'
 
