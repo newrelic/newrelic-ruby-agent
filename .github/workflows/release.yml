@@ -10,11 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-ruby@v1
-      with:
-        ruby-version: '2.6'
     - name: Install rotp
-      run: gem install rotp
+      run: sudo gem install rotp
     - name: Configure gem credentials
       run: |
         if [ -f ~/.gem/credentials ]; then
