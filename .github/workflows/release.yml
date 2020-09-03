@@ -11,7 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install rotp
-      run: gem install rotp
+      run: sudo gem install rotp
     - name: Configure gem credentials
       run: |
         if [ -f ~/.gem/credentials ]; then
