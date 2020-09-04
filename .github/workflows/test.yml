@@ -13,9 +13,9 @@ jobs:
     - name: Put API key in .gem file
       run: |
         sudo mkdir -p ~/.gem/credentials
-        touch /root/.gem/credentials
+        sudo touch /root/.gem/credentials
         echo -e "---\n:rubygems_api_key: KEY" > ~/.gem/credentials
-        chmod 0600 /root/.gem/credentials        
+        chmod 0600 /root/.gem/credentials
 
     # - name: Build newrelic_rpm gem
     #   run: gem build newrelic_rpm.gemspec
