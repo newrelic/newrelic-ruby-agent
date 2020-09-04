@@ -199,12 +199,6 @@ boom:
     assert_equal 'bazbangbarn', NewRelic::Agent.config[:i_am], "Agent.config did not load bazbangbarn config as requested"
   end
 
-  def assert_log_contains(log, message)
-    lines = log.array
-    failure_message = "Did not find '#{message}' in log. Log contained:\n#{lines.join('')}"
-    assert (lines.any? { |line| line.match(message) }), failure_message
-  end
-
   def refute_log_contains(log, message)
     lines = log.array
     failure_message = "Found unexpected '#{message}' in log. Log contained:\n#{lines.join('')}"

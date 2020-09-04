@@ -8,6 +8,7 @@ DependencyDetection.defer do
 
   depends_on do
     defined?(::Rake) &&
+      defined?(::Rake::VERSION) &&
       ::NewRelic::Agent.config[:'disable_rake'] == false &&
       ::NewRelic::Agent.config[:'rake.tasks'].any? &&
       ::NewRelic::Agent::Instrumentation::RakeInstrumentation.should_install?
