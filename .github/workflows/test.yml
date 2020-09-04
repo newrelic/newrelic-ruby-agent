@@ -14,8 +14,8 @@ jobs:
       run: |
         sudo mkdir -p ~/.gem
         sudo touch ~/.gem/credentials
-        echo -e "---\n:rubygems_api_key: KEY" > ~/.gem/credentials
-        chmod 0600 ~/.gem/credentials
+        sudo chmod 0600 ~/.gem/credentials
+        echo -e "---\n:rubygems_api_key: KEY" > sudo ~/.gem/credentials
 
     # - name: Build newrelic_rpm gem
     #   run: gem build newrelic_rpm.gemspec
