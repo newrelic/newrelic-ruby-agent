@@ -16,7 +16,7 @@ jobs:
         sudo touch ~/.gem/credentials
         sudo chmod 0600 ~/.gem/credentials
         echo -e "---\n:rubygems_api_key: KEY" > sudo ~/.gem/credentials
-
+        sudo chmod 0600 ~/.gem/credentials
     # - name: Build newrelic_rpm gem
     #   run: gem build newrelic_rpm.gemspec
     # - name: Build newrelic-infinite_tracing gem
