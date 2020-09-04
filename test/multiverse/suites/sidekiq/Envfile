@@ -64,6 +64,7 @@ if RUBY_VERSION < '2.4.0' && RUBY_PLATFORM != 'java'
     gem 'connection_pool', '2.2.2'
     gem 'sidekiq', '~> 3.5.3'
     gem 'rack'
+    gem 'timers', '4.1.1'
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
   RB
 end
