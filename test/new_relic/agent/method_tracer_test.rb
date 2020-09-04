@@ -418,6 +418,23 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
     assert_metrics_not_recorded ['X', 'test_txn']
   end
+  
+  class ComponentRenderer
+    def render_component(component_name, options = {})
+      puts component_name
+      puts options
+    end
+  end
+  
+  class ComponentRenderer2 < ComponentRenderer
+    prepend ::NewRelic::Agent::MethodTracer
+  
+    add_method_tracer :render_component
+  end
+  
+  def test_ruby27_warnings_on_method_signatures
+    ComponentRenderer2.new.render_component(:test, { props: { test: 1 } })
+  end
 
   def check_time(t1, t2)
     assert_in_delta t2, t1, 0.001
