@@ -12,7 +12,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Put API key in .gem file
       run: |
-        mkdir -p /root/.gem
+        sudo mkdir -p ~/.gem/credentials
         touch /root/.gem/credentials
         echo -e "---\n:rubygems_api_key: KEY" > ~/.gem/credentials
         chmod 0600 /root/.gem/credentials        
