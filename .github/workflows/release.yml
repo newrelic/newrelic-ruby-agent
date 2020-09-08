@@ -14,12 +14,7 @@ jobs:
       run: sudo gem install rotp
     - name: Configure gem credentials
       run: |
-        if [ -f ~/.gem/credentials ]; then
-          echo 'Using credentials in ~/.gem/credentials'
-        else
-          echo -e "---\n:rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }}" > ~/.gem/credentials
-          chmod 0600 ~/.gem/credentials
-        fi
+        echo ::set-env name=GEM_HOST_API_KEY::${{ secrets.RUBYGEMS_API_KEY }}
     - name: Build newrelic_rpm gem
       run: gem build newrelic_rpm.gemspec
     - name: Build newrelic-infinite_tracing gem
