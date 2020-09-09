@@ -30,7 +30,7 @@ jobs:
         git tag ${{ env.VERSION }}
         git push origin ${{ env.VERSION }}
     - name: Get Rubygems OTP for newrelic_rpm
-      run: echo ::set-env name=RUBYGEMS_OTP::$(ruby ./.github/scripts/ruby-gems-authenticate.rb ${{ secrets.RUBYGEMS_API_KEY }})
+      run: echo ::set-env name=RUBYGEMS_OTP::$(ruby ./.github/workflows/scripts/ruby-gems-authenticate.rb ${{ secrets.RUBYGEMS_API_KEY }})
     - name: Publish newrelic_rpm to Rubygems
       run: |
         REMOTE_GEMS=`gem list newrelic_rpm -ra --prerelease | grep ${{ env.VERSION }}, || true`
@@ -40,7 +40,7 @@ jobs:
           echo "Already see newrelic_rpm ${{ env.VERSION }} out on rubygems, skipping push"
         fi
     - name: Get Rubygems OTP for newrelic-infinite_tracing
-      run: echo ::set-env name=RUBYGEMS_OTP::$(ruby ./ruby-gems-authenticate.rb ${{ secrets.RUBYGEMS_API_KEY }})
+      run: echo ::set-env name=RUBYGEMS_OTP::$(ruby ./.github/workflows/scripts/ruby-gems-authenticate.rb ${{ secrets.RUBYGEMS_API_KEY }})
     - name: Publish newrelic-infinite_tracing to Rubygems
       run: |
         REMOTE_GEMS=`gem list newrelic-infinite_tracing -ra --prerelease | grep ${{ env.VERSION }}, || true`
