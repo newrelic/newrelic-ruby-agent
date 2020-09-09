@@ -463,7 +463,12 @@ async function setupTestEnvironment(rubyVersion) {
   else {
     await exec.exec('bundle', ['install'])
     await io.cp(`${workspacePath}/Gemfile.lock`, `${filePath}/Gemfile.lock`)
-    await saveBundleToCache(rubyVersion)
+    try {
+      await saveBundleToCache(rubyVersion)
+    }
+    catch (error) {
+      console.log('Failed to save cache' + error.toString())
+    }
   }
 
   core.endGroup()
