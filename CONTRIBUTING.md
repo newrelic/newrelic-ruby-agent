@@ -101,13 +101,16 @@ Running the test suite is simple.  Just invoke:
     bundle
     bundle exec rake
 
-This will run the unit tests in standalone mode, bootstrapping a basic Rails
-3.2 environment for the agent to instrument, then executing the test suite.
+This will run the unit tests in standalone mode. You can run against a specific Rails version
+by passing the version name (which should match the name of a subdirectory in test/environments)
+as an argument to the test:env rake task, like this:
+
+bundle exec rake test:env[rails60]
 
 These tests are setup to run automatically in
-[Travis CI](https://travis-ci.org/newrelic/rpm) under several Ruby implementations.
-When you've pushed your changes to GitHub, you can confirm that the Travis
-build passes for your fork.
+[GitHub Actions](https://github.com/newrelic/newrelic-ruby-agent/actions) under several
+Ruby implementations. When you've pushed your changes to GitHub, you can confirm that
+the GitHub Actions test matrix passes for your fork.
 
 Additionally, our own CI jobs runs these tests under multiple versions of Rails
 to verify compatibility.
