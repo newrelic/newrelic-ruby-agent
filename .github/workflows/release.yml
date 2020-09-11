@@ -29,8 +29,12 @@ jobs:
         echo ::set-env name=VERSION::$(ls newrelic_rpm-*.gem | ruby -pe 'sub(/newrelic_rpm\-(.*).gem/, "\\1")')
     - name: Tag new version
       run: |
-        git tag ${{ env.VERSION }}
-        git push origin ${{ env.VERSION }}
+        if [ $(git tag -l ${{ env.VERSION }}) ]; then
+          echo "Tag already created for this version"
+        else
+          git tag ${{ env.VERSION }}
+          git push origin ${{ env.VERSION }}
+        fi
     - name: Get Rubygems OTP for newrelic_rpm
       run: echo ::set-env name=RUBYGEMS_OTP::$(ruby ./.github/workflows/scripts/ruby-gems-authenticate.rb ${{ secrets.RUBYGEMS_API_KEY }})
     - name: Publish newrelic_rpm to Rubygems
