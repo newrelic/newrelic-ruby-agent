@@ -39,23 +39,7 @@ jobs:
           git push origin ${{ env.VERSION }}
         fi
     - name: Publish newrelic_rpm to Rubygems
-      run: |
-        REMOTE_GEMS=`gem list newrelic_rpm -ra --prerelease | grep ${{ env.VERSION }}, || true`
-        if [ "x$REMOTE_GEMS" == "x" ]; then
-          echo ::set-env name=RUBYGEMS_OTP::$(ruby ./.github/workflows/scripts/ruby-gems-authenticate.rb)
-          gem push --otp ${{ env.RUBYGEMS_OTP }} newrelic_rpm-${{ env.VERSION }}.gem
-        else
-          echo "Already see newrelic_rpm ${{ env.VERSION }} out on rubygems, skipping push"
-        fi
-    - name: Publish newrelic-infinite_tracing to Rubygems
-      run: |
-        REMOTE_GEMS=`gem list newrelic-infinite_tracing -ra --prerelease | grep ${{ env.VERSION }}, || true`
-        if [ "x$REMOTE_GEMS" == "x" ]; then
-          echo ::set-env name=RUBYGEMS_OTP::$(ruby ./.github/workflows/scripts/ruby-gems-authenticate.rb)
-          gem push --otp ${{ env.RUBYGEMS_OTP }} newrelic-infinite_tracing-${{ env.VERSION }}.gem
-        else
-          echo "Already see newrelic-infinite_tracing ${{ env.VERSION }} out on rubygems, skipping push"
-        fi
+      run: ruby ./.github/workflows/scripts/rubygems-publish.rb
     - name: Update system configuration page
       run: |
         PAYLOAD="{
@@ -83,4 +67,3 @@ jobs:
           -H "X-Api-Key:$ {{ secrets.NEW_RELIC_API_KEY_PRODUCTION }}" -i \
           -H "$CONTENT_TYPE" \
           -d "$PAYLOAD"
-
