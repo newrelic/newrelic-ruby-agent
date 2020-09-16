@@ -12,13 +12,14 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - name: Install rotp
-      run: sudo gem install rotp
-    - name: Install base32
-      run: sudo gem install base32
+    - name: update rubygems
+      run: gem update --system
+    - name: Install rotp and base32
+      run: sudo gem install rotp base32
     - name: Configure gem credentials
       run: |
         echo ::set-env name=GEM_HOST_API_KEY::${{ secrets.RUBYGEMS_API_KEY }}
+        echo ::set-env name=RUBY_GEMS_MFA_KEY::${{ secrets.RUBY_GEMS_MFA_KEY }}
     - name: Build newrelic_rpm gem
       run: gem build newrelic_rpm.gemspec
     - name: Build newrelic-infinite_tracing gem
