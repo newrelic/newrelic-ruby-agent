@@ -1,6 +1,6 @@
 require 'rotp'
 require 'base32'
 
-api_key = Base32.encode ARGV[0]
-totp = ROTP::TOTP.new(api_key)
+mfa_identifier = Base32.encode ENV["RUBY_GEMS_MFA_KEY"]
+totp = ROTP::TOTP.new(mfa_identifier)
 p "#{totp.now}"
