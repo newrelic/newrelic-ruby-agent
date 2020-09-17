@@ -14,8 +14,8 @@ jobs:
         fetch-depth: 0
     - name: update rubygems
       run: gem update --system
-    - name: Install rotp and base32
-      run: sudo gem install rotp base32
+    - name: Install onetimepass
+      run: pip install onetimepass
     - name: Configure gem credentials
       run: |
         echo ::set-env name=GEM_HOST_API_KEY::${{ secrets.RUBYGEMS_API_KEY }}
