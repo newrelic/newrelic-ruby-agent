@@ -19,7 +19,7 @@ jobs:
     - name: Configure gem credentials
       run: |
         echo ::set-env name=GEM_HOST_API_KEY::${{ secrets.RUBYGEMS_API_KEY }}
-        echo ::set-env name=RUBY_GEMS_MFA_KEY::${{ secrets.RUBY_GEMS_MFA_KEY }}
+        echo ::set-env name=RUBYGEMS_MFA_KEY::${{ secrets.RUBYGEMS_MFA_KEY }}
     - name: Build newrelic_rpm gem
       run: gem build newrelic_rpm.gemspec
     - name: Build newrelic-infinite_tracing gem
@@ -38,8 +38,14 @@ jobs:
           git tag ${{ env.VERSION }}
           git push origin ${{ env.VERSION }}
         fi
-    - name: Publish newrelic_rpm to Rubygems
-      run: ruby ./.github/workflows/scripts/rubygems-publish.rb
+    - name: Publish newrelic_rpm to rubygems.org
+      run: |
+        echo ::set-env name=RUBYGEMS_OTP::$(python ./.github/workflows/scripts/rubygems-authenticate.py RUBYGEMS_MFA_KEY)
+        ruby ./.github/workflows/scripts/rubygems-publish.rb newrelic_rpm
+    - name: Publish newrelic-infinite_tracing to rubygems.org
+      run: |
+        echo ::set-env name=RUBYGEMS_OTP::$(python ./.github/workflows/scripts/rubygems-authenticate.py RUBYGEMS_MFA_KEY)
+        ruby ./.github/workflows/scripts/rubygems-publish.rb newrelic-infinite_tracing
     - name: Update system configuration page
       run: |
         PAYLOAD="{
