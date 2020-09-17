@@ -8,13 +8,13 @@ version = ENV["VERSION"]
 raise "VERSION environment must be set" if version.to_s == ""
 
 gem_filename = "#{gem_name}-#{version}.gem"
-raise "#{gem_filenam} is missing!" unless File.exist?(gem_filename)
+raise "#{gem_filename} is missing!" unless File.exist?(gem_filename)
 
 otp = ENV["RUBYGEMS_OTP"]
 raise "RUBYGEMS_OTP environment must be set" if otp.to_s == ""
 
-puts "Publshing the newrelic_rpm-#{version}.gem file..."
-cmd = "gem push --otp #{otp} #{gem_name}-#{version}.gem"
+puts "Publshing the #{gem_filename} file..."
+cmd = "gem push --otp #{otp} #{gem_filename}"
 puts "executing: #{cmd}"
 
 result = `#{cmd}`
