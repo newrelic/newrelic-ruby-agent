@@ -71,7 +71,7 @@ This will run these tests against 2 environments, one running rails 3.1, the
 other running rails 3.2.
 
 New Relic is automatically included in the environment.  Specifying it in the
-Envfile will trigger and error.  You can override where newrelic is loaded from
+Envfile will trigger an error.  You can override where newrelic is loaded from
 using two environment variables.
 
 The default gemfile line is
