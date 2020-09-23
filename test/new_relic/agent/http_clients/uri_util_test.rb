@@ -70,4 +70,16 @@ class URIUtilTest < Minitest::Test
     assert_equal(expected, NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(URI(original)).to_s)
   end
 
+  def test_obfuscate_should_not_modify_uri_input
+    test_urls = [
+      ::URI.parse("https://foo.com/bar/baz?a=1&b=2#fragment"),
+      "https://foo.com/bar/baz?a=1&b=2#fragment"
+    ]
+
+    test_urls.each do |original|
+      to_obfuscate = original.dup
+      NewRelic::Agent::HTTPClients::URIUtil.obfuscated_uri(to_obfuscate).to_s
+      assert_equal original, to_obfuscate
+    end
+  end
 end
