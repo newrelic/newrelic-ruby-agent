@@ -1,6 +1,6 @@
 # New Relic Ruby Agent Release Notes #
 
-  ## NEXT VERSION
+  ## v6.13.1
 
   * **Bugfix: obfuscating URLs to external services no longer modifying original URI
 
