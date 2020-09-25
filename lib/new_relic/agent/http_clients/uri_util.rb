@@ -28,7 +28,7 @@ module NewRelic
         # accept that the stdlib URI module doesn't handle. If we find that
         # Addressable is around, use that to normalize out our URL's.
         def self.parse_and_normalize_url(url)
-          uri = url
+          uri = url.dup
           unless ::URI === uri
             if defined?(::Addressable::URI)
               address = ::Addressable::URI.parse(url)

@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.13.1
+
+  * **Bugfix: obfuscating URLs to external services no longer modifying original URI**
+
+    A recent change to the Ruby agent to obfuscate URIs sent to external services had the unintended side-effect of removing query parameters
+    from the original URI.  This is fixed to obfuscate while also preserving the original URI.
+
+    Thanks to @VictorJimenezKwast for pinpointing and helpful unit test to demonstrate.
+
   ## v6.13.0
 
   * **Bugfix: never use redirect host when accessing preconnect endpoint**
