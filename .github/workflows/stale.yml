@@ -18,4 +18,5 @@ jobs:
         exempt-issue-labels: 'good first issue,help wanted,in progress,on hold,in review,roadmap'
         stale-pr-label: 'stale'
         exempt-pr-labels: 'on hold,in review'
+        remove-stale-when-updated: 'True'
 
