@@ -99,7 +99,7 @@ module NewRelic
 
           # When using GC::Profiler, it's important to periodically call
           # GC::Profiler.clear in order to avoid unbounded growth in the number
-          # of GC recordds that are stored. However, we actually do this
+          # of GC records that are stored. However, we actually do this
           # internally within MonotonicGCProfiler on calls to #total_time_s,
           # so the reset here is a no-op.
           def reset; end

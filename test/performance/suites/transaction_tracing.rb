@@ -25,6 +25,10 @@ class TransactionTracingPerfTests < Performance::TestCase
         NewRelic::Agent.add_custom_attributes(BOO => HOO, OH => NO)
       end
 
+      def span_with_attributes
+        method_5
+      end
+
       def long_transaction(n)
         n.times do
           method_1
@@ -50,6 +54,10 @@ class TransactionTracingPerfTests < Performance::TestCase
       def method_4
       end
 
+      def method_5
+        NewRelic::Agent.add_custom_span_attributes(BOO => HOO, OH => NO)
+      end
+
       if instrument
         include NewRelic::Agent::Instrumentation::ControllerInstrumentation
         include NewRelic::Agent::MethodTracer
@@ -58,6 +66,7 @@ class TransactionTracingPerfTests < Performance::TestCase
         add_method_tracer :method_2
         add_method_tracer :method_3
         add_method_tracer :method_4
+        add_method_tracer :method_5
 
         add_transaction_tracer :short_transaction
         add_transaction_tracer :long_transaction
@@ -91,6 +100,10 @@ class TransactionTracingPerfTests < Performance::TestCase
 
   def test_with_custom_attributes
     measure { @dummy.transaction_with_attributes }
+  end
+
+  def test_spans_with_custom_attributes
+    measure { @dummy.span_with_attributes }
   end
 
   def test_failure
