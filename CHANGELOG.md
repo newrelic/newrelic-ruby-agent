@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.14.0
+
+  * **Bugfix: Gracefully handles NilClass as a Middleware Class when instrumenting**
+
+    Previously, if a NilClass is passed as the Middleware Class to instrument when processing the middleware stack,
+    the agent would fail to fully load and instrument the middleware stack.  This fix gracefully skips over nil classes.
+    
   ## v6.13.1
 
   * **Bugfix: obfuscating URLs to external services no longer modifying original URI**
