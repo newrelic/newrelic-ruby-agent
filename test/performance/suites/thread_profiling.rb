@@ -22,6 +22,7 @@ class ThreadProfiling < Performance::TestCase
   end
 
   def setup
+    mocha_setup
     require 'new_relic/agent/threading/backtrace_service'
 
     @nthreads = 16
@@ -52,6 +53,8 @@ class ThreadProfiling < Performance::TestCase
   end
 
   def teardown
+    mocha_teardown
+    
     @cvar.broadcast
     @threads.each(&:join)
     mocha_teardown
