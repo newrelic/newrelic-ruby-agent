@@ -2,6 +2,11 @@
 
   ## v6.14.0
 
+  * **Bugfix: dependency detection of Redis now works without raising an exception**
+    
+    Previously, when detecting if Redis was available to instrument, the dependency detection would fail with an Exception raised
+    (with side effect of not attempting to instrument Redis).  This is now fixed with a better dependency check that resolves falsly without raising an `Exception`.
+
   * **Bugfix: Gracefully handles NilClass as a Middleware Class when instrumenting**
 
     Previously, if a NilClass is passed as the Middleware Class to instrument when processing the middleware stack,
