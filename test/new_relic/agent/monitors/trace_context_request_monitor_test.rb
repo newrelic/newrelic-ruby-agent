@@ -7,8 +7,10 @@ require File.expand_path '../../../../test_helper', __FILE__
 module NewRelic
   module Agent
     class TraceContextRequestMonitorTest < Minitest::Test
+      include Mocha::API
 
       def setup
+        mocha_setup
         @events  = EventListener.new
         @monitor = DistributedTracing::Monitor.new(@events)
         @config = {
@@ -25,6 +27,7 @@ module NewRelic
       end
 
       def teardown
+        mocha_teardown
         NewRelic::Agent.config.reset_to_defaults
       end
 

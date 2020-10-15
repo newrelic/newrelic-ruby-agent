@@ -7,6 +7,15 @@ require 'new_relic/agent/distributed_tracing/trace_context'
 require 'new_relic/agent/transaction/trace_context'
 
 class TraceContext < Performance::TestCase
+  include Mocha::API
+
+  def setup
+    mocha_setup
+  end
+
+  def teardown
+    mocha_teardown
+  end
 
   CONFIG = {
       :'distributed_tracing.enabled' => true,
@@ -22,8 +31,9 @@ class TraceContext < Performance::TestCase
     }
 
     measure do
-      ::NewRelic::Agent::TraceContext.parse carrier: carrier,
-                                            trace_state_entry_key: "33@nr"
+      NewRelic::Agent::DistributedTracing::TraceContext.parse \
+        carrier: carrier,
+        trace_state_entry_key: "33@nr"
     end
   end
 
@@ -35,11 +45,12 @@ class TraceContext < Performance::TestCase
     trace_state = 'k1=asdf,k2=qwerty'
 
     measure do
-      ::NewRelic::Agent::TraceContext.insert carrier: carrier,
-                                             trace_id: trace_id,
-                                             parent_id: parent_id,
-                                             trace_flags: trace_flags,
-                                             trace_state: trace_state
+      NewRelic::Agent::DistributedTracing::TraceContext.insert \
+        carrier: carrier,
+        trace_id: trace_id,
+        parent_id: parent_id,
+        trace_flags: trace_flags,
+        trace_state: trace_state
     end
   end
 
@@ -51,7 +62,7 @@ class TraceContext < Performance::TestCase
     with_config CONFIG do
       in_transaction do |txn|
         measure do
-          txn.insert_trace_context carrier: carrier
+          txn.distributed_tracer.insert_trace_context_header carrier: carrier
         end
       end
     end
