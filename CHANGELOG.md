@@ -11,6 +11,10 @@
 
     Previously, if a NilClass is passed as the Middleware Class to instrument when processing the middleware stack,
     the agent would fail to fully load and instrument the middleware stack.  This fix gracefully skips over nil classes.
+
+  * **Memory Sampler updated to recognize macOS Big Sur**
+
+    Previously, the agent was unable to recognize the platform macOS Big Sur in the memory sampler, resulting in an error being logged. The memory sampler is now able to recognize Big Sur. 
     
   ## v6.13.1
 
