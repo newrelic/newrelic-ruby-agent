@@ -29,7 +29,7 @@ module NewRelic
             end
           elsif platform =~ /darwin9/ # 10.5
             @sampler = ShellPS.new("ps -o rsz")
-          elsif platform =~ /darwin1\d+/ # >= 10.6
+          elsif platform =~ /darwin(1|2)\d+/ # >= 10.6
             @sampler = ShellPS.new("ps -o rss")
           elsif platform =~ /freebsd/
             @sampler = ShellPS.new("ps -o rss")
