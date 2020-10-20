@@ -158,7 +158,15 @@ module Performance
       begin
         load_newrelic_rpm
         GC.start
-        test_case.run(method)
+        GC.start
+        GC.start
+        GC.disable
+        result = test_case.run(method)
+        GC.enable
+        GC.start
+        GC.start
+        GC.start
+        result
       rescue => e
         result = Result.new(test_case.class.name, method)
         result.exception = e

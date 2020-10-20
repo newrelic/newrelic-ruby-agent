@@ -60,6 +60,7 @@ module Performance
 
         allocations_before = old_result.measurements[:allocations]
         allocations_after  = new_result.measurements[:allocations]
+        allocations_delta_percent = 0
         if allocations_before && allocations_after
           # normalize allocation counts to be per-iteration
           allocations_before /= old_result.iterations
@@ -67,10 +68,22 @@ module Performance
 
           allocations_delta  = allocations_after - allocations_before
           allocations_delta_percent = allocations_delta.to_f / allocations_before * 100
-        else
-          allocations_delta_percent = 0
         end
 
+        retained_before = old_result.measurements[:retained]
+        retained_after  = new_result.measurements[:retained]
+        retained_delta = 0
+        retained_percent = 0
+        if retained_before && retained_after
+          # normalize allocation counts to be per-iteration
+          retained_before /= old_result.iterations
+          retained_after  /= new_result.iterations
+
+          retained_delta  = retained_after - retained_before
+          retained_percent = retained_delta.to_f / retained_before * 100
+        end
+        retained_percent = 0.0 if retained_percent.nan?
+        
         rows << [
           identifier,
           old_result.time_per_iteration,
@@ -78,7 +91,9 @@ module Performance
           percent_delta,
           allocations_before,
           allocations_after,
-          allocations_delta_percent
+          allocations_delta_percent,
+          retained_delta,
+          retained_percent
         ]
       end
 
@@ -95,6 +110,8 @@ module Performance
         column :allocs_before
         column :allocs_after
         column :allocs_delta,  &format_percent_delta
+        column :retained
+        column :retained_delta,  &format_percent_delta
       end
 
       puts table.render

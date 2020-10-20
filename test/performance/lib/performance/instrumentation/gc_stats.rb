@@ -27,6 +27,9 @@ module Performance
         allocs_before = @stats_before[:total_allocated_objects] || @stats_before[:total_allocated_object]
         allocs_after  = @stats_after[:total_allocated_objects]  || @stats_after[:total_allocated_object]
         res[:allocations] = allocs_after - allocs_before
+        retained_before = @stats_before[:old_objects] || @stats_before[:old_object]
+        retained_after = @stats_after[:old_objects] || @stats_after[:old_object]
+        res[:retained] = retained_after - retained_before
         res
       end
     end

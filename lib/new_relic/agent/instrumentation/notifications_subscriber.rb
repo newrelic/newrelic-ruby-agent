@@ -75,7 +75,7 @@ module NewRelic
           # we don't expect this to be called more than once, but we're being
           # defensive.
           return if defined?(exception_object)
-          return unless defined?(::ActiveSupport)
+          return unless defined?(::ActiveSupport::VERSION)
           if ::ActiveSupport::VERSION::STRING < "5.0.0"
             # Earlier versions of Rails did not add the exception itself to the
             # payload asssessible via :exception_object, so we create a stand-in

@@ -23,12 +23,11 @@ module NewRelic
           log_notification_error(e, name, 'start')
         end
 
-        def finish(name, id, payload) #THREAD_LOCAL_ACCESS
+        def finish(name, id, payload)
           if segment = pop_segment(id)
-
-          if exception = exception_object(payload)
-            segment.notice_error exception
-          end
+            if exception = exception_object(payload)
+              segment.notice_error exception
+            end
             segment.finish
           end
         rescue => e

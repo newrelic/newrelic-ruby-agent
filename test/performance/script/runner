@@ -9,6 +9,7 @@ require 'rubygems'
 require 'json'
 
 require File.expand_path('../../lib/performance', __FILE__)
+$: << File.expand_path('../../../../lib', __FILE__)
 
 options = {}
 parser = OptionParser.new do |opts|
