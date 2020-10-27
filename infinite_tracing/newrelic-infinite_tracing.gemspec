@@ -1,6 +1,8 @@
 #-*- coding: utf-8 -*-
 # frozen_string_literal: true
 
+require 'fileutils'
+
 agent_lib = File.expand_path('../../lib', __FILE__)
 $LOAD_PATH.unshift(agent_lib) unless $LOAD_PATH.include?(agent_lib)
 
