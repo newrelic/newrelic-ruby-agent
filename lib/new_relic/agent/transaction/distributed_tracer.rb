@@ -68,13 +68,19 @@ module NewRelic
             payload
         end
 
-        def insert_headers request
-          insert_trace_context_header request
-          insert_distributed_trace_header request
-          insert_cross_app_header request
+        def log_request_headers headers, direction = "OUTGOING"
+          NewRelic::Agent.logger.debug "#{direction} REQUEST HEADERS: #{headers}"
+        end
+
+        def insert_headers headers
+          insert_trace_context_header headers
+          insert_distributed_trace_header headers
+          insert_cross_app_header headers
+          log_request_headers headers
         end
 
         def consume_message_headers headers, tracer_state, transport_type
+          log_request_headers headers, "INCOMING"
           consume_message_distributed_tracing_headers headers, transport_type
           consume_message_cross_app_tracing_headers headers, tracer_state
           consume_message_synthetics_headers headers
@@ -90,11 +96,11 @@ module NewRelic
           end
         end
 
-        def insert_distributed_trace_header request
+        def insert_distributed_trace_header headers
           return unless Agent.config[:'distributed_tracing.enabled']
           return if Agent.config[:'exclude_newrelic_header']
           payload = create_distributed_trace_payload
-          request[NewRelic::NEWRELIC_KEY] = payload.http_safe if payload
+          headers[NewRelic::NEWRELIC_KEY] = payload.http_safe if payload
         end
 
         def insert_cat_headers headers

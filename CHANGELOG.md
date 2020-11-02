@@ -2,6 +2,11 @@
 
   ## v6.14.0
 
+  * **Feature: captures incoming and outgoing request headers for distributed tracing**
+
+    HTTP request headers will be logged when log level is at least debug level.  Similarly, request headers 
+    for exchanges with New Relic servers are now audit logged when audit logging is enabled.
+
   * **Bugfix: dependency detection of Redis now works without raising an exception**
     
     Previously, when detecting if Redis was available to instrument, the dependency detection would fail with an Exception raised
