@@ -87,7 +87,7 @@ module Multiverse
       "api"           => ["grape"],
       "background"    => ["delayed_job", "sidekiq"],
       "database"      => ["datamapper", "mongo", "redis", "sequel"],
-      "httpclients"   => ["curb", "excon", "httpclient", "typhoeus", "net_http", "httprb"],
+      "httpclients"   => ["curb", "excon", "httpclient", "typhoeus", "net_http", "net_http_prepend", "httprb"],
       "rails"         => ["active_record", "rails"],
       "serialization" => ["json", "marshalling", "yajl"],
       "sinatra"       => ["sinatra", "padrino"],
