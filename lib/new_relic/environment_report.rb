@@ -71,7 +71,13 @@ module NewRelic
     report_on('OS'                ) { ::NewRelic::Agent::SystemInfo.ruby_os_identifier     }
     report_on('Database adapter'  ) do
       begin
-        ActiveRecord::Base.configurations.configs_for(env_name: NewRelic::Control.instance.env, spec_name: "primary").config['adapter']
+        if ::ActiveRecord::Base.respond_to?(:connection_db_config)
+          ActiveRecord::Base.configurations.configs_for(env_name: NewRelic::Control.instance.env, name: "primary")
+            .connection_db_config.configuration_hash['adapter']
+        else
+          ActiveRecord::Base.configurations.configs_for(env_name: NewRelic::Control.instance.env, spec_name: "primary").config['adapter']
+        end
+
       rescue NoMethodError
         ActiveRecord::Base.configurations[NewRelic::Control.instance.env]['adapter']
       end
