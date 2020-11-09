@@ -27,18 +27,10 @@ module NewRelic
             @middleware_class = middleware_class
           end
 
-          if RUBY_VERSION < "2.7.0"
-            def new(*args, &blk)
-              middleware_instance = @middleware_class.new(*args, &blk)
-              MiddlewareProxy.wrap(middleware_instance)
-            end
-          else
-            def new(*args, **kwargs, &blk)
-              middleware_instance = @middleware_class.new(*args, **kwargs, &blk)
-              MiddlewareProxy.wrap(middleware_instance)
-            end
+          def new(*args, &blk)
+            middleware_instance = @middleware_class.new(*args, &blk)
+            MiddlewareProxy.wrap(middleware_instance)
           end
-
         end
 
         def self.is_sinatra_app?(target)

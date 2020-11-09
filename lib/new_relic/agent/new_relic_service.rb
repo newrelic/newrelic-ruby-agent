@@ -526,6 +526,7 @@ module NewRelic
         else
           request = Net::HTTP::Post.new(opts[:uri], headers)
         end
+        @audit_logger.log_request_headers(opts[:uri], headers)
         request['user-agent'] = user_agent
         request.content_type = "application/octet-stream"
         request.body = opts[:data]

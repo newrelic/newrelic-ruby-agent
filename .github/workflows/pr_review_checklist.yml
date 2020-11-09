@@ -6,7 +6,7 @@ on:
 
 jobs:
   sidekick_checklist:
-    name: 
+    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
       - name: Checklist

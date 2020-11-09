@@ -2,6 +2,26 @@
 
   ## v6.14.0
 
+
+  * **Bugfix: Ruby 2.7+ fix for keyword arguments on Rack apps is unnecessary and removed**
+
+    A common fix for positional and keyword arguments for method parameters was implemented where it was not needed and 
+    led to RackApps getting extra arguments converted to keyword arguments rather than Hash when it expected one.  This 
+    Ruby 2.7+ change was reverted so that Rack apps behave correctly for Ruby >= 2.7.
+
+  * **Feature: captures incoming and outgoing request headers for distributed tracing**
+
+    HTTP request headers will be logged when log level is at least debug level.  Similarly, request headers 
+    for exchanges with New Relic servers are now audit logged when audit logging is enabled.
+    
+  * **Bugfix: `newrelic.yml.erb` added to the configuration search path**
+
+    Previously, when a user specifies a `newrelic.yml.erb` and no `newrelic.yml` file, the agent fails to find
+    the `.erb` file because it was not in the list of files searched at startup.  The Ruby agent has long supported this as a
+    means of configuring the agent programatically.  The `newrelic.yml.erb` filename is restored to the search
+    path and will be utilized if present.  NOTE:  `newrelic.yml` still takes precedence over `newrelic.yml.erb`  If found,
+    the `.yml` file is used instead of the `.erb` file.  Search directories and order of traversal remain unchanged.
+
   * **Bugfix: dependency detection of Redis now works without raising an exception**
     
     Previously, when detecting if Redis was available to instrument, the dependency detection would fail with an Exception raised

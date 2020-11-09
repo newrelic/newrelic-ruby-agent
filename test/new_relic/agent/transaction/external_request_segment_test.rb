@@ -28,6 +28,10 @@ module NewRelic::Agent
         def host_from_header
           self['host']
         end
+
+        def to_s
+          headers.to_s # so logging request headers works as expected
+        end
       end
 
       TRANSACTION_GUID = 'BEC1BC64675138B9'
