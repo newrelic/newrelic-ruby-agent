@@ -16,7 +16,6 @@ DependencyDetection.defer do
   end
 
   executes do
-    # require 'pry'; binding.pry
     if ::NewRelic::Agent.config[:prepend_net_instrumentation]
       if RUBY_VERSION < "2.1.0"
         ::Net::HTTP.send(:prepend, ::NewRelic::Agent::Instrumentation::NetPrepend)
