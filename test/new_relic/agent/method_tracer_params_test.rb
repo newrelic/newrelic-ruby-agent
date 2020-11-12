@@ -28,6 +28,10 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
   end
 
   class UntracedMethods
+    def expect_deprecation_warnings?
+      RUBY_VERSION >= "2.7.0" && RUBY_VERSION < "3.0.0"
+    end
+
     def no_args
       {foo: {bar: "foobar"}}
     end
@@ -90,24 +94,6 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     add_method_tracer :process, METRIC, push_scope: false
   end
   
-  def assert_expected_results traced_class
-    expected = {foo: {bar: "foobar"}}
-    expected369 = {1=>3, 2=>6, 3=>9}
-    instance = traced_class.new
-
-    assert_equal expected, instance.no_args
-    assert_equal expected, instance.last_arg_expects_a_hash(:foo, {bar: "foobar"})
-    assert_equal expected, instance.last_arg_expects_a_hash(:foo, bar: "foobar")
-    assert_equal expected, instance.wildcard_args(:foo, {bar: "foobar"})
-    assert_equal expected, instance.wildcard_args(:foo, bar: "foobar")
-    if RUBY_VERSION < "3.0.0"
-      # This is what was removed in 3.0!
-      assert_equal expected, instance.args_and_kwargs(:foo, {bar: "foobar"})
-    end
-    assert_equal expected, instance.args_and_kwargs(:foo, bar: "foobar")
-    assert_equal expected369, instance.modifies_hash
-  end
-
   def refute_deprecation_warning
     in_transaction do
       _out, err = capture_io { yield }
@@ -124,26 +110,8 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     end
   end
 
-  def refute_deprecation_warnings traced_class
-    instance = traced_class.new
-    refute_deprecation_warning { instance.no_args }
-    refute_deprecation_warning { instance.last_arg_expects_a_hash(:foo, {bar: "foobar"}) }
-    refute_deprecation_warning { instance.last_arg_expects_a_hash(:foo, bar: "foobar") }
-    refute_deprecation_warning { instance.wildcard_args(:foo, {bar: "foobar"}) }
-    refute_deprecation_warning { instance.wildcard_args(:foo, bar: "foobar") }
-    refute_deprecation_warning { instance.args_and_kwargs(:foo, {bar: "foobar"}) }
-  end
-
-  def call_expecting_warning_after_ruby_26 traced_class
-    instance = traced_class.new
-
-    refute_deprecation_warning { instance.last_arg_is_a_keyword(:foo, bar: "foobar") }
-    refute_deprecation_warning { instance.all_args_are_keywords(foo: :foo, bar: {bar: "foobar"}) }
-    refute_deprecation_warning { instance.args_and_kwargs(:foo, bar: "foobar") }
-    if RUBY_VERSION < "3.0.0"
-      refute_deprecation_warning { instance.last_arg_is_a_keyword(:foo, {bar: "foobar"}) }
-      refute_deprecation_warning { instance.args_and_kwargs(:foo, {bar: "foobar"}) }
-    end
+  def silence_expected_warnings
+    capture_io { yield }
   end
 
   def assert_common_tracing_behavior traced_class
@@ -152,24 +120,59 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     call_expecting_warning_after_ruby_26 traced_class
   end
 
-  def test_untraced_methods
-    assert_common_tracing_behavior UntracedMethods
-    refute_metrics_recorded([METRIC])
-  end
+  [ ["untraced_methods", UntracedMethods],
+    ["traced_methods", TracedMethods],
+    ["traced_metric_methods", TracedMetricMethods],
+    ["traced_metric_methods_unscoped", TracedMetricMethodsUnscoped],
+  ].each do |traced_class_name, traced_class, metrics|
 
-  def test_add_method_tracer_without_metrics
-    assert_common_tracing_behavior TracedMethods
-    refute_metrics_recorded([METRIC])
-  end
+      # We're doing it all in one big super test because order of invocation matters!
+      # When many small test scenarios, if the tests for deprecation warnings emitted
+      # by the compiler are not invoked first, then we miss our chance to capture
+      # that output and assert/refute reliably.
+      # This very large run ensures order of calls always happen in predictable order.
+      define_method "test_expected_results_#{traced_class_name}" do
+      
+      expected = {foo: {bar: "foobar"}}
+      expected369 = {1=>3, 2=>6, 3=>9}
+      instance = traced_class.new
 
-  def test_add_method_tracer_with_metrics
-    assert_common_tracing_behavior TracedMetricMethods
-    assert_metrics_recorded([METRIC])
-  end
+      # Test deprecation warnings first!
+      refute_deprecation_warning { instance.no_args }
 
-  def test_add_method_tracer_with_metrics_unscoped
-    assert_common_tracing_behavior TracedMetricMethodsUnscoped
-    assert_metrics_recorded([METRIC])
-  end
+      refute_deprecation_warning { instance.last_arg_expects_a_hash(:foo, {bar: "foobar"}) }
+      refute_deprecation_warning { instance.last_arg_expects_a_hash(:foo, bar: "foobar") }
 
+      refute_deprecation_warning { instance.wildcard_args(:foo, bar: "foobar") }
+      refute_deprecation_warning { instance.wildcard_args(:foo, {bar: "foobar"}) }
+ 
+      if RUBY_VERSION >= "2.7.0" && RUBY_VERSION < "3.0.0"
+        assert_deprecation_warning { instance.args_and_kwargs(:foo, {bar: "foobar"}) }
+      else
+        refute_deprecation_warning { instance.args_and_kwargs(:foo, {bar: "foobar"}) }
+      end
+
+      refute_deprecation_warning { instance.last_arg_is_a_keyword(:foo, bar: "foobar") }
+      refute_deprecation_warning { instance.all_args_are_keywords(foo: :foo, bar: {bar: "foobar"}) }
+      refute_deprecation_warning { instance.args_and_kwargs(:foo, bar: "foobar") }
+      if RUBY_VERSION < "2.7.0"
+        refute_deprecation_warning { instance.last_arg_is_a_keyword(:foo, {bar: "foobar"}) }
+        refute_deprecation_warning { instance.args_and_kwargs(:foo, {bar: "foobar"}) }
+      end
+
+      # ensure behavior doesn't change by tracing methods!
+      assert_equal expected, instance.no_args
+      assert_equal expected, instance.last_arg_expects_a_hash(:foo, {bar: "foobar"})
+      assert_equal expected, instance.last_arg_expects_a_hash(:foo, bar: "foobar")
+      assert_equal expected, instance.wildcard_args(:foo, {bar: "foobar"})
+      assert_equal expected, instance.wildcard_args(:foo, bar: "foobar")
+      assert_equal expected, instance.args_and_kwargs(:foo, bar: "foobar")
+      assert_equal expected369, instance.modifies_hash
+
+      # This is what changes in 3.0!
+      version_specific_expected = RUBY_VERSION >= "3.0.0" ? { foo: {} } : expected
+      silence_expected_warnings { assert_equal version_specific_expected, instance.args_and_kwargs(:foo, {bar: "foobar"}) }
+    end
+  end
+ 
 end

@@ -173,30 +173,20 @@ module NewRelic
           # instrumentation into effectively one method call overhead
           # when the agent is disabled
           def assemble_code_header(method_name, metric_name_code, options)
-            header = "return #{_untraced_method_name(method_name, metric_name_code)}(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?\n"
+            header = "return #{_untraced_method_name(method_name, metric_name_code)}(#{ARGS_FOR_RUBY_VERSION}) unless NewRelic::Agent.tl_is_execution_traced?\n"
             header += options[:code_header].to_s
             header
-          end
-
-          # Positional and Keyword arguments are separated beginning with Ruby 2.7
-          def arguments_for_ruby_version
-            if RUBY_VERSION < "2.7.0"
-              "(*args, &block)"
-            else
-              "(...)"
-            end
           end
 
           # returns an eval-able string that contains the traced
           # method code used if the agent is not creating a scope for
           # use in scoped metrics.
           def method_without_push_scope(method_name, metric_name_code, options)
-            arguments = arguments_for_ruby_version
-            "def #{_traced_method_name(method_name, metric_name_code)}#{arguments}
+            "def #{_traced_method_name(method_name, metric_name_code)}(#{ARGS_FOR_RUBY_VERSION})
               #{assemble_code_header(method_name, metric_name_code, options)}
               t0 = Time.now
               begin
-                #{_untraced_method_name(method_name, metric_name_code)}#{arguments}\n
+                #{_untraced_method_name(method_name, metric_name_code)}(#{ARGS_FOR_RUBY_VERSION})\n
               ensure
                 duration = (Time.now - t0).to_f
                 NewRelic::Agent.record_metric(\"#{metric_name_code}\", duration)
@@ -208,12 +198,11 @@ module NewRelic
           # returns an eval-able string that contains the tracing code
           # for a fully traced metric including scoping
           def method_with_push_scope(method_name, metric_name_code, options)
-            arguments = arguments_for_ruby_version
-            "def #{_traced_method_name(method_name, metric_name_code)}#{arguments}
+            "def #{_traced_method_name(method_name, metric_name_code)}(#{ARGS_FOR_RUBY_VERSION})
               #{options[:code_header]}
               result = ::NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped(\"#{metric_name_code}\",
                         :metric => #{options[:metric]}) do
-                #{_untraced_method_name(method_name, metric_name_code)}#{arguments}
+                #{_untraced_method_name(method_name, metric_name_code)}(#{ARGS_FOR_RUBY_VERSION})
               end
               #{options[:code_footer]}
               result
@@ -337,6 +326,7 @@ module NewRelic
           class_eval traced_method, __FILE__, __LINE__
           alias_method _untraced_method_name(method_name, metric_name_code), method_name
           alias_method method_name, _traced_method_name(method_name, metric_name_code)
+          ruby2_keywords(_traced_method_name(method_name, metric_name_code)) if respond_to?(:ruby2_keywords, true)
           send visibility, method_name
           send visibility, _traced_method_name(method_name, metric_name_code)
           ::NewRelic::Agent.logger.debug("Traced method: class = #{derived_class_name},"+
