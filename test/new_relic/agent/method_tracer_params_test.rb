@@ -100,7 +100,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     assert_equal expected, instance.last_arg_expects_a_hash(:foo, bar: "foobar")
     assert_equal expected, instance.wildcard_args(:foo, {bar: "foobar"})
     assert_equal expected, instance.wildcard_args(:foo, bar: "foobar")
-    if RUBY_VERSION <= "3.0.0"
+    if RUBY_VERSION < "3.0.0"
       # This is what was removed in 3.0!
       assert_equal expected, instance.args_and_kwargs(:foo, {bar: "foobar"})
     end
@@ -134,30 +134,31 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     refute_deprecation_warning { instance.args_and_kwargs(:foo, {bar: "foobar"}) }
   end
 
-  def call_expecting_warning_after_ruby_26 traced_class, expect_warning
+  def call_expecting_warning_after_ruby_26 traced_class
     instance = traced_class.new
 
     refute_deprecation_warning { instance.last_arg_is_a_keyword(:foo, bar: "foobar") }
     refute_deprecation_warning { instance.all_args_are_keywords(foo: :foo, bar: {bar: "foobar"}) }
     refute_deprecation_warning { instance.args_and_kwargs(:foo, bar: "foobar") }
-
-    if RUBY_VERSION < "2.7" || expect_warning == :refute
+    if RUBY_VERSION < "3.0.0"
       refute_deprecation_warning { instance.last_arg_is_a_keyword(:foo, {bar: "foobar"}) }
       refute_deprecation_warning { instance.args_and_kwargs(:foo, {bar: "foobar"}) }
-    else
-      assert_deprecation_warning { instance.last_arg_is_a_keyword(:foo, {bar: "foobar"}) }
-      assert_deprecation_warning { instance.args_and_kwargs(:foo, {bar: "foobar"}) }
     end
   end
 
-  def assert_common_tracing_behavior traced_class, expect_warning = :assert
+  def assert_common_tracing_behavior traced_class
     assert_expected_results traced_class
     refute_deprecation_warnings traced_class
-    call_expecting_warning_after_ruby_26 traced_class, expect_warning
+    call_expecting_warning_after_ruby_26 traced_class
   end
 
   def test_untraced_methods
-    assert_common_tracing_behavior UntracedMethods, :refute
+    assert_common_tracing_behavior UntracedMethods
+    refute_metrics_recorded([METRIC])
+  end
+
+  def test_add_method_tracer_without_metrics
+    assert_common_tracing_behavior TracedMethods
     refute_metrics_recorded([METRIC])
   end
 
@@ -171,8 +172,4 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     assert_metrics_recorded([METRIC])
   end
 
-  def test_add_method_tracer_without_metrics
-    assert_common_tracing_behavior TracedMethods
-    refute_metrics_recorded([METRIC])
-  end
 end

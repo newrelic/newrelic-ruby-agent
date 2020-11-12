@@ -183,7 +183,7 @@ module NewRelic
             if RUBY_VERSION < "2.7.0"
               "(*args, &block)"
             else
-              "(*args, **kwargs, &block)"
+              "(...)"
             end
           end
 
