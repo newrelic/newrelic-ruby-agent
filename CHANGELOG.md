@@ -2,6 +2,22 @@
 
   ## v6.14.0
 
+  * **Bugfix: Method tracers no longer cloning arguments**
+  
+    Previously, when calling add_method_tracer with certain combination of arguments, it would lead to the wrapped method's arguments
+    being cloned rather than passed to the original method for manipulation as intended.  This has been fixed.
+
+  * **Bugfix: Delayed Job instrumentation fixed for Ruby 2.7+**
+
+    Previously, the agent was erroneousy separating positional and keyword arguments on the instrumented method calls into
+    Delayed Job's library.  The led to Delayed job not auto-instrumenting correctly and has been fixed.
+
+  * **Bugfix: Ruby 2.7+ methods sometimes erroneously attributed compiler warnings to the Agent's `add_method_tracer`**
+  
+    The specific edge cases presented are now fixed by this release of the agent.  There are still some known corner-cases
+    that will be resolved with upcoming changes in next major release of the Agent.  If you encounter a problem with adding 
+    method tracers and compiler warnings raised, please continue to submit small repoducible examples.
+
   * **Bugfix: `newrelic.yml.erb` added to the configuration search path**
 
     Previously, when a user specifies a `newrelic.yml.erb` and no `newrelic.yml` file, the agent fails to find
