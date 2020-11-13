@@ -23,6 +23,7 @@ DependencyDetection.defer do
         ::Net::HTTP.prepend ::NewRelic::Agent::Instrumentation::NetPrepend
       end
     else 
+      NewRelic::Agent.record_metric("Supportability/Instrumentation/NetHTTP/MethodChaining", 0.0)
       class Net::HTTP
         if RUBY_VERSION < "2.7.0"
           def request_with_newrelic_trace(request, *args, &block)
