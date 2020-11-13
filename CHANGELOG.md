@@ -18,6 +18,17 @@
     that will be resolved with upcoming changes in next major release of the Agent.  If you encounter a problem with adding 
     method tracers and compiler warnings raised, please continue to submit small repoducible examples.
 
+  * **Bugfix: Ruby 2.7+ fix for keyword arguments on Rack apps is unnecessary and removed**
+
+    A common fix for positional and keyword arguments for method parameters was implemented where it was not needed and 
+    led to RackApps getting extra arguments converted to keyword arguments rather than Hash when it expected one.  This 
+    Ruby 2.7+ change was reverted so that Rack apps behave correctly for Ruby >= 2.7.
+
+  * **Feature: captures incoming and outgoing request headers for distributed tracing**
+
+    HTTP request headers will be logged when log level is at least debug level.  Similarly, request headers 
+    for exchanges with New Relic servers are now audit logged when audit logging is enabled.
+    
   * **Bugfix: `newrelic.yml.erb` added to the configuration search path**
 
     Previously, when a user specifies a `newrelic.yml.erb` and no `newrelic.yml` file, the agent fails to find

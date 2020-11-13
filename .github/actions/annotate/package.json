@@ -23,7 +23,7 @@
   "author": "New Relic",
   "license": "Apache-2.0",
   "dependencies": {
-    "@actions/core": "^1.2.4",
+    "@actions/core": "^1.2.6",
     "@actions/io": "^1.0.2",
     "ncc": "^0.3.6"
   }

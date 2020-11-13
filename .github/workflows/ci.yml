@@ -172,13 +172,6 @@ jobs:
       matrix:
         multiverse: [agent, api, background, background_2, database, httpclients, rails, rest, serialization, sinatra]
         ruby-version: [2.0.0-p648, 2.1.10, 2.2.10, 2.3.8, 2.4.10, 2.5.8, 2.6.6, 2.7.1, jruby-9.2.12.0]
-        include:
-          - ruby-version: "2.7.1"
-            multiverse: infinite_tracing
-          - ruby-version: "2.6.6"
-            multiverse: infinite_tracing
-          - ruby-version: "2.5.8"
-            multiverse: infinite_tracing
         exclude:
           - ruby-version: "2.7.1"
             multiverse: api
@@ -206,6 +199,32 @@ jobs:
         env:
           DB_PORT: 3306
           MYSQL_PASSWORD: root
+
+      - name: Annotate errors
+        if: ${{ failure() }}
+        uses: ./.github/actions/annotate
+
+  infinite_tracing:
+    needs: build-ruby
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby-version: [2.5.8, 2.6.6, 2.7.1]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build Ruby ${{ matrix.ruby-version }}
+        uses: ./.github/actions/build-ruby
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Run Multiverse Tests
+        uses: nick-invision/retry@v1.0.0
+        with:
+          timeout_minutes: 40
+          max_attempts: 6
+          command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
 
       - name: Annotate errors
         if: ${{ failure() }}

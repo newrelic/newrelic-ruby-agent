@@ -52,14 +52,14 @@ module NewRelic
         result
       end
 
-      def insert_cross_app_header request
+      def insert_cross_app_header headers
         return unless CrossAppTracing.cross_app_enabled?
         @is_cross_app_caller = true
         txn_guid  = transaction.guid
         trip_id   = cat_trip_id
         path_hash = cat_path_hash
 
-        insert_request_headers request, txn_guid, trip_id, path_hash
+        insert_request_headers headers, txn_guid, trip_id, path_hash
       end
 
       def add_message_cat_headers headers
