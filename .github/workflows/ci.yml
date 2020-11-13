@@ -193,7 +193,7 @@ jobs:
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0
         with:
-          timeout_minutes: 30
+          timeout_minutes: 40
           max_attempts: 4
           command:  bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:

@@ -50,6 +50,10 @@
   * **Memory Sampler updated to recognize macOS Big Sur**
 
     Previously, the agent was unable to recognize the platform macOS Big Sur in the memory sampler, resulting in an error being logged. The memory sampler is now able to recognize Big Sur. 
+
+  * **Prepend implementation of Net::HTTP instrumentation available**
+    
+    There is now a config option (`prepend_net_instrumentation`) that will enable the agent to use prepend while instrumenting Net::HTTP. This option is set to true by default.
     
   ## v6.13.1
 
