@@ -38,7 +38,7 @@
 
   * **Prepend implementation of Net::HTTP instrumentation available**
     
-    There is now a config option (`prepend_net_instrumentation`) that will enable the agent to use prepend while instrumenting Net::HTTP. This option is set to false by default.
+    There is now a config option (`prepend_net_instrumentation`) that will enable the agent to use prepend while instrumenting Net::HTTP. This option is set to true by default.
     
   ## v6.13.1
 

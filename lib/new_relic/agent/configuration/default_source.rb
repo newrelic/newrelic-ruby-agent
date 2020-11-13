@@ -831,7 +831,7 @@ module NewRelic
           :description => 'If <code>true</code>, uses Module.prepend rather than alias_method for ActiveRecord instrumentation.'
         },
         :prepend_net_instrumentation => {
-          :default => false,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
