@@ -51373,7 +51373,8 @@ var ExitCode;
 function exportVariable(name, val) {
     const convertedVal = command_1.toCommandValue(val);
     process.env[name] = convertedVal;
-    command_1.issueCommand('set-env', { name }, convertedVal);
+    core.exportVariable(name, convertedVal);
+    // command_1.issueCommand('set-env', { name }, convertedVal);
 }
 exports.exportVariable = exportVariable;
 /**
