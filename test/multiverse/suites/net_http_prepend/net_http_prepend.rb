@@ -4,6 +4,6 @@
 
 require "net_http_test_cases"
 
-class NetHttpTest < Minitest::Test
+class NetHttpPrependTest < Minitest::Test
   include NetHttpTestCases
 end

@@ -90,43 +90,22 @@ DependencyDetection.defer do
   executes do
     Delayed::Worker.class_eval do
 
-      if RUBY_VERSION < "2.7.0"
-        def initialize_with_new_relic(*args)
-          initialize_without_new_relic(*args)
-          worker_name = case
-                        when self.respond_to?(:name) then self.name
-                        when self.class.respond_to?(:default_name) then self.class.default_name
-                        end
-          NewRelic::DelayedJobInjection.worker_name = worker_name
-  
-          if defined?(::Delayed::Job) && ::Delayed::Job.method_defined?(:invoke_job) &&
-            !(::Delayed::Job.method_defined?(:invoke_job_without_new_relic) )
-  
-            ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation [part 2/2]'
-            install_newrelic_job_tracer
-            NewRelic::Control.instance.init_plugin :dispatcher => :delayed_job
-          else
-            NewRelic::Agent.logger.warn("Did not find a Delayed::Job class responding to invoke_job, aborting DJ instrumentation")
-          end
-        end
-      else
-        def initialize_with_new_relic(*args, **kwargs)
-          initialize_without_new_relic(*args, **kwargs)
-          worker_name = case
-                        when self.respond_to?(:name) then self.name
-                        when self.class.respond_to?(:default_name) then self.class.default_name
-                        end
-          NewRelic::DelayedJobInjection.worker_name = worker_name
+      def initialize_with_new_relic(*args)
+        initialize_without_new_relic(*args)
+        worker_name = case
+                      when self.respond_to?(:name) then self.name
+                      when self.class.respond_to?(:default_name) then self.class.default_name
+                      end
+        NewRelic::DelayedJobInjection.worker_name = worker_name
 
-          if defined?(::Delayed::Job) && ::Delayed::Job.method_defined?(:invoke_job) &&
-            !(::Delayed::Job.method_defined?(:invoke_job_without_new_relic) )
+        if defined?(::Delayed::Job) && ::Delayed::Job.method_defined?(:invoke_job) &&
+          !(::Delayed::Job.method_defined?(:invoke_job_without_new_relic) )
 
-            ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation [part 2/2]'
-            install_newrelic_job_tracer
-            NewRelic::Control.instance.init_plugin :dispatcher => :delayed_job
-          else
-            NewRelic::Agent.logger.warn("Did not find a Delayed::Job class responding to invoke_job, aborting DJ instrumentation")
-          end
+          ::NewRelic::Agent.logger.info 'Installing DelayedJob instrumentation [part 2/2]'
+          install_newrelic_job_tracer
+          NewRelic::Control.instance.init_plugin :dispatcher => :delayed_job
+        else
+          NewRelic::Agent.logger.warn("Did not find a Delayed::Job class responding to invoke_job, aborting DJ instrumentation")
         end
       end
 
