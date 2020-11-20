@@ -395,10 +395,8 @@ module NewRelic
           end
 
           def should_install_exit_handler?
-            (
-              Agent.config[:send_data_on_exit]  &&
-              !sinatra_classic_app?
-            )
+            return false unless Agent.config[:send_data_on_exit]
+            !sinatra_classic_app? || Agent.config[:force_install_exit_handler]
           end
 
           def install_exit_handler
