@@ -1,5 +1,14 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.15.0
+
+  * **Feature: implements `force_install_exit_handler` config flag**
+    
+    The `force_install_exit_handler` configuration flag allows an application to instruct the agent to install it's 
+    graceful shutdown exit handler, which will send any locally cached data to the New Relic collector prior to the 
+    application shutting down.  This useful for when the primary framework has an embedded Sinatra application that 
+    is otherwise detected and skips installing the exit hook for graceful shutdowns.
+    
   ## v6.14.0
 
   * **Bugfix: Method tracers no longer cloning arguments**
