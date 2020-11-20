@@ -2,8 +2,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+require 'redis'
+require 'new_relic/dependency_detection'
+require 'new_relic/agent/instrumentation/redis'
+
 # Primarily just tests allocations around argument formatting
-class Redis < Performance::TestCase
+class RedisTest < Performance::TestCase
   def test_no_args
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       command = ["lonely_command"]

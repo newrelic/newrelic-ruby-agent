@@ -1,5 +1,60 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.14.0
+
+  * **Bugfix: Method tracers no longer cloning arguments**
+  
+    Previously, when calling add_method_tracer with certain combination of arguments, it would lead to the wrapped method's arguments
+    being cloned rather than passed to the original method for manipulation as intended.  This has been fixed.
+
+  * **Bugfix: Delayed Job instrumentation fixed for Ruby 2.7+**
+
+    Previously, the agent was erroneousy separating positional and keyword arguments on the instrumented method calls into
+    Delayed Job's library.  The led to Delayed job not auto-instrumenting correctly and has been fixed.
+
+  * **Bugfix: Ruby 2.7+ methods sometimes erroneously attributed compiler warnings to the Agent's `add_method_tracer`**
+  
+    The specific edge cases presented are now fixed by this release of the agent.  There are still some known corner-cases
+    that will be resolved with upcoming changes in next major release of the Agent.  If you encounter a problem with adding 
+    method tracers and compiler warnings raised, please continue to submit small repoducible examples.
+
+  * **Bugfix: Ruby 2.7+ fix for keyword arguments on Rack apps is unnecessary and removed**
+
+    A common fix for positional and keyword arguments for method parameters was implemented where it was not needed and 
+    led to RackApps getting extra arguments converted to keyword arguments rather than Hash when it expected one.  This 
+    Ruby 2.7+ change was reverted so that Rack apps behave correctly for Ruby >= 2.7.
+
+  * **Feature: captures incoming and outgoing request headers for distributed tracing**
+
+    HTTP request headers will be logged when log level is at least debug level.  Similarly, request headers 
+    for exchanges with New Relic servers are now audit logged when audit logging is enabled.
+    
+  * **Bugfix: `newrelic.yml.erb` added to the configuration search path**
+
+    Previously, when a user specifies a `newrelic.yml.erb` and no `newrelic.yml` file, the agent fails to find
+    the `.erb` file because it was not in the list of files searched at startup.  The Ruby agent has long supported this as a
+    means of configuring the agent programatically.  The `newrelic.yml.erb` filename is restored to the search
+    path and will be utilized if present.  NOTE:  `newrelic.yml` still takes precedence over `newrelic.yml.erb`  If found,
+    the `.yml` file is used instead of the `.erb` file.  Search directories and order of traversal remain unchanged.
+
+  * **Bugfix: dependency detection of Redis now works without raising an exception**
+    
+    Previously, when detecting if Redis was available to instrument, the dependency detection would fail with an Exception raised
+    (with side effect of not attempting to instrument Redis).  This is now fixed with a better dependency check that resolves falsly without raising an `Exception`.
+
+  * **Bugfix: Gracefully handles NilClass as a Middleware Class when instrumenting**
+
+    Previously, if a NilClass is passed as the Middleware Class to instrument when processing the middleware stack,
+    the agent would fail to fully load and instrument the middleware stack.  This fix gracefully skips over nil classes.
+
+  * **Memory Sampler updated to recognize macOS Big Sur**
+
+    Previously, the agent was unable to recognize the platform macOS Big Sur in the memory sampler, resulting in an error being logged. The memory sampler is now able to recognize Big Sur. 
+
+  * **Prepend implementation of Net::HTTP instrumentation available**
+    
+    There is now a config option (`prepend_net_instrumentation`) that will enable the agent to use prepend while instrumenting Net::HTTP. This option is set to true by default.
+    
   ## v6.13.1
 
   * **Bugfix: obfuscating URLs to external services no longer modifying original URI**

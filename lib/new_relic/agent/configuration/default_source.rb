@@ -48,23 +48,30 @@ module NewRelic
           Proc.new {
             paths = [
               File.join("config","newrelic.yml"),
-              File.join("newrelic.yml")
+              File.join("newrelic.yml"),
+              File.join("config","newrelic.yml.erb"),
+              File.join("newrelic.yml.erb")
             ]
 
             if NewRelic::Control.instance.root
               paths << File.join(NewRelic::Control.instance.root, "config", "newrelic.yml")
               paths << File.join(NewRelic::Control.instance.root, "newrelic.yml")
+              paths << File.join(NewRelic::Control.instance.root, "config", "newrelic.yml.erb")
+              paths << File.join(NewRelic::Control.instance.root, "newrelic.yml.erb")
             end
 
             if ENV["HOME"]
               paths << File.join(ENV["HOME"], ".newrelic", "newrelic.yml")
               paths << File.join(ENV["HOME"], "newrelic.yml")
+              paths << File.join(ENV["HOME"], ".newrelic", "newrelic.yml.erb")
+              paths << File.join(ENV["HOME"], "newrelic.yml.erb")
             end
 
             # If we're packaged for warbler, we can tell from GEM_HOME
             if ENV["GEM_HOME"] && ENV["GEM_HOME"].end_with?(".jar!")
               app_name = File.basename(ENV["GEM_HOME"], ".jar!")
               paths << File.join(ENV["GEM_HOME"], app_name, "config", "newrelic.yml")
+              paths << File.join(ENV["GEM_HOME"], app_name, "config", "newrelic.yml.erb")
             end
 
             paths
@@ -822,6 +829,13 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If <code>true</code>, uses Module.prepend rather than alias_method for ActiveRecord instrumentation.'
+        },
+        :prepend_net_instrumentation => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If <code>true</code>, uses Module.prepend rather than alias_method for Net::HTTP instrumentation.'
         },
         :disable_data_mapper => {
           :default => false,

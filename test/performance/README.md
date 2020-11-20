@@ -18,35 +18,42 @@ There are two main goals driving the development of this framework:
 More advanced options can be specified by invoking the runner script directly.
 See `./test/performance/script/runner -h` for a full list of options.
 
+All the examples below assume you have switched to the test/performance folder under the repository's root folder:
+
+```
+$ cd test/performance
+$ script/runner -l
+```
+
 Run all tests, report detailed results in a human-readable form
 
 ```
-$ ./test/performance/script/runner
+$ script/runner
 ```
 
 List all available test suites and names:
 
 ```
-$ ./test/performance/script/runner -l
+$ script/runner -l
 ```
 
 Run a specific test (test name matching is via regex):
 
 ```
-$ ./test/performance/script/runner -n short
+$ script/runner -n short
 ```
 
 To compare results for a specific test between two versions of the code, use the
 `-B` (for Baseline) and `-C` for (for Compare) switches:
 
 ```
-$ ./test/performance/script/runner -n short -B
+$ script/runner -n short -B
 1 tests, 0 failures, 8.199975 s total
 Saved 1 results as baseline.
 
 ... switch to another branch and run again with -C ...
 
-$ ./test/performance/script/runner -n short -C
+$ script/runner -n short -C
 1 tests, 0 failures, 8.220509 s total
 +-----------------------------------------------------+-----------+-----------+-------+---------------+--------------+--------------+
 | name                                                | before    | after     | delta | allocs_before | allocs_after | allocs_delta |
@@ -58,19 +65,19 @@ $ ./test/performance/script/runner -n short -C
 Run all the tests, produce machine readable JSON output (for eventual ingestion into a storage system):
 
 ```
-$ ./test/performance/script/runner -j | json_reformat
+$ script/runner -j | json_reformat
 ```
 
 Run a specific test under a profiler (either stackprof or perftools.rb, depending on your Ruby version):
 
 ```
-$ ./test/performance/script/runner -n short --profile
+$ script/runner -n short --profile
 ```
 
 Run with a set number of iterations, and do object allocation profiling (again to a call-graph dot file):
 
 ```
-$ ./test/performance/script/runner -n short -a -N 1000
+$ script/runner -n short -a -N 1000
 ```
 
 ## Pointing at a different copy of the agent

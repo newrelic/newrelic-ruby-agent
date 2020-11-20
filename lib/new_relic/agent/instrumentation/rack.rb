@@ -99,27 +99,17 @@ module NewRelic
             else
               run_without_newrelic(app, *args, **kwargs)
             end
-          end          
+          end
         end
 
-        if RUBY_VERSION < "2.7.0"
-          def use_with_newrelic(middleware_class, *args, &blk)
-            if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
-              wrapped_middleware_class = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
-              use_without_newrelic(wrapped_middleware_class, *args, &blk)
-            else
-              use_without_newrelic(middleware_class, *args, &blk)
-            end
+        def use_with_newrelic(middleware_class, *args, &blk)
+          return if middleware_class.nil?
+          if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
+            wrapped_middleware_class = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
+            use_without_newrelic(wrapped_middleware_class, *args, &blk)
+          else
+            use_without_newrelic(middleware_class, *args, &blk)
           end
-        else
-          def use_with_newrelic(middleware_class, *args, **kwargs, &blk)
-            if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
-              wrapped_middleware_class = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
-              use_without_newrelic(wrapped_middleware_class, *args, **kwargs, &blk)
-            else
-              use_without_newrelic(middleware_class, *args, **kwargs, &blk)
-            end
-          end  
         end
 
         # We patch this method for a reason that actually has nothing to do with

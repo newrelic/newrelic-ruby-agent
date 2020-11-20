@@ -7,7 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 module NewRelic
   module Agent
     module SpanEventPrimitive
-      class SpanEventPrimativeTest < Minitest::Test
+      class SpanEventPrimitiveTest < Minitest::Test
 
         def setup
           @additional_config = { :'distributed_tracing.enabled' => true }

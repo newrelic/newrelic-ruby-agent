@@ -37,7 +37,7 @@ DependencyDetection.defer do
   named :redis_instrumentation
 
   depends_on do
-    defined? ::Redis
+    defined? ::Redis::VERSION
   end
 
   depends_on do
