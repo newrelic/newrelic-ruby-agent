@@ -16,7 +16,9 @@ DependencyDetection.defer do
   end
 
   def monkey_patched
-    defined?(::Airbrake) || source_location_for(Net::HTTP, "request") =~ /airbrake/i
+    defined?(::Airbrake) || 
+    defined?(::Rack::MiniProfiler) ||
+    source_location_for(Net::HTTP, "request") =~ /airbrake|profiler/i
   end
 
   executes do

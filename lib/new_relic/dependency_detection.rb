@@ -68,7 +68,7 @@ module DependencyDetection
     end
 
     def source_location_for klass, method_name
-      Object.instance_method(:method).bind(klass.allocate).call(method_name).source_location
+      Object.instance_method(:method).bind(klass.allocate).call(method_name).source_location.to_s
     end
   
     def execute
