@@ -67,6 +67,10 @@ module DependencyDetection
       !executed and check_dependencies
     end
 
+    def source_location_for klass, method_name
+      Object.instance_method(:method).bind(klass.allocate).call(method_name).source_location
+    end
+  
     def execute
       @executes.each do |x|
         begin
