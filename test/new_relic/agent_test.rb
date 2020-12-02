@@ -476,7 +476,7 @@ module NewRelic
       end
     end
 
-    DEPRECATED_CONSTANTS = [:Tms]
+    DEPRECATED_CONSTANTS = [:Tms, :Passwd, :Group]
 
     def test_modules_and_classes_return_name_properly
       valid = [Module, Class]
