@@ -1,11 +1,13 @@
-gemfile <<-RB
-  gem 'json'
-  gem 'connection_pool', '2.2.2'
-  gem 'sidekiq', '~> 3.4.2'
-  gem 'rack'
+if RUBY_VERSION < '3.0.0'
+  gemfile <<-RB
+    gem 'json'
+    gem 'connection_pool', '2.2.2'
+    gem 'sidekiq', '~> 3.4.2'
+    gem 'rack'
 
-  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-RB
+    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
+  RB
+end
 
 if RUBY_VERSION >= '2.2.2'
   # in Ruby < 2.3, we can't use later than redis 4.1.0 (because >= 4.1.1

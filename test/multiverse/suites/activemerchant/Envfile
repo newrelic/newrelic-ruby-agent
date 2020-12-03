@@ -1,4 +1,4 @@
-if RUBY_VERSION >= '2.3.0'
+if RUBY_VERSION >= '2.3.0' && RUBY_VERSION < '3.0.0'
   gemfile <<-RB
     gem 'activemerchant', '~>1.106.0'
     gem 'rack'
