@@ -76,7 +76,7 @@ module Multiverse
     # where it is later read and output as annotations of the github workflow
     def self.save_output_to_error_file(lines)
       @output_lock.synchronize do
-        filepath = ENV["GITHUB_WORKSPACE"]
+        filepath = ENV["GITHUB_WORKSPACE"] || File.expand_path(File.dirname(__FILE__))
         output_file = File.join(filepath, "errors.txt")
 
         existing_lines = []
