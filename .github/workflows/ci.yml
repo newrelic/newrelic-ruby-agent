@@ -197,6 +197,8 @@ jobs:
             multiverse: api
           - ruby-version: "3.0.0-preview1"
             multiverse: sinatra
+          - ruby-version: "3.0.0-preview1"
+            multiverse: rails
           - ruby-version: "2.7.1"
             multiverse: api
           - ruby-version: "2.7.1"
