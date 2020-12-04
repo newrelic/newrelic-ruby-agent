@@ -703,6 +703,18 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Enable or disable retrying failed connections to the New Relic data collection service.'
         },
+        :force_install_exit_handler => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'Forces the exit handler that sends all cached data to collector ' \
+            'before shuttng down to be installed regardless of detecting scenarios where it generally should not be. ' \
+            'Known use-case for this option is where Sinatra is running as an embedded service within another framework ' \
+            'and the agent is detecting the Sinatra app and skipping the at_exit handler as a result. Sinatra classically ' \
+            'runs the entire application in an at_exit block and would otherwise misbehave if the Agent\'s at_exit handler ' \
+            'is also installed in those circumstances.  Note: `send_data_on_exit` should also be set to `true` in  tandem with this setting.'
+        },
         :force_reconnect => {
           :default => false,
           :public => false,
