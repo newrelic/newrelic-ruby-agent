@@ -74,7 +74,6 @@ module NewRelic
             alias_method :calculate_without_newrelic, :calculate
 
             def calculate(*args, &blk)
-              require 'pry'; binding.pry
               ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
                 calculate_without_newrelic(*args, &blk)
               end
