@@ -32,47 +32,29 @@ DependencyDetection.defer do
 
       # We have to hook these three methods separately, as they don't use
       # Curl::Easy#http
-      if RUBY_VERSION < "2.7.0"
-        def http_head_with_newrelic(*args, &blk)
-          self._nr_http_verb = :HEAD
-          http_head_without_newrelic(*args, &blk)
-        end
-      else
-        def http_head_with_newrelic(*args, **kwargs, &blk)
-          self._nr_http_verb = :HEAD
-          http_head_without_newrelic(*args, **kwargs, &blk)
-        end
+      def http_head_with_newrelic(*args, &blk)
+        self._nr_http_verb = :HEAD
+        http_head_without_newrelic(*args, &blk)
       end
+
 
       alias_method :http_head_without_newrelic, :http_head
       alias_method :http_head, :http_head_with_newrelic
 
-      if RUBY_VERSION < "2.7.0"
-        def http_post_with_newrelic(*args, &blk)
-          self._nr_http_verb = :POST
-          http_post_without_newrelic(*args, &blk)
-        end
-      else
-        def http_post_with_newrelic(*args, **kwargs, &blk)
-          self._nr_http_verb = :POST
-          http_post_without_newrelic(*args, **kwargs, &blk)
-        end
+      def http_post_with_newrelic(*args, &blk)
+        self._nr_http_verb = :POST
+        http_post_without_newrelic(*args, &blk)
       end
+
 
       alias_method :http_post_without_newrelic, :http_post
       alias_method :http_post, :http_post_with_newrelic
 
-      if RUBY_VERSION < "2.7.0"
-        def http_put_with_newrelic(*args, &blk)
-          self._nr_http_verb = :PUT
-          http_put_without_newrelic(*args, &blk)
-        end
-      else
-        def http_put_with_newrelic(*args, **kwargs, &blk)
-          self._nr_http_verb = :PUT
-          http_put_without_newrelic(*args, **kwargs, &blk)
-        end
+      def http_put_with_newrelic(*args, &blk)
+        self._nr_http_verb = :PUT
+        http_put_without_newrelic(*args, &blk)
       end
+
 
       alias_method :http_put_without_newrelic, :http_put
       alias_method :http_put, :http_put_with_newrelic
