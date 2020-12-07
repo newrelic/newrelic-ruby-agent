@@ -89,6 +89,7 @@ module Multiverse
       "database"      => ["datamapper", "mongo", "redis", "sequel"],
       "httpclients"   => ["curb", "excon", "httpclient", "typhoeus", "net_http", "net_http_prepend", "httprb"],
       "rails"         => ["active_record", "rails"],
+      "rails_extras"  => ["rails_prepend", "activemerchant"],
       "serialization" => ["json", "marshalling", "yajl"],
       "sinatra"       => ["sinatra", "padrino"],
       "background_2"  => ["resque"],

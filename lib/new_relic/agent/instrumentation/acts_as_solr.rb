@@ -9,7 +9,6 @@ module NewRelic
     module ActsAsSolrInstrumentation
       module ParserMethodsInstrumentation
 
-        if RUBY_VERSION < "2.7.0"
           def parse_query_with_newrelic(*args)
             self.class.trace_execution_scoped(["SolrClient/ActsAsSolr/query"]) do
               begin
@@ -20,20 +19,6 @@ module NewRelic
               end
             end
           end
-  
-        else
-          def parse_query_with_newrelic(*args, **kwargs)
-            self.class.trace_execution_scoped(["SolrClient/ActsAsSolr/query"]) do
-              begin
-                parse_query_without_newrelic(*args, **kwargs)
-              ensure
-                return unless txn = ::NewRelic::Agent::Tracer.current_transaction
-                txn.current_segment.params[:statement] = ::NewRelic::Agent::Database.truncate_query(args.first.inspect) rescue nil
-              end
-            end
-          end
-  
-        end
       end
     end
   end

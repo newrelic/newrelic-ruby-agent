@@ -33,3 +33,9 @@ gemfile <<-RB
   gem 'capistrano', '~>3.10.1'
   #{boilerplate}
 RB
+
+gemfile <<-RB
+  gem 'sshkit', '1.16.0'
+  gem 'capistrano', '~>3.14.1'
+  #{boilerplate}
+RB

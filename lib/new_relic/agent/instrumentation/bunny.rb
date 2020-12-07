@@ -100,48 +100,24 @@ DependencyDetection.defer do
 
         alias_method :purge_without_new_relic, :purge
 
-        if RUBY_VERSION < "2.7.0"
-          def purge *args
-            begin
-              type = server_named? ? :temporary_queue : :queue
-              segment = NewRelic::Agent::Tracer.start_message_broker_segment(
-                action: :purge,
-                library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
-                destination_type: type,
-                destination_name: name
-              )
-            rescue => e
-              NewRelic::Agent.logger.error "Error starting message broker segment in Bunny::Queue#purge", e
+        def purge *args
+          begin
+            type = server_named? ? :temporary_queue : :queue
+            segment = NewRelic::Agent::Tracer.start_message_broker_segment(
+              action: :purge,
+              library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
+              destination_type: type,
+              destination_name: name
+            )
+          rescue => e
+            NewRelic::Agent.logger.error "Error starting message broker segment in Bunny::Queue#purge", e
+            purge_without_new_relic(*args)
+          else
+            NewRelic::Agent::Tracer.capture_segment_error segment do
               purge_without_new_relic(*args)
-            else
-              NewRelic::Agent::Tracer.capture_segment_error segment do
-                purge_without_new_relic(*args)
-              end
-            ensure
-              segment.finish if segment
             end
-          end
-
-        else     
-          def purge *args, **kwargs
-            begin
-              type = server_named? ? :temporary_queue : :queue
-              segment = NewRelic::Agent::Tracer.start_message_broker_segment(
-                action: :purge,
-                library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
-                destination_type: type,
-                destination_name: name
-              )
-            rescue => e
-              NewRelic::Agent.logger.error "Error starting message broker segment in Bunny::Queue#purge", e
-              purge_without_new_relic(*args, **kwargs)
-            else
-              NewRelic::Agent::Tracer.capture_segment_error segment do
-                purge_without_new_relic(*args, **kwargs)
-              end
-            ensure
-              segment.finish if segment
-            end
+          ensure
+            segment.finish if segment
           end
         end
 
@@ -150,41 +126,21 @@ DependencyDetection.defer do
       class Consumer
         alias_method :call_without_new_relic, :call
 
-        if RUBY_VERSION < "2.7.0"
-          def call *args
-            delivery_info, message_properties, _ = args
-            queue_name = queue.respond_to?(:name) ? queue.name : queue
-  
-            NewRelic::Agent::Messaging.wrap_amqp_consume_transaction(
-              library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
-              destination_name: NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange),
-              delivery_info: delivery_info,
-              message_properties: message_properties,
-              exchange_type: NewRelic::Agent::Instrumentation::Bunny.exchange_type(delivery_info, channel),
-              queue_name: queue_name) do
-  
-              call_without_new_relic(*args)
-            end
-          end
-        else
-          def call *args, **kwargs
-            delivery_info, message_properties, _ = args
-            queue_name = queue.respond_to?(:name) ? queue.name : queue
+        def call *args
+          delivery_info, message_properties, _ = args
+          queue_name = queue.respond_to?(:name) ? queue.name : queue
 
-            NewRelic::Agent::Messaging.wrap_amqp_consume_transaction(
-              library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
-              destination_name: NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange),
-              delivery_info: delivery_info,
-              message_properties: message_properties,
-              exchange_type: NewRelic::Agent::Instrumentation::Bunny.exchange_type(delivery_info, channel),
-              queue_name: queue_name) do
+          NewRelic::Agent::Messaging.wrap_amqp_consume_transaction(
+            library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
+            destination_name: NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange),
+            delivery_info: delivery_info,
+            message_properties: message_properties,
+            exchange_type: NewRelic::Agent::Instrumentation::Bunny.exchange_type(delivery_info, channel),
+            queue_name: queue_name) do
 
-              call_without_new_relic(*args, **kwargs)
-            end
+            call_without_new_relic(*args)
           end
         end
-
-
 
       end
     end
