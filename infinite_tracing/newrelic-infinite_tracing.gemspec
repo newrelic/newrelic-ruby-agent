@@ -76,7 +76,7 @@ EOS
   s.summary = "New Relic Infinite Tracing for the Ruby agent"
 
   s.add_dependency 'newrelic_rpm', NewRelic::VERSION::STRING
-  s.add_dependency 'grpc', '~> 1.28.0'
+  s.add_dependency 'grpc', '~> 1.28'
 
   s.add_development_dependency 'rake', '12.3.3'
   s.add_development_dependency 'rb-inotify', '0.9.10'   # locked to support < Ruby 2.3 (and listen 3.0.8)
@@ -90,5 +90,5 @@ EOS
   s.add_development_dependency 'hometown', '~> 0.2.5'
   s.add_development_dependency 'bundler'
 
-  s.add_development_dependency 'grpc-tools', "~> 1.14.0"
+  s.add_development_dependency 'grpc-tools', "~> 1.14"
 end
