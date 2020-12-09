@@ -11,6 +11,7 @@ module NewRelic
     # transaction, just to eke out a bit less performance hit
     #
     API_SUPPORTABILITY_METRICS = [
+      :insert_distributed_trace_headers,
       :accept_distributed_trace_headers,
       :create_distributed_trace_headers,
       :add_custom_attributes,

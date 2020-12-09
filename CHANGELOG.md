@@ -2,6 +2,26 @@
 
   ## v6.15.0
 
+  * **Bugfix: Fixes cases where errors are reported for spans with no other attributes**
+
+    Previously, in cases where a span does not have any agent/custom attributes on it, but an error
+    is noticed and recorded against the span, a `FrozenError: can't modify frozen Hash` is thrown.
+    This is now fixed and errors are now correctly recorded against such span events.
+
+  * **Bugfix: `DistributedTracing.insert_distributed_trace_headers` Supportability metric now recorded**
+    
+    Previously, API calls to `DistributedTracing.insert_distributed_trace_headers` would lead to an exception
+    about the missing supportability metric rather than flowing through the API implementation as intended.
+    This would potentially lead to broken distributed traces as the trace headers were not inserted on the API call.
+    `DistributedTracing.insert_distributed_trace_headers` now correctly records the supportability metric and
+    inserts the distributed trace headers as intended.
+
+  * **Bugfix: child completions after parent completes sometimes throws exception attempting to access nil parent**
+
+    In scenarios where the child segment/span is completing after the parent in jRuby, the parent may have already
+    been freed and no longer accessible.  This would lead to attempting to calll `descendant_complete` on a Nil
+    object.  This is fixed to protect against calling the `descendant_complete` in such cases.
+    
   * **Feature: implements `force_install_exit_handler` config flag**
     
     The `force_install_exit_handler` configuration flag allows an application to instruct the agent to install it's 
