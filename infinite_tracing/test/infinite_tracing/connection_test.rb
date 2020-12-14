@@ -18,6 +18,7 @@ module NewRelic
           with_serial_lock do
             timeout_cap do
               with_config localhost_config do
+                NewRelic::Agent.agent.service.instance_variable_set(:@request_headers_map, {"NR-UtilizationMetadata"=>"test_metadata"})
 
                 connection = Connection.instance # instantiate before simulation
                 simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
@@ -26,6 +27,7 @@ module NewRelic
 
                   assert_equal "swiss_cheese", metadata["license_key"]
                   assert_equal "fiddlesticks", metadata["agent_run_token"]
+                  assert_equal "test_metadata", metadata["nr-utilizationmetadata"]
                 end
               end
             end
@@ -38,6 +40,7 @@ module NewRelic
           with_serial_lock do
             timeout_cap do
               with_config localhost_config do
+                NewRelic::Agent.agent.service.instance_variable_set(:@request_headers_map, {"NR-UtilizationMetadata"=>"test_metadata"})
 
                 simulate_connect_to_collector fiddlesticks_config, 0.0 do |simulator|
                   simulator.join # ensure our simulation happens!
@@ -46,6 +49,7 @@ module NewRelic
 
                   assert_equal "swiss_cheese", metadata["license_key"]
                   assert_equal "fiddlesticks", metadata["agent_run_token"]
+                  assert_equal "test_metadata", metadata["nr-utilizationmetadata"]
                 end
               end
             end
@@ -58,6 +62,8 @@ module NewRelic
           with_serial_lock do
             timeout_cap do
               with_config localhost_config do
+                NewRelic::Agent.agent.service.instance_variable_set(:@request_headers_map, {"NR-UtilizationMetadata"=>"test_metadata"})
+
                 simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
                   simulator.join # ensure our simulation happens!
                   connection = Connection.instance
@@ -65,6 +71,7 @@ module NewRelic
 
                   assert_equal "swiss_cheese", metadata["license_key"]
                   assert_equal "fiddlesticks", metadata["agent_run_token"]
+                  assert_equal "test_metadata", metadata["nr-utilizationmetadata"]
                 end
               end
             end
@@ -77,18 +84,25 @@ module NewRelic
           with_serial_lock do
             timeout_cap do
               with_config localhost_config do
+                NewRelic::Agent.agent.service.instance_variable_set(:@request_headers_map, {"NR-UtilizationMetadata"=>"test_metadata"})
+
                 connection = Connection.instance
                 simulate_connect_to_collector fiddlesticks_config, 0.0 do |simulator|
                   simulator.join
                   metadata = connection.send :metadata
                   assert_equal "swiss_cheese", metadata["license_key"]
                   assert_equal "fiddlesticks", metadata["agent_run_token"]
+                  assert_equal "test_metadata", metadata["nr-utilizationmetadata"]
 
                   simulate_reconnect_to_collector(reconnect_config)
+                  NewRelic::Agent.agent.service.instance_variable_set(:@request_headers_map, {"NR-UtilizationMetadata_1"=>"test_metadata"})
+
                   metadata = connection.send :metadata
 
                   assert_equal "swiss_cheese", metadata["license_key"]
                   assert_equal "shazbat", metadata["agent_run_token"]
+                  assert_equal "test_metadata", metadata["nr-utilizationmetadata_1"]
+
                 end
               end
             end
