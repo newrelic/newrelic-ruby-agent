@@ -142,7 +142,7 @@ module NewRelic
                 active_client = client
               end
               refute_kind_of SuspendedStreamingBuffer, active_client.buffer
-              refute active_client.suspended?, "expected client to be suspended."
+              refute active_client.suspended?, "expected client to not be suspended."
 
               assert_equal total_spans, segments.size
               assert_equal 0, spans.size
@@ -152,7 +152,7 @@ module NewRelic
 
               assert_metrics_recorded({
                 "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-                "Supportability/InfiniteTracing/Span/gRPC/FAILED_PRECONDITION" => {:call_count => 10}
+                "Supportability/InfiniteTracing/Span/gRPC/FAILED_PRECONDITION" => {:call_count => 5}
               })
             end
           end
