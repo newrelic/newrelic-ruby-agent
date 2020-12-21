@@ -132,6 +132,32 @@ module NewRelic
           end
         end
 
+        def test_handling_failed_precondition_server_response
+          with_serial_lock do
+            timeout_cap do
+              total_spans = 5
+              active_client = nil
+
+              spans, segments = emulate_streaming_to_failed_precondition(total_spans) do |client, segments|
+                active_client = client
+              end
+              refute_kind_of SuspendedStreamingBuffer, active_client.buffer
+              refute active_client.suspended?, "expected client to not be suspended."
+
+              assert_equal total_spans, segments.size
+              assert_equal 0, spans.size
+
+              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
+              assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+
+              assert_metrics_recorded({
+                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+                "Supportability/InfiniteTracing/Span/gRPC/FAILED_PRECONDITION" => {:call_count => 5}
+              })
+            end
+          end
+        end
+
         def test_handling_ok_and_close_server_response
           timeout_cap 5 do
             with_detailed_trace do 
@@ -147,10 +173,7 @@ module NewRelic
 
               refute_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
 
-              assert_metrics_recorded({
-                "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-                "Supportability/InfiniteTracing/Span/Sent" => {:call_count => total_spans},
-              })
+              assert_metrics_recorded("Supportability/InfiniteTracing/Span/Sent")
             end
           end
         end

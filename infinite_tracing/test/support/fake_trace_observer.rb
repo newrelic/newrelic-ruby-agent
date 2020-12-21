@@ -87,6 +87,20 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       end
     end
 
+    class FailedPreconditionInfiniteTracer < BaseInfiniteTracer
+      def initialize
+        super
+        @count = 0
+      end
+
+      def record_span(record_spans)
+        @lock.synchronize { @noticed.signal }
+        msg = "I don't exist!"
+        @count += 1
+        raise GRPC::BadStatus.new(GRPC::Core::StatusCodes::FAILED_PRECONDITION, msg) if @count <= 5
+      end
+    end
+
     class FakeTraceObserverServer
       attr_reader :trace_observer, :worker
 

@@ -246,6 +246,10 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             emulate_streaming_with_tracer UnimplementedInfiniteTracer, count, max_buffer_size, &block
           end
 
+          def emulate_streaming_to_failed_precondition count, max_buffer_size=100_000, &block
+            emulate_streaming_with_tracer FailedPreconditionInfiniteTracer, count, max_buffer_size, &block
+          end
+
           def emulate_streaming_with_initial_error count, max_buffer_size=100_000, &block
             emulate_streaming_with_tracer ErroringInfiniteTracer, count, max_buffer_size, &block
           end

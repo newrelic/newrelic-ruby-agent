@@ -77,6 +77,7 @@ module NewRelic::Agent
 
         case error
         when GRPC::Unavailable then restart
+        when GRPC::FailedPrecondition then restart
         when GRPC::Unimplemented then suspend
         else
           # Set exponential backoff to false so we'll reconnect at periodic (15 second) intervals instead
@@ -152,8 +153,6 @@ module NewRelic::Agent
       def record_span_batches exponential_backoff
         RecordStatusHandler.new self, Connection.record_span_batches(self, buffer.batch_enumerator, exponential_backoff)
       end
-
     end
-
   end
 end
