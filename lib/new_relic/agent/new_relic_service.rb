@@ -33,7 +33,7 @@ module NewRelic
       CONNECTION_ERRORS = [Timeout::Error, EOFError, SystemCallError, SocketError].freeze
 
       attr_accessor :request_timeout
-      attr_reader :collector, :marshaller, :agent_id, :request_headers_map
+      attr_reader :collector, :marshaller, :agent_id
 
       def initialize(license_key=nil, collector=control.server)
         @license_key = license_key

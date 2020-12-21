@@ -140,7 +140,7 @@ module NewRelic::Agent
       end
 
       def request_headers_map
-        headers = NewRelic::Agent.agent.service.request_headers_map || NewRelic::EMPTY_HASH
+        headers = NewRelic::Agent.agent.service.instance_variable_get(:@request_headers_map) || NewRelic::EMPTY_HASH
         # transform_keys only 2.5+, but infinite tracing is 2.5+ only also
         headers.transform_keys(&:downcase)
       end
