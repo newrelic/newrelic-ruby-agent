@@ -18,7 +18,6 @@ module NewRelic
           with_serial_lock do
             timeout_cap do
               with_config localhost_config do
-
                 connection = Connection.instance # instantiate before simulation
                 simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
                   simulator.join # ensure our simulation happens!
@@ -38,7 +37,6 @@ module NewRelic
           with_serial_lock do
             timeout_cap do
               with_config localhost_config do
-
                 simulate_connect_to_collector fiddlesticks_config, 0.0 do |simulator|
                   simulator.join # ensure our simulation happens!
                   connection = Connection.instance # instantiate after simulated connection
@@ -58,7 +56,6 @@ module NewRelic
           with_serial_lock do
             timeout_cap do
               with_config localhost_config do
-
                 simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
                   simulator.join # ensure our simulation happens!
                   connection = Connection.instance
@@ -78,7 +75,6 @@ module NewRelic
           with_serial_lock do
             timeout_cap do
               with_config localhost_config do
-
                 connection = Connection.instance
                 simulate_connect_to_collector fiddlesticks_config, 0.0 do |simulator|
                   simulator.join
