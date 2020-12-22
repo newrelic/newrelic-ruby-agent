@@ -4,6 +4,7 @@ development:
     enabled: true
   apdex_t: 0.5
   monitor_mode: true
+  prepend_net_instrumentation: true
   license_key: bootstrap_newrelic_admin_license_key_000
   ca_bundle_path: ../../../config/test.cert.crt
   app_name: test
