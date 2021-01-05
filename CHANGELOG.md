@@ -31,14 +31,14 @@
 
   * **Default prepend_net_instrumentation to false**
 
-    Previously, this was defaulted to true. PMany gems are still using monkey patching on Net::HTTP, which causes compatibility issues with using prepend. Defaulting this to false will minimize instances of unexpected compatibilty issues.
+    Previously, `prepend_net_instrumentation` defaulted to true. However, many gems are still using monkey patching on Net::HTTP, which causes compatibility issues with using prepend. Defaulting this to false minimizes instances of 
+    unexpected compatibilty issues.
     
   ## v6.14.0
 
   * **Bugfix: Method tracers no longer cloning arguments**
   
-    Previously, when calling add_method_tracer with certain combination of arguments, it would lead to the wrapped method's arguments
-    being cloned rather than passed to the original method for manipulation as intended.  This has been fixed.
+    Previously, when calling add_method_tracer with certain combination of arguments, it would lead to the wrapped method's arguments being cloned rather than passed to the original method for manipulation as intended.  This has been fixed.
 
   * **Bugfix: Delayed Job instrumentation fixed for Ruby 2.7+**
 
