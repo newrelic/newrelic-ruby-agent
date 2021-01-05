@@ -28,13 +28,17 @@
     graceful shutdown exit handler, which will send any locally cached data to the New Relic collector prior to the 
     application shutting down.  This useful for when the primary framework has an embedded Sinatra application that 
     is otherwise detected and skips installing the exit hook for graceful shutdowns.
+
+  * **Default prepend_net_instrumentation to false**
+
+    Previously, `prepend_net_instrumentation` defaulted to true. However, many gems are still using monkey patching on Net::HTTP, which causes compatibility issues with using prepend. Defaulting this to false minimizes instances of 
+    unexpected compatibilty issues.
     
   ## v6.14.0
 
   * **Bugfix: Method tracers no longer cloning arguments**
   
-    Previously, when calling add_method_tracer with certain combination of arguments, it would lead to the wrapped method's arguments
-    being cloned rather than passed to the original method for manipulation as intended.  This has been fixed.
+    Previously, when calling add_method_tracer with certain combination of arguments, it would lead to the wrapped method's arguments being cloned rather than passed to the original method for manipulation as intended.  This has been fixed.
 
   * **Bugfix: Delayed Job instrumentation fixed for Ruby 2.7+**
 
