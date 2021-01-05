@@ -97,6 +97,7 @@ module NewRelic::Agent
             "license_key" => license_key,
             "agent_run_token" => agent_id
           }
+          @metadata.merge!(request_headers_map)
         end
       end
 
@@ -136,6 +137,12 @@ module NewRelic::Agent
 
       def license_key
         NewRelic::Agent.config[:license_key]
+      end
+
+      def request_headers_map
+        headers = NewRelic::Agent.agent.service.instance_variable_get(:@request_headers_map) || NewRelic::EMPTY_HASH
+        # transform_keys only 2.5+, but infinite tracing is 2.5+ only also
+        headers.transform_keys(&:downcase)
       end
 
       # Continues retrying the connection at backoff intervals until a successful connection is made

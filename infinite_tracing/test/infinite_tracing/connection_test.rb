@@ -18,7 +18,6 @@ module NewRelic
           with_serial_lock do
             timeout_cap do
               with_config localhost_config do
-
                 connection = Connection.instance # instantiate before simulation
                 simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
                   simulator.join # ensure our simulation happens!
@@ -38,7 +37,6 @@ module NewRelic
           with_serial_lock do
             timeout_cap do
               with_config localhost_config do
-
                 simulate_connect_to_collector fiddlesticks_config, 0.0 do |simulator|
                   simulator.join # ensure our simulation happens!
                   connection = Connection.instance # instantiate after simulated connection
@@ -85,6 +83,7 @@ module NewRelic
                   assert_equal "fiddlesticks", metadata["agent_run_token"]
 
                   simulate_reconnect_to_collector(reconnect_config)
+
                   metadata = connection.send :metadata
 
                   assert_equal "swiss_cheese", metadata["license_key"]
@@ -195,6 +194,24 @@ module NewRelic
             end
 
             assert_equal 2, attempts
+          end
+        end
+
+        def test_metadata_includes_request_headers_map
+          with_serial_lock do
+            timeout_cap do
+              with_config localhost_config do
+                NewRelic::Agent.agent.service.instance_variable_set(:@request_headers_map, {"NR-UtilizationMetadata"=>"test_metadata"})
+
+                connection = Connection.instance # instantiate before simulation
+                simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
+                  simulator.join # ensure our simulation happens!
+                  metadata = connection.send :metadata
+
+                  assert_equal "test_metadata", metadata["nr-utilizationmetadata"]
+                end
+              end
+            end
           end
         end
 
