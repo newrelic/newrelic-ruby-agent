@@ -33,6 +33,10 @@ module Multiverse
       @gemfiles.push strip_leading_spaces(content)
     end
 
+    def ruby3_gem_webrick
+      RUBY_VERSION >= "3.0.0" ? "gem 'webrick'" : ""
+    end
+
     def omit_collector!
       @omit_collector = true
     end
