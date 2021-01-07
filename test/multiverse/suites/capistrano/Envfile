@@ -4,6 +4,7 @@ end
 
 boilerplate = <<-BOILERPLATE
   gem 'rack'
+  #{ruby3_gem_webrick}
 BOILERPLATE
 
 boilerplate += "gem 'i18n', '< 1.3'\n" if RUBY_VERSION < "2.1.0"

@@ -2,6 +2,7 @@ gemfile <<-RB
   gem 'httpclient' # latest version
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
+  #{ruby3_gem_webrick}
 RB
 
 HTTPCLIENT_VERSIONS = %w(2.8.3
@@ -16,6 +17,7 @@ HTTPCLIENT_VERSIONS.each do |httpclient_version|
     gem 'httpclient', '~> #{httpclient_version}'
     gem 'rack'
     gem 'json', :platforms => [:rbx, :mri_18]
+    #{ruby3_gem_webrick}
   RB
 end
 
