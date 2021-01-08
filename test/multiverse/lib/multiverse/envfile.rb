@@ -37,6 +37,10 @@ module Multiverse
       RUBY_VERSION >= "3.0.0" ? "gem 'webrick'" : ""
     end
 
+    def ruby3_gem_sorted_set
+      RUBY_VERSION >= "3.0.0" ? "gem 'sorted_set'" : ""
+    end
+
     def omit_collector!
       @omit_collector = true
     end
