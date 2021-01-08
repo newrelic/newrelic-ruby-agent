@@ -418,6 +418,7 @@ end
 # build 'em as appropriate so we can test 'em
 def build_deferred_error_attributes segment
   return unless segment.noticed_error
+  return if segment.noticed_error_attributes.frozen?
   segment.noticed_error.build_error_attributes
 end
 
