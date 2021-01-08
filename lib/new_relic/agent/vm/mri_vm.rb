@@ -45,9 +45,11 @@ module NewRelic
 
         def gather_ruby_vm_stats(snap)
           if supports?(:method_cache_invalidations)
-            vm_stats = RubyVM.stat
-            snap.method_cache_invalidations = vm_stats[:global_method_state]
-            snap.constant_cache_invalidations = vm_stats[:global_constant_state]
+            snap.method_cache_invalidations = RubyVM.stat[:global_method_state]
+          end
+
+          if supports?(:constant_cache_invalidations)
+            snap.constant_cache_invalidations = RubyVM.stat[:global_constant_state]
           end
         end
 
@@ -66,7 +68,7 @@ module NewRelic
           when :minor_gc_count
             RUBY_VERSION >= '2.1.0'
           when :method_cache_invalidations
-            RUBY_VERSION >= '2.1.0'
+            RUBY_VERSION >= '2.1.0' && RUBY_VERSION < '3.0.0'
           when :constant_cache_invalidations
             RUBY_VERSION >= '2.1.0'
           else
