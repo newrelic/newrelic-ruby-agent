@@ -59,5 +59,3 @@ if RUBY_VERSION < '2.4.0'
     gem 'thor', '< 0.20.1' if RUBY_PLATFORM == 'java' # unpredictable thor errors
   RB
 end
-
-# vim: ft=ruby

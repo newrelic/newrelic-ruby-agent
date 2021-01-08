@@ -336,6 +336,7 @@ module Multiverse
         configure_before_bundling
 
         gemfile_text = environments[env_index]
+        return if gemfile_text.empty?
 
         load_dependencies(gemfile_text, env_index)
 
