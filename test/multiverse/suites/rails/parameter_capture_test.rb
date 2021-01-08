@@ -247,7 +247,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
       actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
       # Rails 6.1.1 bug!  charset appears twice!
-      if ActionDispatch::VERSION == '6.1.1'
+      if ActionPack::VERSION::STRING == '6.1.1'
         expected["response.headers.contentType"] << "; charset=#{response.charset}"
       end
       # request method may be a symbol or string based on Rails versions
