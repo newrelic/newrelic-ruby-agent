@@ -26,12 +26,14 @@ if RUBY_VERSION >= '2.2.0'
   gemfile <<-RB
     gem 'rack'
     gem 'rake', '~> 13.0.0'
+    #{ruby3_gem_webrick}
   RB
 end
 
 gemfile <<-RB
   gem 'rack'
   gem 'rake', '~> 12.3.3'
+  #{ruby3_gem_webrick}
 RB
 
 # No single Rails version works everywhere, so split it up
@@ -49,5 +51,6 @@ gemfile <<-RB
   gem 'rack'
   gem 'rake', '~> 12.3.3'
   gem 'newrelic-rake', :require => false # Can't coexist with third-party instrumentation
+  #{ruby3_gem_webrick}
 RB
 

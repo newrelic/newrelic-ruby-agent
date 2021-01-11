@@ -17,6 +17,7 @@ json_gems.each do |version|
   gemfile <<-RB
     gem 'rack'
     gem 'json', '#{version}'
+    #{ruby3_gem_webrick}
   RB
 end
 

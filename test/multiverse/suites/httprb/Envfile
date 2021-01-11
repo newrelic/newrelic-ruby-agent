@@ -6,6 +6,7 @@ gemfile <<-RB
   gem 'http' # latest version
   gem 'public_suffix', '< 3.0.0' if RUBY_VERSION < "2.1.0"
   gem 'rack'
+  #{ruby3_gem_webrick}
 RB
 
 # NOTE, some versions of HTTP gem implements body with
@@ -37,6 +38,7 @@ HTTPRB_VERSIONS.each do |httprb_version|
     gem 'http', '~> #{httprb_version}'
     gem 'public_suffix', '< 3.0.0' if RUBY_VERSION < "2.1.0"
     gem 'rack'
+    #{ruby3_gem_webrick}
   RB
 end
 

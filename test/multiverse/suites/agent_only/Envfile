@@ -4,4 +4,5 @@ gemfile <<-RB
   gem 'minitest', '4.7.5'
   gem 'rack', '< 2.1.0'
   gem 'rack-test', '#{rack_test_version}'
+  #{ruby3_gem_webrick}
 RB

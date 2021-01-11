@@ -1,92 +1,62 @@
-if RUBY_VERSION < '3.0.0'
-  gemfile <<-RB
-    gem 'json'
-    gem 'connection_pool', '2.2.2'
-    gem 'sidekiq', '~> 3.4.2'
-    gem 'rack'
 
+SIDEKIQ_VERSIONS = [
+  ["~> 6.1.0"],
+  ["~> 6.0.0"],
+  ["~> 5.0.5"],
+  ["~> 4.2.10"],
+  ["~> 4.1.4"],
+  ["~> 4.0.2"],
+  ["~> 3.5.3", "~> 4.1.1"],
+  ["~> 3.4.2"],
+  ["~> 2.17.8"],
+  ["~> 2.9.0", "~> 1.1.0"], # Almost oldest supported version
+]
+
+# 5.x series requires >= Ruby 2.3
+# 6.x series requires >= Ruby 2.5
+def ruby2_compatible? sidekiq_version
+  version = sidekiq_version.split(" ")[-1].to_f
+  if version >= 6.0
+    RUBY_VERSION >= '2.5.0'
+  elsif version >= 5.0
+    RUBY_VERSION >= '2.3.0'
+  else
+    true
+  end
+end
+
+# older connection pool gems do not work with Ruby 3.0
+def ruby3_compatible? sidekiq_version
+  sidekiq_version.split(" ")[-1].to_i > 3
+end
+
+# skip Sidekiq 3.5.3 on JRuby due to an error in Sidekiq's shutdown:
+# https://github.com/mperham/sidekiq/issues/2703
+def jruby_compatible? sidekiq_version
+  sidekiq_version != "~> 3.5.3"
+end
+
+SIDEKIQ_VERSIONS.each do |sidekiq_version, timers_version|
+  next if RUBY_VERSION < "3.0.0" && !ruby2_compatible?(sidekiq_version)
+  next if RUBY_VERSION >= "3.0.0" && !ruby3_compatible?(sidekiq_version)
+  next if RUBY_PLATFORM == "java" && !jruby_compatible?(sidekiq_version)
+
+  # use specified version when declared
+  gem_timers = timers_version ? "gem 'timers', '#{timers_version}'" : ""
+
+  # must use older gems for older Rubies
+  gem_redis = RUBY_VERSION <= "2.3.0" ? "gem 'redis', '<= 4.1.0'" : ""
+  gem_connection_pool = RUBY_VERSION <= "2.3.0" ? "gem 'connection_pool', '<= 2.2.2'" : ""
+  gem_json = RUBY_VERSION >= "2.1.0" ? "gem 'json'" : "gem 'json', '< 2.0.0'"
+  gemfile <<-RB
+    gem 'rack'
+    #{gem_json}
+    #{gem_connection_pool}
+    #{gem_timers}
+    #{gem_redis}
+    #{ruby3_gem_webrick}
+    #{ruby3_gem_sorted_set}
+    gem 'sidekiq', '#{sidekiq_version}'
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
   RB
 end
-
-if RUBY_VERSION >= '2.2.2'
-  # in Ruby < 2.3, we can't use later than redis 4.1.0 (because >= 4.1.1
-  # references Enumerable#grep_v, which didn't exist prior to ruby 2.3)
-  gemfile <<-RB
-    gem 'json'
-    gem 'sidekiq', '~> 5.0.5'
-    gem 'redis', '4.1.0'
-    gem 'rack'
-
-    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-  RB
-end
-
-if RUBY_VERSION > '2.3.0'
-  gemfile <<-RB
-    gem 'json'
-    gem 'sidekiq', '~> 5.0.5'
-    gem 'rack'
-
-    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-  RB
-end
-
-gemfile <<-RB
-  gem 'json'
-  gem 'connection_pool', '2.2.2'
-  gem 'sidekiq', '~> 4.2.10'
-  gem 'rack'
-
-  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-RB
-
-gemfile <<-RB
-  gem 'json'
-  gem 'connection_pool', '2.2.2'
-  gem 'sidekiq', '~> 4.1.4'
-  gem 'rack'
-
-  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-RB
-
-gemfile <<-RB
-  gem 'json'
-  gem 'connection_pool', '2.2.2'
-  gem 'sidekiq', '~> 4.0.2'
-  gem 'rack'
-  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-RB
-
-if RUBY_VERSION < '2.4.0' && RUBY_PLATFORM != 'java'
-  # We skip testing Sidekiq 3.5.3 on JRuby due to an error in Sidekiq's shutdown:
-  # https://github.com/mperham/sidekiq/issues/2703
-  gemfile <<-RB
-    gem 'json'
-    gem 'connection_pool', '2.2.2'
-    gem 'sidekiq', '~> 3.5.3'
-    gem 'rack'
-    gem 'timers', '4.1.1'
-    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-  RB
-end
-
-gemfile <<-RB
-  gem 'json'
-  gem 'connection_pool', '2.2.2'
-  gem 'sidekiq', '~> 2.17.8'
-  gem 'rack'
-  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-RB
-
-gemfile <<-RB
-  # Almost oldest supported version
-  gem 'json'
-  gem 'connection_pool', '~> 1.0'
-  gem 'sidekiq', '~> 2.9.0'
-  gem 'timers', '~> 1.1.0'
-  gem 'rack'
-  gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-RB
-
-# vim: ft=ruby

@@ -5,6 +5,7 @@ if RUBY_VERSION >= '2.2.0'
     gem 'sinatra', '~> 2.0.0'
     gem 'rack',    '~> 2.0.0'
     gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
+    #{ruby3_gem_webrick}
   RB
 end
 
@@ -12,18 +13,21 @@ gemfile <<-RB
   gem 'sinatra', '~> 1.4.8'
   gem 'rack',    '~> 1.5.0'
   gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
+  #{ruby3_gem_webrick}
 RB
 
 gemfile <<-RB
   gem 'sinatra', '~> 1.3.6'
   gem 'rack',    '~> 1.5.0'
   gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
+  #{ruby3_gem_webrick}
 RB
 
 gemfile <<-RB
   gem 'backports', '~> 3.6.1'
   gem 'sinatra',   '~> 1.2.9'
   gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
+  #{ruby3_gem_webrick}
 RB
 
 # vim: ft=ruby
