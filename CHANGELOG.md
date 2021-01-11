@@ -2,6 +2,12 @@
 
   ## v6.15.0
 
+  * **Official Ruby 3.0 support**
+    
+    The ruby agent has been verified to run on ruby 3.0.0
+
+  * ****
+
   * **Bugfix: Fixes cases where errors are reported for spans with no other attributes**
 
     Previously, in cases where a span does not have any agent/custom attributes on it, but an error
