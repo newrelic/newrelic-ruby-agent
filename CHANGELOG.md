@@ -9,6 +9,7 @@
   * **Added support for Rails 6.1**
 
     The ruby agent has been verified to run with Rails 6.1
+    Special thanks to @hasghari for setting this up!
 
   * **Added support for Sidekiq 6.0, 6.1**
 
