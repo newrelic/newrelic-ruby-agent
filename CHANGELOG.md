@@ -6,6 +6,18 @@
     
     The ruby agent has been verified to run on ruby 3.0.0
 
+  * **Added support for Rails 6.1**
+
+    The ruby agent has been verified to run with Rails 6.1
+
+  * **Added support for Sidekiq 6.0, 6.1**
+
+    The ruby agent has been verified to run with both 6.0 and 6.1 versions of sidekiq
+
+  * **Bugfix: No longer overwrites sidekiq trace data**
+
+    Distributed traing data is now added to the job trace info rather than overwriting the existing data.
+
   * **Bugfix: Fixes cases where errors are reported for spans with no other attributes**
 
     Previously, in cases where a span does not have any agent/custom attributes on it, but an error
