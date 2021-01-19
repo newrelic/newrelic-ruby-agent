@@ -9,6 +9,7 @@ if RUBY_VERSION >= '2.2'
     gem 'rack'
     gem 'bunny', '~>2.9.1'
     gem 'amq-protocol'#{amq_protocol_version_str}
+    #{ruby3_gem_webrick}
   RB
 end
 
@@ -16,52 +17,61 @@ gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.8.1'
   gem 'amq-protocol'#{amq_protocol_version_str}
+  #{ruby3_gem_webrick}
 RB
 
 gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.7.4'
   gem 'amq-protocol'#{amq_protocol_version_str}
+  #{ruby3_gem_webrick}
 RB
 
 gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.6.7'
   gem 'amq-protocol'#{amq_protocol_version_str}
+  #{ruby3_gem_webrick}
 RB
 
 gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.5.1'
   gem 'amq-protocol'#{amq_protocol_version_str}
+  #{ruby3_gem_webrick}
 RB
 
 gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.4.0'
   gem 'amq-protocol'#{amq_protocol_version_str}
+  #{ruby3_gem_webrick}
 RB
 
 gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.3.1'
   gem 'amq-protocol'#{amq_protocol_version_str}
+  #{ruby3_gem_webrick}
 RB
 
 gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.2.2'
   gem 'amq-protocol'#{amq_protocol_version_str}
+  #{ruby3_gem_webrick}
 RB
 
 gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.1.0'
   gem 'amq-protocol'#{amq_protocol_version_str}
+  #{ruby3_gem_webrick}
 RB
 
 gemfile <<-RB
   gem 'rack'
   gem 'bunny', '~>2.0.1'
   gem 'amq-protocol'#{amq_protocol_version_str}
+  #{ruby3_gem_webrick}
 RB

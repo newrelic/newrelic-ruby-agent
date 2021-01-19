@@ -1,7 +1,7 @@
 name: Continuous Integration
 
-on: 
-  push: 
+on:
+  push:
     branches:
       - main
       - dev
@@ -10,9 +10,9 @@ on:
 jobs:
   build-ruby:
     runs-on: ubuntu-latest
-    strategy: 
-      matrix: 
-        ruby-version: [2.0.0-p648, 2.1.10, 2.2.10, 2.3.8, 2.4.10, 2.5.8, 2.6.6, 2.7.1, jruby-9.2.12.0]
+    strategy:
+      matrix:
+        ruby-version: [2.0.0-p648, 2.1.10, 2.2.10, 2.3.8, 2.4.10, 2.5.8, 2.6.6, 2.7.1, 3.0.0, jruby-9.2.12.0]
     steps:
       - uses: actions/checkout@v2
 
@@ -20,16 +20,38 @@ jobs:
         uses: ./.github/actions/build-ruby
         with:
           ruby-version: ${{ matrix.ruby-version }}
-  
+
   mini-env:
     needs: build-ruby
     runs-on: ubuntu-latest
-    strategy: 
+    strategy:
       fail-fast: false
-      matrix: 
-        rails: [norails, rails60, rails52, rails51, rails42, rails41, rails40, rails32, rails31, rails30]
-        ruby-version: [2.0.0-p648, 2.1.10, 2.2.10, 2.3.8, 2.4.10, 2.5.8, 2.6.6, 2.7.1, jruby-9.2.12.0]
+      matrix:
+        rails: [norails, rails61, rails60, rails52, rails51, rails42, rails41, rails40, rails32, rails31, rails30]
+        ruby-version: [2.0.0-p648, 2.1.10, 2.2.10, 2.3.8, 2.4.10, 2.5.8, 2.6.6, 2.7.1, 3.0.0, jruby-9.2.12.0]
         exclude:
+          - ruby-version: "3.0.0"
+            rails: rails30
+          - ruby-version: "3.0.0"
+            rails: rails31
+          - ruby-version: "3.0.0"
+            rails: rails32
+          - ruby-version: "3.0.0"
+            rails: rails40
+          - ruby-version: "3.0.0"
+            rails: rails41
+          - ruby-version: "3.0.0"
+            rails: rails42
+          - ruby-version: "3.0.0"
+            rails: rails50
+          - ruby-version: "3.0.0"
+            rails: rails51
+          - ruby-version: "3.0.0"
+            rails: rails52
+          - ruby-version: "3.0.0"
+            rails: rails60
+          - ruby-version: "3.0.0"
+            rails: rails61
           - ruby-version: "2.7.1"
             rails: rails30
           - ruby-version: "2.7.1"
@@ -76,10 +98,16 @@ jobs:
             rails: rails41
           - ruby-version: "2.4.10"
             rails: rails60
+          - ruby-version: "2.4.10"
+            rails: rails61
           - ruby-version: "2.3.8"
             rails: rails60
+          - ruby-version: "2.3.8"
+            rails: rails61
           - ruby-version: "2.2.10"
             rails: rails60
+          - ruby-version: "2.2.10"
+            rails: rails61
           - ruby-version: "2.1.10"
             rails: rails50
           - ruby-version: "2.1.10"
@@ -88,6 +116,8 @@ jobs:
             rails: rails52
           - ruby-version: "2.1.10"
             rails: rails60
+          - ruby-version: "2.1.10"
+            rails: rails61
           - ruby-version: "2.0.0-p648"
             rails: rails50
           - ruby-version: "2.0.0-p648"
@@ -96,6 +126,8 @@ jobs:
             rails: rails52
           - ruby-version: "2.0.0-p648"
             rails: rails60
+          - ruby-version: "2.0.0-p648"
+            rails: rails61
           - ruby-version: "jruby-9.2.12.0"
             rails: rails30
           - ruby-version: "jruby-9.2.12.0"
@@ -108,6 +140,8 @@ jobs:
             rails: rails41
           - ruby-version: "jruby-9.2.12.0"
             rails: rails60
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails61
           - ruby-version: "jruby-9.2.12.0"
             rails: rails52
     steps:
@@ -153,26 +187,34 @@ jobs:
         ports:
           - 5672:5672
         options: >-
-          --health-cmd "rabbitmqctl node_health_check" 
-          --health-interval 10s 
-          --health-timeout 5s 
+          --health-cmd "rabbitmqctl node_health_check"
+          --health-interval 10s
+          --health-timeout 5s
           --health-retries 5
       memcached:
         image: memcached:latest
         ports:
           - 11211:11211
         options: >-
-          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'" 
-          --health-interval 10s 
-          --health-timeout 5s 
+          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
+          --health-interval 10s
+          --health-timeout 5s
           --health-retries 5
 
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent, api, background, background_2, database, httpclients, rails, rest, serialization, sinatra]
-        ruby-version: [2.0.0-p648, 2.1.10, 2.2.10, 2.3.8, 2.4.10, 2.5.8, 2.6.6, 2.7.1, jruby-9.2.12.0]
+        multiverse: [agent, api, background, background_2, database, httpclients, rails, rails_extras, rest, serialization, sinatra]
+        ruby-version: [2.0.0-p648, 2.1.10, 2.2.10, 2.3.8, 2.4.10, 2.5.8, 2.6.6, 2.7.1, 3.0.0, jruby-9.2.12.0]
         exclude:
+          - ruby-version: "3.0.0"
+            multiverse: api
+          - ruby-version: "3.0.0"
+            multiverse: sinatra
+          - ruby-version: "3.0.0"
+            multiverse: rails
+          - ruby-version: "3.0.0"
+            multiverse: rails_extras
           - ruby-version: "2.7.1"
             multiverse: api
           - ruby-version: "2.7.1"

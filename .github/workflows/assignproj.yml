@@ -3,8 +3,7 @@ name: Auto Assign to Project
 on:
   issues:
     types: [opened]
-  pull_request:
-    types: [opened]
+
 env:
   MY_GITHUB_TOKEN: ${{ secrets.RUBY_GITHUB_TOKEN }}
 

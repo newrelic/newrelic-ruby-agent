@@ -1,4 +1,14 @@
 if RUBY_VERSION >= '2.5.0'
+  gemfile <<-RB
+    gem 'rails', '~> 6.1.0'
+    gem 'haml', '~>5.0.0'
+    gem 'haml-rails', '2.0.0'
+    gem 'minitest', '5.2.3'
+    #{ruby3_gem_webrick}
+  RB
+end
+
+if RUBY_VERSION >= '2.5.0' && RUBY_VERSION < '3.0.0'
 
   gemfile <<-RB
     gem 'rails', '6.0.0'
@@ -9,7 +19,7 @@ if RUBY_VERSION >= '2.5.0'
 
 end
 
-if RUBY_VERSION >= '2.2.2'
+if RUBY_VERSION >= '2.2.2' && RUBY_VERSION < '3.0.0'
 
   gemfile <<-RB
     gem 'rails', '5.2.2'
@@ -93,4 +103,3 @@ if RUBY_VERSION < '2.4.0'
   RB
 end
 
-# vim: ft=ruby

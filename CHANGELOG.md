@@ -1,11 +1,61 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v6.15.0
+
+  * **Official Ruby 3.0 support**
+    
+    The ruby agent has been verified to run on ruby 3.0.0
+
+  * **Added support for Rails 6.1**
+
+    The ruby agent has been verified to run with Rails 6.1
+    Special thanks to @hasghari for setting this up!
+
+  * **Added support for Sidekiq 6.0, 6.1**
+
+    The ruby agent has been verified to run with both 6.0 and 6.1 versions of sidekiq
+
+  * **Bugfix: No longer overwrites sidekiq trace data**
+
+    Distributed traing data is now added to the job trace info rather than overwriting the existing data.
+
+  * **Bugfix: Fixes cases where errors are reported for spans with no other attributes**
+
+    Previously, in cases where a span does not have any agent/custom attributes on it, but an error
+    is noticed and recorded against the span, a `FrozenError: can't modify frozen Hash` is thrown.
+    This is now fixed and errors are now correctly recorded against such span events.
+
+  * **Bugfix: `DistributedTracing.insert_distributed_trace_headers` Supportability metric now recorded**
+    
+    Previously, API calls to `DistributedTracing.insert_distributed_trace_headers` would lead to an exception
+    about the missing supportability metric rather than flowing through the API implementation as intended.
+    This would potentially lead to broken distributed traces as the trace headers were not inserted on the API call.
+    `DistributedTracing.insert_distributed_trace_headers` now correctly records the supportability metric and
+    inserts the distributed trace headers as intended.
+
+  * **Bugfix: child completions after parent completes sometimes throws exception attempting to access nil parent**
+
+    In scenarios where the child segment/span is completing after the parent in jRuby, the parent may have already
+    been freed and no longer accessible.  This would lead to attempting to calll `descendant_complete` on a Nil
+    object.  This is fixed to protect against calling the `descendant_complete` in such cases.
+    
+  * **Feature: implements `force_install_exit_handler` config flag**
+    
+    The `force_install_exit_handler` configuration flag allows an application to instruct the agent to install it's 
+    graceful shutdown exit handler, which will send any locally cached data to the New Relic collector prior to the 
+    application shutting down.  This useful for when the primary framework has an embedded Sinatra application that 
+    is otherwise detected and skips installing the exit hook for graceful shutdowns.
+
+  * **Default prepend_net_instrumentation to false**
+
+    Previously, `prepend_net_instrumentation` defaulted to true. However, many gems are still using monkey patching on Net::HTTP, which causes compatibility issues with using prepend. Defaulting this to false minimizes instances of 
+    unexpected compatibilty issues.
+    
   ## v6.14.0
 
   * **Bugfix: Method tracers no longer cloning arguments**
   
-    Previously, when calling add_method_tracer with certain combination of arguments, it would lead to the wrapped method's arguments
-    being cloned rather than passed to the original method for manipulation as intended.  This has been fixed.
+    Previously, when calling add_method_tracer with certain combination of arguments, it would lead to the wrapped method's arguments being cloned rather than passed to the original method for manipulation as intended.  This has been fixed.
 
   * **Bugfix: Delayed Job instrumentation fixed for Ruby 2.7+**
 

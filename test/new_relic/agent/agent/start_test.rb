@@ -101,6 +101,17 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     end
   end
 
+  def test_force_install_exit_handler_positive
+    self.expects(:sinatra_classic_app?).returns(true)
+    # we are overriding at_exit above, to immediately return, so we can
+    # test the shutdown logic. It's somewhat unfortunate, but we can't
+    # kill the interpreter during a test.
+    self.expects(:shutdown)
+    with_config(:send_data_on_exit => true, :force_install_exit_handler => true) do
+      install_exit_handler
+    end
+  end
+
   def test_install_exit_handler_negative
     with_config(:send_data_on_exit => false) do
       install_exit_handler
@@ -108,8 +119,16 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
     # should not raise excpetion
   end
 
+  def test_force_install_exit_handler_negative
+    # forcing exit handler should only install if send_data_on_exit also true!
+    with_config(:send_data_on_exit => false, :force_install_exit_handler => true) do
+      install_exit_handler
+    end
+    # should not raise excpetion
+  end
+
   def test_install_exit_handler_weird_ruby
-    with_config(:send_data_one_exit => true) do
+    with_config(:send_data_on_exit => true) do
       self.expects(:sinatra_classic_app?).returns(true)
       install_exit_handler
     end

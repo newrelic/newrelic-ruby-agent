@@ -2,6 +2,7 @@ gemfile <<-RB
   gem 'excon'
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
+  #{ruby3_gem_webrick}
 RB
 
 if RUBY_VERSION >= '2.2.0'
@@ -21,5 +22,6 @@ excon_versions.each do |excon_version|
     gem 'excon', '~> #{excon_version}'
     gem 'rack'
     gem 'json', :platforms => [:rbx, :mri_18]
+    #{ruby3_gem_webrick}
   RB
 end

@@ -62,68 +62,34 @@ module NewRelic
         end
 
         module RelationExtensions
-          if RUBY_VERSION < "2.7.0"
-            def update_all(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                super
-              end
+          def update_all(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+              super
             end
-  
-            def delete_all(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                super
-              end
-            end
-  
-            def destroy_all(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                super
-              end
-            end
-  
-            def calculate(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                super
-              end
-            end
-  
-            def pluck(*args, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                super
-              end
-            end
-            
-          else
-            def update_all(*args, **kwargs, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                super
-              end
-            end
-  
-            def delete_all(*args, **kwargs, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                super
-              end
-            end
-  
-            def destroy_all(*args, **kwargs, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                super
-              end
-            end
-  
-            def calculate(*args, **kwargs, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                super
-              end
-            end
-  
-            def pluck(*args, **kwargs, &blk)
-              ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
-                super
-              end
-            end
+          end
 
+          def delete_all(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+              super
+            end
+          end
+
+          def destroy_all(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+              super
+            end
+          end
+
+          def calculate(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+              super
+            end
+          end
+
+          def pluck(*args, &blk)
+            ::NewRelic::Agent.with_database_metric_name(self.name, nil, ACTIVE_RECORD) do
+              super
+            end
           end
         end
       end

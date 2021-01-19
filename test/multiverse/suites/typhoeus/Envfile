@@ -10,13 +10,15 @@ SUPPORTED_TYPHOEUS_VERSIONS = [
 gemfile <<-RB
   gem 'typhoeus' # latest version
   gem 'rack'
+  #{ruby3_gem_webrick}
 RB
 
 SUPPORTED_TYPHOEUS_VERSIONS.each do |version|
-gemfile <<-RB
-  gem 'typhoeus', '~> #{version}'
-  gem 'rack'
-RB
+  gemfile <<-RB
+    gem 'typhoeus', '~> #{version}'
+    gem 'rack'
+    #{ruby3_gem_webrick}
+  RB
 end
 
 gemfile <<-RB
@@ -26,6 +28,7 @@ gemfile <<-RB
   # We try translating URIs through Addressable if it's there, so test with it.
   gem 'addressable', :require => 'addressable/uri'
   gem 'public_suffix', '< 3.0.0' if RUBY_VERSION < "2.1.0"
+  #{ruby3_gem_webrick}
 RB
 
 if RUBY_VERSION < '2.4.0'
@@ -75,6 +78,7 @@ gemfile <<-RB
 
   gem 'typhoeus', '0.5.2'
   gem 'rack'
+  #{ruby3_gem_webrick}
 RB
 
 # vim: ft=ruby

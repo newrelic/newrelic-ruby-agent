@@ -39,12 +39,14 @@ gemfile <<-RB
   # We try translating URIs through Addressable if it's there, so test with it.
   gem 'addressable', :require => 'addressable/uri'
   gem 'public_suffix', '< 3.0.0' if RUBY_VERSION < "2.1.0"
+  #{ruby3_gem_webrick}
 RB
 
 gemfile <<-RB
   gem 'curb', '#{curb_gem_version}'
   gem 'rack'
   gem 'json', :platforms => [:rbx, :mri_18]
+  #{ruby3_gem_webrick}
 RB
 
 # Older curbs require older libcurl binaries!

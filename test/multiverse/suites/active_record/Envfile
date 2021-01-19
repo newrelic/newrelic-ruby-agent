@@ -9,7 +9,7 @@ boilerplate_gems = <<-BOILERPLATE
   gem 'rack'
 BOILERPLATE
 
-if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM == 'java'
+if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM == 'java' 
   mysql_vsn = '~>0.4.4'
 
   gemfile <<-RB

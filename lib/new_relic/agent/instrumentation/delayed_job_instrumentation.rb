@@ -120,27 +120,14 @@ DependencyDetection.defer do
 
           alias_method :invoke_job_without_new_relic, :invoke_job
 
-          if RUBY_VERSION < "2.7.0"
-            def invoke_job(*args, &block)
-              options = {
-                :category => NR_TRANSACTION_CATEGORY,
-                :path => ::NewRelic::Agent::Instrumentation::DelayedJob::Naming.name_from_payload(payload_object)
-              }
-  
-              perform_action_with_newrelic_trace(options) do
-                invoke_job_without_new_relic(*args, &block)
-              end
-            end
-          else
-            def invoke_job(*args, **kwargs, &block)
-              options = {
-                :category => NR_TRANSACTION_CATEGORY,
-                :path => ::NewRelic::Agent::Instrumentation::DelayedJob::Naming.name_from_payload(payload_object)
-              }
-  
-              perform_action_with_newrelic_trace(options) do
-                invoke_job_without_new_relic(*args, **kwargs, &block)
-              end
+          def invoke_job(*args, &block)
+            options = {
+              :category => NR_TRANSACTION_CATEGORY,
+              :path => ::NewRelic::Agent::Instrumentation::DelayedJob::Naming.name_from_payload(payload_object)
+            }
+
+            perform_action_with_newrelic_trace(options) do
+              invoke_job_without_new_relic(*args, &block)
             end
           end
 

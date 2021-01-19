@@ -92,24 +92,13 @@ module NewRelic
             middlewares
           end
 
-          if RUBY_VERSION < "2.7.0"
-            def build_with_newrelic(*args, &block)
-              unless NewRelic::Agent.config[:disable_sinatra_auto_middleware]
-                newrelic_middlewares.each do |middleware_class|
-                  try_to_use(self, middleware_class)
-                end
+          def build_with_newrelic(*args, &block)
+            unless NewRelic::Agent.config[:disable_sinatra_auto_middleware]
+              newrelic_middlewares.each do |middleware_class|
+                try_to_use(self, middleware_class)
               end
-              build_without_newrelic(*args, &block)
             end
-          else 
-            def build_with_newrelic(*args, **kwargs, &block)
-              unless NewRelic::Agent.config[:disable_sinatra_auto_middleware]
-                newrelic_middlewares.each do |middleware_class|
-                  try_to_use(self, middleware_class)
-                end
-              end
-              build_without_newrelic(*args, **kwargs, &block)
-            end
+            build_without_newrelic(*args, &block)
           end
 
           def try_to_use(app, clazz)
@@ -119,26 +108,14 @@ module NewRelic
         end
 
         # Capture last route we've seen. Will set for transaction on route_eval
-        if RUBY_VERSION < "2.7.0"
-          def process_route_with_newrelic(*args, &block)
-            begin
-              env["newrelic.last_route"] = args[0]
-            rescue => e
-              ::NewRelic::Agent.logger.debug("Failed determining last route in Sinatra", e)
-            end
-  
-            process_route_without_newrelic(*args, &block)
+        def process_route_with_newrelic(*args, &block)
+          begin
+            env["newrelic.last_route"] = args[0]
+          rescue => e
+            ::NewRelic::Agent.logger.debug("Failed determining last route in Sinatra", e)
           end
-        else 
-          def process_route_with_newrelic(*args, **kwargs, &block)
-            begin
-              env["newrelic.last_route"] = args[0]
-            rescue => e
-              ::NewRelic::Agent.logger.debug("Failed determining last route in Sinatra", e)
-            end
-  
-            process_route_without_newrelic(*args, **kwargs, &block)
-          end
+
+          process_route_without_newrelic(*args, &block)
         end
 
         # If a transaction name is already set, this call will tromple over it.
@@ -147,34 +124,18 @@ module NewRelic
         #
         # If we're ignored, this remains safe, since set_transaction_name
         # care for the gating on the transaction's existence for us.
-        if RUBY_VERSION < "2.7.0"
-          def route_eval_with_newrelic(*args, &block)
-            begin
-              txn_name = TransactionNamer.transaction_name_for_route(env, request)
-              unless txn_name.nil?
-                ::NewRelic::Agent::Transaction.set_default_transaction_name(
-                  "#{self.class.name}/#{txn_name}", :sinatra)
-              end
-            rescue => e
-              ::NewRelic::Agent.logger.debug("Failed during route_eval to set transaction name", e)
+        def route_eval_with_newrelic(*args, &block)
+          begin
+            txn_name = TransactionNamer.transaction_name_for_route(env, request)
+            unless txn_name.nil?
+              ::NewRelic::Agent::Transaction.set_default_transaction_name(
+                "#{self.class.name}/#{txn_name}", :sinatra)
             end
-  
-            route_eval_without_newrelic(*args, &block)
+          rescue => e
+            ::NewRelic::Agent.logger.debug("Failed during route_eval to set transaction name", e)
           end
-        else
-          def route_eval_with_newrelic(*args, **kwargs, &block)
-            begin
-              txn_name = TransactionNamer.transaction_name_for_route(env, request)
-              unless txn_name.nil?
-                ::NewRelic::Agent::Transaction.set_default_transaction_name(
-                  "#{self.class.name}/#{txn_name}", :sinatra)
-              end
-            rescue => e
-              ::NewRelic::Agent.logger.debug("Failed during route_eval to set transaction name", e)
-            end
-  
-            route_eval_without_newrelic(*args, **kwargs, &block)
-          end
+
+          route_eval_without_newrelic(*args, &block)
         end
 
         def dispatch_with_newrelic #THREAD_LOCAL_ACCESS
@@ -220,7 +181,6 @@ module NewRelic
         def ignore_enduser?
           Ignorer.should_ignore?(self, :enduser)
         end
-
       end
     end
   end

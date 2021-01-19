@@ -7,7 +7,6 @@
 
 require 'yaml'
 require 'net/http'
-require 'rexml/document'
 require 'new_relic/agent/hostname'
 
 # We need to use the Control object but we don't want to load

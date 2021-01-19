@@ -82,23 +82,12 @@ module NewRelic
 
       module RackBuilder
 
-        if RUBY_VERSION < "2.7.0"
-          def run_with_newrelic(app, *args)
-            if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
-              wrapped_app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
-              run_without_newrelic(wrapped_app, *args)
-            else
-              run_without_newrelic(app, *args)
-            end
-          end
-        else
-          def run_with_newrelic(app, *args, **kwargs)
-            if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
-              wrapped_app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
-              run_without_newrelic(wrapped_app, *args, **kwargs)
-            else
-              run_without_newrelic(app, *args, **kwargs)
-            end
+        def run_with_newrelic(app, *args)
+          if ::NewRelic::Agent::Instrumentation::RackHelpers.middleware_instrumentation_enabled?
+            wrapped_app = ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
+            run_without_newrelic(wrapped_app, *args)
+          else
+            run_without_newrelic(app, *args)
           end
         end
 

@@ -167,7 +167,7 @@ module NewRelic
 
           if finished?
             transaction.async = true
-            parent.descendant_complete self, segment
+            parent.descendant_complete(self, segment) if parent
           end
         end
 

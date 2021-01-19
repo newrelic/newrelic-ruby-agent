@@ -24,51 +24,26 @@ DependencyDetection.defer do
       class Task
         alias_method :invoke_without_newrelic, :invoke
 
-
-        if RUBY_VERSION < "2.7.0"
-          def invoke(*args)
-            unless NewRelic::Agent::Instrumentation::RakeInstrumentation.should_trace? name
-              return invoke_without_newrelic(*args)
-            end
-  
-            begin
-              timeout = NewRelic::Agent.config[:'rake.connect_timeout']
-              NewRelic::Agent.instance.wait_on_connect(timeout)
-            rescue => e
-              NewRelic::Agent.logger.error("Exception in wait_on_connect", e)
-              return invoke_without_newrelic(*args)
-            end
-  
-            NewRelic::Agent::Instrumentation::RakeInstrumentation.before_invoke_transaction(self)
-  
-            NewRelic::Agent::Tracer.in_transaction(name: "OtherTransaction/Rake/invoke/#{name}", category: :rake) do
-              NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
-              invoke_without_newrelic(*args)
-            end
+        def invoke(*args)
+          unless NewRelic::Agent::Instrumentation::RakeInstrumentation.should_trace? name
+            return invoke_without_newrelic(*args)
           end
-        else
-          def invoke(*args, **kwargs)
-            unless NewRelic::Agent::Instrumentation::RakeInstrumentation.should_trace? name
-              return invoke_without_newrelic(*args, **kwargs)
-            end
-  
-            begin
-              timeout = NewRelic::Agent.config[:'rake.connect_timeout']
-              NewRelic::Agent.instance.wait_on_connect(timeout)
-            rescue => e
-              NewRelic::Agent.logger.error("Exception in wait_on_connect", e)
-              return invoke_without_newrelic(*args, **kwargs)
-            end
-  
-            NewRelic::Agent::Instrumentation::RakeInstrumentation.before_invoke_transaction(self)
-  
-            NewRelic::Agent::Tracer.in_transaction(name: "OtherTransaction/Rake/invoke/#{name}", category: :rake) do
-              NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
-              invoke_without_newrelic(*args, **kwargs)
-            end
+
+          begin
+            timeout = NewRelic::Agent.config[:'rake.connect_timeout']
+            NewRelic::Agent.instance.wait_on_connect(timeout)
+          rescue => e
+            NewRelic::Agent.logger.error("Exception in wait_on_connect", e)
+            return invoke_without_newrelic(*args)
+          end
+
+          NewRelic::Agent::Instrumentation::RakeInstrumentation.before_invoke_transaction(self)
+
+          NewRelic::Agent::Tracer.in_transaction(name: "OtherTransaction/Rake/invoke/#{name}", category: :rake) do
+            NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
+            invoke_without_newrelic(*args)
           end
         end
-
       end
     end
   end
@@ -112,20 +87,11 @@ module NewRelic
 
           task.instance_variable_set(:@__newrelic_instrumented_execute, true)
           task.instance_eval do
-            if RUBY_VERSION < "2.7.0"
-              def execute(*args, &block)
-                NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/#{self.name}") do
-                  super
-                end
-              end
-            else
-              def execute(*args, **kwargs, &block)
-                NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/#{self.name}") do
-                  super
-                end
+            def execute(*args, &block)
+              NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/#{self.name}") do
+                super
               end
             end
-
           end
 
           instrument_execute_on_prereqs(task)
