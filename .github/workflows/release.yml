@@ -12,8 +12,10 @@ jobs:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
-    - name: update rubygems
-      run: gem update --system
+    
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 2.7
 
     - name: Install onetimepass
       run: pip install onetimepass
