@@ -89,11 +89,11 @@ module NewRelic
       def test_includes_agent_attributes
         attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
         attributes.add_agent_attribute :'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_ERROR_COLLECTOR
-        attributes.add_agent_attribute :httpResponseCode, "200", AttributeFilter::DST_ERROR_COLLECTOR
+        attributes.add_agent_attribute :'http.statusCode', 200, AttributeFilter::DST_ERROR_COLLECTOR
 
         _, _, agent_attrs = create_event :error_options => {:attributes => attributes}
 
-        expected = {:"request.headers.referer" => "http://blog.site/home", :httpResponseCode => "200"}
+        expected = {:"request.headers.referer" => "http://blog.site/home", :'http.statusCode' => 200}
         assert_equal expected, agent_attrs
       end
 

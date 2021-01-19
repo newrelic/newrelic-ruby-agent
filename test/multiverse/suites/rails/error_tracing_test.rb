@@ -122,7 +122,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
     expected_params = {
       'request.parameters.eat' => 'static',
-      'httpResponseCode' => '500'
+      'http.statusCode' => 500
     }
 
     attributes = agent_attributes_for_single_error_posted
