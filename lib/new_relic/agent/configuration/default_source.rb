@@ -1352,32 +1352,6 @@ module NewRelic
           :allowed_from_server => false,
           :description  => 'If <code>true</code>, the agent won\'t measure the depth of Delayed Job queues.'
         },
-        :disable_active_record_4 => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :deprecated   => true,
-          :description  => 'Deprecated.  ' \
-              'For agent versions 6.3 or higher, ' \
-              'use <a href="#disable_active_record_notifications"><code>' \
-                'disable_active_record_notifications' \
-              '</code></a> instead.'
-        },
-        :disable_active_record_5 => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :deprecated   => true,
-          :description  => 'Deprecated.  ' \
-              'For agent versions 6.3 or higher, ' \
-              'use <a href="#disable_active_record_notifications"><code>' \
-                'disable_active_record_notifications' \
-              '</code></a> instead.'
-        },
         :disable_active_record_notifications => {
           :default      => false,
           :public       => true,
