@@ -213,16 +213,6 @@ class NewRelicServiceTest < Minitest::Test
     end
   end
 
-  def test_metric_recorded_when_using_bundled_certs
-    assert @service.cert_file_path
-    assert_metrics_recorded("Supportability/Ruby/Certificate/BundleRequired")
-  end
-
-  def test_system_certs_by_default
-    @service.set_cert_store(nil)
-    assert_metrics_not_recorded("Supportability/Ruby/Certificate/BundleRequired")
-  end
-
   def test_initialize_uses_license_key_from_config
     with_config(:license_key => 'abcde') do
       service = NewRelic::Agent::NewRelicService.new
