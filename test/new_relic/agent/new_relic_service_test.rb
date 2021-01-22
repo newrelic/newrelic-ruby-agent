@@ -201,9 +201,8 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal([],         conn2.calls)
   end
 
-  def test_cert_file_path
-    assert @service.cert_file_path
-    assert_equal File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'cert', 'cacert.pem')), @service.cert_file_path
+  def test_no_default_cert_file_path
+    refute @service.cert_file_path
   end
 
   def test_cert_file_path_uses_path_from_config
