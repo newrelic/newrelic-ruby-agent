@@ -1,5 +1,34 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## 7.0.0
+
+
+  * **Removed Symantec cert bundle**
+
+    The agent will no longer ship this bundle and will rely on system certs. 
+
+  * **Removed deprecated config options**
+
+    The following config options were previously deprecated and are no longer available
+    - `disable_active_record_4`
+    - `disable_active_record_5`
+    - `autostart.blacklisted_constants`
+    - `autostart.blacklisted_executables`
+    - `autostart.blacklisted_rake_tasks`
+    - `strip_exception_messages.whitelist`
+
+  * **Removed deprecated attribute**
+
+    The attribute `httpResponseCode` was previously deprecated and replaced with `http.statusCode`. This deprecated attribute has now been removed.
+
+  * **Removed deprecated option in notice_error**
+
+    Previously, the :trace_only option to NewRelic::Agent.notice_error was deprecated and replaced with :expected. This deprecated option has been removed.
+
+  * **Removed deprecated api methods**
+  
+    Previously the api methods `create_distributed_trace_payload` and `accept_distributed_trace_payload` were deprecated. These have now been removed. Instead, please see `create_distributed_trace_headers` and `accept_distributed_trace_headers`, respectively.
+  
   ## v6.15.0
 
   * **Official Ruby 3.0 support**
