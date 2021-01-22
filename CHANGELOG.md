@@ -23,10 +23,10 @@
 
   * **Removed deprecated option in notice_error**
 
-    Previously, the :trace_only option to NewRelic::Agent.notice_error was deprecated and replaced with :expected. This deprecated option has been removed.
+    Previously, the `:trace_only` option to NewRelic::Agent.notice_error was deprecated and replaced with `:expected`. This deprecated option has been removed.
 
   * **Removed deprecated api methods**
-  
+
     Previously the api methods `create_distributed_trace_payload` and `accept_distributed_trace_payload` were deprecated. These have now been removed. Instead, please see `create_distributed_trace_headers` and `accept_distributed_trace_headers`, respectively.
   
   ## v6.15.0
