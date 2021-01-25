@@ -290,17 +290,6 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     assert_metrics_recorded("Apdex" => { :apdex_s => 1 })
   end
 
-  def test_should_permit_trace_only_option
-    get '/error/noticed_error_with_trace_only'
-
-    assert_equal(1, errors.size, 'Error with :trace_error should have been recorded')
-    assert_metrics_not_recorded([
-      'Errors/all',
-      'Errors/Controller/error/noticed_error_with_trace_only'
-    ])
-
-    assert_metrics_recorded("Apdex" => { :apdex_s => 1 })
-  end
 
   protected
 
