@@ -36,12 +36,12 @@
   * **Bugfix: child completions after parent completes sometimes throws exception attempting to access nil parent**
 
     In scenarios where the child segment/span is completing after the parent in jRuby, the parent may have already
-    been freed and no longer accessible.  This would lead an attempt to call `descendant_complete` on a Nil
+    been freed and no longer accessible.  This would lead to an attempt to call `descendant_complete` on a Nil
     object.  This is fixed to protect against calling the `descendant_complete` in such cases.
     
   * **Feature: implements `force_install_exit_handler` config flag**
     
-    The `force_install_exit_handler` configuration flag allows an application to instruct the agent to install its' 
+    The `force_install_exit_handler` configuration flag allows an application to instruct the agent to install its 
     graceful shutdown exit handler, which will send any locally cached data to the New Relic collector prior to the 
     application shutting down.  This is useful for when the primary framework has an embedded Sinatra application that 
     is otherwise detected and skips installing the exit hook for graceful shutdowns.
