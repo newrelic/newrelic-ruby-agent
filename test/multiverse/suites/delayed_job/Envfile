@@ -74,11 +74,6 @@ dj3_with_active_record = <<-DJ
   #{boilerplate_gems}
 DJ
 
-dj2_with_active_record3 = <<-DJ
-  gem 'delayed_job', '~> 2.1.4'
-  #{boilerplate_gems}
-DJ
-
 if RUBY_VERSION < '2.4.0'
   gemfile <<-RB
     gem 'activerecord', '~> 4.2.0'
@@ -102,7 +97,7 @@ if RUBY_VERSION < '2.4.0'
 end
 
 if RUBY_VERSION < '2.3.0'
-  [dj4_with_active_record, dj3_with_active_record, dj2_with_active_record3].each do |dj|
+  [dj4_with_active_record, dj3_with_active_record].each do |dj|
     gemfile <<-RB
       gem 'activerecord', '~> 3.2.19'
       gem 'i18n', '~> 0.6.11'
