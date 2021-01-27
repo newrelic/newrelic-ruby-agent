@@ -13,7 +13,6 @@ module NewRelic
     API_SUPPORTABILITY_METRICS = [
       :insert_distributed_trace_headers,
       :accept_distributed_trace_headers,
-      :create_distributed_trace_headers,
       :add_custom_attributes,
       :add_custom_span_attributes,
       :add_instrumentation,
