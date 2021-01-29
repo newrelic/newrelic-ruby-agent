@@ -1,4 +1,0 @@
-require 'new_relic/recipes'
-
-load 'deploy'
-load 'config/deploy'
