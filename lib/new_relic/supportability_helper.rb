@@ -74,7 +74,7 @@ module NewRelic
       caller_location = caller_locations.first.label
 
       message = "Bad argument passed to ##{caller_location}. " \
-        "Expected #{klass} for `#{name}` but got #{headers.class}"
+        "Expected #{klass} for `#{name}` but got #{arg.class}"
 
       NewRelic::Agent.logger.warn message
       nil
