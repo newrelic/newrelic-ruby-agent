@@ -4,6 +4,7 @@ SIDEKIQ_VERSIONS = [
   ["~> 6.1.0"],
   ["~> 6.0.0"],
   ["~> 5.0.3"],
+  ["~> 4.2.10"]
 ]
 
 # 5.x series requires >= Ruby 2.3
