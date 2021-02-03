@@ -1,3 +1,5 @@
+i18n_version_requirement = (RUBY_ENGINE == 'jruby') ? "gem 'i18n', '< 1.8.8'" : ''
+
 if RUBY_VERSION >= '2.5.0'
   gemfile <<-RB
     gem 'rails', '~> 6.1.0'
@@ -5,6 +7,7 @@ if RUBY_VERSION >= '2.5.0'
     gem 'haml-rails', '2.0.0'
     gem 'minitest', '5.2.3'
     #{ruby3_gem_webrick}
+    #{i18n_version_requirement}
   RB
 end
 
@@ -15,6 +18,7 @@ if RUBY_VERSION >= '2.5.0' && RUBY_VERSION < '3.0.0'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '2.0.0'
     gem 'minitest', '5.2.3'
+    #{i18n_version_requirement}
   RB
 
 end
@@ -26,6 +30,7 @@ if RUBY_VERSION >= '2.2.2' && RUBY_VERSION < '3.0.0'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '~>1.0.0'
     gem 'minitest', '5.2.3'
+    #{i18n_version_requirement}
   RB
 
   gemfile <<-RB
@@ -33,6 +38,7 @@ if RUBY_VERSION >= '2.2.2' && RUBY_VERSION < '3.0.0'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '~>1.0.0'
     gem 'minitest', '5.2.3'
+    #{i18n_version_requirement}
   RB
 
   gemfile <<-RB
@@ -40,6 +46,7 @@ if RUBY_VERSION >= '2.2.2' && RUBY_VERSION < '3.0.0'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '~>1.0.0'
     gem 'minitest', '5.2.3'
+    #{i18n_version_requirement}
   RB
 end
 
