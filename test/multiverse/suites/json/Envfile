@@ -1,12 +1,7 @@
 json_gems = ['~> 2.3.0', '~> 2.4.0', '~> 2.5.0']
 
 if RUBY_VERSION < '2.7.0'
-  json_gems << '~> 2.2.0'
-end
-
-if RUBY_ENGINE == "jruby"
-  json_gems.delete('~> 1.2.4')
-  json_gems.delete('~> 1.1.9')
+  json_gems += ['~> 2.2.0', '~> 1.8.6']
 end
 
 json_gems.each do |version|
