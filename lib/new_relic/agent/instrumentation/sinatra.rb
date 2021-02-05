@@ -101,9 +101,15 @@ module NewRelic
             build_without_newrelic(*args, &block)
           end
 
+          def install_lock
+            @install_lock ||= Mutex.new
+          end
+
           def try_to_use(app, clazz)
-            has_middleware = app.middleware.any? { |info| info[0] == clazz }
-            app.use(clazz) unless has_middleware
+            install_lock.synchronize do
+              has_middleware = app.middleware.any? { |info| info[0] == clazz }
+              app.use(clazz) unless has_middleware
+            end
           end
         end
 

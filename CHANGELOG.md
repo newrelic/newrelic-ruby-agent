@@ -2,11 +2,12 @@
 
   ## v6.15.1
 
-  * **Bugfix: Prevent browser monitoring middleware from installing to middleware multiple times
+  * **Bugfix: Prevent browser monitoring middleware from installing to middleware multiple times**
     
     In rare cases on jRuby, the BrowserMonitoring middleware could attempt to install itself 
     multiple times at start up.  This bug fix addresses that by using a mutex to introduce
-    thread safety to the operation.
+    thread safety to the operation.  Sintra in particular can have this race condition because
+    its middleware stack is not installed until the first request is received.
 
   ## v6.15.0
 
