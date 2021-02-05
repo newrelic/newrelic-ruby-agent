@@ -865,7 +865,7 @@ module NewRelic
           :description => 'If <code>true</code>, disables active record instrumentation.'
         },
         :prepend_active_record_instrumentation => {
-          :default => false,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -889,6 +889,13 @@ module NewRelic
           :allowed_from_server => false,
 
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
+        },
+        :prepend_bunny_instrumentation => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If <code>true</code>, uses Module.prepend rather than alias_method for Bunny instrumentation.'
         },
         :disable_data_mapper => {
           :default => false,
