@@ -18,6 +18,7 @@ DependencyDetection.defer do
   end
 
   executes do
+    
     module Bunny
       class Exchange
         alias_method :publish_without_new_relic, :publish
