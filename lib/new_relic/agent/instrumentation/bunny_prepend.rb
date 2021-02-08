@@ -8,7 +8,7 @@ module NewRelic
     module Instrumentation
       module BunnyPrepend
 
-        class Exchange
+        module ExchangePrepend
           def publish payload, opts = {}
             begin
               destination = NewRelic::Agent::Instrumentation::Bunny.exchange_name(name)
@@ -40,7 +40,7 @@ module NewRelic
           end
         end
   
-        class Queue
+        module QueuePrepend
           def pop(opts = {:manual_ack => false}, &block)
             bunny_error, delivery_info, message_properties, _payload = nil, nil, nil, nil
             begin
@@ -106,7 +106,7 @@ module NewRelic
   
         end
   
-        class Consumer
+        module ConsumerPrepend
           def call *args
             delivery_info, message_properties, _ = args
             queue_name = queue.respond_to?(:name) ? queue.name : queue

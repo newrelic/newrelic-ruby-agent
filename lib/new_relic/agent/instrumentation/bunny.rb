@@ -20,13 +20,13 @@ DependencyDetection.defer do
   executes do
     if ::NewRelic::Agent.config[:prepend_bunny_instrumentation]
       if RUBY_VERSION < "2.1.0"
-        ::Bunny::Exchange.send(:prepend, ::NewRelic::Agent::Instrumentation::BunnyPrepend::Exchange)
-        ::Bunny::Queue.send(:prepend, ::NewRelic::Agent::Instrumentation::BunnyPrepend::Queue)
-        ::Bunny::Consumer.send(:prepend, ::NewRelic::Agent::Instrumentation::BunnyPrepend::Consumer)
+        ::Bunny::Exchange.send(:prepend, ::NewRelic::Agent::Instrumentation::BunnyPrepend::ExchangePrepend)
+        ::Bunny::Queue.send(:prepend, ::NewRelic::Agent::Instrumentation::BunnyPrepend::QueuePrepend)
+        ::Bunny::Consumer.send(:prepend, ::NewRelic::Agent::Instrumentation::BunnyPrepend::ConsumerPrepend)
       else
-        ::Bunny::Exchange.prepend ::NewRelic::Agent::Instrumentation::BunnyPrepend::Exchange
-        ::Bunny::Queue.prepend ::NewRelic::Agent::Instrumentation::BunnyPrepend::Queue
-        ::Bunny::Consumer.prepend ::NewRelic::Agent::Instrumentation::BunnyPrepend::Consumer
+        ::Bunny::Exchange.prepend ::NewRelic::Agent::Instrumentation::BunnyPrepend::ExchangePrepend
+        ::Bunny::Queue.prepend ::NewRelic::Agent::Instrumentation::BunnyPrepend::QueuePrepend
+        ::Bunny::Consumer.prepend ::NewRelic::Agent::Instrumentation::BunnyPrepend::ConsumerPrepend
       end
     else
       module Bunny
