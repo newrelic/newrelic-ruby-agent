@@ -20,9 +20,13 @@ DependencyDetection.defer do
   executes do
     if ::NewRelic::Agent.config[:prepend_bunny_instrumentation]
       if RUBY_VERSION < "2.1.0"
-        ::Net::HTTP.send(:prepend, ::NewRelic::Agent::Instrumentation::BunnyPrepend)
+        ::Bunny::Exchange.send(:prepend, ::NewRelic::Agent::Instrumentation::BunnyPrepend::Exchange)
+        ::Bunny::Queue.send(:prepend, ::NewRelic::Agent::Instrumentation::BunnyPrepend::Queue)
+        ::Bunny::Consumer.send(:prepend, ::NewRelic::Agent::Instrumentation::BunnyPrepend::Consumer)
       else
-        ::Net::HTTP.prepend ::NewRelic::Agent::Instrumentation::BunnyPrepend
+        ::Bunny::Exchange.prepend ::NewRelic::Agent::Instrumentation::BunnyPrepend::Exchange
+        ::Bunny::Queue.prepend ::NewRelic::Agent::Instrumentation::BunnyPrepend::Queue
+        ::Bunny::Consumer.prepend ::NewRelic::Agent::Instrumentation::BunnyPrepend::Consumer
       end
     else
       module Bunny
