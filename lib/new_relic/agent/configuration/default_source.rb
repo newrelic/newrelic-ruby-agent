@@ -890,6 +890,13 @@ module NewRelic
 
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
         },
+        :prepend_curb_instrumentation => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If <code>true</code>, uses Module.prepend rather than alias_method for curb instrumentation.'
+        },
         :disable_data_mapper => {
           :default => false,
           :public => true,
