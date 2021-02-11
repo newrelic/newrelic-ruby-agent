@@ -16,7 +16,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    if ::NewRelic::Agent.config[:prepend_http_instrumentation]
+    if ::NewRelic::Agent.config[:'instrumentation.http'] == :prepend
       if RUBY_VERSION < "2.1.0"
         ::HTTP::Client.send(:prepend, ::NewRelic::Agent::Instrumentation::HTTPPrepend)
       else
