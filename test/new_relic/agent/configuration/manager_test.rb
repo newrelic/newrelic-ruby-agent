@@ -404,6 +404,27 @@ module NewRelic::Agent::Configuration
       end
     end
 
+    def test_prepend_key_absent_to_instrumentation_value_of
+      with_config({}) do
+        result = @manager.fetch(:'instrumentation.net_http')
+        assert_equal "auto", result
+      end
+    end
+
+    def test_prepend_key_false_to_instrumentation_value_of
+      with_config({:prepend_net_instrumentation => false}) do
+        result = @manager.fetch(:'instrumentation.net_http')
+        assert_equal "chain", result
+      end
+    end
+
+    def test_prepend_key_true_to_instrumentation_value_of
+      with_config(:prepend_net_instrumentation => true) do
+        result = @manager.fetch(:'instrumentation.net_http')
+        assert_equal "auto", result
+      end
+    end
+
     def test_default_to_value_of
       with_config(:port => 8888) do
         result = @manager.fetch(:api_port)
