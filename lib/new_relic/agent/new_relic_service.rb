@@ -346,6 +346,9 @@ module NewRelic
         conn = create_http_connection
         start_connection(conn)
         conn
+      rescue Timeout::Error
+        ::NewRelic::Agent.logger.info ("Timeout while attempting to connect. You may need to install system-level CA Certificates, as the ruby agent no longer includes these.")
+        raise
       end
 
       # The path to the certificate file used to verify the SSL
