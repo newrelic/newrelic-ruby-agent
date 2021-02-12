@@ -1599,9 +1599,7 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.net_http',
-            'If <code>true</code>, disables instrumentation for Net::HTTP.'
-          )
+          :description  => deprecated_description(:'instrumentation.net_http', 'If <code>true</code>, disables instrumentation for Net::HTTP.')
         },
         :disable_rack => {
           :default      => false,

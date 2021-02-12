@@ -105,13 +105,13 @@ module MultiverseHelpers
     NewRelic::Agent.manual_start(defaults.merge(opts))
   end
 
-  # 
+  #
   # Instrumentation
   #
-  # These are here to ease spinning up tests with different methods of 
+  # These are here to ease spinning up tests with different methods of
   # instrumenting.
   # Typically, every suite that we need to test different methods of
-  # instrumentation should have something like the following in 
+  # instrumentation should have something like the following in
   # the config:
   #
   #     instrumentation:

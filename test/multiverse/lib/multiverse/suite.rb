@@ -144,7 +144,7 @@ module Multiverse
 
     def bundle_show_env bundle_cmd
       return unless ENV["BUNDLE_SHOW_ENV"]
-      puts `#{bundle_cmd} env` 
+      puts `#{bundle_cmd} env`
     end
 
     def bundle_config dir, bundle_cmd
@@ -463,7 +463,7 @@ module Multiverse
 
     def execute_in_foreground(env, instrumentation_method)
       with_unbundled_env do
-        puts yellow("Running #{suite.inspect} using #{instrumentation_method.upcase} for Envfile entry #{env}\n")
+        puts yellow("Running #{instrumentation_method} #{suite.inspect} for Envfile entry #{env}\n")
         system(child_command_line(env, instrumentation_method))
         check_for_failure(env)
       end
@@ -471,7 +471,7 @@ module Multiverse
 
     def execute_in_background(env, instrumentation_method)
       with_unbundled_env do
-        OutputCollector.write(suite, env, yellow("Running #{suite.inspect} using #{instrumentation_method.upcase} for Envfile entry #{env}\n"))
+        OutputCollector.write(suite, env, yellow("Running #{instrumentation_method} #{suite.inspect} for Envfile entry #{env}\n"))
 
         IO.popen(child_command_line(env, instrumentation_method)) do |io|
           until io.eof do
