@@ -890,6 +890,13 @@ module NewRelic
 
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
         },
+        :'instrumentation.delayed_job' => {
+          :default => :prepend,
+          :public => true,
+          :type => Symbol,
+          :allowed_from_server => false,
+          :description => ''
+        },
         :disable_data_mapper => {
           :default => false,
           :public => true,
