@@ -15,6 +15,35 @@ module NewRelic
         end
       end
 
+      # Combines potentially two properties into one.
+      # Given the example: 
+      #    :disable_net_http and :prepend_net_instrumentation
+      #    if :disable_net_http is true, then returned value is "disabled"
+      #    if :prepend_net_instrumentation is false, then returned value is "chain"
+      #    otherwise, "auto" is returned.
+      #
+      # Intent is: 
+      #     - if user sets disable_xxx property, then don't instrument
+      #     - if user set prepend to `false` then we use method_alias chaining
+      #     - auto, when returned means, try to use prepend unless conflicting gems discovered
+      #
+      def self.instrumentation_value_of(disable_key, prepend_key=nil)
+        Proc.new do
+          if NewRelic::Agent.config[disable_key]
+            "disabled"
+          elsif prepend_key && !NewRelic::Agent.config[prepend_key]
+            "chain"
+          else
+            "auto"
+          end
+        end
+      end
+
+      def self.deprecated_description new_setting, description
+        link_ref = new_setting.to_s.gsub(".", "-")
+        new_setting_link = %{<a href="##{link_ref}"><code>#{new_setting}</code>}
+      end
+
       class Boolean
         def self.===(o)
           TrueClass === o or FalseClass === o
@@ -843,11 +872,22 @@ module NewRelic
           :description => 'If <code>true</code>, uses Module.prepend rather than alias_method for ActiveRecord instrumentation.'
         },
         :prepend_net_instrumentation => {
-          :default => false,
-          :public => true,
+          :default => true,
+          :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, uses Module.prepend rather than alias_method for Net::HTTP instrumentation.'
+          :deprecated => true,
+          :description => deprecated_description(:'instrumentation.net_http',
+            'If <code>true</code>, uses Module.prepend rather than alias_method for Net::HTTP instrumentation.'
+          )
+        },
+        :'instrumentation.net_http' => {
+          :default => instrumentation_value_of(:disable_net_http, :prepend_net_instrumentation),
+          :public => :true,
+          :type => String,
+          :allowed_from_server => false,
+
+          :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :disable_data_mapper => {
           :default => false,
@@ -1470,7 +1510,10 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for Net::HTTP.'
+          :deprecated   => true,
+          :description  => deprecated_description(:'instrumentation.net_http', 
+            'If <code>true</code>, disables instrumentation for Net::HTTP.'
+          )
         },
         :disable_rack => {
           :default      => false,

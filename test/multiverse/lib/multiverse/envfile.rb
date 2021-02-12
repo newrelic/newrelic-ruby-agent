@@ -8,9 +8,11 @@ module Multiverse
   class Envfile
     attr_accessor :file_path, :condition
     attr_reader :before, :after, :mode, :skip_message, :omit_collector
+    attr_reader :instrumentation_permutations
 
     def initialize(file_path)
       self.file_path = file_path
+      @instrumentation_permutations = ["chain"]
       @gemfiles = []
       @mode = 'fork'
       if File.exist? file_path
@@ -30,7 +32,8 @@ module Multiverse
     end
 
     def gemfile(content)
-      @gemfiles.push strip_leading_spaces(content)
+      content = strip_leading_spaces(content)
+      @gemfiles.push(content) unless content.empty?
     end
 
     def ruby3_gem_webrick
@@ -43,6 +46,10 @@ module Multiverse
 
     def omit_collector!
       @omit_collector = true
+    end
+
+    def instrumentation_methods *args
+      @instrumentation_permutations = args.map(&:to_s)
     end
 
     def before_suite(&block)
@@ -70,8 +77,12 @@ module Multiverse
       @gemfiles[key]
     end
 
+    def permutations
+      @instrumentation_permutations.size
+    end
+    
     def size
-      @gemfiles.size
+      @gemfiles.size * permutations
     end
 
   end

@@ -329,9 +329,12 @@ module Multiverse
       puts(gems.join(', '))
     end
 
-    def execute_child_environment(env_index)
+    def execute_child_environment(env_index, instrumentation_method)
       with_unbundled_env do
+
+        configure_instrumentation_method instrumentation_method
         ENV["MULTIVERSE_ENV"] = env_index.to_s
+        ENV["NEWRELIC_INSTRUMENTATION_METHOD"] = instrumentation_method
         log_test_running_process
         configure_before_bundling
 
@@ -378,14 +381,21 @@ module Multiverse
       end
     end
 
+    def each_instrumentation_method &block
+      environments.instrumentation_permutations.each do |instrumentation_method|
+        yield(instrumentation_method)
+      end
+    end
+
     # Load the test suite's environment and execute it.
     #
     # Normally we fork to do this, and wait for the child to exit, to avoid
     # polluting the parent process with test dependencies.  JRuby doesn't
     # implement #fork so we resort to a hack.  We exec this lib file, which
     # loads a new JVM for the tests to run in.
-    def execute
+    def execute instrumentation_method
       return unless check_environment_condition
+      configure_instrumentation_method instrumentation_method
 
       label = should_serialize? ? 'serial' : 'parallel'
       env_count = filter_env ? 1 : environments.size
@@ -393,12 +403,13 @@ module Multiverse
 
       environments.before.call if environments.before
       if should_serialize?
-        execute_serial
+        execute_serial instrumentation_method
       else
-        execute_parallel
+        execute_parallel instrumentation_method
       end
       environments.after.call if environments.after
     rescue => e
+      puts e.backtrace
       puts red("Failure during execution of suite #{directory.inspect}.")
       puts red("This typically is a result of a Ruby failure in your Envfile.")
       puts
@@ -407,20 +418,20 @@ module Multiverse
       exit(1)
     end
 
-    def execute_serial
+    def execute_serial instrumentation_method
       with_each_environment do |_, i|
         if debug
-          execute_in_foreground(i)
+          execute_in_foreground(i, instrumentation_method)
         else
-          execute_in_background(i)
+          execute_in_background(i, instrumentation_method)
         end
       end
     end
 
-    def execute_parallel
+    def execute_parallel instrumentation_method
       threads = []
       with_each_environment do |_, i|
-        threads << Thread.new { execute_in_background(i) }
+        threads << Thread.new { execute_in_background(i, instrumentation_method) }
       end
       threads.each {|t| t.join}
     end
@@ -450,19 +461,19 @@ module Multiverse
       end
     end
 
-    def execute_in_foreground(env)
+    def execute_in_foreground(env, instrumentation_method)
       with_unbundled_env do
-        puts yellow("Running #{suite.inspect} for Envfile entry #{env}\n")
-        system(child_command_line(env))
+        puts yellow("Running #{instrumentation_method} #{suite.inspect} for Envfile entry #{env}\n")
+        system(child_command_line(env, instrumentation_method))
         check_for_failure(env)
       end
     end
 
-    def execute_in_background(env)
+    def execute_in_background(env, instrumentation_method)
       with_unbundled_env do
-        OutputCollector.write(suite, env, yellow("Running #{suite.inspect} for Envfile entry #{env}\n"))
+        OutputCollector.write(suite, env, yellow("Running #{instrumentation_method} #{suite.inspect} for Envfile entry #{env}\n"))
 
-        IO.popen(child_command_line(env)) do |io|
+        IO.popen(child_command_line(env, instrumentation_method)) do |io|
           until io.eof do
             chars = io.read
             OutputCollector.write(suite, env, chars)
@@ -474,7 +485,8 @@ module Multiverse
       end
     end
 
-    def child_command_line(env)
+    def child_command_line(env, instrumentation_method)
+      opts[:instrumentation_method] = instrumentation_method
       "#{__FILE__} #{directory} #{env} '#{Suite.encode_options(opts)}'"
     end
 
@@ -573,6 +585,10 @@ module Multiverse
       ENV["NEWRELIC_OMIT_FAKE_COLLECTOR"] = "true" if environments.omit_collector
     end
 
+    def configure_instrumentation_method method
+      ENV["NEWRELIC_INSTRUMENTATION_METHOD"] = method
+    end
+
     def require_helpers
       # If used from a 3rd-party, these paths likely need to be added
       $: << File.expand_path('../../../..', __FILE__)
@@ -645,6 +661,7 @@ if $0 == __FILE__ && $already_running.nil?
   # Ugly, but seralized args passed along to #popen when kicking child off
   dir, env_index, encoded_opts, _ = *ARGV
   opts = Multiverse::Suite.decode_options(encoded_opts)
+  instrumentation_method = opts.delete(:instrumentation_method)
   suite = Multiverse::Suite.new(dir, opts)
-  suite.execute_child_environment(env_index.to_i)
+  suite.execute_child_environment(env_index.to_i, instrumentation_method)
 end
