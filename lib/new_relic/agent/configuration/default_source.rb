@@ -890,12 +890,12 @@ module NewRelic
 
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
         },
-        :prepend_bunny_instrumentation => {
-          :default => true,
+        :'instrumentation.bunny' => {
+          :default => :prepend,
           :public => true,
-          :type => Boolean,
+          :type => Symbol,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, uses Module.prepend rather than alias_method for Bunny instrumentation.'
+          :description => 'If <code>:prepend</code>, uses Module.prepend rather than alias_method for Bunny instrumentation.'
         },
         :disable_data_mapper => {
           :default => false,

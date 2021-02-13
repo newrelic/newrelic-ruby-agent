@@ -18,7 +18,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    if ::NewRelic::Agent.config[:prepend_bunny_instrumentation]
+    if ::NewRelic::Agent.config[:'instrumentation.bunny'] == :prepend
       if RUBY_VERSION < "2.1.0"
         ::Bunny::Exchange.send(:prepend, ::NewRelic::Agent::Instrumentation::BunnyPrepend::ExchangePrepend)
         ::Bunny::Queue.send(:prepend, ::NewRelic::Agent::Instrumentation::BunnyPrepend::QueuePrepend)
