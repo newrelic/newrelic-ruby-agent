@@ -891,9 +891,9 @@ module NewRelic
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.bunny' => {
-          :default => :prepend,
+          :default => instrumentation_value_of(:disable_bunny),
           :public => true,
-          :type => Symbol,
+          :type => String,
           :allowed_from_server => false,
           :description => 'If <code>:prepend</code>, uses Module.prepend rather than alias_method for Bunny instrumentation.'
         },
@@ -1484,9 +1484,10 @@ module NewRelic
           :default      => false,
           :public       => true,
           :type         => Boolean,
+          :deprecated   => true,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for the bunny gem.'
+          :description  => deprecated_description(:'instrumentation.bunny', 'If <code>true</code>, disables instrumentation for the bunny gem.')
         },
         :disable_curb => {
           :default      => false,
