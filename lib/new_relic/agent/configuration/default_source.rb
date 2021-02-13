@@ -890,10 +890,10 @@ module NewRelic
 
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
         },
-        :'instrumentation.bunny' => {
-          :default => :prepend,
+        :'instrumentation.curb' => {
+          :default => instrumentation_value_of(:disable_curb),
           :public => true,
-          :type => Symbol,
+          :type => String,
           :allowed_from_server => false,
           :description => ''
         },

@@ -19,7 +19,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    if ::NewRelic::Agent.config[:'instrumentation.bunny'] == :prepend
+    if ::NewRelic::Agent.config[:'instrumentation.curb'] == :prepend
       if RUBY_VERSION < "2.1.0"
         Curl::Easy.send(:prepend, ::NewRelic::Agent::Instrumentation::CurbPrepend::EasyPrepend)
         Curl::Multi.send(:prepend, ::NewRelic::Agent::Instrumentation::CurbPrepend::MultiPrepend)
