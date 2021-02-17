@@ -32,7 +32,7 @@ DependencyDetection.defer do
   executes do
     if use_prepend?
       prepend_instrument ::Net::HTTP, ::NewRelic::Agent::Instrumentation::NetHTTP::Prepend
-    else 
+    else
       chain_instrument ::NewRelic::Agent::Instrumentation::NetHTTP::Chain
     end
   end
