@@ -7,7 +7,7 @@ module DependencyDetection
   module_function
 
   @items = []
-
+  
   def defer(&block)
     item = Dependent.new
     item.instance_eval(&block)
@@ -21,6 +21,7 @@ module DependencyDetection
     end
 
     @items << item
+    return item
   end
 
   def detect!
@@ -56,10 +57,12 @@ module DependencyDetection
     end
 
     attr_reader :dependencies
+    attr_reader :prepend_conflicts
 
     def initialize
       @dependencies = []
       @executes = []
+      @prepend_conflicts = []
       @name = nil
     end
 
@@ -70,7 +73,26 @@ module DependencyDetection
     def source_location_for klass, method_name
       Object.instance_method(:method).bind(klass.allocate).call(method_name).source_location.to_s
     end
-  
+
+    # Extracts the instrumented library name from the instrumenting module's name
+    # Given "NewRelic::Agent::Instrumentation::NetHTTP::Prepend"
+    # Will extract "NetHTTP" which is in the 2nd to last spot
+    def extract_supportability_name instrumenting_module
+      instrumenting_module.to_s.split("::")[-2]
+    end
+
+    def prepend_instrument target_class, instrumenting_module, supportability_name=nil
+      supportability_name ||= extract_supportability_name(instrumenting_module)
+      NewRelic::Agent.record_metric("Supportability/Instrumentation/#{supportability_name}/Prepend", 0.0)
+      target_class.send :prepend, instrumenting_module
+    end
+
+    def chain_instrument instrumenting_module, supportability_name=nil
+      supportability_name ||= extract_supportability_name(instrumenting_module)
+      NewRelic::Agent.record_metric("Supportability/Instrumentation/#{supportability_name}/MethodChaining", 0.0)
+      instrumenting_module.instrument!
+    end
+
     def execute
       @executes.each do |x|
         begin
@@ -102,16 +124,56 @@ module DependencyDetection
     end
 
     def allowed_by_config?
-      # If we don't have a name, can't check config so allow it
-      return true if self.name.nil?
+      !(disabled_configured? || deprecated_disabled_configured?)
+    end
+
+    # TODO: Remove in 8.0
+    # will only return true if a disabled key is found and is truthy
+    def deprecated_disabled_configured?
+      return false if self.name.nil?
 
       key = "disable_#{self.name}".to_sym
-      if (::NewRelic::Agent.config[key] == true)
-        ::NewRelic::Agent.logger.debug("Not installing #{self.name} instrumentation because of configuration #{key}")
-        false
-      else
-        true
+      return false unless ::NewRelic::Agent.config[key] == true
+
+      ::NewRelic::Agent.logger.debug("Not installing #{self.name} instrumentation because of configuration #{key}")
+      ::NewRelic::Agent.logger.debug \
+        "[DEPRECATED] configuration #{key} for #{self.name} will be removed in the next major release." \
+        " Use `#{config_key}` with one of `#{VALID_CONFIG_VALUES.map(&:to_s).inspect}`"
+
+      return true
+    end
+
+    def config_key
+      return nil if self.name.nil?
+      @config_key ||= "instrumentation.#{self.name}".to_sym
+    end
+
+    VALID_CONFIG_VALUES = [:auto, :disabled, :prepend, :chain]
+    AUTO_CONFIG_VALUE = VALID_CONFIG_VALUES[0]
+
+    VALID_CONFIG_VALUES.each do |value|
+      define_method "#{value}_configured?" do
+        value == config_value
       end
+    end
+
+    # returns only a valid value for instrumentation configuration
+    # If user uses "enabled" it's converted to "auto"
+    def valid_config_value retrieved_value
+      VALID_CONFIG_VALUES.include?(retrieved_value) ? retrieved_value : AUTO_CONFIG_VALUE
+    end
+
+    # fetches and transform potentially invalid value given to one of the valid config values
+    # logs the resolved value during debug mode.
+    def fetch_config_value(key)
+      valid_value = valid_config_value(::NewRelic::Agent.config[key].to_s.to_sym)
+      ::NewRelic::Agent.logger.debug ("Using #{valid_value} configuration value for #{self.name} to configure instrumentation")
+      return valid_value
+    end
+
+    def config_value
+      return AUTO_CONFIG_VALUE unless config_key
+      fetch_config_value(config_key)
     end
 
     def named(new_name)
@@ -120,6 +182,25 @@ module DependencyDetection
 
     def executes &block
       @executes << block if block_given?
+    end
+
+    def conflicts_with_prepend &block
+      @prepend_conflicts << block if block_given?
+    end
+
+    def use_prepend?
+      prepend_configured? || (auto_configured? && !prepend_conflicts?)
+    end
+
+    def prepend_conflicts?
+      @prepend_conflicts.any? do |conflict|
+        begin
+          conflict.call
+        rescue => err
+          NewRelic::Agent.logger.error( "Error while checking prepend conflicts #{self.name}:", err )
+          false # assumes no conflicts exist since `prepend` is preferred method of instrumenting
+        end
+      end
     end
   end
 end
