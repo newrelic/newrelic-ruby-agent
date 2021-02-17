@@ -101,7 +101,8 @@ module NewRelic
               when 4..6
                 :rails_notifications
               else
-                ::NewRelic::Agent.logger.error "Detected unsupported Rails version #{Rails::VERSION::STRING}"
+                ::NewRelic::Agent.logger.warn "Detected untested Rails version #{Rails::VERSION::STRING}"
+                :rails_notifications
               end
             when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
             when defined?(::NewRelic::IA) then :external
