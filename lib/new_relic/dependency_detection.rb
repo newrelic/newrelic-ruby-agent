@@ -52,18 +52,25 @@ module DependencyDetection
   class Dependent
     attr_reader :executed
     attr_accessor :name
+    attr_writer :config_name
+    attr_reader :dependencies
+    attr_reader :prepend_conflicts
+
+
     def executed!
       @executed = true
     end
-
-    attr_reader :dependencies
-    attr_reader :prepend_conflicts
+    
+    def config_name
+      @config_name || @name
+    end
 
     def initialize
       @dependencies = []
       @executes = []
       @prepend_conflicts = []
       @name = nil
+      @config_name = nil
     end
 
     def dependencies_satisfied?
@@ -144,8 +151,8 @@ module DependencyDetection
     end
 
     def config_key
-      return nil if self.name.nil?
-      @config_key ||= "instrumentation.#{self.name}".to_sym
+      return nil if self.config_name.nil?
+      @config_key ||= "instrumentation.#{self.config_name}".to_sym
     end
 
     VALID_CONFIG_VALUES = [:auto, :disabled, :prepend, :chain]
@@ -178,6 +185,10 @@ module DependencyDetection
 
     def named(new_name)
       self.name = new_name
+    end
+
+    def configured_with(new_config_name)
+      self.config_name = new_config_name
     end
 
     def executes &block
