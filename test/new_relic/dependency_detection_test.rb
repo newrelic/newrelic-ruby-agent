@@ -27,6 +27,31 @@ class DependencyDetectionTest < Minitest::Test
     assert executed
   end
 
+  def test_falls_back_to_name_for_config_key
+    key = nil
+
+    DependencyDetection.defer do
+      named :testing
+      executes   { key = config_key }
+    end
+    DependencyDetection.detect!
+
+    assert_equal :"instrumentation.testing", key
+  end
+
+  def test_uses_config_name_for_config_key
+    key = nil
+
+    DependencyDetection.defer do
+      named :testing
+      configured_with :alternate
+      executes   { key = config_key }
+    end
+    DependencyDetection.detect!
+
+    assert_equal :"instrumentation.alternate", key
+  end
+
   def test_fails_dependency
     executed = false
 
