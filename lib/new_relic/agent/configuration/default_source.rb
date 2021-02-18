@@ -41,7 +41,7 @@ module NewRelic
 
       def self.deprecated_description new_setting, description
         link_ref = new_setting.to_s.gsub(".", "-")
-        new_setting_link = %{<a href="##{link_ref}"><code>#{new_setting}</code>}
+        %{<a href="##{link_ref}"><code>#{new_setting}</code>}
       end
 
       class Boolean
