@@ -141,7 +141,7 @@ module MultiverseHelpers
   end
 
   def instrumentation_method
-    ENV["NEWRELIC_INSTRUMENTATION_METHOD"] ||= "chain"
+    ENV["MULTIVERSE_INSTRUMENTATION_METHOD"] ||= "chain"
   end
 
   def ensure_instrumentation_method

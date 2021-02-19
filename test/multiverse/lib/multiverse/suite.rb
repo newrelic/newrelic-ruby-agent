@@ -334,7 +334,7 @@ module Multiverse
 
         configure_instrumentation_method instrumentation_method
         ENV["MULTIVERSE_ENV"] = env_index.to_s
-        ENV["NEWRELIC_INSTRUMENTATION_METHOD"] = instrumentation_method
+        ENV["MULTIVERSE_INSTRUMENTATION_METHOD"] = instrumentation_method
         log_test_running_process
         configure_before_bundling
 
@@ -586,7 +586,7 @@ module Multiverse
     end
 
     def configure_instrumentation_method method
-      ENV["NEWRELIC_INSTRUMENTATION_METHOD"] = method
+      ENV["MULTIVERSE_INSTRUMENTATION_METHOD"] = $instrumentation_method = method
     end
 
     def require_helpers
