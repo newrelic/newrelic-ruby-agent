@@ -88,16 +88,23 @@ module DependencyDetection
       instrumenting_module.to_s.split("::")[-2]
     end
 
-    def prepend_instrument target_class, instrumenting_module, supportability_name=nil
+    def log_and_instrument method, instrumenting_module, supportability_name
       supportability_name ||= extract_supportability_name(instrumenting_module)
-      NewRelic::Agent.record_metric("Supportability/Instrumentation/#{supportability_name}/Prepend", 0.0)
-      target_class.send :prepend, instrumenting_module
+      NewRelic::Agent.logger.info "Installing New Relic supported #{supportability_name} instrumentation using #{method}"
+      NewRelic::Agent.record_metric("Supportability/Instrumentation/#{supportability_name}/#{method}", 0.0)
+      yield
+    end
+
+    def prepend_instrument target_class, instrumenting_module, supportability_name=nil
+      log_and_instrument("Prepend", instrumenting_module, supportability_name) do
+        target_class.send :prepend, instrumenting_module
+      end
     end
 
     def chain_instrument instrumenting_module, supportability_name=nil
-      supportability_name ||= extract_supportability_name(instrumenting_module)
-      NewRelic::Agent.record_metric("Supportability/Instrumentation/#{supportability_name}/MethodChaining", 0.0)
-      instrumenting_module.instrument!
+      log_and_instrument("MethodChaining", instrumenting_module, supportability_name) do
+        instrumenting_module.instrument!
+      end
     end
 
     def execute
@@ -174,7 +181,7 @@ module DependencyDetection
     # logs the resolved value during debug mode.
     def fetch_config_value(key)
       valid_value = valid_config_value(::NewRelic::Agent.config[key].to_s.to_sym)
-      ::NewRelic::Agent.logger.debug ("Using #{valid_value} configuration value for #{self.name} to configure instrumentation")
+      ::NewRelic::Agent.logger.debug("Using #{valid_value} configuration value for #{self.name} to configure instrumentation")
       return valid_value
     end
 
@@ -187,7 +194,7 @@ module DependencyDetection
       self.name = new_name
     end
 
-    def configured_with(new_config_name)
+    def configure_with(new_config_name)
       self.config_name = new_config_name
     end
 
