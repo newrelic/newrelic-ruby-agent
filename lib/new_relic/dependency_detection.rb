@@ -60,11 +60,7 @@ module DependencyDetection
     def executed!
       @executed = true
     end
-<<<<<<< HEAD
 
-=======
-
->>>>>>> e357fdb29 (ability to override instrumentation's config key name)
     def config_name
       @config_name || @name
     end
