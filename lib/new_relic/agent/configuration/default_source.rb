@@ -894,8 +894,9 @@ module NewRelic
           :default => instrumentation_value_of(:disable_curb),
           :public => true,
           :type => String,
+          :dynamic_name => true,
           :allowed_from_server => false,
-          :description => ''
+          :description => 'Controls auto-instrumentation of Curb at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :disable_data_mapper => {
           :default => false,
