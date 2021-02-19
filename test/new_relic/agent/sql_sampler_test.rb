@@ -440,7 +440,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_on_finishing_transaction_with_busted_transaction_state_does_not_crash
     state = NewRelic::Agent::Tracer.state
-    @sampler.on_finishing_transaction(state, "whatever", Time.now)
+    @sampler.on_finishing_transaction(state, "whatever")
   end
 
   def test_caps_collection_of_unique_statements

@@ -443,7 +443,7 @@ module NewRelic::Agent
         yield if block_given?
         @sampler.notice_pop_frame(@state, "node#{i}")
       end
-      @sampler.on_finishing_transaction(@state, @txn, Time.now.to_f)
+      @sampler.on_finishing_transaction(@state, @txn)
     end
 
     def run_sample_trace(start = Time.now.to_f, stop = nil, state = @state)
@@ -458,7 +458,7 @@ module NewRelic::Agent
       @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0, state)
       @sampler.notice_pop_frame(state, "ac")
       @sampler.notice_pop_frame(state, "a")
-      @sampler.on_finishing_transaction(state, @txn, (stop || Time.now.to_f))
+      @sampler.on_finishing_transaction(state, @txn)
     end
 
     def intrinsic_attributes_from_last_sample
