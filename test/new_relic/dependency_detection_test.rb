@@ -44,7 +44,7 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.defer do
       named :testing
-      configured_with :alternate
+      configure_with :alternate
       executes   { key = config_key }
     end
     DependencyDetection.detect!
