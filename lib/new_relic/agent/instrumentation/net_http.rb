@@ -13,7 +13,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Net:HTTP instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Net:HTTP Wrappers'
     require 'new_relic/agent/http_clients/net_http_wrappers'
   end
 

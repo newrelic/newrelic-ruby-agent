@@ -6,7 +6,7 @@ module NewRelic::Agent::Instrumentation
   module NetHTTP
     module Chain
       def self.instrument!
-        class_eval Net::HTTP do
+        Net::HTTP.class_eval do
           def request_with_newrelic_trace(request, *args, &block)
             wrapped_request = NewRelic::Agent::HTTPClients::NetHTTPRequest.new(self, request)
     
