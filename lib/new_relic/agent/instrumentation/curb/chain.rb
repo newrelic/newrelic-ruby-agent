@@ -6,7 +6,7 @@ module NewRelic::Agent::Instrumentation
   module Curb
     module Chain
       def self.instrument!
-        class_eval Curl::Easy do
+        Curl::Easy.class_eval do
           attr_accessor :_nr_instrumented,
                         :_nr_failure_instrumented,
                         :_nr_http_verb,
@@ -86,7 +86,7 @@ module NewRelic::Agent::Instrumentation
           alias_method :header_str, :header_str_with_newrelic
         end
 
-        class_eval Curl::Multi do 
+        Curl::Multi.class_eval do 
           include NewRelic::Agent::MethodTracer
     
           # Add CAT with callbacks if the request is serial
