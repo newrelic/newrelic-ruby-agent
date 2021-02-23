@@ -2,6 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+require_relative 'http/chain'
+require_relative 'http/prepend'
+
 DependencyDetection.defer do
   named :httprb
 
@@ -16,42 +19,10 @@ DependencyDetection.defer do
   end
 
   executes do
-    if ::NewRelic::Agent.config[:'instrumentation.http'] == :prepend
-      if RUBY_VERSION < "2.1.0"
-        ::HTTP::Client.send(:prepend, ::NewRelic::Agent::Instrumentation::HTTPPrepend)
-      else
-        ::HTTP::Client.prepend ::NewRelic::Agent::Instrumentation::HTTPPrepend
-      end
+    if use_prepend?
+      prepend_instrument HTTP::Client, ::NewRelic::Agent::Instrumentation::HTTP::Prepend
     else
-      class HTTP::Client
-        def perform_with_newrelic_trace(request, options)
-          wrapped_request = ::NewRelic::Agent::HTTPClients::HTTPRequest.new(request)
-  
-          begin
-            segment = NewRelic::Agent::Tracer.start_external_request_segment(
-              library: wrapped_request.type,
-              uri: wrapped_request.uri,
-              procedure: wrapped_request.method
-            )
-  
-            segment.add_request_headers wrapped_request
-  
-            response = NewRelic::Agent::Tracer.capture_segment_error segment do
-              perform_without_newrelic_trace(request, options)
-            end
-  
-            wrapped_response = ::NewRelic::Agent::HTTPClients::HTTPResponse.new response
-            segment.process_response_headers wrapped_response
-  
-            response
-          ensure
-            segment.finish if segment
-          end
-        end
-  
-        alias perform_without_newrelic_trace perform
-        alias perform perform_with_newrelic_trace
-      end
+      chain_instrument ::NewRelic::Agent::Instrumentation::HTTP::Chain
     end
   end
 end

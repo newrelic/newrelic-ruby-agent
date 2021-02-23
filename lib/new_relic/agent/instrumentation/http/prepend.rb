@@ -5,32 +5,33 @@
 module NewRelic 
   module Agent 
     module Instrumentation
-      module HTTPPrepend
-        def perform(request, options)
-          wrapped_request = ::NewRelic::Agent::HTTPClients::HTTPRequest.new(request)
-      
-          begin
-            segment = NewRelic::Agent::Tracer.start_external_request_segment(
-              library: wrapped_request.type,
-              uri: wrapped_request.uri,
-              procedure: wrapped_request.method
-            )
-      
-            segment.add_request_headers wrapped_request
-      
-            response = NewRelic::Agent::Tracer.capture_segment_error segment do
-              super
+      module HTTP
+        module Prepend
+          def perform(request, options)
+            wrapped_request = ::NewRelic::Agent::HTTPClients::HTTPRequest.new(request)
+        
+            begin
+              segment = NewRelic::Agent::Tracer.start_external_request_segment(
+                library: wrapped_request.type,
+                uri: wrapped_request.uri,
+                procedure: wrapped_request.method
+              )
+        
+              segment.add_request_headers wrapped_request
+        
+              response = NewRelic::Agent::Tracer.capture_segment_error segment do
+                super
+              end
+        
+              wrapped_response = ::NewRelic::Agent::HTTPClients::HTTPResponse.new response
+              segment.process_response_headers wrapped_response
+        
+              response
+            ensure
+              segment.finish if segment
             end
-      
-            wrapped_response = ::NewRelic::Agent::HTTPClients::HTTPResponse.new response
-            segment.process_response_headers wrapped_response
-      
-            response
-          ensure
-            segment.finish if segment
           end
         end
-
       end
     end
   end
