@@ -894,8 +894,9 @@ module NewRelic
           :default => instrumentation_value_of(:disable_bunny),
           :public => true,
           :type => String,
+          :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'If <code>:prepend</code>, uses Module.prepend rather than alias_method for Bunny instrumentation.'
+          :description => 'Controls auto-instrumentation of bunny at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :disable_data_mapper => {
           :default => false,

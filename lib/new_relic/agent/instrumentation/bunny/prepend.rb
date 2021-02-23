@@ -6,8 +6,7 @@
 module NewRelic 
   module Agent 
     module Instrumentation
-      module BunnyPrepend
-
+      module Bunny
         module ExchangePrepend
           def publish payload, opts = {}
             begin
