@@ -891,11 +891,12 @@ module NewRelic
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.http' => {
-          :default => :prepend,
+          :default => 'auto',
           :public => true,
-          :type => Symbol,
+          :type => String,
+          :dynamic_name => true,
           :allowed_from_server => false,
-          :description => ''
+          :description => 'Controls auto-instrumentation of http gem at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :disable_data_mapper => {
           :default => false,
