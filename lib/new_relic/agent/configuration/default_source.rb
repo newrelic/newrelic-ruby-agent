@@ -865,7 +865,7 @@ module NewRelic
           :description => 'If <code>true</code>, disables active record instrumentation.'
         },
         :prepend_active_record_instrumentation => {
-          :default => true,
+          :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
