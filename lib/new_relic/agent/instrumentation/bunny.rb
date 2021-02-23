@@ -3,8 +3,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require 'bunny/chain'
-require 'bunny/prepend'
+require_relative 'bunny/chain'
+require_relative 'bunny/prepend'
 
 DependencyDetection.defer do
   named :bunny
