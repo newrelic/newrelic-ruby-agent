@@ -820,7 +820,8 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/delayedjob">Delayed::Job instrumentation</a>.'
+          :description => deprecated_description(:'instrumentation.delayed_job', 'If <code>true</code>, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/delayedjob">Delayed::Job instrumentation</a>.'
+          )
         },
         :disable_sinatra => {
           :default => false,
@@ -891,11 +892,11 @@ module NewRelic
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.delayed_job' => {
-          :default => :prepend,
+          :default => instrumentation_value_of(:disable_dj),
           :public => true,
-          :type => Symbol,
+          :type => String,
           :allowed_from_server => false,
-          :description => ''
+          :description => 'Controls auto-instrumentation of Delayed Job at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :disable_data_mapper => {
           :default => false,

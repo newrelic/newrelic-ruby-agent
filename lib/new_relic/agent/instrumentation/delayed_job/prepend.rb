@@ -6,7 +6,7 @@
 module NewRelic
   module Agent
     module Instrumentation
-      module DelayedJobPrepend
+      module DelayedJob::Prepend
 
         def initialize(*args)
           super
