@@ -107,7 +107,7 @@ module NewRelic
 
           def try_to_use(app, clazz)
             install_lock.synchronize do
-              has_middleware = app.middleware.any? { |info| info[0] == clazz }
+              has_middleware = app.middleware && app.middleware.any? { |info| info[0] == clazz }
               app.use(clazz) unless has_middleware
             end
           end
