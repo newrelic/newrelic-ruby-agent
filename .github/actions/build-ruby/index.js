@@ -180,6 +180,7 @@ async function downgradeMySQL() {
 async function downgradeSystemPackages(rubyVersion) {
   if (!usesOldOpenSsl(rubyVersion)) { return }
 
+  await installDependencies('support', "multiarch-support");
   await downgradeMySQL();
 }
 
