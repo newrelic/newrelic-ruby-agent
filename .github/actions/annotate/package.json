@@ -25,6 +25,6 @@
   "dependencies": {
     "@actions/core": "^1.2.6",
     "@actions/io": "^1.0.2",
-    "@vercel/ncc": "^0.27.0"
+    "ncc": "^0.3.6"
   }
 }
