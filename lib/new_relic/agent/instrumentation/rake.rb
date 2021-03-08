@@ -4,6 +4,7 @@
 
 require_relative 'rake/rake_instrumentation'
 require_relative 'rake/chain'
+require_relative 'rake/prepend'
 
 DependencyDetection.defer do
   # Why not :rake? newrelic-rake used that name, so avoid conflicting
@@ -23,6 +24,10 @@ DependencyDetection.defer do
   end
 
   executes do
-    chain_instrument NewRelic::Agent::Instrumentation::Rake::Chain
+    if use_prepend?
+      prepend_instrument ::Rake::Task, NewRelic::Agent::Instrumentation::Rake::Prepend
+    else
+      chain_instrument NewRelic::Agent::Instrumentation::Rake::Chain
+    end
   end
 end
