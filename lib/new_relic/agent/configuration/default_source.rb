@@ -890,6 +890,14 @@ module NewRelic
 
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
         },
+        :'instrumentation.redis_instrumentation' => {
+          :default => instrumentation_value_of(:disable_redis),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of redis at start up.  May be one of [auto|prepend|chain|disabled]."
+        },
         :disable_data_mapper => {
           :default => false,
           :public => true,
@@ -1096,14 +1104,14 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.'
+          :description  => deprecated_description(:'instrumentation.redis', 'If <code>true</code>, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.')
         },
         :disable_redis_instrumentation => {
           :default      => false,
           :public       => false,
           :type         => Boolean,
           :allowed_from_server => false,
-          :description  => 'Disables installation of Redis instrumentation. Standard key to use is disable_redis.'
+          :description  => deprecated_description(:'instrumentation.redis', 'Disables installation of Redis instrumentation. Standard key to use is disable_redis.')
         },
         :'message_tracer.segment_parameters.enabled' => {
           :default      => true,
