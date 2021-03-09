@@ -1,3 +1,5 @@
+instrumentation_methods :chain, :prepend
+
 if RUBY_VERSION >= '2.2.2'
   gemfile <<-RB
     gem 'rack'
