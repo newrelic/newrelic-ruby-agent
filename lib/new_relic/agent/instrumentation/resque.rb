@@ -2,6 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+require_relative 'resque/chain'
+require_relative 'resque/prepend'
+
 DependencyDetection.defer do
   @name = :resque
 
@@ -22,34 +25,10 @@ DependencyDetection.defer do
   end
 
   executes do
-    module ::Resque
-      class Job
-        include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-
-        alias_method :perform_without_instrumentation, :perform
-
-        def perform
-          begin
-            perform_action_with_newrelic_trace(
-              :name => 'perform',
-              :class_name => self.payload_class,
-              :category => 'OtherTransaction/ResqueJob') do
-
-              NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(
-                args,
-                :'job.resque.args',
-                NewRelic::Agent::AttributeFilter::DST_NONE)
-
-              perform_without_instrumentation
-            end
-          ensure
-            # Stopping the event loop before flushing the pipe.
-            # The goal is to avoid conflict during write.
-            NewRelic::Agent.agent.stop_event_loop
-            NewRelic::Agent.agent.flush_pipe_data
-          end
-        end
-      end
+    if use_prepend?
+      prepend_instrument ::Resque::Job, NewRelic::Agent::Instrumentation::Resque::Prepend
+    else
+      chain_instrument NewRelic::Agent::Instrumentation::Resque::Chain
     end
 
     if NewRelic::LanguageSupport.can_fork?
