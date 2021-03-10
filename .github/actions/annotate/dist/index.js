@@ -94,10 +94,16 @@ async function main() {
   const errorFilename = `${workspacePath}/errors.txt`
 
   try {
-
     if (fs.existsSync(errorFilename)) {
-      let lines = fs.readFileSync(errorFilename).toString('utf8')
-      command.issueCommand('error', undefined, lines)
+      fs.readFile(errorFilename, 'utf8', (error, lines) => { 
+        if (error) { 
+          core.info(`Failed to read ${errorFilename}.  Check focused job views for error details!`) 
+        } else {
+          lines.split("\n").forEach(function(line, index, arr) {
+            command.issueCommand('error', undefined, line)
+          })
+        }
+      })     
     }
     else {
       core.info(`No ${errorFilename} present.  Skipping!`)

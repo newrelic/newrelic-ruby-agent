@@ -88,7 +88,7 @@ module Multiverse
         File.open(output_file, 'w') do |f|
           f.puts existing_lines
           f.puts "*" * 80
-          f.puts lines.join("<br/>\n")
+          f.puts lines
         end
       end
     end
