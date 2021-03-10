@@ -44,7 +44,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_metrics_for_calculation_methods
-    clear_metrics! # sometimes records 6 selects without this
+    clear_metrics! # sometimes records 6 selects without clearing metrics beforehand
     in_web_transaction do
       Order.count
       Order.average(:id)
@@ -264,7 +264,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   # Can be SQLite3::ConstraintException or ActiveRecord::RecordNotUnique or ActiveRecord::RecordNotUnique
   # depending on gem versions in play
   def sqlite3_not_unique_error_class
-    /SQLite3\:\:ConstraintException|ActiveRecord\:\:JDBCError|ActiveRecord\:\:RecordNotUnique/
+    /SQLite3\:\:ConstraintException|ActiveRecord\:\:JDBCError|ActiveRecord\:\:RecordNotUnique|ActiveRecord\:\:StatementInvalid/
   end
 
   def test_noticed_error_at_segment_and_txn_when_violating_unique_contraints
