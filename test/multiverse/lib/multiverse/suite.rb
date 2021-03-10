@@ -350,8 +350,14 @@ module Multiverse
       puts yellow("Starting tests in child PID #{Process.pid} at #{Time.now}\n")
     end
 
+    # active_record suite must run serially because SQLite3 will otherwise deadlock between
+    # the parallelized environments.
+    def serialize_only
+      directory =~ /active_record/
+    end
+
     def should_serialize?
-      ENV['SERIALIZE'] || debug
+      ENV['SERIALIZE'] || debug || serialize_only
     end
 
     def check_environment_condition

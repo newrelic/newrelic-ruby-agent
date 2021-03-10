@@ -44,6 +44,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_metrics_for_calculation_methods
+    clear_metrics! # sometimes records 6 selects without this
     in_web_transaction do
       Order.count
       Order.average(:id)
@@ -260,14 +261,14 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
-  # Can be Mysql2::Error or ActiveRecord::RecordNotUnique
+  # Can be SQLite3::ConstraintException or ActiveRecord::RecordNotUnique or ActiveRecord::RecordNotUnique
   # depending on gem versions in play
-  def mysql_not_unique_error_class
-    /Mysql2\:\:Error|ActiveRecord\:\:RecordNotUnique|ActiveRecord\:\:JDBCError/
+  def sqlite3_not_unique_error_class
+    /SQLite3\:\:ConstraintException|ActiveRecord\:\:JDBCError|ActiveRecord\:\:RecordNotUnique/
   end
 
   def test_noticed_error_at_segment_and_txn_when_violating_unique_contraints
-    expected_error_class = mysql_not_unique_error_class
+    expected_error_class = sqlite3_not_unique_error_class
     txn = nil
     begin
       in_web_transaction do |web_txn|
@@ -279,12 +280,12 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       # NOP -- allowing span and transaction to notice error
     end
 
-    assert_segment_noticed_error txn, /create|insert/i, expected_error_class, /duplicate entry/i
+    assert_segment_noticed_error txn, /create|insert/i, expected_error_class, /unique constraint failed/i
     assert_transaction_noticed_error txn, expected_error_class
   end
 
   def test_noticed_error_only_at_segment_when_violating_unique_contraints
-    expected_error_class = mysql_not_unique_error_class
+    expected_error_class = sqlite3_not_unique_error_class
     txn = nil
     in_web_transaction do |web_txn|
       begin
@@ -296,7 +297,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       end
     end
 
-    assert_segment_noticed_error txn, /create|insert/i, expected_error_class, /duplicate entry/i
+    assert_segment_noticed_error txn, /create|insert/i, expected_error_class, /unique constraint failed/i
     refute_transaction_noticed_error txn, expected_error_class
   end
 

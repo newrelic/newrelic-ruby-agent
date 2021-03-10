@@ -20,7 +20,6 @@ end
 
 begin
   load 'Rakefile'
-  Rake::Task['db:create'].invoke
   Rake::Task['db:migrate'].invoke
 rescue => e
   puts e

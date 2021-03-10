@@ -1,21 +1,17 @@
-mysql: &mysql
+sqlite3: &sqlite3
   adapter: <%=
     if defined?(JRuby)
-      'jdbcmysql'
+      'jdbcsqlite3'
     else
-      'mysql2'
+      'sqlite3'
     end %>
-  socket: <%= (`uname -s` =~ /Linux/ ) ? "" :"/tmp/mysql.sock" %>
-  username: root
-  password: <%= ENV["MYSQL_PASSWORD"] %>
-  host: localhost
-  database: <%= db = "#{ENV['DATABASE_NAME']}"; db.empty? ? "rails_blog" : db %>
+  database: "db/rails_blog.sqlite3"
 
 development:
-  <<: *mysql
+  <<: *sqlite3
 
 test:
-  <<: *mysql
+  <<: *sqlite3
 
 production:
-  <<: *mysql
+  <<: *sqlite3
