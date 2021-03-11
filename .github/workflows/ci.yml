@@ -215,9 +215,7 @@ jobs:
 
       - name: Run Multiverse Tests
         run: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
-        env:
-          DB_PORT: 3306
-          MYSQL_PASSWORD: root
+
 
       - name: Annotate errors
         if: ${{ failure() }}
