@@ -217,11 +217,7 @@ jobs:
         run: sudo systemctl start mysql
 
       - name: Run Multiverse Tests
-        uses: nick-invision/retry@v1.0.0
-        with:
-          timeout_minutes: 40
-          max_attempts: 4
-          command:  bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+        run: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
           DB_PORT: 3306
           MYSQL_PASSWORD: root
