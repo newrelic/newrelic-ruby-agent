@@ -213,9 +213,6 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-      - name: Start mysql
-        run: sudo systemctl start mysql
-
       - name: Run Multiverse Tests
         run: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
