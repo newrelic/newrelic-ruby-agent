@@ -294,9 +294,9 @@ jobs:
         uses: ./.github/actions/annotate
 #end of multiverse2
 #start multiverse for jruby only
-multiverse2:
-    needs: [build-ruby, multiverse, infinite_tracing, mini-env]
-    runs-on: ubuntu-latest
+multiverse-jruby:
+    needs: multiverse2
+    runs-on: ubuntu-18.04
     services:
       redis:
         image: redis
@@ -366,7 +366,6 @@ multiverse2:
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
  # end of multiverse jruby       
-
   infinite_tracing:
     needs: build-ruby
     runs-on: ubuntu-latest
