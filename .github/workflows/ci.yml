@@ -189,7 +189,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: [agent, api, background, background_2, database, httpclients, rails, rails_extras, rest, serialization, sinatra]
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.8, 2.6.6, 2.7.1, 3.0.0, jruby-9.2.12.0]
+        ruby-version: [2.2.10, 2.3.8, 2.5.8, 2.6.6, 2.7.1, 3.0.0, jruby-9.2.12.0]
         exclude:
           - ruby-version: "3.0.0"
             multiverse: api
