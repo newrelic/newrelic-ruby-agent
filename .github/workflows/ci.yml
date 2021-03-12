@@ -221,6 +221,78 @@ jobs:
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
+  multiverse2:
+    needs: [build-ruby, multiverse, infinite_tracing]
+    runs-on: ubuntu-latest
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
+      rabbitmq:
+        image: rabbitmq:latest
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmqctl node_health_check"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      memcached:
+        image: memcached:latest
+        ports:
+          - 11211:11211
+        options: >-
+          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      fail-fast: false
+      matrix:
+        multiverse: [agent, api, background, background_2, database, httpclients, rails, rails_extras, rest, serialization, sinatra]
+        ruby-version: [2.4.10, 2.5.8, 2.6.6]
+        exclude:
+          - ruby-version: "3.0.0"
+            multiverse: api
+          - ruby-version: "3.0.0"
+            multiverse: sinatra
+          - ruby-version: "3.0.0"
+            multiverse: rails
+          - ruby-version: "3.0.0"
+            multiverse: rails_extras
+          - ruby-version: "2.7.1"
+            multiverse: api
+          - ruby-version: "2.7.1"
+            multiverse: sinatra
+          - ruby-version: "jruby-9.2.12.0"
+            multiverse: agent
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build Ruby ${{ matrix.ruby-version }}
+        uses: ./.github/actions/build-ruby
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Run Multiverse Tests
+        run: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+
+
+      - name: Annotate errors
+        if: ${{ failure() }}
+        uses: ./.github/actions/annotate
+
   infinite_tracing:
     needs: build-ruby
     runs-on: ubuntu-latest
