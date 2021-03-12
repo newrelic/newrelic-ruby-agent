@@ -360,8 +360,7 @@ multiverse-jruby:
 
       - name: Run Multiverse Tests
         run: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
-
-
+      
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
