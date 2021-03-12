@@ -343,7 +343,7 @@ function rubyCachePaths(rubyVersion) {
 }
 
 function rubyCacheKey(rubyVersion) {
-  return `v8-ruby-cache-${rubyVersion}`
+  return `v10-ruby-cache-${rubyVersion}`
 }
 
 // will attempt to restore the previously built Ruby environment if one exists.
