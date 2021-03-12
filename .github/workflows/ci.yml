@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - fix_ci_issues
   pull_request:
 
 jobs:
