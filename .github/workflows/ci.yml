@@ -365,7 +365,6 @@ multiverse-jruby:
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
-
   infinite_tracing:
     needs: build-ruby
     runs-on: ubuntu-latest
