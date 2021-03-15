@@ -109,6 +109,22 @@ jobs:
             rails: rails60
           - ruby-version: "2.2.10"
             rails: rails61
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails30
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails31
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails32
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails40
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails41
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails60
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails61
+          - ruby-version: "jruby-9.2.12.0"
+            rails: rails52
 
     steps:
       - uses: actions/checkout@v2
