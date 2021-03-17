@@ -806,7 +806,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/resque-instrumentation">Resque instrumentation</a>.'
+          :description => deprecated_description(:'instrumentation.resque', 'If <code>true</code>, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/resque-instrumentation">Resque instrumentation</a>.')
         },
         :disable_sidekiq => {
           :default => false,
@@ -890,13 +890,21 @@ module NewRelic
 
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
         },
+        :'instrumentation.resque' => {
+          :default => instrumentation_value_of(:disable_resque),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of resque at start up.  May be one of [auto|prepend|chain|disabled]."
+        },
         :'instrumentation.httpclient' => {
           :default => instrumentation_value_of(:disable_httpclient),
           :public => :true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of HTTPClient gem at start up.  May be one of [auto|prepend|chain|disabled]."
+          :description => "Controls auto-instrumentation of HTTPClient at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :disable_data_mapper => {
           :default => false,
