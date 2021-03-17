@@ -7,6 +7,8 @@ require 'new_relic/agent/instrumentation/sinatra/transaction_namer'
 require 'new_relic/agent/instrumentation/sinatra/ignorer'
 require 'new_relic/agent/parameter_filtering'
 
+require_relative 'instrumentation'
+
 module NewRelic::Agent::Instrumentation
   module SinatraInstrumentation
     module Chain 
