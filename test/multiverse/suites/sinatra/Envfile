@@ -1,4 +1,4 @@
-instrumentation_methods :chain#, :prepend
+instrumentation_methods :chain, :prepend
 
 rack_test_version = RUBY_VERSION < "2.2.2" ? "< 0.8.0" : ">= 0.8.0"
 

@@ -15,7 +15,7 @@ DependencyDetection.defer do
   @name = :sinatra
 
   depends_on do
-    !NewRelic::Agent.config[:disable_sinatra] &&
+    allowed_by_config? &&
       defined?(::Sinatra) && defined?(::Sinatra::Base) &&
       Sinatra::Base.private_method_defined?(:dispatch!) &&
       Sinatra::Base.private_method_defined?(:process_route) &&
@@ -38,17 +38,15 @@ DependencyDetection.defer do
         register NewRelic::Agent::Instrumentation::Sinatra::Ignorer
         # chain_instrument NewRelic::Agent::Instrumentation::SinatraInstrumentation::Chain
       end
-
       ::Sinatra.module_eval do
         register NewRelic::Agent::Instrumentation::Sinatra::Ignorer
       end
 
       prepend_instrument ::Sinatra::Base, NewRelic::Agent::Instrumentation::SinatraInstrumentation::Prepend
-      
     else
+
       chain_instrument NewRelic::Agent::Instrumentation::SinatraInstrumentation::Chain
     end
-
 
   end
 
@@ -60,7 +58,7 @@ DependencyDetection.defer do
       require 'new_relic/rack/agent_hooks'
       require 'new_relic/rack/browser_monitoring'
       if use_prepend?
-        ::Sinatra::Base.prepend NewRelic::Agent::Instrumentation::SinatraInstrumentation::PrependBuild
+        prepend_instrument ::Sinatra::Base,NewRelic::Agent::Instrumentation::SinatraInstrumentation::PrependBuild
       else
         ::Sinatra::Base.class_eval do
           class << self
