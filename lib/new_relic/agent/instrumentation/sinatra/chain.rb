@@ -15,12 +15,25 @@ module NewRelic::Agent::Instrumentation
           include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
           include NewRelic::Agent::Instrumentation::Sinatra
 
+          def dispatch_with_newrelic
+            dispatch_with_tracing { dispatch_without_newrelic }
+          end
           alias dispatch_without_newrelic dispatch!
           alias dispatch! dispatch_with_newrelic
     
+          def process_route_with_newrelic(*args, &block)
+            process_route_with_tracing(*args) do 
+              process_route_without_newrelic(*args, &block)
+            end
+          end
           alias process_route_without_newrelic process_route
           alias process_route process_route_with_newrelic
     
+          def route_eval_with_newrelic(*args, &block)
+            route_eval_with_tracing(*args) do
+              route_eval_without_newrelic(*args, &block)
+            end
+          end
           alias route_eval_without_newrelic route_eval
           alias route_eval route_eval_with_newrelic
     
@@ -31,132 +44,8 @@ module NewRelic::Agent::Instrumentation
           register NewRelic::Agent::Instrumentation::Sinatra::Ignorer
         end
 
-       
+        
 
-      end
-    end
-  end
-end
-
-module NewRelic
-  module Agent
-    module Instrumentation
-      # NewRelic instrumentation for Sinatra applications.  Sinatra actions will
-      # appear in the UI similar to controller actions, and have breakdown charts
-      # and transaction traces.
-      #
-      # The actions in the UI will correspond to the pattern expression used
-      # to match them, not directly to full URL's.
-      module Sinatra
-        include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
-
-        # Expected method for supporting ControllerInstrumentation
-        def newrelic_request_headers(_)
-          request.env
-        end
-
-        def self.included(clazz)
-          clazz.extend(ClassMethods)
-        end
-
-        module ClassMethods
-          def newrelic_middlewares
-            middlewares = [NewRelic::Rack::BrowserMonitoring]
-            if NewRelic::Rack::AgentHooks.needed?
-              middlewares << NewRelic::Rack::AgentHooks
-            end
-            middlewares
-          end
-
-          def build_with_newrelic(*args, &block)
-            unless NewRelic::Agent.config[:disable_sinatra_auto_middleware]
-              newrelic_middlewares.each do |middleware_class|
-                try_to_use(self, middleware_class)
-              end
-            end
-            build_without_newrelic(*args, &block)
-          end
-
-          def try_to_use(app, clazz)
-            has_middleware = app.middleware.any? { |info| info[0] == clazz }
-            app.use(clazz) unless has_middleware
-          end
-        end
-
-        # Capture last route we've seen. Will set for transaction on route_eval
-        def process_route_with_newrelic(*args, &block)
-          begin
-            env["newrelic.last_route"] = args[0]
-          rescue => e
-            ::NewRelic::Agent.logger.debug("Failed determining last route in Sinatra", e)
-          end
-
-          process_route_without_newrelic(*args, &block)
-        end
-
-        # If a transaction name is already set, this call will tromple over it.
-        # This is intentional, as typically passing to a separate route is like
-        # an entirely separate transaction, so we pick up the new name.
-        #
-        # If we're ignored, this remains safe, since set_transaction_name
-        # care for the gating on the transaction's existence for us.
-        def route_eval_with_newrelic(*args, &block)
-          begin
-            txn_name = TransactionNamer.transaction_name_for_route(env, request)
-            unless txn_name.nil?
-              ::NewRelic::Agent::Transaction.set_default_transaction_name(
-                "#{self.class.name}/#{txn_name}", :sinatra)
-            end
-          rescue => e
-            ::NewRelic::Agent.logger.debug("Failed during route_eval to set transaction name", e)
-          end
-
-          route_eval_without_newrelic(*args, &block)
-        end
-
-        def dispatch_with_newrelic #THREAD_LOCAL_ACCESS
-          request_params = get_request_params
-          filtered_params = ParameterFiltering::apply_filters(request.env, request_params || {})
-
-          name = TransactionNamer.initial_transaction_name(request)
-          perform_action_with_newrelic_trace(:category => :sinatra,
-                                             :name => name,
-                                             :params => filtered_params) do
-            dispatch_and_notice_errors_with_newrelic
-          end
-        end
-
-        def get_request_params
-          begin
-            @request.params
-          rescue => e
-            NewRelic::Agent.logger.debug("Failed to get params from Rack request.", e)
-            nil
-          end
-        end
-
-        def dispatch_and_notice_errors_with_newrelic
-          dispatch_without_newrelic
-        ensure
-          # Will only see an error raised if :show_exceptions is true, but
-          # will always see them in the env hash if they occur
-          had_error = env.has_key?('sinatra.error')
-          ::NewRelic::Agent.notice_error(env['sinatra.error']) if had_error
-        end
-
-        def do_not_trace?
-          Ignorer.should_ignore?(self, :routes)
-        end
-
-        # Overrides ControllerInstrumentation implementation
-        def ignore_apdex?
-          Ignorer.should_ignore?(self, :apdex)
-        end
-
-        # Overrides ControllerInstrumentation implementation
-        def ignore_enduser?
-          Ignorer.should_ignore?(self, :enduser)
-        end
       end
     end
   end
