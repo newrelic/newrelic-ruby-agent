@@ -36,10 +36,10 @@ module NewRelic
       #
       # @api public
       #
-      # @deprecated See {#create_distributed_trace_headers} instead.
+      # @deprecated See {#insert_distributed_trace_headers} instead.
       #
       def create_distributed_trace_payload
-        Deprecator.deprecate :create_distributed_trace_payload, :create_distributed_trace_headers
+        Deprecator.deprecate :create_distributed_trace_payload, :insert_distributed_trace_headers
 
         unless Agent.config[:'distributed_tracing.enabled']
           NewRelic::Agent.logger.warn "Not configured to create New Relic distributed trace payload"
