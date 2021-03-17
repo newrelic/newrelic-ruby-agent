@@ -898,6 +898,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of resque at start up.  May be one of [auto|prepend|chain|disabled]."
         },
+        :'instrumentation.httpclient' => {
+          :default => instrumentation_value_of(:disable_httpclient),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of HTTPClient at start up.  May be one of [auto|prepend|chain|disabled]."
+        },
         :disable_data_mapper => {
           :default => false,
           :public => true,
@@ -1511,7 +1519,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for the httpclient gem.'
+          :description  => deprecated_description(:'instrumentation.httpclient', 'If <code>true</code>, disables instrumentation for the httpclient gem.')
         },
         :disable_net_http => {
           :default      => false,
