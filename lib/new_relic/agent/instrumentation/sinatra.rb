@@ -26,10 +26,10 @@ DependencyDetection.defer do
 
   executes do
     if use_prepend?
-      chain_instrument NewRelic::Agent::Instrumentation::Sinatraa::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::SinatraInstrumentation::Chain
       
     else
-      chain_instrument NewRelic::Agent::Instrumentation::Sinatraa::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::SinatraInstrumentation::Chain
     end
 
 

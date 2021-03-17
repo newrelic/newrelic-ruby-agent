@@ -8,7 +8,7 @@ require 'new_relic/agent/instrumentation/sinatra/ignorer'
 require 'new_relic/agent/parameter_filtering'
 
 module NewRelic::Agent::Instrumentation
-  module Sinatraa
+  module SinatraInstrumentation
     module Chain 
       def self.instrument!
         ::Sinatra::Base.class_eval do
