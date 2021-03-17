@@ -9,29 +9,12 @@ module NewRelic::Agent::Instrumentation
       def self.instrument!
         ::Resque::Job.class_eval do
           include NewRelic::Agent::Instrumentation::ControllerInstrumentation
+          include NewRelic::Agent::Instrumentation::Resque::Instrumentation
 
           alias_method :perform_without_instrumentation, :perform
   
           def perform
-            begin
-              perform_action_with_newrelic_trace(
-                :name => 'perform',
-                :class_name => self.payload_class,
-                :category => 'OtherTransaction/ResqueJob') do
-  
-                NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(
-                  args,
-                  :'job.resque.args',
-                  NewRelic::Agent::AttributeFilter::DST_NONE)
-  
-                perform_without_instrumentation
-              end
-            ensure
-              # Stopping the event loop before flushing the pipe.
-              # The goal is to avoid conflict during write.
-              NewRelic::Agent.agent.stop_event_loop
-              NewRelic::Agent.agent.flush_pipe_data
-            end
+            with_tracing { perform_without_instrumentation }
           end
         end
       end

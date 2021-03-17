@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+require_relative 'resque/instrumentation'
 require_relative 'resque/chain'
 require_relative 'resque/prepend'
 
