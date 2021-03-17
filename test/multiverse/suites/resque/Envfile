@@ -1,12 +1,12 @@
-if RUBY_VERSION >= '2.3.0'
-  gemfile <<-RB
-    gem 'redis', '< 4.0.0' if RUBY_VERSION < '2.2.0'
-    gem 'sinatra', '< 2.0' if RUBY_VERSION < '2.2.0'
-    gem 'resque', '2.0.0'
-    gem 'json'
-    #{ruby3_gem_webrick}
-  RB
-end
+instrumentation_methods :chain, :prepend
+
+gemfile <<-RB
+  gem 'redis', '< 4.0.0' if RUBY_VERSION < '2.2.0'
+  gem 'sinatra', '< 2.0' if RUBY_VERSION < '2.2.0'
+  gem 'resque', '1.23.0'
+  gem 'json'
+  #{ruby3_gem_webrick}
+RB
 
 gemfile <<-RB
   gem 'redis', '< 4.0.0' if RUBY_VERSION < '2.2.0'
