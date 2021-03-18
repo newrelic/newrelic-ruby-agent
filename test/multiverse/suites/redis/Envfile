@@ -3,37 +3,31 @@ instrumentation_methods :chain, :prepend
 if RUBY_VERSION >= '2.2.2'
   gemfile <<-RB
     gem 'rack'
+    gem 'redis' # latest version published
+    #{ruby3_gem_webrick}
+  RB
+
+  gemfile <<-RB
+    gem 'rack'
     gem 'redis', '~>4.0.1'
     #{ruby3_gem_webrick}
   RB
+else
+  gemfile <<-RB
+    gem 'rack'
+    gem 'redis', '~>3.2.2'
+    #{ruby3_gem_webrick}
+  RB
+
+  gemfile <<-RB
+    gem 'rack'
+    gem 'redis', '~>3.1.0'
+    #{ruby3_gem_webrick}
+  RB
+
+  gemfile <<-RB
+    gem 'rack'
+    gem 'redis', '3.0.7' # oldest supported minor version
+    #{ruby3_gem_webrick}
+  RB
 end
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'redis', '~>3.3.5'
-  #{ruby3_gem_webrick}
-RB
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'redis', '~>3.2.2'
-  #{ruby3_gem_webrick}
-RB
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'redis', '~>3.1.0'
-  #{ruby3_gem_webrick}
-RB
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'redis', '3.0.7' # oldest supported minor version
-  #{ruby3_gem_webrick}
-RB
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'redis', '2.2.2' # newest unsupported version
-  #{ruby3_gem_webrick}
-RB
