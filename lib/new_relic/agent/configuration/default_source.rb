@@ -1119,6 +1119,7 @@ module NewRelic
           :default      => false,
           :public       => true,
           :type         => Boolean,
+          :deprecated   => true,
           :allowed_from_server => false,
           :description  => deprecated_description(:'instrumentation.redis', 'If <code>true</code>, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.')
         },
@@ -1126,6 +1127,7 @@ module NewRelic
           :default      => false,
           :public       => false,
           :type         => Boolean,
+          :deprecated   => true,
           :allowed_from_server => false,
           :description  => deprecated_description(:'instrumentation.redis', 'Disables installation of Redis instrumentation. Standard key to use is disable_redis.')
         },
