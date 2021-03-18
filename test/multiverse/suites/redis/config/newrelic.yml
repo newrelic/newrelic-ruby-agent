@@ -8,7 +8,7 @@ development:
   app_name: test
   ca_bundle_path: ../../../config/test.cert.crt
   instrumentation:
-    redis_instrumentation: <%= $instrumentation_method %>
+    redis: <%= $instrumentation_method %>
   app_name: test
   host: localhost
   api_host: localhost
