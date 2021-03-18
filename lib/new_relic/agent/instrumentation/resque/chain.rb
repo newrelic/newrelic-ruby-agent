@@ -8,8 +8,7 @@ module NewRelic::Agent::Instrumentation
     module Chain 
       def self.instrument!
         ::Resque::Job.class_eval do
-          include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-          include NewRelic::Agent::Instrumentation::Resque::Instrumentation
+          include NewRelic::Agent::Instrumentation::Resque
 
           alias_method :perform_without_instrumentation, :perform
   
