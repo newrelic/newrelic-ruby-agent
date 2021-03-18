@@ -12,20 +12,20 @@ module NewRelic::Agent::Instrumentation
 
           alias_method :call_without_new_relic, :call
     
-          def call *args, &block
-            call_with_tracing(args[0]) { call_without_new_relic *args, &block }
+          def call(*args, &block)
+            call_with_tracing(args[0]) { call_without_new_relic(*args, &block) }
           end
       
           alias_method :call_pipeline_without_new_relic, :call_pipeline
     
-          def call_pipeline *args, &block
-            call_pipeline_with_tracing(args[0]) { call_pipeline_without_new_relic *args, &block }
+          def call_pipeline(*args, &block)
+            call_pipeline_with_tracing(args[0]) { call_pipeline_without_new_relic(*args, &block) }
           end
 
           alias_method :connect_without_new_relic, :connect
     
-          def connect *args, &block
-            connect_with_tracing { connect_without_new_relic *args, &block }
+          def connect(*args, &block)
+            connect_with_tracing { connect_without_new_relic(*args, &block) }
           end
         end
       end

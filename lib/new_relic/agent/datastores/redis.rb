@@ -6,11 +6,7 @@ module NewRelic
   module Agent
     module Datastores
       module Redis
-        MULTI_OPERATION = 'multi'
-        PIPELINE_OPERATION = 'pipeline'
         BINARY_DATA_PLACEHOLDER = "<binary data>"
-        PRODUCT_NAME = 'Redis'
-        CONNECT = 'connect'
 
         MAXIMUM_COMMAND_LENGTH = 1000
         MAXIMUM_ARGUMENT_LENGTH = 64

@@ -5,15 +5,36 @@
 
 module NewRelic::Agent::Instrumentation
   module Redis
+    PRODUCT_NAME = 'Redis'
+    CONNECT = 'connect'
     UNKNOWN = "unknown"
     LOCALHOST = "localhost"
+    MULTI_OPERATION = 'multi'
+    PIPELINE_OPERATION = 'pipeline'
 
-    def call_with_tracing command
+    def call_with_tracing command, &block
       operation = command[0]
       statement = ::NewRelic::Agent::Datastores::Redis.format_command(command)
 
+      with_tracing(operation, statement) { yield }
+    end
+
+    def call_pipeline_with_tracing pipeline
+      operation = pipeline.is_a?(::Redis::Pipeline::Multi) ? MULTI_OPERATION : PIPELINE_OPERATION
+      statement = ::NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline.commands)
+
+      with_tracing(operation, statement) { yield }
+    end
+
+    def connect_with_tracing
+      with_tracing(CONNECT) { yield }
+    end
+
+    private
+
+    def with_tracing operation, statement=nil
       segment = NewRelic::Agent::Tracer.start_datastore_segment(
-        product: NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
+        product: PRODUCT_NAME,
         operation: operation,
         host: _nr_hostname,
         port_path_or_id: _nr_port_path_or_id,
@@ -26,43 +47,6 @@ module NewRelic::Agent::Instrumentation
         segment.finish if segment
       end
     end
-
-    def call_pipeline_with_tracing pipeline
-      operation = pipeline.is_a?(::Redis::Pipeline::Multi) ? NewRelic::Agent::Datastores::Redis::MULTI_OPERATION : NewRelic::Agent::Datastores::Redis::PIPELINE_OPERATION
-      statement = ::NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline.commands)
-
-      segment = NewRelic::Agent::Tracer.start_datastore_segment(
-        product: NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
-        operation: operation,
-        host: _nr_hostname,
-        port_path_or_id: _nr_port_path_or_id,
-        database_name: db
-      )
-      begin
-        segment.notice_nosql_statement(statement)
-        NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
-      ensure
-        segment.finish if segment
-      end
-    end
-
-    def connect_with_tracing
-      segment = NewRelic::Agent::Tracer.start_datastore_segment(
-        product: NewRelic::Agent::Datastores::Redis::PRODUCT_NAME,
-        operation: NewRelic::Agent::Datastores::Redis::CONNECT,
-        host: _nr_hostname,
-        port_path_or_id: _nr_port_path_or_id,
-        database_name: db
-      )
-
-      begin
-        NewRelic::Agent::Tracer.capture_segment_error(segment) { yield }
-      ensure
-        segment.finish if segment
-      end
-    end
-
-    private
 
     def _nr_hostname
       self.path ? LOCALHOST : self.host
