@@ -12,7 +12,8 @@ require_relative 'redis/prepend'
 DependencyDetection.defer do
   # Why not :redis? newrelic-redis used that name, so avoid conflicting
   named :redis_instrumentation
-
+  configure_with :redis
+  
   depends_on do
     defined?(::Redis) && defined?(::Redis::VERSION)
   end
