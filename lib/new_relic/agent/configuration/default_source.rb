@@ -805,6 +805,7 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
+          :deprecated => true,
           :allowed_from_server => false,
           :description => deprecated_description(:'instrumentation.resque', 'If <code>true</code>, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/resque-instrumentation">Resque instrumentation</a>.')
         },
