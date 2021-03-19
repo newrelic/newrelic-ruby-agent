@@ -27,7 +27,7 @@
 
   * **Removed deprecated api methods**
 
-    Previously the api methods `create_distributed_trace_payload` and `accept_distributed_trace_payload` were deprecated. These have now been removed. Instead, please see `create_distributed_trace_headers` and `accept_distributed_trace_headers`, respectively.
+    Previously the api methods `create_distributed_trace_payload` and `accept_distributed_trace_payload` were deprecated. These have now been removed. Instead, please see `insert_distributed_trace_headers` and `accept_distributed_trace_headers`, respectively.
   
   ## v6.15.0
 
