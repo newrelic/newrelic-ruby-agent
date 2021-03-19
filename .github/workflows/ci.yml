@@ -8,7 +8,7 @@ on:
       - fix_ci_issues
   pull_request:
   schedule:
-    - cron:  '0 8 * * *'
+    - cron:  '0 9 * * *'
 
 jobs:
   build-ruby:
