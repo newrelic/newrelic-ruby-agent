@@ -2,8 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require_relative 'http/chain'
-require_relative 'http/prepend'
+require_relative 'httprb/instrumentation'
+require_relative 'httprb/chain'
+require_relative 'httprb/prepend'
 
 DependencyDetection.defer do
   named :httprb
@@ -13,16 +14,16 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing http.rb instrumentation'
+    ::NewRelic::Agent.logger.info "Installing http.rb Wrappers"
     require 'new_relic/agent/distributed_tracing/cross_app_tracing'
     require 'new_relic/agent/http_clients/http_rb_wrappers'
   end
 
   executes do
     if use_prepend?
-      prepend_instrument HTTP::Client, ::NewRelic::Agent::Instrumentation::HTTP::Prepend
+      prepend_instrument HTTP::Client, ::NewRelic::Agent::Instrumentation::HTTPrb::Prepend
     else
-      chain_instrument ::NewRelic::Agent::Instrumentation::HTTP::Chain
+      chain_instrument ::NewRelic::Agent::Instrumentation::HTTPrb::Chain
     end
   end
 end

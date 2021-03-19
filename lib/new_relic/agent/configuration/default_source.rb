@@ -890,13 +890,13 @@ module NewRelic
 
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
         },
-        :'instrumentation.http' => {
-          :default => 'auto',
+        :'instrumentation.httprb' => {
+          :default => instrumentation_value_of(:disable_httprb),
           :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of http gem at start up.  May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of http.rb gem at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.resque' => {
           :default => instrumentation_value_of(:disable_resque),
@@ -1585,6 +1585,7 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :dynamic_name => true,
+          :deprecated   => true,
           :allowed_from_server => false,
           :description  => 'If <code>true</code>, the agent won\'t install instrumentation for the http.rb gem.'
         },
