@@ -35,21 +35,27 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Minitest::Test
 
   def test_process_route_with_bad_arguments
     @app.stubs(:env).raises("Boo")
-    @app.expects(:process_route_without_newrelic).once
-    @app.process_route_with_newrelic
+    yielded = false
+    @app.process_route_with_tracing do 
+      yielded = true
+    end
+    assert yielded 
   end
 
   def test_route_eval_with_bad_params
     @app.stubs(:env).raises("Boo")
-    @app.expects(:route_eval_without_newrelic).once
-    @app.route_eval_with_newrelic
+    yielded = false
+    @app.route_eval_with_tracing do 
+      yielded = true
+    end
+    assert yielded 
   end
 
   def test_route_eval_without_last_route_doesnt_set_transaction_name
     @app.stubs(:env).returns({})
-    @app.expects(:route_eval_without_newrelic).once
+    @app.expects(:route_eval_with_tracing).once
     NewRelic::Agent.expects(:set_transaction_name).never
-    @app.route_eval_with_newrelic
+    @app.route_eval_with_tracing
   end
 
   def assert_transaction_name(expected, original)
