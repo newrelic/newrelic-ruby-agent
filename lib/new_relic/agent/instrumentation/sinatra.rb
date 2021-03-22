@@ -58,7 +58,7 @@ DependencyDetection.defer do
       require 'new_relic/rack/agent_hooks'
       require 'new_relic/rack/browser_monitoring'
       if use_prepend?
-        prepend_instrument ::Sinatra::Base,NewRelic::Agent::Instrumentation::SinatraInstrumentation::PrependBuild
+        prepend_instrument ::Sinatra::Base.singleton_class, NewRelic::Agent::Instrumentation::SinatraInstrumentation::PrependBuild
       else
         ::Sinatra::Base.class_eval do
           class << self
