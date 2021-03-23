@@ -918,7 +918,7 @@ module NewRelic
         :'instrumentation.rack' => {
           :default      => instrumentation_value_of(:disable_rack),
           :public       => true,
-          :type         => Boolean,
+          :type         => String,
           :dynamic_name => true,
           :allowed_from_server => false,
           :description  => "Controls auto-instrumentation of Rack. When enabled, the agent hooks into the " \
@@ -928,7 +928,7 @@ module NewRelic
         :'instrumentation.rack_urlmap' => {
           :default      => instrumentation_value_of(:disable_rack_urlmap),
           :public       => true,
-          :type         => Boolean,
+          :type         => String,
           :dynamic_name => true,
           :allowed_from_server => false,
           :description  => 'Controls auto-instrumentation of Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
@@ -936,7 +936,7 @@ module NewRelic
         :'instrumentation.puma_rack' => {
           :default      => instrumentation_value_of(:disable_puma_rack),  # TODO: change to value_of(:'instrumentation.rack') when we remove :disable_puma_rack in 8.0)
           :public       => true,
-          :type         => Boolean,
+          :type         => String,
           :dynamic_name => true,
           :allowed_from_server => false,
           :description  => "Controls auto-instrumentation of Puma::Rack. When enabled, the agent hooks into the " \
@@ -946,7 +946,7 @@ module NewRelic
         :'instrumentation.puma_rack_urlmap' => {
           :default      => instrumentation_value_of(:disable_puma_rack_urlmap),  # TODO: change to value_of(:'instrumentation.rack_urlmap') when we remove :disable_puma_rack_urlmap in 8.0)
           :public       => true,
-          :type         => Boolean,
+          :type         => String,
           :dynamic_name => true,
           :allowed_from_server => false,
           :description  => 'Controls auto-instrumentation of Puma::Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
