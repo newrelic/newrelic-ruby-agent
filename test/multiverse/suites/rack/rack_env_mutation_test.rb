@@ -4,49 +4,49 @@
 
 if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
-require 'new_relic/rack/browser_monitoring'
-require 'new_relic/rack/agent_hooks'
+  require 'new_relic/rack/browser_monitoring'
+  require 'new_relic/rack/agent_hooks'
 
-class RackEnvMutationTest < Minitest::Test
-  attr_accessor :inner_app
+  class RackEnvMutationTest < Minitest::Test
+    attr_accessor :inner_app
 
-  include MultiverseHelpers
-  include Rack::Test::Methods
+    include MultiverseHelpers
+    include Rack::Test::Methods
 
-  setup_and_teardown_agent
+    setup_and_teardown_agent
 
-  class BadApp
-    def call(env)
-      Thread.new do
-        100.times do
-          env.each do |k, v|
-            # allow main thread to run while we're still in the middle of
-            # iterating
-            Thread.pass
+    class BadApp
+      def call(env)
+        Thread.new do
+          100.times do
+            env.each do |k, v|
+              # allow main thread to run while we're still in the middle of
+              # iterating
+              Thread.pass
+            end
           end
         end
+
+        # Give the thread we just spawned a chance to start up
+        Thread.pass
+
+        [200, {}, ['cool story']]
       end
+    end
 
-      # Give the thread we just spawned a chance to start up
-      Thread.pass
+    def app
+      inner_app = BadApp.new
+      Rack::Builder.app do
+        use NewRelic::Rack::AgentHooks
+        run inner_app
+      end
+    end
 
-      [200, {}, ['cool story']]
+    def test_safe_from_iterations_over_rack_env_from_background_threads
+      100.times do
+        get '/'
+      end
     end
   end
-
-  def app
-    inner_app = BadApp.new
-    Rack::Builder.app do
-      use NewRelic::Rack::AgentHooks
-      run inner_app
-    end
-  end
-
-  def test_safe_from_iterations_over_rack_env_from_background_threads
-    100.times do
-      get '/'
-    end
-  end
-end
 
 end
