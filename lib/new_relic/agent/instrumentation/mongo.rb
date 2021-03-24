@@ -34,7 +34,11 @@ DependencyDetection.defer do
     )
   end
 
+  # TODO: Remove in 8.0.0 release
   def install_mongo_instrumentation
+    Deprecator.deprecate :install_mongo_instrumentation, :install_mongo_command_subscriber, "8.0.0"
+    ::NewRelic::Agent.logger.warn 'Installing deprecated Mongo instrumentation. This instrumentation will be removed in a future release. Update Mongo version to >= 2.1.0 for updated instrumentation'
+
     require 'new_relic/agent/datastores/mongo/metric_translator'
     require 'new_relic/agent/datastores/mongo/statement_formatter'
 
