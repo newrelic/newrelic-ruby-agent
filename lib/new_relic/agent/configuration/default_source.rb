@@ -912,11 +912,27 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => "Controls auto-instrumentation of redis at start up.  May be one of [auto|prepend|chain|disabled]."
+          :description => "Controls auto-instrumentation of HttpClient at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.redis' => {
           :default => instrumentation_value_of(:disable_redis),
           :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Redis at start up.  May be one of [auto|prepend|chain|disabled]."
+        },
+        :'instrumentation.mongo' => {
+          :default => instrumentation_value_of(:disable_mongo),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Mongo at start up.  May be one of [enabled|disabled]."
+        },
+        :'instrumentation.httpclient' => {
+          :default => instrumentation_value_of(:disable_httpclient),
+          :public => :true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
@@ -1157,7 +1173,8 @@ module NewRelic
           :type         => Boolean,
           :allowed_from_server => false,
           :dynamic_name => true,
-          :description  => 'If <code>true</code>, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/mongo-instrumentation">instrumentation for the Mongo gem</a>.'
+          :deprecated   => true,
+          :description  => deprecated_description(:'instrumentation.mongo', 'If <code>true</code>, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/mongo-instrumentation">instrumentation for the Mongo gem</a>.')
         },
         :disable_redis => {
           :default      => false,
