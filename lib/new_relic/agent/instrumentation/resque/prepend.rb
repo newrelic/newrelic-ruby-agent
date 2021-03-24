@@ -6,8 +6,7 @@
 module NewRelic::Agent::Instrumentation
   module Resque
     module Prepend 
-      include NewRelic::Agent::Instrumentation::ControllerInstrumentation
-      include NewRelic::Agent::Instrumentation::Resque::Instrumentation
+      include NewRelic::Agent::Instrumentation::Resque
 
       def perform
         with_tracing { super }

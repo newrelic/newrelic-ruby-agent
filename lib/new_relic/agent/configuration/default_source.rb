@@ -805,6 +805,7 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
+          :deprecated => true,
           :allowed_from_server => false,
           :description => deprecated_description(:'instrumentation.resque', 'If <code>true</code>, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/resque-instrumentation">Resque instrumentation</a>.')
         },
@@ -897,6 +898,14 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of resque at start up.  May be one of [auto|prepend|chain|disabled]."
+        },
+        :'instrumentation.redis' => {
+          :default => instrumentation_value_of(:disable_redis),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Redis at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.httpclient' => {
           :default => instrumentation_value_of(:disable_httpclient),
@@ -1111,15 +1120,17 @@ module NewRelic
           :default      => false,
           :public       => true,
           :type         => Boolean,
+          :deprecated   => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.'
+          :description  => deprecated_description(:'instrumentation.redis', 'If <code>true</code>, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.')
         },
         :disable_redis_instrumentation => {
           :default      => false,
           :public       => false,
           :type         => Boolean,
+          :deprecated   => true,
           :allowed_from_server => false,
-          :description  => 'Disables installation of Redis instrumentation. Standard key to use is disable_redis.'
+          :description  => deprecated_description(:'instrumentation.redis', 'Disables installation of Redis instrumentation. Standard key to use is disable_redis.')
         },
         :'message_tracer.segment_parameters.enabled' => {
           :default      => true,
