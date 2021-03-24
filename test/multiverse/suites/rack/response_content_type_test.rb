@@ -4,46 +4,46 @@
 
 if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
-require File.join(File.dirname(__FILE__), 'example_app')
-require 'new_relic/rack/browser_monitoring'
-require 'new_relic/rack/agent_hooks'
+  require File.join(File.dirname(__FILE__), 'example_app')
+  require 'new_relic/rack/browser_monitoring'
+  require 'new_relic/rack/agent_hooks'
 
-class HttpResponseContentTypeTest < Minitest::Test
-  include MultiverseHelpers
+  class HttpResponseContentTypeTest < Minitest::Test
+    include MultiverseHelpers
 
-  setup_and_teardown_agent
+    setup_and_teardown_agent
 
-  include Rack::Test::Methods
+    include Rack::Test::Methods
 
-  def app
-    Rack::Builder.app do
-      use ResponseContentTypeMiddleware
-      use NewRelic::Rack::AgentHooks
-      run ExampleApp.new
+    def app
+      Rack::Builder.app do
+        use ResponseContentTypeMiddleware
+        use NewRelic::Rack::AgentHooks
+        run ExampleApp.new
+      end
     end
-  end
 
-  def test_records_response_content_type_on_analytics_events
-    rsp = get '/', { 'override-content-type' => 'application/json' }
-    assert_equal('application/json', rsp.headers['Content-Type'])
-    assert_equal('application/json', get_last_analytics_event[2][:'response.headers.contentType'])
-
-    rsp = get '/', { 'override-content-type' => 'application/xml' }
-    assert_equal('application/xml', rsp.headers['Content-Type'])
-    assert_equal('application/xml', get_last_analytics_event[2][:'response.headers.contentType'])
-  end
-
-  def test_skips_response_content_type_if_middleware_tracing_disabled
-    with_config(:disable_middleware_instrumentation => true) do
+    def test_records_response_content_type_on_analytics_events
       rsp = get '/', { 'override-content-type' => 'application/json' }
       assert_equal('application/json', rsp.headers['Content-Type'])
-      refute get_last_analytics_event[2][:'response.headers.contentType']
+      assert_equal('application/json', get_last_analytics_event[2][:'response.headers.contentType'])
 
       rsp = get '/', { 'override-content-type' => 'application/xml' }
       assert_equal('application/xml', rsp.headers['Content-Type'])
-      refute get_last_analytics_event[2][:'response.headers.contentType']
+      assert_equal('application/xml', get_last_analytics_event[2][:'response.headers.contentType'])
+    end
+
+    def test_skips_response_content_type_if_middleware_tracing_disabled
+      with_config(:disable_middleware_instrumentation => true) do
+        rsp = get '/', { 'override-content-type' => 'application/json' }
+        assert_equal('application/json', rsp.headers['Content-Type'])
+        refute get_last_analytics_event[2][:'response.headers.contentType']
+
+        rsp = get '/', { 'override-content-type' => 'application/xml' }
+        assert_equal('application/xml', rsp.headers['Content-Type'])
+        refute get_last_analytics_event[2][:'response.headers.contentType']
+      end
     end
   end
-end
 
 end
