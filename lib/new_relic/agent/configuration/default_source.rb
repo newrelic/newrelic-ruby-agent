@@ -1495,7 +1495,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for the excon gem.'
+          :description  => deprecated_description(:'instrumentation.excon', 'If <code>true</code>, disables instrumentation for the excon gem.')
         },
         :'instrumentation.excon' => {
           :default => instrumentation_value_of(:disable_excon),
