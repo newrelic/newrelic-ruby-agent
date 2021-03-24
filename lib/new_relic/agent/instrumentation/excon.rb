@@ -32,10 +32,6 @@ DependencyDetection.defer do
     defined?(::Excon) && defined?(::Excon::VERSION)
   end
 
-  depends_on do
-    allowed_by_config?
-  end
-
   executes do
     excon_version = Gem::Version.new(::Excon::VERSION)
     if excon_version >= EXCON_MIN_VERSION
