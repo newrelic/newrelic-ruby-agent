@@ -464,7 +464,7 @@ module NewRelic
         @ignore_apdex = options[:ignore_apdex] if options.key? :ignore_apdex
         @ignore_enduser = options[:ignore_enduser] if options.key? :ignore_enduser
 
-        nest_initial_segment if nesting_max_depth == 1
+        nest_initial_segment if segments.length == 1
         nested_name = self.class.nested_transaction_name options[:transaction_name]
         segment = create_segment nested_name
         set_default_transaction_name(options[:transaction_name], category)

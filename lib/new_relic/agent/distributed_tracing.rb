@@ -24,8 +24,6 @@ module NewRelic
       extend NewRelic::SupportabilityHelper
       extend self
       
-
-
       # Adds the Distributed Trace headers so that the downstream service can participate in a
       # distributed trace. This method should be called every time an outbound call is made
       # since the header payload contains a timestamp.
