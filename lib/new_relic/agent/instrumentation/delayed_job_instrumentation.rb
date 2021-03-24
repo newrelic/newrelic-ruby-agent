@@ -79,11 +79,7 @@ DependencyDetection.defer do
   @name = :delayed_job
 
   depends_on do
-    !NewRelic::Agent.config[:disable_dj]
-  end
-
-  depends_on do
-    defined?(::Delayed) && defined?(::Delayed::Worker) && !NewRelic::Agent.config[:disable_dj]
+    defined?(::Delayed) && defined?(::Delayed::Worker)
   end
 
   executes do
