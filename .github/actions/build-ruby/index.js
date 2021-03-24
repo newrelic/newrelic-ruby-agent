@@ -159,16 +159,19 @@ async function downgradeMySQL() {
   const pkgDir = `${process.env.HOME}/packages`
   const pkgOption = `--directory-prefix=${pkgDir}/`
   const mirrorUrl = 'https://mirrors.mediatemple.net/debian-security/pool/updates/main/m/mysql-5.5'
+  const ubuntuUrl = 'http://archive.ubuntu.com/ubuntu/pool/main'
 
   // executes the following all in parallel  
   const promise1 = exec.exec('sudo', ['apt-get', 'remove', 'mysql-client'])
   const promise2 = exec.exec('wget', [pkgOption, `${mirrorUrl}/libmysqlclient18_5.5.62-0%2Bdeb8u1_amd64.deb`])
   const promise3 = exec.exec('wget', [pkgOption, `${mirrorUrl}/libmysqlclient-dev_5.5.62-0%2Bdeb8u1_amd64.deb`])
+  const promise4 = exec.exec('wget', [pkgOption, `${ubuntuUrl}/g/glibc/multiarch-support_2.27-3ubuntu1.2_amd64.deb`])
 
   // wait for the parallel processes to finish
-  await Promise.all([promise1, promise2, promise3])
+  await Promise.all([promise1, promise2, promise3, promise4])
 
   // executes serially
+  await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/multiarch-support_2.27-3ubuntu1.2_amd64.deb`])
   await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient18_5.5.62-0+deb8u1_amd64.deb`])
   await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient-dev_5.5.62-0+deb8u1_amd64.deb`])
 
@@ -343,7 +346,7 @@ function rubyCachePaths(rubyVersion) {
 }
 
 function rubyCacheKey(rubyVersion) {
-  return `v8-ruby-cache-${rubyVersion}`
+  return `v10-ruby-cache-${rubyVersion}`
 }
 
 // will attempt to restore the previously built Ruby environment if one exists.
