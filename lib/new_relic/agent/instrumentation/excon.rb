@@ -65,7 +65,7 @@ DependencyDetection.defer do
   end
 
   def install_legacy_excon_instrumentation
-    Deprecator.deprecate :install_legacy_excon_instrumentation, :install_middleware_excon_instrumentation
+    Deprecator.deprecate :install_legacy_excon_instrumentation, :install_middleware_excon_instrumentation, "8.0.0"
     ::NewRelic::Agent.logger.warn 'Installing deprecated legacy Excon instrumentation. This instrumentation will be removed in a future release. Update Excon version to > 0.19.0 for updated instrumentation'
     require 'new_relic/agent/instrumentation/excon/connection'
     ::Excon::Connection.install_newrelic_instrumentation
