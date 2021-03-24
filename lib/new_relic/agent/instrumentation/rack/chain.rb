@@ -5,15 +5,8 @@
 module NewRelic::Agent::Instrumentation
   module Rack
     module Chain
-      def self.track_deferred_detection builder_class
-        class << builder_class
-          attr_accessor :_nr_deferred_detection_ran
-        end
-        builder_class._nr_deferred_detection_ran = false
-      end
-
       def self.instrument! builder_class
-        track_deferred_detection builder_class
+        NewRelic::Agent::Instrumentation::RackBuilder.track_deferred_detection builder_class
 
         builder_class.class_eval do
           include ::NewRelic::Agent::Instrumentation::RackBuilder
