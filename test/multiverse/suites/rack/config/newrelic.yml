@@ -10,6 +10,11 @@ development:
   host: localhost
   api_host: localhost
   port: <%= $collector && $collector.port %>
+  instrumentation:
+    rack: <%= $instrumentation_method %>
+    rack_urlmap: <%= $instrumentation_method %>
+    puma_rack: <%= $instrumentation_method %>
+    puma_rack_urlmap: <%= $instrumentation_method %>
   transaction_tracer:
     record_sql: obfuscated
     enabled: true
