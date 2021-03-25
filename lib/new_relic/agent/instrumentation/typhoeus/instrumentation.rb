@@ -5,14 +5,15 @@
 module NewRelic
   module Agent
     module Instrumentation
-      module TyphoeusTracing
+      module Typhoeus
 
         HYDRA_SEGMENT_NAME    = "External/Multiple/Typhoeus::Hydra/run"
         NOTICIBLE_ERROR_CLASS = "Typhoeus::Errors::TyphoeusError"
-      
+
         EARLIEST_VERSION = Gem::Version.new("0.5.3")
+
         def self.is_supported_version?
-          Gem::Version.new(::Typhoeus::VERSION) >= NewRelic::Agent::Instrumentation::TyphoeusTracing::EARLIEST_VERSION
+          Gem::Version.new(::Typhoeus::VERSION) >= EARLIEST_VERSION
         end
 
         def self.request_is_hydra_enabled?(request)
@@ -27,6 +28,16 @@ module NewRelic
           else
             # 0.5.4 seems to have lost xxxx_message methods altogether.
             "timeout" 
+          end
+        end
+
+        def with_tracing
+          segment = NewRelic::Agent::Tracer.start_segment name: HYDRA_SEGMENT_NAME
+          instance_variable_set :@__newrelic_hydra_segment, segment
+          begin
+            yield
+          ensure
+            segment.finish if segment
           end
         end
 

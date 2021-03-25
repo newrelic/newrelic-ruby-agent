@@ -2,9 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+require_relative 'typhoeus/instrumentation'
 require_relative 'typhoeus/chain'
 require_relative 'typhoeus/prepend'
-require_relative 'typhoeus/typhoeus_tracing'
 
 DependencyDetection.defer do
   named :typhoeus
@@ -14,7 +14,7 @@ DependencyDetection.defer do
   end
 
   depends_on do
-    NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
+    NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
   end
 
   executes do
@@ -26,7 +26,7 @@ DependencyDetection.defer do
   # Basic request tracing
   executes do
     Typhoeus.before do |request|
-      NewRelic::Agent::Instrumentation::TyphoeusTracing.trace(request)
+      NewRelic::Agent::Instrumentation::Typhoeus.trace(request)
 
       # Ensure that we always return a truthy value from the before block,
       # otherwise Typhoeus will bail out of the instrumentation.
