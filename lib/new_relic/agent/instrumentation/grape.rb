@@ -13,10 +13,6 @@ DependencyDetection.defer do
   configure_with :grape
   
   depends_on do
-    ::NewRelic::Agent.config[:disable_grape] == false
-  end
-
-  depends_on do
     defined?(::Grape::VERSION) &&
       Gem::Version.new(::Grape::VERSION) >= ::NewRelic::Agent::Instrumentation::Grape::Instrumentation::MIN_VERSION
   end
