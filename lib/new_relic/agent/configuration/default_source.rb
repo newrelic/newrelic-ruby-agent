@@ -884,16 +884,23 @@ module NewRelic
         },
         :'instrumentation.net_http' => {
           :default => instrumentation_value_of(:disable_net_http, :prepend_net_instrumentation),
-          :public => :true,
+          :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
+        },
+        :'instrumentation.typhoeus' => {
+          :default => instrumentation_value_of(:disable_typhoeus),
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Typhoeus at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.resque' => {
           :default => instrumentation_value_of(:disable_resque),
-          :public => :true,
+          :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
@@ -901,7 +908,7 @@ module NewRelic
         },
         :'instrumentation.redis' => {
           :default => instrumentation_value_of(:disable_redis),
-          :public => :true,
+          :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
@@ -909,7 +916,7 @@ module NewRelic
         },
         :'instrumentation.httpclient' => {
           :default => instrumentation_value_of(:disable_httpclient),
-          :public => :true,
+          :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
@@ -1620,8 +1627,9 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :dynamic_name => true,
+          :deprecated   => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t install instrumentation for the typhoeus gem.'
+          :description  => deprecated_description(:'instrumentation.typhoeus', 'If <code>true</code>, the agent won\'t install instrumentation for the typhoeus gem.' )
         },
         :disable_httprb => {
           :default      => false,
