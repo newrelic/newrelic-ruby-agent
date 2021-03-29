@@ -1,4 +1,6 @@
 rack_test_version = RUBY_VERSION < "2.2.2" ? "< 0.8.0" : ">= 0.8.0"
+instrumentation_methods :chain, :prepend
+
 
 if RUBY_VERSION < '2.7.0'
   if RUBY_VERSION >= '2.2.0'
