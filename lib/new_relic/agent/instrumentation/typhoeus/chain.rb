@@ -2,19 +2,19 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-
 module NewRelic::Agent::Instrumentation
-  module Resque
+  module Typhoeus
     module Chain 
       def self.instrument!
-        ::Resque::Job.class_eval do
-          include NewRelic::Agent::Instrumentation::Resque
+        ::Typhoeus::Hydra.class_eval do 
+          include NewRelic::Agent::Instrumentation::Typhoeus
 
-          alias_method :perform_without_instrumentation, :perform
-  
-          def perform
-            with_tracing { perform_without_instrumentation }
+          def run_with_newrelic(*args)
+            with_tracing { run_without_newrelic(*args) }
           end
+    
+          alias run_without_newrelic run
+          alias run run_with_newrelic
         end
       end
     end
