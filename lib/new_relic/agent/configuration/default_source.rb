@@ -891,7 +891,7 @@ module NewRelic
 
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
         },
-        :'instrumentation.rake_instrumentation' => {
+        :'instrumentation.rake' => {
           :default => instrumentation_value_of(:disable_rake),
           :public => :true,
           :type => String,

@@ -9,11 +9,11 @@ require_relative 'rake/prepend'
 DependencyDetection.defer do
   # Why not :rake? newrelic-rake used that name, so avoid conflicting
   named :rake_instrumentation
+  configure_with :rake
 
   depends_on do
     defined?(::Rake) &&
       defined?(::Rake::VERSION) &&
-      ::NewRelic::Agent.config[:'disable_rake'] == false &&
       ::NewRelic::Agent.config[:'rake.tasks'].any? &&
       ::NewRelic::Agent::Instrumentation::RakeInstrumentation.should_install?
   end
