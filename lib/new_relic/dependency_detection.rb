@@ -107,12 +107,19 @@ module DependencyDetection
       end
     end
 
+    def chain_instrument_target target, instrumenting_module, supportability_name=nil
+      NewRelic::Agent.logger.info "Installing deferred #{target} instrumentation"
+      log_and_instrument("MethodChaining", instrumenting_module, supportability_name) do
+        instrumenting_module.instrument! target
+      end
+    end
+
     def execute
       @executes.each do |x|
         begin
           x.call
         rescue => err
-          NewRelic::Agent.logger.error( "Error while installing #{self.name} instrumentation:", err )
+          NewRelic::Agent.logger.error "Error while installing #{self.name} instrumentation:", err
           break
         end
       end

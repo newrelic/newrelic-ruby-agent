@@ -6,7 +6,7 @@ require "typhoeus"
 require "newrelic_rpm"
 require "http_client_test_cases"
 
-if NewRelic::Agent::Instrumentation::TyphoeusTracing.is_supported_version?
+if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
   class TyphoeusTest < Minitest::Test
     include HttpClientTestCases

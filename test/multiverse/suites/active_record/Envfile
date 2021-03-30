@@ -87,27 +87,13 @@ end
 # known issues, including https://github.com/rails/rails/issues/18991, so
 # skip 3.x versions on 2.2.
 #
-if RUBY_VERSION < '2.2.0'
-  mysql_vsn = '0.3.20' unless RUBY_PLATFORM == 'java'
-
+# Only 3.2.22 fixes the above mentioned issue, so it's the only one 
+# surviving in our coverage of Rails 3.x series here.
+#
+if RUBY_VERSION <= '2.2.0'
   gemfile <<-RB
-    gem 'activerecord', '~> 3.2.19'
-    gem '#{mysql_gem}', '#{mysql_vsn}'
-    #{boilerplate_gems}
-  RB
-
-  gemfile <<-RB
-    gem 'activerecord', '~> 3.1.12'
-    gem '#{mysql_gem}', '#{mysql_vsn}'
-    #{boilerplate_gems}
-  RB
-
-  gemfile <<-RB
-    gem 'activerecord', '~> 3.0.20'
-    gem 'activerecord-mysql2-adapter' if RUBY_PLATFORM != 'java'
-    gem '#{mysql_gem}', '#{mysql_vsn}'
-    #{boilerplate_gems}
+    gem 'rack'
+    gem 'activerecord', '~> 3.2.22'
+    #{sqlite3_gem_and_version}
   RB
 end
-
-# vim: ft=ruby
