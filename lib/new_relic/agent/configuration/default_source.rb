@@ -1755,14 +1755,28 @@ module NewRelic
           :public       => false,
           :type         => Boolean,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t install Grape instrumentation.'
+          :deprecated   => true,
+          :description  => deprecated_description(:'instrumentation.grape',
+            'If <code>true</code>, the agent won\'t install Grape instrumentation.'
+          )
         },
         :disable_grape => {
           :default      => false,
           :public       => true,
           :type         => Boolean,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t install Grape instrumentation.'
+          :deprecated   => true,
+          :description  => deprecated_description(:'instrumentation.grape',
+            'If <code>true</code>, the agent won\'t install Grape instrumentation.'
+          )
+        },
+        :'instrumentation.grape' => {
+          :default => instrumentation_value_of(:disable_grape_instrumentation),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Grape at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'attributes.enabled' => {
           :default     => true,
