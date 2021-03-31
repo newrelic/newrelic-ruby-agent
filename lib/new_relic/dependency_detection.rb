@@ -119,6 +119,7 @@ module DependencyDetection
         begin
           x.call
         rescue => err
+          require 'pry'; binding.pry
           NewRelic::Agent.logger.error "Error while installing #{self.name} instrumentation:", err
           break
         end
