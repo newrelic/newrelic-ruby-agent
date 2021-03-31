@@ -8,7 +8,7 @@ on:
       - fix_ci_issues
   pull_request:
   schedule:
-    - cron:  '0 8 * * *'
+    - cron:  '0 9 * * *'
 
 jobs:
   build-ruby:
@@ -111,6 +111,8 @@ jobs:
             rails: rails60
           - ruby-version: "2.2.10"
             rails: rails61
+          - ruby-version: "2.2.10"
+            rails: rails52
           - ruby-version: "jruby-9.2.12.0"
             rails: rails30
           - ruby-version: "jruby-9.2.12.0"
