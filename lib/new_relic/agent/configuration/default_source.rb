@@ -914,6 +914,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of Redis at start up.  May be one of [auto|prepend|chain|disabled]."
         },
+        :'instrumentation.mongo' => {
+          :default => instrumentation_value_of(:disable_mongo),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Mongo at start up.  May be one of [enabled|disabled]."
+        },
         :'instrumentation.httpclient' => {
           :default => instrumentation_value_of(:disable_httpclient),
           :public => true,
@@ -1165,7 +1173,8 @@ module NewRelic
           :type         => Boolean,
           :allowed_from_server => false,
           :dynamic_name => true,
-          :description  => 'If <code>true</code>, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/mongo-instrumentation">instrumentation for the Mongo gem</a>.'
+          :deprecated   => true,
+          :description  => deprecated_description(:'instrumentation.mongo', 'If <code>true</code>, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/mongo-instrumentation">instrumentation for the Mongo gem</a>.')
         },
         :disable_redis => {
           :default      => false,
@@ -1754,14 +1763,28 @@ module NewRelic
           :public       => false,
           :type         => Boolean,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t install Grape instrumentation.'
+          :deprecated   => true,
+          :description  => deprecated_description(:'instrumentation.grape',
+            'If <code>true</code>, the agent won\'t install Grape instrumentation.'
+          )
         },
         :disable_grape => {
           :default      => false,
           :public       => true,
           :type         => Boolean,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t install Grape instrumentation.'
+          :deprecated   => true,
+          :description  => deprecated_description(:'instrumentation.grape',
+            'If <code>true</code>, the agent won\'t install Grape instrumentation.'
+          )
+        },
+        :'instrumentation.grape' => {
+          :default => instrumentation_value_of(:disable_grape_instrumentation),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Grape at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'attributes.enabled' => {
           :default     => true,

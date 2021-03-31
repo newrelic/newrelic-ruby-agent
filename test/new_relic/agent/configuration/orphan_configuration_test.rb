@@ -38,7 +38,7 @@ class OrphanedConfigTest < Minitest::Test
     # an external gem, so we don't expect any explicit references to them
     # in the core gem's code.
     @default_keys.delete_if do |key_name|
-      NewRelic::Agent::Configuration::DEFAULTS[key_name][:external]
+      NewRelic::Agent::Configuration::DEFAULTS[key_name][:external] || NewRelic::Agent::Configuration::DEFAULTS[key_name][:deprecated]
     end
     assert_empty @default_keys
   end
