@@ -5,7 +5,7 @@
 require_relative 'instrumentation'
 
 module NewRelic::Agent::Instrumentation
-  module SinatraInstrumentation
+  module Sinatra
     module Prepend 
       
       def dispatch!

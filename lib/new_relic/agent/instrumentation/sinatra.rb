@@ -15,11 +15,19 @@ DependencyDetection.defer do
   @name = :sinatra
 
   depends_on do
-    allowed_by_config? &&
-      defined?(::Sinatra) && defined?(::Sinatra::Base) &&
-      Sinatra::Base.private_method_defined?(:dispatch!) &&
-      Sinatra::Base.private_method_defined?(:process_route) &&
-      Sinatra::Base.private_method_defined?(:route_eval)
+    defined?(::Sinatra) && defined?(::Sinatra::Base) 
+  end 
+
+  depends_on do
+    Sinatra::Base.private_method_defined?(:dispatch!) 
+  end 
+
+  depends_on do
+    Sinatra::Base.private_method_defined?(:process_route) 
+  end 
+
+  depends_on do
+    Sinatra::Base.private_method_defined?(:route_eval)
   end
 
   executes do
@@ -36,16 +44,16 @@ DependencyDetection.defer do
         include NewRelic::Agent::Instrumentation::Sinatra
 
         register NewRelic::Agent::Instrumentation::Sinatra::Ignorer
-        # chain_instrument NewRelic::Agent::Instrumentation::SinatraInstrumentation::Chain
       end
+
       ::Sinatra.module_eval do
         register NewRelic::Agent::Instrumentation::Sinatra::Ignorer
       end
 
-      prepend_instrument ::Sinatra::Base, NewRelic::Agent::Instrumentation::SinatraInstrumentation::Prepend
+      prepend_instrument ::Sinatra::Base, NewRelic::Agent::Instrumentation::Sinatra::Prepend
     else
 
-      chain_instrument NewRelic::Agent::Instrumentation::SinatraInstrumentation::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::Sinatra::Chain
     end
 
   end
@@ -58,19 +66,9 @@ DependencyDetection.defer do
       require 'new_relic/rack/agent_hooks'
       require 'new_relic/rack/browser_monitoring'
       if use_prepend?
-        prepend_instrument ::Sinatra::Base.singleton_class, NewRelic::Agent::Instrumentation::SinatraInstrumentation::PrependBuild
+        prepend_instrument ::Sinatra::Base.singleton_class, NewRelic::Agent::Instrumentation::Sinatra::PrependBuild
       else
-        ::Sinatra::Base.class_eval do
-          class << self
-            def build_with_newrelic(*args, &block)
-              build_with_tracing(*args) do 
-                build_without_newrelic(*args, &block)
-              end
-            end
-            alias build_without_newrelic build
-            alias build build_with_newrelic
-          end
-        end
+        chain_instrument NewRelic::Agent::Instrumentation::Sinatra::ClassMethods::Chain
       end
     else
       ::NewRelic::Agent.logger.info("Skipping auto-injection of middleware for Sinatra - requires Sinatra 1.2.1+")

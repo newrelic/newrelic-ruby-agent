@@ -10,7 +10,7 @@ require 'new_relic/agent/parameter_filtering'
 require_relative 'instrumentation'
 
 module NewRelic::Agent::Instrumentation
-  module SinatraInstrumentation
+  module Sinatra
     module Chain 
       def self.instrument!
         ::Sinatra::Base.class_eval do
@@ -48,6 +48,24 @@ module NewRelic::Agent::Instrumentation
 
         
 
+      end
+    end
+
+    module ClassMethods
+      module Chain
+        def self.instrument!
+          ::Sinatra::Base.class_eval do
+            class << self
+              def build_with_newrelic(*args, &block)
+                build_with_tracing(*args) do 
+                  build_without_newrelic(*args, &block)
+                end
+              end
+              alias build_without_newrelic build
+              alias build build_with_newrelic
+            end
+          end
+        end
       end
     end
   end

@@ -17,7 +17,6 @@ module NewRelic
           end
           
           def invoke_route(*args, &block)
-            # require 'pry'; binding.pry
             invoke_route_with_tracing(*args) { super }
           end
 
