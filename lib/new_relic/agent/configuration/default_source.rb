@@ -16,13 +16,13 @@ module NewRelic
       end
 
       # Combines potentially two properties into one.
-      # Given the example: 
+      # Given the example:
       #    :disable_net_http and :prepend_net_instrumentation
       #    if :disable_net_http is true, then returned value is "disabled"
       #    if :prepend_net_instrumentation is false, then returned value is "chain"
       #    otherwise, "auto" is returned.
       #
-      # Intent is: 
+      # Intent is:
       #     - if user sets disable_xxx property, then don't instrument
       #     - if user set prepend to `false` then we use method_alias chaining
       #     - auto, when returned means, try to use prepend unless conflicting gems discovered
@@ -805,8 +805,9 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
+          :deprecated => true,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/resque-instrumentation">Resque instrumentation</a>.'
+          :description => deprecated_description(:'instrumentation.resque', 'If <code>true</code>, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/resque-instrumentation">Resque instrumentation</a>.')
         },
         :disable_sidekiq => {
           :default => false,
@@ -883,12 +884,19 @@ module NewRelic
         },
         :'instrumentation.net_http' => {
           :default => instrumentation_value_of(:disable_net_http, :prepend_net_instrumentation),
-          :public => :true,
+          :public => true,
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-
           :description => "Controls auto-instrumentation of Net::HTTP at start up.  May be one of [auto|prepend|chain|disabled]."
+        },
+        :'instrumentation.typhoeus' => {
+          :default => instrumentation_value_of(:disable_typhoeus),
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Typhoeus at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.bunny' => {
           :default => instrumentation_value_of(:disable_bunny),
@@ -897,6 +905,74 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of bunny at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
+        :'instrumentation.resque' => {
+          :default => instrumentation_value_of(:disable_resque),
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of resque at start up.  May be one of [auto|prepend|chain|disabled]."
+        },
+        :'instrumentation.redis' => {
+          :default => instrumentation_value_of(:disable_redis),
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Redis at start up.  May be one of [auto|prepend|chain|disabled]."
+        },
+        :'instrumentation.mongo' => {
+          :default => instrumentation_value_of(:disable_mongo),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Mongo at start up.  May be one of [enabled|disabled]."
+        },
+        :'instrumentation.httpclient' => {
+          :default => instrumentation_value_of(:disable_httpclient),
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of HTTPClient at start up.  May be one of [auto|prepend|chain|disabled]."
+        },
+        :'instrumentation.rack' => {
+          :default      => instrumentation_value_of(:disable_rack),
+          :public       => true,
+          :type         => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description  => "Controls auto-instrumentation of Rack. When enabled, the agent hooks into the " \
+                           "<code>to_app</code> method in Rack::Builder to find gems to instrument during " \
+                           "application startup.  May be one of [auto|prepend|chain|disabled]."
+        },
+        :'instrumentation.rack_urlmap' => {
+          :default      => instrumentation_value_of(:disable_rack_urlmap),
+          :public       => true,
+          :type         => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description  => 'Controls auto-instrumentation of Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
+        :'instrumentation.puma_rack' => {
+          :default      => instrumentation_value_of(:disable_puma_rack),  # TODO: change to value_of(:'instrumentation.rack') when we remove :disable_puma_rack in 8.0)
+          :public       => true,
+          :type         => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description  => "Controls auto-instrumentation of Puma::Rack. When enabled, the agent hooks into the " \
+                           "<code>to_app</code> method in Puma::Rack::Builder to find gems to instrument during " \
+                           "application startup.  May be one of [auto|prepend|chain|disabled]."
+        },
+        :'instrumentation.puma_rack_urlmap' => {
+          :default      => instrumentation_value_of(:disable_puma_rack_urlmap),  # TODO: change to value_of(:'instrumentation.rack_urlmap') when we remove :disable_puma_rack_urlmap in 8.0)
+          :public       => true,
+          :type         => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description  => 'Controls auto-instrumentation of Puma::Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :disable_data_mapper => {
           :default => false,
@@ -1097,21 +1173,24 @@ module NewRelic
           :type         => Boolean,
           :allowed_from_server => false,
           :dynamic_name => true,
-          :description  => 'If <code>true</code>, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/mongo-instrumentation">instrumentation for the Mongo gem</a>.'
+          :deprecated   => true,
+          :description  => deprecated_description(:'instrumentation.mongo', 'If <code>true</code>, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/mongo-instrumentation">instrumentation for the Mongo gem</a>.')
         },
         :disable_redis => {
           :default      => false,
           :public       => true,
           :type         => Boolean,
+          :deprecated   => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.'
+          :description  => deprecated_description(:'instrumentation.redis', 'If <code>true</code>, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.')
         },
         :disable_redis_instrumentation => {
           :default      => false,
           :public       => false,
           :type         => Boolean,
+          :deprecated   => true,
           :allowed_from_server => false,
-          :description  => 'Disables installation of Redis instrumentation. Standard key to use is disable_redis.'
+          :description  => deprecated_description(:'instrumentation.redis', 'Disables installation of Redis instrumentation. Standard key to use is disable_redis.')
         },
         :'message_tracer.segment_parameters.enabled' => {
           :default      => true,
@@ -1503,8 +1582,17 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :dynamic_name => true,
+          :deprecated   => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for the excon gem.'
+          :description  => deprecated_description(:'instrumentation.excon', 'If <code>true</code>, disables instrumentation for the excon gem.')
+        },
+        :'instrumentation.excon' => {
+          :default => instrumentation_value_of(:disable_excon),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Excon at start up.  May be one of [enabled|disabled]."
         },
         :disable_httpclient => {
           :default      => false,
@@ -1512,7 +1600,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for the httpclient gem.'
+          :description  => deprecated_description(:'instrumentation.httpclient', 'If <code>true</code>, disables instrumentation for the httpclient gem.')
         },
         :disable_net_http => {
           :default      => false,
@@ -1521,7 +1609,7 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.net_http', 
+          :description  => deprecated_description(:'instrumentation.net_http',
             'If <code>true</code>, disables instrumentation for Net::HTTP.'
           )
         },
@@ -1531,7 +1619,8 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, prevents the agent from hooking into the <code>to_app</code> method in Rack::Builder to find gems to instrument during application startup.'
+          :deprecated   => true,
+          :description  => deprecated_description(:'instrumentation.rack',  'If <code>true</code>, prevents the agent from hooking into the <code>to_app</code> method in Rack::Builder to find gems to instrument during application startup.')
         },
         :disable_rack_urlmap => {
           :default      => false,
@@ -1539,7 +1628,8 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, prevents the agent from hooking into Rack::URLMap to install middleware tracing.'
+          :deprecated   => true,
+          :description  => deprecated_description(:'instrumentation.rack_urlmap', 'If <code>true</code>, prevents the agent from hooking into Rack::URLMap to install middleware tracing.')
         },
         :disable_puma_rack => {
           :default      => value_of(:disable_rack),
@@ -1547,7 +1637,8 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, prevents the agent from hooking into the <code>to_app</code> method in Puma::Rack::Builder to find gems to instrument during application startup.'
+          :deprecated   => true,
+          :description  => deprecated_description(:'instrumentation.puma_rack', 'If <code>true</code>, prevents the agent from hooking into the <code>to_app</code> method in Puma::Rack::Builder to find gems to instrument during application startup.')
         },
         :disable_puma_rack_urlmap => {
           :default      => value_of(:disable_rack_urlmap),
@@ -1555,15 +1646,17 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, prevents the agent from hooking into Puma::Rack::URLMap to install middleware tracing.'
+          :deprecated   => true,
+          :description  => deprecated_description(:'instrumentation.puma_rack_urlmap', 'If <code>true</code>, prevents the agent from hooking into Puma::Rack::URLMap to install middleware tracing.')
         },
         :disable_typhoeus => {
           :default      => false,
           :public       => true,
           :type         => Boolean,
           :dynamic_name => true,
+          :deprecated   => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t install instrumentation for the typhoeus gem.'
+          :description  => deprecated_description(:'instrumentation.typhoeus', 'If <code>true</code>, the agent won\'t install instrumentation for the typhoeus gem.' )
         },
         :disable_httprb => {
           :default      => false,
@@ -1680,14 +1773,28 @@ module NewRelic
           :public       => false,
           :type         => Boolean,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t install Grape instrumentation.'
+          :deprecated   => true,
+          :description  => deprecated_description(:'instrumentation.grape',
+            'If <code>true</code>, the agent won\'t install Grape instrumentation.'
+          )
         },
         :disable_grape => {
           :default      => false,
           :public       => true,
           :type         => Boolean,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t install Grape instrumentation.'
+          :deprecated   => true,
+          :description  => deprecated_description(:'instrumentation.grape',
+            'If <code>true</code>, the agent won\'t install Grape instrumentation.'
+          )
+        },
+        :'instrumentation.grape' => {
+          :default => instrumentation_value_of(:disable_grape_instrumentation),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Grape at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'attributes.enabled' => {
           :default     => true,

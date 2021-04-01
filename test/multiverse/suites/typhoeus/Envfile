@@ -6,6 +6,7 @@ SUPPORTED_TYPHOEUS_VERSIONS = [
   '0.7.3',
   '0.6.9',
 ]
+instrumentation_methods :chain, :prepend
 
 gemfile <<-RB
   gem 'typhoeus' # latest version
