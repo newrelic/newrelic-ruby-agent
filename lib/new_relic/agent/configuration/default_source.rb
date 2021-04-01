@@ -16,13 +16,13 @@ module NewRelic
       end
 
       # Combines potentially two properties into one.
-      # Given the example: 
+      # Given the example:
       #    :disable_net_http and :prepend_net_instrumentation
       #    if :disable_net_http is true, then returned value is "disabled"
       #    if :prepend_net_instrumentation is false, then returned value is "chain"
       #    otherwise, "auto" is returned.
       #
-      # Intent is: 
+      # Intent is:
       #     - if user sets disable_xxx property, then don't instrument
       #     - if user set prepend to `false` then we use method_alias chaining
       #     - auto, when returned means, try to use prepend unless conflicting gems discovered
@@ -1573,8 +1573,17 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :dynamic_name => true,
+          :deprecated   => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for the excon gem.'
+          :description  => deprecated_description(:'instrumentation.excon', 'If <code>true</code>, disables instrumentation for the excon gem.')
+        },
+        :'instrumentation.excon' => {
+          :default => instrumentation_value_of(:disable_excon),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Excon at start up.  May be one of [enabled|disabled]."
         },
         :disable_httpclient => {
           :default      => false,
@@ -1591,7 +1600,7 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.net_http', 
+          :description  => deprecated_description(:'instrumentation.net_http',
             'If <code>true</code>, disables instrumentation for Net::HTTP.'
           )
         },
