@@ -11,9 +11,8 @@
 #     https://github.com/mperham/dalli (Gem: dalli)
 
 require_relative 'memcache/helper'
-require_relative 'memcache/memcache'
-require_relative 'memcache/dalli'
 require_relative 'memcache/instrumentation'
+require_relative 'memcache/dalli'
 require_relative 'memcache/chain'
 require_relative 'memcache/prepend'
 
@@ -80,6 +79,13 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing Dalli CAS Client Memcache instrumentation'
-    chain_instrument ::NewRelic::Agent::Instrumentation::Memcache::DalliCAS
+    if use_prepend?
+      prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend
+      prepend_module.dalli_cas_prependers do |client_class, instrumenting_module|
+        prepend_instrument client_class, instrumenting_module, "MemecacheDalliCAS"
+      end
+    else
+      chain_instrument ::NewRelic::Agent::Instrumentation::Memcache::DalliCAS
+    end
   end
 end

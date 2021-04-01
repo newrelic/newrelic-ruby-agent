@@ -7,20 +7,6 @@ module NewRelic
   module Agent
     module Instrumentation
       module Memcache
-        module DalliCAS
-          extend Helper
-          module_function
-
-          def should_instrument?
-            supported_methods_for(::Dalli::Client, dalli_cas_methods).any?
-          end
-
-          def instrument!
-            instrument_methods ::Dalli::Client, dalli_cas_methods
-            instrument_multi_method :get_multi_cas
-          end
-        end
-
         module Dalli
           extend Helper
           module_function
@@ -33,6 +19,22 @@ module NewRelic
               instrument_server_for_key
             else
               instrument_methods(::Dalli::Client, client_methods)
+            end
+          end
+
+          def instrument_multi_method method_name
+            visibility = NewRelic::Helper.instance_method_visibility ::Dalli::Client, method_name
+            method_name_without = :"#{method_name}_without_newrelic_trace"
+
+            ::Dalli::Client.class_eval do
+              alias_method method_name_without, method_name
+
+              define_method method_name do |*args, &block|
+                get_multi_with_newrelic_tracing(method_name) { __send__ method_name_without, *args, &block }
+              end
+
+              __send__ visibility, method_name
+              __send__ visibility, method_name_without
             end
           end
 
@@ -58,7 +60,21 @@ module NewRelic
               end
             end
           end
+        end
 
+        module DalliCAS
+          extend Dalli
+          extend Helper
+          module_function
+
+          def should_instrument?
+            supported_methods_for(::Dalli::Client, dalli_cas_methods).any?
+          end
+
+          def instrument!
+            instrument_methods ::Dalli::Client, dalli_cas_methods
+            instrument_multi_method :get_multi_cas
+          end
         end
       end
     end

@@ -5,24 +5,40 @@
 
 module NewRelic::Agent::Instrumentation
   module Memcache
-    # # Prepending the Dalli library has a strange behavior not manifested in any other 
-    # # library we're auto-instrumenting.  For some reason, original Dalli classes start resolving
-    # # their modules/classes to the ::NewRelic::Agent::Instrumentation::Dalli::<target> namespace.
-    # # The class/module constants below allows Dalli to be prepended and still continue to 
-    # # function as intended.
-    # Dalli::Server = ::Dalli::Server
-    # Dalli::Client = ::Dalli::Client
-    # Dalli::Ring = ::Dalli::Ring
-    
     module Prepend
       extend Helper
       module_function
 
       def client_prepender client_class
-        for_methods client_class, supported_methods_for(client_class, client_methods)
+        Module.new do
+          extend Helper
+          include NewRelic::Agent::Instrumentation::Memcache::Tracer
+
+          supported_methods_for(client_class, client_methods).each do |method_name|
+            define_method method_name do |*args, &block|
+              with_newrelic_tracing(method_name, *args) { super(*args, &block) }
+            end
+          end
+        end
       end
 
-      def for_methods client_class, supported_methods
+      def dalli_cas_prependers
+        yield ::Dalli::Client, dalli_client_prepender(dalli_cas_methods)
+        yield ::Dalli::Client, dalli_get_multi_prepender(:get_multi_cas)
+      end
+
+      def dalli_prependers
+        if supports_datastore_instances?
+          yield ::Dalli::Client, dalli_client_prepender(dalli_methods)
+          yield ::Dalli::Client, dalli_get_multi_prepender(:get_multi)
+          yield ::Dalli::Server, dalli_server_prepender
+          yield ::Dalli::Ring, dalli_ring_prepender
+        else
+          yield ::Dalli::Client, dalli_client_prepender(client_methods)
+        end
+      end
+
+      def dalli_client_prepender supported_methods
         Module.new do
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
@@ -35,31 +51,18 @@ module NewRelic::Agent::Instrumentation
         end
       end
 
-      def dalli_prependers
-        yield ::Dalli::Client, dalli_client_prepender
-        if supports_datastore_instances?
-          yield ::Dalli::Server, dalli_server_prepender              
-          yield ::Dalli::Ring, dalli_ring_prepender
-        end
-      end
-
-      def dalli_client_prepender
+      def dalli_get_multi_prepender method_name
         Module.new do
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
-          supported_methods = supports_datastore_instances? ? dalli_methods : client_methods
-          require 'pry'; binding.pry
-          supported_methods.each do |method_name|
-            define_method method_name do |*args, &block|
-              with_newrelic_tracing(method_name, *args) { super(*args, &block) }
-            end
+          define_method method_name do |*args, &block|
+            get_multi_with_newrelic_tracing(method_name) { super(*args, &block) }
           end
         end
       end
 
       def dalli_ring_prepender
-        return unless supports_datastore_instances?
         Module.new do
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
@@ -71,17 +74,15 @@ module NewRelic::Agent::Instrumentation
       end
 
       def dalli_server_prepender
-        return unless supports_datastore_instances?
         Module.new do
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
           def send_multiget keys
-            send_multiget_with_newrelic_tracing(keys) { super keys }
+            send_multiget_with_newrelic_tracing(keys) { super }
           end
         end
       end
-
     end
   end
 end

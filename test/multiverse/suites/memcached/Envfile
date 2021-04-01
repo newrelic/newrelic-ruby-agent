@@ -1,3 +1,5 @@
+instrumentation_methods :chain, :prepend
+
 %w(1.0.5 2.7.6 2.6.4 2.5.0 2.3.0 2.2.1).each do |version|
   gemfile <<-RB
     gem 'dalli', '~> #{version}'
@@ -7,9 +9,6 @@ end
 %w(1.8.5 1.5.0).each do |version|
   gemfile <<-RB
     gem 'memcache-client', '~> #{version}', :require => 'memcache'
-    # version lockdown for ZenTest that cooperates with all Rubies
-    # and the build VMs
-    gem 'ZenTest', '3.4.2' unless RUBY_VERSION >= '2.2.0'
   RB
 end
 
@@ -32,5 +31,3 @@ end
 before_suite do
   system('memcached -d -l localhost') unless memcache_running?
 end
-
-# vim: ft=ruby
