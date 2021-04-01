@@ -46,4 +46,5 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
       end
     end
   end
+
 end
