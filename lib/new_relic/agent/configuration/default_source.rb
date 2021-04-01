@@ -819,6 +819,7 @@ module NewRelic
         :disable_dj => {
           :default => false,
           :public => true,
+          :deprecated => true,
           :type => Boolean,
           :allowed_from_server => false,
           :description => deprecated_description(:'instrumentation.delayed_job', 'If <code>true</code>, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/delayedjob">Delayed::Job instrumentation</a>.'
