@@ -4,6 +4,7 @@ gemfile <<-RB
   gem 'json', :platforms => [:rbx, :mri_18]
   #{ruby3_gem_webrick}
 RB
+instrumentation_methods :chain, :prepend
 
 HTTPCLIENT_VERSIONS = %w(2.8.3
                          2.6.0

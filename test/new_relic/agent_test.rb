@@ -481,10 +481,10 @@ module NewRelic
     def test_modules_and_classes_return_name_properly
       valid = [Module, Class]
       stack = [NewRelic]
+      visited = []
 
       loop do
-        a = stack.pop
-
+        visited << a = stack.pop
         if a.respond_to? :name
           b = if RUBY_VERSION < '2.0.0'
                 a.name.split('::').reduce(nil) { |c,n| (c || Kernel).const_get n }
@@ -503,7 +503,7 @@ module NewRelic
               false
             end
           end
-          stack.concat consts
+          stack.concat (consts - visited)
         end
 
         break if stack.empty?
