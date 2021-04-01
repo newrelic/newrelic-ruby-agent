@@ -22,7 +22,6 @@ DependencyDetection.defer do
   depends_on { defined? ::MemCache }
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Memcached instrumentation for memcache-client gem'
     if use_prepend?
       prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend.client_prepender(::MemCache)
       prepend_instrument ::MemCache, prepend_module, "MemcacheClient"
@@ -38,7 +37,6 @@ DependencyDetection.defer do
   depends_on { defined? ::Memcached }
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Memcached instrumentation for memcached gem'
     if use_prepend?
       prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend.client_prepender(::Memcached)
       prepend_instrument ::Memcached, prepend_module, "Memcached"
@@ -55,7 +53,6 @@ DependencyDetection.defer do
   depends_on { defined? ::Dalli::Client }
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Memcache instrumentation for dalli gem'
     if use_prepend?
       prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend
       prepend_module.dalli_prependers do |client_class, instrumenting_module|

@@ -955,7 +955,7 @@ module NewRelic
           :default => instrumentation_value_of(:disable_memcached),
           :public => true,
           :type => String,
-          :deprecated => true,
+          :dynamic_name => true,
           :allowed_from_server => false,
           :description  => 'Controls auto-instrumentation of memcached gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
@@ -963,7 +963,7 @@ module NewRelic
           :default => instrumentation_value_of(:disable_memcache_client),
           :public => true,
           :type => String,
-          :deprecated => true,
+          :dynamic_name => true,
           :allowed_from_server => false,
           :description  => 'Controls auto-instrumentation of memcache-client gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
@@ -971,7 +971,7 @@ module NewRelic
           :default => instrumentation_value_of(:disable_dalli),
           :public => true,
           :type => String,
-          :deprecated => true,
+          :dynamic_name => true,
           :allowed_from_server => false,
           :description  => 'Controls auto-instrumentation of dalli gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
