@@ -1581,8 +1581,17 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :dynamic_name => true,
+          :deprecated   => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for the excon gem.'
+          :description  => deprecated_description(:'instrumentation.excon', 'If <code>true</code>, disables instrumentation for the excon gem.')
+        },
+        :'instrumentation.excon' => {
+          :default => instrumentation_value_of(:disable_excon),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Excon at start up.  May be one of [enabled|disabled]."
         },
         :disable_httpclient => {
           :default      => false,
