@@ -40,7 +40,6 @@ module NewRelic::Agent::Instrumentation
 
         def call *args
           call_with_tracing(*args) { call_without_new_relic(*args) }
-          end
         end    
       end
 
