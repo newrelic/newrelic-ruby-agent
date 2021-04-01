@@ -13,10 +13,6 @@ DependencyDetection.defer do
     defined?(Bunny)
   end
 
-  depends_on do 
-    allowed_by_config?
-  end
-
   executes do
     ::NewRelic::Agent.logger.info 'Installing Bunny instrumentation'
     require 'new_relic/agent/distributed_tracing/cross_app_tracing'
