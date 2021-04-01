@@ -1,42 +1,60 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
-
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
     module Instrumentation
-      module RakeInstrumentation
-        def self.should_install?
-          is_supported_version? && safe_from_third_party_gem?
-        end
+      module Rake
+        module Tracer
+          def invoke_with_newrelic_tracing(*args)
+            unless NewRelic::Agent::Instrumentation::Rake.should_trace? name
+              return yield
+            end
 
-        def self.is_supported_version?
-          Gem::Version.new(::Rake::VERSION) >= Gem::Version.new("10.0.0")
-        end
+            begin
+              timeout = NewRelic::Agent.config[:'rake.connect_timeout']
+              NewRelic::Agent.instance.wait_on_connect(timeout)
+            rescue => e
+              NewRelic::Agent.logger.error("Exception in wait_on_connect", e)
+              return yield
+            end
 
-        def self.safe_from_third_party_gem?
-          if NewRelic::LanguageSupport.bundled_gem?("newrelic-rake")
-            ::NewRelic::Agent.logger.info("Not installing New Relic supported Rake instrumentation because the third party newrelic-rake gem is present")
-            false
-          else
-            true
+            NewRelic::Agent::Instrumentation::Rake.before_invoke_transaction(self)
+
+            NewRelic::Agent::Tracer.in_transaction(name: "OtherTransaction/Rake/invoke/#{name}", category: :rake) do
+              NewRelic::Agent::Instrumentation::Rake.record_attributes(args, self)
+              yield
+            end
           end
         end
 
-        def self.should_trace?(name)
+        module_function
+
+        def should_install?
+          safe_from_third_party_gem?
+        end
+
+        def safe_from_third_party_gem?
+          return true unless NewRelic::LanguageSupport.bundled_gem?("newrelic-rake")
+          ::NewRelic::Agent.logger.info("Not installing New Relic supported Rake instrumentation because the third party newrelic-rake gem is present")
+          false
+        end
+
+        def should_trace?(name)
           NewRelic::Agent.config[:'rake.tasks'].any? do |regex|
             regex.match(name)
           end
         end
 
-        def self.instrument_execute_on_prereqs(task)
+        def instrument_execute_on_prereqs(task)
           task.prerequisite_tasks.each do |child_task|
             instrument_execute(child_task)
           end
         end
 
-        def self.instrument_execute(task)
+        def instrument_execute(task)
           return if task.instance_variable_get(:@__newrelic_instrumented_execute)
 
           task.instance_variable_set(:@__newrelic_instrumented_execute, true)
@@ -51,7 +69,7 @@ module NewRelic
           instrument_execute_on_prereqs(task)
         end
 
-        def self.instrument_invoke_prerequisites_concurrently(task)
+        def instrument_invoke_prerequisites_concurrently(task)
           task.instance_eval do
             def invoke_prerequisites_concurrently(*_)
               NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/multitask") do
@@ -65,7 +83,7 @@ module NewRelic
           end
         end
 
-        def self.before_invoke_transaction(task)
+        def before_invoke_transaction(task)
           ensure_at_exit
 
           # We can't represent overlapping operations yet, so if multitask just
@@ -79,7 +97,7 @@ module NewRelic
           NewRelic::Agent.logger.error("Error during Rake task invoke", e)
         end
 
-        def self.record_attributes(args, task)
+        def record_attributes(args, task)
           command_line = task.application.top_level_tasks.join(" ")
           NewRelic::Agent::Transaction.merge_untrusted_agent_attributes({ :command => command_line },
                                                                         :'job.rake',
@@ -96,7 +114,7 @@ module NewRelic
 
         # Expects literal args passed to the task and array of task names
         # If names are present without matching args, still sets them with nils
-        def self.name_the_args(args, names)
+        def name_the_args(args, names)
           unfulfilled_names_length = names.length - args.length
           if unfulfilled_names_length > 0
             args.concat(Array.new(unfulfilled_names_length))
@@ -109,7 +127,7 @@ module NewRelic
           result
         end
 
-        def self.ensure_at_exit
+        def ensure_at_exit
           return if @installed_at_exit
 
           at_exit do

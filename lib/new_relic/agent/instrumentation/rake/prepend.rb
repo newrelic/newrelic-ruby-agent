@@ -4,26 +4,10 @@
 
 module NewRelic::Agent::Instrumentation
   module Rake
-    module Prepend 
+    module Prepend
+      include NewRelic::Agent::Instrumentation::Rake::Tracer
       def invoke(*args)
-        unless NewRelic::Agent::Instrumentation::RakeInstrumentation.should_trace? name
-          return super
-        end
-
-        begin
-          timeout = NewRelic::Agent.config[:'rake.connect_timeout']
-          NewRelic::Agent.instance.wait_on_connect(timeout)
-        rescue => e
-          NewRelic::Agent.logger.error("Exception in wait_on_connect", e)
-          return super
-        end
-
-        NewRelic::Agent::Instrumentation::RakeInstrumentation.before_invoke_transaction(self)
-
-        NewRelic::Agent::Tracer.in_transaction(name: "OtherTransaction/Rake/invoke/#{name}", category: :rake) do
-          NewRelic::Agent::Instrumentation::RakeInstrumentation.record_attributes(args, self)
-          super
-        end
+        invoke_with_newrelic_tracing(*args) { super }
       end
     end
   end

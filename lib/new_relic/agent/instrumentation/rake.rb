@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require_relative 'rake/rake_instrumentation'
+require_relative 'rake/instrumentation'
 require_relative 'rake/chain'
 require_relative 'rake/prepend'
 
@@ -11,12 +11,10 @@ DependencyDetection.defer do
   named :rake_instrumentation
   configure_with :rake
 
-  depends_on do
-    defined?(::Rake) &&
-      defined?(::Rake::VERSION) &&
-      ::NewRelic::Agent.config[:'rake.tasks'].any? &&
-      ::NewRelic::Agent::Instrumentation::RakeInstrumentation.should_install?
-  end
+  depends_on { defined?(::Rake) && defined?(::Rake::VERSION) }
+  depends_on { Gem::Version.new(::Rake::VERSION) >= Gem::Version.new("10.0.0") }
+  depends_on { ::NewRelic::Agent.config[:'rake.tasks'].any? }
+  depends_on { ::NewRelic::Agent::Instrumentation::Rake.safe_from_third_party_gem? }
 
   executes do
     ::NewRelic::Agent.logger.info  "Installing Rake instrumentation"

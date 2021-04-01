@@ -16,13 +16,13 @@ module NewRelic
       end
 
       # Combines potentially two properties into one.
-      # Given the example: 
+      # Given the example:
       #    :disable_net_http and :prepend_net_instrumentation
       #    if :disable_net_http is true, then returned value is "disabled"
       #    if :prepend_net_instrumentation is false, then returned value is "chain"
       #    otherwise, "auto" is returned.
       #
-      # Intent is: 
+      # Intent is:
       #     - if user sets disable_xxx property, then don't instrument
       #     - if user set prepend to `false` then we use method_alias chaining
       #     - auto, when returned means, try to use prepend unless conflicting gems discovered
@@ -535,6 +535,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
+          :deprecated => true,
           :description => deprecated_description(:'instrumentation.rake', 'If <code>true</code>, disables Rake instrumentation.')
         },
         :disable_rake_instrumentation => {
@@ -542,6 +543,7 @@ module NewRelic
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
+          :deprecated => true,
           :description => deprecated_description(:'instrumentation.rake', 'Enable or disable Rake instrumentation. Preferred key is `disable_rake`')
         },
         :'rake.tasks' => {
@@ -1600,7 +1602,7 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.net_http', 
+          :description  => deprecated_description(:'instrumentation.net_http',
             'If <code>true</code>, disables instrumentation for Net::HTTP.'
           )
         },
