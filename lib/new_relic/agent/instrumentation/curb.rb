@@ -15,10 +15,6 @@ DependencyDetection.defer do
       Gem::Version.new(::Curl::CURB_VERSION) >= CURB_MIN_VERSION
   end
 
-  depends_on do 
-    allowed_by_config?
-  end
-
   executes do
     ::NewRelic::Agent.logger.info 'Installing Curb instrumentation'
     require 'new_relic/agent/distributed_tracing/cross_app_tracing'

@@ -1493,9 +1493,10 @@ module NewRelic
           :default      => false,
           :public       => true,
           :type         => Boolean,
+          :deprecated => true,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for the curb gem.'
+          :description  =>  deprecated_description(:'instrumentation.curb', 'If <code>true</code>, disables instrumentation for the curb gem.' )
         },
         :disable_excon => {
           :default      => false,
