@@ -13,7 +13,7 @@ module NewRelic::Agent::Instrumentation
         alias_method :publish_without_new_relic, :publish
 
         def publish payload, opts = {}
-          publish_with_tracing { publish_without_new_relic payload, opts }
+          publish_with_tracing(payload, opts) { publish_without_new_relic payload, opts }
         end
       end
 
