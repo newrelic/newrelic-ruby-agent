@@ -81,7 +81,14 @@ module NewRelic::Agent
       # We attempt to connect and record spans with reconnection backoff in order to deal with
       # unavailable errors coming from the stub being created and record_span call
       def rpc
+        wait_for_agent_connect
         @rpc ||= Channel.new.stub
+      end
+      
+      def wait_for_agent_connect
+        @lock.synchronize do
+          @agent_started.wait(@lock) if !@agent_connected
+        end
       end
 
       # The metadata for the RPC calls is a blocking call waiting for the Agent to
@@ -91,7 +98,6 @@ module NewRelic::Agent
         return @metadata if @metadata
 
         @lock.synchronize do
-          @agent_started.wait(@lock) if !@agent_connected
 
           @metadata = {
             "license_key" => license_key,

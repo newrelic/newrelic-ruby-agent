@@ -1,5 +1,8 @@
 # New Relic Infinite Tracing for Ruby Agent Release Notes #
 
+  ## v7.0.0
+  * Bugfix: Fixes an intermittent bug where the agent was unable to start when infinite tracing was enabled. 
+
   ## v6.15.0
   * Adds data from the agents connect response `request_headers_map` to the metadata for the connection to the infinite trace observer.
   
