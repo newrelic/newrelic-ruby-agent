@@ -930,6 +930,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of HTTPClient at start up.  May be one of [auto|prepend|chain|disabled]."
         },
+        :'instrumentation.curb' => {
+          :default => instrumentation_value_of(:disable_curb),
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of Curb at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
         :'instrumentation.rack' => {
           :default      => instrumentation_value_of(:disable_rack),
           :public       => true,
@@ -1564,9 +1572,10 @@ module NewRelic
           :default      => false,
           :public       => true,
           :type         => Boolean,
+          :deprecated => true,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for the curb gem.'
+          :description  =>  deprecated_description(:'instrumentation.curb', 'If <code>true</code>, disables instrumentation for the curb gem.' )
         },
         :disable_excon => {
           :default      => false,
