@@ -47,7 +47,7 @@ and then require the New Relic Ruby agent in your Ruby start-up sequence:
 require 'newrelic_rpm'
 ```
 
-#### Oher Environments
+#### Other Environments
 
 Assuming you have installed the agent per above, you may also need to tell the Ruby agent to start for some frameworks and non-framework environments. To do so, add the following to your Ruby start-up sequence start the agent:
 
