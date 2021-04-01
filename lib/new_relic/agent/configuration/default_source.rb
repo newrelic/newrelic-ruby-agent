@@ -1665,7 +1665,7 @@ module NewRelic
           :dynamic_name => true,
           :deprecated   => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t install instrumentation for the http.rb gem.'
+          :description  => deprecated_description(:'instrumentation.httprb', 'If <code>true</code>, the agent won\'t install instrumentation for the http.rb gem.' )
         },
         :disable_middleware_instrumentation => {
           :default      => false,
