@@ -7,7 +7,7 @@ module DependencyDetection
   module_function
 
   @items = []
-  
+
   def defer(&block)
     item = Dependent.new
     item.instance_eval(&block)
@@ -60,7 +60,7 @@ module DependencyDetection
     def executed!
       @executed = true
     end
-    
+
     def config_name
       @config_name || @name
     end

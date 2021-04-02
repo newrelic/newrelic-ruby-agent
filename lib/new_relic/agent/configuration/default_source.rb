@@ -1011,6 +1011,30 @@ module NewRelic
           :allowed_from_server => false,
           :description  => 'Controls auto-instrumentation of Puma::Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
         },
+        :'instrumentation.memcached' => {
+          :default => instrumentation_value_of(:disable_memcached),
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description  => 'Controls auto-instrumentation of memcached gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
+        :'instrumentation.memcache_client' => {
+          :default => instrumentation_value_of(:disable_memcache_client),
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description  => 'Controls auto-instrumentation of memcache-client gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
+        :'instrumentation.memcache' => {
+          :default => instrumentation_value_of(:disable_dalli),
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description  => 'Controls auto-instrumentation of dalli gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
         :disable_data_mapper => {
           :default => false,
           :public => true,
@@ -1046,36 +1070,41 @@ module NewRelic
           :default => value_of(:disable_memcache_instrumentation),
           :public => true,
           :type => Boolean,
+          :deprecated => true,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables instrumentation for the memcached gem.'
+          :description => deprecated_description(:'instrumentation.memcached', 'If <code>true</code>, disables instrumentation for the memcached gem.')
         },
         :disable_memcache_client => {
           :default => value_of(:disable_memcache_instrumentation),
           :public => true,
           :type => Boolean,
+          :deprecated => true,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables instrumentation for the memcache-client gem.'
+          :description => deprecated_description(:'instrumentation.memcache-client', 'If <code>true</code>, disables instrumentation for the memcache-client gem.')
         },
         :disable_dalli => {
           :default => value_of(:disable_memcache_instrumentation),
           :public => true,
           :type => Boolean,
+          :deprecated => true,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables instrumentation for the dalli gem.'
+          :description => deprecated_description(:'instrumentation.memcache', 'If <code>true</code>, disables instrumentation for the dalli gem.')
         },
         :disable_dalli_cas_client => {
           :default => value_of(:disable_memcache_instrumentation),
           :public => true,
           :type => Boolean,
+          :deprecated => true,
           :allowed_from_server => false,
-          :description => "If <code>true</code>, disables instrumentation for the dalli gem\'s additional CAS client support."
+          :description => deprecated_description(:'instrumentation.memcache', "If <code>true</code>, disables instrumentation for the dalli gem\'s additional CAS client support.")
         },
         :disable_memcache_instrumentation => {
           :default => false,
           :public => true,
           :type => Boolean,
+          :deprecated => true,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables memcache instrumentation.'
+          :description => deprecated_description(:'instrumentation.memcache', 'If <code>true</code>, disables memcache instrumentation.')
         },
         :disable_gc_profiler => {
           :default => false,
