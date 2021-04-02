@@ -31,23 +31,11 @@ end
 
 if RUBY_VERSION < '2.4.0'
   gemfile <<-RB
-    gem 'activemerchant', '~>1.43.1'
+    gem 'activemerchant', '~>1.62.0' # last supported version for ruby 2.0
     gem 'rack'
 
     gem 'activesupport', '~>4.0.4'
     gem 'nokogiri', '~>1.6.1'
-
-    # Need to load newrelic_rpm after ActiveMerchant Gateways are required
-    gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
-  RB
-
-  gemfile <<-RB
-    gem 'activemerchant', '~>1.25.0'
-    gem 'active_utils', '2.2.3'
-    gem 'rack'
-
-    gem 'activesupport', '~>4.0.4'
-    gem 'nokogiri', '~>1.5.11'
 
     # Need to load newrelic_rpm after ActiveMerchant Gateways are required
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')

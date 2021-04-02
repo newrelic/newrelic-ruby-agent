@@ -16,13 +16,13 @@ module NewRelic
       end
 
       # Combines potentially two properties into one.
-      # Given the example: 
+      # Given the example:
       #    :disable_net_http and :prepend_net_instrumentation
       #    if :disable_net_http is true, then returned value is "disabled"
       #    if :prepend_net_instrumentation is false, then returned value is "chain"
       #    otherwise, "auto" is returned.
       #
-      # Intent is: 
+      # Intent is:
       #     - if user sets disable_xxx property, then don't instrument
       #     - if user set prepend to `false` then we use method_alias chaining
       #     - auto, when returned means, try to use prepend unless conflicting gems discovered
@@ -529,19 +529,22 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Defines a comma-delimited list of Rake tasks that the agent should not instrument. For example, <code>assets:precompile,db:migrate</code>.'
         },
+
         :disable_rake => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables Rake instrumentation.'
+          :deprecated => true,
+          :description => deprecated_description(:'instrumentation.rake', 'If <code>true</code>, disables Rake instrumentation.')
         },
         :disable_rake_instrumentation => {
           :default => false,
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Enable or disable Rake instrumentation. Preferred key is `disable_rake`'
+          :deprecated => true,
+          :description => deprecated_description(:'instrumentation.rake', 'Enable or disable Rake instrumentation. Preferred key is `disable_rake`')
         },
         :'rake.tasks' => {
           :default => [],
@@ -819,9 +822,11 @@ module NewRelic
         :disable_dj => {
           :default => false,
           :public => true,
+          :deprecated => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/delayedjob">Delayed::Job instrumentation</a>.'
+          :description => deprecated_description(:'instrumentation.delayed_job', 'If <code>true</code>, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/delayedjob">Delayed::Job instrumentation</a>.'
+          )
         },
         :disable_sinatra => {
           :default => false,
@@ -898,6 +903,15 @@ module NewRelic
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of Typhoeus at start up.  May be one of [auto|prepend|chain|disabled]."
         },
+
+        :'instrumentation.httprb' => {
+          :default => instrumentation_value_of(:disable_httprb),
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of http.rb gem at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
         :'instrumentation.resque' => {
           :default => instrumentation_value_of(:disable_resque),
           :public => true,
@@ -914,6 +928,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of Redis at start up.  May be one of [auto|prepend|chain|disabled]."
         },
+        :'instrumentation.rake' => {
+          :default => instrumentation_value_of(:disable_rake),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of rake at start up.  May be one of [auto|prepend|chain|disabled]."
+        },
         :'instrumentation.mongo' => {
           :default => instrumentation_value_of(:disable_mongo),
           :public => :true,
@@ -922,6 +944,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of Mongo at start up.  May be one of [enabled|disabled]."
         },
+        :'instrumentation.delayed_job' => {
+          :default => instrumentation_value_of(:disable_dj),
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of Delayed Job at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
         :'instrumentation.httpclient' => {
           :default => instrumentation_value_of(:disable_httpclient),
           :public => true,
@@ -929,6 +959,14 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of HTTPClient at start up.  May be one of [auto|prepend|chain|disabled]."
+        },
+        :'instrumentation.curb' => {
+          :default => instrumentation_value_of(:disable_curb),
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of Curb at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.sinatra' => {
           :default => instrumentation_value_of(:disable_sinatra),
@@ -1572,17 +1610,27 @@ module NewRelic
           :default      => false,
           :public       => true,
           :type         => Boolean,
+          :deprecated => true,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for the curb gem.'
+          :description  =>  deprecated_description(:'instrumentation.curb', 'If <code>true</code>, disables instrumentation for the curb gem.' )
         },
         :disable_excon => {
           :default      => false,
           :public       => true,
           :type         => Boolean,
           :dynamic_name => true,
+          :deprecated   => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for the excon gem.'
+          :description  => deprecated_description(:'instrumentation.excon', 'If <code>true</code>, disables instrumentation for the excon gem.')
+        },
+        :'instrumentation.excon' => {
+          :default => instrumentation_value_of(:disable_excon),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Excon at start up.  May be one of [enabled|disabled]."
         },
         :disable_httpclient => {
           :default      => false,
@@ -1599,7 +1647,7 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.net_http', 
+          :description  => deprecated_description(:'instrumentation.net_http',
             'If <code>true</code>, disables instrumentation for Net::HTTP.'
           )
         },
@@ -1653,8 +1701,9 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :dynamic_name => true,
+          :deprecated   => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t install instrumentation for the http.rb gem.'
+          :description  => deprecated_description(:'instrumentation.httprb', 'If <code>true</code>, the agent won\'t install instrumentation for the http.rb gem.' )
         },
         :disable_middleware_instrumentation => {
           :default      => false,

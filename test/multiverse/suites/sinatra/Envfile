@@ -27,6 +27,4 @@ gemfile <<-RB
   #{ruby3_gem_webrick}
 RB
 
-
-
 # vim: ft=ruby
