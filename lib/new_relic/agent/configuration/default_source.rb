@@ -1034,8 +1034,9 @@ module NewRelic
           :default => value_of(:disable_memcache_instrumentation),
           :public => true,
           :type => Boolean,
+          :deprecated => true,
           :allowed_from_server => false,
-          :description => "If <code>true</code>, disables instrumentation for the dalli gem\'s additional CAS client support."
+          :description => deprecated_description(:'instrumentation.memcache', "If <code>true</code>, disables instrumentation for the dalli gem\'s additional CAS client support.")
         },
         :disable_memcache_instrumentation => {
           :default => false,
