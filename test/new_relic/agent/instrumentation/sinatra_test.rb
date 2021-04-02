@@ -11,7 +11,7 @@ class NewRelic::Agent::Instrumentation::SinatraTest < Minitest::Test
   # take a dependency directly on it. If you need actual Sinatra classes, go
   # write the test in the multiver suite.
   class SinatraTestApp
-    include NewRelic::Agent::Instrumentation::Sinatra
+    include NewRelic::Agent::Instrumentation::Sinatra::Tracer
 
     attr_accessor :env, :request
 

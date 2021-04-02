@@ -16,7 +16,7 @@ require_relative 'padrino/instrumentation'
 require_relative 'padrino/prepend'
 
 DependencyDetection.defer do
-  named :padrino
+  @name = :padrino
   configure_with :sinatra
 
   depends_on { defined?(::Padrino) && defined?(::Padrino::Routing::InstanceMethods) }
