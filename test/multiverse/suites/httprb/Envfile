@@ -2,6 +2,8 @@ suite_condition("http.rb is only supported for versions >= 2.0.0") do
   RUBY_VERSION >= '2.0.0'
 end
 
+instrumentation_methods :chain, :prepend
+
 gemfile <<-RB
   gem 'http' # latest version
   gem 'public_suffix', '< 3.0.0' if RUBY_VERSION < "2.1.0"
@@ -20,11 +22,7 @@ HTTPRB_VERSIONS = [
   ['4.3.0', 2.3, 2.6],
   ['4.2.0', 2.3, 2.6],
   '3.0.0',
-  '2.2.2',
-  '2.1.0',
-  '2.0.3',
-  '1.0.4',
-  '0.9.9'
+  '2.2.2'
 ]
 
 HTTPRB_VERSIONS.each do |httprb_version|

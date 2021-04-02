@@ -64,7 +64,6 @@ module NewRelic
 
     def run
       return if running?
-
       @started_options = build_webrick_options
 
       @server = WEBrick::HTTPServer.new(@started_options)

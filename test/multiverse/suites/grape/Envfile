@@ -31,4 +31,3 @@ grape_versions.each do |version|
     gem 'grape', '#{version}'
   RB
 end
-

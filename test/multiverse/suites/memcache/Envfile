@@ -1,6 +1,4 @@
-instrumentation_methods :chain, :prepend
-
-%w(1.0.5 2.7.6 2.6.4 2.5.0 2.3.0 2.2.1).each do |version|
+%w(2.7.6 2.7.8 2.7.11).each do |version|
   gemfile <<-RB
     gem 'dalli', '~> #{version}'
   RB
