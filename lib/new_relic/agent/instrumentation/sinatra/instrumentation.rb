@@ -83,7 +83,7 @@ module NewRelic::Agent::Instrumentation
 
       def dispatch_with_tracing
         request_params = get_request_params
-        filtered_params = ParameterFiltering::apply_filters(request.env, request_params || {})
+        filtered_params = ::NewRelic::Agent::ParameterFiltering::apply_filters(request.env, request_params || {})
 
         name = TransactionNamer.initial_transaction_name(request)
         perform_action_with_newrelic_trace(:category => :sinatra,
