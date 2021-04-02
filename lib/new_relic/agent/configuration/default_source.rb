@@ -529,19 +529,22 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Defines a comma-delimited list of Rake tasks that the agent should not instrument. For example, <code>assets:precompile,db:migrate</code>.'
         },
+
         :disable_rake => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables Rake instrumentation.'
+          :deprecated => true,
+          :description => deprecated_description(:'instrumentation.rake', 'If <code>true</code>, disables Rake instrumentation.')
         },
         :disable_rake_instrumentation => {
           :default => false,
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Enable or disable Rake instrumentation. Preferred key is `disable_rake`'
+          :deprecated => true,
+          :description => deprecated_description(:'instrumentation.rake', 'Enable or disable Rake instrumentation. Preferred key is `disable_rake`')
         },
         :'rake.tasks' => {
           :default => [],
@@ -913,6 +916,14 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of Redis at start up.  May be one of [auto|prepend|chain|disabled]."
+        },
+        :'instrumentation.rake' => {
+          :default => instrumentation_value_of(:disable_rake),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of rake at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.mongo' => {
           :default => instrumentation_value_of(:disable_mongo),
