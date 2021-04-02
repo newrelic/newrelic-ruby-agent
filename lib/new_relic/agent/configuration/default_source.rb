@@ -901,6 +901,15 @@ module NewRelic
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of Typhoeus at start up.  May be one of [auto|prepend|chain|disabled]."
         },
+
+        :'instrumentation.httprb' => {
+          :default => instrumentation_value_of(:disable_httprb),
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of http.rb gem at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
         :'instrumentation.resque' => {
           :default => instrumentation_value_of(:disable_resque),
           :public => true,
@@ -1674,8 +1683,9 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :dynamic_name => true,
+          :deprecated   => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t install instrumentation for the http.rb gem.'
+          :description  => deprecated_description(:'instrumentation.httprb', 'If <code>true</code>, the agent won\'t install instrumentation for the http.rb gem.' )
         },
         :disable_middleware_instrumentation => {
           :default      => false,
