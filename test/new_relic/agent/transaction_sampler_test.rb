@@ -260,7 +260,6 @@ module NewRelic::Agent
                "expected sample duration = 2, but was: #{slowest.duration.inspect}")
 
         # 1 second duration
-        # run_sample_trace(0,1)
         in_transaction do
           s = Tracer.start_segment name: 'one_second'
           advance_time 1

@@ -17,7 +17,7 @@
 
   * **Bugfix: No longer overwrites sidekiq trace data**
 
-    Distributed traing data is now added to the job trace info rather than overwriting the existing data.
+    Distributed tracing data is now added to the job trace info rather than overwriting the existing data.
 
   * **Bugfix: Fixes cases where errors are reported for spans with no other attributes**
 
