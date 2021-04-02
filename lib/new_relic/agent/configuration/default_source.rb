@@ -903,7 +903,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => "Controls auto-instrumentation of Typhoeus at start up.  May be one of [auto|prepend|chain|disabled]."
         },
-
+        :'instrumentation.bunny' => {
+          :default => instrumentation_value_of(:disable_bunny),
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of bunny at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
         :'instrumentation.httprb' => {
           :default => instrumentation_value_of(:disable_httprb),
           :public => true,
@@ -1594,9 +1601,10 @@ module NewRelic
           :default      => false,
           :public       => true,
           :type         => Boolean,
+          :deprecated   => true,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for the bunny gem.'
+          :description  => deprecated_description(:'instrumentation.bunny', 'If <code>true</code>, disables instrumentation for the bunny gem.')
         },
         :disable_curb => {
           :default      => false,
