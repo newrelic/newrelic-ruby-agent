@@ -1,24 +1,44 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
-
+# frozen_string_literal: true
 
 module NewRelic
   module Agent
     module Instrumentation
       module Bunny
+        module_function
+
+        LIBRARY = 'RabbitMQ'
+        DEFAULT_NAME = 'Default'
+        DEFAULT_TYPE = :direct
+        SLASH   = '/'
+
+        def exchange_name name
+          name.empty? ? DEFAULT_NAME : name
+        end
+
+        def exchange_type delivery_info, channel
+          if di_exchange = delivery_info[:exchange]
+            return DEFAULT_TYPE if di_exchange.empty?
+            return channel.exchanges[delivery_info[:exchange]].type if channel.exchanges[di_exchange]
+          end
+        end
+
         module Exchange
+          include Bunny
+
           def publish_with_tracing payload, opts = {}
             begin
-              destination = NewRelic::Agent::Instrumentation::Bunny.exchange_name(name)
-  
+              destination = exchange_name(name)
+
               tracing_enabled =
                 NewRelic::Agent::CrossAppTracing.cross_app_enabled? ||
                 NewRelic::Agent.config[:'distributed_tracing.enabled']
               opts[:headers] ||= {} if tracing_enabled
-  
+
               segment = NewRelic::Agent::Messaging.start_amqp_publish_segment(
-                library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
+                library: LIBRARY,
                 destination_name: destination,
                 headers: opts[:headers],
                 routing_key: opts[:routing_key] || opts[:key],
@@ -40,6 +60,8 @@ module NewRelic
         end
 
         module Queue
+          include Bunny
+
           def pop_with_tracing
             bunny_error, delivery_info, message_properties, _payload = nil, nil, nil, nil
             begin
@@ -49,22 +71,22 @@ module NewRelic
             rescue StandardError => error
               bunny_error = error
             end
-  
+
             begin
-              exchange_name, exchange_type = if delivery_info
-                [ NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange),
-                  NewRelic::Agent::Instrumentation::Bunny.exchange_type(delivery_info, channel) ]
+              exch_name, exch_type = if delivery_info
+                [ exchange_name(delivery_info.exchange),
+                  exchange_type(delivery_info, channel) ]
               else
-                [ NewRelic::Agent::Instrumentation::Bunny.exchange_name(NewRelic::EMPTY_STR),
-                  NewRelic::Agent::Instrumentation::Bunny.exchange_type({}, channel) ]
+                [ exchange_name(NewRelic::EMPTY_STR),
+                  exchange_type({}, channel) ]
               end
-  
+
               segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
-                library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
-                destination_name: exchange_name,
+                library: LIBRARY,
+                destination_name: exch_name,
                 delivery_info: (delivery_info || {}),
                 message_properties: (message_properties || {headers: {}}),
-                exchange_type: exchange_type,
+                exchange_type: exch_type,
                 queue_name: name,
                 start_time: t0
               )
@@ -78,16 +100,16 @@ module NewRelic
             ensure
               segment.finish if segment
             end
-  
+
             msg
           end
-  
+
           def purge_with_tracing
             begin
               type = server_named? ? :temporary_queue : :queue
               segment = NewRelic::Agent::Tracer.start_message_broker_segment(
                 action: :purge,
-                library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
+                library: LIBRARY,
                 destination_type: type,
                 destination_name: name
               )
@@ -105,18 +127,20 @@ module NewRelic
         end
 
         module Consumer
+          include Bunny
+
           def call_with_tracing *args
             delivery_info, message_properties, _ = args
             queue_name = queue.respond_to?(:name) ? queue.name : queue
-  
+
             NewRelic::Agent::Messaging.wrap_amqp_consume_transaction(
-              library: NewRelic::Agent::Instrumentation::Bunny::LIBRARY,
-              destination_name: NewRelic::Agent::Instrumentation::Bunny.exchange_name(delivery_info.exchange),
+              library: LIBRARY,
+              destination_name: exchange_name(delivery_info.exchange),
               delivery_info: delivery_info,
               message_properties: message_properties,
-              exchange_type: NewRelic::Agent::Instrumentation::Bunny.exchange_type(delivery_info, channel),
+              exchange_type: exchange_type(delivery_info, channel),
               queue_name: queue_name) do
-  
+
               yield
             end
           end
@@ -126,4 +150,3 @@ module NewRelic
     end
   end
 end
-

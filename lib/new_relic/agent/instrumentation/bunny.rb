@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
+require_relative 'bunny/instrumentation'
 require_relative 'bunny/chain'
 require_relative 'bunny/prepend'
 
@@ -22,38 +23,11 @@ DependencyDetection.defer do
 
   executes do
     if use_prepend?
-      prepend_instrument ::Bunny::Exchange, ::NewRelic::Agent::Instrumentation::Bunny::ExchangePrepend
-      prepend_instrument ::Bunny::Queue, ::NewRelic::Agent::Instrumentation::Bunny::QueuePrepend
-      prepend_instrument ::Bunny::Consumer, ::NewRelic::Agent::Instrumentation::Bunny::ConsumerPrepend
+      prepend_instrument ::Bunny::Exchange, ::NewRelic::Agent::Instrumentation::Bunny::Prepend::Exchange
+      prepend_instrument ::Bunny::Queue, ::NewRelic::Agent::Instrumentation::Bunny::Prepend::Queue
+      prepend_instrument ::Bunny::Consumer, ::NewRelic::Agent::Instrumentation::Bunny::Prepend::Consumer
     else
       chain_instrument NewRelic::Agent::Instrumentation::Bunny
-    end
-  end
-end
-
-module NewRelic
-  module Agent
-    module Instrumentation
-      module Bunny
-        LIBRARY = 'RabbitMQ'
-        DEFAULT_NAME = 'Default'
-        DEFAULT_TYPE = :direct
-
-        SLASH   = '/'
-
-        class << self
-          def exchange_name name
-            name.empty? ? DEFAULT_NAME : name
-          end
-
-          def exchange_type delivery_info, channel
-            if di_exchange = delivery_info[:exchange]
-              return DEFAULT_TYPE if di_exchange.empty?
-              return channel.exchanges[delivery_info[:exchange]].type if channel.exchanges[di_exchange]
-            end
-          end
-        end
-      end
     end
   end
 end
