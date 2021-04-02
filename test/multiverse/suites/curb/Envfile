@@ -10,6 +10,7 @@ end
 # 0.9.4 Aug 2017  7.41 - 7.58
 # 0.9.3 Apr 2016  7.26 - 7.58
 # https://curl.haxx.se/docs/releases.html
+instrumentation_methods :chain, :prepend
 
 def curl_version
   @curl_version ||= `curl --version`.scan(/curl\s([^\s]+)/).join.to_f
