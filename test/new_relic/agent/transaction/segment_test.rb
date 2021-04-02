@@ -322,7 +322,7 @@ module NewRelic
 
           segment = txn.segments[0]
           actual = segment.attributes.agent_attributes_for(AttributeFilter::DST_SPAN_EVENTS)
-          assert_equal "418", actual[:"httpResponseCode"]
+          assert_equal 418, actual[:"http.statusCode"]
           assert_equal 100, actual[:"response.headers.contentLength"]
           assert_equal "application/json", actual[:"response.headers.contentType"]
         end

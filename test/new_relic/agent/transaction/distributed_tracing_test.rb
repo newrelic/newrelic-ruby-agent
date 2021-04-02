@@ -65,20 +65,7 @@ module NewRelic
           assert_nil payload
         end
 
-        def test_public_api_payload_methods
-          inbound_payload = nil
-          created_payload = nil
 
-          transaction = in_transaction "test_txn" do |txn|
-            inbound_payload = create_distributed_trace_payload
-            NewRelic::Agent::DistributedTracing.accept_distributed_trace_payload inbound_payload
-            created_payload = NewRelic::Agent::DistributedTracing.create_distributed_trace_payload
-          end
-
-          assert created_payload, "no distributed trace payload created"
-          assert_equal transaction.trace_id, created_payload.trace_id
-          assert_equal transaction.trace_id, inbound_payload.trace_id
-        end
 
         def test_accept_distributed_trace_payload_assigns_json_payload
           payload = create_distributed_trace_payload

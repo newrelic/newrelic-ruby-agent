@@ -47,7 +47,7 @@ module NewRelic
                       :'transaction_tracer.attributes.include'     => ['request.uri'],
                       :'transaction_events.attributes.include'     => ['request.headers.*'],
                       :'error_collector.attributes.include'        => ['request.method'],
-                      :'browser_monitoring.attributes.include'     => ['httpResponseCode'],
+                      :'browser_monitoring.attributes.include'     => ['http.statusCode'],
                       :'span_events.attributes.include'            => ['http.url'],
                       :'transaction_segments.attributes.include'   => ['sql_statement'] do
 
@@ -69,7 +69,7 @@ module NewRelic
                       :'transaction_tracer.attributes.include'     => ['request.uri'],
                       :'transaction_events.attributes.include'     => ['request.headers.*'],
                       :'error_collector.attributes.include'        => ['request.method'],
-                      :'browser_monitoring.attributes.include'     => ['httpResponseCode'],
+                      :'browser_monitoring.attributes.include'     => ['http.statusCode'],
                       :'span_events.attributes.include'            => ['http.url'],
                       :'transaction_segments.attributes.include'   => ['sql_statement'] do
 

@@ -1,13 +1,41 @@
 # New Relic Ruby Agent Release Notes #
 
-  ## v7.0.0
 
+  ## 7.0.0
+
+  * **Removed Symantec cert bundle**
+
+    The agent will no longer ship this bundle and will rely on system certs. 
+
+  * **Removed deprecated config options**
+
+    The following config options were previously deprecated and are no longer available
+    - `disable_active_record_4`
+    - `disable_active_record_5`
+    - `autostart.blacklisted_constants`
+    - `autostart.blacklisted_executables`
+    - `autostart.blacklisted_rake_tasks`
+    - `strip_exception_messages.whitelist`
+
+  * **Removed deprecated attribute**
+
+    The attribute `httpResponseCode` was previously deprecated and replaced with `http.statusCode`. This deprecated attribute has now been removed.
+
+  * **Removed deprecated option in notice_error**
+
+    Previously, the `:trace_only` option to NewRelic::Agent.notice_error was deprecated and replaced with `:expected`. This deprecated option has been removed.
+
+  * **Removed deprecated api methods**
+
+    Previously the api methods `create_distributed_trace_payload` and `accept_distributed_trace_payload` were deprecated. These have now been removed. Instead, please see `insert_distributed_trace_headers` and `accept_distributed_trace_headers`, respectively.
+  
   * **Bugfix: Prevent browser monitoring middleware from installing to middleware multiple times**
 
     In rare cases on jRuby, the BrowserMonitoring middleware could attempt to install itself
     multiple times at start up.  This bug fix addresses that by using a mutex to introduce
     thread safety to the operation.  Sintra in particular can have this race condition because
     its middleware stack is not installed until the first request is received.
+
 
   ## v6.15.0
 

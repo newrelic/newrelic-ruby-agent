@@ -1486,7 +1486,7 @@ module NewRelic::Agent
       end
 
       actual = txn.attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
-      assert_equal "418", actual[:"httpResponseCode"]
+      assert_equal 418, actual[:"http.statusCode"]
     end
 
     def test_trace_id
