@@ -1603,6 +1603,7 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :dynamic_name => true,
+          :deprecated   => true,
           :allowed_from_server => false,
           :description  => deprecated_description(:'instrumentation.httpclient', 'If <code>true</code>, disables instrumentation for the httpclient gem.')
         },
