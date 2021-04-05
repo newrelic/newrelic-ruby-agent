@@ -40,6 +40,7 @@ module MultiverseHelpers
 
   def setup_agent(opts = {}, &block)
     ensure_fake_collector unless omit_collector?
+    ensure_instrumentation_method
 
     # Give caller a shot to setup before we start
     # Don't just yield, as that won't necessarily have the intended receiver
@@ -102,6 +103,49 @@ module MultiverseHelpers
     defaults = { :sync_startup => true, :force_reconnect => true }
 
     NewRelic::Agent.manual_start(defaults.merge(opts))
+  end
+
+  #
+  # Instrumentation
+  #
+  # These are here to ease spinning up tests with different methods of
+  # instrumenting.
+  # Typically, every suite that we need to test different methods of
+  # instrumentation should have something like the following in
+  # the config:
+  #
+  #     instrumentation:
+  #       net_http: <%= $instrumentation_method.value %>
+
+  class InstrumentationMethod
+    def initialize instrumentation_method
+      @value = instrumentation_method
+      @emitted = false
+    end
+
+    def value
+      unless @emitted
+        puts "*" * 40, "INSTRUMENTING #{@value}", "*" * 40
+        @emitted = true
+      end
+      @value
+    end
+
+    def value= new_value
+      @value = new_value
+    end
+
+    def to_s
+      value.to_s
+    end
+  end
+
+  def instrumentation_method
+    ENV["MULTIVERSE_INSTRUMENTATION_METHOD"] ||= "chain"
+  end
+
+  def ensure_instrumentation_method
+    $instrumentation_method ||= InstrumentationMethod.new(instrumentation_method)
   end
 
   #

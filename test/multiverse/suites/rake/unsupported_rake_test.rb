@@ -4,16 +4,16 @@
 
 require File.expand_path(File.join(__FILE__, '..', 'rake_test_helper'))
 
-if !::NewRelic::Agent::Instrumentation::RakeInstrumentation.should_install?
-class UnsupportedRakeTest < Minitest::Test
-  include MultiverseHelpers
-  include RakeTestHelper
+if !::NewRelic::Agent::Instrumentation::Rake.should_install?
+  class UnsupportedRakeTest < Minitest::Test
+    include MultiverseHelpers
+    include RakeTestHelper
 
-  setup_and_teardown_agent
+    setup_and_teardown_agent
 
-  def test_we_hear_nothing
-    run_rake
-    refute_any_rake_metrics
+    def test_we_hear_nothing
+      run_rake
+      refute_any_rake_metrics
+    end
   end
-end
 end

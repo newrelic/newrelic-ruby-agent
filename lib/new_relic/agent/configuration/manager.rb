@@ -23,7 +23,7 @@ module NewRelic
         end
 
         def has_key?(key)
-          @cache.has_key?[key]
+          @cache.has_key? key
         end
 
         def keys
@@ -345,7 +345,7 @@ module NewRelic
         end
 
         def reset_cache
-          @cache = Hash.new {|hash,key| hash[key] = self.fetch(key) }
+          @cache = Hash.new { |hash,key| hash[key] = self.fetch(key) }
         end
 
         def log_config(direction, source)

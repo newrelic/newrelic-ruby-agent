@@ -27,6 +27,31 @@ class DependencyDetectionTest < Minitest::Test
     assert executed
   end
 
+  def test_falls_back_to_name_for_config_key
+    key = nil
+
+    DependencyDetection.defer do
+      named :testing
+      executes   { key = config_key }
+    end
+    DependencyDetection.detect!
+
+    assert_equal :"instrumentation.testing", key
+  end
+
+  def test_uses_config_name_for_config_key
+    key = nil
+
+    DependencyDetection.defer do
+      named :testing
+      configure_with :alternate
+      executes   { key = config_key }
+    end
+    DependencyDetection.detect!
+
+    assert_equal :"instrumentation.alternate", key
+  end
+
   def test_fails_dependency
     executed = false
 
@@ -96,19 +121,203 @@ class DependencyDetectionTest < Minitest::Test
     assert !executed
   end
 
-  def test_named_disabling_with_instance_variable
-    executed = false
+  def test_config_defaults_to_auto
+    setting = nil
 
     DependencyDetection.defer do
-      @name = :testing
+      named :testing
+      executes { setting = config_value }
+    end
+    DependencyDetection.detect!
+
+    assert_equal :auto, setting
+  end
+
+  def test_config_disabling
+    executed = false
+
+    dd = DependencyDetection.defer do
+      named :testing
       executes { executed = true }
     end
 
-    with_config(:disable_testing => true) do
+    with_config(:'instrumentation.testing' => "disabled") do
+      executed = false
       DependencyDetection.detect!
+      assert dd.disabled_configured?
+      refute dd.deprecated_disabled_configured?
+      refute dd.allowed_by_config?
+      refute executed
     end
 
-    assert !executed
+    with_config(:'instrumentation.testing' => "enabled") do
+      executed = false
+      DependencyDetection.detect!
+      refute dd.disabled_configured?
+      refute dd.deprecated_disabled_configured?
+      assert dd.allowed_by_config?
+      assert executed
+    end
+
+    # TODO: Deprecated!  Remove in 8.0 Release
+    with_config(:disable_testing => true) do
+      executed = false
+      DependencyDetection.detect!
+      refute dd.disabled_configured?
+      assert dd.deprecated_disabled_configured?
+      refute dd.allowed_by_config?
+      refute executed
+    end
+  end
+
+  def test_config_enabling
+    executed = false
+
+    dd = DependencyDetection.defer do
+      named :testing
+      executes { executed = true }
+    end
+
+    with_config(:'instrumentation.testing' => "enabled") do
+      executed = false
+      DependencyDetection.detect!
+      refute dd.disabled_configured?
+      refute dd.deprecated_disabled_configured?
+      assert executed
+      assert dd.use_prepend?
+    end
+
+    with_config(:'instrumentation.testing' => "auto") do
+      DependencyDetection.detect!
+      refute dd.disabled_configured?
+      refute dd.deprecated_disabled_configured?
+      assert dd.use_prepend?
+    end
+
+    with_config(:'instrumentation.testing' => "prepend") do
+      DependencyDetection.detect!
+      refute dd.disabled_configured?
+      refute dd.deprecated_disabled_configured?
+      assert dd.use_prepend?
+    end
+
+    with_config(:'instrumentation.testing' => "chain") do
+      DependencyDetection.detect!
+      refute dd.disabled_configured?
+      refute dd.deprecated_disabled_configured?
+      refute dd.use_prepend?
+    end
+  end
+
+  def test_config_prepend
+    executed = false
+
+    dd = DependencyDetection.defer do
+      named :testing
+      executes { executed = true }
+    end
+
+    with_config({}) do
+      DependencyDetection.detect!
+      assert_equal :auto, dd.config_value
+      assert dd.use_prepend?
+    end
+
+    with_config(:'instrumentation.testing' => "prepend") do
+      DependencyDetection.detect!
+      assert_equal :prepend, dd.config_value
+      assert dd.use_prepend?
+    end
+
+    with_config(:'instrumentation.testing' => "disabled") do
+      DependencyDetection.detect!
+      refute dd.use_prepend?
+    end
+  end
+
+  def test_selects_chain_method_explicitly
+    executed = false
+
+    dd = DependencyDetection.defer do
+      named :testing
+      executes { executed = true }
+    end
+
+    with_config(:'instrumentation.testing' => "chain") do
+      DependencyDetection.detect!
+      refute dd.use_prepend?
+      assert_equal :chain, dd.config_value
+      assert executed
+    end
+  end
+
+  def test_conflicts_simple_truthy
+    conflicted = nil
+
+    DependencyDetection.defer do
+      conflicts_with_prepend { true }
+      executes { conflicted = prepend_conflicts? }
+    end
+
+    DependencyDetection.detect!
+
+    assert conflicted, "should be truthy!"
+  end
+
+  def test_conflicts_simple_falsey
+    conflicted = nil
+
+    DependencyDetection.defer do
+      conflicts_with_prepend { false }
+      executes { conflicted = prepend_conflicts? }
+    end
+
+    DependencyDetection.detect!
+
+    refute conflicted, "should be falsey!"
+  end
+
+  def test_conflicts_defined_falsey
+    conflicted = nil
+
+    dd = DependencyDetection.defer do
+      conflicts_with_prepend { defined?(Thingamajig) }
+      executes { conflicted = prepend_conflicts? }
+    end
+
+    DependencyDetection.detect!
+
+    refute conflicted, "should be falsey!"
+    assert dd.use_prepend?, "should use prepend when no conflicts exist"
+  end
+
+  def test_conflicts_defined_truthy
+    conflicted = nil
+
+    dd = DependencyDetection.defer do
+      conflicts_with_prepend { defined?(Object) }
+      executes { conflicted = prepend_conflicts? }
+    end
+
+    DependencyDetection.detect!
+
+    assert conflicted, "should be truthy!"
+    refute dd.use_prepend?, "should not use prepend when conflicts exist"
+  end
+
+  def test_conflicts_multiples_truthy
+    conflicted = nil
+
+    dd = DependencyDetection.defer do
+      conflicts_with_prepend { defined?(Thingamajig) }
+      conflicts_with_prepend { defined?(Object) }
+      executes { conflicted = prepend_conflicts? }
+    end
+
+    DependencyDetection.detect!
+
+    assert conflicted, "should be truthy!"
+    refute dd.use_prepend?, "should not use prepend when conflicts exist"
   end
 
   def test_exception_during_depends_on_check_doesnt_propagate

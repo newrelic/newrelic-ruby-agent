@@ -25,6 +25,12 @@ if defined?(Dalli)
       Dalli::RingError
     end
 
+    # exposes the assign_instance_to method so we can easily test it
+    module DalliTracerHelper
+      include NewRelic::Agent::Instrumentation::Memcache::Tracer
+      module_function :assign_instance_to
+    end
+
     if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_datastore_instances?
 
       def test_get_multi_in_web_with_capture_memcache_keys
@@ -43,21 +49,21 @@ if defined?(Dalli)
         segment = mock('datastore_segment')
         segment.expects(:set_instance_info).with('127.0.0.1', 11211)
         server = ::Dalli::Server.new '127.0.0.1:11211'
-        ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, server)
+        DalliTracerHelper.assign_instance_to(segment, server)
       end
 
       def test_assign_instance_to_with_name_and_port
         segment = mock('datastore_segment')
         segment.expects(:set_instance_info).with('jonan.gummy_planet', 11211)
         server = ::Dalli::Server.new 'jonan.gummy_planet:11211'
-        ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, server)
+        DalliTracerHelper.assign_instance_to(segment, server)
       end
 
       def test_assign_instance_to_with_unix_domain_socket
         segment = mock('datastore_segment')
         segment.expects(:set_instance_info).with('localhost', '/tmp/jonanfs.sock')
         server = ::Dalli::Server.new '/tmp/jonanfs.sock'
-        ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, server)
+        DalliTracerHelper.assign_instance_to(segment, server)
       end
 
       def test_assign_instance_to_when_exception_raised
@@ -65,7 +71,7 @@ if defined?(Dalli)
         segment.expects(:set_instance_info).with('unknown', 'unknown')
         server = ::Dalli::Server.new '/tmp/jonanfs.sock'
         server.stubs(:hostname).raises("oops")
-        ::NewRelic::Agent::Instrumentation::Memcache::Dalli.assign_instance_to(segment, server)
+        DalliTracerHelper.assign_instance_to(segment, server)
       end
 
     end
