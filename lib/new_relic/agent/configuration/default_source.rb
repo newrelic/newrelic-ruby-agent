@@ -130,7 +130,8 @@ module NewRelic
               when 4..6
                 :rails_notifications
               else
-                ::NewRelic::Agent.logger.error "Detected unsupported Rails version #{Rails::VERSION::STRING}"
+                ::NewRelic::Agent.logger.warn "Detected untested Rails version #{Rails::VERSION::STRING}"
+                :rails_notifications
               end
             when defined?(::Sinatra) && defined?(::Sinatra::Base) then :sinatra
             when defined?(::NewRelic::IA) then :external
@@ -475,17 +476,6 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Autodetected application framework used to enable framework-specific functionality.'
         },
-        :'autostart.blacklisted_constants' => {
-          :default => 'Rails::Console',
-          :public => true,
-          :type => String,
-          :allowed_from_server => false,
-          :description => 'Deprecated.  ' \
-              'For agent versions 6.8.0 or higher, ' \
-              'use <a href="#autostart-denylisted_constants"><code>' \
-                'autostart.denylisted_constants' \
-              '</code></a> instead.'
-        },
         :'autostart.denylisted_constants' => {
           :default => 'Rails::Console',
           :public => true,
@@ -493,37 +483,15 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Specify a list of constants that should prevent the agent from starting automatically. Separate individual constants with a comma <code>,</code>. For example, <code>Rails::Console,UninstrumentedBackgroundJob</code>.'
         },
-        :'autostart.blacklisted_executables' => {
-          :default => 'irb,rspec',
-          :public => true,
-          :type => String,
-          :allowed_from_server => false,
-          :description => 'Deprecated.  ' \
-              'For agent versions 6.8.0 or higher, ' \
-              'use <a href="#autostart-denylisted_executables"><code>' \
-                'autostart.denylisted_executables' \
-              '</code></a> instead.'
-        },
         :'autostart.denylisted_executables' => {
-          :default => value_of(:'autostart.blacklisted_executables'),
+          :default => 'irb,rspec',
           :public => true,
           :type => String,
           :allowed_from_server => false,
           :description => 'Defines a comma-delimited list of executables that the agent should not instrument. For example, <code>rake,my_ruby_script.rb</code>.'
         },
-        :'autostart.blacklisted_rake_tasks' => {
-          :default => AUTOSTART_DENYLISTED_RAKE_TASKS,
-          :public => true,
-          :type => String,
-          :allowed_from_server => false,
-          :description => 'Deprecated.  ' \
-              'For agent versions 6.8.0 or higher, ' \
-              'use <a href="#autostart-denylisted_rake_tasks"><code>' \
-                'autostart.denylisted_rake_tasks' \
-              '</code></a> instead.'
-        },
         :'autostart.denylisted_rake_tasks' => {
-          :default => value_of(:'autostart.blacklisted_rake_tasks'),
+          :default => AUTOSTART_DENYLISTED_RAKE_TASKS,
           :public => true,
           :type => String,
           :allowed_from_server => false,
@@ -575,19 +543,6 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If true, the agent strips messages from all exceptions except those in the <a href="#strip_exception_messages-allowlist">allowlist</a>. Enabled automatically in <a href="https://docs.newrelic.com/docs/accounts-partnerships/accounts/security/high-security">high security mode</a>.'
-        },
-        :'strip_exception_messages.whitelist' => {
-          :default => '',
-          :public => true,
-          :type => String,
-          :deprecated => true,
-          :allowed_from_server => false,
-          :transform => DefaultSource.method(:convert_to_constant_list),
-          :description => 'Deprecated.  ' \
-              'For agent versions 6.8.0 or higher, ' \
-              'use <a href="#strip_exception_messages.allowed_classes"><code>' \
-                'strip_exception_messages.allowed_classes' \
-              '</code></a> instead.'
         },
         :'strip_exception_messages.allowed_classes' => {
           :default => '',
@@ -1599,32 +1554,6 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description  => 'If <code>true</code>, the agent won\'t measure the depth of Delayed Job queues.'
-        },
-        :disable_active_record_4 => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :deprecated   => true,
-          :description  => 'Deprecated.  ' \
-              'For agent versions 6.3 or higher, ' \
-              'use <a href="#disable_active_record_notifications"><code>' \
-                'disable_active_record_notifications' \
-              '</code></a> instead.'
-        },
-        :disable_active_record_5 => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :deprecated   => true,
-          :description  => 'Deprecated.  ' \
-              'For agent versions 6.3 or higher, ' \
-              'use <a href="#disable_active_record_notifications"><code>' \
-                'disable_active_record_notifications' \
-              '</code></a> instead.'
         },
         :disable_active_record_notifications => {
           :default      => false,

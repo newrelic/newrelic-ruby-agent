@@ -82,15 +82,17 @@ module NewRelic
         end
 
         def install_browser_monitoring(config)
-          return if defined?(@browser_monitoring_installed) && @browser_monitoring_installed
-          @browser_monitoring_installed = true
-          return if config.nil? || !config.respond_to?(:middleware) || !Agent.config[:'browser_monitoring.auto_instrument']
-          begin
-            require 'new_relic/rack/browser_monitoring'
-            config.middleware.use NewRelic::Rack::BrowserMonitoring
-            ::NewRelic::Agent.logger.debug("Installed New Relic Browser Monitoring middleware")
-          rescue => e
-            ::NewRelic::Agent.logger.warn("Error installing New Relic Browser Monitoring middleware", e)
+          @install_lock.synchronize do
+            return if defined?(@browser_monitoring_installed) && @browser_monitoring_installed
+            @browser_monitoring_installed = true
+            return if config.nil? || !config.respond_to?(:middleware) || !Agent.config[:'browser_monitoring.auto_instrument']
+            begin
+              require 'new_relic/rack/browser_monitoring'
+              config.middleware.use NewRelic::Rack::BrowserMonitoring
+              ::NewRelic::Agent.logger.debug("Installed New Relic Browser Monitoring middleware")
+            rescue => e
+              ::NewRelic::Agent.logger.warn("Error installing New Relic Browser Monitoring middleware", e)
+            end
           end
         end
 

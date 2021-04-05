@@ -435,6 +435,31 @@ module NewRelic::Agent
       end
     end
 
+    def run_long_sample_trace(n)
+      @sampler.on_start_transaction(@state, Time.now)
+      n.times do |i|
+        @sampler.notice_push_frame(@state)
+        yield if block_given?
+        @sampler.notice_pop_frame(@state, "node#{i}")
+      end
+      @sampler.on_finishing_transaction(@state, @txn)
+    end
+
+    def run_sample_trace(start = Time.now.to_f, stop = nil, state = @state)
+      @sampler.on_start_transaction(state, start)
+      @sampler.notice_push_frame(state)
+      @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0, state)
+      @sampler.notice_push_frame(state)
+      @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'white'", {}, 0, state)
+      yield if block_given?
+      @sampler.notice_pop_frame(state, "ab")
+      @sampler.notice_push_frame(state)
+      @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0, state)
+      @sampler.notice_pop_frame(state, "ac")
+      @sampler.notice_pop_frame(state, "a")
+      @sampler.on_finishing_transaction(state, @txn)
+    end
+
     def intrinsic_attributes_from_last_sample
       sample = NewRelic::Agent.agent.transaction_sampler.harvest!.first
       attributes_for(sample, :intrinsic)

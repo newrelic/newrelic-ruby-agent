@@ -1,9 +1,46 @@
 # New Relic Ruby Agent Release Notes #
 
+
+  ## 7.0.0
+
+  * **Removed Symantec cert bundle**
+
+    The agent will no longer ship this bundle and will rely on system certs. 
+
+  * **Removed deprecated config options**
+
+    The following config options were previously deprecated and are no longer available
+    - `disable_active_record_4`
+    - `disable_active_record_5`
+    - `autostart.blacklisted_constants`
+    - `autostart.blacklisted_executables`
+    - `autostart.blacklisted_rake_tasks`
+    - `strip_exception_messages.whitelist`
+
+  * **Removed deprecated attribute**
+
+    The attribute `httpResponseCode` was previously deprecated and replaced with `http.statusCode`. This deprecated attribute has now been removed.
+
+  * **Removed deprecated option in notice_error**
+
+    Previously, the `:trace_only` option to NewRelic::Agent.notice_error was deprecated and replaced with `:expected`. This deprecated option has been removed.
+
+  * **Removed deprecated api methods**
+
+    Previously the api methods `create_distributed_trace_payload` and `accept_distributed_trace_payload` were deprecated. These have now been removed. Instead, please see `insert_distributed_trace_headers` and `accept_distributed_trace_headers`, respectively.
+  
+  * **Bugfix: Prevent browser monitoring middleware from installing to middleware multiple times**
+
+    In rare cases on jRuby, the BrowserMonitoring middleware could attempt to install itself
+    multiple times at start up.  This bug fix addresses that by using a mutex to introduce
+    thread safety to the operation.  Sintra in particular can have this race condition because
+    its middleware stack is not installed until the first request is received.
+
+
   ## v6.15.0
 
   * **Official Ruby 3.0 support**
-    
+
     The ruby agent has been verified to run on ruby 3.0.0
 
   * **Added support for Rails 6.1**
@@ -26,7 +63,7 @@
     This is now fixed and errors are now correctly recorded against such span events.
 
   * **Bugfix: `DistributedTracing.insert_distributed_trace_headers` Supportability metric now recorded**
-    
+
     Previously, API calls to `DistributedTracing.insert_distributed_trace_headers` would lead to an exception
     about the missing supportability metric rather than flowing through the API implementation as intended.
     This would potentially lead to broken distributed traces as the trace headers were not inserted on the API call.
@@ -38,23 +75,23 @@
     In scenarios where the child segment/span is completing after the parent in jRuby, the parent may have already
     been freed and no longer accessible.  This would lead to an attempt to call `descendant_complete` on a Nil
     object.  This is fixed to protect against calling the `descendant_complete` in such cases.
-    
+
   * **Feature: implements `force_install_exit_handler` config flag**
-    
-    The `force_install_exit_handler` configuration flag allows an application to instruct the agent to install its 
-    graceful shutdown exit handler, which will send any locally cached data to the New Relic collector prior to the 
-    application shutting down.  This is useful for when the primary framework has an embedded Sinatra application that 
+
+    The `force_install_exit_handler` configuration flag allows an application to instruct the agent to install its
+    graceful shutdown exit handler, which will send any locally cached data to the New Relic collector prior to the
+    application shutting down.  This is useful for when the primary framework has an embedded Sinatra application that
     is otherwise detected and skips installing the exit hook for graceful shutdowns.
 
   * **Default prepend_net_instrumentation to false**
 
-    Previously, `prepend_net_instrumentation` defaulted to true. However, many gems are still using monkey patching on Net::HTTP, which causes compatibility issues with using prepend. Defaulting this to false minimizes instances of 
+    Previously, `prepend_net_instrumentation` defaulted to true. However, many gems are still using monkey patching on Net::HTTP, which causes compatibility issues with using prepend. Defaulting this to false minimizes instances of
     unexpected compatibilty issues.
-    
+
   ## v6.14.0
 
   * **Bugfix: Method tracers no longer cloning arguments**
-  
+
     Previously, when calling add_method_tracer with certain combination of arguments, it would lead to the wrapped method's arguments being cloned rather than passed to the original method for manipulation as intended.  This has been fixed.
 
   * **Bugfix: Delayed Job instrumentation fixed for Ruby 2.7+**
@@ -63,22 +100,22 @@
     Delayed Job's library.  The led to Delayed job not auto-instrumenting correctly and has been fixed.
 
   * **Bugfix: Ruby 2.7+ methods sometimes erroneously attributed compiler warnings to the Agent's `add_method_tracer`**
-  
+
     The specific edge cases presented are now fixed by this release of the agent.  There are still some known corner-cases
-    that will be resolved with upcoming changes in next major release of the Agent.  If you encounter a problem with adding 
+    that will be resolved with upcoming changes in next major release of the Agent.  If you encounter a problem with adding
     method tracers and compiler warnings raised, please continue to submit small repoducible examples.
 
   * **Bugfix: Ruby 2.7+ fix for keyword arguments on Rack apps is unnecessary and removed**
 
-    A common fix for positional and keyword arguments for method parameters was implemented where it was not needed and 
-    led to RackApps getting extra arguments converted to keyword arguments rather than Hash when it expected one.  This 
+    A common fix for positional and keyword arguments for method parameters was implemented where it was not needed and
+    led to RackApps getting extra arguments converted to keyword arguments rather than Hash when it expected one.  This
     Ruby 2.7+ change was reverted so that Rack apps behave correctly for Ruby >= 2.7.
 
   * **Feature: captures incoming and outgoing request headers for distributed tracing**
 
-    HTTP request headers will be logged when log level is at least debug level.  Similarly, request headers 
+    HTTP request headers will be logged when log level is at least debug level.  Similarly, request headers
     for exchanges with New Relic servers are now audit logged when audit logging is enabled.
-    
+
   * **Bugfix: `newrelic.yml.erb` added to the configuration search path**
 
     Previously, when a user specifies a `newrelic.yml.erb` and no `newrelic.yml` file, the agent fails to find
@@ -88,7 +125,7 @@
     the `.yml` file is used instead of the `.erb` file.  Search directories and order of traversal remain unchanged.
 
   * **Bugfix: dependency detection of Redis now works without raising an exception**
-    
+
     Previously, when detecting if Redis was available to instrument, the dependency detection would fail with an Exception raised
     (with side effect of not attempting to instrument Redis).  This is now fixed with a better dependency check that resolves falsly without raising an `Exception`.
 
@@ -99,12 +136,12 @@
 
   * **Memory Sampler updated to recognize macOS Big Sur**
 
-    Previously, the agent was unable to recognize the platform macOS Big Sur in the memory sampler, resulting in an error being logged. The memory sampler is now able to recognize Big Sur. 
+    Previously, the agent was unable to recognize the platform macOS Big Sur in the memory sampler, resulting in an error being logged. The memory sampler is now able to recognize Big Sur.
 
   * **Prepend implementation of Net::HTTP instrumentation available**
-    
+
     There is now a config option (`prepend_net_instrumentation`) that will enable the agent to use prepend while instrumenting Net::HTTP. This option is set to true by default.
-    
+
   ## v6.13.1
 
   * **Bugfix: obfuscating URLs to external services no longer modifying original URI**

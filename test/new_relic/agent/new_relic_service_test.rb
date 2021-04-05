@@ -201,9 +201,8 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal([],         conn2.calls)
   end
 
-  def test_cert_file_path
-    assert @service.cert_file_path
-    assert_equal File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'cert', 'cacert.pem')), @service.cert_file_path
+  def test_no_default_cert_file_path
+    refute @service.cert_file_path
   end
 
   def test_cert_file_path_uses_path_from_config
@@ -211,16 +210,6 @@ class NewRelicServiceTest < Minitest::Test
     with_config(:ca_bundle_path => fake_cert_path) do
       assert_equal @service.cert_file_path, fake_cert_path
     end
-  end
-
-  def test_metric_recorded_when_using_bundled_certs
-    assert @service.cert_file_path
-    assert_metrics_recorded("Supportability/Ruby/Certificate/BundleRequired")
-  end
-
-  def test_system_certs_by_default
-    @service.set_cert_store(nil)
-    assert_metrics_not_recorded("Supportability/Ruby/Certificate/BundleRequired")
   end
 
   def test_initialize_uses_license_key_from_config

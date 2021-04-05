@@ -165,6 +165,7 @@ module NewRelic
       protected
 
       def initialize(local_env, config_file_override=nil)
+        @install_lock = Mutex.new
         @local_env = local_env
         @started_in_env = nil
 
