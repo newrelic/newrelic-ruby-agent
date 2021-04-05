@@ -8,6 +8,7 @@ Padrino::Logger::Config[:development][:stream] = :null
 class PadrinoTestApp < Padrino::Application
 
   register Padrino::Rendering
+  register Padrino::Routing
   register Padrino::Helpers
 
   get '/user/login' do

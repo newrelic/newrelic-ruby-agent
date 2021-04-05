@@ -833,7 +833,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code> , disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/sinatra-support">Sinatra instrumentation</a>.'
+          :description => deprecated_description(:'instrumentation.sinatra', 'If <code>true</code> , disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/sinatra-support">Sinatra instrumentation</a>.' )
         },
         :disable_sinatra_auto_middleware => {
           :default => false,
@@ -974,6 +974,14 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of Curb at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
+        :'instrumentation.sinatra' => {
+          :default => instrumentation_value_of(:disable_sinatra),
+          :public => :true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => "Controls auto-instrumentation of Sinatra at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.rack' => {
           :default      => instrumentation_value_of(:disable_rack),
