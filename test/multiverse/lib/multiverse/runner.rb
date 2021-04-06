@@ -105,9 +105,6 @@ module Multiverse
       GROUPS['agent'] << 'agent_only'
     end
 
-    if RUBY_VERSION < "2.7.1" # no api or sinatra
-
-    end
 
     def passes_filter?(dir, filter)
       return true if filter.nil?
