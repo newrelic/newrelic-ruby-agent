@@ -84,8 +84,8 @@ module Multiverse
     end
 
     GROUPS = {
-      "agent"         => ["bare", "config_file_loading", "deferred_instrumentation", "high_security", "no_json", "json", "marshalling", "yajl"],
-      "background"    => ["delayed_job", "sidekiq", "resque"],
+      "agent"         => ["agent_only", "bare", "config_file_loading", "deferred_instrumentation", "high_security", "no_json", "json", "marshalling", "yajl"],
+      "background"    => ["delayed_job", "sidekiq", "resque", "rake"],
       "database"      => ["datamapper", "mongo", "redis", "sequel"],
       "frameworks"    => ["sinatra", "padrino", "grape"],
       "httpclients"   => ["curb", "excon", "httpclient", "typhoeus", "net_http", "net_http_prepend", "httprb"],
@@ -96,12 +96,16 @@ module Multiverse
     }
 
     # Would like to reinstate but requires investigation, see RUBY-1749
-    unless RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
-      GROUPS['background'] << 'rake'
+    if RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
+      GROUPS['background'].delete 'rake'
     end
 
-    unless RUBY_PLATFORM == "java"
-      GROUPS['agent'] << 'agent_only'
+    if RUBY_PLATFORM == "java"
+      GROUPS['agent'].delete 'agent_only'
+    end
+
+    if RUBY_VERSION >= '3.0.0'
+      GROUPS['rails'].delete 'active_record'
     end
 
 
@@ -111,6 +115,7 @@ module Multiverse
       # Would like to reinstate but requires investigation, see RUBY-1749
       return false if dir == 'rake' and RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
       return false if dir == 'agent_only' and RUBY_PLATFORM == "java"
+      return false if dir == 'active_record' and RUBY_VERSION >= '3.0.0'
 
       if filter.include?("group=")
         key = filter.sub("group=", "")
