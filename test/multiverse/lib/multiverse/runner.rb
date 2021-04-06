@@ -111,6 +111,7 @@ module Multiverse
 
       # Would like to reinstate but requires investigation, see RUBY-1749
       return false if dir == 'rake' and RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
+      return false if dir == 'agent_only' and RUBY_PLATFORM == "java"
 
       if filter.include?("group=")
         key = filter.sub("group=", "")
