@@ -84,17 +84,13 @@ module Multiverse
     end
 
     GROUPS = {
-      "agent"         => ["agent_only", "bare", "config_file_loading",
-                          "deferred_instrumentation", "high_security", "no_json"],
-      "api"           => ["grape"],
+      "agent"         => ["bare", "config_file_loading", "deferred_instrumentation", "high_security", "no_json", "json", "marshalling", "yajl"],
       "background"    => ["delayed_job", "sidekiq"],
-      "database"      => ["datamapper", "mongo", "redis", "sequel"],
-      "httpclients"   => ["curb", "excon", "httpclient", "typhoeus", "net_http", "net_http_prepend", "httprb"],
-      "rails"         => ["active_record", "rails"],
-      "rails_extras"  => ["rails_prepend", "activemerchant"],
-      "serialization" => ["json", "marshalling", "yajl"],
-      "sinatra"       => ["sinatra", "padrino"],
       "background_2"  => ["resque"],
+      "database"      => ["datamapper", "mongo", "redis", "sequel"],
+      "frameworks"    => ["sinatra", "padrino", "grape"],
+      "httpclients"   => ["curb", "excon", "httpclient", "typhoeus", "net_http", "net_http_prepend", "httprb"],
+      "rails"         => ["active_record", "rails", "rails_prepend", "activemerchant"],
       "infinite_tracing" => ["infinite_tracing"],
 
       "rest"          => []  # Specially handled below
@@ -102,7 +98,15 @@ module Multiverse
 
     # Would like to reinstate but requires investigation, see RUBY-1749
     unless RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
-      GROUPS['background_2'] << 'rake'
+      GROUPS['background'] << 'rake'
+    end
+
+    unless RUBY_PLATFORM == "java"
+      GROUPS['agent'] << 'agent_only'
+    end
+
+    if RUBY_VERSION < "2.7.1" # no api or sinatra
+
     end
 
     def passes_filter?(dir, filter)
