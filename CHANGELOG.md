@@ -1,11 +1,33 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v7.0.0
 
-  ## 7.0.0
+  * **Ruby Agent 6.x to 7.x Migration Guide Available**
 
-  * **Removed Symantec cert bundle**
+    Please see our [Ruby Agent 6.x to 7.x migration guide](https://docs.newrelic.com/docs/agents/ruby-agent/getting-started/migration-7x-guide/) for helpful strategies and tips for migrating from earlier versions of the Ruby agent to 7.0.0.  We cover new configuration settings, diagnosiing and installing SSL CA certificates and deprecated items and their replacements in this guide.
 
-    The agent will no longer ship this bundle and will rely on system certs. 
+  * **Ruby 2.0 and 2.1 Dropped**
+
+    Support for Ruby 2.0 and 2.1 dropped with this release.  No code changes that would prevent the agent from continuing to
+    work with these releases are known.  However, Rubies 2.0 and 2.1 are no longer included in our test matrices and are not supported
+    for 7.0.0 and onward.
+
+  * **Implemented prepend auto-instrumentation strategies for most Ruby gems/libraries**
+
+    This release brings the auto-instrumentation strategies for most gems into the modern era for Ruby by providing both
+    prepend and method-chaining (a.k.a. method-aliasing) strategies for auto instrumenting.  Prepend, which has been available since
+    Ruby 2.0 is now the default strategy employed in auto-instrumenting.  It is known that some external gems lead to Stack Level
+    too Deep exceptions when prepend and method-chaining are mixed.  In such known cases, auto-instrumenting strategy will fall back
+    to method-chaining automatically.
+
+    This release also deprecates many overlapping and inconsistently named configuration settings in favor of being able to control
+    behavior of instrumentation per library with one setting that can be one of auto (the default), disabled, prepend, or chain.
+
+    Please see the above-referenced migration guide for further details.
+
+  * **Removed SSL cert bundle**
+
+    The agent will no longer ship this bundle and will rely on system certs.
 
   * **Removed deprecated config options**
 
@@ -28,7 +50,7 @@
   * **Removed deprecated api methods**
 
     Previously the api methods `create_distributed_trace_payload` and `accept_distributed_trace_payload` were deprecated. These have now been removed. Instead, please see `insert_distributed_trace_headers` and `accept_distributed_trace_headers`, respectively.
-  
+
   * **Bugfix: Prevent browser monitoring middleware from installing to middleware multiple times**
 
     In rare cases on jRuby, the BrowserMonitoring middleware could attempt to install itself
@@ -36,6 +58,21 @@
     thread safety to the operation.  Sintra in particular can have this race condition because
     its middleware stack is not installed until the first request is received.
 
+  * **Skip constructing Time for transactions**
+
+    Thanks to @viraptor, we are no longer constructing an unused Time object with every call to starting a new Transaction.
+
+  * **Bugfix: nil Middlewares injection now prevented and gracefully handled in Sinatra**
+
+    Previously, the agent could potentially inject multiples of an instrumented middleware if Sinatra received many
+    requests at once during start up and initialization due to Sinatra's ability to delay full start up as long as possible.
+    This has now been fixed and the Ruby agent correctly instruments only once as well as gracefully handles nil middleware
+    classes in general.
+
+  * **Bugfix: Ensure transaction nesting max depth is always consistent with length of segments**
+
+    Thanks to @warp for noticing and fixing the scenario where Transaction nesting_max_depth can get out of sync
+    with segments length resulting in an exception when attempting to nest the initial segment which does not exist.
 
   ## v6.15.0
 
