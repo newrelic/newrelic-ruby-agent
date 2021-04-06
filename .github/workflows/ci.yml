@@ -39,7 +39,8 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-      - uses: kanga333/variable-mapper@master
+      - name: Set up mini-envs for ruby version
+        uses: kanga333/variable-mapper@master
         with:
           key: ${{ matrix.ruby-version }}
           map: |
@@ -122,13 +123,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent, background, background_2, database, frameworks, httpclients, rails, rest]
+        multiverse: [agent, background, database, frameworks, httpclients, rails, rest]
         ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.8, 2.6.6, 2.7.1, 3.0.0, jruby-9.2.12.0]
         exclude:
           - ruby-version: "3.0.0"
             multiverse: frameworks
-          - ruby-version: "3.0.0"
-            multiverse: rails
           - ruby-version: "2.7.1"
             multiverse: frameworks
 
