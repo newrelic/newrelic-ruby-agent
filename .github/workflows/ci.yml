@@ -72,7 +72,7 @@ jobs:
               },
               "jruby-9.2.12.0": {
                 "rails": "norails,rails51,rails42"
-              },
+              }
             }
           export_to: env
 
