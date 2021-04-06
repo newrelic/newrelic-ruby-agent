@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - dev
-      - fix_ci_issues
   pull_request:
   schedule:
     - cron:  '0 9 * * *'
@@ -24,7 +23,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-  mini-env:
+  unit-tests:
     needs: build-ruby
     runs-on: ubuntu-18.04
     strategy:
@@ -40,11 +39,7 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-      - name: Start mysql
-        run: sudo systemctl start mysql
-
       - uses: kanga333/variable-mapper@master
-        id: export
         with:
           key: ${{ matrix.ruby-version }}
           map: |
@@ -74,7 +69,9 @@ jobs:
                 "rails": "norails,rails51,rails42"
               }
             }
-          export_to: env
+
+      - name: Start mysql
+        run: sudo systemctl start mysql
 
       - name: Run Unit Tests
         uses: nick-invision/retry@v1.0.0
