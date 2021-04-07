@@ -16,8 +16,8 @@ For most contributions it is strongly recommended to add additional tests which
 exercise your changes. 
 
 # Reviewer Checklist
-- [ ] Perform code review\n
-- [ ] Add performance label\n
-- [ ] Perform appropriate level of performance testing\n
-- [ ] Confirm all checks passed\n
+- [ ] Perform code review
+- [ ] Add performance label
+- [ ] Perform appropriate level of performance testing
+- [ ] Confirm all checks passed
 - [ ] Add version label prior to acceptance
