@@ -1,5 +1,9 @@
 # New Relic Ruby Agent Release Notes #
 
+
+
+
+
   ## v7.0.0
 
   * **Ruby Agent 6.x to 7.x Migration Guide Available**
