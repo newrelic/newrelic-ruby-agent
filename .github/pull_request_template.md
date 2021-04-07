@@ -14,3 +14,10 @@ Github Actions when a pull request is made. More details on running the tests lo
 and [here for our functional tests](https://github.com/newrelic/newrelic-ruby-agent/blob/main/test/multiverse/README.md).
 For most contributions it is strongly recommended to add additional tests which
 exercise your changes. 
+
+# Reviewer Checklist
+- [ ] Perform code review\n
+- [ ] Add performance label\n
+- [ ] Perform appropriate level of performance testing\n
+- [ ] Confirm all checks passed\n
+- [ ] Add version label prior to acceptance
