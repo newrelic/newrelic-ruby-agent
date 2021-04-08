@@ -56,6 +56,24 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     assert_equal(['abc', 123], wrapped_instance.target.initialize_args)
   end
 
+  def test_generator_with_keyword_arguments
+    middleware_class = Class.new do
+      attr_reader :foo, :bar
+
+      def initialize(foo, bar:)
+        @foo = foo
+        @bar = bar
+      end
+    end
+
+    generator = NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
+
+    wrapped_instance = generator.new('this_is_foo', bar: 'this_is_bar')
+
+    assert_equal('this_is_foo', wrapped_instance.target.foo)
+    assert_equal('this_is_bar', wrapped_instance.target.bar)
+  end
+
   def test_anonymous_class_naming
     middleware_class = Class.new
     wrapped_instance = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(middleware_class.new)
