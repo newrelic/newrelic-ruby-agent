@@ -32,7 +32,7 @@ module NewRelic
             MiddlewareProxy.wrap(middleware_instance)
           end
 
-          # ruby2_keywords(:new) if respond_to?(:ruby2_keywords, true)
+          ruby2_keywords(:new) if respond_to?(:ruby2_keywords, true)
         end
 
         def self.is_sinatra_app?(target)
