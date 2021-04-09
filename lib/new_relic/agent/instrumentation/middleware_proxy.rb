@@ -31,6 +31,8 @@ module NewRelic
             middleware_instance = @middleware_class.new(*args, &blk)
             MiddlewareProxy.wrap(middleware_instance)
           end
+
+          ruby2_keywords(:new) if respond_to?(:ruby2_keywords, true)
         end
 
         def self.is_sinatra_app?(target)
