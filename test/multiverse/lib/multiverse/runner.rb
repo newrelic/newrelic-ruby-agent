@@ -127,13 +127,17 @@ module Multiverse
       return false if excluded?(dir)
 
       if filter.include?("group=")
-        key = filter.sub("group=", "")
-        group = GROUPS[key]
-        if group.nil?
-          puts red("Unrecognized group '#{key}'. Stopping!")
+        keys = filter.sub("group=", "").split(';')
+        combined_group = []
+        keys.each do |key|
+          (combined_groups << (GROUPS[key])).flatten!
+        end
+        
+        if combined_groups.nil?
+          puts red("Unrecognized groups in '#{filter}'. Stopping!")
           exit 1
-        elsif group.any?
-          GROUPS[key].include?(dir)
+        elsif combined_groups.any?
+          combined_groups.include?(dir)
         else
           !GROUPS.values.flatten.include?(dir)
         end
