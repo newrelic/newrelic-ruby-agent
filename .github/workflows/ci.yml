@@ -178,7 +178,7 @@ jobs:
         uses: ./.github/actions/annotate
 
   jruby_multiverse:
-      needs: build-ruby
+    needs: build-ruby
     runs-on: ubuntu-18.04
     services:
       redis:
