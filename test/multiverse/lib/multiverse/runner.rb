@@ -87,9 +87,8 @@ module Multiverse
       "agent"         => ["agent_only", "bare", "config_file_loading", "deferred_instrumentation", "high_security", "no_json", "json", "marshalling", "yajl"],
       "background"    => ["delayed_job", "sidekiq", "resque", "rake"],
       "database"      => ["datamapper", "mongo", "redis", "sequel"],
-      "frameworks"    => ["sinatra", "padrino", "grape"],
-      "httpclients"   => ["curb", "excon", "httpclient", "typhoeus", "net_http", "net_http_prepend", "httprb"],
-      "rails"         => ["active_record", "rails", "rails_prepend", "activemerchant"],
+      "frameworks"    => ["active_record", "rails", "rails_prepend", "activemerchant", "sinatra", "padrino", "grape"],
+      "httpclients"   => ["curb", "excon", "httpclient", "typhoeus", "net_http", "httprb"],
       "infinite_tracing" => ["infinite_tracing"],
 
       "rest"          => []  # Specially handled below
@@ -104,18 +103,28 @@ module Multiverse
       GROUPS['agent'].delete 'agent_only'
     end
 
-    if RUBY_VERSION >= '3.0.0'
-      GROUPS['rails'].delete 'active_record'
+    if RUBY_VERSION >= '3.0'
+      GROUPS['frameworks'].delete 'active_record'
+    end
+
+    if RUBY_VERSION >= '2.7'
+      GROUPS['frameworks'].delete 'sinatra'
+      GROUPS['frameworks'].delete 'padrino'
+      GROUPS['frameworks'].delete 'grape'
+    end
+
+    def excluded?(suite)
+      return true if suite == 'rake' and RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
+      return true if suite == 'agent_only' and RUBY_PLATFORM == "java"
+      return true if suite == 'active_record' and RUBY_VERSION >= '3.0.0'
+      return true if ["sinatra", "padrino", "grape"].include?(suite) and RUBY_VERSION >= '2.7'
     end
 
 
     def passes_filter?(dir, filter)
       return true if filter.nil?
 
-      # Would like to reinstate but requires investigation, see RUBY-1749
-      return false if dir == 'rake' and RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
-      return false if dir == 'agent_only' and RUBY_PLATFORM == "java"
-      return false if dir == 'active_record' and RUBY_VERSION >= '3.0.0'
+      return false if excluded?(dir)
 
       if filter.include?("group=")
         key = filter.sub("group=", "")

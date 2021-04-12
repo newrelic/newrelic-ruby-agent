@@ -123,13 +123,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent, background, database, frameworks, httpclients, rails, rest]
+        multiverse: [agent, background, database, frameworks, httpclients, rest]
         ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.7, 2.7.3, 3.0.1, jruby-9.2.12.0]
-        exclude:
-          - ruby-version: "3.0.1"
-            multiverse: frameworks
-          - ruby-version: "2.7.3"
-            multiverse: frameworks
 
     steps:
       - uses: actions/checkout@v2
@@ -181,3 +176,6 @@ jobs:
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
+
+
+  
