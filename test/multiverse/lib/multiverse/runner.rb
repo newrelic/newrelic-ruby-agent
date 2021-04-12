@@ -85,8 +85,8 @@ module Multiverse
 
     GROUPS = {
       "agent"         => ["agent_only", "bare", "config_file_loading", "deferred_instrumentation", "high_security", "no_json", "json", "marshalling", "yajl"],
-      "background"    => ["delayed_job", "sidekiq"],
-      "background_2"  => ["resque", "rake"],
+      "background"    => ["delayed_job", "sidekiq", "resque" ],
+      "background_2"  => ["rake"],
       "database"      => ["datamapper", "mongo", "redis", "sequel"],
       "rails"         => ["active_record", "rails", "rails_prepend", "activemerchant"], 
       "frameworks"    => ["sinatra", "padrino", "grape"],
