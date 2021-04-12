@@ -85,10 +85,13 @@ module Multiverse
 
     GROUPS = {
       "agent"         => ["agent_only", "bare", "config_file_loading", "deferred_instrumentation", "high_security", "no_json", "json", "marshalling", "yajl"],
-      "background"    => ["delayed_job", "sidekiq", "resque", "rake"],
+      "background"    => ["delayed_job", "sidekiq"],
+      "background_2"  => ["resque", "rake"],
       "database"      => ["datamapper", "mongo", "redis", "sequel"],
-      "frameworks"    => ["active_record", "rails", "rails_prepend", "activemerchant", "sinatra", "padrino", "grape"],
-      "httpclients"   => ["curb", "excon", "httpclient", "typhoeus", "net_http", "httprb"],
+      "rails"         => ["active_record", "rails", "rails_prepend", "activemerchant"], 
+      "frameworks"    => ["sinatra", "padrino", "grape"],
+      "httpclients"   => ["curb", "excon", "httpclient"],
+      "httpclients_2"   => ["typhoeus", "net_http", "httprb"],
       "infinite_tracing" => ["infinite_tracing"],
 
       "rest"          => []  # Specially handled below
@@ -96,7 +99,7 @@ module Multiverse
 
     # Would like to reinstate but requires investigation, see RUBY-1749
     if RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
-      GROUPS['background'].delete 'rake'
+      GROUPS['background_2'].delete 'rake'
     end
 
     if RUBY_PLATFORM == "java"
@@ -104,7 +107,7 @@ module Multiverse
     end
 
     if RUBY_VERSION >= '3.0'
-      GROUPS['frameworks'].delete 'active_record'
+      GROUPS['rails'].delete 'active_record'
     end
 
     if RUBY_VERSION >= '2.7'

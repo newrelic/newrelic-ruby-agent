@@ -123,7 +123,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: ["agent;background;database", httpclients, "frameworks;rest"]
+        multiverse: ["agent;background;background_2;database", "httpclients;httpclients_2", "frameworks;rails;rest"]
         ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.7, 2.7.3, 3.0.1]
 
     steps:
@@ -216,7 +216,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent, background, database, frameworks, httpclients, rest]
+        multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
 
     steps:
       - uses: actions/checkout@v2
