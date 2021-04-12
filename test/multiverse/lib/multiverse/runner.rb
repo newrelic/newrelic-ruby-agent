@@ -128,7 +128,7 @@ module Multiverse
 
       if filter.include?("group=")
         keys = filter.sub("group=", "").split(';')
-        combined_group = []
+        combined_groups = []
         keys.each do |key|
           (combined_groups << (GROUPS[key])).flatten!
         end
