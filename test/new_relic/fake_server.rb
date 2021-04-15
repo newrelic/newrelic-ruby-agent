@@ -69,7 +69,7 @@ module NewRelic
       @server = WEBrick::HTTPServer.new(@started_options)
       @server.mount "/", ::Rack::Handler.get(:webrick), app
 
-      @thread = Thread.new(&self.method(:run_server))
+      @thread = Thread.new(&self.method(:run_server)).tap{ |t| t.abort_on_exception = true }
     end
 
     def stop
@@ -88,7 +88,7 @@ module NewRelic
     end
 
     def run_server
-      Thread.current.abort_on_exception = true
+      # Thread.current.abort_on_exception = true
       @server.start
     end
 
