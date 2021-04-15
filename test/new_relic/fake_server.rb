@@ -76,7 +76,7 @@ module NewRelic
       return unless running?
       @server.shutdown
       @server = nil
-      @thread.join
+      @thread.join if running?
       @started_options = nil
       reset
     end
@@ -88,7 +88,6 @@ module NewRelic
     end
 
     def run_server
-      # Thread.current.abort_on_exception = true
       @server.start
     end
 
