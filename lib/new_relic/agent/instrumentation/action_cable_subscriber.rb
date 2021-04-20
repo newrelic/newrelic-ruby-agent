@@ -19,7 +19,10 @@ module NewRelic
               category: :action_cable
             )
           else
-            Tracer.start_segment(name: metric_name_from_payload(name, payload))
+            Tracer.start_transaction_or_segment(
+              name: metric_name_from_payload(name, payload),
+              category: :action_cable
+            )
           end
           push_segment(id, finishable)
         rescue => e
@@ -46,7 +49,7 @@ module NewRelic
         end
 
         def metric_name_from_payload(name, payload)
-          "Ruby/ActionCable/#{payload[:channel_class]}/#{action_name(name)}"
+          "Controller/ActionCable/#{payload[:channel_class]}/#{action_name(name)}"
         end
 
         DOT_ACTION_CABLE = '.action_cable'.freeze
