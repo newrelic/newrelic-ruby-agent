@@ -49,7 +49,11 @@ module NewRelic
         end
 
         def metric_name_from_payload(name, payload)
-          "Controller/ActionCable/#{payload[:channel_class]}/#{action_name(name)}"
+          if Tracer.current_transaction
+            "Controller/ActionCable/#{payload[:channel_class]}/#{action_name(name)}"
+          else
+            "Ruby/ActionCable/#{payload[:channel_class]}/#{action_name(name)}"
+          end
         end
 
         DOT_ACTION_CABLE = '.action_cable'.freeze
