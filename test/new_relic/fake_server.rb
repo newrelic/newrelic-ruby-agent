@@ -76,7 +76,6 @@ module NewRelic
       return unless running?
       @server.shutdown
       @server = nil
-      @thread.pass
       @thread.join if running?
       @started_options = nil
       reset
