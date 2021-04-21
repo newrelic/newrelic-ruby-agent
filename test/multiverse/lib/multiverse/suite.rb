@@ -144,7 +144,7 @@ module Multiverse
 
     def bundle_show_env bundle_cmd
       return unless ENV["BUNDLE_SHOW_ENV"]
-      puts `#{bundle_cmd} env` 
+      puts `#{bundle_cmd} env`
     end
 
     def bundle_config dir, bundle_cmd
@@ -329,10 +329,38 @@ module Multiverse
       puts(gems.join(', '))
     end
 
+    # SOURCE: http://blog.headius.com/2019/09/jruby-startup-time-exploration.html
+
+    # The JVM is actually a little too aggressive, spending many CPU cycles
+    # during this 1.6 seconds optimizing and emitting code that will only
+    # be used briefly. We pay a large cost at startup in trade for reducing
+    # longer-term warmup times.
+
+    # We can actually tweak OpenJDK to be less aggressive by forcing it to
+    # only use the simplest part of its JIT, rather than working hard to
+    # create optimized native code we won’t use.
+
+    # We do this by forcing the Hotspot “tiered” compiler to only use its
+    # first tier by passing -XX:TieredStopAtLevel=1 to the JVM.
+
+    # In addition, we know JRuby’s compiler won’t help us much during these
+    # first few seconds, so we can turn that off too using the -X-C JRuby
+    # flag.
+
+    # Finally, we also turn off the JVM’s bytecode verification since all
+    # the bytecode we’ll run has been verified to death in JRuby’s
+    # continuous integration server. We do this by passing -Xverify:none to
+    # the JVM.
+    def optimize_jruby_startups
+      return unless RUBY_PLATFORM == "java"
+      ENV["JRUBY_OPTS"] = "--dev"
+    end
+
     def execute_child_environment(env_index, instrumentation_method)
       with_unbundled_env do
 
         configure_instrumentation_method instrumentation_method
+        optimize_jruby_startups
         ENV["MULTIVERSE_ENV"] = env_index.to_s
         ENV["MULTIVERSE_INSTRUMENTATION_METHOD"] = instrumentation_method
         log_test_running_process
