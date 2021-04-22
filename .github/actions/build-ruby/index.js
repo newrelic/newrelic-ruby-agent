@@ -20,7 +20,7 @@ function chomp(text) {
   return text.replace(/(\n|\r)+$/, '')
 }
 
-// invokes the @actions/exec exec function with listeners to capture the 
+// invokes the @actions/exec exec function with listeners to capture the
 // output stream as the return result.
 async function execute(command) {
  try {
@@ -41,7 +41,7 @@ async function execute(command) {
  }
 }
 
-// given one or more space-separated (not comma-delimited) dependency 
+// given one or more space-separated (not comma-delimited) dependency
 // names, invokes the package manager to install them.
 async function installDependencies(kind, dependencyList) {
   if (dependencyList === '') { return }
@@ -112,7 +112,7 @@ async function setupRubyEnvironment(rubyVersion) {
   // Ensures Bundler retries failed attempts before giving up
   core.exportVariable('BUNDLE_RETRY', 1)
 
-  // Number of jobs in parallel 
+  // Number of jobs in parallel
   core.exportVariable('BUNDLE_JOBS', 4)
 
   // Where to keep the gem files
@@ -126,13 +126,13 @@ async function setupRubyEnvironment(rubyVersion) {
   core.exportVariable('SERIALIZE', 1)
 }
 
-// Sets up any options at the bundler level so that when gems that 
+// Sets up any options at the bundler level so that when gems that
 // need specific settings are installed, their specific flags are relayed.
 async function configureBundleOptions(rubyVersion) {
   if (!usesOldOpenSsl(rubyVersion)) { return }
 
   const openSslPath = rubyOpenSslPath(rubyVersion);
-  
+
   // https://stackoverflow.com/questions/30834421/error-when-trying-to-install-app-with-mysql2-gem
   await exec.exec('bundle', [
     'config', '--global', 'build.mysql2',
@@ -151,7 +151,7 @@ function prependEnv(envName, envValue, divider=' ') {
 }
 
 // The older Rubies also need older MySQL that was built against the older OpenSSL libraries.
-// Otherwise mysql adapter will segfault in Ruby because it attempts to dynamically link 
+// Otherwise mysql adapter will segfault in Ruby because it attempts to dynamically link
 // to the 1.1 series while Ruby links against the 1.0 series.
 async function downgradeMySQL() {
   core.startGroup(`Downgrade MySQL`)
@@ -161,7 +161,7 @@ async function downgradeMySQL() {
   const mirrorUrl = 'https://mirrors.mediatemple.net/debian-security/pool/updates/main/m/mysql-5.5'
   const ubuntuUrl = 'http://archive.ubuntu.com/ubuntu/pool/main'
 
-  // executes the following all in parallel  
+  // executes the following all in parallel
   const promise1 = exec.exec('sudo', ['apt-get', 'remove', 'mysql-client'])
   const promise2 = exec.exec('wget', [pkgOption, `${mirrorUrl}/libmysqlclient18_5.5.62-0%2Bdeb8u1_amd64.deb`])
   const promise3 = exec.exec('wget', [pkgOption, `${mirrorUrl}/libmysqlclient-dev_5.5.62-0%2Bdeb8u1_amd64.deb`])
@@ -188,11 +188,12 @@ async function downgradeSystemPackages(rubyVersion) {
 
 // any settings needed in all Ruby environments from EOL'd rubies to current
 async function setupAllRubyEnvironments() {
-  // core.startGroup("Setup for all Ruby Environments")
+  core.startGroup("Setup for all Ruby Environments")
 
-  // // No-Op
+  // http://blog.headius.com/2019/09/jruby-startup-time-exploration.html
+  core.exportVariable('JRUBY_OPTS', '--dev')
 
-  // core.endGroup()
+  core.endGroup()
 }
 
 // any settings needed specifically for the EOL'd rubies
@@ -268,11 +269,11 @@ function addRubyToPath(rubyVersion) {
 // kicks off the ruby build process.
 async function buildRuby(rubyVersion) {
   core.startGroup(`Build Ruby ${rubyVersion}`)
-  await exec.exec(`ruby-build --verbose ${rubyVersion} ${rubyPath(rubyVersion)}`) 
+  await exec.exec(`ruby-build --verbose ${rubyVersion} ${rubyPath(rubyVersion)}`)
   core.endGroup()
 }
 
-// Older rubies come with Ruby gems 2.5.x and we need 3.0.6 minimum to 
+// Older rubies come with Ruby gems 2.5.x and we need 3.0.6 minimum to
 // correctly install Bundler and do anything else within the multiverse test suite
 async function upgradeRubyGems(rubyVersion) {
   core.startGroup(`Upgrade RubyGems`)
@@ -291,12 +292,12 @@ async function upgradeRubyGems(rubyVersion) {
         gemInstall('rubygems-update', '<3')
         await exec.exec('update_rubygems')
       };
-      
+
     }
     else {
       core.info(`Ruby < 2.7, but RubyGems already at ${gemVersionStr}`)
     }
-  } 
+  }
 
   else {
     core.info(`Ruby >= 2.7, keeping RubyGems at ${gemVersionStr}`)
@@ -319,7 +320,7 @@ async function gemInstall(name, version = undefined, binPath = undefined) {
 }
 
 // install Bundler 1.17.3 (or thereabouts)
-// Ruby 2.6 is first major Ruby to ship with bundle, but it also ships 
+// Ruby 2.6 is first major Ruby to ship with bundle, but it also ships
 // with incompatible 1.17.2 version that must be upgraded to 1.17.3
 // for some test environments/suites to function correctly.
 async function installBundler(rubyVersion) {
@@ -332,9 +333,9 @@ async function installBundler(rubyVersion) {
   }
   else {
     await execute('bundle --version').then(res => { bundleVersionStr = res; });
-    if (bundleVersionStr.match(/1\.17\.2/)) { 
+    if (bundleVersionStr.match(/1\.17\.2/)) {
      core.info(`found bundle ${bundleVersionStr}.  Upgrading to 1.17.3`)
-     await gemInstall('bundler', '~> 1.17.3', rubyBinPath) 
+     await gemInstall('bundler', '~> 1.17.3', rubyBinPath)
     }
   }
 
@@ -352,10 +353,10 @@ function rubyCacheKey(rubyVersion) {
 // will attempt to restore the previously built Ruby environment if one exists.
 async function restoreRubyFromCache(rubyVersion) {
   core.startGroup(`Restore Ruby from Cache`)
- 
+
   const key = rubyCacheKey(rubyVersion)
   await cache.restoreCache(rubyCachePaths(rubyVersion), key, [key])
-  
+
   core.endGroup()
 }
 
@@ -365,7 +366,7 @@ async function saveRubyToCache(rubyVersion) {
 
   const key = rubyCacheKey(rubyVersion)
   await cache.saveCache(rubyCachePaths(rubyVersion), key)
-  
+
   core.endGroup()
 }
 
@@ -378,7 +379,7 @@ async function postBuildSetup(rubyVersion) {
 }
 
 // Premable steps necessary for building/running the correct Ruby
-async function setupEnvironment(rubyVersion, dependencyList) { 
+async function setupEnvironment(rubyVersion, dependencyList) {
   const systemDependencyList = "libcurl4-nss-dev build-essential libsasl2-dev libxslt1-dev libxml2-dev"
 
   await installDependencies('system', systemDependencyList)
@@ -430,11 +431,11 @@ function bundleCachePaths(rubyVersion) {
 // will attempt to restore the previously built Ruby environment if one exists.
 async function restoreBundleFromCache(rubyVersion) {
   core.startGroup(`Restore Bundle from Cache`)
- 
+
   const key = bundleCacheKey(rubyVersion)
   core.info(`restore using ${key}`)
   await cache.restoreCache(bundleCachePaths(rubyVersion), key, [key])
-  
+
   core.endGroup()
 }
 
@@ -444,13 +445,13 @@ async function saveBundleToCache(rubyVersion) {
 
   const key = bundleCacheKey(rubyVersion)
   await cache.saveCache(bundleCachePaths(rubyVersion), key)
-  
+
   core.endGroup()
 }
 
 async function setupTestEnvironment(rubyVersion) {
   core.startGroup('Setup Test Environment')
-  
+
   const filePath = gemspecFilePath(rubyVersion)
   const workspacePath = process.env.GITHUB_WORKSPACE
 
@@ -478,9 +479,9 @@ async function setupTestEnvironment(rubyVersion) {
 }
 
 // Detects if we're expected to build Ruby vs. running the test suite
-// This conditional controls whether we go through pain of setting up the 
+// This conditional controls whether we go through pain of setting up the
 // environment when Ruby was previously built and cached.
-function isBuildJob() { 
+function isBuildJob() {
   return process.env.GITHUB_JOB.match(/build/)
 }
 
@@ -507,7 +508,7 @@ async function main() {
     await setupEnvironment(rubyVersion, dependencyList)
     await setupRuby(rubyVersion)
     await setupTestEnvironment(rubyVersion)
-  } 
+  }
   catch (error) {
     core.setFailed(`Action failed with error ${error}`)
   }
