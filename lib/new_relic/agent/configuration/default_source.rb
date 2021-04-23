@@ -41,7 +41,7 @@ module NewRelic
 
       def self.deprecated_description new_setting, description
         link_ref = new_setting.to_s.gsub(".", "-")
-        %{<a href="##{link_ref}">`#{new_setting}`}
+        %{Please see: [#{new_setting}](##{link_ref}). \n\n#{description}}
       end
 
       class Boolean
@@ -434,7 +434,7 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'When `true`, the agent captures HTTP request parameters ' \
             'and attaches them to transaction traces, traced errors, and ' \
-            '[`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241)ewrelic.com">.'\
+            '[`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241)'\
             "\n" \
             '<div class="callout-warning">' \
             "\n" \
@@ -786,6 +786,7 @@ module NewRelic
           :default => false,
           :public => true,
           :type => Boolean,
+          :deprecated => true,
           :allowed_from_server => false,
           :description => deprecated_description(:'instrumentation.sinatra', 'If `true` , disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/sinatra-support">Sinatra instrumentation</a>.' )
         },
@@ -1119,7 +1120,7 @@ module NewRelic
           :public => true,
           :type => Float,
           :allowed_from_server => true,
-          :description => 'Specify a threshold in seconds. Transactions with a duration longer than this threshold are eligible for transaction traces. Specify a float value or the string `<a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#apdex_f">apdex_f</a>`.'
+          :description => 'Specify a threshold in seconds. Transactions with a duration longer than this threshold are eligible for transaction traces. Specify a float value or the string `apdex_f`.'
         },
         :'transaction_tracer.record_sql' => {
           :default => 'obfuscated',
@@ -1157,7 +1158,7 @@ module NewRelic
           :public => true,
           :type => Float,
           :allowed_from_server => true,
-          :description => 'Threshold (in seconds) above which the agent will collect explain plans. Relevant only when `<a href="#transaction_tracer.explain_enabled">explain_enabled</a>` is true.'
+          :description => 'Threshold (in seconds) above which the agent will collect explain plans. Relevant only when <a href="#transaction_tracer.explain_enabled">`explain_enabled`</a> is true.'
         },
         :'transaction_tracer.explain_enabled' => {
           :default => true,
