@@ -41,7 +41,7 @@ module NewRelic
 
       def self.deprecated_description new_setting, description
         link_ref = new_setting.to_s.gsub(".", "-")
-        %{<a href="##{link_ref}"><code>#{new_setting}</code>}
+        %{Please see: [#{new_setting}](##{link_ref}). \n\n#{description}}
       end
 
       class Boolean
@@ -332,7 +332,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, allows the Ruby agent to run.'
+          :description => 'If `true`, allows the Ruby agent to run.'
         },
         :enabled => {
           :default => true,
@@ -348,7 +348,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_list_on_semicolon),
-          :description => 'Specify the <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/installation-configuration/name-your-application">application name</a> used to aggregate data in the New Relic UI. To report data to <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/installation-configuration/using-multiple-names-app">multiple apps at the same time</a>, specify a list of names separated by a semicolon <code>;</code>. For example, <code>MyApp</code> or <code>MyStagingApp;Instance1</code>.'
+          :description => 'Specify the <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/installation-configuration/name-your-application">application name</a> used to aggregate data in the New Relic UI. To report data to <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/installation-configuration/using-multiple-names-app">multiple apps at the same time</a>, specify a list of names separated by a semicolon `;`. For example, `MyApp` or `MyStagingApp;Instance1`.'
         },
         :entity_guid => {
           :default => nil,
@@ -363,28 +363,28 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'When <code>true</code>, the agent transmits data about your app to the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>.'
+          :description => 'When `true`, the agent transmits data about your app to the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>.'
         },
         :test_mode => {
           :default => false,
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Used in tests for agent to start up but not connect to collector. Formerly used <code>developer_mode</code> in test config for this purpose.'
+          :description => 'Used in tests for agent to start up but not connect to collector. Formerly used `developer_mode` in test config for this purpose.'
         },
         :log_level => {
           :default => 'info',
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Sets the level of detail of log messages. Possible log levels, in increasing verbosity, are: <code>error</code>, <code>warn</code>, <code>info</code> or <code>debug</code>.'
+          :description => 'Sets the level of detail of log messages. Possible log levels, in increasing verbosity, are: `error`, `warn`, `info` or `debug`.'
         },
         :high_security => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, enables <a href="https://docs.newrelic.com/docs/accounts-partnerships/accounts/security/high-security">high security mode</a>. Ensure you understand the implications of high security mode before enabling this setting.'
+          :description => 'If `true`, enables <a href="https://docs.newrelic.com/docs/accounts-partnerships/accounts/security/high-security">high security mode</a>. Ensure you understand the implications of high security mode before enabling this setting.'
         },
         :security_policies_token => {
           :default => '',
@@ -432,20 +432,19 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'When <code>true</code>, the agent captures HTTP request parameters ' \
+          :description => 'When `true`, the agent captures HTTP request parameters ' \
             'and attaches them to transaction traces, traced errors, and ' \
-            '<a href="https://docs.newrelic.com/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241">'\
-            '<code>TransactionError</code> events.' \
+            '[`TransactionError` events](/attribute-dictionary?attribute_name=&events_tids%5B%5D=8241)'\
             "\n" \
             '<div class="callout-warning">' \
             "\n" \
-            '<p>When using the <code>capture_params</code> setting, the Ruby agent will not attempt ' \
+            'When using the `capture_params` setting, the Ruby agent will not attempt ' \
             'to filter secret information. <b>Recommendation:</b> To filter secret information from ' \
-            'request parameters, use the <a href="/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby">' \
-            '<code>attributes.include</code> setting</a> instead. For more information, see the ' \
+            'request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) ' \
+            'instead. For more information, see the ' \
             '<a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">' \
             'Ruby attribute examples</a>.' \
-            "</p>\n" \
+            "\n" \
             '</div>'
         },
         :config_path => {
@@ -481,21 +480,21 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Specify a list of constants that should prevent the agent from starting automatically. Separate individual constants with a comma <code>,</code>. For example, <code>Rails::Console,UninstrumentedBackgroundJob</code>.'
+          :description => 'Specify a list of constants that should prevent the agent from starting automatically. Separate individual constants with a comma `,`. For example, `Rails::Console,UninstrumentedBackgroundJob`.'
         },
         :'autostart.denylisted_executables' => {
           :default => 'irb,rspec',
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Defines a comma-delimited list of executables that the agent should not instrument. For example, <code>rake,my_ruby_script.rb</code>.'
+          :description => 'Defines a comma-delimited list of executables that the agent should not instrument. For example, `rake,my_ruby_script.rb`.'
         },
         :'autostart.denylisted_rake_tasks' => {
           :default => AUTOSTART_DENYLISTED_RAKE_TASKS,
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Defines a comma-delimited list of Rake tasks that the agent should not instrument. For example, <code>assets:precompile,db:migrate</code>.'
+          :description => 'Defines a comma-delimited list of Rake tasks that the agent should not instrument. For example, `assets:precompile,db:migrate`.'
         },
 
         :disable_rake => {
@@ -504,7 +503,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :deprecated => true,
-          :description => deprecated_description(:'instrumentation.rake', 'If <code>true</code>, disables Rake instrumentation.')
+          :description => deprecated_description(:'instrumentation.rake', 'If `true`, disables Rake instrumentation.')
         },
         :disable_rake_instrumentation => {
           :default => false,
@@ -550,7 +549,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_constant_list),
-          :description => 'Specify a list of exceptions you do not want the agent to strip when <a href="#strip_exception_messages-enabled">strip_exception_messages</a> is <code>true</code>. Separate exceptions with a comma. For example, <code>"ImportantException,PreserveMessageException"</code>.'
+          :description => 'Specify a list of exceptions you do not want the agent to strip when <a href="#strip_exception_messages-enabled">strip_exception_messages</a> is `true`. Separate exceptions with a comma. For example, `"ImportantException,PreserveMessageException"`.'
         },
         :host => {
           :default => DefaultSource.host,
@@ -585,14 +584,14 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'When set to <code>true</code>, forces a synchronous connection to the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a> during application startup. For very short-lived processes, this helps ensure the New Relic agent has time to report.'
+          :description => 'When set to `true`, forces a synchronous connection to the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a> during application startup. For very short-lived processes, this helps ensure the New Relic agent has time to report.'
         },
         :send_data_on_exit => {
           :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, enables the exit handler that sends data to the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a> before shutting down.'
+          :description => 'If `true`, enables the exit handler that sends data to the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a> before shutting down.'
         },
         :max_payload_size_in_bytes => {
           :default => 1000000,
@@ -735,7 +734,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, enables an audit log which logs communications with the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>.'
+          :description => 'If `true`, enables an audit log which logs communications with the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>.'
         },
         :'audit_log.path' => {
           :default => DefaultSource.audit_log_path,
@@ -757,7 +756,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables the collection of sampler metrics. Sampler metrics are metrics that are not event-based (such as CPU time or memory usage).'
+          :description => 'If `true`, disables the collection of sampler metrics. Sampler metrics are metrics that are not event-based (such as CPU time or memory usage).'
         },
         :disable_resque => {
           :default => false,
@@ -765,14 +764,14 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.resque', 'If <code>true</code>, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/resque-instrumentation">Resque instrumentation</a>.')
+          :description => deprecated_description(:'instrumentation.resque', 'If `true`, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/resque-instrumentation">Resque instrumentation</a>.')
         },
         :disable_sidekiq => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/sidekiq-instrumentation">Sidekiq instrumentation</a>.'
+          :description => 'If `true`, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/sidekiq-instrumentation">Sidekiq instrumentation</a>.'
         },
         :disable_dj => {
           :default => false,
@@ -780,29 +779,30 @@ module NewRelic
           :deprecated => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.delayed_job', 'If <code>true</code>, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/delayedjob">Delayed::Job instrumentation</a>.'
+          :description => deprecated_description(:'instrumentation.delayed_job', 'If `true`, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/delayedjob">Delayed::Job instrumentation</a>.'
           )
         },
         :disable_sinatra => {
           :default => false,
           :public => true,
           :type => Boolean,
+          :deprecated => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.sinatra', 'If <code>true</code> , disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/sinatra-support">Sinatra instrumentation</a>.' )
+          :description => deprecated_description(:'instrumentation.sinatra', 'If `true` , disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/sinatra-support">Sinatra instrumentation</a>.' )
         },
         :disable_sinatra_auto_middleware => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as <a href="https://docs.newrelic.com/docs/apm/transactions/cross-application-traces/cross-application-tracing">cross application tracing</a>, <a href="https://docs.newrelic.com/docs/browser/new-relic-browser/getting-started/new-relic-browser">page load timing</a>, and <a href="https://docs.newrelic.com/docs/apm/applications-menu/events/view-apm-error-analytics">error collection</a>.'
+          :description => 'If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as <a href="https://docs.newrelic.com/docs/apm/transactions/cross-application-traces/cross-application-tracing">cross application tracing</a>, <a href="https://docs.newrelic.com/docs/browser/new-relic-browser/getting-started/new-relic-browser">page load timing</a>, and <a href="https://docs.newrelic.com/docs/apm/applications-menu/events/view-apm-error-analytics">error collection</a>.'
         },
         :disable_view_instrumentation => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables view instrumentation.'
+          :description => 'If `true`, disables view instrumentation.'
         },
         :disable_harvest_thread => {
           :default => false,
@@ -823,14 +823,14 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables active record instrumentation.'
+          :description => 'If `true`, disables active record instrumentation.'
         },
         :prepend_active_record_instrumentation => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, uses Module.prepend rather than alias_method for ActiveRecord instrumentation.'
+          :description => 'If `true`, uses Module.prepend rather than alias_method for ActiveRecord instrumentation.'
         },
         :prepend_net_instrumentation => {
           :default => true,
@@ -839,7 +839,7 @@ module NewRelic
           :allowed_from_server => false,
           :deprecated => true,
           :description => deprecated_description(:'instrumentation.net_http',
-            'If <code>true</code>, uses Module.prepend rather than alias_method for Net::HTTP instrumentation.'
+            'If `true`, uses Module.prepend rather than alias_method for Net::HTTP instrumentation.'
           )
         },
         :'instrumentation.net_http' => {
@@ -945,7 +945,7 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description  => "Controls auto-instrumentation of Rack. When enabled, the agent hooks into the " \
-                           "<code>to_app</code> method in Rack::Builder to find gems to instrument during " \
+                           "`to_app` method in Rack::Builder to find gems to instrument during " \
                            "application startup.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.rack_urlmap' => {
@@ -963,7 +963,7 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :description  => "Controls auto-instrumentation of Puma::Rack. When enabled, the agent hooks into the " \
-                           "<code>to_app</code> method in Puma::Rack::Builder to find gems to instrument during " \
+                           "`to_app` method in Puma::Rack::Builder to find gems to instrument during " \
                            "application startup.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.puma_rack_urlmap' => {
@@ -1003,7 +1003,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables DataMapper instrumentation.'
+          :description => 'If `true`, disables DataMapper instrumentation.'
         },
         :disable_activejob => {
           :default => false,
@@ -1011,7 +1011,7 @@ module NewRelic
           :type => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables ActiveJob instrumentation.'
+          :description => 'If `true`, disables ActiveJob instrumentation.'
         },
         :disable_action_cable_instrumentation => {
           :default => false,
@@ -1019,7 +1019,7 @@ module NewRelic
           :type => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables Action Cable instrumentation.'
+          :description => 'If `true`, disables Action Cable instrumentation.'
         },
         :disable_active_storage => {
           :default => false,
@@ -1027,7 +1027,7 @@ module NewRelic
           :type => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables ActiveStorage instrumentation.'
+          :description => 'If `true`, disables ActiveStorage instrumentation.'
         },
         :disable_memcached => {
           :default => value_of(:disable_memcache_instrumentation),
@@ -1035,7 +1035,7 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcached', 'If <code>true</code>, disables instrumentation for the memcached gem.')
+          :description => deprecated_description(:'instrumentation.memcached', 'If `true`, disables instrumentation for the memcached gem.')
         },
         :disable_memcache_client => {
           :default => value_of(:disable_memcache_instrumentation),
@@ -1043,7 +1043,7 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcache-client', 'If <code>true</code>, disables instrumentation for the memcache-client gem.')
+          :description => deprecated_description(:'instrumentation.memcache-client', 'If `true`, disables instrumentation for the memcache-client gem.')
         },
         :disable_dalli => {
           :default => value_of(:disable_memcache_instrumentation),
@@ -1051,7 +1051,7 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcache', 'If <code>true</code>, disables instrumentation for the dalli gem.')
+          :description => deprecated_description(:'instrumentation.memcache', 'If `true`, disables instrumentation for the dalli gem.')
         },
         :disable_dalli_cas_client => {
           :default => value_of(:disable_memcache_instrumentation),
@@ -1059,7 +1059,7 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcache', "If <code>true</code>, disables instrumentation for the dalli gem\'s additional CAS client support.")
+          :description => deprecated_description(:'instrumentation.memcache', "If `true`, disables instrumentation for the dalli gem\'s additional CAS client support.")
         },
         :disable_memcache_instrumentation => {
           :default => false,
@@ -1067,14 +1067,14 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.memcache', 'If <code>true</code>, disables memcache instrumentation.')
+          :description => deprecated_description(:'instrumentation.memcache', 'If `true`, disables memcache instrumentation.')
         },
         :disable_gc_profiler => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables the use of GC::Profiler to measure time spent in garbage collection'
+          :description => 'If `true`, disables the use of GC::Profiler to measure time spent in garbage collection'
         },
         :'sidekiq.capture_params' => {
           :default => false,
@@ -1083,7 +1083,7 @@ module NewRelic
           :allowed_from_server => false,
           :dynamic_name => true,
           :deprecated => true,
-          :description => 'If <code>true</code>, enables the capture of job arguments for transaction traces and traced errors in Sidekiq.'
+          :description => 'If `true`, enables the capture of job arguments for transaction traces and traced errors in Sidekiq.'
         },
         :'resque.capture_params' => {
           :default => false,
@@ -1092,7 +1092,7 @@ module NewRelic
           :allowed_from_server => false,
           :dynamic_name => true,
           :deprecated => true,
-          :description => 'If <code>true</code>, enables the capture of job arguments for transaction traces and traced errors in Resque.'
+          :description => 'If `true`, enables the capture of job arguments for transaction traces and traced errors in Resque.'
         },
         :'resque.use_ruby_dns' => {
           :default => true,
@@ -1113,37 +1113,37 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If <code>true</code>, enables collection of <a href="https://docs.newrelic.com/docs/apm/traces/transaction-traces/transaction-traces">transaction traces</a>.'
+          :description => 'If `true`, enables collection of <a href="https://docs.newrelic.com/docs/apm/traces/transaction-traces/transaction-traces">transaction traces</a>.'
         },
         :'transaction_tracer.transaction_threshold' => {
           :default => DefaultSource.transaction_tracer_transaction_threshold,
           :public => true,
           :type => Float,
           :allowed_from_server => true,
-          :description => 'Specify a threshold in seconds. Transactions with a duration longer than this threshold are eligible for transaction traces. Specify a float value or the string <code><a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#apdex_f">apdex_f</a></code>.'
+          :description => 'Specify a threshold in seconds. Transactions with a duration longer than this threshold are eligible for transaction traces. Specify a float value or the string `apdex_f`.'
         },
         :'transaction_tracer.record_sql' => {
           :default => 'obfuscated',
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :description => 'Obfuscation level for SQL queries reported in transaction trace nodes.</p>
+          :description => 'Obfuscation level for SQL queries reported in transaction trace nodes.
 
-  <p>By default, this is set to <code>obfuscated</code>, which strips out the numeric and string literals.</p>
+  By default, this is set to `obfuscated`, which strips out the numeric and string literals.
 
   <ul>
-    <li>If you do not want the agent to capture query information, set this to <code>none</code>.</li>
-    <li>If you want the agent to capture all query information in its original form, set this to <code>raw</code>.</li>
-    <li>When you enable <a href="/docs/agents/manage-apm-agents/configuration/high-security-mode">high security mode</a>, this is automatically set to <code>obfuscated</code>.</li>
+    <li>If you do not want the agent to capture query information, set this to `none`.</li>
+    <li>If you want the agent to capture all query information in its original form, set this to `raw`.</li>
+    <li>When you enable <a href="/docs/agents/manage-apm-agents/configuration/high-security-mode">high security mode</a>, this is automatically set to `obfuscated`.</li>
   </ul>
-  <p>' # Doc generator will wrap this in <p>...</p>
+  '
         },
         :'transaction_tracer.record_redis_arguments' => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, the agent records Redis command arguments in transaction traces.'
+          :description => 'If `true`, the agent records Redis command arguments in transaction traces.'
         },
         :'transaction_tracer.capture_attributes' => {
           :default => true,
@@ -1151,21 +1151,21 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => 'Deprecated; use <a href="#transaction_tracer-attributes-enabled"><code>transaction_tracer.attributes.enabled</code></a> instead.'
+          :description => 'Deprecated; use <a href="#transaction_tracer-attributes-enabled">`transaction_tracer.attributes.enabled`</a> instead.'
         },
         :'transaction_tracer.explain_threshold' => {
           :default => 0.5,
           :public => true,
           :type => Float,
           :allowed_from_server => true,
-          :description => 'Threshold (in seconds) above which the agent will collect explain plans. Relevant only when <code><a href="#transaction_tracer.explain_enabled">explain_enabled</a></code> is true.'
+          :description => 'Threshold (in seconds) above which the agent will collect explain plans. Relevant only when <a href="#transaction_tracer.explain_enabled">`explain_enabled`</a> is true.'
         },
         :'transaction_tracer.explain_enabled' => {
           :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If <code>true</code>, enables the collection of explain plans in transaction traces. This setting will also apply to explain plans in slow SQL traces if <a href="#slow_sql-explain_enabled"><code>slow_sql.explain_enabled</code></a> is not set separately.'
+          :description => 'If `true`, enables the collection of explain plans in transaction traces. This setting will also apply to explain plans in slow SQL traces if <a href="#slow_sql-explain_enabled">`slow_sql.explain_enabled`</a> is not set separately.'
         },
         :'transaction_tracer.stack_trace_threshold' => {
           :default => 0.5,
@@ -1186,7 +1186,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/sequel-instrumentation">Sequel instrumentation</a>.'
+          :description => 'If `true`, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/sequel-instrumentation">Sequel instrumentation</a>.'
         },
         :disable_database_instrumentation => {
           :default => false,
@@ -1194,7 +1194,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :deprecated => true,
-          :description => 'Deprecated; use <a href="#disable_sequel_instrumentation"><code>disable_sequel_instrumentation</code></a> instead.'
+          :description => 'Deprecated; use <a href="#disable_sequel_instrumentation">`disable_sequel_instrumentation`</a> instead.'
         },
         :disable_mongo => {
           :default      => false,
@@ -1203,7 +1203,7 @@ module NewRelic
           :allowed_from_server => false,
           :dynamic_name => true,
           :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.mongo', 'If <code>true</code>, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/mongo-instrumentation">instrumentation for the Mongo gem</a>.')
+          :description  => deprecated_description(:'instrumentation.mongo', 'If `true`, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/mongo-instrumentation">instrumentation for the Mongo gem</a>.')
         },
         :disable_redis => {
           :default      => false,
@@ -1211,7 +1211,7 @@ module NewRelic
           :type         => Boolean,
           :deprecated   => true,
           :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.redis', 'If <code>true</code>, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.')
+          :description  => deprecated_description(:'instrumentation.redis', 'If `true`, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.')
         },
         :disable_redis_instrumentation => {
           :default      => false,
@@ -1226,14 +1226,14 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :allowed_from_server => true,
-          :description  => 'If <code>true</code>, the agent will collect metadata about messages and attach them as segment parameters.'
+          :description  => 'If `true`, the agent will collect metadata about messages and attach them as segment parameters.'
         },
         :'slow_sql.enabled' => {
           :default => value_of(:'transaction_tracer.enabled'),
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If <code>true</code>, the agent collects <a href="https://docs.newrelic.com/docs/apm/applications-menu/monitoring/viewing-slow-query-details">slow SQL queries</a>.'
+          :description => 'If `true`, the agent collects <a href="https://docs.newrelic.com/docs/apm/applications-menu/monitoring/viewing-slow-query-details">slow SQL queries</a>.'
         },
         :'slow_sql.explain_threshold' => {
           :default => value_of(:'transaction_tracer.explain_threshold'),
@@ -1247,14 +1247,14 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If <code>true</code>, the agent collects explain plans in slow SQL queries. If this setting is omitted, the <a href="#transaction_tracer-explain_enabled"><code>transaction_tracer.explain_enabled</code></a> setting will be applied as the default setting for explain plans in slow SQL as well.'
+          :description => 'If `true`, the agent collects explain plans in slow SQL queries. If this setting is omitted, the <a href="#transaction_tracer-explain_enabled">`transaction_tracer.explain_enabled`</a> setting will be applied as the default setting for explain plans in slow SQL as well.'
         },
         :'slow_sql.record_sql' => {
           :default => value_of(:'transaction_tracer.record_sql'),
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :description => 'Defines an obfuscation level for slow SQL queries. Valid options are <code>obfuscated</code>, <code>raw</code>, or <code>none</code>).'
+          :description => 'Defines an obfuscation level for slow SQL queries. Valid options are `obfuscated`, `raw`, or `none`).'
         },
         :'slow_sql.use_longer_sql_id' => {
           :default => false,
@@ -1268,21 +1268,21 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If <code>true</code>, the agent captures Mongo queries in transaction traces.'
+          :description => 'If `true`, the agent captures Mongo queries in transaction traces.'
         },
         :'mongo.obfuscate_queries' => {
           :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If <code>true</code>, the agent obfuscates Mongo queries in transaction traces.'
+          :description => 'If `true`, the agent obfuscates Mongo queries in transaction traces.'
         },
         :'error_collector.enabled' => {
           :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If <code>true</code>, the agent captures traced errors and error count metrics.'
+          :description => 'If `true`, the agent captures traced errors and error count metrics.'
         },
         :'error_collector.capture_attributes' => {
           :default => true,
@@ -1290,7 +1290,7 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => 'Deprecated; use <a href="#error_collector-attributes-enabled"><code>error_collector.attributes.enabled</code></a> instead.'
+          :description => 'Deprecated; use <a href="#error_collector-attributes-enabled">`error_collector.attributes.enabled`</a> instead.'
         },
         :'error_collector.ignore_errors' => {
           :default => 'ActionController::RoutingError,Sinatra::NotFound',
@@ -1312,7 +1312,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'If <code>true</code>, the agent collects <a href="https://docs.newrelic.com/docs/insights/new-relic-insights/decorating-events/error-event-default-attributes-insights">TransactionError events</a>.'
+          :description => 'If `true`, the agent collects <a href="https://docs.newrelic.com/docs/insights/new-relic-insights/decorating-events/error-event-default-attributes-insights">TransactionError events</a>.'
         },
         :'error_collector.max_event_samples_stored' => {
           :default => 100,
@@ -1368,7 +1368,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If <code>true</code>, enables <a href="https://docs.newrelic.com/docs/browser/new-relic-browser/installation-configuration/adding-apps-new-relic-browser#select-apm-app">auto-injection</a> of the JavaScript header for page load timing (sometimes referred to as real user monitoring or RUM).'
+          :description => 'If `true`, enables <a href="https://docs.newrelic.com/docs/browser/new-relic-browser/installation-configuration/adding-apps-new-relic-browser#select-apm-app">auto-injection</a> of the JavaScript header for page load timing (sometimes referred to as real user monitoring or RUM).'
         },
         :'browser_monitoring.capture_attributes' => {
           :default => false,
@@ -1376,7 +1376,7 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => 'Deprecated; use <a href="#browser_monitoring-attributes-enabled"><code>browser_monitoring.attributes.enabled</code></a> instead.'
+          :description => 'Deprecated; use <a href="#browser_monitoring-attributes-enabled">`browser_monitoring.attributes.enabled`</a> instead.'
         },
         :'browser_monitoring.loader' => {
           :default => DefaultSource.browser_monitoring_loader,
@@ -1434,7 +1434,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If <code>true</code>, enables <a href="https://docs.newrelic.com/docs/apm/transactions/cross-application-traces/cross-application-tracing">cross-application tracing</a>.'
+          :description => 'If `true`, enables <a href="https://docs.newrelic.com/docs/apm/transactions/cross-application-traces/cross-application-tracing">cross-application tracing</a>.'
         },
         :cross_application_tracing => {
           :default => nil,
@@ -1464,7 +1464,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If <code>true</code>, enables use of the <a href="https://docs.newrelic.com/docs/apm/applications-menu/events/thread-profiler-tool">thread profiler</a>.'
+          :description => 'If `true`, enables use of the <a href="https://docs.newrelic.com/docs/apm/applications-menu/events/thread-profiler-tool">thread profiler</a>.'
         },
         :'thread_profiler.max_profile_overhead' => {
           :default => 0.05,
@@ -1478,14 +1478,14 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Specifies a marshaller for transmitting data to the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>. Currently <code>json</code> is the only valid value for this setting.'
+          :description => 'Specifies a marshaller for transmitting data to the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>. Currently `json` is the only valid value for this setting.'
         },
         :'analytics_events.enabled' => {
           :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If <code>true</code>, enables analytics event sampling.'
+          :description => 'If `true`, enables analytics event sampling.'
         },
         :'analytics_events.max_samples_stored' => {
           :default => 1200,
@@ -1500,7 +1500,7 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => 'Deprecated; use <a href="#transaction_events-attributes-enabled"><code>transaction_events.attributes.enabled</code></a> instead.'
+          :description => 'Deprecated; use <a href="#transaction_events-attributes-enabled">`transaction_events.attributes.enabled`</a> instead.'
         },
         :restart_thread_in_children => {
           :default => true,
@@ -1529,7 +1529,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t <a href="https://docs.newrelic.com/docs/agents/ruby-agent/features/ruby-vm-measurements">sample performance measurements from the Ruby VM</a>.'
+          :description  => 'If `true`, the agent won\'t <a href="https://docs.newrelic.com/docs/agents/ruby-agent/features/ruby-vm-measurements">sample performance measurements from the Ruby VM</a>.'
         },
         :disable_memory_sampler => {
           :default      => false,
@@ -1537,7 +1537,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t sample the memory usage of the host process.'
+          :description  => 'If `true`, the agent won\'t sample the memory usage of the host process.'
         },
         :disable_cpu_sampler => {
           :default      => false,
@@ -1545,7 +1545,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t sample the CPU usage of the host process.'
+          :description  => 'If `true`, the agent won\'t sample the CPU usage of the host process.'
         },
         :disable_delayed_job_sampler => {
           :default      => false,
@@ -1553,7 +1553,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t measure the depth of Delayed Job queues.'
+          :description  => 'If `true`, the agent won\'t measure the depth of Delayed Job queues.'
         },
         :disable_active_record_notifications => {
           :default      => false,
@@ -1561,7 +1561,7 @@ module NewRelic
           :type         => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, disables instrumentation for ActiveRecord 4, 5, and 6.'
+          :description  => 'If `true`, disables instrumentation for ActiveRecord 4, 5, and 6.'
         },
         :disable_bunny => {
           :default      => false,
@@ -1570,7 +1570,7 @@ module NewRelic
           :deprecated   => true,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.bunny', 'If <code>true</code>, disables instrumentation for the bunny gem.')
+          :description  => deprecated_description(:'instrumentation.bunny', 'If `true`, disables instrumentation for the bunny gem.')
         },
         :disable_curb => {
           :default      => false,
@@ -1579,7 +1579,7 @@ module NewRelic
           :deprecated => true,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  =>  deprecated_description(:'instrumentation.curb', 'If <code>true</code>, disables instrumentation for the curb gem.' )
+          :description  =>  deprecated_description(:'instrumentation.curb', 'If `true`, disables instrumentation for the curb gem.' )
         },
         :disable_excon => {
           :default      => false,
@@ -1588,7 +1588,7 @@ module NewRelic
           :dynamic_name => true,
           :deprecated   => true,
           :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.excon', 'If <code>true</code>, disables instrumentation for the excon gem.')
+          :description  => deprecated_description(:'instrumentation.excon', 'If `true`, disables instrumentation for the excon gem.')
         },
         :'instrumentation.excon' => {
           :default => instrumentation_value_of(:disable_excon),
@@ -1605,7 +1605,7 @@ module NewRelic
           :dynamic_name => true,
           :deprecated   => true,
           :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.httpclient', 'If <code>true</code>, disables instrumentation for the httpclient gem.')
+          :description  => deprecated_description(:'instrumentation.httpclient', 'If `true`, disables instrumentation for the httpclient gem.')
         },
         :disable_net_http => {
           :default      => false,
@@ -1615,7 +1615,7 @@ module NewRelic
           :allowed_from_server => false,
           :deprecated   => true,
           :description  => deprecated_description(:'instrumentation.net_http',
-            'If <code>true</code>, disables instrumentation for Net::HTTP.'
+            'If `true`, disables instrumentation for Net::HTTP.'
           )
         },
         :disable_rack => {
@@ -1625,7 +1625,7 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.rack',  'If <code>true</code>, prevents the agent from hooking into the <code>to_app</code> method in Rack::Builder to find gems to instrument during application startup.')
+          :description  => deprecated_description(:'instrumentation.rack',  'If `true`, prevents the agent from hooking into the `to_app` method in Rack::Builder to find gems to instrument during application startup.')
         },
         :disable_rack_urlmap => {
           :default      => false,
@@ -1634,7 +1634,7 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.rack_urlmap', 'If <code>true</code>, prevents the agent from hooking into Rack::URLMap to install middleware tracing.')
+          :description  => deprecated_description(:'instrumentation.rack_urlmap', 'If `true`, prevents the agent from hooking into Rack::URLMap to install middleware tracing.')
         },
         :disable_puma_rack => {
           :default      => value_of(:disable_rack),
@@ -1643,7 +1643,7 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.puma_rack', 'If <code>true</code>, prevents the agent from hooking into the <code>to_app</code> method in Puma::Rack::Builder to find gems to instrument during application startup.')
+          :description  => deprecated_description(:'instrumentation.puma_rack', 'If `true`, prevents the agent from hooking into the `to_app` method in Puma::Rack::Builder to find gems to instrument during application startup.')
         },
         :disable_puma_rack_urlmap => {
           :default      => value_of(:disable_rack_urlmap),
@@ -1652,7 +1652,7 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.puma_rack_urlmap', 'If <code>true</code>, prevents the agent from hooking into Puma::Rack::URLMap to install middleware tracing.')
+          :description  => deprecated_description(:'instrumentation.puma_rack_urlmap', 'If `true`, prevents the agent from hooking into Puma::Rack::URLMap to install middleware tracing.')
         },
         :disable_typhoeus => {
           :default      => false,
@@ -1661,7 +1661,7 @@ module NewRelic
           :dynamic_name => true,
           :deprecated   => true,
           :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.typhoeus', 'If <code>true</code>, the agent won\'t install instrumentation for the typhoeus gem.' )
+          :description  => deprecated_description(:'instrumentation.typhoeus', 'If `true`, the agent won\'t install instrumentation for the typhoeus gem.' )
         },
         :disable_httprb => {
           :default      => false,
@@ -1670,14 +1670,14 @@ module NewRelic
           :dynamic_name => true,
           :deprecated   => true,
           :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.httprb', 'If <code>true</code>, the agent won\'t install instrumentation for the http.rb gem.' )
+          :description  => deprecated_description(:'instrumentation.httprb', 'If `true`, the agent won\'t install instrumentation for the http.rb gem.' )
         },
         :disable_middleware_instrumentation => {
           :default      => false,
           :public       => true,
           :type         => Boolean,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent won\'t wrap third-party middlewares in instrumentation (regardless of whether they are installed via Rack::Builder or Rails).'
+          :description  => 'If `true`, the agent won\'t wrap third-party middlewares in instrumentation (regardless of whether they are installed via Rack::Builder or Rails).'
         },
         :disable_rails_middleware => {
           :default      => false,
@@ -1691,7 +1691,7 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :allowed_from_server => false,
-          :description  => 'If <code>true</code>, the agent uses Heroku dyno names as the hostname.'
+          :description  => 'If `true`, the agent uses Heroku dyno names as the hostname.'
         },
         :'heroku.dyno_name_prefixes_to_shorten' => {
           :default      => ['scheduler', 'run'],
@@ -1713,7 +1713,7 @@ module NewRelic
           :public       => true,
           :type         => String,
           :allowed_from_server => false,
-          :description  => 'A dictionary of <a href="/docs/data-analysis/user-interface-functions/labels-categories-organize-your-apps-servers">label names</a> and values that will be applied to the data sent from this agent. May also be expressed as a semicolon-delimited <code>;</code> string of colon-separated <code>:</code> pairs. For example, <code><var>Server</var>:<var>One</var>;<var>Data Center</var>:<var>Primary</var></code>.'
+          :description  => 'A dictionary of <a href="/docs/data-analysis/user-interface-functions/labels-categories-organize-your-apps-servers">label names</a> and values that will be applied to the data sent from this agent. May also be expressed as a semicolon-delimited `;` string of colon-separated `:` pairs. For example, `<var>Server</var>:<var>One</var>;<var>Data Center</var>:<var>Primary</var>`.'
         },
         :aggressive_keepalive => {
           :default      => true,
@@ -1764,7 +1764,7 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :allowed_from_server => true,
-          :description  => 'If <code>true</code>, the agent captures <a href="/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events-new-relic-apm-agents">New Relic Insights custom events</a>.'
+          :description  => 'If `true`, the agent captures <a href="/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events-new-relic-apm-agents">New Relic Insights custom events</a>.'
         },
         :'custom_insights_events.max_samples_stored' => {
           :default      => 1000,
@@ -1781,7 +1781,7 @@ module NewRelic
           :allowed_from_server => false,
           :deprecated   => true,
           :description  => deprecated_description(:'instrumentation.grape',
-            'If <code>true</code>, the agent won\'t install Grape instrumentation.'
+            'If `true`, the agent won\'t install Grape instrumentation.'
           )
         },
         :disable_grape => {
@@ -1791,7 +1791,7 @@ module NewRelic
           :allowed_from_server => false,
           :deprecated   => true,
           :description  => deprecated_description(:'instrumentation.grape',
-            'If <code>true</code>, the agent won\'t install Grape instrumentation.'
+            'If `true`, the agent won\'t install Grape instrumentation.'
           )
         },
         :'instrumentation.grape' => {
@@ -1807,49 +1807,49 @@ module NewRelic
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, enables capture of attributes for all destinations.'
+          :description => 'If `true`, enables capture of attributes for all destinations.'
         },
         :'transaction_tracer.attributes.enabled' => {
           :default     => value_of(:'transaction_tracer.capture_attributes'),
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, the agent captures attributes from transaction traces.'
+          :description => 'If `true`, the agent captures attributes from transaction traces.'
         },
         :'transaction_events.attributes.enabled' => {
           :default     => value_of(:'analytics_events.capture_attributes'),
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, the agent captures attributes from transaction events.'
+          :description => 'If `true`, the agent captures attributes from transaction events.'
         },
         :'error_collector.attributes.enabled' => {
           :default     => value_of(:'error_collector.capture_attributes'),
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, the agent captures attributes from error collection.'
+          :description => 'If `true`, the agent captures attributes from error collection.'
         },
         :'browser_monitoring.attributes.enabled' => {
           :default     => value_of(:'browser_monitoring.capture_attributes'),
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, the agent captures attributes from browser monitoring.'
+          :description => 'If `true`, the agent captures attributes from browser monitoring.'
         },
         :'span_events.attributes.enabled' => {
           :default     => true,
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, the agent captures attributes on span events.'
+          :description => 'If `true`, the agent captures attributes on span events.'
         },
         :'transaction_segments.attributes.enabled' => {
           :default     => true,
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, the agent captures attributes on transaction segments.'
+          :description => 'If `true`, the agent captures attributes on transaction segments.'
         },
         :'attributes.exclude' => {
           :default     => [],
@@ -1857,7 +1857,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform   => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to exclude from all destinations. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to exclude from all destinations. Allows `*` as wildcard at end.'
         },
         :'transaction_tracer.attributes.exclude' => {
           :default     => [],
@@ -1865,7 +1865,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform   => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to exclude from transaction traces. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to exclude from transaction traces. Allows `*` as wildcard at end.'
         },
         :'transaction_events.attributes.exclude' => {
           :default     => [],
@@ -1873,7 +1873,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to exclude from transaction events. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to exclude from transaction events. Allows `*` as wildcard at end.'
         },
         :'error_collector.attributes.exclude' => {
           :default     => [],
@@ -1881,7 +1881,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to exclude from error collection. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to exclude from error collection. Allows `*` as wildcard at end.'
         },
         :'browser_monitoring.attributes.exclude' => {
           :default     => [],
@@ -1889,7 +1889,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to exclude from browser monitoring. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to exclude from browser monitoring. Allows `*` as wildcard at end.'
         },
         :'span_events.attributes.exclude' => {
           :default     => [],
@@ -1897,7 +1897,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform   => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to exclude from span events. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to exclude from span events. Allows `*` as wildcard at end.'
         },
         :'transaction_segments.attributes.exclude' => {
           :default     => [],
@@ -1905,7 +1905,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform   => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to exclude from transaction segments. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to exclude from transaction segments. Allows `*` as wildcard at end.'
         },
         :'attributes.include' => {
           :default     => [],
@@ -1913,7 +1913,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to include in all destinations. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to include in all destinations. Allows `*` as wildcard at end.'
         },
         :'transaction_tracer.attributes.include' => {
           :default     => [],
@@ -1921,7 +1921,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to include in transaction traces. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to include in transaction traces. Allows `*` as wildcard at end.'
         },
         :'transaction_events.attributes.include' => {
           :default     => [],
@@ -1929,7 +1929,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to include in transaction events. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to include in transaction events. Allows `*` as wildcard at end.'
         },
         :'error_collector.attributes.include' => {
           :default     => [],
@@ -1937,7 +1937,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to include in error collection. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to include in error collection. Allows `*` as wildcard at end.'
         },
         :'browser_monitoring.attributes.include' => {
           :default     => [],
@@ -1945,7 +1945,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to include in browser monitoring. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to include in browser monitoring. Allows `*` as wildcard at end.'
         },
         :'span_events.attributes.include' => {
           :default     => [],
@@ -1953,7 +1953,7 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to include on span events. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to include on span events. Allows `*` as wildcard at end.'
         },
         :'transaction_segments.attributes.include' => {
           :default     => [],
@@ -1961,14 +1961,14 @@ module NewRelic
           :type        => Array,
           :allowed_from_server => false,
           :transform    => DefaultSource.method(:convert_to_list),
-          :description => 'Prefix of attributes to include on transaction segments. Allows <code>*</code> as wildcard at end.'
+          :description => 'Prefix of attributes to include on transaction segments. Allows `*` as wildcard at end.'
         },
         :'custom_attributes.enabled' => {
           :default     => true,
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>false</code>, custom attributes will not be sent on Insights events.'
+          :description => 'If `false`, custom attributes will not be sent on Insights events.'
         },
         :'utilization.detect_aws' => {
           :default     => true,
@@ -1976,7 +1976,7 @@ module NewRelic
           :type        => Boolean,
           :allowed_from_server => false,
           :dynamic_name => true,
-          :description => 'If <code>true</code>, the agent automatically detects that it is running in an AWS environment.'
+          :description => 'If `true`, the agent automatically detects that it is running in an AWS environment.'
         },
         :'utilization.detect_azure' => {
           :default      => true,
@@ -1984,7 +1984,7 @@ module NewRelic
           :type         => Boolean,
           :allowed_from_server => false,
           :dynamic_name => true,
-          :description  => 'If <code>true</code>, the agent automatically detects that it is running in an Azure environment.'
+          :description  => 'If `true`, the agent automatically detects that it is running in an Azure environment.'
         },
         :'utilization.detect_gcp' => {
           :default     => true,
@@ -1992,7 +1992,7 @@ module NewRelic
           :type        => Boolean,
           :allowed_from_server => false,
           :dynamic_name => true,
-          :description => 'If <code>true</code>, the agent automatically detects that it is running in an Google Cloud Platform environment.'
+          :description => 'If `true`, the agent automatically detects that it is running in an Google Cloud Platform environment.'
         },
         :'utilization.detect_pcf' => {
           :default     => true,
@@ -2000,21 +2000,21 @@ module NewRelic
           :type        => Boolean,
           :allowed_from_server => false,
           :dynamic_name => true,
-          :description => 'If <code>true</code>, the agent automatically detects that it is running in a Pivotal Cloud Foundry environment.'
+          :description => 'If `true`, the agent automatically detects that it is running in a Pivotal Cloud Foundry environment.'
         },
         :'utilization.detect_docker' => {
           :default     => true,
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, the agent automatically detects that it is running in Docker.'
+          :description => 'If `true`, the agent automatically detects that it is running in Docker.'
         },
         :'utilization.detect_kubernetes' => {
           :default     => true,
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, the agent automatically detects that it is running in Kubernetes.'
+          :description => 'If `true`, the agent automatically detects that it is running in Kubernetes.'
         },
         :'utilization.billing_hostname' => {
           :default     => nil,
@@ -2045,21 +2045,21 @@ module NewRelic
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>false</code>, the agent will not report datastore instance metrics, nor add <code>host</code> or <code>port_path_or_id</code> parameters to transaction or slow sql traces.'
+          :description => 'If `false`, the agent will not report datastore instance metrics, nor add `host` or `port_path_or_id` parameters to transaction or slow sql traces.'
         },
         :'datastore_tracer.database_name_reporting.enabled' => {
           :default     => true,
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>false</code>, the agent will not add <code>database_name</code> parameter to transaction or slow sql traces.'
+          :description => 'If `false`, the agent will not add `database_name` parameter to transaction or slow sql traces.'
         },
         :'clear_transaction_state_after_fork' => {
           :default     => false,
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If <code>true</code>, the agent will clear <code>Tracer::State</code> in <code>Agent.drop_buffered_data</code>.'
+          :description => 'If `true`, the agent will clear `Tracer::State` in `Agent.drop_buffered_data`.'
         },
         :account_id => {
           :default => nil,
@@ -2111,7 +2111,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If <code>true</code>, enables span event sampling.'
+          :description => 'If `true`, enables span event sampling.'
         },
         :'span_events.queue_size' => {
           :default => 10_000,

@@ -9,11 +9,11 @@ namespace :newrelic do
     SECTION_DESCRIPTIONS = {
       GENERAL              => 'These settings are available for agent configuration. Some settings depend on your New Relic subscription level.',
       DISABLING            => 'Use these settings to toggle instrumentation types during agent startup.',
-      ATTRIBUTES           => '<a href="https://docs.newrelic.com/docs/features/agent-attributes">Attributes</a> are key-value pairs containing information that determines the properties of an event or transaction. These key-value pairs can be viewed within transaction traces in New Relic APM, traced errors in New Relic APM, transaction events in Insights, and page views in Insights. You can customize exactly which attributes will be sent to each of these destinations.',
-      "transaction_tracer" => 'The <a href="/docs/apm/traces/transaction-traces/transaction-traces">transaction traces</a> feature collects detailed information from a selection of transactions, including a summary of the calling sequence, a breakdown of time spent, and a list of SQL queries and their query plans (on mysql and postgresql). Available features depend on your New Relic subscription level.',
+      ATTRIBUTES           => '[Attributes](/docs/features/agent-attributes) are key-value pairs containing information that determines the properties of an event or transaction. These key-value pairs can be viewed within transaction traces in New Relic APM, traced errors in New Relic APM, transaction events in Insights, and page views in Insights. You can customize exactly which attributes will be sent to each of these destinations.',
+      "transaction_tracer" => 'The [transaction traces](/docs/apm/traces/transaction-traces/transaction-traces) feature collects detailed information from a selection of transactions, including a summary of the calling sequence, a breakdown of time spent, and a list of SQL queries and their query plans (on mysql and postgresql). Available features depend on your New Relic subscription level.',
       "error_collector"    => 'The agent collects and reports all uncaught exceptions by default. These configuration options allow you to customize the error collection.',
-      "browser_monitoring" => 'New Relic Browser\'s <a href="/docs/browser/new-relic-browser/page-load-timing/page-load-timing-process">page load timing</a> feature (sometimes referred to as real user monitoring or RUM) gives you insight into the performance real users are experiencing with your website. This is accomplished by measuring the time it takes for your users\' browsers to download and render your web pages by injecting a small amount of JavaScript code into the header and footer of each page.',
-      "analytics_events"   => '<a href="/docs/insights/new-relic-insights/understanding-insights/new-relic-insights">New Relic Insights</a> is a software analytics resource to gather and visualize data about your software and what it says about your business. With it you can quickly and easily create real-time dashboards to get immediate answers about end-user experiences, clickstreams, mobile activities, and server transactions.'
+      "browser_monitoring" => 'New Relic Browser\'s [page load timing](/docs/browser/new-relic-browser/page-load-timing/page-load-timing-process) feature (sometimes referred to as real user monitoring or RUM) gives you insight into the performance real users are experiencing with your website. This is accomplished by measuring the time it takes for your users\' browsers to download and render your web pages by injecting a small amount of JavaScript code into the header and footer of each page.',
+      "analytics_events"   => '[New Relic Insights](/docs/insights/new-relic-insights/understanding-insights/new-relic-insights) is a software analytics resource to gather and visualize data about your software and what it says about your business. With it you can quickly and easily create real-time dashboards to get immediate answers about end-user experiences, clickstreams, mobile activities, and server transactions.'
     }
 
     NAME_OVERRIDES = {
@@ -96,8 +96,9 @@ namespace :newrelic do
     end
 
     def format_description(value)
-      description = value[:description]
-      description = "<b>DEPRECATED</b> #{description}" if value[:deprecated]
+      description = ''
+      description += "<b>DEPRECATED</b> " if value[:deprecated]
+      description += value[:description]
       description
     end
 
@@ -105,7 +106,7 @@ namespace :newrelic do
       if spec[:default].is_a?(Proc)
         '(Dynamic)'
       else
-        "<code>#{spec[:default].inspect}</code>"
+        "#{spec[:default].inspect}"
       end
     end
 
