@@ -8,35 +8,14 @@
   <Collapser id="<%= config[:key].gsub('.', '-') %>" title="<%=config[:key]%>">
     <table>
       <tbody>
-        <tr>
-          <th>
-            Type
-          </th>
-          <td>
-            <%=config[:type]%>
-          </td>
-        </tr>
-        <tr>
-          <th>
-            Default
-          </th>
-          <td>
-            `<%=config[:default]%>`
-          </td>
-        </tr>
-        <tr>
-          <th>
-            Environ variable
-          </th>
-          <td>
-            `<%=config[:env_var]%>`
-          </td>
-        </tr>
+        <tr><th>Type</th><td><%=config[:type]%></td></tr>
+        <tr><th>Default</th><td>`<%=config[:default]%>`</td></tr>
+        <tr><th>Environ variable</th><td>`<%=config[:env_var]%>`</td></tr>
       </tbody>
     </table>
 
-    <%=config[:description]%>
+  <%=config[:description]%>
   </Collapser>
   <% end %>
-<CollapserGroup>
+</CollapserGroup>
 <% end %>

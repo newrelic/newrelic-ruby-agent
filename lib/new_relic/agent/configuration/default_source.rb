@@ -438,13 +438,13 @@ module NewRelic
             "\n" \
             '<div class="callout-warning">' \
             "\n" \
-            '<p>When using the `capture_params` setting, the Ruby agent will not attempt ' \
+            'When using the `capture_params` setting, the Ruby agent will not attempt ' \
             'to filter secret information. <b>Recommendation:</b> To filter secret information from ' \
             'request parameters, use the [`attributes.include` setting](/docs/agents/ruby-agent/attributes/enable-disable-attributes-ruby) ' \
             'instead. For more information, see the ' \
             '<a href="/docs/agents/ruby-agent/attributes/ruby-attribute-examples#ex_req_params">' \
             'Ruby attribute examples</a>.' \
-            "</p>\n" \
+            "\n" \
             '</div>'
         },
         :config_path => {
@@ -1126,16 +1126,16 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :description => 'Obfuscation level for SQL queries reported in transaction trace nodes.</p>
+          :description => 'Obfuscation level for SQL queries reported in transaction trace nodes.
 
-  <p>By default, this is set to `obfuscated`, which strips out the numeric and string literals.</p>
+  By default, this is set to `obfuscated`, which strips out the numeric and string literals.
 
   <ul>
     <li>If you do not want the agent to capture query information, set this to `none`.</li>
     <li>If you want the agent to capture all query information in its original form, set this to `raw`.</li>
     <li>When you enable <a href="/docs/agents/manage-apm-agents/configuration/high-security-mode">high security mode</a>, this is automatically set to `obfuscated`.</li>
   </ul>
-  <p>' # Doc generator will wrap this in <p>...</p>
+  '
         },
         :'transaction_tracer.record_redis_arguments' => {
           :default => false,
