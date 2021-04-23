@@ -32,8 +32,7 @@ module NewRelic
       COMMA = ",".freeze
 
       def denylisted_constants?
-        # For backwards compatibility until :'autostart_blacklisted_constants' config option is removed
-        constants = NewRelic::Agent.config[:'autostart.denylisted_constants'] << COMMA << NewRelic::Agent.config[:'autostart.blacklisted_constants']
+        constants = NewRelic::Agent.config[:'autostart.denylisted_constants']
 
         denylisted?(constants) do |name|
           constant_is_defined?(name)

@@ -31,19 +31,7 @@ module NewRelic::Agent
         reset_buffers_and_caches
       end
 
-      def test_create_distributed_trace_payload_api
-        in_transaction do |txn|
-          txn.distributed_tracer.expects(:create_distributed_trace_payload)
-          DistributedTracing.create_distributed_trace_payload
-        end
-      end
 
-      def test_accept_distributed_trace_payload_api
-        in_transaction do |txn|
-          txn.distributed_tracer.expects(:create_distributed_trace_payload)
-          DistributedTracing.create_distributed_trace_payload
-        end
-      end
 
       def test_accept_distributed_trace_headers_api
         carrier = {'HTTP_TRACEPARENT' => 'pretend_this_is_valid'}

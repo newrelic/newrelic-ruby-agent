@@ -47,7 +47,9 @@ module Multiverse
 
     def run(filter="", opts={})
       execute_suites(filter, opts) do |suite|
-        suite.execute
+        suite.each_instrumentation_method do |method|
+          suite.execute method
+        end
       end
     end
 

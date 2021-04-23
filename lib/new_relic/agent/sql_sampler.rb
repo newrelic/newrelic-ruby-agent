@@ -65,7 +65,7 @@ module NewRelic
       end
 
       # This is called when we are done with the transaction.
-      def on_finishing_transaction(state, name, time=Time.now)
+      def on_finishing_transaction(state, name)
         return unless enabled?
 
         data = state.sql_sampler_transaction_data

@@ -108,13 +108,13 @@ module NewRelic
 
       def test_includes_agent_attributes
         attributes.add_agent_attribute :'request.headers.referer', "http://blog.site/home", AttributeFilter::DST_TRANSACTION_EVENTS
-        attributes.add_agent_attribute :httpResponseCode, "200", AttributeFilter::DST_TRANSACTION_EVENTS
+        attributes.add_agent_attribute :'http.statusCode', 200, AttributeFilter::DST_TRANSACTION_EVENTS
 
         generate_request
 
         _, _, agent_attrs = last_synthetics_event
 
-        expected = {:"request.headers.referer" => "http://blog.site/home", :httpResponseCode => "200"}
+        expected = {:"request.headers.referer" => "http://blog.site/home", :'http.statusCode' => 200}
         assert_equal expected, agent_attrs
       end
 

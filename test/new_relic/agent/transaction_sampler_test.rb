@@ -260,7 +260,6 @@ module NewRelic::Agent
                "expected sample duration = 2, but was: #{slowest.duration.inspect}")
 
         # 1 second duration
-        # run_sample_trace(0,1)
         in_transaction do
           s = Tracer.start_segment name: 'one_second'
           advance_time 1
@@ -443,7 +442,7 @@ module NewRelic::Agent
         yield if block_given?
         @sampler.notice_pop_frame(@state, "node#{i}")
       end
-      @sampler.on_finishing_transaction(@state, @txn, Time.now.to_f)
+      @sampler.on_finishing_transaction(@state, @txn)
     end
 
     def run_sample_trace(start = Time.now.to_f, stop = nil, state = @state)
@@ -458,7 +457,7 @@ module NewRelic::Agent
       @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'french'", {}, 0, state)
       @sampler.notice_pop_frame(state, "ac")
       @sampler.notice_pop_frame(state, "a")
-      @sampler.on_finishing_transaction(state, @txn, (stop || Time.now.to_f))
+      @sampler.on_finishing_transaction(state, @txn)
     end
 
     def intrinsic_attributes_from_last_sample

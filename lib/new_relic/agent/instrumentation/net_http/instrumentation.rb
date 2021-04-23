@@ -5,8 +5,8 @@
 module NewRelic 
   module Agent 
     module Instrumentation
-      module NetPrepend
-        def request(request, *args, &block)
+      module NetHTTP
+        def request_with_tracing(request)
           wrapped_request = NewRelic::Agent::HTTPClients::NetHTTPRequest.new(self, request)
 
           segment = NewRelic::Agent::Tracer.start_external_request_segment(
@@ -23,7 +23,7 @@ module NewRelic
             # counting if connection wasn't started (which calls request again).
             NewRelic::Agent.disable_all_tracing do
               response = NewRelic::Agent::Tracer.capture_segment_error segment do
-                super
+                yield
               end
             end
   

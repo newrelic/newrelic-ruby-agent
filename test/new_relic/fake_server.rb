@@ -64,20 +64,19 @@ module NewRelic
 
     def run
       return if running?
-
       @started_options = build_webrick_options
 
       @server = WEBrick::HTTPServer.new(@started_options)
       @server.mount "/", ::Rack::Handler.get(:webrick), app
 
-      @thread = Thread.new(&self.method(:run_server))
+      @thread = Thread.new(&self.method(:run_server)).tap{ |t| t.abort_on_exception = true }
     end
 
     def stop
       return unless running?
       @server.shutdown
       @server = nil
-      @thread.join
+      @thread.join if running?
       @started_options = nil
       reset
     end
@@ -89,7 +88,6 @@ module NewRelic
     end
 
     def run_server
-      Thread.current.abort_on_exception = true
       @server.start
     end
 

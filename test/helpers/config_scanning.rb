@@ -9,6 +9,7 @@ module NewRelic
       # NewRelic::Agent.config into classes as long as we call the variable config
       AGENT_CONFIG_PATTERN       = /config\[:['"]?([a-z\._]+)['"]?\s*\]/
       DEFAULT_VALUE_OF_PATTERN   = /:default\s*=>\s*value_of\(:['"]?([a-z\._]+)['"]?\)\s*/
+      DEFAULT_INST_VALUE_OF_PATTERN   = /:default\s*=>\s*instrumentation_value_of\(:['"]?([a-z._]+)['"]?\)|\(:['"]?([a-z._]+)['"]?\s*,\s*:['"]?([a-z._]+)['"]?\)/
       REGISTER_CALLBACK_PATTERN  = /register_callback\(:['"]?([a-z\._]+)['"]?\)/
       NAMED_DEPENDENCY_PATTERN   = /^\s*named[ (]+\:?([a-z0-9\._]+).*$/
       EVENT_BUFFER_MACRO_PATTERN = /(capacity_key|enabled_key)\s+:['"]?([a-z\._]+)['"]?/
@@ -19,14 +20,14 @@ module NewRelic
             captures = []
             captures << line.scan(AGENT_CONFIG_PATTERN)
             captures << line.scan(DEFAULT_VALUE_OF_PATTERN)
+            captures << line.scan(DEFAULT_INST_VALUE_OF_PATTERN)
             captures << line.scan(REGISTER_CALLBACK_PATTERN)
             captures << line.scan(EVENT_BUFFER_MACRO_PATTERN)
             captures << line.scan(NAMED_DEPENDENCY_PATTERN).map(&method(:disable_name))
 
-            captures.flatten.map do |key|
+            captures.flatten.compact.each do |key|
               default_keys.delete key.gsub("'", "").to_sym
             end
-
             # Remove any config keys that are annotated with the 'dynamic_name' setting
             # This indicates that the names of these keys are constructed dynamically at
             # runtime, so we don't expect any explicit references to them in code.

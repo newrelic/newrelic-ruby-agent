@@ -423,13 +423,6 @@ module NewRelic
       end
     end
 
-    def test_notice_error_deprecates_trace_only
-      log = with_array_logger(:warn) do
-        NewRelic::Agent.notice_error(StandardError.new, { trace_only: true })
-      end
-
-      assert log.array.any? {|msg| msg.include?('Passing the :trace_only option to NewRelic::Agent.notice_error is deprecated. Please use :expected instead') }
-    end
 
     def test_disable_transaction_tracing_deprecated
       log = with_array_logger(:warn) do
@@ -481,10 +474,10 @@ module NewRelic
     def test_modules_and_classes_return_name_properly
       valid = [Module, Class]
       stack = [NewRelic]
+      visited = []
 
       loop do
-        a = stack.pop
-
+        visited << a = stack.pop
         if a.respond_to? :name
           b = if RUBY_VERSION < '2.0.0'
                 a.name.split('::').reduce(nil) { |c,n| (c || Kernel).const_get n }
@@ -503,7 +496,7 @@ module NewRelic
               false
             end
           end
-          stack.concat consts
+          stack.concat (consts - visited)
         end
 
         break if stack.empty?

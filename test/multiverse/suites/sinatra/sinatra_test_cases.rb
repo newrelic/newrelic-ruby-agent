@@ -205,10 +205,9 @@ module SinatraTestCases
   def test_injects_middleware
     app.stubs(:middleware).returns([])
 
-    app.expects(:build_without_newrelic).once
-    app.expects(:use).at_least(2)
+    app.expects(:build_with_tracing).once
 
-    app.build_with_newrelic(@app)
+    app.build(@app)
   end
 
   def test_doesnt_inject_already_existing_middleware
@@ -218,10 +217,9 @@ module SinatraTestCases
     middleware_info = default_middlewares.map { |m| [m] }
     app.stubs(:middleware).returns(middleware_info)
 
-    app.expects(:build_without_newrelic).once
     app.expects(:use).never
 
-    app.build_with_newrelic(@app)
+    app.build(@app)
   end
 
   if Gem::Version.new(Sinatra::VERSION).segments[0] < 2
