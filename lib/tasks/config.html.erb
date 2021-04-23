@@ -3,29 +3,40 @@
 
 <%= "#{section_description}" unless section_description.nil? %>
 
+<CollapserGroup>
   <% configs.each do |config|%>
-    <CollapserGroup>
-      <Collapser id="<%= config[:key].gsub('.', '-') %>" title="<%=config[:key]%>">
-      <table class="specs">
-        <tbody>
-          <tr>
-            <th>Type</th>
-            <td><%=config[:type]%></td>
-          </tr>
-          <tr>
-            <th>Default</th>
-            <td>`<%=config[:default]%>`</td>
-          </tr>
-          <tr>
-            <th>Environ variable</th>
-            <td><code><%=config[:env_var]%></code></td>
-          </tr>
-        </tbody>
-      </table>
+  <Collapser id="<%= config[:key].gsub('.', '-') %>" title="<%=config[:key]%>">
+    <table>
+      <tbody>
+        <tr>
+          <th>
+            Type
+          </th>
+          <td>
+            <%=config[:type]%>
+          </td>
+        </tr>
+        <tr>
+          <th>
+            Default
+          </th>
+          <td>
+            `<%=config[:default]%>`
+          </td>
+        </tr>
+        <tr>
+          <th>
+            Environ variable
+          </th>
+          <td>
+            `<%=config[:env_var]%>`
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
-      <%=config[:description]%>
-    </Collapser>
-  <CollapserGroup>
-
+    <%=config[:description]%>
+  </Collapser>
   <% end %>
+<CollapserGroup>
 <% end %>

@@ -100,7 +100,7 @@ namespace :newrelic do
       description = "<b>DEPRECATED</b> #{description}" if value[:deprecated]
       description = description.gsub(/<a.*?href="(.*?)".*?>(.*?)<\/a>/) do |a|
         _,l,t = a.match(/<a.*?href="(.*?)".*?>(.*?)<\/a>/).to_a
-        "[#{t}](#{l.gsub('https://docs.newrelic.com/docs','/docs')})"
+        "[#{t}](#{l.gsub('https://docs.newrelic.com/','/').gsub(/\/$/,'')})"
       end
       description
     end
@@ -109,7 +109,7 @@ namespace :newrelic do
       if spec[:default].is_a?(Proc)
         '(Dynamic)'
       else
-        "<code>#{spec[:default].inspect}</code>"
+        "#{spec[:default].inspect}"
       end
     end
 
