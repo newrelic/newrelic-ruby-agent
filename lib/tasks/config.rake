@@ -98,6 +98,10 @@ namespace :newrelic do
     def format_description(value)
       description = value[:description]
       description = "<b>DEPRECATED</b> #{description}" if value[:deprecated]
+      description = description.gsub(/<a.*?href="(.*?)".*?>(.*?)<\/a>/) do |a|
+        _,l,t = a.match(/<a.*?href="(.*?)".*?>(.*?)<\/a>/).to_a
+        "[#{t}](#{l.gsub('https://docs.newrelic.com/docs','/docs')})"
+      end
       description
     end
 
