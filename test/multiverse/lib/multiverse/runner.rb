@@ -84,41 +84,63 @@ module Multiverse
     end
 
     GROUPS = {
-      "agent"         => ["agent_only", "bare", "config_file_loading",
-                          "deferred_instrumentation", "high_security", "no_json"],
-      "api"           => ["grape"],
-      "background"    => ["delayed_job", "sidekiq"],
+      "agent"         => ["agent_only", "bare", "config_file_loading", "deferred_instrumentation", "high_security", "no_json", "json", "marshalling", "yajl"],
+      "background"    => ["delayed_job", "sidekiq", "resque" ],
+      "background_2"  => ["rake"],
       "database"      => ["datamapper", "mongo", "redis", "sequel"],
-      "httpclients"   => ["curb", "excon", "httpclient", "typhoeus", "net_http", "net_http_prepend", "httprb"],
-      "rails"         => ["active_record", "rails"],
-      "rails_extras"  => ["rails_prepend", "activemerchant"],
-      "serialization" => ["json", "marshalling", "yajl"],
-      "sinatra"       => ["sinatra", "padrino"],
-      "background_2"  => ["resque"],
+      "rails"         => ["active_record", "rails", "rails_prepend", "activemerchant"], 
+      "frameworks"    => ["sinatra", "padrino", "grape"],
+      "httpclients"   => ["curb", "excon", "httpclient"],
+      "httpclients_2"   => ["typhoeus", "net_http", "httprb"],
       "infinite_tracing" => ["infinite_tracing"],
 
       "rest"          => []  # Specially handled below
     }
 
     # Would like to reinstate but requires investigation, see RUBY-1749
-    unless RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
-      GROUPS['background_2'] << 'rake'
+    if RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
+      GROUPS['background_2'].delete 'rake'
     end
+
+    if RUBY_PLATFORM == "java"
+      GROUPS['agent'].delete 'agent_only'
+    end
+
+    if RUBY_VERSION >= '3.0'
+      GROUPS['rails'].delete 'active_record'
+    end
+
+    if RUBY_VERSION >= '2.7'
+      GROUPS['frameworks'].delete 'sinatra'
+      GROUPS['frameworks'].delete 'padrino'
+      GROUPS['frameworks'].delete 'grape'
+    end
+
+    def excluded?(suite)
+      return true if suite == 'rake' and RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
+      return true if suite == 'agent_only' and RUBY_PLATFORM == "java"
+      return true if suite == 'active_record' and RUBY_VERSION >= '3.0.0'
+      return true if ["sinatra", "padrino", "grape"].include?(suite) and RUBY_VERSION >= '2.7'
+    end
+
 
     def passes_filter?(dir, filter)
       return true if filter.nil?
 
-      # Would like to reinstate but requires investigation, see RUBY-1749
-      return false if dir == 'rake' and RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
+      return false if excluded?(dir)
 
       if filter.include?("group=")
-        key = filter.sub("group=", "")
-        group = GROUPS[key]
-        if group.nil?
-          puts red("Unrecognized group '#{key}'. Stopping!")
+        keys = filter.sub("group=", "").split(';')
+        combined_groups = []
+        keys.each do |key|
+          (combined_groups << (GROUPS[key])).flatten!
+        end
+        
+        if combined_groups.nil?
+          puts red("Unrecognized groups in '#{filter}'. Stopping!")
           exit 1
-        elsif group.any?
-          GROUPS[key].include?(dir)
+        elsif combined_groups.any?
+          combined_groups.include?(dir)
         else
           !GROUPS.values.flatten.include?(dir)
         end
