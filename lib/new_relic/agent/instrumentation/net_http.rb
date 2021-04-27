@@ -23,6 +23,10 @@ DependencyDetection.defer do
   end
 
   conflicts_with_prepend do
+    defined?(::ScoutApm)
+  end
+
+  conflicts_with_prepend do
     defined?(::Rack::MiniProfiler)
   end
 
