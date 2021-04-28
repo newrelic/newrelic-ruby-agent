@@ -41,7 +41,7 @@ module NewRelic
 
       def self.deprecated_description new_setting, description
         link_ref = new_setting.to_s.gsub(".", "-")
-        %{Please see: [#{new_setting}](##{link_ref}). \n\n#{description}}
+        %{Please see: [#{new_setting}](docs/agents/ruby-agent/configuration/ruby-agent-configuration##{link_ref}). \n\n#{description}}
       end
 
       class Boolean
@@ -348,7 +348,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => false,
           :transform => DefaultSource.method(:convert_to_list_on_semicolon),
-          :description => 'Specify the <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/installation-configuration/name-your-application">application name</a> used to aggregate data in the New Relic UI. To report data to <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/installation-configuration/using-multiple-names-app">multiple apps at the same time</a>, specify a list of names separated by a semicolon `;`. For example, `MyApp` or `MyStagingApp;Instance1`.'
+          :description => 'Specify the <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/installation-configuration/name-your-application">application name</a> used to aggregate data in the New Relic UI. To report data to <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/installation-configuration/using-multiple-names-app">multiple apps at the same time</a>, specify a list of names separated by a semicolon (`;`). For example, `MyApp` or `MyStagingApp;Instance1`.'
         },
         :entity_guid => {
           :default => nil,
@@ -356,14 +356,14 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :description => 'The <a href="https://docs.newrelic.com/attribute-dictionary/span/entityguid">Entity GUID</a> for the entity running this agent.'
+          :description => 'The [Entity GUID](https://docs.newrelic.com/attribute-dictionary/?event=Span&attribute=entity.guid) for the entity running this agent.'
         },
         :monitor_mode => {
           :default => value_of(:enabled),
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'When `true`, the agent transmits data about your app to the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>.'
+          :description => 'When `true`, the agent transmits data about your app to the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector).'
         },
         :test_mode => {
           :default => false,
@@ -399,7 +399,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'Defines a host for communicating with the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a> via a proxy server.'
+          :description => 'Defines a host for communicating with the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector) via a proxy server.'
         },
         :proxy_port => {
           :default => 8080,
@@ -407,7 +407,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => false,
-          :description => 'Defines a port for communicating with the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a> via a proxy server.'
+          :description => 'Defines a port for communicating with the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector) via a proxy server.'
         },
         :proxy_user => {
           :default => nil,
@@ -416,7 +416,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => false,
           :exclude_from_reported_settings => true,
-          :description => 'Defines a user for communicating with the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a> via a proxy server.'
+          :description => 'Defines a user for communicating with the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector) via a proxy server.'
         },
         :proxy_pass => {
           :default => nil,
@@ -425,7 +425,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => false,
           :exclude_from_reported_settings => true,
-          :description => 'Defines a password for communicating with the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a> via a proxy server.'
+          :description => 'Defines a password for communicating with the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector) via a proxy server.'
         },
         :capture_params => {
           :default => false,
@@ -584,14 +584,14 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'When set to `true`, forces a synchronous connection to the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a> during application startup. For very short-lived processes, this helps ensure the New Relic agent has time to report.'
+          :description => 'When set to `true`, forces a synchronous connection to the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector) during application startup. For very short-lived processes, this helps ensure the New Relic agent has time to report.'
         },
         :send_data_on_exit => {
           :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, enables the exit handler that sends data to the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a> before shutting down.'
+          :description => 'If `true`, enables the exit handler that sends data to the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector) before shutting down.'
         },
         :max_payload_size_in_bytes => {
           :default => 1000000,
@@ -695,11 +695,11 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'Forces the exit handler that sends all cached data to collector ' \
-            'before shuttng down to be installed regardless of detecting scenarios where it generally should not be. ' \
+            'before shutting down to be installed regardless of detecting scenarios where it generally should not be. ' \
             'Known use-case for this option is where Sinatra is running as an embedded service within another framework ' \
-            'and the agent is detecting the Sinatra app and skipping the at_exit handler as a result. Sinatra classically ' \
-            'runs the entire application in an at_exit block and would otherwise misbehave if the Agent\'s at_exit handler ' \
-            'is also installed in those circumstances.  Note: `send_data_on_exit` should also be set to `true` in  tandem with this setting.'
+            'and the agent is detecting the Sinatra app and skipping the `at_exit` handler as a result. Sinatra classically ' \
+            'runs the entire application in an `at_exit` block and would otherwise misbehave if the Agent\'s `at_exit` handler ' \
+            'was also installed in those circumstances.  Note: `send_data_on_exit` should also be set to `true` in  tandem with this setting.'
         },
         :force_reconnect => {
           :default => false,
@@ -734,7 +734,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, enables an audit log which logs communications with the New Relic <a href="https://docs.newrelic.com/docs/apm/new-relic-apm/getting-started/glossary#collector">collector</a>.'
+          :description => 'If `true`, enables an audit log which logs communications with the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector).'
         },
         :'audit_log.path' => {
           :default => DefaultSource.audit_log_path,
@@ -764,7 +764,7 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.resque', 'If `true`, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/resque-instrumentation">Resque instrumentation</a>.')
+          :description => deprecated_description(:'instrumentation.resque', 'If `true`, disables [Resque instrumentation](/docs/agents/ruby-agent/background-jobs/resque-instrumentation).')
         },
         :disable_sidekiq => {
           :default => false,
@@ -788,14 +788,14 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.sinatra', 'If `true` , disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/sinatra-support">Sinatra instrumentation</a>.' )
+          :description => deprecated_description(:'instrumentation.sinatra', 'If `true` , disables [Sinatra instrumentation](/docs/agents/ruby-agent/frameworks/sinatra-support).' )
         },
         :disable_sinatra_auto_middleware => {
           :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as <a href="https://docs.newrelic.com/docs/apm/transactions/cross-application-traces/cross-application-tracing">cross application tracing</a>, <a href="https://docs.newrelic.com/docs/browser/new-relic-browser/getting-started/new-relic-browser">page load timing</a>, and <a href="https://docs.newrelic.com/docs/apm/applications-menu/events/view-apm-error-analytics">error collection</a>.'
+          :description => 'If `true`, disables agent middleware for Sinatra. This middleware is responsible for advanced feature support such as [cross application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing), [page load timing](/docs/browser/new-relic-browser/getting-started/new-relic-browser), and [error collection](/docs/apm/applications-menu/events/view-apm-error-analytics).'
         },
         :disable_view_instrumentation => {
           :default => false,
@@ -830,7 +830,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, uses Module.prepend rather than alias_method for ActiveRecord instrumentation.'
+          :description => 'If `true`, uses `Module#prepend` rather than `alias_method` for ActiveRecord instrumentation.'
         },
         :prepend_net_instrumentation => {
           :default => true,
@@ -839,7 +839,7 @@ module NewRelic
           :allowed_from_server => false,
           :deprecated => true,
           :description => deprecated_description(:'instrumentation.net_http',
-            'If `true`, uses Module.prepend rather than alias_method for Net::HTTP instrumentation.'
+            'If `true`, uses `Module#prepend` rather than alias_method for Net::HTTP instrumentation.'
           )
         },
         :'instrumentation.net_http' => {
@@ -1186,7 +1186,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, disables <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/sequel-instrumentation">Sequel instrumentation</a>.'
+          :description => 'If `true`, disables [Sequel instrumentation](/docs/agents/ruby-agent/frameworks/sequel-instrumentation).'
         },
         :disable_database_instrumentation => {
           :default => false,
@@ -1203,7 +1203,7 @@ module NewRelic
           :allowed_from_server => false,
           :dynamic_name => true,
           :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.mongo', 'If `true`, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/mongo-instrumentation">instrumentation for the Mongo gem</a>.')
+          :description  => deprecated_description(:'instrumentation.mongo', 'If `true`, the agent won\'t install [instrumentation for the Mongo gem](/docs/agents/ruby-agent/frameworks/mongo-instrumentation).')
         },
         :disable_redis => {
           :default      => false,
@@ -1211,7 +1211,7 @@ module NewRelic
           :type         => Boolean,
           :deprecated   => true,
           :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.redis', 'If `true`, the agent won\'t install <a href="https://docs.newrelic.com/docs/agents/ruby-agent/frameworks/redis-instrumentation">instrumentation for Redis</a>.')
+          :description  => deprecated_description(:'instrumentation.redis', 'If `true`, the agent won\'t install [instrumentation for Redis](/docs/agents/ruby-agent/frameworks/redis-instrumentation).')
         },
         :disable_redis_instrumentation => {
           :default      => false,
@@ -1434,7 +1434,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `true`, enables <a href="https://docs.newrelic.com/docs/apm/transactions/cross-application-traces/cross-application-tracing">cross-application tracing</a>.'
+          :description => 'If `true`, enables [cross-application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing).'
         },
         :cross_application_tracing => {
           :default => nil,
@@ -2045,7 +2045,7 @@ module NewRelic
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => false,
-          :description => 'If `false`, the agent will not report datastore instance metrics, nor add `host` or `port_path_or_id` parameters to transaction or slow sql traces.'
+          :description => 'If `false`, the agent will not report datastore instance metrics, nor add `host` or `port_path_or_id` parameters to transaction or slow SQL traces.'
         },
         :'datastore_tracer.database_name_reporting.enabled' => {
           :default     => true,
