@@ -426,7 +426,8 @@ module NewRelic
         size = data.size
 
         # Preconnect needs to always use the configured collector host, not the redirect host
-        endpoint_specific_collector = (method == :preconnect) ? @configured_collector : @collector
+        # endpoint_specific_collector = (method == :preconnect) ? @configured_collector : @collector
+        endpoint_specific_collector = @collector
 
         uri = remote_method_uri(method)
         full_uri = "#{endpoint_specific_collector}#{uri}"
