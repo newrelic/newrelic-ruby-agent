@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v7.1.0
+
+
+  * **Update known conflicts with use of Module#Prepend**
+    With our release of 7.0.0, we updated our instrumentation to use Module#Prepend by default, instead of method chaining. We have received reports of conflicts and added a check for these known conflicts. If a known conflict with prepend is detected while using the default value of 'auto' for gem instrumentation, the agent will instead install method chaining instrumentation in order to avoid this conflict. This check can by bypassed by setting the instrumentation method for the gem to 'prepend'.
+
+
   ## v7.0.0
 
   * **Ruby Agent 6.x to 7.x Migration Guide Available**

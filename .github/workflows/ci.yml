@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - dev
-      - fix_ci_issues
   pull_request:
   schedule:
     - cron:  '0 9 * * *'
@@ -15,7 +14,7 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.8, 2.6.6, 2.7.1, 3.0.0, jruby-9.2.12.0]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.7, 2.7.3, 3.0.1, jruby-9.2.17.0]
     steps:
       - uses: actions/checkout@v2
 
@@ -24,111 +23,13 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-  mini-env:
+  unit-tests:
     needs: build-ruby
     runs-on: ubuntu-18.04
     strategy:
       fail-fast: false
       matrix:
-        rails: [norails, rails61, rails60, rails52, rails51, rails42, rails41, rails40, rails32, rails31, rails30]
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.8, 2.6.6, 2.7.1, 3.0.0, jruby-9.2.12.0]
-        exclude:
-          - ruby-version: "3.0.0"
-            rails: rails30
-          - ruby-version: "3.0.0"
-            rails: rails31
-          - ruby-version: "3.0.0"
-            rails: rails32
-          - ruby-version: "3.0.0"
-            rails: rails40
-          - ruby-version: "3.0.0"
-            rails: rails41
-          - ruby-version: "3.0.0"
-            rails: rails42
-          - ruby-version: "3.0.0"
-            rails: rails50
-          - ruby-version: "3.0.0"
-            rails: rails51
-          - ruby-version: "3.0.0"
-            rails: rails52
-          - ruby-version: "3.0.0"
-            rails: rails60
-          - ruby-version: "3.0.0"
-            rails: rails61
-          - ruby-version: "2.7.1"
-            rails: rails30
-          - ruby-version: "2.7.1"
-            rails: rails31
-          - ruby-version: "2.7.1"
-            rails: rails32
-          - ruby-version: "2.7.1"
-            rails: rails40
-          - ruby-version: "2.7.1"
-            rails: rails41
-          - ruby-version: "2.7.1"
-            rails: rails42
-          - ruby-version: "2.7.1"
-            rails: rails50
-          - ruby-version: "2.7.1"
-            rails: rails51
-          - ruby-version: "2.7.1"
-            rails: rails52
-          - ruby-version: "2.6.6"
-            rails: rails30
-          - ruby-version: "2.6.6"
-            rails: rails31
-          - ruby-version: "2.6.6"
-            rails: rails32
-          - ruby-version: "2.6.6"
-            rails: rails40
-          - ruby-version: "2.6.6"
-            rails: rails41
-          - ruby-version: "2.5.8"
-            rails: rails30
-          - ruby-version: "2.5.8"
-            rails: rails31
-          - ruby-version: "2.5.8"
-            rails: rails40
-          - ruby-version: "2.5.8"
-            rails: rails41
-          - ruby-version: "2.4.10"
-            rails: rails30
-          - ruby-version: "2.4.10"
-            rails: rails31
-          - ruby-version: "2.4.10"
-            rails: rails40
-          - ruby-version: "2.4.10"
-            rails: rails41
-          - ruby-version: "2.4.10"
-            rails: rails60
-          - ruby-version: "2.4.10"
-            rails: rails61
-          - ruby-version: "2.3.8"
-            rails: rails60
-          - ruby-version: "2.3.8"
-            rails: rails61
-          - ruby-version: "2.2.10"
-            rails: rails60
-          - ruby-version: "2.2.10"
-            rails: rails61
-          - ruby-version: "2.2.10"
-            rails: rails52
-          - ruby-version: "jruby-9.2.12.0"
-            rails: rails30
-          - ruby-version: "jruby-9.2.12.0"
-            rails: rails31
-          - ruby-version: "jruby-9.2.12.0"
-            rails: rails32
-          - ruby-version: "jruby-9.2.12.0"
-            rails: rails40
-          - ruby-version: "jruby-9.2.12.0"
-            rails: rails41
-          - ruby-version: "jruby-9.2.12.0"
-            rails: rails60
-          - ruby-version: "jruby-9.2.12.0"
-            rails: rails61
-          - ruby-version: "jruby-9.2.12.0"
-            rails: rails52
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.7, 2.7.3, 3.0.1, jruby-9.2.17.0]
 
     steps:
       - uses: actions/checkout@v2
@@ -137,6 +38,38 @@ jobs:
         uses: ./.github/actions/build-ruby
         with:
           ruby-version: ${{ matrix.ruby-version }}
+
+      - name: Set up mini-envs for ruby version
+        uses: kanga333/variable-mapper@master
+        with:
+          key: ${{ matrix.ruby-version }}
+          map: |
+            {
+              "2.2.10": { 
+                "rails": "norails,rails51,rails42,rails41,rails40,rails32,rails31,rails30" 
+              },
+              "2.3.8": {
+                "rails": "norails,rails52,rails51,rails42,rails41,rails40,rails32,rails31,rails30"
+              },
+              "2.4.10": {
+                "rails": "norails,rails52,rails51,rails42,rails32"
+              },
+              "2.5.9": {
+                "rails": "norails,rails61,rails60,rails52,rails51,rails42,rails32"
+              },
+              "2.6.7": {
+                "rails": "norails,rails61,rails60,rails52,rails51,rails42"
+              },
+              "2.7.3": {
+                "rails": "norails,rails61,rails60"
+              },
+              "3.0.1": {
+                "rails": "norails"
+              },
+              "jruby-9.2.17.0": {
+                "rails": "norails,rails51,rails42"
+              }
+            }
 
       - name: Start mysql
         run: sudo systemctl start mysql
@@ -146,7 +79,7 @@ jobs:
         with:
           timeout_minutes: 20
           max_attempts: 2
-          command:  bundle exec rake test:env[${{ matrix.rails }}] TESTOPTS="--verbose"
+          command:  bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
         env:
           DB_PORT: 3306
           MYSQL_PASSWORD: root
@@ -190,23 +123,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        multiverse: [agent, api, background, background_2, database, httpclients, rails, rails_extras, rest, serialization, sinatra]
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.8, 2.6.6, 2.7.1, 3.0.0, jruby-9.2.12.0]
-        exclude:
-          - ruby-version: "3.0.0"
-            multiverse: api
-          - ruby-version: "3.0.0"
-            multiverse: sinatra
-          - ruby-version: "3.0.0"
-            multiverse: rails
-          - ruby-version: "3.0.0"
-            multiverse: rails_extras
-          - ruby-version: "2.7.1"
-            multiverse: api
-          - ruby-version: "2.7.1"
-            multiverse: sinatra
-          - ruby-version: "jruby-9.2.12.0"
-            multiverse: agent
+        multiverse: ["agent;background;background_2;database", "httpclients;httpclients_2", "frameworks;rails;rest"]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.7, 2.7.3, 3.0.1]
+
     steps:
       - uses: actions/checkout@v2
 
@@ -223,7 +142,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+          command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
         env:
           DB_PORT: 3306
           MYSQL_PASSWORD: root
@@ -238,7 +157,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.5.8, 2.6.6, 2.7.1]
+        ruby-version: [2.5.9, 2.6.7, 2.7.3]
     steps:
       - uses: actions/checkout@v2
 
@@ -253,6 +172,72 @@ jobs:
           timeout_minutes: 40
           max_attempts: 6
           command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+
+      - name: Annotate errors
+        if: ${{ failure() }}
+        uses: ./.github/actions/annotate
+
+  jruby_multiverse:
+    needs: build-ruby
+    runs-on: ubuntu-18.04
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mongodb:
+        image: mongo
+        ports:
+          - 27017:27017
+      rabbitmq:
+        image: rabbitmq:latest
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd "rabbitmqctl node_health_check"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      memcached:
+        image: memcached:latest
+        ports:
+          - 11211:11211
+        options: >-
+          --health-cmd "timeout 5 bash -c 'cat < /dev/null > /dev/udp/127.0.0.1/11211'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    strategy:
+      fail-fast: false
+      matrix:
+        multiverse: [agent, background, background_2, database, frameworks, httpclients, httpclients_2, rails, rest]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build Ruby jruby-9.2.17.0
+        uses: ./.github/actions/build-ruby
+        with:
+          ruby-version: jruby-9.2.17.0
+
+      - name: Start mysql
+        run: sudo systemctl start mysql
+
+      - name: Run Multiverse Tests
+        uses: nick-invision/retry@v1.0.0
+        with:
+          timeout_minutes: 60
+          max_attempts: 2
+          command:  bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+        env:
+          DB_PORT: 3306
+          MYSQL_PASSWORD: root
 
       - name: Annotate errors
         if: ${{ failure() }}

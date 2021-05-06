@@ -13,6 +13,11 @@ DependencyDetection.defer do
     defined?(::Resque::Job) && !NewRelic::Agent.config[:disable_resque]
   end
 
+  # Airbrake uses method chaining on Resque::Job
+  conflicts_with_prepend do
+    defined?(::Airbrake)
+  end
+
   executes do
     ::NewRelic::Agent.logger.info 'Installing Resque instrumentation'
   end
