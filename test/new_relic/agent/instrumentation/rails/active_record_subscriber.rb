@@ -10,7 +10,6 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     @connection = Object.new
     @connection.instance_variable_set(:@config, @config)
 
-
     @params = {
       :name => 'NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order Load',
       :sql => 'SELECT * FROM sandwiches',
@@ -180,11 +179,24 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     simulate_query
   end
 
-  def test_active_record_config_for_event
-    target_connection = ActiveRecord::Base.connection_handler.connection_pool_list.first.connections.first
-    expected_config = target_connection.instance_variable_get(:@config)
+  def test_active_record_config_for_event_with_connection_id
+    connection_handler, connection_pool_handler = mock(), mock()
+    connection_pool_handler.expects(:connections).returns([@connection])
+    connection_handler.expects(:connection_pool_list).returns([connection_pool_handler])
+    ActiveRecord::Base.stubs(:connection_handler).returns(connection_handler)
 
-    payload = { :connection_id => target_connection.object_id }
+    expected_config = @connection.instance_variable_get(:@config)
+
+    payload = { :connection_id => @connection.object_id }
+
+    result = @subscriber.active_record_config(payload)
+    assert_equal expected_config, result
+  end
+
+  def test_active_record_config_for_event_without_connection_id
+    expected_config = @connection.instance_variable_get(:@config)
+
+    payload = { :connection => @connection }
 
     result = @subscriber.active_record_config(payload)
     assert_equal expected_config, result
