@@ -1,65 +1,31 @@
-
-# the suite_condition method prevents the test from running
-# but the test runs if I change it to... or comment it out
-# if RUBY_VERSION < '2.4.0'
-#   code below
-# end
-
-suite_condition("Yajl not supported for JRuby or 2.4") do
-  RUBY_PLATFORM != 'java' && RUBY_VERSION < '2.4.0'
+if RUBY_PLATFORM != 'java' && RUBY_VERSION < '2.4.0'
+  suite_condition("Yajl not supported for JRuby or 2.4") do
+    RUBY_PLATFORM != 'java' && RUBY_VERSION < '2.4.0'
+  end
 end
 
-=begin
-Do I need to specify json version I see yajl/json_gem
-This is from suite/json/Envfile
-json_gems = ['~> 2.3.0', '~> 2.4.0', '~> 2.5.0']
-
-Do I need to add this method?
-Most suite that where updated have this.
-instrumentation_methods :chain, :prepend
-
-Do I need to add this,
-some suite that where updated have this.
-rack_test_version = RUBY_VERSION < "2.2.0" ? "< 0.8.0" : ">= 0.8.0"
-
-I believe each test, tests a different a version of yaml, but the same ruby version in my case 3.0.0
-
-my main question is this meant to just run and compare to what a user has installed?
-say average joes install the newrelic agent, they have Ruby 2.4.0
-when rake is run this test should fail and then not install? or does it fail and prompt the use to update?
-
-if they have ruby 2.4 or higher this test should pass..no issues during install
-
-=end
-
-
-# OMR edit, this test passes, added #{ruby3_gem_webrick} because Ruby 3.0 no longer bundles webrick
-if RUBY_VERSION >= '2.4'
+if RUBY_VERSION >= '2.4.0'
   gemfile <<-RB
-  gem 'rack'
-  gem 'yajl-ruby', '~> 1.4.0', require: ['yajl', 'yajl/json_gem']
-  #{ruby3_gem_webrick}
+    gem 'rack'
+    gem 'yajl-ruby', '~> 1.4.0', require: ['yajl', 'yajl/json_gem']
+    #{ruby3_gem_webrick}
+  RB
+else
+  gemfile <<-RB
+    gem 'rack'
+    gem 'yajl-ruby', '~> 1.3.0', require: ['yajl', 'yajl/json_gem']
+    #per rubygems.org 1.2.1 requires >= ruby v1.8.6
+  RB
+
+  gemfile <<-RB
+    gem 'rack'
+    gem 'yajl-ruby', '~> 1.2.1' #per rubygems.org 1.2.1 requires >= ruby v1.8.6
+  RBi didnt
+
+  gemfile <<-RB
+    gem 'rack'
+    gem 'yajl-ruby', '~> 1.1.0' #per rubygems.org 1.1.0 requires >= ruby v1.8.6
   RB
 end
-
-=begin
-this are the old tests, they all fail, if I comment out suite_condition method
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'yajl-ruby', '~> 1.3.0', require: ['yajl', 'yajl/json_gem']
-  #per rubygems.org 1.2.1 requires >= ruby v1.8.6
-RB
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'yajl-ruby', '~> 1.2.1' #per rubygems.org 1.2.1 requires >= ruby v1.8.6
-RB
-
-gemfile <<-RB
-  gem 'rack'
-  gem 'yajl-ruby', '~> 1.1.0' #per rubygems.org 1.1.0 requires >= ruby v1.8.6
-RB
-=end
 
 # vim: ft=ruby
