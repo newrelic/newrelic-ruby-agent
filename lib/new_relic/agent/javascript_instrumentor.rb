@@ -83,37 +83,42 @@ module NewRelic
         value.nil? || value.empty?
       end
 
-      def browser_timing_header #THREAD_LOCAL_ACCESS
+      def browser_timing_header(nonce=nil) #THREAD_LOCAL_ACCESS
         return '' unless js_enabled_and_ready? # fast exit
 
         state = NewRelic::Agent::Tracer.state
 
         return '' unless insert_js?(state) # slower exit
 
-        bt_config = browser_timing_config(state)
+        bt_config = browser_timing_config(state, nonce)
         return '' if bt_config.empty?
 
-        bt_config + browser_timing_loader
+        bt_config + browser_timing_loader(nonce)
       rescue => e
         ::NewRelic::Agent.logger.debug "Failure during RUM browser_timing_header construction", e
         ''
       end
 
-      def browser_timing_loader
-        html_safe_if_needed("\n<script>#{Agent.config[:js_agent_loader]}</script>")
+      def browser_timing_loader(nonce=nil)
+        html_safe_if_needed("\n<script type=\"text/javascript\"#{create_nonce(nonce)}>#{Agent.config[:js_agent_loader]}</script>")
       end
 
-      def browser_timing_config(state)
+      def browser_timing_config(state, nonce=nil)
         txn = state.current_transaction
         return '' if txn.nil?
 
         txn.freeze_name_and_execute_if_not_ignored do
           data = data_for_js_agent(txn)
           json = ::JSON.dump(data)
-          return html_safe_if_needed("\n<script>window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
+          return html_safe_if_needed("\n<script type=\"text/javascript\"#{create_nonce(nonce)}>window.NREUM||(NREUM={});NREUM.info=#{json}</script>")
         end
 
         ''
+      end
+
+      def create_nonce(nonce=nil)
+        return '' unless nonce
+        " nonce=\"#{nonce.to_s}\""
       end
 
       BEACON_KEY           = "beacon".freeze
