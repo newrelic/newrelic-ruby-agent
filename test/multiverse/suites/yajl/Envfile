@@ -1,4 +1,4 @@
-suite_condition("Yajl not supported for JRuby or 2.4") do
+suite_condition("Yajl not supported for JRuby") do
   RUBY_PLATFORM != 'java'
 end
 
