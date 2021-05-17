@@ -48,6 +48,7 @@ module NewRelic::Agent::Instrumentation
           has_middleware = app.middleware && app.middleware.any? { |info| info && info[0] == clazz }
           app.use(clazz) unless has_middleware
         end
+      end
 
       # Capture last route we've seen. Will set for transaction on route_eval
       def process_route_with_tracing(*args)
