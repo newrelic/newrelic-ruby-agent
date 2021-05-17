@@ -17,6 +17,7 @@
     Support for Resque's FORK_PER_JOB flag within the Ruby agent was incomplete and nonfunctional. The agent should now behave
     correctly when running in a non-forking Resque worker process.
 
+
   ## v7.0.0
 
   * **Ruby Agent 6.x to 7.x Migration Guide Available**
