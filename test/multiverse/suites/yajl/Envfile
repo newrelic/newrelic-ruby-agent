@@ -1,7 +1,5 @@
-if RUBY_PLATFORM != 'java' && RUBY_VERSION < '2.4.0'
-  suite_condition("Yajl not supported for JRuby or 2.4") do
-    RUBY_PLATFORM != 'java' && RUBY_VERSION < '2.4.0'
-  end
+suite_condition("Yajl not supported for JRuby or 2.4") do
+  RUBY_PLATFORM != 'java'
 end
 
 if RUBY_VERSION >= '2.4.0'
