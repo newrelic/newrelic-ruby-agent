@@ -39,10 +39,15 @@ module NewRelic::Agent::Instrumentation
         yield
       end
 
-      def try_to_use(app, clazz)
-        has_middleware = app.middleware.any? { |info| info[0] == clazz }
-        app.use(clazz) unless has_middleware
+      def install_lock
+        @install_lock ||= Mutex.new
       end
+
+      def try_to_use(app, clazz)
+        install_lock.synchronize do
+          has_middleware = app.middleware && app.middleware.any? { |info| info && info[0] == clazz }
+          app.use(clazz) unless has_middleware
+        end
 
       # Capture last route we've seen. Will set for transaction on route_eval
       def process_route_with_tracing(*args)
