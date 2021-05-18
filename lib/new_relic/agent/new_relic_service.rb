@@ -432,8 +432,10 @@ module NewRelic
         # The staging collector does not respond correctly when using the configured collector host for preconnect, so must use the redirect host
         # Once this issue is resolved on the staging collector, use the original line that is commented out above.
         endpoint_specific_collector = if method == :preconnect && (@configured_collector && @configured_collector.name != 'staging-collector.newrelic.com')
+                                        ::NewRelic::Agent.logger.debug "Using configured collector for preconnect: #{@configured_collector}"
                                         @configured_collector
                                       else
+                                        ::NewRelic::Agent.logger.debug "Using redirect host for collector: #{@collector}"
                                         @collector
                                       end
 
