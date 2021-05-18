@@ -426,7 +426,16 @@ module NewRelic
         size = data.size
 
         # Preconnect needs to always use the configured collector host, not the redirect host
-        endpoint_specific_collector = (method == :preconnect) ? @configured_collector : @collector
+        # endpoint_specific_collector = (method == :preconnect) ? @configured_collector : @collector
+
+        # This is a temporary workaround due to errors occurring on the staging collector. The prod collector does not have the same issue.
+        # The staging collector does not respond correctly when using the configured collector host for preconnect, so must use the redirect host
+        # Once this issue is resolved on the staging collector, use the original line that is commented out above.
+        endpoint_specific_collector = if method == :preconnect && (@configured_collector && @configured_collector.name != 'staging-collector.newrelic.com')
+                                        @configured_collector
+                                      else
+                                        @collector
+                                      end
 
         uri = remote_method_uri(method)
         full_uri = "#{endpoint_specific_collector}#{uri}"
