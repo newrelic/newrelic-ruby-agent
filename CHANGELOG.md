@@ -2,6 +2,9 @@
 
   ## v7.1.0
 
+  * **Bugfix: Fix for missing part of a previous bugfix**
+    Our previous fix of "nil Middlewares injection now prevented and gracefully handled in Sinatra" released in 7.0.0 was partially overwritten by some of the other changes in that release. This release adds back those missing sections of the bugfix, and should resolve the issue for sinatra users. 
+
   * **Update known conflicts with use of Module#Prepend**
     With our release of v7.0.0, we updated our instrumentation to use Module#Prepend by default, instead of method chaining. We have received reports of conflicts and added a check for these known conflicts. If a known conflict with prepend is detected while using the default value of 'auto' for gem instrumentation, the agent will instead install method chaining instrumentation in order to avoid this conflict. This check can be bypassed by setting the instrumentation method for the gem to 'prepend'.
 
@@ -11,6 +14,12 @@
     to get the current ActiveRecord connection. As of Rails 6.1, `connection_id` has been dropped in favor of providing the connection
     object through the `connection` value exclusively. This resulted in datastore spans displaying fallback behavior, including showing
     "ActiveRecord" as the database vendor.
+
+  * **Bugfix: Updated support for Resque's FORK_PER_JOB option **
+
+    Support for Resque's FORK_PER_JOB flag within the Ruby agent was incomplete and nonfunctional. The agent should now behave
+    correctly when running in a non-forking Resque worker process.
+
 
   ## v7.0.0
 
