@@ -24,6 +24,14 @@
     Support for Resque's FORK_PER_JOB flag within the Ruby agent was incomplete and nonfunctional. The agent should now behave
     correctly when running in a non-forking Resque worker process.
 
+  * **Bugfix: Added check for ruby2_keywords in add_transaction_tracer**
+    
+    Thanks @beauraF for the contribution! Previously, the add_transaction_tracer was not updated when we added support for ruby 3. In order to correctly support `**kwargs`,  ruby2_keywords was added to correctly update the method signature to use **kwargs in ruby versions that support that. 
+
+  * **Confirmed support for yajl 1.4.0**
+
+    Thanks to @creaturenex for the contribution! `yajl-ruby` 1.4.0 was added to our test suite and confirmed all tests pass, showing the agent supports this version as well.
+
 
   ## v7.0.0
 
