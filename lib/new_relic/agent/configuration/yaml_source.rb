@@ -99,7 +99,7 @@ module NewRelic
 
         def process_yaml(file, env, config, path)
           if file
-            confighash = YAML.load(file)
+            confighash = YAML.safe_load(file, aliases: true)
             unless confighash.key?(env)
               log_failure("Config file at #{path} doesn't include a '#{env}' section!")
             end

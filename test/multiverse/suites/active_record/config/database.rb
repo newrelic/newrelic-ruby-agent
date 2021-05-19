@@ -19,7 +19,7 @@ end
 
 config_raw = File.read(File.join(config_dir, 'database.yml'))
 config_erb = ERB.new(config_raw).result
-config_yml = YAML.load(config_erb)
+config_yml = YAML.safe_load(config_erb, aliases: true)
 
 # Rails 2.x didn't keep the Rails out of ActiveRecord much...
 RAILS_ENV  = "test"
