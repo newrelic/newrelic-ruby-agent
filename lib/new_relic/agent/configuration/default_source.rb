@@ -2081,7 +2081,7 @@ module NewRelic
           :default     => false,
           :public      => true,
           :type        => Boolean,
-          :allowed_from_server => false,
+          :allowed_from_server => true,
           :description => 'Distributed tracing lets you see the path that a request takes through your distributed system. Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the [transition guide](/docs/transition-guide-distributed-tracing) before you enable this feature.'
         },
         :trusted_account_key => {
