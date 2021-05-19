@@ -179,6 +179,7 @@ module NewRelic
                   #{without_method_name}(*args, &block)
                  end
               end
+              ruby2_keywords(:#{with_method_name}) if respond_to?(:ruby2_keywords, true)
             EOC
 
             visibility = NewRelic::Helper.instance_method_visibility self, method
