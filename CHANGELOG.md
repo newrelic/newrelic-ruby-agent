@@ -2,6 +2,10 @@
 
   ## v7.1.0
 
+  * **Enable server-side configuration of distributed tracing**
+
+    `distributed_tracing.enabled` may now be set in server-side application configuration.
+
   * **Bugfix: Fix for missing part of a previous bugfix**
     Our previous fix of "nil Middlewares injection now prevented and gracefully handled in Sinatra" released in 7.0.0 was partially overwritten by some of the other changes in that release. This release adds back those missing sections of the bugfix, and should resolve the issue for sinatra users. 
 
@@ -15,7 +19,7 @@
     object through the `connection` value exclusively. This resulted in datastore spans displaying fallback behavior, including showing
     "ActiveRecord" as the database vendor.
 
-  * **Bugfix: Updated support for Resque's FORK_PER_JOB option **
+  * **Bugfix: Updated support for Resque's FORK_PER_JOB option**
 
     Support for Resque's FORK_PER_JOB flag within the Ruby agent was incomplete and nonfunctional. The agent should now behave
     correctly when running in a non-forking Resque worker process.
