@@ -12,6 +12,10 @@
   * **Update known conflicts with use of Module#Prepend**
     With our release of v7.0.0, we updated our instrumentation to use Module#Prepend by default, instead of method chaining. We have received reports of conflicts and added a check for these known conflicts. If a known conflict with prepend is detected while using the default value of 'auto' for gem instrumentation, the agent will instead install method chaining instrumentation in order to avoid this conflict. This check can be bypassed by setting the instrumentation method for the gem to 'prepend'.
 
+  * **Updated the agent to load yaml files with safe_load**
+  
+    Replaced all uses of YAML.load with YAML.safe_load
+
   * **Bugfix: Updated support for ActiveRecord 6.1+ instrumentation**
 
     Previously, the agent depended on `connection_id` to be present in the Active Support instrumentation for `sql.active_record`
