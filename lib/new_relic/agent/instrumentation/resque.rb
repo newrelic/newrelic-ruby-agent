@@ -37,7 +37,7 @@ DependencyDetection.defer do
       chain_instrument NewRelic::Agent::Instrumentation::Resque::Chain
     end
 
-    if NewRelic::LanguageSupport.can_fork?
+    if NewRelic::Agent::Instrumentation::Resque::Helper.resque_fork_per_job?
       ::Resque.before_first_fork do
         NewRelic::Agent.manual_start(:dispatcher   => :resque,
                                      :sync_startup => true,
@@ -45,9 +45,7 @@ DependencyDetection.defer do
       end
 
       ::Resque.before_fork do |job|
-        if ENV['FORK_PER_JOB'] != 'false'
-          NewRelic::Agent.register_report_channel(job.object_id)
-        end
+        NewRelic::Agent.register_report_channel(job.object_id)
       end
 
       ::Resque.after_fork do |job|
@@ -55,6 +53,12 @@ DependencyDetection.defer do
         # Traced errors UI relies on having the parent process report that metric
         NewRelic::Agent.after_fork(:report_to_channel => job.object_id,
                                    :report_instance_busy => false)
+      end
+    else
+      ::Resque.before_first_fork do
+        NewRelic::Agent.manual_start(:dispatcher   => :resque,
+                                     :sync_startup => true,
+                                     :start_channel_listener => false)
       end
     end
   end
