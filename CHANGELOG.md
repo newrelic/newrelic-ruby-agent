@@ -2,14 +2,20 @@
 
   ## v7.1.0
 
+  * **Removed MD5 use in the SQL sampler**
+
+    In order to allow the agent to run in FIPS compliant environments, the usage of MD5 for aggregating slow sql traces has been replaced with SHA1. 
+
   * **Enable server-side configuration of distributed tracing**
 
     `distributed_tracing.enabled` may now be set in server-side application configuration.
 
   * **Bugfix: Fix for missing part of a previous bugfix**
+
     Our previous fix of "nil Middlewares injection now prevented and gracefully handled in Sinatra" released in 7.0.0 was partially overwritten by some of the other changes in that release. This release adds back those missing sections of the bugfix, and should resolve the issue for sinatra users. 
 
   * **Update known conflicts with use of Module#Prepend**
+
     With our release of v7.0.0, we updated our instrumentation to use Module#Prepend by default, instead of method chaining. We have received reports of conflicts and added a check for these known conflicts. If a known conflict with prepend is detected while using the default value of 'auto' for gem instrumentation, the agent will instead install method chaining instrumentation in order to avoid this conflict. This check can be bypassed by setting the instrumentation method for the gem to 'prepend'.
 
   * **Bugfix: Updated support for ActiveRecord 6.1+ instrumentation**
