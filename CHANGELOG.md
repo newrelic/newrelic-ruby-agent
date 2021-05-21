@@ -2,6 +2,10 @@
 
   ## v7.1.0
 
+  * **Add support for CSP nonces when using our API to insert the browser agent**
+  
+    We now support passing in a nonce to our API method `browser_timing_header` to allow the browser agent to run on applications using CSP nonces. This allows users to inject the browser agent themselves and use the nonce required for the script to run. In order to utilize this new feature, you must disable auto instrumentation for the browser agent, and use the API method browser_timing_header to pass the nonce in and inject the script manually.
+    
   * **Removed MD5 use in the SQL sampler**
 
     In order to allow the agent to run in FIPS compliant environments, the usage of MD5 for aggregating slow sql traces has been replaced with SHA1. 

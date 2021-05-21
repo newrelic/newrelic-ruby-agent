@@ -758,13 +758,15 @@ module NewRelic
     # In previous agents there was a corresponding footer required, but all the
     # work is now done by this single method.
     #
+    # @param [String] nonce The nonce to use in the javascript tag for browser instrumentation
+    #
     # @api public
     #
-    def browser_timing_header
+    def browser_timing_header(nonce=nil)
       record_api_supportability_metric(:browser_timing_header)
 
       return "" unless agent
-      agent.javascript_instrumentor.browser_timing_header
+      agent.javascript_instrumentor.browser_timing_header(nonce)
     end
 
     # @!endgroup

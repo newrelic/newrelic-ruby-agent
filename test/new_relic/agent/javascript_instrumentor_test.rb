@@ -114,6 +114,15 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     end
   end
 
+  def test_browser_timing_header_with_nonce
+    in_transaction do
+      header = instrumentor.browser_timing_header("NONCE_TEST")
+      assert_has_js_agent_loader_with_nonce(header)
+      assert_has_text(BEGINNING_OF_FOOTER_WITH_NONCE, header)
+      assert_has_text(END_OF_FOOTER, header)
+    end
+  end
+
   def test_browser_timing_header_safe_when_insert_js_fails
     in_transaction do
       begin
@@ -286,11 +295,18 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
   # Helpers
 
-  BEGINNING_OF_FOOTER = '<script>window.NREUM||(NREUM={});NREUM.info='
+  BEGINNING_OF_FOOTER = '<script type="text/javascript">window.NREUM||(NREUM={});NREUM.info='
+  BEGINNING_OF_FOOTER_WITH_NONCE = '<script type="text/javascript" nonce="NONCE_TEST">window.NREUM||(NREUM={});NREUM.info='
   END_OF_FOOTER = '}</script>'
 
   def assert_has_js_agent_loader(header)
-    assert_match(%Q[\n<script>loader</script>],
+    assert_match(%Q[\n<script type="text/javascript">loader</script>],
+                 header,
+                 "expected new JS agent loader 'loader' but saw '#{header}'")
+  end
+
+  def assert_has_js_agent_loader_with_nonce(header)
+    assert_match(%Q[\n<script type="text/javascript" nonce="NONCE_TEST">loader</script>],
                  header,
                  "expected new JS agent loader 'loader' but saw '#{header}'")
   end
