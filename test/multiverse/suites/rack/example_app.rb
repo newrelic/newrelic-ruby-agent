@@ -79,6 +79,23 @@ class MiddlewareTwo
   end
 end
 
+class MiddlewareThree
+  def initialize(app, tag:)
+    @app = app
+    @tag = tag
+  end
+
+  def call(env)
+    advance_time(1)
+    status, headers, body = @app.call(env)
+    headers['MiddlewareThree'] = '3'
+    headers['MiddlewareThreeTag'] = @tag
+
+    advance_time(1)
+    [status, headers, body]
+  end
+end
+
 class ResponseCodeMiddleware
   def initialize(app)
     @app = app

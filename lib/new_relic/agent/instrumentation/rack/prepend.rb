@@ -31,6 +31,7 @@ module NewRelic::Agent::Instrumentation
       def use(middleware_class, *args, &blk)
         use_with_tracing(middleware_class) { |wrapped_class| super(wrapped_class, *args, &blk) }
       end
+      ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
     end
   end
 end

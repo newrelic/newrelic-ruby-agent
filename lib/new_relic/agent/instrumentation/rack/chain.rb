@@ -31,7 +31,8 @@ module NewRelic::Agent::Instrumentation
             def use_with_newrelic(middleware_class, *args, &block)
               use_with_tracing(middleware_class) { |wrapped_class| use_without_newrelic(wrapped_class, *args, &block) }
             end
-    
+            ruby2_keywords(:use_with_newrelic) if respond_to?(:ruby2_keywords, true)
+
             alias_method :use_without_newrelic, :use
             alias_method :use, :use_with_newrelic
           end
