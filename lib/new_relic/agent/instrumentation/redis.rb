@@ -18,6 +18,10 @@ DependencyDetection.defer do
     defined?(::Redis) && defined?(::Redis::VERSION)
   end
 
+  conflicts_with_prepend do
+    defined?(::PrometheusExporter)
+  end
+
   depends_on do
     NewRelic::Agent::Datastores::Redis.is_supported_version? &&
       NewRelic::Agent::Datastores::Redis.safe_from_third_party_gem?

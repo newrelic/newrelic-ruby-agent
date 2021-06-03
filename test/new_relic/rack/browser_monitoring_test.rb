@@ -198,7 +198,7 @@ EOL
       "Content-Type"   => "text/html"
     }
     headers = headers_from_request(original_headers, "<html><body></body></html>")
-    assert_equal "344", headers["Content-Length"]
+    assert_equal "390", headers["Content-Length"]
   end
 
   def test_content_length_set_when_we_modify_source_containing_unicode
@@ -207,7 +207,7 @@ EOL
       "Content-Type"   => "text/html"
     }
     headers = headers_from_request(original_headers, "<html><body>☃</body></html>")
-    assert_equal "347", headers["Content-Length"]
+    assert_equal "393", headers["Content-Length"]
   end
 
   def test_content_length_set_when_response_is_nil

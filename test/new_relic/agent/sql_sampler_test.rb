@@ -344,7 +344,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
       params = "eJyrrgUAAXUA+Q==\n"
 
-      expected = [ 'WebTransaction/Controller/c/a', '/c/a', 526336943,
+      expected = [ 'WebTransaction/Controller/c/a', '/c/a', 1644443586,
                    'select * from test', 'Database/test/select',
                    1, 1500, 1500, 1500, params ]
 

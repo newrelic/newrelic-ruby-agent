@@ -6,8 +6,7 @@ development team.
 
 When contributing, keep in mind that the agent runs in a wide variety of Ruby
 language implementations (e.g. 2.x.x, jruby, etc.) as well as a wide variety of
-application environments (e.g. Rails, Sinatra, roll-your-own, etc.) See [Ruby agent requirements and supported frameworks]
-(https://docs.newrelic.com/docs/agents/ruby-agent/getting-started/ruby-agent-requirements-supported-frameworks)
+application environments (e.g. Rails, Sinatra, roll-your-own, etc.) See [Ruby agent requirements and supported frameworks](https://docs.newrelic.com/docs/agents/ruby-agent/getting-started/ruby-agent-requirements-supported-frameworks)
 for the current full list.
 
 Because of this, we need to be more defensive in our coding practices than most
@@ -84,6 +83,18 @@ New Relic reserves the ability to push an edge to the `main`. If you download a
 release from this repo, use the appropriate tag. New Relic usually pushes beta
 versions of a release to a working branch before tagging them for General
 Availability.
+
+## Development Environment Setup
+
+1. Fork and clone the repo locally
+    - Fork the repository inside GitHub
+    - `git clone git@github.com:<gh username>/newrelic-ruby-agent.git`
+1. Pick a Ruby version
+    - Use rbenv or rvm to install any version of Ruby between 2.2 up to 3.0.1
+1. Install development dependencies
+    - `bundle install`
+1. Check that your env is setup correctly
+    - `bundle exec rake`
 
 ## Testing
 

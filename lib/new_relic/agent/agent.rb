@@ -17,6 +17,7 @@ require 'new_relic/agent/new_relic_service'
 require 'new_relic/agent/pipe_service'
 require 'new_relic/agent/configuration/manager'
 require 'new_relic/agent/database'
+require 'new_relic/agent/instrumentation/resque/helper'
 require 'new_relic/agent/commands/agent_command_router'
 require 'new_relic/agent/event_listener'
 require 'new_relic/agent/distributed_tracing'
@@ -470,7 +471,7 @@ module NewRelic
           # before Resque calls Process.daemon (Jira RUBY-857)
           def defer_for_resque?
             NewRelic::Agent.config[:dispatcher] == :resque &&
-              NewRelic::LanguageSupport.can_fork? &&
+              NewRelic::Agent::Instrumentation::Resque::Helper.resque_fork_per_job? &&
               !PipeChannelManager.listener.started?
           end
 

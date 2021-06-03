@@ -1,5 +1,48 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v7.1.0
+
+  * **Add support for CSP nonces when using our API to insert the browser agent**
+  
+    We now support passing in a nonce to our API method `browser_timing_header` to allow the browser agent to run on applications using CSP nonces. This allows users to inject the browser agent themselves and use the nonce required for the script to run. In order to utilize this new feature, you must disable auto instrumentation for the browser agent, and use the API method browser_timing_header to pass the nonce in and inject the script manually.
+    
+  * **Removed MD5 use in the SQL sampler**
+
+    In order to allow the agent to run in FIPS compliant environments, the usage of MD5 for aggregating slow sql traces has been replaced with SHA1. 
+
+  * **Enable server-side configuration of distributed tracing**
+
+    `distributed_tracing.enabled` may now be set in server-side application configuration.
+
+  * **Bugfix: Fix for missing part of a previous bugfix**
+
+    Our previous fix of "nil Middlewares injection now prevented and gracefully handled in Sinatra" released in 7.0.0 was partially overwritten by some of the other changes in that release. This release adds back those missing sections of the bugfix, and should resolve the issue for sinatra users. 
+
+  * **Update known conflicts with use of Module#Prepend**
+
+    With our release of v7.0.0, we updated our instrumentation to use Module#Prepend by default, instead of method chaining. We have received reports of conflicts and added a check for these known conflicts. If a known conflict with prepend is detected while using the default value of 'auto' for gem instrumentation, the agent will instead install method chaining instrumentation in order to avoid this conflict. This check can be bypassed by setting the instrumentation method for the gem to 'prepend'.
+
+  * **Bugfix: Updated support for ActiveRecord 6.1+ instrumentation**
+
+    Previously, the agent depended on `connection_id` to be present in the Active Support instrumentation for `sql.active_record`
+    to get the current ActiveRecord connection. As of Rails 6.1, `connection_id` has been dropped in favor of providing the connection
+    object through the `connection` value exclusively. This resulted in datastore spans displaying fallback behavior, including showing
+    "ActiveRecord" as the database vendor.
+
+  * **Bugfix: Updated support for Resque's FORK_PER_JOB option**
+
+    Support for Resque's FORK_PER_JOB flag within the Ruby agent was incomplete and nonfunctional. The agent should now behave
+    correctly when running in a non-forking Resque worker process.
+
+  * **Bugfix: Added check for ruby2_keywords in add_transaction_tracer**
+    
+    Thanks @beauraF for the contribution! Previously, the add_transaction_tracer was not updated when we added support for ruby 3. In order to correctly support `**kwargs`,  ruby2_keywords was added to correctly update the method signature to use **kwargs in ruby versions that support that. 
+
+  * **Confirmed support for yajl 1.4.0**
+
+    Thanks to @creaturenex for the contribution! `yajl-ruby` 1.4.0 was added to our test suite and confirmed all tests pass, showing the agent supports this version as well.
+
+
   ## v7.0.0
 
   * **Ruby Agent 6.x to 7.x Migration Guide Available**
