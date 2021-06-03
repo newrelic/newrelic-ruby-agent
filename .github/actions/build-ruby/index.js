@@ -158,7 +158,7 @@ async function downgradeMySQL() {
 
   const pkgDir = `${process.env.HOME}/packages`
   const pkgOption = `--directory-prefix=${pkgDir}/`
-  const mirrorUrl = 'https://mirrors.mediatemple.net/debian-security/pool/updates/main/m/mysql-5.5'
+  const mirrorUrl = 'http://security.debian.org/debian-security/pool/updates/main/m/mysql-5.5/'
   const ubuntuUrl = 'http://archive.ubuntu.com/ubuntu/pool/main'
 
   // executes the following all in parallel
