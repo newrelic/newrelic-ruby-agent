@@ -13,9 +13,9 @@ DependencyDetection.defer do
     defined?(::Resque::Job) && !NewRelic::Agent.config[:disable_resque]
   end
 
-  # Airbrake uses method chaining on Resque::Job
+  # Airbrake uses method chaining on Resque::Job on versions < 11.0.3
   conflicts_with_prepend do
-    defined?(::Airbrake)
+    defined?(::Airbrake) && defined?(::Airbrake::AIRBRAKE_VERSION) && ::Gem::Version.create(::Airbrake::AIRBRAKE_VERSION) < ::Gem::Version.create('11.0.3')
   end
 
   executes do
