@@ -29,6 +29,7 @@ class RackAutoInstrumentationTest < Minitest::Test
       use MiddlewareTwo, 'the correct tag' do |headers|
         headers['MiddlewareTwoBlockTag'] = 'the block tag'
       end
+      use MiddlewareThree, tag: 'the correct tag'
       use NewRelic::Rack::BrowserMonitoring
       use NewRelic::Rack::AgentHooks
       run ExampleApp.new
@@ -39,6 +40,7 @@ class RackAutoInstrumentationTest < Minitest::Test
     get '/'
     assert last_response.headers['MiddlewareOne']
     assert last_response.headers['MiddlewareTwo']
+    assert last_response.headers['MiddlewareThree']
   end
 
   def test_status_code_is_preserved
@@ -93,6 +95,7 @@ class RackAutoInstrumentationTest < Minitest::Test
         "Controller/Rack/ExampleApp/call",
         "Middleware/Rack/MiddlewareOne/call",
         "Middleware/Rack/MiddlewareTwo/call",
+        "Middleware/Rack/MiddlewareThree/call",
         "Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call",
         "Middleware/Rack/NewRelic::Rack::AgentHooks/call",
         "Nested/Controller/Rack/ExampleApp/call",
@@ -103,6 +106,7 @@ class RackAutoInstrumentationTest < Minitest::Test
         ["Middleware/Rack/NewRelic::Rack::AgentHooks/call",        "Controller/Rack/ExampleApp/call"],
         ["Middleware/Rack/MiddlewareOne/call", "Controller/Rack/ExampleApp/call"],
         ["Middleware/Rack/MiddlewareTwo/call", "Controller/Rack/ExampleApp/call"],
+        ["Middleware/Rack/MiddlewareThree/call", "Controller/Rack/ExampleApp/call"],
         ["Nested/Controller/Rack/ExampleApp/call",    "Controller/Rack/ExampleApp/call"]
       ],
       :ignore_filter => /^Supportability\/EnvironmentReport/
@@ -152,6 +156,12 @@ class RackAutoInstrumentationTest < Minitest::Test
 
     assert_equal('the correct tag', last_response.headers['MiddlewareTwoTag'])
     assert_equal('the block tag',   last_response.headers['MiddlewareTwoBlockTag'])
+  end
+
+  def test_middleware_created_with_kwargs_works
+    get '/'
+
+    assert_equal('the correct tag', last_response.headers['MiddlewareThreeTag'])
   end
 end
 
