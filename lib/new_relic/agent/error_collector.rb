@@ -210,6 +210,7 @@ module NewRelic
 
       # See NewRelic::Agent.notice_error for options and commentary
       def notice_error(exception, options={}, span_id=nil)
+        # TODO - Filter ignored/expected errors here. This is where we should set options[:expected]
         return if skip_notice_error?(exception)
 
         tag_exception(exception)
