@@ -79,7 +79,6 @@ module NewRelic
           source.freeze
           was_finished = finished_configuring?
 
-          invoke_callbacks(:add, source)
           case source
           when SecurityPolicySource then @security_policy_source = source
           when HighSecuritySource   then @high_security_source   = source
@@ -93,6 +92,7 @@ module NewRelic
           end
 
           reset_cache
+          invoke_callbacks(:add, source)
           log_config(:add, source)
 
           notify_server_source_added if ServerSource === source
