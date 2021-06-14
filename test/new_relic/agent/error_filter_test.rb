@@ -18,18 +18,18 @@ module NewRelic::Agent
       def test_ignore_classes
         with_config :'error_collector.ignore_classes' => ['TestExceptionA', 'TestExceptionC'] do
           @error_filter.reload
-          assert_equal :ignored, @error_filter.type_for_exception(TestExceptionA.new)
-          assert_nil @error_filter.type_for_exception(TestExceptionB.new)
+          assert @error_filter.ignored?(TestExceptionA.new)
+          refute @error_filter.ignored?(TestExceptionB.new)
         end
       end
 
       def test_ignore_messages
         with_config :'error_collector.ignore_messages' => {'TestExceptionA' => ['message one', 'message two']} do
           @error_filter.reload
-          assert_equal :ignored, @error_filter.type_for_exception(TestExceptionA.new('message one'))
-          assert_equal :ignored, @error_filter.type_for_exception(TestExceptionA.new('message two'))
-          assert_nil @error_filter.type_for_exception(TestExceptionA.new('message three'))
-          assert_nil @error_filter.type_for_exception(TestExceptionB.new('message one'))
+          assert @error_filter.ignored?(TestExceptionA.new('message one'))
+          assert @error_filter.ignored?(TestExceptionA.new('message two'))
+          refute @error_filter.ignored?(TestExceptionA.new('message three'))
+          refute @error_filter.ignored?(TestExceptionB.new('message one'))
         end
       end
 
@@ -43,26 +43,26 @@ module NewRelic::Agent
       def test_ignore_errors
         with_config :'error_collector.ignore_errors' => 'TestExceptionA,TestExceptionC' do
           @error_filter.reload
-          assert_equal :ignored, @error_filter.type_for_exception(TestExceptionA.new)
-          assert_nil @error_filter.type_for_exception(TestExceptionB.new)
+          assert @error_filter.ignored?(TestExceptionA.new)
+          refute @error_filter.ignored?(TestExceptionB.new)
         end
       end
 
       def test_expected_classes
         with_config :'error_collector.expected_classes' => ['TestExceptionA', 'TestExceptionC'] do
           @error_filter.reload
-          assert_equal :expected, @error_filter.type_for_exception(TestExceptionA.new)
-          assert_nil @error_filter.type_for_exception(TestExceptionB.new)
+          assert @error_filter.expected?(TestExceptionA.new)
+          refute @error_filter.expected?(TestExceptionB.new)
         end
       end
 
       def test_expected_messages
         with_config :'error_collector.expected_messages' => {'TestExceptionA' => ['message one', 'message two']} do
           @error_filter.reload
-          assert_equal :expected, @error_filter.type_for_exception(TestExceptionA.new('message one'))
-          assert_equal :expected, @error_filter.type_for_exception(TestExceptionA.new('message two'))
-          assert_nil @error_filter.type_for_exception(TestExceptionA.new('message three'))
-          assert_nil @error_filter.type_for_exception(TestExceptionB.new('message one'))
+          assert @error_filter.expected?(TestExceptionA.new('message one'))
+          assert @error_filter.expected?(TestExceptionA.new('message two'))
+          refute @error_filter.expected?(TestExceptionA.new('message three'))
+          refute @error_filter.expected?(TestExceptionB.new('message one'))
         end
       end
 
