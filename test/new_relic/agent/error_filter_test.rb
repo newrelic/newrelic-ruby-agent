@@ -3,26 +3,35 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require 'new_relic/agent/configuration/manager'
+
+class TestExceptionA < StandardError; end
+class TestExceptionB < StandardError; end
 
 module NewRelic::Agent
   class ErrorFilter
     class ErrorFilterTest < Minitest::Test
 
-      # TODO: setup - read ignored/expected errors from config
+      def setup
+        @error_filter = NewRelic::Agent::ErrorFilter.new
+      end
 
-      # TODO: test - parses error_collector.ignore_classes as Array; i.e.
-      # - use test config that sets error_collector.ignore_classes = ['TestExceptionA', 'TestExceptionB']
-      # - initialize error_filter object from config
-      # - assert error_filter.for_class('TestExceptionA') == :ignore
-      # - assert error_filter.for_class('TextExceptionC') == nil
+      def test_ignore_classes
+        with_config :'error_collector.ignore_classes' => ['TestExceptionA', 'TestExceptionC'] do
+          @error_filter.reload
+          assert_equal :ignored, @error_filter.type_for_exception(TestExceptionA.new)
+          assert_nil @error_filter.type_for_exception(TestExceptionB.new)
+        end
+      end
 
-      # TODO: test - parses error_collector.ignore_messages as Hash
-      # - as above: error_collector.ignore_messages = {
-      #               'TextExceptionA' => ['message one', 'message two']
-      #             }
-      # - assert error_filter.for_class('TestExceptionA', 'error message one test') == :ignore
-      # - assert error_filter.for_class('TestExceptionA', 'error message three test') == nil
+      def test_ignore_messages
+        with_config :'error_collector.ignore_messages' => {'TestExceptionA' => ['message one', 'message two']} do
+          @error_filter.reload
+          assert_equal :ignored, @error_filter.type_for_exception(TestExceptionA.new('message one'))
+          assert_equal :ignored, @error_filter.type_for_exception(TestExceptionA.new('message two'))
+          assert_nil @error_filter.type_for_exception(TestExceptionA.new('message three'))
+          assert_nil @error_filter.type_for_exception(TestExceptionB.new('message one'))
+        end
+      end
 
       # TODO: test - parses error_collector.ignore_status_codes as String
       # - as above: error_collector.ignore_status_codes = "404,507-511"
@@ -30,11 +39,33 @@ module NewRelic::Agent
       # - assert error_filter.for_status('509') == :ignore
       # - assert error_filter.for_status('500') == nil
 
-      # TODO: test - parses error_collector.ignore_errors as error_collector.ignored_classes
-      #       (compatibility for deprecated config setting; split classes by ',' and store as ignore_classes)
+      # compatibility for deprecated config setting; split classes by ',' and store as ignore_classes
+      def test_ignore_errors
+        with_config :'error_collector.ignore_errors' => 'TestExceptionA,TestExceptionC' do
+          @error_filter.reload
+          assert_equal :ignored, @error_filter.type_for_exception(TestExceptionA.new)
+          assert_nil @error_filter.type_for_exception(TestExceptionB.new)
+        end
+      end
 
-      # TODO: test - parses error_collector.expected_classes as Array
-      # TODO: test - parses error_collector.expected_messages as Hash
+      def test_expected_classes
+        with_config :'error_collector.expected_classes' => ['TestExceptionA', 'TestExceptionC'] do
+          @error_filter.reload
+          assert_equal :expected, @error_filter.type_for_exception(TestExceptionA.new)
+          assert_nil @error_filter.type_for_exception(TestExceptionB.new)
+        end
+      end
+
+      def test_expected_messages
+        with_config :'error_collector.expected_messages' => {'TestExceptionA' => ['message one', 'message two']} do
+          @error_filter.reload
+          assert_equal :expected, @error_filter.type_for_exception(TestExceptionA.new('message one'))
+          assert_equal :expected, @error_filter.type_for_exception(TestExceptionA.new('message two'))
+          assert_nil @error_filter.type_for_exception(TestExceptionA.new('message three'))
+          assert_nil @error_filter.type_for_exception(TestExceptionB.new('message one'))
+        end
+      end
+
       # TODO: test - parses error_collector.expected_status_codes as String
     end
   end

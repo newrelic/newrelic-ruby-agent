@@ -22,21 +22,17 @@ module NewRelic
         @error_trace_aggregator = ErrorTraceAggregator.new(MAX_ERROR_QUEUE_LENGTH)
         @error_event_aggregator = ErrorEventAggregator.new events
 
-        # lookup of exception class names to ignore.  Hash for fast access
-        @ignore = {}
+        @error_filter = NewRelic::Agent::ErrorFilter.new
 
-        initialize_ignored_errors(Agent.config[:'error_collector.ignore_errors'])
-
-        Agent.config.register_callback(:'error_collector.ignore_errors') do |ignore_errors|
-          initialize_ignored_errors(ignore_errors)
+        %w(
+          ignore_errors
+          ignore_classes ignore_messages ignore_status_codes
+          expected_classes expected_messages expected_status_codes
+        ).each do |w|
+          Agent.config.register_callback(:"error_collector.#{w}") do |_|
+            @error_filter.reload
+          end
         end
-      end
-
-      def initialize_ignored_errors(ignore_errors)
-        @ignore.clear
-        ignore_errors = ignore_errors.split(",") if ignore_errors.is_a? String
-        ignore_errors.each { |error| error.strip! }
-        ignore(ignore_errors)
       end
 
       def enabled?
