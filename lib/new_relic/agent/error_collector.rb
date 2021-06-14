@@ -74,19 +74,13 @@ module NewRelic
 
       # Checks the provided error against the error filter, if there
       # is an error filter
-      def filtered_by_error_filter?(error)
+      def ignored_by_filter_proc?(error)
         respond_to?(:ignore_filter_proc) && !ignore_filter_proc(error)
-      end
-
-      # Checks the array of error names and the error filter against
-      # the provided error
-      def filtered_error?(error)
-        @ignore[error.class.name] || filtered_by_error_filter?(error)
       end
 
       # an error is ignored if it is nil or if it is filtered
       def error_is_ignored?(error)
-        error && @error_filter.type_for_exception(error) == :ignored
+        error && (@error_filter.type_for_exception(error) == :ignored || ignored_by_filter_proc?(error))
       rescue => e
         NewRelic::Agent.logger.error("Error '#{error}' will NOT be ignored. Exception '#{e}' while determining whether to ignore or not.", e)
         false
@@ -254,7 +248,7 @@ module NewRelic
         noticed_error.line_number = sense_method(exception, :line_number)
         noticed_error.stack_trace = truncate_trace(extract_stack_trace(exception))
 
-        noticed_error.expected = !! options.delete(:expected)
+        noticed_error.expected = !!options.delete(:expected) || @error_filter.expected?(exception)
 
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
 

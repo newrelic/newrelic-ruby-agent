@@ -28,6 +28,49 @@ module NewRelic
           @ignored_classes.flatten!
         end
 
+        log_filters
+      end
+
+      # Takes an Exception object. Depending on whether the Agent is configured
+      # to treat the exception as Ignored, Expected or neither, returns :ignored,
+      # :expected or nil, respectively.
+      def type_for_exception(ex)
+        return nil unless ex.is_a?(Exception)
+        return :ignored if _ignored?(ex)
+        return :expected if _expected?(ex)
+        nil
+      end
+
+      # Define #ignored? and #expected? in this way so that any given exception
+      # cannot be both ignored and expected. Ignoring takes priority.
+
+      def ignored?(ex)
+        type_for_exception(ex) == :ignored
+      end
+
+      def expected?(ex)
+        type_for_exception(ex) == :expected
+      end
+
+      def fetch_agent_config(cfg)
+        NewRelic::Agent.config[:"error_collector.#{cfg}"]
+      end
+
+      private
+
+      def _ignored?(ex)
+        @ignored_classes.include?(ex.class.name) ||
+          @ignored_messages.keys.include?(ex.class.name) &&
+          @ignored_messages[ex.class.name].any? { |m| ex.message.include?(m) }
+      end
+
+      def _expected?(ex)
+        @expected_classes.include?(ex.class.name) ||
+          @expected_messages.keys.include?(ex.class.name) &&
+          @expected_messages[ex.class.name].any? { |m| ex.message.include?(m) }
+      end
+
+      def log_filters
         @ignored_classes.each do |c|
           ::NewRelic::Agent.logger.debug("Ignoring errors of type '#{c}'")
         end
@@ -43,34 +86,6 @@ module NewRelic
           ::NewRelic::Agent.logger.debug("Expecting errors of type '#{k}' with messages: " + v.join(', '))
         end
         ::NewRelic::Agent.logger.debug("Expecting status codes #{@expected_status_codes}") unless @expected_status_codes.empty?
-      end
-
-      # Takes an Exception object. Depending on whether the Agent is configured
-      # to treat the exception as Ignored, Expected or neither, returns :ignored,
-      # :expected or nil, respectively.
-      def type_for_exception(ex)
-        return nil unless ex.is_a?(Exception)
-        return :ignored if ignored?(ex)
-        return :expected if expected?(ex)
-        nil
-      end
-
-      def fetch_agent_config(cfg)
-        NewRelic::Agent.config[:"error_collector.#{cfg}"]
-      end
-
-      private
-
-      def ignored?(ex)
-        @ignored_classes.include?(ex.class.name) ||
-          @ignored_messages.keys.include?(ex.class.name) &&
-          @ignored_messages[ex.class.name].any? { |m| ex.message.include?(m) }
-      end
-
-      def expected?(ex)
-        @expected_classes.include?(ex.class.name) ||
-          @expected_messages.keys.include?(ex.class.name) &&
-          @expected_messages[ex.class.name].any? { |m| ex.message.include?(m) }
       end
     end
   end
