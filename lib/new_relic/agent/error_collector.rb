@@ -72,15 +72,6 @@ module NewRelic
         defined?(@ignore_filter) ? @ignore_filter : nil
       end
 
-      # errors is an array of Exception Class Names
-      #
-      def ignore(errors)
-        errors.each do |error|
-          @ignore[error] = true
-          ::NewRelic::Agent.logger.debug("Ignoring errors of type '#{error}'")
-        end
-      end
-
       # Checks the provided error against the error filter, if there
       # is an error filter
       def filtered_by_error_filter?(error)
@@ -95,7 +86,7 @@ module NewRelic
 
       # an error is ignored if it is nil or if it is filtered
       def error_is_ignored?(error)
-        error && filtered_error?(error)
+        error && @error_filter.type_for_exception(error) == :ignored
       rescue => e
         NewRelic::Agent.logger.error("Error '#{error}' will NOT be ignored. Exception '#{e}' while determining whether to ignore or not.", e)
         false
@@ -170,6 +161,13 @@ module NewRelic
         end
       end
 
+      def increment_expected_error_count!(state, exception)
+        stats_engine = NewRelic::Agent.agent.stats_engine
+        stats_engine.record_unscoped_metrics(state, ['ErrorsExpected/all']) do |stats|
+          stats.increment_count
+        end
+      end
+
       def skip_notice_error?(exception)
         disabled? ||
         error_is_ignored?(exception) ||
@@ -206,14 +204,15 @@ module NewRelic
 
       # See NewRelic::Agent.notice_error for options and commentary
       def notice_error(exception, options={}, span_id=nil)
-        # TODO - Filter ignored/expected errors here. This is where we should set options[:expected]
         return if skip_notice_error?(exception)
 
         tag_exception(exception)
 
         state = ::NewRelic::Agent::Tracer.state
 
-        unless options[:expected]
+        if options[:expected] || @error_filter.type_for_exception(exception) == :expected
+          increment_expected_error_count!(state, exception)
+        else
           increment_error_count!(state, exception, options)
         end
 
