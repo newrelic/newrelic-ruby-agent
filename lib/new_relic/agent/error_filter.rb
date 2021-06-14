@@ -27,6 +27,22 @@ module NewRelic
           @ignored_classes << ignore_errors.split(',').map!(&:strip)
           @ignored_classes.flatten!
         end
+
+        @ignored_classes.each do |c|
+          ::NewRelic::Agent.logger.debug("Ignoring errors of type '#{c}'")
+        end
+        @ignored_messages.each do |k,v|
+          ::NewRelic::Agent.logger.debug("Ignoring errors of type '#{k}' with messages: " + v.join(', '))
+        end
+        ::NewRelic::Agent.logger.debug("Ignoring status codes #{@ignored_status_codes}") unless @ignored_status_codes.empty?
+
+        @expected_classes.each do |c|
+          ::NewRelic::Agent.logger.debug("Expecting errors of type '#{c}'")
+        end
+        @expected_messages.each do |k,v|
+          ::NewRelic::Agent.logger.debug("Expecting errors of type '#{k}' with messages: " + v.join(', '))
+        end
+        ::NewRelic::Agent.logger.debug("Expecting status codes #{@expected_status_codes}") unless @expected_status_codes.empty?
       end
 
       # Takes an Exception object. Depending on whether the Agent is configured
