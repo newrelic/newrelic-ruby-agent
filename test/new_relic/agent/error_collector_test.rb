@@ -453,6 +453,7 @@ module NewRelic::Agent
         assert_equal 1, traces.length
         assert_equal 1, events.length
         assert_metrics_not_recorded ['Errors/all']
+        assert_metrics_recorded ['ErrorsExpected/all']
       end
 
       def test_expected_error_not_recorded_as_custom_attribute

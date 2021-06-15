@@ -263,7 +263,7 @@ module NewRelic
         noticed_error.line_number = sense_method(exception, :line_number)
         noticed_error.stack_trace = truncate_trace(extract_stack_trace(exception))
 
-        noticed_error.expected = !!options.delete(:expected) || @error_filter.expected?(exception)
+        noticed_error.expected = !!options.delete(:expected) || expected?(exception)
 
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
 
