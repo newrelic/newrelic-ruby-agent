@@ -25,12 +25,11 @@ module NewRelic
         @error_filter = NewRelic::Agent::ErrorFilter.new
 
         %w(
-          ignore_errors
-          ignore_classes ignore_messages ignore_status_codes
+          ignore_errors ignore_classes ignore_messages ignore_status_codes
           expected_classes expected_messages expected_status_codes
         ).each do |w|
-          Agent.config.register_callback(:"error_collector.#{w}") do |_|
-            @error_filter.reload
+          Agent.config.register_callback(:"error_collector.#{w}") do |value|
+            @error_filter.load_from_config(w, value)
           end
         end
       end
@@ -72,6 +71,22 @@ module NewRelic
         defined?(@ignore_filter) ? @ignore_filter : nil
       end
 
+      def ignore(errors)
+        @error_filter.ignore(errors)
+      end
+
+      def ignore?(ex)
+        @error_filter.ignore?(ex)
+      end
+
+      def expect(errors)
+        @error_filter.expect(errors)
+      end
+
+      def expected?(ex)
+        @error_filter.expected?(ex)
+      end
+
       # Checks the provided error against the error filter, if there
       # is an error filter
       def ignored_by_filter_proc?(error)
@@ -80,7 +95,7 @@ module NewRelic
 
       # an error is ignored if it is nil or if it is filtered
       def error_is_ignored?(error)
-        error && (@error_filter.type_for_exception(error) == :ignored || ignored_by_filter_proc?(error))
+        error && (@error_filter.ignore?(error) || ignored_by_filter_proc?(error))
       rescue => e
         NewRelic::Agent.logger.error("Error '#{error}' will NOT be ignored. Exception '#{e}' while determining whether to ignore or not.", e)
         false
@@ -204,7 +219,7 @@ module NewRelic
 
         state = ::NewRelic::Agent::Tracer.state
 
-        if options[:expected] || @error_filter.type_for_exception(exception) == :expected
+        if options[:expected] || @error_filter.expected?(exception)
           increment_expected_error_count!(state, exception)
         else
           increment_error_count!(state, exception, options)

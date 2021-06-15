@@ -1297,7 +1297,49 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => true,
-          :description => 'Specify a comma-delimited list of error classes that the agent should ignore.'
+          :description => 'DEPRECATED; use `error_collector.ignore_classes` instead. Specify a comma-delimited list of error classes that the agent should ignore.'
+        },
+        :'error_collector.ignore_classes' => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :allowed_from_server => true,
+          :description => 'A list of error classes that the agent should ignore.'
+        },
+        :'error_collector.ignore_messages' => {
+          :default => {},
+          :public => true,
+          :type => Hash,
+          :allowed_from_server => true,
+          :description => 'A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored.'
+        },
+        :'error_collector.ignore_status_codes' => {
+          :default => '',
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'A comma separated list of status codes, possibly including ranges. Errors associated with these status codes, where applicable, will be ignored.'
+        },
+        :'error_collector.expected_classes' => {
+          :default => [],
+          :public => true,
+          :type => Array,
+          :allowed_from_server => true,
+          :description => 'A list of error classes that the agent should treat as expected.'
+        },
+        :'error_collector.expected_messages' => {
+          :default => {},
+          :public => true,
+          :type => Hash,
+          :allowed_from_server => true,
+          :description => 'A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected.'
+        },
+        :'error_collector.expected_status_codes' => {
+          :default => '',
+          :public => true,
+          :type => String,
+          :allowed_from_server => true,
+          :description => 'A comma separated list of status codes, possibly including ranges. Errors associated with these status codes, where applicable, will be treated as expected.'
         },
         :'error_collector.max_backtrace_frames' => {
           :default => 50,

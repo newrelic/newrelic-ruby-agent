@@ -17,19 +17,19 @@ module NewRelic::Agent
 
       def test_ignore_classes
         with_config :'error_collector.ignore_classes' => ['TestExceptionA', 'TestExceptionC'] do
-          @error_filter.reload
-          assert @error_filter.ignored?(TestExceptionA.new)
-          refute @error_filter.ignored?(TestExceptionB.new)
+          @error_filter.load_all
+          assert @error_filter.ignore?(TestExceptionA.new)
+          refute @error_filter.ignore?(TestExceptionB.new)
         end
       end
 
       def test_ignore_messages
         with_config :'error_collector.ignore_messages' => {'TestExceptionA' => ['message one', 'message two']} do
-          @error_filter.reload
-          assert @error_filter.ignored?(TestExceptionA.new('message one'))
-          assert @error_filter.ignored?(TestExceptionA.new('message two'))
-          refute @error_filter.ignored?(TestExceptionA.new('message three'))
-          refute @error_filter.ignored?(TestExceptionB.new('message one'))
+          @error_filter.load_all
+          assert @error_filter.ignore?(TestExceptionA.new('message one'))
+          assert @error_filter.ignore?(TestExceptionA.new('message two'))
+          refute @error_filter.ignore?(TestExceptionA.new('message three'))
+          refute @error_filter.ignore?(TestExceptionB.new('message one'))
         end
       end
 
@@ -39,18 +39,18 @@ module NewRelic::Agent
       # - assert error_filter.for_status('509') == :ignore
       # - assert error_filter.for_status('500') == nil
 
-      # compatibility for deprecated config setting; split classes by ',' and store as ignore_classes
+      # compatibility for deprecated config setting
       def test_ignore_errors
         with_config :'error_collector.ignore_errors' => 'TestExceptionA,TestExceptionC' do
-          @error_filter.reload
-          assert @error_filter.ignored?(TestExceptionA.new)
-          refute @error_filter.ignored?(TestExceptionB.new)
+          @error_filter.load_all
+          assert @error_filter.ignore?(TestExceptionA.new)
+          refute @error_filter.ignore?(TestExceptionB.new)
         end
       end
 
       def test_expected_classes
         with_config :'error_collector.expected_classes' => ['TestExceptionA', 'TestExceptionC'] do
-          @error_filter.reload
+          @error_filter.load_all
           assert @error_filter.expected?(TestExceptionA.new)
           refute @error_filter.expected?(TestExceptionB.new)
         end
@@ -58,7 +58,7 @@ module NewRelic::Agent
 
       def test_expected_messages
         with_config :'error_collector.expected_messages' => {'TestExceptionA' => ['message one', 'message two']} do
-          @error_filter.reload
+          @error_filter.load_all
           assert @error_filter.expected?(TestExceptionA.new('message one'))
           assert @error_filter.expected?(TestExceptionA.new('message two'))
           refute @error_filter.expected?(TestExceptionA.new('message three'))

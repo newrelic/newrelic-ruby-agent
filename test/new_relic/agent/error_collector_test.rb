@@ -342,21 +342,25 @@ module NewRelic::Agent
       class ::AnError
       end
 
-      def test_filtered_error_positive
+      def test_ignore_error
+        error = AnError.new
         with_config(:'error_collector.ignore_errors' => 'AnError') do
-          error = AnError.new
-          assert @error_collector.filtered_error?(error)
+          assert @error_collector.ignore?(error)
         end
+        refute @error_collector.ignore?(error)
       end
 
-      def test_filtered_error_negative
+      def test_expected_classes
         error = AnError.new
-        refute @error_collector.filtered_error?(error)
+        with_config(:'error_collector.expected_classes' => ['AnError']) do
+          assert @error_collector.expected?(error)
+        end
+        refute @error_collector.expected?(error)
       end
 
       def test_filtered_by_error_filter_empty
         # should return right away when there's no filter
-        refute @error_collector.filtered_by_error_filter?(nil)
+        refute @error_collector.ignored_by_filter_proc?(nil)
       end
 
       def test_filtered_by_error_filter_positive
@@ -367,7 +371,7 @@ module NewRelic::Agent
         end
 
         error = StandardError.new
-        assert @error_collector.filtered_by_error_filter?(error)
+        assert @error_collector.ignored_by_filter_proc?(error)
 
         assert_equal error, saw_error
       end
@@ -380,7 +384,7 @@ module NewRelic::Agent
         end
 
         error = StandardError.new
-        refute @error_collector.filtered_by_error_filter?(error)
+        refute @error_collector.ignored_by_filter_proc?(error)
 
         assert_equal error, saw_error
       end
