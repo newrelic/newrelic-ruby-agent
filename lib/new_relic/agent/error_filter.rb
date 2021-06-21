@@ -48,17 +48,19 @@ module NewRelic
       # cannot be both ignored and expected when using type_for_exception.
       # Ignoring takes priority.
 
-      def ignore?(ex)
+      def ignore?(ex, status_code = nil)
         @ignore_classes.include?(ex.class.name) || 
           (@ignore_classes.empty? && @ignore_errors.include?(ex.class.name)) ||
-          @ignore_messages.keys.include?(ex.class.name) &&
-          @ignore_messages[ex.class.name].any? { |m| ex.message.include?(m) }
+          (@ignore_messages.keys.include?(ex.class.name) &&
+          @ignore_messages[ex.class.name].any? { |m| ex.message.include?(m) }) ||
+          @ignore_status_codes.include?(status_code.to_i)
       end
 
-      def expected?(ex)
+      def expected?(ex, status_code = nil)
         @expected_classes.include?(ex.class.name) ||
-        @expected_messages.keys.include?(ex.class.name) &&
-        @expected_messages[ex.class.name].any? { |m| ex.message.include?(m) }
+        (@expected_messages.keys.include?(ex.class.name) &&
+        @expected_messages[ex.class.name].any? { |m| ex.message.include?(m) }) ||
+        @expected_status_codes.include?(status_code.to_i)
       end
 
       def fetch_agent_config(cfg)
@@ -75,7 +77,7 @@ module NewRelic
           log_filter(:ignore_messages, errors)
         when String
           if errors.match(/^[\d\,\-]+$/)
-            @ignore_status_codes += parse_status_codes(errors)  # TODO: convert this value to a Hash
+            @ignore_status_codes += parse_status_codes(errors)
           else
             new_ignore_classes = errors.split(',').map!(&:strip)
             @ignore_classes += new_ignore_classes
@@ -131,8 +133,20 @@ module NewRelic
       end
 
       def parse_status_codes(code_string)
-        # TODO: implement
-        []
+        result = []
+        code_string.to_s.split(',').each do |code|
+          m = code.match(/(\d{3})(-\d{3})?/)
+          if m.nil? || m[1].nil?
+            ::NewRelic::Agent.logger.warn("Invalid HTTP status code string: '#{code_string}'; ignoring config")
+            return []
+          end
+          if m[2]
+            result += (m[1]..m[2].tr('-', '')).to_a.map(&:to_i)
+          else
+            result << m[1].to_i
+          end
+        end
+        result.uniq
       end
     end
   end

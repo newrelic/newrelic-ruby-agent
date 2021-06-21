@@ -75,16 +75,16 @@ module NewRelic
         @error_filter.ignore(errors)
       end
 
-      def ignore?(ex)
-        @error_filter.ignore?(ex)
+      def ignore?(ex, status_code = nil)
+        @error_filter.ignore?(ex, status_code)
       end
 
       def expect(errors)
         @error_filter.expect(errors)
       end
 
-      def expected?(ex)
-        @error_filter.expected?(ex)
+      def expected?(ex, status_code = nil)
+        @error_filter.expected?(ex, status_code)
       end
 
       # Checks the provided error against the error filter, if there
@@ -94,8 +94,8 @@ module NewRelic
       end
 
       # an error is ignored if it is nil or if it is filtered
-      def error_is_ignored?(error)
-        error && (@error_filter.ignore?(error) || ignored_by_filter_proc?(error))
+      def error_is_ignored?(error, status_code = nil)
+        error && (@error_filter.ignore?(error, status_code) || ignored_by_filter_proc?(error))
       rescue => e
         NewRelic::Agent.logger.error("Error '#{error}' will NOT be ignored. Exception '#{e}' while determining whether to ignore or not.", e)
         false
@@ -177,9 +177,9 @@ module NewRelic
         end
       end
 
-      def skip_notice_error?(exception)
+      def skip_notice_error?(exception, status_code = nil)
         disabled? ||
-        error_is_ignored?(exception) ||
+        error_is_ignored?(exception, status_code) ||
         exception.nil? ||
         exception_tagged_with?(EXCEPTION_TAG_IVAR, exception)
       end
@@ -213,13 +213,15 @@ module NewRelic
 
       # See NewRelic::Agent.notice_error for options and commentary
       def notice_error(exception, options={}, span_id=nil)
-        return if skip_notice_error?(exception)
+        state = ::NewRelic::Agent::Tracer.state
+        transaction = state.current_transaction
+        status_code = transaction ? transaction.http_response_code : nil
+
+        return if skip_notice_error?(exception, status_code)
 
         tag_exception(exception)
 
-        state = ::NewRelic::Agent::Tracer.state
-
-        if options[:expected] || @error_filter.expected?(exception)
+        if options[:expected] || @error_filter.expected?(exception, status_code)
           increment_expected_error_count!(state, exception)
         else
           increment_error_count!(state, exception, options)

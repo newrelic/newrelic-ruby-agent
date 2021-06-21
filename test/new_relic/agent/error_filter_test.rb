@@ -33,11 +33,22 @@ module NewRelic::Agent
         end
       end
 
-      # TODO: test - parses error_collector.ignore_status_codes as String
-      # - as above: error_collector.ignore_status_codes = "404,507-511"
-      # - assert error_filter.for_status('404') == :ignore
-      # - assert error_filter.for_status('509') == :ignore
-      # - assert error_filter.for_status('500') == nil
+      def test_ignore_status_codes
+        with_config :'error_collector.ignore_status_codes' => '401,405-412,500' do
+          @error_filter.load_all
+          assert @error_filter.ignore?(TestExceptionA.new, 401)
+          assert @error_filter.ignore?(TestExceptionA.new, 409)
+          refute @error_filter.ignore?(TestExceptionA.new, 404)
+        end
+      end
+
+      def test_skip_invalid_status_codes
+        with_config :'error_collector.ignore_status_codes' => '401,sausage,foo-bar,500' do
+          @error_filter.load_all
+          refute @error_filter.ignore?(TestExceptionA.new, 400)
+          refute @error_filter.ignore?(TestExceptionA.new, 401)
+        end
+      end
 
       # compatibility for deprecated config setting
       def test_ignore_errors
@@ -46,6 +57,12 @@ module NewRelic::Agent
           assert @error_filter.ignore?(TestExceptionA.new)
           refute @error_filter.ignore?(TestExceptionB.new)
         end
+      end
+
+      def test_ignore_from_string
+        @error_filter.ignore('TestExceptionA,TestExceptionC')
+        assert @error_filter.ignore?(TestExceptionA.new)
+        refute @error_filter.ignore?(TestExceptionB.new)
       end
 
       def test_expected_classes
@@ -66,7 +83,14 @@ module NewRelic::Agent
         end
       end
 
-      # TODO: test - parses error_collector.expected_status_codes as String
+      def test_expected_status_codes
+        with_config :'error_collector.expected_status_codes' => '401,405-412,500' do
+          @error_filter.load_all
+          assert @error_filter.expected?(TestExceptionA.new, 401)
+          assert @error_filter.expected?(TestExceptionA.new, 409)
+          refute @error_filter.expected?(TestExceptionA.new, 404)
+        end
+      end
     end
   end
 end
