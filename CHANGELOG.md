@@ -1,5 +1,21 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v7.2.0
+
+
+  * **Bugfix: resolves "can't add a new key into hash during iteration" Errors**
+
+    Thanks to @wyhaines for this fix that prevents "can't add a new key into hash during iteration" errors from occuring when iterating over environment data.
+
+  * **Bugfix: kwarg support fixed for Rack middleware instrumentation**
+   
+    Thanks to @walro for submitting this fix. This fixes the rack instrumentation when using kwargs. 
+
+  * **Update known conflicts with use of Module#Prepend**
+
+    With our release of v7.0.0, we updated our instrumentation to use Module#Prepend by default, instead of method chaining. We have received reports of conflicts and added a check for these known conflicts. If a known conflict with prepend is detected while using the default value of 'auto' for gem instrumentation, the agent will instead install method chaining instrumentation in order to avoid this conflict. This check can be bypassed by setting the instrumentation method for the gem to 'prepend'.
+
+
   ## v7.1.0
 
   * **Add support for CSP nonces when using our API to insert the browser agent**
