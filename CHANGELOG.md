@@ -2,6 +2,15 @@
 
   ## v7.2.0
 
+  * **Expected Errors and Ignore Errors**
+    This release adds support for configuration for expected/ignored errors by class name, status code, and message. The following configuration options are now available:
+    - `error_collector.ignore_classes`
+    - `error_collector.ignore_messages`
+    - `error_collector.ignore_status_codes`
+    - `error_collector.expected_classes`
+    - `error_collector.expected_messages`
+    - `error_collector.expected_status_codes`
+    For more details about expected and ignored errors, please see our [configuration documentation](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/)
 
   * **Bugfix: resolves "can't add a new key into hash during iteration" Errors**
 
