@@ -44,10 +44,6 @@ module NewRelic
         log_filter(setting, errors)
       end
 
-      # Define #ignored? and #expected? in this way so that any given exception
-      # cannot be both ignored and expected when using type_for_exception.
-      # Ignoring takes priority.
-
       def ignore?(ex, status_code = nil)
         @ignore_classes.include?(ex.class.name) || 
           (@ignore_classes.empty? && @ignore_errors.include?(ex.class.name)) ||
@@ -78,6 +74,7 @@ module NewRelic
         when String
           if errors.match(/^[\d\,\-]+$/)
             @ignore_status_codes += parse_status_codes(errors)
+            log_filter(:ignore_status_codes, errors)
           else
             new_ignore_classes = errors.split(',').map!(&:strip)
             @ignore_classes += new_ignore_classes
@@ -97,6 +94,7 @@ module NewRelic
         when String
           if errors.match(/^[\d\,\-]+$/)
             @expected_status_codes += parse_status_codes(errors)
+            log_filter(:expected_status_codes, errors)
           else
             new_expected_classes = errors.split(',').map!(&:strip)
             @expected_classes += new_expected_classes
@@ -132,12 +130,13 @@ module NewRelic
         end
       end
 
-      def parse_status_codes(code_string)
+      def parse_status_codes(codes)
+        code_list = codes.is_a?(String) ? codes.split(',') : codes
         result = []
-        code_string.to_s.split(',').each do |code|
+        code_list.each do |code|
           m = code.match(/(\d{3})(-\d{3})?/)
           if m.nil? || m[1].nil?
-            ::NewRelic::Agent.logger.warn("Invalid HTTP status code string: '#{code_string}'; ignoring config")
+            ::NewRelic::Agent.logger.warn("Invalid HTTP status code: '#{code}'; ignoring config")
             return []
           end
           if m[2]

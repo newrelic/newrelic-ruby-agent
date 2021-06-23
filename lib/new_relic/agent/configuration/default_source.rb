@@ -1306,7 +1306,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'A list of error classes that the agent should ignore.'
+          :description => 'A list of error classes that the agent should ignore. *Note: this setting cannot be set via environment variable.*'
         },
         :'error_collector.ignore_messages' => {
           :default => {},
@@ -1314,7 +1314,7 @@ module NewRelic
           :type => Hash,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored.'
+          :description => 'A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored. *Note: this setting cannot be set via environment variable.*'
         },
         :'error_collector.ignore_status_codes' => {
           :default => '',
@@ -1330,7 +1330,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'A list of error classes that the agent should treat as expected.'
+          :description => 'A list of error classes that the agent should treat as expected. *Note: this setting cannot be set via environment variable.*'
         },
         :'error_collector.expected_messages' => {
           :default => {},
@@ -1338,7 +1338,7 @@ module NewRelic
           :type => Hash,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected.'
+          :description => 'A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be treated as expected. *Note: this setting cannot be set via environment variable.*'
         },
         :'error_collector.expected_status_codes' => {
           :default => '',
