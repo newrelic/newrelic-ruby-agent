@@ -10,6 +10,10 @@ module NewRelic
     class ErrorFilter
 
       def initialize
+        reset
+      end
+
+      def reset
         @ignore_errors, @ignore_classes, @expected_classes = [], [], []
         @ignore_messages, @expected_messages = {}, {}
         @ignore_status_codes, @expected_status_codes = [], []
@@ -63,42 +67,48 @@ module NewRelic
         NewRelic::Agent.config[:"error_collector.#{cfg}"]
       end
 
-      def ignore(errors)
-        case errors
-        when Array
-          @ignore_classes += errors
-          log_filter(:ignore_classes, errors)
-        when Hash
-          @ignore_messages.update(errors)
-          log_filter(:ignore_messages, errors)
-        when String
-          if errors.match(/^[\d\,\-]+$/)
-            @ignore_status_codes += parse_status_codes(errors)
-            log_filter(:ignore_status_codes, errors)
-          else
-            new_ignore_classes = errors.split(',').map!(&:strip)
-            @ignore_classes += new_ignore_classes
-            log_filter(:ignore_classes, new_ignore_classes)
+      # A generic method for adding ignore filters manually. This is kept for compatibility
+      # with the previous ErrorCollector#ignore method, and adds some flexibility for adding
+      # different ignore/expected error types by examining each argument.
+      def ignore(*args)
+        args.each do |errors|
+          case errors
+          when Array
+            errors.each { |e| ignore(e) }
+          when Hash
+            @ignore_messages.update(errors)
+            log_filter(:ignore_messages, errors)
+          when String
+            if errors.match(/^[\d\,\-]+$/)
+              @ignore_status_codes |= parse_status_codes(errors)
+              log_filter(:ignore_status_codes, errors)
+            else
+              new_ignore_classes = errors.split(',').map!(&:strip)
+              @ignore_classes |= new_ignore_classes
+              log_filter(:ignore_classes, new_ignore_classes)
+            end
           end
         end
       end
 
-      def expect(errors)
-        case errors
-        when Array
-          @expected_classes += errors
-          log_filter(:expected_classes, errors)
-        when Hash
-          @expected_messages.update(errors)
-          log_filter(:expected_messages, errors)
-        when String
-          if errors.match(/^[\d\,\-]+$/)
-            @expected_status_codes += parse_status_codes(errors)
-            log_filter(:expected_status_codes, errors)
-          else
-            new_expected_classes = errors.split(',').map!(&:strip)
-            @expected_classes += new_expected_classes
-            log_filter(:expected_classes, new_expected_classes)
+      # See #ignore above.
+      def expect(*args)
+        args.each do |errors|
+          case errors
+          when Array
+            errors.each { |e| expect(e) }
+          when Hash
+            @expected_messages.update(errors)
+            log_filter(:expected_messages, errors)
+          when String
+            if errors.match(/^[\d\,\-]+$/)
+              @expected_status_codes |= parse_status_codes(errors)
+              log_filter(:expected_status_codes, errors)
+            else
+              new_expected_classes = errors.split(',').map!(&:strip)
+              @expected_classes |= new_expected_classes
+              log_filter(:expected_classes, new_expected_classes)
+            end
           end
         end
       end
@@ -137,7 +147,7 @@ module NewRelic
           m = code.match(/(\d{3})(-\d{3})?/)
           if m.nil? || m[1].nil?
             ::NewRelic::Agent.logger.warn("Invalid HTTP status code: '#{code}'; ignoring config")
-            return []
+            next
           end
           if m[2]
             result += (m[1]..m[2].tr('-', '')).to_a.map(&:to_i)

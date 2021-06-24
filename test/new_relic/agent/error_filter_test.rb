@@ -6,6 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 class TestExceptionA < StandardError; end
 class TestExceptionB < StandardError; end
+class TestExceptionC < StandardError; end
 
 module NewRelic::Agent
   class ErrorFilter
@@ -34,19 +35,58 @@ module NewRelic::Agent
       end
 
       def test_ignore_status_codes
-        with_config :'error_collector.ignore_status_codes' => '401,405-412,500' do
+        with_config :'error_collector.ignore_status_codes' => '401,405-409,501' do
           @error_filter.load_all
           assert @error_filter.ignore?(TestExceptionA.new, 401)
-          assert @error_filter.ignore?(TestExceptionA.new, 409)
+          assert @error_filter.ignore?(TestExceptionA.new, 501)
+          (405..409).each do |c|
+            assert @error_filter.ignore?(TestExceptionA.new, c)
+          end
           refute @error_filter.ignore?(TestExceptionA.new, 404)
         end
+      end
+
+      def test_ignore_status_codes_by_array
+        with_config :'error_collector.ignore_status_codes' => ['401', '405-409', '501'] do
+          @error_filter.load_all
+          assert @error_filter.ignore?(TestExceptionA.new, 401)
+          assert @error_filter.ignore?(TestExceptionA.new, 501)
+          (405..409).each do |c|
+            assert @error_filter.ignore?(TestExceptionA.new, c)
+          end
+          refute @error_filter.ignore?(TestExceptionA.new, 404)
+        end
+      end
+
+      def test_ignore_method
+        @error_filter.ignore('TestExceptionA', ['ArgumentError'])
+        assert @error_filter.ignore?(TestExceptionA.new)
+        assert @error_filter.ignore?(ArgumentError.new)
+        refute @error_filter.ignore?(TestExceptionB.new)
+
+        @error_filter.ignore('TestExceptionB', {'TestExceptionC' => ['message one', 'message two']})
+        assert @error_filter.ignore?(TestExceptionB.new)
+        assert @error_filter.ignore?(TestExceptionC.new('message one'))
+        assert @error_filter.ignore?(TestExceptionC.new('message two'))
+        refute @error_filter.ignore?(TestExceptionC.new('message three'))
+
+        @error_filter.reset
+        refute @error_filter.ignore?(TestExceptionA.new)
+
+        @error_filter.ignore('401,405-409', ['500', '505-509'])
+        assert @error_filter.ignore?(TestExceptionA.new, 401)
+        assert @error_filter.ignore?(TestExceptionA.new, 407)
+        assert @error_filter.ignore?(TestExceptionA.new, 500)
+        assert @error_filter.ignore?(TestExceptionA.new, 507)
+        refute @error_filter.ignore?(TestExceptionA.new, 404)
       end
 
       def test_skip_invalid_status_codes
         with_config :'error_collector.ignore_status_codes' => '401,sausage,foo-bar,500' do
           @error_filter.load_all
           refute @error_filter.ignore?(TestExceptionA.new, 400)
-          refute @error_filter.ignore?(TestExceptionA.new, 401)
+          assert @error_filter.ignore?(TestExceptionA.new, 401)
+          assert @error_filter.ignore?(TestExceptionA.new, 500)
         end
       end
 
@@ -57,12 +97,6 @@ module NewRelic::Agent
           assert @error_filter.ignore?(TestExceptionA.new)
           refute @error_filter.ignore?(TestExceptionB.new)
         end
-      end
-
-      def test_ignore_from_string
-        @error_filter.ignore('TestExceptionA,TestExceptionC')
-        assert @error_filter.ignore?(TestExceptionA.new)
-        refute @error_filter.ignore?(TestExceptionB.new)
       end
 
       def test_expected_classes
@@ -84,13 +118,40 @@ module NewRelic::Agent
       end
 
       def test_expected_status_codes
-        with_config :'error_collector.expected_status_codes' => '401,405-412,500' do
+        with_config :'error_collector.expected_status_codes' => '401,405-409,501' do
           @error_filter.load_all
           assert @error_filter.expected?(TestExceptionA.new, 401)
-          assert @error_filter.expected?(TestExceptionA.new, 409)
+          assert @error_filter.expected?(TestExceptionA.new, 501)
+          (405..409).each do |c|
+            assert @error_filter.expected?(TestExceptionA.new, c)
+          end
           refute @error_filter.expected?(TestExceptionA.new, 404)
         end
       end
+
+      def test_expect_method
+        @error_filter.expect('TestExceptionA', ['ArgumentError'])
+        assert @error_filter.expected?(TestExceptionA.new)
+        assert @error_filter.expected?(ArgumentError.new)
+        refute @error_filter.expected?(TestExceptionB.new)
+
+        @error_filter.expect('TestExceptionB', {'TestExceptionC' => ['message one', 'message two']})
+        assert @error_filter.expected?(TestExceptionB.new)
+        assert @error_filter.expected?(TestExceptionC.new('message one'))
+        assert @error_filter.expected?(TestExceptionC.new('message two'))
+        refute @error_filter.expected?(TestExceptionC.new('message three'))
+
+        @error_filter.reset
+        refute @error_filter.expected?(TestExceptionA.new)
+
+        @error_filter.expect('401,405-409', ['500', '505-509'])
+        assert @error_filter.expected?(TestExceptionA.new, 401)
+        assert @error_filter.expected?(TestExceptionA.new, 407)
+        assert @error_filter.expected?(TestExceptionA.new, 500)
+        assert @error_filter.expected?(TestExceptionA.new, 507)
+        refute @error_filter.expected?(TestExceptionA.new, 404)
+      end
+
     end
   end
 end

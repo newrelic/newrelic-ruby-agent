@@ -350,6 +350,17 @@ module NewRelic::Agent
         refute @error_collector.ignore?(error)
       end
 
+      def test_ignored_and_expected_error_is_ignored
+        error = AnError.new
+        with_config(:'error_collector.ignore_classes' => ['AnError'],
+                    :'error_collector.expected_classes' => ['AnError']) do
+          @error_collector.notice_error(AnError.new)
+
+          events = harvest_error_events
+          assert_equal 0, events.length
+        end
+      end
+
       def test_ignore_status_codes
         error = AnError.new
         with_config(:'error_collector.ignore_status_codes' => '400-408') do
