@@ -47,7 +47,7 @@ module NewRelic::Agent
       end
 
       def test_ignore_status_codes_by_array
-        with_config :'error_collector.ignore_status_codes' => ['401', '405-409', '501'] do
+        with_config :'error_collector.ignore_status_codes' => ['401', '405-409', 501] do
           @error_filter.load_all
           assert @error_filter.ignore?(TestExceptionA.new, 401)
           assert @error_filter.ignore?(TestExceptionA.new, 501)
@@ -73,7 +73,7 @@ module NewRelic::Agent
         @error_filter.reset
         refute @error_filter.ignore?(TestExceptionA.new)
 
-        @error_filter.ignore('401,405-409', ['500', '505-509'])
+        @error_filter.ignore('401,405-409', [500, '505-509'])
         assert @error_filter.ignore?(TestExceptionA.new, 401)
         assert @error_filter.ignore?(TestExceptionA.new, 407)
         assert @error_filter.ignore?(TestExceptionA.new, 500)
@@ -152,6 +152,14 @@ module NewRelic::Agent
         refute @error_filter.expected?(TestExceptionA.new, 404)
       end
 
+      def test_empty_settings_do_not_overwrite_existing_settings
+        @error_filter.expect(['TestExceptionA'])
+
+        with_config 'error_collector.expected_classes' => [] do
+          @error_filter.load_all
+          assert @error_filter.expected?(TestExceptionA.new)
+        end
+      end
     end
   end
 end
