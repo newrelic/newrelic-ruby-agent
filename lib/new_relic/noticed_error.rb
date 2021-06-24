@@ -33,7 +33,7 @@ class NewRelic::NoticedError
   ERROR_CLASS_KEY    = "#{ERROR_PREFIX_KEY}.class"
   ERROR_EXPECTED_KEY = "#{ERROR_PREFIX_KEY}.expected"
 
-  def initialize(path, exception, timestamp = Time.now)
+  def initialize(path, exception, timestamp = Time.now, expected = false)
     @exception_id = exception.object_id
     @path = path
 
@@ -58,7 +58,7 @@ class NewRelic::NoticedError
     @attributes_from_notice_error = nil
     @attributes = nil
     @timestamp = timestamp
-    @expected = false
+    @expected = expected
   end
 
   def ==(other)
@@ -104,7 +104,7 @@ class NewRelic::NoticedError
     params[:file_name]        = file_name   if file_name
     params[:line_number]      = line_number if line_number
     params[:stack_trace]      = stack_trace if stack_trace
-    params[:'error.expected'] = expected
+    params[ERROR_EXPECTED_KEY.to_sym] = expected
     params
   end
 
