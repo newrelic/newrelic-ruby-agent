@@ -368,14 +368,6 @@ module NewRelic::Agent
         end
       end
 
-      def test_expected_classes
-        error = AnError.new
-        with_config(:'error_collector.expected_classes' => ['AnError']) do
-          assert @error_collector.expected?(error)
-        end
-        refute @error_collector.expected?(error)
-      end
-
       def test_filtered_by_error_filter_empty
         # should return right away when there's no filter
         refute @error_collector.ignored_by_filter_proc?(nil)
