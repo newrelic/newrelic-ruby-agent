@@ -318,7 +318,6 @@ module NewRelic::Agent
       def test_skip_notice_error_is_true_if_the_error_is_nil
         error = nil
         with_config(:'error_collector.enabled' => true) do
-          @error_collector.expects(:error_is_ignored?).with(error, nil).returns(false)
           assert @error_collector.skip_notice_error?(error)
         end
       end
@@ -366,14 +365,6 @@ module NewRelic::Agent
         with_config(:'error_collector.ignore_status_codes' => '400-408') do
           assert @error_collector.ignore?(error, 404)
         end
-      end
-
-      def test_expected_classes
-        error = AnError.new
-        with_config(:'error_collector.expected_classes' => ['AnError']) do
-          assert @error_collector.expected?(error)
-        end
-        refute @error_collector.expected?(error)
       end
 
       def test_filtered_by_error_filter_empty

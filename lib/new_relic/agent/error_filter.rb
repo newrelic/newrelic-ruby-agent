@@ -14,7 +14,7 @@ module NewRelic
       end
 
       def reset
-        @ignore_errors, @ignore_classes, @expected_classes = [], [], []
+        @ignore_classes, @expected_classes = [], []
         @ignore_messages, @expected_messages = {}, {}
         @ignore_status_codes, @expected_status_codes = [], []
       end
@@ -29,11 +29,12 @@ module NewRelic
       def load_from_config(setting, value = nil)
         errors = nil
         new_value = value || fetch_agent_config(setting.to_sym)
+        return if new_value.nil? || new_value.empty?
+
         case setting.to_sym
-        when :ignore_errors  # Deprecated; only use if ignore_classes isn't present
-          errors = @ignore_errors = new_value.to_s.split(',').map!(&:strip)
-        when :ignore_classes
-          errors = @ignore_classes = new_value || []
+        when :ignore_errors, :ignore_classes
+          new_value = new_value.split(',').map!(&:strip) if new_value.is_a?(String)
+          errors = @ignore_classes = new_value
         when :ignore_messages
           errors = @ignore_messages = new_value || {}
         when :ignore_status_codes
@@ -45,12 +46,11 @@ module NewRelic
         when :expected_status_codes
           errors = @expected_status_codes = parse_status_codes(new_value) || []
         end
-        log_filter(setting, errors)
+        log_filter(setting, errors) if errors
       end
 
       def ignore?(ex, status_code = nil)
         @ignore_classes.include?(ex.class.name) || 
-          (@ignore_classes.empty? && @ignore_errors.include?(ex.class.name)) ||
           (@ignore_messages.keys.include?(ex.class.name) &&
           @ignore_messages[ex.class.name].any? { |m| ex.message.include?(m) }) ||
           @ignore_status_codes.include?(status_code.to_i)
@@ -58,9 +58,9 @@ module NewRelic
 
       def expected?(ex, status_code = nil)
         @expected_classes.include?(ex.class.name) ||
-        (@expected_messages.keys.include?(ex.class.name) &&
-        @expected_messages[ex.class.name].any? { |m| ex.message.include?(m) }) ||
-        @expected_status_codes.include?(status_code.to_i)
+          (@expected_messages.keys.include?(ex.class.name) &&
+          @expected_messages[ex.class.name].any? { |m| ex.message.include?(m) }) ||
+          @expected_status_codes.include?(status_code.to_i)
       end
 
       def fetch_agent_config(cfg)
@@ -75,6 +75,8 @@ module NewRelic
           case errors
           when Array
             errors.each { |e| ignore(e) }
+          when Integer
+            @ignore_status_codes << errors
           when Hash
             @ignore_messages.update(errors)
             log_filter(:ignore_messages, errors)
@@ -97,6 +99,8 @@ module NewRelic
           case errors
           when Array
             errors.each { |e| expect(e) }
+          when Integer
+            @expected_status_codes << errors
           when Hash
             @expected_messages.update(errors)
             log_filter(:expected_messages, errors)
@@ -144,6 +148,7 @@ module NewRelic
         code_list = codes.is_a?(String) ? codes.split(',') : codes
         result = []
         code_list.each do |code|
+          result << code && next if code.is_a?(Integer)
           m = code.match(/(\d{3})(-\d{3})?/)
           if m.nil? || m[1].nil?
             ::NewRelic::Agent.logger.warn("Invalid HTTP status code: '#{code}'; ignoring config")
