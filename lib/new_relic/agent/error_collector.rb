@@ -87,6 +87,14 @@ module NewRelic
         @error_filter.expected?(ex, status_code)
       end
 
+      def load_error_filters
+        @error_filter.load_all
+      end
+
+      def reset_error_filters
+        @error_filter.reset
+      end
+
       # Checks the provided error against the error filter, if there
       # is an error filter
       def ignored_by_filter_proc?(error)
@@ -179,9 +187,9 @@ module NewRelic
 
       def skip_notice_error?(exception, status_code = nil)
         disabled? ||
-        error_is_ignored?(exception, status_code) ||
         exception.nil? ||
-        exception_tagged_with?(EXCEPTION_TAG_IVAR, exception)
+        exception_tagged_with?(EXCEPTION_TAG_IVAR, exception) ||
+        error_is_ignored?(exception, status_code)
       end
 
       # calls a method on an object, if it responds to it - used for

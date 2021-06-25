@@ -318,7 +318,6 @@ module NewRelic::Agent
       def test_skip_notice_error_is_true_if_the_error_is_nil
         error = nil
         with_config(:'error_collector.enabled' => true) do
-          @error_collector.expects(:error_is_ignored?).with(error, nil).returns(false)
           assert @error_collector.skip_notice_error?(error)
         end
       end
