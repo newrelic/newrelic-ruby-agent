@@ -19,9 +19,22 @@ common: &default_settings
   # To disable the agent regardless of other settings, uncomment the following:
   # agent_enabled: false
 
-  # Logging level for log/newrelic_agent.log
+  # Logging level for log/newrelic_agent.log; options are error, warn, info, or debug.
   log_level: info
 
+  # All of the following configuration options are optional. Review them, and uncomment or
+  # edit them if they appear relevant to your application needs.
+
+  # The Entity GUID for the entity that is running this agent.
+  # entity_guid: nil
+
+  # If true, enables high security mode. Ensure that you understand the implication of enabling
+  # high security mode before enabling this setting.
+  # https://docs.newrelic.com/docs/agents/manage-apm-agents/configuration/high-security-mode/
+  # high_security: false
+  
+  # When set to true, the agent transmits data about your app to the New Relic collector.
+  # monitor_mode: true
 
 # Environment-specific settings are in this section.
 # RAILS_ENV or RACK_ENV (as appropriate) is used to determine the environment.
