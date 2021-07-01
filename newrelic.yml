@@ -25,16 +25,173 @@ common: &default_settings
   # All of the following configuration options are optional. Review them, and uncomment or
   # edit them if they appear relevant to your application needs.
 
+  # If true, enables analytics event sampling.
+  # analytics_events.enabled: true
+
+  # Defines the maximum number of request events reported from a single harvest.
+  # analytics_events.max_samples_stored: 1200
+
+  # 
+
+  # Backports the faster ActiveRecord connection lookup introduced in Rails 6, which
+  # improves agent performance when instrumenting ActiveRecord. Note that this setting
+  # may not be compatible with other gems that patch ActiveRecord.
+  # backport_fast_active_record_connection_lookup: false
+
+  # This is true by default, this enables auto-injection of the JavaScript header for
+  # page load timing (sometimes referred to as real user monitoring or RUM).
+  # browser_monitoring.auto_instument: true
+
+  # Enable or disable the capture of memcache keys from transaction traces.
+  # capture_memcache_keys: false
+
+  # Manual override for the path to your local CA bundle. This CA bundle will be used
+  # to validate the SSL certificate presented by New Relic's data collection service.
+  # ca_bundle_path:
+
+  # When true, the agent captures HTTP request parameters and attaches them to transaction
+  # traces, traced errors, and TransactionError events.
+  # When using the capture_params setting, the Ruby agent will not attempt to filter secret
+  # information. Recommendation: To filter secret information from request parameters,
+  # use the attributes.include setting instead. For more information, see the Ruby attribute
+  # examples.
+  # capture_params: false
+
+  # If true, the agent will clear Tracer::State in Agent.drop_buffered_data.
+  # clear_transaction_state_after_fork: false
+
+  # Path to newrelic.yml. If undefined, the agent checks the following directories (in order):
+  # config/newrelic.yml, newrelic.yml, $HOME/.newrelic/newrelic.yml and $HOME/newrelic.yml.
+  # config_path:
+
+  # If false, the agent will not report datastore instance metrics, nor add host or
+  # port_path_or_id parameters to transaction or slow SQL traces.
+  # datastore_tracer.instance_reporting.enabled: true 
+
+  # If false, the agent will not add database_name parameter to transaction or slow sql
+  # traces.
+  # datastore_tracer.database_name_reporting.enabled: true
+
   # The Entity GUID for the entity that is running this agent.
   # entity_guid: nil
+
+  # If true, the agent captures traced errors and error count metrics.
+  # error_collector.enabled: true
+
+  # Specify a comma-delimited list of error classes that the agent should ignore.
+  #
+  # CAUTION
+  # Server side configuration takes precedence for this setting over all environment
+  # configurations. This differs from all other configuration settings where environment
+  # variable take precedence over server side configuration.
+  # error_collector.ignore_errors: "ActionController::RoutingError,Sinatra::NotFound"
+
+  # Defines the maximum number of frames in an error backtrace. Backtraces over this amount
+  # are truncated at the beginning and end.
+  # error_collector.max_backtrace_frames: 50
+
+  # If true, the agent collects TransactionError events.
+  # error_collector.capture_events: true
+
+  # Defines the maximum number of TransactionError events sent to Insights per harvest cycle.
+  # error_collector.max_event_samples_stored: 100
+
+  # Allows newrelic distributed tracing headers to be suppressed on outbound requests.
+  # exclude_newrelic_header: false
+
+  # Forces the exit handler that sends all cached data to collector before shutting down
+  # to be installed regardless of detecting scenarios where it generally should not be.
+  # Known use-case for this option is where Sinatra is running as an embedded service within
+  # another framework and the agent is detecting the Sinatra app and skipping the at_exit
+  # handler as a result. Sinatra classically runs the entire application in an at_exit
+  # block and would otherwise misbehave if the Agent's at_exit handler was also installed
+  # in those circumstances. Note: send_data_on_exit should also be set to true in tandem
+  # with this setting.
+  # force_install_exit_handler: false
 
   # If true, enables high security mode. Ensure that you understand the implication of enabling
   # high security mode before enabling this setting.
   # https://docs.newrelic.com/docs/agents/manage-apm-agents/configuration/high-security-mode/
   # high_security: false
   
+  # Configures the hostname for the Trace Observer Host. When configured, enables tail-based sampling by sending all recorded spans to a Trace Observer for further sampling decisions, irrespective of any usual agent sampling decision.
+  # infinite_tracing.trace_observer.host: ""
+
+  # Configures the TCP/IP port for the Trace Observer Host
+  # infinite_tracing.trace_observer.port: 443
+
+  # A dictionary of label names and values that will be applied to the data sent from this
+  # agent. May also be expressed as
+  #
+  # a semicolon-delimited ; string of colon-separated : pairs.
+  # For example, 
+  # <var>Server</var>:<var>One</var>;<var>Data Center</var>:<var>Primary</var>.
+  # labels: ""
+
+  # Defines a name for the log file.
+  # log_file_name: "newrelic_agent.log"
+
+  # Defines a path to the agent log file, excluding the filename.
+  # log_file_path: "log/"
+
+  # Specifies a marshaller for transmitting data to the New Relic collector. Currently json is
+  # the only valid value for this setting.
+  # marshaller: json
+
+  # If true, the agent will collect metadata about messages and attach them as segment parameters.
+  # message_tracer.segment_parameters.enabled: true
+
   # When set to true, the agent transmits data about your app to the New Relic collector.
   # monitor_mode: true
+
+  # If true, uses Module#prepend rather than alias_method for ActiveRecord instrumentation.
+  # prepend_active_record_instrumentation: false
+
+  # Applies Language Agent Security Policy settings
+  # security_policies_token: ""
+
+  # Defines a host for communicating with the New Relic collector via a proxy server.
+  # proxy_host: nil
+
+  # Defines a password for communicating with the New Relic collector via a proxy server.
+  # proxy_pass: nil
+
+  # Defines a port for communicating with the New Relic collector via a proxy server.
+  # proxy_port: nil
+
+  # Defines a user for communicating with the New Relic collector via a proxy server.
+  # proxy_user: nil
+
+  # If true, enables the exit handler that sends data to the New Relic collector before shutting down.
+  # send_data_on_exit: true
+
+  # When set to true, forces a synchronous connection to the New Relic collector during
+  # application startup. For very short-lived processes, this helps ensure the New Relic
+  # agent has time to report.
+  # sync_startup: false
+
+  # Defines the maximum number of seconds the agent should spend attempting to connect to the collector.
+  # timeout: 120
+
+
+
+
+
+
+
+  #>>>>>>oscar
+
+
+
+
+
+
+
+
+
+# Transaction Tracer
+  # 
+#   
 
 # Environment-specific settings are in this section.
 # RAILS_ENV or RACK_ENV (as appropriate) is used to determine the environment.
