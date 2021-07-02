@@ -55,6 +55,8 @@ module MultiverseHelpers
     # to clean up before a test too.
     NewRelic::Agent.drop_buffered_data
 
+    NewRelic::Agent.instance.error_collector.load_error_filters
+
     trigger_agent_reconnect(opts)
   end
 
@@ -69,8 +71,8 @@ module MultiverseHelpers
     # Clear out lingering stats we didn't transmit
     NewRelic::Agent.drop_buffered_data
 
-    # Clear the error collector's ignore_filter
-    NewRelic::Agent.instance.error_collector.instance_variable_set(:@ignore_filter, nil)
+    # Clear the error collector's error filters
+    NewRelic::Agent.instance.error_collector.reset_error_filters
 
     # Clean up any thread-local variables starting with 'newrelic'
     NewRelic::Agent::Tracer.clear_state

@@ -80,6 +80,7 @@ module NewRelic
           was_finished = finished_configuring?
 
           invoke_callbacks(:add, source)
+
           case source
           when SecurityPolicySource then @security_policy_source = source
           when HighSecuritySource   then @high_security_source   = source
@@ -159,7 +160,6 @@ module NewRelic
         def invoke_callbacks(direction, source)
           return unless source
           source.keys.each do |key|
-
             if @cache[key] != source[key]
               @callbacks[key].each do |proc|
                 if direction == :add

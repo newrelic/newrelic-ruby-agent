@@ -22,21 +22,16 @@ module NewRelic
         @error_trace_aggregator = ErrorTraceAggregator.new(MAX_ERROR_QUEUE_LENGTH)
         @error_event_aggregator = ErrorEventAggregator.new events
 
-        # lookup of exception class names to ignore.  Hash for fast access
-        @ignore = {}
+        @error_filter = NewRelic::Agent::ErrorFilter.new
 
-        initialize_ignored_errors(Agent.config[:'error_collector.ignore_errors'])
-
-        Agent.config.register_callback(:'error_collector.ignore_errors') do |ignore_errors|
-          initialize_ignored_errors(ignore_errors)
+        %w(
+          ignore_errors ignore_classes ignore_messages ignore_status_codes
+          expected_classes expected_messages expected_status_codes
+        ).each do |w|
+          Agent.config.register_callback(:"error_collector.#{w}") do |value|
+            @error_filter.load_from_config(w, value)
+          end
         end
-      end
-
-      def initialize_ignored_errors(ignore_errors)
-        @ignore.clear
-        ignore_errors = ignore_errors.split(",") if ignore_errors.is_a? String
-        ignore_errors.each { |error| error.strip! }
-        ignore(ignore_errors)
       end
 
       def enabled?
@@ -76,30 +71,39 @@ module NewRelic
         defined?(@ignore_filter) ? @ignore_filter : nil
       end
 
-      # errors is an array of Exception Class Names
-      #
       def ignore(errors)
-        errors.each do |error|
-          @ignore[error] = true
-          ::NewRelic::Agent.logger.debug("Ignoring errors of type '#{error}'")
-        end
+        @error_filter.ignore(errors)
+      end
+
+      def ignore?(ex, status_code = nil)
+        @error_filter.ignore?(ex, status_code)
+      end
+
+      def expect(errors)
+        @error_filter.expect(errors)
+      end
+
+      def expected?(ex, status_code = nil)
+        @error_filter.expected?(ex, status_code)
+      end
+
+      def load_error_filters
+        @error_filter.load_all
+      end
+
+      def reset_error_filters
+        @error_filter.reset
       end
 
       # Checks the provided error against the error filter, if there
       # is an error filter
-      def filtered_by_error_filter?(error)
+      def ignored_by_filter_proc?(error)
         respond_to?(:ignore_filter_proc) && !ignore_filter_proc(error)
       end
 
-      # Checks the array of error names and the error filter against
-      # the provided error
-      def filtered_error?(error)
-        @ignore[error.class.name] || filtered_by_error_filter?(error)
-      end
-
       # an error is ignored if it is nil or if it is filtered
-      def error_is_ignored?(error)
-        error && filtered_error?(error)
+      def error_is_ignored?(error, status_code = nil)
+        error && (@error_filter.ignore?(error, status_code) || ignored_by_filter_proc?(error))
       rescue => e
         NewRelic::Agent.logger.error("Error '#{error}' will NOT be ignored. Exception '#{e}' while determining whether to ignore or not.", e)
         false
@@ -174,11 +178,18 @@ module NewRelic
         end
       end
 
-      def skip_notice_error?(exception)
+      def increment_expected_error_count!(state, exception)
+        stats_engine = NewRelic::Agent.agent.stats_engine
+        stats_engine.record_unscoped_metrics(state, ['ErrorsExpected/all']) do |stats|
+          stats.increment_count
+        end
+      end
+
+      def skip_notice_error?(exception, status_code = nil)
         disabled? ||
-        error_is_ignored?(exception) ||
         exception.nil? ||
-        exception_tagged_with?(EXCEPTION_TAG_IVAR, exception)
+        exception_tagged_with?(EXCEPTION_TAG_IVAR, exception) ||
+        error_is_ignored?(exception, status_code)
       end
 
       # calls a method on an object, if it responds to it - used for
@@ -210,13 +221,17 @@ module NewRelic
 
       # See NewRelic::Agent.notice_error for options and commentary
       def notice_error(exception, options={}, span_id=nil)
-        return if skip_notice_error?(exception)
+        state = ::NewRelic::Agent::Tracer.state
+        transaction = state.current_transaction
+        status_code = transaction ? transaction.http_response_code : nil
+
+        return if skip_notice_error?(exception, status_code)
 
         tag_exception(exception)
 
-        state = ::NewRelic::Agent::Tracer.state
-
-        unless options[:expected]
+        if options[:expected] || @error_filter.expected?(exception, status_code)
+          increment_expected_error_count!(state, exception)
+        else
           increment_error_count!(state, exception, options)
         end
 
@@ -258,7 +273,7 @@ module NewRelic
         noticed_error.line_number = sense_method(exception, :line_number)
         noticed_error.stack_trace = truncate_trace(extract_stack_trace(exception))
 
-        noticed_error.expected = !! options.delete(:expected)
+        noticed_error.expected = !!options.delete(:expected) || expected?(exception)
 
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
 

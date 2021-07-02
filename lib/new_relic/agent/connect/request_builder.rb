@@ -48,8 +48,10 @@ module NewRelic
           environment_report
         end
 
-        def environment_metadata
-          ENV.select {|k, v| k =~ /^NEW_RELIC_METADATA_/}
+        def environment_metadata 
+          env_copy = {}
+          ENV.keys.each {|k| env_copy[k] = ENV[k] if k =~ /^NEW_RELIC_METADATA_/}
+          env_copy
         end
 
         def local_host

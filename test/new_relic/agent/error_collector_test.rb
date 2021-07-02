@@ -318,7 +318,6 @@ module NewRelic::Agent
       def test_skip_notice_error_is_true_if_the_error_is_nil
         error = nil
         with_config(:'error_collector.enabled' => true) do
-          @error_collector.expects(:error_is_ignored?).with(error).returns(false)
           assert @error_collector.skip_notice_error?(error)
         end
       end
@@ -326,7 +325,7 @@ module NewRelic::Agent
       def test_skip_notice_error_is_true_if_the_error_is_ignored
         error = StandardError.new
         with_config(:'error_collector.enabled' => true) do
-          @error_collector.expects(:error_is_ignored?).with(error).returns(true)
+          @error_collector.expects(:error_is_ignored?).with(error, nil).returns(true)
           assert @error_collector.skip_notice_error?(error)
         end
       end
@@ -334,7 +333,7 @@ module NewRelic::Agent
       def test_skip_notice_error_returns_false_for_non_nil_unignored_errors_with_an_enabled_error_collector
         error = StandardError.new
         with_config(:'error_collector.enabled' => true) do
-          @error_collector.expects(:error_is_ignored?).with(error).returns(false)
+          @error_collector.expects(:error_is_ignored?).with(error, nil).returns(false)
           refute @error_collector.skip_notice_error?(error)
         end
       end
@@ -342,21 +341,35 @@ module NewRelic::Agent
       class ::AnError
       end
 
-      def test_filtered_error_positive
+      def test_ignore_error
+        error = AnError.new
         with_config(:'error_collector.ignore_errors' => 'AnError') do
-          error = AnError.new
-          assert @error_collector.filtered_error?(error)
+          assert @error_collector.ignore?(error)
+        end
+        refute @error_collector.ignore?(error)
+      end
+
+      def test_ignored_and_expected_error_is_ignored
+        error = AnError.new
+        with_config(:'error_collector.ignore_classes' => ['AnError'],
+                    :'error_collector.expected_classes' => ['AnError']) do
+          @error_collector.notice_error(AnError.new)
+
+          events = harvest_error_events
+          assert_equal 0, events.length
         end
       end
 
-      def test_filtered_error_negative
+      def test_ignore_status_codes
         error = AnError.new
-        refute @error_collector.filtered_error?(error)
+        with_config(:'error_collector.ignore_status_codes' => '400-408') do
+          assert @error_collector.ignore?(error, 404)
+        end
       end
 
       def test_filtered_by_error_filter_empty
         # should return right away when there's no filter
-        refute @error_collector.filtered_by_error_filter?(nil)
+        refute @error_collector.ignored_by_filter_proc?(nil)
       end
 
       def test_filtered_by_error_filter_positive
@@ -367,7 +380,7 @@ module NewRelic::Agent
         end
 
         error = StandardError.new
-        assert @error_collector.filtered_by_error_filter?(error)
+        assert @error_collector.ignored_by_filter_proc?(error)
 
         assert_equal error, saw_error
       end
@@ -380,7 +393,7 @@ module NewRelic::Agent
         end
 
         error = StandardError.new
-        refute @error_collector.filtered_by_error_filter?(error)
+        refute @error_collector.ignored_by_filter_proc?(error)
 
         assert_equal error, saw_error
       end
@@ -449,6 +462,7 @@ module NewRelic::Agent
         assert_equal 1, traces.length
         assert_equal 1, events.length
         assert_metrics_not_recorded ['Errors/all']
+        assert_metrics_recorded ['ErrorsExpected/all']
       end
 
       def test_expected_error_not_recorded_as_custom_attribute

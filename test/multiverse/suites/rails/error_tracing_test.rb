@@ -36,6 +36,10 @@ class ErrorController < ApplicationController
     raise NewRelic::TestHelpers::Exceptions::IgnoredError.new('this error should not be noticed')
   end
 
+  def ignored_status_code
+    render body: "Protip: you probably shouldn't ignore 500 errors", status: 500
+  end
+
   def server_ignored_error
     raise NewRelic::TestHelpers::Exceptions::ServerIgnoredError.new('this is a server ignored error')
   end
@@ -231,6 +235,14 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
            'Noticed an error that should have been ignored')
   end
 
+  def test_should_not_notice_ignored_status_codes
+    with_config(:'error_collector.ignore_status_codes' => '500') do
+      get '/error/ignored_status_code'
+
+      assert(errors.empty?, 'Noticed an error that should have been ignored')
+    end
+  end
+
   def test_should_notice_server_ignored_error_if_no_server_side_config
     get '/error/server_ignored_error'
     assert_error_reported_once('this is a server ignored error')
@@ -288,6 +300,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     ])
 
     assert_metrics_recorded("Apdex" => { :apdex_s => 1 })
+    assert_metrics_recorded(["ErrorsExpected/all"])
   end
 
 
