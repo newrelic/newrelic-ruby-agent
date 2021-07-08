@@ -69,7 +69,8 @@ class HTTPTest < Minitest::Test
       status: 200,
       version: '1.1',
       headers: headers,
-      body: ''
+      body: '',
+      request: HTTP::Request.new(uri: "http://newrelic.com", verb: :get)
     }
 
     httprb_resp = is_unsupported_1x? ? HTTP::Response.new(*options.values) : HTTP::Response.new(options)
