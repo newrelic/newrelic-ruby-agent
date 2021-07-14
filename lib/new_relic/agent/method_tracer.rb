@@ -199,7 +199,7 @@ module NewRelic
           # for a fully traced metric including scoping
           def method_with_push_scope(method_name, metric_name_code, options)
             "def #{_traced_method_name(method_name, metric_name_code)}(#{ARGS_FOR_RUBY_VERSION})
-              #{options[:code_header]}
+              #{assemble_code_header(method_name, metric_name_code, options)}
               result = ::NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped(\"#{metric_name_code}\",
                         :metric => #{options[:metric]}) do
                 #{_untraced_method_name(method_name, metric_name_code)}(#{ARGS_FOR_RUBY_VERSION})
