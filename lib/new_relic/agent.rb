@@ -142,7 +142,7 @@ module NewRelic
     def add_or_defer_method_tracer(receiver, method_name, metric_name_code, options)
       @tracer_lock.synchronize do
         if @agent
-          receiver.send(:_add_method_tracer_now, method_name, metric_name_code, options)
+          receiver.send(:_nr_add_method_tracer_now, method_name, metric_name_code, options)
         else
           @tracer_queue << [receiver, method_name, metric_name_code, options]
         end
@@ -152,7 +152,7 @@ module NewRelic
     def add_deferred_method_tracers_now
       @tracer_lock.synchronize do
         @tracer_queue.each do |receiver, method_name, metric_name_code, options|
-          receiver.send(:_add_method_tracer_now, method_name, metric_name_code, options)
+          receiver.send(:_nr_add_method_tracer_now, method_name, metric_name_code, options)
         end
 
         @tracer_queue = []

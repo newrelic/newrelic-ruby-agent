@@ -48,12 +48,14 @@ module NewRelic
 
     module MethodTracer
 
-      def self.included clazz
-        clazz.extend ClassMethods
+      def self.included(klass)
+        klass.extend(ClassMethods)
+        klass.prepend(_nr_traced_method_module)
       end
 
-      def self.extended clazz
-        clazz.extend ClassMethods
+      def self.extended(klass)
+        klass.extend(ClassMethods)
+        klass.prepend(_nr_traced_method_module)
       end
 
       # Trace a given block with stats and keep track of the caller.
@@ -103,50 +105,37 @@ module NewRelic
         module AddMethodTracer
           ALLOWED_KEYS = [:metric, :push_scope, :code_header, :code_footer].freeze
 
-          # raises an error when the
-          # NewRelic::Agent::MethodTracer::ClassMethods#add_method_tracer
-          # method is called with improper keys. This aids in
-          # debugging new instrumentation by failing fast
-          def check_for_illegal_keys!(method_name, options)
-            unrecognized_keys = options.keys - ALLOWED_KEYS
-
-            if unrecognized_keys.any?
-              raise "Unrecognized options when adding method tracer to #{method_name}: " +
-                    unrecognized_keys.join(', ')
-            end
-          end
-
-          # validity checking - add_method_tracer must receive either
-          # push scope or metric, or else it would record no
-          # data. Raises an error if this is the case
-          def check_for_push_scope_and_metric(options)
-            unless options[:push_scope] || options[:metric]
-              raise "Can't add a tracer where push_scope is false and metric is false"
-            end
-          end
-
           DEFAULT_SETTINGS = {:push_scope => true, :metric => true, :code_header => "", :code_footer => "" }.freeze
 
           # Checks the provided options to make sure that they make
           # sense. Raises an error if the options are incorrect to
           # assist with debugging, so that errors occur at class
           # construction time rather than instrumentation run time
-          def validate_options(method_name, options)
+          def _nr_validate_method_tracer_options(method_name, options)
             unless options.is_a?(Hash)
               raise TypeError.new("Error adding method tracer to #{method_name}: provided options must be a Hash")
             end
-            check_for_illegal_keys!(method_name, options)
+
+            unrecognized_keys = options.keys - ALLOWED_KEYS
+            if unrecognized_keys.any?
+              raise "Unrecognized options when adding method tracer to #{method_name}: " +
+                    unrecognized_keys.join(', ')
+            end
+
             options = DEFAULT_SETTINGS.merge(options)
-            check_for_push_scope_and_metric(options)
+            unless options[:push_scope] || options[:metric]
+              raise "Can't add a tracer where push_scope is false and metric is false"
+            end
+
             options
           end
 
           # Default to the class where the method is defined.
           #
           # Example:
-          #  Foo.default_metric_name_code('bar') #=> "Custom/#{Foo.name}/bar"
-          def default_metric_name_code(method_name)
-            "Custom/#{derived_class_name}/#{method_name}"
+          #  Foo._nr_default_metric_name_code('bar') #=> "Custom/#{Foo.name}/bar"
+          def _nr_default_metric_name(method_name)
+            -> { "Custom/#{self.class._nr_derived_class_name}/#{method_name}" }
           end
 
           # Checks to see if the method we are attempting to trace
@@ -154,7 +143,7 @@ module NewRelic
           # anything if the method doesn't exist.
           def newrelic_method_exists?(method_name)
             exists = method_defined?(method_name) || private_method_defined?(method_name)
-            ::NewRelic::Agent.logger.error("Did not trace #{derived_class_name}##{method_name} because that method does not exist") unless exists
+            ::NewRelic::Agent.logger.error("Did not trace #{_nr_derived_class_name}##{method_name} because that method does not exist") unless exists
             exists
           end
 
@@ -163,66 +152,17 @@ module NewRelic
           # exists. Warns the user if methods are being double-traced
           # to help with debugging custom instrumentation.
           def traced_method_exists?(method_name, metric_name_code)
-            exists = method_defined?(_traced_method_name(method_name, metric_name_code))
+            exists = _nr_traced_method_module.method_defined?(method_name)
             ::NewRelic::Agent.logger.error("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}") if exists
             exists
           end
 
-          # Returns a code snippet to be eval'd that skips tracing
-          # when the agent is not tracing execution. turns
-          # instrumentation into effectively one method call overhead
-          # when the agent is disabled
-          def assemble_code_header(method_name, metric_name_code, options)
-            header = "return #{_untraced_method_name(method_name, metric_name_code)}(#{ARGS_FOR_RUBY_VERSION}) unless NewRelic::Agent.tl_is_execution_traced?\n"
-            header += options[:code_header].to_s
-            header
+          # Returns an anonymous module that stores prepended trace methods.
+          def _nr_traced_method_module
+            @_nr_traced_method_module ||= Module.new
           end
 
-          # returns an eval-able string that contains the traced
-          # method code used if the agent is not creating a scope for
-          # use in scoped metrics.
-          def method_without_push_scope(method_name, metric_name_code, options)
-            "def #{_traced_method_name(method_name, metric_name_code)}(#{ARGS_FOR_RUBY_VERSION})
-              #{assemble_code_header(method_name, metric_name_code, options)}
-              t0 = Time.now
-              begin
-                #{_untraced_method_name(method_name, metric_name_code)}(#{ARGS_FOR_RUBY_VERSION})\n
-              ensure
-                duration = (Time.now - t0).to_f
-                NewRelic::Agent.record_metric(\"#{metric_name_code}\", duration)
-                #{options[:code_footer]}
-              end
-            end"
-          end
-
-          # returns an eval-able string that contains the tracing code
-          # for a fully traced metric including scoping
-          def method_with_push_scope(method_name, metric_name_code, options)
-            "def #{_traced_method_name(method_name, metric_name_code)}(#{ARGS_FOR_RUBY_VERSION})
-              #{assemble_code_header(method_name, metric_name_code, options)}
-              result = ::NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped(\"#{metric_name_code}\",
-                        :metric => #{options[:metric]}) do
-                #{_untraced_method_name(method_name, metric_name_code)}(#{ARGS_FOR_RUBY_VERSION})
-              end
-              #{options[:code_footer]}
-              result
-            end"
-          end
-
-          # Decides which code snippet we should be eval'ing in this
-          # context, based on the options.
-          def code_to_eval(method_name, metric_name_code, options)
-            options = validate_options(method_name, options)
-            if options[:push_scope]
-              method_with_push_scope(method_name, metric_name_code, options)
-            else
-              method_without_push_scope(method_name, metric_name_code, options)
-            end
-          end
-
-          private
-
-          def derived_class_name
+          def _nr_derived_class_name
             return self.name if self.name && !self.name.empty?
             return "AnonymousModule" if self.to_s.start_with?("#<Module:")
 
@@ -248,21 +188,20 @@ module NewRelic
         #
         # === Overriding the metric name
         #
-        # +metric_name_code+ is a string that is eval'd to get the name of the
-        # metric associated with the call, so if you want to use interpolation
-        # evaluated at call time, then single quote the value like this:
+        # +metric_name+ is a String or Proc. If a Proc is given, it is bound to
+        # the object that called the traced method. For example:
         #
-        #     add_method_tracer :foo, 'Custom/#{self.class.name}/foo'
+        #     add_method_tracer :foo, -> { "Custom/#{self.class.name}/foo" }
         #
         # This would name the metric according to the class of the runtime
-        # intance, as opposed to the class where +foo+ is defined.
+        # instance, as opposed to the class where +foo+ is defined.
         #
         # If not provided, the metric name will be <tt>Custom/ClassName/method_name</tt>.
         #
-        # @param [Symbol] method_name the name of the method to trace
-        # @param [String] metric_name_code the metric name to record calls to
-        #   the traced method under. This may be either a static string, or Ruby
-        #   code to be evaluated at call-time in order to determine the metric
+        # @param method_name [Symbol] the name of the method to trace
+        # @param metric_name [String,Proc] the metric name to record calls to
+        #   the traced method under. This may be either a String, or a Proc
+        #   to be evaluated at call-time in order to determine the metric
         #   name dynamically.
         # @param [Hash] options additional options controlling how the method is
         #   traced.
@@ -272,16 +211,17 @@ module NewRelic
         # @option options [Boolean] :metric (true) If false, the traced method will
         #   only appear in transaction traces, but no metrics will be recorded
         #   for it.
-        # @option options [String] :code_header ('') Ruby code to be inserted and run
+        # @option options [Proc] :code_header ('') Ruby code to be inserted and run
         #   before the tracer begins timing.
-        # @option options [String] :code_footer ('') Ruby code to be inserted and run
+        # @option options [Proc] :code_footer ('') Ruby code to be inserted and run
         #   after the tracer stops timing.
         #
         # @example
         #   add_method_tracer :foo
         #
         #   # With a custom metric name
-        #   add_method_tracer :foo, 'Custom/#{self.class.name}/foo'
+        #   add_method_tracer :foo, "Custom/MyClass/foo"
+        #   add_method_tracer :bar, -> { "Custom/#{self.class.name}/bar" }
         #
         #   # Instrument foo only for custom dashboards (not in transaction
         #   # traces or breakdown charts)
@@ -299,58 +239,56 @@ module NewRelic
         # For tests only because tracers must be removed in reverse-order
         # from when they were added, or else other tracers that were added to the same method
         # may get removed as well.
-        def remove_method_tracer(method_name, metric_name_code) # :nodoc:
+        def remove_method_tracer(method_name) # :nodoc:
           return unless Agent.config[:agent_enabled]
-          if method_defined? "#{_traced_method_name(method_name, metric_name_code)}"
-            alias_method method_name, "#{_untraced_method_name(method_name, metric_name_code)}"
-            undef_method "#{_traced_method_name(method_name, metric_name_code)}"
-            ::NewRelic::Agent.logger.debug("removed method tracer #{method_name} #{metric_name_code}\n")
+          if _nr_traced_method_module.method_defined?(method_name)
+            _nr_traced_method_module.undef_method(method_name)
+            ::NewRelic::Agent.logger.debug("removed method tracer #{method_name}\n")
           else
-            raise "No tracer for '#{metric_name_code}' on method '#{method_name}'"
+            raise "No tracer on method '#{method_name}'"
           end
         end
 
         private
 
-        def _add_method_tracer_now(method_name, metric_name_code, options)
+        def _nr_add_method_tracer_now(method_name, metric_name, options)
           NewRelic::Agent.record_api_supportability_metric(:add_method_tracer)
 
           return unless newrelic_method_exists?(method_name)
-          metric_name_code ||= default_metric_name_code(method_name)
+          metric_name ||= _nr_default_metric_name(method_name)
           return if traced_method_exists?(method_name, metric_name_code)
-
-          traced_method = code_to_eval(method_name, metric_name_code, options)
 
           visibility = NewRelic::Helper.instance_method_visibility self, method_name
 
-          class_eval traced_method, __FILE__, __LINE__
-          alias_method _untraced_method_name(method_name, metric_name_code), method_name
-          alias_method method_name, _traced_method_name(method_name, metric_name_code)
-          ruby2_keywords(_traced_method_name(method_name, metric_name_code)) if respond_to?(:ruby2_keywords, true)
+          options = _nr_validate_method_tracer_options(options)
+
+          # Define the prepended tracer method here
+          _nr_traced_method_module.module_eval do
+            define_method(method_name) do |*args, &block|
+              return super(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?
+
+              metric_name_eval = metric_name.kind_of?(Proc) ? instance_exec(&metric_name) : metric_name.to_s
+
+              instance_exec(&options[:code_header]) if options[:code_header].kind_of?(Proc)
+
+              begin
+                if options[:push_scope]
+                  trace_execution_scoped(metric_name_eval, metric: options[:metric]) { super(*args, &block) }
+                else
+                  trace_execution_unscoped(metric_name_eval, metric: options[:metric]) { super(*args, &block) }
+                end
+              ensure
+                instance_exec(&options[:code_footer]) if options[:code_footer].kind_of?(Proc)
+              end
+            end
+
+            ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
+          end
+
           send visibility, method_name
-          send visibility, _traced_method_name(method_name, metric_name_code)
-          ::NewRelic::Agent.logger.debug("Traced method: class = #{derived_class_name},"+
+          ::NewRelic::Agent.logger.debug("Traced method: class = #{_nr_derived_class_name},"+
                                          "method = #{method_name}, "+
-                                         "metric = '#{metric_name_code}'")
-        end
-
-        # given a method and a metric, this method returns the
-        # untraced alias of the method name
-        def _untraced_method_name(method_name, metric_name)
-          "#{_sanitize_name(method_name)}_without_trace_#{_sanitize_name(metric_name)}"
-        end
-
-        # given a method and a metric, this method returns the traced
-        # alias of the method name
-        def _traced_method_name(method_name, metric_name)
-          "#{_sanitize_name(method_name)}_with_trace_#{_sanitize_name(metric_name)}"
-        end
-
-        # makes sure that method names do not contain characters that
-        # might break the interpreter, for example ! or ? characters
-        # that are not allowed in the middle of method names
-        def _sanitize_name(name)
-          name.to_s.tr_s('^a-zA-Z0-9', '_')
+                                         "metric = '#{metric_name}'")
         end
       end
 
