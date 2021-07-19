@@ -50,12 +50,10 @@ module NewRelic
 
       def self.included(klass)
         klass.extend(ClassMethods)
-        klass.prepend(_nr_traced_method_module)
       end
 
       def self.extended(klass)
         klass.extend(ClassMethods)
-        klass.prepend(_nr_traced_method_module)
       end
 
       # Trace a given block with stats and keep track of the caller.
@@ -135,7 +133,8 @@ module NewRelic
           # Example:
           #  Foo._nr_default_metric_name_code('bar') #=> "Custom/#{Foo.name}/bar"
           def _nr_default_metric_name(method_name)
-            -> { "Custom/#{self.class._nr_derived_class_name}/#{method_name}" }
+            class_name = _nr_derived_class_name
+            -> (*) { "Custom/#{class_name}/#{method_name}" }
           end
 
           # Checks to see if the method we are attempting to trace
@@ -151,15 +150,22 @@ module NewRelic
           # given metric by checking to see if the traced method
           # exists. Warns the user if methods are being double-traced
           # to help with debugging custom instrumentation.
-          def traced_method_exists?(method_name, metric_name_code)
-            exists = _nr_traced_method_module.method_defined?(method_name)
-            ::NewRelic::Agent.logger.error("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name_code}") if exists
+          def method_traced?(method_name, metric_name = nil)
+            exists = method_name && _nr_traced_method_module.method_defined?(method_name)
+            ::NewRelic::Agent.logger.error("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name}") if exists
             exists
           end
 
           # Returns an anonymous module that stores prepended trace methods.
           def _nr_traced_method_module
             @_nr_traced_method_module ||= Module.new
+          end
+
+          # for testing only
+          def _nr_clear_traced_methods!
+            _nr_traced_method_module.module_eval do
+              self.instance_methods.each { |m| remove_method m }
+            end
           end
 
           def _nr_derived_class_name
@@ -233,6 +239,10 @@ module NewRelic
         # @api public
         #
         def add_method_tracer(method_name, metric_name_code = nil, options = {})
+          # We defer prepending the traced method module until add_method_tracer
+          # is called, so that the module is prepended to the correct class.
+          prepend(_nr_traced_method_module)
+
           ::NewRelic::Agent.add_or_defer_method_tracer(self, method_name, metric_name_code, options)
         end
 
@@ -242,7 +252,7 @@ module NewRelic
         def remove_method_tracer(method_name) # :nodoc:
           return unless Agent.config[:agent_enabled]
           if _nr_traced_method_module.method_defined?(method_name)
-            _nr_traced_method_module.undef_method(method_name)
+            _nr_traced_method_module.remove_method(method_name)
             ::NewRelic::Agent.logger.debug("removed method tracer #{method_name}\n")
           else
             raise "No tracer on method '#{method_name}'"
@@ -255,27 +265,25 @@ module NewRelic
           NewRelic::Agent.record_api_supportability_metric(:add_method_tracer)
 
           return unless newrelic_method_exists?(method_name)
-          metric_name ||= _nr_default_metric_name(method_name)
-          return if traced_method_exists?(method_name, metric_name_code)
+          metric_name = _nr_default_metric_name(method_name) if metric_name.to_s.strip.empty?
+          return if method_traced?(method_name, metric_name)
 
-          visibility = NewRelic::Helper.instance_method_visibility self, method_name
-
-          options = _nr_validate_method_tracer_options(options)
+          options = _nr_validate_method_tracer_options(method_name, options)
 
           # Define the prepended tracer method here
           _nr_traced_method_module.module_eval do
             define_method(method_name) do |*args, &block|
               return super(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?
 
-              metric_name_eval = metric_name.kind_of?(Proc) ? instance_exec(&metric_name) : metric_name.to_s
+              metric_name_eval = metric_name.kind_of?(Proc) ? instance_exec(*args, &metric_name) : metric_name.to_s
 
               instance_exec(&options[:code_header]) if options[:code_header].kind_of?(Proc)
 
               begin
                 if options[:push_scope]
-                  trace_execution_scoped(metric_name_eval, metric: options[:metric]) { super(*args, &block) }
+                  self.class.trace_execution_scoped(metric_name_eval, metric: options[:metric]) { super(*args, &block) }
                 else
-                  trace_execution_unscoped(metric_name_eval, metric: options[:metric]) { super(*args, &block) }
+                  self.class.trace_execution_unscoped(metric_name_eval, metric: options[:metric]) { super(*args, &block) }
                 end
               ensure
                 instance_exec(&options[:code_footer]) if options[:code_footer].kind_of?(Proc)
@@ -285,7 +293,6 @@ module NewRelic
             ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
           end
 
-          send visibility, method_name
           ::NewRelic::Agent.logger.debug("Traced method: class = #{_nr_derived_class_name},"+
                                          "method = #{method_name}, "+
                                          "metric = '#{metric_name}'")
