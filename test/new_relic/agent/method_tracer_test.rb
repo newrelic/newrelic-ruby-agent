@@ -289,7 +289,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   end
 
   def test_trace_module_method
-    NewRelic::Agent.add_method_tracer :module_method_to_be_traced, '#{args[0]}'
+    NewRelic::Agent.add_method_tracer :module_method_to_be_traced, -> (*args) { '#{args[0]}' }
     NewRelic::Agent.module_method_to_be_traced "x", self
     NewRelic::Agent.remove_method_tracer :module_method_to_be_traced
   end
@@ -310,7 +310,6 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
         advance_time 0.05
       end
     end
-
 
     assert_metrics_recorded({
       'first' => {:call_count => 1, :total_call_time => 0.05},

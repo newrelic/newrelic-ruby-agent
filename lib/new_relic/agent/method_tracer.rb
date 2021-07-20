@@ -69,7 +69,7 @@ module NewRelic
       # @api public
       #
       def trace_execution_scoped(metric_names, options=NewRelic::EMPTY_HASH) #THREAD_LOCAL_ACCESS
-        NewRelic::Agent.record_api_supportability_metric :trace_execution_scoped
+        NewRelic::Agent.record_api_supportability_metric :trace_execution_scoped unless options[:internal]
         NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped(metric_names, options) do
           # Using an implicit block avoids object allocation for a &block param
           yield
@@ -85,7 +85,7 @@ module NewRelic
       # @api public
       #
       def trace_execution_unscoped(metric_names, options=NewRelic::EMPTY_HASH) #THREAD_LOCAL_ACCESS
-        NewRelic::Agent.record_api_supportability_metric :trace_execution_unscoped
+        NewRelic::Agent.record_api_supportability_metric :trace_execution_unscoped unless options[:internal]
         return yield unless NewRelic::Agent.tl_is_execution_traced?
         t0 = Time.now
         begin
@@ -252,7 +252,7 @@ module NewRelic
         def remove_method_tracer(method_name) # :nodoc:
           return unless Agent.config[:agent_enabled]
           if _nr_traced_method_module.method_defined?(method_name)
-            _nr_traced_method_module.remove_method(method_name)
+            _nr_traced_method_module.send(:remove_method, method_name)
             ::NewRelic::Agent.logger.debug("removed method tracer #{method_name}\n")
           else
             raise "No tracer on method '#{method_name}'"
@@ -281,9 +281,9 @@ module NewRelic
 
               begin
                 if options[:push_scope]
-                  self.class.trace_execution_scoped(metric_name_eval, metric: options[:metric]) { super(*args, &block) }
+                  self.class.trace_execution_scoped(metric_name_eval, metric: options[:metric], internal: true) { super(*args, &block) }
                 else
-                  self.class.trace_execution_unscoped(metric_name_eval, metric: options[:metric]) { super(*args, &block) }
+                  self.class.trace_execution_unscoped(metric_name_eval, metric: options[:metric], internal: true) { super(*args, &block) }
                 end
               ensure
                 instance_exec(&options[:code_footer]) if options[:code_footer].kind_of?(Proc)
