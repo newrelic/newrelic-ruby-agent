@@ -270,6 +270,8 @@ module NewRelic
 
           options = _nr_validate_method_tracer_options(method_name, options)
 
+          visibility = NewRelic::Helper.instance_method_visibility self, method_name
+
           # Define the prepended tracer method here
           _nr_traced_method_module.module_eval do
             define_method(method_name) do |*args, &block|
@@ -289,6 +291,8 @@ module NewRelic
                 instance_exec(&options[:code_footer]) if options[:code_footer].kind_of?(Proc)
               end
             end
+
+            send visibility, method_name
 
             ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
           end

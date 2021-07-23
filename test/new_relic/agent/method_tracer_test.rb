@@ -58,6 +58,16 @@ class MyClass
   end
 end
 
+module MyModule
+  def self.module_method
+  end
+
+  class << self
+    include NewRelic::Agent::MethodTracer
+    add_method_tracer :module_method
+  end
+end
+
 class NewRelic::Agent::MethodTracerTest < Minitest::Test
   attr_reader :stats_engine
 
@@ -152,6 +162,15 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     metric = "Custom/MyClass/Class/class_method"
+    assert_metrics_recorded metric => {:call_count => 1}
+  end
+
+  def test_add_module_method_tracer
+    in_transaction do
+      MyModule.module_method
+    end
+
+    metric = "Custom/MyModule/Class/module_method"
     assert_metrics_recorded metric => {:call_count => 1}
   end
 
@@ -286,12 +305,6 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     assert_metrics_recorded METRIC => {:call_count => 1, :total_call_time => 0.15}
-  end
-
-  def test_trace_module_method
-    NewRelic::Agent.add_method_tracer :module_method_to_be_traced, -> (*args) { '#{args[0]}' }
-    NewRelic::Agent.module_method_to_be_traced "x", self
-    NewRelic::Agent.remove_method_tracer :module_method_to_be_traced
   end
 
   def test_remove
