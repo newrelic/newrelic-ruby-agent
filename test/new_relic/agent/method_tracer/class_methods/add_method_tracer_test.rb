@@ -45,12 +45,12 @@ module NewRelic
 
             def test_traced_method_exists_positive
               self._nr_traced_method_module.expects(:method_defined?).returns(true)
-              assert method_traced?('test_method', 'Custom/Test/test_method')
+              assert method_traced?('test_method')
             end
 
             def test_traced_method_exists_negative
               self._nr_traced_method_module.expects(:method_defined?).returns(false)
-              refute method_traced?('test_method', 'Custom/Test/test_method')
+              refute method_traced?('test_method')
             end
 
             def test_check_for_push_scope_and_metric_negative

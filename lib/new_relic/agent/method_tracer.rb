@@ -150,9 +150,9 @@ module NewRelic
           # given metric by checking to see if the traced method
           # exists. Warns the user if methods are being double-traced
           # to help with debugging custom instrumentation.
-          def method_traced?(method_name, metric_name = nil)
+          def method_traced?(method_name)
             exists = method_name && _nr_traced_method_module.method_defined?(method_name)
-            ::NewRelic::Agent.logger.error("Attempt to trace a method twice with the same metric: Method = #{method_name}, Metric Name = #{metric_name}") if exists
+            ::NewRelic::Agent.logger.error("Attempt to trace a method twice: Method = #{method_name}") if exists
             exists
           end
 
@@ -266,7 +266,7 @@ module NewRelic
 
           return unless newrelic_method_exists?(method_name)
           metric_name = _nr_default_metric_name(method_name) if metric_name.to_s.strip.empty?
-          return if method_traced?(method_name, metric_name)
+          remove_method_tracer(method_name) if method_traced?(method_name)
 
           options = _nr_validate_method_tracer_options(method_name, options)
 
