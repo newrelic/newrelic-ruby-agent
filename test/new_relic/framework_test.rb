@@ -30,14 +30,14 @@ class FrameworkTest < Minitest::Test
 
   def test_detects_framework_via_loaded_libraries
     class << self
-      module ::Merb
-        module Plugins
+      module ::Sinatra
+        module Base
         end
       end
     end
-    assert_equal :merb, NewRelic::Agent.config[:framework]
+    assert_equal :sinatra, NewRelic::Agent.config[:framework]
   ensure
-    Object.send(:remove_const, :Merb)
+    Object.send(:remove_const, :Sinatra)
   end
 
   def test_detects_framework_via_ENV_NEW_RELIC_FRAMEWORK
