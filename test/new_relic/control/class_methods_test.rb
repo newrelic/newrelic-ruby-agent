@@ -36,7 +36,7 @@ class NewRelic::Control::ClassMethodsTest < Minitest::Test
   end
 
   def test_load_framework_class_existing
-    %w[rails rails3 sinatra ruby merb external].each do |type|
+    %w[rails rails3 sinatra ruby external].each do |type|
       @base.load_framework_class(type)
     end
   end
