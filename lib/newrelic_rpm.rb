@@ -6,20 +6,13 @@
 #
 # When installed as a gem, you can activate the New Relic agent one of the following ways:
 #
-# For Rails, add:
-#    config.gem 'newrelic_rpm'
-# to your initialization sequence.
+# For applications using Bundler, add this to the Gemfile:
+#    gem 'newrelic_rpm'
 #
-# For merb, do
-#    dependency 'newrelic_rpm'
-# in the Merb config/init.rb
+# You will also need to install the newrelic.yml configuration file
 #
-# For Sinatra, do
-#    require 'newrelic_rpm'
-# after requiring 'sinatra'.
-#
-# For other frameworks, or to manage the agent manually, invoke NewRelic::Agent#manual_start
-# directly.
+# For applications not using Bundler, and for other installation information, visit:
+# https://docs.newrelic.com/docs/agents/ruby-agent/installation/install-new-relic-ruby-agent/
 #
 
 require 'new_relic/control'
