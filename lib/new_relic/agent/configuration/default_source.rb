@@ -2171,7 +2171,7 @@ module NewRelic
           :description => "Sets the maximum number of span events to buffer when streaming to the trace observer."
         },
         :'span_events.max_samples_stored' => {
-          :default => 2000,
+          :default => 10000,
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
