@@ -120,19 +120,19 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     call_expecting_warning_after_ruby_26 traced_class
   end
 
-  def test_expected_results
-    [ ["untraced_methods", UntracedMethods],
-      ["traced_methods", TracedMethods],
-      ["traced_metric_methods", TracedMetricMethods],
-      ["traced_metric_methods_unscoped", TracedMetricMethodsUnscoped],
-    ].each do |traced_class_name, traced_class|
+  [ ["untraced_methods", UntracedMethods],
+    ["traced_methods", TracedMethods],
+    ["traced_metric_methods", TracedMetricMethods],
+    ["traced_metric_methods_unscoped", TracedMetricMethodsUnscoped],
+  ].each do |traced_class_name, traced_class|
 
       # We're doing it all in one big super test because order of invocation matters!
       # When many small test scenarios, if the tests for deprecation warnings emitted
       # by the compiler are not invoked first, then we miss our chance to capture
       # that output and assert/refute reliably.
       # This very large run ensures order of calls always happen in predictable order.
-
+      define_method "test_expected_results_#{traced_class_name}" do
+      
       expected = {foo: {bar: "foobar"}}
       expected369 = {1=>3, 2=>6, 3=>9}
       instance = traced_class.new
