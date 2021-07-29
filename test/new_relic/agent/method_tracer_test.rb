@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-
+require 'pry'
 class Insider
   def initialize(stats_engine)
     @stats_engine = stats_engine
@@ -35,17 +35,19 @@ module NewRelic
 end
 
 module TestModuleWithLog
-  extend self
-  def other_method
-    #just here to be traced
-    log "12345"
-  end
+  class << self
+    def other_method
+      #just here to be traced
+      log "12345"
+    end
 
-  def log( msg )
-    msg
+    def log( msg )
+      msg
+    end
+
+    include NewRelic::Agent::MethodTracer
+    add_method_tracer :other_method, 'Custom/foo/bar'
   end
-  include NewRelic::Agent::MethodTracer
-  add_method_tracer :other_method, 'Custom/foo/bar'
 end
 
 class MyClass
@@ -386,18 +388,6 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
       'YY',
       'ZZ'
     ])
-  end
-
-  def test_add_method_tracer_module_double_inclusion
-    mod = Module.new { def traced_method; end }
-    cls = Class.new { include mod }
-
-    mod.module_eval do
-      include NewRelic::Agent::MethodTracer
-      add_method_tracer :traced_method
-    end
-
-    cls.new.traced_method
   end
 
   # This test validates that including the MethodTracer module does not pollute
