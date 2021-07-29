@@ -79,7 +79,7 @@ module NewRelic
       # Trace a given block with stats assigned to the given metric_name.  It does not
       # provide scoped measurements, meaning whatever is being traced will not 'blame the
       # Controller'--that is to say appear in the breakdown chart.
-      # This is code is inlined in #add_method_tracer.
+      #
       # * <tt>metric_names</tt> is a single name or an array of names of metrics
       #
       # @api public
@@ -109,7 +109,7 @@ module NewRelic
           # sense. Raises an error if the options are incorrect to
           # assist with debugging, so that errors occur at class
           # construction time rather than instrumentation run time
-          def _nr_validate_method_tracer_options(method_name, options)
+          def _nr_validate_method_tracer_options(method_name, metric_names, options)
             unless options.is_a?(Hash)
               raise TypeError.new("Error adding method tracer to #{method_name}: provided options must be a Hash")
             end
@@ -205,10 +205,15 @@ module NewRelic
         # If not provided, the metric name will be <tt>Custom/ClassName/method_name</tt>.
         #
         # @param method_name [Symbol] the name of the method to trace
-        # @param metric_name [String,Proc] the metric name to record calls to
+        # @param metric_name [String,Proc,Array] the metric name to record calls to
         #   the traced method under. This may be either a String, or a Proc
         #   to be evaluated at call-time in order to determine the metric
         #   name dynamically.
+        #   This method also accepts an array of Strings/Procs, in which case the
+        #   first metric given will be scoped, while the remaining metrics will be
+        #   recorded as though passed with :push_scope => false. If an Array of
+        #   metric names is given with :push_scope => false, all metrics will be
+        #   unscoped.
         # @param [Hash] options additional options controlling how the method is
         #   traced.
         # @option options [Boolean] :push_scope (true) If false, the traced method will
@@ -238,12 +243,8 @@ module NewRelic
         #
         # @api public
         #
-        def add_method_tracer(method_name, metric_name_code = nil, options = {})
-          # We defer prepending the traced method module until add_method_tracer
-          # is called, so that the module is prepended to the correct class.
-          prepend(_nr_traced_method_module)
-
-          ::NewRelic::Agent.add_or_defer_method_tracer(self, method_name, metric_name_code, options)
+        def add_method_tracer(method_name, metric_name = nil, options = {})
+          ::NewRelic::Agent.add_or_defer_method_tracer(self, method_name, metric_name, options)
         end
 
         # For tests only because tracers must be removed in reverse-order
@@ -263,43 +264,87 @@ module NewRelic
 
         def _nr_add_method_tracer_now(method_name, metric_name, options)
           NewRelic::Agent.record_api_supportability_metric(:add_method_tracer)
-
           return unless newrelic_method_exists?(method_name)
-          metric_name = _nr_default_metric_name(method_name) if metric_name.to_s.strip.empty?
           remove_method_tracer(method_name) if method_traced?(method_name)
 
-          options = _nr_validate_method_tracer_options(method_name, options)
+          options = _nr_validate_method_tracer_options(method_name, metric_name, options)
 
           visibility = NewRelic::Helper.instance_method_visibility self, method_name
 
-          # Define the prepended tracer method here
-          _nr_traced_method_module.module_eval do
-            define_method(method_name) do |*args, &block|
-              return super(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?
+          scoped_metric, unscoped_metrics = _nr_scoped_unscoped_metrics(metric_name, method_name, push_scope: options[:push_scope])
 
-              metric_name_eval = metric_name.kind_of?(Proc) ? instance_exec(*args, &metric_name) : metric_name.to_s
+          _nr_define_traced_method(method_name, scoped_metric: scoped_metric, unscoped_metrics: unscoped_metrics,
+                                   code_header: options[:code_header], code_footer: options[:code_footer],
+                                   record_metrics: options[:metric], visibility: visibility)
 
-              instance_exec(&options[:code_header]) if options[:code_header].kind_of?(Proc)
-
-              begin
-                if options[:push_scope]
-                  self.class.trace_execution_scoped(metric_name_eval, metric: options[:metric], internal: true) { super(*args, &block) }
-                else
-                  self.class.trace_execution_unscoped(metric_name_eval, metric: options[:metric], internal: true) { super(*args, &block) }
-                end
-              ensure
-                instance_exec(&options[:code_footer]) if options[:code_footer].kind_of?(Proc)
-              end
-            end
-
-            send visibility, method_name
-
-            ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
-          end
+          prepend(_nr_traced_method_module)
 
           ::NewRelic::Agent.logger.debug("Traced method: class = #{_nr_derived_class_name},"+
                                          "method = #{method_name}, "+
                                          "metric = '#{metric_name}'")
+        end
+
+        # See #add_method_tracer; if multiple metric names are given, the first is
+        # treated as scoped, the rest unscoped. If options[:push_scope] is false,
+        # all given metrics are unscoped.
+        def _nr_scoped_unscoped_metrics(metric_name, method_name, push_scope: true)
+          if metric_name.is_a?(Array) && push_scope
+            [metric_name.shift, metric_name]
+          elsif push_scope
+            [metric_name || _nr_default_metric_name(method_name), []]
+          else
+            [nil, Array(metric_name)]
+          end 
+        end
+
+        def _nr_define_traced_method(method_name, scoped_metric: nil, unscoped_metrics: [],
+                                     code_header: nil, code_footer: nil, record_metrics: true,
+                                     visibility: :public)
+          _nr_traced_method_module.module_eval do
+            define_method(method_name) do |*args, &block|
+              return super(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?
+              scoped_metric_eval, unscoped_metrics_eval = nil, []
+
+              scoped_metric_eval = case scoped_metric
+                when Proc
+                  instance_exec(*args, &scoped_metric)
+                when String
+                  scoped_metric
+                else
+                  nil
+                end
+  
+              unscoped_metrics_eval = unscoped_metrics.map do |metric|
+                metric.kind_of?(Proc) ? instance_exec(*args, &metric) : metric.to_s
+              end
+
+              instance_exec(&code_header) if code_header.kind_of?(Proc)
+
+              # If tracing multiple metrics on this method, nest one unscoped trace inside the scoped trace.
+              begin
+                if scoped_metric_eval
+                  self.class.trace_execution_scoped(scoped_metric_eval, metric: record_metrics, internal: true) do
+                    if unscoped_metrics_eval.empty?
+                      super(*args, &block)
+                    else
+                      self.class.trace_execution_unscoped(unscoped_metrics_eval, internal: true) do
+                        super(*args, &block)
+                      end
+                    end
+                  end
+                elsif !unscoped_metrics_eval.empty?
+                  self.class.trace_execution_unscoped(unscoped_metrics_eval, internal: true) do
+                    super(*args, &block)
+                  end
+                end
+              ensure
+                instance_exec(&code_footer) if code_footer.kind_of?(Proc)
+              end
+            end
+
+            send visibility, method_name
+            ruby2_keywords(method_name) if respond_to?(:ruby2_keywords, true)
+          end
         end
       end
 

@@ -375,6 +375,19 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     })
   end
 
+  def test_add_multiple_metrics
+    in_transaction('test_txn') do
+      self.class.add_method_tracer :method_to_be_traced, ['XX', 'YY', -> (*) { 'ZZ' }]
+      method_to_be_traced 1, 2, 3, true, nil
+    end
+
+    assert_metrics_recorded([
+      ['XX', 'test_txn'],
+      'YY',
+      'ZZ'
+    ])
+  end
+
   def test_add_method_tracer_module_double_inclusion
     mod = Module.new { def traced_method; end }
     cls = Class.new { include mod }
