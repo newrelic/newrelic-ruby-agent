@@ -34,8 +34,8 @@ class FrameworkTest < Minitest::Test
       end
     end
 
-    if ENV['BUNDLE_GEMFILE'].match?(/rails\d/)
-      assert_truthy NewRelic::Agent.config[:framework].match?(/rails/)
+    if ENV['BUNDLE_GEMFILE'].match(/rails\d/)
+      assert_truthy NewRelic::Agent.config[:framework].match(/rails/)
     else
       assert_equal :sinatra, NewRelic::Agent.config[:framework]
     end
