@@ -109,7 +109,7 @@ module NewRelic
           # sense. Raises an error if the options are incorrect to
           # assist with debugging, so that errors occur at class
           # construction time rather than instrumentation run time
-          def _nr_validate_method_tracer_options(method_name, metric_names, options)
+          def _nr_validate_method_tracer_options(method_name, options)
             unless options.is_a?(Hash)
               raise TypeError.new("Error adding method tracer to #{method_name}: provided options must be a Hash")
             end
@@ -267,7 +267,7 @@ module NewRelic
           return unless newrelic_method_exists?(method_name)
           remove_method_tracer(method_name) if method_traced?(method_name)
 
-          options = _nr_validate_method_tracer_options(method_name, metric_name, options)
+          options = _nr_validate_method_tracer_options(method_name, options)
 
           visibility = NewRelic::Helper.instance_method_visibility self, method_name
 
