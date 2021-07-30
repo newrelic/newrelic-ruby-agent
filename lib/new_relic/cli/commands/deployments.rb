@@ -10,7 +10,7 @@ require 'net/http'
 require 'new_relic/agent/hostname'
 
 # We need to use the Control object but we don't want to load
-# the rails/merb environment.  The defined? clause is so that
+# the rails environment.  The defined? clause is so that
 # it won't load it twice, something it does when run inside a test
 require 'new_relic/control' unless defined? NewRelic::Control
 
@@ -117,7 +117,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
              "Set the application name.",
              "Default is app_name setting in newrelic.yml") { | e | @appname = e }
       o.on("-e", "--environment=name", String,
-               "Override the (RAILS|MERB|RUBY|RACK)_ENV setting",
+               "Override the (RAILS|RUBY|RACK)_ENV setting",
                "currently: #{control.env}") { | e | @environment = e }
       o.on("-u", "--user=USER", String,
              "Specify the user deploying, for information only",

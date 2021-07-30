@@ -120,7 +120,6 @@ module NewRelic
           Proc.new {
             case
             when defined?(::NewRelic::TEST) then :test
-            when defined?(::Merb) && defined?(::Merb::Plugins) then :merb
             when defined?(::Rails::VERSION)
               case Rails::VERSION::MAJOR
               when 0..2
