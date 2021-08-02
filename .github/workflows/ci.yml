@@ -45,11 +45,11 @@ jobs:
           key: ${{ matrix.ruby-version }}
           map: |
             {
-              "2.2.10": { 
-                "rails": "norails,rails51,rails42,rails41,rails40,rails32,rails31,rails30" 
+              "2.2.10": {
+                "rails": "norails,rails51,rails42,rails41,rails40,rails32"
               },
               "2.3.8": {
-                "rails": "norails,rails52,rails51,rails42,rails41,rails40,rails32,rails31,rails30"
+                "rails": "norails,rails52,rails51,rails42,rails41,rails40,rails32"
               },
               "2.4.10": {
                 "rails": "norails,rails52,rails51,rails42,rails32"
