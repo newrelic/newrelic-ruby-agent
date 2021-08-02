@@ -110,17 +110,17 @@ module Multiverse
       GROUPS['rails'].delete 'active_record'
     end
 
-    if RUBY_VERSION >= '2.7'
-      GROUPS['frameworks'].delete 'sinatra'
-      GROUPS['frameworks'].delete 'padrino'
-      GROUPS['frameworks'].delete 'grape'
-    end
+    # if RUBY_VERSION >= '2.7'
+    #   GROUPS['frameworks'].delete 'sinatra'
+    #   GROUPS['frameworks'].delete 'padrino'
+    #   GROUPS['frameworks'].delete 'grape'
+    # end
 
     def excluded?(suite)
       return true if suite == 'rake' and RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
       return true if suite == 'agent_only' and RUBY_PLATFORM == "java"
       return true if suite == 'active_record' and RUBY_VERSION >= '3.0.0'
-      return true if ["sinatra", "padrino", "grape"].include?(suite) and RUBY_VERSION >= '2.7'
+      # return true if ["sinatra", "padrino", "grape"].include?(suite) and RUBY_VERSION >= '2.7'
     end
 
 

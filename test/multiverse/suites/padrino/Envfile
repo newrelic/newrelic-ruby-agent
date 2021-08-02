@@ -18,5 +18,12 @@ if RUBY_VERSION >= '2.7.0'
     gem 'padrino', '~> 0.15.0'
     gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
   RB
+
+  gemfile <<-RB
+  gem 'activesupport', '~> 3'
+  gem 'padrino', '~> 0.15.1'
+  gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'
+RB
+
 end
 # vim: ft=ruby
