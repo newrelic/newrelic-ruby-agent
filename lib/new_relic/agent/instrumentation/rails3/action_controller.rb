@@ -84,52 +84,16 @@ DependencyDetection.defer do
     end
   end
 end
-DependencyDetection.defer do
-  @name = :rails30_view
 
-  depends_on do
-    defined?(::Rails::VERSION::MAJOR) && defined?(::Rails::VERSION::MINOR) &&
-      ::Rails::VERSION::MAJOR.to_i == 3 && ::Rails::VERSION::MINOR.to_i == 0
-  end
-
-  depends_on do
-    !NewRelic::Agent.config[:disable_view_instrumentation]
-  end
-
-  executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails 3.0 view instrumentation'
-  end
-
-  executes do
-    ActionView::Template.class_eval do
-      include NewRelic::Agent::MethodTracer
-      def render_with_newrelic(*args, &block)
-        options = if @virtual_path && @virtual_path.starts_with?('/') # file render
-          {:file => true }
-        else
-          {}
-        end
-        str = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(@identifier, options)}/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.render_type(@identifier)}"
-        trace_execution_scoped str do
-          render_without_newrelic(*args, &block)
-        end
-      end
-
-      alias_method :render_without_newrelic, :render
-      alias_method :render, :render_with_newrelic
-
-    end
-  end
-end
-
+# This is called rails31_view for legacy reasons. Rails 3.1 is no longer supported by the agent.
+# This is just used for rails 3.2 now.
 DependencyDetection.defer do
   @name = :rails31_view
 
-  # We can't be sure that this will work with future versions of Rails 3.
-  # Currently enabled for Rails 3.1 and 3.2
+  # Currently enabled for Rails 3.2
   depends_on do
     defined?(::Rails::VERSION::MAJOR) && defined?(::Rails::VERSION::MINOR) &&
-      ::Rails::VERSION::MAJOR.to_i == 3 && ([1,2].member?(::Rails::VERSION::MINOR.to_i))
+      ::Rails::VERSION::MAJOR.to_i == 3 && ::Rails::VERSION::MINOR.to_i == 2
   end
 
   depends_on do
@@ -137,7 +101,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing Rails 3.1/3.2 view instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing Rails 3.2 view instrumentation'
   end
 
   executes do
