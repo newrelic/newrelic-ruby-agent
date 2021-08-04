@@ -55,8 +55,9 @@ module NewRelic
       def insert_cross_app_header headers
         return unless CrossAppTracing.cross_app_enabled?
 
-        Deprecator.deprecate 'insert_cross_app_header',
-                     'insert_distributed_trace_header'
+        Deprecator.deprecate('cross_application_tracer.enabled')
+        
+        ::NewRelic::Agent.logger.warn("[DEPRECATED] Cross application tracing is enabled. It has been deprecated in favor of distributed tracing and will be removed in a future release. Enable distributed tracing to continue receiving traces across your applications by updating the 'cross_application_tracer.enabled' configuration to false.")
 
         @is_cross_app_caller = true
         txn_guid  = transaction.guid
