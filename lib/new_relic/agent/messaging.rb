@@ -110,20 +110,15 @@ module NewRelic
       #
       # @api public
       #
-      def wrap_message_broker_consume_transaction library: nil,
-                                                  destination_type: nil,
-                                                  destination_name: nil,
+      def wrap_message_broker_consume_transaction(library:,
+                                                  destination_type:,
+                                                  destination_name:,
                                                   headers: nil,
                                                   routing_key: nil,
                                                   queue_name: nil,
                                                   exchange_type: nil,
                                                   reply_to: nil,
-                                                  correlation_id: nil
-
-        # ruby 2.0.0 does not support required kwargs
-        raise ArgumentError, 'missing required argument: library' if library.nil?
-        raise ArgumentError, 'missing required argument: destination_type' if destination_type.nil?
-        raise ArgumentError, 'missing required argument: destination_name' if destination_name.nil?
+                                                  correlation_id: nil)
 
         state = Tracer.state
         return yield if state.current_transaction
@@ -185,17 +180,14 @@ module NewRelic
       #
       # @api public
       #
-      def start_amqp_publish_segment(library: nil,
-                                     destination_name: nil,
+      def start_amqp_publish_segment(library:,
+                                     destination_name:,
                                      headers: nil,
                                      routing_key: nil,
                                      reply_to: nil,
                                      correlation_id: nil,
                                      exchange_type: nil)
 
-        # ruby 2.0.0 does not support required kwargs
-        raise ArgumentError, 'missing required argument: library' if library.nil?
-        raise ArgumentError, 'missing required argument: destination_name' if destination_name.nil?
         raise ArgumentError, 'missing required argument: headers' if headers.nil? && CrossAppTracing.cross_app_enabled?
 
         original_headers = headers.nil? ? nil : headers.dup
@@ -247,19 +239,13 @@ module NewRelic
       #
       # @api public
       #
-      def start_amqp_consume_segment(library: nil,
-                                     destination_name: nil,
-                                     delivery_info: nil,
-                                     message_properties: nil,
+      def start_amqp_consume_segment(library:,
+                                     destination_name:,
+                                     delivery_info:,
+                                     message_properties:,
                                      exchange_type: nil,
                                      queue_name: nil,
                                      start_time: nil)
-
-        # ruby 2.0.0 does not support required kwargs
-        raise ArgumentError, 'missing required argument: library' if library.nil?
-        raise ArgumentError, 'missing required argument: destination_name' if destination_name.nil?
-        raise ArgumentError, 'missing required argument: delivery_info' if delivery_info.nil?
-        raise ArgumentError, 'missing required argument: message_properties' if message_properties.nil?
 
         segment = Tracer.start_message_broker_segment(
           action: :consume,
