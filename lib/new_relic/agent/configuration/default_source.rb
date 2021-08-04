@@ -1478,11 +1478,12 @@ module NewRelic
           :description => 'List of trusted New Relic account IDs for the purposes of cross-application tracing. Inbound requests from applications including cross-application headers that do not come from an account in this list will be ignored.'
         },
         :"cross_application_tracer.enabled" => {
-          :default => Proc.new { !NewRelic::Agent.config[:'distributed_tracing.enabled'] },
+          :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `true`, enables [cross-application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing).'
+          :deprecated => true,
+          :description => 'Deprecated in favor of distributed_tracing.enabled.'
         },
         :cross_application_tracing => {
           :default => nil,
@@ -1491,7 +1492,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :deprecated => true,
-          :description => 'Deprecated in favor of cross_application_tracer.enabled'
+          :description => 'Deprecated in favor of distributed_tracing.enabled.'
         },
         :encoding_key => {
           :default => '',

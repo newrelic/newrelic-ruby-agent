@@ -54,6 +54,10 @@ module NewRelic
 
       def insert_cross_app_header headers
         return unless CrossAppTracing.cross_app_enabled?
+
+        Deprecator.deprecate 'insert_cross_app_header',
+                     'insert_distributed_trace_header'
+
         @is_cross_app_caller = true
         txn_guid  = transaction.guid
         trip_id   = cat_trip_id
@@ -65,10 +69,10 @@ module NewRelic
       def add_message_cat_headers headers
         return unless CrossAppTracing.cross_app_enabled?
         @is_cross_app_caller = true
-        insert_message_headers headers, 
-          transaction.guid, 
-          cat_trip_id, 
-          cat_path_hash, 
+        insert_message_headers headers,
+          transaction.guid,
+          cat_trip_id,
+          cat_path_hash,
           transaction.raw_synthetics_header
       end
 
