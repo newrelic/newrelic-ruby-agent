@@ -52,19 +52,13 @@ module NewRelic
                     :library,
                     :headers
 
-        def initialize action: nil,
-                       library: nil,
-                       destination_type: nil,
-                       destination_name: nil,
+        def initialize(action:,
+                       library:,
+                       destination_type:,
+                       destination_name:,
                        headers: nil,
                        parameters: nil,
-                       start_time: nil
-
-          # ruby 2.0.0 does not support required kwargs
-          raise ArgumentError, 'missing required argument: action' if action.nil?
-          raise ArgumentError, 'missing required argument: library' if library.nil?
-          raise ArgumentError, 'missing required argument: destination_type' if destination_type.nil?
-          raise ArgumentError, 'missing required argument: destination_name' if destination_name.nil?
+                       start_time: nil)
 
           @action = action
           @library = library
