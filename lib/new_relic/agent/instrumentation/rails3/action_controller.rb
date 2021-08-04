@@ -85,12 +85,12 @@ DependencyDetection.defer do
   end
 end
 
-# This is called rails31_view for legacy reasons. Rails 3.1 is no longer supported by the agent.
-# This is just used for rails 3.2 now.
+# Though this uses the name :rails31_view, it is used only for rails 3.2 now
+# Rails 3.1 is no longer supported by the agent.
 DependencyDetection.defer do
   @name = :rails31_view
 
-  # Currently enabled for Rails 3.2
+  # Enabled for Rails 3.2
   depends_on do
     defined?(::Rails::VERSION::MAJOR) && defined?(::Rails::VERSION::MINOR) &&
       ::Rails::VERSION::MAJOR.to_i == 3 && ::Rails::VERSION::MINOR.to_i == 2
