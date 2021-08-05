@@ -1483,7 +1483,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => true,
           :deprecated => true,
-          :description => 'Deprecated in favor of distributed_tracing.enabled.'
+          :description => 'Deprecated in favor of distributed_tracing.enabled'
         },
         :cross_application_tracing => {
           :default => nil,
@@ -1492,7 +1492,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :deprecated => true,
-          :description => 'Deprecated in favor of distributed_tracing.enabled.'
+          :description => 'Deprecated in favor of distributed_tracing.enabled'
         },
         :encoding_key => {
           :default => '',
