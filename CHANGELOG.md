@@ -2,6 +2,9 @@
 
   ## v8.0.0
 
+  * **Deprecate cross application tracing**
+    Cross application tracing is deprecated in favor of [distributed tracing](https://docs.newrelic.com/docs/distributed-tracing/enable-configure/language-agents-enable-distributed-tracing/) and is off by default.
+
   * **Remove tests for Rails 3.0 and Rails 3.1**
     As of the 7.0 release, the Ruby agent stopped supporting Rails 3.0 and Rails 3.1. Despite this, we still had tests for these versions running on the agent's CI. Those tests are now removed.
 
