@@ -2,6 +2,9 @@
 
   ## v8.0.0
 
+  * **Deprecate cross application tracing**
+    Cross application tracing is deprecated in favor of [distributed tracing](https://docs.newrelic.com/docs/distributed-tracing/enable-configure/language-agents-enable-distributed-tracing/) and is off by default.
+
   * **Remove support for Excon versions below 0.19.0**
     Excon versions below 0.19.0 will no longer be instrumented through the Ruby agent.
 
