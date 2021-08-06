@@ -49,7 +49,7 @@ module NewRelic
         def register_event_listeners(events)
           NewRelic::Agent.logger.
             debug("Wiring up Cross Application Tracing to events after finished configuring")
-# DEPRECATION WARNING GOES HERE
+
           events.subscribe(:before_call) do |env| #THREAD_LOCAL_ACCESS
             if id = decoded_id(env) and should_process_request?(id)
               state = NewRelic::Agent::Tracer.state
