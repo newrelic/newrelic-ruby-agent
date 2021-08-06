@@ -23,7 +23,13 @@ module NewRelic
 
         def on_finished_configuring(events)
           Deprecator.deprecate('cross_application_tracer.enabled configuration')
-          ::NewRelic::Agent.logger.warn("[DEPRECATED] Cross application tracing is enabled. It has been deprecated in favor of distributed tracing and will be removed in a future release. Enable distributed tracing to continue receiving traces across external requests removing the 'cross_application_tracer.enabled' configuration.")
+          ::NewRelic::Agent.logger.warn(
+            "[DEPRECATED] Cross application tracing is enabled. It has been \
+            deprecated in favor of distributed tracing and will be removed in a\
+             future release. Start using distrubted tracing by removing the \
+             'cross_application_tracer.enabled' configuration and setting \
+             'distributed_tracing.enabled' to true."
+          )
 
           register_event_listeners(events)
         end
