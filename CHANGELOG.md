@@ -17,6 +17,22 @@
   * **Remove Merb Support**
     This release removes the remaining support for the [Merb](https://weblog.rubyonrails.org/2008/12/23/merb-gets-merged-into-rails-3/) framework. It merged with Rails during the 3.0 release. Now that the Ruby agent supports Rails 3.2 and above, we thought it was time to say goodbye.
 
+  * **`add_method_tracer` refactored to use prepend over alias_method chaining**
+    This release overhauls the implementation of `add_method_tracer`, as detailed in [issue #502](https://github.com/newrelic/newrelic-ruby-agent/issues/502). The main breaking updates are as follows:
+    - A metric name passed to `add_method_tracer` will no longer be interpolated in an instance context as before. To maintain this behavior, pass a Proc object with the same arity as the method being traced. For example:
+
+        # OLD
+        add_method_tracer :foo, '#{args[0]}.#{args[1]}'
+
+        # NEW
+        add_method_tracer :foo, -> (*args) { "#{args[0].#{args[1]" }
+    
+    - Similarly, the `:code_header` and `:code_footer` options to `add_method_tracer` will *only* accept a Proc object, which will be bound to the calling instance when the traced method is invoked.
+    
+    See updated documentation on the following pages for full details:
+    https://docs.newrelic.com/docs/agents/ruby-agent/api-guides/ruby-custom-instrumentation/#method_tracers
+    https://rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent/MethodTracer/ClassMethods#add_method_tracer-instance_method
+
   ## v7.2.0
 
   * **Expected Errors and Ignore Errors**
