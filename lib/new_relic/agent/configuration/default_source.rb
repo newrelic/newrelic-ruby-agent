@@ -1792,7 +1792,10 @@ module NewRelic
           :type         => Array,
           :allowed_from_server => true,
           :transform    => DefaultSource.method(:convert_to_regexp_list),
-          :description  => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore.'
+          :description  => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore.' \
+            '*Note:* This will only ignore transaction events, not spans or traces from the same transation. See documentation on ' \
+            '(Ignoring Specific Transactions)[https://docs.newrelic.com/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring] ' \
+            'for more details.'
         },
         :'synthetics.traces_limit' => {
           :default      => 20,
