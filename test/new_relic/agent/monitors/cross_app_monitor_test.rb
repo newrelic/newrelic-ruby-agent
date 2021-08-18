@@ -163,7 +163,7 @@ module NewRelic::Agent
         'OtherTransactionTotalTime',
         'OtherTransactionTotalTime/transaction',
         'Supportability/API/record_metric',
-        'Supportability/Deprecated/cross_application_tracer.enabled configuration'
+        'Supportability/Deprecated/cross_application_tracer'
         ])
     end
 
