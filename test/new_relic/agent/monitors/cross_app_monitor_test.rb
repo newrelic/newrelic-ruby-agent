@@ -157,8 +157,14 @@ module NewRelic::Agent
     def test_doesnt_write_metric_if_id_blank
       when_request_runs(for_id(''))
 
-      assert_metrics_recorded_exclusive(['transaction', 'Supportability/API/drop_buffered_data',
-        'OtherTransactionTotalTime', 'OtherTransactionTotalTime/transaction'])
+      assert_metrics_recorded_exclusive([
+        'transaction',
+        'Supportability/API/drop_buffered_data',
+        'OtherTransactionTotalTime',
+        'OtherTransactionTotalTime/transaction',
+        'Supportability/API/record_metric',
+        'Supportability/Deprecated/cross_application_tracer'
+        ])
     end
 
     def test_setting_response_headers_freezes_transaction_name

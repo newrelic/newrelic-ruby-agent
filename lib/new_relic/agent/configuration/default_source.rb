@@ -39,6 +39,8 @@ module NewRelic
         end
       end
 
+      # Marks the config option as deprecated in the documentation once generated.
+      # Does not appear in logs.
       def self.deprecated_description new_setting, description
         link_ref = new_setting.to_s.gsub(".", "-")
         %{Please see: [#{new_setting}](docs/agents/ruby-agent/configuration/ruby-agent-configuration##{link_ref}). \n\n#{description}}
@@ -1483,7 +1485,10 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => true,
           :deprecated => true,
-          :description => 'Deprecated in favor of distributed_tracing.enabled'
+          :description => deprecated_description(
+            :'distributed_tracing-enabled',
+            'If `true`, enables [cross-application tracing](/docs/agents/ruby-agent/features/cross-application-tracing-ruby/)'
+          )
         },
         :cross_application_tracing => {
           :default => nil,
