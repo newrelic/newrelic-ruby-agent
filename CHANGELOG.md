@@ -28,6 +28,8 @@
         add_method_tracer :foo, -> (*args) { "#{args[0].#{args[1]" }
     
     - Similarly, the `:code_header` and `:code_footer` options to `add_method_tracer` will *only* accept a Proc object, which will be bound to the calling instance when the traced method is invoked.
+
+    - Calling `add_method_tracer` for a method will overwrite any previously defined tracers for that method. To specify multiple metric names for a single method tracer, pass them to `add_method_tracer` as an array.
     
     See updated documentation on the following pages for full details:
     https://docs.newrelic.com/docs/agents/ruby-agent/api-guides/ruby-custom-instrumentation/#method_tracers
