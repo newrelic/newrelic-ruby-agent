@@ -126,13 +126,13 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     ["traced_metric_methods_unscoped", TracedMetricMethodsUnscoped],
   ].each do |traced_class_name, traced_class|
 
-      # We're doing it all in one big super test because order of invocation matters!
-      # When many small test scenarios, if the tests for deprecation warnings emitted
-      # by the compiler are not invoked first, then we miss our chance to capture
-      # that output and assert/refute reliably.
-      # This very large run ensures order of calls always happen in predictable order.
-      define_method "test_expected_results_#{traced_class_name}" do
-      
+    # We're doing it all in one big super test because order of invocation matters!
+    # When many small test scenarios, if the tests for deprecation warnings emitted
+    # by the compiler are not invoked first, then we miss our chance to capture
+    # that output and assert/refute reliably.
+    # This very large run ensures order of calls always happen in predictable order.
+    define_method "test_expected_results_#{traced_class_name}" do
+
       expected = {foo: {bar: "foobar"}}
       expected369 = {1=>3, 2=>6, 3=>9}
       instance = traced_class.new
@@ -146,12 +146,6 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
       refute_deprecation_warning { instance.wildcard_args(:foo, bar: "foobar") }
       refute_deprecation_warning { instance.wildcard_args(:foo, {bar: "foobar"}) }
  
-      if RUBY_VERSION >= "2.7.0" && RUBY_VERSION < "3.0.0"
-        assert_deprecation_warning { instance.args_and_kwargs(:foo, {bar: "foobar"}) }
-      else
-        refute_deprecation_warning { instance.args_and_kwargs(:foo, {bar: "foobar"}) }
-      end
-
       refute_deprecation_warning { instance.last_arg_is_a_keyword(:foo, bar: "foobar") }
       refute_deprecation_warning { instance.all_args_are_keywords(foo: :foo, bar: {bar: "foobar"}) }
       refute_deprecation_warning { instance.args_and_kwargs(:foo, bar: "foobar") }

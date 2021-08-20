@@ -3,15 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-
-class Module
-  def method_traced?(method_name, metric_name)
-    traced_method_prefix = _traced_method_name(method_name, metric_name)
-
-    method_defined? traced_method_prefix
-  end
-end
-
+require 'pry'
 class Insider
   def initialize(stats_engine)
     @stats_engine = stats_engine
@@ -43,17 +35,19 @@ module NewRelic
 end
 
 module TestModuleWithLog
-  extend self
-  def other_method
-    #just here to be traced
-    log "12345"
-  end
+  class << self
+    def other_method
+      #just here to be traced
+      log "12345"
+    end
 
-  def log( msg )
-    msg
+    def log( msg )
+      msg
+    end
+
+    include NewRelic::Agent::MethodTracer
+    add_method_tracer :other_method, 'Custom/foo/bar'
   end
-  include NewRelic::Agent::MethodTracer
-  add_method_tracer :other_method, 'Custom/foo/bar'
 end
 
 class MyClass
@@ -63,6 +57,16 @@ class MyClass
   class << self
     include NewRelic::Agent::MethodTracer
     add_method_tracer :class_method
+  end
+end
+
+module MyModule
+  def self.module_method
+  end
+
+  class << self
+    include NewRelic::Agent::MethodTracer
+    add_method_tracer :module_method
   end
 end
 
@@ -84,11 +88,8 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
   def teardown
     @stats_engine.clear_stats
-    begin
-      self.class.remove_method_tracer :method_to_be_traced, @metric_name if @metric_name
-    rescue RuntimeError
-      # ignore 'no tracer' errors from remove method tracer
-    end
+
+    self.class._nr_clear_traced_methods!
 
     @metric_name = nil
     NewRelic::Agent.shutdown
@@ -138,7 +139,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     begin
-      self.class.remove_method_tracer :method_to_be_traced, METRIC
+      self.class.remove_method_tracer :method_to_be_traced
     rescue RuntimeError
       # ignore 'no tracer' errors from remove method tracer
     end
@@ -163,6 +164,15 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     metric = "Custom/MyClass/Class/class_method"
+    assert_metrics_recorded metric => {:call_count => 1}
+  end
+
+  def test_add_module_method_tracer
+    in_transaction do
+      MyModule.module_method
+    end
+
+    metric = "Custom/MyModule/Class/module_method"
     assert_metrics_recorded metric => {:call_count => 1}
   end
 
@@ -208,11 +218,11 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   end
 
   def test_method_traced?
-    assert !self.class.method_traced?(:method_to_be_traced, METRIC)
+    assert !self.class.method_traced?(:method_to_be_traced)
     self.class.add_method_tracer :method_to_be_traced, METRIC
-    assert self.class.method_traced?(:method_to_be_traced, METRIC)
+    assert self.class.method_traced?(:method_to_be_traced)
     begin
-      self.class.remove_method_tracer :method_to_be_traced, METRIC
+      self.class.remove_method_tracer :method_to_be_traced
     rescue RuntimeError
       # ignore 'no tracer' errors from remove method tracer
     end
@@ -261,7 +271,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     begin
-      self.class.remove_method_tracer :method_to_be_traced, METRIC
+      self.class.remove_method_tracer :method_to_be_traced
     rescue RuntimeError
       # ignore 'no tracer' errors from remove method tracer
     end
@@ -270,7 +280,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   end
 
   def test_add_tracer_with_dynamic_metric
-    metric_code = '#{args[0]}.#{args[1]}'
+    metric_code = -> (*args) { "#{args[0]}.#{args[1]}" }
     @metric_name = metric_code
     expected_metric = "1.2"
     self.class.add_method_tracer :method_to_be_traced, metric_code
@@ -280,7 +290,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     end
 
     begin
-      self.class.remove_method_tracer :method_to_be_traced, metric_code
+      self.class.remove_method_tracer :method_to_be_traced
     rescue RuntimeError
       # ignore 'no tracer' errors from remove method tracer
     end
@@ -299,15 +309,9 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     assert_metrics_recorded METRIC => {:call_count => 1, :total_call_time => 0.15}
   end
 
-  def test_trace_module_method
-    NewRelic::Agent.add_method_tracer :module_method_to_be_traced, '#{args[0]}'
-    NewRelic::Agent.module_method_to_be_traced "x", self
-    NewRelic::Agent.remove_method_tracer :module_method_to_be_traced, '#{args[0]}'
-  end
-
   def test_remove
     self.class.add_method_tracer :method_to_be_traced, METRIC
-    self.class.remove_method_tracer :method_to_be_traced, METRIC
+    self.class.remove_method_tracer :method_to_be_traced
 
     method_to_be_traced 1,2,3,false,METRIC
 
@@ -321,7 +325,6 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
         advance_time 0.05
       end
     end
-
 
     assert_metrics_recorded({
       'first' => {:call_count => 1, :total_call_time => 0.05},
@@ -363,12 +366,10 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     in_transaction('test_txn') do
       self.class.add_method_tracer :method_to_be_traced, 'XX', :push_scope => false
       method_to_be_traced 1,2,3,true,nil
+      self.class.remove_method_tracer :method_to_be_traced
+      method_to_be_traced 1,2,3,true,nil
       self.class.add_method_tracer :method_to_be_traced, 'YY'
       method_to_be_traced 1,2,3,true,'YY'
-      self.class.remove_method_tracer :method_to_be_traced, 'YY'
-      method_to_be_traced 1,2,3,true,nil
-      self.class.remove_method_tracer :method_to_be_traced, 'XX'
-      method_to_be_traced 1,2,3,false,'XX'
     end
 
     assert_metrics_recorded({
@@ -376,16 +377,17 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     })
   end
 
-  def test_add_method_tracer_module_double_inclusion
-    mod = Module.new { def traced_method; end }
-    cls = Class.new { include mod }
-
-    mod.module_eval do
-      include NewRelic::Agent::MethodTracer
-      add_method_tracer :traced_method
+  def test_add_multiple_metrics
+    in_transaction('test_txn') do
+      self.class.add_method_tracer :method_to_be_traced, ['XX', 'YY', -> (*) { 'ZZ' }]
+      method_to_be_traced 1, 2, 3, true, nil
     end
 
-    cls.new.traced_method
+    assert_metrics_recorded([
+      ['XX', 'test_txn'],
+      'YY',
+      'ZZ'
+    ])
   end
 
   # This test validates that including the MethodTracer module does not pollute
@@ -412,7 +414,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     in_transaction 'test_txn' do
       self.class.add_method_tracer :method_to_be_traced, 'X', :push_scope => false
       method_to_be_traced 1,2,3,true,nil
-      self.class.remove_method_tracer :method_to_be_traced, 'X'
+      self.class.remove_method_tracer :method_to_be_traced
       method_to_be_traced 1,2,3,false,'X'
     end
 

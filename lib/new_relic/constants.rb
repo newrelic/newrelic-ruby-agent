@@ -28,10 +28,6 @@ module NewRelic
   TRACEPARENT_KEY = "traceparent"
   TRACESTATE_KEY = "tracestate"
 
-  # Right now, old and new Rubies are the same.  Intention is to use "(...)" for
-  # Ruby 2.7+ for argument delegation, but doing so is a breaking API change.
-  ARGS_FOR_RUBY_VERSION = RUBY_VERSION < "2.7.0" ? "*args, &block" : "*args, &block"
-
   HTTP_TRACEPARENT_KEY = "HTTP_#{TRACEPARENT_KEY.upcase}"
   HTTP_TRACESTATE_KEY = "HTTP_#{TRACESTATE_KEY.upcase}"
   HTTP_NEWRELIC_KEY = "HTTP_#{NEWRELIC_KEY.upcase}"
