@@ -21,7 +21,7 @@ module NewRelic
       # query content into Transaction Traces. Use wrap if you want to provide
       # that functionality.
       #
-      # @param [Class] clazz the class to instrument
+      # @param [Class] klass the class to instrument
       #
       # @param [String, Symbol] method_name the name of instance method to
       #   instrument
@@ -33,16 +33,16 @@ module NewRelic
       #
       # @api public
       #
-      def self.trace(clazz, method_name, product, operation = method_name)
+      def self.trace(klass, method_name, product, operation = method_name)
         NewRelic::Agent.record_api_supportability_metric(:trace)
 
-        clazz.class_eval do
+        klass.class_eval do
           method_name_without_newrelic = "#{method_name}_without_newrelic"
 
-          if NewRelic::Helper.instance_methods_include?(clazz, method_name) &&
-             !NewRelic::Helper.instance_methods_include?(clazz, method_name_without_newrelic)
+          if NewRelic::Helper.instance_methods_include?(klass, method_name) &&
+             !NewRelic::Helper.instance_methods_include?(klass, method_name_without_newrelic)
 
-            visibility = NewRelic::Helper.instance_method_visibility(clazz, method_name)
+            visibility = NewRelic::Helper.instance_method_visibility(klass, method_name)
 
             alias_method method_name_without_newrelic, method_name
 
