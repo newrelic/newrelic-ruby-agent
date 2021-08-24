@@ -574,8 +574,8 @@ module NewRelic
           # sampler into a new interval and resets the counts
           adaptive_sampler = NewRelic::Agent.instance.adaptive_sampler
           interval_duration = adaptive_sampler.instance_variable_get :@period_duration
-          nr_freeze_time
-          advance_time(interval_duration)
+          nr_freeze_process_time
+          advance_process_time(interval_duration)
           adaptive_sampler.send(:reset_if_period_expired!)
 
           20.times do

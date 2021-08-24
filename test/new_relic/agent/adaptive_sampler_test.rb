@@ -15,7 +15,7 @@ module NewRelic
         stats = sampler.stats
         assert_equal 10, stats[:sampled_count]
         assert_equal 10000, stats[:seen]
-        advance_time(60)
+        advance_process_time(60)
         10001.times { sampler.sampled? }
         stats = sampler.stats
         assert_equal 10000, stats[:seen_last]
@@ -28,7 +28,7 @@ module NewRelic
         stats = sampler.stats
         assert_equal 10, stats[:sampled_count]
         assert_equal 10000, stats[:seen]
-        advance_time(120)
+        advance_process_time(120)
         10001.times { sampler.sampled? }
         stats = sampler.stats
         assert_equal 0, stats[:seen_last]
