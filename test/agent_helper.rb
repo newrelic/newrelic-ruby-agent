@@ -594,6 +594,33 @@ def advance_time seconds
   Time.__frozen_now = Time.now + seconds
 end
 
+unless Process.respond_to?(:__original_clock_gettime)
+  Process.instance_eval do
+    class << self
+      attr_accessor :__frozen_clock_gettime
+      alias_method :__original_clock_gettime, :clock_gettime
+
+      def clock_gettime(clock_id)
+        __frozen_clock_gettime || __original_clock_gettime(clock_id)
+      end
+    end
+  end
+end
+
+# TODO: TRY TO ALLOW THE CLOCK ID TO BE PASSED
+def advance_process_time(seconds, clock_id=Process::CLOCK_MONOTONIC)
+  Process.__frozen_clock_gettime = Process.clock_gettime(clock_id) + seconds
+end
+
+# TODO: TRY TO ALLOW THE CLOCK ID TO BE PASSED
+def nr_freeze_process_time(now=Process.clock_gettime(Process::CLOCK_MONOTONIC))
+  Process.__frozen_clock_gettime = now
+end
+
+def nr_unfreeze_process_time
+  Process.__frozen_clock_gettime = nil
+end
+
 def with_constant_defined constant_symbol, implementation=Module.new
   const_path = constant_path(constant_symbol.to_s)
 
