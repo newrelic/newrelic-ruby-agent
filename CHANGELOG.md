@@ -8,6 +8,9 @@
   * **Remove support for Excon versions below 0.19.0**
     Excon versions below 0.19.0 will no longer be instrumented through the Ruby agent.
 
+  * **Remove support for Mongo versions below 2.1**
+    Mongo versions below 2.1 will no longer be instrumented through the Ruby agent.
+
   * **Remove tests for Rails 3.0 and Rails 3.1**
     As of the 7.0 release, the Ruby agent stopped supporting Rails 3.0 and Rails 3.1. Despite this, we still had tests for these versions running on the agent's CI. Those tests are now removed.
 
