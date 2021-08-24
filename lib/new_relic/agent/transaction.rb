@@ -119,28 +119,6 @@ module NewRelic
         "#{namer.prefix_for_category(self, category)}#{partial_name}"
       end
 
-      def self.wrap(state, name, category, options = {})
-        Deprecator.deprecate 'Transaction.wrap',
-                             'Tracer#in_transaction'
-
-        finishable = Tracer.start_transaction_or_segment(
-              name: name,
-              category: category,
-              options: options
-            )
-
-        begin
-          # We shouldn't raise from Transaction.start, but only wrap the yield
-          # to be absolutely sure we don't report agent problems as app errors
-          yield
-        rescue => e
-          Transaction.notice_error(e)
-          raise e
-        ensure
-          finishable.finish if finishable
-        end
-      end
-
       def self.start_new_transaction(state, category, options)
         txn = Transaction.new(category, options)
         state.reset(txn)

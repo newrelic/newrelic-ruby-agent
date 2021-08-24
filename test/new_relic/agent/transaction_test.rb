@@ -1259,47 +1259,6 @@ module NewRelic::Agent
       assert_equal(value, attributes_for(txn, :custom)[key])
     end
 
-    def test_wrap_transaction
-      state = Tracer.state
-      Transaction.wrap(state, 'test', :other) do
-        # No-op
-      end
-
-      assert_metrics_recorded(['test'])
-    end
-
-    def test_wrap_transaction_with_early_failure
-      yielded = false
-      state = Tracer.state
-      Transaction.any_instance.stubs(:start).raises("Boom")
-      Transaction.wrap(state, 'test', :other) do
-        yielded = true
-      end
-
-      assert yielded
-    end
-
-    def test_wrap_transaction_with_late_failure
-      state = Tracer.state
-      Transaction.any_instance.stubs(:commit!).raises("Boom")
-      Transaction.wrap(state, 'test', :other) do
-        # No-op
-      end
-
-      refute_metrics_recorded(['test'])
-    end
-
-    def test_wrap_transaction_notices_errors
-      state = Tracer.state
-      assert_raises RuntimeError do
-        Transaction.wrap(state, 'test', :other) do
-          raise "O_o"
-        end
-      end
-
-      assert_metrics_recorded(["Errors/all"])
-    end
-
     def test_instrumentation_state
       in_transaction do |txn|
         txn.instrumentation_state[:a] = 42
