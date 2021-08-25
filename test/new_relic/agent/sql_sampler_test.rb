@@ -468,13 +468,13 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
                  :account_id => 190,
                  :'slow_sql.explain_threshold' => -1 }) do
 
-      nr_freeze_time
+      nr_freeze_process_time
 
       in_transaction do |txn|
         payload = txn.distributed_tracer.create_distributed_trace_payload
       end
 
-      advance_time 2.0
+      advance_process_time 2.0
 
       segment = nil
       txn = nil

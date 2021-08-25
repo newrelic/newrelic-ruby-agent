@@ -70,7 +70,7 @@ module NewRelic
         intrinsics, *_ = last_error_event
 
         assert_equal 'TransactionError', intrinsics['type']
-        assert_in_delta Time.now.to_f, intrinsics['timestamp'], 0.001
+        assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics['timestamp'], 0.001
         assert_equal "RuntimeError", intrinsics['error.class']
         assert_equal "Big Controller!", intrinsics['error.message']
       end
@@ -81,7 +81,7 @@ module NewRelic
         intrinsics, *_ = last_error_event
 
         assert_equal 'TransactionError', intrinsics['type']
-        assert_in_delta Time.now.to_f, intrinsics['timestamp'], 0.001
+        assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics['timestamp'], 0.001
         assert_equal "RuntimeError", intrinsics['error.class']
         assert_equal "Big Controller!", intrinsics['error.message']
         assert_equal "Controller/blogs/index", intrinsics['transactionName']
@@ -159,7 +159,7 @@ module NewRelic
         {
           :name => name,
           :type => :controller,
-          :start_timestamp => Time.now.to_f,
+          :start_timestamp => Process.clock_gettime(Process::CLOCK_REALTIME),
           :duration => 0.1,
           :priority => options[:priority] || rand
         }.update(options)

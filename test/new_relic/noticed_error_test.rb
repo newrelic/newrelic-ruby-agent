@@ -13,8 +13,8 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   def setup
     @path = 'foo/bar/baz'
 
-    nr_freeze_time
-    @time = Time.now
+    nr_freeze_process_time
+    @time = Process.clock_gettime(Process::CLOCK_REALTIME)
 
     @attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
     @attributes_from_notice_error = { :user => 'params' }

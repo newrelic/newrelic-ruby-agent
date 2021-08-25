@@ -87,11 +87,11 @@ module NewRelic
       def trace_execution_unscoped(metric_names, options=NewRelic::EMPTY_HASH) #THREAD_LOCAL_ACCESS
         NewRelic::Agent.record_api_supportability_metric :trace_execution_unscoped unless options[:internal]
         return yield unless NewRelic::Agent.tl_is_execution_traced?
-        t0 = Time.now
+        t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         begin
           yield
         ensure
-          duration = (Time.now - t0).to_f              # for some reason this is 3 usec faster than Time - Time
+          duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0
           NewRelic::Agent.instance.stats_engine.tl_record_unscoped_metrics(metric_names, duration)
         end
       end
@@ -294,7 +294,7 @@ module NewRelic
             [metric_name || _nr_default_metric_name(method_name), []]
           else
             [nil, Array(metric_name)]
-          end 
+          end
         end
 
         def _nr_define_traced_method(method_name, scoped_metric: nil, unscoped_metrics: [],
@@ -313,7 +313,7 @@ module NewRelic
                 else
                   nil
                 end
-  
+
               unscoped_metrics_eval = unscoped_metrics.map do |metric|
                 metric.kind_of?(Proc) ? instance_exec(*args, &metric) : metric.to_s
               end

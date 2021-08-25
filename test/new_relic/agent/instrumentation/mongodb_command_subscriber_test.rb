@@ -8,7 +8,7 @@ require 'new_relic/agent/instrumentation/mongodb_command_subscriber'
 class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest::Test
 
   def setup
-    nr_freeze_time
+    nr_freeze_process_time
     @started_event = mock('started event')
     @started_event.stubs(:operation_id).returns(1)
     @started_event.stubs(:command_name).returns('find')
@@ -106,7 +106,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
   def simulate_query
     @subscriber.started(@started_event)
-    advance_time @succeeded_event.duration
+    advance_process_time @succeeded_event.duration
     @subscriber.succeeded(@succeeded_event)
   end
 end

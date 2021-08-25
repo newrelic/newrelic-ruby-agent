@@ -224,7 +224,7 @@ module NewRelic
         @frozen_name      = nil
 
         @category = category
-        @start_time = Time.now
+        @start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         @end_time = nil
         @duration = nil
         @apdex_start = options[:apdex_start_time] || @start_time
@@ -483,8 +483,8 @@ module NewRelic
 
       def finish
         return unless state.is_execution_traced?
-        @end_time = Time.now
-        @duration = @end_time.to_f - @start_time.to_f
+        @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
+        @duration = @end_time - @start_time
         freeze_name_and_execute_if_not_ignored
 
         if nesting_max_depth == 1

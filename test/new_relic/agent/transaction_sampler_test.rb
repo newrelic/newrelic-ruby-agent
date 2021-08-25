@@ -77,9 +77,9 @@ module NewRelic::Agent
     # Tests
 
     def test_captures_correct_transaction_duration
-      nr_freeze_time
+      nr_freeze_process_time
       in_transaction do |txn|
-        advance_time(10.0)
+        advance_process_time(10.0)
       end
 
       assert_equal(10.0, @sampler.last_sample.duration)
@@ -224,33 +224,33 @@ module NewRelic::Agent
     # sample traces, for example. It's unfortunate, but we can't
     # reliably turn off GC on all versions of ruby under test
     def test_harvest_slowest
-      nr_freeze_time
+      nr_freeze_process_time
       with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
         in_transaction do
           s = Tracer.start_segment name: 'first'
-          advance_time 0.1
+          advance_process_time 0.1
           s.finish
         end
         in_transaction do
           s = Tracer.start_segment name: 'second'
-          advance_time 0.1
+          advance_process_time 0.1
           s.finish
         end
 
         in_transaction do
           s = Tracer.start_segment name: 'two_seconds'
-          advance_time 2
+          advance_process_time 2
           s.finish
         end
 
         in_transaction do
           s = Tracer.start_segment name: 'fourth'
-          advance_time 0.1
+          advance_process_time 0.1
           s.finish
         end
         in_transaction do
           s = Tracer.start_segment name: 'fifth'
-          advance_time 0.1
+          advance_process_time 0.1
           s.finish
         end
 
@@ -262,7 +262,7 @@ module NewRelic::Agent
         # 1 second duration
         in_transaction do
           s = Tracer.start_segment name: 'one_second'
-          advance_time 1
+          advance_process_time 1
           s.finish
         end
         @sampler.merge!([slowest])
@@ -272,7 +272,7 @@ module NewRelic::Agent
         # 1 second duration
         in_transaction do
           s = Tracer.start_segment name: 'ten_seconds'
-          advance_time 10
+          advance_process_time 10
           s.finish
         end
 
@@ -421,7 +421,7 @@ module NewRelic::Agent
       attributes = Attributes.new(NewRelic::Agent.instance.attribute_filter)
       attributes.add_intrinsic_attribute(:synthetics_resource_id, opts[:synthetics_resource_id])
 
-      sample = Transaction::Trace.new(Time.now)
+      sample = Transaction::Trace.new(Process.clock_gettime(Process::CLOCK_REALTIME))
       sample.attributes = attributes
       sample.threshold = opts[:threshold]
       sample.transaction_name = opts[:transaction_name]
@@ -436,7 +436,7 @@ module NewRelic::Agent
     end
 
     def run_long_sample_trace(n)
-      @sampler.on_start_transaction(@state, Time.now)
+      @sampler.on_start_transaction(@state, Process.clock_gettime(Process::CLOCK_REALTIME))
       n.times do |i|
         @sampler.notice_push_frame(@state)
         yield if block_given?
@@ -445,7 +445,7 @@ module NewRelic::Agent
       @sampler.on_finishing_transaction(@state, @txn)
     end
 
-    def run_sample_trace(start = Time.now.to_f, stop = nil, state = @state)
+    def run_sample_trace(start = Process.clock_gettime(Process::CLOCK_REALTIME), stop = nil, state = @state)
       @sampler.on_start_transaction(state, start)
       @sampler.notice_push_frame(state)
       @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0, state)

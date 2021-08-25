@@ -152,21 +152,21 @@ module NewRelic::Agent
     }
 
     def test_update_apdex_records_correct_apdex_for_key_transaction
-      nr_freeze_time
+      nr_freeze_process_time
       with_config(KEY_TRANSACTION_CONFIG) do
         # apdex_s
         in_web_transaction('Controller/slow/txn') do
-          advance_time(3.5)
+          advance_process_time(3.5)
         end
 
         # apdex_t
         in_web_transaction('Controller/slow/txn') do
-          advance_time(5.5)
+          advance_process_time(5.5)
         end
 
         # adpex_f
         in_web_transaction('Controller/slow/txn') do
-          advance_time(16.5)
+          advance_process_time(16.5)
         end
 
         assert_metrics_recorded(
@@ -178,22 +178,22 @@ module NewRelic::Agent
     end
 
     def test_update_apdex_records_correct_apdex_for_non_key_transaction
-      nr_freeze_time
-      advance_time(1.0)
+      nr_freeze_process_time
+      advance_process_time(1.0)
       with_config(KEY_TRANSACTION_CONFIG) do
         # apdex_s
         in_web_transaction('Controller/other/txn') do
-          advance_time(0.5)
+          advance_process_time(0.5)
         end
 
         # apdex_t
         in_web_transaction('Controller/other/txn') do
-          advance_time(2.0)
+          advance_process_time(2.0)
         end
 
         # apdex_f
         in_web_transaction('Controller/other/txn') do
-          advance_time(5.0)
+          advance_process_time(5.0)
         end
 
         assert_metrics_recorded(
@@ -205,21 +205,21 @@ module NewRelic::Agent
     end
 
     def test_update_apdex_records_for_background_key_transaction
-      nr_freeze_time
+      nr_freeze_process_time
       with_config(KEY_TRANSACTION_CONFIG) do
         # apdex_s
         in_background_transaction('OtherTransaction/back/ground') do
-          advance_time(7.5)
+          advance_process_time(7.5)
         end
 
         # apdex_t
         in_background_transaction('OtherTransaction/back/ground') do
-          advance_time(9.5)
+          advance_process_time(9.5)
         end
 
         # apdex_f
         in_background_transaction('OtherTransaction/back/ground') do
-          advance_time(32.5)
+          advance_process_time(32.5)
         end
 
         assert_metrics_recorded(
@@ -231,18 +231,18 @@ module NewRelic::Agent
     end
 
     def test_skips_apdex_records_for_background_non_key_transaction
-      nr_freeze_time
+      nr_freeze_process_time
       with_config(KEY_TRANSACTION_CONFIG) do
         in_background_transaction('OtherTransaction/other/task') do
-          advance_time(7.5)
+          advance_process_time(7.5)
         end
 
         in_background_transaction('OtherTransaction/other/task') do
-          advance_time(9.5)
+          advance_process_time(9.5)
         end
 
         in_background_transaction('OtherTransaction/other/task') do
-          advance_time(32.5)
+          advance_process_time(32.5)
         end
 
         refute_metrics_recorded(['ApdexOther', 'ApdexOther/Transaction/other/task'])
@@ -264,36 +264,36 @@ module NewRelic::Agent
     end
 
     def test_records_apdex_all_for_both_transaction_types
-      nr_freeze_time
+      nr_freeze_process_time
       with_config(KEY_TRANSACTION_CONFIG) do
         # apdex_s
         in_background_transaction('OtherTransaction/back/ground') do
-          advance_time(7.5)
+          advance_process_time(7.5)
         end
 
         # apdex_t
         in_background_transaction('OtherTransaction/back/ground') do
-          advance_time(9.5)
+          advance_process_time(9.5)
         end
 
         # apdex_f
         in_background_transaction('OtherTransaction/back/ground') do
-          advance_time(32.5)
+          advance_process_time(32.5)
         end
 
         # apdex_s
         in_web_transaction('Controller/slow/txn') do
-          advance_time(3.5)
+          advance_process_time(3.5)
         end
 
         # apdex_t
         in_web_transaction('Controller/slow/txn') do
-          advance_time(5.5)
+          advance_process_time(5.5)
         end
 
         # apdex_f
         in_web_transaction('Controller/slow/txn') do
-          advance_time(16.5)
+          advance_process_time(16.5)
         end
 
         assert_metrics_recorded(
@@ -394,9 +394,9 @@ module NewRelic::Agent
         duration = payload[:duration]
       end
 
-      start_time = nr_freeze_time
+      start_time = nr_freeze_process_time
       in_web_transaction('Controller/foo/1/bar/22') do
-        advance_time(5)
+        advance_process_time(5)
         Transaction.tl_current.freeze_name_and_execute_if_not_ignored
       end
 
@@ -406,7 +406,7 @@ module NewRelic::Agent
     end
 
     def test_end_fires_a_transaction_finished_event_with_overview_metrics
-      nr_freeze_time
+      nr_freeze_process_time
       options = nil
       NewRelic::Agent.subscribe(:transaction_finished) do |payload|
         options = payload[:metrics]
@@ -510,16 +510,16 @@ module NewRelic::Agent
         apdex = payload[:apdex_perf_zone]
       end
 
-      nr_freeze_time
+      nr_freeze_process_time
 
       with_config(:apdex_t => 1.0) do
-        in_web_transaction { advance_time 0.5 }
+        in_web_transaction { advance_process_time 0.5 }
         assert_equal('S', apdex)
 
-        in_web_transaction { advance_time 1.5 }
+        in_web_transaction { advance_process_time 1.5 }
         assert_equal('T', apdex)
 
-        in_web_transaction { advance_time 4.5 }
+        in_web_transaction { advance_process_time 4.5 }
         assert_equal('F', apdex)
       end
     end
@@ -530,10 +530,10 @@ module NewRelic::Agent
         apdex = payload[:apdex_perf_zone]
       end
 
-      nr_freeze_time
+      nr_freeze_process_time
 
       with_config(:apdex_t => 1.0) do
-        in_background_transaction { advance_time 0.5 }
+        in_background_transaction { advance_process_time 0.5 }
         assert_nil apdex
       end
     end
@@ -544,19 +544,19 @@ module NewRelic::Agent
         apdex = payload[:apdex_perf_zone]
       end
 
-      nr_freeze_time
+      nr_freeze_process_time
 
       txn_name = 'OtherTransaction/back/ground'
       key_transactions = { txn_name => 1.0 }
 
       with_config(:apdex_t => 1.0, :web_transactions_apdex => key_transactions) do
-        in_background_transaction(txn_name) { advance_time 0.5 }
+        in_background_transaction(txn_name) { advance_process_time 0.5 }
         assert_equal('S', apdex)
 
-        in_background_transaction(txn_name) { advance_time 1.5 }
+        in_background_transaction(txn_name) { advance_process_time 1.5 }
         assert_equal('T', apdex)
 
-        in_background_transaction(txn_name) { advance_time 4.5 }
+        in_background_transaction(txn_name) { advance_process_time 4.5 }
         assert_equal('F', apdex)
       end
     end
@@ -598,10 +598,10 @@ module NewRelic::Agent
         keys = payload.keys
       end
 
-      nr_freeze_time
+      nr_freeze_process_time
 
       in_transaction do |txn|
-        advance_time(10)
+        advance_process_time(10)
 
         txn.distributed_tracer.is_cross_app_caller = false
       end
@@ -774,7 +774,7 @@ module NewRelic::Agent
 
     def test_transport_duration_returned_in_seconds_when_positive
       duration = 2.0
-      parent_timestamp, txn_start = make_transport_duration_timestamps duration
+      parent_timestamp, txn_start = make_transport_duration_timestamps(duration)
       txn = in_transaction { |t| t.start_time = txn_start }
       payload = stub(timestamp: parent_timestamp)
 
@@ -785,7 +785,7 @@ module NewRelic::Agent
 
     def test_transport_duration_zero_with_clock_skew
       duration = -1.0
-      parent_timestamp, txn_start = make_transport_duration_timestamps duration
+      parent_timestamp, txn_start = make_transport_duration_timestamps(duration)
       txn = in_transaction { |t| t.start_time = txn_start }
       payload = stub(timestamp: parent_timestamp)
 
@@ -793,8 +793,8 @@ module NewRelic::Agent
     end
 
     def make_transport_duration_timestamps duration
-      transaction_start = Time.now()
-      parent_timestamp = ((transaction_start.to_f - duration) * 1000).round
+      transaction_start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      parent_timestamp = ((transaction_start - duration) * 1000).round
 
       return parent_timestamp, transaction_start
     end
@@ -1185,8 +1185,8 @@ module NewRelic::Agent
     end
 
     def test_doesnt_record_scoped_queue_time_metric
-      t0 = nr_freeze_time
-      advance_time 10.0
+      t0 = nr_freeze_process_time
+      advance_process_time 10.0
       in_transaction('boo', :apdex_start_time => t0) do
         # nothing
       end
@@ -1197,8 +1197,8 @@ module NewRelic::Agent
     end
 
     def test_doesnt_record_crazy_high_queue_times
-      t0 = nr_freeze_time(Time.at(10.0))
-      advance_time(40 * 365 * 24 * 60 * 60) # 40 years
+      t0 = nr_freeze_process_time(Time.at(10.0))
+      advance_process_time(40 * 365 * 24 * 60 * 60) # 40 years
       in_transaction('boo', :apdex_start_time => t0) do
         # nothing
       end
