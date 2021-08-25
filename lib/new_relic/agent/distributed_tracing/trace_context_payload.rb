@@ -57,7 +57,7 @@ module NewRelic
         private
 
         def now_ms
-          (Time.now.to_f * 1000).round
+          (Process.clock_gettime(Process::CLOCK_REALTIME) * 1000).round
         end
 
         def handle_invalid_payload error: nil, message: nil

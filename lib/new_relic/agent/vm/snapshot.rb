@@ -12,7 +12,7 @@ module NewRelic
                       :thread_count, :taken_at
 
         def initialize
-          @taken_at = Time.now.to_f
+          @taken_at = Process.clock_gettime(Process::CLOCK_REALTIME)
         end
       end
     end

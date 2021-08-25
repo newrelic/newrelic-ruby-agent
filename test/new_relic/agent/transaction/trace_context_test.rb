@@ -9,7 +9,7 @@ module NewRelic::Agent
     module TraceContext
       class TraceContextTest < Minitest::Test
         def setup
-          nr_freeze_time
+          nr_freeze_process_time
 
           @config = {
             :'distributed_tracing.enabled' => true,
@@ -30,7 +30,7 @@ module NewRelic::Agent
         end
 
         def test_insert_trace_context_header
-          nr_freeze_time
+          nr_freeze_process_time
 
           carrier = {}
           trace_state = nil
@@ -325,11 +325,11 @@ module NewRelic::Agent
         end
 
         def test_creates_trace_context_payload
-          nr_freeze_time
+          nr_freeze_process_time
 
           payload = nil
           parent_id = nil
-          now_ms = (Time.now.to_f * 1000).round
+          now_ms = (Process.clock_gettime(Process::CLOCK_REALTIME) * 1000).round
 
           txn = in_transaction do |t|
             t.sampled = true
@@ -347,11 +347,11 @@ module NewRelic::Agent
         end
 
         def test_omits_transaction_guid_from_payload_when_analytics_events_disabled
-          nr_freeze_time
+          nr_freeze_process_time
 
           payload = nil
           parent_id = nil
-          now_ms = (Time.now.to_f * 1000).round
+          now_ms = (Process.clock_gettime(Process::CLOCK_REALTIME) * 1000).round
 
           disabled_analytics_events = @config.merge({
              :'analytics_events.enabled' => false
@@ -376,10 +376,10 @@ module NewRelic::Agent
         end
 
         def test_omits_span_guid_from_payload_when_span_events_disabled
-          nr_freeze_time
+          nr_freeze_process_time
 
           payload = nil
-          now_ms = (Time.now.to_f * 1000).round
+          now_ms = (Process.clock_gettime(Process::CLOCK_REALTIME) * 1000).round
 
           disabled_span_events = @config.merge({
              :'span_events.enabled' => false
