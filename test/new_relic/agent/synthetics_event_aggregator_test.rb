@@ -95,7 +95,7 @@ module NewRelic
       def test_lower_priority_events_discarded_in_favor_higher_priority_events
         with_config aggregator.class.capacity_key => 5 do
           10.times { |i| generate_event "event_#{i}" }
-          # Each event gets a timestamp of Time.now, which is used to determine priority
+          # Each event gets a timestamp, which is used to determine priority
           # (older events are higher priority)
 
           _, events = aggregator.harvest!
@@ -145,7 +145,7 @@ module NewRelic
         payload = {
           :name => name,
           :type => :controller,
-          :start_timestamp => options[:timestamp] || Time.now.to_f,
+          :start_timestamp => options[:timestamp] || Process.clock_gettime(Process::CLOCK_REALTIME),
           :duration => 0.1,
           :synthetics_resource_id => 100,
           :attributes => attributes,

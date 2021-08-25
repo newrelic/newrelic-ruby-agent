@@ -695,7 +695,7 @@ def wait_for_backtrace_service_poll opts={}
     :iterations => 1
   }
   opts = defaults.merge(opts)
-  deadline = Time.now + opts[:timeout]
+  deadline = Process.clock_gettime(Process::CLOCK_REALTIME) + opts[:timeout]
 
   service = opts[:service]
   worker_loop = service.worker_loop
@@ -703,7 +703,7 @@ def wait_for_backtrace_service_poll opts={}
 
   until worker_loop.iterations > opts[:iterations]
     sleep(0.01)
-    if Time.now > deadline
+    if Process.clock_gettime(Process::CLOCK_REALTIME) > deadline
       raise "Timed out waiting #{opts[:timeout]} s for backtrace service poll\n" +
             "Worker loop ran for #{opts[:service].worker_loop.iterations} iterations\n\n" +
             Thread.list.map { |t|

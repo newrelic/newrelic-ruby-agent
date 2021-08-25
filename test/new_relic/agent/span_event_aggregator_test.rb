@@ -51,7 +51,7 @@ module NewRelic
           'sampled' => false,
           'guid'    => guid,
           'traceId' => guid,
-          'timestamp' => (Time.now.to_f * 1000).round,
+          'timestamp' => (Process.clock_gettime(Process::CLOCK_REALTIME) * 1000).round,
           'duration' => rand,
           'category' => 'custom'
           },

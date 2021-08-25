@@ -46,7 +46,7 @@ module MarshallingTestCases
   end
 
   def test_sends_transaction_events
-    t0 = nr_freeze_time(Time.at(Time.now.to_i))
+    t0 = nr_freeze_process_time
 
     with_around_hook do
       Transactioner.new.do_it
@@ -113,7 +113,7 @@ module MarshallingTestCases
   end
 
   def test_sends_error_events
-    t0 = nr_freeze_time(Time.at(Time.now.to_i))
+    t0 = nr_freeze_process_time
 
     span_id = nil
     with_around_hook do
@@ -146,7 +146,7 @@ module MarshallingTestCases
     assert_equal event[0]["duration"], 0.0
     assert event[0]["spanId"] != nil
     assert_equal event[0].size, 8
-    
+
     assert_equal event[1], {}
     assert_equal event[2], {}
 

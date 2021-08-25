@@ -46,6 +46,7 @@ module NewRelic
           NewRelic::Agent::Database.should_record_sql?(:slow_sql)
       end
 
+      # TODO: IS THE START TIME ARGUMENT USED? COULD IT BE REMOVED?
       def on_start_transaction(state, start_time, uri=nil)
         return unless enabled?
 

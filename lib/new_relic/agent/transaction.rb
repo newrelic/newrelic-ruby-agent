@@ -624,7 +624,7 @@ module NewRelic
         @payload = {
           :name                 => @frozen_name,
           :bucket               => recording_web_transaction? ? :request : :background,
-          :start_timestamp      => start_time.to_f,
+          :start_timestamp      => start_time,
           :duration             => duration,
           :metrics              => @metrics,
           :attributes           => @attributes,

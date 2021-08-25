@@ -107,7 +107,7 @@ module NewRelic
         {
           :name => "Controller/blogs/index",
           :type => :controller,
-          :start_timestamp => Time.now.to_f,
+          :start_timestamp => Process.clock_gettime(Process::CLOCK_REALTIME),
           :duration => 0.1
         }.update(options)
       end

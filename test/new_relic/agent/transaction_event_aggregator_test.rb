@@ -93,7 +93,7 @@ module NewRelic
         {
           :name => name,
           :type => :controller,
-          :start_timestamp => options[:timestamp] || Time.now.to_f,
+          :start_timestamp => options[:timestamp] || Process.clock_gettime(Process::CLOCK_REALTIME),
           :duration => 0.1,
           :attributes => attributes,
           :error => false,

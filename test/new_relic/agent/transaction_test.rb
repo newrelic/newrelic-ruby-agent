@@ -401,7 +401,7 @@ module NewRelic::Agent
       end
 
       assert_equal 'Controller/foo/1/bar/22', name
-      assert_equal start_time.to_f, timestamp
+      assert_equal start_time, timestamp
       assert_equal 5.0, duration
     end
 
