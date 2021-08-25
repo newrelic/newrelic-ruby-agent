@@ -227,6 +227,7 @@ module NewRelic
         @start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         @end_time = nil
         @duration = nil
+        # TODO: MAKE SURE THAT THIS IS NOT GETTING PASSED AS A TIME OBJECT
         @apdex_start = options[:apdex_start_time] || @start_time
         @jruby_cpu_start = jruby_cpu_time
         @process_cpu_start = process_cpu
@@ -601,7 +602,7 @@ module NewRelic
       def calculate_transport_duration distributed_trace_payload
         return unless distributed_trace_payload
 
-        duration = (start_time.to_f * 1000 - distributed_trace_payload.timestamp) / 1000
+        duration = (start_time * 1000 - distributed_trace_payload.timestamp) / 1000
         duration < 0 ? 0 : duration
       end
 

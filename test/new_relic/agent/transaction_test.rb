@@ -394,7 +394,7 @@ module NewRelic::Agent
         duration = payload[:duration]
       end
 
-      start_time = nr_freeze_process_time
+      start_time = nr_freeze_process_time(Process.clock_gettime(Process::CLOCK_REALTIME))
       in_web_transaction('Controller/foo/1/bar/22') do
         advance_process_time(5)
         Transaction.tl_current.freeze_name_and_execute_if_not_ignored
@@ -793,7 +793,7 @@ module NewRelic::Agent
     end
 
     def make_transport_duration_timestamps duration
-      transaction_start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      transaction_start = Process.clock_gettime(Process::CLOCK_REALTIME)
       parent_timestamp = ((transaction_start - duration) * 1000).round
 
       return parent_timestamp, transaction_start

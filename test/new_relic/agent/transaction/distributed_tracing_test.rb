@@ -32,8 +32,8 @@ module NewRelic
 
         def test_create_distributed_trace_payload_returns_payload
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
-          nr_freeze_time
-          created_at = (Time.now.to_f * 1000).round
+          nr_freeze_process_time
+          created_at = (Process.clock_gettime(Process::CLOCK_REALTIME) * 1000).round
           payload = nil
 
           transaction = in_transaction "test_txn" do |t|
@@ -52,7 +52,7 @@ module NewRelic
         end
 
         def test_create_distributed_trace_payload_while_disconnected_returns_nil
-          nr_freeze_time
+          nr_freeze_process_time
 
           payload = 'definitely not nil'
 

@@ -50,7 +50,7 @@ module NewRelic
 
           payload.id = current_segment_id(transaction)
           payload.transaction_id = transaction.guid
-          payload.timestamp = (Time.now.to_f * 1000).round
+          payload.timestamp = (Process.clock_gettime(Process::CLOCK_REALTIME) * 1000).round
           payload.trace_id = transaction.trace_id
           payload.sampled = transaction.sampled?
           payload.priority = transaction.priority
