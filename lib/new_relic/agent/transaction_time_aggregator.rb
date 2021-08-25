@@ -15,24 +15,24 @@ module NewRelic
       TransactionStats = Struct.new :transaction_started_at, :elapsed_transaction_time
 
       @lock                     = Mutex.new
-      @harvest_cycle_started_at = Time.now
+      @harvest_cycle_started_at = Process.clock_gettime(Process::CLOCK_REALTIME)
 
       @stats = Hash.new do |h, k|
         h[k] = TransactionStats.new nil, 0.0
       end
 
-      def reset!(timestamp = Time.now)
+      def reset!(timestamp = Process.clock_gettime(Process::CLOCK_REALTIME))
         @harvest_cycle_started_at = timestamp
         @stats.clear
       end
 
-      def transaction_start(timestamp = Time.now)
+      def transaction_start(timestamp = Process.clock_gettime(Process::CLOCK_REALTIME))
         @lock.synchronize do
           set_transaction_start_time timestamp
         end
       end
 
-      def transaction_stop(timestamp = Time.now, starting_thread_id = current_thread)
+      def transaction_stop(timestamp = Process.clock_gettime(Process::CLOCK_REALTIME), starting_thread_id = current_thread)
         @lock.synchronize do
           record_elapsed_transaction_time_until timestamp, starting_thread_id
           set_transaction_start_time nil, starting_thread_id
@@ -41,7 +41,7 @@ module NewRelic
 
       INSTANCE_BUSY_METRIC = 'Instance/Busy'.freeze
 
-      def harvest!(timestamp = Time.now)
+      def harvest!(timestamp = Process.clock_gettime(Process::CLOCK_REALTIME))
         active_threads = 0
         result = @lock.synchronize do
           # Sum up the transaction times spent in each thread

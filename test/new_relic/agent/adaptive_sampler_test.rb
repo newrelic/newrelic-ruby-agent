@@ -9,7 +9,7 @@ module NewRelic
   module Agent
     class AdaptiveSamplerTest < Minitest::Test
       def test_adaptive_sampler
-        nr_freeze_time
+        nr_freeze_process_time
         sampler = AdaptiveSampler.new
         10000.times { sampler.sampled? }
         stats = sampler.stats

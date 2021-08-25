@@ -150,7 +150,7 @@ module NewRelic
       end
 
       def harvest!
-        now = Time.now
+        now = Process.clock_gettime(Process::CLOCK_REALTIME)
         snapshot = reset!
         snapshot = apply_rules_to_metric_data(@metric_rules, snapshot)
         snapshot.harvested_at = now

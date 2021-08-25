@@ -123,7 +123,7 @@ module NewRelic
         ensure
           begin
             if callback
-              elapsed_time = (Time.now - segment.start_time).to_f
+              elapsed_time = Process.clock_gettime(Process::CLOCK_REALTIME) - segment.start_time
               callback.call(result, segment.name, elapsed_time)
             end
           ensure

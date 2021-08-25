@@ -7,7 +7,7 @@ require 'new_relic/agent/transaction_time_aggregator'
 
 class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
   def setup
-    nr_freeze_time
+    nr_freeze_process_time
     NewRelic::Agent.agent.stats_engine.clear_stats
   end
 
@@ -15,14 +15,14 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
     # Three ten-second transactions that lie entirely within the harvest:
     # 1-11s, 12-22s, 23-33s
     3.times do
-      advance_time 1
+      advance_process_time(1)
       NewRelic::Agent::TransactionTimeAggregator.transaction_start
-      advance_time 10
+      advance_process_time(10)
       NewRelic::Agent::TransactionTimeAggregator.transaction_stop
     end
 
     # Simulate a 60-second harvest time
-    advance_time 27
+    advance_process_time(27)
 
     busy_fraction = NewRelic::Agent::TransactionTimeAggregator.harvest!
     assert_equal 0.5, busy_fraction
@@ -32,30 +32,30 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
 
     # First transaction lies entirely within the harvest:
     # 1-11s
-    advance_time 1
+    advance_process_time(1)
     NewRelic::Agent::TransactionTimeAggregator.transaction_start
-    advance_time 10
+    advance_process_time(10)
     NewRelic::Agent::TransactionTimeAggregator.transaction_stop
 
     # Second transaction is split evenly across the harvest boundary:
     # 55-60s in the first harvest...
-    advance_time 44
+    advance_process_time(44)
     NewRelic::Agent::TransactionTimeAggregator.transaction_start
-    advance_time 5
+    advance_process_time(5)
     busy_fraction = NewRelic::Agent::TransactionTimeAggregator.harvest!
     assert_equal 0.25, busy_fraction
 
     # ...and 0-5s in the second harvest:
-    advance_time 5
+    advance_process_time(5)
     NewRelic::Agent::TransactionTimeAggregator.transaction_stop
-    advance_time 55
+    advance_process_time(55)
 
     busy_fraction = NewRelic::Agent::TransactionTimeAggregator.harvest!
     assert_equal 1.0 / 12.0, busy_fraction
   end
 
   def test_multithreading
-    t0 = Time.now
+    t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
 
     worker = Thread.new do
       ::NewRelic::Agent::TransactionTimeAggregator.transaction_start t0 + 27
@@ -73,7 +73,7 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
   end
 
   def test_transactions_across_threads
-    t0 = Time.now
+    t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
 
     # main thread:
     ::NewRelic::Agent::TransactionTimeAggregator.transaction_start t0 + 15
@@ -92,9 +92,9 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
   def test_metrics
 
     NewRelic::Agent::TransactionTimeAggregator.transaction_start
-    advance_time 12
+    advance_process_time(12)
     NewRelic::Agent::TransactionTimeAggregator.transaction_stop
-    advance_time 48
+    advance_process_time(48)
 
     NewRelic::Agent::TransactionTimeAggregator.harvest!
 
@@ -116,7 +116,7 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
   def test_culls_dead_threads
     stats = NewRelic::Agent::TransactionTimeAggregator.instance_variable_get(:@stats)
 
-    t0 = Time.now
+    t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
     workers = 100.times.map do
       Thread.new do
         ::NewRelic::Agent::TransactionTimeAggregator.transaction_start t0 + 15

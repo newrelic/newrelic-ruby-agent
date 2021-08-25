@@ -608,12 +608,12 @@ unless Process.respond_to?(:__original_clock_gettime)
 end
 
 # TODO: TRY TO ALLOW THE CLOCK ID TO BE PASSED
-def advance_process_time(seconds, clock_id=Process::CLOCK_MONOTONIC)
+def advance_process_time(seconds, clock_id=Process::CLOCK_REALTIME)
   Process.__frozen_clock_gettime = Process.clock_gettime(clock_id) + seconds
 end
 
 # TODO: TRY TO ALLOW THE CLOCK ID TO BE PASSED
-def nr_freeze_process_time(now=Process.clock_gettime(Process::CLOCK_MONOTONIC))
+def nr_freeze_process_time(now=Process.clock_gettime(Process::CLOCK_REALTIME))
   Process.__frozen_clock_gettime = now
 end
 
