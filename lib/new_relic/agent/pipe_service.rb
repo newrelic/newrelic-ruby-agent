@@ -61,10 +61,7 @@ module NewRelic
         write_to_pipe(:sql_trace_data, sql) if sql
       end
 
-      # TODO: IS THE TIME ARGUMENT NECESSARY?
-      # IF NOT, REMOVE THE ARGUMENT FROM THE CALLS TO THIS METHOD
-      # OFTEN @service.shutdown()
-      def shutdown(time)
+      def shutdown
         @pipe.close if @pipe
       end
 

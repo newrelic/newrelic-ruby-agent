@@ -215,8 +215,7 @@ module NewRelic
             @connected_pid = Process.pid
           else
             ::NewRelic::Agent.logger.debug("Child process #{Process.pid} not reporting to non-connected parent (process #{Process.ppid}).")
-            # TODO: IS THE TIME ARGUMENT NECESSARY?
-            @service.shutdown(Time.now)
+            @service.shutdown
             disconnect
           end
         end
@@ -1180,7 +1179,7 @@ module NewRelic
 
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 ::NewRelic::Agent.logger.debug "Sending New Relic service agent run shutdown message"
-                @service.shutdown(Time.now.to_f)
+                @service.shutdown
               else
                 ::NewRelic::Agent.logger.debug "This agent connected from parent process #{@connected_pid}--not sending shutdown"
               end
