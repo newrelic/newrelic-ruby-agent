@@ -129,7 +129,7 @@ class Marshalling < Performance::TestCase
     events = []
     1000.times do
       event = {
-        'timestamp'        => Time.now.to_f,
+        'timestamp'        => Process.clock_gettime(Process::CLOCK_REALTIME),
         'name'             => "Controller/foo/bar",
         'type'             => "Transaction",
         'duration'         => rand,

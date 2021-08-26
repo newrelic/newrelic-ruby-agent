@@ -205,9 +205,9 @@ module Performance
     end
 
     def run_and_report
-      t0 = Time.now
+      t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       results = run_all_test_cases
-      report_results(results, Time.now - t0)
+      report_results(results, Process.clock_gettime(Processs::CLOCK_MONOTONIC) - t0)
     end
 
     def list_test_cases

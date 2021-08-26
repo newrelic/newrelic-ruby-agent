@@ -83,13 +83,13 @@ class ThreadProfiling < Performance::TestCase
   def test_gather_backtraces_subscribed
     @service.subscribe('eagle')
     measure do
-      t0 = Time.now.to_f
+      t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       @service.poll
       payload = {
         :name => 'eagle',
         :bucket => :request,
         :start_timestamp => t0,
-        :duration => Time.now.to_f-t0,
+        :duration => Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0,
         :thread => @threads.sample
       }
       @service.on_transaction_finished(payload)
