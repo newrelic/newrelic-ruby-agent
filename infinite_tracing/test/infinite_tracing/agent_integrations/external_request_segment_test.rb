@@ -30,7 +30,7 @@ module NewRelic
 
               txn.add_segment segment
               segment.start
-              advance_time 1.0
+              advance_process_time(1.0)
               segment.finish
 
               timestamp = Integer(segment.start_time.to_f * 1000.0)
@@ -78,7 +78,7 @@ module NewRelic
 
               txn.add_segment segment
               segment.start
-              advance_time 1.0
+              advance_process_time(1.0)
               segment.finish
             end
           end

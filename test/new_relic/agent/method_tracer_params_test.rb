@@ -16,7 +16,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     @stats_engine.clear_stats
     @metric_name ||= nil
 
-    nr_freeze_time
+    nr_freeze_process_time
 
     super
   end
@@ -56,7 +56,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
         process(i, hash)
       end
     end
-  
+
     def process(i, hash)
       hash[i] = i * 3
     end
@@ -64,7 +64,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
 
   class TracedMethods < UntracedMethods
     include NewRelic::Agent::MethodTracer
-  
+
     add_method_tracer :no_args
     add_method_tracer :last_arg_expects_a_hash
     add_method_tracer :last_arg_is_a_keyword
@@ -73,7 +73,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     add_method_tracer :args_and_kwargs
     add_method_tracer :process
   end
-  
+
   class TracedMetricMethods < UntracedMethods
     add_method_tracer :no_args, METRIC
     add_method_tracer :last_arg_expects_a_hash, METRIC
@@ -83,7 +83,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     add_method_tracer :args_and_kwargs, METRIC
     add_method_tracer :process, METRIC
   end
-   
+
   class TracedMetricMethodsUnscoped < UntracedMethods
     add_method_tracer :no_args, METRIC, push_scope: false
     add_method_tracer :last_arg_expects_a_hash, METRIC, push_scope: false
@@ -93,7 +93,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     add_method_tracer :args_and_kwargs, METRIC, push_scope: false
     add_method_tracer :process, METRIC, push_scope: false
   end
-  
+
   def refute_deprecation_warning
     in_transaction do
       _out, err = capture_io { yield }
@@ -145,7 +145,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
 
       refute_deprecation_warning { instance.wildcard_args(:foo, bar: "foobar") }
       refute_deprecation_warning { instance.wildcard_args(:foo, {bar: "foobar"}) }
- 
+
       refute_deprecation_warning { instance.last_arg_is_a_keyword(:foo, bar: "foobar") }
       refute_deprecation_warning { instance.all_args_are_keywords(foo: :foo, bar: {bar: "foobar"}) }
       refute_deprecation_warning { instance.args_and_kwargs(:foo, bar: "foobar") }
@@ -168,5 +168,5 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
       silence_expected_warnings { assert_equal version_specific_expected, instance.args_and_kwargs(:foo, {bar: "foobar"}) }
     end
   end
- 
+
 end

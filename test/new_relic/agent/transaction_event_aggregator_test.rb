@@ -15,7 +15,7 @@ module NewRelic
     class TransactionEventAggregatorTest < Minitest::Test
 
       def setup
-        nr_freeze_time
+        nr_freeze_process_time
         events = NewRelic::Agent.instance.events
         @event_aggregator = TransactionEventAggregator.new events
 

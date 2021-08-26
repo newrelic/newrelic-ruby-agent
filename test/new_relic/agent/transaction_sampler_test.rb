@@ -281,7 +281,7 @@ module NewRelic::Agent
         assert((new_slowest != slowest), "Should not harvest the same trace since the new one should be slower")
         assert_equal(new_slowest.duration.round, 10, "Slowest duration must be = 10, but was: #{new_slowest.duration.inspect}")
       end
-      nr_unfreeze_time
+      nr_unfreeze_process_time
     end
 
     def test_harvest_prepare_samples

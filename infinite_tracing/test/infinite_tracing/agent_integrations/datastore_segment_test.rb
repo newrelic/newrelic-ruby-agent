@@ -20,7 +20,7 @@ module NewRelic
           sql_statement = "select * from table"
 
           span_events = generate_and_stream_segments do
-  
+
             in_web_transaction('wat') do |txn|
               txn.stubs(:sampled?).returns(true)
 
@@ -34,7 +34,7 @@ module NewRelic
               )
 
               segment.notice_sql sql_statement
-              advance_time 1
+              advance_process_time(1)
               segment.finish
 
               timestamp = Integer(segment.start_time.to_f * 1000.0)
@@ -88,7 +88,7 @@ module NewRelic
               )
 
               segment.start
-              advance_time 1.0
+              advance_process_time(1.0)
               segment.finish
             end
           end

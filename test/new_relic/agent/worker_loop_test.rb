@@ -19,13 +19,13 @@ class NewRelic::Agent::WorkerLoopTest < Minitest::Test
   end
 
   def test_with_duration
-    nr_freeze_time
+    nr_freeze_process_time
 
     period = 5.0
     worker_loop = NewRelic::Agent::WorkerLoop.new(:duration => 16.0)
 
     def worker_loop.sleep(duration)
-      advance_time(duration)
+      advance_process_time(duration)
     end
 
     count = 0
@@ -85,12 +85,12 @@ class NewRelic::Agent::WorkerLoopTest < Minitest::Test
 
   # TODO: INTERMITTENT FAILURE
   # def test_dynamically_adjusts_the_period_once_the_loop_has_been_started
-  #   nr_freeze_time
+  #   nr_freeze_process_time
 
   #   worker_loop = NewRelic::Agent::WorkerLoop.new(:limit => 2)
 
   #   worker_loop.expects(:sleep).with(5.0)
   #   worker_loop.expects(:sleep).with(7.0)
-  #   worker_loop.run(5.0) { advance_time(5.0); worker_loop.period = 7.0 }
+  #   worker_loop.run(5.0) { advance_process_time(5.0); worker_loop.period = 7.0 }
   # end
 end

@@ -70,8 +70,8 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           RUNNING_SERVER_CONTEXTS = {}
 
           # ServerContext lets us centralize starting/stopping the Fake Trace Observer Server
-          # and track spans the server receives across multiple Tracers and Server restarts.  
-          # One ServerContext instance per unit test is expected and is in play for 
+          # and track spans the server receives across multiple Tracers and Server restarts.
+          # One ServerContext instance per unit test is expected and is in play for
           # the duration of the unit test.
           class ServerContext
             attr_reader :port
@@ -98,7 +98,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             end
 
             def stop
-              @lock.synchronize do 
+              @lock.synchronize do
                 @server.stop
                 RUNNING_SERVER_CONTEXTS[self] = :stopped
               end
@@ -109,7 +109,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             end
 
             # We really shouldn't have to sleep, but this workaround gets us past
-            # various intermittent failing tests.  At the core of this issue is that 
+            # various intermittent failing tests.  At the core of this issue is that
             # in the agent_integrations/agent, we call Client.start_streaming in a thread
             # This is the thread that lingers in "run" state alongside our active test runner.
             # Various attempts to join or explicitly kill this thread led to more errors
@@ -138,7 +138,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
               start
             end
           end
-          
+
           def restart_fake_trace_observer_server context, tracer_class=nil
             context.restart tracer_class
           end
@@ -262,7 +262,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           # A block that generates segments is expected and yielded to by this methd
           # The spans collected by the server are returned for further inspection
           def generate_and_stream_segments
-            NewRelic::Agent::InfiniteTracing::Client.any_instance.stubs(:handle_close).returns(nil) 
+            NewRelic::Agent::InfiniteTracing::Client.any_instance.stubs(:handle_close).returns(nil)
             unstub_reconnection
             server_context = nil
             with_config fake_server_config do
@@ -270,6 +270,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
               # (the retry loop goes _much_ faster)
               Connection.instance.stubs(:retry_connection_period).returns(0.01)
               nr_freeze_time
+              nr_freeze_process_time
 
               simulate_connect_to_collector fake_server_config do |simulator|
                 # starts server and simulated agent connection
@@ -290,6 +291,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
                 server_context.stop unless server_context.nil?
                 reset_infinite_tracer
                 nr_unfreeze_time
+                nr_unfreeze_process_time
               end
             end
           end

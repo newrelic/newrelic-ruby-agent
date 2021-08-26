@@ -125,7 +125,7 @@ module NewRelic
             segment.expects(:transaction_assigned)
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time(1.0)
             segment.finish
           end
         end
@@ -135,7 +135,7 @@ module NewRelic
             segment = BasicSegment.new "Custom/basic/segment"
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time(1.0)
             segment.record_on_finish = true
             segment.finish
             assert_includes txn.metrics.instance_variable_get(:@scoped).keys, 'Custom/basic/segment'
