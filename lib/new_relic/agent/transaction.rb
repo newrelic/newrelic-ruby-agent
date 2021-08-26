@@ -227,7 +227,7 @@ module NewRelic
         @start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         @end_time = nil
         @duration = nil
-        # TODO: MAKE SURE THAT THIS IS NOT GETTING PASSED AS A TIME OBJECT
+
         @apdex_start = options[:apdex_start_time] || @start_time
         @jruby_cpu_start = jruby_cpu_time
         @process_cpu_start = process_cpu
