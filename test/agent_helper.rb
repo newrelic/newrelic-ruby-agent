@@ -600,8 +600,8 @@ unless Process.respond_to?(:__original_clock_gettime)
       attr_accessor :__frozen_clock_gettime
       alias_method :__original_clock_gettime, :clock_gettime
 
-      def clock_gettime(clock_id)
-        __frozen_clock_gettime || __original_clock_gettime(clock_id)
+      def clock_gettime(clock_id, unit = :float_second)
+        __frozen_clock_gettime || __original_clock_gettime(clock_id, unit)
       end
     end
   end
