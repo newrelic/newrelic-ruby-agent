@@ -399,28 +399,27 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal dummy_rsp, response
   end
 
-  # TODO: FAILS INTERMITTENTLY
-  # def test_metric_data_sends_harvest_timestamps
-  #   @http_handle.respond_to(:metric_data, 'foo')
+  def test_metric_data_sends_harvest_timestamps
+    @http_handle.respond_to(:metric_data, 'foo')
 
-  #   t0 = nr_freeze_process_time
-  #   stats_hash = NewRelic::Agent::StatsHash.new
-  #   stats_hash.harvested_at = Process.clock_gettime(Process::CLOCK_REALTIME)
+    t0 = nr_freeze_process_time
+    stats_hash = NewRelic::Agent::StatsHash.new
+    stats_hash.harvested_at = Process.clock_gettime(Process::CLOCK_REALTIME)
 
-  #   @service.metric_data(stats_hash)
-  #   payload = @http_handle.last_request_payload
-  #   _, last_harvest_timestamp, harvest_timestamp, _ = payload
-  #   assert_in_delta(t0, harvest_timestamp, 0.0001)
+    @service.metric_data(stats_hash)
+    payload = @http_handle.last_request_payload
+    _, last_harvest_timestamp, harvest_timestamp, _ = payload
+    assert_in_delta(t0, harvest_timestamp, 0.0001)
 
-  #   t1 = advance_process_time(10)
-  #   stats_hash.harvested_at = t1
+    t1 = advance_process_time(10)
+    stats_hash.harvested_at = t1
 
-  #   @service.metric_data(stats_hash)
-  #   payload = @http_handle.last_request_payload
-  #   _, last_harvest_timestamp, harvest_timestamp, _ = payload
-  #   assert_in_delta(t1, harvest_timestamp, 0.0001)
-  #   assert_in_delta(t0, last_harvest_timestamp, 0.0001)
-  # end
+    @service.metric_data(stats_hash)
+    payload = @http_handle.last_request_payload
+    _, last_harvest_timestamp, harvest_timestamp, _ = payload
+    assert_in_delta(t1, harvest_timestamp, 0.0001)
+    assert_in_delta(t0, last_harvest_timestamp, 0.0001)
+  end
 
   def test_metric_data_harvest_time_based_on_stats_hash_creation
     t0 = nr_freeze_process_time
