@@ -8,7 +8,7 @@ module NewRelic::Agent
   class DistributedTracePayloadTest < Minitest::Test
 
     def setup
-      nr_freeze_process_time
+      nr_freeze_process_time(Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond))
       NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
 
 
@@ -33,7 +33,7 @@ module NewRelic::Agent
       created_at, payload = nil, nil
 
       in_transaction "test_txn" do |txn|
-        created_at = (Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
+        created_at = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
         payload = DistributedTracePayload.for_transaction txn
       end
 
@@ -100,7 +100,7 @@ module NewRelic::Agent
     end
 
     def test_payload_attributes_populated_from_serialized_version
-      created_at = (Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
+      created_at = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
 
       NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 

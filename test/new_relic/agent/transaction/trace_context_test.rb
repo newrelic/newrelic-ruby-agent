@@ -9,7 +9,7 @@ module NewRelic::Agent
     module TraceContext
       class TraceContextTest < Minitest::Test
         def setup
-          nr_freeze_process_time
+          nr_freeze_process_time(Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond))
 
           @config = {
             :'distributed_tracing.enabled' => true,

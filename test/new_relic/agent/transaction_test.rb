@@ -793,8 +793,8 @@ module NewRelic::Agent
     end
 
     def make_transport_duration_timestamps duration
-      transaction_start = Process.clock_gettime(Process::CLOCK_REALTIME)
-      parent_timestamp = ((transaction_start - duration) * 1000).round
+      transaction_start = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
+      parent_timestamp = transaction_start - duration
 
       return parent_timestamp, transaction_start
     end
