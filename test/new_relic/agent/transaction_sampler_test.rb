@@ -436,7 +436,7 @@ module NewRelic::Agent
     end
 
     def run_long_sample_trace(n)
-      @sampler.on_start_transaction(@state, Process.clock_gettime(Process::CLOCK_REALTIME))
+      @sampler.on_start_transaction(@state)
       n.times do |i|
         @sampler.notice_push_frame(@state)
         yield if block_given?
@@ -445,8 +445,8 @@ module NewRelic::Agent
       @sampler.on_finishing_transaction(@state, @txn)
     end
 
-    def run_sample_trace(start = Process.clock_gettime(Process::CLOCK_REALTIME), stop = nil, state = @state)
-      @sampler.on_start_transaction(state, start)
+    def run_sample_trace(state = @state)
+      @sampler.on_start_transaction(state)
       @sampler.notice_push_frame(state)
       @sampler.notice_sql("SELECT * FROM sandwiches WHERE bread = 'wheat'", {}, 0, state)
       @sampler.notice_push_frame(state)
