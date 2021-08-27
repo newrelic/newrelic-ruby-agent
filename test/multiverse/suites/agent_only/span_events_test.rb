@@ -59,7 +59,7 @@ class SpanEventsTest < Minitest::Test
       'sampled' => false,
       'guid'    => guid,
       'traceId' => guid,
-      'timestamp' => (Process.clock_gettime(Process::CLOCK_REALTIME) * 1000).round,
+      'timestamp' => Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond),
       'duration' => rand,
       'category' => 'custom'
       },

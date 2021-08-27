@@ -33,7 +33,7 @@ module NewRelic
         def test_create_distributed_trace_payload_returns_payload
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
           nr_freeze_process_time
-          created_at = (Process.clock_gettime(Process::CLOCK_REALTIME) * 1000).round
+          created_at = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
           payload = nil
 
           transaction = in_transaction "test_txn" do |t|

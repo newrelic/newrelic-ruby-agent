@@ -329,7 +329,7 @@ module NewRelic::Agent
 
           payload = nil
           parent_id = nil
-          now_ms = (Process.clock_gettime(Process::CLOCK_REALTIME) * 1000).round
+          now_ms = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
 
           txn = in_transaction do |t|
             t.sampled = true
@@ -351,7 +351,7 @@ module NewRelic::Agent
 
           payload = nil
           parent_id = nil
-          now_ms = (Process.clock_gettime(Process::CLOCK_REALTIME) * 1000).round
+          now_ms = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
 
           disabled_analytics_events = @config.merge({
              :'analytics_events.enabled' => false
@@ -379,7 +379,7 @@ module NewRelic::Agent
           nr_freeze_process_time
 
           payload = nil
-          now_ms = (Process.clock_gettime(Process::CLOCK_REALTIME) * 1000).round
+          now_ms = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
 
           disabled_span_events = @config.merge({
              :'span_events.enabled' => false
