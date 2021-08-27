@@ -11,10 +11,10 @@ on:
 
 jobs:
   build-ruby:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.8, 2.7.4, 3.0.2, jruby-9.2.17.0]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.8, 2.7.4, 3.0.2, jruby-9.2.19.0]
     steps:
       - uses: actions/checkout@v2
 
@@ -25,11 +25,11 @@ jobs:
 
   unit-tests:
     needs: build-ruby
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.8, 2.7.4, 3.0.2, jruby-9.2.17.0]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.8, 2.7.4, 3.0.2, jruby-9.2.19.0]
 
     steps:
       - uses: actions/checkout@v2
@@ -66,7 +66,7 @@ jobs:
               "3.0.2": {
                 "rails": "norails"
               },
-              "jruby-9.2.17.0": {
+              "jruby-9.2.19.0": {
                 "rails": "norails,rails51,rails42"
               }
             }
@@ -86,7 +86,7 @@ jobs:
 
   multiverse:
     needs: build-ruby
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     services:
       redis:
         image: redis
@@ -153,7 +153,7 @@ jobs:
 
   infinite_tracing:
     needs: build-ruby
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -179,7 +179,7 @@ jobs:
 
   jruby_multiverse:
     needs: build-ruby
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     services:
       redis:
         image: redis
@@ -221,10 +221,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build Ruby jruby-9.2.17.0
+      - name: Build Ruby jruby-9.2.19.0
         uses: ./.github/actions/build-ruby
         with:
-          ruby-version: jruby-9.2.17.0
+          ruby-version: jruby-9.2.19.0
 
       - name: Start mysql
         run: sudo systemctl start mysql
