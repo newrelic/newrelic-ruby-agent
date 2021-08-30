@@ -60,7 +60,12 @@ DependencyDetection.defer do
 
     class Sidekiq::Extensions::DelayedClass
       def newrelic_trace_args(msg, queue)
-        (target, method_name, _args) = YAML.load(msg['args'][0])
+        (target, method_name, _args) = if YAML.respond_to?(:unsafe_load)
+                                         YAML.unsafe_load(msg['args'][0])
+                                       else 
+                                         YAML.load(msg['args'][0])
+                                       end
+
         {
           :name => method_name,
           :class_name => target.name,
