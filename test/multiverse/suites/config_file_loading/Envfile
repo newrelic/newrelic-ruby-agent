@@ -8,7 +8,9 @@ gemfile <<-RB
   # Because we delay the agent, order of jruby-openssl matters
   gem 'jruby-openssl', '~> 0.9.10', :platforms => [:jruby]
 
-  gem 'psych', '4.0.0'
+  if RUBY_VERSION >= '2.4.0'
+    gem 'psych', '4.0.0'
+  end
 
   # don't start the agent
   gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
@@ -22,7 +24,9 @@ gemfile <<-RB
   # Because we delay the agent, order of jruby-openssl matters
   gem 'jruby-openssl', '~> 0.9.10', :platforms => [:jruby]
 
-  gem 'psych', '3.3.0'
+  if RUBY_VERSION >= '2.4.0'
+    gem 'psych', '3.3.0'
+  end
 
   # don't start the agent
   gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
