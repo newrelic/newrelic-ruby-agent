@@ -199,6 +199,34 @@ boom:
     assert_equal 'bazbangbarn', NewRelic::Agent.config[:i_am], "Agent.config did not load bazbangbarn config as requested"
   end
 
+  def test_parses_default_settings_correctly
+    config_contents = <<-YAML
+common: &default_settings
+  license_key: 47ae68e8919929c1d99fa3a1a36a0aa8c06ba690
+  app_name: playground
+  foo: success!!
+
+development:
+  <<: *default_settings
+  app_name: playground (Development)
+
+test:
+  <<: *default_settings
+  monitor_mode: false
+
+bazbangbarn:
+  <<: *default_settings
+  app_name: playground (Bazbangbarn)
+    YAML
+
+    path = File.join(@cwd, 'config', 'newrelic.yml')
+    setup_config(path, {}, config_contents)
+    setup_agent
+
+    log = with_array_logger { NewRelic::Agent.manual_start }
+    assert_equal 'success!!', NewRelic::Agent.config[:foo]
+  end
+
   def refute_log_contains(log, message)
     lines = log.array
     failure_message = "Found unexpected '#{message}' in log. Log contained:\n#{lines.join('')}"
