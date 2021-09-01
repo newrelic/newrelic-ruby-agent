@@ -63,7 +63,7 @@ common: &default_settings
 # audit_log.endpoints: [".*"]
 
 # Specifies a path to the audit log file (including the filename).
-# audit_log.path: (Dynamic)
+# audit_log.path: "/audit_log"
 
 # Specify a list of constants that should prevent the agent from starting
 # automatically. Separate individual constants with a comma ,.
@@ -84,7 +84,7 @@ common: &default_settings
 # backport_fast_active_record_connection_lookup: false
 
 # If true, the agent captures attributes from browser monitoring.
-# browser_monitoring_attributes.enabled: (Dynamic)
+# browser_monitoring_attributes.enabled: false
 
 # Prefix of attributes to exclude from browser monitoring. Allows * as wildcard
 # at end.
@@ -96,7 +96,7 @@ common: &default_settings
 
 # If true, enables auto-injection of the JavaScript header for page load timing
 # (sometimes referred to as real user monitoring or RUM).
-# browser_monitoring.auto_instrument: (Dynamic)
+# browser_monitoring.auto_instrument: false
 
 # This is true by default, this enables auto-injection of the JavaScript header
 # for page load timing (sometimes referred to as real user monitoring or RUM).
@@ -124,10 +124,10 @@ common: &default_settings
 # Path to newrelic.yml. If undefined, the agent checks the following directories
 # (in order): config/newrelic.yml, newrelic.yml, $HOME/.newrelic/newrelic.yml
 # and $HOME/newrelic.yml.
-# config_path: (Dynamic)
+# config_path: newrelic.yml
 
 # If true, enables cross-application tracing.
-# cross_application_tracer.enabled: (Dynamic)
+# cross_application_tracer.enabled: false
 
 # If false, custom attributes will not be sent on Insights events.
 # custom_attributes.enabled: true
@@ -160,7 +160,7 @@ common: &default_settings
 # disable_activejob: false
 
 # If true, disables active record instrumentation.
-# disable_active_record_instrumentation: (Dynamic)
+# disable_active_record_instrumentation: false
 
 # If true, the agent won't sample the CPU usage of the host process.
 # disable_cpu_sampler: false
@@ -213,7 +213,7 @@ common: &default_settings
 # entity_guid: nil
 
 # If true, the agent captures attributes from error collection.
-# error_collector.attributes.enabled: (Dynamic)
+# error_collector.attributes.enabled: false
 
 # Prefix of attributes to exclude from error collection.
 # Allows * as wildcard at end.
@@ -224,7 +224,7 @@ common: &default_settings
 # error_collector.attributes.include: []
 
 # If true, the agent collects TransactionError events.
-# error_collector.capture_events: (Dynamic)
+# error_collector.capture_events: false
 
 # If true, the agent collects TransactionError events.
 # error_collector.capture_events: true
@@ -306,89 +306,89 @@ common: &default_settings
 
 # Controls auto-instrumentation of bunny at start up.
 # May be one of [auto|prepend|chain|disabled].
-# instrumentation.bunny: (Dynamic)
+# instrumentation.bunny: auto
 
 # Controls auto-instrumentation of Curb at start up.
 # May be one of [auto|prepend|chain|disabled].
-# instrumentation.curb: (Dynamic)
+# instrumentation.curb: auto
 
 # Controls auto-instrumentation of Delayed Job at start up.
 # May be one of [auto|prepend|chain|disabled].
-# instrumentation.delayed_job: (Dynamic)
+# instrumentation.delayed_job: auto
 
 # Controls auto-instrumentation of Excon at start up.
 # May be one of [enabled|disabled].
-# instrumentation.excon: (Dynamic)
+# instrumentation.excon: auto
 
 # Controls auto-instrumentation of Grape at start up.
 # May be one of [auto|prepend|chain|disabled].
-# instrumentation.grape: (Dynamic)
+# instrumentation.grape: auto
 
 # Controls auto-instrumentation of HTTPClient at start up.
 # May be one of [auto|# prepend|chain|disabled].
-# instrumentation.httpclient: (Dynamic)
+# instrumentation.httpclient: auto
 
 # Controls auto-instrumentation of http.rb gem at start up.
 # May be one of [auto|# prepend|chain|disabled].
-# instrumentation.httprb: (Dynamic)
+# instrumentation.httprb: auto
 
 # Controls auto-instrumentation of memcache-client gem for Memcache at start up.
 # May be one of [auto|prepend|chain|disabled].
-# instrumentation.memcache_client: (Dynamic)
+# instrumentation.memcache_client: auto
 
 # Controls auto-instrumentation of dalli gem for Memcache at start up.
 # May be one of [auto|prepend|chain|disabled].
-# instrumentation.memcache: (Dynamic)
+# instrumentation.memcache: auto
 
 # Controls auto-instrumentation of memcached gem for Memcache at start up.
 # May be one of [auto|prepend|chain|disabled].
-# instrumentation.memcached: (Dynamic)
+# instrumentation.memcached: auto
 
 # Controls auto-instrumentation of Mongo at start up.
 # May be one of [enabled|# disabled].
-# instrumentation.mongo: (Dynamic)
+# instrumentation.mongo: auto
 
 # Controls auto-instrumentation of Net::HTTP at start up.
 # May be one of [auto|# prepend|chain|disabled].
-# instrumentation.net_http: (Dynamic)
+# instrumentation.net_http: auto
 
 # Controls auto-instrumentation of Puma::Rack::URLMap at start up.
 # May be one of [auto|prepend|chain|disabled].
-# instrumentation.puma_rack_urlmap: (Dynamic)
+# instrumentation.puma_rack_urlmap: auto
 
 # Controls auto-instrumentation of Puma::Rack. When enabled, the agent hooks
 # into the to_app method in Puma::Rack::Builder to find gems to instrument
 # during application startup. May be one of [auto|prepend|chain|disabled].
-# instrumentation.puma_rack: (Dynamic)
+# instrumentation.puma_rack: auto
 
 # Controls auto-instrumentation of Rack::URLMap at start up.
 # May be one of [auto|# prepend|chain|disabled].
-# instrumentation.rack_urlmap: (Dynamic)
+# instrumentation.rack_urlmap: auto
 
 # Controls auto-instrumentation of Rack. When enabled, the agent hooks into the
 # to_app method in Rack::Builder to find gems to instrument during application
 # startup. May be one of [auto|prepend|chain|disabled].
-# instrumentation.rack: (Dynamic)
+# instrumentation.rack: auto
 
 # Controls auto-instrumentation of rake at start up.
 # May be one of [auto|prepend|# chain|disabled].
-# instrumentation.rake: (Dynamic)
+# instrumentation.rake: auto
 
 # Controls auto-instrumentation of Redis at start up.
 # May be one of [auto|prepend|# chain|disabled].
-# instrumentation.redis: (Dynamic)
+# instrumentation.redis: auto
 
 # Controls auto-instrumentation of resque at start up.
 # May be one of [auto|# prepend|chain|disabled].
-# instrumentation.resque: (Dynamic)
+# instrumentation.resque: auto
 
 # Controls auto-instrumentation of Sinatra at start up.
 # May be one of [auto|# prepend|chain|disabled].
-# instrumentation.sinatra: (Dynamic)
+# instrumentation.sinatra: auto
 
 # Controls auto-instrumentation of Typhoeus at start up.
 # May be one of [auto|# prepend|chain|disabled].
-# instrumentation.typhoeus: (Dynamic)
+# instrumentation.typhoeus: auto
 
 # A dictionary of label names and values that will be applied to the data sent
 # from this agent. May also be expressed asa semicolon-delimited ; string of
@@ -423,8 +423,9 @@ common: &default_settings
 # instrumentation.
 # prepend_active_record_instrumentation: false
 
-# Specify a custom host name for display in the New Relic UI.
-# process_host_display_name: (Dynamic)
+# Specify a custom host name for display in the New Relic UI
+# Be be aware that you cannot rename a hostname, so please rename
+# process_host.display_name: "default hostname"
 
 # Defines a host for communicating with the New Relic collector via a proxy
 # server.
@@ -460,20 +461,20 @@ common: &default_settings
 # send_data_on_exit: true
 
 # If true, the agent collects slow SQL queries.
-# slow_sql.enabled: (Dynamic)
+# slow_sql.enabled: false
 
 # If true, the agent collects explain plans in slow SQL queries. If this setting
 # is omitted, the transaction_tracer.explain.enabled setting will be applied as
 # the default setting for explain plans in slow SQL as well.
-# slow_sql.explain_enabled: (Dynamic)
+# slow_sql.explain_enabled: false
 
 # Specify a threshold in seconds. The agent collects slow SQL queries and
 # explain plans that exceed this threshold.
-# slow_sql.explain_threshold: (Dynamic)
+# slow_sql.explain_threshold: 1.0
 
 # Defines an obfuscation level for slow SQL queries.
 # Valid options are obfuscated, raw, or none).
-# slow_sql.record_sql: (Dynamic)
+# slow_sql.record_sql: none
 
 # Generate a longer sql_id for slow SQL traces. sql_id is used for aggregation
 # of similar queries.
@@ -505,21 +506,21 @@ common: &default_settings
 
 # If true, the agent strips messages from all exceptions except those in the
 # allowlist. Enabled automatically in high security mode.
-# strip_exception_messages.enabled: (Dynamic)
+# strip_exception_messages.enabled: true
 
 # When set to true, forces a synchronous connection to the New Relic collector
 # during application startup. For very short-lived processes, this helps ensure # the New Relic agent has time to report.
 # sync_startup: false
 
 # If true, enables use of the thread profiler.
-# thread_profiler.enabled: (Dynamic)
+# thread_profiler.enabled: false
 
 # Defines the maximum number of seconds the agent should spend attempting to
 # connect to the collector.
 # timeout: 120
 
 # If true, the agent captures attributes from transaction events.
-# transaction_events_attributes.enabled: (Dynamic)
+# transaction_events_attributes.enabled: false
 
 # Prefix of attributes to exclude from transaction events.
 # Allows * as wildcard at end.
@@ -541,7 +542,7 @@ common: &default_settings
 # transaction_segments.attributes.include: []
 
 # If true, the agent captures attributes from transaction traces.
-# transaction_tracer.attributes.enabled: (Dynamic)
+# transaction_tracer.attributes.enabled: false
 
 # Prefix of attributes to exclude from transaction traces.
 # Allows * as wildcard at end.
@@ -585,7 +586,7 @@ common: &default_settings
 # Specify a threshold in seconds. Transactions with a duration longer than this
 # threshold are eligible for transaction traces. Specify a float value or the
 # string apdex_f.
-# transaction_tracer.transaction_threshold: (Dynamic)
+# transaction_tracer.transaction_threshold: 1.0
 
 # If true, the agent automatically detects that it is running in an AWS
 # environment.
