@@ -2135,7 +2135,7 @@ module NewRelic
           :description => 'The primary id associated with this application.'
         },
         :'distributed_tracing.enabled' => {
-          :default     => false,
+          :default     => true,
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => true,
