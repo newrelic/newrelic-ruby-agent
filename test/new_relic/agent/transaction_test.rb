@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-
+require 'pry'
 module NewRelic::Agent
 
   class TransactionTest < Minitest::Test
@@ -793,8 +793,8 @@ module NewRelic::Agent
     end
 
     def make_transport_duration_timestamps duration
-      transaction_start = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
-      parent_timestamp = transaction_start - duration
+      transaction_start = Process.clock_gettime(Process::CLOCK_REALTIME)
+      parent_timestamp = (transaction_start - duration) * 1000
 
       return parent_timestamp, transaction_start
     end

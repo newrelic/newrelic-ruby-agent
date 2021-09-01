@@ -602,7 +602,7 @@ module NewRelic
       def calculate_transport_duration distributed_trace_payload
         return unless distributed_trace_payload
 
-        duration = start_time - distributed_trace_payload.timestamp
+        duration = start_time - (distributed_trace_payload.timestamp / 1000.0)
         duration < 0 ? 0 : duration
       end
 
