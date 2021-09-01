@@ -468,11 +468,16 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
                  :account_id => 190,
                  :'slow_sql.explain_threshold' => -1 }) do
 
-      nr_freeze_process_time(Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond))
+      nr_freeze_process_time(Process.clock_gettime(Process::CLOCK_REALTIME))
 
       in_transaction do |txn|
         payload = txn.distributed_tracer.create_distributed_trace_payload
       end
+
+      # Trace timestamps are in milliseconds, but we've frozen time above
+      # in float_seconds to get the correct transaction start_time. So we
+      # massage the payload timestamp to milliseconds here for this test.
+      payload.timestamp = (payload.timestamp * 1000).round
 
       advance_process_time 2.0
 
@@ -495,6 +500,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       sql_trace = last_sql_trace
       trace_payload = txn.distributed_tracer.distributed_trace_payload
       transport_type = txn.distributed_tracer.caller_transport_type
+
       assert_equal trace_payload.trace_id,                 sql_trace.params['traceId']
       assert_equal txn.priority,                           sql_trace.params['priority']
       assert_equal sampled,                                sql_trace.params['sampled']
