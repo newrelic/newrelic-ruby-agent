@@ -1,7 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
-
+require 'pry'
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
 class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   require 'new_relic/agent/method_tracer'
@@ -20,13 +20,17 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
-      ['foo', 'outer']                            => expected_values,
-      'foo'                                       => expected_values,
-      'bar'                                       => expected_values,
-      'outer'                                     => expected_values,
+      ['foo', 'outer'] => expected_values,
+      'foo' => expected_values,
+      'bar' => expected_values,
+      'outer' => expected_values,
       'Supportability/API/trace_execution_scoped' => expected_values,
-      'OtherTransactionTotalTime'                 => expected_values,
-      'OtherTransactionTotalTime/outer'           => expected_values
+      'OtherTransactionTotalTime' => expected_values,
+      'OtherTransactionTotalTime/outer' => expected_values,
+      # # 'Supportability/API/after_fork' => expected_values,
+      # 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => expected_values,
+      # 'Supportability/API/recording_web_transaction?' => expected_values,
+      # 'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => expected_values,
     )
   end
 
