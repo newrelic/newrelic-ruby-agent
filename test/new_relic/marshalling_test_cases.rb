@@ -59,18 +59,6 @@ module MarshallingTestCases
     events = result.first.events
     assert_equal 1, events.length
 
-    expected_event = [
-      {
-        "type"      => "Transaction",
-        "timestamp" => t0.to_f,
-        "name"      => "TestTransaction/do_it",
-        "duration"  => 0.0,
-        "error"     => false
-      },
-      {},
-      {}
-    ]
-
     event = events.first
     # this is only present on REE, and we don't really care - the point of this
     # test is just to validate basic marshalling
@@ -78,7 +66,16 @@ module MarshallingTestCases
     # this value will be randomly assigned and not useful to compare
     event[0].delete("priority")
 
-    assert_equal(expected_event, event)
+    assert_equal "Transaction", event[0]["type"]
+    assert_equal t0.to_f, event[0]["timestamp"]
+    assert_equal "TestTransaction/do_it", event[0]["name"]
+    assert_equal 0.0, event[0]["duration"]
+    assert_equal false, event[0]["error"]
+    assert_equal event[0]["parent.transportType"], "Unknown"
+    assert event[0]['guid'] != nil
+    assert event[0]["traceId"] != nil
+
+    assert_equal 9, event[0].size
   end
 
   def test_sends_custom_events
@@ -137,16 +134,20 @@ module MarshallingTestCases
     # we don't care about the specific priority for this test
     event[0].delete("priority")
 
-    assert_equal event[0]["type"], "TransactionError"
-    assert_equal event[0]["error.class"], "StandardError"
-    assert_equal event[0]["error.message"], "Sorry!"
-    assert_equal event[0]["error.expected"], false
-    assert_equal event[0]["timestamp"], t0.to_f
-    assert_equal event[0]["transactionName"], "TestTransaction/break_it"
-    assert_equal event[0]["duration"], 0.0
+    assert_equal "TransactionError", event[0]["type"]
+    assert_equal "StandardError", event[0]["error.class"]
+    assert_equal "Sorry!", event[0]["error.message"]
+    assert_equal false, event[0]["error.expected"]
+    assert_equal t0.to_f, event[0]["timestamp"]
+    assert_equal "TestTransaction/break_it", event[0]["transactionName"]
+    assert_equal 0.0, event[0]["duration"]
+    assert_equal "Unknown", event[0]["parent.transportType"]
     assert event[0]["spanId"] != nil
-    assert_equal event[0].size, 8
-    
+    assert event[0]['guid'] != nil
+    assert event[0]["traceId"] != nil
+
+    assert_equal 12, event[0].size
+
     assert_equal event[1], {}
     assert_equal event[2], {}
 
