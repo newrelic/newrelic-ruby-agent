@@ -116,22 +116,23 @@ module NewRelic::Agent
             segment.process_response_headers response
             segment.finish
           end
+
+
+          expected_metrics = [
+            "External/remotehost.com/Net::HTTP/GET",
+            "External/all",
+            "External/remotehost.com/all",
+            "External/allWeb",
+            ["External/remotehost.com/Net::HTTP/GET", "test"]
+          ]
+
+          if Agent.config[:'distributed_tracing.enabled']
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
+          end
+
+          assert_metrics_recorded expected_metrics
         end
-
-        expected_metrics = [
-          "External/remotehost.com/Net::HTTP/GET",
-          "External/all",
-          "External/remotehost.com/all",
-          "External/allWeb",
-          ["External/remotehost.com/Net::HTTP/GET", "test"]
-        ]
-
-        if Agent.config[:'distributed_tracing.enabled']
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
-        end
-
-        assert_metrics_recorded expected_metrics
       end
 
       def test_segment_records_noncat_metrics_without_valid_cross_process_id
@@ -151,22 +152,23 @@ module NewRelic::Agent
             segment.process_response_headers response
             segment.finish
           end
+
+
+          expected_metrics = [
+            "External/remotehost.com/Net::HTTP/GET",
+            "External/all",
+            "External/remotehost.com/all",
+            "External/allWeb",
+            ["External/remotehost.com/Net::HTTP/GET", "test"]
+          ]
+
+          if Agent.config[:'distributed_tracing.enabled']
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
+          end
+
+          assert_metrics_recorded expected_metrics
         end
-
-        expected_metrics = [
-          "External/remotehost.com/Net::HTTP/GET",
-          "External/all",
-          "External/remotehost.com/all",
-          "External/allWeb",
-          ["External/remotehost.com/Net::HTTP/GET", "test"]
-        ]
-
-        if Agent.config[:'distributed_tracing.enabled']
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
-        end
-
-        assert_metrics_recorded expected_metrics
       end
 
       def test_segment_records_noncat_metrics_without_valid_encoding_key
@@ -187,22 +189,22 @@ module NewRelic::Agent
             segment.process_response_headers response
             segment.finish
           end
+
+          expected_metrics = [
+            "External/remotehost.com/Net::HTTP/GET",
+            "External/all",
+            "External/remotehost.com/all",
+            "External/allWeb",
+            ["External/remotehost.com/Net::HTTP/GET", "test"]
+          ]
+
+          if Agent.config[:'distributed_tracing.enabled']
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
+          end
+
+          assert_metrics_recorded expected_metrics
         end
-
-        expected_metrics = [
-          "External/remotehost.com/Net::HTTP/GET",
-          "External/all",
-          "External/remotehost.com/all",
-          "External/allWeb",
-          ["External/remotehost.com/Net::HTTP/GET", "test"]
-        ]
-
-        if Agent.config[:'distributed_tracing.enabled']
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
-        end
-
-        assert_metrics_recorded expected_metrics
       end
 
       def test_segment_records_expected_metrics_for_cat_transaction
@@ -220,23 +222,24 @@ module NewRelic::Agent
             segment.process_response_headers response
             segment.finish
           end
+
+
+          expected_metrics = [
+            "ExternalTransaction/newrelic.com/1#1884/txn-name",
+            "ExternalApp/newrelic.com/1#1884/all",
+            "External/all",
+            "External/newrelic.com/all",
+            "External/allWeb",
+            ["ExternalTransaction/newrelic.com/1#1884/txn-name", "test"]
+          ]
+
+          if Agent.config[:'distributed_tracing.enabled']
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
+          end
+
+          assert_metrics_recorded expected_metrics
         end
-
-        expected_metrics = [
-          "ExternalTransaction/newrelic.com/1#1884/txn-name",
-          "ExternalApp/newrelic.com/1#1884/all",
-          "External/all",
-          "External/newrelic.com/all",
-          "External/allWeb",
-          ["ExternalTransaction/newrelic.com/1#1884/txn-name", "test"]
-        ]
-
-        if Agent.config[:'distributed_tracing.enabled']
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
-        end
-
-        assert_metrics_recorded expected_metrics
       end
 
       def test_proper_metrics_recorded_for_distributed_trace_on_receiver
@@ -253,7 +256,7 @@ module NewRelic::Agent
 
           NewRelic::Agent.drop_buffered_data
           transport_type = nil
-          
+
           in_transaction "test_txn2", :category => :controller do |txn|
             txn.distributed_tracer.accept_distributed_trace_payload payload.text
             segment = Tracer.start_external_request_segment(
@@ -420,7 +423,7 @@ module NewRelic::Agent
         end
       end
 
-      # Can pass :status_code and any HTTP code in headers to alter 
+      # Can pass :status_code and any HTTP code in headers to alter
       # default 200 (OK) HTTP status code
       def with_external_segment headers, config, segment_params
         segment = nil
@@ -834,7 +837,7 @@ module NewRelic::Agent
       def test_urls_are_filtered
         with_config(distributed_tracing_config) do
           segment   = nil
-          filtered_url = "https://remotehost.com/bar/baz"                                      
+          filtered_url = "https://remotehost.com/bar/baz"
 
           in_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(true)

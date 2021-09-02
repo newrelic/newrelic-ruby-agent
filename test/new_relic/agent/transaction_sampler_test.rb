@@ -313,10 +313,9 @@ module NewRelic::Agent
     end
 
     def test_custom_params_include_tripid
-
       DistributedTracing::CrossAppMonitor.any_instance.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
 
-      with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+      with_config(:'transaction_tracer.transaction_threshold' => 0.0, :'distributed_tracing.enabled' => false) do
         in_transaction do |transaction|
           txn_info = [transaction.guid, true, 'PDX-NRT']
           payload = CrossAppPayload.new('1#666', transaction, txn_info)
@@ -343,7 +342,7 @@ module NewRelic::Agent
     def test_custom_params_include_path_hash
       path_hash = nil
 
-      with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+      with_config(:'transaction_tracer.transaction_threshold' => 0.0, :'distributed_tracing.enabled' => false) do
         in_transaction do |transaction|
           transaction.distributed_tracer.is_cross_app_caller = true
           path_hash = transaction.distributed_tracer.cat_path_hash

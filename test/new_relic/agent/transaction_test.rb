@@ -1375,18 +1375,20 @@ module NewRelic::Agent
     end
 
     def test_intrinsic_attributes_include_tripid
-      DistributedTracing::CrossAppMonitor.any_instance.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
+      with_config(:'distributed_tracing.enabled' => false) do
+        DistributedTracing::CrossAppMonitor.any_instance.stubs(:client_referring_transaction_trip_id).returns('PDX-NRT')
 
-      txn = in_transaction do |t|
-        txn_info = [t.guid, true, 'PDX-NRT']
-        payload = CrossAppPayload.new('1#666', t, txn_info)
-        t.distributed_tracer.cross_app_payload = payload
+        txn = in_transaction do |t|
+          txn_info = [t.guid, true, 'PDX-NRT']
+          payload = CrossAppPayload.new('1#666', t, txn_info)
+          t.distributed_tracer.cross_app_payload = payload
 
-        t.distributed_tracer.is_cross_app_caller = true
+          t.distributed_tracer.is_cross_app_caller = true
+        end
+
+        result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+        assert_equal 'PDX-NRT', result[:trip_id]
       end
-
-      result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
-      assert_equal 'PDX-NRT', result[:trip_id]
     end
 
     def test_intrinsic_attributes_include_priority
@@ -1412,15 +1414,17 @@ module NewRelic::Agent
     end
 
     def test_intrinsic_attributes_include_path_hash
-      path_hash = nil
+      with_config(:'distributed_tracing.enabled' => false) do
+        path_hash = nil
 
-      txn = in_transaction do |t|
-        t.distributed_tracer.is_cross_app_caller = true
-        path_hash = t.distributed_tracer.cat_path_hash
+        txn = in_transaction do |t|
+          t.distributed_tracer.is_cross_app_caller = true
+          path_hash = t.distributed_tracer.cat_path_hash
+        end
+
+        result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
+        assert_equal path_hash, result[:path_hash]
       end
-
-      result = txn.attributes.intrinsic_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER)
-      assert_equal path_hash, result[:path_hash]
     end
 
     def test_synthetics_attributes_not_included_if_not_valid_synthetics_request
@@ -1600,7 +1604,10 @@ module NewRelic::Agent
         ["Nested/Controller/Framework/webby", "Controller/RackFramework/action"],
         ["Nested/Controller/Framework/inner_1", "Controller/RackFramework/action"],
         ["Nested/Controller/Framework/inner_2", "Controller/RackFramework/action"],
-        ["Ruby/my_lib/my_meth", "Controller/RackFramework/action"]
+        ["Ruby/my_lib/my_meth", "Controller/RackFramework/action"],
+        "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
+        "Supportability/API/recording_web_transaction?",
+        "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
       ]
     end
 
