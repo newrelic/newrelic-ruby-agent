@@ -108,13 +108,11 @@ module Multiverse
 
     if RUBY_VERSION >= '3.0'
       GROUPS['rails'].delete 'active_record'
-    end
-
-    if RUBY_VERSION >= '3.0'
       GROUPS['frameworks'].delete 'sinatra'
       GROUPS['frameworks'].delete 'padrino'
       GROUPS['frameworks'].delete 'grape'
     end
+
 
     def excluded?(suite)
       return true if suite == 'rake' and RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
