@@ -94,7 +94,7 @@ class ActiveRecordSubscriberTest < Performance::TestCase
 
   def simulate_query(duration=nil)
     @subscriber.start(EVENT_NAME, :id, @params)
-    advance_time(duration) if duration
+    advance_process_time(duration) if duration
     @subscriber.finish(EVENT_NAME, :id, @params)
   end
 end

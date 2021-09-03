@@ -138,7 +138,7 @@ module NewRelic
         end
 
         def test_sets_start_time_from_constructor
-          t = Time.now
+          t = Process.clock_gettime(Process::CLOCK_REALTIME)
 
           segment = MessageBrokerSegment.new action: :produce,
                                              library: "RabbitMQ",

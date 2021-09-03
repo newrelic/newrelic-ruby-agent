@@ -19,7 +19,7 @@ module NewRelic
         end
 
         def setup
-          nr_freeze_time
+          nr_freeze_process_time
         end
 
         def teardown
@@ -54,13 +54,13 @@ module NewRelic
             segment = BasicSegment.new "Custom/basic/segment"
             txn.add_segment segment
             segment.start
-            assert_equal Time.now, segment.start_time
+            assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.start_time
 
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
           end
 
-          assert_equal Time.now, segment.end_time
+          assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.end_time
           assert_equal 1.0, segment.duration
           assert_equal 1.0, segment.exclusive_duration
         end
@@ -70,7 +70,7 @@ module NewRelic
             segment = BasicSegment.new "Custom/basic/segment"
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
           end
 
@@ -82,7 +82,7 @@ module NewRelic
           in_transaction "test_transaction" do |txn|
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
 
             refute_metrics_recorded ["Custom/basic/segment", "Basic/all"]
@@ -101,7 +101,7 @@ module NewRelic
             txn.add_segment segment
             segment.record_metrics = false
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
           end
 
@@ -114,7 +114,7 @@ module NewRelic
             txn.add_segment segment
             segment.expects(:segment_complete)
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
           end
         end
@@ -125,7 +125,7 @@ module NewRelic
             segment.expects(:transaction_assigned)
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time(1.0)
             segment.finish
           end
         end
@@ -135,7 +135,7 @@ module NewRelic
             segment = BasicSegment.new "Custom/basic/segment"
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time(1.0)
             segment.record_on_finish = true
             segment.finish
             assert_includes txn.metrics.instance_variable_get(:@scoped).keys, 'Custom/basic/segment'
@@ -154,23 +154,23 @@ module NewRelic
         end
 
         def test_sets_start_time_from_constructor
-          t = Time.now
+          t = Process.clock_gettime(Process::CLOCK_REALTIME)
           segment = BasicSegment.new nil, t
           assert_equal t, segment.start_time
         end
 
         def test_sets_start_time_if_not_given_when_started
-          t = Time.now
+          t = Process.clock_gettime(Process::CLOCK_REALTIME)
           segment = BasicSegment.new
           segment.start
           assert_equal t, segment.start_time
         end
 
         def test_does_not_override_construction_start_time_when_started
-          t = Time.now
+          t = Process.clock_gettime(Process::CLOCK_REALTIME)
           segment = BasicSegment.new nil, t
           assert_equal t, segment.start_time
-          advance_time 1
+          advance_process_time 1
           segment.start
           assert_equal t, segment.start_time
         end

@@ -20,7 +20,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def setup
-    nr_freeze_time
+    nr_freeze_process_time
     @subscriber = NewRelic::Agent::Instrumentation::ActionControllerSubscriber.new
     NewRelic::Agent.drop_buffered_data
     @request = ActionDispatch::Request.new({'REQUEST_METHOD'=> 'POST'})
@@ -50,7 +50,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
   def test_record_controller_metrics
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    advance_time(2)
+    advance_process_time(2)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
     expected_values = { :call_count => 1, :total_call_time => 2.0 }
@@ -62,7 +62,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
   def test_record_apdex_metrics
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    advance_time(1.5)
+    advance_process_time(1.5)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
     expected_values = { :apdex_f => 0, :apdex_t => 1, :apdex_s => 0 }
@@ -74,7 +74,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
   def test_record_apdex_metrics_with_error
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    advance_time(1.5)
+    advance_process_time(1.5)
 
     error = StandardError.new("boo")
     @exit_payload[:exception] = error
@@ -189,7 +189,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
   def test_record_busy_time
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
-    advance_time(1)
+    advance_process_time(1)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
     NewRelic::Agent::TransactionTimeAggregator.harvest!
 
@@ -223,12 +223,12 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   def test_record_queue_time_metrics
     app = lambda do |env|
       @subscriber.start('process_action.action_controller', :id, @entry_payload)
-      advance_time(2)
+      advance_process_time(2)
       @subscriber.finish('process_action.action_controller', :id, @exit_payload)
     end
 
-    t0 = Time.now
-    env = { 'HTTP_X_REQUEST_START' => (t0 - 5).to_f.to_s }
+    t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
+    env = { 'HTTP_X_REQUEST_START' => (t0 - 5).to_s }
     ::NewRelic::Rack::AgentHooks.new(app).call(env)
 
     assert_metrics_recorded(
@@ -254,8 +254,8 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
       @subscriber.finish('process_action.action_controller', :id, @exit_payload)
     end
 
-    t0 = Time.now
-    env = { 'HTTP_X_REQUEST_START' => (t0 - 5).to_f.to_s }
+    t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
+    env = { 'HTTP_X_REQUEST_START' => (t0 - 5).to_s }
     ::NewRelic::Rack::AgentHooks.new(app).call(env)
 
     assert_metrics_recorded(

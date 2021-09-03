@@ -39,7 +39,7 @@ module NewRelic
           @failure_count = 0
           @unique_threads = []
 
-          @created_at = Time.now
+          @created_at = Process.clock_gettime(Process::CLOCK_REALTIME)
         end
 
         def requested_period

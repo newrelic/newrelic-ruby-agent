@@ -10,7 +10,7 @@ module NewRelic
     class Transaction
       class TraceBuilderTest < Minitest::Test
         def setup
-          nr_freeze_time
+          nr_freeze_process_time
         end
 
         def test_builds_trace_for_transaction
@@ -18,15 +18,15 @@ module NewRelic
           state = Tracer.state
           Tracer.in_transaction name: "test_txn", category: :controller do
             txn = state.current_transaction
-            advance_time 1
+            advance_process_time 1
             segment_a = Tracer.start_segment name: "segment_a"
             segment_a.params[:foo] = "bar"
-            advance_time 1
+            advance_process_time 1
             segment_b = Tracer.start_segment name: "segment_b"
-            advance_time 2
+            advance_process_time 2
             segment_b.finish
             segment_c = Tracer.start_segment name:  "segment_c"
-            advance_time 3
+            advance_process_time 3
             segment_c.finish
             segment_a.finish
           end
@@ -65,9 +65,9 @@ module NewRelic
           state = Tracer.state
           Tracer.in_transaction name: "test_txn", category: :controller do
             txn = state.current_transaction
-            advance_time 1
+            advance_process_time 1
             Tracer.start_segment name: "segment_a"
-            advance_time 1
+            advance_process_time 1
           end
 
           trace = TraceBuilder.build_trace txn

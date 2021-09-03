@@ -43,7 +43,7 @@ module NewRelic::Agent
         NewRelic::Agent::CrossAppTracing.stubs(:obfuscator).returns(@obfuscator)
         NewRelic::Agent::CrossAppTracing.stubs(:valid_encoding_key?).returns(true)
         NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
-        nr_freeze_time
+        nr_freeze_process_time
       end
 
       def teardown
@@ -765,7 +765,7 @@ module NewRelic::Agent
       end
 
       def test_sets_start_time_from_api
-        t = Time.now
+        t = Process.clock_gettime(Process::CLOCK_REALTIME)
 
         in_transaction do |txn|
 
@@ -798,10 +798,10 @@ module NewRelic::Agent
                                                  "GET"
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
 
-            timestamp = Integer(segment.start_time.to_f * 1000.0)
+            timestamp = Integer(segment.start_time * 1000.0)
 
             trace_id = txn.trace_id
             txn_guid = txn.guid
@@ -847,7 +847,7 @@ module NewRelic::Agent
                                                  "GET"
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
           end
 
@@ -869,7 +869,7 @@ module NewRelic::Agent
                                                "GET"
           txn.add_segment segment
           segment.start
-          advance_time 1.0
+          advance_process_time 1.0
           segment.finish
         end
 

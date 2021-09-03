@@ -47,7 +47,7 @@ module NewRelic
       end
 
       def test_from_s
-        nr_freeze_time
+        nr_freeze_process_time(Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond))
 
         payload_str = "0-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-#{now_ms}"
         payload = TraceContextPayload.from_s payload_str
@@ -80,7 +80,7 @@ module NewRelic
       end
 
       def test_additional_attributes
-        nr_freeze_time
+        nr_freeze_process_time(Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond))
 
         payload_str = "1-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-#{now_ms}-futureattr1"
         payload = TraceContextPayload.from_s payload_str
@@ -127,7 +127,7 @@ module NewRelic
       private
 
       def now_ms
-        (Time.now.to_f * 1000).round
+        Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
       end
     end
   end

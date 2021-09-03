@@ -30,7 +30,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def populate_container(sampler, n)
     n.times do |i|
-      sampler.on_start_transaction(@state, nil)
+      sampler.on_start_transaction(@state)
       sampler.notice_sql("SELECT * FROM test#{i}", "Database/test/select", {}, 1, @state)
       sampler.on_finishing_transaction(@state, 'txn')
     end
@@ -42,7 +42,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_on_start_transaction
     assert_nil @sampler.tl_transaction_data
-    @sampler.on_start_transaction(@state, nil)
+    @sampler.on_start_transaction(@state)
     refute_nil @sampler.tl_transaction_data
     @sampler.on_finishing_transaction(@state, 'txn')
 
@@ -56,7 +56,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_notice_sql
-    @sampler.on_start_transaction(@state, nil)
+    @sampler.on_start_transaction(@state)
     @sampler.notice_sql("select * from test", "Database/test/select", nil, 1.5, @state)
     @sampler.notice_sql("select * from test2", "Database/test2/select", nil, 1.3, @state)
     # this sql will not be captured
@@ -66,7 +66,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_notice_sql_statement
-    @sampler.on_start_transaction(@state, nil)
+    @sampler.on_start_transaction(@state)
 
     sql = "select * from test"
     metric_name = "Database/test/select"
@@ -81,7 +81,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
   end
 
   def test_notice_sql_truncates_query
-    @sampler.on_start_transaction(@state, nil)
+    @sampler.on_start_transaction(@state)
     message = 'a' * 17_000
     @sampler.notice_sql(message, "Database/test/select", nil, 1.5, @state)
     assert_equal('a' * 16_381 + '...', @sampler.tl_transaction_data.sql_data[0].sql)
@@ -468,13 +468,18 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
                  :account_id => 190,
                  :'slow_sql.explain_threshold' => -1 }) do
 
-      nr_freeze_time
+      nr_freeze_process_time(Process.clock_gettime(Process::CLOCK_REALTIME))
 
       in_transaction do |txn|
         payload = txn.distributed_tracer.create_distributed_trace_payload
       end
 
-      advance_time 2.0
+      # Trace timestamps are in milliseconds, but we've frozen time above
+      # in float_seconds to get the correct transaction start_time. So we
+      # massage the payload timestamp to milliseconds here for this test.
+      payload.timestamp = (payload.timestamp * 1000).round
+
+      advance_process_time 2.0
 
       segment = nil
       txn = nil
@@ -495,6 +500,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       sql_trace = last_sql_trace
       trace_payload = txn.distributed_tracer.distributed_trace_payload
       transport_type = txn.distributed_tracer.caller_transport_type
+
       assert_equal trace_payload.trace_id,                 sql_trace.params['traceId']
       assert_equal txn.priority,                           sql_trace.params['priority']
       assert_equal sampled,                                sql_trace.params['sampled']

@@ -11,7 +11,7 @@ require 'new_relic/agent/custom_event_aggregator'
 module NewRelic::Agent
   class CustomEventAggregatorTest < Minitest::Test
     def setup
-      nr_freeze_time
+      nr_freeze_process_time
       events = NewRelic::Agent.instance.events
       @aggregator = NewRelic::Agent::CustomEventAggregator.new events
     end
@@ -105,7 +105,7 @@ module NewRelic::Agent
     end
 
     def test_record_adds_type_and_timestamp
-      t0 = Time.now
+      t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
       @aggregator.record(:type_a, :foo => :bar, :baz => :qux)
 
       _, events = @aggregator.harvest!

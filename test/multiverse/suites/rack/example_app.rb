@@ -44,11 +44,11 @@ class MiddlewareOne
   end
 
   def call(env)
-    advance_time(1)
+    advance_process_time(1)
     status, headers, body = @app.call(env)
     headers['MiddlewareOne'] = '1'
 
-    advance_time(1)
+    advance_process_time(1)
     [status, headers, body]
   end
 end
@@ -61,7 +61,7 @@ class MiddlewareTwo
   end
 
   def call(env)
-    advance_time(1)
+    advance_process_time(1)
     request = Rack::Request.new(env)
 
     if request.params['return-early']
@@ -86,12 +86,12 @@ class MiddlewareThree
   end
 
   def call(env)
-    advance_time(1)
+    advance_process_time(1)
     status, headers, body = @app.call(env)
     headers['MiddlewareThree'] = '3'
     headers['MiddlewareThreeTag'] = @tag
 
-    advance_time(1)
+    advance_process_time(1)
     [status, headers, body]
   end
 end

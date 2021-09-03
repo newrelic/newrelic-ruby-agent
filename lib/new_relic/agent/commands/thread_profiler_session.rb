@@ -38,7 +38,7 @@ module NewRelic
             agent_command.arguments
           )
 
-          @started_at = Time.now
+          @started_at = Process.clock_gettime(Process::CLOCK_REALTIME)
           @duration = profile.duration if profile
         end
 
@@ -51,7 +51,9 @@ module NewRelic
         end
 
         def harvest
-          NewRelic::Agent.logger.debug("Harvesting from Thread Profiler #{@finished_profile.to_log_description unless @finished_profile.nil?}")
+          NewRelic::Agent.logger.debug(
+            "Harvesting from Thread Profiler #{@finished_profile.to_log_description unless @finished_profile.nil?}"
+          )
           profile = @finished_profile
           @backtrace_service.profile_agent_code = false
           @finished_profile = nil
@@ -72,7 +74,9 @@ module NewRelic
         end
 
         def past_time?
-          @started_at && (Time.now > @started_at + @duration)
+          @started_at && (
+            Process.clock_gettime(Process::CLOCK_REALTIME) > @started_at + @duration
+          )
         end
 
         def stopped?

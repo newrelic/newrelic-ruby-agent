@@ -111,7 +111,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       run_child(699) do
         NewRelic::Agent.after_fork(:report_to_channel => 699)
         transaction_event_aggregator.record event: NewRelic::Agent::TransactionEventPrimitive.create({
-          :start_timestamp => Time.now,
+          :start_timestamp => Process.clock_gettime(Process::CLOCK_REALTIME),
           :name => 'whatever',
           :duration => 10,
           :type => :controller,
@@ -219,7 +219,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
     def create_sql_sample(sampler)
       state = NewRelic::Agent::Tracer.state
-      sampler.on_start_transaction(state, Time.now)
+      sampler.on_start_transaction(state)
       sampler.notice_sql("SELECT * FROM table", "ActiveRecord/Widgets/find", nil, 100, state)
       sampler.on_finishing_transaction(state, 'noodles')
     end

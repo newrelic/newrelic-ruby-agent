@@ -131,12 +131,12 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   end
 
   def test_trace_execution_scoped_calculates_exclusive_time
-    nr_freeze_time
+    nr_freeze_process_time
     in_transaction('txn') do
       trace_execution_scoped(['parent']) do
-        advance_time(10)
+        advance_process_time(10)
         trace_execution_scoped(['child']) do
-          advance_time(10)
+          advance_process_time(10)
         end
       end
     end

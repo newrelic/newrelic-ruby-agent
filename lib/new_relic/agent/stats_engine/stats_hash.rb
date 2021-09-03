@@ -33,7 +33,7 @@ module NewRelic
 
       attr_accessor :started_at, :harvested_at
 
-      def initialize(started_at=Time.now)
+      def initialize(started_at=Process.clock_gettime(Process::CLOCK_REALTIME))
         @started_at = started_at.to_f
         @scoped     = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
         @unscoped   = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }

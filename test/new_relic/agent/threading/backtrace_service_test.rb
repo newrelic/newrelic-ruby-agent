@@ -14,7 +14,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       include ThreadedTestCase
 
       def setup
-        nr_freeze_time
+        nr_freeze_process_time
         NewRelic::Agent.instance.stats_engine.clear_stats
         @event_listener = NewRelic::Agent::EventListener.new
         @service = BacktraceService.new(@event_listener)
@@ -113,7 +113,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_harvest_sets_finished_at_on_returned_thread_profile
         fake_worker_loop(@service)
 
-        t0 = Time.now
+        t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
         @service.subscribe('foo')
         harvested_profile = @service.harvest('foo')
 
@@ -279,7 +279,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         thread = fake_thread(:request)
         profile = @service.subscribe('foo')
 
-        t0 = Time.now
+        t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
         @service.poll
 
         profile.expects(:aggregate).with(thread.backtrace, :request, thread)
@@ -292,7 +292,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         thread = fake_thread(:request)
         profile = @service.subscribe('foo')
 
-        t0 = Time.now
+        t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
         @service.poll
 
         profile.expects(:aggregate).never
@@ -307,7 +307,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe('foo')
 
-        t0 = Time.now
+        t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
         @service.poll
 
         profile.expects(:aggregate).with(thread0.backtrace, :request, thread0).once
@@ -324,10 +324,10 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe('foo')
 
-        t0 = Time.now
+        t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
         5.times do
           @service.poll
-          advance_time(1.0)
+          advance_process_time(1.0)
         end
 
         profile.expects(:aggregate).with(thread.backtrace, :request, thread).times(2)
@@ -341,7 +341,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe('foo')
 
-        t0 = Time.now
+        t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
         @service.poll
 
         profile.expects(:aggregate).with(thread0.backtrace, :background, thread0).once
@@ -356,7 +356,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe('foo')
 
-        t0 = Time.now
+        t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
         @service.poll
 
         profile.expects(:aggregate).never
@@ -371,7 +371,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe('foo')
 
-        t0 = Time.now
+        t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
         @service.poll
 
         profile.expects(:aggregate).once
@@ -412,7 +412,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         profile = @service.subscribe('foo')
         def profile.increment_poll_count
-          advance_time(5.0)
+          advance_process_time(5.0)
         end
 
         @service.poll
@@ -430,11 +430,11 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         thread = stub
         BacktraceService::MAX_BUFFER_LENGTH.times do
-          @service.buffer_backtrace_for_thread(thread, Time.now.to_f, stub, :request)
+          @service.buffer_backtrace_for_thread(thread, Process.clock_gettime(Process::CLOCK_REALTIME), stub, :request)
         end
         assert_equal BacktraceService::MAX_BUFFER_LENGTH, @service.buffer[thread].length
 
-        @service.buffer_backtrace_for_thread(thread, Time.now.to_f, stub, :request)
+        @service.buffer_backtrace_for_thread(thread, Process.clock_gettime(Process::CLOCK_REALTIME), stub, :request)
         assert_equal BacktraceService::MAX_BUFFER_LENGTH, @service.buffer[thread].length
         assert_metrics_recorded(["Supportability/ThreadProfiler/DroppedBacktraces"])
       end
@@ -464,7 +464,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       end
 
       def test_dynamic_adjustment_drives_from_config
-        nr_freeze_time
+        nr_freeze_process_time
         fake_worker_loop(@service)
 
         with_config(:'thread_profiler.max_profile_overhead' => 0.1) do
@@ -495,7 +495,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
           end
         end
 
-        # We need to adjust Time.now during the midst of poll
+        # We need to adjust the Process clock's time during the midst of poll
         # Slip in before the adjust_polling_time call to advance the clock
         @service.define_singleton_method(:adjust_polling_time) do |end_time, *args|
           end_time += last_poll_length

@@ -25,7 +25,7 @@ module NewRelic
               segment = Transaction::Segment.new 'Ummm'
               txn.add_segment segment
               segment.start
-              advance_time 1.0
+              advance_process_time(1.0)
               segment.finish
 
               timestamp = Integer(segment.start_time.to_f * 1000.0)
@@ -64,7 +64,7 @@ module NewRelic
               segment = Transaction::Segment.new 'Ummm'
               txn.add_segment segment
               segment.start
-              advance_time 1.0
+              advance_process_time(1.0)
               segment.finish
             end
           end
@@ -75,7 +75,7 @@ module NewRelic
         def test_streams_multiple_segments
           total_spans = 5
           segments = []
-        
+
           span_events = generate_and_stream_segments do
             total_spans.times do |index|
               with_segment do |segment|
@@ -83,7 +83,7 @@ module NewRelic
               end
             end
           end
-      
+
           assert_equal total_spans, span_events.size
           assert_equal total_spans, segments.size
         end

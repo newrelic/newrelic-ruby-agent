@@ -15,7 +15,7 @@ module NewRelic
         @additional_config = { :'distributed_tracing.enabled' => true }
         NewRelic::Agent.config.add_config_for_testing(@additional_config)
 
-        nr_freeze_time
+        nr_freeze_process_time
         events = NewRelic::Agent.instance.events
         @event_aggregator = SpanEventAggregator.new events
       end
@@ -51,7 +51,7 @@ module NewRelic
           'sampled' => false,
           'guid'    => guid,
           'traceId' => guid,
-          'timestamp' => (Time.now.to_f * 1000).round,
+          'timestamp' => Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond),
           'duration' => rand,
           'category' => 'custom'
           },

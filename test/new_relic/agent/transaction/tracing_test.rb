@@ -11,12 +11,12 @@ module NewRelic
     class Transaction
       class TracingTest < Minitest::Test
         def setup
-          nr_freeze_time
+          nr_freeze_process_time
           NewRelic::Agent.drop_buffered_data
         end
 
         def teardown
-          nr_unfreeze_time
+          nr_unfreeze_process_time
           NewRelic::Agent.drop_buffered_data
         end
 
@@ -27,7 +27,7 @@ module NewRelic
               unscoped_metrics: "Segment/all"
             )
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
 
             refute_metrics_recorded ["Custom/simple/segment", "Segment/all"]
@@ -44,7 +44,7 @@ module NewRelic
             )
             txn.expects(:segment_complete).with(segment)
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
 
             #clean up traced method stack
@@ -62,7 +62,7 @@ module NewRelic
               unscoped_metrics: "Segment/all"
             )
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
           end
 
@@ -76,18 +76,18 @@ module NewRelic
         def test_start_segment
           in_transaction "test_txn" do |txn|
             segment = Tracer.start_segment name: "Custom/segment/method"
-            assert_equal Time.now, segment.start_time
+            assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.start_time
             assert_equal txn, segment.transaction
 
-            advance_time 1
+            advance_process_time 1
             segment.finish
-            assert_equal Time.now, segment.end_time
+            assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.end_time
           end
         end
 
         def test_start_segment_with_time_override
-          start_time = Time.now
-          advance_time 2
+          start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
+          advance_process_time 2
 
           in_transaction "test_txn" do |txn|
             segment = Tracer.start_segment(
@@ -95,7 +95,7 @@ module NewRelic
               start_time: start_time
             )
 
-            advance_time 1
+            advance_process_time 1
             segment.finish
 
             assert_equal start_time, segment.start_time
@@ -109,12 +109,12 @@ module NewRelic
               operation: "insert",
               collection: "Blog"
             )
-            assert_equal Time.now, segment.start_time
+            assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.start_time
             assert_equal txn, segment.transaction
 
-            advance_time 1
+            advance_process_time 1
             segment.finish
-            assert_equal Time.now, segment.end_time
+            assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.end_time
           end
         end
 
@@ -134,7 +134,7 @@ module NewRelic
               collection: "Blog"
           )
           segment.start
-          advance_time 1
+          advance_process_time 1
           segment.finish
 
           refute_metrics_recorded [
@@ -155,7 +155,7 @@ module NewRelic
                 name:"Custom/segment/method",
                 unscoped_metrics: "Custom/all"
               )
-              advance_time 1
+              advance_process_time 1
               segment.finish
             end
           end
@@ -209,7 +209,7 @@ module NewRelic
             name:"Custom/segment/method",
             unscoped_metrics: "Custom/all"
           )
-          advance_time 1
+          advance_process_time 1
           segment.finish
 
           assert_nil segment.transaction, "Did not expect segment to associated with a transaction"
@@ -223,15 +223,15 @@ module NewRelic
               uri: "http://site.com/endpoint",
               procedure: "GET"
             )
-            assert_equal Time.now, segment.start_time
+            assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.start_time
             assert_equal txn, segment.transaction
             assert_equal "Net::HTTP", segment.library
             assert_equal "http://site.com/endpoint", segment.uri.to_s
             assert_equal "GET", segment.procedure
 
-            advance_time 1
+            advance_process_time 1
             segment.finish
-            assert_equal Time.now, segment.end_time
+            assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.end_time
           end
         end
 
@@ -257,19 +257,19 @@ module NewRelic
 
           in_transaction "test" do
             segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
-            advance_time(0.001)
+            advance_process_time(0.001)
 
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
-            advance_time(0.002)
+            advance_process_time(0.002)
 
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
-            advance_time(0.003)
+            advance_process_time(0.003)
             segment_c.finish
 
-            advance_time(0.001)
+            advance_process_time(0.001)
 
             segment_d = NewRelic::Agent::Tracer.start_segment name: "metric d"
-            advance_time(0.002)
+            advance_process_time(0.002)
             segment_d.finish
 
             segment_b.finish
@@ -297,13 +297,13 @@ module NewRelic
           with_config(:'transaction_tracer.limit_segments' => 2) do
             segment_a, segment_b, segment_c = nil, nil, nil
             in_transaction do
-              advance_time(1)
+              advance_process_time(1)
               segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric_a'
-              advance_time(2)
+              advance_process_time(2)
               segment_b = NewRelic::Agent::Tracer.start_segment name: 'metric_b'
-              advance_time(3)
+              advance_process_time(3)
               segment_c = NewRelic::Agent::Tracer.start_segment name: 'metric_c'
-              advance_time(4)
+              advance_process_time(4)
               segment_c.finish
               segment_b.finish
               segment_a.finish
@@ -321,13 +321,13 @@ module NewRelic
           with_config(:'transaction_tracer.limit_segments' => 2) do
             segment_a, segment_b, segment_c = nil, nil, nil
             in_transaction do
-              advance_time(1)
+              advance_process_time(1)
               segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric_a'
-              advance_time(2)
+              advance_process_time(2)
               segment_b = NewRelic::Agent::Tracer.start_segment name: 'metric_b'
-              advance_time(3)
+              advance_process_time(3)
               segment_c = NewRelic::Agent::Tracer.start_segment name: 'metric_c'
-              advance_time(4)
+              advance_process_time(4)
               segment_c.finish
               segment_b.finish
               segment_a.finish
@@ -370,13 +370,13 @@ module NewRelic
         def test_unfinished_segment_is_truncated_at_transaction_end_exclusive_times_incorrect
           segment_a, segment_b, segment_c = nil, nil, nil
           in_transaction do
-            advance_time(1)
+            advance_process_time(1)
             segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric_a'
-            advance_time(2)
+            advance_process_time(2)
             segment_b = NewRelic::Agent::Tracer.start_segment name: 'metric_b'
-            advance_time(3)
+            advance_process_time(3)
             segment_c = NewRelic::Agent::Tracer.start_segment name: 'metric_c'
-            advance_time(4)
+            advance_process_time(4)
             segment_c.finish
             segment_a.finish
           end
@@ -444,7 +444,7 @@ module NewRelic
         end
 
         def test_sets_start_time_from_api
-          t = Time.now
+          t = Process.clock_gettime(Process::CLOCK_REALTIME)
 
           in_transaction do |txn|
 
@@ -594,31 +594,31 @@ module NewRelic
 
           in_transaction "test" do
             segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
-            advance_time 2
+            advance_process_time 2
 
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
-            advance_time 1
+            advance_process_time 1
 
             segment_c = NewRelic::Agent::Tracer.start_segment(
               name: "metric c",
               parent: segment_a
             )
 
-            advance_time 1
+            advance_process_time 1
 
             segment_d = NewRelic::Agent::Tracer.start_segment(
               name: "metric d",
               parent: segment_a
             )
 
-            advance_time 1
+            advance_process_time 1
             segment_b.finish
 
-            advance_time 1
+            advance_process_time 1
             segment_c.finish
             segment_a.finish
 
-            advance_time 6
+            advance_process_time 6
             segment_d.finish
           end
 
@@ -650,18 +650,18 @@ module NewRelic
 
           in_transaction "test" do
             segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
-            advance_time 1
+            advance_process_time 1
 
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
-            advance_time 2
+            advance_process_time 2
 
             segment_b.finish
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
 
-            advance_time 3
+            advance_process_time 3
             segment_a.finish
 
-            advance_time 4
+            advance_process_time 4
             segment_c.finish
           end
 
@@ -692,26 +692,26 @@ module NewRelic
 
           in_transaction "test" do
             segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
-            advance_time 1
+            advance_process_time 1
 
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
-            advance_time 2
+            advance_process_time 2
             segment_b.finish
 
 
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
-            advance_time 1
+            advance_process_time 1
 
             segment_d = NewRelic::Agent::Tracer.start_segment(
               name: "metric d",
               parent: segment_a
             )
 
-            advance_time 2
+            advance_process_time 2
             segment_c.finish
             segment_a.finish
 
-            advance_time 6
+            advance_process_time 6
             segment_d.finish
           end
 
@@ -733,10 +733,10 @@ module NewRelic
 
           in_transaction "test" do |txn|
             segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
-            advance_time 2
+            advance_process_time 2
 
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
-            advance_time 1
+            advance_process_time 1
 
             refute txn.async?
 
@@ -747,12 +747,12 @@ module NewRelic
 
             assert txn.async?
 
-            advance_time 1
+            advance_process_time 1
 
-            advance_time 1
+            advance_process_time 1
             segment_b.finish
 
-            advance_time 1
+            advance_process_time 1
             segment_c.finish
             segment_a.finish
           end
@@ -763,10 +763,10 @@ module NewRelic
 
           in_transaction "test" do |txn|
             segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
-            advance_time 1
+            advance_process_time 1
 
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
-            advance_time 2
+            advance_process_time 2
 
             segment_b.finish
 
@@ -774,10 +774,10 @@ module NewRelic
 
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
 
-            advance_time 3
+            advance_process_time 3
             segment_a.finish
 
-            advance_time 4
+            advance_process_time 4
             segment_c.finish
 
             assert txn.async?, "Expected transaction to be asynchronous"
@@ -789,20 +789,20 @@ module NewRelic
 
           in_transaction "test" do
             segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
-            advance_time 2
+            advance_process_time 2
 
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
-            advance_time 1
+            advance_process_time 1
 
             segment_c = NewRelic::Agent::Tracer.start_segment(
               name: "metric c",
               parent: segment_a
             )
 
-            advance_time 2
+            advance_process_time 2
             segment_b.finish
 
-            advance_time 1
+            advance_process_time 1
             segment_c.finish
             segment_a.finish
           end
@@ -829,24 +829,24 @@ module NewRelic
 
           transaction = in_transaction "test" do
             segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
-            advance_time 1
+            advance_process_time 1
 
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
-            advance_time 2
+            advance_process_time 2
             segment_b.finish
 
 
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
-            advance_time 1
+            advance_process_time 1
 
             segment_d = NewRelic::Agent::Tracer.start_segment(
               name: "metric d",
               parent: segment_a
             )
 
-            advance_time 2
+            advance_process_time 2
             segment_c.finish
-            advance_time 1
+            advance_process_time 1
 
             segment_d.finish
             segment_a.finish
@@ -876,24 +876,24 @@ module NewRelic
 
           transaction = in_web_transaction "test" do
             segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
-            advance_time 1
+            advance_process_time 1
 
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
-            advance_time 2
+            advance_process_time 2
             segment_b.finish
 
 
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
-            advance_time 1
+            advance_process_time 1
 
             segment_d = NewRelic::Agent::Tracer.start_segment(
               name: "metric d",
               parent: segment_a
             )
 
-            advance_time 2
+            advance_process_time 2
             segment_c.finish
-            advance_time 1
+            advance_process_time 1
 
             segment_d.finish
             segment_a.finish
@@ -939,26 +939,26 @@ module NewRelic
 
           txn = in_transaction "test" do
             segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
-            advance_time 1
+            advance_process_time 1
 
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
-            advance_time 2
+            advance_process_time 2
             segment_b.finish
 
 
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
-            advance_time 1
+            advance_process_time 1
 
             segment_d = NewRelic::Agent::Tracer.start_segment(
               name: "metric d",
               parent: segment_a
             )
 
-            advance_time 2
+            advance_process_time 2
             segment_c.finish
             segment_a.finish
 
-            advance_time 6
+            advance_process_time 6
             segment_d.finish
           end
 
@@ -1006,33 +1006,33 @@ module NewRelic
 
           txn = in_transaction "test" do
             segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
-            advance_time 1
+            advance_process_time 1
 
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
 
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
-            advance_time 2
+            advance_process_time 2
             segment_c.finish
 
 
             segment_d = NewRelic::Agent::Tracer.start_segment name: "metric d"
-            advance_time 1
+            advance_process_time 1
 
             segment_e = NewRelic::Agent::Tracer.start_segment(
               name: "metric e",
               parent: segment_b
             )
 
-            advance_time 2
+            advance_process_time 2
             segment_d.finish
 
-            advance_time 1
+            advance_process_time 1
             segment_b.finish
 
-            advance_time 1
+            advance_process_time 1
             segment_a.finish
 
-            advance_time 4
+            advance_process_time 4
             segment_e.finish
           end
 

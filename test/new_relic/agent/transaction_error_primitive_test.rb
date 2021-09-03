@@ -12,7 +12,7 @@ module NewRelic
   module Agent
     class TransactionErrorPrimitiveTest < Minitest::Test
       def setup
-        nr_freeze_time
+        nr_freeze_process_time
         @span_id = NewRelic::Agent::GuidGenerator.generate_guid
       end
 
@@ -21,7 +21,7 @@ module NewRelic
         intrinsics, *_ = create_event
 
         assert_equal 'TransactionError', intrinsics['type']
-        assert_in_delta Time.now.to_f, intrinsics['timestamp'], 0.001
+        assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics['timestamp'], 0.001
         assert_equal "RuntimeError", intrinsics['error.class']
         assert_equal "Big Controller!", intrinsics['error.message']
         refute intrinsics['error.expected']
@@ -107,7 +107,7 @@ module NewRelic
         {
           :name => "Controller/blogs/index",
           :type => :controller,
-          :start_timestamp => Time.now.to_f,
+          :start_timestamp => Process.clock_gettime(Process::CLOCK_REALTIME),
           :duration => 0.1
         }.update(options)
       end
