@@ -10,17 +10,6 @@ module Environments
   class Runner
     include Multiverse::Color
 
-    DENYLIST = {
-      "2.4.2"       => ["rails60"],
-      "2.3.5"       => ["rails60"],
-      "2.2.1"       => ["rails50", "rails60"],
-      "2.2"         => ["rails50", "rails60"],
-      "2.1"         => ["rails50", "rails60"],
-      "2.0"         => ["rails50", "rails60"],
-      "jruby-9.2.6.0" => ["rails60"],
-      "jruby-9.0"   => ["rails30", "rails31", "rails32"]
-    }
-
     attr_reader :envs
 
     def initialize(envs)
@@ -66,12 +55,6 @@ module Environments
 
       version = RUBY_VERSION
       version = "jruby-#{JRUBY_VERSION[0..2]}" if defined?(JRUBY_VERSION)
-
-      DENYLIST.each do |check_version, denylisted|
-        if version.start_with?(check_version)
-          dirs.reject! {|d| denylisted.include?(File.basename(d)) }
-        end
-      end
 
       dirs
     end
