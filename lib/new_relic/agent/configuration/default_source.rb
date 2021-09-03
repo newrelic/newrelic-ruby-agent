@@ -39,6 +39,8 @@ module NewRelic
         end
       end
 
+      # Marks the config option as deprecated in the documentation once generated.
+      # Does not appear in logs.
       def self.deprecated_description new_setting, description
         link_ref = new_setting.to_s.gsub(".", "-")
         %{Please see: [#{new_setting}](docs/agents/ruby-agent/configuration/ruby-agent-configuration##{link_ref}). \n\n#{description}}
@@ -1478,11 +1480,15 @@ module NewRelic
           :description => 'List of trusted New Relic account IDs for the purposes of cross-application tracing. Inbound requests from applications including cross-application headers that do not come from an account in this list will be ignored.'
         },
         :"cross_application_tracer.enabled" => {
-          :default => Proc.new { !NewRelic::Agent.config[:'distributed_tracing.enabled'] },
+          :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `true`, enables [cross-application tracing](/docs/apm/transactions/cross-application-traces/cross-application-tracing).'
+          :deprecated => true,
+          :description => deprecated_description(
+            :'distributed_tracing-enabled',
+            'If `true`, enables [cross-application tracing](/docs/agents/ruby-agent/features/cross-application-tracing-ruby/)'
+          )
         },
         :cross_application_tracing => {
           :default => nil,
@@ -1491,7 +1497,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :deprecated => true,
-          :description => 'Deprecated in favor of cross_application_tracer.enabled'
+          :description => 'Deprecated in favor of distributed_tracing.enabled'
         },
         :encoding_key => {
           :default => '',
@@ -1791,7 +1797,10 @@ module NewRelic
           :type         => Array,
           :allowed_from_server => true,
           :transform    => DefaultSource.method(:convert_to_regexp_list),
-          :description  => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore.'
+          :description  => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore.' \
+            '*Note:* This will only ignore transaction events, not spans or traces from the same transation. See documentation on ' \
+            '(Ignoring Specific Transactions)[https://docs.newrelic.com/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring] ' \
+            'for more details.'
         },
         :'synthetics.traces_limit' => {
           :default      => 20,

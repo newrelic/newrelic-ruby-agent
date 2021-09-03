@@ -7,7 +7,7 @@ module NewRelic
     module Instrumentation
       class ActiveStorageSubscriberTest < Minitest::Test
         def setup
-          nr_freeze_time
+          nr_freeze_process_time
           @subscriber = ActiveStorageSubscriber.new
           @id = fake_guid(32)
 

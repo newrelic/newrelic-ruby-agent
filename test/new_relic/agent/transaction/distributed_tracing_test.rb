@@ -32,8 +32,8 @@ module NewRelic
 
         def test_create_distributed_trace_payload_returns_payload
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
-          nr_freeze_time
-          created_at = (Time.now.to_f * 1000).round
+          nr_freeze_process_time
+          created_at = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
           payload = nil
 
           transaction = in_transaction "test_txn" do |t|
@@ -52,7 +52,7 @@ module NewRelic
         end
 
         def test_create_distributed_trace_payload_while_disconnected_returns_nil
-          nr_freeze_time
+          nr_freeze_process_time
 
           payload = 'definitely not nil'
 
@@ -574,8 +574,8 @@ module NewRelic
           # sampler into a new interval and resets the counts
           adaptive_sampler = NewRelic::Agent.instance.adaptive_sampler
           interval_duration = adaptive_sampler.instance_variable_get :@period_duration
-          nr_freeze_time
-          advance_time(interval_duration)
+          nr_freeze_process_time(Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond))
+          advance_process_time(interval_duration)
           adaptive_sampler.send(:reset_if_period_expired!)
 
           20.times do

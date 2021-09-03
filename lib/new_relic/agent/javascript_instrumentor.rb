@@ -136,9 +136,9 @@ module NewRelic
 
       # NOTE: Internal prototyping may override this, so leave name stable!
       def data_for_js_agent(transaction)
-        queue_time_in_seconds = [transaction.queue_time.to_f, 0.0].max
-        start_time_in_seconds = [transaction.start_time.to_f, 0.0].max
-        app_time_in_seconds   = Time.now.to_f - start_time_in_seconds
+        queue_time_in_seconds = [transaction.queue_time, 0.0].max
+        start_time_in_seconds = [transaction.start_time, 0.0].max
+        app_time_in_seconds   = Process.clock_gettime(Process::CLOCK_REALTIME) - start_time_in_seconds
 
         queue_time_in_millis = (1000.0 * queue_time_in_seconds).round
         app_time_in_millis   = (1000.0 * app_time_in_seconds).round

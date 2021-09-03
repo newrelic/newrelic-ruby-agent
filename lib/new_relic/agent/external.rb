@@ -33,13 +33,9 @@ module NewRelic
       # request as a string, for example, 'GET'.
       #
       # @api public
-      def start_segment(library: nil, uri: nil, procedure: nil)
+      def start_segment(library:, uri:, procedure:)
         Deprecator.deprecate 'External.start_segment',
                              'Tracer#start_external_request_segment'
-
-        raise ArgumentError, 'Argument `library` is required' if library.nil?
-        raise ArgumentError, 'Argument `uri` is required' if uri.nil?
-        raise ArgumentError, 'Argument `procedure` is required' if procedure.nil?
 
         ::NewRelic::Agent.record_api_supportability_metric(:start_segment)
 

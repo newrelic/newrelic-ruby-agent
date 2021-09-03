@@ -139,20 +139,20 @@ module NewRelic
     # is initialized; these methods enable us to defer these calls
     # until we have started up and can process them.
     #
-    def add_or_defer_method_tracer(receiver, method_name, metric_name_code, options)
+    def add_or_defer_method_tracer(receiver, method_name, metric_name, options)
       @tracer_lock.synchronize do
         if @agent
-          receiver.send(:_add_method_tracer_now, method_name, metric_name_code, options)
+          receiver.send(:_nr_add_method_tracer_now, method_name, metric_name, options)
         else
-          @tracer_queue << [receiver, method_name, metric_name_code, options]
+          @tracer_queue << [receiver, method_name, metric_name, options]
         end
       end
     end
 
     def add_deferred_method_tracers_now
       @tracer_lock.synchronize do
-        @tracer_queue.each do |receiver, method_name, metric_name_code, options|
-          receiver.send(:_add_method_tracer_now, method_name, metric_name_code, options)
+        @tracer_queue.each do |receiver, method_name, metric_name, options|
+          receiver.send(:_nr_add_method_tracer_now, method_name, metric_name, options)
         end
 
         @tracer_queue = []

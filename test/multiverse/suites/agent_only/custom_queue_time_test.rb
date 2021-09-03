@@ -21,7 +21,7 @@ class CustomQueueTimeTest < Minitest::Test
     def run_transaction(request, simulated_queue_time)
       opts = { :name => 'run_transaction', :class_name => 'DummyApp', :request => request }
 
-      advance_time(simulated_queue_time)
+      advance_process_time(simulated_queue_time)
 
       perform_action_with_newrelic_trace(opts) do
         # nothing
@@ -30,8 +30,8 @@ class CustomQueueTimeTest < Minitest::Test
   end
 
   def setup
-    nr_freeze_time
-    @headers = { 'HTTP_X_REQUEST_START' => "t=#{Time.now.to_f}" }
+    nr_freeze_process_time
+    @headers = { 'HTTP_X_REQUEST_START' => "t=#{Process.clock_gettime(Process::CLOCK_REALTIME)}" }
   end
 
   def test_pulls_request_headers_from_passed_in_rack_request

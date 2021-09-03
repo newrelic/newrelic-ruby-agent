@@ -378,13 +378,13 @@ class NewRelicServiceTest < Minitest::Test
   def test_shutdown
     @service.agent_id = 666
     @http_handle.respond_to(:shutdown, 'shut this bird down')
-    response = @service.shutdown(Time.now)
+    response = @service.shutdown(Process.clock_gettime(Process::CLOCK_REALTIME))
     assert_equal 'shut this bird down', response
   end
 
   def test_should_not_shutdown_if_never_connected
     @http_handle.respond_to(:shutdown, 'shut this bird down')
-    response = @service.shutdown(Time.now)
+    response = @service.shutdown(Process.clock_gettime(Process::CLOCK_REALTIME))
     assert_nil response
   end
 
@@ -392,7 +392,7 @@ class NewRelicServiceTest < Minitest::Test
     dummy_rsp = 'met rick date uhh'
     @http_handle.respond_to(:metric_data, dummy_rsp)
     stats_hash = NewRelic::Agent::StatsHash.new
-    stats_hash.harvested_at = Time.now
+    stats_hash.harvested_at = Process.clock_gettime(Process::CLOCK_REALTIME)
     response = @service.metric_data(stats_hash)
 
     assert_equal 4, @http_handle.last_request_payload.size
@@ -402,34 +402,34 @@ class NewRelicServiceTest < Minitest::Test
   def test_metric_data_sends_harvest_timestamps
     @http_handle.respond_to(:metric_data, 'foo')
 
-    t0 = nr_freeze_time
+    t0 = nr_freeze_process_time
     stats_hash = NewRelic::Agent::StatsHash.new
-    stats_hash.harvested_at = Time.now
+    stats_hash.harvested_at = Process.clock_gettime(Process::CLOCK_REALTIME)
 
     @service.metric_data(stats_hash)
     payload = @http_handle.last_request_payload
     _, last_harvest_timestamp, harvest_timestamp, _ = payload
-    assert_in_delta(t0.to_f, harvest_timestamp, 0.0001)
+    assert_in_delta(t0, harvest_timestamp, 0.0001)
 
-    t1 = advance_time(10)
+    t1 = advance_process_time(10)
     stats_hash.harvested_at = t1
 
     @service.metric_data(stats_hash)
     payload = @http_handle.last_request_payload
     _, last_harvest_timestamp, harvest_timestamp, _ = payload
-    assert_in_delta(t1.to_f, harvest_timestamp, 0.0001)
-    assert_in_delta(t0.to_f, last_harvest_timestamp, 0.0001)
+    assert_in_delta(t1, harvest_timestamp, 0.0001)
+    assert_in_delta(t0, last_harvest_timestamp, 0.0001)
   end
 
   def test_metric_data_harvest_time_based_on_stats_hash_creation
-    t0 = nr_freeze_time
+    t0 = nr_freeze_process_time
     dummy_rsp = 'met rick date uhh'
     @http_handle.respond_to(:metric_data, dummy_rsp)
 
-    advance_time 10
+    advance_process_time 10
     stats_hash = NewRelic::Agent::StatsHash.new
-    advance_time 1
-    stats_hash.harvested_at = Time.now
+    advance_process_time 1
+    stats_hash.harvested_at = Process.clock_gettime(Process::CLOCK_REALTIME)
 
     @service.metric_data(stats_hash)
 
@@ -522,7 +522,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.connect
     @http_handle.respond_to(:metric_data, 0)
     stats_hash = NewRelic::Agent::StatsHash.new
-    stats_hash.harvested_at = Time.now
+    stats_hash.harvested_at = Process.clock_gettime(Process::CLOCK_REALTIME)
     @service.metric_data(stats_hash)
 
     @http_handle.respond_to(:transaction_sample_data, 1)
@@ -944,7 +944,7 @@ class NewRelicServiceTest < Minitest::Test
     items.each do |key, value|
       hash.record(NewRelic::MetricSpec.new(key), value)
     end
-    hash.harvested_at = Time.now
+    hash.harvested_at = Process.clock_gettime(Process::CLOCK_REALTIME)
     hash
   end
 

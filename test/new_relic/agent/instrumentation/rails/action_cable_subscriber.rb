@@ -8,7 +8,7 @@ module NewRelic
       class ActionCableSubscriberTest < Minitest::Test
 
         def setup
-          nr_freeze_time
+          nr_freeze_process_time
           @subscriber = ActionCableSubscriber.new
 
           NewRelic::Agent.drop_buffered_data
@@ -26,7 +26,7 @@ module NewRelic
         def test_creates_web_transaction
           @subscriber.start('perform_action.action_cable', :id, payload_for_perform_action)
           assert NewRelic::Agent::Tracer.current_transaction.recording_web_transaction?
-          advance_time(1.0)
+          advance_process_time(1.0)
           @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
 
           assert_equal('Controller/ActionCable/TestChannel/test_action',
@@ -37,7 +37,7 @@ module NewRelic
 
         def test_records_apdex_metrics
           @subscriber.start('perform_action.action_cable', :id, payload_for_perform_action)
-          advance_time(1.5)
+          advance_process_time(1.5)
           @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
 
           expected_values = { :apdex_f => 0, :apdex_t => 1, :apdex_s => 0 }
@@ -81,7 +81,7 @@ module NewRelic
           @subscriber.start('perform_action.action_cable', :id, payload_for_perform_action)
           assert NewRelic::Agent::Tracer.current_transaction.recording_web_transaction?
           @subscriber.start('transmit.action_cable', :id, payload_for_transmit)
-          advance_time(1.0)
+          advance_process_time(1.0)
           @subscriber.finish('transmit.action_cable', :id, payload_for_transmit)
           @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
 
@@ -94,7 +94,7 @@ module NewRelic
 
         def test_does_not_record_unscoped_metrics_nor_create_trace_for_transmit_outside_of_active_txn
           @subscriber.start('transmit.action_cable', :id, payload_for_transmit)
-          advance_time(1.0)
+          advance_process_time(1.0)
           @subscriber.finish('transmit.action_cable', :id, payload_for_transmit)
 
           sample = last_transaction_trace

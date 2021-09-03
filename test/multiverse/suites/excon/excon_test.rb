@@ -19,11 +19,7 @@ class ExconTest < Minitest::Test
   end
 
   def timeout_error_class
-    if Excon::VERSION <= "0.18.0"
-      Excon::Errors::SocketError
-    else
-      Excon::Errors::Timeout
-    end
+    Excon::Errors::Timeout
   end
 
   def simulate_error_response

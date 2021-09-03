@@ -82,8 +82,8 @@ module Performance
           retained_delta  = retained_after - retained_before
           retained_percent = retained_delta.to_f / retained_before * 100
         end
-        retained_percent = 0.0 if retained_percent.nan?
-        
+        retained_percent = 0.0 if (retained_percent.to_f).nan?
+
         rows << [
           identifier,
           old_result.time_per_iteration,

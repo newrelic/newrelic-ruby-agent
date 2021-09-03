@@ -23,7 +23,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_records_metrics_for_simple_find
-    nr_freeze_time
+    nr_freeze_process_time
 
     in_transaction('test_txn') { simulate_query(2) }
 
@@ -34,7 +34,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_records_scoped_metrics
-    nr_freeze_time
+    nr_freeze_process_time
 
     in_transaction('test_txn') { simulate_query(2) }
 
@@ -122,7 +122,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_records_nothing_if_tracing_disabled
-    nr_freeze_time
+    nr_freeze_process_time
 
     in_transaction('test_txn') do
       NewRelic::Agent.disable_all_tracing { simulate_query(2) }
@@ -133,7 +133,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_records_rollup_metrics
-    nr_freeze_time
+    nr_freeze_process_time
 
     in_web_transaction { simulate_query(2) }
 
@@ -145,7 +145,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_creates_txn_node
-    nr_freeze_time
+    nr_freeze_process_time
 
     in_transaction do
       simulate_query(2)
@@ -161,7 +161,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
   end
 
   def test_creates_slow_sql_node
-    nr_freeze_time
+    nr_freeze_process_time
 
     sampler = NewRelic::Agent.instance.sql_sampler
     sql = nil
@@ -220,7 +220,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
 
   def simulate_query(duration=nil)
     @subscriber.start('sql.active_record', :id, @params)
-    advance_time(duration) if duration
+    advance_process_time(duration) if duration
     @subscriber.finish('sql.active_record', :id, @params)
   end
 end

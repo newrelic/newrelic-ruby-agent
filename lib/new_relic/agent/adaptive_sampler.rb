@@ -13,7 +13,7 @@ module NewRelic
         @sampled_count = 0
         @period_duration = period_duration
         @first_period = true
-        @period_start = Time.now.to_f
+        @period_start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @lock = Mutex.new
         register_config_callbacks
       end
@@ -53,7 +53,7 @@ module NewRelic
       private
 
       def reset_if_period_expired!
-        now = Time.now.to_f
+        now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         return unless @period_start + @period_duration <= now
 
         elapsed_periods = Integer((now - @period_start) / @period_duration)

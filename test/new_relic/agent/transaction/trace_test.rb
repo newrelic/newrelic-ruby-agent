@@ -8,8 +8,8 @@ require 'new_relic/agent/database'
 
 class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   def setup
-    nr_freeze_time
-    @start_time = Time.now
+    nr_freeze_process_time
+    @start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
     @trace = NewRelic::Agent::Transaction::Trace.new(@start_time)
     @trace.root_node.end_trace(@start_time)
 
@@ -314,7 +314,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_trace_tree_includes_start_time
-    assert_trace_tree_contains(:start_time, @start_time.to_f)
+    assert_trace_tree_contains(:start_time, @start_time)
   end
 
   def test_trace_tree_includes_unused_legacy_request_params

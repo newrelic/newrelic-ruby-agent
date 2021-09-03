@@ -112,7 +112,7 @@ class PipeServiceTest < Minitest::Test
         @service.transaction_sample_data(['txn0'])
         @service.error_data(['err0'])
         @service.sql_trace_data(['sql0'])
-        @service.shutdown(Time.now)
+        @service.shutdown
       end
       Process.wait(pid)
 
@@ -125,7 +125,7 @@ class PipeServiceTest < Minitest::Test
 
     def test_shutdown_closes_pipe
       data_from_forked_process do
-        @service.shutdown(Time.now)
+        @service.shutdown
         assert NewRelic::Agent::PipeChannelManager \
           .channels[:pipe_service_test].closed?
       end

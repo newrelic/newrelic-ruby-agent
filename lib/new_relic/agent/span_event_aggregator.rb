@@ -16,7 +16,7 @@ module NewRelic
       enabled_keys :'span_events.enabled',
                    :'distributed_tracing.enabled'
 
-      def record priority: nil, event:nil, &blk
+      def record(priority: nil, event: nil, &blk)
         unless(event || priority && blk)
           raise ArgumentError, "Expected priority and block, or event"
         end
@@ -33,7 +33,7 @@ module NewRelic
       SUPPORTABILITY_TOTAL_SENT = "Supportability/SpanEvent/TotalEventsSent".freeze
       SUPPORTABILITY_DISCARDED  = "Supportability/SpanEvent/Discarded".freeze
 
-      def after_harvest metadata
+      def after_harvest(metadata)
         seen      = metadata[:seen]
         sent      = metadata[:captured]
         discarded = seen - sent

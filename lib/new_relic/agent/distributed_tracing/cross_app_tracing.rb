@@ -54,6 +54,7 @@ module NewRelic
 
       def insert_cross_app_header headers
         return unless CrossAppTracing.cross_app_enabled?
+
         @is_cross_app_caller = true
         txn_guid  = transaction.guid
         trip_id   = cat_trip_id
@@ -65,17 +66,20 @@ module NewRelic
       def add_message_cat_headers headers
         return unless CrossAppTracing.cross_app_enabled?
         @is_cross_app_caller = true
-        insert_message_headers headers, 
-          transaction.guid, 
-          cat_trip_id, 
-          cat_path_hash, 
+        insert_message_headers headers,
+          transaction.guid,
+          cat_trip_id,
+          cat_path_hash,
           transaction.raw_synthetics_header
       end
 
       def record_cross_app_metrics
         if (id = cross_app_payload && cross_app_payload.id)
-          app_time_in_seconds = [Time.now.to_f - transaction.start_time.to_f, 0.0].max
-          NewRelic::Agent.record_metric "ClientApplication/#{id}/all", app_time_in_seconds
+          app_time_in_seconds = [
+            Process.clock_gettime(Process::CLOCK_REALTIME) - transaction.start_time,
+            0.0
+          ].max
+          NewRelic::Agent.record_metric("ClientApplication/#{id}/all", app_time_in_seconds)
         end
       end
 

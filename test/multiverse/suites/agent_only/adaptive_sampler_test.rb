@@ -16,7 +16,7 @@ module NewRelic
       end
 
       def test_adaptive_sampler_valid_stats_and_reset_after_harvest
-        nr_freeze_time
+        nr_freeze_process_time
 
         sampled_count = 0
         20.times do |i|
@@ -30,7 +30,7 @@ module NewRelic
         assert_equal 20, stats[:seen]
         assert_equal sampled_count, stats[:sampled_count]
 
-        advance_time(60)
+        advance_process_time(60)
 
         in_transaction("test_txn_20") {}
 

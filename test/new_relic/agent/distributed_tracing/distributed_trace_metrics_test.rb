@@ -8,7 +8,7 @@ module NewRelic::Agent
   class DistributedTraceMetricsTest < Minitest::Test
 
     def setup
-      nr_freeze_time
+      nr_freeze_process_time
       @config = {
         :account_id => "190",
         :primary_application_id => "46954",
@@ -26,8 +26,8 @@ module NewRelic::Agent
 
     def in_controller_transaction &blk
       in_transaction "controller_txn", :category => :controller do |txn|
-        advance_time 1.0
-        yield txn        
+        advance_process_time(1.0)
+        yield txn
       end
     end
 
@@ -61,7 +61,7 @@ module NewRelic::Agent
 
     def test_record_metrics_for_transaction
       in_transaction "test_txn", :category => :controller do |txn|
-        advance_time 1.0
+        advance_process_time(1.0)
         payload = txn.distributed_tracer.create_trace_state_payload
         assert payload, "payload should not be nil"
 
@@ -76,7 +76,7 @@ module NewRelic::Agent
 
     def test_record_metrics_for_transaction_with_payload
       in_transaction "controller_txn", :category => :controller do |txn|
-        advance_time 1.0
+        advance_process_time(1.0)
         DistributedTracing.accept_distributed_trace_headers valid_trace_context_headers, NewRelic::HTTP
         DistributedTraceMetrics.record_metrics_for_transaction txn
       end
@@ -97,7 +97,7 @@ module NewRelic::Agent
 
     def test_record_metrics_for_transaction_with_garbage_transport_type
       in_transaction "controller_txn", :category => :controller do |txn|
-        advance_time 1.0
+        advance_process_time(1.0)
         DistributedTracing.accept_distributed_trace_headers valid_trace_context_headers, "garbage"
         DistributedTraceMetrics.record_metrics_for_transaction txn
       end
@@ -119,7 +119,7 @@ module NewRelic::Agent
     def test_record_metrics_for_transaction_with_exception_handling
       in_transaction "controller_txn", :category => :controller do |txn|
         begin
-          advance_time 1.0
+          advance_process_time(1.0)
           DistributedTracing.accept_distributed_trace_headers valid_trace_context_headers, NewRelic::HTTP
           raise "oops"
         rescue Exception => e

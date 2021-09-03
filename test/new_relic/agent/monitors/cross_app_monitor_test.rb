@@ -157,8 +157,14 @@ module NewRelic::Agent
     def test_doesnt_write_metric_if_id_blank
       when_request_runs(for_id(''))
 
-      assert_metrics_recorded_exclusive(['transaction', 'Supportability/API/drop_buffered_data',
-        'OtherTransactionTotalTime', 'OtherTransactionTotalTime/transaction'])
+      assert_metrics_recorded_exclusive([
+        'transaction',
+        'Supportability/API/drop_buffered_data',
+        'OtherTransactionTotalTime',
+        'OtherTransactionTotalTime/transaction',
+        'Supportability/API/record_metric',
+        'Supportability/Deprecated/cross_application_tracer'
+        ])
     end
 
     def test_setting_response_headers_freezes_transaction_name
@@ -210,13 +216,13 @@ module NewRelic::Agent
     #
 
     def when_request_runs(request=for_id(REQUEST_CROSS_APP_ID), name = 'transaction', duration = nil)
-      nr_freeze_time if duration
+      nr_freeze_process_time if duration
 
       in_transaction(name) do |txn|
         @events.notify(:before_call, request)
         # Fake out our GUID for easier comparison in tests
         Transaction.tl_current.stubs(:guid).returns(TRANSACTION_GUID)
-        advance_time duration if duration
+        advance_process_time(duration) if duration
         @events.notify(:after_call, request, [200, @response, ''])
         txn
       end

@@ -18,7 +18,7 @@ module NewRelic
       # or :limit (integer) for max number of iterations
       def initialize(opts={})
         @should_run = true
-        @next_invocation_time = Time.now
+        @next_invocation_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         @period = 60.0
         @duration = opts[:duration]
         @limit = opts[:limit]
@@ -34,7 +34,7 @@ module NewRelic
         @should_run = true
         @iterations = 0
 
-        now = Time.now
+        now = Process.clock_gettime(Process::CLOCK_REALTIME)
         @deadline = now + @duration if @duration
         @next_invocation_time = (now + @period)
       end
@@ -53,11 +53,11 @@ module NewRelic
       end
 
       def schedule_next_invocation
-        now = Time.now
+        now = Process.clock_gettime(Process::CLOCK_REALTIME)
         while @next_invocation_time <= now && @period > 0
           @next_invocation_time += @period
         end
-        @next_invocation_time - Time.now
+        @next_invocation_time - Process.clock_gettime(Process::CLOCK_REALTIME)
       end
 
       # a simple accessor for @should_run
@@ -66,7 +66,7 @@ module NewRelic
       end
 
       def under_duration?
-        !@deadline || Time.now < @deadline
+        !@deadline || Process.clock_gettime(Process::CLOCK_REALTIME) < @deadline
       end
 
       def under_limit?

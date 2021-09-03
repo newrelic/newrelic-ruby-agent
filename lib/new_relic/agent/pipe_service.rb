@@ -61,7 +61,7 @@ module NewRelic
         write_to_pipe(:sql_trace_data, sql) if sql
       end
 
-      def shutdown(time)
+      def shutdown
         @pipe.close if @pipe
       end
 

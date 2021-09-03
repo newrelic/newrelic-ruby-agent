@@ -19,15 +19,15 @@ module NewRelic
       end
 
       def as_json_array(content_length)
-        queue_time_in_seconds = [transaction.queue_time.to_f, 0.0].max
-        start_time_in_seconds = [transaction.start_time.to_f, 0.0].max
-        app_time_in_seconds   = Time.now.to_f - start_time_in_seconds
+        queue_time_in_seconds = [transaction.queue_time, 0.0].max
+        start_time_in_seconds = [transaction.start_time, 0.0].max
+        app_time_in_seconds   = Process.clock_gettime(Process::CLOCK_REALTIME) - start_time_in_seconds
 
         [
           NewRelic::Agent.config[:cross_process_id],
           transaction.best_name,
-          queue_time_in_seconds.to_f,
-          app_time_in_seconds.to_f,
+          queue_time_in_seconds,
+          app_time_in_seconds,
           content_length,
           transaction.guid,
           false
