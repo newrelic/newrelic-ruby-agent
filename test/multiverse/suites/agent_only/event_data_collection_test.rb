@@ -13,7 +13,7 @@ class EventDataCollectionTest < Minitest::Test
         "analytic_event_data" => 1200,
         "custom_event_data" => 1000,
         "error_event_data" => 100,
-        "span_event_data" => 1000
+        "span_event_data" => 2000
       }
     }
 
@@ -30,8 +30,7 @@ class EventDataCollectionTest < Minitest::Test
         "harvest_limits" => {
           "analytic_event_data" => 1200,
           "custom_event_data" => 1000,
-          "error_event_data" => 100,
-          "span_event_data" => 1000
+          "error_event_data" => 100
         }
       }
     }
@@ -51,8 +50,7 @@ class EventDataCollectionTest < Minitest::Test
         "harvest_limits" => {
           "analytic_event_data" => 1200,
           "custom_event_data" => 1000,
-          "error_event_data" => 100,
-          "span_event_data" => 1000
+          "error_event_data" => 100
         }
       }
     }
