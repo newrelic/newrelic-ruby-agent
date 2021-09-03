@@ -13,14 +13,14 @@ module NewRelic::Agent::Configuration
       config.add_config_for_testing(:'analytics_events.max_samples_stored' => 1000)
       config.add_config_for_testing(:'custom_insights_events.max_samples_stored' => 1000)
       config.add_config_for_testing(:'error_collector.max_event_samples_stored' => 1000)
-      config.add_config_for_testing(:'span_events.max_event_samples_stored' => 1000)
+      config.add_config_for_testing(:'span_events.max_event_samples_stored' => 2000)
 
       expected = {
         :harvest_limits => {
           :analytic_event_data => 1000,
           :custom_event_data => 1000,
           :error_event_data => 1000,
-          :span_event_data => 1000
+          :span_event_data => 2000
         }
       }
 
