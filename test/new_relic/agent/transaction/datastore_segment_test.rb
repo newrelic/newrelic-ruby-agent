@@ -15,7 +15,7 @@ module NewRelic
           NewRelic::Agent.config.add_config_for_testing(@additional_config)
           NewRelic::Agent.config.notify_server_source_added
 
-          nr_freeze_time
+          nr_freeze_process_time
         end
 
         def teardown
@@ -37,7 +37,7 @@ module NewRelic
         def test_segment_does_not_record_metrics_outside_of_txn
           segment = DatastoreSegment.new "SQLite", "insert", "Blog"
           segment.start
-          advance_time 1
+          advance_process_time 1
           segment.finish
 
           refute_metrics_recorded [
@@ -58,7 +58,7 @@ module NewRelic
               collection: "Blog"
             )
             segment.start
-            advance_time 1
+            advance_process_time 1
             segment.finish
           end
 
@@ -79,7 +79,7 @@ module NewRelic
               operation: "select"
             )
             segment.start
-            advance_time 1
+            advance_process_time 1
             segment.finish
           end
 
@@ -101,7 +101,7 @@ module NewRelic
               port_path_or_id: "1337807"
             )
             segment.start
-            advance_time 1
+            advance_process_time 1
             segment.finish
           end
 
@@ -123,7 +123,7 @@ module NewRelic
               host: "jonan-01"
             )
             segment.start
-            advance_time 1
+            advance_process_time 1
             segment.finish
           end
 
@@ -145,7 +145,7 @@ module NewRelic
               port_path_or_id: 1337807
             )
             segment.start
-            advance_time 1
+            advance_process_time 1
             segment.finish
           end
 
@@ -166,7 +166,7 @@ module NewRelic
               operation: "select"
             )
             segment.start
-            advance_time 1
+            advance_process_time 1
             segment.finish
           end
 
@@ -183,7 +183,7 @@ module NewRelic
                 port_path_or_id: "1337807"
               )
               segment.start
-              advance_time 1
+              advance_process_time 1
               segment.finish
             end
 
@@ -202,7 +202,7 @@ module NewRelic
             )
 
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
           end
 
@@ -231,7 +231,7 @@ module NewRelic
             )
 
             segment.notice_sql sql_statement
-            advance_time 1
+            advance_process_time 1
             segment.finish
 
             timestamp = Integer(segment.start_time.to_f * 1000.0)
@@ -286,7 +286,7 @@ module NewRelic
               )
 
               segment.notice_sql sql
-              advance_time 1
+              advance_process_time 1
               segment.finish
             end
 
@@ -315,7 +315,7 @@ module NewRelic
               )
 
               segment.notice_sql sql
-              advance_time 1
+              advance_process_time 1
               segment.finish
             end
 
@@ -343,7 +343,7 @@ module NewRelic
             )
 
             segment.notice_nosql_statement nosql_statement
-            advance_time 1
+            advance_process_time 1
             segment.finish
           end
 
@@ -458,7 +458,7 @@ module NewRelic
               host: "jonan-01",
               port_path_or_id: "1337807"
             )
-            advance_time 1
+            advance_process_time 1
             segment.finish
           end
 
@@ -495,7 +495,7 @@ module NewRelic
               operation: "select",
               database_name: "pizza_cube"
             )
-            advance_time 1
+            advance_process_time 1
             segment.finish
           end
 
@@ -515,7 +515,7 @@ module NewRelic
                 operation: "select",
                 database_name: "pizza_cube"
               )
-              advance_time 1
+              advance_process_time 1
               segment.finish
             end
 
@@ -533,7 +533,7 @@ module NewRelic
               operation: "select"
             )
             segment.notice_sql "select * from blogs"
-            advance_time 2.0
+            advance_process_time 2.0
             Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
               assert_equal segment.sql_statement.sql, statement.sql_statement
               assert_equal segment.name, name
@@ -622,7 +622,7 @@ module NewRelic
               operation: "select"
             )
             segment._notice_sql "select * from blogs", {:adapter => :sqlite}, explainer
-            advance_time 2.0
+            advance_process_time 2.0
             Agent.instance.sql_sampler.expects(:notice_sql_statement) do |statement, name, duration|
               assert_equal segment.sql_statement.sql, statement.sql_statement
               assert_equal segment.name, name
@@ -641,7 +641,7 @@ module NewRelic
               operation: "set"
             )
             segment.notice_nosql_statement statement
-            advance_time 2.0
+            advance_process_time 2.0
 
             segment.finish
             assert_equal segment.params[:statement], statement
@@ -705,7 +705,7 @@ module NewRelic
                 collection: "Blog"
               )
               segment.start
-              advance_time 1.0
+              advance_process_time 1.0
               segment.finish
             end
           end
@@ -727,7 +727,7 @@ module NewRelic
                 collection: "Blog"
               )
               segment.start
-              advance_time 2.0
+              advance_process_time 2.0
               segment.finish
             end
           end
@@ -753,7 +753,7 @@ module NewRelic
         end
 
         def test_sets_start_time_from_api
-          t = Time.now
+          t = Process.clock_gettime(Process::CLOCK_REALTIME)
 
           in_transaction do |txn|
 

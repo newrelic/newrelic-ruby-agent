@@ -75,8 +75,11 @@ module NewRelic
 
       def record_cross_app_metrics
         if (id = cross_app_payload && cross_app_payload.id)
-          app_time_in_seconds = [Time.now.to_f - transaction.start_time.to_f, 0.0].max
-          NewRelic::Agent.record_metric "ClientApplication/#{id}/all", app_time_in_seconds
+          app_time_in_seconds = [
+            Process.clock_gettime(Process::CLOCK_REALTIME) - transaction.start_time,
+            0.0
+          ].max
+          NewRelic::Agent.record_metric("ClientApplication/#{id}/all", app_time_in_seconds)
         end
       end
 

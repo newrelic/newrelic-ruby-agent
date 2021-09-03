@@ -289,7 +289,7 @@ module NewRelic
           "Custom/Segment/something/allWeb"
         ]
         parent = Transaction::Segment.new("parent")
-        start_time = Time.now
+        start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
 
         in_transaction 'test' do
           segment = Tracer.start_segment(
@@ -312,7 +312,7 @@ module NewRelic
         host            = "localhost"
         port_path_or_id = "3306"
         database_name   = "blog_app"
-        start_time      = Time.now
+        start_time      = Process.clock_gettime(Process::CLOCK_REALTIME)
         parent          = Transaction::Segment.new("parent")
 
         in_transaction 'test' do
@@ -337,7 +337,7 @@ module NewRelic
         library    = "Net::HTTP"
         uri        = "https://docs.newrelic.com"
         procedure  = "GET"
-        start_time = Time.now
+        start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         parent     = Transaction::Segment.new("parent")
 
         in_transaction 'test' do

@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require 'pry'
+
 class Insider
   def initialize(stats_engine)
     @stats_engine = stats_engine
@@ -81,7 +81,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     @stats_engine.clear_stats
     @metric_name ||= nil
 
-    nr_freeze_time
+    nr_freeze_process_time
 
     super
   end
@@ -105,7 +105,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
     in_transaction do
       self.class.trace_execution_scoped(metric) do
-        advance_time 0.05
+        advance_process_time 0.05
       end
     end
 
@@ -114,7 +114,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
 
   def test_trace_execution_scoped_with_no_metrics_skips_out
     self.class.trace_execution_scoped([]) do
-      advance_time 0.05
+      advance_process_time 0.05
     end
 
     assert_metrics_recorded_exclusive(['Supportability/API/trace_execution_scoped'])
@@ -302,7 +302,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     self.class.add_method_tracer :method_with_block, METRIC
     in_transaction do
       method_with_block(1,2,3,true,METRIC) do
-        advance_time 0.1
+        advance_process_time 0.1
       end
     end
 
@@ -322,7 +322,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     metrics = %w[first second third]
     in_transaction do
       self.class.trace_execution_scoped metrics do
-        advance_time 0.05
+        advance_process_time 0.05
       end
     end
 
@@ -336,7 +336,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   def test_multiple_metrics__unscoped
     metrics = %w[first second third]
     self.class.trace_execution_unscoped metrics do
-      advance_time 0.05
+      advance_process_time 0.05
     end
 
     assert_metrics_recorded({
@@ -428,14 +428,14 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   # =======================================================
   # test methods to be traced
   def method_to_be_traced(x, y, z, is_traced, expected_metric)
-    advance_time 0.05
+    advance_process_time 0.05
     assert x == 1
     assert y == 2
     assert z == 3
   end
 
   def method_with_block(x, y, z, is_traced, expected_metric, &block)
-    advance_time 0.05
+    advance_process_time 0.05
     assert x == 1
     assert y == 2
     assert z == 3
@@ -443,7 +443,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   end
 
   def method_with_kwargs(arg1, arg2: true)
-    advance_time 0.05
+    advance_process_time 0.05
     arg1 == arg2
   end
 

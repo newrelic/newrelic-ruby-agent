@@ -46,7 +46,7 @@ module NewRelic
           NewRelic::Agent::Database.should_record_sql?(:slow_sql)
       end
 
-      def on_start_transaction(state, start_time, uri=nil)
+      def on_start_transaction(state, uri=nil)
         return unless enabled?
 
         state.sql_sampler_transaction_data = TransactionSqlData.new

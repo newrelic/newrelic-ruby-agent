@@ -151,12 +151,12 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def test_config_data_for_js_agent
-    nr_freeze_time
+    nr_freeze_process_time
     with_config(CAPTURE_ATTRIBUTES => true) do
       in_transaction('most recent transaction') do
         txn = NewRelic::Agent::Transaction.tl_current
         txn.stubs(:queue_time).returns(0)
-        txn.stubs(:start_time).returns(Time.now - 10)
+        txn.stubs(:start_time).returns(Process.clock_gettime(Process::CLOCK_REALTIME) - 10)
         txn.stubs(:guid).returns('ABC')
 
         state = NewRelic::Agent::Tracer.state
@@ -183,7 +183,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   end
 
   def test_config_data_for_js_agent_attributes
-    nr_freeze_time
+    nr_freeze_process_time
     with_config(CAPTURE_ATTRIBUTES => true) do
       in_transaction('most recent transaction') do |txn|
         NewRelic::Agent.add_custom_attributes(:user => "user")

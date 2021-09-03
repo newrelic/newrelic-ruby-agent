@@ -48,14 +48,14 @@ module NewRelic
         end
 
         def start
-          @start_time ||= Time.now
+          @start_time ||= Process.clock_gettime(Process::CLOCK_REALTIME)
           return unless transaction
           parent.child_start self if parent
         end
 
         def finish
-          @end_time = Time.now
-          @duration = end_time.to_f - start_time.to_f
+          @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
+          @duration = end_time - start_time
           return unless transaction
           run_complete_callbacks
           finalize if record_on_finish?

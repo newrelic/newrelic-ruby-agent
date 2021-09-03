@@ -14,7 +14,7 @@ module NewRelic
           @interval      = interval
           @event         = event
           @repeat        = repeat
-          @started_at    = Time.now
+          @started_at    = Process.clock_gettime(Process::CLOCK_REALTIME)
           @last_fired_at = nil
           reschedule
         end
@@ -32,7 +32,7 @@ module NewRelic
         end
 
         def calculate_next_fire_time
-          now = Time.now
+          now = Process.clock_gettime(Process::CLOCK_REALTIME)
           return now if @interval == 0
           fire_time = @last_fired_at || now
           while fire_time <= now
@@ -42,10 +42,10 @@ module NewRelic
         end
 
         def set_fired_time
-          @last_fired_at = Time.now
+          @last_fired_at = Process.clock_gettime(Process::CLOCK_REALTIME)
         end
 
-        def due?(now=Time.now)
+        def due?(now=Process.clock_gettime(Process::CLOCK_REALTIME))
           now >= @next_fire_time
         end
 
@@ -69,7 +69,7 @@ module NewRelic
         existing_timer = @timers[timer.event]
 
         if existing_timer
-          elapsed_interval = Time.now - existing_timer.last_interval_start
+          elapsed_interval = Process.clock_gettime(Process::CLOCK_REALTIME) - existing_timer.last_interval_start
           timer.advance(elapsed_interval)
         end
 
@@ -80,7 +80,7 @@ module NewRelic
 
       def next_timeout
         return nil if @timers.empty?
-        timeout = @timers.values.map(&:next_fire_time).min - Time.now
+        timeout = @timers.values.map(&:next_fire_time).min - Process.clock_gettime(Process::CLOCK_REALTIME)
         timeout < 0 ? 0 : timeout
       end
 

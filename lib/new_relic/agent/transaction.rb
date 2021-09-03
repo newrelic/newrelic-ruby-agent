@@ -119,28 +119,6 @@ module NewRelic
         "#{namer.prefix_for_category(self, category)}#{partial_name}"
       end
 
-      def self.wrap(state, name, category, options = {})
-        Deprecator.deprecate 'Transaction.wrap',
-                             'Tracer#in_transaction'
-
-        finishable = Tracer.start_transaction_or_segment(
-              name: name,
-              category: category,
-              options: options
-            )
-
-        begin
-          # We shouldn't raise from Transaction.start, but only wrap the yield
-          # to be absolutely sure we don't report agent problems as app errors
-          yield
-        rescue => e
-          Transaction.notice_error(e)
-          raise e
-        ensure
-          finishable.finish if finishable
-        end
-      end
-
       def self.start_new_transaction(state, category, options)
         txn = Transaction.new(category, options)
         state.reset(txn)
@@ -246,9 +224,10 @@ module NewRelic
         @frozen_name      = nil
 
         @category = category
-        @start_time = Time.now
+        @start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         @end_time = nil
         @duration = nil
+
         @apdex_start = options[:apdex_start_time] || @start_time
         @jruby_cpu_start = jruby_cpu_time
         @process_cpu_start = process_cpu
@@ -416,7 +395,7 @@ module NewRelic
       def start
         return if !state.is_execution_traced?
 
-        sql_sampler.on_start_transaction(state, start_time, request_path)
+        sql_sampler.on_start_transaction(state, request_path)
         NewRelic::Agent.instance.events.notify(:start_transaction)
         NewRelic::Agent::TransactionTimeAggregator.transaction_start(start_time)
 
@@ -505,8 +484,8 @@ module NewRelic
 
       def finish
         return unless state.is_execution_traced?
-        @end_time = Time.now
-        @duration = @end_time.to_f - @start_time.to_f
+        @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
+        @duration = @end_time - @start_time
         freeze_name_and_execute_if_not_ignored
 
         if nesting_max_depth == 1
@@ -623,7 +602,7 @@ module NewRelic
       def calculate_transport_duration distributed_trace_payload
         return unless distributed_trace_payload
 
-        duration = (start_time.to_f * 1000 - distributed_trace_payload.timestamp) / 1000
+        duration = start_time - (distributed_trace_payload.timestamp / 1000.0)
         duration < 0 ? 0 : duration
       end
 
@@ -645,7 +624,7 @@ module NewRelic
         @payload = {
           :name                 => @frozen_name,
           :bucket               => recording_web_transaction? ? :request : :background,
-          :start_timestamp      => start_time.to_f,
+          :start_timestamp      => start_time,
           :duration             => duration,
           :metrics              => @metrics,
           :attributes           => @attributes,

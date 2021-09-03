@@ -35,7 +35,7 @@ class BrowserMonitoringTest < Minitest::Test
     end
 
     def call(env)
-      advance_time(0.1)
+      advance_process_time(0.1)
       @@doc ||= <<-EOL
 <html>
   <head>
@@ -61,7 +61,7 @@ EOL
 
   def setup
     super
-    nr_freeze_time
+    nr_freeze_process_time
 
     @config = {
       :application_id => 5,

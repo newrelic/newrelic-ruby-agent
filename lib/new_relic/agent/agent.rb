@@ -215,7 +215,7 @@ module NewRelic
             @connected_pid = Process.pid
           else
             ::NewRelic::Agent.logger.debug("Child process #{Process.pid} not reporting to non-connected parent (process #{Process.ppid}).")
-            @service.shutdown(Time.now)
+            @service.shutdown
             disconnect
           end
         end
@@ -1123,7 +1123,7 @@ module NewRelic
         end
 
         def transmit_single_data_type(harvest_method, supportability_name)
-          now = Time.now
+          now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
           msg = "Sending #{supportability_name} data to New Relic Service"
           ::NewRelic::Agent.logger.debug msg
@@ -1132,12 +1132,12 @@ module NewRelic
             self.send(harvest_method)
           end
         ensure
-          duration = (Time.now - now).to_f
+          duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - now
           NewRelic::Agent.record_metric("Supportability/#{supportability_name}Harvest", duration)
         end
 
         def transmit_data
-          now = Time.now
+          now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           ::NewRelic::Agent.logger.debug "Sending data to New Relic Service"
 
           @events.notify(:before_harvest)
@@ -1154,7 +1154,7 @@ module NewRelic
           end
         ensure
           NewRelic::Agent::Database.close_connections
-          duration = (Time.now - now).to_f
+          duration = Process.clock_gettime(Process::CLOCK_MONOTONIC) - now
           NewRelic::Agent.record_metric('Supportability/Harvest', duration)
         end
 
@@ -1179,7 +1179,7 @@ module NewRelic
 
               if @connected_pid == $$ && !@service.kind_of?(NewRelic::Agent::NewRelicService)
                 ::NewRelic::Agent.logger.debug "Sending New Relic service agent run shutdown message"
-                @service.shutdown(Time.now.to_f)
+                @service.shutdown
               else
                 ::NewRelic::Agent.logger.debug "This agent connected from parent process #{@connected_pid}--not sending shutdown"
               end

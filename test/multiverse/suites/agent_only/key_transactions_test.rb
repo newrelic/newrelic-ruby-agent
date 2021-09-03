@@ -21,19 +21,19 @@ class KeyTransactionsTest < Minitest::Test
   end
 
   def after_setup
-    nr_freeze_time
+    nr_freeze_process_time
   end
 
   class TestWidget
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
     def key_txn
-      advance_time(5)
+      advance_process_time(5)
     end
     add_transaction_tracer :key_txn
 
     def other_txn
-      advance_time(5)
+      advance_process_time(5)
     end
     add_transaction_tracer :other_txn
   end
@@ -49,7 +49,7 @@ class KeyTransactionsTest < Minitest::Test
 
     def job(name)
       ::NewRelic::Agent::Tracer.in_transaction(name: name, category: :other) do
-        advance_time(5)
+        advance_process_time(5)
       end
     end
   end

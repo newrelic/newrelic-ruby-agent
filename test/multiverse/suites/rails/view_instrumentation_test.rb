@@ -13,7 +13,7 @@ class ViewsController < ApplicationController
   end
 
   def render_with_delays
-    nr_freeze_time
+    nr_freeze_process_time
     @delay = 1
     render 'index'
   end

@@ -56,7 +56,7 @@ module Performance
     end
 
     def format_timestamp(t)
-      t.utc.iso8601
+      Time.at(t).utc.iso8601
     end
 
     def ips

@@ -14,7 +14,7 @@ module NewRelic
           @additional_config = { :'distributed_tracing.enabled' => true }
           NewRelic::Agent.config.add_config_for_testing(@additional_config)
           NewRelic::Agent.config.notify_server_source_added
-          nr_freeze_time
+          nr_freeze_process_time
         end
 
         def teardown
@@ -106,7 +106,7 @@ module NewRelic
         def test_segment_does_not_record_metrics_outside_of_txn
           segment = Segment.new  "Custom/simple/segment", "Segment/all"
           segment.start
-          advance_time 1.0
+          advance_process_time 1.0
           segment.finish
 
           refute_metrics_recorded ["Custom/simple/segment", "Segment/all"]
@@ -117,7 +117,7 @@ module NewRelic
             segment = Segment.new  "Custom/simple/segment", "Segment/all"
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
           end
 
@@ -139,7 +139,7 @@ module NewRelic
             segment = Segment.new  "Custom/simple/segment", ["Segment/all", "Other/all"]
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
           end
 
@@ -152,7 +152,7 @@ module NewRelic
             segment.record_scoped_metric = false
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
           end
 
@@ -175,7 +175,7 @@ module NewRelic
             segment.record_scoped_metric = false
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
           end
 
@@ -199,7 +199,7 @@ module NewRelic
             segment = Segment.new 'Ummm'
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
           end
 
@@ -220,10 +220,10 @@ module NewRelic
             segment = Segment.new 'Ummm'
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
 
-            timestamp = Integer(segment.start_time.to_f * 1000.0)
+            timestamp = Integer(segment.start_time * 1000.0)
 
             trace_id = txn.trace_id
             txn_guid = txn.guid
@@ -251,7 +251,7 @@ module NewRelic
         end
 
         def test_sets_start_time_from_constructor
-          t = Time.now
+          t = Process.clock_gettime(Process::CLOCK_REALTIME)
           segment = Segment.new nil, nil, t
           assert_equal t, segment.start_time
         end
