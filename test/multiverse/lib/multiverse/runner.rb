@@ -88,7 +88,7 @@ module Multiverse
       "background"    => ["delayed_job", "sidekiq", "resque" ],
       "background_2"  => ["rake"],
       "database"      => ["datamapper", "mongo", "redis", "sequel"],
-      "rails"         => ["active_record", "rails", "rails_prepend", "activemerchant"], 
+      "rails"         => ["active_record", "rails", "rails_prepend", "activemerchant"],
       "frameworks"    => ["sinatra", "padrino", "grape"],
       "httpclients"   => ["curb", "excon", "httpclient"],
       "httpclients_2"   => ["typhoeus", "net_http", "httprb"],
@@ -110,17 +110,17 @@ module Multiverse
       GROUPS['rails'].delete 'active_record'
     end
 
-    # if RUBY_VERSION >= '2.7'
-    #   GROUPS['frameworks'].delete 'sinatra'
-    #   GROUPS['frameworks'].delete 'padrino'
-    #   GROUPS['frameworks'].delete 'grape'
-    # end
+    if RUBY_VERSION >= '3.0'
+      GROUPS['frameworks'].delete 'sinatra'
+      GROUPS['frameworks'].delete 'padrino'
+      GROUPS['frameworks'].delete 'grape'
+    end
 
     def excluded?(suite)
       return true if suite == 'rake' and RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
       return true if suite == 'agent_only' and RUBY_PLATFORM == "java"
       return true if suite == 'active_record' and RUBY_VERSION >= '3.0.0'
-      # return true if ["sinatra", "padrino", "grape"].include?(suite) and RUBY_VERSION >= '2.7'
+      return true if ["sinatra", "padrino", "grape"].include?(suite) and RUBY_VERSION >= '3.0'
     end
 
 
@@ -135,7 +135,7 @@ module Multiverse
         keys.each do |key|
           (combined_groups << (GROUPS[key])).flatten!
         end
-        
+
         if combined_groups.nil?
           puts red("Unrecognized groups in '#{filter}'. Stopping!")
           exit 1
