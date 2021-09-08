@@ -5,6 +5,11 @@
   * **Bugfix: Psych 4.0 causes errors when loading newrelic.yml**
     Psych 4.0 now uses safe load behavior when using `YAML.load` which by default doesn't allow aliases, causing errors when the agent loads the config file. We have updated how we load the config file to avoid these errors. 
 
+  * **Bugfix: Incorrectly loading configuration options from newrelic.yml**
+
+    The agent will now  import the configuration options `error_collector.ignore_messages` and `error_collector.expected_messages` from the `newrelic.yml` file correctly.
+
+
   * **Deprecate cross application tracing**
     Cross application tracing is deprecated in favor of [distributed tracing](https://docs.newrelic.com/docs/distributed-tracing/enable-configure/language-agents-enable-distributed-tracing/) and is off by default.
 
