@@ -18,6 +18,7 @@ instrumentation_methods :chain, :prepend
 
 # Either just the gem version or Array of gem version and last and supported Ruby versions
 HTTPRB_VERSIONS = [
+  '5.0.1',
   ['4.4.0', 2.3, 2.6],
   ['4.3.0', 2.3, 2.6],
   ['4.2.0', 2.3, 2.6],
