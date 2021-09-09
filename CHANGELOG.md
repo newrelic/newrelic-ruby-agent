@@ -39,6 +39,10 @@
 
     Upon connection to the New Relic servers, the agent will now enforce a maximum value allowed for the configuration option [`span_events.max_samples_stored`](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#span_events-max_samples_stored) sent from the New Relic servers.
 
+  * **Updated generated default newrelic.yml**
+
+    Thank you @wyhaines and @creaturenex for your contribution. The default newrelic.yml that the agent can generate is now updated with commented out examples of all configuration options.
+
   * **Bugfix: Psych 4.0 causes errors when loading newrelic.yml**
 
     Psych 4.0 now uses safe load behavior when using `YAML.load` which by default doesn't allow aliases, causing errors when the agent loads the config file. We have updated how we load the config file to avoid these errors.
