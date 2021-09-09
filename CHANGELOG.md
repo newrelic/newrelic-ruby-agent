@@ -34,7 +34,7 @@
 
   * **Deprecate cross application tracing**
 
-    [Cross application tracing](https://docs.newrelic.com/docs/agents/ruby-agent/features/cross-application-tracing-ruby/) is deprecated in favor of [distributed tracing](https://docs.newrelic.com/docs/distributed-tracing/enable-configure/language-agents-enable-distributed-tracing/) and is off by default.
+    [Cross application tracing](https://docs.newrelic.com/docs/agents/ruby-agent/features/cross-application-tracing-ruby/) (CAT) is deprecated in favor of [distributed tracing](https://docs.newrelic.com/docs/distributed-tracing/enable-configure/language-agents-enable-distributed-tracing/) and is off by default.
 
   * **Update configuration option default value for `span_events.max_samples_stored` from 1000 to 2000**
 
@@ -43,6 +43,18 @@
   * **Agent now enforces server supplied maximum value for configuration option `span_events.max_samples_stored`**
 
     Upon connection to the New Relic servers, the agent will now enforce a maximum value allowed for the configuration option [`span_events.max_samples_stored`](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#span_events-max_samples_stored) sent from the New Relic servers.
+
+  * **Remove Ruby 2.0 required kwarg compatibility checks**
+
+    Our agent has code that provides compatibility for required keyword arguments in Ruby versions below 2.1. Since the agent now only supports Ruby 2.2+, this code is no longer required.
+    
+  * **Replace Time.now with Process.clock_gettime**
+  
+    Calls to `Time.now` have been replaced with calls to `Process.clock_gettime` to leverage the system's built-in clocks for elapsed time (`Process::CLOCK_MONOTONIC`) and wall-clock time (`Process::CLOCK_REALTIME`). This results in fewer object allocations, more accurate elapsed time records, and enhanced performance. Thanks to @sdemjanenko and @viraptor for advocating for this change!
+
+  * **Updated generated default newrelic.yml**
+
+    Thank you @wyhaines and @creaturenex for your contribution. The default newrelic.yml that the agent can generate is now updated with commented out examples of all configuration options.
 
   * **Bugfix: Psych 4.0 causes errors when loading newrelic.yml**
 
