@@ -35,7 +35,7 @@ module NewRelic
         def dot_flattened(nested_hash, names=[], result={})
           nested_hash.each do |key, val|
             next if val == nil
-            if val.respond_to?(:has_key?) && !NewRelic::Agent::Configuration::Manager::CONFIG_WITH_HASH_VALUE.include?(key)
+            if val.respond_to?(:has_key?)
               dot_flattened(val, names + [key], result)
             else
               result[(names + [key]).join('.')] = val

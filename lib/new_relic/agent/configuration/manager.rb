@@ -15,9 +15,6 @@ module NewRelic
   module Agent
     module Configuration
       class Manager
-
-        CONFIG_WITH_HASH_VALUE = ['expected_messages', 'ignore_messages']
-
         # Defining these explicitly saves object allocations that we incur
         # if we use Forwardable and def_delegators.
         def [](key)
