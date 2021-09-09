@@ -2135,7 +2135,7 @@ module NewRelic
           :description => 'The primary id associated with this application.'
         },
         :'distributed_tracing.enabled' => {
-          :default     => false,
+          :default     => true,
           :public      => true,
           :type        => Boolean,
           :allowed_from_server => true,
@@ -2179,7 +2179,7 @@ module NewRelic
           :description => "Sets the maximum number of span events to buffer when streaming to the trace observer."
         },
         :'span_events.max_samples_stored' => {
-          :default => 1000,
+          :default => 2000,
           :public => true,
           :type => Integer,
           :allowed_from_server => true,

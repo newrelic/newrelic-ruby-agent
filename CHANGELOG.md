@@ -2,44 +2,66 @@
 
   ## v8.0.0
 
-  * **Bugfix: Psych 4.0 causes errors when loading newrelic.yml**
-    Psych 4.0 now uses safe load behavior when using `YAML.load` which by default doesn't allow aliases, causing errors when the agent loads the config file. We have updated how we load the config file to avoid these errors. 
-
-  * **Deprecate cross application tracing**
-    Cross application tracing is deprecated in favor of [distributed tracing](https://docs.newrelic.com/docs/distributed-tracing/enable-configure/language-agents-enable-distributed-tracing/) and is off by default.
-
-  * **Remove support for Excon versions below 0.19.0**
-    Excon versions below 0.19.0 will no longer be instrumented through the Ruby agent.
-
-  * **Remove support for Mongo versions below 2.1**
-    Mongo versions below 2.1 will no longer be instrumented through the Ruby agent.
-
-  * **Remove tests for Rails 3.0 and Rails 3.1**
-    As of the 7.0 release, the Ruby agent stopped supporting Rails 3.0 and Rails 3.1. Despite this, we still had tests for these versions running on the agent's CI. Those tests are now removed.
-
-  * **Update test Gemfiles for patched versions**
-    The gem has individual Gemfiles it uses to test against different common user setups. Rails 5.2, 6.0, and 6.1 have been updated to the latest patch versions in the test Gemfiles. Rack was updated in the Rails61 test suite to 2.1.4 to resolve a security vulnerability.
-
-  * **Remove Merb Support**
-    This release removes the remaining support for the [Merb](https://weblog.rubyonrails.org/2008/12/23/merb-gets-merged-into-rails-3/) framework. It merged with Rails during the 3.0 release. Now that the Ruby agent supports Rails 3.2 and above, we thought it was time to say goodbye.
-
   * **`add_method_tracer` refactored to use prepend over alias_method chaining**
+
     This release overhauls the implementation of `add_method_tracer`, as detailed in [issue #502](https://github.com/newrelic/newrelic-ruby-agent/issues/502). The main breaking updates are as follows:
     - A metric name passed to `add_method_tracer` will no longer be interpolated in an instance context as before. To maintain this behavior, pass a Proc object with the same arity as the method being traced. For example:
-
+      ```ruby
         # OLD
         add_method_tracer :foo, '#{args[0]}.#{args[1]}'
 
         # NEW
-        add_method_tracer :foo, -> (*args) { "#{args[0].#{args[1]" }
-    
+        add_method_tracer :foo, -> (*args) { "#{args[0]}.#{args[1]}" }
+      ```
+
     - Similarly, the `:code_header` and `:code_footer` options to `add_method_tracer` will *only* accept a Proc object, which will be bound to the calling instance when the traced method is invoked.
 
     - Calling `add_method_tracer` for a method will overwrite any previously defined tracers for that method. To specify multiple metric names for a single method tracer, pass them to `add_method_tracer` as an array.
-    
+
     See updated documentation on the following pages for full details:
-    https://docs.newrelic.com/docs/agents/ruby-agent/api-guides/ruby-custom-instrumentation/#method_tracers
-    https://rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent/MethodTracer/ClassMethods#add_method_tracer-instance_method
+    - [Ruby Custom Instrumentation: Method Tracers](https://docs.newrelic.com/docs/agents/ruby-agent/api-guides/ruby-custom-instrumentation/#method_tracers)
+    - [MethodTracer::ClassMethods#add_method_tracer](https://rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent/MethodTracer/ClassMethods#add_method_tracer-instance_method)
+
+
+  * **Distributed tracing is enabled by default**
+
+    [Distributed tracing](https://docs.newrelic.com/docs/distributed-tracing/enable-configure/language-agents-enable-distributed-tracing/) tracks and observes service requests as they flow through distributed systems. This is preferred over [cross application tracing](https://docs.newrelic.com/docs/agents/ruby-agent/features/cross-application-tracing-ruby/).
+
+  * **Deprecate cross application tracing**
+
+    [Cross application tracing](https://docs.newrelic.com/docs/agents/ruby-agent/features/cross-application-tracing-ruby/) is deprecated in favor of [distributed tracing](https://docs.newrelic.com/docs/distributed-tracing/enable-configure/language-agents-enable-distributed-tracing/) and is off by default.
+
+  * **Update configuration option default value for `span_events.max_samples_stored` from 1000 to 2000**
+
+    For more information about this congfiguration option, visit [the Ruby agent documentation](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#span_events-max_samples_stored).
+
+  * **Agent now enforces server supplied maximum value for configuration option `span_events.max_samples_stored`**
+
+    Upon connection to the New Relic servers, the agent will now enforce a maximum value allowed for the configuration option [`span_events.max_samples_stored`](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#span_events-max_samples_stored) sent from the New Relic servers.
+
+  * **Bugfix: Psych 4.0 causes errors when loading newrelic.yml**
+
+    Psych 4.0 now uses safe load behavior when using `YAML.load` which by default doesn't allow aliases, causing errors when the agent loads the config file. We have updated how we load the config file to avoid these errors.
+
+  * **Remove support for Excon versions below 0.19.0**
+
+    Excon versions below 0.19.0 will no longer be instrumented through the Ruby agent.
+
+  * **Remove support for Mongo versions below 2.1**
+
+    Mongo versions below 2.1 will no longer be instrumented through the Ruby agent.
+
+  * **Remove tests for Rails 3.0 and Rails 3.1**
+
+    As of the 7.0 release, the Ruby agent stopped supporting Rails 3.0 and Rails 3.1. Despite this, we still had tests for these versions running on the agent's CI. Those tests are now removed.
+
+  * **Update test Gemfiles for patched versions**
+
+    The gem has individual Gemfiles it uses to test against different common user setups. Rails 5.2, 6.0, and 6.1 have been updated to the latest patch versions in the test Gemfiles. Rack was updated in the Rails61 test suite to 2.1.4 to resolve a security vulnerability.
+
+  * **Remove Merb Support**
+
+    This release removes the remaining support for the [Merb](https://weblog.rubyonrails.org/2008/12/23/merb-gets-merged-into-rails-3/) framework. It merged with Rails during the 3.0 release. Now that the Ruby agent supports Rails 3.2 and above, we thought it was time to say goodbye.
 
   ## v7.2.0
 
@@ -64,7 +86,6 @@
   * **Update known conflicts with use of Module#Prepend**
 
     With our release of v7.0.0, we updated our instrumentation to use Module#Prepend by default, instead of method chaining. We have received reports of conflicts and added a check for these known conflicts. If a known conflict with prepend is detected while using the default value of 'auto' for gem instrumentation, the agent will instead install method chaining instrumentation in order to avoid this conflict. This check can be bypassed by setting the instrumentation method for the gem to 'prepend'.
-
 
   ## v7.1.0
 
