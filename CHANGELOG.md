@@ -27,6 +27,11 @@
 
     [Distributed tracing](https://docs.newrelic.com/docs/distributed-tracing/enable-configure/language-agents-enable-distributed-tracing/) tracks and observes service requests as they flow through distributed systems. This is preferred over [cross application tracing](https://docs.newrelic.com/docs/agents/ruby-agent/features/cross-application-tracing-ruby/).
 
+  * **Bugfix: Incorrectly loading configuration options from newrelic.yml**
+
+    The agent will now  import the configuration options [`error_collector.ignore_messages`](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#error_collector-ignore_messages) and [`error_collector.expected_messages`](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#error_collector-expected_messages) from the `newrelic.yml` file correctly.
+
+
   * **Deprecate cross application tracing**
 
     [Cross application tracing](https://docs.newrelic.com/docs/agents/ruby-agent/features/cross-application-tracing-ruby/) is deprecated in favor of [distributed tracing](https://docs.newrelic.com/docs/distributed-tracing/enable-configure/language-agents-enable-distributed-tracing/) and is off by default.

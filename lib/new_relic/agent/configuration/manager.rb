@@ -15,7 +15,6 @@ module NewRelic
   module Agent
     module Configuration
       class Manager
-
         # Defining these explicitly saves object allocations that we incur
         # if we use Forwardable and def_delegators.
         def [](key)
