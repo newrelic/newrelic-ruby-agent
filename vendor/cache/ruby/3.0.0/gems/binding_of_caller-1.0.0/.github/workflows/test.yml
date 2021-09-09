@@ -1,0 +1,103 @@
+name: Test
+
+on:
+  push:
+    branches: [ master ]
+  schedule:
+    - cron: '0 0 11,25 * *' # roughly every two weeks to run on new Ruby versions
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: "Unit"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby:
+          - "2.1"
+          - "2.2"
+          - "2.3"
+          - "2.4"
+          - "2.5"
+          - "2.6"
+          - "2.7"
+          - "3.0"
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+        bundler-cache: true
+
+    - name: Test
+      run: bundle exec rspec -f doc
+
+  system:
+    name: "System"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+        ruby:
+          - "2"
+          - "3.0"
+          - "jruby"
+          - "truffleruby"
+        exclude:
+          # Windows releases of jruby and truffleruby have issues. Skip them for now.
+          - { ruby: "jruby", os: "windows-latest" }
+          - { ruby: "truffleruby", os: "windows-latest" }
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Determine ruby version name
+      id: ruby_version
+      run: |
+        if [[ $OS == 'windows-latest' && $RUBY == '3.0' ]]; then
+          # Windows doesn't have 3.0, so run head there but nowhere else.
+          echo "::set-output name=release::head"
+        else
+          echo "::set-output name=release::$RUBY"
+        fi
+      shell: bash
+      env:
+        OS: ${{ matrix.os }}
+        RUBY: ${{ matrix.ruby }}
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ steps.ruby_version.outputs.release }}
+        bundler-cache: true
+
+    - name: Install gem
+      run: bundle exec rake install
+
+    - name: Create directory for gem test
+      run: mkdir -p tmp/gem-test
+
+    - name: Create test Gemfile
+      run: echo "gem 'binding_of_caller'" > Gemfile
+      working-directory: ./tmp/gem-test
+
+    - name: Test gem load
+      run: bundle exec ruby -e "require 'binding_of_caller'"
+
+    - name: Test gem functionality
+      if: ${{ matrix.ruby != 'jruby' && matrix.ruby != 'truffleruby' }}
+      run: bundle exec ruby -e "require 'binding_of_caller'; binding.of_caller(0).eval('var = :hello')"
+      env:
+        JRUBY_OPTS: "--dev" # This will support JRuby once the gem is updated to support JRuby 9.x

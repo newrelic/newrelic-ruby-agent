@@ -1,0 +1,112 @@
+name: Test
+
+on:
+  push:
+    branches: [ master ]
+  schedule:
+    - cron: '0 0 11,25 * *' # roughly every two weeks to run on new Ruby versions
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: "Unit"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+        ruby:
+          - "2.1"
+          - "2.2"
+          - "2.3"
+          - "2.4"
+          - "2.5"
+          - "2.6"
+          - "2.7"
+          - "3.0"
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+        bundler-cache: true
+
+    - name: Test
+      run: bundle exec rake
+
+  system:
+    name: "System"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+        ruby:
+          # This includes rubies that are not actually extended by this gem.
+          # We want to make sure the gem silently fails to load on those platforms.
+          - "2"
+          - "3.0"
+          - "jruby"
+          - "truffleruby"
+        exclude:
+          # Windows releases of jruby and truffleruby have issues. Skip them for now.
+          - { ruby: "jruby", os: "windows-latest" }
+          - { ruby: "truffleruby", os: "windows-latest" }
+
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+        bundler-cache: true
+
+    - name: Build gem
+      run: bundle exec gem build --verbose debug_inspector.gemspec
+
+    - name: Install gem
+      run: gem install --verbose debug_inspector*.gem
+
+    - name: Create directory for gem test
+      run: mkdir -p tmp/gem-test
+
+    - name: Create test Gemfile
+      run: echo "gem 'debug_inspector'" > Gemfile
+      working-directory: ./tmp/gem-test
+
+    - name: Get gem installation path
+      id: gem_path
+      run: |
+        gem_path=$(bundle show debug_inspector)
+        echo "gem_path is ${gem_path}"
+        echo "::set-output name=path::${gem_path}"
+      shell: bash
+      working-directory: ./tmp/gem-test
+
+    - name: List installed gem contents
+      run: find .
+      shell: bash
+      working-directory: ${{ steps.gem_path.outputs.path }}
+
+    - name: Test gem load
+      run: bundle exec ruby -e "require 'debug_inspector'"
+      working-directory: ./tmp/gem-test
+
+    - name: Test gem functionality
+      if: ${{ matrix.ruby != 'jruby' && matrix.ruby != 'truffleruby' }}
+      run: bundle exec ruby -e "require 'debug_inspector'; RubyVM::DebugInspector.open { |dc| dc.frame_binding(1) }"
+      working-directory: ./tmp/gem-test

@@ -1,0 +1,29 @@
+script:
+  rake test --trace
+
+before_install:
+  - gem update --system
+
+rvm:
+  - 1.9.3
+  - 2.0
+  - 2.1.10
+  - 2.2.9
+  - 2.3.6
+  - 2.4.3
+  - 2.5.0
+  - ruby-head
+
+matrix:
+  allow_failures:
+    - rmv: ruby-head
+  fast_finish: true
+
+notifications:
+  irc: "irc.freenode.org#pry"
+  recipients:
+    - jrmair@gmail.com
+
+branches:
+  only:
+    - master

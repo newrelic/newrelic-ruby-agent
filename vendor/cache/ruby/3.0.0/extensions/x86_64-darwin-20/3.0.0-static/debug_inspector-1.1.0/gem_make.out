@@ -1,0 +1,15 @@
+current directory: /Users/lbrammer/Work/ruby-agent-team/ruby_agent/vendor/cache/ruby/3.0.0/gems/debug_inspector-1.1.0/ext/debug_inspector
+/Users/lbrammer/.rubies/ruby-3.0.2/bin/ruby -I /Users/lbrammer/.rubies/ruby-3.0.2/lib/ruby/3.0.0 -r ./siteconf20210909-71638-9y0uds.rb extconf.rb
+creating Makefile
+
+current directory: /Users/lbrammer/Work/ruby-agent-team/ruby_agent/vendor/cache/ruby/3.0.0/gems/debug_inspector-1.1.0/ext/debug_inspector
+make DESTDIR\= clean
+
+current directory: /Users/lbrammer/Work/ruby-agent-team/ruby_agent/vendor/cache/ruby/3.0.0/gems/debug_inspector-1.1.0/ext/debug_inspector
+make DESTDIR\=
+compiling debug_inspector.c
+linking shared-object debug_inspector.bundle
+
+current directory: /Users/lbrammer/Work/ruby-agent-team/ruby_agent/vendor/cache/ruby/3.0.0/gems/debug_inspector-1.1.0/ext/debug_inspector
+make DESTDIR\= install
+/usr/bin/install -c -m 0755 debug_inspector.bundle ./.gem.20210909-71638-xmi0dk

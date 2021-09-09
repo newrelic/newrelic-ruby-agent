@@ -1,0 +1,16 @@
+current directory: /Users/lbrammer/Work/ruby-agent-team/ruby_agent/vendor/cache/ruby/2.6.0/gems/debug_inspector-1.1.0/ext/debug_inspector
+/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/bin/ruby -I /System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/2.6.0 -r ./siteconf20210909-71215-5f956t.rb extconf.rb
+creating Makefile
+
+current directory: /Users/lbrammer/Work/ruby-agent-team/ruby_agent/vendor/cache/ruby/2.6.0/gems/debug_inspector-1.1.0/ext/debug_inspector
+make "DESTDIR=" clean
+
+current directory: /Users/lbrammer/Work/ruby-agent-team/ruby_agent/vendor/cache/ruby/2.6.0/gems/debug_inspector-1.1.0/ext/debug_inspector
+make "DESTDIR="
+compiling debug_inspector.c
+linking shared-object debug_inspector.bundle
+ld: warning: directory not found for option '-L/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX11.5.Internal.sdk/usr/local/lib'
+
+current directory: /Users/lbrammer/Work/ruby-agent-team/ruby_agent/vendor/cache/ruby/2.6.0/gems/debug_inspector-1.1.0/ext/debug_inspector
+make "DESTDIR=" install
+/usr/bin/install -c -m 0755 debug_inspector.bundle ./.gem.20210909-71215-1ldvvvs

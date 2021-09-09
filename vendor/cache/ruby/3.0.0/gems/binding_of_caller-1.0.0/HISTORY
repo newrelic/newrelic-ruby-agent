@@ -1,0 +1,35 @@
+## 0.7.3.pre1 / 2014-08-20
+
+This release includes compatibility fixes for different ruby versions
+and some minor enhancements.
+
+*   C Extensions are only compiled on MRI 1.9.x.
+
+    For MRI >= 2 the native API is used, so this should speedup
+    installation.
+
+    For JRuby this will avoid crashes on gem installation.
+
+    This was alredy being checked for Rubinius.
+
+    *Amadeus Folego*
+
+*    Added experimental JRuby support for 1.7.x series.
+
+     Only the main API is implemented and `Binding#eval` is
+     monkey-patched as it is private on JRuby.
+
+     This requires the compiler to be run on interpreted mode,
+     otherwise an exception will be thrown when `of_caller` is called.
+
+    *Charles Nutter*
+
+*   Remove executability from non-executable files.
+
+    *David Celis*
+
+*   Test and notice MRI 2.1 as a working Ruby implementation.
+
+    *Lennart Fridén*
+
+## 0.7.2 / 2013-06-07
