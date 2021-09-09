@@ -4,12 +4,14 @@ end
 
 instrumentation_methods :chain, :prepend
 
-gemfile <<-RB
-  gem 'http' # latest version
-  gem 'public_suffix', '< 3.0.0' if RUBY_VERSION < "2.1.0"
-  gem 'rack'
-  #{ruby3_gem_webrick}
-RB
+unless RUBY_PLATFORM == 'java'
+  gemfile <<-RB
+    gem 'http' # latest version
+    gem 'public_suffix', '< 3.0.0' if RUBY_VERSION < "2.1.0"
+    gem 'rack'
+    #{ruby3_gem_webrick}
+  RB
+end
 
 # NOTE, some versions of HTTP gem implements body with
 # String.new("").force_encoding(@encoding) which won't work 
@@ -18,7 +20,7 @@ RB
 
 # Either just the gem version or Array of gem version and last and supported Ruby versions
 HTTPRB_VERSIONS = [
-  ['5.0.0', 2.5],
+  ['5.0.1', 2.5],
   ['4.4.0', 2.3, 2.6],
   ['4.3.0', 2.3, 2.6],
   ['4.2.0', 2.3, 2.6],
@@ -29,6 +31,7 @@ HTTPRB_VERSIONS = [
 HTTPRB_VERSIONS.each do |httprb_version|
   if httprb_version.is_a?(Array)
     httprb_version, first_supported_ruby_version, last_supported_ruby_version = httprb_version
+    next if httprb_version =~ /^5.0/ && RUBY_PLATFORM == 'java'
     next if last_supported_ruby_version && RUBY_VERSION.to_f > last_supported_ruby_version
     next if RUBY_VERSION.to_f < first_supported_ruby_version
   end
