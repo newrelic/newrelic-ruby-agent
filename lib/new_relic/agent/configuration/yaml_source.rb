@@ -11,6 +11,8 @@ module NewRelic
         attr_accessor :file_path, :failures
         attr_reader :generated_for_user, :license_key
 
+        # These are configuration options that have a value of a Hash
+        # This is used in YamlSource#dot_flattened prevent flattening these values
         CONFIG_WITH_HASH_VALUE = ['expected_messages', 'ignore_messages']
 
         def initialize(path, env)
