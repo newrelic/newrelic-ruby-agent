@@ -7,7 +7,7 @@
 
   * **Bugfix: Incorrectly loading configuration options from newrelic.yml**
 
-    The agent will now  import the configuration options `error_collector.ignore_messages` and `error_collector.expected_messages` from the `newrelic.yml` file correctly.
+    The agent will now  import the configuration options [`error_collector.ignore_messages`](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#error_collector-ignore_messages) and [`error_collector.expected_messages`](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#error_collector-expected_messages) from the `newrelic.yml` file correctly.
 
 
   * **Deprecate cross application tracing**
