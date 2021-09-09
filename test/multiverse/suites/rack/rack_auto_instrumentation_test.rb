@@ -76,7 +76,10 @@ class RackAutoInstrumentationTest < Minitest::Test
         "WebTransactionTotalTime",
         "WebTransactionTotalTime/Controller/Middleware/Rack/NewRelic::Rack::AgentHooks/call",
         ["Middleware/Rack/NewRelic::Rack::AgentHooks/call",    "Controller/Middleware/Rack/NewRelic::Rack::AgentHooks/call"],
-        ["Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Middleware/Rack/NewRelic::Rack::AgentHooks/call"]
+        ["Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Middleware/Rack/NewRelic::Rack::AgentHooks/call"],
+        'DurationByCaller/Unknown/Unknown/Unknown/HTTP/all',
+        'Supportability/API/recording_web_transaction?',
+        'DurationByCaller/Unknown/Unknown/Unknown/HTTP/allWeb'
       ],
       :ignore_filter => /^Supportability/
     )
@@ -107,7 +110,10 @@ class RackAutoInstrumentationTest < Minitest::Test
         ["Middleware/Rack/MiddlewareOne/call", "Controller/Rack/ExampleApp/call"],
         ["Middleware/Rack/MiddlewareTwo/call", "Controller/Rack/ExampleApp/call"],
         ["Middleware/Rack/MiddlewareThree/call", "Controller/Rack/ExampleApp/call"],
-        ["Nested/Controller/Rack/ExampleApp/call",    "Controller/Rack/ExampleApp/call"]
+        ["Nested/Controller/Rack/ExampleApp/call",    "Controller/Rack/ExampleApp/call"],
+        'DurationByCaller/Unknown/Unknown/Unknown/HTTP/all',
+        'Supportability/API/recording_web_transaction?',
+        'DurationByCaller/Unknown/Unknown/Unknown/HTTP/allWeb'
       ],
       :ignore_filter => /^Supportability\/EnvironmentReport/
     )
@@ -139,7 +145,9 @@ class RackAutoInstrumentationTest < Minitest::Test
         "WebTransactionTotalTime",
         "WebTransactionTotalTime/Controller/Middleware/Rack/MiddlewareTwo/call",
         ["Middleware/Rack/MiddlewareOne/call", "Controller/Middleware/Rack/MiddlewareTwo/call"],
-        ["Middleware/Rack/MiddlewareTwo/call", "Controller/Middleware/Rack/MiddlewareTwo/call"]
+        ["Middleware/Rack/MiddlewareTwo/call", "Controller/Middleware/Rack/MiddlewareTwo/call"],
+        'DurationByCaller/Unknown/Unknown/Unknown/HTTP/all',
+        'DurationByCaller/Unknown/Unknown/Unknown/HTTP/allWeb'
       ],
       :ignore_filter => /^Supportability/
     )

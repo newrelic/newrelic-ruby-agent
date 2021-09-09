@@ -253,21 +253,21 @@ module HttpClientTestCases
   # X-NewRelic-ID with a value equal to the encoded cross_app_id.
 
   def test_adds_a_request_header_to_outgoing_requests_if_xp_enabled
-    with_config(:"cross_application_tracer.enabled" => true) do
+    with_config(:"cross_application_tracer.enabled" => true, :'distributed_tracing.enabled' => false) do
       in_transaction { get_response }
       assert_equal "VURQV1BZRkZdXUFT", server.requests.last["HTTP_X_NEWRELIC_ID"]
     end
   end
 
   def test_adds_a_request_header_to_outgoing_requests_if_old_xp_config_is_present
-    with_config(:cross_application_tracing => true) do
+    with_config(:cross_application_tracing => true, :'distributed_tracing.enabled' => false) do
       in_transaction { get_response }
       assert_equal "VURQV1BZRkZdXUFT", server.requests.last["HTTP_X_NEWRELIC_ID"]
     end
   end
 
   def test_adds_newrelic_transaction_header
-    with_config(:cross_application_tracing => true) do
+    with_config(:cross_application_tracing => true, :'distributed_tracing.enabled' => false) do
       guid      = nil
       path_hash = nil
       in_transaction do |txn|
@@ -295,6 +295,7 @@ module HttpClientTestCases
 
   def test_agent_doesnt_add_a_request_header_if_empty_cross_process_id
     with_config(:'cross_application_tracer.enabled' => true,
+      :'distributed_tracing.enabled' => false,
                 :cross_process_id => "") do
       in_transaction { get_response }
       assert_equal false, server.requests.last.keys.any? {|k| k =~ /NEWRELIC_ID/}
@@ -302,8 +303,10 @@ module HttpClientTestCases
   end
 
   def test_agent_doesnt_add_a_request_header_if_empty_encoding_key
-    with_config(:'cross_application_tracer.enabled' => true,
-                :encoding_key => "") do
+    with_config(
+      :'cross_application_tracer.enabled' => true,
+      :'distributed_tracing.enabled' => false,
+      :encoding_key => "") do
       in_transaction { get_response }
       assert_equal false, server.requests.last.keys.any? {|k| k =~ /NEWRELIC_ID/}
     end
@@ -338,7 +341,7 @@ module HttpClientTestCases
     $fake_server.override_response_headers('X-NewRelic-App-Data' =>
       make_app_data_payload( "18#1884", "txn-name", 2, 8, 0, TRANSACTION_GUID ))
 
-    with_config(:"cross_application_tracer.enabled" => true) do
+    with_config(:"cross_application_tracer.enabled" => true, :'distributed_tracing.enabled' => false) do
       in_transaction("test") do
         get_response
       end
@@ -362,7 +365,7 @@ module HttpClientTestCases
     $fake_server.override_response_headers('X-NewRelic-App-Data' =>
       make_app_data_payload( "12#1114", "世界線航跡蔵", 18.0, 88.1, 4096, TRANSACTION_GUID ))
 
-    with_config(:"cross_application_tracer.enabled" => true) do
+    with_config(:"cross_application_tracer.enabled" => true, :'distributed_tracing.enabled' => false) do
       in_transaction("test") do
         get_response
       end
@@ -542,7 +545,9 @@ module HttpClientTestCases
       define_method("test_#{test_case['name']}") do
         config = {
           :app_name => test_case['appName'],
-          :'cross_application_tracer.enabled' => true
+          :'cross_application_tracer.enabled' => true,
+          :'distributed_tracing.enabled' => false,
+          :'disable_all_tracing.enabled' => false
         }
         with_config(config) do
           NewRelic::Agent.instance.events.notify(:initial_configuration_complete)
@@ -586,7 +591,8 @@ module HttpClientTestCases
       config = {
         :encoding_key        => test['settings']['agentEncodingKey'],
         :trusted_account_ids => test['settings']['trustedAccountIds'],
-        :'cross_application_tracer.enabled' => true
+        :'cross_application_tracer.enabled' => true,
+        :'distributed_tracing.enabled' => false
       }
 
       with_config config do

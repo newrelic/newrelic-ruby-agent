@@ -110,7 +110,10 @@ class UrlMapTest < Minitest::Test
       ['Middleware/Rack/UrlMapTest::MiddlewareOne/call', 'Controller/Rack/UrlMapTest::PrefixAppOne/call'],
       ['Middleware/Rack/UrlMapTest::MiddlewareTwo/call', 'Controller/Rack/UrlMapTest::PrefixAppOne/call'],
       [nested_controller_metric, 'Controller/Rack/UrlMapTest::PrefixAppOne/call'],
-      ['Nested/Controller/Rack/UrlMapTest::PrefixAppOne/call', 'Controller/Rack/UrlMapTest::PrefixAppOne/call']
+      ['Nested/Controller/Rack/UrlMapTest::PrefixAppOne/call', 'Controller/Rack/UrlMapTest::PrefixAppOne/call'],
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all',
+      'Supportability/API/recording_web_transaction?',
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
     ])
   end
 
@@ -134,7 +137,10 @@ class UrlMapTest < Minitest::Test
       ['Middleware/Rack/UrlMapTest::MiddlewareOne/call', 'Controller/Rack/UrlMapTest::PrefixAppTwo/call'],
       ['Middleware/Rack/UrlMapTest::MiddlewareTwo/call', 'Controller/Rack/UrlMapTest::PrefixAppTwo/call'],
       [nested_controller_metric, 'Controller/Rack/UrlMapTest::PrefixAppTwo/call'],
-      ['Nested/Controller/Rack/UrlMapTest::PrefixAppTwo/call', 'Controller/Rack/UrlMapTest::PrefixAppTwo/call']
+      ['Nested/Controller/Rack/UrlMapTest::PrefixAppTwo/call', 'Controller/Rack/UrlMapTest::PrefixAppTwo/call'],
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all',
+      'Supportability/API/recording_web_transaction?',
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
     ])
   end
 

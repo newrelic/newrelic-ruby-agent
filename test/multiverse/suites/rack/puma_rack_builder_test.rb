@@ -74,6 +74,8 @@ if NewRelic::Agent::Instrumentation::RackHelpers.puma_rack_version_supported?
           "Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call",
           "Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call",
           "WebTransactionTotalTime",
+          "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
+          "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb",
           "WebTransactionTotalTime/Controller/Rack/PumaRackBuilderTest::ExampleApp/call",
           ["Middleware/Rack/PumaRackBuilderTest::MiddlewareOne/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"],
           ["Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"],

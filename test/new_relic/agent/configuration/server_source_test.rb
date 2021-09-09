@@ -22,8 +22,11 @@ module NewRelic::Agent::Configuration
             'analytic_event_data' => 833,
             'custom_event_data'   => 833,
             'error_event_data'    => 8,
-            'span_event_data'     => 83
           }
+        },
+        'span_event_harvest_config' => {
+          'harvest_limit' => 89,
+          'report_period_ms' => 80000
         },
         'apdex_t'                    => 1.0,
         'collect_errors'             => false,
@@ -112,13 +115,18 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_set_span_events_max_samples
-      assert_equal 83, @source[:'span_events.max_samples_stored']
-      assert_metrics_recorded({"Supportability/EventHarvest/SpanEventData/HarvestLimit" => {total_call_time: 83}})
+      assert_equal 89, @source[:'span_events.max_samples_stored']
+      assert_metrics_recorded({"Supportability/SpanEvent/Limit" => {total_call_time: 89}})
     end
 
     def test_should_set_event_report_period
       assert_equal 5, @source[:'event_report_period']
       assert_metrics_recorded({"Supportability/EventHarvest/ReportPeriod" => {total_call_time: 5}})
+    end
+
+    def test_should_set_span_event_report_period
+      assert_equal 80000, @source[:'event_report_period.span_event_data']
+      assert_metrics_recorded({"Supportability/SpanEvent/ReportPeriod" => {total_call_time: 80000}})
     end
 
     def test_should_correctly_handle_missing_event_type_from_event_harvest_config
@@ -131,7 +139,7 @@ module NewRelic::Agent::Configuration
           }
         }
 
-      @config['event_harvest_config'] = modified_event_harvest_config
+      @config.delete('span_event_harvest_config')
       @source = ServerSource.new(@config)
 
       # Span events should fall back to default source

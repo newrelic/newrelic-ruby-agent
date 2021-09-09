@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+# TODO: Address intermittent failure where "after_fork" Supportability Metric appears
+
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
 class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   require 'new_relic/agent/method_tracer'
@@ -9,6 +11,10 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
   def setup
     NewRelic::Agent.agent.stats_engine.clear_stats
+  end
+
+  def teardown
+    reset_buffers_and_caches
   end
 
   def test_metric_recording_in_non_nested_transaction
@@ -20,13 +26,16 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     expected_values = { :call_count => 1 }
     assert_metrics_recorded_exclusive(
-      ['foo', 'outer']                            => expected_values,
-      'foo'                                       => expected_values,
-      'bar'                                       => expected_values,
-      'outer'                                     => expected_values,
+      ['foo', 'outer'] => expected_values,
+      'foo' => expected_values,
+      'bar' => expected_values,
+      'outer' => expected_values,
       'Supportability/API/trace_execution_scoped' => expected_values,
-      'OtherTransactionTotalTime'                 => expected_values,
-      'OtherTransactionTotalTime/outer'           => expected_values
+      'OtherTransactionTotalTime' => expected_values,
+      'OtherTransactionTotalTime/outer' => expected_values,
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => expected_values,
+      'Supportability/API/recording_web_transaction?' => expected_values,
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => expected_values,
     )
   end
 
@@ -54,7 +63,10 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       'bar'                                                   => expected_values,
       'Supportability/API/trace_execution_scoped'             => expected_values,
       'OtherTransactionTotalTime'                             => expected_values,
-      'OtherTransactionTotalTime/Controller/inner_txn'        => expected_values
+      'OtherTransactionTotalTime/Controller/inner_txn'        => expected_values,
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => expected_values,
+      'Supportability/API/recording_web_transaction?' => expected_values,
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => expected_values,
     )
   end
 
@@ -90,7 +102,10 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       'bar'                                       => expected_values,
       'Supportability/API/trace_execution_scoped' => expected_values,
       'OtherTransactionTotalTime'                 => expected_values,
-      'OtherTransactionTotalTime/outer'           => expected_values
+      'OtherTransactionTotalTime/outer'           => expected_values,
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => expected_values,
+      'Supportability/API/recording_web_transaction?' => expected_values,
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => expected_values,
     )
   end
 
@@ -108,7 +123,10 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       'outer' => expected_values,
       'Supportability/API/trace_execution_scoped' => expected_values,
       'OtherTransactionTotalTime' => expected_values,
-      'OtherTransactionTotalTime/outer' => expected_values
+      'OtherTransactionTotalTime/outer' => expected_values,
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => expected_values,
+      'Supportability/API/recording_web_transaction?' => expected_values,
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => expected_values,
     )
   end
 
@@ -155,6 +173,15 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       },
       'OtherTransactionTotalTime/txn' => {
         :call_count           => 1
+      },
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => {
+        :call_count => 1
+      },
+      'Supportability/API/recording_web_transaction?' => {
+        :call_count => 1
+      },
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => {
+        :call_count => 1
       }
     )
   end
