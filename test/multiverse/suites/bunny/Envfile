@@ -2,7 +2,7 @@ suite_condition("bunny not supported for JRuby") do
   RUBY_PLATFORM != 'java'
 end
 
-instrumentation_methods :chain
+instrumentation_methods :chain, :prepend
 
 amq_protocol_version_str = RUBY_VERSION < "2.2.0" ? ", '< 2.3.0'" : ''
 
