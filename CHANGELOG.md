@@ -80,6 +80,10 @@
 
     This release removes the remaining support for the [Merb](https://weblog.rubyonrails.org/2008/12/23/merb-gets-merged-into-rails-3/) framework. It merged with Rails during the 3.0 release. Now that the Ruby agent supports Rails 3.2 and above, we thought it was time to say goodbye.
 
+  * **Remove deprecated method External.start_segment**
+
+    The method `NewRelic::Agent::External.start_segment` has been deprecated as of Ruby Agent 6.0.0. This method is now removed.
+
   ## v7.2.0
 
   * **Expected Errors and Ignore Errors**
