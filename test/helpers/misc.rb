@@ -108,3 +108,12 @@ def stringify_keys_in_object(object)
     object
   end
 end
+
+def wait_until_not_nil(give_up_after = 3, &block)
+  total_tries = give_up_after * 10
+  current_tries = 0
+  while block.call.nil? and current_tries < total_tries do 
+    sleep 0.1
+    current_tries += 1
+  end
+end
