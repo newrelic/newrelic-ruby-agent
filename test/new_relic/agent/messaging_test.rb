@@ -440,6 +440,7 @@ module NewRelic
 
         with_config :"cross_application_tracer.enabled" => true,
                     :cross_process_id => cross_process_id,
+                    :'distributed_tracing.enabled' => false,
                     :trusted_account_ids => [321],
                     :encoding_key => "abc" do
 
@@ -479,6 +480,7 @@ module NewRelic
 
         with_config :"cross_application_tracer.enabled" => true,
                     :cross_process_id => cross_process_id,
+                    :'distributed_tracing.enabled' => false,
                     :trusted_account_ids => [321],
                     :encoding_key => "abc" do
 

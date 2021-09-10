@@ -24,7 +24,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             Mongo::Logger.logger = mongo_logger
             @database_name = "multiverse"
             @client = Mongo::Client.new(
-              ["#{$mongo.host}:#{$mongo.port}"], 
+              ["#{$mongo.host}:#{$mongo.port}"],
               database: @database_name
             )
             @database = @client.database
@@ -336,7 +336,9 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               "Datastore/MongoDB/all" => {:call_count=>3},
               "Datastore/allWeb" => { :call_count=>3},
               "Datastore/all" => {:call_count=>3},
-              "Supportability/API/drop_buffered_data" => { :call_count => 1 }
+              "Supportability/API/drop_buffered_data" => { :call_count => 1 },
+              "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => { :call_count => 1},
+              "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb" => { :call_count => 1 }
             }
             assert_metrics_recorded_exclusive expected
           end

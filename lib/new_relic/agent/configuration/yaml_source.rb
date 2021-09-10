@@ -11,6 +11,10 @@ module NewRelic
         attr_accessor :file_path, :failures
         attr_reader :generated_for_user, :license_key
 
+        # These are configuration options that have a value of a Hash
+        # This is used in YamlSource#dot_flattened prevent flattening these values
+        CONFIG_WITH_HASH_VALUE = ['expected_messages', 'ignore_messages']
+
         def initialize(path, env)
           @path = path
           config    = {}
@@ -145,6 +149,18 @@ module NewRelic
         def log_failure(*messages)
           ::NewRelic::Agent.logger.error(*messages)
           messages.each { |message| @failures << message }
+        end
+
+        def dot_flattened(nested_hash, names=[], result={})
+          nested_hash.each do |key, val|
+            next if val == nil
+            if val.respond_to?(:has_key?) && !CONFIG_WITH_HASH_VALUE.include?(key)
+              dot_flattened(val, names + [key], result)
+            else
+              result[(names + [key]).join('.')] = val
+            end
+          end
+          result
         end
       end
     end
