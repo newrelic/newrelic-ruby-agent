@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require 'pry'
 
 class TestExceptionA < StandardError; end
 class TestExceptionB < StandardError; end

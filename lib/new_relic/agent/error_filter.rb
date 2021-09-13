@@ -1,7 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
-require 'pry'
 
 module NewRelic
   module Agent
@@ -30,9 +29,8 @@ module NewRelic
       def load_from_config(setting, value = nil)
         errors = nil
         new_value = value || fetch_agent_config(setting.to_sym)
-        #edit 33 to account for integer (DONE)
-        
-        return if new_value.nil? || (new_value.instance_of?(String) && new_value.empty?) 
+
+        return if new_value.nil? || (new_value.respond_to?(:empty?) && new_value.empty?)
 
         case setting.to_sym
         when :ignore_errors, :ignore_classes
@@ -53,7 +51,7 @@ module NewRelic
       end
 
       def ignore?(ex, status_code = nil)
-        @ignore_classes.include?(ex.class.name) || 
+        @ignore_classes.include?(ex.class.name) ||
           (@ignore_messages.keys.include?(ex.class.name) &&
           @ignore_messages[ex.class.name].any? { |m| ex.message.include?(m) }) ||
           @ignore_status_codes.include?(status_code.to_i)
@@ -147,7 +145,7 @@ module NewRelic
         end
       end
 
-      #edit this to account for integers 
+      #edit this to account for integers
       def parse_status_codes(codes)
         code_list = case codes
           when String
@@ -160,8 +158,8 @@ module NewRelic
         result = []
         code_list.each do |code|
           result << code && next if code.is_a?(Integer)
-          #what to do when code is a integer? return just code or something else? 
-          m = code.match(/(\d{3})(-\d{3})?/) 
+          #what to do when code is a integer? return just code or something else?
+          m = code.match(/(\d{3})(-\d{3})?/)
           if m.nil? || m[1].nil?
             ::NewRelic::Agent.logger.warn("Invalid HTTP status code: '#{code}'; ignoring config")
             next
