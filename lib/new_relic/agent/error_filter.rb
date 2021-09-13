@@ -149,8 +149,14 @@ module NewRelic
 
       #edit this to account for integers 
       def parse_status_codes(codes)
-        # Refactor this to make the integer go into an array so that we can do the .each method (DONE)
-        code_list = codes.is_a?(String) ? codes.split(',') : codes.is_a?(Integer) ? [codes] : codes
+        code_list = case codes
+          when String
+            codes.split(',')
+          when Integer
+            [codes]
+          else
+            codes
+          end
         result = []
         code_list.each do |code|
           result << code && next if code.is_a?(Integer)
