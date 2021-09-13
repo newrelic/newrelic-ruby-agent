@@ -18,34 +18,6 @@ module NewRelic
     module External
       extend self
 
-      # This method creates and starts an external request segment using the
-      # given library, URI, and procedure. This is used to time external calls
-      # made over HTTP.
-      #
-      # @param [String] library a string of the class name of the library used to
-      # make the external call, for example, 'Net::HTTP'.
-      #
-      # @param [String, URI] uri indicates the URI to which the
-      # external request is being made. The URI should begin with the protocol,
-      # for example, 'https://github.com'.
-      #
-      # @param [String] procedure the HTTP method being used for the external
-      # request as a string, for example, 'GET'.
-      #
-      # @api public
-      def start_segment(library:, uri:, procedure:)
-        Deprecator.deprecate 'External.start_segment',
-                             'Tracer#start_external_request_segment'
-
-        ::NewRelic::Agent.record_api_supportability_metric(:start_segment)
-
-        ::NewRelic::Agent::Tracer.start_external_request_segment(
-          library: library,
-          uri: uri,
-          procedure: procedure
-        )
-      end
-
       NON_HTTP_CAT_ID_HEADER  = 'NewRelicID'.freeze
       NON_HTTP_CAT_TXN_HEADER = 'NewRelicTransaction'.freeze
       NON_HTTP_CAT_SYNTHETICS_HEADER = 'NewRelicSynthetics'.freeze

@@ -23,13 +23,6 @@ module NewRelic
         NewRelic::Agent.drop_buffered_data
       end
 
-      def test_start_segment_starts_an_external_segment
-        s = NewRelic::Agent::External.start_segment library: 'Net::HTTP',
-                                                    uri: 'https://example.com/foobar',
-                                                    procedure: 'GET'
-        assert_instance_of NewRelic::Agent::Transaction::ExternalRequestSegment, s
-      end
-
       # --- process_request_metadata
 
       def test_process_request_metadata
