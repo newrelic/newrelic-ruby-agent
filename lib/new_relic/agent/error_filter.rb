@@ -1,6 +1,7 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+require 'pry'
 
 module NewRelic
   module Agent
@@ -29,7 +30,9 @@ module NewRelic
       def load_from_config(setting, value = nil)
         errors = nil
         new_value = value || fetch_agent_config(setting.to_sym)
-        return if new_value.nil? || new_value.empty?
+        #edit 33 to account for integer (DONE)
+        
+        return if new_value.nil? || (new_value.instance_of?(String) && new_value.empty?) 
 
         case setting.to_sym
         when :ignore_errors, :ignore_classes
@@ -144,12 +147,15 @@ module NewRelic
         end
       end
 
+      #edit this to account for integers 
       def parse_status_codes(codes)
-        code_list = codes.is_a?(String) ? codes.split(',') : codes
+        # Refactor this to make the integer go into an array so that we can do the .each method (DONE)
+        code_list = codes.is_a?(String) ? codes.split(',') : codes.is_a?(Integer) ? [codes] : codes
         result = []
         code_list.each do |code|
           result << code && next if code.is_a?(Integer)
-          m = code.match(/(\d{3})(-\d{3})?/)
+          #what to do when code is a integer? return just code or something else? 
+          m = code.match(/(\d{3})(-\d{3})?/) 
           if m.nil? || m[1].nil?
             ::NewRelic::Agent.logger.warn("Invalid HTTP status code: '#{code}'; ignoring config")
             next

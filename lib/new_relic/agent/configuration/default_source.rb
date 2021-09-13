@@ -1317,10 +1317,10 @@ module NewRelic
           :dynamic_name => true,
           :description => 'A map of error classes to a list of messages. When an error of one of the classes specified here occurs, if its error message contains one of the strings corresponding to it here, that error will be ignored. *Note: this setting cannot be set via environment variable.*'
         },
-        :'error_collector.ignore_status_codes' => {
+        :'error_collector.' => {
           :default => '',
           :public => true,
-          :type => String,
+          :type => String || Integer,
           :allowed_from_server => true,
           :dynamic_name => true,
           :description => 'A comma separated list of status codes, possibly including ranges. Errors associated with these status codes, where applicable, will be ignored.'
