@@ -145,7 +145,6 @@ module NewRelic
         end
       end
 
-      #edit this to account for integers
       def parse_status_codes(codes)
         code_list = case codes
           when String

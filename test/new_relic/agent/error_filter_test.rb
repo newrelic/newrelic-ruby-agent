@@ -88,9 +88,9 @@ module NewRelic::Agent
           assert @error_filter.ignore?(TestExceptionA.new, 401)
           assert @error_filter.ignore?(TestExceptionA.new, 500)
         end
+      end
 
-        @error_filter.reset
-
+      def test_ignore_integer_status_codes
         with_config :'error_collector.ignore_status_codes' => 418 do
           @error_filter.load_all
           assert @error_filter.ignore?(TestExceptionA.new, 418)
