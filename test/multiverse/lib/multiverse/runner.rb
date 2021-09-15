@@ -89,7 +89,7 @@ module Multiverse
       "background_2"  => ["rake"],
       "database"      => ["datamapper", "mongo", "redis", "sequel"],
       "rails"         => ["active_record", "rails", "rails_prepend", "activemerchant"],
-      "frameworks"    => ["sinatra", "padrino", "grape", "rabbbitmq"],
+      "frameworks"    => ["sinatra", "padrino", "grape"],
       "httpclients"   => ["curb", "excon", "httpclient"],
       "httpclients_2"   => ["typhoeus", "net_http", "httprb"],
       "infinite_tracing" => ["infinite_tracing"],
