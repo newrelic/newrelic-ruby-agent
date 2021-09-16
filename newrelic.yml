@@ -203,11 +203,9 @@ common: &default_settings
 # If true, the agent won't sample performance measurements from the Ruby VM.
 # disable_vm_sampler: false
 
-# Distributed tracing lets you see the path that a request takes through your
-# distributed system. Enabling distributed tracing changes the behavior of some
-# New Relic features, so carefully consult the transition guide before you
-# enable this feature.
-# distributed_tracing.enabled: false
+#Distributed tracing tracks and observes service requests as they flow through distributed systems. 
+#With distributed tracing data, you can quickly pinpoint failures or performance issues and fix them.
+# distributed_tracing.enabled: true
 
 # The Entity GUID for the entity that is running this agent.
 # entity_guid: nil
