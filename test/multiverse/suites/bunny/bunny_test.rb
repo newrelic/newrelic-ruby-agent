@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "helpers", "misc"))
+
 class BunnyTest < Minitest::Test
   include MultiverseHelpers
 
@@ -268,6 +270,8 @@ class BunnyTest < Minitest::Test
     rescue StandardError => e
       # NOP -- allowing span and transaction to notice error
     end
+
+    wait_until_not_nil(5) { txn }
 
     assert_segment_noticed_error txn, /^MessageBroker\/RabbitMQ/, "Timeout::Error", /timeout/i
     assert_transaction_noticed_error txn, "Timeout::Error"

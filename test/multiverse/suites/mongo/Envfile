@@ -4,6 +4,8 @@
 # newer versions of mongo support 2.3+
 if RUBY_VERSION >= '2.3.0'
   mongo_versions = [
+    '2.15.1',
+    '2.14.0',
     '2.12.0',
     '2.9.0',
     '2.7.0',
