@@ -126,7 +126,11 @@ common: &default_settings
 # and $HOME/newrelic.yml.
 # config_path: newrelic.yml
 
-# If true, enables cross-application tracing.
+# If true, enables cross-application tracing. Cross application tracing is now
+# deprecated, and disabled by default. Distributed tracing is replacing cross
+# application tracing as the default means of tracing between services.
+# To continue using it, set `cross_application_tracer.enabled: true` and
+# `distributed_tracing.enabled: false`
 # cross_application_tracer.enabled: false
 
 # If false, custom attributes will not be sent on Insights events.
@@ -203,8 +207,8 @@ common: &default_settings
 # If true, the agent won't sample performance measurements from the Ruby VM.
 # disable_vm_sampler: false
 
-#Distributed tracing tracks and observes service requests as they flow through distributed systems. 
-#With distributed tracing data, you can quickly pinpoint failures or performance issues and fix them.
+# Distributed tracing tracks and observes service requests as they flow through distributed systems.
+# With distributed tracing data, you can quickly pinpoint failures or performance issues and fix them.
 # distributed_tracing.enabled: true
 
 # The Entity GUID for the entity that is running this agent.
@@ -482,7 +486,9 @@ common: &default_settings
 # span_events_attributes.enabled: true
 
 # Defines the maximum number of span events reported from a single harvest.
-# span_events_max_samples_stored: 1000
+# This can be any value between 2000 and 10,000. Increasing this value may impact
+# memory usage.
+# span_events_max_samples_stored: 2000
 
 # Prefix of attributes to exclude from span events. Allows * as wildcard at end.
 # span_events.attributes.exclude: []
