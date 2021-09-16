@@ -36,3 +36,4 @@ node_modules/
 yarn.lock
 errors.txt
 .history/
+vendor/
