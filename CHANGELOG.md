@@ -33,7 +33,7 @@
 
   * **Cross Application is now deprecated, and disabled by default**
 
-    [Distributed tracing](https://docs.newrelic.com/docs/distributed-tracing/enable-configure/language-agents-enable-distributed-tracing/) is replacing [cross application tracing](https://docs.newrelic.com/docs/agents/ruby-agent/features/cross-application-tracing-ruby/) as the default means of tracing between services. To continue using it, enable it with `cross_application_tracer.enabled = True` and `distributed_tracing.enabled = False`
+    [Distributed tracing](https://docs.newrelic.com/docs/distributed-tracing/enable-configure/language-agents-enable-distributed-tracing/) is replacing [cross application tracing](https://docs.newrelic.com/docs/agents/ruby-agent/features/cross-application-tracing-ruby/) as the default means of tracing between services. To continue using it, enable it with `cross_application_tracer.enabled: true` and `distributed_tracing.enabled: false`
 
   * **Update configuration option default value for `span_events.max_samples_stored` from 1000 to 2000**
 
@@ -46,9 +46,9 @@
   * **Remove Ruby 2.0 required kwarg compatibility checks**
 
     Our agent has code that provides compatibility for required keyword arguments in Ruby versions below 2.1. Since the agent now only supports Ruby 2.2+, this code is no longer required.
-    
+
   * **Replace Time.now with Process.clock_gettime**
-  
+
     Calls to `Time.now` have been replaced with calls to `Process.clock_gettime` to leverage the system's built-in clocks for elapsed time (`Process::CLOCK_MONOTONIC`) and wall-clock time (`Process::CLOCK_REALTIME`). This results in fewer object allocations, more accurate elapsed time records, and enhanced performance. Thanks to @sdemjanenko and @viraptor for advocating for this change!
 
   * **Updated generated default newrelic.yml**

@@ -486,7 +486,7 @@ common: &default_settings
 # span_events_attributes.enabled: true
 
 # Defines the maximum number of span events reported from a single harvest.
-# This can be any value between 2000 and 10,000. Increasing this value may impact
+# The maximum value is 10000. Increasing this value may impact
 # memory usage.
 # span_events_max_samples_stored: 2000
 
