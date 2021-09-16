@@ -118,33 +118,22 @@ module NetHttpTestCases
 
   # https://newrelic.atlassian.net/browse/RUBY-835
   def test_direct_get_request_doesnt_double_count
-    with_config(:api_host=>"::1") do 
-      http = create_http(default_uri)
-      in_transaction do
-        http.request(Net::HTTP::Get.new(default_uri.request_uri))
-      end
-
-      assert_metrics_recorded(
-        'External/localhost/Net::HTTP/GET' => { :call_count => 1 })
+    http = create_http(default_uri)
+    in_transaction do
+      http.request(Net::HTTP::Get.new(default_uri.request_uri))
     end
+
+    assert_metrics_recorded(
+      'External/localhost/Net::HTTP/GET' => { :call_count => 1 })
   end
   
-  # def create_http(uri)
-  #   http = Net::HTTP.new(uri.host, uri.port)
-  #   if use_ssl?
-  #     http.use_ssl = true
-  #     http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-  #   end
-  #   http
-  # end
-  def test_ipv6_host_get_requests
-    #require "pry"; binding.pry
-    http = Net::HTTP.new('::1', '51744')
+  def test_ipv6_host_get_request_records_metric
+    http = Net::HTTP.new('::1', default_uri.port)
     in_transaction do
       http.request(Net::HTTP::Get.new('/status'))
     end
 
     assert_metrics_recorded(
-      'External/localhost/Net::HTTP/GET' => { :call_count => 1 })
+      'External/[::1]/Net::HTTP/GET' => { :call_count => 1 })
   end
 end
