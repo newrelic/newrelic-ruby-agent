@@ -6,26 +6,18 @@ instrumentation_methods :chain, :prepend
 
 amq_protocol_version_str = RUBY_VERSION < "2.2.0" ? ", '< 2.3.0'" : ''
 
-if RUBY_VERSION >= '2.2'
+if RUBY_VERSION >= '2.3'
   gemfile <<-RB
     gem 'rack'
     gem 'bunny', '~>2.19.0'
     gem 'amq-protocol'#{amq_protocol_version_str}
     #{ruby3_gem_webrick}
   RB
-
-  gemfile <<-RB
-    gem 'rack'
-    gem 'bunny', '~>2.9.1'
-    gem 'amq-protocol'#{amq_protocol_version_str}
-    #{ruby3_gem_webrick}
-  RB
 end
 
-# most recent bunny version supporting ruby 2.0
 gemfile <<-RB
   gem 'rack'
-  gem 'bunny', '~>2.8.1'
+  gem 'bunny', '~>2.9.1'
   gem 'amq-protocol'#{amq_protocol_version_str}
   #{ruby3_gem_webrick}
 RB
