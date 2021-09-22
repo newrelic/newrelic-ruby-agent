@@ -202,7 +202,6 @@ boom:
   def test_parses_default_settings_correctly
     config_contents = <<-YAML
 common: &default_settings
-  license_key: 47ae68e8919929c1d99fa3a1a36a0aa8c06ba690
   app_name: playground
   foo: success!!
 
