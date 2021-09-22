@@ -354,7 +354,7 @@ module NewRelic
         :entity_guid => {
           :default => nil,
           :allow_nil => true,
-          :public => true,
+          :public => false,
           :type => String,
           :allowed_from_server => true,
           :description => 'The [Entity GUID](/attribute-dictionary/span/entityguid) for the entity running this agent.'
