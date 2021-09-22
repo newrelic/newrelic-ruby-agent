@@ -11,7 +11,7 @@ module NewRelic
       {
         :type        => :ruby,
         :name        => "MRI",
-        :supported   => ["2.0.0", "~>2.1.0", "~>2.2.0", "~>2.3.0", "~>2.4.0", "~>2.5.0", "~>2.6.0", "~>2.7.0"],
+        :supported   => ["2.0.0", "~>2.1.0", "~>2.2.0", "~>2.3.0", "~>2.4.0", "~>2.5.0", "~>2.6.0", "~>2.7.0", "~>3.0.0"],
         :deprecated  => ["1.8.6", "1.8.7", "1.9.2", "1.9.3"],
         :url         => "https://www.ruby-lang.org",
         :feed        => "https://www.ruby-lang.org/en/feeds/news.rss",
@@ -22,7 +22,7 @@ module NewRelic
       {
         :type        => :ruby,
         :name        => "JRuby",
-        :supported   => ["~>9.0", "~>9.1"],
+        :supported   => ["~>9.0", "~>9.1", "~>9.2"],
         :deprecated  => ["~>1.7.0"],
         :url         => "http://jruby.org",
         :feed        => "http://jruby.org/atom.xml",
@@ -143,7 +143,7 @@ module NewRelic
       :mongo =>
       {
         :type        => :database,
-        :supported   => ["~>1.8", "~>2.1"],
+        :supported   => ["~>2.1"],
         :url         => "https://rubygems.org/gems/mongo",
         :feed        => "https://rubygems.org/gems/mongo/versions.atom"
       },
