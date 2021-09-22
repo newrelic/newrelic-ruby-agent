@@ -83,6 +83,20 @@
 
     The method `NewRelic::Agent::External.start_segment` has been deprecated as of Ruby Agent 6.0.0. This method is now removed.
 
+  * **Added testing and support for the following gem versions**
+
+    - activemerchant 1.121.0
+    - bunny 2.19.0
+    - excon 0.85.0
+    - mongo 2.14.0, 2.15.1
+    - padrino 0.15.1
+    - resque 2.1.0
+    - sequel 5.48.0
+    - yajl-ruby 1.4.1
+
+  * **This version adds support for ARM64/Graviton2 platform using Ruby 3.0.2+**
+
+
   ## v7.2.0
 
   * **Expected Errors and Ignore Errors**
