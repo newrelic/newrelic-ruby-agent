@@ -79,7 +79,7 @@ module NewRelic
         end
 
         def test_segment_adds_cat_headers_to_message_properties_for_produce
-          with_config :"cross_application_tracer.enabled" => true, :cross_process_id => "321#123", :encoding_key => "abc" do
+          with_config :"cross_application_tracer.enabled" => true, :"distributed_tracing.enabled" => false, :cross_process_id => "321#123", :encoding_key => "abc" do
             in_transaction "test_txn" do
               segment = NewRelic::Agent::Tracer.start_message_broker_segment(
                 action: :produce,
@@ -97,7 +97,7 @@ module NewRelic
         end
 
         def test_segment_adds_synthetics_and_cat_headers_to_message_properties_for_produce
-          with_config :"cross_application_tracer.enabled" => true, :cross_process_id => "321#123", :encoding_key => "abc" do
+          with_config :"cross_application_tracer.enabled" => true, :"distributed_tracing.enabled" => false, :cross_process_id => "321#123", :encoding_key => "abc" do
             in_transaction "test_txn" do |txn|
               txn.raw_synthetics_header = "boo"
               segment = NewRelic::Agent::Tracer.start_message_broker_segment(
@@ -138,7 +138,7 @@ module NewRelic
         end
 
         def test_sets_start_time_from_constructor
-          t = Time.now
+          t = Process.clock_gettime(Process::CLOCK_REALTIME)
 
           segment = MessageBrokerSegment.new action: :produce,
                                              library: "RabbitMQ",

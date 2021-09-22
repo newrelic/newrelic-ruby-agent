@@ -88,7 +88,7 @@ module Multiverse
       "background"    => ["delayed_job", "sidekiq", "resque" ],
       "background_2"  => ["rake"],
       "database"      => ["datamapper", "mongo", "redis", "sequel"],
-      "rails"         => ["active_record", "rails", "rails_prepend", "activemerchant"], 
+      "rails"         => ["active_record", "rails", "rails_prepend", "activemerchant"],
       "frameworks"    => ["sinatra", "padrino", "grape"],
       "httpclients"   => ["curb", "excon", "httpclient"],
       "httpclients_2"   => ["typhoeus", "net_http", "httprb"],
@@ -108,19 +108,17 @@ module Multiverse
 
     if RUBY_VERSION >= '3.0'
       GROUPS['rails'].delete 'active_record'
-    end
-
-    if RUBY_VERSION >= '2.7'
       GROUPS['frameworks'].delete 'sinatra'
       GROUPS['frameworks'].delete 'padrino'
       GROUPS['frameworks'].delete 'grape'
     end
 
+
     def excluded?(suite)
       return true if suite == 'rake' and RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
       return true if suite == 'agent_only' and RUBY_PLATFORM == "java"
       return true if suite == 'active_record' and RUBY_VERSION >= '3.0.0'
-      return true if ["sinatra", "padrino", "grape"].include?(suite) and RUBY_VERSION >= '2.7'
+      return true if ["sinatra", "padrino", "grape"].include?(suite) and RUBY_VERSION >= '3.0'
     end
 
 
@@ -130,20 +128,26 @@ module Multiverse
       return false if excluded?(dir)
 
       if filter.include?("group=")
-        keys = filter.sub("group=", "").split(';')
+        keys = filter.sub("group=", "").split(';') # supports multiple groups passed in ";" delimited
         combined_groups = []
+
+        # grabs all the suites that are in each of the groups passed in
         keys.each do |key|
           (combined_groups << (GROUPS[key])).flatten!
         end
         
+        # checks for malformed groups passed in
         if combined_groups.nil?
           puts red("Unrecognized groups in '#{filter}'. Stopping!")
           exit 1
-        elsif combined_groups.any?
-          combined_groups.include?(dir)
-        else
-          !GROUPS.values.flatten.include?(dir)
         end
+        
+        # This allows the "rest" group to be passed in as one of several groups that are ';' delimited
+        # true IF
+        # the "rest" group is one of the groups being passed in AND the directory is not in any other group
+        # OR 
+        # the directory is one of the suites included in one of the non-rest groups passed in
+        (keys.include?("rest") && !GROUPS.values.flatten.include?(dir) ) || (combined_groups.any? && combined_groups.include?(dir))
       else
         dir.include?(filter)
       end

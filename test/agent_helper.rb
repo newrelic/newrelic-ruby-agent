@@ -594,6 +594,31 @@ def advance_time seconds
   Time.__frozen_now = Time.now + seconds
 end
 
+unless Process.respond_to?(:__original_clock_gettime)
+  Process.instance_eval do
+    class << self
+      attr_accessor :__frozen_clock_gettime
+      alias_method :__original_clock_gettime, :clock_gettime
+
+      def clock_gettime(clock_id, unit = :float_second)
+        __frozen_clock_gettime || __original_clock_gettime(clock_id, unit)
+      end
+    end
+  end
+end
+
+def advance_process_time(seconds, clock_id=Process::CLOCK_REALTIME)
+  Process.__frozen_clock_gettime = Process.clock_gettime(clock_id) + seconds
+end
+
+def nr_freeze_process_time(now=Process.clock_gettime(Process::CLOCK_REALTIME))
+  Process.__frozen_clock_gettime = now
+end
+
+def nr_unfreeze_process_time
+  Process.__frozen_clock_gettime = nil
+end
+
 def with_constant_defined constant_symbol, implementation=Module.new
   const_path = constant_path(constant_symbol.to_s)
 
@@ -668,7 +693,7 @@ def wait_for_backtrace_service_poll opts={}
     :iterations => 1
   }
   opts = defaults.merge(opts)
-  deadline = Time.now + opts[:timeout]
+  deadline = Process.clock_gettime(Process::CLOCK_REALTIME) + opts[:timeout]
 
   service = opts[:service]
   worker_loop = service.worker_loop
@@ -676,7 +701,7 @@ def wait_for_backtrace_service_poll opts={}
 
   until worker_loop.iterations > opts[:iterations]
     sleep(0.01)
-    if Time.now > deadline
+    if Process.clock_gettime(Process::CLOCK_REALTIME) > deadline
       raise "Timed out waiting #{opts[:timeout]} s for backtrace service poll\n" +
             "Worker loop ran for #{opts[:service].worker_loop.iterations} iterations\n\n" +
             Thread.list.map { |t|

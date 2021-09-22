@@ -105,7 +105,7 @@ module NewRelic
           @lock.synchronize do
             if @profiles[transaction_name]
               profile = @profiles.delete(transaction_name)
-              profile.finished_at = Time.now
+              profile.finished_at = Process.clock_gettime(Process::CLOCK_REALTIME)
               @profiles[transaction_name] = ThreadProfile.new(profile.command_arguments)
               profile
             end
@@ -163,7 +163,7 @@ module NewRelic
         end
 
         def poll
-          poll_start = Time.now
+          poll_start = Process.clock_gettime(Process::CLOCK_REALTIME)
 
           @lock.synchronize do
             AgentThread.list.each do |thread|
@@ -173,7 +173,7 @@ module NewRelic
             @buffer.delete_if { |thread, _| !thread.alive? }
           end
 
-          end_time = Time.now
+          end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
           adjust_polling_time(end_time, poll_start)
           record_supportability_metrics(end_time, poll_start)
         end
@@ -230,7 +230,7 @@ module NewRelic
           bucket = AgentThread.bucket_thread(thread, @profile_agent_code)
 
           if need_backtrace?(bucket)
-            timestamp = Time.now.to_f
+            timestamp = Process.clock_gettime(Process::CLOCK_REALTIME)
             backtrace = AgentThread.scrub_backtrace(thread, @profile_agent_code)
             aggregate_global_backtrace(backtrace, bucket, thread)
             buffer_backtrace_for_thread(thread, timestamp, backtrace, bucket)
@@ -277,7 +277,6 @@ module NewRelic
           end
           @last_poll = poll_start
         end
-
       end
     end
   end

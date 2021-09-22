@@ -6,7 +6,7 @@ class ErrorEventsTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent do
-    nr_freeze_time
+    nr_freeze_process_time
   end
 
   def test_error_events_are_submitted
@@ -99,7 +99,7 @@ class ErrorEventsTest < Minitest::Test
     intrinsics, _, _ = last_error_event
 
     assert_equal "TransactionError", intrinsics["type"]
-    assert_in_delta Time.now.to_f, intrinsics["timestamp"], 0.001
+    assert_in_delta Process.clock_gettime(Process::CLOCK_REALTIME), intrinsics["timestamp"], 0.001
     assert_equal "RuntimeError", intrinsics["error.class"]
     assert_equal "No Txn", intrinsics["error.message"]
   end

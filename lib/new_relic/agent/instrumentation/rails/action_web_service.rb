@@ -38,7 +38,7 @@ DependencyDetection.defer do
     if defined?(ActionController) && defined?(ActionController::Base)
       ActionController::Base.class_eval do
         if method_defined? :perform_invocation
-          add_method_tracer :perform_invocation, 'WebService/#{controller_name}/#{args.first}'
+          add_method_tracer :perform_invocation, -> (*args) { "WebService/#{controller_name}/#{args.first}" }
         end
       end
     end

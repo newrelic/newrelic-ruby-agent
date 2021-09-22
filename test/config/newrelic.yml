@@ -41,6 +41,15 @@ test:
 
   error_collector:
     enabled: true
+    expected_messages:
+      StandardError:
+        - "test error1"
+        - "test error2"
+    ignore_messages:
+      RuntimeError:
+        - "test error3"
+
+
 
 development:
   host: the.wrong.host

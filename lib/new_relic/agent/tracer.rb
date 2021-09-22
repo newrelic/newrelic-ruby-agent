@@ -131,14 +131,10 @@ module NewRelic
         # @api public
         def start_transaction_or_segment(name: nil,
                                          partial_name: nil,
-                                         category: nil,
+                                         category:,
                                          options: {})
-          if name.nil? && partial_name.nil?
-            raise ArgumentError, 'missing required argument: name or partial_name'
-          end
-          if category.nil?
-            raise ArgumentError, 'missing required argument: category'
-          end
+          
+          raise ArgumentError, 'missing required argument: name or partial_name' if name.nil? && partial_name.nil?
 
           if name
             options[:transaction_name] = name
@@ -163,16 +159,12 @@ module NewRelic
 
         # Takes name or partial_name and a category.
         # Returns a transaction instance or nil
-        def start_transaction(name: nil,
+        def start_transaction(category:,
+                              name: nil,
                               partial_name: nil,
-                              category: nil,
                               **options)
-          if name.nil? && partial_name.nil?
-            raise ArgumentError, 'missing required argument: name or partial_name'
-          end
-          if category.nil?
-            raise ArgumentError, 'missing required argument: category'
-          end
+          
+          raise ArgumentError, 'missing required argument: name or partial_name' if name.nil? && partial_name.nil?
 
           return current_transaction if current_transaction
 
@@ -238,13 +230,10 @@ module NewRelic
         #   +finish+ on it at the end of the code you're tracing
         #
         # @api public
-        def start_segment(name:nil,
+        def start_segment(name:,
                           unscoped_metrics:nil,
                           start_time: nil,
                           parent: nil)
-
-          # ruby 2.0.0 does not support required kwargs
-          raise ArgumentError, 'missing required argument: name' if name.nil?
 
           segment = Transaction::Segment.new name, unscoped_metrics, start_time
           start_and_add_segment segment, parent
@@ -341,16 +330,11 @@ module NewRelic
         #   you're tracing
         #
         # @api public
-        def start_external_request_segment(library: nil,
-                                           uri: nil,
-                                           procedure: nil,
+        def start_external_request_segment(library:,
+                                           uri:,
+                                           procedure:,
                                            start_time: nil,
                                            parent: nil)
-
-          # ruby 2.0.0 does not support required kwargs
-          raise ArgumentError, 'missing required argument: library' if library.nil?
-          raise ArgumentError, 'missing required argument: uri' if uri.nil?
-          raise ArgumentError, 'missing required argument: procedure' if procedure.nil?
 
           segment = Transaction::ExternalRequestSegment.new library, uri, procedure, start_time
           start_and_add_segment segment, parent
@@ -377,20 +361,14 @@ module NewRelic
         end
 
         # For New Relic internal use only.
-        def start_message_broker_segment(action: nil,
-                                         library: nil,
-                                         destination_type: nil,
-                                         destination_name: nil,
+        def start_message_broker_segment(action:,
+                                         library:,
+                                         destination_type:,
+                                         destination_name:,
                                          headers: nil,
                                          parameters: nil,
                                          start_time: nil,
                                          parent: nil)
-
-          # ruby 2.0.0 does not support required kwargs
-          raise ArgumentError, 'missing required argument: action' if action.nil?
-          raise ArgumentError, 'missing required argument: library' if library.nil?
-          raise ArgumentError, 'missing required argument: destination_type' if destination_type.nil?
-          raise ArgumentError, 'missing required argument: destination_name' if destination_name.nil?
 
           segment = Transaction::MessageBrokerSegment.new(
             action: action,

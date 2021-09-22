@@ -6,7 +6,7 @@ require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper
 
 class NewRelic::Agent::EventLoopTest < Minitest::Test
   def setup
-    nr_freeze_time
+    nr_freeze_process_time
     @loop = NewRelic::Agent::EventLoop.new
   end
 
@@ -195,7 +195,7 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
 
   def advance_loop(n)
     n.times do
-      advance_time(1)
+      advance_process_time(1)
       @loop.run_once(true)
     end
   end

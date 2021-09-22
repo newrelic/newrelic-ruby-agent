@@ -60,7 +60,7 @@ class AgentCommandRouterTest < Minitest::Test
 
   def populate_container(container, n)
     start_profile('duration' => 1.0)
-    advance_time(1.1)
+    advance_process_time(1.1)
     agent_commands.backtrace_service.worker_thread.join if agent_commands.backtrace_service.worker_thread
   end
 
@@ -132,7 +132,7 @@ class AgentCommandRouterTest < Minitest::Test
     def test_harvest_with_profile_completed
       start_profile('duration' => 1.0)
 
-      advance_time(1.1)
+      advance_process_time(1.1)
       result = agent_commands.harvest!
 
       refute_empty result
@@ -141,7 +141,7 @@ class AgentCommandRouterTest < Minitest::Test
     def test_can_stop_multiple_times_safely
       start_profile('duration' => 1.0)
 
-      advance_time(1.1)
+      advance_process_time(1.1)
       agent_commands.thread_profiler_session.stop(true)
 
       result = agent_commands.harvest!
@@ -184,7 +184,7 @@ class AgentCommandRouterTest < Minitest::Test
   end
 
   def start_profile(args={})
-    nr_freeze_time
+    nr_freeze_process_time
     agent_commands.backtrace_service.worker_loop.stubs(:run)
     agent_commands.thread_profiler_session.start(create_agent_command(args))
   end

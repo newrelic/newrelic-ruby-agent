@@ -8,7 +8,7 @@ module NewRelic
   module Agent
     class DatastoreApiTest < Minitest::Test
       def setup
-        nr_freeze_time
+        nr_freeze_process_time
         NewRelic::Agent.drop_buffered_data
       end
 
@@ -31,7 +31,7 @@ module NewRelic
                 database_name: params['database_name']
               )
               segment.notice_sql "select * from foo"
-              advance_time 2.0
+              advance_process_time 2.0
               segment.finish
             end
 

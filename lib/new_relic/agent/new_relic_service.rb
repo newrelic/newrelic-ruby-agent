@@ -128,11 +128,11 @@ module NewRelic
 
       def metric_data(stats_hash)
         timeslice_start = stats_hash.started_at
-        timeslice_end  = stats_hash.harvested_at || Time.now
+        timeslice_end  = stats_hash.harvested_at || Process.clock_gettime(Process::CLOCK_REALTIME)
         metric_data_array = build_metric_data_array(stats_hash)
         result = invoke_remote(
           :metric_data,
-          [@agent_id, timeslice_start.to_f, timeslice_end.to_f, metric_data_array],
+          [@agent_id, timeslice_start, timeslice_end, metric_data_array],
           :item_count => metric_data_array.size
         )
         result
@@ -215,7 +215,7 @@ module NewRelic
         raise ArgumentError, "#{self.class}#shared_connection must be passed a block" unless block_given?
 
         begin
-          t0 = Time.now
+          t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           @in_session = true
           if NewRelic::Agent.config[:aggressive_keepalive]
             session_with_keepalive(&block)
@@ -223,7 +223,7 @@ module NewRelic
             session_without_keepalive(&block)
           end
         rescue *CONNECTION_ERRORS => e
-          elapsed = Time.now - t0
+          elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0
           raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to #{@collector} after #{elapsed} seconds: #{e}"
         ensure
           @in_session = false
@@ -412,7 +412,7 @@ module NewRelic
       # enough to be worth compressing, and handles any errors the
       # server may return
       def invoke_remote(method, payload = [], options = {})
-        start_ts = Time.now
+        start_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
         data, size, serialize_finish_ts, request_send_ts, response_check_ts = nil
         begin
@@ -420,7 +420,7 @@ module NewRelic
         rescue StandardError, SystemStackError => e
           handle_serialization_error(method, e)
         end
-        serialize_finish_ts = Time.now
+        serialize_finish_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
 
         data, encoding = compress_request_if_needed(data, method)
         size = data.size
@@ -443,13 +443,13 @@ module NewRelic
         full_uri = "#{endpoint_specific_collector}#{uri}"
 
         @audit_logger.log_request(full_uri, payload, @marshaller)
-        request_send_ts = Time.now
+        request_send_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         response = send_request(:data      => data,
                                 :uri       => uri,
                                 :encoding  => encoding,
                                 :collector => endpoint_specific_collector,
                                 :endpoint  => method)
-        response_check_ts = Time.now
+        response_check_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @marshaller.load(decompress_response(response))
       ensure
         record_timing_supportability_metrics(method, start_ts, serialize_finish_ts, request_send_ts, response_check_ts)
@@ -469,7 +469,7 @@ module NewRelic
 
       def record_timing_supportability_metrics(method, start_ts, serialize_finish_ts, request_send_ts, response_check_ts)
         serialize_time = serialize_finish_ts && (serialize_finish_ts - start_ts)
-        request_duration = response_check_ts && (response_check_ts - request_send_ts).to_f
+        request_duration = response_check_ts && (response_check_ts - request_send_ts)
         if request_duration
           NewRelic::Agent.record_metric("Supportability/Agent/Collector/#{method.to_s}/Duration", request_duration)
         end

@@ -64,7 +64,6 @@ module NewRelic
           destination[PARENT_TYPE_KEY] = trace_payload.parent_type
           destination[PARENT_APP_KEY] = trace_payload.parent_app_id
           destination[PARENT_ACCOUNT_ID_KEY] = trace_payload.parent_account_id
-
           destination[PARENT_TRANSPORT_DURATION_KEY] = transaction.calculate_transport_duration trace_payload
 
           if parent_transaction_id = transaction.distributed_tracer.parent_transaction_id

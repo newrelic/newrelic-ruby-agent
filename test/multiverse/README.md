@@ -16,7 +16,7 @@ painless.
 You can invoke this via rake
 
     rake test:multiverse
-  
+
 The first time you run this command on a new Ruby installation, it will take quite a long time (up to 1 hour). This is because bundler must download and install each tested version of each 3rd-party dependency. After the first run through, almost all external gem dependencies will be cached, so things won't take as long.
 
 ## Running Specific Tests and Environments
@@ -60,15 +60,15 @@ The Envfile is a meta gem file.  It allows you to specify one or more gemset
 that the tests in this directory should be run against.  For example:
 
     gemfile <<-GEMFILE
-      gem "rails", "~>3.2.0"
+      gem "rails", "~>6.1.0"
     GEMFILE
 
     gemfile <<-GEMFILE
-      gem "rails", "~>3.1.0"
+      gem "rails", "~>6.0.0"
     GEMFILE
 
-This will run these tests against 2 environments, one running rails 3.1, the
-other running rails 3.2.
+This will run these tests against 2 environments, one running rails 6.1, the
+other running rails 6.0.
 
 New Relic is automatically included in the environment.  Specifying it in the
 Envfile will trigger an error.  You can override where newrelic is loaded from

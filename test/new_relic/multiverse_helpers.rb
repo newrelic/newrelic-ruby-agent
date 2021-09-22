@@ -7,6 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), "..", "agent_helper")
 class Minitest::Test
   def after_teardown
     nr_unfreeze_time
+    nr_unfreeze_process_time
     super
   end
 end

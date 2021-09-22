@@ -67,7 +67,7 @@ module NewRelic
           if defined?(::Encoding::ASCII_8BIT)
             @in.set_encoding(::Encoding::ASCII_8BIT)
           end
-          @last_read = Time.now
+          @last_read = Process.clock_gettime(Process::CLOCK_REALTIME)
           @parent_pid = $$
         end
 
@@ -92,7 +92,7 @@ module NewRelic
 
         def read
           @in.close unless @in.closed?
-          @last_read = Time.now
+          @last_read = Process.clock_gettime(Process::CLOCK_REALTIME)
           length_bytes = @out.read(NUM_LENGTH_BYTES)
           if length_bytes
             message_length = deserialize_message_length(length_bytes)
@@ -171,11 +171,15 @@ module NewRelic
                 @pipes.values.map{|pipe| pipe.out} + [wake.out]
               end
 
-              NewRelic::Agent.record_metric('Supportability/Listeners',
-                (Time.now - now).to_f) if now
+              if now
+                NewRelic::Agent.record_metric(
+                  'Supportability/Listeners',
+                  Process.clock_gettime(Process::CLOCK_REALTIME) - now
+                )
+              end
 
               if ready = IO.select(pipes_to_listen_to, [], [], @select_timeout)
-                now = Time.now
+                now = Process.clock_gettime(Process::CLOCK_REALTIME)
 
                 ready_pipes = ready[0]
                 ready_pipes.each do |pipe|
@@ -257,7 +261,7 @@ module NewRelic
         def clean_up_pipes
           @pipes_lock.synchronize do
             @pipes.values.each do |pipe|
-              if pipe.last_read.to_f + @timeout < Time.now.to_f
+              if pipe.last_read + @timeout < Process.clock_gettime(Process::CLOCK_REALTIME)
                 pipe.close unless pipe.closed?
               end
             end

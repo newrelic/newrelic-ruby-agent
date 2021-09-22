@@ -228,9 +228,12 @@ module NewRelic
         def explain
           return unless explainable?
           handle_exception_in_explain do
-            start = Time.now
+            start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
             plan = @explainer.call(self)
-            ::NewRelic::Agent.record_metric("Supportability/Database/execute_explain_plan", Time.now - start)
+            ::NewRelic::Agent.record_metric(
+              "Supportability/Database/execute_explain_plan",
+              Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
+            )
             return process_resultset(plan, adapter) if plan
           end
         end

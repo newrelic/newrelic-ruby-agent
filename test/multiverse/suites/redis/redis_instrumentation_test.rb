@@ -43,7 +43,9 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/all" => { :call_count => 2 },
       "Datastore/allOther" => { :call_count => 2 },
       "Datastore/all" => { :call_count => 2 },
-      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 2 }
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 2 },
+      "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
+      "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther" => {:call_count => 1}
     }
 
     assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
@@ -168,7 +170,9 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/all" => { :call_count => 1 },
       "Datastore/allOther" => { :call_count => 1 },
       "Datastore/all" => { :call_count => 1 },
-      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 },
+      "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => { :call_count => 1 },
+      "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther" => { :call_count => 1 }
     }
     assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
   end
@@ -205,7 +209,9 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
       "Datastore/Redis/all" => { :call_count => 1 },
       "Datastore/allOther" => { :call_count => 1 },
       "Datastore/all" => { :call_count => 1 },
-      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 },
+      "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
+      "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther" => {:call_count => 1}
     }
     assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
   end

@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "helpers", "misc"))
+
 class BunnyTest < Minitest::Test
   include MultiverseHelpers
 
@@ -101,24 +103,26 @@ class BunnyTest < Minitest::Test
   end
 
   def test_segment_parameters_recorded_for_produce
-    x       = @chan.fanout "activity.events"
-    headers = {foo: "bar"}
-    in_transaction "test_txn" do
-      x.publish "howdy", {
-        routing_key: "red",
-        headers: headers,
-        reply_to: "blue",
-        correlation_id: "abc"
-      }
+    with_config(:'distributed_tracing.enabled' => false) do
+      x       = @chan.fanout "activity.events"
+      headers = {foo: "bar"}
+      in_transaction "test_txn" do
+        x.publish "howdy", {
+          routing_key: "red",
+          headers: headers,
+          reply_to: "blue",
+          correlation_id: "abc"
+        }
+      end
+  
+      node = find_node_with_name_matching last_transaction_trace, /^MessageBroker\//
+  
+      assert_equal :fanout, node.params[:exchange_type]
+      assert_equal "red", node.params[:routing_key]
+      assert_equal headers, node.params[:headers]
+      assert_equal "blue", node.params[:reply_to]
+      assert_equal "abc", node.params[:correlation_id]
     end
-
-    node = find_node_with_name_matching last_transaction_trace, /^MessageBroker\//
-
-    assert_equal :fanout, node.params[:exchange_type]
-    assert_equal "red", node.params[:routing_key]
-    assert_equal headers, node.params[:headers]
-    assert_equal "blue", node.params[:reply_to]
-    assert_equal "abc", node.params[:correlation_id]
   end
 
   def test_segment_parameters_recorded_for_consume
@@ -268,6 +272,8 @@ class BunnyTest < Minitest::Test
     rescue StandardError => e
       # NOP -- allowing span and transaction to notice error
     end
+
+    wait_until_not_nil(5) { txn }
 
     assert_segment_noticed_error txn, /^MessageBroker\/RabbitMQ/, "Timeout::Error", /timeout/i
     assert_transaction_noticed_error txn, "Timeout::Error"

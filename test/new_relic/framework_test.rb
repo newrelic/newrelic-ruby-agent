@@ -1,14 +1,12 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
-
 require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
 
 # Test logic around detecting or configuring framework
 class FrameworkTest < Minitest::Test
 
   def setup
-
     # muck with this constant which forces the agent to load the
     # NewRelic::Control::Frameworks::Test control so we can test the logic used
     # to load the appropriate control object.
@@ -30,14 +28,19 @@ class FrameworkTest < Minitest::Test
 
   def test_detects_framework_via_loaded_libraries
     class << self
-      module ::Merb
-        module Plugins
+      module ::Sinatra
+        module Base
         end
       end
     end
-    assert_equal :merb, NewRelic::Agent.config[:framework]
+
+    if ENV['BUNDLE_GEMFILE'].match(/rails\d/)
+      assert_truthy NewRelic::Agent.config[:framework].match(/rails/)
+    else
+      assert_equal :sinatra, NewRelic::Agent.config[:framework]
+    end
   ensure
-    Object.send(:remove_const, :Merb)
+    Object.send(:remove_const, :Sinatra)
   end
 
   def test_detects_framework_via_ENV_NEW_RELIC_FRAMEWORK

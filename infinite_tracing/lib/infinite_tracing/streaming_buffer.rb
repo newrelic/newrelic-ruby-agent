@@ -15,11 +15,11 @@ module NewRelic::Agent
       include Enumerable
       extend Forwardable
       def_delegators :@queue, :empty?, :num_waiting, :push
-      
+
       DEFAULT_QUEUE_SIZE = 10_000
       FLUSH_DELAY        = 0.005
       MAX_FLUSH_WAIT     = 3 # three seconds
-      
+
       attr_reader :queue
 
       def initialize max_size = DEFAULT_QUEUE_SIZE
@@ -29,7 +29,7 @@ module NewRelic::Agent
         @batch = Array.new
       end
 
-      # Dumps the contents of this streaming buffer onto 
+      # Dumps the contents of this streaming buffer onto
       # the given buffer and closes the queue
       def transfer new_buffer
         @lock.synchronize do
@@ -67,7 +67,7 @@ module NewRelic::Agent
         @queue.num_waiting.times { @queue.push nil }
         close_queue
 
-        # Logs if we're throwing away spans because nothing's 
+        # Logs if we're throwing away spans because nothing's
         # waiting to take them off the queue.
         if @queue.num_waiting == 0 && !@queue.empty?
           NewRelic::Agent.logger.warn "Discarding #{@queue.size} segments on Streaming Buffer"
@@ -75,8 +75,8 @@ module NewRelic::Agent
         end
 
         # Only wait a short while for queue to flush
-        cutoff = Time.now + MAX_FLUSH_WAIT
-        until @queue.empty? || Time.now >= cutoff do sleep(FLUSH_DELAY) end
+        cutoff = Process.clock_gettime(Process::CLOCK_MONOTONIC) + MAX_FLUSH_WAIT
+        until @queue.empty? || Process.clock_gettime(Process::CLOCK_MONOTONIC) >= cutoff do sleep(FLUSH_DELAY) end
       end
 
       def close_queue
@@ -87,9 +87,9 @@ module NewRelic::Agent
       # items off the queue while any items are present
       # If +nil+ is popped, the queue is closing.
       #
-      # The segment is transformed into a serializable 
+      # The segment is transformed into a serializable
       # span here so processing is taking place within
-      # the gRPC call's thread rather than in the main 
+      # the gRPC call's thread rather than in the main
       # application thread.
       def enumerator
         return enum_for(:enumerator) unless block_given?
@@ -106,16 +106,16 @@ module NewRelic::Agent
 
       # Returns the blocking enumerator that will pop
       # items off the queue while any items are present
-      # 
-      # yielding is deferred until batch_size spans is 
+      #
+      # yielding is deferred until batch_size spans is
       # reached.
       #
-      # If +nil+ is popped, the queue is closing. A 
+      # If +nil+ is popped, the queue is closing. A
       # final yield on non-empty batch is fired.
       #
-      # The segment is transformed into a serializable 
+      # The segment is transformed into a serializable
       # span here so processing is taking place within
-      # the gRPC call's thread rather than in the main 
+      # the gRPC call's thread rather than in the main
       # application thread.
       def batch_enumerator
         return enum_for(:enumerator) unless block_given?
@@ -139,7 +139,7 @@ module NewRelic::Agent
 
       def span_event proc_or_segment
         if proc_or_segment.is_a?(Proc)
-          proc_or_segment.call 
+          proc_or_segment.call
         else
           SpanEventPrimitive.for_segment(proc_or_segment)
         end

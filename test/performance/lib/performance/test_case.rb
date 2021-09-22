@@ -67,19 +67,19 @@ module Performance
 
     # This is used to get a rough approximation of the amount of time required
     # to call action once. We do this so that we will be able to run the actual
-    # timing loop in chunks of iterations, rather than calling Time.now in
-    # between every iteration.
+    # timing loop in chunks of iterations, rather than calling Process.clock_gettime
+    # in between every iteration.
     def estimate_time_per_iteration(action, duration)
-      start_time = Time.now
+      start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       deadline = start_time + duration
       
       iterations = 0
-      while Time.now < deadline
+      while Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
         action.call
         iterations += 1
       end
-      
-      (Time.now - start_time) / iterations
+
+      (Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time) / iterations
     end
 
     def estimate_iterations_per_unit_time(time_per_iteration, desired_duration)
@@ -93,9 +93,9 @@ module Performance
     end
 
     def run_block_in_batches(blk, duration, batch_size)
-      deadline = Time.now + duration
+      deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + duration
       total_iterations = 0
-      while Time.now < deadline
+      while Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
         batch_iterations = 0
         while batch_iterations < batch_size
           blk.call
@@ -123,13 +123,13 @@ module Performance
       batch_size = batch_size_in_iterations(blk) unless target_iterations
 
       with_callbacks(@result.test_name, false) do
-        start_time = Time.now
+        start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         if target_iterations
           total_iterations = run_block_n_times(blk, target_iterations)
         else
           total_iterations = run_block_in_batches(blk, target_duration, batch_size)
         end
-        elapsed = Time.now - start_time
+        elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
       end
 
       @result.iterations            = total_iterations

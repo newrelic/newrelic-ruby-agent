@@ -46,7 +46,7 @@ module NewRelic
       # NOTE: response_object should be non-nil!
       class AbstractResponse # :nodoc:
 
-        def initialize wrapped_response
+        def initialize(wrapped_response)
           if wrapped_response.nil? 
             raise ArgumentError, WHINY_NIL_ERROR % self.class
           end
@@ -65,7 +65,7 @@ module NewRelic
 
         private 
 
-        def get_status_code_using method_name
+        def get_status_code_using(method_name)
           return unless @wrapped_response.respond_to?(method_name)
           code = @wrapped_response.send(method_name).to_i
           code == 0 ? nil : code

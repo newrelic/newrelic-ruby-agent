@@ -10,36 +10,36 @@ class HarvestTimestampsTest < Minitest::Test
   setup_and_teardown_agent
 
   def test_resets_metric_data_timestamps_after_forking
-    nr_freeze_time
+    nr_freeze_process_time
 
-    t1 = advance_time 10
+    t1 = advance_process_time 10
 
     simulate_fork
     NewRelic::Agent.after_fork
 
-    t2 = advance_time 10
+    t2 = advance_process_time 10
     trigger_metric_data_post
 
     metric_data_post = $collector.calls_for('metric_data').first
     start_ts, end_ts = metric_data_post[1..2]
 
-    assert_equal(t1.to_f, start_ts)
-    assert_equal(t2.to_f, end_ts)
+    assert_equal(t1, start_ts)
+    assert_equal(t2, end_ts)
   end
 
   def test_start_timestamp_maintained_on_harvest_failure
-    t0 = nr_freeze_time.to_f
+    t0 = nr_freeze_process_time
 
     simulate_fork
     NewRelic::Agent.after_fork
 
     $collector.stub('metric_data', {}, 503)
-    t1 = advance_time(10).to_f
+    t1 = advance_process_time(10)
     trigger_metric_data_post
     first_post = last_metric_data_post
 
     $collector.reset
-    t2 = advance_time(10).to_f
+    t2 = advance_process_time(10)
     trigger_metric_data_post
     second_post = last_metric_data_post
 

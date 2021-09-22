@@ -198,7 +198,7 @@ module NewRelic
       :excon =>
       {
         :type        => :http,
-        :supported   => [ ">= 0.10.1" ],
+        :supported   => [ ">= 0.19.0" ],
         :url         => "https://rubygems.org/gems/excon",
         :feed        => "https://rubygems.org/gems/excon/versions.atom"
       },

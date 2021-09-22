@@ -15,7 +15,7 @@ module NewRelic
         ALL_QUEUE_METRIC        = 'WebFrontend/QueueTime'.freeze
         # any timestamps before this are thrown out and the parser
         # will try again with a larger unit (2000/1/1 UTC)
-        EARLIEST_ACCEPTABLE_TIME = Time.at(946684800)
+        EARLIEST_ACCEPTABLE_TIME = Time.at(946684800).to_f
 
         CANDIDATE_HEADERS = [
           REQUEST_START_HEADER,
@@ -27,7 +27,7 @@ module NewRelic
 
         module_function
 
-        def parse_frontend_timestamp(headers, now=Time.now)
+        def parse_frontend_timestamp(headers, now=Process.clock_gettime(Process::CLOCK_REALTIME))
           earliest = nil
 
           CANDIDATE_HEADERS.each do |header|
@@ -40,7 +40,7 @@ module NewRelic
           end
 
           if earliest && earliest > now
-            NewRelic::Agent.logger.debug("Negative queue time detected, treating as zero: start=#{earliest.to_f} > now=#{now.to_f}")
+            NewRelic::Agent.logger.debug("Negative queue time detected, treating as zero: start=#{earliest.to_f} > now=#{now}")
             earliest = now
           end
 
@@ -59,7 +59,7 @@ module NewRelic
         def parse_timestamp(string)
           DIVISORS.each do |divisor|
             begin
-              t = Time.at(string.to_f / divisor)
+              t = (string.to_f / divisor)
               return t if t > EARLIEST_ACCEPTABLE_TIME
             rescue RangeError
               # On Ruby versions built with a 32-bit time_t, attempting to

@@ -42,9 +42,9 @@ class GCRailsInstrumentationTest < ActionController::TestCase
   end
 
   def test_records_accurate_time_for_gc_activity
-    start = Time.now
+    start = Process.clock_gettime(Process::CLOCK_REALTIME)
     get :gc_action
-    elapsed = Time.now.to_f - start.to_f
+    elapsed = Process.clock_gettime(Process::CLOCK_REALTIME) - start
 
     stats_hash = NewRelic::Agent.instance.stats_engine.reset!
 
@@ -56,9 +56,9 @@ class GCRailsInstrumentationTest < ActionController::TestCase
   end
 
   def test_records_transaction_param_for_gc_activity
-    start = Time.now.to_f
+    start = Process.clock_gettime(Process::CLOCK_REALTIME)
     get :gc_action
-    elapsed = Time.now.to_f - start
+    elapsed = Process.clock_gettime(Process::CLOCK_REALTIME) - start
 
     trace = last_transaction_trace
     assert_in_range(elapsed, attributes_for(trace, :intrinsic)[:gc_time])

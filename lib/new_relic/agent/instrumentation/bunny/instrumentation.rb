@@ -65,7 +65,7 @@ module NewRelic
           def pop_with_tracing
             bunny_error, delivery_info, message_properties, _payload = nil, nil, nil, nil
             begin
-              t0 = Time.now
+              t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
               msg = yield
               delivery_info, message_properties, _payload = msg
             rescue StandardError => error

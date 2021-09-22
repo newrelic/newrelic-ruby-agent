@@ -33,7 +33,7 @@ class NewRelic::NoticedError
   ERROR_CLASS_KEY    = "#{ERROR_PREFIX_KEY}.class"
   ERROR_EXPECTED_KEY = "#{ERROR_PREFIX_KEY}.expected"
 
-  def initialize(path, exception, timestamp = Time.now, expected = false)
+  def initialize(path, exception, timestamp = Process.clock_gettime(Process::CLOCK_REALTIME), expected = false)
     @exception_id = exception.object_id
     @path = path
 
@@ -139,7 +139,7 @@ class NewRelic::NoticedError
       ERROR_MESSAGE_KEY => string(message),
       ERROR_CLASS_KEY => string(exception_class_name)
     })
-    
+
     @attributes_from_notice_error[ERROR_EXPECTED_KEY] = true if expected
   end
 

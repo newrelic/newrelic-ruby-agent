@@ -43,7 +43,7 @@ module NewRelic::Agent
         NewRelic::Agent::CrossAppTracing.stubs(:obfuscator).returns(@obfuscator)
         NewRelic::Agent::CrossAppTracing.stubs(:valid_encoding_key?).returns(true)
         NewRelic::Agent.instance.span_event_aggregator.stubs(:enabled?).returns(true)
-        nr_freeze_time
+        nr_freeze_process_time
       end
 
       def teardown
@@ -116,22 +116,23 @@ module NewRelic::Agent
             segment.process_response_headers response
             segment.finish
           end
+
+
+          expected_metrics = [
+            "External/remotehost.com/Net::HTTP/GET",
+            "External/all",
+            "External/remotehost.com/all",
+            "External/allWeb",
+            ["External/remotehost.com/Net::HTTP/GET", "test"]
+          ]
+
+          if Agent.config[:'distributed_tracing.enabled']
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
+          end
+
+          assert_metrics_recorded expected_metrics
         end
-
-        expected_metrics = [
-          "External/remotehost.com/Net::HTTP/GET",
-          "External/all",
-          "External/remotehost.com/all",
-          "External/allWeb",
-          ["External/remotehost.com/Net::HTTP/GET", "test"]
-        ]
-
-        if Agent.config[:'distributed_tracing.enabled']
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
-        end
-
-        assert_metrics_recorded expected_metrics
       end
 
       def test_segment_records_noncat_metrics_without_valid_cross_process_id
@@ -151,22 +152,23 @@ module NewRelic::Agent
             segment.process_response_headers response
             segment.finish
           end
+
+
+          expected_metrics = [
+            "External/remotehost.com/Net::HTTP/GET",
+            "External/all",
+            "External/remotehost.com/all",
+            "External/allWeb",
+            ["External/remotehost.com/Net::HTTP/GET", "test"]
+          ]
+
+          if Agent.config[:'distributed_tracing.enabled']
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
+          end
+
+          assert_metrics_recorded expected_metrics
         end
-
-        expected_metrics = [
-          "External/remotehost.com/Net::HTTP/GET",
-          "External/all",
-          "External/remotehost.com/all",
-          "External/allWeb",
-          ["External/remotehost.com/Net::HTTP/GET", "test"]
-        ]
-
-        if Agent.config[:'distributed_tracing.enabled']
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
-        end
-
-        assert_metrics_recorded expected_metrics
       end
 
       def test_segment_records_noncat_metrics_without_valid_encoding_key
@@ -187,22 +189,22 @@ module NewRelic::Agent
             segment.process_response_headers response
             segment.finish
           end
+
+          expected_metrics = [
+            "External/remotehost.com/Net::HTTP/GET",
+            "External/all",
+            "External/remotehost.com/all",
+            "External/allWeb",
+            ["External/remotehost.com/Net::HTTP/GET", "test"]
+          ]
+
+          if Agent.config[:'distributed_tracing.enabled']
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
+          end
+
+          assert_metrics_recorded expected_metrics
         end
-
-        expected_metrics = [
-          "External/remotehost.com/Net::HTTP/GET",
-          "External/all",
-          "External/remotehost.com/all",
-          "External/allWeb",
-          ["External/remotehost.com/Net::HTTP/GET", "test"]
-        ]
-
-        if Agent.config[:'distributed_tracing.enabled']
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
-        end
-
-        assert_metrics_recorded expected_metrics
       end
 
       def test_segment_records_expected_metrics_for_cat_transaction
@@ -220,23 +222,24 @@ module NewRelic::Agent
             segment.process_response_headers response
             segment.finish
           end
+
+
+          expected_metrics = [
+            "ExternalTransaction/newrelic.com/1#1884/txn-name",
+            "ExternalApp/newrelic.com/1#1884/all",
+            "External/all",
+            "External/newrelic.com/all",
+            "External/allWeb",
+            ["ExternalTransaction/newrelic.com/1#1884/txn-name", "test"]
+          ]
+
+          if Agent.config[:'distributed_tracing.enabled']
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
+            expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
+          end
+
+          assert_metrics_recorded expected_metrics
         end
-
-        expected_metrics = [
-          "ExternalTransaction/newrelic.com/1#1884/txn-name",
-          "ExternalApp/newrelic.com/1#1884/all",
-          "External/all",
-          "External/newrelic.com/all",
-          "External/allWeb",
-          ["ExternalTransaction/newrelic.com/1#1884/txn-name", "test"]
-        ]
-
-        if Agent.config[:'distributed_tracing.enabled']
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all"
-          expected_metrics << "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
-        end
-
-        assert_metrics_recorded expected_metrics
       end
 
       def test_proper_metrics_recorded_for_distributed_trace_on_receiver
@@ -253,7 +256,7 @@ module NewRelic::Agent
 
           NewRelic::Agent.drop_buffered_data
           transport_type = nil
-          
+
           in_transaction "test_txn2", :category => :controller do |txn|
             txn.distributed_tracer.accept_distributed_trace_payload payload.text
             segment = Tracer.start_external_request_segment(
@@ -420,7 +423,7 @@ module NewRelic::Agent
         end
       end
 
-      # Can pass :status_code and any HTTP code in headers to alter 
+      # Can pass :status_code and any HTTP code in headers to alter
       # default 200 (OK) HTTP status code
       def with_external_segment headers, config, segment_params
         segment = nil
@@ -762,7 +765,7 @@ module NewRelic::Agent
       end
 
       def test_sets_start_time_from_api
-        t = Time.now
+        t = Process.clock_gettime(Process::CLOCK_REALTIME)
 
         in_transaction do |txn|
 
@@ -795,10 +798,10 @@ module NewRelic::Agent
                                                  "GET"
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
 
-            timestamp = Integer(segment.start_time.to_f * 1000.0)
+            timestamp = Integer(segment.start_time * 1000.0)
 
             trace_id = txn.trace_id
             txn_guid = txn.guid
@@ -834,7 +837,7 @@ module NewRelic::Agent
       def test_urls_are_filtered
         with_config(distributed_tracing_config) do
           segment   = nil
-          filtered_url = "https://remotehost.com/bar/baz"                                      
+          filtered_url = "https://remotehost.com/bar/baz"
 
           in_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(true)
@@ -844,7 +847,7 @@ module NewRelic::Agent
                                                  "GET"
             txn.add_segment segment
             segment.start
-            advance_time 1.0
+            advance_process_time 1.0
             segment.finish
           end
 
@@ -866,7 +869,7 @@ module NewRelic::Agent
                                                "GET"
           txn.add_segment segment
           segment.start
-          advance_time 1.0
+          advance_process_time 1.0
           segment.finish
         end
 

@@ -110,11 +110,11 @@ else
     end
 
     def test_is_ready_to_harvest_if_duration_has_elapsed
-      nr_freeze_time
+      nr_freeze_process_time
       @profiler.start(start_command)
       assert_false @profiler.ready_to_harvest?
 
-      advance_time(0.026)
+      advance_process_time(0.026)
       assert @profiler.ready_to_harvest?
     end
 
@@ -197,10 +197,10 @@ else
     end
 
     def test_harvested_profile_doesnt_still_report_as_ready_to_harvest
-      nr_freeze_time
+      nr_freeze_process_time
       @profiler.handle_start_command(start_command)
 
-      advance_time(1.0)
+      advance_process_time(1.0)
       @profiler.stop(true)
       assert @profiler.ready_to_harvest?
 

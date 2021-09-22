@@ -45,13 +45,16 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     run_task_inner(0)
     assert_metrics_recorded_exclusive([
       'Supportability/API/perform_action_with_newrelic_trace',
+      'Supportability/API/recording_web_transaction?',
       'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
       'Apdex/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
       'WebTransactionTotalTime',
       'WebTransactionTotalTime/Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0',
       'HttpDispatcher',
       'ApdexAll',
-      'Apdex'
+      'Apdex',
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all',
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb',
     ])
   end
 

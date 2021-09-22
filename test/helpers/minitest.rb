@@ -27,6 +27,7 @@ class Minitest::Test
 
   def after_teardown
     nr_unfreeze_time
+    nr_unfreeze_process_time
 
     threads = ruby_threads
     if @__thread_count != threads.count

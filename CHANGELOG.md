@@ -1,5 +1,102 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.0.0
+
+  * **`add_method_tracer` refactored to use prepend over alias_method chaining**
+
+    This release overhauls the implementation of `add_method_tracer`, as detailed in [issue #502](https://github.com/newrelic/newrelic-ruby-agent/issues/502). The main breaking updates are as follows:
+    - A metric name passed to `add_method_tracer` will no longer be interpolated in an instance context as before. To maintain this behavior, pass a Proc object with the same arity as the method being traced. For example:
+      ```ruby
+        # OLD
+        add_method_tracer :foo, '#{args[0]}.#{args[1]}'
+
+        # NEW
+        add_method_tracer :foo, -> (*args) { "#{args[0]}.#{args[1]}" }
+      ```
+
+    - Similarly, the `:code_header` and `:code_footer` options to `add_method_tracer` will *only* accept a Proc object, which will be bound to the calling instance when the traced method is invoked.
+
+    - Calling `add_method_tracer` for a method will overwrite any previously defined tracers for that method. To specify multiple metric names for a single method tracer, pass them to `add_method_tracer` as an array.
+
+    See updated documentation on the following pages for full details:
+    - [Ruby Custom Instrumentation: Method Tracers](https://docs.newrelic.com/docs/agents/ruby-agent/api-guides/ruby-custom-instrumentation/#method_tracers)
+    - [MethodTracer::ClassMethods#add_method_tracer](https://rubydoc.info/github/newrelic/newrelic-ruby-agent/NewRelic/Agent/MethodTracer/ClassMethods#add_method_tracer-instance_method)
+
+
+  * **Distributed tracing is enabled by default**
+
+    [Distributed tracing](https://docs.newrelic.com/docs/distributed-tracing/enable-configure/language-agents-enable-distributed-tracing/) tracks and observes service requests as they flow through distributed systems. Distributed tracing is now enabled by default and replaces [cross application tracing](https://docs.newrelic.com/docs/agents/ruby-agent/features/cross-application-tracing-ruby/).
+
+  * **Bugfix: Incorrectly loading configuration options from newrelic.yml**
+
+    The agent will now  import the configuration options [`error_collector.ignore_messages`](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#error_collector-ignore_messages) and [`error_collector.expected_messages`](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#error_collector-expected_messages) from the `newrelic.yml` file correctly.
+
+  * **Cross Application is now deprecated, and disabled by default**
+
+    [Distributed tracing](https://docs.newrelic.com/docs/distributed-tracing/enable-configure/language-agents-enable-distributed-tracing/) is replacing [cross application tracing](https://docs.newrelic.com/docs/agents/ruby-agent/features/cross-application-tracing-ruby/) as the default means of tracing between services. To continue using it, enable it with `cross_application_tracer.enabled: true` and `distributed_tracing.enabled: false`
+
+  * **Update configuration option default value for `span_events.max_samples_stored` from 1000 to 2000**
+
+    For more information about this congfiguration option, visit [the Ruby agent documentation](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#span_events-max_samples_stored).
+
+  * **Agent now enforces server supplied maximum value for configuration option `span_events.max_samples_stored`**
+
+    Upon connection to the New Relic servers, the agent will now enforce a maximum value allowed for the configuration option [`span_events.max_samples_stored`](https://docs.newrelic.com/docs/agents/ruby-agent/configuration/ruby-agent-configuration/#span_events-max_samples_stored) sent from the New Relic servers.
+
+  * **Remove Ruby 2.0 required kwarg compatibility checks**
+
+    Our agent has code that provides compatibility for required keyword arguments in Ruby versions below 2.1. Since the agent now only supports Ruby 2.2+, this code is no longer required.
+
+  * **Replace Time.now with Process.clock_gettime**
+
+    Calls to `Time.now` have been replaced with calls to `Process.clock_gettime` to leverage the system's built-in clocks for elapsed time (`Process::CLOCK_MONOTONIC`) and wall-clock time (`Process::CLOCK_REALTIME`). This results in fewer object allocations, more accurate elapsed time records, and enhanced performance. Thanks to @sdemjanenko and @viraptor for advocating for this change!
+
+  * **Updated generated default newrelic.yml**
+
+    Thank you @wyhaines and @creaturenex for your contribution. The default newrelic.yml that the agent can generate is now updated with commented out examples of all configuration options.
+
+  * **Bugfix: Psych 4.0 causes errors when loading newrelic.yml**
+
+    Psych 4.0 now uses safe load behavior when using `YAML.load` which by default doesn't allow aliases, causing errors when the agent loads the config file. We have updated how we load the config file to avoid these errors.
+
+  * **Remove support for Excon versions below 0.19.0**
+
+    Excon versions below 0.19.0 will no longer be instrumented through the Ruby agent.
+
+  * **Remove support for Mongo versions below 2.1**
+
+    Mongo versions below 2.1 will no longer be instrumented through the Ruby agent.
+
+  * **Remove tests for Rails 3.0 and Rails 3.1**
+
+    As of the 7.0 release, the Ruby agent stopped supporting Rails 3.0 and Rails 3.1. Despite this, we still had tests for these versions running on the agent's CI. Those tests are now removed.
+
+  * **Update test Gemfiles for patched versions**
+
+    The gem has individual Gemfiles it uses to test against different common user setups. Rails 5.2, 6.0, and 6.1 have been updated to the latest patch versions in the test Gemfiles. Rack was updated in the Rails61 test suite to 2.1.4 to resolve a security vulnerability.
+
+  * **Remove Merb Support**
+
+    This release removes the remaining support for the [Merb](https://weblog.rubyonrails.org/2008/12/23/merb-gets-merged-into-rails-3/) framework. It merged with Rails during the 3.0 release. Now that the Ruby agent supports Rails 3.2 and above, we thought it was time to say goodbye.
+
+  * **Remove deprecated method External.start_segment**
+
+    The method `NewRelic::Agent::External.start_segment` has been deprecated as of Ruby Agent 6.0.0. This method is now removed.
+
+  * **Added testing and support for the following gem versions**
+
+    - activemerchant 1.121.0
+    - bunny 2.19.0
+    - excon 0.85.0
+    - mongo 2.14.0, 2.15.1
+    - padrino 0.15.1
+    - resque 2.1.0
+    - sequel 5.48.0
+    - yajl-ruby 1.4.1
+
+  * **This version adds support for ARM64/Graviton2 platform using Ruby 3.0.2+**
+
+
   ## v7.2.0
 
   * **Expected Errors and Ignore Errors**
@@ -17,23 +114,22 @@
     Thanks to @wyhaines for this fix that prevents "can't add a new key into hash during iteration" errors from occuring when iterating over environment data.
 
   * **Bugfix: kwarg support fixed for Rack middleware instrumentation**
-   
-    Thanks to @walro for submitting this fix. This fixes the rack instrumentation when using kwargs. 
+
+    Thanks to @walro for submitting this fix. This fixes the rack instrumentation when using kwargs.
 
   * **Update known conflicts with use of Module#Prepend**
 
     With our release of v7.0.0, we updated our instrumentation to use Module#Prepend by default, instead of method chaining. We have received reports of conflicts and added a check for these known conflicts. If a known conflict with prepend is detected while using the default value of 'auto' for gem instrumentation, the agent will instead install method chaining instrumentation in order to avoid this conflict. This check can be bypassed by setting the instrumentation method for the gem to 'prepend'.
 
-
   ## v7.1.0
 
   * **Add support for CSP nonces when using our API to insert the browser agent**
-  
+
     We now support passing in a nonce to our API method `browser_timing_header` to allow the browser agent to run on applications using CSP nonces. This allows users to inject the browser agent themselves and use the nonce required for the script to run. In order to utilize this new feature, you must disable auto instrumentation for the browser agent, and use the API method browser_timing_header to pass the nonce in and inject the script manually.
-    
+
   * **Removed MD5 use in the SQL sampler**
 
-    In order to allow the agent to run in FIPS compliant environments, the usage of MD5 for aggregating slow sql traces has been replaced with SHA1. 
+    In order to allow the agent to run in FIPS compliant environments, the usage of MD5 for aggregating slow sql traces has been replaced with SHA1.
 
   * **Enable server-side configuration of distributed tracing**
 
@@ -41,7 +137,7 @@
 
   * **Bugfix: Fix for missing part of a previous bugfix**
 
-    Our previous fix of "nil Middlewares injection now prevented and gracefully handled in Sinatra" released in 7.0.0 was partially overwritten by some of the other changes in that release. This release adds back those missing sections of the bugfix, and should resolve the issue for sinatra users. 
+    Our previous fix of "nil Middlewares injection now prevented and gracefully handled in Sinatra" released in 7.0.0 was partially overwritten by some of the other changes in that release. This release adds back those missing sections of the bugfix, and should resolve the issue for sinatra users.
 
   * **Update known conflicts with use of Module#Prepend**
 
@@ -60,8 +156,8 @@
     correctly when running in a non-forking Resque worker process.
 
   * **Bugfix: Added check for ruby2_keywords in add_transaction_tracer**
-    
-    Thanks @beauraF for the contribution! Previously, the add_transaction_tracer was not updated when we added support for ruby 3. In order to correctly support `**kwargs`,  ruby2_keywords was added to correctly update the method signature to use **kwargs in ruby versions that support that. 
+
+    Thanks @beauraF for the contribution! Previously, the add_transaction_tracer was not updated when we added support for ruby 3. In order to correctly support `**kwargs`,  ruby2_keywords was added to correctly update the method signature to use **kwargs in ruby versions that support that.
 
   * **Confirmed support for yajl 1.4.0**
 

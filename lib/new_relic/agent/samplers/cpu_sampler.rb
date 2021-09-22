@@ -48,7 +48,7 @@ module NewRelic
         end
 
         def poll
-          now = Time.now
+          now = Process.clock_gettime(Process::CLOCK_MONOTONIC)
           t = Process.times
 
           if @last_time && t.utime != 0.0 && t.stime != 0.0

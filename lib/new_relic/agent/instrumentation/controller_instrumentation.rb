@@ -277,7 +277,7 @@ module NewRelic
         end
 
         # Yield to the given block with NewRelic tracing.  Used by
-        # default instrumentation on controller actions in Rails and Merb.
+        # default instrumentation on controller actions in Rails.
         # But it can also be used in custom instrumentation of controller
         # methods and background tasks.
         #
