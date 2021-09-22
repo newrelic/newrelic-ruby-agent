@@ -535,7 +535,7 @@ module NewRelic
           :type => Float,
           :allowed_from_server => true,
           :deprecated => true,
-          :description => 'Deprecated. For agent versions 3.5.0 or higher, [set your Apdex T via the New Relic UI](/docs/apm/new-relic-apm/apdex/changing-your-apdex-settings).'
+          :description => 'For agent versions 3.5.0 or higher, [set your Apdex T via the New Relic UI](/docs/apm/new-relic-apm/apdex/changing-your-apdex-settings).'
         },
         :'strip_exception_messages.enabled' => {
           :default => value_of(:high_security),
@@ -1152,7 +1152,7 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => 'Deprecated; use [`transaction_tracer.attributes.enabled`](#transaction_tracer-attributes-enabled) instead.'
+          :description => 'Use [`transaction_tracer.attributes.enabled`](#transaction_tracer-attributes-enabled) instead.'
         },
         :'transaction_tracer.explain_threshold' => {
           :default => 0.5,
@@ -1195,7 +1195,7 @@ module NewRelic
           :type => Boolean,
           :allowed_from_server => false,
           :deprecated => true,
-          :description => 'Deprecated; use [`disable_sequel_instrumentation`](#disable_sequel_instrumentation) instead.'
+          :description => 'Use [`disable_sequel_instrumentation`](#disable_sequel_instrumentation) instead.'
         },
         :disable_mongo => {
           :default      => false,
@@ -1291,7 +1291,7 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => 'Deprecated; use [`error_collector.attributes.enabled`](#error_collector-attributes-enabled) instead.'
+          :description => 'Use [`error_collector.attributes.enabled`](#error_collector-attributes-enabled) instead.'
         },
         :'error_collector.ignore_errors' => {
           :default => 'ActionController::RoutingError,Sinatra::NotFound',
@@ -1299,7 +1299,7 @@ module NewRelic
           :type => String,
           :allowed_from_server => true,
           :dynamic_name => true,
-          :description => 'DEPRECATED; use `error_collector.ignore_classes` instead. Specify a comma-delimited list of error classes that the agent should ignore.'
+          :description => 'Use `error_collector.ignore_classes` instead. Specify a comma-delimited list of error classes that the agent should ignore.'
         },
         :'error_collector.ignore_classes' => {
           :default => [],
@@ -1426,7 +1426,7 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => 'Deprecated; use [`browser_monitoring.attributes.enabled`](#browser_monitoring-attributes-enabled) instead.'
+          :description => 'Use [`browser_monitoring.attributes.enabled`](#browser_monitoring-attributes-enabled) instead.'
         },
         :'browser_monitoring.loader' => {
           :default => DefaultSource.browser_monitoring_loader,
@@ -1554,7 +1554,7 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => 'Deprecated; use [`transaction_events.attributes.enabled`](#transaction_events-attributes-enabled) instead.'
+          :description => 'Use [`transaction_events.attributes.enabled`](#transaction_events-attributes-enabled) instead.'
         },
         :restart_thread_in_children => {
           :default => true,
