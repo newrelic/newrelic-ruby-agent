@@ -94,7 +94,9 @@
     - sequel 5.48.0
     - yajl-ruby 1.4.1
 
-    
+  * **This version adds support for ARM64/Graviton2 platform using Ruby 3.0.2+**
+
+
   ## v7.2.0
 
   * **Expected Errors and Ignore Errors**
