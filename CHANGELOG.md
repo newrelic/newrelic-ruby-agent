@@ -1,5 +1,16 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.1.0
+
+  * **Bugfix: Allow Net::HTTP request to IPv6 addresses**
+
+     The agent will no longer raise an `URI::InvalidURIError` error if an IPv6 address is passed to Net::HTTP. Thank you @tristinbarnett and @tabathadelane for crafting a solution!
+
+  * **Bugfix: Allow integers to be passed to error_collector.ignore_status_codes configuration**
+
+    Integers not wrapped in quotation marks can be passed to `error_collector.ignore_status_codes` in the `newrelic.yml` file. Our thanks goes to @elaguerta and @brammerl for resolving this issue!
+
+
   ## v8.0.0
 
   * **`add_method_tracer` refactored to use prepend over alias_method chaining**
