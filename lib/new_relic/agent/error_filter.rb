@@ -29,7 +29,8 @@ module NewRelic
       def load_from_config(setting, value = nil)
         errors = nil
         new_value = value || fetch_agent_config(setting.to_sym)
-        return if new_value.nil? || new_value.empty?
+
+        return if new_value.nil? || (new_value.respond_to?(:empty?) && new_value.empty?)
 
         case setting.to_sym
         when :ignore_errors, :ignore_classes
@@ -50,7 +51,7 @@ module NewRelic
       end
 
       def ignore?(ex, status_code = nil)
-        @ignore_classes.include?(ex.class.name) || 
+        @ignore_classes.include?(ex.class.name) ||
           (@ignore_messages.keys.include?(ex.class.name) &&
           @ignore_messages[ex.class.name].any? { |m| ex.message.include?(m) }) ||
           @ignore_status_codes.include?(status_code.to_i)
@@ -145,7 +146,14 @@ module NewRelic
       end
 
       def parse_status_codes(codes)
-        code_list = codes.is_a?(String) ? codes.split(',') : codes
+        code_list = case codes
+          when String
+            codes.split(',')
+          when Integer
+            [codes]
+          else
+            codes
+          end
         result = []
         code_list.each do |code|
           result << code && next if code.is_a?(Integer)

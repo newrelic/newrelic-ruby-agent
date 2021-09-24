@@ -90,6 +90,13 @@ module NewRelic::Agent
         end
       end
 
+      def test_ignore_integer_status_codes
+        with_config :'error_collector.ignore_status_codes' => 418 do
+          @error_filter.load_all
+          assert @error_filter.ignore?(TestExceptionA.new, 418)
+        end
+      end
+
       # compatibility for deprecated config setting
       def test_ignore_errors
         with_config :'error_collector.ignore_errors' => 'TestExceptionA,TestExceptionC' do
