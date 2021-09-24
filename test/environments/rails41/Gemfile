@@ -1,7 +1,6 @@
 source 'https://rubygems.org'
 
 gem 'rake', '~> 12.3.3'
-gem 'rack', '>= 2.1.4'
 gem 'rails', '~>4.1.10'
 
 gem 'minitest', '5.2.3'
