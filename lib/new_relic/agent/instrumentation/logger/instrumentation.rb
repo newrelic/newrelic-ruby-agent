@@ -18,22 +18,36 @@ module NewRelic
           @skip_instrumenting = false
         end
 
+        LINES = "Logging/lines".freeze
+        SIZE = "Logging/size".freeze
+
+        def line_metric_name_by_severity(sev)
+          @line_metrics ||= {}
+          @line_metrics[sev] ||= "Logging/lines/#{sev}".freeze
+        end
+
+        def size_metric_name_by_severity(sev)
+          @size_metrics ||= {}
+          @size_metrics[sev] ||= "Logging/size/#{sev}".freeze
+        end
+
+
         def format_message_with_tracing(severity, datetime, progname, msg)
           formatted_message = yield
           return formatted_message if skip_instrumenting?
 
           begin
             # It's critical we don't instrumention further logging from our
-            # metric recording or we'll stack overflow!!
+            # metric recording in the agent itself or we'll stack overflow!!
             mark_skip_instrumenting
 
             sev = severity || UNKNOWN
-            NewRelic::Agent.increment_metric("Logging/lines")
-            NewRelic::Agent.increment_metric("Logging/lines/#{sev}")
+            NewRelic::Agent.increment_metric(LINES)
+            NewRelic::Agent.increment_metric(line_metric_name_by_severity(sev))
 
             size = formatted_message.nil? ? 0 : formatted_message.length
-            NewRelic::Agent.record_metric("Logging/size", size)
-            NewRelic::Agent.record_metric("Logging/size/#{sev}", size)
+            NewRelic::Agent.record_metric(SIZE, size)
+            NewRelic::Agent.record_metric(size_metric_name_by_severity(sev), size)
 
             return formatted_message
           ensure
