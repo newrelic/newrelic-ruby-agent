@@ -18,11 +18,10 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info  "YOLO"
-    #if use_prepend?
-      #prepend_instrument ::Logger, NewRelic::Agent::Instrumentation::Logger::Prepend
-    #else
-      #chain_instrument NewRelic::Agent::Instrumentation::Logger::Chain
-    #end
+    if use_prepend?
+      prepend_instrument ::Logger, NewRelic::Agent::Instrumentation::Logger::Prepend
+    else
+      chain_instrument NewRelic::Agent::Instrumentation::Logger::Chain
+    end
   end
 end
