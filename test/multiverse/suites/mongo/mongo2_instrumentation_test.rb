@@ -343,7 +343,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               "Logging/size" => {},
               "Logging/size/DEBUG" => {},
               "Supportability/API/increment_metric" => {},
-              "Supportability/API/record_metric" = {},
+              "Supportability/API/record_metric" => {},
             }
             assert_metrics_recorded_exclusive expected
           end
