@@ -4,7 +4,6 @@ if RUBY_VERSION >= '2.5.0'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '2.0.0'
     gem 'minitest', '5.2.3'
-    gem 'i18n', '< 1.8.8' if RUBY_PLATFORM == 'java' # NoMethodError: undefined method `deep_merge!' for {}:Concurrent::Hash
     #{ruby3_gem_webrick}
   RB
 end
@@ -16,7 +15,6 @@ if RUBY_VERSION >= '2.5.0' && RUBY_VERSION < '3.0.0'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '2.0.0'
     gem 'minitest', '5.2.3'
-    gem 'i18n', '< 1.8.8' if RUBY_PLATFORM == 'java' # NoMethodError: undefined method `deep_merge!' for {}:Concurrent::Hash
   RB
 
 end
@@ -28,7 +26,6 @@ if RUBY_VERSION >= '2.2.2' && RUBY_VERSION < '3.0.0'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '~>1.0.0'
     gem 'minitest', '5.2.3'
-    gem 'i18n', '< 1.8.8' if RUBY_PLATFORM == 'java' # NoMethodError: undefined method `deep_merge!' for {}:Concurrent::Hash
   RB
 
   gemfile <<-RB
@@ -36,7 +33,6 @@ if RUBY_VERSION >= '2.2.2' && RUBY_VERSION < '3.0.0'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '~>1.0.0'
     gem 'minitest', '5.2.3'
-    gem 'i18n', '< 1.8.8' if RUBY_PLATFORM == 'java' # NoMethodError: undefined method `deep_merge!' for {}:Concurrent::Hash
   RB
 
   gemfile <<-RB
@@ -44,7 +40,6 @@ if RUBY_VERSION >= '2.2.2' && RUBY_VERSION < '3.0.0'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '~>1.0.0'
     gem 'minitest', '5.2.3'
-    gem 'i18n', '< 1.8.8' if RUBY_PLATFORM == 'java' # NoMethodError: undefined method `deep_merge!' for {}:Concurrent::Hash
   RB
 end
 
@@ -55,8 +50,6 @@ if RUBY_VERSION < '2.4.0'
     gem 'haml-rails', '~>1.0.0'
     gem 'minitest', '5.2.3'
     gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
-    gem 'thor', '< 0.20.1' if RUBY_PLATFORM == 'java' # unpredictable thor errors
-    gem 'i18n', '< 1.8.8' if RUBY_PLATFORM == 'java' # NoMethodError: undefined method `deep_merge!' for {}:Concurrent::Hash
   RB
 
   gemfile <<-RB
@@ -67,8 +60,6 @@ if RUBY_VERSION < '2.4.0'
     gem 'haml-rails', '~>1.0.0'
     gem 'minitest', '5.2.3'
     gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
-    gem 'thor', '< 0.20.1' if RUBY_PLATFORM == 'java' # unpredictable thor errors
-    gem 'i18n', '< 1.8.8' if RUBY_PLATFORM == 'java' # NoMethodError: undefined method `deep_merge!' for {}:Concurrent::Hash
   RB
 
   gemfile <<-RB
@@ -76,8 +67,6 @@ if RUBY_VERSION < '2.4.0'
     gem 'haml', '~>5.0.0'
     gem 'haml-rails', '~>1.0.0'
     gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
-    gem 'thor', '< 0.20.1' if RUBY_PLATFORM == 'java' # unpredictable thor errors
-    gem 'i18n', '< 1.8.8' if RUBY_PLATFORM == 'java' # NoMethodError: undefined method `deep_merge!' for {}:Concurrent::Hash
   RB
 
   gemfile <<-RB
@@ -85,7 +74,6 @@ if RUBY_VERSION < '2.4.0'
     gem 'i18n', '~>0.6.11'
     gem 'haml', '4.0.2'   # Getting load issues with haml 4.0.3
     gem 'minitest_tu_shim', :require => false
-    gem 'i18n', '< 1.8.8' if RUBY_PLATFORM == 'java' # NoMethodError: undefined method `deep_merge!' for {}:Concurrent::Hash
   RB
 
   gemfile <<-RB
@@ -94,7 +82,5 @@ if RUBY_VERSION < '2.4.0'
     gem 'sinatra', '~> 1.4.5'
     gem 'haml', '4.0.2'   # Getting load issues with haml 4.0.3
     gem 'minitest_tu_shim', :require => false
-    gem 'thor', '< 0.20.1' if RUBY_PLATFORM == 'java' # unpredictable thor errors
-    gem 'i18n', '< 1.8.8' if RUBY_PLATFORM == 'java' # NoMethodError: undefined method `deep_merge!' for {}:Concurrent::Hash
   RB
 end
