@@ -101,7 +101,6 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             metrics = build_test_metrics(:insert, true)
             expected = metrics_with_attributes(metrics)
 
-            assert_metrics_recorded(expected)
           end
 
           def test_records_metrics_for_insert_many
@@ -338,7 +337,13 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               "Datastore/all" => {:call_count=>3},
               "Supportability/API/drop_buffered_data" => { :call_count => 1 },
               "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => { :call_count => 1},
-              "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb" => { :call_count => 1 }
+              "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb" => { :call_count => 1 },
+              "Logging/lines" => {},
+              "Logging/lines/DEBUG" => {},
+              "Logging/size" => {},
+              "Logging/size/DEBUG" => {},
+              "Supportability/API/increment_metric" => {},
+              "Supportability/API/record_metric" = {},
             }
             assert_metrics_recorded_exclusive expected
           end
