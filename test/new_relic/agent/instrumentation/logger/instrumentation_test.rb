@@ -9,6 +9,12 @@ class NewRelic::Agent::Instrumentation::LoggerTest < Minitest::Test
   def setup
     @written = StringIO.new
     @logger = ::Logger.new(@written)
+
+    # Set formatter to avoid different defaults across versions/environments
+    @logger.formatter = proc do |severity, datetime, progname, msg|
+      "#{severity} - #{progname} - #{msg}\n"
+    end
+
     NewRelic::Agent.instance.stats_engine.reset!
   end
 
