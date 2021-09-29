@@ -121,6 +121,13 @@ class NewRelic::Agent::Instrumentation::LoggerTest < Minitest::Test
     assert_logging_metrics("ANY")
   end
 
+  def test_nil_severity
+    @logger.log(nil, "A message", "progname")
+    assert_equal(1, @written.string.lines.count)
+    assert_match(/ANY.*progname.*A message/, @written.string)
+    assert_logging_metrics("ANY")
+  end
+
   def test_skips_when_set
     @logger.mark_skip_instrumenting
     @logger.log(1_000_000, "A message", "progname")

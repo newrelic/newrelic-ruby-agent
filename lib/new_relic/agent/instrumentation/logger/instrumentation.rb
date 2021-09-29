@@ -21,14 +21,14 @@ module NewRelic
         LINES = "Logging/lines".freeze
         SIZE = "Logging/size".freeze
 
-        def line_metric_name_by_severity(sev)
+        def line_metric_name_by_severity(severity)
           @line_metrics ||= {}
-          @line_metrics[sev] ||= "Logging/lines/#{sev}".freeze
+          @line_metrics[severity] ||= "Logging/lines/#{severity}".freeze
         end
 
-        def size_metric_name_by_severity(sev)
+        def size_metric_name_by_severity(severity)
           @size_metrics ||= {}
-          @size_metrics[sev] ||= "Logging/size/#{sev}".freeze
+          @size_metrics[severity] ||= "Logging/size/#{severity}".freeze
         end
 
 
@@ -41,13 +41,12 @@ module NewRelic
             # metric recording in the agent itself or we'll stack overflow!!
             mark_skip_instrumenting
 
-            sev = severity || UNKNOWN
             NewRelic::Agent.increment_metric(LINES)
-            NewRelic::Agent.increment_metric(line_metric_name_by_severity(sev))
+            NewRelic::Agent.increment_metric(line_metric_name_by_severity(severity))
 
             size = formatted_message.nil? ? 0 : formatted_message.length
             NewRelic::Agent.record_metric(SIZE, size)
-            NewRelic::Agent.record_metric(size_metric_name_by_severity(sev), size)
+            NewRelic::Agent.record_metric(size_metric_name_by_severity(severity), size)
 
             return formatted_message
           ensure
