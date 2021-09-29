@@ -62,6 +62,7 @@ module NewRelic
         end
 
         def poll
+          # Wrapping these queries within the same AR connection avoids deadlocks
           ActiveRecord::Base.connection_pool.with_connection do
             record_failed_jobs(failed_jobs)
             record_locked_jobs(locked_jobs)
