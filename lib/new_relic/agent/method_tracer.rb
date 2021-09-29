@@ -323,17 +323,17 @@ module NewRelic
               # If tracing multiple metrics on this method, nest one unscoped trace inside the scoped trace.
               begin
                 if scoped_metric_eval
-                  self.class.trace_execution_scoped(scoped_metric_eval, metric: record_metrics, internal: true) do
+                  ::NewRelic::Agent::MethodTracer.trace_execution_scoped(scoped_metric_eval, metric: record_metrics, internal: true) do
                     if unscoped_metrics_eval.empty?
                       super(*args, &block)
                     else
-                      self.class.trace_execution_unscoped(unscoped_metrics_eval, internal: true) do
+                      ::NewRelic::Agent::MethodTracer.trace_execution_unscoped(unscoped_metrics_eval, internal: true) do
                         super(*args, &block)
                       end
                     end
                   end
                 elsif !unscoped_metrics_eval.empty?
-                  self.class.trace_execution_unscoped(unscoped_metrics_eval, internal: true) do
+                  ::NewRelic::Agent::MethodTracer.trace_execution_unscoped(unscoped_metrics_eval, internal: true) do
                     super(*args, &block)
                   end
                 end
