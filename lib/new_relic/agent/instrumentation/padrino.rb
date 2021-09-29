@@ -26,7 +26,7 @@ DependencyDetection.defer do
     if use_prepend?
       prepend_instrument ::Padrino::Routing::InstanceMethods, NewRelic::Agent::Instrumentation::Padrino::Prepend
     else
-      chain_instrument NewRelic::Agent::Instrumentation::Padrino::Chain
+      chain_instrument NewRelic1::Agent1::Instrumentation1::Padrino1::Chain
     end
   end
 end
