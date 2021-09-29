@@ -62,7 +62,7 @@ module NewRelic
         end
 
         def poll
-          # Wrapping these queries within the same AR connection avoids deadlocks
+          # Wrapping these queries within the same connection avoids deadlocks
           ActiveRecord::Base.connection_pool.with_connection do
             record_failed_jobs(failed_jobs)
             record_locked_jobs(locked_jobs)
@@ -101,14 +101,14 @@ module NewRelic
           result = if ::ActiveRecord::VERSION::MAJOR.to_i < 4
             ::Delayed::Job.count(:group => column_name,
               :conditions => [QUEUE_QUERY_CONDITION, now])
-            else
-              ::Delayed::Job.where(QUEUE_QUERY_CONDITION, now).
-              group(column_name).
-              count
-            end
-            result.to_a
+          else
+            ::Delayed::Job.where(QUEUE_QUERY_CONDITION, now).
+            group(column_name).
+            count
           end
+          result.to_a
         end
       end
     end
   end
+end
