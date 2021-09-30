@@ -44,7 +44,7 @@ module NewRelic
             NewRelic::Agent.increment_metric(LINES)
             NewRelic::Agent.increment_metric(line_metric_name_by_severity(severity))
 
-            size = formatted_message.nil? ? 0 : formatted_message.length
+            size = formatted_message.nil? ? 0 : formatted_message.bytesize
             NewRelic::Agent.record_metric(SIZE, size)
             NewRelic::Agent.record_metric(size_metric_name_by_severity(severity), size)
 
