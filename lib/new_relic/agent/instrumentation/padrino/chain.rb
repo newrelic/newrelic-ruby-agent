@@ -2,10 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-module NewRelic1
-  module Agent1
-    module Instrumentation1
-      module Padrino1
+module NewRelic
+  module Agent
+    module Instrumentation
+      module PadrinoTracer
         module Chain
           def self.instrument!
             ::Padrino::Routing::InstanceMethods.module_eval do

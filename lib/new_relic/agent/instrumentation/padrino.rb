@@ -24,9 +24,9 @@ DependencyDetection.defer do
   executes do
     ::NewRelic::Agent.logger.info 'Installing Padrino instrumentation'
     if use_prepend?
-      prepend_instrument ::Padrino::Routing::InstanceMethods, NewRelic::Agent::Instrumentation::Padrino::Prepend
+      prepend_instrument ::Padrino::Routing::InstanceMethods, NewRelic::Agent::Instrumentation::PadrinoTracer::Prepend
     else
-      chain_instrument NewRelic1::Agent1::Instrumentation1::Padrino1::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::PadrinoTracer::Chain
     end
   end
 end
