@@ -7,9 +7,7 @@ require_relative 'logger/chain'
 require_relative 'logger/prepend'
 
 DependencyDetection.defer do
-  # Why not just :logger? That ends up with some keys in config that sounds
-  # like controls for logging but are controls for _instrumenting_ logging.
-  named :logger_instrumentation
+  named :logger
 
   depends_on { defined?(::Logger) }
 

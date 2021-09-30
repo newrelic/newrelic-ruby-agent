@@ -1000,7 +1000,7 @@ module NewRelic
           :description  => 'Controls auto-instrumentation of dalli gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.logger' => {
-          :default => instrumentation_value_of(:disable_logger_instrumentation),
+          :default => "auto",
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1747,15 +1747,6 @@ module NewRelic
           :type         => Boolean,
           :allowed_from_server => false,
           :description  => 'Internal name for controlling Rails 3+ middleware instrumentation'
-        },
-        :disable_logger_instrumentation => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
-          :deprecated   => true,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.logger', 'If `true`, disables instrumentation for the Ruby standard library Logger.')
         },
         :'heroku.use_dyno_names' => {
           :default      => true,
