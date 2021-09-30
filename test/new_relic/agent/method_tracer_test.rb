@@ -70,6 +70,16 @@ module MyModule
   end
 end
 
+class MyProxyClass < BasicObject
+  include ::NewRelic::Agent::MethodTracer
+
+  def hello
+    "hello"
+  end
+
+  add_method_tracer :hello, 'Custom/proxy/hello'
+end
+
 class NewRelic::Agent::MethodTracerTest < Minitest::Test
   attr_reader :stats_engine
 
@@ -408,6 +418,16 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     ]
 
     assert_equal(public_api_methods.sort, added_methods.map(&:to_s).sort)
+  end
+
+  def test_method_tracer_on_basic_object
+    proxy = MyProxyClass.new
+
+    in_transaction 'test_txn' do
+      proxy.hello
+    end
+
+    assert_metrics_recorded ['Custom/proxy/hello']
   end
 
   def trace_no_push_scope

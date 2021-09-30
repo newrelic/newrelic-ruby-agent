@@ -320,20 +320,25 @@ module NewRelic
 
               instance_exec(&code_header) if code_header.kind_of?(Proc)
 
+              # NOTE: Calling ::NewRelic::Agent::MethodTracer.trace_execution_scoped and
+              # .trace_execution_unscoped below relies on the fact that MethodTracer is included
+              # in Module on agent startup. If/when this changes, these methods should be
+              # explicitly namespaced and extended in MethodTracer.
+
               # If tracing multiple metrics on this method, nest one unscoped trace inside the scoped trace.
               begin
                 if scoped_metric_eval
-                  self.class.trace_execution_scoped(scoped_metric_eval, metric: record_metrics, internal: true) do
+                  ::NewRelic::Agent::MethodTracer.trace_execution_scoped(scoped_metric_eval, metric: record_metrics, internal: true) do
                     if unscoped_metrics_eval.empty?
                       super(*args, &block)
                     else
-                      self.class.trace_execution_unscoped(unscoped_metrics_eval, internal: true) do
+                      ::NewRelic::Agent::MethodTracer.trace_execution_unscoped(unscoped_metrics_eval, internal: true) do
                         super(*args, &block)
                       end
                     end
                   end
                 elsif !unscoped_metrics_eval.empty?
-                  self.class.trace_execution_unscoped(unscoped_metrics_eval, internal: true) do
+                  ::NewRelic::Agent::MethodTracer.trace_execution_unscoped(unscoped_metrics_eval, internal: true) do
                     super(*args, &block)
                   end
                 end
