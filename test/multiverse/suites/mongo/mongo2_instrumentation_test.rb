@@ -101,6 +101,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             metrics = build_test_metrics(:insert, true)
             expected = metrics_with_attributes(metrics)
 
+            assert_metrics_recorded(expected)
           end
 
           def test_records_metrics_for_insert_many
