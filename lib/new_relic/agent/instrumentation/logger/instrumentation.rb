@@ -37,8 +37,8 @@ module NewRelic
           return formatted_message if skip_instrumenting?
 
           begin
-            # It's critical we don't instrumention further logging from our
-            # metric recording in the agent itself or we'll stack overflow!!
+            # It's critical we don't instrument logging from metric recording
+            # methods within NewRelic::Agent, or we'll stack overflow!!
             mark_skip_instrumenting
 
             NewRelic::Agent.increment_metric(LINES)
