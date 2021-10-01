@@ -211,9 +211,6 @@ common: &default_settings
 # With distributed tracing data, you can quickly pinpoint failures or performance issues and fix them.
 # distributed_tracing.enabled: true
 
-# The Entity GUID for the entity that is running this agent.
-# entity_guid: nil
-
 # If true, the agent captures attributes from error collection.
 # error_collector.attributes.enabled: false
 

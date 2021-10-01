@@ -133,6 +133,6 @@ The New Relic Ruby agent also uses source code from third-party libraries. Full 
 
 Thank you, and may your application scale to infinity plus one.
 
-Lew Cirne, Founder and CEO
+Lew Cirne, Founder
 
 New Relic, Inc.

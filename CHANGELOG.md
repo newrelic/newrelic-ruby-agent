@@ -8,6 +8,15 @@
 
     A bug was introduced to the way the agent installs padrino instrumentation in 7.0.0. This release fixes the issues with the padrino instrumentation. Thanks to @sriedel for bringing this issue to our attention.
 
+  * **Bugfix: Allow Net::HTTP request to IPv6 addresses**
+
+     The agent will no longer raise an `URI::InvalidURIError` error if an IPv6 address is passed to Net::HTTP. Thank you @tristinbarnett and @tabathadelane for crafting a solution!
+
+  * **Bugfix: Allow integers to be passed to error_collector.ignore_status_codes configuration**
+
+    Integers not wrapped in quotation marks can be passed to `error_collector.ignore_status_codes` in the `newrelic.yml` file. Our thanks goes to @elaguerta and @brammerl for resolving this issue!
+
+
   ## v8.0.0
 
   * **`add_method_tracer` refactored to use prepend over alias_method chaining**

@@ -126,4 +126,14 @@ module NetHttpTestCases
     assert_metrics_recorded(
       'External/localhost/Net::HTTP/GET' => { :call_count => 1 })
   end
+  
+  def test_ipv6_host_get_request_records_metric
+    http = Net::HTTP.new('::1', default_uri.port)
+    in_transaction do
+      http.request(Net::HTTP::Get.new('/status'))
+    end
+
+    assert_metrics_recorded(
+      'External/[::1]/Net::HTTP/GET' => { :call_count => 1 })
+  end
 end
