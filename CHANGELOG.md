@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.1.0
+
+
+
+  * **Bugfix for Padrino instrumentation**
+
+    A bug was introduced to the way the agent installs padrino instrumentation in 7.0.0. This release fixes the issues with the padrino instrumentation. Thanks to @sriedel for bringing this issue to our attention.
+
   ## v8.0.0
 
   * **`add_method_tracer` refactored to use prepend over alias_method chaining**
