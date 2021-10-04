@@ -2,10 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../../test_helper', __FILE__
-require 'new_relic/agent/instrumentation/logger'
+class LoggerInstrumentationTest < Minitest::Test
+  include MultiverseHelpers
 
-class NewRelic::Agent::Instrumentation::LoggerTest < Minitest::Test
   def setup
     @written = StringIO.new
     @logger = ::Logger.new(@written)
@@ -21,6 +20,7 @@ class NewRelic::Agent::Instrumentation::LoggerTest < Minitest::Test
   def teardown
     NewRelic::Agent.instance.stats_engine.reset!
   end
+
 
   LEVELS = [
     ['debug', Logger::DEBUG],
@@ -151,4 +151,7 @@ class NewRelic::Agent::Instrumentation::LoggerTest < Minitest::Test
       "Supportability/API/record_metric" => {}
     })
   end
+
+
+
 end
