@@ -19,7 +19,7 @@ DependencyDetection.defer do
     if use_prepend?
       prepend_instrument ::Logger, NewRelic::Agent::Instrumentation::Logger::Prepend
     else
-      chain_instrument NewRelic::Agent::Instrumentation::Logger::Chain
+      chain_instrument NewRelic::Agent::Instrumentation::Logger
     end
   end
 end
