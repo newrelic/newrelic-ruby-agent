@@ -10,6 +10,15 @@
 
     Integers not wrapped in quotation marks can be passed to `error_collector.ignore_status_codes` in the `newrelic.yml` file. Our thanks goes to @elaguerta and @brammerl for resolving this issue!
 
+  * **Bugfix: initiate agent start after Rails config initializers are run**
+
+    Previously `NewRelic::Control.instance.init_plugin` installed instrumentation prior to Rails'
+    `config/initializers/*` files being loaded. This caused ActiveRecord, ActiveJob and ActionView to
+    fire their lazy-load hooks prematurely, which resulted in config settings made in initializers for
+    those components to be ignored.
+
+    The agent now defers installing instrumentation until after `load_config_initializers`. Thank you
+    @jdelStrother for reporting this issue!
 
   ## v8.0.0
 

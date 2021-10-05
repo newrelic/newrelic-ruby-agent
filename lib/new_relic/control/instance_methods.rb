@@ -48,9 +48,14 @@ module NewRelic
       # init_config({}) which is called one or more times.
       #
       def init_plugin(options={})
+        setup_agent(options)
+        start_agent
+      end
+
+      def setup_agent(options)
         env = determine_env(options)
 
-        configure_agent(env, options)
+        load_configs(env, options)
 
         # Be sure to only create once! RUBY-1020
         if ::NewRelic::Agent.logger.is_startup_logger?
@@ -68,11 +73,33 @@ module NewRelic
         Module.send :include, NewRelic::Agent::MethodTracer
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
+      end
 
+      def load_configs(env, options)
+        manual = Agent::Configuration::ManualSource.new(options)
+        Agent.config.replace_or_add_config(manual)
+
+        config_file_path = @config_file_override || Agent.config[:config_path]
+        yaml_source = Agent::Configuration::YamlSource.new(config_file_path, env)
+        if yaml_source.failed?
+          yaml_source.failures.each do |msg|
+            stdout.puts Agent::AgentLogger.format_fatal_error(msg)
+          end
+        end
+        Agent.config.replace_or_add_config(yaml_source)
+
+        if security_settings_valid? && Agent.config[:high_security]
+          Agent.logger.info("Installing high security configuration based on local configuration")
+          Agent.config.replace_or_add_config(Agent::Configuration::HighSecuritySource.new(Agent.config))
+        end
+      end
+
+      def start_agent
         if !security_settings_valid?
           handle_invalid_security_settings
         elsif Agent.config[:agent_enabled] && !NewRelic::Agent.instance.started?
-          start_agent
+          @started_in_env = self.env
+          NewRelic::Agent.agent.start
           install_instrumentation
         elsif !Agent.config[:agent_enabled]
           install_shim
@@ -96,25 +123,6 @@ module NewRelic
         env
       end
 
-      def configure_agent(env, options)
-        manual = Agent::Configuration::ManualSource.new(options)
-        Agent.config.replace_or_add_config(manual)
-
-        config_file_path = @config_file_override || Agent.config[:config_path]
-        yaml_source = Agent::Configuration::YamlSource.new(config_file_path, env)
-        if yaml_source.failed?
-          yaml_source.failures.each do |msg|
-            stdout.puts Agent::AgentLogger.format_fatal_error(msg)
-          end
-        end
-        Agent.config.replace_or_add_config(yaml_source)
-
-        if security_settings_valid? && Agent.config[:high_security]
-          Agent.logger.info("Installing high security configuration based on local configuration")
-          Agent.config.replace_or_add_config(Agent::Configuration::HighSecuritySource.new(Agent.config))
-        end
-      end
-
       def security_settings_valid?
         !Agent.config[:high_security] ||
           Agent.config[:security_policies_token].empty?
@@ -127,12 +135,6 @@ module NewRelic
           "ensure the security_policies_token is set but high_security is " \
           "disabled (default)."
         install_shim
-      end
-
-      # Install the real agent into the Agent module, and issue the start command.
-      def start_agent
-        @started_in_env = self.env
-        NewRelic::Agent.agent.start
       end
 
       def app
