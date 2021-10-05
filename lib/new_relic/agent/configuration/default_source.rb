@@ -999,6 +999,14 @@ module NewRelic
           :allowed_from_server => false,
           :description  => 'Controls auto-instrumentation of dalli gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
+        :'instrumentation.logger' => {
+          :default => "auto",
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of Ruby standard library Logger at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
         :disable_data_mapper => {
           :default => false,
           :public => true,
