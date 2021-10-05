@@ -36,7 +36,7 @@ if !NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported? && def
 
     def test_no_instrumentation_when_not_supported
       get '/'
-      assert_metrics_recorded_exclusive([], :ignore_filter => /^Supportability/)
+      assert_metrics_recorded_exclusive([], :ignore_filter => /^(Supportability|Logging)/)
     end
   end
 

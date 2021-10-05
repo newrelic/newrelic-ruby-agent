@@ -81,7 +81,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.puma_rack_version_supported?
           ["Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"],
           ["Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"]
         ],
-        :ignore_filter => /^(Supportability|RubyVM|Memory|CPU)/
+        :ignore_filter => /^(Supportability|RubyVM|Memory|CPU|Logging)/
       )
     end
   end

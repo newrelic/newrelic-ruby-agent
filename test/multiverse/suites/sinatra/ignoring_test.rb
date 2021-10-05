@@ -192,11 +192,12 @@ class SinatraIgnoreItAllTest < SinatraTestCase
   end
 
   def test_ignores_everything
-    # Avoid Supportability metrics from startup of agent for this check
-    NewRelic::Agent.drop_buffered_data
-
+    # Ignores Supportability and Logging metrics, makes sure we don't see
+    # transaction or other related metrics
     get_and_assert_ok '/'
-    assert_metrics_recorded_exclusive(['Supportability/API/drop_buffered_data'])
+    assert_metrics_recorded_exclusive(
+      [],
+      :ignore_filter => /^(Supportability|Logging)/)
   end
 end
 

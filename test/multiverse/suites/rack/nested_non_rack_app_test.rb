@@ -60,7 +60,13 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
           "Nested/Controller/Rack/NestedNonRackAppTest::RailsishApp/call",
           ["Nested/Controller/Rack/NestedNonRackAppTest::RailsishApp/call", "Controller/NestedNonRackAppTest::RailsishApp/inner"],
           'DurationByCaller/Unknown/Unknown/Unknown/HTTP/all',
-          'DurationByCaller/Unknown/Unknown/Unknown/HTTP/allWeb'
+          'DurationByCaller/Unknown/Unknown/Unknown/HTTP/allWeb',
+          'Logging/lines',
+          'Logging/lines/INFO',
+          'Logging/lines/WARN',
+          'Logging/size',
+          'Logging/size/INFO',
+          'Logging/size/WARN',
         ],
         :ignore_filter => /^Supportability/
       )

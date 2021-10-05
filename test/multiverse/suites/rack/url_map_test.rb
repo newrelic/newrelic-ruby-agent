@@ -86,7 +86,8 @@ class UrlMapTest < Minitest::Test
         ['Middleware/Rack/UrlMapTest::MiddlewareTwo/call', 'Controller/Rack/UrlMapTest::ExampleApp/call'],
         ['Nested/Controller/Rack/UrlMapTest::ExampleApp/call', 'Controller/Rack/UrlMapTest::ExampleApp/call'],
         [nested_controller_metric, 'Controller/Rack/UrlMapTest::ExampleApp/call']
-      ])
+      ], :ignore_filter => /^(Supportability|Logging)/)
+
     end
   end
 
@@ -114,7 +115,7 @@ class UrlMapTest < Minitest::Test
       'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all',
       'Supportability/API/recording_web_transaction?',
       'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
-    ])
+    ], :ignore_filter => /^(Supportability|Logging)/)
   end
 
   def test_metrics_for_mapped_prefix_with_extra_middleware
@@ -141,7 +142,7 @@ class UrlMapTest < Minitest::Test
       'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all',
       'Supportability/API/recording_web_transaction?',
       'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
-    ])
+    ], :ignore_filter => /^(Supportability|Logging)/)
   end
 
   def nested_controller_metric

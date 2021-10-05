@@ -38,7 +38,7 @@ module NewRelic
         end
       end
 
-      private 
+      private
 
       def disable_name(names)
         names.map { |name| "disable_#{name}" }

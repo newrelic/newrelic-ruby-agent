@@ -1,0 +1,5 @@
+instrumentation_methods :chain, :prepend
+
+gemfile <<-RB
+  # nothin'
+RB
