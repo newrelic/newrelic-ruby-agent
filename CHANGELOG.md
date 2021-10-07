@@ -2,13 +2,17 @@
 
   ## v8.1.0
 
+  * **Intrumentation for Ruby standard library Logger**
+
+    The agent will now automatically instrument Logger, recording number of lines and size of logging output, with breakdown by severity.
+
   * **Bugfix: Stop deadlocks between New Relic thread and Delayed Job sampling thread**
 
     Running the agent's polling queries for the DelayedJobSampler within the same ActiveRecord connection prevented the deadlocks. Thanks @jdelStrother for bringing this to our attention and providing excellent sample code to speed up development!
 
   * **Bugfix: Allow Net::HTTP request to IPv6 addresses**
 
-     The agent will no longer raise an `URI::InvalidURIError` error if an IPv6 address is passed to Net::HTTP. Thank you @tristinbarnett and @tabathadelane for crafting a solution!
+    The agent will no longer raise an `URI::InvalidURIError` error if an IPv6 address is passed to Net::HTTP. Thank you @tristinbarnett and @tabathadelane for crafting a solution!
 
   * **Bugfix: Allow integers to be passed to error_collector.ignore_status_codes configuration**
 
