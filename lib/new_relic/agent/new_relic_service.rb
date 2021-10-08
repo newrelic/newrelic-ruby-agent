@@ -333,6 +333,7 @@ module NewRelic
           conn = proxy.new(@collector.name, @collector.port)
         else
           conn = Net::HTTP.new(@collector.name, @collector.port)
+          # conn = Net::HTTP.new(@configured_collector.name, @configured_collector.port)
         end
 
         setup_connection_for_ssl(conn)
@@ -426,28 +427,21 @@ module NewRelic
         size = data.size
 
         # Preconnect needs to always use the configured collector host, not the redirect host
-        # endpoint_specific_collector = (method == :preconnect) ? @configured_collector : @collector
-
-        # This is a temporary workaround due to errors occurring on the staging collector. The prod collector does not have the same issue.
-        # The staging collector does not respond correctly when using the configured collector host for preconnect, so must use the redirect host
-        # Once this issue is resolved on the staging collector, use the original line that is commented out above.
-        endpoint_specific_collector = if method == :preconnect && (@configured_collector && @configured_collector.name != 'staging-collector.newrelic.com')
-                                        ::NewRelic::Agent.logger.debug "Using configured collector for preconnect: #{@configured_collector}"
-                                        @configured_collector
-                                      else
-                                        ::NewRelic::Agent.logger.debug "Using redirect host for collector: #{@collector}"
-                                        @collector
-                                      end
+        # We reset it here so we are always using the configured collector during our creation of the new connection
+        # and we also don't want to keep the previous redirect host around anymore
+        if method == :preconnect
+          @collector = @configured_collector
+        end
 
         uri = remote_method_uri(method)
-        full_uri = "#{endpoint_specific_collector}#{uri}"
+        full_uri = "#{@collector}#{uri}"
 
         @audit_logger.log_request(full_uri, payload, @marshaller)
         request_send_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         response = send_request(:data      => data,
                                 :uri       => uri,
                                 :encoding  => encoding,
-                                :collector => endpoint_specific_collector,
+                                :collector => @collector,
                                 :endpoint  => method)
         response_check_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @marshaller.load(decompress_response(response))
