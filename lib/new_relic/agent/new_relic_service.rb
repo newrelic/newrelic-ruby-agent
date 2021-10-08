@@ -333,7 +333,6 @@ module NewRelic
           conn = proxy.new(@collector.name, @collector.port)
         else
           conn = Net::HTTP.new(@collector.name, @collector.port)
-          # conn = Net::HTTP.new(@configured_collector.name, @configured_collector.port)
         end
 
         setup_connection_for_ssl(conn)
