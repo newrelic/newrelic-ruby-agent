@@ -23,6 +23,8 @@ Environments" section below.
 
 ## Installing and Using
 
+The latest released gem for the Ruby Agent can be found at [Rubygems.org](https://rubygems.org/gems/newrelic_rpm)
+
 ### Quick Start
 
 #### With Bundler
