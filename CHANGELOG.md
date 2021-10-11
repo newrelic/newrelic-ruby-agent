@@ -2,6 +2,13 @@
 
   ## v8.1.0
 
+
+
+
+  * **Bugfix for Padrino instrumentation**
+
+    A bug was introduced to the way the agent installs padrino instrumentation in 7.0.0. This release fixes the issues with the padrino instrumentation. Thanks to @sriedel for bringing this issue to our attention.
+
   * **Intrumentation for Ruby standard library Logger**
 
     The agent will now automatically instrument Logger, recording number of lines and size of logging output, with breakdown by severity.

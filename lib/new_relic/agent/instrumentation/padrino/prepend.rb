@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 module NewRelic::Agent::Instrumentation
-  module Padrino
+  module PadrinoTracer
     module Prepend
       include NewRelic::Agent::Instrumentation::Sinatra
       include NewRelic::Agent::Instrumentation::Padrino
