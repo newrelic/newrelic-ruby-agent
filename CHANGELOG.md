@@ -2,9 +2,6 @@
 
   ## v8.1.0
 
-
-
-
   * **Bugfix for Padrino instrumentation**
 
     A bug was introduced to the way the agent installs padrino instrumentation in 7.0.0. This release fixes the issues with the padrino instrumentation. Thanks to @sriedel for bringing this issue to our attention.
@@ -15,7 +12,7 @@
 
   * **Bugfix: Stop deadlocks between New Relic thread and Delayed Job sampling thread**
 
-    Running the agent's polling queries for the DelayedJobSampler within the same ActiveRecord connection prevented the deadlocks. Thanks @jdelStrother for bringing this to our attention and providing excellent sample code to speed up development!
+    Running the agent's polling queries for the DelayedJobSampler within the same ActiveRecord connection decreases the frequency of deadlocks in development environments. Thanks @jdelStrother for bringing this to our attention and providing excellent sample code to speed up development!
 
   * **Bugfix: Allow Net::HTTP request to IPv6 addresses**
 
