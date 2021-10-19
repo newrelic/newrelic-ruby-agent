@@ -62,9 +62,12 @@ module NewRelic
         end
 
         def poll
-          record_failed_jobs(failed_jobs)
-          record_locked_jobs(locked_jobs)
-          record_queue_length_metrics
+          # Wrapping these queries within the same connection avoids deadlocks
+          ActiveRecord::Base.connection_pool.with_connection do
+            record_failed_jobs(failed_jobs)
+            record_locked_jobs(locked_jobs)
+            record_queue_length_metrics
+          end
         end
 
         private
@@ -97,11 +100,11 @@ module NewRelic
           # here that's valid on 2.x through 4.1, so split it up.
           result = if ::ActiveRecord::VERSION::MAJOR.to_i < 4
             ::Delayed::Job.count(:group => column_name,
-                                 :conditions => [QUEUE_QUERY_CONDITION, now])
+              :conditions => [QUEUE_QUERY_CONDITION, now])
           else
             ::Delayed::Job.where(QUEUE_QUERY_CONDITION, now).
-                           group(column_name).
-                           count
+              group(column_name).
+              count
           end
           result.to_a
         end
