@@ -7,6 +7,7 @@ instrumentation_methods :chain, :prepend
 
 gemfile <<-RB
   gem 'typhoeus' # latest version
+  gem 'ethon', '0.14.0'
   gem 'rack'
   #{ruby3_gem_webrick}
 RB
@@ -14,6 +15,7 @@ RB
 SUPPORTED_TYPHOEUS_VERSIONS.each do |version|
   gemfile <<-RB
     gem 'typhoeus', '~> #{version}'
+    gem 'ethon', '0.14.0'
     gem 'rack'
     #{ruby3_gem_webrick}
   RB
