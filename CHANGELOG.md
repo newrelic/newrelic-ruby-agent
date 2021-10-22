@@ -2,7 +2,7 @@
 
   ## v8.1.0
 
-  * **Intrumentation for Ruby standard library Logger**
+  * **Instrumentation for Ruby standard library Logger**
 
     The agent will now automatically instrument Logger, recording number of lines and size of logging output, with breakdown by severity.
 
