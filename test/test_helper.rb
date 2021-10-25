@@ -28,7 +28,6 @@ Dir[File.expand_path('../helpers/*', __FILE__)].each {|f| require f.sub(/.*test\
 # You can also run the tests in a mode without rails.  Many tests
 # will be skipped.
 
-
 if ENV['NO_RAILS']
   puts "Running tests in standalone mode without Rails."
   require 'newrelic_rpm'
