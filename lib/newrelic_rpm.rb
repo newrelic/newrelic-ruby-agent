@@ -20,12 +20,8 @@ require 'new_relic/control'
 if defined?(Rails::VERSION)
   module NewRelic
     class Railtie < Rails::Railtie
-      initializer "newrelic_rpm.load_plugin", before: :load_config_initializers do |app|
-        NewRelic::Control.instance.setup_agent(config: app.config)
-      end
-
-      initializer "newrelic_rpm.start_plugin", after: :load_config_initializers do |app|
-        NewRelic::Control.instance.start_agent
+      initializer "newrelic_rpm.start_plugin", before: :load_config_initializers do |app|
+        NewRelic::Control.instance.init_plugin(config: app.config)
       end
     end
   end
