@@ -19,43 +19,43 @@ class NewRelic::Control::InstanceMethodsTest < Minitest::Test
     @test = ::TestClass.new(nil)
   end
 
-  def test_load_configs_adds_the_yaml_config
+  def test_configure_agent_adds_the_yaml_config
     refute_has_config NewRelic::Agent::Configuration::YamlSource
-    @test.load_configs('test', {})
+    @test.configure_agent('test', {})
     assert_has_config NewRelic::Agent::Configuration::YamlSource
   end
 
-  def test_load_configs_adds_the_manual_config
+  def test_configure_agent_adds_the_manual_config
     refute_has_config NewRelic::Agent::Configuration::ManualSource
-    @test.load_configs('test', {})
+    @test.configure_agent('test', {})
     assert_has_config NewRelic::Agent::Configuration::ManualSource
   end
 
   def test_no_high_security_config_by_default
     refute_has_config NewRelic::Agent::Configuration::HighSecuritySource
-    @test.load_configs('test', {:high_security => false})
+    @test.configure_agent('test', {:high_security => false})
     refute_has_config NewRelic::Agent::Configuration::HighSecuritySource
   end
 
   def test_high_security_config_added_if_requested
     refute_has_config NewRelic::Agent::Configuration::HighSecuritySource
-    @test.load_configs('test', {:high_security => true})
+    @test.configure_agent('test', {:high_security => true})
     assert_has_config NewRelic::Agent::Configuration::HighSecuritySource
   end
 
-  def test_load_configs_yaml_parse_error_logs_to_stdout
+  def test_configure_agent_yaml_parse_error_logs_to_stdout
     NewRelic::Agent::Configuration::YamlSource.any_instance.stubs(:failed?).returns(true)
     NewRelic::Agent::Configuration::YamlSource.any_instance.stubs(:failures).returns(['failure'])
-    @test.load_configs('invalid', {})
+    @test.configure_agent('invalid', {})
     assert_equal "** [NewRelic] FATAL : failure\n", @test.stdout.string
   end
 
-  def test_load_configs_invalid_yaml_value_logs_to_stdout
+  def test_configure_agent_invalid_yaml_value_logs_to_stdout
     config_path = File.expand_path(File.join(
       File.dirname(__FILE__),
       '..','..', 'config','newrelic.yml')
     )
-    @test.load_configs('invalid', {:config_path => config_path})
+    @test.configure_agent('invalid', {:config_path => config_path})
     assert NewRelic::Agent.config.instance_variable_get(:@yaml_source).failed?
     expected_err = "** [NewRelic] FATAL : Unexpected value (cultured groats) for 'enabled' in #{config_path}\n"
     assert_equal expected_err, @test.stdout.string
