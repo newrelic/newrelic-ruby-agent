@@ -24,7 +24,7 @@
 
   * **Bugfix: Allow add_method_tracer to be used on BasicObjects**
 
-    Previously, our add_method_tracer changes referenced `self.class` which is not available on BasicObjects. This has been fixed. Thanks to @toncid for bringing this issue to our attention.
+    Previously, our `add_method_tracer` changes referenced `self.class` which is not available on `BasicObjects`. This has been fixed. Thanks to @toncid for bringing this issue to our attention.
 
 
   ## v8.0.0
