@@ -1,6 +1,6 @@
-# # encoding: utf-8
-# # This file is distributed under New Relic's license terms.
-# # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
+# encoding: utf-8
+# This file is distributed under New Relic's license terms.
+# See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 # ## TODO: Since we don't support Rails 2.0, we may be able to pull this out entirely?
 # DependencyDetection.defer do
