@@ -22,6 +22,10 @@
 
     Integers not wrapped in quotation marks can be passed to `error_collector.ignore_status_codes` in the `newrelic.yml` file. Our thanks goes to @elaguerta and @brammerl for resolving this issue!
 
+  * **Bugfix: allow add_method_tracer to be used on BasicObjects**
+
+    Previously, our add_method_tracer changes referenced `self.class` which is not available on BasicObjects. This has been fixed. Thanks to @toncid for bringing this issue to our attention.
+
 
   ## v8.0.0
 
