@@ -4,6 +4,7 @@
 # frozen_string_literal: true
 
 require_relative 'abstract'
+require 'resolv'
 
 module NewRelic
   module Agent
@@ -61,9 +62,14 @@ module NewRelic
           when /^https?:\/\//
             ::NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(@request.path)
           else
+            connection_address = @connection.address
+            if (connection_address =~ Resolv::IPv6::Regex)
+              connection_address = "[#{connection_address}]"
+            end
+
             scheme = @connection.use_ssl? ? 'https' : 'http'
             ::NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(
-              "#{scheme}://#{@connection.address}:#{@connection.port}#{@request.path}"
+              "#{scheme}://#{connection_address}:#{@connection.port}#{@request.path}"
               )
           end
         end

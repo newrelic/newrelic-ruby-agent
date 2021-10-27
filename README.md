@@ -23,6 +23,8 @@ Environments" section below.
 
 ## Installing and Using
 
+The latest released gem for the Ruby Agent can be found at [Rubygems.org](https://rubygems.org/gems/newrelic_rpm)
+
 ### Quick Start
 
 #### With Bundler
@@ -133,6 +135,6 @@ The New Relic Ruby agent also uses source code from third-party libraries. Full 
 
 Thank you, and may your application scale to infinity plus one.
 
-Lew Cirne, Founder and CEO
+Lew Cirne, Founder
 
 New Relic, Inc.

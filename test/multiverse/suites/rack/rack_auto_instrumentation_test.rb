@@ -81,7 +81,7 @@ class RackAutoInstrumentationTest < Minitest::Test
         'Supportability/API/recording_web_transaction?',
         'DurationByCaller/Unknown/Unknown/Unknown/HTTP/allWeb'
       ],
-      :ignore_filter => /^Supportability/
+      :ignore_filter => /^(Supportability|Logging)/
     )
   end
 
@@ -115,7 +115,7 @@ class RackAutoInstrumentationTest < Minitest::Test
         'Supportability/API/recording_web_transaction?',
         'DurationByCaller/Unknown/Unknown/Unknown/HTTP/allWeb'
       ],
-      :ignore_filter => /^Supportability\/EnvironmentReport/
+      :ignore_filter => /^(Supportability|Logging)/
     )
   end
 
@@ -147,7 +147,13 @@ class RackAutoInstrumentationTest < Minitest::Test
         ["Middleware/Rack/MiddlewareOne/call", "Controller/Middleware/Rack/MiddlewareTwo/call"],
         ["Middleware/Rack/MiddlewareTwo/call", "Controller/Middleware/Rack/MiddlewareTwo/call"],
         'DurationByCaller/Unknown/Unknown/Unknown/HTTP/all',
-        'DurationByCaller/Unknown/Unknown/Unknown/HTTP/allWeb'
+        'DurationByCaller/Unknown/Unknown/Unknown/HTTP/allWeb',
+        'Logging/lines',
+        'Logging/lines/INFO',
+        'Logging/lines/WARN',
+        'Logging/size',
+        'Logging/size/INFO',
+        'Logging/size/WARN',
       ],
       :ignore_filter => /^Supportability/
     )

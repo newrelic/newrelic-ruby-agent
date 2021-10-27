@@ -211,9 +211,6 @@ common: &default_settings
 # With distributed tracing data, you can quickly pinpoint failures or performance issues and fix them.
 # distributed_tracing.enabled: true
 
-# The Entity GUID for the entity that is running this agent.
-# entity_guid: nil
-
 # If true, the agent captures attributes from error collection.
 # error_collector.attributes.enabled: false
 
@@ -333,6 +330,10 @@ common: &default_settings
 # Controls auto-instrumentation of http.rb gem at start up.
 # May be one of [auto|prepend|chain|disabled].
 # instrumentation.httprb: auto
+
+# Controls auto-instrumentation of the Ruby standard library Logger.rb.
+# May be one of [auto|prepend|chain|disabled].
+# instrumentation.logger: auto
 
 # Controls auto-instrumentation of memcache-client gem for Memcache at start up.
 # May be one of [auto|prepend|chain|disabled].

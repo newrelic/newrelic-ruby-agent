@@ -1,12 +1,11 @@
 source 'https://rubygems.org'
 
 gem 'rake', '~> 12.3.3'
-
+gem 'rack', '>= 2.1.4'
 gem 'rails', '5.2.6'
 
 gem 'minitest', '5.2.3'
 gem 'mocha', '~> 1.1.0', :require => false
-gem 'rack', '< 2.1.0'
 gem 'rack-test'
 gem 'sprockets', '3.7.2'
 
@@ -15,11 +14,11 @@ platforms :jruby do
 end
 
 platforms :ruby, :rbx do
-  gem "mysql2"
+  gem 'mysql2'
   gem 'sqlite3', '~> 1.3.13'
 end
 
-gem "newrelic_rpm", :path => "../../.."
+gem 'newrelic_rpm', :path => "../../.."
 
 gem 'pry', '~> 0.12.2'
 gem 'pry-nav'
