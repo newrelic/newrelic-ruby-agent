@@ -108,8 +108,6 @@ module Multiverse
 
     if RUBY_VERSION >= '3.0'
       GROUPS['rails'].delete 'active_record'
-      GROUPS['frameworks'].delete 'sinatra'
-      GROUPS['frameworks'].delete 'padrino'
       GROUPS['frameworks'].delete 'grape'
     end
 
@@ -118,7 +116,7 @@ module Multiverse
       return true if suite == 'rake' and RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
       return true if suite == 'agent_only' and RUBY_PLATFORM == "java"
       return true if suite == 'active_record' and RUBY_VERSION >= '3.0.0'
-      return true if ["sinatra", "padrino", "grape"].include?(suite) and RUBY_VERSION >= '3.0'
+      return true if ["grape"].include?(suite) and RUBY_VERSION >= '3.0'
     end
 
 
@@ -135,17 +133,17 @@ module Multiverse
         keys.each do |key|
           (combined_groups << (GROUPS[key])).flatten!
         end
-        
+
         # checks for malformed groups passed in
         if combined_groups.nil?
           puts red("Unrecognized groups in '#{filter}'. Stopping!")
           exit 1
         end
-        
+
         # This allows the "rest" group to be passed in as one of several groups that are ';' delimited
         # true IF
         # the "rest" group is one of the groups being passed in AND the directory is not in any other group
-        # OR 
+        # OR
         # the directory is one of the suites included in one of the non-rest groups passed in
         (keys.include?("rest") && !GROUPS.values.flatten.include?(dir) ) || (combined_groups.any? && combined_groups.include?(dir))
       else
