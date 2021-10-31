@@ -7,9 +7,14 @@ module NewRelic::Agent::Instrumentation
   module Memcache
     module Helper
       DATASTORE_INSTANCES_SUPPORTED_VERSION = Gem::Version.new '2.6.4'
+      BINARY_PROTOCOL_SUPPORTED_VERSION = Gem::Version.new '3.0.2'
 
       def supports_datastore_instances?
         DATASTORE_INSTANCES_SUPPORTED_VERSION <= Gem::Version.new(::Dalli::VERSION)
+      end
+
+      def supports_binary_protocol?
+        BINARY_PROTOCOL_SUPPORTED_VERSION <= Gem::Version.new(::Dalli::VERSION)
       end
 
       def client_methods

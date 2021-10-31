@@ -51,7 +51,11 @@ module NewRelic
           end
 
           def instrument_send_multiget
-            ::Dalli::Protocol::Binary.class_eval do
+            if supports_binary_protocol?
+              ::Dalli::Protocol::Binary
+            else
+              ::Dalli::Server
+            end.class_eval do
               include NewRelic::Agent::Instrumentation::Memcache::Tracer
               alias_method :send_multiget_without_newrelic_trace, :send_multiget
 
