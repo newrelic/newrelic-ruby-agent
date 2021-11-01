@@ -10,6 +10,11 @@ if defined?(Dalli)
     include MemcacheTestCases
 
     MULTI_OPERATIONS = [:get_multi, :get_multi_cas]
+    DALLI_SERVER_PROTOCOL = if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_binary_protocol?
+                              ::Dalli::Protocol::Binary
+                            else
+                              ::Dalli::Server
+                            end
 
     def setup
       @cache = Dalli::Client.new("127.0.0.1:11211", :socket_timeout => 2.0)
@@ -48,28 +53,28 @@ if defined?(Dalli)
       def test_assign_instance_to_with_ip_and_port
         segment = mock('datastore_segment')
         segment.expects(:set_instance_info).with('127.0.0.1', 11211)
-        server = ::Dalli::Server.new '127.0.0.1:11211'
+        server = DALLI_SERVER_PROTOCOL.new '127.0.0.1:11211'
         DalliTracerHelper.assign_instance_to(segment, server)
       end
 
       def test_assign_instance_to_with_name_and_port
         segment = mock('datastore_segment')
         segment.expects(:set_instance_info).with('jonan.gummy_planet', 11211)
-        server = ::Dalli::Server.new 'jonan.gummy_planet:11211'
+        server = DALLI_SERVER_PROTOCOL.new 'jonan.gummy_planet:11211'
         DalliTracerHelper.assign_instance_to(segment, server)
       end
 
       def test_assign_instance_to_with_unix_domain_socket
         segment = mock('datastore_segment')
         segment.expects(:set_instance_info).with('localhost', '/tmp/jonanfs.sock')
-        server = ::Dalli::Server.new '/tmp/jonanfs.sock'
+        server = DALLI_SERVER_PROTOCOL.new '/tmp/jonanfs.sock'
         DalliTracerHelper.assign_instance_to(segment, server)
       end
 
       def test_assign_instance_to_when_exception_raised
         segment = mock('datastore_segment')
         segment.expects(:set_instance_info).with('unknown', 'unknown')
-        server = ::Dalli::Server.new '/tmp/jonanfs.sock'
+        server = DALLI_SERVER_PROTOCOL.new '/tmp/jonanfs.sock'
         server.stubs(:hostname).raises("oops")
         DalliTracerHelper.assign_instance_to(segment, server)
       end

@@ -4,6 +4,12 @@
   RB
 end
 
+if RUBY_VERSION >= '2.5.0'
+  gemfile <<-RB
+    gem 'dalli', '~> 3.0.2'
+  RB
+end
+
 %w(1.8.5 1.5.0).each do |version|
   gemfile <<-RB
     gem 'memcache-client', '~> #{version}', :require => 'memcache'
