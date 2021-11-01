@@ -9,8 +9,6 @@ if RUBY_VERSION >= '3.0.0'
     gem 'nokogiri'
     gem 'minitest', '~> 5.1.0'
 
-    gem 'racc', '<= 1.5.2' if RUBY_PLATFORM == 'java'
-
     # Need to load newrelic_rpm after ActiveMerchant Gateways are required
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
   RB
@@ -24,8 +22,6 @@ if RUBY_VERSION >= '2.5.0' && RUBY_VERSION < '3.0.0'
     gem 'activesupport', '~> 4.2.0'
     gem 'nokogiri'
     gem 'minitest', '~> 5.1.0'
-
-    gem 'racc', '<= 1.5.2' if RUBY_PLATFORM == 'java'
 
     # Need to load newrelic_rpm after ActiveMerchant Gateways are required
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
@@ -41,8 +37,6 @@ if RUBY_VERSION >= '2.3.0' && RUBY_VERSION < '3.0.0'
     gem 'nokogiri'
     gem 'minitest', '~> 5.1.0'
 
-    gem 'racc', '<= 1.5.2' if RUBY_PLATFORM == 'java'
-
     # Need to load newrelic_rpm after ActiveMerchant Gateways are required
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
   RB
@@ -57,8 +51,6 @@ if RUBY_VERSION < '2.4.0'
 
     gem 'activesupport', '~>4.0.4'
     gem 'nokogiri', '~>1.6.1'
-
-    gem 'racc', '<= 1.5.2' if RUBY_PLATFORM == 'java'
 
     # Need to load newrelic_rpm after ActiveMerchant Gateways are required
     gem 'newrelic_rpm', :require => false, :path => File.expand_path('../../../../')
