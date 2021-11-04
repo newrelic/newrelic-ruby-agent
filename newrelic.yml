@@ -389,6 +389,10 @@ common: &default_settings
 # May be one of [auto|prepend|chain|disabled].
 # instrumentation.sinatra: auto
 
+# Controls auto-instrumentation of Tilt at start up.
+# May be one of [auto|prepend|chain|disabled].
+# instrumentation.tilt: auto
+
 # Controls auto-instrumentation of Typhoeus at start up.
 # May be one of [auto|prepend|chain|disabled].
 # instrumentation.typhoeus: auto

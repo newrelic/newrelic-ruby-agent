@@ -1007,6 +1007,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of Ruby standard library Logger at start up.  May be one of [auto|prepend|chain|disabled].'
         },
+        :'instrumentation.tilt' => {
+          :default => "auto",
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of Tilt at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
         :disable_data_mapper => {
           :default => false,
           :public => true,
