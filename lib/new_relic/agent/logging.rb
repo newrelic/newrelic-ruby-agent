@@ -87,11 +87,13 @@ module NewRelic
         end
 
         def escape message
-          if String === message
-            message.to_json
-          else
-            message.inspect.to_json
-          end
+          message = message.inspect unless message.is_a?(String)
+          message.encode(
+            Encoding::UTF_8,
+            invalid: :replace,
+            undef: :replace,
+            replace: "�"
+          ).to_json
         end
 
         def clear_tags!
