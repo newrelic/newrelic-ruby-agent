@@ -1313,6 +1313,7 @@ module NewRelic
           :default => 'ActionController::RoutingError,Sinatra::NotFound',
           :public => true,
           :type => String,
+          :deprecated => true, 
           :allowed_from_server => true,
           :dynamic_name => true,
           :description => 'Use `error_collector.ignore_classes` instead. Specify a comma-delimited list of error classes that the agent should ignore.'
