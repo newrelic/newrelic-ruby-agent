@@ -5,10 +5,12 @@ if RUBY_VERSION >= '3.0.0'
   gemfile <<-RB
     gem 'tilt'
     gem 'webrick'
+    gem 'haml'
   RB
 else
   gemfile <<-RB
     gem 'tilt'
+    gem 'haml'
   RB
 end
 
@@ -20,6 +22,7 @@ tilt_versions.each do |version|
     gemfile <<-RB
       gem 'tilt', '#{version}'
       gem 'webrick'
+      gem 'haml'
     RB
   else
     gemfile <<-RB
