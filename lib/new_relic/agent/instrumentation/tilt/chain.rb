@@ -5,7 +5,18 @@
 module NewRelic::Agent::Instrumentation
   module Tilt
     def self.instrument!
-      # no-op
+      ::Tilt::Template.module_eval do
+        include NewRelic::Agent::Instrumentation::Tilt
+
+        def initialize_with_new_relic(*args, &block)
+          initialize_with_tracing(*args) {
+            initialize_without_newrelic(*args, &block)
+          }
+        end
+
+        alias initialize_without_newrelic initialize
+        alias initialize initialize_with_new_relic
+      end
     end
   end
 end

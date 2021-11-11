@@ -6,9 +6,8 @@ module NewRelic::Agent::Instrumentation
   module Tilt::Prepend
     include NewRelic::Agent::Instrumentation::Tilt
 
-    def initialize(*args)
-      # require 'pry'; binding.pry
-      prepare_with_tracing { super }
+    def initialize(*args, &block)
+      initialize_with_tracing { super }
     end
   end
 end
