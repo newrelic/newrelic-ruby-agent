@@ -17,8 +17,8 @@ class TiltInstrumentationTest < Minitest::Test
     Tilt.new('test.haml').render
   end
 
-  def haml_render_metric
-    'Tilt::HamlTemplate#render'
+  def haml_render_metric(filename='test.haml')
+    "View/Tilt::HamlTemplate/#{filename}/Rendering"
   end
 
   ### Render Tests ###
@@ -37,7 +37,7 @@ class TiltInstrumentationTest < Minitest::Test
     end
 
     expected = { call_count: 1 }
-    assert_metrics_recorded('Tilt::ERBTemplate#render' => expected)
+    assert_metrics_recorded('View/Tilt::ERBTemplate/test.erb/Rendering' => expected)
   end
 
   def test_records_metrics_for_nested_templates
@@ -47,7 +47,8 @@ class TiltInstrumentationTest < Minitest::Test
       }
     end
 
-    expected = { call_count: 2 }
+    expected = { call_count: 1 }
+    assert_metrics_recorded(haml_render_metric('layout.haml') => expected)
     assert_metrics_recorded(haml_render_metric => expected)
   end
 
@@ -110,5 +111,15 @@ class TiltInstrumentationTest < Minitest::Test
   # Under heading, "Yielding for More Power"
   # I liked this test idea and am leaving it here to add with the render changes
   def test_creates_nested_partial_node_within_render_node
+    in_transaction do
+      Tilt.new('layout.haml').render { haml_template }
+    end
+    template_node = last_transaction_trace.root_node.children[0].children[0]
+    partial_node = template_node.children[0]
+
+    assert_equal(haml_render_metric('layout.haml'),
+                 template_node.metric_name)
+    assert_equal(haml_render_metric,
+                 partial_node.metric_name)
   end
 end
