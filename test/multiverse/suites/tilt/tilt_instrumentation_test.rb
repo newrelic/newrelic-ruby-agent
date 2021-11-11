@@ -14,30 +14,30 @@ class TiltInstrumentationTest < Minitest::Test
   end
 
   def haml_template
-    Tilt.new('test.haml')
+    Tilt.new('test.haml').render
   end
 
-  def haml_initialize_metric
-    'Tilt::HamlTemplate#initialize'
+  def haml_render_metric
+    'Tilt::HamlTemplate#render'
   end
 
-  ### Initialize Tests ###
+  ### Render Tests ###
   def test_records_metrics_for_haml_template
     in_transaction do
       haml_template
     end
 
     expected = { call_count: 1 }
-    assert_metrics_recorded(haml_initialize_metric => expected)
+    assert_metrics_recorded(haml_render_metric => expected)
   end
 
   def test_records_metrics_for_erb_template
     in_transaction do
-      Tilt.new('test.erb')
+      Tilt.new('test.erb').render
     end
 
     expected = { call_count: 1 }
-    assert_metrics_recorded('Tilt::ERBTemplate#initialize' => expected)
+    assert_metrics_recorded('Tilt::ERBTemplate#render' => expected)
   end
 
   def test_records_metrics_for_nested_templates
@@ -48,7 +48,7 @@ class TiltInstrumentationTest < Minitest::Test
     end
 
     expected = { call_count: 2 }
-    assert_metrics_recorded(haml_initialize_metric => expected)
+    assert_metrics_recorded(haml_render_metric => expected)
   end
 
   def test_records_scoped_metric
@@ -60,19 +60,22 @@ class TiltInstrumentationTest < Minitest::Test
 
     expected = { :call_count => 1 }
     assert_metrics_recorded(
-      [haml_initialize_metric, test_transaction] => expected
+      [haml_render_metric, test_transaction] => expected
     )
   end
 
   def test_records_transaction_level_error
-    skip 'Not sure how to raise or capure an error here. Need to determine what should happen...'
     exception_class = TypeError
     txn = nil
-    Tilt::Template.any_instance.stubs(:initialize).raises(exception_class)
+    Tilt::Template.any_instance.stubs(:evaluate).raises(exception_class)
 
     in_transaction do |test_txn|
       txn = test_txn
-      haml_template
+      begin
+        haml_template
+      rescue
+        # this is what we wanted
+      end
     end
 
     assert_transaction_noticed_error txn, exception_class.name
@@ -85,10 +88,10 @@ class TiltInstrumentationTest < Minitest::Test
       end
     end
 
-    assert_metrics_not_recorded(haml_initialize_metric)
+    assert_metrics_not_recorded(haml_render_metric)
   end
 
-  def test_creates_transaction_node_for_initialize
+  def test_creates_transaction_node_for_render
     in_transaction do
       haml_template
     end
@@ -97,7 +100,7 @@ class TiltInstrumentationTest < Minitest::Test
     last_transaction_trace.root_node.each_node{|s| last_node = s }
     NewRelic::Agent.shutdown
 
-    assert_equal(haml_initialize_metric,
+    assert_equal(haml_render_metric,
                  last_node.metric_name)
   end
 

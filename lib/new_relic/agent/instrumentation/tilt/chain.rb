@@ -8,14 +8,14 @@ module NewRelic::Agent::Instrumentation
       ::Tilt::Template.module_eval do
         include NewRelic::Agent::Instrumentation::Tilt
 
-        def initialize_with_new_relic(*args, &block)
-          initialize_with_tracing(*args) {
-            initialize_without_newrelic(*args, &block)
+        def render_with_new_relic(*args, &block)
+          render_with_tracing(*args) {
+            render_without_newrelic(*args, &block)
           }
         end
 
-        alias initialize_without_newrelic initialize
-        alias initialize initialize_with_new_relic
+        alias render_without_newrelic render
+        alias render render_with_new_relic
       end
     end
   end

@@ -9,8 +9,7 @@ require_relative 'tilt/prepend'
 DependencyDetection.defer do
   named :tilt
 
-  # prior to 0.8.0, the prepare method was known as compile
-  depends_on { defined?(::Tilt) && ::Tilt::VERSION >= '0.8.0' }
+  depends_on { defined?(::Tilt) }
 
   executes do
     ::NewRelic::Agent.logger.info  "Installing Tilt instrumentation"

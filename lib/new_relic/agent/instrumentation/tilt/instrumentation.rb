@@ -6,20 +6,19 @@ module NewRelic
   module Agent
     module Instrumentation
       module Tilt
-        # Template name, etc. isn't available until Render. Those things are set in initialize.
-        # I'm uncertain about whether
-        def initialize_with_tracing(*args, &block)
+
+        def render_with_tracing(*args, &block)
           begin
-            finishable = Tracer.start_segment(name: "#{self.class}#initialize")
-            yield
-            finishable.finish
-          rescue StandardError => error
-            binding.pry
-            NewRelic::Agent.logger.error(
-              "Error while executing Tilt::Template#initialize",
-              error
-            )
-            NewRelic::Agent.logger.log_exception(:error, error)
+           finishable = Tracer.start_segment(name: "#{self.class}#render")
+
+            begin
+              yield
+            rescue => error
+              NewRelic::Agent.notice_error(error)
+              raise
+            end
+          ensure
+            finishable.finish if finishable
           end
         end
       end

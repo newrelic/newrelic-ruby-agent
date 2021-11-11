@@ -6,8 +6,8 @@ module NewRelic::Agent::Instrumentation
   module Tilt::Prepend
     include NewRelic::Agent::Instrumentation::Tilt
 
-    def initialize(*args, &block)
-      initialize_with_tracing { super }
+    def render(*args, &block)
+      render_with_tracing { super }
     end
   end
 end

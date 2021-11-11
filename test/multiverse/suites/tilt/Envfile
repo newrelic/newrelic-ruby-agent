@@ -14,20 +14,9 @@ else
   RB
 end
 
-# Add last release for each major version here
-tilt_versions = ['1.4.1']
-
-tilt_versions.each do |version|
-  if RUBY_VERSION >= '3.0.0'
-    gemfile <<-RB
-      gem 'tilt', '#{version}'
-      gem 'webrick'
-      gem 'haml'
-    RB
-  else
-    gemfile <<-RB
-      gem 'tilt', '#{version}'
-      gem 'haml'
-    RB
-  end
+if RUBY_VERSION < '3.0.0'
+  gemfile <<-RB
+    gem 'tilt', '1.4.1'
+    gem 'haml'
+  RB
 end
