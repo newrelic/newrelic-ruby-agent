@@ -4,18 +4,20 @@
 
 module NewRelic::Agent::Instrumentation
   module Tilt
-    def self.instrument!
-      ::Tilt::Template.module_eval do
-        include NewRelic::Agent::Instrumentation::Tilt
+    module Chain
+      def self.instrument!
+        ::Tilt::Template.module_eval do
+          include NewRelic::Agent::Instrumentation::Tilt
 
-        def render_with_new_relic(*args, &block)
-          render_with_tracing(*args) {
-            render_without_newrelic(*args, &block)
-          }
+          def render_with_new_relic(*args, &block)
+            render_with_tracing(*args) {
+              render_without_newrelic(*args, &block)
+            }
+          end
+
+          alias render_without_newrelic render
+          alias render render_with_new_relic
         end
-
-        alias render_without_newrelic render
-        alias render render_with_new_relic
       end
     end
   end
