@@ -7,10 +7,15 @@ module NewRelic
     module Instrumentation
       module Tilt
 
+        def metric_name(klass, file)
+          "View/#{klass}/#{file}/Rendering"
+        end
+
         def render_with_tracing(*args, &block)
           begin
-           finishable = Tracer.start_segment(name: "#{self.class}#render")
-
+            finishable = Tracer.start_segment(
+              name: metric_name(self.class, self.file)
+            )
             begin
               yield
             rescue => error
