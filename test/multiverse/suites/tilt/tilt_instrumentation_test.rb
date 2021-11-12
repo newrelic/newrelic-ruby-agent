@@ -105,11 +105,6 @@ class TiltInstrumentationTest < Minitest::Test
                  last_node.metric_name)
   end
 
-  # Tilt doesn't exactly use partials, but it does accept blocks to a render node
-  # Which effectively do the same thing as yielding partials
-  # See: https://code.tutsplus.com/tutorials/ruby-for-newbies-the-tilt-gem--net-20027
-  # Under heading, "Yielding for More Power"
-  # I liked this test idea and am leaving it here to add with the render changes
   def test_creates_nested_partial_node_within_render_node
     in_transaction do
       Tilt.new('layout.haml').render { haml_template }
@@ -121,5 +116,74 @@ class TiltInstrumentationTest < Minitest::Test
                  template_node.metric_name)
     assert_equal(haml_render_metric,
                  partial_node.metric_name)
+  end
+
+  ### File name parsing tests ###
+  def call_create_filename_for_metric(filename)
+    Class.new.extend(NewRelic::Agent::Instrumentation::Tilt).create_filename_for_metric(filename)
+  end
+
+  def non_nested_path
+    'views/index.html.erb'
+  end
+
+  def long_path_prefix
+    '/Users/rubyist/dev/my_sinatra_app/'
+  end
+
+  def nested_path
+    'blogs/index.html.erb'
+  end
+
+  def long_non_nested_path
+    long_path_prefix + non_nested_path
+  end
+
+  def long_nested_path
+    long_path_prefix + 'views/' + nested_path
+  end
+
+  def with_fake_sinatra(&blk)
+    sinatra_dummy_module = Module.new
+    sinatra_dummy_class  = Class.new(Object)
+    with_constant_defined(:'::Sinatra', sinatra_dummy_module) do
+      with_constant_defined(:'::Sinatra::Base', sinatra_dummy_class) do
+        yield
+      end
+    end
+  end
+
+  def test_returns_file_if_sinatra_not_defined
+    assert_equal(
+      call_create_filename_for_metric(non_nested_path),
+      non_nested_path
+    )
+  end
+
+  def test_returns_nested_route_with_sinatra_defined
+    with_fake_sinatra do
+      assert_equal(
+        call_create_filename_for_metric(long_nested_path),
+        nested_path
+      )
+    end
+  end
+
+  def test_returns_non_nested_route_with_sinatra_defined
+    with_fake_sinatra do
+      assert_equal(
+        call_create_filename_for_metric(long_non_nested_path),
+        non_nested_path
+      )
+    end
+  end
+
+  def test_returns_file_if_no_method_error_raised
+    String.any_instance.stubs(:split).raises(NoMethodError)
+    assert_equal(
+      call_create_filename_for_metric(long_non_nested_path),
+      long_non_nested_path
+    )
+    String.any_instance.unstub(:split)
   end
 end

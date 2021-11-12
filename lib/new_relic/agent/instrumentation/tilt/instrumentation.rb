@@ -11,10 +11,19 @@ module NewRelic
           "View/#{klass}/#{file}/Rendering"
         end
 
+        # Sinatra uses #caller_locations for the file name in Tilt (unlike Rails/Rack)
+        # So here we are only grabbing the file name and name of directory it is in
+        def create_filename_for_metric(file)
+          return file unless defined?(::Sinatra) && defined?(::Sinatra::Base)
+          file.split('/')[-2..-1].join('/')
+        rescue NoMethodError
+          file
+        end
+
         def render_with_tracing(*args, &block)
           begin
             finishable = Tracer.start_segment(
-              name: metric_name(self.class, self.file)
+              name: metric_name(self.class, create_filename_for_metric(self.file))
             )
             begin
               yield
