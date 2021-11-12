@@ -1,17 +1,16 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require "excon"
-require "newrelic_rpm"
-require "http_client_test_cases"
+require 'excon'
+require 'newrelic_rpm'
+require 'http_client_test_cases'
 
 class ExconTest < Minitest::Test
   include HttpClientTestCases
 
   def client_name
-    "Excon"
+    'Excon'
   end
 
   def new_timeout_error_class
@@ -27,11 +26,11 @@ class ExconTest < Minitest::Test
     get_response
   end
 
-  def get_response(url=nil, headers=nil)
-    Excon.get(url || default_url, :headers => (headers || {}))
+  def get_response(url = nil, headers = nil)
+    Excon.get(url || default_url, headers: (headers || {}))
   end
 
-  def get_wrapped_response url
+  def get_wrapped_response(url)
     NewRelic::Agent::HTTPClients::ExconHTTPResponse.new get_response url
   end
 
@@ -48,11 +47,11 @@ class ExconTest < Minitest::Test
   end
 
   def post_response
-    Excon.post(default_url, :body => "")
+    Excon.post(default_url, body: '')
   end
 
   def put_response
-    Excon.put(default_url, :body => "")
+    Excon.put(default_url, body: '')
   end
 
   def delete_response
@@ -61,18 +60,18 @@ class ExconTest < Minitest::Test
 
   def request_instance
     params = {
-      :method => "get",
-      :scheme => "http",
-      :host => "localhost",
-      :port => 80,
-      :path => "",
-      :headers => {}
+      method: 'get',
+      scheme: 'http',
+      host: 'localhost',
+      port: 80,
+      path: '',
+      headers: {}
     }
     NewRelic::Agent::HTTPClients::ExconHTTPRequest.new params
   end
 
   def response_instance(headers = {})
-    NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(Excon::Response.new(:headers => headers))
+    NewRelic::Agent::HTTPClients::ExconHTTPResponse.new(Excon::Response.new(headers: headers))
   end
 
   def test_still_records_tt_node_when_request_fails_with_idempotent_set
@@ -81,13 +80,13 @@ class ExconTest < Minitest::Test
     in_transaction do
       conn = Excon.new("#{target_url}?status=404")
       assert_raises(Excon::Errors::NotFound) do
-        conn.get(:expects => 200, :idempotent => true)
+        conn.get(expects: 200, idempotent: true)
       end
     end
 
     tt = last_transaction_trace
     node = tt.root_node.children.first.children.first
-    assert_equal("External/localhost/Excon/GET", node.metric_name)
+    assert_equal('External/localhost/Excon/GET', node.metric_name)
     assert_equal(target_url, node.params[:uri])
   end
 
@@ -95,13 +94,13 @@ class ExconTest < Minitest::Test
     in_transaction do
       conn = Excon.new("#{default_url}?status=500")
       begin
-        conn.request(:method => :get, :expects => [200])
+        conn.request(method: :get, expects: [200])
       rescue Excon::Errors::Error
         # meh
       end
     end
 
-    last_node = find_last_transaction_node()
-    assert_equal("External/localhost/Excon/GET", last_node.metric_name)
+    last_node = find_last_transaction_node
+    assert_equal('External/localhost/Excon/GET', last_node.metric_name)
   end
 end

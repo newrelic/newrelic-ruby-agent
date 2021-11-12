@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -23,26 +22,26 @@ class ViewsController < ApplicationController
   end
 
   def text_render
-    render body:  "Yay"
+    render body: 'Yay'
   end
 
   def json_render
-    render :json => {"a" => "b"}
+    render json: { 'a' => 'b' }
   end
 
   def xml_render
-    render :xml => {"a" => "b"}
+    render xml: { 'a' => 'b' }
   end
 
   def js_render
-    render :js => 'alert("this is js");'
+    render js: 'alert("this is js");'
   end
 
   def file_render
     # The choice of filename is significant here: we want a dot in the filename
     # in order to expose an issue on Rails 2.
-    file = File.expand_path(File.join(File.dirname(__FILE__), "dummy.txt"))
-    render :file => file, :content_type => 'text/plain', :layout => false
+    file = File.expand_path(File.join(File.dirname(__FILE__), 'dummy.txt'))
+    render file: file, content_type: 'text/plain', layout: false
   end
 
   def nothing_render
@@ -50,7 +49,7 @@ class ViewsController < ApplicationController
   end
 
   def inline_render
-    render :inline => "<% Time.now %><p><%= Time.now %></p>"
+    render inline: '<% Time.now %><p><%= Time.now %></p>'
   end
 
   def haml_render
@@ -62,7 +61,7 @@ class ViewsController < ApplicationController
   end
 
   def collection_render
-    render((1..3).map{|x| Foo.new })
+    render((1..3).map { |_x| Foo.new })
   end
 
   # proc rendering isn't available in rails 3 but you can do nonsense like this
@@ -79,7 +78,7 @@ class ViewsController < ApplicationController
   end
 
   def raise_render
-    raise "this is an uncaught RuntimeError"
+    raise 'this is an uncaught RuntimeError'
   end
 end
 
@@ -97,14 +96,14 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     end
   end
 
-  (ViewsController.action_methods - ['raise_render', 'collection_render', 'haml_render']).each do |method|
+  (ViewsController.action_methods - %w[raise_render collection_render haml_render]).each do |method|
     define_method("test_sanity_#{method}") do
       get "/views/#{method}"
       assert_equal 200, status
     end
 
     def test_should_allow_uncaught_exception_to_propagate
-      get "/views/raise_render"
+      get '/views/raise_render'
       assert_equal 500, status
     end
 
@@ -113,7 +112,8 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       sample = last_transaction_trace
       nodes = find_all_nodes_with_name_matching(sample, ['^Nested/Controller/views', '^View'])
       nodes_list = "Found these nodes:\n  #{nodes.map(&:metric_name).join("\n  ")}"
-      assert_equal 5, nodes.length, "Should be a node for the controller action, the template, and 3 partials (5). #{nodes_list}"
+      assert_equal 5, nodes.length,
+                   "Should be a node for the controller action, the template, and 3 partials (5). #{nodes_list}"
     end
 
     def test_should_have_3_nodes_with_the_correct_metric_name
@@ -122,7 +122,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       sample = last_transaction_trace
       partial_nodes = find_all_nodes_with_name_matching(sample, 'View/views/_a_partial.html.erb/Partial')
 
-      assert_equal 3, partial_nodes.size, "sanity check"
+      assert_equal 3, partial_nodes.size, 'sanity check'
       assert_equal ['View/views/_a_partial.html.erb/Partial'], partial_nodes.map(&:metric_name).uniq
     end
 
@@ -132,7 +132,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       sample = last_transaction_trace
       text_node = find_node_with_name(sample, 'View/inline template/Rendering')
 
-      assert text_node, "Failed to find a node named View/inline template/Rendering"
+      assert text_node, 'Failed to find a node named View/inline template/Rendering'
       assert_metrics_recorded('View/inline template/Rendering')
     end
 
@@ -150,7 +150,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
         sample = last_transaction_trace
         text_node = find_node_with_name(sample, 'View/text template/Rendering')
 
-        assert text_node, "Failed to find a node named View/text template/Rendering"
+        assert text_node, 'Failed to find a node named View/text template/Rendering'
         assert_metrics_recorded('View/text template/Rendering')
       end
     end
@@ -161,7 +161,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       sample = last_transaction_trace
       text_node = find_node_with_name(sample, 'View/views/haml_view.html.haml/Rendering')
 
-      assert text_node, "Failed to find a node named View/views/haml_view.html.haml/Rendering"
+      assert text_node, 'Failed to find a node named View/views/haml_view.html.haml/Rendering'
       assert_metrics_recorded('View/views/haml_view.html.haml/Rendering')
     end
 
@@ -183,14 +183,14 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
     def test_should_create_a_proper_metric_when_we_render_a_collection
       get '/views/collection_render'
       sample = last_transaction_trace
-      assert find_node_with_name(sample, "View/foos/_foo.html.haml/Partial")
+      assert find_node_with_name(sample, 'View/foos/_foo.html.haml/Partial')
     end
 
-    [:js_render, :xml_render, :proc_render, :json_render ].each do |action|
+    %i[js_render xml_render proc_render json_render].each do |action|
       define_method("test_should_not_instrument_rendering_of_#{action}") do
         get "/views/#{action}"
         sample = last_transaction_trace
-        view_node = find_node_with_name_matching(sample, /^View\//)
+        view_node = find_node_with_name_matching(sample, %r{^View/})
         refute view_node, "Should not instrument rendering of #{action}, found #{view_node}."
       end
     end
@@ -206,15 +206,15 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       get '/views/render_with_delays'
 
       expected_stats_partial = {
-        :call_count           => 3,
-        :total_call_time      => 3.0,
-        :total_exclusive_time => 3.0
+        call_count: 3,
+        total_call_time: 3.0,
+        total_exclusive_time: 3.0
       }
 
       expected_stats_template = {
-        :call_count           => 1,
-        :total_call_time      => 4.0,
-        :total_exclusive_time => 1.0  # top-level template takes 1s itself
+        call_count: 1,
+        total_call_time: 4.0,
+        total_exclusive_time: 1.0  # top-level template takes 1s itself
       }
 
       scope = 'Controller/views/render_with_delays'
@@ -222,10 +222,10 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       partial_metric  = 'View/views/_a_partial.html.erb/Partial'
 
       assert_metrics_recorded(
-         partial_metric           => expected_stats_partial,
-         template_metric          => expected_stats_template,
-         [partial_metric, scope]  => expected_stats_partial,
-         [template_metric, scope] => expected_stats_template
+        partial_metric => expected_stats_partial,
+        template_metric => expected_stats_template,
+        [partial_metric, scope] => expected_stats_partial,
+        [template_metric, scope] => expected_stats_template
       )
     end
   end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -9,16 +8,16 @@ module NewRelic
     class TraceContextPayload
       VERSION = 0
       PARENT_TYPE = 0
-      DELIMITER = "-".freeze
-      SUPPORTABILITY_PARSE_EXCEPTION = "Supportability/TraceContext/Parse/Exception".freeze
+      DELIMITER = '-'.freeze
+      SUPPORTABILITY_PARSE_EXCEPTION = 'Supportability/TraceContext/Parse/Exception'.freeze
 
       TRUE_CHAR = '1'.freeze
       FALSE_CHAR = '0'.freeze
 
-      PARENT_TYPES = %w(App Browser Mobile).map(&:freeze).freeze
+      PARENT_TYPES = %w[App Browser Mobile].map(&:freeze).freeze
 
       class << self
-        def create version: VERSION,
+        def create(version: VERSION,
                    parent_type: PARENT_TYPE,
                    parent_account_id: nil,
                    parent_app_id: nil,
@@ -26,7 +25,7 @@ module NewRelic
                    transaction_id: nil,
                    sampled: nil,
                    priority: nil,
-                   timestamp: now_ms
+                   timestamp: now_ms)
 
           new version, parent_type, parent_account_id, parent_app_id, id,
               transaction_id, sampled, priority, timestamp
@@ -34,7 +33,7 @@ module NewRelic
 
         include NewRelic::Coerce
 
-        def from_s payload_string
+        def from_s(payload_string)
           attrs = payload_string.split(DELIMITER)
 
           payload = create \
@@ -49,7 +48,7 @@ module NewRelic
             timestamp: int!(attrs[8])
           handle_invalid_payload message: 'payload missing attributes' unless payload.valid?
           payload
-        rescue => e
+        rescue StandardError => e
           handle_invalid_payload error: e
           raise
         end
@@ -60,10 +59,10 @@ module NewRelic
           Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
         end
 
-        def handle_invalid_payload error: nil, message: nil
+        def handle_invalid_payload(error: nil, message: nil)
           NewRelic::Agent.increment_metric SUPPORTABILITY_PARSE_EXCEPTION
           if error
-            NewRelic::Agent.logger.warn "Error parsing trace context payload", error
+            NewRelic::Agent.logger.warn 'Error parsing trace context payload', error
           elsif message
             NewRelic::Agent.logger.warn "Error parsing trace context payload: #{message}"
           end
@@ -80,10 +79,10 @@ module NewRelic
                     :priority,
                     :timestamp
 
-      alias_method :sampled?, :sampled
+      alias sampled? sampled
 
-      def initialize version, parent_type_id, parent_account_id, parent_app_id,
-                     id, transaction_id, sampled, priority, timestamp
+      def initialize(version, parent_type_id, parent_account_id, parent_app_id,
+                     id, transaction_id, sampled, priority, timestamp)
         @version = version
         @parent_type_id = parent_type_id
         @parent_account_id = parent_account_id
@@ -105,7 +104,7 @@ module NewRelic
           && !parent_account_id.empty? \
           && !parent_app_id.empty? \
           && timestamp
-      rescue
+      rescue StandardError
         false
       end
 
@@ -117,7 +116,7 @@ module NewRelic
         result << DELIMITER << (id || NewRelic::EMPTY_STR)
         result << DELIMITER << (transaction_id || NewRelic::EMPTY_STR)
         result << DELIMITER << (sampled ? TRUE_CHAR : FALSE_CHAR)
-        result << DELIMITER << sprintf("%.6f", priority)
+        result << DELIMITER << format('%.6f', priority)
         result << DELIMITER << timestamp.to_s
         result
       end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -12,17 +11,19 @@ class EnumeratorQueue
     @queue = Queue.new
   end
 
-  def preload items
-    Array(items).each{ |item| @queue.push item }
-    self   
+  def preload(items)
+    Array(items).each { |item| @queue.push item }
+    self
   end
 
   def each_item
     return enum_for(:each_item) unless block_given?
+
     loop do
       value = @queue.pop
       break if value.nil?
-      fail value if value.is_a? Exception
+      raise value if value.is_a? Exception
+
       yield value
     end
   end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -11,7 +10,7 @@ module NewRelic
       # out specifically because in this context we are not monitoring
       # the running process, but actually external things.
       class External < NewRelic::Control::Frameworks::Ruby
-        def init_config(options={})
+        def init_config(options = {})
           super
         end
       end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -18,8 +17,8 @@ module NewRelic
           @skip_instrumenting = false
         end
 
-        LINES = "Logging/lines".freeze
-        SIZE = "Logging/size".freeze
+        LINES = 'Logging/lines'.freeze
+        SIZE = 'Logging/size'.freeze
 
         def line_metric_name_by_severity(severity)
           @line_metrics ||= {}
@@ -31,8 +30,7 @@ module NewRelic
           @size_metrics[severity] ||= "Logging/size/#{severity}".freeze
         end
 
-
-        def format_message_with_tracing(severity, datetime, progname, msg)
+        def format_message_with_tracing(severity, _datetime, _progname, _msg)
           formatted_message = yield
           return formatted_message if skip_instrumenting?
 
@@ -48,7 +46,7 @@ module NewRelic
             NewRelic::Agent.record_metric(SIZE, size)
             NewRelic::Agent.record_metric(size_metric_name_by_severity(severity), size)
 
-            return formatted_message
+            formatted_message
           ensure
             clear_skip_instrumenting
           end

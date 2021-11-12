@@ -1,12 +1,10 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 module NewRelic
   module Agent
     class AdaptiveSampler
-
-      def initialize target_samples = 10, period_duration = 60
+      def initialize(target_samples = 10, period_duration = 60)
         @target = target_samples
         @seen = 0
         @seen_last = 0
@@ -25,12 +23,12 @@ module NewRelic
         @lock.synchronize do
           reset_if_period_expired!
           sampled = if @first_period
-            @sampled_count < 10
-          elsif @sampled_count < @target
-            rand(@seen_last) < @target
-          else
-            rand(@seen) < (@target ** (@target / @sampled_count) - @target ** 0.5)
-          end
+                      @sampled_count < 10
+                    elsif @sampled_count < @target
+                      rand(@seen_last) < @target
+                    else
+                      rand(@seen) < (@target**(@target / @sampled_count) - @target**0.5)
+                    end
 
           @sampled_count += 1 if sampled
           @seen += 1
@@ -57,7 +55,7 @@ module NewRelic
         return unless @period_start + @period_duration <= now
 
         elapsed_periods = Integer((now - @period_start) / @period_duration)
-        @period_start = @period_start + elapsed_periods * @period_duration
+        @period_start += elapsed_periods * @period_duration
 
         @first_period = false
         @seen_last = elapsed_periods > 1 ? 0 : @seen
@@ -79,9 +77,7 @@ module NewRelic
               target_changed = true
             end
           end
-          if target_changed
-            NewRelic::Agent.logger.debug "Sampling target set to: #{target}"
-          end
+          NewRelic::Agent.logger.debug "Sampling target set to: #{target}" if target_changed
         end
       end
 
@@ -94,9 +90,7 @@ module NewRelic
               period_changed = true
             end
           end
-          if period_changed
-            NewRelic::Agent.logger.debug "Sampling period set to: #{period_duration}"
-          end
+          NewRelic::Agent.logger.debug "Sampling period set to: #{period_duration}" if period_changed
         end
       end
     end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 require 'new_relic/agent/transaction_event_aggregator'
@@ -11,15 +10,14 @@ module NewRelic
     # the relationship between events generated from synthetics requests
     # vs normal requests.
     class TransactionEventRecorder
-      attr_reader :transaction_event_aggregator
-      attr_reader :synthetics_event_aggregator
+      attr_reader :transaction_event_aggregator, :synthetics_event_aggregator
 
-      def initialize events
+      def initialize(events)
         @transaction_event_aggregator = NewRelic::Agent::TransactionEventAggregator.new events
         @synthetics_event_aggregator = NewRelic::Agent::SyntheticsEventAggregator.new events
       end
 
-      def record payload
+      def record(payload)
         return unless NewRelic::Agent.config[:'analytics_events.enabled']
 
         if synthetics_event? payload
@@ -31,11 +29,11 @@ module NewRelic
         end
       end
 
-      def create_event payload
+      def create_event(payload)
         TransactionEventPrimitive.create payload
       end
 
-      def synthetics_event? payload
+      def synthetics_event?(payload)
         payload.key? :synthetics_resource_id
       end
 

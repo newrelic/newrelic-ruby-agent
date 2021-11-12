@@ -1,11 +1,12 @@
 # -*- ruby -*-
 # encoding: utf-8
+
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','common_aggregator_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'common_aggregator_tests'))
 require 'new_relic/agent/transaction_event_aggregator'
 require 'new_relic/agent/attributes'
 require 'new_relic/agent/transaction_event_primitive'
@@ -13,7 +14,6 @@ require 'new_relic/agent/transaction_event_primitive'
 module NewRelic
   module Agent
     class TransactionEventAggregatorTest < Minitest::Test
-
       def setup
         nr_freeze_process_time
         events = NewRelic::Agent.instance.events
@@ -28,7 +28,7 @@ module NewRelic
         @event_aggregator
       end
 
-      def populate_container(sampler, n)
+      def populate_container(_sampler, n)
         n.times do |i|
           generate_request("whatever#{i}")
         end
@@ -51,7 +51,7 @@ module NewRelic
       end
 
       def name_for(event)
-        event[0]["name"]
+        event[0]['name']
       end
 
       include NewRelic::CommonAggregatorTests
@@ -67,7 +67,7 @@ module NewRelic
       def test_block_is_not_executed_unless_buffer_admits_event
         event = nil
 
-        with_config :'analytics_events.max_samples_stored' => 5 do
+        with_config 'analytics_events.max_samples_stored': 5 do
           5.times { generate_request }
 
           payload = generate_payload
@@ -76,7 +76,7 @@ module NewRelic
           end
         end
 
-        assert_nil event, "Did not expect block to be executed"
+        assert_nil event, 'Did not expect block to be executed'
         refute_includes last_transaction_events, event
       end
 
@@ -84,20 +84,20 @@ module NewRelic
       # Helpers
       #
 
-      def generate_request(name='Controller/whatever', options={})
+      def generate_request(name = 'Controller/whatever', options = {})
         payload = generate_payload name, options
         @event_aggregator.record event: TransactionEventPrimitive.create(payload)
       end
 
-      def generate_payload(name='Controller/whatever', options={})
+      def generate_payload(name = 'Controller/whatever', options = {})
         {
-          :name => name,
-          :type => :controller,
-          :start_timestamp => options[:timestamp] || Process.clock_gettime(Process::CLOCK_REALTIME),
-          :duration => 0.1,
-          :attributes => attributes,
-          :error => false,
-          :priority => options[:priority] || rand
+          name: name,
+          type: :controller,
+          start_timestamp: options[:timestamp] || Process.clock_gettime(Process::CLOCK_REALTIME),
+          duration: 0.1,
+          attributes: attributes,
+          error: false,
+          priority: options[:priority] || rand
         }.merge(options)
       end
 

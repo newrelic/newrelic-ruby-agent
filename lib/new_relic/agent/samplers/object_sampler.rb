@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -16,7 +15,7 @@ module NewRelic
 
         def poll
           live_objects = ObjectSpace.live_objects
-          NewRelic::Agent.record_metric("GC/objects", live_objects)
+          NewRelic::Agent.record_metric('GC/objects', live_objects)
         end
       end
     end

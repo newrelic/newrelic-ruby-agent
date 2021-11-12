@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -9,9 +8,7 @@ require 'new_relic/agent/threading/thread_profile'
 module NewRelic
   module Agent
     module Commands
-
       class ThreadProfilerSession
-
         def initialize(backtrace_service)
           @backtrace_service = backtrace_service
           @started_at = nil
@@ -27,12 +24,12 @@ module NewRelic
         end
 
         def handle_stop_command(agent_command)
-          report_data = agent_command.arguments.fetch("report_data", true)
+          report_data = agent_command.arguments.fetch('report_data', true)
           stop(report_data)
         end
 
         def start(agent_command)
-          NewRelic::Agent.logger.debug("Starting Thread Profiler.")
+          NewRelic::Agent.logger.debug('Starting Thread Profiler.')
           profile = @backtrace_service.subscribe(
             NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS,
             agent_command.arguments
@@ -44,10 +41,11 @@ module NewRelic
 
         def stop(report_data)
           return unless running?
-          NewRelic::Agent.logger.debug("Stopping Thread Profiler.")
+
+          NewRelic::Agent.logger.debug('Stopping Thread Profiler.')
           @finished_profile = @backtrace_service.harvest(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
           @backtrace_service.unsubscribe(NewRelic::Agent::Threading::BacktraceService::ALL_TRANSACTIONS)
-          @finished_profile = nil if !report_data
+          @finished_profile = nil unless report_data
         end
 
         def harvest
@@ -86,13 +84,13 @@ module NewRelic
         private
 
         def raise_command_error(msg)
-          raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError.new(msg)
+          raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError, msg
         end
 
         def raise_unsupported_error
-          msg = <<-EOF
-Thread profiling is not supported for Resque processes. If you did not intend to
-profile a Resque process, profiling again might select an appropriate agent.
+          msg = <<~EOF
+            Thread profiling is not supported for Resque processes. If you did not intend to
+            profile a Resque process, profiling again might select an appropriate agent.
           EOF
           raise_command_error(msg)
         end
@@ -103,10 +101,9 @@ profile a Resque process, profiling again might select an appropriate agent.
         end
 
         def raise_already_started_error
-          msg = "Profile already in progress. Ignoring agent command to start another."
+          msg = 'Profile already in progress. Ignoring agent command to start another.'
           raise_command_error(msg)
         end
-
       end
     end
   end

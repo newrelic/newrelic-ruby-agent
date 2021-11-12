@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -31,11 +30,11 @@ module NewRelic
             verb = http_verb(request)
 
             route_text = route_text.source if route_text.is_a?(Regexp)
-            name = route_text.gsub(%r{^[/^\\A]*(.*?)[/\$\?\\z]*$}, '\1')
+            name = route_text.gsub(%r{^[/^\\A]*(.*?)[/$?\\z]*$}, '\1')
             name = ROOT if name.empty?
             name = "#{verb} #{name}" unless verb.nil?
             name
-          rescue => e
+          rescue StandardError => e
             ::NewRelic::Agent.logger.debug("#{e.class} : #{e.message} - Error encountered trying to identify Sinatra transaction name")
             ::NewRelic::Agent::UNKNOWN_METRIC
           end
@@ -47,14 +46,14 @@ module NewRelic
           # For bare Sinatra, our override on process_route captures the last
           # route into the environment for us to use later on
           def route_for_sinatra(env)
-            env["newrelic.last_route"]
+            env['newrelic.last_route']
           end
 
           # For Padrino, the request object has a copy of the matched route
           # on it when we go to evaluating, so we can just retrieve that
           def route_name_for_padrino(request)
             request.route_obj.original_path
-          rescue
+          rescue StandardError
             nil
           end
         end

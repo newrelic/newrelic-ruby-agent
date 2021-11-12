@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -14,11 +13,11 @@ class SinatraRouteTestApp < Sinatra::Base
   end
 
   get '/user/login' do
-    "please log in"
+    'please log in'
   end
 
   # this action will always return 404 because of the condition.
-  get '/user/:id', :my_condition => false do |id|
+  get '/user/:id', my_condition: false do |id|
     "Welcome #{id}"
   end
 end

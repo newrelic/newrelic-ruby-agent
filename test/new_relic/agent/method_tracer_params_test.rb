@@ -1,12 +1,11 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
-  METRIC = "metric"
-  KEYWORD_DEPRECATED_WARNING = "Using the last argument as keyword parameters is deprecated"
+  METRIC = 'metric'
+  KEYWORD_DEPRECATED_WARNING = 'Using the last argument as keyword parameters is deprecated'
 
   def setup
     NewRelic::Agent::Tracer.clear_state
@@ -29,26 +28,31 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
 
   class UntracedMethods
     def expect_deprecation_warnings?
-      RUBY_VERSION >= "2.7.0" && RUBY_VERSION < "3.0.0"
+      RUBY_VERSION >= '2.7.0' && RUBY_VERSION < '3.0.0'
     end
 
     def no_args
-      {foo: {bar: "foobar"}}
+      { foo: { bar: 'foobar' } }
     end
-    def last_arg_expects_a_hash foo, bar = {}
-      {foo => bar}
+
+    def last_arg_expects_a_hash(foo, bar = {})
+      { foo => bar }
     end
-    def last_arg_is_a_keyword foo, bar:
-      {foo => bar}
+
+    def last_arg_is_a_keyword(foo, bar:)
+      { foo => bar }
     end
+
     def all_args_are_keywords(foo: '', bar: '')
-      {foo => bar}
+      { foo => bar }
     end
-    def wildcard_args *args
+
+    def wildcard_args(*args)
       { args[0] => args[1] }
     end
-    def args_and_kwargs *args, **kwargs
-      {args[0] => kwargs}
+
+    def args_and_kwargs(*args, **kwargs)
+      { args[0] => kwargs }
     end
 
     def modifies_hash
@@ -94,79 +98,77 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     add_method_tracer :process, METRIC, push_scope: false
   end
 
-  def refute_deprecation_warning
+  def refute_deprecation_warning(&block)
     in_transaction do
-      _out, err = capture_io { yield }
+      _out, err = capture_io(&block)
       refute_match KEYWORD_DEPRECATED_WARNING, err
       return err
     end
   end
 
-  def assert_deprecation_warning
+  def assert_deprecation_warning(&block)
     in_transaction do
-      _out, err = capture_io { yield }
+      _out, err = capture_io(&block)
       assert_match KEYWORD_DEPRECATED_WARNING, err
       return err
     end
   end
 
-  def silence_expected_warnings
-    capture_io { yield }
+  def silence_expected_warnings(&block)
+    capture_io(&block)
   end
 
-  def assert_common_tracing_behavior traced_class
+  def assert_common_tracing_behavior(traced_class)
     assert_expected_results traced_class
     refute_deprecation_warnings traced_class
     call_expecting_warning_after_ruby_26 traced_class
   end
 
-  [ ["untraced_methods", UntracedMethods],
-    ["traced_methods", TracedMethods],
-    ["traced_metric_methods", TracedMetricMethods],
-    ["traced_metric_methods_unscoped", TracedMetricMethodsUnscoped],
-  ].each do |traced_class_name, traced_class|
-
+  [['untraced_methods', UntracedMethods],
+   ['traced_methods', TracedMethods],
+   ['traced_metric_methods', TracedMetricMethods],
+   ['traced_metric_methods_unscoped', TracedMetricMethodsUnscoped]].each do |traced_class_name, traced_class|
     # We're doing it all in one big super test because order of invocation matters!
     # When many small test scenarios, if the tests for deprecation warnings emitted
     # by the compiler are not invoked first, then we miss our chance to capture
     # that output and assert/refute reliably.
     # This very large run ensures order of calls always happen in predictable order.
     define_method "test_expected_results_#{traced_class_name}" do
-
-      expected = {foo: {bar: "foobar"}}
-      expected369 = {1=>3, 2=>6, 3=>9}
+      expected = { foo: { bar: 'foobar' } }
+      expected369 = { 1 => 3, 2 => 6, 3 => 9 }
       instance = traced_class.new
 
       # Test deprecation warnings first!
       refute_deprecation_warning { instance.no_args }
 
-      refute_deprecation_warning { instance.last_arg_expects_a_hash(:foo, {bar: "foobar"}) }
-      refute_deprecation_warning { instance.last_arg_expects_a_hash(:foo, bar: "foobar") }
+      refute_deprecation_warning { instance.last_arg_expects_a_hash(:foo, { bar: 'foobar' }) }
+      refute_deprecation_warning { instance.last_arg_expects_a_hash(:foo, bar: 'foobar') }
 
-      refute_deprecation_warning { instance.wildcard_args(:foo, bar: "foobar") }
-      refute_deprecation_warning { instance.wildcard_args(:foo, {bar: "foobar"}) }
+      refute_deprecation_warning { instance.wildcard_args(:foo, bar: 'foobar') }
+      refute_deprecation_warning { instance.wildcard_args(:foo, { bar: 'foobar' }) }
 
-      refute_deprecation_warning { instance.last_arg_is_a_keyword(:foo, bar: "foobar") }
-      refute_deprecation_warning { instance.all_args_are_keywords(foo: :foo, bar: {bar: "foobar"}) }
-      refute_deprecation_warning { instance.args_and_kwargs(:foo, bar: "foobar") }
-      if RUBY_VERSION < "2.7.0"
-        refute_deprecation_warning { instance.last_arg_is_a_keyword(:foo, {bar: "foobar"}) }
-        refute_deprecation_warning { instance.args_and_kwargs(:foo, {bar: "foobar"}) }
+      refute_deprecation_warning { instance.last_arg_is_a_keyword(:foo, bar: 'foobar') }
+      refute_deprecation_warning { instance.all_args_are_keywords(foo: :foo, bar: { bar: 'foobar' }) }
+      refute_deprecation_warning { instance.args_and_kwargs(:foo, bar: 'foobar') }
+      if RUBY_VERSION < '2.7.0'
+        refute_deprecation_warning { instance.last_arg_is_a_keyword(:foo, { bar: 'foobar' }) }
+        refute_deprecation_warning { instance.args_and_kwargs(:foo, { bar: 'foobar' }) }
       end
 
       # ensure behavior doesn't change by tracing methods!
       assert_equal expected, instance.no_args
-      assert_equal expected, instance.last_arg_expects_a_hash(:foo, {bar: "foobar"})
-      assert_equal expected, instance.last_arg_expects_a_hash(:foo, bar: "foobar")
-      assert_equal expected, instance.wildcard_args(:foo, {bar: "foobar"})
-      assert_equal expected, instance.wildcard_args(:foo, bar: "foobar")
-      assert_equal expected, instance.args_and_kwargs(:foo, bar: "foobar")
+      assert_equal expected, instance.last_arg_expects_a_hash(:foo, { bar: 'foobar' })
+      assert_equal expected, instance.last_arg_expects_a_hash(:foo, bar: 'foobar')
+      assert_equal expected, instance.wildcard_args(:foo, { bar: 'foobar' })
+      assert_equal expected, instance.wildcard_args(:foo, bar: 'foobar')
+      assert_equal expected, instance.args_and_kwargs(:foo, bar: 'foobar')
       assert_equal expected369, instance.modifies_hash
 
       # This is what changes in 3.0!
-      version_specific_expected = RUBY_VERSION >= "3.0.0" ? { foo: {} } : expected
-      silence_expected_warnings { assert_equal version_specific_expected, instance.args_and_kwargs(:foo, {bar: "foobar"}) }
+      version_specific_expected = RUBY_VERSION >= '3.0.0' ? { foo: {} } : expected
+      silence_expected_warnings do
+        assert_equal version_specific_expected, instance.args_and_kwargs(:foo, { bar: 'foobar' })
+      end
     end
   end
-
 end

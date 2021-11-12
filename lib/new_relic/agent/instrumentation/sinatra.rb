@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -43,7 +42,7 @@ DependencyDetection.defer do
         chain_instrument NewRelic::Agent::Instrumentation::Sinatra::Build::Chain
       end
     else
-      ::NewRelic::Agent.logger.info("Skipping auto-injection of middleware for Sinatra - requires Sinatra 1.2.1+")
+      ::NewRelic::Agent.logger.info('Skipping auto-injection of middleware for Sinatra - requires Sinatra 1.2.1+')
     end
   end
 end

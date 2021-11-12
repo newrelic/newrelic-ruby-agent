@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -31,7 +30,7 @@ class PipeServiceTest < Minitest::Test
 
   def test_write_to_missing_pipe_logs_error
     ::NewRelic::Agent.logger.expects(:error) \
-      .with(regexp_matches(/No communication channel to parent process/)).once
+                     .with(regexp_matches(/No communication channel to parent process/)).once
     service = NewRelic::Agent::PipeService.new(:non_existant)
     service.metric_data({})
   end
@@ -132,7 +131,7 @@ class PipeServiceTest < Minitest::Test
     end
   end
 
-  def generate_metric_data(metric_name, data=1.0)
+  def generate_metric_data(metric_name, data = 1.0)
     engine = NewRelic::Agent::StatsEngine.new
     engine.tl_record_unscoped_metrics(metric_name, data)
     engine.harvest!
@@ -148,10 +147,8 @@ class PipeServiceTest < Minitest::Test
     data
   end
 
-  def data_from_forked_process
-    pid = Process.fork do
-      yield
-    end
+  def data_from_forked_process(&block)
+    pid = Process.fork(&block)
     Process.wait(pid)
     read_from_pipe
   end

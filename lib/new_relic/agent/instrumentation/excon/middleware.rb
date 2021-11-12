@@ -1,17 +1,16 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 module ::Excon
   module Middleware
     class NewRelicCrossAppTracing
-      TRACE_DATA_IVAR = :@newrelic_trace_data
+      TRACE_DATA_IVAR = :@newrelic_trace_data # rubocop:disable all
 
       def initialize(stack)
         @stack = stack
       end
 
-      def request_call(datum) #THREAD_LOCAL_ACCESS
+      def request_call(datum) # THREAD_LOCAL_ACCESS
         begin
           # Only instrument this request if we haven't already done so, because
           # we can get request_call multiple times for requests marked as
@@ -29,7 +28,7 @@ module ::Excon
 
             datum[:connection].instance_variable_set(TRACE_DATA_IVAR, segment)
           end
-        rescue => e
+        rescue StandardError => e
           NewRelic::Agent.logger.debug(e)
         end
         @stack.request_call(datum)
@@ -45,7 +44,7 @@ module ::Excon
         @stack.error_call(datum)
       end
 
-      def finish_trace(datum) #THREAD_LOCAL_ACCESS
+      def finish_trace(datum) # THREAD_LOCAL_ACCESS
         segment = datum[:connection] && datum[:connection].instance_variable_get(TRACE_DATA_IVAR)
         if segment
           begin

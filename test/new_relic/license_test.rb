@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 
 # look through the source code to enforce some simple rules that help us keep
 # our license data up to date.
@@ -17,7 +16,7 @@ class LicenseTest < Minitest::Test
     'BSD' => /\bBSD\b/i,
     'MIT' => /\bMIT\b/i,
     'Apache' => /\bapache\b/i,
-    'rights reserved' => /rights reserved/i,
+    'rights reserved' => /rights reserved/i
   }
 
   # Known occurrences of the above license terms
@@ -59,7 +58,7 @@ class LicenseTest < Minitest::Test
       # skip directories
       !File.file?(path) ||
       # skip binary files
-      %w| .sqlite3 .log .png .ico .gif .pdf .gem |.include?(File.extname(path)) ||
+      %w[.sqlite3 .log .png .ico .gif .pdf .gem].include?(File.extname(path)) ||
       # skip this file
       File.expand_path(__FILE__) == path ||
       # skip rpm_test_app and other stuff that ends up in tmp
@@ -79,7 +78,7 @@ class LicenseTest < Minitest::Test
       # skip the artifacts directory
       path =~ %r{/artifacts/} ||
       # skip the changelog
-      path =~ %r{CHANGELOG.md}
+      path =~ /CHANGELOG.md/
     )
   end
 
@@ -102,8 +101,10 @@ class LicenseTest < Minitest::Test
         first_four_lines.shift # discard it
       end
 
-      assert_match(/This file is distributed under .+ license terms\./, first_four_lines[0], "#{filename} does not contain the proper license header.")
-      assert_match(%r"See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.", first_four_lines[1])
+      assert_match(/This file is distributed under .+ license terms\./, first_four_lines[0],
+                   "#{filename} does not contain the proper license header.")
+      assert_match(%r{See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.},
+                   first_four_lines[1])
     end
   end
 
@@ -111,18 +112,17 @@ class LicenseTest < Minitest::Test
     files_to_check = all_files.reject { |f| should_skip?(f) }
     files_to_check.each do |filename|
       LICENSE_TERMS.each do |key, pattern|
-        begin
-          # we're checking this one.  We'll update the count of checked files below.
-          occurrences = File.readlines(filename).grep(pattern).size
-          expected = (EXPECTED_LICENSE_OCCURRENCES[[filename.sub(gem_root, ''), key]] || 0)
-          assert_equal expected, occurrences, "#{filename} contains #{key} #{occurrences} times. Should be #{expected}"
-        rescue => e
-          raise "Error when checking file #{filename}: #{e}"
-        end
+        # we're checking this one.  We'll update the count of checked files below.
+        occurrences = File.readlines(filename).grep(pattern).size
+        expected = (EXPECTED_LICENSE_OCCURRENCES[[filename.sub(gem_root, ''), key]] || 0)
+        assert_equal expected, occurrences, "#{filename} contains #{key} #{occurrences} times. Should be #{expected}"
+      rescue StandardError => e
+        raise "Error when checking file #{filename}: #{e}"
       end
     end
     # sanity check that we are not skipping all the files.
     checked_files = files_to_check.size
-    assert checked_files >= 390, "Somethings off. We only scanned #{checked_files} files for license info.  There should be more."
+    assert checked_files >= 390,
+           "Somethings off. We only scanned #{checked_files} files for license info.  There should be more."
   end
 end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -18,15 +17,13 @@ require 'new_relic/control'
 # We need it to add dev mode routes after initialization finished.
 
 begin
-
   current_config = if defined?(config)
-    config
-  elsif defined?(Rails.configuration)
-    Rails.configuration
-  end
+                     config
+                   elsif defined?(Rails.configuration)
+                     Rails.configuration
+                   end
 
-  NewRelic::Control.instance.init_plugin :config => current_config
-
-rescue => e
-  ::NewRelic::Agent.logger.error "Error initializing New Relic plugin. Agent is disabled.", e
+  NewRelic::Control.instance.init_plugin config: current_config
+rescue StandardError => e
+  ::NewRelic::Agent.logger.error 'Error initializing New Relic plugin. Agent is disabled.', e
 end

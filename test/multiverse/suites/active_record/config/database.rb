@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,30 +7,32 @@ require 'newrelic_rpm'
 
 DependencyDetection.detect!
 
-db_dir = File.expand_path('../../db', __FILE__)
-config_dir = File.expand_path(File.dirname(__FILE__))
+db_dir = File.expand_path('../db', __dir__)
+config_dir = __dir__
 
 if defined?(ActiveRecord::VERSION)
-  ENV['DATABASE_NAME'] = "multiverse_activerecord_#{ActiveRecord::VERSION::STRING}_#{RUBY_VERSION}_#{RUBY_ENGINE}".gsub(".", "_")
+  ENV['DATABASE_NAME'] =
+    "multiverse_activerecord_#{ActiveRecord::VERSION::STRING}_#{RUBY_VERSION}_#{RUBY_ENGINE}".gsub('.', '_')
 else
-  ENV['DATABASE_NAME'] = "multiverse_activerecord_2_x_#{ENV["MULTIVERSE_ENV"]}_#{RUBY_VERSION}_#{RUBY_ENGINE}".gsub(".", "_")
+  ENV['DATABASE_NAME'] =
+    "multiverse_activerecord_2_x_#{ENV['MULTIVERSE_ENV']}_#{RUBY_VERSION}_#{RUBY_ENGINE}".gsub('.', '_')
 end
 
 config_raw = File.read(File.join(config_dir, 'database.yml'))
 config_erb = ERB.new(config_raw).result
 config_yml = if YAML.respond_to?(:unsafe_load)
                YAML.unsafe_load(config_erb)
-             else 
+             else
                YAML.load(config_erb)
              end
 
 # Rails 2.x didn't keep the Rails out of ActiveRecord much...
-RAILS_ENV  = "test"
-RAILS_ROOT = File.join(db_dir, "..")
+RAILS_ENV  = 'test'
+RAILS_ROOT = File.join(db_dir, '..')
 
 ActiveRecord::Base.configurations = config_yml
 ActiveRecord::Base.establish_connection :test
-ActiveRecord::Base.logger = Logger.new(ENV["VERBOSE"] ? STDOUT : StringIO.new)
+ActiveRecord::Base.logger = Logger.new(ENV['VERBOSE'] ? STDOUT : StringIO.new)
 
 begin
   load 'active_record/railties/databases.rake'
@@ -48,7 +49,7 @@ if defined?(ActiveRecord::Tasks)
     end
   end
 
-  DatabaseTasks.env = "test"
+  DatabaseTasks.env = 'test'
   DatabaseTasks.db_dir = db_dir
   DatabaseTasks.migrations_paths = File.join(db_dir, 'migrate')
   DatabaseTasks.database_configuration = config_yml
@@ -63,7 +64,7 @@ else
     end
 
     def env
-      ActiveSupport::StringInquirer.new(ENV["RACK_ENV"] || "development")
+      ActiveSupport::StringInquirer.new(ENV['RACK_ENV'] || 'development')
     end
 
     def application
@@ -77,7 +78,7 @@ else
     end
   end
 
-  Rake::Task.define_task("db:environment")
-  Rake::Task["db:load_config"].clear if Rake::Task.task_defined? "db:load_config"
-  Rake::Task.define_task("db:rails_env")
+  Rake::Task.define_task('db:environment')
+  Rake::Task['db:load_config'].clear if Rake::Task.task_defined? 'db:load_config'
+  Rake::Task.define_task('db:rails_env')
 end

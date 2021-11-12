@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -11,8 +10,8 @@ class SqlObfuscationTests < Performance::TestCase
     @long_query  = NewRelic::Agent::Database::Statement.new(long_query)
     @short_query = NewRelic::Agent::Database::Statement.new(short_query)
 
-    @long_query_pg = NewRelic::Agent::Database::Statement.new(long_query, {:adapter => 'postgresql'})
-    @short_query_pg = NewRelic::Agent::Database::Statement.new(short_query, {:adapter => 'postgresql'})
+    @long_query_pg = NewRelic::Agent::Database::Statement.new(long_query, { adapter: 'postgresql' })
+    @short_query_pg = NewRelic::Agent::Database::Statement.new(short_query, { adapter: 'postgresql' })
   end
 
   def test_obfuscate_sql
@@ -26,7 +25,7 @@ class SqlObfuscationTests < Performance::TestCase
     measure do
       NewRelic::Agent::Database.obfuscate_sql(@long_query_pg)
       NewRelic::Agent::Database.obfuscate_sql(@short_query_pg)
-    end    
+    end
   end
 
   def test_obfuscate_cross_agent_tests
@@ -37,7 +36,7 @@ class SqlObfuscationTests < Performance::TestCase
       query = test_case['sql']
 
       test_case['dialects'].map do |dialect|
-        statements << NewRelic::Agent::Database::Statement.new(query, {:adapter => dialect})
+        statements << NewRelic::Agent::Database::Statement.new(query, { adapter: dialect })
       end
     end
 

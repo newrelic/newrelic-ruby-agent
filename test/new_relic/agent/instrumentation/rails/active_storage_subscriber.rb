@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -20,13 +19,13 @@ module NewRelic
 
         def test_metrics_recorded_for_known_methods
           method_name_mapping = {
-            "service_upload.active_storage"             => "upload".freeze,
-            "service_streaming_download.active_storage" => "streaming_download".freeze,
-            "service_download.active_storage"           => "download".freeze,
-            "service_delete.active_storage"             => "delete".freeze,
-            "service_delete_prefixed.active_storage"    => "delete_prefixed".freeze,
-            "service_exist.active_storage"              => "exist".freeze,
-            "service_url.active_storage"                => "url".freeze
+            'service_upload.active_storage' => 'upload'.freeze,
+            'service_streaming_download.active_storage' => 'streaming_download'.freeze,
+            'service_download.active_storage' => 'download'.freeze,
+            'service_delete.active_storage' => 'delete'.freeze,
+            'service_delete_prefixed.active_storage' => 'delete_prefixed'.freeze,
+            'service_exist.active_storage' => 'exist'.freeze,
+            'service_url.active_storage' => 'url'.freeze
           }
 
           in_transaction 'test' do
@@ -62,7 +61,7 @@ module NewRelic
           end
 
           trace = last_transaction_trace
-          tt_node = find_node_with_name(trace, "Ruby/ActiveStorage/DiskService/upload")
+          tt_node = find_node_with_name(trace, 'Ruby/ActiveStorage/DiskService/upload')
 
           assert_equal 'mykey', tt_node.params[:key]
         end
@@ -73,7 +72,7 @@ module NewRelic
           end
 
           trace = last_transaction_trace
-          tt_node = find_node_with_name(trace, "Ruby/ActiveStorage/DiskService/exist")
+          tt_node = find_node_with_name(trace, 'Ruby/ActiveStorage/DiskService/exist')
 
           assert tt_node.params.key? :exist
           assert_equal false, tt_node.params[:exist]
@@ -93,10 +92,10 @@ module NewRelic
 
         def test_records_span_level_error
           exception_class = StandardError
-          exception_msg = "Natural 1"
-          exception = exception_class.new(msg=exception_msg)
+          exception_msg = 'Natural 1'
+          exception = exception_class.new(msg = exception_msg)
           # :exception_object was added in Rails 5 and above
-          params = { :exception_object => exception, :exception => [exception_class.name, exception_msg] }
+          params = { exception_object: exception, exception: [exception_class.name, exception_msg] }
 
           txn = nil
 
@@ -111,7 +110,7 @@ module NewRelic
         private
 
         def generate_event(event_name, attributes = {})
-          defaults = {key: fake_guid(32), service: "Disk"}
+          defaults = { key: fake_guid(32), service: 'Disk' }
           payload = defaults.merge(attributes)
           @subscriber.start event_name, @id, payload
           yield if block_given?

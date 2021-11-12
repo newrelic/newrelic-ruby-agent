@@ -1,12 +1,11 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/memory_logger'
 
 class MemoryLoggerTest < Minitest::Test
-  LEVELS = [:fatal, :error, :warn, :info, :debug]
+  LEVELS = %i[fatal error warn info debug]
 
   def setup
     @logger = NewRelic::Agent::MemoryLogger.new
@@ -23,11 +22,11 @@ class MemoryLoggerTest < Minitest::Test
     # work with old versions of Mocha.
     def real_logger.warn(*); end
 
-    real_logger.expects(:fatal).with("message at fatal")
-    real_logger.expects(:error).with("message at error")
-    real_logger.expects(:warn).with("message at warn")
-    real_logger.expects(:info).with("message at info")
-    real_logger.expects(:debug).with("message at debug")
+    real_logger.expects(:fatal).with('message at fatal')
+    real_logger.expects(:error).with('message at error')
+    real_logger.expects(:warn).with('message at warn')
+    real_logger.expects(:info).with('message at info')
+    real_logger.expects(:debug).with('message at debug')
 
     @logger.dump(real_logger)
   end
@@ -49,7 +48,7 @@ class MemoryLoggerTest < Minitest::Test
     end
 
     real_logger = stub
-    real_logger.expects(:info).yields()
+    real_logger.expects(:info).yields
 
     @logger.dump(real_logger)
     assert called
@@ -66,8 +65,8 @@ class MemoryLoggerTest < Minitest::Test
   end
 
   def test_log_once
-    @logger.log_once(:debug, :once, "Once")
-    @logger.log_once(:debug, :once, "Twice?")
+    @logger.log_once(:debug, :once, 'Once')
+    @logger.log_once(:debug, :once, 'Twice?')
 
     real_logger = stub
     real_logger.expects(:debug).once

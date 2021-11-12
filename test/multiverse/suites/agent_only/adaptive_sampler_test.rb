@@ -1,17 +1,14 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
-
 
 module NewRelic
   module Agent
     class AdaptiveSamplerTest < Minitest::Test
-
       include MultiverseHelpers
 
       setup_and_teardown_agent do
-        NewRelic::Agent.config.add_config_for_testing :'distributed_tracing.enabled' => true
-        #hard reset on the adaptive_sampler
+        NewRelic::Agent.config.add_config_for_testing 'distributed_tracing.enabled': true
+        # hard reset on the adaptive_sampler
         NewRelic::Agent.instance.instance_variable_set :@adaptive_sampler, AdaptiveSampler.new
       end
 
@@ -32,7 +29,7 @@ module NewRelic
 
         advance_process_time(60)
 
-        in_transaction("test_txn_20") {}
+        in_transaction('test_txn_20') {}
 
         stats = NewRelic::Agent.instance.adaptive_sampler.stats
         assert_equal 1, stats[:seen]

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -98,11 +97,15 @@ module NewRelic
         build_rule(config[:'transaction_segments.attributes.exclude'], DST_TRANSACTION_SEGMENTS, false)
 
         build_rule(['request.parameters.*'], include_destinations_for_capture_params(config[:capture_params]), true)
-        build_rule(['job.resque.args.*'],    include_destinations_for_capture_params(config[:'resque.capture_params']), true)
-        build_rule(['job.sidekiq.args.*'],   include_destinations_for_capture_params(config[:'sidekiq.capture_params']), true)
+        build_rule(['job.resque.args.*'],    include_destinations_for_capture_params(config[:'resque.capture_params']),
+                   true)
+        build_rule(['job.sidekiq.args.*'],
+                   include_destinations_for_capture_params(config[:'sidekiq.capture_params']), true)
 
-        build_rule(['host', 'port_path_or_id'], DST_TRANSACTION_SEGMENTS, config[:'datastore_tracer.instance_reporting.enabled'])
-        build_rule(['database_name'],           DST_TRANSACTION_SEGMENTS, config[:'datastore_tracer.database_name_reporting.enabled'])
+        build_rule(%w[host port_path_or_id], DST_TRANSACTION_SEGMENTS,
+                   config[:'datastore_tracer.instance_reporting.enabled'])
+        build_rule(['database_name'], DST_TRANSACTION_SEGMENTS,
+                   config[:'datastore_tracer.database_name_reporting.enabled'])
 
         build_rule(config[:'attributes.include'], DST_ALL, true)
         build_rule(config[:'transaction_tracer.attributes.include'],   DST_TRANSACTION_TRACER,   true)
@@ -143,9 +146,8 @@ module NewRelic
           DST_ALL
         ]
 
-        @key_cache = destinations.inject({}) do |memo, destination|
+        @key_cache = destinations.each_with_object({}) do |destination, memo|
           memo[destination] = {}
-          memo
         end
       end
 
@@ -165,11 +167,9 @@ module NewRelic
       end
 
       def build_uri_rule(excluded_attributes)
-        uri_aliases = %w(uri url request_uri request.uri http.url)
+        uri_aliases = %w[uri url request_uri request.uri http.url]
 
-        if (excluded_attributes & uri_aliases).size > 0
-          build_rule(uri_aliases - excluded_attributes, DST_ALL, false)
-        end
+        build_rule(uri_aliases - excluded_attributes, DST_ALL, false) if (excluded_attributes & uri_aliases).size > 0
       end
 
       def apply(attribute_name, default_destinations)
@@ -256,8 +256,8 @@ module NewRelic
       attr_reader :attribute_name, :destinations, :is_include, :wildcard
 
       def initialize(attribute_name, destinations, is_include)
-        @attribute_name = attribute_name.sub(/\*$/, "")
-        @wildcard       = attribute_name.end_with?("*")
+        @attribute_name = attribute_name.sub(/\*$/, '')
+        @wildcard       = attribute_name.end_with?('*')
         @is_include     = is_include
         @destinations   = is_include ? destinations : ~destinations
       end
@@ -278,7 +278,7 @@ module NewRelic
           return is_include ? -1 : 1
         end
 
-        return 0
+        0
       end
 
       def match?(name)
@@ -290,11 +290,11 @@ module NewRelic
       end
 
       def empty?
-        if is_include
-          @destinations == AttributeFilter::DST_NONE
-        else
-          @destinations == AttributeFilter::DST_ALL
-        end
+        @destinations == if is_include
+                           AttributeFilter::DST_NONE
+                         else
+                           AttributeFilter::DST_ALL
+                         end
       end
     end
   end

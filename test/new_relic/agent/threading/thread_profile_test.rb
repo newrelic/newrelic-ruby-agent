@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 require 'new_relic/agent/threading/backtrace_service'
 require 'new_relic/agent/threading/thread_profile'
@@ -27,7 +26,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         # Run the worker_loop for the thread profile based on two iterations
         # This takes time fussiness out of the equation and keeps the tests stable
-        @profile.instance_variable_set(:@worker_loop, NewRelic::Agent::WorkerLoop.new(:limit => 2))
+        @profile.instance_variable_set(:@worker_loop, NewRelic::Agent::WorkerLoop.new(limit: 2))
       end
 
       def teardown
@@ -48,26 +47,26 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
       def test_prune_keeps_highest_counts
         @profile.aggregate(@single_trace, :request, Thread.current)
-        @profile.aggregate(@single_trace, :other  , Thread.current)
-        @profile.aggregate(@single_trace, :other  , Thread.current)
+        @profile.aggregate(@single_trace, :other, Thread.current)
+        @profile.aggregate(@single_trace, :other, Thread.current)
 
         @profile.convert_N_trace_nodes_to_arrays(1)
 
         assert_equal 0, count_backtrace_nodes(@profile.traces[:request])
-        assert_equal 1, count_backtrace_nodes(@profile.traces[:other  ])
+        assert_equal 1, count_backtrace_nodes(@profile.traces[:other])
       end
 
       def test_prune_keeps_highest_count_then_depths
         @profile.aggregate(@single_trace, :request, Thread.current)
-        @profile.aggregate(@single_trace, :other  , Thread.current)
+        @profile.aggregate(@single_trace, :other, Thread.current)
 
         @profile.convert_N_trace_nodes_to_arrays(2)
 
         assert_equal 1, count_backtrace_nodes(@profile.traces[:request])
-        assert_equal 1, count_backtrace_nodes(@profile.traces[:other  ])
+        assert_equal 1, count_backtrace_nodes(@profile.traces[:other])
       end
 
-      def build_well_known_trace(args={})
+      def build_well_known_trace(args = {})
         @profile = ThreadProfile.new(args)
 
         thread = stub
@@ -92,13 +91,13 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
       def test_to_collector_array
         build_well_known_trace('profile_id' => 333)
-        @profile.stubs(:created_at).returns(1350403938892.524)
-        @profile.finished_at = 1350403939904.375
+        @profile.stubs(:created_at).returns(1_350_403_938_892.524)
+        @profile.finished_at = 1_350_403_939_904.375
 
         expected = [
           333,
-          1350403938892.524,
-          1350403939904.375,
+          1_350_403_938_892.524,
+          1_350_403_939_904.375,
           1,
           WELL_KNOWN_TRACE_ENCODED,
           2,
@@ -127,7 +126,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       end
 
       def test_to_collector_array_with_bad_values
-        build_well_known_trace(:profile_id => -1)
+        build_well_known_trace(profile_id: -1)
         @profile.stubs(:created_at).returns('')
         @profile.finished_at = nil
         @profile.instance_variable_set(:@poll_count, Rational(10, 1))
@@ -239,6 +238,5 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         count
       end
     end
-
   end
 end

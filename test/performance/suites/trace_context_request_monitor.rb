@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -14,12 +13,12 @@ class TraceContextRequestMonitor < Performance::TestCase
   include Mocha::API
 
   CONFIG = {
-    :'cross_application_tracer.enabled' => false,
-    :'distributed_tracing.enabled'      => true,
-    :encoding_key                       => "\0",
-    :account_id                         => "190",
-    :primary_application_id             => "46954",
-    :trusted_account_key                => "99999"
+    'cross_application_tracer.enabled': false,
+    'distributed_tracing.enabled': true,
+    encoding_key: "\0",
+    account_id: '190',
+    primary_application_id: '46954',
+    trusted_account_key: '99999'
   }
 
   def setup

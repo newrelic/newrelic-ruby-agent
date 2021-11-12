@@ -1,16 +1,15 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/audit_logger'
 require 'new_relic/agent/null_logger'
 
 class AuditLoggerTest < Minitest::Test
   def setup
-    NewRelic::Agent.config.add_config_for_testing(:'audit_log.enabled' => true)
+    NewRelic::Agent.config.add_config_for_testing('audit_log.enabled': true)
 
-    @uri = "http://really.notreal"
+    @uri = 'http://really.notreal'
     @marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
     @dummy_data = {
       'foo' => [1, 2, 3],
@@ -48,19 +47,19 @@ class AuditLoggerTest < Minitest::Test
   end
 
   def test_never_setup_if_disabled
-    with_config(:'audit_log.enabled' => false) do
+    with_config('audit_log.enabled': false) do
       logger = NewRelic::Agent::AuditLogger.new
-      logger.log_request(@uri, "hi there", @marshaller)
-      assert(!logger.setup?, "Expected logger to not have been setup")
+      logger.log_request(@uri, 'hi there', @marshaller)
+      assert(!logger.setup?, 'Expected logger to not have been setup')
     end
   end
 
   def test_never_prepare_if_disabled
-    with_config(:'audit_log.enabled' => false) do
+    with_config('audit_log.enabled': false) do
       logger = NewRelic::Agent::AuditLogger.new
       marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
       marshaller.expects(:prepare).never
-      logger.log_request(@uri, "hi there", @marshaller)
+      logger.log_request(@uri, 'hi there', @marshaller)
     end
   end
 
@@ -76,7 +75,7 @@ class AuditLoggerTest < Minitest::Test
   end
 
   def test_log_formatter_to_stdout
-    with_config(:'audit_log.path' => "STDOUT") do
+    with_config('audit_log.path': 'STDOUT') do
       NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
       Socket.stubs(:gethostname).returns('dummyhost')
       formatter = NewRelic::Agent::AuditLogger.new.create_log_formatter
@@ -89,7 +88,7 @@ class AuditLoggerTest < Minitest::Test
   end
 
   def test_ensure_path_returns_nil_with_bogus_path
-    with_config(:'audit_log.path' => '/really/really/not/a/path') do
+    with_config('audit_log.path': '/really/really/not/a/path') do
       FileUtils.stubs(:mkdir_p).raises(SystemCallError, "i'd rather not")
       logger = NewRelic::Agent::AuditLogger.new
       assert_nil(logger.ensure_log_path)
@@ -109,7 +108,7 @@ class AuditLoggerTest < Minitest::Test
   def test_log_request_captures_system_call_errors
     logger = NewRelic::Agent::AuditLogger.new
     dummy_sink = StringIO.new
-    dummy_sink.stubs(:write).raises(SystemCallError, "nope")
+    dummy_sink.stubs(:write).raises(SystemCallError, 'nope')
     logger.stubs(:ensure_log_path).returns(dummy_sink)
 
     # In 1.9.2 and later, Logger::LogDevice#write captures any errors during
@@ -124,7 +123,7 @@ class AuditLoggerTest < Minitest::Test
     setup_fake_logger
     data = { 'foo' => 'bar' }
     identity_encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
-    @marshaller.expects(:prepare).with(data, { :encoder => identity_encoder })
+    @marshaller.expects(:prepare).with(data, { encoder: identity_encoder })
     @logger.log_request(@uri, data, @marshaller)
   end
 
@@ -138,7 +137,7 @@ class AuditLoggerTest < Minitest::Test
 
   def test_allows_through_endpoints
     fake_metrics = { 'metric' => 'yup' }
-    with_config(:'audit_log.endpoints' => ['metric_data']) do
+    with_config('audit_log.endpoints': ['metric_data']) do
       setup_fake_logger
       @logger.log_request('host/metric_data', fake_metrics, @marshaller)
       assert_log_contains_string(fake_metrics.inspect)
@@ -147,7 +146,7 @@ class AuditLoggerTest < Minitest::Test
 
   def test_filters_endpoints
     fake_txn = { 'txn' => 'nope' }
-    with_config(:'audit_log.endpoints' => ['metric_data']) do
+    with_config('audit_log.endpoints': ['metric_data']) do
       setup_fake_logger
       @logger.log_request('host/transaction_sample_data', fake_txn, @marshaller)
       assert_empty read_log_body
@@ -167,7 +166,7 @@ class AuditLoggerTest < Minitest::Test
   TRAPPABLE_ERRORS = [
     StandardError.new,
     SystemStackError.new,
-    SystemCallError.new("Syscalls FTW")
+    SystemCallError.new('Syscalls FTW')
   ]
 
   TRAPPABLE_ERRORS.each do |error|
@@ -186,7 +185,7 @@ class AuditLoggerTest < Minitest::Test
   end
 
   def test_writes_to_stdout
-    with_config(:'audit_log.path' => "STDOUT") do
+    with_config('audit_log.path': 'STDOUT') do
       output = capturing_stdout do
         @logger = NewRelic::Agent::AuditLogger.new
         @logger.log_request(@uri, @dummy_data, @marshaller)
@@ -197,7 +196,7 @@ class AuditLoggerTest < Minitest::Test
   end
 
   def test_stdout_does_not_create_a_directory_named_stdout
-    with_config(:'log_file_path' => 'stdout') do
+    with_config('log_file_path': 'stdout') do
       logger = NewRelic::Agent::AuditLogger.new
       refute_includes logger.ensure_log_path, 'stdout'
     end
@@ -205,7 +204,7 @@ class AuditLoggerTest < Minitest::Test
 
   def capturing_stdout
     orig = $stdout.dup
-    output = ""
+    output = ''
     $stdout = StringIO.new(output)
     yield
     output

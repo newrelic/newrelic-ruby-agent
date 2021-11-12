@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -14,8 +13,8 @@ module Performance
       @subclasses << cls
     end
 
-    def self.subclasses
-      @subclasses
+    class << self
+      attr_reader :subclasses
     end
 
     attr_accessor :target_iterations, :target_duration
@@ -27,9 +26,10 @@ module Performance
     end
 
     def setup; end
+
     def teardown; end
 
-    def self.skip_test(test_method_name, options={})
+    def self.skip_test(test_method_name, options = {})
       skip_specifiers << [test_method_name, options]
     end
 
@@ -49,7 +49,7 @@ module Performance
     end
 
     def runnable_test_methods
-      results = self.methods.map(&:to_s).select { |m| m =~ /^test_/ }
+      results = methods.map(&:to_s).select { |m| m =~ /^test_/ }
       self.class.skip_specifiers.each do |specifier|
         method_name, options = *specifier
         skipped_platforms = Array(options[:platforms])
@@ -59,7 +59,7 @@ module Performance
       results
     end
 
-    def with_callbacks(name, warmup=false)
+    def with_callbacks(name, warmup = false)
       fire(:before_each, self, name) unless warmup
       yield
       fire(:after_each, self, name, @result) unless warmup
@@ -72,7 +72,7 @@ module Performance
     def estimate_time_per_iteration(action, duration)
       start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       deadline = start_time + duration
-      
+
       iterations = 0
       while Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
         action.call
@@ -124,11 +124,11 @@ module Performance
 
       with_callbacks(@result.test_name, false) do
         start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        if target_iterations
-          total_iterations = run_block_n_times(blk, target_iterations)
-        else
-          total_iterations = run_block_in_batches(blk, target_duration, batch_size)
-        end
+        total_iterations = if target_iterations
+                             run_block_n_times(blk, target_iterations)
+                           else
+                             run_block_in_batches(blk, target_duration, batch_size)
+                           end
         elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
       end
 
@@ -141,7 +141,7 @@ module Performance
       @result = Result.new(self.class, name)
       begin
         setup
-        self.send(name)
+        send(name)
         teardown
       rescue StandardError, LoadError => e
         @result.exception = e

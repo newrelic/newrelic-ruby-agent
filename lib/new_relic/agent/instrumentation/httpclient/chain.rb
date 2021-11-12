@@ -1,10 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 module NewRelic::Agent::Instrumentation
   module HTTPClient
-    module Chain 
+    module Chain
       def self.instrument!
         ::HTTPClient.class_eval do
           include NewRelic::Agent::Instrumentation::HTTPClient::Instrumentation
@@ -14,12 +13,11 @@ module NewRelic::Agent::Instrumentation
               do_get_block_without_newrelic(req, proxy, conn, &block)
             end
           end
-    
-          alias :do_get_block_without_newrelic :do_get_block
-          alias :do_get_block :do_get_block_with_newrelic
+
+          alias_method :do_get_block_without_newrelic, :do_get_block
+          alias_method :do_get_block, :do_get_block_with_newrelic
         end
       end
     end
   end
 end
-

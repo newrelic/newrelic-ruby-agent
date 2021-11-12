@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -6,7 +5,7 @@ module NewRelic
   module Agent
     module Threading
       class BacktraceService
-        ALL_TRANSACTIONS = "**ALL**".freeze
+        ALL_TRANSACTIONS = '**ALL**'.freeze
 
         def self.is_supported?
           !is_resque?
@@ -23,7 +22,7 @@ module NewRelic
                     :overhead_percent_threshold
         attr_accessor :worker_thread, :profile_agent_code
 
-        def initialize(event_listener=nil)
+        def initialize(event_listener = nil)
           @profiles = {}
           @buffer = {}
           @last_poll = nil
@@ -41,9 +40,7 @@ module NewRelic
             @overhead_percent_threshold = new_value
           end
 
-          if event_listener
-            event_listener.subscribe(:transaction_finished, &method(:on_transaction_finished))
-          end
+          event_listener.subscribe(:transaction_finished, &method(:on_transaction_finished)) if event_listener
         end
 
         # Public interface
@@ -52,13 +49,13 @@ module NewRelic
           @running
         end
 
-        def subscribe(transaction_name, command_arguments={})
+        def subscribe(transaction_name, command_arguments = {})
           if self.class.is_resque?
             NewRelic::Agent.logger.info("Backtracing threads on Resque is not supported, so not subscribing transaction '#{transaction_name}'")
             return
           end
 
-          if !self.class.is_supported?
+          unless self.class.is_supported?
             NewRelic::Agent.logger.debug("Backtracing not supported, so not subscribing transaction '#{transaction_name}'")
             return
           end
@@ -132,9 +129,7 @@ module NewRelic
         def aggregate_backtraces(backtraces, name, start, duration, bucket, thread)
           end_time = start + duration
           backtraces.each do |(timestamp, backtrace)|
-            if timestamp >= start && timestamp < end_time
-              @profiles[name].aggregate(backtrace, bucket, thread)
-            end
+            @profiles[name].aggregate(backtrace, bucket, thread) if timestamp >= start && timestamp < end_time
           end
         end
 
@@ -144,22 +139,23 @@ module NewRelic
           @running = true
           self.worker_thread = AgentThread.create('Backtrace Service') do
             # Not passing period because we expect it's already been set.
-            self.worker_loop.run(&method(:poll))
+            worker_loop.run(&method(:poll))
           end
         end
 
         # This method is expected to be called with @lock held
         def stop
           return unless @running
+
           @running = false
-          self.worker_loop.stop
+          worker_loop.stop
 
           @buffer = {}
         end
 
         def effective_polling_period=(new_period)
           @effective_polling_period = new_period
-          self.worker_loop.period = new_period
+          worker_loop.period = new_period
         end
 
         def poll
@@ -197,11 +193,11 @@ module NewRelic
         # This method is expected to be called with @lock held
         def watching_for_transaction?
           @profiles.size > 1 ||
-          (@profiles.size == 1 && @profiles[ALL_TRANSACTIONS].nil?)
+            (@profiles.size == 1 && @profiles[ALL_TRANSACTIONS].nil?)
         end
 
         def allowed_bucket?(bucket)
-          bucket == :request || bucket == :background
+          %i[request background].include?(bucket)
         end
 
         MAX_BUFFER_LENGTH = 500
@@ -220,9 +216,7 @@ module NewRelic
 
         # This method is expected to be called with @lock held.
         def aggregate_global_backtrace(backtrace, bucket, thread)
-          if @profiles[ALL_TRANSACTIONS]
-            @profiles[ALL_TRANSACTIONS].aggregate(backtrace, bucket, thread)
-          end
+          @profiles[ALL_TRANSACTIONS].aggregate(backtrace, bucket, thread) if @profiles[ALL_TRANSACTIONS]
         end
 
         # This method is expected to be called with @lock held.
@@ -253,8 +247,8 @@ module NewRelic
           duration = now - poll_start
           overhead_percent = duration / effective_polling_period
 
-          if overhead_percent > self.overhead_percent_threshold
-            scale_up_by = overhead_percent / self.overhead_percent_threshold
+          if overhead_percent > overhead_percent_threshold
+            scale_up_by = overhead_percent / overhead_percent_threshold
             worker_loop.period = effective_polling_period * scale_up_by
           else
             worker_loop.period = effective_polling_period

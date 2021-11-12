@@ -1,5 +1,6 @@
 # -*- ruby -*-
 # encoding: utf-8
+
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -44,17 +45,16 @@ module NewRelic
       # floor after logging a warning.
       def add_to_error_queue(noticed_error)
         return unless enabled?
+
         @lock.synchronize do
-          if !over_queue_limit?(noticed_error.message) && !@errors.include?(noticed_error)
-            @errors << noticed_error
-          end
+          @errors << noticed_error if !over_queue_limit?(noticed_error.message) && !@errors.include?(noticed_error)
         end
       end
 
       # checks the size of the error queue to make sure we are under
       # the maximum limit, and logs a warning if we are over the limit.
       def over_queue_limit?(message)
-        over_limit = (@errors.reject{|err| err.is_internal}.length >= @capacity)
+        over_limit = (@errors.reject { |err| err.is_internal }.length >= @capacity)
         if over_limit
           ::NewRelic::Agent.logger.warn("The error reporting queue has reached #{@capacity}. The error detail for this and subsequent errors will not be transmitted to New Relic until the queued errors have been sent: #{message}")
         end
@@ -81,12 +81,12 @@ module NewRelic
           return if @errors.any? { |err| err.exception_class_name == exception.class.name }
 
           trace = exception.backtrace || caller.dup
-          noticed_error = NewRelic::NoticedError.new("NewRelic/AgentError", exception)
+          noticed_error = NewRelic::NoticedError.new('NewRelic/AgentError', exception)
           noticed_error.stack_trace = trace
           @errors << noticed_error
         end
-      rescue => e
-        NewRelic::Agent.logger.info("Unable to capture internal agent error due to an exception:", e)
+      rescue StandardError => e
+        NewRelic::Agent.logger.info('Unable to capture internal agent error due to an exception:', e)
       end
 
       def register_config_callbacks

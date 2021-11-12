@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -13,7 +12,6 @@ module NewRelic
     #
     # @api public
     module Datastores
-
       # @!group Tracing query methods
 
       # Add Datastore tracing to a method. This properly generates the metrics
@@ -160,7 +158,7 @@ module NewRelic
       #
       # @api public
       #
-      def self.notice_sql(query, scoped_metric, elapsed)
+      def self.notice_sql(query, _scoped_metric, _elapsed)
         NewRelic::Agent.record_api_supportability_metric(:notice_sql)
 
         if (txn = Tracer.current_transaction) && (segment = txn.current_segment) && segment.respond_to?(:notice_sql)
@@ -192,7 +190,7 @@ module NewRelic
       #
       # @api public
       #
-      def self.notice_statement(statement, elapsed)
+      def self.notice_statement(statement, _elapsed)
         NewRelic::Agent.record_api_supportability_metric(:notice_statement)
 
         # Settings may change eventually, but for now we follow the same
@@ -202,7 +200,6 @@ module NewRelic
         end
         nil
       end
-
     end
   end
 end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -6,7 +5,6 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionCableSubscriberTest < Minitest::Test
-
         def setup
           nr_freeze_process_time
           @subscriber = ActionCableSubscriber.new
@@ -40,7 +38,7 @@ module NewRelic
           advance_process_time(1.5)
           @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
 
-          expected_values = { :apdex_f => 0, :apdex_t => 1, :apdex_s => 0 }
+          expected_values = { apdex_f: 0, apdex_t: 1, apdex_s: 0 }
           assert_metrics_recorded(
             'Apdex/ActionCable/TestChannel/test_action' => expected_values,
             'Apdex' => expected_values
@@ -49,7 +47,8 @@ module NewRelic
 
         def test_sets_default_transaction_name_on_start
           @subscriber.start('perform_action.action_cable', :id, payload_for_perform_action)
-          assert_equal 'Controller/ActionCable/TestChannel/test_action', NewRelic::Agent::Transaction.tl_current.best_name
+          assert_equal 'Controller/ActionCable/TestChannel/test_action',
+                       NewRelic::Agent::Transaction.tl_current.best_name
         ensure
           @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
         end
@@ -99,19 +98,18 @@ module NewRelic
 
           sample = last_transaction_trace
 
-          assert_nil sample, "Did not expect a transaction to be created for transmit"
+          assert_nil sample, 'Did not expect a transaction to be created for transmit'
           refute_metrics_recorded ['Ruby/ActionCable/TestChannel/transmit']
         end
 
-        def payload_for_perform_action action = 'test_action'
-          {:channel_class => "TestChannel", :action => action.to_sym, :data => {"action"=>"#{action}"}}
+        def payload_for_perform_action(action = 'test_action')
+          { channel_class: 'TestChannel', action: action.to_sym, data: { 'action' => action.to_s } }
         end
 
-        def payload_for_transmit data = {}, via = nil
-          {:channel_class => "TestChannel", :data => data, :via => via}
+        def payload_for_transmit(data = {}, via = nil)
+          { channel_class: 'TestChannel', data: data, via: via }
         end
       end
     end
   end
 end
-

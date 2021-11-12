@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -7,7 +6,6 @@ require 'new_relic/agent/parameter_filtering'
 module NewRelic::Agent::Instrumentation
   module Grape
     module Instrumentation
-
       extend self
 
       # Since 1.2.0, the class `Grape::API` no longer refers to an API instance, rather, what used to be `Grape::API` is `Grape::API::Instance`
@@ -16,20 +14,18 @@ module NewRelic::Agent::Instrumentation
         defined?(::Grape::API::Instance) ? ::Grape::API::Instance : ::Grape::API
       end
 
-      def capture_transaction env, context
-        begin
-          endpoint = env[API_ENDPOINT]
-          version = env[API_VERSION]
+      def capture_transaction(env, context)
+        endpoint = env[API_ENDPOINT]
+        version = env[API_VERSION]
 
-          api_class = (context.class.respond_to?(:base) && context.class.base) || context.class
-          handle_transaction(endpoint, api_class.name, version)
-        rescue => e
-          ::NewRelic::Agent.logger.warn("Error in Grape instrumentation", e)
-        end
+        api_class = (context.class.respond_to?(:base) && context.class.base) || context.class
+        handle_transaction(endpoint, api_class.name, version)
+      rescue StandardError => e
+        ::NewRelic::Agent.logger.warn('Error in Grape instrumentation', e)
       end
 
       def prepare!
-        if defined?(::Grape::VERSION) && Gem::Version.new(::Grape::VERSION) >= Gem::Version.new("0.16.0")
+        if defined?(::Grape::VERSION) && Gem::Version.new(::Grape::VERSION) >= Gem::Version.new('0.16.0')
           send :remove_method, :name_for_transaction_deprecated
         else
           send :remove_method, :name_for_transaction
@@ -39,13 +35,14 @@ module NewRelic::Agent::Instrumentation
 
       API_ENDPOINT   = 'api.endpoint'.freeze
       API_VERSION    = 'api.version'.freeze
-      FORMAT_REGEX   = /\(\/?\.[\:\w]*\)/.freeze # either :format (< 0.12.0) or .ext (>= 0.12.0)
-      VERSION_REGEX  = /:version(\/|$)/.freeze
-      MIN_VERSION    = Gem::Version.new("0.2.0")
+      FORMAT_REGEX   = %r{\(/?\.[:\w]*\)} # either :format (< 0.12.0) or .ext (>= 0.12.0)
+      VERSION_REGEX  = %r{:version(/|$)}
+      MIN_VERSION    = Gem::Version.new('0.2.0')
       PIPE_STRING    = '|'.freeze
 
       def handle_transaction(endpoint, class_name, version)
         return unless endpoint && route = endpoint.route
+
         name_transaction(route, class_name, version)
         capture_params(endpoint)
       end
@@ -65,7 +62,7 @@ module NewRelic::Agent::Instrumentation
 
         # defaulting does not set rack.env['api.version'] and route.version may return Array
         #
-        version = version.join(PIPE_STRING) if Array === version
+        version = version.join(PIPE_STRING) if version.is_a?(Array)
 
         if version
           action_name = action_name.sub(VERSION_REGEX, NewRelic::EMPTY_STR)
@@ -90,8 +87,8 @@ module NewRelic::Agent::Instrumentation
       def capture_params(endpoint)
         txn = ::NewRelic::Agent::Transaction.tl_current
         env = endpoint.request.env
-        params = ::NewRelic::Agent::ParameterFiltering::apply_filters(env, endpoint.params)
-        params.delete("route_info")
+        params = ::NewRelic::Agent::ParameterFiltering.apply_filters(env, endpoint.params)
+        params.delete('route_info')
         txn.filtered_params = params
         txn.merge_request_parameters(params)
       end

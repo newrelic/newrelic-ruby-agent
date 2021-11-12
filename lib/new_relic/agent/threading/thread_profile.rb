@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -11,15 +10,13 @@ require 'new_relic/agent/threading/backtrace_node'
 module NewRelic
   module Agent
     module Threading
-
       class ThreadProfile
-
         attr_reader :profile_id, :traces, :sample_period,
-          :duration, :poll_count, :backtrace_count, :failure_count,
-          :created_at, :command_arguments, :profile_agent_code
+                    :duration, :poll_count, :backtrace_count, :failure_count,
+                    :created_at, :command_arguments, :profile_agent_code
         attr_accessor :finished_at
 
-        def initialize(command_arguments={})
+        def initialize(command_arguments = {})
           @command_arguments  = command_arguments
           @profile_id         = command_arguments.fetch('profile_id', -1)
           @duration           = command_arguments.fetch('duration', 120)
@@ -28,10 +25,10 @@ module NewRelic
           @finished = false
 
           @traces = {
-            :agent      => BacktraceRoot.new,
-            :background => BacktraceRoot.new,
-            :other      => BacktraceRoot.new,
-            :request    => BacktraceRoot.new
+            agent: BacktraceRoot.new,
+            background: BacktraceRoot.new,
+            other: BacktraceRoot.new,
+            request: BacktraceRoot.new
           }
 
           @poll_count = 0
@@ -56,6 +53,7 @@ module NewRelic
 
         def unique_thread_count
           return 0 if @unique_threads.nil?
+
           @unique_threads.length
         end
 
@@ -69,11 +67,11 @@ module NewRelic
           end
         end
 
-        def convert_N_trace_nodes_to_arrays(count_to_keep) #THREAD_LOCAL_ACCESS
+        def convert_N_trace_nodes_to_arrays(count_to_keep) # THREAD_LOCAL_ACCESS
           all_nodes = @traces.values.map { |n| n.flattened }.flatten
 
-          NewRelic::Agent.instance.stats_engine.
-            tl_record_supportability_metric_count("ThreadProfiler/NodeCount", all_nodes.size)
+          NewRelic::Agent.instance.stats_engine
+                         .tl_record_supportability_metric_count('ThreadProfiler/NodeCount', all_nodes.size)
 
           all_nodes.sort! do |a, b|
             # we primarily prefer higher runnable_count
@@ -86,10 +84,12 @@ module NewRelic
 
           all_nodes.each_with_index do |n, i|
             break if i >= count_to_keep
+
             n.mark_for_array_conversion
           end
           all_nodes.each_with_index do |n, i|
             break if i >= count_to_keep
+
             n.complete_array_conversion
           end
         end
@@ -102,16 +102,16 @@ module NewRelic
           convert_N_trace_nodes_to_arrays(THREAD_PROFILER_NODES)
 
           {
-            "OTHER"      => @traces[:other     ].as_array,
-            "REQUEST"    => @traces[:request   ].as_array,
-            "AGENT"      => @traces[:agent     ].as_array,
-            "BACKGROUND" => @traces[:background].as_array
+            'OTHER' => @traces[:other].as_array,
+            'REQUEST' => @traces[:request].as_array,
+            'AGENT' => @traces[:agent].as_array,
+            'BACKGROUND' => @traces[:background].as_array
           }
         end
 
         def to_collector_array(encoder)
-          encoded_trace_tree = encoder.encode(generate_traces, :skip_normalization => true)
-          result = [
+          encoded_trace_tree = encoder.encode(generate_traces, skip_normalization: true)
+          [
             int(profile_id),
             float(created_at),
             float(finished_at),
@@ -120,7 +120,6 @@ module NewRelic
             int(unique_thread_count),
             0 # runnable thread count, which we don't track
           ]
-          result
         end
 
         def to_log_description
@@ -128,7 +127,6 @@ module NewRelic
             "@profile_id: #{profile_id} "\
             "@command_arguments=#{@command_arguments.inspect}>"
         end
-
       end
     end
   end

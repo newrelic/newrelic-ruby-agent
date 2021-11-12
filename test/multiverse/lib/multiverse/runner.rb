@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -31,12 +30,12 @@ module Multiverse
     def parse_args(args)
       opts = {}
       args.each do |(k, v)|
-        if v.index("name=") == 0
-          parts = v.split("=")
+        if v.index('name=') == 0
+          parts = v.split('=')
           opts[:names] ||= []
           opts[:names] << parts.last
-        elsif v.include?("=")
-          parts = v.split("=")
+        elsif v.include?('=')
+          parts = v.split('=')
           opts[parts.first.to_sym] = parts.last
         elsif k != :suite
           opts[v.to_sym] = true
@@ -45,7 +44,7 @@ module Multiverse
       opts
     end
 
-    def run(filter="", opts={})
+    def run(filter = '', opts = {})
       execute_suites(filter, opts) do |suite|
         suite.each_instrumentation_method do |method|
           suite.execute method
@@ -53,7 +52,7 @@ module Multiverse
       end
     end
 
-    def prime(filter="", opts={})
+    def prime(filter = '', opts = {})
       execute_suites(filter, opts) do |suite|
         suite.prime
       end
@@ -65,12 +64,12 @@ module Multiverse
 
         next if dir =~ /\A\./
         next unless passes_filter?(dir, filter)
-        next unless File.exists?(File.join(full_path, "Envfile"))
+        next unless File.exist?(File.join(full_path, 'Envfile'))
 
         begin
           suite = Suite.new(full_path, opts)
           yield suite
-        rescue => e
+        rescue StandardError => e
           puts red("Error when trying to run suite in #{full_path.inspect}")
           puts
           puts "#{e.class}: #{e}"
@@ -84,49 +83,44 @@ module Multiverse
     end
 
     GROUPS = {
-      "agent"         => ["agent_only", "bare", "config_file_loading", "deferred_instrumentation", "high_security", "no_json", "json", "marshalling", "yajl"],
-      "background"    => ["delayed_job", "sidekiq", "resque" ],
-      "background_2"  => ["rake"],
-      "database"      => ["datamapper", "mongo", "redis", "sequel"],
-      "rails"         => ["active_record", "rails", "rails_prepend", "activemerchant"],
-      "frameworks"    => ["sinatra", "padrino", "grape"],
-      "httpclients"   => ["curb", "excon", "httpclient"],
-      "httpclients_2"   => ["typhoeus", "net_http", "httprb"],
-      "infinite_tracing" => ["infinite_tracing"],
+      'agent' => %w[agent_only bare config_file_loading deferred_instrumentation high_security
+                    no_json json marshalling yajl],
+      'background' => %w[delayed_job sidekiq resque],
+      'background_2' => ['rake'],
+      'database' => %w[datamapper mongo redis sequel],
+      'rails' => %w[active_record rails rails_prepend activemerchant],
+      'frameworks' => %w[sinatra padrino grape],
+      'httpclients' => %w[curb excon httpclient],
+      'httpclients_2' => %w[typhoeus net_http httprb],
+      'infinite_tracing' => ['infinite_tracing'],
 
-      "rest"          => []  # Specially handled below
+      'rest' => [] # Specially handled below
     }
 
     # Would like to reinstate but requires investigation, see RUBY-1749
-    if RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
-      GROUPS['background_2'].delete 'rake'
-    end
+    GROUPS['background_2'].delete 'rake' if RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
 
-    if RUBY_PLATFORM == "java"
-      GROUPS['agent'].delete 'agent_only'
-    end
+    GROUPS['agent'].delete 'agent_only' if RUBY_PLATFORM == 'java'
 
     if RUBY_VERSION >= '3.0'
       GROUPS['rails'].delete 'active_record'
       GROUPS['frameworks'].delete 'grape'
     end
 
-
     def excluded?(suite)
       return true if suite == 'rake' and RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
-      return true if suite == 'agent_only' and RUBY_PLATFORM == "java"
+      return true if suite == 'agent_only' and RUBY_PLATFORM == 'java'
       return true if suite == 'active_record' and RUBY_VERSION >= '3.0.0'
-      return true if ["grape"].include?(suite) and RUBY_VERSION >= '3.0'
+      return true if ['grape'].include?(suite) and RUBY_VERSION >= '3.0'
     end
-
 
     def passes_filter?(dir, filter)
       return true if filter.nil?
 
       return false if excluded?(dir)
 
-      if filter.include?("group=")
-        keys = filter.sub("group=", "").split(';') # supports multiple groups passed in ";" delimited
+      if filter.include?('group=')
+        keys = filter.sub('group=', '').split(';') # supports multiple groups passed in ";" delimited
         combined_groups = []
 
         # grabs all the suites that are in each of the groups passed in
@@ -145,7 +139,7 @@ module Multiverse
         # the "rest" group is one of the groups being passed in AND the directory is not in any other group
         # OR
         # the directory is one of the suites included in one of the non-rest groups passed in
-        (keys.include?("rest") && !GROUPS.values.flatten.include?(dir) ) || (combined_groups.any? && combined_groups.include?(dir))
+        (keys.include?('rest') && !GROUPS.values.flatten.include?(dir)) || (combined_groups.any? && combined_groups.include?(dir))
       else
         dir.include?(filter)
       end

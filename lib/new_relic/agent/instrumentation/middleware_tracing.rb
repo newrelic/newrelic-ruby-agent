@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -27,7 +26,6 @@ module NewRelic
   module Agent
     module Instrumentation
       module MiddlewareTracing
-
         TXN_STARTED_KEY = 'newrelic.transaction_started'
         CONTENT_TYPE    = 'Content-Type'
         CONTENT_LENGTH  = 'Content-Length'
@@ -55,23 +53,21 @@ module NewRelic
         end
 
         def capture_http_response_code(state, result)
-          if result.is_a?(Array) && state.current_transaction
-            state.current_transaction.http_response_code = result[0]
-          end
+          state.current_transaction.http_response_code = result[0] if result.is_a?(Array) && state.current_transaction
         end
 
         def capture_response_content_type(state, result)
           if result.is_a?(Array) && state.current_transaction
-            _, headers, _ = result
+            _, headers, = result
             state.current_transaction.response_content_type = headers[CONTENT_TYPE]
           end
         end
 
         def capture_response_content_length(state, result)
           if result.is_a?(Array) && state.current_transaction
-            _, headers, _ = result
+            _, headers, = result
             length = headers[CONTENT_LENGTH]
-            length = length.reduce(0){|sum, h| sum + h.to_i} if length.is_a?(Array)
+            length = length.reduce(0) { |sum, h| sum + h.to_i } if length.is_a?(Array)
             state.current_transaction.response_content_length = length
           end
         end
@@ -98,7 +94,7 @@ module NewRelic
 
             events.notify(:before_call, env) if first_middleware
 
-            result = (target == self) ? traced_call(env) : target.call(env)
+            result = target == self ? traced_call(env) : target.call(env)
 
             if first_middleware
               capture_response_attributes(state, result)

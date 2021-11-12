@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -28,13 +27,13 @@ module NewRelic
       SAMPLED_KEY                    = 'sampled'.freeze
       GUID_KEY                       = 'nr.transactionGuid'.freeze
       REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'.freeze
-      SYNTHETICS_RESOURCE_ID_KEY     = "nr.syntheticsResourceId".freeze
-      SYNTHETICS_JOB_ID_KEY          = "nr.syntheticsJobId".freeze
-      SYNTHETICS_MONITOR_ID_KEY      = "nr.syntheticsMonitorId".freeze
-      PRIORITY_KEY                   = "priority".freeze
-      SPAN_ID_KEY                    = "spanId".freeze
+      SYNTHETICS_RESOURCE_ID_KEY     = 'nr.syntheticsResourceId'.freeze
+      SYNTHETICS_JOB_ID_KEY          = 'nr.syntheticsJobId'.freeze
+      SYNTHETICS_MONITOR_ID_KEY      = 'nr.syntheticsMonitorId'.freeze
+      PRIORITY_KEY                   = 'priority'.freeze
+      SPAN_ID_KEY                    = 'spanId'.freeze
 
-      def create noticed_error, payload, span_id
+      def create(noticed_error, payload, span_id)
         [
           intrinsic_attributes_for(noticed_error, payload, span_id),
           noticed_error.custom_attributes,
@@ -42,7 +41,7 @@ module NewRelic
         ]
       end
 
-      def intrinsic_attributes_for noticed_error, payload, span_id
+      def intrinsic_attributes_for(noticed_error, payload, span_id)
         attrs = {
           TYPE_KEY => SAMPLE_TYPE,
           ERROR_CLASS_KEY => noticed_error.exception_class_name,
@@ -68,15 +67,18 @@ module NewRelic
         attrs
       end
 
-      def append_synthetics payload, sample
+      def append_synthetics(payload, sample)
         sample[SYNTHETICS_RESOURCE_ID_KEY] = payload[:synthetics_resource_id] if payload[:synthetics_resource_id]
         sample[SYNTHETICS_JOB_ID_KEY] = payload[:synthetics_job_id] if payload[:synthetics_job_id]
         sample[SYNTHETICS_MONITOR_ID_KEY] = payload[:synthetics_monitor_id] if payload[:synthetics_monitor_id]
       end
 
-      def append_cat payload, sample
+      def append_cat(payload, sample)
         sample[GUID_KEY] = payload[:guid] if payload[:guid]
-        sample[REFERRING_TRANSACTION_GUID_KEY] = payload[:referring_transaction_guid] if payload[:referring_transaction_guid]
+        if payload[:referring_transaction_guid]
+          sample[REFERRING_TRANSACTION_GUID_KEY] =
+            payload[:referring_transaction_guid]
+        end
       end
     end
   end

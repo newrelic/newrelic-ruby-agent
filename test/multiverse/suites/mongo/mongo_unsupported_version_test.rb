@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -6,7 +5,7 @@ require 'mongo'
 require 'newrelic_rpm'
 require 'new_relic/agent/datastores/mongo'
 
-if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
+unless NewRelic::Agent::Datastores::Mongo.is_supported_version?
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_helpers')
 
   class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < Minitest::Test
@@ -14,9 +13,9 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
     include NewRelic::MongoHelpers
 
     def setup
-      @database_name = "multiverse"
+      @database_name = 'multiverse'
       @collection_name = "tribbles-#{fake_guid(16)}"
-      @tribble = {'name' => 'soterios johnson'}
+      @tribble = { 'name' => 'soterios johnson' }
 
       setup_collection
 
@@ -30,7 +29,7 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
 
     def test_records_metrics_for_insert
       insert_to_collection
-      assert_metrics_not_recorded(["Datastore/all", "Datastore/allWeb", "Datastore/allOther"])
+      assert_metrics_not_recorded(['Datastore/all', 'Datastore/allWeb', 'Datastore/allOther'])
     end
 
     # API changes between 1.x and 2.x that we need to work around to make
@@ -55,8 +54,8 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
       def setup_collection
         Mongo::Logger.logger = mongo_logger
         client = Mongo::Client.new(
-          ["#{$mongo.host}:#{$mongo.port}"], 
-          database: @database_name, 
+          ["#{$mongo.host}:#{$mongo.port}"],
+          database: @database_name,
           connect: :direct
         )
         @collection = client[@collection_name]

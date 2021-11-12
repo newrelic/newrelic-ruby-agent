@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -13,7 +12,8 @@ class FilteringTestApp
     filtered = ::NewRelic::Agent::ParameterFiltering.apply_filters(env, params)
     txn.filtered_params = filtered
     txn.merge_request_parameters(filtered)
-    raise "Intentional error" if params["raise"]
-    [200, {}, ["Filters applied"]]
+    raise 'Intentional error' if params['raise']
+
+    [200, {}, ['Filters applied']]
   end
 end

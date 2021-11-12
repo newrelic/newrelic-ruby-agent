@@ -1,11 +1,10 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 # This suite is for perf testing methods from the NewRelic::Agent module
 
 class AgentModuleTest < Performance::TestCase
-  METRIC = "Some/Custom/Metric".freeze
+  METRIC = 'Some/Custom/Metric'.freeze
 
   def test_increment_metric_by_1
     measure do

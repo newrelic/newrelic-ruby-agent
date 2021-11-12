@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -11,8 +10,8 @@ class BadInstrumentationController < ApplicationController
   # to fail.
   # https://newrelic.atlassian.net/browse/RUBY-1158
   def failwhale
-    NewRelic::Agent::Tracer.start_segment name: "Controller/BadInstrumentationController/failwhale"
-    render body:  'everything went great'
+    NewRelic::Agent::Tracer.start_segment name: 'Controller/BadInstrumentationController/failwhale'
+    render body: 'everything went great'
   end
 end
 

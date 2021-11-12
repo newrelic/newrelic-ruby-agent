@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -12,10 +11,10 @@ class DefaultSourceRequireTest < Minitest::Test
     exception = nil
     begin
       require 'new_relic/agent/configuration/default_source'
-    rescue => e
+    rescue StandardError => e
       exception = e
     end
 
-    assert_nil exception, "Expected not to raise when requiring default source without the agent"
+    assert_nil exception, 'Expected not to raise when requiring default source without the agent'
   end
 end

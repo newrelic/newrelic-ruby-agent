@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -9,8 +8,7 @@ module NewRelic
   module Agent
     module Database
       module ExplainPlanHelpers
-
-        SUPPORTED_ADAPTERS_FOR_EXPLAIN = [:postgres, :mysql2, :mysql, :sqlite]
+        SUPPORTED_ADAPTERS_FOR_EXPLAIN = %i[postgres mysql2 mysql sqlite]
         SELECT = 'select'.freeze
 
         def is_select?(sql)
@@ -34,12 +32,12 @@ module NewRelic
 
         def handle_exception_in_explain
           yield
-        rescue => e
+        rescue StandardError => e
           begin
             # guarantees no throw from explain_sql
-            ::NewRelic::Agent.logger.error("Error getting query plan:", e)
+            ::NewRelic::Agent.logger.error('Error getting query plan:', e)
             nil
-          rescue
+          rescue StandardError
             # double exception. throw up your hands
             nil
           end

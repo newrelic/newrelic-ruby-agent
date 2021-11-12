@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -13,7 +12,7 @@ module NewRelic
     changes.
 EOS
 
-    def self.read(changelog=default_changelog)
+    def self.read(changelog = default_changelog)
       changes = extract_latest_changes(File.read(changelog))
       changes << FOOTER
 
@@ -24,25 +23,23 @@ EOS
     # precise version number included in the line in parens. For example:
     #
     # * This is a patch item (3.7.1.188)
-    def self.read_patch(patch_level, changelog=default_changelog)
+    def self.read_patch(patch_level, changelog = default_changelog)
       latest = extract_latest_changes(File.read(changelog))
-      changes = ["## v#{patch_level}", ""]
+      changes = ["## v#{patch_level}", '']
 
       current_item = nil
       latest.each do |line|
         if line.match(/^\s*\*.*/)
-          if line.match(/\(#{patch_level}\)/)
-            # Found a patch level item, so start tracking the lines!
-            current_item = line
-          else
-            # Found an item that isn't our patch level, so don't grab it
-            current_item = nil
-          end
+          current_item = if line.match(/\(#{patch_level}\)/)
+                           # Found a patch level item, so start tracking the lines!
+                           line
+                         else
+                           # Found an item that isn't our patch level, so don't grab it
+                           nil
+                         end
         end
 
-        if current_item
-          changes << line
-        end
+        changes << line if current_item
       end
 
       changes.join("\n")
@@ -52,11 +49,10 @@ EOS
       changes = []
       version_count = 0
       contents.each_line do |line|
-        if line.match(/##\s+v[\d.]+/)
-          version_count += 1
-        end
+        version_count += 1 if line.match(/##\s+v[\d.]+/)
         break if version_count >= 2
-        changes << line.sub(/^  \* /, "* ").chomp
+
+        changes << line.sub(/^  \* /, '* ').chomp
       end
       changes
     end

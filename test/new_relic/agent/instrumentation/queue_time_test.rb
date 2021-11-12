@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../test_helper', __FILE__
+require File.expand_path '../../../test_helper', __dir__
 
 class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
   include NewRelic::Agent::Instrumentation
@@ -31,17 +30,17 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
   end
 
   def test_parse_frontend_timestamp_from_earliest_header
-    headers = { 'HTTP_X_REQUEST_START'    => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 63),
-                'HTTP_X_QUEUE_START'      => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 62),
-                'HTTP_X_MIDDLEWARE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 61)}
+    headers = { 'HTTP_X_REQUEST_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 63),
+                'HTTP_X_QUEUE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 62),
+                'HTTP_X_MIDDLEWARE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 61) }
 
     assert_in_delta(seconds_ago(63), QueueTime.parse_frontend_timestamp(headers), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_earliest_header_out_of_order
     headers = { 'HTTP_X_MIDDLEWARE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 63),
-                'HTTP_X_REQUEST_START'    => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 62),
-                'HTTP_X_QUEUE_START'      => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 61) }
+                'HTTP_X_REQUEST_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 62),
+                'HTTP_X_QUEUE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 61) }
 
     assert_in_delta(seconds_ago(63), QueueTime.parse_frontend_timestamp(headers), 0.001)
   end
@@ -87,7 +86,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
     assert_in_delta(now, QueueTime.parse_timestamp((now * 1_000_000).to_s).to_f, 0.001)
   end
 
-  def format_header_time(time=Process.clock_gettime(Process::CLOCK_REALTIME))
+  def format_header_time(time = Process.clock_gettime(Process::CLOCK_REALTIME))
     "t=#{(time * 1_000_000).to_i}"
   end
 

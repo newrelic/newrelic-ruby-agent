@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -7,8 +6,8 @@ class AgentAttributesTests < Performance::TestCase
     require 'new_relic/agent/attribute_filter'
   end
 
-  ALPHA = "alpha".freeze
-  BETA  = "beta".freeze
+  ALPHA = 'alpha'.freeze
+  BETA  = 'beta'.freeze
 
   def test_empty_agent_attributes
     @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
@@ -20,9 +19,8 @@ class AgentAttributesTests < Performance::TestCase
   end
 
   def test_with_attribute_rules
-    with_config(:'attributes.include' => ['alpha'],
-                :'attributes.exclude' => ['beta']) do
-
+    with_config('attributes.include': ['alpha'],
+                'attributes.exclude': ['beta']) do
       @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
 
       measure do
@@ -33,9 +31,8 @@ class AgentAttributesTests < Performance::TestCase
   end
 
   def test_with_wildcards
-    with_config(:'attributes.include' => ['alpha*'],
-                :'attributes.exclude' => ['beta*']) do
-
+    with_config('attributes.include': ['alpha*'],
+                'attributes.exclude': ['beta*']) do
       @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
 
       measure do
@@ -46,9 +43,8 @@ class AgentAttributesTests < Performance::TestCase
   end
 
   def test_with_tons_o_rules
-    with_config(:'attributes.include' => 100.times.map { fake_guid(32) },
-                :'attributes.exclude' => 100.times.map { fake_guid(32) }) do
-
+    with_config('attributes.include': 100.times.map { fake_guid(32) },
+                'attributes.exclude': 100.times.map { fake_guid(32) }) do
       @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
 
       measure do

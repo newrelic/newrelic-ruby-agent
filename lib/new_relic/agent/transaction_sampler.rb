@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,7 +7,6 @@ require 'new_relic/agent/transaction/trace_builder'
 
 module NewRelic
   module Agent
-
     # This class contains the logic for recording and storing transaction
     # traces (sometimes referred to as 'transaction samples').
     #
@@ -35,14 +33,12 @@ module NewRelic
             threshold = Agent.config[:'transaction_tracer.transaction_threshold']
             ::NewRelic::Agent.logger.debug "Transaction tracing threshold is #{threshold} seconds."
           else
-            ::NewRelic::Agent.logger.debug "Transaction traces will not be sent to the New Relic service."
+            ::NewRelic::Agent.logger.debug 'Transaction traces will not be sent to the New Relic service.'
           end
         end
 
         Agent.config.register_callback(:'transaction_tracer.record_sql') do |config|
-          if config == 'raw'
-            ::NewRelic::Agent.logger.warn("Agent is configured to send raw SQL to the service")
-          end
+          ::NewRelic::Agent.logger.warn('Agent is configured to send raw SQL to the service') if config == 'raw'
         end
       end
 
@@ -79,14 +75,12 @@ module NewRelic
 
       def prepare_samples(samples)
         samples.select do |sample|
-          begin
-            sample.prepare_to_send!
-          rescue => e
-            NewRelic::Agent.logger.error("Failed to prepare transaction trace. Error: ", e)
-            false
-          else
-            true
-          end
+          sample.prepare_to_send!
+        rescue StandardError => e
+          NewRelic::Agent.logger.error('Failed to prepare transaction trace. Error: ', e)
+          false
+        else
+          true
         end
       end
 
@@ -113,7 +107,7 @@ module NewRelic
         @sample_buffers.each { |buffer| result.concat(buffer.harvest_samples) }
         result.uniq!
         result.map! do |sample|
-          if Transaction === sample
+          if sample.is_a?(Transaction)
             Transaction::TraceBuilder.build_trace sample
           else
             sample

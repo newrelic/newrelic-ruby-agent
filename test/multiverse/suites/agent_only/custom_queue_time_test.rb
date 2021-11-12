@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -11,7 +10,7 @@ class CustomQueueTimeTest < Minitest::Test
 
   DummyRequest = Struct.new(:headers, :cookies) do
     def path
-      "/"
+      '/'
     end
   end
 
@@ -19,7 +18,7 @@ class CustomQueueTimeTest < Minitest::Test
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
     def run_transaction(request, simulated_queue_time)
-      opts = { :name => 'run_transaction', :class_name => 'DummyApp', :request => request }
+      opts = { name: 'run_transaction', class_name: 'DummyApp', request: request }
 
       advance_process_time(simulated_queue_time)
 
@@ -40,8 +39,8 @@ class CustomQueueTimeTest < Minitest::Test
 
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => {
-        :call_count      => 1,
-        :total_call_time => 10
+        call_count: 1,
+        total_call_time: 10
       }
     )
   end
@@ -52,8 +51,8 @@ class CustomQueueTimeTest < Minitest::Test
 
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => {
-        :call_count      => 1,
-        :total_call_time => 10
+        call_count: 1,
+        total_call_time: 10
       }
     )
   end

@@ -1,9 +1,8 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require 'newrelic_rpm' unless defined?( NewRelic )
-require 'new_relic/agent' unless defined?( NewRelic::Agent )
+require 'newrelic_rpm' unless defined?(NewRelic)
+require 'new_relic/agent' unless defined?(NewRelic::Agent)
 require 'new_relic/agent/event_aggregator'
 require 'new_relic/agent/priority_sampled_buffer'
 
@@ -17,9 +16,7 @@ module NewRelic
                    :'distributed_tracing.enabled'
 
       def record(priority: nil, event: nil, &blk)
-        unless(event || priority && blk)
-          raise ArgumentError, "Expected priority and block, or event"
-        end
+        raise ArgumentError, 'Expected priority and block, or event' unless event || priority && blk
 
         return unless enabled?
 
@@ -29,9 +26,9 @@ module NewRelic
         end
       end
 
-      SUPPORTABILITY_TOTAL_SEEN = "Supportability/SpanEvent/TotalEventsSeen".freeze
-      SUPPORTABILITY_TOTAL_SENT = "Supportability/SpanEvent/TotalEventsSent".freeze
-      SUPPORTABILITY_DISCARDED  = "Supportability/SpanEvent/Discarded".freeze
+      SUPPORTABILITY_TOTAL_SEEN = 'Supportability/SpanEvent/TotalEventsSeen'.freeze
+      SUPPORTABILITY_TOTAL_SENT = 'Supportability/SpanEvent/TotalEventsSent'.freeze
+      SUPPORTABILITY_DISCARDED  = 'Supportability/SpanEvent/Discarded'.freeze
 
       def after_harvest(metadata)
         seen      = metadata[:seen]

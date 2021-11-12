@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -6,22 +5,19 @@ module NewRelic
   module Agent
     class Transaction
       module Tracing
-
         attr_reader :current_segment
 
         def async?
           @async ||= false
         end
 
-        attr_writer :async
+        attr_writer :async, :total_time
 
         def total_time
           @total_time ||= 0.0
         end
 
-        attr_writer :total_time
-
-        def add_segment segment, parent = nil
+        def add_segment(segment, parent = nil)
           segment.transaction = self
           segment.parent = parent || current_segment
           @current_segment = segment
@@ -34,7 +30,7 @@ module NewRelic
           segment.transaction_assigned
         end
 
-        def segment_complete segment
+        def segment_complete(segment)
           @current_segment = segment.parent
         end
 
@@ -48,16 +44,15 @@ module NewRelic
           segments.each { |s| s.finalize }
         end
 
-
-        WEB_TRANSACTION_TOTAL_TIME   = "WebTransactionTotalTime".freeze
-        OTHER_TRANSACTION_TOTAL_TIME = "OtherTransactionTotalTime".freeze
+        WEB_TRANSACTION_TOTAL_TIME   = 'WebTransactionTotalTime'.freeze
+        OTHER_TRANSACTION_TOTAL_TIME = 'OtherTransactionTotalTime'.freeze
 
         def record_total_time_metrics
           total_time_metric = if recording_web_transaction?
-            WEB_TRANSACTION_TOTAL_TIME
-          else
-            OTHER_TRANSACTION_TOTAL_TIME
-          end
+                                WEB_TRANSACTION_TOTAL_TIME
+                              else
+                                OTHER_TRANSACTION_TOTAL_TIME
+                              end
 
           @metrics.record_unscoped total_time_metric, total_time
           @metrics.record_unscoped "#{total_time_metric}/#{@frozen_name}", total_time

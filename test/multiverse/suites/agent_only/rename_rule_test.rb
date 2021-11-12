@@ -1,9 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class RenameRuleTest < Minitest::Test
-
   include MultiverseHelpers
 
   setup_and_teardown_agent do |collector|
@@ -12,14 +10,14 @@ class RenameRuleTest < Minitest::Test
       { 'match_expression' => 'Nothing',        'replacement' => 'Something' }
     ]
     segment_terms_rules = [
-      { 'prefix' => 'other/qux', 'terms' => ['Nothing', 'one', 'two'] }
+      { 'prefix' => 'other/qux', 'terms' => %w[Nothing one two] }
     ]
     collector.stub('connect', {
-      'agent_run_id'              => 666,
-      'transaction_name_rules'    => rules,
-      'metric_name_rules'         => rules,
-      'transaction_segment_terms' => segment_terms_rules
-    })
+                     'agent_run_id' => 666,
+                     'transaction_name_rules' => rules,
+                     'metric_name_rules' => rules,
+                     'transaction_segment_terms' => segment_terms_rules
+                   })
   end
 
   class TestWidget
@@ -40,9 +38,9 @@ class RenameRuleTest < Minitest::Test
     TestWidget.new.txn
 
     assert_metrics_recorded([
-      'Controller/Class::TestWidget/txn',
-      'Apdex/Class::TestWidget/txn'
-    ])
+                              'Controller/Class::TestWidget/txn',
+                              'Apdex/Class::TestWidget/txn'
+                            ])
 
     refute_metrics_recorded('Controller/RenameRuleTest::TestWidget/txn')
   end
@@ -60,7 +58,7 @@ class RenameRuleTest < Minitest::Test
 
   def test_transaction_segment_terms_do_not_apply_to_metrics
     in_transaction do
-      NewRelic::Agent.record_metric("other/qux/foo/bar", 42)
+      NewRelic::Agent.record_metric('other/qux/foo/bar', 42)
     end
 
     assert_metrics_recorded(['other/qux/foo/bar'])
@@ -82,10 +80,10 @@ class RenameRuleTest < Minitest::Test
 
     assert_metrics_recorded(['other/qux/*/one/two/*'])
     assert_metrics_not_recorded([
-      'other/qux/Something/one/two/*',
-      'other/qux/Something/one/two/three',
-      'other/qux/Nothing/one/two/*',
-      'other/qux/Nothing/one/two/three'
-    ])
+                                  'other/qux/Something/one/two/*',
+                                  'other/qux/Something/one/two/three',
+                                  'other/qux/Nothing/one/two/*',
+                                  'other/qux/Nothing/one/two/three'
+                                ])
   end
 end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/action_view_subscriber'
@@ -22,6 +21,7 @@ DependencyDetection.defer do
 
   executes do
     NewRelic::Agent::Instrumentation::ActionViewSubscriber.subscribe(/render_.+\.action_view$/)
-    NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionView::Base, ::ActionView::Template, ::ActionView::Renderer)
+    NewRelic::Agent::PrependSupportability.record_metrics_for(::ActionView::Base, ::ActionView::Template,
+                                                              ::ActionView::Renderer)
   end
 end

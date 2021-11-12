@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 require 'new_relic/agent/threading/backtrace_service'
 require 'new_relic/agent/threading/threaded_test_case'
@@ -35,7 +34,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       end
 
       def test_doesnt_start_on_resque
-        with_config(:dispatcher => :resque) do
+        with_config(dispatcher: :resque) do
           fake_worker_loop(@service)
 
           @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
@@ -130,7 +129,8 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_poll_forwards_backtraces_to_subscribed_profiles
         fake_worker_loop(@service)
 
-        bt0, bt1 = ["bt0"], ["bt1"]
+        bt0 = ['bt0']
+        bt1 = ['bt1']
 
         thread0 = fake_thread(:request, bt0)
         thread1 = fake_thread(:differenter_request, bt1)
@@ -157,11 +157,11 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         fake_worker_loop(@service)
         scrubbed_backtrace = []
 
-        thread = fake_thread(:agent, ["trace"])
+        thread = fake_thread(:agent, ['trace'])
 
-        AgentThread.stubs(:scrub_backtrace).
-                    with(thread, any_parameters).
-                    returns(scrubbed_backtrace)
+        AgentThread.stubs(:scrub_backtrace)
+                   .with(thread, any_parameters)
+                   .returns(scrubbed_backtrace)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.expects(:aggregate).with(scrubbed_backtrace, :agent, thread)
@@ -182,9 +182,9 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         # First poll doesn't record skew since we don't have a last poll time
         assert_metrics_recorded({
-          'Supportability/ThreadProfiler/PollingTime' => { :call_count => 2 },
-          'Supportability/ThreadProfiler/Skew'        => { :call_count => 1 }
-        })
+                                  'Supportability/ThreadProfiler/PollingTime' => { call_count: 2 },
+                                  'Supportability/ThreadProfiler/Skew' => { call_count: 1 }
+                                })
       end
 
       def test_subscribe_adjusts_worker_loop_period
@@ -417,7 +417,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.poll
 
-        expected = { :call_count => 1, :total_call_time => 5 }
+        expected = { call_count: 1, total_call_time: 5 }
         assert_metrics_recorded(
           { 'Supportability/ThreadProfiler/PollingTime' => expected }
         )
@@ -436,7 +436,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.buffer_backtrace_for_thread(thread, Process.clock_gettime(Process::CLOCK_REALTIME), stub, :request)
         assert_equal BacktraceService::MAX_BUFFER_LENGTH, @service.buffer[thread].length
-        assert_metrics_recorded(["Supportability/ThreadProfiler/DroppedBacktraces"])
+        assert_metrics_recorded(['Supportability/ThreadProfiler/DroppedBacktraces'])
       end
 
       def test_dynamically_adjusts_worker_loop_period
@@ -467,7 +467,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         nr_freeze_process_time
         fake_worker_loop(@service)
 
-        with_config(:'thread_profiler.max_profile_overhead' => 0.1) do
+        with_config('thread_profiler.max_profile_overhead': 0.1) do
           poll_for(0.01)
           assert_has_default_period
         end
@@ -503,12 +503,12 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         end
       end
 
-      def fake_transaction_finished(name, start_timestamp, duration, thread, bucket=:request)
+      def fake_transaction_finished(name, start_timestamp, duration, thread, bucket = :request)
         payload = {
-          :name            => name,
-          :bucket          => bucket,
-          :start_timestamp => start_timestamp,
-          :duration        => duration
+          name: name,
+          bucket: bucket,
+          start_timestamp: start_timestamp,
+          duration: duration
         }
         payload[:thread] = thread if thread
         @event_listener.notify(:transaction_finished, payload)
@@ -523,8 +523,8 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         dummy_loop
       end
 
-      def fake_thread(bucket, backtrace=[])
-        thread = FakeThread.new(:backtrace => backtrace)
+      def fake_thread(bucket, backtrace = [])
+        thread = FakeThread.new(backtrace: backtrace)
         mark_bucket_for_thread(thread, bucket)
 
         FakeThread.list << thread
@@ -553,9 +553,9 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.subscribe('foo', { 'sample_period' => 0.01 })
 
-        wait_for_backtrace_service_poll(:service => @service)
+        wait_for_backtrace_service_poll(service: @service)
 
-        10000.times do
+        10_000.times do
           @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
           @service.unsubscribe(BacktraceService::ALL_TRANSACTIONS)
         end
@@ -565,7 +565,6 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         @service.worker_thread.join
       end
     end
-
   end
 else
   module NewRelic::Agent::Threading
@@ -597,7 +596,6 @@ else
 
         assert_false service.running?
       end
-
     end
   end
 end

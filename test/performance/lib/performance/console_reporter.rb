@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,7 +7,7 @@ module Performance
   class ConsoleReporter
     include Reporting
 
-    def initialize(results, elapsed, options={})
+    def initialize(results, elapsed, options = {})
       @results = results
       @elapsed = elapsed
       @options = options
@@ -21,18 +20,18 @@ module Performance
     end
 
     def format_measurements(result)
-      measurements = result.measurements.merge(:iterations => result.iterations)
+      measurements = result.measurements.merge(iterations: result.iterations)
 
       key_width        = measurements.keys.map(&:size).max
-      formatted_values = measurements.values.map { |v| sprintf("%g", v) }
+      formatted_values = measurements.values.map { |v| format('%g', v) }
       value_width      = formatted_values.map(&:size).max
 
       rows = measurements.map do |key, value|
         if key == :iterations
-          "  %#{key_width}s: %#{value_width}g" % [key, value]
+          format("  %#{key_width}s: %#{value_width}g", key, value)
         else
           per_iteration = value / result.iterations.to_f
-          "  %#{key_width}s: %#{value_width}g (%.2f / iter)" % [key, value, per_iteration]
+          format("  %#{key_width}s: %#{value_width}g (%.2f / iter)", key, value, per_iteration)
         end
       end
 
@@ -45,12 +44,10 @@ module Performance
       puts ''
       results.each do |result|
         formatted_duration = FormattingHelpers.format_duration(result.time_per_iteration)
-        puts "#{result.identifier}: %.3f ips (#{formatted_duration} / iteration)" % [result.ips]
-        unless @options[:brief]
-          puts format_measurements(result)
-        end
+        puts format("#{result.identifier}: %.3f ips (#{formatted_duration} / iteration)", result.ips)
+        puts format_measurements(result) unless @options[:brief]
         unless result.artifacts.empty?
-          puts "  artifacts:"
+          puts '  artifacts:'
           result.artifacts.each do |artifact|
             puts "    #{make_relative(artifact)}"
           end

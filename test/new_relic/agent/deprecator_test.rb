@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -9,7 +8,7 @@ class DeprecatorTest < Minitest::Test
   def setup
     @old_method = :foo
     @new_method = :bar
-    @version = "3.11.0"
+    @version = '3.11.0'
   end
 
   def teardown
@@ -47,6 +46,6 @@ class DeprecatorTest < Minitest::Test
 
   def test_deprecator_reports_a_supportability_metric
     NewRelic::Agent::Deprecator.deprecate(:deprecated_supportability_test)
-    assert_metrics_recorded("Supportability/Deprecated/deprecated_supportability_test")
+    assert_metrics_recorded('Supportability/Deprecated/deprecated_supportability_test')
   end
 end

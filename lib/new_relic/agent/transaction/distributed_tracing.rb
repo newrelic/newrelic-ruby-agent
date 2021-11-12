@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -14,7 +13,7 @@ module NewRelic
         attr_accessor :distributed_trace_payload
         attr_writer :distributed_trace_payload_created
 
-        SUPPORTABILITY_DISTRIBUTED_TRACE       = "Supportability/DistributedTrace"
+        SUPPORTABILITY_DISTRIBUTED_TRACE       = 'Supportability/DistributedTrace'
         CREATE_PREFIX                          = "#{SUPPORTABILITY_DISTRIBUTED_TRACE}/CreatePayload"
         ACCEPT_PREFIX                          = "#{SUPPORTABILITY_DISTRIBUTED_TRACE}/AcceptPayload"
         IGNORE_PREFIX                          = "#{ACCEPT_PREFIX}/Ignored"
@@ -31,12 +30,12 @@ module NewRelic
         IGNORE_ACCEPT_MAJOR_VERSION_METRIC     = "#{IGNORE_PREFIX}/MajorVersion"
         IGNORE_ACCEPT_UNTRUSTED_ACCOUNT_METRIC = "#{IGNORE_PREFIX}/UntrustedAccount"
 
-        LBRACE = "{"
+        LBRACE = '{'
         NULL_PAYLOAD = 'null'
 
-        NEWRELIC_TRACE_KEY = "HTTP_NEWRELIC"
+        NEWRELIC_TRACE_KEY = 'HTTP_NEWRELIC'
 
-        def accept_distributed_tracing_incoming_request request
+        def accept_distributed_tracing_incoming_request(request)
           return unless Agent.config[:'distributed_tracing.enabled']
           return unless payload = request[NEWRELIC_TRACE_KEY]
 
@@ -54,13 +53,13 @@ module NewRelic
           payload = DistributedTracePayload.for_transaction transaction
           NewRelic::Agent.increment_metric CREATE_SUCCESS_METRIC
           payload
-        rescue => e
+        rescue StandardError => e
           NewRelic::Agent.increment_metric CREATE_EXCEPTION_METRIC
-          NewRelic::Agent.logger.warn "Failed to create distributed trace payload", e
+          NewRelic::Agent.logger.warn 'Failed to create distributed trace payload', e
           nil
         end
 
-        def accept_distributed_trace_payload payload
+        def accept_distributed_trace_payload(payload)
           return unless Agent.config[:'distributed_tracing.enabled']
 
           return false if check_payload_ignored(payload)
@@ -74,15 +73,15 @@ module NewRelic
 
           NewRelic::Agent.increment_metric ACCEPT_SUCCESS_METRIC
           true
-        rescue => e
+        rescue StandardError => e
           NewRelic::Agent.increment_metric ACCEPT_EXCEPTION_METRIC
-          NewRelic::Agent.logger.warn "Failed to accept distributed trace payload", e
+          NewRelic::Agent.logger.warn 'Failed to accept distributed trace payload', e
           false
         end
 
         private
 
-        def check_payload_ignored(payload)
+        def check_payload_ignored(_payload)
           if distributed_trace_payload
             NewRelic::Agent.increment_metric IGNORE_MULTIPLE_ACCEPT_METRIC
             return true
@@ -105,29 +104,28 @@ module NewRelic
 
         def decode_payload(payload)
           decoded = if payload.start_with? LBRACE
-            DistributedTracePayload.from_json payload
-          else
-            DistributedTracePayload.from_http_safe payload
-          end
+                      DistributedTracePayload.from_json payload
+                    else
+                      DistributedTracePayload.from_http_safe payload
+                    end
 
           return nil unless check_payload_present(decoded)
 
           decoded
-        rescue => e
+        rescue StandardError => e
           NewRelic::Agent.increment_metric ACCEPT_PARSE_EXCEPTION_METRIC
-          NewRelic::Agent.logger.warn "Error parsing distributed trace payload", e
+          NewRelic::Agent.logger.warn 'Error parsing distributed trace payload', e
           nil
         end
 
         def check_required_fields_present(payload)
-          if \
-            !payload.version.nil? &&
-            !payload.parent_account_id.nil? &&
-            !payload.parent_app_id.nil? &&
-            !payload.parent_type.nil? &&
-            (!payload.transaction_id.nil? || !payload.id.nil?) &&
-            !payload.trace_id.nil? &&
-            !payload.timestamp.nil?
+          if !payload.version.nil? &&
+             !payload.parent_account_id.nil? &&
+             !payload.parent_app_id.nil? &&
+             !payload.parent_type.nil? &&
+             (!payload.transaction_id.nil? || !payload.id.nil?) &&
+             !payload.trace_id.nil? &&
+             !payload.timestamp.nil? \
 
             true
           else
@@ -157,6 +155,7 @@ module NewRelic
         def assign_payload_and_sampling_params(payload)
           @distributed_trace_payload = payload
           return if transaction.distributed_tracer.trace_context_header_data
+
           transaction.trace_id = payload.trace_id
           transaction.distributed_tracer.parent_transaction_id = payload.transaction_id
           transaction.parent_span_id = payload.id
@@ -170,4 +169,3 @@ module NewRelic
     end
   end
 end
-

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -16,7 +15,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info("Installing Rails 3+ middleware instrumentation")
+    ::NewRelic::Agent.logger.info('Installing Rails 3+ middleware instrumentation')
     module ActionDispatch
       class MiddlewareStack
         class Middleware
@@ -30,8 +29,8 @@ DependencyDetection.defer do
             ::NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(result)
           end
 
-          alias_method :build_without_new_relic, :build
-          alias_method :build, :build_with_new_relic
+          alias build_without_new_relic build
+          alias build build_with_new_relic
         end
       end
     end

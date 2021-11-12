@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -9,7 +8,7 @@ module NewRelic
     module ClassMethods
       # Access the Control singleton, lazy initialized.  Default will instantiate a new
       # instance or pass false to defer
-      def instance(create=true)
+      def instance(create = true)
         @instance ||= create && new_instance
       end
 
@@ -35,8 +34,8 @@ module NewRelic
 
       # nb this does not 'load test' the framework, it loads the 'test framework'
       def load_test_framework
-        config = File.expand_path(File.join('..','..','..','..', "test","config","newrelic.yml"), __FILE__)
-        require "config/test_control"
+        config = File.expand_path(File.join('..', '..', '..', '..', 'test', 'config', 'newrelic.yml'), __FILE__)
+        require 'config/test_control'
         NewRelic::Control::Frameworks::Test.new(local_env, config)
       end
 
@@ -54,11 +53,11 @@ module NewRelic
 
       # The root directory for the plugin or gem
       def newrelic_root
-        File.expand_path(File.join("..", "..", "..", ".."), __FILE__)
+        File.expand_path(File.join('..', '..', '..', '..'), __FILE__)
       end
 
       def camelize(snake_case_name)
-        snake_case_name.gsub(/(\_|^)[a-z]/) do |substring|
+        snake_case_name.gsub(/(_|^)[a-z]/) do |substring|
           substring[-1].capitalize!
         end
       end

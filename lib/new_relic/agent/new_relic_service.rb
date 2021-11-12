@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -35,7 +34,7 @@ module NewRelic
       attr_accessor :request_timeout
       attr_reader :collector, :marshaller, :agent_id
 
-      def initialize(license_key=nil, collector=control.server)
+      def initialize(license_key = nil, collector = control.server)
         @license_key = license_key
         @collector = collector
         @configured_collector = collector
@@ -69,7 +68,7 @@ module NewRelic
         @agent_id = id
       end
 
-      def connect(settings={})
+      def connect(settings = {})
         @request_headers_map = nil
         security_policies = nil
         if response = preconnect
@@ -92,16 +91,16 @@ module NewRelic
         token = Agent.config[:security_policies_token]
 
         if token && !token.empty?
-          response = invoke_remote(:preconnect, [{'security_policies_token' => token, 'high_security' => false}])
+          response = invoke_remote(:preconnect, [{ 'security_policies_token' => token, 'high_security' => false }])
 
           validator = SecurityPolicySettings::Validator.new(response)
           validator.validate_matching_agent_config!
 
           response
         elsif Agent.config[:high_security]
-          invoke_remote(:preconnect, [{'high_security' => true}])
+          invoke_remote(:preconnect, [{ 'high_security' => true }])
         else
-          invoke_remote(:preconnect, [{'high_security' => false}])
+          invoke_remote(:preconnect, [{ 'high_security' => false }])
         end
       end
 
@@ -119,42 +118,39 @@ module NewRelic
         metric_data_array = []
         stats_hash.each do |metric_spec, stats|
           # Omit empty stats as an optimization
-          unless stats.is_reset?
-            metric_data_array << NewRelic::MetricData.new(metric_spec, stats)
-          end
+          metric_data_array << NewRelic::MetricData.new(metric_spec, stats) unless stats.is_reset?
         end
         metric_data_array
       end
 
       def metric_data(stats_hash)
         timeslice_start = stats_hash.started_at
-        timeslice_end  = stats_hash.harvested_at || Process.clock_gettime(Process::CLOCK_REALTIME)
+        timeslice_end = stats_hash.harvested_at || Process.clock_gettime(Process::CLOCK_REALTIME)
         metric_data_array = build_metric_data_array(stats_hash)
-        result = invoke_remote(
+        invoke_remote(
           :metric_data,
           [@agent_id, timeslice_start, timeslice_end, metric_data_array],
-          :item_count => metric_data_array.size
+          item_count: metric_data_array.size
         )
-        result
       end
 
       def error_data(unsent_errors)
         invoke_remote(:error_data, [@agent_id, unsent_errors],
-          :item_count => unsent_errors.size)
+                      item_count: unsent_errors.size)
       end
 
       def transaction_sample_data(traces)
         invoke_remote(:transaction_sample_data, [@agent_id, traces],
-          :item_count => traces.size)
+                      item_count: traces.size)
       end
 
       def sql_trace_data(sql_traces)
         invoke_remote(:sql_trace_data, [sql_traces],
-          :item_count => sql_traces.size)
+                      item_count: sql_traces.size)
       end
 
       def profile_data(profile)
-        invoke_remote(:profile_data, [@agent_id, profile], :skip_normalization => true) || ''
+        invoke_remote(:profile_data, [@agent_id, profile], skip_normalization: true) || ''
       end
 
       def get_agent_commands
@@ -168,27 +164,27 @@ module NewRelic
       def analytic_event_data(data)
         _, items = data
         invoke_remote(:analytic_event_data, [@agent_id, *data],
-          :item_count => items.size)
+                      item_count: items.size)
       end
 
       def custom_event_data(data)
         _, items = data
         invoke_remote(:custom_event_data, [@agent_id, *data],
-          :item_count => items.size)
+                      item_count: items.size)
       end
 
       def error_event_data(data)
         metadata, items = data
-        invoke_remote(:error_event_data, [@agent_id, *data], :item_count => items.size)
-        NewRelic::Agent.record_metric("Supportability/Events/TransactionError/Sent", :count => items.size)
-        NewRelic::Agent.record_metric("Supportability/Events/TransactionError/Seen", :count => metadata[:events_seen])
+        invoke_remote(:error_event_data, [@agent_id, *data], item_count: items.size)
+        NewRelic::Agent.record_metric('Supportability/Events/TransactionError/Sent', count: items.size)
+        NewRelic::Agent.record_metric('Supportability/Events/TransactionError/Seen', count: metadata[:events_seen])
       end
 
       def span_event_data(data)
         metadata, items = data
-        invoke_remote(:span_event_data, [@agent_id, *data], :item_count => items.size)
-        NewRelic::Agent.record_metric("Supportability/Events/SpanEvents/Sent", :count => items.size)
-        NewRelic::Agent.record_metric("Supportability/Events/SpanEvents/Seen", :count => metadata[:events_seen])
+        invoke_remote(:span_event_data, [@agent_id, *data], item_count: items.size)
+        NewRelic::Agent.record_metric('Supportability/Events/SpanEvents/Sent', count: items.size)
+        NewRelic::Agent.record_metric('Supportability/Events/SpanEvents/Seen', count: metadata[:events_seen])
       end
 
       # We do not compress if content is smaller than 64kb.  There are
@@ -199,10 +195,10 @@ module NewRelic
         if data.size > 64 * 1024
           encoding = Agent.config[:compressed_content_encoding]
           data = if encoding == 'deflate'
-            Encoders::Compressed::Deflate.encode(data)
-          else
-            Encoders::Compressed::Gzip.encode(data)
-          end
+                   Encoders::Compressed::Deflate.encode(data)
+                 else
+                   Encoders::Compressed::Gzip.encode(data)
+                 end
         end
         check_post_size(data, endpoint)
         [data, encoding]
@@ -224,7 +220,8 @@ module NewRelic
           end
         rescue *CONNECTION_ERRORS => e
           elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0
-          raise NewRelic::Agent::ServerConnectionException, "Recoverable error connecting to #{@collector} after #{elapsed} seconds: #{e}"
+          raise NewRelic::Agent::ServerConnectionException,
+                "Recoverable error connecting to #{@collector} after #{elapsed} seconds: #{e}"
         ensure
           @in_session = false
         end
@@ -236,18 +233,14 @@ module NewRelic
       end
 
       def session_without_keepalive(&block)
-        begin
-          establish_shared_connection
-          block.call
-        ensure
-          close_shared_connection
-        end
+        establish_shared_connection
+        block.call
+      ensure
+        close_shared_connection
       end
 
       def establish_shared_connection
-        unless @shared_tcp_connection
-          @shared_tcp_connection = create_and_start_http_connection
-        end
+        @shared_tcp_connection ||= create_and_start_http_connection
         @shared_tcp_connection
       end
 
@@ -293,15 +286,15 @@ module NewRelic
         conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
         set_cert_store(conn)
       rescue StandardError, LoadError
-        msg = "SSL is not available in the environment; please install SSL support."
-        raise UnrecoverableAgentException.new(msg)
+        msg = 'SSL is not available in the environment; please install SSL support.'
+        raise UnrecoverableAgentException, msg
       end
 
       def set_cert_store(conn)
         if NewRelic::Agent.config[:ca_bundle_path]
-          conn.cert_store  = ssl_cert_store
+          conn.cert_store = ssl_cert_store
         else
-          ::NewRelic::Agent.logger.debug("Using default security certificates")
+          ::NewRelic::Agent.logger.debug('Using default security certificates')
         end
       end
 
@@ -347,7 +340,7 @@ module NewRelic
         start_connection(conn)
         conn
       rescue Timeout::Error
-        ::NewRelic::Agent.logger.info ("Timeout while attempting to connect. You may need to install system-level CA Certificates, as the ruby agent no longer includes these.")
+        ::NewRelic::Agent.logger.info('Timeout while attempting to connect. You may need to install system-level CA Certificates, as the ruby agent no longer includes these.')
         raise
       end
 
@@ -355,7 +348,9 @@ module NewRelic
       # connection if verify_peer is enabled
       def cert_file_path
         if path_override = NewRelic::Agent.config[:ca_bundle_path]
-          NewRelic::Agent.logger.warn("Couldn't find CA bundle from configured ca_bundle_path: #{path_override}") unless File.exist? path_override
+          unless File.exist? path_override
+            NewRelic::Agent.logger.warn("Couldn't find CA bundle from configured ca_bundle_path: #{path_override}")
+          end
           path_override
         end
       end
@@ -364,7 +359,7 @@ module NewRelic
         @marshaller.dump(data)
         true
       rescue StandardError, SystemStackError => e
-        NewRelic::Agent.logger.warn("Unable to marshal environment report on connect.", e)
+        NewRelic::Agent.logger.warn('Unable to marshal environment report on connect.', e)
         false
       end
 
@@ -388,16 +383,17 @@ module NewRelic
       def generate_remote_method_uri(method)
         params = {
           'protocol_version' => PROTOCOL_VERSION,
-          'license_key'      => license_key,
-          'run_id'           => @agent_id,
-          'method'           => method,
-          'marshal_format'   => 'json', # Other formats are explicitly
-                                        # ruled out; see the initializer
+          'license_key' => license_key,
+          'run_id' => @agent_id,
+          'method' => method,
+          'marshal_format' => 'json' # Other formats are explicitly
+          # ruled out; see the initializer
         }
 
-        uri = "/agent_listener/invoke_raw_method?"
-        uri << params.map do |k,v|
+        uri = '/agent_listener/invoke_raw_method?'
+        uri << params.map do |k, v|
           next unless v
+
           "#{k}=#{v}"
         end.compact.join('&')
         uri
@@ -428,33 +424,29 @@ module NewRelic
         # Preconnect needs to always use the configured collector host, not the redirect host
         # We reset it here so we are always using the configured collector during our creation of the new connection
         # and we also don't want to keep the previous redirect host around anymore
-        if method == :preconnect
-          @collector = @configured_collector
-        end
+        @collector = @configured_collector if method == :preconnect
 
         uri = remote_method_uri(method)
         full_uri = "#{@collector}#{uri}"
 
         @audit_logger.log_request(full_uri, payload, @marshaller)
         request_send_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        response = send_request(:data      => data,
-                                :uri       => uri,
-                                :encoding  => encoding,
-                                :collector => @collector,
-                                :endpoint  => method)
+        response = send_request(data: data,
+                                uri: uri,
+                                encoding: encoding,
+                                collector: @collector,
+                                endpoint: method)
         response_check_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @marshaller.load(decompress_response(response))
       ensure
         record_timing_supportability_metrics(method, start_ts, serialize_finish_ts, request_send_ts, response_check_ts)
-        if size
-          record_size_supportability_metrics(method, size, options[:item_count])
-        end
+        record_size_supportability_metrics(method, size, options[:item_count]) if size
       end
 
       def handle_serialization_error(method, e)
-        NewRelic::Agent.increment_metric("Supportability/serialization_failure")
+        NewRelic::Agent.increment_metric('Supportability/serialization_failure')
         NewRelic::Agent.increment_metric("Supportability/serialization_failure/#{method}")
-        msg = "Failed to serialize #{method} data using #{@marshaller.class.to_s}: #{e.inspect}"
+        msg = "Failed to serialize #{method} data using #{@marshaller.class}: #{e.inspect}"
         error = SerializationError.new(msg)
         error.set_backtrace(e.backtrace)
         raise error
@@ -464,11 +456,11 @@ module NewRelic
         serialize_time = serialize_finish_ts && (serialize_finish_ts - start_ts)
         request_duration = response_check_ts && (response_check_ts - request_send_ts)
         if request_duration
-          NewRelic::Agent.record_metric("Supportability/Agent/Collector/#{method.to_s}/Duration", request_duration)
+          NewRelic::Agent.record_metric("Supportability/Agent/Collector/#{method}/Duration", request_duration)
         end
         if serialize_time
-          NewRelic::Agent.record_metric("Supportability/invoke_remote_serialize", serialize_time)
-          NewRelic::Agent.record_metric("Supportability/invoke_remote_serialize/#{method.to_s}", serialize_time)
+          NewRelic::Agent.record_metric('Supportability/invoke_remote_serialize', serialize_time)
+          NewRelic::Agent.record_metric("Supportability/invoke_remote_serialize/#{method}", serialize_time)
         end
       end
 
@@ -482,8 +474,8 @@ module NewRelic
       # of items as arguments.
       def record_size_supportability_metrics(method, size_bytes, item_count)
         metrics = [
-          "Supportability/invoke_remote_size",
-          "Supportability/invoke_remote_size/#{method.to_s}"
+          'Supportability/invoke_remote_size',
+          "Supportability/invoke_remote_size/#{method}"
         ]
         # we may not have an item count, in which case, just record 0 for the exclusive time
         item_count ||= 0
@@ -494,9 +486,10 @@ module NewRelic
       # than the limit configured in the control object
       def check_post_size(post_string, endpoint)
         return if post_string.size < Agent.config[:max_payload_size_in_bytes]
+
         ::NewRelic::Agent.logger.debug "Tried to send too much data: #{post_string.size} bytes"
         NewRelic::Agent.increment_metric("Supportability/Agent/Collector/#{endpoint}/MaxPayloadSizeLimit")
-        raise UnrecoverableServerException.new('413 Request Entity Too Large')
+        raise UnrecoverableServerException, '413 Request Entity Too Large'
       end
 
       # Posts to the specified server
@@ -512,18 +505,18 @@ module NewRelic
       def send_request(opts)
         headers = {
           'Content-Encoding' => opts[:encoding],
-          'Host'             => opts[:collector].name
+          'Host' => opts[:collector].name
         }
         headers.merge!(@request_headers_map) if @request_headers_map
 
-        if Agent.config[:put_for_data_send]
-          request = Net::HTTP::Put.new(opts[:uri], headers)
-        else
-          request = Net::HTTP::Post.new(opts[:uri], headers)
-        end
+        request = if Agent.config[:put_for_data_send]
+                    Net::HTTP::Put.new(opts[:uri], headers)
+                  else
+                    Net::HTTP::Post.new(opts[:uri], headers)
+                  end
         @audit_logger.log_request_headers(opts[:uri], headers)
         request['user-agent'] = user_agent
-        request.content_type = "application/octet-stream"
+        request.content_type = 'application/octet-stream'
         request.body = opts[:data]
 
         response     = nil
@@ -544,7 +537,8 @@ module NewRelic
             ::NewRelic::Agent.logger.debug("Retrying request to #{opts[:collector]}#{opts[:uri]} after #{e}")
             retry
           else
-            raise ServerConnectionException, "Recoverable error talking to #{@collector} after #{attempts} attempts: #{e}"
+            raise ServerConnectionException,
+                  "Recoverable error talking to #{@collector} after #{attempts} attempts: #{e}"
           end
         end
 
@@ -622,8 +616,10 @@ module NewRelic
       # that may cause corrupt compression if there is a problem.
       def user_agent
         ruby_description = ''
-        # note the trailing space!
-        ruby_description << "(ruby #{::RUBY_VERSION} #{::RUBY_PLATFORM}) " if defined?(::RUBY_VERSION) && defined?(::RUBY_PLATFORM)
+        # NOTE: the trailing space!
+        if defined?(::RUBY_VERSION) && defined?(::RUBY_PLATFORM)
+          ruby_description << "(ruby #{::RUBY_VERSION} #{::RUBY_PLATFORM}) "
+        end
         zlib_version = ''
         zlib_version << "zlib/#{Zlib.zlib_version}" if defined?(::Zlib) && Zlib.respond_to?(:zlib_version)
         "NewRelic-RubyAgent/#{NewRelic::VERSION::STRING} #{ruby_description}#{zlib_version}"

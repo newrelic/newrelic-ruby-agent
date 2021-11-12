@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -22,7 +21,7 @@ if !NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported? && def
     end
 
     class ExampleApp
-      def call(env)
+      def call(_env)
         [200, {}, [self.class.name]]
       end
     end
@@ -36,7 +35,7 @@ if !NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported? && def
 
     def test_no_instrumentation_when_not_supported
       get '/'
-      assert_metrics_recorded_exclusive([], :ignore_filter => /^(Supportability|Logging)/)
+      assert_metrics_recorded_exclusive([], ignore_filter: /^(Supportability|Logging)/)
     end
   end
 

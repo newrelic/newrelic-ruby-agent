@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -9,7 +8,8 @@ module NewRelic
     @@forkable = nil
     def can_fork?
       # this is expensive to check, so we should only check once
-      return @@forkable if @@forkable != nil
+      return @@forkable unless @@forkable.nil?
+
       @@forkable = Process.respond_to?(:fork)
     end
 
@@ -34,29 +34,27 @@ module NewRelic
     end
 
     def constantize(const_name)
-      const_name.to_s.sub(/\A::/,'').split('::').inject(Object) do |namespace, name|
-        begin
-          result = namespace.const_get(name)
+      const_name.to_s.sub(/\A::/, '').split('::').inject(Object) do |namespace, name|
+        result = namespace.const_get(name)
 
-          # const_get looks up the inheritence chain, so if it's a class
-          # in the constant make sure we found the one in our namespace.
-          #
-          # Can't help if the constant isn't a class...
-          if result.is_a?(Module)
-            expected_name = "#{namespace}::#{name}".gsub(/^Object::/, "")
-            return unless expected_name == result.to_s
-          end
-
-          result
-        rescue NameError
-          nil
+        # const_get looks up the inheritence chain, so if it's a class
+        # in the constant make sure we found the one in our namespace.
+        #
+        # Can't help if the constant isn't a class...
+        if result.is_a?(Module)
+          expected_name = "#{namespace}::#{name}".gsub(/^Object::/, '')
+          return unless expected_name == result.to_s
         end
+
+        result
+      rescue NameError
+        nil
       end
     end
 
     def bundled_gem?(gem_name)
       defined?(Bundler) && Bundler.rubygems.all_specs.map(&:name).include?(gem_name)
-    rescue => e
+    rescue StandardError => e
       ::NewRelic::Agent.logger.info("Could not determine if third party #{gem_name} gem is installed", e)
       false
     end

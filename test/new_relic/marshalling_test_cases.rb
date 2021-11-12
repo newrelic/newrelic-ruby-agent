@@ -1,11 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 # These tests are intended to exercise the basic marshalling functionality of
 # the agent in it's different permutations (Ruby and JSON)
 module MarshallingTestCases
-
   def test_sends_metrics
     with_around_hook do
       NewRelic::Agent.record_metric('Boo', 42)
@@ -20,7 +18,7 @@ module MarshallingTestCases
 
   def test_sends_errors
     with_around_hook do
-      NewRelic::Agent.notice_error(StandardError.new("Boom"))
+      NewRelic::Agent.notice_error(StandardError.new('Boom'))
     end
 
     transmit_data
@@ -28,11 +26,11 @@ module MarshallingTestCases
     result = $collector.calls_for('error_data')
     assert_equal 1, result.length
     assert_equal 1, result.first.errors.length
-    assert_equal "StandardError", result.first.errors.first.exception_class_name
+    assert_equal 'StandardError', result.first.errors.first.exception_class_name
   end
 
   def test_sends_transaction_traces
-    with_config(:'transaction_tracer.transaction_threshold' => -1.0) do
+    with_config('transaction_tracer.transaction_threshold': -1.0) do
       with_around_hook do
         Transactioner.new.do_it
       end
@@ -42,7 +40,7 @@ module MarshallingTestCases
 
     result = $collector.calls_for('transaction_sample_data')
     assert_equal 1, result.length
-    assert_equal "TestTransaction/do_it", result.first.metric_name
+    assert_equal 'TestTransaction/do_it', result.first.metric_name
   end
 
   def test_sends_transaction_events
@@ -62,18 +60,18 @@ module MarshallingTestCases
     event = events.first
     # this is only present on REE, and we don't really care - the point of this
     # test is just to validate basic marshalling
-    event[0].delete("gcCumulative")
+    event[0].delete('gcCumulative')
     # this value will be randomly assigned and not useful to compare
-    event[0].delete("priority")
+    event[0].delete('priority')
 
-    assert_equal "Transaction", event[0]["type"]
-    assert_equal t0.to_f, event[0]["timestamp"]
-    assert_equal "TestTransaction/do_it", event[0]["name"]
-    assert_equal 0.0, event[0]["duration"]
-    assert_equal false, event[0]["error"]
-    assert_equal event[0]["parent.transportType"], "Unknown"
-    assert event[0]['guid'] != nil
-    assert event[0]["traceId"] != nil
+    assert_equal 'Transaction', event[0]['type']
+    assert_equal t0.to_f, event[0]['timestamp']
+    assert_equal 'TestTransaction/do_it', event[0]['name']
+    assert_equal 0.0, event[0]['duration']
+    assert_equal false, event[0]['error']
+    assert_equal event[0]['parent.transportType'], 'Unknown'
+    assert !event[0]['guid'].nil?
+    assert !event[0]['traceId'].nil?
 
     assert_equal 9, event[0].size
   end
@@ -82,7 +80,7 @@ module MarshallingTestCases
     t0 = nr_freeze_process_time
 
     with_around_hook do
-      NewRelic::Agent.record_custom_event("CustomEventType", :foo => 'bar', :baz => 'qux')
+      NewRelic::Agent.record_custom_event('CustomEventType', foo: 'bar', baz: 'qux')
     end
 
     transmit_event_data
@@ -94,17 +92,17 @@ module MarshallingTestCases
 
     expected_event = [
       {
-        "type"      => "CustomEventType",
-        "timestamp" => t0.to_i
+        'type' => 'CustomEventType',
+        'timestamp' => t0.to_i
       },
       {
-        "foo" => "bar",
-        "baz" => "qux"
+        'foo' => 'bar',
+        'baz' => 'qux'
       }
     ]
 
     # we don't care about the specific priority for this test
-    events.first[0].delete("priority")
+    events.first[0].delete('priority')
 
     assert_equal(expected_event, events.first)
   end
@@ -129,25 +127,24 @@ module MarshallingTestCases
 
     # this is only present on REE, and we don't really care - the point of this
     # test is just to validate basic marshalling
-    event[0].delete("gcCumulative")
+    event[0].delete('gcCumulative')
 
     # we don't care about the specific priority for this test
-    event[0].delete("priority")
+    event[0].delete('priority')
 
-    assert_equal "TransactionError", event[0]["type"]
-    assert_equal "StandardError", event[0]["error.class"]
-    assert_equal "Sorry!", event[0]["error.message"]
-    assert_equal false, event[0]["error.expected"]
-    assert_equal t0.to_f, event[0]["timestamp"]
-    assert_equal "TestTransaction/break_it", event[0]["transactionName"]
-    assert_equal 0.0, event[0]["duration"]
-    assert_equal "Unknown", event[0]["parent.transportType"]
-    assert event[0]["spanId"] != nil
-    assert event[0]['guid'] != nil
-    assert event[0]["traceId"] != nil
+    assert_equal 'TransactionError', event[0]['type']
+    assert_equal 'StandardError', event[0]['error.class']
+    assert_equal 'Sorry!', event[0]['error.message']
+    assert_equal false, event[0]['error.expected']
+    assert_equal t0.to_f, event[0]['timestamp']
+    assert_equal 'TestTransaction/break_it', event[0]['transactionName']
+    assert_equal 0.0, event[0]['duration']
+    assert_equal 'Unknown', event[0]['parent.transportType']
+    assert !event[0]['spanId'].nil?
+    assert !event[0]['guid'].nil?
+    assert !event[0]['traceId'].nil?
 
     assert_equal 12, event[0].size
-
 
     assert_equal event[1], {}
     assert_equal event[2], {}
@@ -159,14 +156,14 @@ module MarshallingTestCases
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
     def do_it
-      NewRelic::Agent.set_transaction_name("do_it", :category => "TestTransaction")
+      NewRelic::Agent.set_transaction_name('do_it', category: 'TestTransaction')
     end
 
     add_transaction_tracer :do_it
 
     def break_it
-      NewRelic::Agent.set_transaction_name("break_it", :category => "TestTransaction")
-      NewRelic::Agent.notice_error StandardError.new("Sorry!")
+      NewRelic::Agent.set_transaction_name('break_it', category: 'TestTransaction')
+      NewRelic::Agent.notice_error StandardError.new('Sorry!')
       NewRelic::Agent::Tracer.current_span_id
     end
 
@@ -182,9 +179,7 @@ module MarshallingTestCases
       blk.call
     end
 
-    if respond_to?(:after_each)
-      after_each
-    end
+    after_each if respond_to?(:after_each)
   end
 
   def transmit_data

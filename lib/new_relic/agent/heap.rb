@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -18,7 +17,6 @@ module NewRelic
     #
 
     class Heap
-
       # @param [Array] items an optional array of items to intialize the heap
       #
       # @param [Callable] priority_fn an optional priority function used to
@@ -27,7 +25,7 @@ module NewRelic
       def initialize(items = nil, &priority_fn)
         @items = []
         @priority_fn = priority_fn || ->(x) { x }
-        items.each{ |item| push(item) } if items
+        items.each { |item| push(item) } if items
       end
 
       def [](index)
@@ -48,13 +46,9 @@ module NewRelic
 
           return unless in_range?(child_index)
 
-          if right_sibling_smaller?(child_index)
-            child_index += 1
-          end
+          child_index += 1 if right_sibling_smaller?(child_index)
 
-          if priority(child_index) < priority(index)
-            heapify_down(index)
-          end
+          heapify_down(index) if priority(child_index) < priority(index)
         end
       end
 
@@ -63,7 +57,7 @@ module NewRelic
         heapify_up(size - 1)
       end
 
-      alias_method :<<, :push
+      alias << push
 
       def pop
         swap(0, size - 1)
@@ -90,11 +84,11 @@ module NewRelic
         @priority_fn.call(@items[index])
       end
 
-      def parent_index_for child_index
+      def parent_index_for(child_index)
         (child_index - 1) / 2
       end
 
-      def left_child_index_for parent_index
+      def left_child_index_for(parent_index)
         2 * parent_index + 1
       end
 
@@ -121,9 +115,7 @@ module NewRelic
         child_index = left_child_index_for(parent_index)
         return unless in_range?(child_index)
 
-        if right_sibling_smaller?(child_index)
-          child_index += 1
-        end
+        child_index += 1 if right_sibling_smaller?(child_index)
 
         if priority(child_index) < priority(parent_index)
           swap(parent_index, child_index)
@@ -135,6 +127,5 @@ module NewRelic
         @items[i], @items[j] = @items[j], @items[i]
       end
     end
-
   end
 end

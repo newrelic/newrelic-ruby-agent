@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -43,9 +42,9 @@ module NewRelic
         if @processor_info.nil?
           if darwin?
             @processor_info = {
-              :num_physical_packages  => sysctl_value('hw.packages').to_i,
-              :num_physical_cores     => sysctl_value('hw.physicalcpu_max').to_i,
-              :num_logical_processors => sysctl_value('hw.logicalcpu_max').to_i
+              num_physical_packages: sysctl_value('hw.packages').to_i,
+              num_physical_cores: sysctl_value('hw.physicalcpu_max').to_i,
+              num_logical_processors: sysctl_value('hw.logicalcpu_max').to_i
             }
             # in case those don't work, try backup values
             if @processor_info[:num_physical_cores] <= 0
@@ -64,23 +63,21 @@ module NewRelic
 
           elsif bsd?
             @processor_info = {
-              :num_physical_packages  => nil,
-              :num_physical_cores     => nil,
-              :num_logical_processors => sysctl_value('hw.ncpu').to_i
+              num_physical_packages: nil,
+              num_physical_cores: nil,
+              num_logical_processors: sysctl_value('hw.ncpu').to_i
             }
           end
 
           # give nils for obviously wrong values
           @processor_info.keys.each do |key|
             value = @processor_info[key]
-            if value.is_a?(Numeric) && value <= 0
-              @processor_info[key] = nil
-            end
+            @processor_info[key] = nil if value.is_a?(Numeric) && value <= 0
           end
         end
 
         @processor_info
-      rescue
+      rescue StandardError
         {}
       end
 
@@ -104,16 +101,16 @@ module NewRelic
             phys_id = core_id = nil # reset these values
             total_processors += 1
           when /^physical id\s*:(.*)/
-            phys_id = $1.strip.to_i
+            phys_id = Regexp.last_match(1).strip.to_i
           when /^core id\s*:(.*)/
-            core_id = $1.strip.to_i
+            core_id = Regexp.last_match(1).strip.to_i
           end
         end
         cores[[phys_id, core_id]] += 1 if phys_id && core_id
 
         num_physical_packages  = cores.keys.map(&:first).uniq.size
         num_physical_cores     = cores.size
-        num_logical_processors = cores.values.reduce(0,:+)
+        num_logical_processors = cores.values.reduce(0, :+)
 
         if num_physical_cores == 0
           num_logical_processors = total_processors
@@ -137,15 +134,17 @@ module NewRelic
         end
 
         {
-          :num_physical_packages  => num_physical_packages,
-          :num_physical_cores     => num_physical_cores,
-          :num_logical_processors => num_logical_processors
+          num_physical_packages: num_physical_packages,
+          num_physical_cores: num_physical_cores,
+          num_logical_processors: num_logical_processors
         }
       end
 
-      def self.num_physical_packages ; get_processor_info[:num_physical_packages ] end
-      def self.num_physical_cores    ; get_processor_info[:num_physical_cores    ] end
-      def self.num_logical_processors; get_processor_info[:num_logical_processors] end
+      def self.num_physical_packages() = get_processor_info.[](:num_physical_packages)
+
+      def self.num_physical_cores() = get_processor_info.[](:num_physical_cores)
+
+      def self.num_logical_processors() = get_processor_info.[](:num_logical_processors)
 
       def self.processor_arch
         RbConfig::CONFIG['target_cpu']
@@ -169,32 +168,32 @@ module NewRelic
         return unless cpu_cgroup
 
         container_id = case cpu_cgroup
-        # docker native driver w/out systemd (fs)
-        when /[0-9a-f]{64,}/
-          if $&.length == 64
-            $&
-          else # container ID is too long
-            ::NewRelic::Agent.logger.debug("Ignoring docker ID of invalid length: '#{cpu_cgroup}'")
-            return
-          end
-        # docker native driver with systemd
-        when '/'              then nil
-        # in a cgroup, but we don't recognize its format
-        when /docker\/.*[^0-9a-f]/ then
-          ::NewRelic::Agent.logger.debug("Cgroup indicates docker but container_id has invalid characters: '#{cpu_cgroup}'")
-          return
-        when /docker/ then
-          ::NewRelic::Agent.logger.debug("Cgroup indicates docker but container_id unrecognized: '#{cpu_cgroup}'")
-          ::NewRelic::Agent.increment_metric "Supportability/utilization/docker/error"
-          return
-        else
-          ::NewRelic::Agent.logger.debug("Ignoring unrecognized cgroup ID format: '#{cpu_cgroup}'")
-          return
-        end
+                       # docker native driver w/out systemd (fs)
+                       when /[0-9a-f]{64,}/
+                         if Regexp.last_match(0).length == 64
+                           Regexp.last_match(0)
+                         else # container ID is too long
+                           ::NewRelic::Agent.logger.debug("Ignoring docker ID of invalid length: '#{cpu_cgroup}'")
+                           return
+                         end
+                       # docker native driver with systemd
+                       when '/' then nil
+                       # in a cgroup, but we don't recognize its format
+                       when %r{docker/.*[^0-9a-f]}
+                         ::NewRelic::Agent.logger.debug("Cgroup indicates docker but container_id has invalid characters: '#{cpu_cgroup}'")
+                         return
+                       when /docker/
+                         ::NewRelic::Agent.logger.debug("Cgroup indicates docker but container_id unrecognized: '#{cpu_cgroup}'")
+                         ::NewRelic::Agent.increment_metric 'Supportability/utilization/docker/error'
+                         return
+                       else
+                         ::NewRelic::Agent.logger.debug("Ignoring unrecognized cgroup ID format: '#{cpu_cgroup}'")
+                         return
+                       end
 
         if container_id && container_id.size != 64
           ::NewRelic::Agent.logger.debug("Found docker container_id with invalid length: #{container_id}")
-          ::NewRelic::Agent.increment_metric "Supportability/utilization/docker/error"
+          ::NewRelic::Agent.increment_metric 'Supportability/utilization/docker/error'
           nil
         else
           container_id
@@ -207,6 +206,7 @@ module NewRelic
         cgroup_info.split("\n").each do |line|
           parts = line.split(':')
           next unless parts.size == 3
+
           _, subsystems, cgroup_id = parts
           subsystems = subsystems.split(',')
           subsystems.each do |subsystem|
@@ -223,17 +223,16 @@ module NewRelic
       # for details on why we do it this way.
       def self.proc_try_read(path)
         return nil unless File.exist?(path)
+
         content = ''
         File.open(path) do |f|
           loop do
-            begin
-              content << f.read_nonblock(4096)
-            rescue EOFError
-              break
-            rescue Errno::EWOULDBLOCK, Errno::EAGAIN
-              content = nil
-              break # don't select file handle, just give up
-            end
+            content << f.read_nonblock(4096)
+          rescue EOFError
+            break
+          rescue Errno::EWOULDBLOCK, Errno::EAGAIN
+            content = nil
+            break # don't select file handle, just give up
           end
         end
         content
@@ -241,12 +240,12 @@ module NewRelic
 
       def self.ram_in_mib
         if darwin?
-          (sysctl_value('hw.memsize').to_i / (1024 ** 2)).to_i
+          (sysctl_value('hw.memsize').to_i / (1024**2)).to_i
         elsif linux?
           meminfo = proc_try_read('/proc/meminfo')
           parse_linux_meminfo_in_mib(meminfo)
         elsif bsd?
-          (sysctl_value('hw.realmem').to_i / (1024 ** 2)).to_i
+          (sysctl_value('hw.realmem').to_i / (1024**2)).to_i
         else
           ::NewRelic::Agent.logger.debug("Unable to determine ram_in_mib for host os: #{ruby_os_identifier}")
           nil
@@ -254,7 +253,7 @@ module NewRelic
       end
 
       def self.parse_linux_meminfo_in_mib(meminfo)
-        if meminfo && mem_total = meminfo[/MemTotal:\s*(\d*)\skB/,1]
+        if meminfo && mem_total = meminfo[/MemTotal:\s*(\d*)\skB/, 1]
           (mem_total.to_i / 1024).to_i
         else
           ::NewRelic::Agent.logger.debug("Failed to parse MemTotal from /proc/meminfo: #{meminfo}")
@@ -264,13 +263,14 @@ module NewRelic
 
       def self.boot_id
         return nil unless linux?
+
         if bid = proc_try_read('/proc/sys/kernel/random/boot_id')
           bid.chomp!
 
           if bid.ascii_only?
             if bid.empty?
-              ::NewRelic::Agent.logger.debug("boot_id not found in /proc/sys/kernel/random/boot_id")
-              ::NewRelic::Agent.increment_metric "Supportability/utilization/boot_id/error"
+              ::NewRelic::Agent.logger.debug('boot_id not found in /proc/sys/kernel/random/boot_id')
+              ::NewRelic::Agent.increment_metric 'Supportability/utilization/boot_id/error'
               nil
 
             elsif bid.bytesize == 36
@@ -278,19 +278,19 @@ module NewRelic
 
             else
               ::NewRelic::Agent.logger.debug("Found boot_id with invalid length: #{bid}")
-              ::NewRelic::Agent.increment_metric "Supportability/utilization/boot_id/error"
-              bid[0,128]
+              ::NewRelic::Agent.increment_metric 'Supportability/utilization/boot_id/error'
+              bid[0, 128]
 
             end
           else
             ::NewRelic::Agent.logger.debug("Found boot_id with non-ASCII characters: #{bid}")
-            ::NewRelic::Agent.increment_metric "Supportability/utilization/boot_id/error"
+            ::NewRelic::Agent.increment_metric 'Supportability/utilization/boot_id/error'
             nil
 
           end
         else
-          ::NewRelic::Agent.logger.debug("boot_id not found in /proc/sys/kernel/random/boot_id")
-          ::NewRelic::Agent.increment_metric "Supportability/utilization/boot_id/error"
+          ::NewRelic::Agent.logger.debug('boot_id not found in /proc/sys/kernel/random/boot_id')
+          ::NewRelic::Agent.increment_metric 'Supportability/utilization/boot_id/error'
           nil
 
         end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -9,12 +8,9 @@ module NewRelic
   module Agent
     module HTTPClients
       class HTTPClientResponse < AbstractResponse
-
         def [](key)
-          @wrapped_response.headers.each do |k,v|
-            if key.downcase == k.downcase
-              return v
-            end
+          @wrapped_response.headers.each do |k, v|
+            return v if key.downcase == k.downcase
           end
           nil
         end
@@ -27,10 +23,10 @@ module NewRelic
       class HTTPClientRequest < AbstractRequest
         attr_reader :request
 
-        HTTP_CLIENT = "HTTPClient".freeze
-        LHOST = 'host'.freeze
-        UHOST = 'Host'.freeze
-        COLON = ':'.freeze
+        HTTP_CLIENT = 'HTTPClient'
+        LHOST = 'host'
+        UHOST = 'Host'
+        COLON = ':'
 
         def initialize(request)
           @request = request

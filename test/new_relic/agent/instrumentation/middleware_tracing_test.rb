@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../test_helper', __FILE__
+require File.expand_path '../../../test_helper', __dir__
 require 'new_relic/agent/instrumentation/middleware_tracing'
 
 class NewRelic::Agent::Instrumentation::MiddlewareTracingTest < Minitest::Test
@@ -26,7 +25,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareTracingTest < Minitest::Test
       {}
     end
 
-    def traced_call(env)
+    def traced_call(_env)
       @action.call
     end
   end

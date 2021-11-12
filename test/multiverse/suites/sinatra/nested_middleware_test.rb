@@ -1,10 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class MiddlewareApp < Sinatra::Base
   get '/middle' do
-    "From the middlewarez"
+    'From the middlewarez'
   end
 end
 
@@ -12,7 +11,7 @@ class MainApp < Sinatra::Base
   use MiddlewareApp
 
   get '/main' do
-    "mainly done"
+    'mainly done'
   end
 end
 
@@ -29,7 +28,7 @@ class NestedMiddlewareTest < Minitest::Test
   def test_inner_transaction
     get '/main'
     assert_metrics_recorded(["Controller/Sinatra/MainApp/#{name_for_route('main')}"])
-    assert_metrics_not_recorded(["Controller/Sinatra/MiddlewareApp/GET (unknown)"])
+    assert_metrics_not_recorded(['Controller/Sinatra/MiddlewareApp/GET (unknown)'])
   end
 
   def test_outer_transaction
@@ -37,7 +36,7 @@ class NestedMiddlewareTest < Minitest::Test
     assert_metrics_recorded(["Controller/Sinatra/MiddlewareApp/#{name_for_route('middle')}"])
   end
 
-  def name_for_route path
+  def name_for_route(path)
     if last_request.env.key? 'sinatra.route'
       "GET /#{path}"
     else

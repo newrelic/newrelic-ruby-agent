@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -7,9 +6,10 @@ module NewRelic::Agent::Instrumentation
   module Memcache
     module Prepend
       extend Helper
+
       module_function
 
-      def client_prepender client_class
+      def client_prepender(client_class)
         Module.new do
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
@@ -44,7 +44,7 @@ module NewRelic::Agent::Instrumentation
         end
       end
 
-      def dalli_client_prepender supported_methods
+      def dalli_client_prepender(supported_methods)
         Module.new do
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
@@ -57,7 +57,7 @@ module NewRelic::Agent::Instrumentation
         end
       end
 
-      def dalli_get_multi_prepender method_name
+      def dalli_get_multi_prepender(method_name)
         Module.new do
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
@@ -73,7 +73,7 @@ module NewRelic::Agent::Instrumentation
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
-          def server_for_key key
+          def server_for_key(key)
             server_for_key_with_newrelic_tracing { super }
           end
         end
@@ -84,7 +84,7 @@ module NewRelic::Agent::Instrumentation
           extend Helper
           include NewRelic::Agent::Instrumentation::Memcache::Tracer
 
-          def send_multiget keys
+          def send_multiget(keys)
             send_multiget_with_newrelic_tracing(keys) { super }
           end
         end

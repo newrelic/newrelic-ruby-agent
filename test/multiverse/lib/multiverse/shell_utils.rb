@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -6,7 +5,7 @@ module Multiverse
   module ShellUtils
     module_function
 
-    def try_command_n_times(cmd, n, wait_time=1)
+    def try_command_n_times(cmd, n, wait_time = 1)
       count = 0
       loop do
         count += 1
@@ -22,6 +21,5 @@ module Multiverse
         end
       end
     end
-
   end
 end

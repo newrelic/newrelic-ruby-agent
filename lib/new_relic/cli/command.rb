@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -12,10 +11,12 @@ module NewRelic
   module Cli
     class Command
       attr_accessor :leftover
+
       # Capture a failure to execute the command.
       class CommandFailure < StandardError
         attr_reader :options
-        def initialize message, opt_parser=nil
+
+        def initialize(message, opt_parser = nil)
           super message
           @options = opt_parser
         end
@@ -26,19 +27,19 @@ module NewRelic
       end
 
       def err(message)
-        STDERR.puts message
+        warn message
       end
 
       def initialize(command_line_args)
-        if Hash === command_line_args
+        if command_line_args.is_a?(Hash)
           # command line args is an options hash
-          command_line_args.each do | key, value |
+          command_line_args.each do |key, value|
             instance_variable_set "@#{key}", value.to_s if value
           end
         else
           # parse command line args.  Throw an exception on a bad arg.
-          @options = options do | opts |
-            opts.on("-h", "Show this help") {  raise CommandFailure, opts.to_s }
+          @options = options do |opts|
+            opts.on('-h', 'Show this help') { raise CommandFailure, opts.to_s }
           end
           @leftover = @options.parse(command_line_args)
         end
@@ -55,8 +56,7 @@ module NewRelic
       Dir[cmds].each { |command| require command }
 
       def self.run
-
-        @command_names = @commands.map{ |c| c.command }
+        @command_names = @commands.map { |c| c.command }
 
         extra = []
         options = ARGV.options do |opts|
@@ -65,7 +65,7 @@ module NewRelic
             $stdout.puts "warning: the 'newrelic_cmd' script has been renamed 'newrelic'"
             script_name = 'newrelic'
           end
-          opts.banner = "Usage: #{script_name} [ #{ @command_names.join(" | ")} ] [options]"
+          opts.banner = "Usage: #{script_name} [ #{@command_names.join(' | ')} ] [options]"
           opts.separator "use '#{script_name} <command> -h' to see detailed command options"
           opts
         end
@@ -73,19 +73,18 @@ module NewRelic
         command = extra.shift
         # just make it a little easier on them
         command = 'deployments' if command =~ /deploy/
-          if command.nil?
-            STDERR.puts options
-          elsif !@command_names.include?(command)
-            STDERR.puts "Unrecognized command: #{command}"
-            STDERR.puts options
-          else
-            command_class = @commands.find{ |c| c.command == command}
-            command_class.new(extra).run
-          end
+        if command.nil?
+          warn options
+        elsif !@command_names.include?(command)
+          warn "Unrecognized command: #{command}"
+          warn options
+        else
+          command_class = @commands.find { |c| c.command == command }
+          command_class.new(extra).run
+        end
       rescue OptionParser::InvalidOption => e
         raise NewRelic::Cli::Command::CommandFailure, e.message
       end
     end
-
   end
 end

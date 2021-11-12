@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -21,7 +20,7 @@ module NewRelic
           state_for(Thread.current)
         end
 
-        alias_method :tl_get, :state
+        alias tl_get state
 
         # Returns +true+ unless called from within an
         # +NewRelic::Agent.disable_all_tracing+ block.
@@ -48,7 +47,7 @@ module NewRelic
             txn.trace_id
           end
         end
-        alias_method :trace_id, :current_trace_id
+        alias trace_id current_trace_id
 
         # Returns the id of the current span, or +nil+ if none exists.
         #
@@ -58,7 +57,7 @@ module NewRelic
             span.guid
           end
         end
-        alias_method :span_id, :current_span_id
+        alias span_id current_span_id
 
         # Returns a boolean indicating whether the current_transaction
         # is sampled, or +nil+ if there is no current transaction.
@@ -69,7 +68,7 @@ module NewRelic
             txn.sampled?
           end
         end
-        alias_method :sampled?, :transaction_sampled?
+        alias sampled? transaction_sampled?
 
         # Runs the given block of code in a transaction.
         #
@@ -102,8 +101,8 @@ module NewRelic
             # only wrap the yield to be absolutely sure we don't report agent
             # problems as app errors
             yield
-          rescue => exception
-            current_transaction.notice_error(exception)
+          rescue StandardError => e
+            current_transaction.notice_error(e)
             raise
           ensure
             finishable.finish if finishable
@@ -129,32 +128,26 @@ module NewRelic
         #   code you're tracing
         #
         # @api public
-        def start_transaction_or_segment(name: nil,
+        def start_transaction_or_segment(category:, name: nil,
                                          partial_name: nil,
-                                         category:,
                                          options: {})
-          
+
           raise ArgumentError, 'missing required argument: name or partial_name' if name.nil? && partial_name.nil?
 
-          if name
-            options[:transaction_name] = name
-          else
-            options[:transaction_name] = Transaction.name_from_partial(
-              partial_name,
-              category
-            )
-          end
+          options[:transaction_name] = (name || Transaction.name_from_partial(
+            partial_name,
+            category
+          ))
 
           if (txn = current_transaction)
             txn.create_nested_segment(category, options)
           else
             Transaction.start_new_transaction(state, category, options)
           end
-
         rescue ArgumentError
           raise
-        rescue => exception
-          log_error('start_transaction_or_segment', exception)
+        rescue StandardError => e
+          log_error('start_transaction_or_segment', e)
         end
 
         # Takes name or partial_name and a category.
@@ -163,36 +156,34 @@ module NewRelic
                               name: nil,
                               partial_name: nil,
                               **options)
-          
+
           raise ArgumentError, 'missing required argument: name or partial_name' if name.nil? && partial_name.nil?
 
           return current_transaction if current_transaction
 
-          if name
-            options[:transaction_name] = name
-          else
-            options[:transaction_name] = Transaction.name_from_partial(
-              partial_name,
-              category
-            )
-          end
+          options[:transaction_name] = (name || Transaction.name_from_partial(
+            partial_name,
+            category
+          ))
 
           Transaction.start_new_transaction(state,
                                             category,
                                             options)
         rescue ArgumentError
           raise
-        rescue => exception
-          log_error('start_transaction', exception)
+        rescue StandardError => e
+          log_error('start_transaction', e)
         end
 
         def create_distributed_trace_payload
           return unless txn = current_transaction
+
           txn.distributed_tracer.create_distributed_trace_payload
         end
 
         def accept_distributed_trace_payload(payload)
           return unless txn = current_transaction
+
           txn.distributed_tracer.accept_distributed_trace_payload(payload)
         end
 
@@ -203,6 +194,7 @@ module NewRelic
         # @api public
         def current_segment
           return unless txn = current_transaction
+
           txn.current_segment
         end
 
@@ -231,21 +223,20 @@ module NewRelic
         #
         # @api public
         def start_segment(name:,
-                          unscoped_metrics:nil,
+                          unscoped_metrics: nil,
                           start_time: nil,
                           parent: nil)
 
           segment = Transaction::Segment.new name, unscoped_metrics, start_time
           start_and_add_segment segment, parent
-
         rescue ArgumentError
           raise
-        rescue => exception
-          log_error('start_segment', exception)
+        rescue StandardError => e
+          log_error('start_segment', e)
         end
 
-        UNKNOWN = "Unknown".freeze
-        OTHER = "other".freeze
+        UNKNOWN = 'Unknown'.freeze
+        OTHER = 'other'.freeze
 
         # Creates and starts a datastore segment used to time
         # datastore operations.
@@ -294,13 +285,13 @@ module NewRelic
           product ||= UNKNOWN
           operation ||= OTHER
 
-          segment = Transaction::DatastoreSegment.new product, operation, collection, host, port_path_or_id, database_name
+          segment = Transaction::DatastoreSegment.new product, operation, collection, host, port_path_or_id,
+                                                      database_name
           start_and_add_segment segment, parent
-
         rescue ArgumentError
           raise
-        rescue => exception
-          log_error('start_datastore_segment', exception)
+        rescue StandardError => e
+          log_error('start_datastore_segment', e)
         end
 
         # Creates and starts an external request segment using the
@@ -338,25 +329,23 @@ module NewRelic
 
           segment = Transaction::ExternalRequestSegment.new library, uri, procedure, start_time
           start_and_add_segment segment, parent
-
         rescue ArgumentError
           raise
-        rescue => exception
-          log_error('start_external_request_segment', exception)
+        rescue StandardError => e
+          log_error('start_external_request_segment', e)
         end
 
         # Will potentially capture and notice an error at the
         # segment that was executing when error occurred.
-        # if passed +segment+ is something that doesn't 
+        # if passed +segment+ is something that doesn't
         # respond to +notice_segment_error+ then this method
         # is effectively just a yield to the given &block
-        def capture_segment_error segment
+        def capture_segment_error(segment)
           return unless block_given?
+
           yield
-        rescue => exception
-          if segment && segment.is_a?(Transaction::AbstractSegment)
-            segment.notice_error exception
-          end
+        rescue StandardError => e
+          segment.notice_error e if segment && segment.is_a?(Transaction::AbstractSegment)
           raise
         end
 
@@ -380,11 +369,10 @@ module NewRelic
             start_time: start_time
           )
           start_and_add_segment segment, parent
-
         rescue ArgumentError
           raise
-        rescue => exception
-          log_error('start_datastore_segment', exception)
+        rescue StandardError => e
+          log_error('start_datastore_segment', e)
         end
 
         # This method should only be used by Tracer for access to the
@@ -402,20 +390,20 @@ module NewRelic
           state
         end
 
-        alias_method :tl_state_for, :state_for
+        alias tl_state_for state_for
 
         def clear_state
           Thread.current[:newrelic_tracer_state] = nil
         end
 
-        alias_method :tl_clear, :clear_state
+        alias tl_clear clear_state
 
         private
 
-        def start_and_add_segment segment, parent = nil
+        def start_and_add_segment(segment, parent = nil)
           tracer_state = state
           if (txn = tracer_state.current_transaction) &&
-            tracer_state.tracing_enabled?
+             tracer_state.tracing_enabled?
             txn.add_segment segment, parent
           else
             segment.record_metrics = false
@@ -433,7 +421,6 @@ module NewRelic
       # This is THE location to store thread local information during a transaction
       # Need a new piece of data? Add a method here, NOT a new thread local variable.
       class State
-
         def initialize
           @untraced = []
           @current_transaction = nil
@@ -441,7 +428,7 @@ module NewRelic
         end
 
         # This starts the timer for the transaction.
-        def reset(transaction=nil)
+        def reset(transaction = nil)
           # We purposefully don't reset @untraced or @record_sql
           # since those are managed by NewRelic::Agent.disable_* calls explicitly
           # and (more importantly) outside the scope of a transaction
@@ -468,7 +455,7 @@ module NewRelic
           @untraced.nil? || @untraced.last != false
         end
 
-        alias_method :tracing_enabled?, :is_execution_traced?
+        alias tracing_enabled? is_execution_traced?
 
         # TT's and SQL
         attr_accessor :record_sql

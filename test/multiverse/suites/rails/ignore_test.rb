@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -7,15 +6,15 @@
 require './app'
 
 class IgnoredController < ApplicationController
-  newrelic_ignore :only => :action_to_ignore
-  newrelic_ignore_apdex :only => :action_to_ignore_apdex
+  newrelic_ignore only: :action_to_ignore
+  newrelic_ignore_apdex only: :action_to_ignore_apdex
 
   def action_to_ignore
-    render body:  "Ignore this"
+    render body:  'Ignore this'
   end
 
   def action_to_ignore_apdex
-    render body:  "This too"
+    render body:  'This too'
   end
 end
 
@@ -33,13 +32,12 @@ class ChildController < ParentController
   add_transaction_tracer :bar
 end
 
-
 class IgnoredActionsTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
 
-  setup_and_teardown_agent(:cross_process_id => "boo",
-                           :encoding_key => "\0",
-                           :trusted_account_ids => [1])
+  setup_and_teardown_agent(cross_process_id: 'boo',
+                           encoding_key: "\0",
+                           trusted_account_ids: [1])
 
   def after_setup
     # Make sure we've got a blank slate for doing easier metric comparisons
@@ -53,8 +51,8 @@ class IgnoredActionsTest < ActionDispatch::IntegrationTest
 
   def test_metric__ignore_apdex
     get '/ignored/action_to_ignore_apdex'
-    assert_metrics_recorded(["Controller/ignored/action_to_ignore_apdex"])
-    assert_metrics_not_recorded(["Apdex"])
+    assert_metrics_recorded(['Controller/ignored/action_to_ignore_apdex'])
+    assert_metrics_not_recorded(['Apdex'])
   end
 
   def test_ignored_transaction_traces_dont_leak
@@ -67,14 +65,14 @@ class IgnoredActionsTest < ActionDispatch::IntegrationTest
 
   def test_should_not_write_cat_response_headers_for_ignored_transactions
     get '/ignored/action_to_ignore',
-      headers: {'X-NewRelic-ID' => Base64.encode64('1#234')}
-    refute @response.headers["X-NewRelic-App-Data"]
+        headers: { 'X-NewRelic-ID' => Base64.encode64('1#234') }
+    refute @response.headers['X-NewRelic-App-Data']
   end
 
   def test_apdex_ignored_if_ignored_in_parent_class
     get '/child/foo'
     get '/child/bar'
 
-    assert_metrics_not_recorded("Apdex")
+    assert_metrics_not_recorded('Apdex')
   end
 end

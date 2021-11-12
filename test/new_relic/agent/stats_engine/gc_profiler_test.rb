@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 class NewRelic::Agent::StatsEngine
   class GCProfilerTest < Minitest::Test
@@ -45,7 +44,7 @@ class NewRelic::Agent::StatsEngine
     end
 
     # Only run these tests in environments where GCProfiler is usable
-    if !NewRelic::LanguageSupport.jruby?
+    unless NewRelic::LanguageSupport.jruby?
       def test_record_delta_returns_delta_in_seconds
         GCProfiler.init
 
@@ -64,7 +63,7 @@ class NewRelic::Agent::StatsEngine
         GCProfiler.record_delta(start_snapshot, end_snapshot)
 
         assert_gc_metrics(GCProfiler::GC_OTHER,
-                          :call_count => 2, :total_call_time => 1.5)
+                          call_count: 2, total_call_time: 1.5)
       end
 
       # This test is asserting that the implementation of GC::Profiler provided by
@@ -76,7 +75,7 @@ class NewRelic::Agent::StatsEngine
         GC::Profiler.enable
 
         count_before_allocations = GC.count
-        100000.times { String.new }
+        100_000.times { String.new }
         GC.start
         count_after_allocations = GC.count
         GC::Profiler.clear
@@ -102,7 +101,7 @@ class NewRelic::Agent::StatsEngine
         stub_gc_timer(1.0)
         stub_gc_count(1)
 
-        with_config(:'transaction_tracer.enabled' => true) do
+        with_config('transaction_tracer.enabled': true) do
           in_transaction do
             stub_gc_timer(4.0)
             stub_gc_count(3)
@@ -110,7 +109,7 @@ class NewRelic::Agent::StatsEngine
         end
 
         assert_gc_metrics(GCProfiler::GC_OTHER,
-                          :call_count => 2, :total_call_time => 3.0)
+                          call_count: 2, total_call_time: 3.0)
         assert_metrics_not_recorded(GCProfiler::GC_WEB)
 
         tracer = NewRelic::Agent.instance.transaction_sampler
@@ -121,7 +120,7 @@ class NewRelic::Agent::StatsEngine
         stub_gc_timer(1.0)
         stub_gc_count(1)
 
-        with_config(:'transaction_tracer.enabled' => true) do
+        with_config('transaction_tracer.enabled': true) do
           in_web_transaction do
             stub_gc_timer(4.0)
             stub_gc_count(3)
@@ -129,12 +128,12 @@ class NewRelic::Agent::StatsEngine
         end
 
         assert_gc_metrics(GCProfiler::GC_WEB,
-                          :call_count => 2, :total_call_time => 3.0)
+                          call_count: 2, total_call_time: 3.0)
         assert_metrics_not_recorded(GCProfiler::GC_OTHER)
       end
     end
 
-    def assert_gc_metrics(name, expected_values={})
+    def assert_gc_metrics(name, expected_values = {})
       assert_metrics_recorded(
         [GCProfiler::GC_ROLLUP, ''] => expected_values,
         name => expected_values
@@ -168,9 +167,7 @@ class NewRelic::Agent::StatsEngine
     end
 
     def stub_gc_profiling_enabled
-      if defined?(::GC::Profiler)
-        ::GC::Profiler.stubs(:enabled?).returns(true)
-      end
+      ::GC::Profiler.stubs(:enabled?).returns(true) if defined?(::GC::Profiler)
     end
   end
 end

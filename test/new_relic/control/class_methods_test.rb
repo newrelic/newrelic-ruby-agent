@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -23,7 +22,7 @@ class NewRelic::Control::ClassMethodsTest < Minitest::Test
   def test_instance
     assert_nil(@base.instance_variable_get(:@instance), 'instance should start out nil')
     @base.expects(:new_instance).returns('a new instance')
-    assert_equal('a new instance', @base.instance, "should return the result from the #new_instance call")
+    assert_equal('a new instance', @base.instance, 'should return the result from the #new_instance call')
   end
 
   def test_load_test_framework

@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 module NewRelic
   module Agent
@@ -19,7 +18,7 @@ module NewRelic
         @agent.agent_command_router.stubs(:new_relic_service).returns(@agent.service)
         @agent.stubs(:start_worker_thread)
 
-        @config = { :license_key => "a" * 40 }
+        @config = { license_key: 'a' * 40 }
         NewRelic::Agent.config.add_config_for_testing(@config)
       end
 
@@ -31,18 +30,18 @@ module NewRelic
       def test_after_fork_reporting_to_channel
         @agent.stubs(:connected?).returns(true)
 
-        with_config(:monitor_mode => true) do
-          @agent.after_fork(:report_to_channel => 123)
+        with_config(monitor_mode: true) do
+          @agent.after_fork(report_to_channel: 123)
         end
 
-        assert(@agent.service.kind_of?(NewRelic::Agent::PipeService),
+        assert(@agent.service.is_a?(NewRelic::Agent::PipeService),
                'Agent should use PipeService when directed to report to pipe channel')
         NewRelic::Agent::PipeService.any_instance.expects(:shutdown).never
         assert_equal 123, @agent.service.channel_id
       end
 
       def test_after_fork_should_not_collect_environment_report
-        with_config(:monitor_mode => true) do
+        with_config(monitor_mode: true) do
           @agent.stubs(:connected?).returns(true)
           @agent.stubs(:in_resque_child_process?).returns(false)
           @agent.after_fork
@@ -51,10 +50,10 @@ module NewRelic
       end
 
       def test_after_fork_reporting_to_channel_should_not_collect_environment_report
-        with_config(:monitor_mode => true) do
+        with_config(monitor_mode: true) do
           @agent.stubs(:connected?).returns(true)
           @agent.expects(:environment_for_connect).never
-          @agent.after_fork(:report_to_channel => 123)
+          @agent.after_fork(report_to_channel: 123)
         end
       end
 
@@ -67,38 +66,38 @@ module NewRelic
         NewRelic::Agent::PipeChannelManager.stubs(:channels).returns(dummy_channels)
 
         @agent.stubs(:connected?).returns(false)
-        @agent.after_fork(:report_to_channel => 123)
+        @agent.after_fork(report_to_channel: 123)
         assert(@agent.disconnected?)
       end
 
       def test_after_fork_should_replace_stats_engine
-        with_config(:monitor_mode => true) do
+        with_config(monitor_mode: true) do
           @agent.stubs(:connected?).returns(true)
           old_engine = @agent.stats_engine
 
-          @agent.after_fork(:report_to_channel => 123)
+          @agent.after_fork(report_to_channel: 123)
 
-          assert old_engine != @agent.stats_engine, "Still got our old engine around!"
+          assert old_engine != @agent.stats_engine, 'Still got our old engine around!'
         end
       end
 
       def test_after_fork_should_reset_errors_collected
-        with_config(:monitor_mode => true) do
+        with_config(monitor_mode: true) do
           @agent.stubs(:connected?).returns(true)
 
           errors = []
-          errors << NewRelic::NoticedError.new("", {}, Exception.new("boo"))
+          errors << NewRelic::NoticedError.new('', {}, Exception.new('boo'))
           @agent.merge_data_for_endpoint(:error_data, errors)
 
-          @agent.after_fork(:report_to_channel => 123)
+          @agent.after_fork(report_to_channel: 123)
           errors = @agent.error_collector.error_trace_aggregator.harvest!
 
-          assert_equal 0, errors.length, "Still got errors collected in parent"
+          assert_equal 0, errors.length, 'Still got errors collected in parent'
         end
       end
 
       def test_after_fork_should_mark_as_started
-        with_config(:monitor_mode => true) do
+        with_config(monitor_mode: true) do
           refute @agent.started?
           @agent.after_fork
           assert @agent.started?
@@ -106,7 +105,7 @@ module NewRelic
       end
 
       def test_after_fork_should_prevent_further_thread_restart_attempts
-        with_config(:monitor_mode => true) do
+        with_config(monitor_mode: true) do
           # Disconnecting will tell us not to restart the thread
           @agent.disconnect
           @agent.after_fork
@@ -116,7 +115,7 @@ module NewRelic
       end
 
       def test_after_fork_should_not_start_agent_multiple_times
-        with_config(:monitor_mode => true) do
+        with_config(monitor_mode: true) do
           $queue = Queue.new
           def @agent.setup_and_start_agent(*_)
             $queue << 'started!'
@@ -167,14 +166,14 @@ module NewRelic
       end
 
       def test_harvest_and_send_transaction_traces
-        with_config(:'transaction_tracer.explain_threshold' => 2,
-                    :'transaction_tracer.explain_enabled' => true,
-                    :'transaction_tracer.record_sql' => 'raw') do
+        with_config('transaction_tracer.explain_threshold': 2,
+                    'transaction_tracer.explain_enabled': true,
+                    'transaction_tracer.record_sql': 'raw') do
           trace = stub('transaction trace',
-                       :duration => 2.0, :threshold => 1.0,
-                       :transaction_name => nil,
-                       :force_persist => true,
-                       :truncate => 4000)
+                       duration: 2.0, threshold: 1.0,
+                       transaction_name: nil,
+                       force_persist: true,
+                       truncate: 4000)
 
           @agent.transaction_sampler.stubs(:harvest!).returns([trace])
           @agent.send :harvest_and_send_transaction_traces
@@ -185,7 +184,7 @@ module NewRelic
         traces = [mock('tt1'), mock('tt2')]
 
         @agent.transaction_sampler.expects(:harvest!).returns(traces)
-        @agent.service.stubs(:transaction_sample_data).raises("wat")
+        @agent.service.stubs(:transaction_sample_data).raises('wat')
         @agent.transaction_sampler.expects(:merge!).with(traces)
 
         @agent.send :harvest_and_send_transaction_traces
@@ -211,7 +210,7 @@ module NewRelic
         nthreads = 10
         nmetrics = 100
 
-        nthreads.times do |tid|
+        nthreads.times do |_tid|
           t = Thread.new do
             nmetrics.times do |mid|
               @agent.stats_engine.tl_record_unscoped_metrics("m#{mid}", 1)
@@ -237,7 +236,7 @@ module NewRelic
 
       def test_harvest_and_send_for_agent_commands
         @agent.service.expects(:profile_data).with(any_parameters)
-        @agent.agent_command_router.stubs(:harvest!).returns({:profile_data => [Object.new]})
+        @agent.agent_command_router.stubs(:harvest!).returns({ profile_data: [Object.new] })
         @agent.send :harvest_and_send_for_agent_commands
       end
 
@@ -256,16 +255,16 @@ module NewRelic
 
       def test_merge_data_traces
         transaction_sampler = mock('transaction sampler')
-        @agent.instance_eval {
+        @agent.instance_eval do
           @transaction_sampler = transaction_sampler
-        }
-        transaction_sampler.expects(:merge!).with([1,2,3])
-        @agent.merge_data_for_endpoint(:transaction_sample_data, [1,2,3])
+        end
+        transaction_sampler.expects(:merge!).with([1, 2, 3])
+        @agent.merge_data_for_endpoint(:transaction_sample_data, [1, 2, 3])
       end
 
       def test_merge_data_for_endpoint_abides_by_error_queue_limit
         errors = []
-        40.times { |i| errors << NewRelic::NoticedError.new("", {}, Exception.new("boo #{i}")) }
+        40.times { |i| errors << NewRelic::NoticedError.new('', {}, Exception.new("boo #{i}")) }
 
         @agent.merge_data_for_endpoint(:error_data, errors)
 
@@ -274,13 +273,13 @@ module NewRelic
 
         # This method should NOT increment error counts, since that has already
         # been counted in the child
-        assert_metrics_not_recorded "Errors/all"
+        assert_metrics_not_recorded 'Errors/all'
       end
 
       def test_harvest_and_send_analytic_event_data_merges_in_samples_on_failure
         service = @agent.service
         transaction_event_aggregator = @agent.transaction_event_aggregator
-        samples = [{:reservoir_size => 100, :events_seen => 1}, [mock('some analytics event')]]
+        samples = [{ reservoir_size: 100, events_seen: 1 }, [mock('some analytics event')]]
 
         transaction_event_aggregator.expects(:harvest!).returns(samples)
         transaction_event_aggregator.expects(:merge!).with(samples)
@@ -292,7 +291,7 @@ module NewRelic
       end
 
       def test_harvest_and_send_timeslice_data_merges_back_on_failure
-        timeslices = [1,2,3]
+        timeslices = [1, 2, 3]
 
         @agent.stats_engine.expects(:harvest!).returns(timeslices)
         @agent.service.stubs(:metric_data).raises('wat')
@@ -319,7 +318,7 @@ module NewRelic
 
       def test_connect_does_not_retry_if_keep_retrying_false
         @agent.service.expects(:connect).once.raises(Timeout::Error)
-        @agent.send(:connect, :keep_retrying => false)
+        @agent.send(:connect, keep_retrying: false)
       end
 
       def test_connect_does_not_retry_on_license_error
@@ -343,11 +342,11 @@ module NewRelic
       def test_connect_does_reconnect_if_forced
         @agent.stubs(:connected?).returns(true)
         @agent.service.expects(:connect)
-        @agent.send(:connect, :force_reconnect => true)
+        @agent.send(:connect, force_reconnect: true)
       end
 
       def test_connect_logs_error_for_all_exceptions
-        bad = Class.new(Exception)
+        bad = Class.new(RuntimeError)
         @agent.stubs(:should_connect?).raises(bad)
         ::NewRelic::Agent.logger.expects(:error).once
 
@@ -364,7 +363,7 @@ module NewRelic
         @agent.stubs(:connected?).returns(true)
         @agent.service.expects(:connect).returns({})
         NewRelic::Agent.config.stubs(:finished_configuring?).returns(false).then.returns(true)
-        @agent.send(:connect, :force_reconnect => true)
+        @agent.send(:connect, force_reconnect: true)
 
         refute old_filter == @agent.attribute_filter, "#{@agent.attribute_filter} should not be equal to\n#{old_filter}"
       end
@@ -374,7 +373,7 @@ module NewRelic
 
         @agent.stubs(:connected?).returns(true)
         @agent.service.expects(:connect).returns({})
-        @agent.send(:connect, :force_reconnect => true)
+        @agent.send(:connect, force_reconnect: true)
 
         refute old_rules == @agent.transaction_rules, "#{@agent.transaction_rules} should not be equal to\n#{old_rules}"
       end
@@ -384,15 +383,16 @@ module NewRelic
 
         @agent.stubs(:connected?).returns(true)
         @agent.service.expects(:connect).returns({})
-        @agent.send(:connect, :force_reconnect => true)
+        @agent.send(:connect, force_reconnect: true)
 
-        refute old_rules == @agent.stats_engine.metric_rules, "#{@agent.stats_engine.metric_rules} should not be equal to\n#{old_rules}"
+        refute old_rules == @agent.stats_engine.metric_rules,
+               "#{@agent.stats_engine.metric_rules} should not be equal to\n#{old_rules}"
       end
 
       def test_security_policies_added_when_received_from_connect
         connect_response = {
           'agent_config' => {},
-          'security_policies' => {'record_sql' => {'enabled' => false}}
+          'security_policies' => { 'record_sql' => { 'enabled' => false } }
         }
 
         @agent.service.expects(:connect).returns(connect_response)
@@ -413,7 +413,7 @@ module NewRelic
       def test_data_dropped_when_security_policies_received_from_connect
         connect_response = {
           'agent_config' => {},
-          'security_policies' => {'record_sql' => {'enabled' => false}}
+          'security_policies' => { 'record_sql' => { 'enabled' => false } }
         }
 
         @agent.service.expects(:connect).returns(connect_response)
@@ -425,15 +425,13 @@ module NewRelic
         error = nil
         connected = false
         thread = Thread.new do
-          begin
-            @agent.wait_on_connect(2)
-            connected = true
-          rescue => e
-            error = e
-          end
+          @agent.wait_on_connect(2)
+          connected = true
+        rescue StandardError => e
+          error = e
         end
 
-        until @agent.waited_on_connect? do
+        until @agent.waited_on_connect?
           # hold on there....
         end
 
@@ -448,14 +446,12 @@ module NewRelic
       def test_wait_raises_if_not_connected_once_signaled
         error = nil
         thread = Thread.new do
-          begin
-            @agent.wait_on_connect(2)
-          rescue => e
-            error = e
-          end
+          @agent.wait_on_connect(2)
+        rescue StandardError => e
+          error = e
         end
 
-        until @agent.waited_on_connect? do
+        until @agent.waited_on_connect?
           # hold on there....
         end
 
@@ -470,14 +466,12 @@ module NewRelic
       def test_wait_raises_if_not_signaled
         error = nil
         thread = Thread.new do
-          begin
-            @agent.wait_on_connect(0.01)
-          rescue => e
-            error = e
-          end
+          @agent.wait_on_connect(0.01)
+        rescue StandardError => e
+          error = e
         end
 
-        until @agent.waited_on_connect? do
+        until @agent.waited_on_connect?
           # hold on there....
         end
 
@@ -499,7 +493,7 @@ module NewRelic
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)
 
         # :send_data_on_exit setting to avoid setting an at_exit
-        with_config( :monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque ) do
+        with_config(monitor_mode: true, send_data_on_exit: false, dispatcher: :resque) do
           @agent.start
         end
 
@@ -509,7 +503,7 @@ module NewRelic
       def test_doesnt_defer_start_if_resque_dispatcher_and_channel_manager_started
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(true)
 
-        with_config( :monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque ) do
+        with_config(monitor_mode: true, send_data_on_exit: false, dispatcher: :resque) do
           @agent.start
         end
 
@@ -521,7 +515,7 @@ module NewRelic
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)
 
         # :send_data_on_exit setting to avoid setting an at_exit
-        with_config( :monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque ) do
+        with_config(monitor_mode: true, send_data_on_exit: false, dispatcher: :resque) do
           @agent.start
         end
 
@@ -529,20 +523,20 @@ module NewRelic
       end
 
       def test_defer_start_if_no_application_name_configured
-        logdev = with_array_logger( :error ) do
-          with_config( :app_name => false ) do
+        logdev = with_array_logger(:error) do
+          with_config(app_name: false) do
             @agent.start
           end
         end
         logmsg = logdev.array.first.gsub(/\n/, '')
 
-        assert !@agent.started?, "agent was started"
-        assert_match( /No application name configured/i, logmsg )
+        assert !@agent.started?, 'agent was started'
+        assert_match(/No application name configured/i, logmsg)
       end
 
       def test_harvest_from_container
         container = mock
-        harvested_items = ['foo', 'bar', 'baz']
+        harvested_items = %w[foo bar baz]
         container.expects(:harvest!).returns(harvested_items)
         items = @agent.send(:harvest_from_container, container, 'digglewumpus')
         assert_equal(harvested_items, items)
@@ -583,7 +577,7 @@ module NewRelic
 
       def test_harvest_and_send_from_container_does_not_merge_on_serialization_failure
         container = mock('data container')
-        container.stubs(:harvest!).returns([1,2,3])
+        container.stubs(:harvest!).returns([1, 2, 3])
         @agent.service.stubs(:dummy_endpoint).raises(SerializationError)
         container.expects(:merge!).never
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
@@ -591,17 +585,17 @@ module NewRelic
 
       def test_harvest_and_send_from_container_does_not_merge_on_unrecoverable_failure
         container = mock('data container')
-        container.stubs(:harvest!).returns([1,2,3])
-        @agent.service.expects(:dummy_endpoint).with([1,2,3]).raises(UnrecoverableServerException)
+        container.stubs(:harvest!).returns([1, 2, 3])
+        @agent.service.expects(:dummy_endpoint).with([1, 2, 3]).raises(UnrecoverableServerException)
         container.expects(:merge!).never
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
       end
 
       def test_harvest_and_send_from_container_merges_on_other_failure
         container = mock('data container')
-        container.stubs(:harvest!).returns([1,2,3])
-        @agent.service.expects(:dummy_endpoint).with([1,2,3]).raises('other error')
-        container.expects(:merge!).with([1,2,3])
+        container.stubs(:harvest!).returns([1, 2, 3])
+        @agent.service.expects(:dummy_endpoint).with([1, 2, 3]).raises('other error')
+        container.expects(:merge!).with([1, 2, 3])
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
       end
 
@@ -650,7 +644,7 @@ module NewRelic
         Signal.expects(:trap).with('SIGUSR1', 'IGNORE')
         Signal.expects(:trap).with('SIGTERM', 'IGNORE')
 
-        with_config(:dispatcher => :litespeed) do
+        with_config(dispatcher: :litespeed) do
           @agent.trap_signals_for_litespeed
         end
       end
@@ -672,7 +666,7 @@ module NewRelic
       end
 
       def test_revert_to_default_configuration_removes_manual_and_server_source
-        manual_source = NewRelic::Agent::Configuration::ManualSource.new(:manual => "source")
+        manual_source = NewRelic::Agent::Configuration::ManualSource.new(manual: 'source')
         Agent.config.replace_or_add_config(manual_source)
 
         server_config = NewRelic::Agent::Configuration::ServerSource.new({})
@@ -690,8 +684,8 @@ module NewRelic
       end
 
       def test_log_ignore_url_regexes
-        with_config(:rules => { :ignore_url_regexes => ['foo', 'bar', 'baz'] }) do
-          expects_logging(:info, includes("/foo/, /bar/, /baz/"))
+        with_config(rules: { ignore_url_regexes: %w[foo bar baz] }) do
+          expects_logging(:info, includes('/foo/, /bar/, /baz/'))
           @agent.log_ignore_url_regexes
         end
       end
@@ -746,11 +740,11 @@ module NewRelic
           # Write HTTP response with partial gzip content, leaving connection open.
           gzip = Zlib.gzip('Hello World!')
           headers = [
-            "HTTP/1.1 200",
-            "Content-Encoding: gzip",
+            'HTTP/1.1 200',
+            'Content-Encoding: gzip',
             "Content-Length: #{gzip.length}",
-            gzip.byteslice(0..-2),
-        ].join("\r\n")
+            gzip.byteslice(0..-2)
+          ].join("\r\n")
 
           server.accept.write headers.chomp
         end
@@ -776,7 +770,7 @@ module NewRelic
 
     class AgentStartingTest < Minitest::Test
       def test_abides_by_disabling_harvest_thread
-        with_config(:disable_harvest_thread => true) do
+        with_config(disable_harvest_thread: true) do
           threads_before = Thread.list.length
 
           agent = NewRelic::Agent::Agent.new
@@ -785,7 +779,6 @@ module NewRelic
           assert_equal threads_before, Thread.list.length
         end
       end
-
     end
   end
 end

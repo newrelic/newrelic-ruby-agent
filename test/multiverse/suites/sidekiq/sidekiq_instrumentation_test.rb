@@ -1,10 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 # https://newrelic.atlassian.net/browse/RUBY-775
 
-require File.join(File.dirname(__FILE__), "sidekiq_server")
+require File.join(File.dirname(__FILE__), 'sidekiq_server')
 SidekiqServer.instance.run
 
 # Important to require after Sidekiq server starts for middleware to install
@@ -14,8 +13,8 @@ require 'logger'
 require 'stringio'
 
 require 'fake_collector'
-require File.join(File.dirname(__FILE__), "test_model")
-require File.join(File.dirname(__FILE__), "test_worker")
+require File.join(File.dirname(__FILE__), 'test_model')
+require File.join(File.dirname(__FILE__), 'test_worker')
 
 class SidekiqTest < Minitest::Test
   JOB_COUNT = 5
@@ -38,7 +37,7 @@ class SidekiqTest < Minitest::Test
 
   def teardown
     teardown_agent
-    if !passed? || ENV["VERBOSE"]
+    if !passed? || ENV['VERBOSE']
       @sidekiq_log.rewind
       puts @sidekiq_log.read
     end
@@ -51,16 +50,14 @@ class SidekiqTest < Minitest::Test
   end
 
   def run_delayed
-    run_and_transmit do |i|
-      TestModel.delay(:queue => SidekiqServer.instance.queue_name, :retry => false).do_work
+    run_and_transmit do |_i|
+      TestModel.delay(queue: SidekiqServer.instance.queue_name, retry: false).do_work
     end
   end
 
-  def run_and_transmit
-    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      TestWorker.run_jobs(JOB_COUNT) do |i|
-        yield i
-      end
+  def run_and_transmit(&block)
+    with_config('transaction_tracer.transaction_threshold': 0.0) do
+      TestWorker.run_jobs(JOB_COUNT, &block)
     end
 
     run_harvest
@@ -74,7 +71,7 @@ class SidekiqTest < Minitest::Test
     end
 
     def test_delayed_with_malformed_yaml
-      YAML.stubs(:load).raises(RuntimeError.new("Ouch"))
+      YAML.stubs(:load).raises(RuntimeError.new('Ouch'))
       run_delayed
       assert_metric_and_call_count(ROLLUP_METRIC, JOB_COUNT)
       assert_metric_and_call_count(DELAYED_FAILED_TXN_NAME, JOB_COUNT)
@@ -90,20 +87,20 @@ class SidekiqTest < Minitest::Test
 
   def test_distributed_trace_instrumentation
     @config = {
-      :'distributed_tracing.enabled' => true,
-      :account_id => "190",
-      :primary_application_id => "46954",
-      :trusted_account_key => "trust_this!"
+      'distributed_tracing.enabled': true,
+      account_id: '190',
+      primary_application_id: '46954',
+      trusted_account_key: 'trust_this!'
     }
     NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
     NewRelic::Agent.config.add_config_for_testing(@config)
 
-    in_transaction 'test_txn' do |t|
+    in_transaction 'test_txn' do |_t|
       run_jobs
     end
 
-    assert_metric_and_call_count "Supportability/TraceContext/Accept/Success", JOB_COUNT # method for metrics created on server side
-    assert_metrics_recorded "Supportability/DistributedTrace/CreatePayload/Success" # method for metrics created on the client side
+    assert_metric_and_call_count 'Supportability/TraceContext/Accept/Success', JOB_COUNT # method for metrics created on server side
+    assert_metrics_recorded 'Supportability/DistributedTrace/CreatePayload/Success' # method for metrics created on the client side
 
     NewRelic::Agent.config.remove_config(@config)
     NewRelic::Agent.config.reset_to_defaults
@@ -127,7 +124,7 @@ class SidekiqTest < Minitest::Test
   def test_isnt_influenced_by_global_capture_params
     stub_for_span_collection
 
-    with_config(:capture_params => true) do
+    with_config(capture_params: true) do
       run_jobs
     end
     refute_attributes_on_transaction_trace
@@ -137,7 +134,7 @@ class SidekiqTest < Minitest::Test
   def test_agent_posts_captured_args_to_job
     stub_for_span_collection
 
-    with_config(:'sidekiq.capture_params' => true) do
+    with_config('sidekiq.capture_params': true) do
       run_jobs
     end
 
@@ -148,7 +145,7 @@ class SidekiqTest < Minitest::Test
   def test_arguments_are_captured_on_transaction_and_span_events_when_enabled
     stub_for_span_collection
 
-    with_config(:'attributes.include' => 'job.sidekiq.args.*') do
+    with_config('attributes.include': 'job.sidekiq.args.*') do
       run_jobs
     end
 
@@ -181,11 +178,11 @@ class SidekiqTest < Minitest::Test
 
   def assert_metric_and_call_count(name, expected_call_count)
     metric_data = $collector.calls_for('metric_data')
-    assert_equal(1, metric_data.size, "expected exactly one metric_data post from agent")
+    assert_equal(1, metric_data.size, 'expected exactly one metric_data post from agent')
 
     metric = metric_data.first.metrics.find { |m| m[0]['name'] == name }
-    assert(metric, "Could not find metric named #{name}. Did have metrics:\n"+
-                   metric_data.first.metrics.map{|m| m[0]['name']}.join("\t\n"))
+    assert(metric, "Could not find metric named #{name}. Did have metrics:\n" +
+                   metric_data.first.metrics.map { |m| m[0]['name'] }.join("\t\n"))
 
     call_count = metric[1][0]
     assert_equal(expected_call_count, call_count)
@@ -193,14 +190,14 @@ class SidekiqTest < Minitest::Test
 
   def assert_attributes_on_transaction_trace
     transaction_samples = $collector.calls_for('transaction_sample_data')
-    refute transaction_samples.empty?, "Expected a transaction trace"
+    refute transaction_samples.empty?, 'Expected a transaction trace'
 
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
 
         actual = sample.agent_attributes.keys.to_set
-        expected = Set.new ["job.sidekiq.args.0", "job.sidekiq.args.1"]
+        expected = Set.new ['job.sidekiq.args.0', 'job.sidekiq.args.1']
         assert_equal expected, actual
       end
     end
@@ -223,8 +220,8 @@ class SidekiqTest < Minitest::Test
     span_event_posts = $collector.calls_for('span_event_data')[0].events
     events = transaction_event_posts + span_event_posts
     events.each do |event|
-      assert_includes event[2].keys, "job.sidekiq.args.0"
-      assert_includes event[2].keys, "job.sidekiq.args.1"
+      assert_includes event[2].keys, 'job.sidekiq.args.0'
+      assert_includes event[2].keys, 'job.sidekiq.args.1'
     end
   end
 
@@ -234,16 +231,16 @@ class SidekiqTest < Minitest::Test
     events = transaction_event_posts + span_event_posts
 
     events.each do |event|
-      assert event[2].keys.none? { |k| k.start_with?("job.sidekiq.args") }, "Found unexpected sidekiq arguments"
+      assert event[2].keys.none? { |k| k.start_with?('job.sidekiq.args') }, 'Found unexpected sidekiq arguments'
     end
   end
 
-  def assert_error_for_each_job(txn_name=TRANSACTION_NAME)
-    error_posts = $collector.calls_for("error_data")
-    assert_equal 1, error_posts.length, "Wrong number of error posts!"
+  def assert_error_for_each_job(txn_name = TRANSACTION_NAME)
+    error_posts = $collector.calls_for('error_data')
+    assert_equal 1, error_posts.length, 'Wrong number of error posts!'
 
     errors = error_posts.first
-    assert_equal JOB_COUNT, errors.errors.length, "Wrong number of errors noticed!"
+    assert_equal JOB_COUNT, errors.errors.length, 'Wrong number of errors noticed!'
 
     assert_metric_and_call_count('Errors/all', JOB_COUNT)
     if txn_name

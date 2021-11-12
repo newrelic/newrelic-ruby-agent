@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -27,7 +26,11 @@ module NewRelic
       @state = :stopped
 
       # just a lazy way of just forcing the server to wakeup from accept
-      TCPSocket.open("localhost", @port).close rescue nil
+      begin
+        TCPSocket.open('localhost', @port).close
+      rescue StandardError
+        nil
+      end
 
       @thread.join
       @thread = nil
@@ -35,6 +38,7 @@ module NewRelic
 
     def start
       return if @thread && @thread.alive?
+
       @requests = []
       @server = TCPServer.new(0)
       @port = @server.addr[1]

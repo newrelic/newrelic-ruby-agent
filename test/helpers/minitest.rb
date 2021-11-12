@@ -1,27 +1,23 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-unless defined?(Minitest::Test)
-  Minitest::Test = MiniTest::Unit::TestCase
-end
+Minitest::Test = MiniTest::Unit::TestCase unless defined?(Minitest::Test)
 
 # Set up a watcher for leaking agent threads out of tests.  It'd be nice to
 # disable the threads everywhere, but not all tests have newrelic.yml loaded to
 # us to rely on, so instead we'll just watch for it.
 class Minitest::Test
-
   def before_setup
-    if self.respond_to?(:name)
-      test_method_name = self.name
-    else
-      test_method_name = self.__name__
-    end
+    test_method_name = if respond_to?(:name)
+                         name
+                       else
+                         __name__
+                       end
 
     NewRelic::Agent.logger.info("*** #{self.class}##{test_method_name} **")
 
     @__thread_count = ruby_threads.count
-    @__threads = ruby_threads.map{|rt| Hometown.for(rt).backtrace[0]}
+    @__threads = ruby_threads.map { |rt| Hometown.for(rt).backtrace[0] }
     super
   end
 
@@ -31,13 +27,13 @@ class Minitest::Test
 
     threads = ruby_threads
     if @__thread_count != threads.count
-      puts "", "=" * 80, "originally: #{@__threads.inspect}", "=" * 80
+      puts '', '=' * 80, "originally: #{@__threads.inspect}", '=' * 80
       backtraces = threads.map do |thread|
         trace = Hometown.for(thread)
         trace.backtrace.join("\n    ")
       end.join("\n\n")
 
-      fail "Thread count changed in this test from #{@__thread_count} to #{threads.count}\n#{backtraces}"
+      raise "Thread count changed in this test from #{@__thread_count} to #{threads.count}\n#{backtraces}"
     end
 
     super
@@ -48,6 +44,4 @@ class Minitest::Test
   def ruby_threads
     Thread.list.select { |t| Hometown.for(t) }
   end
-
 end
-

@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'../../..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '../../..', 'test_helper'))
 require 'new_relic/agent/new_relic_service/json_marshaller'
 require 'new_relic/agent/new_relic_service/encoders'
 
@@ -17,7 +16,7 @@ module NewRelic
 
         def test_default_encoder_is_identity_with_simple_compression_enabled
           marshaller = JsonMarshaller.new
-          with_config :simple_compression => true do
+          with_config simple_compression: true do
             assert_equal Encoders::Identity, marshaller.default_encoder
           end
         end

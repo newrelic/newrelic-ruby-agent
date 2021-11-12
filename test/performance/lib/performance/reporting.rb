@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -27,7 +26,7 @@ module Performance
           puts "#{e['class']}: #{e['message']}"
           puts failure.exception['backtrace'].map { |l| "    #{l}" }.join("\n")
         else
-          puts "<No exception recorded>"
+          puts '<No exception recorded>'
         end
       end
       puts ''

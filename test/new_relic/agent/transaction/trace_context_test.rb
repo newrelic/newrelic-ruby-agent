@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../test_helper', __FILE__
+require File.expand_path '../../../test_helper', __dir__
 
 module NewRelic::Agent
   class Transaction
@@ -12,12 +11,12 @@ module NewRelic::Agent
           nr_freeze_process_time(Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond))
 
           @config = {
-            :'distributed_tracing.enabled' => true,
-            :'span_events.enabled' => true,
-            :account_id => "190",
-            :primary_application_id => "46954",
-            :trusted_account_key => "999999",
-            :disable_harvest_thread => true,
+            'distributed_tracing.enabled': true,
+            'span_events.enabled': true,
+            account_id: '190',
+            primary_application_id: '46954',
+            trusted_account_key: '999999',
+            disable_harvest_thread: true
           }
           NewRelic::Agent.agent.stubs(:connected?).returns(true)
           Agent.config.add_config_for_testing(@config)
@@ -54,7 +53,7 @@ module NewRelic::Agent
 
           assert_equal trace_state, carrier['tracestate']
 
-          assert_metrics_recorded "Supportability/TraceContext/Create/Success"
+          assert_metrics_recorded 'Supportability/TraceContext/Create/Success'
         end
 
         def test_insert_trace_context_non_root
@@ -65,7 +64,7 @@ module NewRelic::Agent
           in_transaction do |parent|
             parent.sampled = false
             payload = parent.distributed_tracer.create_trace_state_payload
-            trace_parent = make_trace_parent({'trace_id' => parent.trace_id, 'parent_id' => parent.guid})
+            trace_parent = make_trace_parent({ 'trace_id' => parent.trace_id, 'parent_id' => parent.guid })
             parent_trace_context_header_data = make_trace_context_header_data \
               trace_parent: trace_parent,
               trace_state_payload: payload
@@ -90,7 +89,7 @@ module NewRelic::Agent
 
           # We expect trace state to now have our entry at the front
           trace_state_entry_key = AccountHelpers.trace_state_entry_key
-          expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_payload.to_s},#{other_trace_state.join('.')}"
+          expected_trace_state = "#{trace_state_entry_key}=#{child_trace_state_payload},#{other_trace_state.join('.')}"
           assert_equal expected_trace_state, carrier['tracestate']
         end
 
@@ -126,7 +125,7 @@ module NewRelic::Agent
           in_transaction do |parent|
             parent.sampled = true
             payload = parent.distributed_tracer.create_trace_state_payload
-            trace_parent = make_trace_parent({'trace_id' => parent.trace_id, 'parent_id' => parent.guid})
+            trace_parent = make_trace_parent({ 'trace_id' => parent.trace_id, 'parent_id' => parent.guid })
             parent_trace_context_header_data = make_trace_context_header_data \
               trace_parent: trace_parent,
               trace_state_payload: payload,
@@ -193,13 +192,13 @@ module NewRelic::Agent
         def test_do_not_accept_trace_context_with_mismatching_account_ids
           carrier = {}
           account_one = @config.merge({
-            trusted_account_key: '500'
-          })
+                                        trusted_account_key: '500'
+                                      })
           account_two = @config.merge({
-            account_id: '200',
-            primary_application_id: '190011',
-            trusted_account_key: '495590'
-          })
+                                        account_id: '200',
+                                        primary_application_id: '190011',
+                                        trusted_account_key: '495590'
+                                      })
           txn_one = nil
           txn_two = nil
 
@@ -235,13 +234,13 @@ module NewRelic::Agent
         def test_accept_trace_context_mismatching_account_ids_matching_trust_key
           carrier = {}
           account_one = @config.merge({
-            trusted_account_key: '500'
-          })
+                                        trusted_account_key: '500'
+                                      })
           account_two = @config.merge({
-            account_id: '200',
-            primary_application_id: '190011',
-            trusted_account_key: '500'
-          })
+                                        account_id: '200',
+                                        primary_application_id: '190011',
+                                        trusted_account_key: '500'
+                                      })
           txn_one = nil
           txn_two = nil
 
@@ -274,10 +273,12 @@ module NewRelic::Agent
             trace_state_payload = txn.distributed_tracer.create_trace_state_payload
             trace_context_header_data = make_trace_context_header_data trace_state_payload: trace_state_payload
 
-            assert txn.distributed_tracer.accept_trace_context(trace_context_header_data), "Expected first trace context to be accepted"
-            refute txn.distributed_tracer.accept_trace_context(trace_context_header_data), "Expected second trace context not to be accepted"
+            assert txn.distributed_tracer.accept_trace_context(trace_context_header_data),
+                   'Expected first trace context to be accepted'
+            refute txn.distributed_tracer.accept_trace_context(trace_context_header_data),
+                   'Expected second trace context not to be accepted'
           end
-          assert_metrics_recorded "Supportability/TraceContext/Accept/Ignored/Multiple"
+          assert_metrics_recorded 'Supportability/TraceContext/Accept/Ignored/Multiple'
         end
 
         def test_records_a_no_nr_entry_trace_state_metric
@@ -296,7 +297,7 @@ module NewRelic::Agent
             child.distributed_tracer.insert_trace_context_header carrier
           end
 
-          assert_metrics_recorded "Supportability/TraceContext/TraceState/NoNrEntry"
+          assert_metrics_recorded 'Supportability/TraceContext/TraceState/NoNrEntry'
         end
 
         def test_records_an_invalid_trace_state_metric
@@ -305,10 +306,11 @@ module NewRelic::Agent
             trace_state_payload = txn.distributed_tracer.create_trace_state_payload
             trace_context_header_data = make_trace_context_header_data trace_state_payload: trace_state_payload
             trace_state_payload.stubs(:valid?).returns(false)
-            refute txn.distributed_tracer.accept_trace_context(trace_context_header_data), "Expected trace context to be rejected"
+            refute txn.distributed_tracer.accept_trace_context(trace_context_header_data),
+                   'Expected trace context to be rejected'
           end
 
-          assert_metrics_recorded "Supportability/TraceContext/TraceState/InvalidNrEntry"
+          assert_metrics_recorded 'Supportability/TraceContext/TraceState/InvalidNrEntry'
         end
 
         def test_do_not_accept_trace_context_if_txn_has_already_generated_trace_context
@@ -321,7 +323,7 @@ module NewRelic::Agent
 
             refute txn.distributed_tracer.accept_trace_context trace_context_header_data
           end
-          assert_metrics_recorded "Supportability/TraceContext/Accept/Ignored/CreateBeforeAccept"
+          assert_metrics_recorded 'Supportability/TraceContext/Accept/Ignored/CreateBeforeAccept'
         end
 
         def test_creates_trace_context_payload
@@ -354,8 +356,8 @@ module NewRelic::Agent
           now_ms = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
 
           disabled_analytics_events = @config.merge({
-             :'analytics_events.enabled' => false
-          })
+                                                      'analytics_events.enabled': false
+                                                    })
 
           with_config disabled_analytics_events do
             refute Agent.config[:'analytics_events.enabled']
@@ -382,8 +384,8 @@ module NewRelic::Agent
           now_ms = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
 
           disabled_span_events = @config.merge({
-             :'span_events.enabled' => false
-          })
+                                                 'span_events.enabled': false
+                                               })
 
           with_config disabled_span_events do
             refute Agent.config[:'span_events.enabled']
@@ -426,7 +428,7 @@ module NewRelic::Agent
           refute_nil txn.priority
         end
 
-        def make_trace_parent options
+        def make_trace_parent(options)
           {
             'version' => '00',
             'trace_id' => '',
@@ -435,11 +437,12 @@ module NewRelic::Agent
           }.update options
         end
 
-        def make_trace_context_header_data trace_parent: "00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01",
-                                    trace_state_payload: nil,
-                                    trace_state: ["other=asdf"],
-                                    trace_state_vendors: ''
-            NewRelic::Agent::DistributedTracing::TraceContext::HeaderData.new trace_parent, trace_state_payload, trace_state, 10, trace_state_vendors
+        def make_trace_context_header_data(trace_parent: '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
+                                           trace_state_payload: nil,
+                                           trace_state: ['other=asdf'],
+                                           trace_state_vendors: '')
+          NewRelic::Agent::DistributedTracing::TraceContext::HeaderData.new trace_parent, trace_state_payload,
+                                                                            trace_state, 10, trace_state_vendors
         end
       end
     end

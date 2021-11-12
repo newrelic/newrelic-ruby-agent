@@ -1,11 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(__FILE__, "..", "app", "models", "models"))
+require File.expand_path(File.join(__FILE__, '..', 'app', 'models', 'models'))
 
 class ActiveRecordInstrumentationTest < Minitest::Test
-
   include MultiverseHelpers
   setup_and_teardown_agent
 
@@ -30,7 +28,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       if defined?(::ActiveRecord::VERSION::MINOR)
         Gem::Version.new(::ActiveRecord::VERSION::STRING)
       else
-        Gem::Version.new("2.1.0")  # Can't tell between 2.1 and 2.2. Meh.
+        Gem::Version.new('2.1.0') # Can't tell between 2.1 and 2.2. Meh.
       end
     end
   end
@@ -53,7 +51,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     if active_record_major_version >= 3
-      assert_activerecord_metrics(Order, 'select', :call_count => 5)
+      assert_activerecord_metrics(Order, 'select', call_count: 5)
     else
       assert_generic_rollup_metrics('select')
     end
@@ -81,7 +79,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_create
     in_web_transaction do
-      Order.create(:name => 'bob')
+      Order.create(name: 'bob')
     end
 
     assert_activerecord_metrics(Order, 'create')
@@ -89,7 +87,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_create_via_association
     in_web_transaction do
-      order = Order.create(:name => 'bob')
+      order = Order.create(name: 'bob')
       order.shipments.create
       order.shipments.to_a
     end
@@ -100,7 +98,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   def test_metrics_for_find
     in_web_transaction do
       if active_record_major_version >= 4
-        Order.where(:name => 'foo').load
+        Order.where(name: 'foo').load
       else
         Order.find_all_by_name('foo')
       end
@@ -111,7 +109,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_find_via_association
     in_web_transaction do
-      order = Order.create(:name => 'bob')
+      order = Order.create(name: 'bob')
       order.shipments.create
       order.shipments.to_a
     end
@@ -121,10 +119,9 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_find_all
     in_web_transaction do
-      case
-      when active_record_major_version >= 4
+      if active_record_major_version >= 4
         Order.all.load
-      when active_record_major_version >= 3
+      elsif active_record_major_version >= 3
         Order.all
       else
         Order.find(:all)
@@ -139,11 +136,11 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     minor_version = active_record_minor_version
     Order.class_eval do
       if major_version >= 4
-        scope :jeffs, lambda { where(:name => 'Jeff') }
+        scope :jeffs, -> { where(name: 'Jeff') }
       elsif major_version == 3 && minor_version >= 1
-        scope :jeffs, :conditions => { :name => 'Jeff' }
+        scope :jeffs, conditions: { name: 'Jeff' }
       else
-        named_scope :jeffs, :conditions => { :name => 'Jeff' }
+        named_scope :jeffs, conditions: { name: 'Jeff' }
       end
     end
 
@@ -160,10 +157,10 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_exists
     in_web_transaction do
-      Order.exists?(["name=?", "jeff"])
+      Order.exists?(['name=?', 'jeff'])
     end
 
-    if active_record_major_version == 3 && [0,1].include?(active_record_minor_version)
+    if active_record_major_version == 3 && [0, 1].include?(active_record_minor_version)
       # Bugginess in Rails 3.0 and 3.1 doesn't let us get ActiveRecord/find
       assert_generic_rollup_metrics('select')
     else
@@ -175,9 +172,9 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     order1, order2 = nil
 
     in_web_transaction do
-      order1 = Order.create(:name => 'foo')
-      order2 = Order.create(:name => 'foo')
-      Order.update_all(:name => 'zing')
+      order1 = Order.create(name: 'foo')
+      order2 = Order.create(name: 'foo')
+      Order.update_all(name: 'zing')
     end
 
     assert_activerecord_metrics(Order, 'update')
@@ -188,8 +185,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_delete_all
     in_web_transaction do
-      Order.create(:name => 'foo')
-      Order.create(:name => 'foo')
+      Order.create(name: 'foo')
+      Order.create(name: 'foo')
       Order.delete_all
     end
 
@@ -202,7 +199,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_relation_delete
     in_web_transaction do
-      order = Order.create(:name => "lava")
+      order = Order.create(name: 'lava')
       Order.delete(order.id)
     end
 
@@ -217,7 +214,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   if active_record_version >= Gem::Version.new('3.0.0')
     def test_metrics_for_delete
       in_web_transaction do
-        order = Order.create("name" => "burt")
+        order = Order.create('name' => 'burt')
         order.delete
       end
 
@@ -226,7 +223,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
     def test_metrics_for_touch
       in_web_transaction do
-        order = Order.create("name" => "wendy")
+        order = Order.create('name' => 'wendy')
         order.touch
       end
 
@@ -236,8 +233,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_relation_update
     in_web_transaction do
-      order = Order.create(:name => 'foo')
-      Order.update(order.id, :name => 'qux')
+      order = Order.create(name: 'foo')
+      Order.update(order.id, name: 'qux')
     end
 
     assert_activerecord_metrics(Order, 'update')
@@ -245,10 +242,10 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_create_via_association_equal
     in_web_transaction do
-      u = User.create(:name => 'thom yorke')
+      u = User.create(name: 'thom yorke')
       groups = [
-        Group.new(:name => 'radiohead'),
-        Group.new(:name => 'atoms for peace')
+        Group.new(name: 'radiohead'),
+        Group.new(name: 'atoms for peace')
       ]
       u.groups = groups
     end
@@ -263,7 +260,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   # Can be Mysql2::Error or ActiveRecord::RecordNotUnique
   # depending on gem versions in play
   def mysql_not_unique_error_class
-    /Mysql2\:\:Error|ActiveRecord\:\:RecordNotUnique|ActiveRecord\:\:JDBCError/
+    /Mysql2::Error|ActiveRecord::RecordNotUnique|ActiveRecord::JDBCError/
   end
 
   def test_noticed_error_at_segment_and_txn_when_violating_unique_contraints
@@ -272,7 +269,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     begin
       in_web_transaction do |web_txn|
         txn = web_txn
-        u = User.create(:name => 'thom yorke')
+        u = User.create(name: 'thom yorke')
         u2 = User.create(u.attributes)
       end
     rescue StandardError => e
@@ -287,13 +284,11 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     expected_error_class = mysql_not_unique_error_class
     txn = nil
     in_web_transaction do |web_txn|
-      begin
-        txn = web_txn
-        u = User.create(:name => 'thom yorke')
-        u2 = User.create(u.attributes)
-      rescue StandardError => e
-        # NOP -- allowing ONLY span to notice error
-      end
+      txn = web_txn
+      u = User.create(name: 'thom yorke')
+      u2 = User.create(u.attributes)
+    rescue StandardError => e
+      # NOP -- allowing ONLY span to notice error
     end
 
     assert_segment_noticed_error txn, /create|insert/i, expected_error_class, /duplicate entry/i
@@ -302,8 +297,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_create_via_association_shovel
     in_web_transaction do
-      u = User.create(:name => 'thom yorke')
-      u.groups << Group.new(:name => 'radiohead')
+      u = User.create(name: 'thom yorke')
+      u.groups << Group.new(name: 'radiohead')
     end
 
     if active_record_major_version >= 3
@@ -315,8 +310,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_create_via_association_create
     in_web_transaction do
-      u = User.create(:name => 'thom yorke')
-      u.groups.create(:name => 'radiohead')
+      u = User.create(name: 'thom yorke')
+      u.groups.create(name: 'radiohead')
     end
 
     if active_record_major_version >= 3
@@ -328,8 +323,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_create_via_association_create_bang
     in_web_transaction do
-      u = User.create(:name => 'thom yorke')
-      u.groups.create!(:name => 'radiohead')
+      u = User.create(name: 'thom yorke')
+      u.groups.create!(name: 'radiohead')
     end
 
     if active_record_major_version >= 3
@@ -341,7 +336,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_destroy_via_dependent_destroy
     in_web_transaction do
-      u = User.create(:name => 'robert')
+      u = User.create(name: 'robert')
       u.aliases << Alias.new
       u.destroy
     end
@@ -354,8 +349,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   if active_record_version >= Gem::Version.new('4.0.0')
     def test_metrics_for_update
       in_web_transaction do
-        order = Order.create(:name => "wendy")
-        order.update(:name => 'walter')
+        order = Order.create(name: 'wendy')
+        order.update(name: 'walter')
       end
 
       assert_activerecord_metrics(Order, 'update')
@@ -363,8 +358,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
     def test_metrics_for_update_bang
       in_web_transaction do
-        order = Order.create(:name => "wendy")
-        order.update!(:name => 'walter')
+        order = Order.create(name: 'wendy')
+        order.update!(name: 'walter')
       end
 
       assert_activerecord_metrics(Order, 'update')
@@ -373,7 +368,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_update_attribute
     in_web_transaction do
-      order = Order.create(:name => "wendy")
+      order = Order.create(name: 'wendy')
       order.update_attribute(:name, 'walter')
     end
 
@@ -382,7 +377,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_save
     in_web_transaction do
-      order = Order.create(:name => "wendy")
+      order = Order.create(name: 'wendy')
       order.name = 'walter'
       order.save
     end
@@ -392,7 +387,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_metrics_for_save_bang
     in_web_transaction do
-      order = Order.create(:name => "wendy")
+      order = Order.create(name: 'wendy')
       order.name = 'walter'
       order.save!
     end
@@ -402,19 +397,18 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_nested_metrics_dont_get_model_name
     in_web_transaction do
-      order = Order.create(:name => "wendy")
+      order = Order.create(name: 'wendy')
       order.name = 'walter'
       order.save!
     end
 
-    assert_metrics_recorded(["Datastore/operation/Memcached/get"])
+    assert_metrics_recorded(['Datastore/operation/Memcached/get'])
     refute_metrics_match(/Memcached.*Order/)
   end
 
-
   def test_metrics_for_destroy
     in_web_transaction do
-      order = Order.create("name" => "burt")
+      order = Order.create('name' => 'burt')
       order.destroy
     end
 
@@ -433,8 +427,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   def test_metrics_for_direct_sql_other
     in_web_transaction do
       conn = Order.connection
-      conn.execute("begin")
-      conn.execute("commit")
+      conn.execute('begin')
+      conn.execute('commit')
     end
 
     assert_generic_rollup_metrics('other')
@@ -444,7 +438,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     if supports_show_tables?
       in_web_transaction do
         conn = Order.connection
-        conn.execute("show tables")
+        conn.execute('show tables')
       end
 
       assert_generic_rollup_metrics('show')
@@ -455,7 +449,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     # Let's trigger an active record SQL StatemntInvalid error
     assert_raises ::ActiveRecord::StatementInvalid do
       in_web_transaction do
-        Order.connection.select_rows "select * from askdjfhkajsdhflkjh"
+        Order.connection.select_rows 'select * from askdjfhkajsdhflkjh'
       end
     end
 
@@ -481,9 +475,9 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
     refute last_transaction_trace
     assert_metrics_recorded_exclusive([
-      "Supportability/API/disable_all_tracing",
-      "Supportability/API/drop_buffered_data"
-      ])
+                                        'Supportability/API/disable_all_tracing',
+                                        'Supportability/API/drop_buffered_data'
+                                      ])
   end
 
   def test_records_transaction_trace_nodes
@@ -504,7 +498,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_gathers_explain_plans
-    with_config(:'transaction_tracer.explain_threshold' => -0.1) do
+    with_config('transaction_tracer.explain_threshold': -0.1) do
       in_web_transaction do
         Order.first
       end
@@ -526,7 +520,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_sql_samplers_get_proper_metrics
-    with_config(:'transaction_tracer.explain_threshold' => -0.1) do
+    with_config('transaction_tracer.explain_threshold': -0.1) do
       in_web_transaction do
         Order.first
       end
@@ -538,7 +532,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_records_metrics_on_background_transaction
     in_transaction('back it up') do
-      Order.create(:name => 'bob')
+      Order.create(name: 'bob')
     end
 
     assert_metrics_recorded(['Datastore/all', 'Datastore/allOther'])
@@ -547,7 +541,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
   def test_cached_calls_are_not_recorded_with_find
     in_web_transaction do
-      order = Order.create(:name => 'Oberon')
+      order = Order.create(name: 'Oberon')
       Order.connection.cache do
         Order.find(order.id)
         Order.find(order.id)
@@ -555,14 +549,14 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       end
     end
 
-    assert_activerecord_metrics(Order, 'find', :call_count => 1)
+    assert_activerecord_metrics(Order, 'find', call_count: 1)
   end
 
   def test_cached_calls_are_not_recorded_with_select_all
     # If this is the first create, ActiveRecord needs to warm up,
     # send some SQL SELECTS, etc.
     in_web_transaction do
-      Order.create(:name => 'Oberon')
+      Order.create(name: 'Oberon')
     end
     NewRelic::Agent.drop_buffered_data
 
@@ -577,13 +571,13 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      {"Datastore/operation/#{current_product}/select" => {:call_count => 1}}
+      { "Datastore/operation/#{current_product}/select" => { call_count: 1 } }
     )
   end
 
   def test_with_database_metric_name
     in_web_transaction do
-      Order.create(:name => "eely")
+      Order.create(name: 'eely')
       NewRelic::Agent.with_database_metric_name('Eel', 'squirm') do
         Order.connection.select_rows("SELECT id FROM #{Order.table_name}")
       end
@@ -591,9 +585,10 @@ class ActiveRecordInstrumentationTest < Minitest::Test
 
     assert_metrics_recorded(
       {
-        "Datastore/statement/#{current_product}/Eel/squirm" => {:call_count => 1},
-        "Datastore/operation/#{current_product}/squirm" => {:call_count => 1}
-      })
+        "Datastore/statement/#{current_product}/Eel/squirm" => { call_count: 1 },
+        "Datastore/operation/#{current_product}/squirm" => { call_count: 1 }
+      }
+    )
   end
 
   ## helpers
@@ -604,11 +599,11 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def supports_show_tables?
-    [:mysql, :postgres].include?(adapter)
+    %i[mysql postgres].include?(adapter)
   end
 
   def supports_explain_plans?
-    [:mysql, :postgres].include?(adapter)
+    %i[mysql postgres].include?(adapter)
   end
 
   def current_product
@@ -627,22 +622,22 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
-  def assert_activerecord_metrics(model, operation, stats={})
-    operation = operation_for(operation) if ['create', 'delete'].include?(operation)
+  def assert_activerecord_metrics(model, operation, stats = {})
+    operation = operation_for(operation) if %w[create delete].include?(operation)
 
     assert_metrics_recorded({
-      "Datastore/statement/#{current_product}/#{model}/#{operation}" => stats,
-      "Datastore/operation/#{current_product}/#{operation}" => {},
-      "Datastore/allWeb" => {},
-      "Datastore/all" => {}
-    })
+                              "Datastore/statement/#{current_product}/#{model}/#{operation}" => stats,
+                              "Datastore/operation/#{current_product}/#{operation}" => {},
+                              'Datastore/allWeb' => {},
+                              'Datastore/all' => {}
+                            })
   end
 
   def assert_generic_rollup_metrics(operation)
     assert_metrics_recorded([
-      "Datastore/operation/#{current_product}/#{operation}",
-      "Datastore/allWeb",
-      "Datastore/all"
-    ])
+                              "Datastore/operation/#{current_product}/#{operation}",
+                              'Datastore/allWeb',
+                              'Datastore/all'
+                            ])
   end
 end

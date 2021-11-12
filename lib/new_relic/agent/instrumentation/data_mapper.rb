@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -108,70 +107,66 @@ module NewRelic
         end
       end
 
-      DATA_MAPPER = "DataMapper".freeze
+      DATA_MAPPER = 'DataMapper'.freeze
       PASSWORD_REGEX = /&password=.*?(&|$)/
       AMPERSAND = '&'.freeze
       PASSWORD_PARAM = '&password='.freeze
 
       def self.method_body(clazz, method_name, operation_only)
         use_model_name   = NewRelic::Helper.instance_methods_include?(clazz, :model)
-        metric_operation = method_name.to_s.gsub(/[!?]/, "")
+        metric_operation = method_name.to_s.gsub(/[!?]/, '')
 
-        Proc.new do |*args, &blk|
+        proc do |*args, &blk|
+          name = if operation_only
+                   # Used by direct SQL, like ::DataMapper::Adapters::DataObjectsAdapter#select
+                   nil
+                 elsif use_model_name
+                   # Used by ::DataMapper::Collection to get contained model name
+                   model.name
+                 elsif is_a?(Class)
+                   # Used by class-style access, like Model.first()
+                   self.name
+                 else
+                   # Used by instance-style access, like model.update(attr: "new")
+                   self.class.name
+                 end
+
+          segment = NewRelic::Agent::Tracer.start_datastore_segment(
+            product: DATA_MAPPER,
+            operation: metric_operation,
+            collection: name
+          )
+
           begin
-            if operation_only
-              # Used by direct SQL, like ::DataMapper::Adapters::DataObjectsAdapter#select
-              name = nil
-            elsif use_model_name
-              # Used by ::DataMapper::Collection to get contained model name
-              name = self.model.name
-            elsif self.is_a?(Class)
-              # Used by class-style access, like Model.first()
-              name = self.name
-            else
-              # Used by instance-style access, like model.update(attr: "new")
-              name = self.class.name
+            NewRelic::Agent::Tracer.capture_segment_error segment do
+              send("#{method_name}_without_newrelic", *args, &blk)
+            end
+          rescue ::DataObjects::ConnectionError => e
+            raise
+          rescue ::DataObjects::SQLError => e
+            e.uri.gsub!(PASSWORD_REGEX, AMPERSAND) if e.uri.include?(PASSWORD_PARAM)
+
+            strategy = NewRelic::Agent::Database.record_sql_method(:slow_sql)
+            case strategy
+            when :obfuscated
+              adapter_name = if respond_to?(:options)
+                               options[:adapter]
+                             elsif repository.adapter.respond_to?(:options)
+                               repository.adapter.options[:adapter]
+                             else
+                               # DataMapper < 0.10.0
+                               repository.adapter.uri.scheme
+                             end
+              statement = NewRelic::Agent::Database::Statement.new(e.query, adapter: adapter_name)
+              obfuscated_sql = NewRelic::Agent::Database.obfuscate_sql(statement)
+              e.instance_variable_set(:@query, obfuscated_sql)
+            when :off
+              e.instance_variable_set(:@query, nil)
             end
 
-            segment = NewRelic::Agent::Tracer.start_datastore_segment(
-              product: DATA_MAPPER,
-              operation: metric_operation,
-              collection: name
-            )
-
-            begin
-              NewRelic::Agent::Tracer.capture_segment_error segment do
-                self.send("#{method_name}_without_newrelic", *args, &blk)
-              end
-            rescue ::DataObjects::ConnectionError => e
-              raise
-            rescue ::DataObjects::SQLError => e
-              e.uri.gsub!(PASSWORD_REGEX, AMPERSAND) if e.uri.include?(PASSWORD_PARAM)
-
-              strategy = NewRelic::Agent::Database.record_sql_method(:slow_sql)
-              case strategy
-              when :obfuscated
-                adapter_name = if self.respond_to?(:options)
-                    self.options[:adapter]
-                  else
-                    if self.repository.adapter.respond_to?(:options)
-                      self.repository.adapter.options[:adapter]
-                    else
-                      # DataMapper < 0.10.0
-                      self.repository.adapter.uri.scheme
-                    end
-                  end
-                statement = NewRelic::Agent::Database::Statement.new(e.query, :adapter => adapter_name)
-                obfuscated_sql = NewRelic::Agent::Database.obfuscate_sql(statement)
-                e.instance_variable_set(:@query, obfuscated_sql)
-              when :off
-                e.instance_variable_set(:@query, nil)
-              end
-
-              raise
-            ensure
-              segment.finish if segment
-            end
+            raise
+          ensure
+            segment.finish if segment
           end
         end
       end
@@ -186,15 +181,13 @@ module NewRelic
         # We rely on the assumption that all possible entry points have been
         # hooked with tracers, ensuring that notice_sql attaches this SQL to
         # the proper call scope.
-        def log(msg) #THREAD_LOCAL_ACCESS
+        def log(msg) # THREAD_LOCAL_ACCESS
           state = NewRelic::Agent::Tracer.state
           return unless state.is_execution_traced?
 
           txn = state.current_transaction
 
-          if txn && txn.current_segment.respond_to?(:notice_sql)
-            txn.current_segment.notice_sql msg.query
-          end
+          txn.current_segment.notice_sql msg.query if txn && txn.current_segment.respond_to?(:notice_sql)
         ensure
           super
         end

@@ -1,27 +1,25 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/agent_logger'
 require 'new_relic/agent/null_logger'
 
 class AgentLoggerTest < Minitest::Test
-
-  LEVELS = [:fatal, :error, :warn, :info, :debug]
+  LEVELS = %i[fatal error warn info debug]
 
   def setup
     NewRelic::Agent.config.add_config_for_testing(
-      :log_file_path => "log/",
-      :log_file_name => "testlog.log",
-      :log_level     => :info)
+      log_file_path: 'log/',
+      log_file_name: 'testlog.log',
+      log_level: :info
+    )
   end
 
   def teardown
     NewRelic::Agent.config.reset_to_defaults
     NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
   end
-
 
   #
   # Tests
@@ -30,18 +28,18 @@ class AgentLoggerTest < Minitest::Test
   def test_initalizes_from_config
     logger = NewRelic::Agent::AgentLogger.new
 
-    wrapped_logger = logger.instance_variable_get( :@log )
-    logdev = wrapped_logger.instance_variable_get( :@logdev )
-    expected_logpath = File.expand_path( NewRelic::Agent.config[:log_file_path] + NewRelic::Agent.config[:log_file_name] )
+    wrapped_logger = logger.instance_variable_get(:@log)
+    logdev = wrapped_logger.instance_variable_get(:@logdev)
+    expected_logpath = File.expand_path(NewRelic::Agent.config[:log_file_path] + NewRelic::Agent.config[:log_file_name])
 
-    assert_kind_of( Logger, wrapped_logger )
-    assert_kind_of( File, logdev.dev )
-    assert_equal( expected_logpath, logdev.filename )
+    assert_kind_of(Logger, wrapped_logger)
+    assert_kind_of(File, logdev.dev)
+    assert_equal(expected_logpath, logdev.filename)
   end
 
   def test_initalizes_from_override
-    override_logger = Logger.new( '/dev/null' )
-    logger = NewRelic::Agent::AgentLogger.new("", override_logger)
+    override_logger = Logger.new('/dev/null')
+    logger = NewRelic::Agent::AgentLogger.new('', override_logger)
     assert_equal override_logger, logger.instance_variable_get(:@log)
   end
 
@@ -49,7 +47,7 @@ class AgentLoggerTest < Minitest::Test
     logger = create_basic_logger
 
     LEVELS.each do |level|
-      logger.send(level, "Boo!")
+      logger.send(level, 'Boo!')
     end
 
     assert_logged(/FATAL/,
@@ -62,7 +60,7 @@ class AgentLoggerTest < Minitest::Test
     logger = create_basic_logger
 
     LEVELS.each do |level|
-      logger.send(level, "What", "up?")
+      logger.send(level, 'What', 'up?')
     end
 
     assert_logged(/FATAL/, /FATAL/,
@@ -75,23 +73,23 @@ class AgentLoggerTest < Minitest::Test
     logger = create_basic_logger
 
     LEVELS.each do |level|
-      logger.send(:log_once, level, :special_key, "Special!")
+      logger.send(:log_once, level, :special_key, 'Special!')
     end
 
     assert_logged(/Special/)
   end
 
   def test_wont_log_if_agent_not_enabled
-    with_config(:agent_enabled => false) do
+    with_config(agent_enabled: false) do
       logger = NewRelic::Agent::AgentLogger.new
       logger.warn('hi there')
 
-      assert_kind_of NewRelic::Agent::NullLogger, logger.instance_variable_get( :@log )
+      assert_kind_of NewRelic::Agent::NullLogger, logger.instance_variable_get(:@log)
     end
   end
 
   def test_consider_null_logger_a_startup_logger
-    with_config(:agent_enabled => false) do
+    with_config(agent_enabled: false) do
       logger = NewRelic::Agent::AgentLogger.new
       assert logger.is_startup_logger?
     end
@@ -104,7 +102,7 @@ class AgentLoggerTest < Minitest::Test
 
   def test_does_not_touch_dev_null
     Logger.expects(:new).with('/dev/null').never
-    with_config(:agent_enabled => false) do
+    with_config(agent_enabled: false) do
       NewRelic::Agent::AgentLogger.new
     end
   end
@@ -116,16 +114,16 @@ class AgentLoggerTest < Minitest::Test
     assert_equal Logger::INFO,  NewRelic::Agent::AgentLogger.log_level_for(:info)
     assert_equal Logger::DEBUG, NewRelic::Agent::AgentLogger.log_level_for(:debug)
 
-    assert_equal Logger::INFO, NewRelic::Agent::AgentLogger.log_level_for("")
+    assert_equal Logger::INFO, NewRelic::Agent::AgentLogger.log_level_for('')
     assert_equal Logger::INFO, NewRelic::Agent::AgentLogger.log_level_for(:unknown)
   end
 
   def test_sets_log_level
-    with_config(:log_level => :debug) do
-      override_logger = Logger.new( $stderr )
+    with_config(log_level: :debug) do
+      override_logger = Logger.new($stderr)
       override_logger.level = Logger::FATAL
 
-      NewRelic::Agent::AgentLogger.new("", override_logger)
+      NewRelic::Agent::AgentLogger.new('', override_logger)
 
       assert_equal Logger::DEBUG, override_logger.level
     end
@@ -134,7 +132,7 @@ class AgentLoggerTest < Minitest::Test
   def test_log_to_stdout_and_warns_if_failed_on_create
     Dir.stubs(:mkdir).returns(nil)
 
-    with_config(:log_file_path => '/someplace/nonexistent') do
+    with_config(log_file_path: '/someplace/nonexistent') do
       logger = with_squelched_stdout do
         NewRelic::Agent::AgentLogger.new
       end
@@ -147,7 +145,7 @@ class AgentLoggerTest < Minitest::Test
   end
 
   def test_log_to_stdout_based_on_config
-    with_config(:log_file_path => 'STDOUT') do
+    with_config(log_file_path: 'STDOUT') do
       logger = NewRelic::Agent::AgentLogger.new
       wrapped_logger = logger.instance_variable_get(:@log)
       logdev = wrapped_logger.instance_variable_get(:@logdev)
@@ -158,7 +156,7 @@ class AgentLoggerTest < Minitest::Test
 
   def test_startup_purges_memory_logger
     LEVELS.each do |level|
-      ::NewRelic::Agent::StartupLogger.instance.send(level, "boo!")
+      ::NewRelic::Agent::StartupLogger.instance.send(level, 'boo!')
     end
 
     create_basic_logger
@@ -173,22 +171,22 @@ class AgentLoggerTest < Minitest::Test
     logger = create_basic_logger
 
     begin
-      raise "Something bad happened"
-    rescue => err
-      logger.error( err )
+      raise 'Something bad happened'
+    rescue StandardError => e
+      logger.error(e)
     end
 
     assert_logged(/ERROR : RuntimeError: Something bad happened/i)
   end
 
   def test_passing_exceptions_logs_the_backtrace_at_debug_level
-    with_config(:log_level => :debug) do
+    with_config(log_level: :debug) do
       logger = create_basic_logger
 
       begin
-        raise "Something bad happened"
-      rescue => err
-        logger.error( err )
+        raise 'Something bad happened'
+      rescue StandardError => e
+        logger.error(e)
       end
 
       assert_logged(/ERROR : RuntimeError: Something bad happened/i,
@@ -197,19 +195,19 @@ class AgentLoggerTest < Minitest::Test
   end
 
   def test_default_format_contains_full_year
-    with_config(:log_level => :debug) do
+    with_config(log_level: :debug) do
       logger = create_basic_logger
 
-      logger.info("The nice thing about standards is that you have so many to choose from. -- ast")
+      logger.info('The nice thing about standards is that you have so many to choose from. -- ast')
       assert_logged(/#{Date.today.strftime("%Y-%m-%d")}/)
     end
   end
 
   def test_format_message_allows_nil_backtrace
-    with_config(:log_level => :debug) do
+    with_config(log_level: :debug) do
       logger = create_basic_logger
 
-      e = Exception.new("Look Ma, no backtrace!")
+      e = Exception.new('Look Ma, no backtrace!')
       assert_nil(e.backtrace)
       logger.error(e)
 
@@ -221,8 +219,8 @@ class AgentLoggerTest < Minitest::Test
   def test_log_exception_logs_backtrace_at_same_level_as_message_by_default
     logger = create_basic_logger
 
-    e = Exception.new("howdy")
-    e.set_backtrace(["wiggle", "wobble", "topple"])
+    e = Exception.new('howdy')
+    e.set_backtrace(%w[wiggle wobble topple])
 
     logger.log_exception(:info, e)
 
@@ -233,8 +231,8 @@ class AgentLoggerTest < Minitest::Test
   def test_log_exception_logs_backtrace_at_explicitly_specified_level
     logger = create_basic_logger
 
-    e = Exception.new("howdy")
-    e.set_backtrace(["wiggle", "wobble", "topple"])
+    e = Exception.new('howdy')
+    e.set_backtrace(%w[wiggle wobble topple])
 
     logger.log_exception(:warn, e, :info)
 
@@ -282,7 +280,7 @@ class AgentLoggerTest < Minitest::Test
     end
 
     logger = NewRelic::Agent::AgentLogger.new
-    with_config(:agent_enabled => false) do
+    with_config(agent_enabled: false) do
       logger.debug('hi!')
     end
   ensure
@@ -295,15 +293,15 @@ class AgentLoggerTest < Minitest::Test
     NewRelic::Agent::Hostname.instance_variable_set(:@hostname, nil)
     Socket.expects(:gethostname).once.returns('cachey-mccaherson')
     logger = create_basic_logger
-    logger.warn("one")
-    logger.warn("two")
-    logger.warn("three")
+    logger.warn('one')
+    logger.warn('two')
+    logger.warn('three')
     host_regex = /cachey-mccaherson/
     assert_logged(host_regex, host_regex, host_regex)
   end
 
   def test_should_not_evaluate_blocks_unless_log_level_is_high_enough
-    with_config(:log_level => 'warn') do
+    with_config(log_level: 'warn') do
       logger = create_basic_logger
 
       block_was_evalutated = false
@@ -317,7 +315,7 @@ class AgentLoggerTest < Minitest::Test
 
   def test_should_allow_blocks_that_return_a_single_string
     logger = create_basic_logger
-    logger.warn { "Surely you jest!" }
+    logger.warn { 'Surely you jest!' }
 
     assert_logged(/WARN : Surely you jest!/)
   end
@@ -325,7 +323,7 @@ class AgentLoggerTest < Minitest::Test
   def test_should_allow_blocks_that_return_an_array
     logger = create_basic_logger
     logger.warn do
-      ["You must be joking!", "You can't be serious!"]
+      ['You must be joking!', "You can't be serious!"]
     end
 
     assert_logged(
@@ -336,7 +334,7 @@ class AgentLoggerTest < Minitest::Test
 
   def test_can_overwrite_log_formatter
     log_message   = 'How are you?'
-    log_formatter = Proc.new { |s, t, p, m| m.reverse }
+    log_formatter = proc { |_s, _t, _p, m| m.reverse }
 
     logger = create_basic_logger
     logger.log_formatter = log_formatter
@@ -347,15 +345,15 @@ class AgentLoggerTest < Minitest::Test
 
   def test_clear_already_logged
     logger = create_basic_logger
-    logger.log_once(:warn, :positive, "thoughts")
-    logger.log_once(:warn, :positive, "thoughts")
+    logger.log_once(:warn, :positive, 'thoughts')
+    logger.log_once(:warn, :positive, 'thoughts')
 
-    assert_logged "thoughts"
+    assert_logged 'thoughts'
 
     logger.clear_already_logged
-    logger.log_once(:warn, :positive, "thoughts")
+    logger.log_once(:warn, :positive, 'thoughts')
 
-    assert_logged "thoughts", "thoughts"
+    assert_logged 'thoughts', 'thoughts'
   end
 
   #
@@ -369,15 +367,15 @@ class AgentLoggerTest < Minitest::Test
   def create_basic_logger
     @logdev = ArrayLogDevice.new
     override_logger = Logger.new(@logdev)
-    NewRelic::Agent::AgentLogger.new("", override_logger)
+    NewRelic::Agent::AgentLogger.new('', override_logger)
   end
 
   def with_squelched_stdout
     orig = $stdout.dup
-    $stdout.reopen( '/dev/null' )
+    $stdout.reopen('/dev/null')
     yield
   ensure
-    $stdout.reopen( orig )
+    $stdout.reopen(orig)
   end
 
   def assert_logged(*args)

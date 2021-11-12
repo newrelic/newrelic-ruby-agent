@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -69,7 +68,7 @@ class SyntheticsTest < Minitest::Test
 
     expected_event_attrs.each do |key, value|
       msg = "Incorrect value for analytic event key '#{key}'. Full event = #{event.inspect}"
-      assert_equal(value, event[0][key], msg) unless key == 'nr.guid' && event[0][key] == nil
+      assert_equal(value, event[0][key], msg) unless key == 'nr.guid' && event[0][key].nil?
     end
 
     non_expected_event_attrs.each do |key|
@@ -89,13 +88,13 @@ class SyntheticsTest < Minitest::Test
     assert_equal(expected_resource_id, trace.synthetics_resource_id)
 
     expected_attrs.each do |key, value|
-      key = "#{key}"
+      key = key.to_s
       msg = "Incorrect value for transaction trace intrinsic '#{key}'. All intrinsics = #{trace_attrs.inspect}"
       assert_equal(value, trace_attrs[key], msg)
     end
 
     non_expected_attrs.each do |key|
-      key = "#{key}"
+      key = key.to_s
       msg = "Did not expect key '#{key}' on transaction trace. Actual value was #{trace_attrs[key]}"
       refute_includes(trace_attrs.keys, key, msg)
     end
@@ -107,9 +106,9 @@ class SyntheticsTest < Minitest::Test
   load_cross_agent_test('synthetics/synthetics').each do |test|
     define_method("test_synthetics_#{test['name']}") do
       config = {
-        :encoding_key        => test['settings']['agentEncodingKey'],
-        :trusted_account_ids => test['settings']['trustedAccountIds'],
-        :'transaction_tracer.transaction_threshold' => 0.0
+        encoding_key: test['settings']['agentEncodingKey'],
+        trusted_account_ids: test['settings']['trustedAccountIds'],
+        'transaction_tracer.transaction_threshold': 0.0
       }
 
       with_config(config) do

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -12,7 +11,7 @@ DependencyDetection.defer do
   depends_on { defined?(::Tilt) }
 
   executes do
-    ::NewRelic::Agent.logger.info  "Installing Tilt instrumentation"
+    ::NewRelic::Agent.logger.info 'Installing Tilt instrumentation'
   end
 
   executes do

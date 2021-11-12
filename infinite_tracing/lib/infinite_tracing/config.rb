@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -8,7 +7,7 @@ module NewRelic::Agent
     module Config
       extend self
 
-      TRACE_OBSERVER_NOT_CONFIGURED_ERROR = "Trace Observer host not configured!"
+      TRACE_OBSERVER_NOT_CONFIGURED_ERROR = 'Trace Observer host not configured!'
 
       # We only want to load the infinite tracing gem's files when
       #   a) we're inside test framework and running tests
@@ -24,9 +23,9 @@ module NewRelic::Agent
       #      AND the collect_span_events connect response field, AND
       #   c) A Trace Observer host is configured by setting infinite_tracing.trace_observer.host.
       def enabled?
-        distributed_tracing_enabled? && 
-        span_events_enabled? && 
-        trace_observer_configured?
+        distributed_tracing_enabled? &&
+          span_events_enabled? &&
+          trace_observer_configured?
       end
 
       # Distributed Tracing must be enabled for Infinite Tracing
@@ -39,16 +38,16 @@ module NewRelic::Agent
         NewRelic::Agent.config[:'span_events.enabled']
       end
 
-      # running locally is akin to communicating with the gRPC server with an 
+      # running locally is akin to communicating with the gRPC server with an
       # unencrypted channel.  Generally, this is _not_ allowed by the agent
-      # in normal use-cases.  The only known use-case for this is when 
+      # in normal use-cases.  The only known use-case for this is when
       # streaming under TEST conditions.
       def local?
         test_framework?
       end
 
       # removes the scheme and port from a host entry.
-      def without_scheme_or_port url
+      def without_scheme_or_port(url)
         url.gsub(%r{^https?://|:\d+$}, '')
       end
 
@@ -61,10 +60,10 @@ module NewRelic::Agent
       # the port.  To help with debugging configuration issues, we log whenever the port entry
       # is overriden by the presence of the port on the host entry.
       def port_from_host_entry
-        port_str = NewRelic::Agent.config[:'infinite_tracing.trace_observer.host'].scan(%r{:(\d+)$}).flatten
+        port_str = NewRelic::Agent.config[:'infinite_tracing.trace_observer.host'].scan(/:(\d+)$/).flatten
         if port = (port_str[0] and port_str[0].to_i)
           NewRelic::Agent.logger.warn(":'infinite_tracing.trace_observer.port' is ignored if present because :'infinite_tracing.trace_observer.host' specifies the port")
-          return port
+          port
         end
       end
 
@@ -74,7 +73,7 @@ module NewRelic::Agent
         port_from_host_entry || NewRelic::Agent.config[:'infinite_tracing.trace_observer.port']
       end
 
-      # The scheme is based on whether the Trace Observer is running locally or remotely. 
+      # The scheme is based on whether the Trace Observer is running locally or remotely.
       # Remote unsecure (unencypted) streaming is disallowed!
       def trace_observer_scheme
         local? ? NewRelic::HTTP : NewRelic::HTTPS
@@ -95,7 +94,7 @@ module NewRelic::Agent
         "#{trace_observer_host}:#{trace_observer_port}"
       end
 
-      # The maximum number of span events the Streaming Buffer can hold when buffering 
+      # The maximum number of span events the Streaming Buffer can hold when buffering
       # to stream across the gRPC channel.
       def span_events_queue_size
         NewRelic::Agent.config[:'span_events.queue_size']

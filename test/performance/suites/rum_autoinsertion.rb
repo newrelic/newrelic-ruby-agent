@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -13,12 +12,12 @@ class RumAutoInsertion < Performance::TestCase
 
     NewRelic::Agent.manual_start
     @config = {
-      :beacon                 => 'beacon',
-      :browser_key            => 'browserKey',
-      :application_id         => '5, 6', # collector can return app multiple ids
-      :'rum.enabled'          => true,
-      :license_key            => 'a' * 40,
-      :js_agent_loader        => 'loader'
+      beacon: 'beacon',
+      browser_key: 'browserKey',
+      application_id: '5, 6', # collector can return app multiple ids
+      'rum.enabled': true,
+      license_key: 'a' * 40,
+      js_agent_loader: 'loader'
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
 
@@ -26,7 +25,7 @@ class RumAutoInsertion < Performance::TestCase
       attr_accessor :text
 
       def call(*_)
-        [200, { "Content-Type" => "text/html" }, [text]]
+        [200, { 'Content-Type' => 'text/html' }, [text]]
       end
     end.new
 

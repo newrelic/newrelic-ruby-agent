@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -10,7 +9,7 @@
 module NewRelic
   module Agent
     class TransactionMetrics
-      DEFAULT_PROC = Proc.new { |hash, name| hash[name] = NewRelic::Agent::Stats.new }
+      DEFAULT_PROC = proc { |hash, name| hash[name] = NewRelic::Agent::Stats.new }
 
       def initialize
         @unscoped = Hash.new(&DEFAULT_PROC)
@@ -25,11 +24,11 @@ module NewRelic
       # propagate them into unscoped metrics as well when instances of this
       # class are merged into the global metric store.
       #
-      def record_scoped_and_unscoped(names, value=nil, aux=nil, &blk)
+      def record_scoped_and_unscoped(names, value = nil, aux = nil, &blk)
         _record_metrics(names, value, aux, @scoped, &blk)
       end
 
-      def record_unscoped(names, value=nil, aux=nil, &blk)
+      def record_unscoped(names, value = nil, aux = nil, &blk)
         _record_metrics(names, value, aux, @unscoped, &blk)
       end
 
@@ -41,12 +40,12 @@ module NewRelic
         @unscoped[key]
       end
 
-      def each_unscoped
-        @unscoped.each { |name, stats| yield name, stats }
+      def each_unscoped(&block)
+        @unscoped.each(&block)
       end
 
-      def each_scoped
-        @scoped.each { |name, stats| yield name, stats }
+      def each_scoped(&block)
+        @scoped.each(&block)
       end
 
       def _record_metrics(names, value, aux, target, &blk)

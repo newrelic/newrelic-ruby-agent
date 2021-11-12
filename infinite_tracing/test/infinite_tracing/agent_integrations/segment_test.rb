@@ -1,9 +1,8 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../../test_helper', __FILE__)
+require File.expand_path('../../test_helper', __dir__)
 
 module NewRelic
   module Agent
@@ -77,7 +76,7 @@ module NewRelic
           segments = []
 
           span_events = generate_and_stream_segments do
-            total_spans.times do |index|
+            total_spans.times do |_index|
               with_segment do |segment|
                 segments << segment
               end

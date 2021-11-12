@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -8,7 +7,7 @@ module NewRelic; TEST = true; end unless defined? NewRelic::TEST
 
 ENV['RAILS_ENV'] = 'test'
 
-agent_test_path = File.expand_path('../../../test', __FILE__)
+agent_test_path = File.expand_path('../../test', __dir__)
 $LOAD_PATH << agent_test_path
 
 require 'rubygems'
@@ -35,16 +34,18 @@ require File.join(agent_helper_path, 'misc.rb')
 require File.join(agent_helper_path, 'logging.rb')
 require File.join(agent_helper_path, 'exceptions.rb')
 
-Dir[File.expand_path('../support/*', __FILE__)].each { |f| require f }
+Dir[File.expand_path('support/*', __dir__)].each { |f| require f }
 
-def timeout_cap duration=1.0
-  Timeout::timeout(duration) { yield }
-rescue Timeout::Error => error
-  raise Timeout::Error, "Unexpected timeout occurred after #{duration} seconds. #{error.backtrace.reject{|r| r =~ /gems\/minitest/}.join("\n")}"
+def timeout_cap(duration = 1.0, &block)
+  Timeout.timeout(duration, &block)
+rescue Timeout::Error => e
+  raise Timeout::Error, "Unexpected timeout occurred after #{duration} seconds. #{e.backtrace.reject do |r|
+                                                                                    r =~ %r{gems/minitest}
+                                                                                  end.join("\n")}"
 end
 
-def deferred_span segment
-  Proc.new { NewRelic::Agent::SpanEventPrimitive.for_segment(segment) }
+def deferred_span(segment)
+  proc { NewRelic::Agent::SpanEventPrimitive.for_segment(segment) }
 end
 
 def reset_infinite_tracer
@@ -54,43 +55,41 @@ end
 CLIENT_MUTEX = Mutex.new
 
 # Prevent parallel runs against the client in this test suite
-def with_serial_lock
+def with_serial_lock(&block)
   timeout_cap(15) do
-    CLIENT_MUTEX.synchronize { yield }
+    CLIENT_MUTEX.synchronize(&block)
   end
 end
 
 TRACE_POINT_ENABLED = false
 
-def trace 
+def trace
   @trace ||= TracePoint.new(:call, :b_call) do |tp|
     next unless tp.defined_class.to_s =~ /InfiniteTracing/
-    next unless [
-      :record_spans, 
-      :record_span, 
-      :emulate_streaming_with_ok_close_response,
-      :handle_error,
-      :handle_close,
-      :notice_span,
-      :transfer_buffer,
-      :start,
-      :stop,
-      :rpc,
-      :start_streaming,
-      :notice_span,
-      :wait_for_notice,
+    next unless %i[
+      record_spans
+      record_span
+      emulate_streaming_with_ok_close_response
+      handle_error
+      handle_close
+      notice_span
+      transfer_buffer
+      start
+      stop
+      rpc
+      start_streaming
+      notice_span
+      wait_for_notice
     ].include? tp.method_id
+
     p [tp.lineno, tp.defined_class, tp.method_id, tp.event]
   end
 end
 
-def with_detailed_trace
+def with_detailed_trace(&block)
   if TRACE_POINT_ENABLED
-    trace.enable { yield }
+    trace.enable(&block)
   else
     yield
   end
 end
-
-
-

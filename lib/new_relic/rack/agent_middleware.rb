@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -13,17 +12,19 @@ module NewRelic
 
       attr_reader :transaction_options, :category, :target
 
-      def initialize(app, options={})
+      def initialize(app, _options = {})
         @app = app
         @category = :middleware
         @target   = self
         @transaction_options = {
-          :transaction_name => build_transaction_name
+          transaction_name: build_transaction_name
         }
       end
 
       def build_transaction_name
-        prefix = ::NewRelic::Agent::Instrumentation::ControllerInstrumentation::TransactionNamer.prefix_for_category(nil, @category)
+        prefix = ::NewRelic::Agent::Instrumentation::ControllerInstrumentation::TransactionNamer.prefix_for_category(
+          nil, @category
+        )
         "#{prefix}#{self.class.name}/call"
       end
 
@@ -33,11 +34,13 @@ module NewRelic
       # response code before it goes back to the client.
       def capture_http_response_code(state, result)
         return if NewRelic::Agent.config[:disable_middleware_instrumentation]
+
         super
       end
 
       def capture_response_content_type(state, result)
         return if NewRelic::Agent.config[:disable_middleware_instrumentation]
+
         super
       end
     end

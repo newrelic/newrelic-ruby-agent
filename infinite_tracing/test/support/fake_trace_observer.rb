@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -6,10 +5,8 @@
 if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
   module NewRelic::Agent::InfiniteTracing
-
     class BaseInfiniteTracer < Com::Newrelic::Trace::V1::IngestService::Service
-      attr_reader :spans
-      attr_reader :seen
+      attr_reader :spans, :seen
 
       def initialize
         @seen = 0
@@ -20,11 +17,11 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
       # Spans are tracked in the ServerContext object now so they can accumulate
       # regardless of which Tracer is in play.
-      def set_server_context server_context
+      def set_server_context(server_context)
         @server_context = server_context
       end
 
-      def notice_span span
+      def notice_span(span)
         @lock.synchronize do
           @seen += 1
           @server_context.spans << span if defined?(@server_context)
@@ -38,10 +35,9 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
       def wait_for_notice
         @lock.synchronize do
-          @noticed.wait(@lock) if !@noticed
+          @noticed.wait(@lock) unless @noticed
         end
       end
-
     end
 
     class InfiniteTracer < BaseInfiniteTracer
@@ -54,7 +50,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
     class OkCloseInfiniteTracer < BaseInfiniteTracer
       def record_span(record_spans)
-        record_spans.each{ |span| notice_span span }
+        record_spans.each { |span| notice_span span }
         [record_status]
       end
     end
@@ -67,7 +63,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
       def record_span(record_spans)
         if @first_attempt
-          msg = "You shall not pass!"
+          msg = 'You shall not pass!'
           error = GRPC::PermissionDenied.new(details = msg)
           @first_attempt = false
           raise error
@@ -80,7 +76,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
     end
 
     class UnimplementedInfiniteTracer < BaseInfiniteTracer
-      def record_span(record_spans)
+      def record_span(_record_spans)
         @lock.synchronize { @noticed.signal }
         msg = "I don't exist!"
         raise GRPC::BadStatus.new(GRPC::Core::StatusCodes::UNIMPLEMENTED, msg)
@@ -93,7 +89,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
         @count = 0
       end
 
-      def record_span(record_spans)
+      def record_span(_record_spans)
         @lock.synchronize { @noticed.signal }
         msg = "I don't exist!"
         @count += 1
@@ -104,13 +100,13 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
     class FakeTraceObserverServer
       attr_reader :trace_observer, :worker
 
-      def initialize(port_no, tracer_class=InfiniteTracer)
+      def initialize(port_no, tracer_class = InfiniteTracer)
         @port_no = port_no
         @tracer_class = tracer_class
         start
       end
 
-      def set_server_context server_context
+      def set_server_context(server_context)
         @tracer.set_server_context server_context
       end
 
@@ -119,7 +115,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           pool_size: 10,
           max_waiting_requests: 10,
           server_args: {
-            'grpc.so_reuseport' => 0, # eliminates chance of cross-talks
+            'grpc.so_reuseport' => 0 # eliminates chance of cross-talks
           }
         }
       end
@@ -135,22 +131,24 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       # A simple debug helper that returns list of server context statuses.
       # When there are intermittent errors happening, usually, instead of seeing
       # everything in :stopped state, we'll see one or more server contexts in
-      # :running state.  
+      # :running state.
       #
       # This is our hint to research into what's not being shutdown properly!
       def running_contexts
         contexts = FakeTraceObserverHelpers::RUNNING_SERVER_CONTEXTS
-        contexts.map{|k,v| v}.inspect
+        contexts.map { |_k, v| v }.inspect
       end
 
       def add_http2_port
         retries = 0
         begin
           @rpc_server.add_http2_port("0.0.0.0:#{@port_no}", :this_port_is_insecure)
-        rescue RuntimeError => error
-          raise unless error.message =~ /could not add port/
+        rescue RuntimeError => e
+          raise unless e.message =~ /could not add port/
+
           retries += 1
           raise "ran out of retries #{running_contexts}" if retries > 5
+
           sleep(0.05)
           retry
         end
@@ -165,7 +163,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       end
 
       def run
-        @worker = NewRelic::Agent::InfiniteTracing::Worker.new("Server") { @rpc_server.run }
+        @worker = NewRelic::Agent::InfiniteTracing::Worker.new('Server') { @rpc_server.run }
         @rpc_server.wait_till_running
       end
 
@@ -177,6 +175,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
       def stop_worker
         return unless @worker
+
         @worker.join(2)
         @worker.stop
         @worker = nil

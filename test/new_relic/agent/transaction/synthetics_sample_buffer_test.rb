@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 class NewRelic::Agent::Transaction
   class SyntheticsSampleBufferTest < Minitest::Test
@@ -11,13 +10,13 @@ class NewRelic::Agent::Transaction
     end
 
     def test_doesnt_store_if_not_synthetics
-      sample = stub(:synthetics_resource_id => nil)
+      sample = stub(synthetics_resource_id: nil)
       @buffer.store(sample)
       assert_empty @buffer.samples
     end
 
     def test_stores_if_synthetics
-      sample = stub(:synthetics_resource_id => 42)
+      sample = stub(synthetics_resource_id: 42)
       @buffer.store(sample)
       assert_equal [sample], @buffer.samples
     end
@@ -27,7 +26,7 @@ class NewRelic::Agent::Transaction
 
       try_count = @buffer.capacity + 1
       try_count.times do |i|
-        last_sample = stub(:synthetics_resource_id => i)
+        last_sample = stub(synthetics_resource_id: i)
         @buffer.store(last_sample)
       end
 

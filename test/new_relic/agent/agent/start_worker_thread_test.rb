@@ -1,36 +1,35 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 class NewRelic::Agent::Agent::StartWorkerThreadTest < Minitest::Test
   require 'new_relic/agent/agent'
   include NewRelic::Agent::Agent::StartWorkerThread
 
   def test_deferred_work_connects
-    self.expects(:catch_errors).yields
-    self.expects(:connect).with('connection_options')
-    self.stubs(:connected?).returns(true)
-    self.expects(:create_and_run_event_loop)
+    expects(:catch_errors).yields
+    expects(:connect).with('connection_options')
+    stubs(:connected?).returns(true)
+    expects(:create_and_run_event_loop)
     deferred_work!('connection_options')
   end
 
   def test_deferred_work_connect_failed
-    self.expects(:catch_errors).yields
-    self.expects(:connect).with('connection_options')
-    self.stubs(:connected?).returns(false)
+    expects(:catch_errors).yields
+    expects(:connect).with('connection_options')
+    stubs(:connected?).returns(false)
     deferred_work!('connection_options')
   end
 
   def test_handle_force_restart
     # hooray for methods with no branches
-    error = mock(:message => 'a message')
+    error = mock(message: 'a message')
 
-    self.expects(:drop_buffered_data)
-    self.expects(:sleep).with(30)
+    expects(:drop_buffered_data)
+    expects(:sleep).with(30)
 
     @connected = true
-    @service = mock('service', :force_restart => nil)
+    @service = mock('service', force_restart: nil)
 
     handle_force_restart(error)
 
@@ -38,16 +37,16 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Minitest::Test
   end
 
   def test_handle_force_disconnect
-    error = mock(:message => 'a message')
+    error = mock(message: 'a message')
 
-    self.expects(:disconnect)
+    expects(:disconnect)
     handle_force_disconnect(error)
   end
 
   def test_handle_other_error
     error = StandardError.new('a message')
 
-    self.expects(:disconnect)
+    expects(:disconnect)
     handle_other_error(error)
   end
 
@@ -55,7 +54,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Minitest::Test
     @runs = 0
     error = NewRelic::Agent::ForceRestartException.new
     # twice, because we expect it to retry the block
-    self.expects(:handle_force_restart).with(error).twice
+    expects(:handle_force_restart).with(error).twice
     catch_errors do
       # needed to keep it from looping infinitely in the test
       @runs += 1
@@ -68,7 +67,7 @@ class NewRelic::Agent::Agent::StartWorkerThreadTest < Minitest::Test
 
   def mocked_control
     fake_control = mock('control')
-    self.stubs(:control).returns(fake_control)
+    stubs(:control).returns(fake_control)
     fake_control
   end
 end

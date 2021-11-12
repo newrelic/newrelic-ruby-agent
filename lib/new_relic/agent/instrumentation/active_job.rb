@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -49,7 +48,8 @@ module NewRelic
           elsif txn && !txn.recording_web_transaction?
             ::NewRelic::Agent::Transaction.set_default_transaction_name(
               transaction_name_suffix_for_job(job),
-              transaction_category)
+              transaction_category
+            )
             block.call
           else
             run_in_transaction(job, block)
@@ -81,11 +81,11 @@ module NewRelic
         end
 
         def self.adapter
-          adapter_class = if ::ActiveJob::Base.queue_adapter.class == Class
-            ::ActiveJob::Base.queue_adapter
-          else
-            ::ActiveJob::Base.queue_adapter.class
-          end
+          adapter_class = if ::ActiveJob::Base.queue_adapter.instance_of?(Class)
+                            ::ActiveJob::Base.queue_adapter
+                          else
+                            ::ActiveJob::Base.queue_adapter.class
+                          end
 
           clean_adapter_name(adapter_class.name)
         end
@@ -93,7 +93,7 @@ module NewRelic
         ADAPTER_REGEX = /ActiveJob::QueueAdapters::(.*)Adapter/
 
         def self.clean_adapter_name(name)
-          name = "ActiveJob::#{$1}" if ADAPTER_REGEX =~ name
+          name = "ActiveJob::#{Regexp.last_match(1)}" if ADAPTER_REGEX =~ name
           name
         end
       end

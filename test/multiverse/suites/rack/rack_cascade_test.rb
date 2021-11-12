@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -12,12 +11,12 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     include MultiverseHelpers
 
     setup_and_teardown_agent(
-      :beacon                 => 'beacon',
-      :browser_key            => 'browserKey',
-      :js_agent_loader        => 'loader',
-      :application_id         => '5',
-      :'rum.enabled'          => true,
-      :license_key            => 'a' * 40
+      beacon: 'beacon',
+      browser_key: 'browserKey',
+      js_agent_loader: 'loader',
+      application_id: '5',
+      'rum.enabled': true,
+      license_key: 'a' * 40
     )
 
     include Rack::Test::Methods

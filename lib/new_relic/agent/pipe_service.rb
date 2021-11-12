@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -10,17 +9,17 @@ module NewRelic
 
       def initialize(channel_id)
         @channel_id = channel_id
-        @collector = NewRelic::Control::Server.new(:name => 'parent',
-                                                   :port => 0)
+        @collector = NewRelic::Control::Server.new(name: 'parent',
+                                                   port: 0)
         @pipe = NewRelic::Agent::PipeChannelManager.channels[@channel_id]
         if @pipe && @pipe.parent_pid != $$
           @pipe.after_fork_in_child
         else
-          NewRelic::Agent.logger.error("No communication channel to parent process, please see https://newrelic.com/docs/ruby/resque-instrumentation for more information.")
+          NewRelic::Agent.logger.error('No communication channel to parent process, please see https://newrelic.com/docs/ruby/resque-instrumentation for more information.')
         end
       end
 
-      def connect(config)
+      def connect(_config)
         nil
       end
 

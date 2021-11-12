@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/configuration/server_source'
 
 module NewRelic::Agent::Configuration
@@ -11,32 +10,32 @@ module NewRelic::Agent::Configuration
       NewRelic::Agent.instance.stats_engine.reset!
       @config = {
         'agent_config' => {
-          'slow_sql.enabled'                         => true,
+          'slow_sql.enabled' => true,
           'transaction_tracer.transaction_threshold' => 'apdex_f',
-          'transaction_tracer.record_sql'            => 'raw',
-          'error_collector.enabled'                  => true
+          'transaction_tracer.record_sql' => 'raw',
+          'error_collector.enabled' => true
         },
         'event_harvest_config' => {
           'report_period_ms' => 5000,
-          'harvest_limits'   => {
+          'harvest_limits' => {
             'analytic_event_data' => 833,
-            'custom_event_data'   => 833,
-            'error_event_data'    => 8,
+            'custom_event_data' => 833,
+            'error_event_data' => 8
           }
         },
         'span_event_harvest_config' => {
           'harvest_limit' => 89,
-          'report_period_ms' => 80000
+          'report_period_ms' => 80_000
         },
-        'apdex_t'                    => 1.0,
-        'collect_errors'             => false,
-        'collect_traces'             => true,
-        'web_transactions_apdex'     => { 'Controller/some/txn'     => 1.5 },
-        'trusted_account_key'        => '555',
-        'account_id'                 => '190',
-        'primary_application_id'     => '1441',
-        'entity_guid'                => 'MXxBUE18QVBQTElDQV',
-        'sampling_target'            => 20,
+        'apdex_t' => 1.0,
+        'collect_errors' => false,
+        'collect_traces' => true,
+        'web_transactions_apdex' => { 'Controller/some/txn' => 1.5 },
+        'trusted_account_key' => '555',
+        'account_id' => '190',
+        'primary_application_id' => '1441',
+        'entity_guid' => 'MXxBUE18QVBQTElDQV',
+        'sampling_target' => 20,
         'sampling_target_period_in_seconds' => 120,
         'max_payload_size_in_bytes' => 500
       }
@@ -101,52 +100,52 @@ module NewRelic::Agent::Configuration
 
     def test_should_set_analytics_events_max_samples
       assert_equal 833, @source[:'analytics_events.max_samples_stored']
-      assert_metrics_recorded({"Supportability/EventHarvest/AnalyticEventData/HarvestLimit" => {total_call_time: 833}})
+      assert_metrics_recorded({ 'Supportability/EventHarvest/AnalyticEventData/HarvestLimit' => { total_call_time: 833 } })
     end
 
     def test_should_set_custom_events_max_samples
       assert_equal 833, @source[:'custom_insights_events.max_samples_stored']
-      assert_metrics_recorded({"Supportability/EventHarvest/CustomEventData/HarvestLimit" => {total_call_time: 833}})
+      assert_metrics_recorded({ 'Supportability/EventHarvest/CustomEventData/HarvestLimit' => { total_call_time: 833 } })
     end
 
     def test_should_set_error_events_max_samples
       assert_equal 8, @source[:'error_collector.max_event_samples_stored']
-      assert_metrics_recorded({"Supportability/EventHarvest/ErrorEventData/HarvestLimit" => {total_call_time: 8}})
+      assert_metrics_recorded({ 'Supportability/EventHarvest/ErrorEventData/HarvestLimit' => { total_call_time: 8 } })
     end
 
     def test_should_set_span_events_max_samples
       assert_equal 89, @source[:'span_events.max_samples_stored']
-      assert_metrics_recorded({"Supportability/SpanEvent/Limit" => {total_call_time: 89}})
+      assert_metrics_recorded({ 'Supportability/SpanEvent/Limit' => { total_call_time: 89 } })
     end
 
     def test_should_set_event_report_period
-      assert_equal 5, @source[:'event_report_period']
-      assert_metrics_recorded({"Supportability/EventHarvest/ReportPeriod" => {total_call_time: 5}})
+      assert_equal 5, @source[:event_report_period]
+      assert_metrics_recorded({ 'Supportability/EventHarvest/ReportPeriod' => { total_call_time: 5 } })
     end
 
     def test_should_set_span_event_report_period
-      assert_equal 80000, @source[:'event_report_period.span_event_data']
-      assert_metrics_recorded({"Supportability/SpanEvent/ReportPeriod" => {total_call_time: 80000}})
+      assert_equal 80_000, @source[:'event_report_period.span_event_data']
+      assert_metrics_recorded({ 'Supportability/SpanEvent/ReportPeriod' => { total_call_time: 80_000 } })
     end
 
     def test_should_correctly_handle_missing_event_type_from_event_harvest_config
       modified_event_harvest_config = {
-          'report_period_ms' => 5000,
-          'harvest_limits'   => {
-            'analytic_event_data' => 833,
-            'custom_event_data'   => 833,
-            'error_event_data'    => 8,
-          }
+        'report_period_ms' => 5000,
+        'harvest_limits' => {
+          'analytic_event_data' => 833,
+          'custom_event_data' => 833,
+          'error_event_data' => 8
         }
+      }
 
       @config.delete('span_event_harvest_config')
       @source = ServerSource.new(@config)
 
       # Span events should fall back to default source
-      refute @source[:'span_events.max_samples_stored'], "Expected span events to be excluded from server source"
+      refute @source[:'span_events.max_samples_stored'], 'Expected span events to be excluded from server source'
 
       # The event report period and limits for other event types should still be in server source
-      assert_equal 5, @source[:'event_report_period']
+      assert_equal 5, @source[:event_report_period]
       assert_equal 833, @source[:'analytics_events.max_samples_stored']
       assert_equal 833, @source[:'custom_insights_events.max_samples_stored']
       assert_equal 8, @source[:'error_collector.max_event_samples_stored']
@@ -157,14 +156,14 @@ module NewRelic::Agent::Configuration
         'collect_errors' => false,
         'collect_traces' => false,
         'collect_analytics_events' => false,
-        'collect_custom_events'    => false
+        'collect_custom_events' => false
       }
       existing_config = {
-        :'error_collector.enabled'        => true,
-        :'slow_sql.enabled'               => true,
-        :'transaction_tracer.enabled'     => true,
-        :'analytics_events.enabled'       => true,
-        :'custom_insights_events.enabled' => true
+        'error_collector.enabled': true,
+        'slow_sql.enabled': true,
+        'transaction_tracer.enabled': true,
+        'analytics_events.enabled': true,
+        'custom_insights_events.enabled': true
       }
       @source = ServerSource.new(rsp, existing_config)
       refute @source[:'error_collector.enabled']
@@ -179,14 +178,14 @@ module NewRelic::Agent::Configuration
         'collect_errors' => true,
         'collect_traces' => true,
         'collect_analytics_events' => true,
-        'collect_custom_events'    => true
+        'collect_custom_events' => true
       }
       existing_config = {
-        :'error_collector.enabled'        => true,
-        :'slow_sql.enabled'               => true,
-        :'transaction_tracer.enabled'     => true,
-        :'analytics_events.enabled'       => true,
-        :'custom_insights_events.enabled' => true
+        'error_collector.enabled': true,
+        'slow_sql.enabled': true,
+        'transaction_tracer.enabled': true,
+        'analytics_events.enabled': true,
+        'custom_insights_events.enabled': true
       }
       @source = ServerSource.new(rsp, existing_config)
       assert @source[:'error_collector.enabled']
@@ -203,10 +202,10 @@ module NewRelic::Agent::Configuration
         'collect_analytics_events' => true
       }
       existing_config = {
-        :'error_collector.enabled'    => false,
-        :'slow_sql.enabled'           => false,
-        :'transaction_tracer.enabled' => false,
-        :'analytics_events.enabled'   => false
+        'error_collector.enabled': false,
+        'slow_sql.enabled': false,
+        'transaction_tracer.enabled': false,
+        'analytics_events.enabled': false
       }
       @source = ServerSource.new(rsp, existing_config)
       assert !@source[:'error_collector.enabled']
@@ -220,21 +219,21 @@ module NewRelic::Agent::Configuration
         'collect_errors' => true,
         'collect_traces' => true,
         'collect_analytics_events' => true,
-        'collect_custom_events'    => true,
+        'collect_custom_events' => true,
         'agent_config' => {
-          'transaction_tracer.enabled'     => true,
-          'slow_sql.enabled'               => true,
-          'error_collector.enabled'        => true,
-          'analytics_events.enabled'       => true,
+          'transaction_tracer.enabled' => true,
+          'slow_sql.enabled' => true,
+          'error_collector.enabled' => true,
+          'analytics_events.enabled' => true,
           'custom_insights_events.enabled' => true
         }
       }
       existing_config = {
-        :'error_collector.enabled'        => false,
-        :'slow_sql.enabled'               => false,
-        :'transaction_tracer.enabled'     => false,
-        :'analytics_events.enabled'       => false,
-        :'custom_insights_events.enabled' => false
+        'error_collector.enabled': false,
+        'slow_sql.enabled': false,
+        'transaction_tracer.enabled': false,
+        'analytics_events.enabled': false,
+        'custom_insights_events.enabled': false
       }
       @source = ServerSource.new(rsp, existing_config)
       assert @source[:'error_collector.enabled']
@@ -246,10 +245,10 @@ module NewRelic::Agent::Configuration
     def test_should_not_gate_when_gating_keys_absent
       rsp = {
         'agent_config' => {
-          'transaction_tracer.enabled'     => true,
-          'slow_sql.enabled'               => true,
-          'error_collector.enabled'        => true,
-          'analytics_events.enabled'       => true,
+          'transaction_tracer.enabled' => true,
+          'slow_sql.enabled' => true,
+          'error_collector.enabled' => true,
+          'analytics_events.enabled' => true,
           'custom_insights_events.enabled' => true
         }
       }
@@ -296,7 +295,8 @@ module NewRelic::Agent::Configuration
     def test_all_top_level_keys_should_be_allowed_from_server
       ServerSource::TOP_LEVEL_KEYS.each do |key|
         assert DEFAULTS[key.to_sym], "Did not find entry in config DEFAULTS hash for to-level server config key #{key}"
-        assert DEFAULTS[key.to_sym][:allowed_from_server], "Expected top-level server config key #{key} to be allowed from server"
+        assert DEFAULTS[key.to_sym][:allowed_from_server],
+               "Expected top-level server config key #{key} to be allowed from server"
       end
     end
   end

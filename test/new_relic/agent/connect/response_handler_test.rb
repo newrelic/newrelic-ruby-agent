@@ -1,14 +1,12 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', '..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/agent'
 
 class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
-
   def setup
-    server = NewRelic::Control::Server.new('localhost', 30303)
+    server = NewRelic::Control::Server.new('localhost', 30_303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
     NewRelic::Agent.instance.service = @service
     @local_host = nil
@@ -38,8 +36,8 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
       'sample_rate' => 10,
       'agent_config' => { 'transaction_tracer.record_sql' => 'raw' }
     }
-    
-    with_config(:'transaction_tracer.enabled' => true) do
+
+    with_config('transaction_tracer.enabled': true) do
       @response_handler.configure_agent(config)
       assert_equal 'fishsticks', @agent.service.agent_id
       assert_equal 'raw', @config[:'transaction_tracer.record_sql']
@@ -54,54 +52,54 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
 
   def test_configure_agent_saves_transaction_name_rules
     @agent.instance_variable_set(:@transaction_rules,
-                                            NewRelic::Agent::RulesEngine.new)
+                                 NewRelic::Agent::RulesEngine.new)
     config = {
-      'transaction_name_rules' => [ { 'match_expression' => '88',
-                                      'replacement'      => '**' },
-                                    { 'match_expression' => 'xx',
-                                      'replacement'      => 'XX' } ]
+      'transaction_name_rules' => [{ 'match_expression' => '88',
+                                     'replacement' => '**' },
+                                   { 'match_expression' => 'xx',
+                                     'replacement' => 'XX' }]
     }
     @response_handler.configure_agent(config)
 
     rules = @agent.transaction_rules
     assert_equal 2, rules.size
-    assert(rules.find{|r| r.match_expression == /88/i && r.replacement == '**' },
+    assert(rules.find { |r| r.match_expression == /88/i && r.replacement == '**' },
            "rule not found among #{rules}")
-    assert(rules.find{|r| r.match_expression == /xx/i && r.replacement == 'XX' },
+    assert(rules.find { |r| r.match_expression == /xx/i && r.replacement == 'XX' },
            "rule not found among #{rules}")
   ensure
     @agent.instance_variable_set(:@transaction_rules,
-                                            NewRelic::Agent::RulesEngine.new)
+                                 NewRelic::Agent::RulesEngine.new)
   end
-
 
   def test_configure_agent_saves_metric_name_rules
     @agent.instance_variable_set(:@metric_rules,
-                                            NewRelic::Agent::RulesEngine.new)
+                                 NewRelic::Agent::RulesEngine.new)
     config = {
-      'metric_name_rules' => [ { 'match_expression' => '77',
-                                 'replacement'      => '&&' },
-                               { 'match_expression' => 'yy',
-                                 'replacement'      => 'YY' }]
+      'metric_name_rules' => [{ 'match_expression' => '77',
+                                'replacement' => '&&' },
+                              { 'match_expression' => 'yy',
+                                'replacement' => 'YY' }]
     }
     @response_handler.configure_agent(config)
 
     rules = @agent.stats_engine.metric_rules
     assert_equal 2, rules.size
-    assert(rules.find{|r| r.match_expression == /77/i && r.replacement == '&&' },
+    assert(rules.find { |r| r.match_expression == /77/i && r.replacement == '&&' },
            "rule not found among #{rules}")
-    assert(rules.find{|r| r.match_expression == /yy/i && r.replacement == 'YY' },
+    assert(rules.find { |r| r.match_expression == /yy/i && r.replacement == 'YY' },
            "rule not found among #{rules}")
   ensure
     @agent.instance_variable_set(:@metric_rules,
-                                            NewRelic::Agent::RulesEngine.new)
+                                 NewRelic::Agent::RulesEngine.new)
   end
 
   def test_sql_tracer_disabled_when_tt_disabled_by_server
     with_config_low_priority({
-                 :'slow_sql.enabled'           => true,
-                 :'transaction_tracer.enabled' => true,
-                 :monitor_mode                 => true}) do
+                               'slow_sql.enabled': true,
+                               'transaction_tracer.enabled': true,
+                               monitor_mode: true
+                             }) do
       @response_handler.configure_agent('collect_traces' => false)
 
       refute @agent.sql_sampler.enabled?, 'sql enabled when tracing disabled by server'

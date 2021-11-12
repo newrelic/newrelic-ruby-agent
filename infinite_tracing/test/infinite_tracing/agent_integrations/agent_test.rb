@@ -1,9 +1,8 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../../test_helper', __FILE__)
+require File.expand_path('../../test_helper', __dir__)
 
 module NewRelic
   module Agent
@@ -12,7 +11,7 @@ module NewRelic
         include FakeTraceObserverHelpers
 
         def test_injects_infinite_tracer
-          assert ::NewRelic::Agent.instance, "expected to get an Agent instance"
+          assert ::NewRelic::Agent.instance, 'expected to get an Agent instance'
           assert ::NewRelic::Agent.instance.infinite_tracer
         end
 
@@ -32,7 +31,7 @@ module NewRelic
 
               # starts client and streams count segments
               segments = []
-              total_spans.times do |index|
+              total_spans.times do |_index|
                 with_segment do |segment|
                   segments << segment
                   NewRelic::Agent.agent.infinite_tracer << deferred_span(segment)
@@ -47,7 +46,6 @@ module NewRelic
               assert_equal total_spans, segments.size
             end
           end
-
         ensure
           Connection.instance.unstub(:retry_connection_period)
           NewRelic::Agent.agent.infinite_tracer.stop

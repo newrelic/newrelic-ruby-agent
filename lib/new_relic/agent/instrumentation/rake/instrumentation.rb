@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -9,15 +8,13 @@ module NewRelic
       module Rake
         module Tracer
           def invoke_with_newrelic_tracing(*args)
-            unless NewRelic::Agent::Instrumentation::Rake.should_trace? name
-              return yield
-            end
+            return yield unless NewRelic::Agent::Instrumentation::Rake.should_trace? name
 
             begin
               timeout = NewRelic::Agent.config[:'rake.connect_timeout']
               NewRelic::Agent.instance.wait_on_connect(timeout)
-            rescue => e
-              NewRelic::Agent.logger.error("Exception in wait_on_connect", e)
+            rescue StandardError => e
+              NewRelic::Agent.logger.error('Exception in wait_on_connect', e)
               return yield
             end
 
@@ -37,8 +34,9 @@ module NewRelic
         end
 
         def safe_from_third_party_gem?
-          return true unless NewRelic::LanguageSupport.bundled_gem?("newrelic-rake")
-          ::NewRelic::Agent.logger.info("Not installing New Relic supported Rake instrumentation because the third party newrelic-rake gem is present")
+          return true unless NewRelic::LanguageSupport.bundled_gem?('newrelic-rake')
+
+          ::NewRelic::Agent.logger.info('Not installing New Relic supported Rake instrumentation because the third party newrelic-rake gem is present')
           false
         end
 
@@ -60,7 +58,7 @@ module NewRelic
           task.instance_variable_set(:@__newrelic_instrumented_execute, true)
           task.instance_eval do
             def execute(*args, &block)
-              NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/#{self.name}") do
+              NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/#{name}") do
                 super
               end
             end
@@ -72,10 +70,11 @@ module NewRelic
         def instrument_invoke_prerequisites_concurrently(task)
           task.instance_eval do
             def invoke_prerequisites_concurrently(*_)
-              NewRelic::Agent::MethodTracer.trace_execution_scoped("Rake/execute/multitask") do
-                prereqs = self.prerequisite_tasks.map(&:name).join(", ")
+              NewRelic::Agent::MethodTracer.trace_execution_scoped('Rake/execute/multitask') do
+                prereqs = prerequisite_tasks.map(&:name).join(', ')
                 if txn = ::NewRelic::Agent::Tracer.current_transaction
-                  txn.current_segment.params[:statement] = NewRelic::Agent::Database.truncate_query("Couldn't trace concurrent prereq tasks: #{prereqs}")
+                  txn.current_segment.params[:statement] =
+                    NewRelic::Agent::Database.truncate_query("Couldn't trace concurrent prereq tasks: #{prereqs}")
                 end
                 super
               end
@@ -93,13 +92,13 @@ module NewRelic
           else
             instrument_execute_on_prereqs(task)
           end
-        rescue => e
-          NewRelic::Agent.logger.error("Error during Rake task invoke", e)
+        rescue StandardError => e
+          NewRelic::Agent.logger.error('Error during Rake task invoke', e)
         end
 
         def record_attributes(args, task)
-          command_line = task.application.top_level_tasks.join(" ")
-          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes({ :command => command_line },
+          command_line = task.application.top_level_tasks.join(' ')
+          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes({ command: command_line },
                                                                         :'job.rake',
                                                                         NewRelic::Agent::AttributeFilter::DST_NONE)
           named_args = name_the_args(args, task.arg_names)
@@ -108,17 +107,15 @@ module NewRelic
                                                                           :'job.rake.args',
                                                                           NewRelic::Agent::AttributeFilter::DST_NONE)
           end
-        rescue => e
-          NewRelic::Agent.logger.error("Error during Rake task attribute recording.", e)
+        rescue StandardError => e
+          NewRelic::Agent.logger.error('Error during Rake task attribute recording.', e)
         end
 
         # Expects literal args passed to the task and array of task names
         # If names are present without matching args, still sets them with nils
         def name_the_args(args, names)
           unfulfilled_names_length = names.length - args.length
-          if unfulfilled_names_length > 0
-            args.concat(Array.new(unfulfilled_names_length))
-          end
+          args.concat(Array.new(unfulfilled_names_length)) if unfulfilled_names_length > 0
 
           result = {}
           args.zip(names).each_with_index do |(value, key), index|

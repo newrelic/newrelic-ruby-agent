@@ -1,9 +1,8 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../test_helper', __FILE__)
+require File.expand_path('../test_helper', __dir__)
 
 module NewRelic
   module Agent
@@ -31,11 +30,11 @@ module NewRelic
             'example.com',
             'http://example.com',
             'https://example.com',
-            'https://example.com:443',
+            'https://example.com:443'
           ]
           hostnames.each do |hostname|
-            with_config(:'infinite_tracing.trace_observer.host' => hostname) do
-              assert_equal "example.com", Config.trace_observer_host
+            with_config('infinite_tracing.trace_observer.host': hostname) do
+              assert_equal 'example.com', Config.trace_observer_host
             end
           end
         end
@@ -47,10 +46,10 @@ module NewRelic
             ['example.com', 443],
             ['http://example.com', 443],
             ['https://example.com', 443],
-            ['https://example.com:80', 80],
+            ['https://example.com:80', 80]
           ]
           hostnames.each do |hostname, port|
-            with_config(:'infinite_tracing.trace_observer.host' => hostname) do
+            with_config('infinite_tracing.trace_observer.host': hostname) do
               assert_equal port, Config.trace_observer_port, "expected #{port} for port using hostname: #{hostname}"
             end
           end
@@ -63,15 +62,16 @@ module NewRelic
             ['example.com', 443],
             ['http://example.com', 443],
             ['https://example.com', 443],
-            ['https://example.com:80', 80],
+            ['https://example.com:80', 80]
           ]
           hostnames.each do |hostname, port|
             config = {
-              :'infinite_tracing.trace_observer.host' => hostname,
-              :'infinite_tracing.trace_observer.port' => 443,
+              'infinite_tracing.trace_observer.host': hostname,
+              'infinite_tracing.trace_observer.port': 443
             }
             with_config(config) do
-              assert_equal port, Config.trace_observer_port, "expected #{port} for port because host overrides: #{hostname}"
+              assert_equal port, Config.trace_observer_port,
+                           "expected #{port} for port because host overrides: #{hostname}"
             end
           end
         end
@@ -83,16 +83,16 @@ module NewRelic
             ['example.com:443', 'example.com:443'],
             ['http://example.com', 'example.com:443'],
             ['https://example.com', 'example.com:443'],
-            ['https://example.com:80', 'example.com:80'],
+            ['https://example.com:80', 'example.com:80']
           ]
           hostnames.each do |hostname, host_and_port|
             config = {
-              :'infinite_tracing.trace_observer.host' => hostname,
+              'infinite_tracing.trace_observer.host': hostname
             }
             with_config(config) do
-              assert_equal host_and_port, 
-                Config.trace_observer_host_and_port, 
-                "expected #{host_and_port.inspect} when host is: #{hostname.inspect}"
+              assert_equal host_and_port,
+                           Config.trace_observer_host_and_port,
+                           "expected #{host_and_port.inspect} when host is: #{hostname.inspect}"
             end
           end
         end
@@ -110,7 +110,6 @@ module NewRelic
         def non_test_files
           all_rb_files.reject { |filename| filename.include? 'test.rb' }
         end
-
       end
     end
   end

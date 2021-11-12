@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -11,7 +10,7 @@ class ThreadProfiling < Performance::TestCase
     if n == 0
       final.call
     else
-      recurse(n-1, final)
+      recurse(n - 1, final)
     end
   end
 
@@ -42,7 +41,7 @@ class ThreadProfiling < Performance::TestCase
 
     # Ensure that all threads have had a chance to start up
     started_count = 0
-    while started_count < @nthreads do
+    while started_count < @nthreads
       @threadq.pop
       started_count += 1
     end
@@ -54,18 +53,18 @@ class ThreadProfiling < Performance::TestCase
 
   def teardown
     mocha_teardown
-    
+
     @cvar.broadcast
     @threads.each(&:join)
     mocha_teardown
   rescue Exception => e
     if e.message =~ /Deadlock/
       Thread.list.select(&:alive?).each do |t|
-        STDERR.puts "*" * 80
-        STDERR.puts "Live thread: #{t.inspect}"
-        STDERR.puts "Backtrace:"
-        STDERR.puts (t.backtrace || []).join("\n")
-        STDERR.puts "*" * 80
+        warn '*' * 80
+        warn "Live thread: #{t.inspect}"
+        warn 'Backtrace:'
+        warn (t.backtrace || []).join("\n")
+        warn '*' * 80
       end
     end
 
@@ -86,11 +85,11 @@ class ThreadProfiling < Performance::TestCase
       t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       @service.poll
       payload = {
-        :name => 'eagle',
-        :bucket => :request,
-        :start_timestamp => t0,
-        :duration => Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0,
-        :thread => @threads.sample
+        name: 'eagle',
+        bucket: :request,
+        start_timestamp: t0,
+        duration: Process.clock_gettime(Process::CLOCK_MONOTONIC) - t0,
+        thread: @threads.sample
       }
       @service.on_transaction_finished(payload)
     end
@@ -112,8 +111,8 @@ class ThreadProfiling < Performance::TestCase
   def aggregate_lots_of_nodes(profile, depth, trace)
     if depth > 0
       7.times do |i|
-        trace.push("path#{i}:#{i+50}:in `depth#{depth}'")
-        aggregate_lots_of_nodes(profile, depth-1, trace)
+        trace.push("path#{i}:#{i + 50}:in `depth#{depth}'")
+        aggregate_lots_of_nodes(profile, depth - 1, trace)
         trace.pop
       end
     else

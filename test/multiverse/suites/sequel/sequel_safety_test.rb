@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,12 +7,11 @@
 require File.join(File.dirname(__FILE__), 'database.rb')
 
 class SequelSafetyTest < Minitest::Test
-
   def test_it_doesnt_blow_up
     require 'newrelic_rpm'
 
-    u = User.create( :login => 'jrandom', :firstname => 'J. Random', :lastname => 'Hacquer' )
-    assert u.is_a?( User ), "#{u} isn't a User"
+    u = User.create(login: 'jrandom', firstname: 'J. Random', lastname: 'Hacquer')
+    assert u.is_a?(User), "#{u} isn't a User"
   end
 
   # The oldest version of Sequel that we test against does not define a VERSION

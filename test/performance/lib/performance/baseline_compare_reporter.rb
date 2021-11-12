@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -6,7 +5,7 @@ module Performance
   class BaselineCompareReporter
     include Reporting
 
-    def initialize(results, elapsed, options={})
+    def initialize(results, elapsed, options = {})
       @results = results
       @elapsed = elapsed
       @options = options
@@ -17,7 +16,7 @@ module Performance
 
       begin
         baseline = Baseline.load!
-      rescue => e
+      rescue StandardError => e
         puts "Failed to load baseline results: #{e}\n#{e.backtrace.join("\n\t")}"
         return
       end
@@ -33,26 +32,26 @@ module Performance
       missing_from_new      = baseline_identifiers - new_identifiers
       common_identifiers    = new_identifiers & baseline_identifiers
 
-      if !missing_from_baseline.empty?
+      unless missing_from_baseline.empty?
         puts "The following tests were not found in the baseline results:\n"
         missing_from_baseline.each do |identifier|
           puts "  #{identifier}"
         end
-        puts ""
+        puts ''
       end
 
-      if !missing_from_baseline.empty?
+      unless missing_from_baseline.empty?
         puts "The following tests were not found in the new results:\n"
         missing_from_new.each do |identifier|
           puts "  #{identifier}"
         end
-        puts ""
+        puts ''
       end
 
       rows = []
 
       common_identifiers.each do |identifier|
-        old_result = baseline.find { |r| r.identifier == identifier}
+        old_result = baseline.find { |r| r.identifier == identifier }
         new_result = results.find  { |r| r.identifier == identifier }
 
         delta = new_result.time_per_iteration - old_result.time_per_iteration
@@ -66,7 +65,7 @@ module Performance
           allocations_before /= old_result.iterations
           allocations_after  /= new_result.iterations
 
-          allocations_delta  = allocations_after - allocations_before
+          allocations_delta = allocations_after - allocations_before
           allocations_delta_percent = allocations_delta.to_f / allocations_before * 100
         end
 
@@ -79,10 +78,10 @@ module Performance
           retained_before /= old_result.iterations
           retained_after  /= new_result.iterations
 
-          retained_delta  = retained_after - retained_before
+          retained_delta = retained_after - retained_before
           retained_percent = retained_delta.to_f / retained_before * 100
         end
-        retained_percent = 0.0 if (retained_percent.to_f).nan?
+        retained_percent = 0.0 if retained_percent.to_f.nan?
 
         rows << [
           identifier,
@@ -97,21 +96,21 @@ module Performance
         ]
       end
 
-      format_percent_delta = Proc.new { |v|
-        prefix = v > 0 ? "+" : ""
-        sprintf("#{prefix}%.1f%%", v)
-      }
+      format_percent_delta = proc do |v|
+        prefix = v > 0 ? '+' : ''
+        format("#{prefix}%.1f%%", v)
+      end
 
       table = Table.new(rows) do
         column :name
-        column :before,        &(FormattingHelpers.method(:format_duration))
-        column :after,         &(FormattingHelpers.method(:format_duration))
+        column :before,        &FormattingHelpers.method(:format_duration)
+        column :after,         &FormattingHelpers.method(:format_duration)
         column :delta,         &format_percent_delta
         column :allocs_before
         column :allocs_after
-        column :allocs_delta,  &format_percent_delta
+        column :allocs_delta, &format_percent_delta
         column :retained
-        column :retained_delta,  &format_percent_delta
+        column :retained_delta, &format_percent_delta
       end
 
       puts table.render

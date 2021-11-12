@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -10,7 +9,7 @@ module NewRelic
   module Agent
     class RulesEngine
       SEGMENT_SEPARATOR = '/'.freeze
-      LEADING_SLASH_REGEX = %r{^/}.freeze
+      LEADING_SLASH_REGEX = %r{^/}
 
       include Enumerable
       extend Forwardable
@@ -20,7 +19,7 @@ module NewRelic
       def self.create_metric_rules(connect_response)
         specs = connect_response['metric_name_rules'] || []
         rules = specs.map { |spec| ReplacementRule.new(spec) }
-        self.new(rules)
+        new(rules)
       end
 
       def self.create_transaction_rules(connect_response)
@@ -32,19 +31,19 @@ module NewRelic
         segment_rules = []
 
         segment_rule_specs.each do |spec|
-          if spec[SegmentTermsRule::PREFIX_KEY] && SegmentTermsRule.valid?(spec)
-            # Build segment_rules in reverse order from which they're provided,
-            # so that when we eliminate duplicates with #uniq!, we retain the last
-            # instances of repeated rules.
-            segment_rules.unshift SegmentTermsRule.new(spec)
-          end
+          next unless spec[SegmentTermsRule::PREFIX_KEY] && SegmentTermsRule.valid?(spec)
+
+          # Build segment_rules in reverse order from which they're provided,
+          # so that when we eliminate duplicates with #uniq!, we retain the last
+          # instances of repeated rules.
+          segment_rules.unshift SegmentTermsRule.new(spec)
         end
 
         reject_rules_with_duplicate_prefixes!(segment_rules)
 
         segment_rules.reverse! # Reset the rules to their original order.
 
-        self.new(txn_name_rules, segment_rules)
+        new(txn_name_rules, segment_rules)
       end
 
       # When multiple rules share the same prefix,
@@ -54,7 +53,7 @@ module NewRelic
         rules.uniq! { |rule| rule.prefix }
       end
 
-      def initialize(rules=[], segment_term_rules=[])
+      def initialize(rules = [], segment_term_rules = [])
         @rules = rules.sort
         @segment_term_rules = segment_term_rules
       end
@@ -72,8 +71,8 @@ module NewRelic
       def rename(original_string)
         renamed = apply_rules(@rules, original_string)
         return nil unless renamed
-        renamed = apply_rules(@segment_term_rules, renamed)
-        renamed
+
+        apply_rules(@segment_term_rules, renamed)
       end
     end
   end

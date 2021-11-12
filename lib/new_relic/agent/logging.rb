@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,7 +7,6 @@ require 'new_relic/agent/hostname'
 module NewRelic
   module Agent
     module Logging
-
       # This class can be used as the formatter for an existing logger.  It
       # decorates log messages with trace and entity metadata, and formats each
       # log messages as a JSON object.
@@ -40,7 +38,7 @@ module NewRelic
           end
         end
 
-        def call severity, time, progname, msg
+        def call(severity, time, progname, msg)
           message = '{'
           if app_name
             add_key_value message, ENTITY_NAME_KEY, app_name
@@ -82,12 +80,12 @@ module NewRelic
           @app_name ||= Agent.config[:app_name][0]
         end
 
-        def add_key_value message, key, value
+        def add_key_value(message, key, value)
           message << QUOTE << key << QUOTE << COLON << QUOTE << value << QUOTE
         end
 
-        def escape message
-          if String === message
+        def escape(message)
+          if message.is_a?(String)
             message.to_json
           else
             message.inspect.to_json
@@ -98,7 +96,6 @@ module NewRelic
           # No-op; just avoiding issues with act-fluent-logger-rails
         end
       end
-
 
       # This logger decorates logs with trace and entity metadata, and emits log
       # messages formatted as JSON objects.  It extends the Logger class from
@@ -116,13 +113,12 @@ module NewRelic
       #
       # @api public
       class DecoratingLogger < (defined?(::ActiveSupport) && defined?(::ActiveSupport::Logger) ? ::ActiveSupport::Logger : ::Logger)
-
-        alias :write :info
+        alias write info
 
         # Positional and Keyword arguments are separated beginning with Ruby 2.7
         # Signature of ::Logger constructor changes in Ruby 2.4 to have both positional and keyword args
         # We pivot on Ruby 2.7 for widest supportability with least amount of hassle.
-        if RUBY_VERSION < "2.7.0"
+        if RUBY_VERSION < '2.7.0'
           def initialize(*args)
             super(*args)
             self.formatter = DecoratingFormatter.new

@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/configuration/default_source'
 
 module NewRelic::Agent::Configuration
@@ -40,7 +39,7 @@ module NewRelic::Agent::Configuration
         expected_type = @defaults[key][:type]
 
         if @defaults[key][:allow_nil]
-          assertion = (NilClass === config_value) || (expected_type === config_value)
+          assertion = config_value.is_a?(NilClass) || (expected_type === config_value)
           assert assertion, "Default value for #{key} should be NilClass or #{expected_type}, is #{actual_type}."
         else
           assertion = expected_type === config_value
@@ -75,9 +74,7 @@ module NewRelic::Agent::Configuration
         if config[accessor].respond_to?(:call)
           value = config[accessor]
 
-          while value.respond_to?(:call)
-            value = config.instance_eval(&value)
-          end
+          value = config.instance_eval(&value) while value.respond_to?(:call)
 
           return value
         else
@@ -97,8 +94,8 @@ module NewRelic::Agent::Configuration
     end
 
     def test_convert_to_list
-      result = DefaultSource.convert_to_list("Foo,Bar,Baz")
-      assert_equal ['Foo', 'Bar', 'Baz'], result
+      result = DefaultSource.convert_to_list('Foo,Bar,Baz')
+      assert_equal %w[Foo Bar Baz], result
     end
 
     def test_convert_to_list_returns_original_argument_given_array
@@ -113,58 +110,58 @@ module NewRelic::Agent::Configuration
     end
 
     def test_rules_ignore_converts_comma_delimited_string_to_array
-      with_config(:'rules.ignore_url_regexes' => 'Foo,Bar,Baz') do
+      with_config('rules.ignore_url_regexes': 'Foo,Bar,Baz') do
         assert_equal [/Foo/, /Bar/, /Baz/], NewRelic::Agent.config[:'rules.ignore_url_regexes']
       end
     end
 
     def test_config_search_paths_with_home
-      with_environment("HOME" => "/home") do
-        paths = DefaultSource.config_search_paths.call()
-        assert_includes paths, "/home/.newrelic/newrelic.yml"
-        assert_includes paths, "/home/newrelic.yml"
+      with_environment('HOME' => '/home') do
+        paths = DefaultSource.config_search_paths.call
+        assert_includes paths, '/home/.newrelic/newrelic.yml'
+        assert_includes paths, '/home/newrelic.yml'
       end
     end
 
     def test_config_search_path_in_warbler
-      with_environment("GEM_HOME" => "/some/path.jar!") do
-        assert_includes DefaultSource.config_search_paths.call(), "/some/path.jar!/path/config/newrelic.yml"
+      with_environment('GEM_HOME' => '/some/path.jar!') do
+        assert_includes DefaultSource.config_search_paths.call, '/some/path.jar!/path/config/newrelic.yml'
       end
     end
 
     def test_transaction_tracer_attributes_enabled_default
-      with_config(:'transaction_tracer.capture_attributes' => :foo) do
+      with_config('transaction_tracer.capture_attributes': :foo) do
         assert_equal :foo, NewRelic::Agent.config['transaction_tracer.attributes.enabled']
       end
     end
 
     def test_transaction_events_attributes_enabled_default
-      with_config(:'analytics_events.capture_attributes' => :foo) do
+      with_config('analytics_events.capture_attributes': :foo) do
         assert_equal :foo, NewRelic::Agent.config['transaction_events.attributes.enabled']
       end
     end
 
     def test_error_collector_attributes_enabled_default
-      with_config(:'error_collector.capture_attributes' => :foo) do
+      with_config('error_collector.capture_attributes': :foo) do
         assert_equal :foo, NewRelic::Agent.config['error_collector.attributes.enabled']
       end
     end
 
     def test_browser_monitoring_attributes_enabled_default
-      with_config(:'browser_monitoring.capture_attributes' => :foo) do
+      with_config('browser_monitoring.capture_attributes': :foo) do
         assert_equal :foo, NewRelic::Agent.config['browser_monitoring.attributes.enabled']
       end
     end
 
     def test_agent_attribute_settings_convert_comma_delimited_strings_into_an_arrays
-      types = %w(transaction_tracer. transaction_events. error_collector. browser_monitoring.)
+      types = %w[transaction_tracer. transaction_events. error_collector. browser_monitoring.]
       types << ''
 
       types.each do |type|
         key = "#{type}attributes.exclude".to_sym
 
         with_config(key => 'foo,bar,baz') do
-          expected = ["foo", "bar", "baz"]
+          expected = %w[foo bar baz]
           result = NewRelic::Agent.config[key]
 
           message = "Expected #{key} to convert comma delimited string into array.\nExpected: #{expected.inspect}, Result: #{result.inspect}\n"
@@ -174,20 +171,20 @@ module NewRelic::Agent::Configuration
         key = "#{type}attributes.include".to_sym
 
         with_config(key => 'foo,bar,baz') do
-          assert_equal ["foo", "bar", "baz"], NewRelic::Agent.config[key]
+          assert_equal %w[foo bar baz], NewRelic::Agent.config[key]
         end
       end
     end
 
     def test_agent_attributes_settings_with_yaml_array
-      types = %w(transaction_tracer. transaction_events. error_collector. browser_monitoring.)
+      types = %w[transaction_tracer. transaction_events. error_collector. browser_monitoring.]
       types << ''
 
       types.each do |type|
         key = "#{type}attributes.exclude".to_sym
 
-        with_config(key => ['foo','bar','baz']) do
-          expected = ["foo", "bar", "baz"]
+        with_config(key => %w[foo bar baz]) do
+          expected = %w[foo bar baz]
           result = NewRelic::Agent.config[key]
 
           message = "Expected #{key} not to modify settings from YAML array.\nExpected: #{expected.inspect}, Result: #{result.inspect}\n"
@@ -197,7 +194,7 @@ module NewRelic::Agent::Configuration
         key = "#{type}attributes.include".to_sym
 
         with_config(key => 'foo,bar,baz') do
-          assert_equal ["foo", "bar", "baz"], NewRelic::Agent.config[key]
+          assert_equal %w[foo bar baz], NewRelic::Agent.config[key]
         end
       end
     end
@@ -207,42 +204,40 @@ module NewRelic::Agent::Configuration
       bad_value_keys = []
 
       @defaults.each do |key, spec|
-        if !spec.has_key?(:allowed_from_server)
-          unspecified_keys << key
-        end
+        unspecified_keys << key unless spec.has_key?(:allowed_from_server)
 
-        if ![true, false].include?(spec[:allowed_from_server])
-          bad_value_keys << key
-        end
+        bad_value_keys << key unless [true, false].include?(spec[:allowed_from_server])
       end
 
-      assert unspecified_keys.empty?, "The following keys did not specify a value for :allowed_from_server: #{unspecified_keys.join(', ')}"
-      assert bad_value_keys.empty?, "The following keys had incorrect :allowed_from_server values (only true or false are allowed): #{bad_value_keys.join(', ')}"
+      assert unspecified_keys.empty?,
+             "The following keys did not specify a value for :allowed_from_server: #{unspecified_keys.join(', ')}"
+      assert bad_value_keys.empty?,
+             "The following keys had incorrect :allowed_from_server values (only true or false are allowed): #{bad_value_keys.join(', ')}"
     end
 
     def test_host_correct_when_license_key_matches_identifier
-      with_config(license_key: "eu01xx65c637a29c3982469a3fe8d1982d002c4b") do
-        assert_equal "collector.eu01.nr-data.net", DefaultSource.host.call
+      with_config(license_key: 'eu01xx65c637a29c3982469a3fe8d1982d002c4b') do
+        assert_equal 'collector.eu01.nr-data.net', DefaultSource.host.call
       end
-      with_config(license_key: "gov01x69c637a29c3982469a3fe8d1982d002c4c") do
-        assert_equal "collector.gov01.nr-data.net", DefaultSource.host.call
+      with_config(license_key: 'gov01x69c637a29c3982469a3fe8d1982d002c4c') do
+        assert_equal 'collector.gov01.nr-data.net', DefaultSource.host.call
       end
     end
 
     def test_host_correct_with_license_key_not_matching_identifer
-      with_config(license_key: "08a2ad66c637a29c3982469a3fe8d1982d002c4a") do
-        assert_equal "collector.newrelic.com", DefaultSource.host.call
+      with_config(license_key: '08a2ad66c637a29c3982469a3fe8d1982d002c4a') do
+        assert_equal 'collector.newrelic.com', DefaultSource.host.call
       end
     end
 
     def test_api_host_us
-      with_config(license_key: "08a2ad66c637a29c3982469a3fe8d1982d002c4a") do
+      with_config(license_key: '08a2ad66c637a29c3982469a3fe8d1982d002c4a') do
         assert_equal 'rpm.newrelic.com', DefaultSource.api_host.call
       end
     end
 
     def test_api_host_eu
-      with_config(license_key: "eu01xx65c637a29c3982469a3fe8d1982d002c4b") do
+      with_config(license_key: 'eu01xx65c637a29c3982469a3fe8d1982d002c4b') do
         assert_equal 'rpm.eu.newrelic.com', DefaultSource.api_host.call
       end
     end
@@ -250,7 +245,7 @@ module NewRelic::Agent::Configuration
     def get_config_value_class(value)
       type = value.class
 
-      if type == TrueClass || type == FalseClass
+      if [TrueClass, FalseClass].include?(type)
         Boolean
       else
         type

@@ -1,39 +1,36 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require_relative "sidekiq_server"
+require_relative 'sidekiq_server'
 
 class TestWorker
   include Sidekiq::Worker
 
-  sidekiq_options :queue => SidekiqServer.instance.queue_name, :retry => false
+  sidekiq_options queue: SidekiqServer.instance.queue_name, retry: false
   @jobs = {}
   @jobs_mutex = Mutex.new
 
   @done = Queue.new
 
-  def self.register_signal(key)
+  def self.register_signal(_key)
     @jobs_mutex.synchronize do
       return if @registered_signal
 
-      NewRelic::Agent.subscribe(:transaction_finished) do |payload|
+      NewRelic::Agent.subscribe(:transaction_finished) do |_payload|
         @done.push(true)
       end
       @registered_signal = true
     end
   end
 
-  def self.run_jobs(count)
+  def self.run_jobs(count, &block)
     reset(count)
-    count.times do |i|
-      yield i
-    end
+    count.times(&block)
     wait
   end
 
   def self.reset(done_at)
-    @jobs_mutex.synchronize do 
+    @jobs_mutex.synchronize do
       @jobs = {}
       @done_at = done_at
     end
@@ -60,8 +57,8 @@ class TestWorker
     end
   end
 
-  def self.fail=(val)
-    @fail = val
+  class << self
+    attr_writer :fail
   end
 
   def self.am_i_a_failure?
@@ -70,7 +67,7 @@ class TestWorker
 
   def perform(key, val)
     if self.class.am_i_a_failure?
-      raise "Uh oh"
+      raise 'Uh oh'
     else
       TestWorker.record(key, val)
     end

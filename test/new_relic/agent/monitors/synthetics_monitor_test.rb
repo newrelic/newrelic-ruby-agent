@@ -1,13 +1,12 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../test_helper', __FILE__
+require File.expand_path '../../../test_helper', __dir__
 
 module NewRelic::Agent
   class SyntheticsMonitorTest < Minitest::Test
     ENCODING_KEY_NOOP         = "\0"
-    TRUSTED_ACCOUNT_IDS       = [42,13]
+    TRUSTED_ACCOUNT_IDS       = [42, 13]
 
     VERSION_ID  = 1
     ACCOUNT_ID  = 42
@@ -26,8 +25,8 @@ module NewRelic::Agent
 
       NewRelic::Agent.reset_config
       @config = {
-        :encoding_key        => ENCODING_KEY_NOOP,
-        :trusted_account_ids => TRUSTED_ACCOUNT_IDS
+        encoding_key: ENCODING_KEY_NOOP,
+        trusted_account_ids: TRUSTED_ACCOUNT_IDS
       }
       NewRelic::Agent.config.add_config_for_testing(@config)
 

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 require 'new_relic/agent/error_trace_aggregator'
@@ -18,16 +17,16 @@ module NewRelic
       attr_reader :error_trace_aggregator, :error_event_aggregator
 
       # Returns a new error collector
-      def initialize events
+      def initialize(events)
         @error_trace_aggregator = ErrorTraceAggregator.new(MAX_ERROR_QUEUE_LENGTH)
         @error_event_aggregator = ErrorEventAggregator.new events
 
         @error_filter = NewRelic::Agent::ErrorFilter.new
 
-        %w(
+        %w[
           ignore_errors ignore_classes ignore_messages ignore_status_codes
           expected_classes expected_messages expected_status_codes
-        ).each do |w|
+        ].each do |w|
           Agent.config.register_callback(:"error_collector.#{w}") do |value|
             @error_filter.load_from_config(w, value)
           end
@@ -104,8 +103,10 @@ module NewRelic
       # an error is ignored if it is nil or if it is filtered
       def error_is_ignored?(error, status_code = nil)
         error && (@error_filter.ignore?(error, status_code) || ignored_by_filter_proc?(error))
-      rescue => e
-        NewRelic::Agent.logger.error("Error '#{error}' will NOT be ignored. Exception '#{e}' while determining whether to ignore or not.", e)
+      rescue StandardError => e
+        NewRelic::Agent.logger.error(
+          "Error '#{error}' will NOT be ignored. Exception '#{e}' while determining whether to ignore or not.", e
+        )
         false
       end
 
@@ -122,23 +123,26 @@ module NewRelic
 
       def exception_tagged_with?(ivar, exception)
         return false if exception_is_java_object?(exception)
+
         exception.instance_variable_defined?(ivar)
       end
 
       def tag_exception_using(ivar, exception)
         return if exception_is_java_object?(exception) || exception.frozen?
+
         begin
           exception.instance_variable_set(ivar, true)
-        rescue => e
+        rescue StandardError => e
           NewRelic::Agent.logger.warn("Failed to tag exception: #{exception}: ", e)
         end
       end
 
       def tag_exception(exception)
         return if exception_is_java_object?(exception) || exception.frozen?
+
         begin
           exception.instance_variable_set(EXCEPTION_TAG_IVAR, true)
-        rescue => e
+        rescue StandardError => e
           NewRelic::Agent.logger.warn("Failed to tag exception: #{exception}: ", e)
         end
       end
@@ -146,26 +150,26 @@ module NewRelic
       def blamed_metric_name(txn, options)
         if options[:metric] && options[:metric] != ::NewRelic::Agent::UNKNOWN_METRIC
           "Errors/#{options[:metric]}"
-        else
-          "Errors/#{txn.best_name}" if txn
+        elsif txn
+          "Errors/#{txn.best_name}"
         end
       end
 
       def aggregated_metric_names(txn)
-        metric_names = ["Errors/all"]
+        metric_names = ['Errors/all']
         return metric_names unless txn
 
-        if txn.recording_web_transaction?
-          metric_names << "Errors/allWeb"
-        else
-          metric_names << "Errors/allOther"
-        end
+        metric_names << if txn.recording_web_transaction?
+                          'Errors/allWeb'
+                        else
+                          'Errors/allOther'
+                        end
 
         metric_names
       end
 
       # Increments a statistic that tracks total error rate
-      def increment_error_count!(state, exception, options={})
+      def increment_error_count!(state, _exception, options = {})
         txn = state.current_transaction
 
         metric_names  = aggregated_metric_names(txn)
@@ -178,7 +182,7 @@ module NewRelic
         end
       end
 
-      def increment_expected_error_count!(state, exception)
+      def increment_expected_error_count!(state, _exception)
         stats_engine = NewRelic::Agent.agent.stats_engine
         stats_engine.record_unscoped_metrics(state, ['ErrorsExpected/all']) do |stats|
           stats.increment_count
@@ -187,9 +191,9 @@ module NewRelic
 
       def skip_notice_error?(exception, status_code = nil)
         disabled? ||
-        exception.nil? ||
-        exception_tagged_with?(EXCEPTION_TAG_IVAR, exception) ||
-        error_is_ignored?(exception, status_code)
+          exception.nil? ||
+          exception_tagged_with?(EXCEPTION_TAG_IVAR, exception) ||
+          error_is_ignored?(exception, status_code)
       end
 
       # calls a method on an object, if it responds to it - used for
@@ -209,18 +213,18 @@ module NewRelic
         sense_method(actual_exception, :backtrace) || '<no stack trace>'
       end
 
-      def notice_segment_error(segment, exception, options={})
+      def notice_segment_error(segment, exception, options = {})
         return if skip_notice_error?(exception)
 
         segment.set_noticed_error create_noticed_error(exception, options)
         exception
-      rescue => e
+      rescue StandardError => e
         ::NewRelic::Agent.logger.warn("Failure when capturing segment error '#{exception}':", e)
         nil
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
-      def notice_error(exception, options={}, span_id=nil)
+      def notice_error(exception, options = {}, span_id = nil)
         state = ::NewRelic::Agent::Tracer.state
         transaction = state.current_transaction
         status_code = transaction ? transaction.http_response_code : nil
@@ -239,15 +243,15 @@ module NewRelic
         error_trace_aggregator.add_to_error_queue(noticed_error)
         transaction = state.current_transaction
         payload = transaction ? transaction.payload : nil
-        span_id ||= (transaction && transaction.current_segment) ? transaction.current_segment.guid : nil
+        span_id ||= transaction && transaction.current_segment ? transaction.current_segment.guid : nil
         error_event_aggregator.record(noticed_error, payload, span_id)
         exception
-      rescue => e
+      rescue StandardError => e
         ::NewRelic::Agent.logger.warn("Failure when capturing error '#{exception}':", e)
         nil
       end
 
-      def truncate_trace(trace, keep_frames=nil)
+      def truncate_trace(trace, keep_frames = nil)
         keep_frames ||= Agent.config[:'error_collector.max_backtrace_frames']
         return trace if !keep_frames || trace.length < keep_frames || trace.length == 0
 
@@ -257,8 +261,7 @@ module NewRelic
 
         truncate_frames = trace.length - keep_frames
 
-        truncated_trace = trace[0...keep_top].concat(["<truncated #{truncate_frames.to_s} additional frames>"]).concat(trace[-keep_bottom..-1])
-        truncated_trace
+        trace[0...keep_top].concat(["<truncated #{truncate_frames} additional frames>"]).concat(trace[-keep_bottom..-1])
       end
 
       def create_noticed_error(exception, options)

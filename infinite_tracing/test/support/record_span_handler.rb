@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -6,10 +5,9 @@
 module NewRelic::Agent
   module InfiniteTracing
     class RecordSpanHandler
-
       HURDLE_INCREMENT = 3
 
-      def initialize server, record_spans, id
+      def initialize(server, record_spans, id)
         @server = server
         @record_spans = record_spans
         @id = id
@@ -32,33 +30,33 @@ module NewRelic::Agent
       end
 
       def start_handler
-        Worker.new "RecordSpanHandler" do
-          begin
-            @record_spans.each do |span|
-              @server.notice_span span
-              if seen >= @next_seen_hurdle
-                @next_seen_hurdle += HURDLE_INCREMENT
-                @record_status_stream.push(record_status)
-              end
+        Worker.new 'RecordSpanHandler' do
+          @record_spans.each do |span|
+            @server.notice_span span
+            if seen >= @next_seen_hurdle
+              @next_seen_hurdle += HURDLE_INCREMENT
+              @record_status_stream.push(record_status)
             end
-            @record_status_stream.push(record_status)
-            @record_status_stream.push(nil)
-          rescue StandardError => e
-            puts "SERVER ERROR", e.inspect
-            raise e
-          ensure
-            @lock.synchronize { @worker, @record_spans = nil }
           end
+          @record_status_stream.push(record_status)
+          @record_status_stream.push(nil)
+        rescue StandardError => e
+          puts 'SERVER ERROR', e.inspect
+          raise e
+        ensure
+          @lock.synchronize { @worker, @record_spans = nil }
         end
       end
 
       def flush
         return unless @worker
+
         @worker.join while @lock.synchronize { @record_spans }
       end
 
       def stop
         return unless @worker
+
         @lock.synchronize do
           @worker.stop
           @worker = nil

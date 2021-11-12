@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../test_helper', __FILE__
+require File.expand_path '../../test_helper', __dir__
 require 'new_relic/agent/priority_sampled_buffer'
 
 module NewRelic::Agent
@@ -12,7 +11,7 @@ module NewRelic::Agent
 
       10.times { |i| buffer.append(event: create_event(priority: i)) }
 
-      expected = (5..9).map{ |i| create_event(priority: i) }
+      expected = (5..9).map { |i| create_event(priority: i) }
 
       assert_equal(5, buffer.size)
       assert_equal_unordered(expected, buffer.to_a)
@@ -24,7 +23,7 @@ module NewRelic::Agent
       events = create_events(5..9)
       events.each { |e| buffer.append(event: e) }
 
-      buffer.append(event: create_event(priority: 4)) { raise "This should not be evaluated" }
+      buffer.append(event: create_event(priority: 4)) { raise 'This should not be evaluated' }
 
       assert_equal(5, buffer.size)
       assert_equal_unordered(events, buffer.to_a)
@@ -35,9 +34,9 @@ module NewRelic::Agent
 
       11.times { |i| buffer.append(event: create_event(priority: i)) }
 
-      assert_equal(10, buffer.size       )
-      assert_equal(11, buffer.num_seen   )
-      assert_equal( 1, buffer.num_dropped)
+      assert_equal(10, buffer.size)
+      assert_equal(11, buffer.num_seen)
+      assert_equal(1, buffer.num_dropped)
     end
 
     def test_should_not_discard_items_if_not_needed_when_capacity_is_reset
@@ -48,10 +47,10 @@ module NewRelic::Agent
       events.each { |e| buffer.append(event: e) }
 
       buffer.capacity = 20
-      assert_equal(10, buffer.size       )
-      assert_equal(20, buffer.capacity   )
-      assert_equal(10, buffer.num_seen   )
-      assert_equal( 0, buffer.num_dropped)
+      assert_equal(10, buffer.size)
+      assert_equal(20, buffer.capacity)
+      assert_equal(10, buffer.num_seen)
+      assert_equal(0, buffer.num_dropped)
       assert_equal(events, buffer.to_a)
     end
 
@@ -70,7 +69,7 @@ module NewRelic::Agent
       events.each { |e| buffer.append(event: e) }
 
       items = buffer.to_a
-      items << create_event(priority: "blarg")
+      items << create_event(priority: 'blarg')
 
       assert_equal(events, buffer.to_a)
     end
@@ -91,12 +90,12 @@ module NewRelic::Agent
 
       4.times do |i|
         buffer.append(event: create_event(priority: i))
-        assert_equal(false, buffer.full?, "#PrioritySampledBuffer#append should return false until buffer is full")
+        assert_equal(false, buffer.full?, '#PrioritySampledBuffer#append should return false until buffer is full')
       end
 
       4.times do |i|
         buffer.append(event: create_event(priority: i))
-        assert_equal(true, buffer.full?, "#PrioritySampledBuffer#append should return true once buffer is full")
+        assert_equal(true, buffer.full?, '#PrioritySampledBuffer#append should return true once buffer is full')
       end
     end
 
@@ -120,11 +119,11 @@ module NewRelic::Agent
       buffer.capacity = 5
       assert_equal(5, buffer.size)
 
-      expected = (5..9).map{ |i| create_event(priority: i)}
+      expected = (5..9).map { |i| create_event(priority: i) }
 
       assert_equal_unordered(expected, buffer.to_a)
-      assert_equal(10, buffer.num_seen   )
-      assert_equal( 5, buffer.num_dropped)
+      assert_equal(10, buffer.num_seen)
+      assert_equal(5, buffer.num_dropped)
     end
 
     def test_num_seen_counts_all_seen_samples_since_last_reset
@@ -186,9 +185,9 @@ module NewRelic::Agent
       7.times { |i| buffer.append(event: create_event(priority: i)) }
 
       expected = {
-        :capacity => 5,
-        :seen => 7,
-        :captured => 5
+        capacity: 5,
+        seen: 7,
+        captured: 5
       }
 
       metadata = buffer.metadata
@@ -229,11 +228,11 @@ module NewRelic::Agent
     # for this test file.
     def create_event(priority: nil, name: nil)
       name ||= "event_#{priority}"
-      [{"priority" => priority, "name" => name}, {}, {}]
+      [{ 'priority' => priority, 'name' => name }, {}, {}]
     end
 
     def create_events(priorities)
-      priorities.map { |i| create_event(priority: i)}
+      priorities.map { |i| create_event(priority: i) }
     end
   end
 end

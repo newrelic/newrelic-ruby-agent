@@ -1,8 +1,8 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 # -*- coding: utf-8 -*-
+
 module NewRelic
   module Agent
     class StatsEngine
@@ -12,11 +12,12 @@ module NewRelic
         def self.init
           @initialized ||= nil
           return @profiler if @initialized
+
           @profiler = if RailsBenchProfiler.enabled?
-            RailsBenchProfiler.new
-          elsif CoreGCProfiler.enabled?
-            CoreGCProfiler.new
-          end
+                        RailsBenchProfiler.new
+                      elsif CoreGCProfiler.enabled?
+                        CoreGCProfiler.new
+                      end
           @initialized = true
           @profiler
         end
@@ -28,11 +29,7 @@ module NewRelic
 
         def self.take_snapshot
           init
-          if @profiler
-            GCSnapshot.new(@profiler.call_time_s, @profiler.call_count)
-          else
-            nil
-          end
+          GCSnapshot.new(@profiler.call_time_s, @profiler.call_count) if @profiler
         end
 
         def self.record_delta(start_snapshot, end_snapshot)
@@ -46,7 +43,7 @@ module NewRelic
           end
         end
 
-        def self.record_gc_metric(call_count, elapsed) #THREAD_LOCAL_ACCESS
+        def self.record_gc_metric(call_count, elapsed) # THREAD_LOCAL_ACCESS
           NewRelic::Agent.agent.stats_engine.tl_record_scoped_and_unscoped_metrics(gc_metric_name, GC_ROLLUP) do |stats|
             stats.call_count           += call_count
             stats.total_call_time      += elapsed

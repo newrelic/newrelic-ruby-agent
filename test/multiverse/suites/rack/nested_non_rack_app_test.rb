@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -26,8 +25,8 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     class RailsishApp
       include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
-      def call(env)
-        perform_action_with_newrelic_trace(:category => :controller, :name => 'inner') do
+      def call(_env)
+        perform_action_with_newrelic_trace(category: :controller, name: 'inner') do
           [200, {}, ['hey']]
         end
       end
@@ -45,20 +44,23 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
 
       assert_metrics_recorded_exclusive(
         [
-          "Apdex",
-          "ApdexAll",
-          "Apdex/NestedNonRackAppTest::RailsishApp/inner",
-          "Controller/NestedNonRackAppTest::RailsishApp/inner",
-          "HttpDispatcher",
-          "WebTransactionTotalTime",
-          "WebTransactionTotalTime/Controller/NestedNonRackAppTest::RailsishApp/inner",
-          "Middleware/all",
-          "Middleware/Rack/NestedNonRackAppTest::ExampleMiddleware/call",
-          ["Middleware/Rack/NestedNonRackAppTest::ExampleMiddleware/call", "Controller/NestedNonRackAppTest::RailsishApp/inner"],
-          "Nested/Controller/NestedNonRackAppTest::RailsishApp/inner",
-          ["Nested/Controller/NestedNonRackAppTest::RailsishApp/inner", "Controller/NestedNonRackAppTest::RailsishApp/inner"],
-          "Nested/Controller/Rack/NestedNonRackAppTest::RailsishApp/call",
-          ["Nested/Controller/Rack/NestedNonRackAppTest::RailsishApp/call", "Controller/NestedNonRackAppTest::RailsishApp/inner"],
+          'Apdex',
+          'ApdexAll',
+          'Apdex/NestedNonRackAppTest::RailsishApp/inner',
+          'Controller/NestedNonRackAppTest::RailsishApp/inner',
+          'HttpDispatcher',
+          'WebTransactionTotalTime',
+          'WebTransactionTotalTime/Controller/NestedNonRackAppTest::RailsishApp/inner',
+          'Middleware/all',
+          'Middleware/Rack/NestedNonRackAppTest::ExampleMiddleware/call',
+          ['Middleware/Rack/NestedNonRackAppTest::ExampleMiddleware/call',
+           'Controller/NestedNonRackAppTest::RailsishApp/inner'],
+          'Nested/Controller/NestedNonRackAppTest::RailsishApp/inner',
+          ['Nested/Controller/NestedNonRackAppTest::RailsishApp/inner',
+           'Controller/NestedNonRackAppTest::RailsishApp/inner'],
+          'Nested/Controller/Rack/NestedNonRackAppTest::RailsishApp/call',
+          ['Nested/Controller/Rack/NestedNonRackAppTest::RailsishApp/call',
+           'Controller/NestedNonRackAppTest::RailsishApp/inner'],
           'DurationByCaller/Unknown/Unknown/Unknown/HTTP/all',
           'DurationByCaller/Unknown/Unknown/Unknown/HTTP/allWeb',
           'Logging/lines',
@@ -66,9 +68,9 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
           'Logging/lines/WARN',
           'Logging/size',
           'Logging/size/INFO',
-          'Logging/size/WARN',
+          'Logging/size/WARN'
         ],
-        :ignore_filter => /^Supportability/
+        ignore_filter: /^Supportability/
       )
     end
   end

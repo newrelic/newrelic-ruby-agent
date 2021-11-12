@@ -1,7 +1,5 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
-
 
 module NewRelic::Agent::Instrumentation
   module HTTPClient
@@ -14,4 +12,3 @@ module NewRelic::Agent::Instrumentation
     end
   end
 end
-

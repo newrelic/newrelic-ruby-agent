@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -9,6 +8,7 @@ module NewRelic
       module Memcache
         module Dalli
           extend Helper
+
           module_function
 
           def instrument!
@@ -22,7 +22,7 @@ module NewRelic
             end
           end
 
-          def instrument_multi_method method_name
+          def instrument_multi_method(method_name)
             visibility = NewRelic::Helper.instance_method_visibility ::Dalli::Client, method_name
             method_name_without = :"#{method_name}_without_newrelic_trace"
 
@@ -44,7 +44,7 @@ module NewRelic
 
               alias_method :server_for_key_without_newrelic_trace, :server_for_key
 
-              def server_for_key key
+              def server_for_key(key)
                 server_for_key_with_newrelic_tracing { server_for_key_without_newrelic_trace key }
               end
             end
@@ -59,7 +59,7 @@ module NewRelic
               include NewRelic::Agent::Instrumentation::Memcache::Tracer
               alias_method :send_multiget_without_newrelic_trace, :send_multiget
 
-              def send_multiget keys
+              def send_multiget(keys)
                 send_multiget_with_newrelic_tracing(keys) { send_multiget_without_newrelic_trace keys }
               end
             end
@@ -69,6 +69,7 @@ module NewRelic
         module DalliCAS
           extend Dalli
           extend Helper
+
           module_function
 
           def should_instrument?
@@ -84,4 +85,3 @@ module NewRelic
     end
   end
 end
-

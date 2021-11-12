@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path('../../../test_helper', __FILE__)
+require File.expand_path('../../test_helper', __dir__)
 
 class NewRelic::Agent::RpmAgentTest < Minitest::Test
   def setup
@@ -22,20 +21,20 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
     end
 
     ignore_called = false
-    filter = Proc.new do |e|
+    filter = proc do |_e|
       ignore_called = true
       nil
     end
     with_ignore_error_filter(filter) do
-      NewRelic::Agent.notice_error(StandardError.new("message"), :request_params => {:x => "y"})
+      NewRelic::Agent.notice_error(StandardError.new('message'), request_params: { x: 'y' })
     end
 
     assert(ignore_called)
   end
 
   def test_startup_shutdown_real
-    with_config(:agent_enabled => true, :monitor_mode => true) do
-      NewRelic::Agent.manual_start :monitor_mode => true, :license_key => ('x' * 40)
+    with_config(agent_enabled: true, monitor_mode: true) do
+      NewRelic::Agent.manual_start monitor_mode: true, license_key: ('x' * 40)
       agent = NewRelic::Agent.instance
       assert agent.started?
       agent.shutdown
@@ -47,27 +46,27 @@ class NewRelic::Agent::RpmAgentTest < Minitest::Test
     NewRelic::Agent.instance.expects(:connect).once
     NewRelic::Agent.instance.expects(:start_worker_thread).once
     NewRelic::Agent.instance.instance_variable_set '@started', nil
-    NewRelic::Agent.manual_start :monitor_mode => true, :license_key => ('x' * 40)
+    NewRelic::Agent.manual_start monitor_mode: true, license_key: ('x' * 40)
     NewRelic::Agent.shutdown
   end
 
   def test_post_fork_handler
-    NewRelic::Agent.manual_start :monitor_mode => true, :license_key => ('x' * 40)
+    NewRelic::Agent.manual_start monitor_mode: true, license_key: ('x' * 40)
     NewRelic::Agent.after_fork
     NewRelic::Agent.after_fork
     NewRelic::Agent.shutdown
   end
 
   def test_manual_overrides
-    NewRelic::Agent.manual_start :app_name => "testjobs"
-    assert_equal "testjobs", NewRelic::Agent.config[:app_name][0]
+    NewRelic::Agent.manual_start app_name: 'testjobs'
+    assert_equal 'testjobs', NewRelic::Agent.config[:app_name][0]
     NewRelic::Agent.shutdown
   end
 
   def test_agent_restart
-    NewRelic::Agent.manual_start :app_name => "noapp"
-    NewRelic::Agent.manual_start :app_name => "testjobs"
-    assert_equal "testjobs", NewRelic::Agent.config[:app_name][0]
+    NewRelic::Agent.manual_start app_name: 'noapp'
+    NewRelic::Agent.manual_start app_name: 'testjobs'
+    assert_equal 'testjobs', NewRelic::Agent.config[:app_name][0]
     NewRelic::Agent.shutdown
   end
 

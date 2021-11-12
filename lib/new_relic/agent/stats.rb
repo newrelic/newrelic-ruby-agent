@@ -1,15 +1,10 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 module NewRelic
   module Agent
     class Stats
-      attr_accessor :call_count
-      attr_accessor :min_call_time
-      attr_accessor :max_call_time
-      attr_accessor :total_call_time
-      attr_accessor :total_exclusive_time
-      attr_accessor :sum_of_squares
+      attr_accessor :call_count, :min_call_time, :max_call_time, :total_call_time, :total_exclusive_time,
+                    :sum_of_squares
 
       def initialize
         reset
@@ -29,7 +24,7 @@ module NewRelic
       end
 
       def merge(other_stats)
-        stats = self.clone
+        stats = clone
         stats.merge!(other_stats)
       end
 
@@ -49,27 +44,27 @@ module NewRelic
 
       def to_json(*_)
         {
-          'call_count'           => call_count.to_i,
-          'min_call_time'        => min_call_time.to_f,
-          'max_call_time'        => max_call_time.to_f,
-          'total_call_time'      => total_call_time.to_f,
+          'call_count' => call_count.to_i,
+          'min_call_time' => min_call_time.to_f,
+          'max_call_time' => max_call_time.to_f,
+          'total_call_time' => total_call_time.to_f,
           'total_exclusive_time' => total_exclusive_time.to_f,
-          'sum_of_squares'       => sum_of_squares.to_f
+          'sum_of_squares' => sum_of_squares.to_f
         }.to_json(*_)
       end
 
-      def record(value=nil, aux=nil, &blk)
+      def record(value = nil, aux = nil, &blk)
         if blk
           yield self
         else
           case value
           when Numeric
             aux ||= value
-            self.record_data_point(value, aux)
+            record_data_point(value, aux)
           when :apdex_s, :apdex_t, :apdex_f
-            self.record_apdex(value, aux)
+            record_apdex(value, aux)
           when NewRelic::Agent::Stats
-            self.merge!(value)
+            merge!(value)
           end
         end
       end
@@ -99,27 +94,27 @@ module NewRelic
       # putting back a version to get full inspection as separate method
       def inspect_full
         variables = instance_variables.map do |ivar|
-          "#{ivar.to_s}=#{instance_variable_get(ivar).inspect}"
-        end.join(" ")
+          "#{ivar}=#{instance_variable_get(ivar).inspect}"
+        end.join(' ')
         "#<NewRelic::Agent::Stats #{variables}>"
       end
 
       def ==(other)
         other.class == self.class &&
-        (
-          @min_call_time        == other.min_call_time &&
-          @max_call_time        == other.max_call_time &&
-          @total_call_time      == other.total_call_time &&
-          @total_exclusive_time == other.total_exclusive_time &&
-          @sum_of_squares       == other.sum_of_squares &&
-          @call_count           == other.call_count
-        )
+          (
+            @min_call_time        == other.min_call_time &&
+            @max_call_time        == other.max_call_time &&
+            @total_call_time      == other.total_call_time &&
+            @total_exclusive_time == other.total_exclusive_time &&
+            @sum_of_squares       == other.sum_of_squares &&
+            @call_count           == other.call_count
+          )
       end
 
       # Apdex-related accessors
-      alias_method :apdex_s, :call_count
-      alias_method :apdex_t, :total_call_time
-      alias_method :apdex_f, :total_exclusive_time
+      alias apdex_s call_count
+      alias apdex_t total_call_time
+      alias apdex_f total_exclusive_time
 
       def record_apdex(bucket, apdex_t)
         case bucket

@@ -1,15 +1,14 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/delayed_job_injection'
 
-if !NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
+unless NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
   class UnsupportedBackendTest < Minitest::Test
     include MultiverseHelpers
 
     setup_and_teardown_agent do
-      NewRelic::DelayedJobInjection.worker_name = "delayed"
+      NewRelic::DelayedJobInjection.worker_name = 'delayed'
     end
 
     def test_unsupported_raises_on_instantiation

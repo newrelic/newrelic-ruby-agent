@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -18,7 +17,7 @@ module NewRelic
       extend Coerce
 
       VERSION     = [0, 1].freeze
-      PARENT_TYPE = "App"
+      PARENT_TYPE = 'App'
       POUND       = '#'
 
       # Key names for serialization
@@ -36,8 +35,7 @@ module NewRelic
       PRIORITY_KEY          = 'pr'
 
       class << self
-
-        def for_transaction transaction
+        def for_transaction(transaction)
           return nil unless connected?
 
           payload = new
@@ -58,9 +56,10 @@ module NewRelic
           payload
         end
 
-        def from_json serialized_payload
+        def from_json(serialized_payload)
           raw_payload = JSON.parse serialized_payload
           return raw_payload if raw_payload.nil?
+
           payload_data = raw_payload[DATA_KEY]
 
           payload = new
@@ -79,7 +78,7 @@ module NewRelic
           payload
         end
 
-        def from_http_safe http_safe_payload
+        def from_http_safe(http_safe_payload)
           decoded_payload = Base64.strict_decode64 http_safe_payload
           from_json decoded_payload
         end
@@ -90,18 +89,14 @@ module NewRelic
 
         private
 
-        def assign_trusted_account_key payload, account_id
+        def assign_trusted_account_key(payload, account_id)
           trusted_account_key = Agent.config[:trusted_account_key]
 
-          if account_id != trusted_account_key
-            payload.trusted_account_key = trusted_account_key
-          end
+          payload.trusted_account_key = trusted_account_key if account_id != trusted_account_key
         end
 
         def current_segment_id(transaction)
-          if Agent.config[:'span_events.enabled'] && transaction.current_segment
-            transaction.current_segment.guid
-          end
+          transaction.current_segment.guid if Agent.config[:'span_events.enabled'] && transaction.current_segment
         end
 
         def connected?
@@ -121,7 +116,7 @@ module NewRelic
                     :priority,
                     :timestamp
 
-      alias_method :sampled?, :sampled
+      alias sampled? sampled
 
       # Represent this payload as a raw JSON string.
       #
@@ -134,14 +129,14 @@ module NewRelic
         }
 
         result[DATA_KEY] = {
-          PARENT_TYPE_KEY       => parent_type,
+          PARENT_TYPE_KEY => parent_type,
           PARENT_ACCOUNT_ID_KEY => parent_account_id,
-          PARENT_APP_KEY        => parent_app_id,
-          TX_KEY                => transaction_id,
-          TRACE_ID_KEY          => trace_id,
-          SAMPLED_KEY           => sampled,
-          PRIORITY_KEY          => priority,
-          TIMESTAMP_KEY         => timestamp,
+          PARENT_APP_KEY => parent_app_id,
+          TX_KEY => transaction_id,
+          TRACE_ID_KEY => trace_id,
+          SAMPLED_KEY => sampled,
+          PRIORITY_KEY => priority,
+          TIMESTAMP_KEY => timestamp
         }
 
         result[DATA_KEY][ID_KEY]              = id if id

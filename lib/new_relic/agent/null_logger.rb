@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,12 +7,16 @@ module NewRelic
   module Agent
     class NullLogger
       def fatal(*args); end
+
       def error(*args); end
+
       def warn(*args);  end
+
       def info(*args);  end
+
       def debug(*args); end
 
-      def method_missing(method, *args, &blk)
+      def method_missing(_method, *_args)
         nil
       end
     end

@@ -1,12 +1,10 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', '..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/agent'
 
 class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
-
   def setup
     @service = default_service
     NewRelic::Agent.reset_config
@@ -31,8 +29,8 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
   end
 
   def test_connect_settings
-    with_config :app_name => ["apps"] do
-      keys = %w(pid host identifier display_host app_name language agent_version environment settings).map(&:to_sym)
+    with_config app_name: ['apps'] do
+      keys = %w[pid host identifier display_host app_name language agent_version environment settings].map(&:to_sym)
 
       settings = @request_builder.connect_payload
       keys.each do |k|
@@ -43,27 +41,27 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
   end
 
   def test_connect_settings_includes_correct_identifier
-    with_config :app_name => "b;a;c" do
+    with_config app_name: 'b;a;c' do
       NewRelic::Agent::Connect::RequestBuilder.any_instance.stubs(:local_host).returns('lo-calhost')
       @environment_report = {}
 
       settings = @request_builder.connect_payload
 
-      assert_equal settings[:identifier], "ruby:lo-calhost:a,b,c"
+      assert_equal settings[:identifier], 'ruby:lo-calhost:a,b,c'
     end
   end
 
   def test_connect_settings_includes_labels_from_config
-    with_config({:labels => {'Server' => 'East'}}) do
-      expected = [ {"label_type"=>"Server", "label_value"=>"East"} ]
+    with_config({ labels: { 'Server' => 'East' } }) do
+      expected = [{ 'label_type' => 'Server', 'label_value' => 'East' }]
       assert_equal expected, @request_builder.connect_payload[:labels]
     end
   end
 
   def test_connect_settings_includes_labels_from_semicolon_separated_config
-    with_config(:labels => "Server:East;Server:West;") do
+    with_config(labels: 'Server:East;Server:West;') do
       expected = [
-        {"label_type"=>"Server", "label_value"=>"West"}
+        { 'label_type' => 'Server', 'label_value' => 'West' }
       ]
       assert_equal expected, @request_builder.connect_payload[:labels]
     end
@@ -77,12 +75,11 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
   def test_enviroment_metadata
     key = 'NEW_RELIC_METADATA_ONE'
     value = 'hypogeal flushing'
-    expected = {key => value}
+    expected = { key => value }
 
     ENV[key] = value
     assert_equal expected, @request_builder.connect_payload[:metadata]
   ensure
     ENV[key] = nil
   end
-
 end

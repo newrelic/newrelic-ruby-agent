@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -24,11 +23,11 @@ if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:dela
       self.table_name = :pelicans
 
       def quack
-        "quack..."
+        'quack...'
       end
 
       def quack_later
-        "...quack"
+        '...quack'
       end
 
       handle_asynchronously :quack_later
@@ -43,7 +42,9 @@ if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:dela
       # to install our instrumentation.  Delayed::Workers are not initialized when running
       # tests inline so we have to manually instantiate one to install our instrumentation.
       # We also need to take care to only install the instrumentation once.
-      unless Delayed::Job.instance_methods.any? { |m|  m == :invoke_job_without_new_relic || m == "invoke_job_without_new_relic" }
+      unless Delayed::Job.instance_methods.any? do |m|
+               [:invoke_job_without_new_relic, 'invoke_job_without_new_relic'].include?(m)
+             end
         Delayed::Worker.new
       end
     end
@@ -57,12 +58,12 @@ if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:dela
     # We can only test methods using delay and handle_asynchronously on versions that run jobs via
     # the invoke_job method.
     def self.dj_invokes_job_inline?
-      Gem.loaded_specs["delayed_job"].version >= Gem::Version.new("3.0.0")
+      Gem.loaded_specs['delayed_job'].version >= Gem::Version.new('3.0.0')
     end
 
     if dj_invokes_job_inline?
       def test_delay_method
-        p = Pelican.create(:name => "Charlie")
+        p = Pelican.create(name: 'Charlie')
         p.delay.quack
 
         assert_metrics_recorded [
@@ -73,7 +74,7 @@ if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:dela
       end
 
       def test_handle_asynchronously
-        p = Pelican.create(:name => "Charlieee")
+        p = Pelican.create(name: 'Charlieee')
         p.quack_later
 
         assert_metrics_recorded [
@@ -99,7 +100,7 @@ if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:dela
     # not call invoke_job when running jobs inline it instead calls perform directly.  This
     # allows us to test the stand alone job case on all supported versions of Delayed Job.
     def invoke_job(job)
-      job = Delayed::Job.new(:payload_object => job)
+      job = Delayed::Job.new(payload_object: job)
       job.invoke_job
     end
   end

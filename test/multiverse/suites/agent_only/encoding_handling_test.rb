@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,8 +7,8 @@ class EncodingHandlingTest < Minitest::Test
   setup_and_teardown_agent
 
   def test_handles_mis_encoded_database_queries
-    with_config(:'transaction_tracer.transaction_threshold' => 0.0,
-                :'transaction_tracer.record_sql' => :raw) do
+    with_config('transaction_tracer.transaction_threshold': 0.0,
+                'transaction_tracer.record_sql': :raw) do
       in_transaction do
         segment = NewRelic::Agent::Tracer.start_datastore_segment
         segment.notice_sql(bad_string)
@@ -20,9 +19,9 @@ class EncodingHandlingTest < Minitest::Test
   end
 
   def test_handles_mis_encoded_request_params
-    with_config(:'capture_params' => true,
-      :'transaction_tracer.transaction_threshold' => 0.0) do
-      options = { :filtered_params => { bad_string => bad_string }}
+    with_config(capture_params: true,
+                'transaction_tracer.transaction_threshold': 0.0) do
+      options = { filtered_params: { bad_string => bad_string } }
       in_transaction(options) do
         # nothin
       end
@@ -31,23 +30,23 @@ class EncodingHandlingTest < Minitest::Test
   end
 
   def test_handles_mis_encoded_custom_attributes
-    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+    with_config('transaction_tracer.transaction_threshold': 0.0) do
       in_transaction do
-        NewRelic::Agent.add_custom_attributes(:foo => bad_string)
+        NewRelic::Agent.add_custom_attributes(foo: bad_string)
       end
     end
     assert_endpoint_received_string('transaction_sample_data', normalized_bad_string)
   end
 
   def test_handles_mis_encoded_custom_attributes_on_analytics_events
-    in_transaction(:category => :controller) do
-      NewRelic::Agent.add_custom_attributes(:foo => bad_string)
+    in_transaction(category: :controller) do
+      NewRelic::Agent.add_custom_attributes(foo: bad_string)
     end
     assert_endpoint_received_string('analytic_event_data', normalized_bad_string)
   end
 
   def test_handles_mis_encoded_custom_attributes_on_errors
-    NewRelic::Agent.notice_error('bad news', :custom_params => {'foo' => bad_string})
+    NewRelic::Agent.notice_error('bad news', custom_params: { 'foo' => bad_string })
     assert_endpoint_received_string('error_data', normalized_bad_string)
   end
 
@@ -62,7 +61,7 @@ class EncodingHandlingTest < Minitest::Test
   end
 
   def test_handles_mis_encoded_transaction_names
-    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+    with_config('transaction_tracer.transaction_threshold': 0.0) do
       in_transaction do
         NewRelic::Agent.set_transaction_name(bad_string)
       end
@@ -118,7 +117,7 @@ class EncodingHandlingTest < Minitest::Test
   end
 
   def bad_string
-    [128].to_a.pack("C*").force_encoding('UTF-8')
+    [128].to_a.pack('C*').force_encoding('UTF-8')
   end
 
   def normalized_bad_string

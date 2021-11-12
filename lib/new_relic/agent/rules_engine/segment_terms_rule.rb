@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -9,16 +8,16 @@ module NewRelic
         PREFIX_KEY                        = 'prefix'.freeze
         TERMS_KEY                         = 'terms'.freeze
         SEGMENT_PLACEHOLDER               = '*'.freeze
-        ADJACENT_PLACEHOLDERS_REGEX       = %r{((?:^|/)\*)(?:/\*)*}.freeze
+        ADJACENT_PLACEHOLDERS_REGEX       = %r{((?:^|/)\*)(?:/\*)*}
         ADJACENT_PLACEHOLDERS_REPLACEMENT = '\1'.freeze
         VALID_PREFIX_SEGMENT_COUNT        = 2
 
         attr_reader :prefix, :terms
 
         def self.valid?(rule_spec)
-          rule_spec[PREFIX_KEY].kind_of?(String) &&
-          rule_spec[TERMS_KEY].kind_of?(Array) &&
-          valid_prefix_segment_count?(rule_spec[PREFIX_KEY])
+          rule_spec[PREFIX_KEY].is_a?(String) &&
+            rule_spec[TERMS_KEY].is_a?(Array) &&
+            valid_prefix_segment_count?(rule_spec[PREFIX_KEY])
         end
 
         def self.valid_prefix_segment_count?(prefix)
@@ -26,7 +25,7 @@ module NewRelic
           rindex = prefix.rindex(SEGMENT_SEPARATOR)
 
           (count == 2 && prefix[rindex + 1].nil?) ||
-          (count == 1 && !prefix[rindex + 1].nil?)
+            (count == 1 && !prefix[rindex + 1].nil?)
         end
 
         def initialize(options)

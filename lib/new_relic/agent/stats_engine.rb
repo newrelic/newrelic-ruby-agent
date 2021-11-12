@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -20,8 +19,8 @@ module NewRelic
 
       # All access to the @stats_hash ivar should be funnelled through this
       # method to ensure thread-safety.
-      def with_stats_lock
-        @stats_lock.synchronize { yield }
+      def with_stats_lock(&block)
+        @stats_lock.synchronize(&block)
       end
 
       # Update the unscoped metrics given in metric_names.
@@ -60,12 +59,12 @@ module NewRelic
       #
       # @api private
       #
-      def tl_record_unscoped_metrics(metric_names, value=nil, aux=nil, &blk)
+      def tl_record_unscoped_metrics(metric_names, value = nil, aux = nil, &blk)
         state = NewRelic::Agent::Tracer.state
         record_unscoped_metrics(state, metric_names, value, aux, &blk)
       end
 
-      def record_unscoped_metrics(state, metric_names, value=nil, aux=nil, &blk)
+      def record_unscoped_metrics(state, metric_names, value = nil, aux = nil, &blk)
         txn = state.current_transaction
         if txn
           txn.metrics.record_unscoped(metric_names, value, aux, &blk)
@@ -96,23 +95,19 @@ module NewRelic
       #
       # @api private
       #
-      def tl_record_scoped_and_unscoped_metrics(scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)
+      def tl_record_scoped_and_unscoped_metrics(scoped_metric, summary_metrics = nil, value = nil, aux = nil, &blk)
         state = NewRelic::Agent::Tracer.state
         record_scoped_and_unscoped_metrics(state, scoped_metric, summary_metrics, value, aux, &blk)
       end
 
-      def record_scoped_and_unscoped_metrics(state, scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)
+      def record_scoped_and_unscoped_metrics(state, scoped_metric, summary_metrics = nil, value = nil, aux = nil, &blk)
         txn = state.current_transaction
         if txn
           txn.metrics.record_scoped_and_unscoped(scoped_metric, value, aux, &blk)
-          if summary_metrics
-            txn.metrics.record_unscoped(summary_metrics, value, aux, &blk)
-          end
+          txn.metrics.record_unscoped(summary_metrics, value, aux, &blk) if summary_metrics
         else
           specs = coerce_to_metric_spec_array(scoped_metric, nil)
-          if summary_metrics
-            specs.concat(coerce_to_metric_spec_array(summary_metrics, nil))
-          end
+          specs.concat(coerce_to_metric_spec_array(summary_metrics, nil)) if summary_metrics
           with_stats_lock do
             @stats_hash.record(specs, value, aux, &blk)
           end

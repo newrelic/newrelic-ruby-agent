@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -10,7 +9,6 @@ module NewRelic
   module Agent
     module HTTPClients
       class NetHTTPResponse < AbstractResponse
-
         def [](key)
           @wrapped_response[key]
         end
@@ -59,18 +57,16 @@ module NewRelic
 
         def uri
           case @request.path
-          when /^https?:\/\//
+          when %r{^https?://}
             ::NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(@request.path)
           else
             connection_address = @connection.address
-            if (connection_address =~ Resolv::IPv6::Regex)
-              connection_address = "[#{connection_address}]"
-            end
+            connection_address = "[#{connection_address}]" if connection_address =~ Resolv::IPv6::Regex
 
             scheme = @connection.use_ssl? ? 'https' : 'http'
             ::NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(
               "#{scheme}://#{connection_address}:#{@connection.port}#{@request.path}"
-              )
+            )
           end
         end
       end

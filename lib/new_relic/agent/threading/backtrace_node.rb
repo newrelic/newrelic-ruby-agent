@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -31,7 +30,6 @@ module NewRelic
         end
       end
 
-
       class BacktraceRoot < BacktraceBase
         attr_reader :flattened
 
@@ -40,7 +38,7 @@ module NewRelic
           @flattened = []
         end
 
-        def ==(other)
+        def ==(_other)
           true # all roots are at the same depth and have no raw_line
         end
 
@@ -78,7 +76,6 @@ module NewRelic
         end
       end
 
-
       class BacktraceNode < BacktraceBase
         attr_reader   :file, :method, :line_no, :raw_line, :as_array
         attr_accessor :runnable_count, :depth
@@ -115,21 +112,20 @@ module NewRelic
           @as_array << child_arrays
         end
 
-        def dump_string(indent=0)
+        def dump_string(indent = 0)
           @file, @method, @line_no = parse_backtrace_frame(@raw_line)
-          result = "#{" " * indent}#<BacktraceNode:#{object_id} [#{@runnable_count}] #{@file}:#{@line_no} in #{@method}>"
-          child_results = @children.map { |c| c.dump_string(indent+2) }.join("\n")
+          result = "#{' ' * indent}#<BacktraceNode:#{object_id} [#{@runnable_count}] #{@file}:#{@line_no} in #{@method}>"
+          child_results = @children.map { |c| c.dump_string(indent + 2) }.join("\n")
           result << "\n" unless child_results.empty?
           result << child_results
         end
 
         # Returns [filename, method, line number]
         def parse_backtrace_frame(frame)
-          frame =~ /([^:]*)(\:(\d+))?\:in `(.*)'/
-          [$1, $4, $3] # sic
+          frame =~ /([^:]*)(:(\d+))?:in `(.*)'/
+          [Regexp.last_match(1), Regexp.last_match(4), Regexp.last_match(3)] # sic
         end
       end
-
     end
   end
 end

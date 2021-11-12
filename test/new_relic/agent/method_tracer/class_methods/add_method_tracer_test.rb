@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'test_helper'))
 
 require 'set'
 module NewRelic
@@ -21,7 +20,7 @@ module NewRelic
             end
 
             def test_newrelic_method_exists_positive
-              self.expects(:method_defined?).returns(true)
+              expects(:method_defined?).returns(true)
               assert newrelic_method_exists?('test_method')
             end
 
@@ -34,28 +33,28 @@ module NewRelic
 
             def test_check_for_illegal_keys_positive
               assert_raises(RuntimeError) do
-                _nr_validate_method_tracer_options(:twilight_sparkle, {:unknown_key => nil})
+                _nr_validate_method_tracer_options(:twilight_sparkle, { unknown_key: nil })
               end
             end
 
             def test_check_for_illegal_keys_negative
-              test_keys = Hash[*ALLOWED_KEYS.map {|x| [x, true]}.flatten]
+              test_keys = Hash[*ALLOWED_KEYS.map { |x| [x, true] }.flatten]
               _nr_validate_method_tracer_options(:rainbow_dash, test_keys)
             end
 
             def test_traced_method_exists_positive
-              self._nr_traced_method_module.expects(:method_defined?).returns(true)
+              _nr_traced_method_module.expects(:method_defined?).returns(true)
               assert method_traced?('test_method')
             end
 
             def test_traced_method_exists_negative
-              self._nr_traced_method_module.expects(:method_defined?).returns(false)
+              _nr_traced_method_module.expects(:method_defined?).returns(false)
               refute method_traced?('test_method')
             end
 
             def test_check_for_push_scope_and_metric_negative
               assert_raises(RuntimeError) do
-                _nr_validate_method_tracer_options(:foo, {:push_scope => false, :metric => false})
+                _nr_validate_method_tracer_options(:foo, { push_scope: false, metric: false })
               end
             end
           end

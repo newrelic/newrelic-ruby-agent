@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -26,38 +25,38 @@ module NewRelic
             # want to keep it as 'remove'.
             name = 'remove' if name.to_s == 'delete'
 
-            if self.find_one?(name, payload)
+            if find_one?(name, payload)
               name = 'findOne'
-            elsif self.find_and_remove?(name, payload)
+            elsif find_and_remove?(name, payload)
               name = 'findAndRemove'
-            elsif self.find_and_modify?(name, payload)
+            elsif find_and_modify?(name, payload)
               name = 'findAndModify'
-            elsif self.create_indexes?(name, payload)
+            elsif create_indexes?(name, payload)
               name = 'createIndexes'
-            elsif self.create_index?(name, payload)
+            elsif create_index?(name, payload)
               name = 'createIndex'
-              collection = self.collection_name_from_index(payload)
-            elsif self.drop_indexes?(name, payload)
+              collection = collection_name_from_index(payload)
+            elsif drop_indexes?(name, payload)
               name = 'dropIndexes'
-            elsif self.drop_index?(name, payload)
+            elsif drop_index?(name, payload)
               name = 'dropIndex'
-            elsif self.re_index?(name, payload)
+            elsif re_index?(name, payload)
               name = 'reIndex'
-            elsif self.group?(name, payload)
+            elsif group?(name, payload)
               name = 'group'
               collection = collection_name_from_group_selector(payload)
-            elsif self.rename_collection?(name, payload)
+            elsif rename_collection?(name, payload)
               name = 'renameCollection'
               collection = collection_name_from_rename_selector(payload)
             end
 
             [name.to_s, collection]
-          rescue => e
-            NewRelic::Agent.logger.debug("Failure during Mongo metric generation", e)
+          rescue StandardError => e
+            NewRelic::Agent.logger.debug('Failure during Mongo metric generation', e)
             nil
           end
 
-          MONGO_PRODUCT_NAME = "MongoDB".freeze
+          MONGO_PRODUCT_NAME = 'MongoDB'.freeze
 
           def self.collection_in_selector?(payload)
             payload[:collection] == '$cmd' && payload[:selector]
@@ -66,10 +65,10 @@ module NewRelic
           NAMES_IN_SELECTOR = [
             :findandmodify,
 
-            "aggregate",
-            "count",
-            "group",
-            "mapreduce",
+            'aggregate',
+            'count',
+            'group',
+            'mapreduce',
 
             :distinct,
 
@@ -79,7 +78,7 @@ module NewRelic
 
             :collstats,
             :renameCollection,
-            :drop,
+            :drop
           ]
 
           def self.command_key_from_selector(payload)
@@ -93,18 +92,18 @@ module NewRelic
             if command_key
               command_key.to_sym
             else
-              NewRelic::Agent.increment_metric("Supportability/Mongo/UnknownCollection")
+              NewRelic::Agent.increment_metric('Supportability/Mongo/UnknownCollection')
               payload[:selector].first.first unless command_key
             end
           end
 
-          CMD_COLLECTION = "$cmd".freeze
+          CMD_COLLECTION = '$cmd'.freeze
 
           def self.get_collection_from_selector(command_key, payload)
             if command_key
               payload[:selector][command_key]
             else
-              NewRelic::Agent.increment_metric("Supportability/Mongo/UnknownCollection")
+              NewRelic::Agent.increment_metric('Supportability/Mongo/UnknownCollection')
               CMD_COLLECTION
             end
           end
@@ -113,7 +112,7 @@ module NewRelic
             name == :find && payload[:limit] == -1
           end
 
-          def self.find_and_modify?(name, payload)
+          def self.find_and_modify?(name, _payload)
             name == :findandmodify
           end
 
@@ -121,19 +120,19 @@ module NewRelic
             name == :findandmodify && payload[:selector] && payload[:selector][:remove]
           end
 
-          def self.create_indexes?(name, paylod)
+          def self.create_indexes?(name, _paylod)
             name == :createIndexes
           end
 
           def self.create_index?(name, payload)
-            name == :insert && payload[:collection] == "system.indexes"
+            name == :insert && payload[:collection] == 'system.indexes'
           end
 
           def self.drop_indexes?(name, payload)
-            name == :deleteIndexes && payload[:selector] && payload[:selector][:index] == "*"
+            name == :deleteIndexes && payload[:selector] && payload[:selector][:index] == '*'
           end
 
-          def self.drop_index?(name, payload)
+          def self.drop_index?(name, _payload)
             name == :deleteIndexes
           end
 
@@ -141,34 +140,32 @@ module NewRelic
             name == :reIndex && payload[:selector] && payload[:selector][:reIndex]
           end
 
-          def self.group?(name, payload)
+          def self.group?(name, _payload)
             name == :group
           end
 
-          def self.rename_collection?(name, payload)
+          def self.rename_collection?(name, _payload)
             name == :renameCollection
           end
 
           def self.collection_name_from_index(payload)
             if payload[:documents]
-              if payload[:documents].is_a?(Array)
-                # mongo gem versions pre 1.10.0
-                document = payload[:documents].first
-              else
-                # mongo gem versions 1.10.0 and later
-                document = payload[:documents]
-              end
+              document = if payload[:documents].is_a?(Array)
+                           # mongo gem versions pre 1.10.0
+                           payload[:documents].first
+                         else
+                           # mongo gem versions 1.10.0 and later
+                           payload[:documents]
+                         end
 
-              if document && document[:ns]
-                return document[:ns].split('.').last
-              end
+              return document[:ns].split('.').last if document && document[:ns]
             end
 
             'system.indexes'
           end
 
           def self.collection_name_from_group_selector(payload)
-            payload[:selector]["group"]["ns"]
+            payload[:selector]['group']['ns']
           end
 
           def self.collection_name_from_rename_selector(payload)
@@ -176,9 +173,7 @@ module NewRelic
             parts.shift
             parts.join('.')
           end
-
         end
-
       end
     end
   end

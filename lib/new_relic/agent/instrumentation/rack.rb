@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -57,7 +56,7 @@ DependencyDetection.defer do
       prepend_instrument ::Rack::URLMap, NewRelic::Agent::Instrumentation::Rack::URLMap::Prepend
     else
       chain_instrument_target ::Rack::URLMap, NewRelic::Agent::Instrumentation::Rack::URLMap::Chain
-      ::NewRelic::Agent::Instrumentation::RackHelpers.instrument_url_map 
+      ::NewRelic::Agent::Instrumentation::RackHelpers.instrument_url_map
     end
   end
 end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -28,11 +27,14 @@ module NewRelic
 
       def log_request_headers(uri, headers)
         return unless enabled? && allowed_endpoint?(uri)
+
         @log.info("REQUEST HEADERS: #{headers}")
       rescue StandardError, SystemStackError, SystemCallError => e
-        ::NewRelic::Agent.logger.warn("Failed writing request headers to audit log", e)
+        ::NewRelic::Agent.logger.warn('Failed writing request headers to audit log', e)
       rescue Exception => e
-        ::NewRelic::Agent.logger.warn("Failed writing request headers to audit log with exception. Re-raising in case of interrupt.", e)
+        ::NewRelic::Agent.logger.warn(
+          'Failed writing request headers to audit log with exception. Re-raising in case of interrupt.', e
+        )
         raise
       end
 
@@ -41,16 +43,16 @@ module NewRelic
 
         setup_logger unless setup?
         request_body = if marshaller.class.human_readable?
-          marshaller.dump(data, :encoder => @encoder)
-        else
-          marshaller.prepare(data, :encoder => @encoder).inspect
-        end
+                         marshaller.dump(data, encoder: @encoder)
+                       else
+                         marshaller.prepare(data, encoder: @encoder).inspect
+                       end
         @log.info("REQUEST: #{uri}")
         @log.info("REQUEST BODY: #{request_body}")
       rescue StandardError, SystemStackError, SystemCallError => e
-        ::NewRelic::Agent.logger.warn("Failed writing to audit log", e)
+        ::NewRelic::Agent.logger.warn('Failed writing to audit log', e)
       rescue Exception => e
-        ::NewRelic::Agent.logger.warn("Failed writing to audit log with exception. Re-raising in case of interrupt.", e)
+        ::NewRelic::Agent.logger.warn('Failed writing to audit log with exception. Re-raising in case of interrupt.', e)
         raise
       end
 
@@ -62,7 +64,7 @@ module NewRelic
         if wants_stdout?
           # Using $stdout global for easier reassignment in testing
           @log = ::Logger.new($stdout)
-          ::NewRelic::Agent.logger.info("Audit log enabled to STDOUT")
+          ::NewRelic::Agent.logger.info('Audit log enabled to STDOUT')
         elsif path = ensure_log_path
           @log = ::Logger.new(path)
           ::NewRelic::Agent.logger.info("Audit log enabled at '#{path}'")
@@ -90,13 +92,13 @@ module NewRelic
       end
 
       def wants_stdout?
-        ::NewRelic::Agent.config[:'audit_log.path'].upcase == "STDOUT"
+        ::NewRelic::Agent.config[:'audit_log.path'].upcase == 'STDOUT'
       end
 
       def create_log_formatter
         @hostname = NewRelic::Agent::Hostname.get
         @prefix = wants_stdout? ? '** [NewRelic]' : ''
-        Proc.new do |severity, time, progname, msg|
+        proc do |_severity, time, _progname, msg|
           "#{@prefix}[#{time} #{@hostname} (#{$$})] : #{msg}\n"
         end
       end

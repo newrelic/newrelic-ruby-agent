@@ -1,11 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'transaction_ignoring_test_cases'
 
 class TransactionIgnoringTest < Minitest::Test
-
   include MultiverseHelpers
   include TransactionIgnoringTestCases
 
@@ -22,9 +20,9 @@ class TransactionIgnoringTest < Minitest::Test
   def trigger_transaction_with_slow_sql(txn_name)
     TestWidget.new.run_transaction(txn_name) do
       state = NewRelic::Agent::Tracer.state
-      NewRelic::Agent.instance.sql_sampler.notice_sql("select * from test",
-                                   "Database/test/select",
-                                   nil, 1.5, state)
+      NewRelic::Agent.instance.sql_sampler.notice_sql('select * from test',
+                                                      'Database/test/select',
+                                                      nil, 1.5, state)
     end
   end
 
@@ -38,5 +36,4 @@ class TransactionIgnoringTest < Minitest::Test
 
     add_transaction_tracer :run_transaction
   end
-
 end

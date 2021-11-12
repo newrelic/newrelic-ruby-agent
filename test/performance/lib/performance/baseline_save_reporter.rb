@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -6,7 +5,7 @@ module Performance
   class BaselineSaveReporter
     include Reporting
 
-    def initialize(results, elapsed, options={})
+    def initialize(results, elapsed, options = {})
       @results = results
       @elapsed = elapsed
       @options = options

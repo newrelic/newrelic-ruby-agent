@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
-# encoding: utf-8
+
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-$:.unshift File.expand_path('../../../lib', __FILE__)
-$:.unshift File.expand_path('../..', __FILE__)
+$:.unshift File.expand_path('../../lib', __dir__)
+$:.unshift File.expand_path('..', __dir__)
 
 require 'newrelic_rpm'
 require 'agent_helper'
@@ -18,14 +18,14 @@ server = NewRelic::FakeExternalServer.new(3035)
 server.reset
 server.run
 
-puts JSON.dump({:message => "started"})
+puts JSON.dump({ message: 'started' })
 
-while message = JSON.parse(gets) do
-  case message["command"]
-  when "shutdown"
+while message = JSON.parse(gets)
+  case message['command']
+  when 'shutdown'
     server.stop
     exit(0)
-  when "add_headers"
-    server.override_response_headers message["payload"]
+  when 'add_headers'
+    server.override_response_headers message['payload']
   end
 end

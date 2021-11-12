@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -16,7 +15,6 @@ require 'json'
 module NewRelic
   module Agent
     class InboundRequestMonitor
-
       attr_reader :obfuscator
 
       def initialize(events)
@@ -34,9 +32,9 @@ module NewRelic
       def deserialize_header(encoded_header, key)
         decoded_header = obfuscator.deobfuscate(encoded_header)
         ::JSON.load(decoded_header)
-      rescue => err
+      rescue StandardError => e
         # If we have a failure of any type here, just return nil and carry on
-        NewRelic::Agent.logger.debug("Failure deserializing encoded header '#{key}' in #{self.class}, #{err.class}, #{err.message}")
+        NewRelic::Agent.logger.debug("Failure deserializing encoded header '#{key}' in #{self.class}, #{e.class}, #{e.message}")
         nil
       end
     end

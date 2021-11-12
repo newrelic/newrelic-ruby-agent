@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,28 +7,28 @@ if NewRelic::Agent::Instrumentation::RackHelpers.puma_rack_version_supported?
     include MultiverseHelpers
 
     class ExampleApp
-      def call env
-        [200, {'Content-Type' => 'text/html'}, ['Hello!']]
+      def call(_env)
+        [200, { 'Content-Type' => 'text/html' }, ['Hello!']]
       end
     end
 
     class MiddlewareOne
-      def initialize app
+      def initialize(app)
         @app = app
       end
 
-      def call env
+      def call(env)
         env['MiddlewareOne'] = true
         @app.call env
       end
     end
 
     class MiddlewareTwo
-      def initialize app
+      def initialize(app)
         @app = app
       end
 
-      def call env
+      def call(env)
         env['MiddlewareTwo'] = true
         @app.call env
       end
@@ -52,7 +51,6 @@ if NewRelic::Agent::Instrumentation::RackHelpers.puma_rack_version_supported?
       end
     end
 
-
     def test_middlewares_are_visited_with_puma_rack
       @app.call @env
       assert @env['MiddlewareOne'], 'Expected MiddlewareOne to be present and true in env'
@@ -64,24 +62,27 @@ if NewRelic::Agent::Instrumentation::RackHelpers.puma_rack_version_supported?
 
       assert_metrics_recorded_exclusive(
         [
-          "Apdex",
-          "ApdexAll",
-          "HttpDispatcher",
-          "Middleware/all",
-          "Apdex/Rack/PumaRackBuilderTest::ExampleApp/call",
-          "Controller/Rack/PumaRackBuilderTest::ExampleApp/call",
-          "Middleware/Rack/PumaRackBuilderTest::MiddlewareOne/call",
-          "Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call",
-          "Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call",
-          "WebTransactionTotalTime",
-          "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
-          "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb",
-          "WebTransactionTotalTime/Controller/Rack/PumaRackBuilderTest::ExampleApp/call",
-          ["Middleware/Rack/PumaRackBuilderTest::MiddlewareOne/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"],
-          ["Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"],
-          ["Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call", "Controller/Rack/PumaRackBuilderTest::ExampleApp/call"]
+          'Apdex',
+          'ApdexAll',
+          'HttpDispatcher',
+          'Middleware/all',
+          'Apdex/Rack/PumaRackBuilderTest::ExampleApp/call',
+          'Controller/Rack/PumaRackBuilderTest::ExampleApp/call',
+          'Middleware/Rack/PumaRackBuilderTest::MiddlewareOne/call',
+          'Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call',
+          'Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call',
+          'WebTransactionTotalTime',
+          'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all',
+          'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb',
+          'WebTransactionTotalTime/Controller/Rack/PumaRackBuilderTest::ExampleApp/call',
+          ['Middleware/Rack/PumaRackBuilderTest::MiddlewareOne/call',
+           'Controller/Rack/PumaRackBuilderTest::ExampleApp/call'],
+          ['Middleware/Rack/PumaRackBuilderTest::MiddlewareTwo/call',
+           'Controller/Rack/PumaRackBuilderTest::ExampleApp/call'],
+          ['Nested/Controller/Rack/PumaRackBuilderTest::ExampleApp/call',
+           'Controller/Rack/PumaRackBuilderTest::ExampleApp/call']
         ],
-        :ignore_filter => /^(Supportability|RubyVM|Memory|CPU|Logging)/
+        ignore_filter: /^(Supportability|RubyVM|Memory|CPU|Logging)/
       )
     end
   end

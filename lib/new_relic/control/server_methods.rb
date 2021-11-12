@@ -1,13 +1,11 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 module NewRelic
   class Control
-
     # Structs holding info for the remote server and proxy server
-    class Server < Struct.new :name, :port #:nodoc:
-      def to_s; "#{name}:#{port}"; end
+    class Server < Struct.new :name, :port # :nodoc:
+      def to_s() = "#{name}:#{port}"
     end
 
     # Contains methods that deal with connecting to the server
@@ -22,7 +20,7 @@ module NewRelic
         @api_server ||= NewRelic::Control::Server.new(Agent.config[:api_host], Agent.config[:api_port])
       end
 
-      def server_from_host(hostname=nil)
+      def server_from_host(hostname = nil)
         NewRelic::Control::Server.new(hostname || Agent.config[:host], Agent.config[:port])
       end
     end

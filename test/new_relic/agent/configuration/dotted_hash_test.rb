@@ -1,44 +1,43 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 module NewRelic::Agent::Configuration
   class DottedHashTest < Minitest::Test
     def test_without_nesting
-      hash = DottedHash.new({ :turtle => 1 })
-      assert_equal({ :turtle => 1 }, hash)
+      hash = DottedHash.new({ turtle: 1 })
+      assert_equal({ turtle: 1 }, hash)
     end
 
     def test_with_nesting
-      hash = DottedHash.new({ :turtle => { :turtle => 1 } })
-      assert_equal({ :'turtle.turtle' => 1 }, hash)
+      hash = DottedHash.new({ turtle: { turtle: 1 } })
+      assert_equal({ 'turtle.turtle': 1 }, hash)
     end
 
     def test_with_multiple_layers_of_nesting
-      hash = DottedHash.new({ :turtle => { :turtle => { :turtle => 1 } } })
-      assert_equal({ :'turtle.turtle.turtle' => 1 }, hash)
+      hash = DottedHash.new({ turtle: { turtle: { turtle: 1 } } })
+      assert_equal({ 'turtle.turtle.turtle': 1 }, hash)
     end
 
     def test_turns_keys_to_symbols
-      hash = DottedHash.new({ "turtle" => { "turtle" => { "turtle" => 1 } } })
-      assert_equal({ :'turtle.turtle.turtle' => 1 }, hash)
+      hash = DottedHash.new({ 'turtle' => { 'turtle' => { 'turtle' => 1 } } })
+      assert_equal({ 'turtle.turtle.turtle': 1 }, hash)
     end
 
     def test_to_hash
-      dotted = DottedHash.new({ "turtle" => { "turtle" => { "turtle" => 1 } } })
+      dotted = DottedHash.new({ 'turtle' => { 'turtle' => { 'turtle' => 1 } } })
       hash = dotted.to_hash
 
       assert_instance_of(Hash, hash)
-      assert_equal({ :'turtle.turtle.turtle' => 1 }, hash)
+      assert_equal({ 'turtle.turtle.turtle': 1 }, hash)
     end
 
     def test_option_to_keep_nesting
-      hash = DottedHash.new({ :turtle => { :turtle => 1 } }, true)
+      hash = DottedHash.new({ turtle: { turtle: 1 } }, true)
       expected = {
-        :turtle => { :turtle => 1},
-        :'turtle.turtle' => 1,
+        turtle: { turtle: 1 },
+        'turtle.turtle': 1
       }
 
       assert_equal(expected, hash)

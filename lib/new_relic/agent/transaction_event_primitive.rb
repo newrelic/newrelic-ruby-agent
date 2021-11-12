@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -20,7 +19,7 @@ module NewRelic
       COMMA = ','
 
       # The type field of the sample
-      SAMPLE_TYPE              = 'Transaction'
+      SAMPLE_TYPE = 'Transaction'
 
       # Strings for static keys of the sample structure
       TYPE_KEY                       = 'type'
@@ -36,18 +35,18 @@ module NewRelic
       CAT_REFERRING_PATH_HASH_KEY    = 'nr.referringPathHash'
       CAT_ALTERNATE_PATH_HASHES_KEY  = 'nr.alternatePathHashes'
       APDEX_PERF_ZONE_KEY            = 'nr.apdexPerfZone'
-      SYNTHETICS_RESOURCE_ID_KEY     = "nr.syntheticsResourceId"
-      SYNTHETICS_JOB_ID_KEY          = "nr.syntheticsJobId"
-      SYNTHETICS_MONITOR_ID_KEY      = "nr.syntheticsMonitorId"
+      SYNTHETICS_RESOURCE_ID_KEY     = 'nr.syntheticsResourceId'
+      SYNTHETICS_JOB_ID_KEY          = 'nr.syntheticsJobId'
+      SYNTHETICS_MONITOR_ID_KEY      = 'nr.syntheticsMonitorId'
 
       def create(payload)
         intrinsics = {
-        TIMESTAMP_KEY => float(payload[:start_timestamp]),
-        NAME_KEY      => string(payload[:name]),
-        DURATION_KEY  => float(payload[:duration]),
-        TYPE_KEY      => SAMPLE_TYPE,
-        ERROR_KEY     => payload[:error],
-        PRIORITY_KEY  => payload[:priority]
+          TIMESTAMP_KEY => float(payload[:start_timestamp]),
+          NAME_KEY => string(payload[:name]),
+          DURATION_KEY => float(payload[:duration]),
+          TYPE_KEY => SAMPLE_TYPE,
+          ERROR_KEY => payload[:error],
+          PRIORITY_KEY => payload[:priority]
         }
 
         intrinsics[SAMPLED_KEY] = payload[:sampled] if payload.key?(:sampled)
@@ -82,12 +81,10 @@ module NewRelic
       end
 
       def optionally_append(sample_key, payload_key, sample, payload)
-        if payload.include?(payload_key)
-          sample[sample_key] = string(payload[payload_key])
-        end
+        sample[sample_key] = string(payload[payload_key]) if payload.include?(payload_key)
       end
 
-      def custom_attributes attributes
+      def custom_attributes(attributes)
         if attributes
           result = attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_EVENTS)
           result.freeze
@@ -96,7 +93,7 @@ module NewRelic
         end
       end
 
-      def agent_attributes attributes
+      def agent_attributes(attributes)
         if attributes
           result = attributes.agent_attributes_for(AttributeFilter::DST_TRANSACTION_EVENTS)
           result.freeze

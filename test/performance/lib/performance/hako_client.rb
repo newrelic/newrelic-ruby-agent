@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -17,7 +16,7 @@ module Performance
     def submit(result)
       body = JSON.dump('result' => result.to_h)
 
-      uri = URI(BASE_URI + "/api/results")
+      uri = URI(BASE_URI + '/api/results')
       req = Net::HTTP::Post.new(uri.to_s)
       req.body = body
       req.content_type = 'application/json'

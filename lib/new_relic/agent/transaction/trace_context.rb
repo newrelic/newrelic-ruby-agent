@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -14,14 +13,14 @@ module NewRelic
 
           def trace_state_entry_key
             @trace_state_entry_key ||= if Agent.config[:trusted_account_key]
-              "#{Agent.config[:trusted_account_key]}@nr".freeze
-            elsif Agent.config[:account_id]
-              "#{Agent.config[:account_id]}@nr".freeze
-            end
+                                         "#{Agent.config[:trusted_account_key]}@nr".freeze
+                                       elsif Agent.config[:account_id]
+                                         "#{Agent.config[:account_id]}@nr".freeze
+                                       end
           end
         end
 
-        SUPPORTABILITY_PREFIX             = "Supportability/TraceContext"
+        SUPPORTABILITY_PREFIX             = 'Supportability/TraceContext'
         CREATE_PREFIX                     = "#{SUPPORTABILITY_PREFIX}/Create"
         ACCEPT_PREFIX                     = "#{SUPPORTABILITY_PREFIX}/Accept"
         TRACESTATE_PREFIX                 = "#{SUPPORTABILITY_PREFIX}/TraceState"
@@ -40,15 +39,15 @@ module NewRelic
         attr_accessor :trace_context_header_data
         attr_reader   :trace_state_payload
 
-        def trace_parent_header_present? request
+        def trace_parent_header_present?(request)
           request[NewRelic::HTTP_TRACEPARENT_KEY]
         end
 
-        def accept_trace_context_incoming_request request
+        def accept_trace_context_incoming_request(request)
           header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse(
             format: NewRelic::FORMAT_RACK,
             carrier: request,
-            trace_state_entry_key: AccountHelpers.trace_state_entry_key,
+            trace_state_entry_key: AccountHelpers.trace_state_entry_key
           )
           return if header_data.nil?
 
@@ -56,7 +55,7 @@ module NewRelic
         end
         private :accept_trace_context_incoming_request
 
-        def insert_trace_context_header header, format=NewRelic::FORMAT_NON_RACK
+        def insert_trace_context_header(header, format = NewRelic::FORMAT_NON_RACK)
           return unless Agent.config[:'distributed_tracing.enabled']
 
           NewRelic::Agent::DistributedTracing::TraceContext.insert \
@@ -73,7 +72,7 @@ module NewRelic
           true
         rescue Exception => e
           NewRelic::Agent.increment_metric CREATE_EXCEPTION_METRIC
-          NewRelic::Agent.logger.warn "Failed to create trace context payload", e
+          NewRelic::Agent.logger.warn 'Failed to create trace context payload', e
           false
         end
 
@@ -81,23 +80,22 @@ module NewRelic
           entry_key = AccountHelpers.trace_state_entry_key.dup
           payload = create_trace_state_payload
 
-          if payload
-            entry = NewRelic::Agent::DistributedTracing::TraceContext.create_trace_state_entry \
-              entry_key,
-              payload.to_s
-          else
-            entry = NewRelic::EMPTY_STR
-          end
+          entry = if payload
+                    NewRelic::Agent::DistributedTracing::TraceContext.create_trace_state_entry \
+                      entry_key,
+                      payload.to_s
+                  else
+                    NewRelic::EMPTY_STR
+                  end
 
           trace_context_header_data ? trace_context_header_data.trace_state(entry) : entry
         end
 
         def create_trace_state_payload
           unless Agent.config[:'distributed_tracing.enabled']
-            NewRelic::Agent.logger.warn "Not configured to create WC3 trace context payload"
+            NewRelic::Agent.logger.warn 'Not configured to create WC3 trace context payload'
             return
           end
-
 
           span_guid = Agent.config[:'span_events.enabled'] ? transaction.current_segment.guid : nil
           transaction_guid = Agent.config[:'analytics_events.enabled'] ? transaction.guid : nil
@@ -124,7 +122,7 @@ module NewRelic
           @trace_state_payload = payload
         end
 
-        def accept_trace_context header_data
+        def accept_trace_context(header_data)
           return if ignore_trace_context?
 
           @trace_context_header_data = header_data
@@ -141,9 +139,9 @@ module NewRelic
           end
           NewRelic::Agent.increment_metric ACCEPT_SUCCESS_METRIC
           true
-        rescue => e
+        rescue StandardError => e
           NewRelic::Agent.increment_metric ACCEPT_EXCEPTION_METRIC
-          NewRelic::Agent.logger.warn "Failed to accept trace context payload", e
+          NewRelic::Agent.logger.warn 'Failed to accept trace context payload', e
           false
         end
 
@@ -161,7 +159,6 @@ module NewRelic
         def trace_context_inserted?
           @trace_context_inserted ||= false
         end
-
       end
     end
   end

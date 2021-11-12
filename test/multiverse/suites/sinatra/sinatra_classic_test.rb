@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -22,25 +21,25 @@ configure do
 end
 
 get '/' do
-  "root path"
+  'root path'
 end
 
 get '/user/login' do
-  "please log in"
+  'please log in'
 end
 
 # this action will always return 404 because of the condition.
-get '/user/:id', :my_condition => false do |id|
+get '/user/:id', my_condition: false do |id|
   "Welcome #{id}"
 end
 
 get '/raise' do
-  raise "Uh-oh"
+  raise 'Uh-oh'
 end
 
 # check that pass works properly
 set(:pass_condition) { |_| condition { pass { halt 418, "I'm a teapot." } } }
-get('/pass', :pass_condition => true) { }
+get('/pass', pass_condition: true) {}
 
 get '/pass' do
   "I'm not a teapot."
@@ -48,15 +47,16 @@ end
 
 error(NewRelic::TestHelpers::Exceptions::TestError) { halt 200, 'nothing happened' }
 set(:error_condition) { |_| condition { raise NewRelic::TestHelpers::Exceptions::TestError } }
-get('/error', :error_condition => true) { }
+get('/error', error_condition: true) {}
 
 set(:precondition_check) do |_|
   condition do
-    raise "Boo" if $precondition_already_checked
+    raise 'Boo' if $precondition_already_checked
+
     $precondition_already_checked = true
   end
 end
-get('/precondition', :precondition_check => true) do
+get('/precondition', precondition_check: true) do
   'precondition only happened once'
 end
 
@@ -83,14 +83,14 @@ get '/ignored' do
   "don't trace me bro"
 end
 
-get(/\/regex.*/) do
+get(%r{/regex.*}) do
   "Yeah, regex's!"
 end
 
 module Sinatra
   class Application < Base
     # Override to not accidentally start the app in at_exit handler
-    set :run, Proc.new { false }
+    set :run, proc { false }
   end
 end
 

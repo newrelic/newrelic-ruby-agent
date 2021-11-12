@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -7,7 +6,6 @@ require 'new_relic/agent/sampler'
 module NewRelic
   module Agent
     module Samplers
-
       class MemorySampler < NewRelic::Agent::Sampler
         named :memory
 
@@ -23,18 +21,18 @@ module NewRelic
             @sampler = ProcStatus.new
             if !@sampler.can_run?
               ::NewRelic::Agent.logger.debug "Error attempting to use /proc/#{$$}/status file for reading memory. Using ps command instead."
-              @sampler = ShellPS.new("ps -o rsz")
+              @sampler = ShellPS.new('ps -o rsz')
             else
               ::NewRelic::Agent.logger.debug "Using /proc/#{$$}/status for reading process memory."
             end
           elsif platform =~ /darwin9/ # 10.5
-            @sampler = ShellPS.new("ps -o rsz")
+            @sampler = ShellPS.new('ps -o rsz')
           elsif platform =~ /darwin(1|2)\d+/ # >= 10.6
-            @sampler = ShellPS.new("ps -o rss")
+            @sampler = ShellPS.new('ps -o rss')
           elsif platform =~ /freebsd/
-            @sampler = ShellPS.new("ps -o rss")
+            @sampler = ShellPS.new('ps -o rss')
           elsif platform =~ /solaris/
-            @sampler = ShellPS.new("/usr/bin/ps -o rss -p")
+            @sampler = ShellPS.new('/usr/bin/ps -o rss -p')
           end
 
           raise Unsupported, "Unsupported platform for getting memory: #{platform}" if @sampler.nil?
@@ -47,20 +45,19 @@ module NewRelic
 
         def self.platform
           if RUBY_PLATFORM =~ /java/
-            %x[uname -s].downcase
+            `uname -s`.downcase
           else
             RUBY_PLATFORM.downcase
           end
         end
+
         def platform
           NewRelic::Agent::Samplers::MemorySampler.platform
         end
 
         def poll
           sample = @sampler.get_sample
-          if sample
-            NewRelic::Agent.record_metric("Memory/Physical", sample)
-          end
+          NewRelic::Agent.record_metric('Memory/Physical', sample) if sample
         end
 
         class Base
@@ -70,23 +67,30 @@ module NewRelic
 
           def can_run?
             return false if @broken
-            m = get_memory rescue nil
+
+            m = begin
+              get_memory
+            rescue StandardError
+              nil
+            end
             m && m > 0
           end
 
           def get_sample
             return nil if @broken
+
             begin
               m = get_memory
               if m.nil?
                 ::NewRelic::Agent.logger.warn "Unable to get the resident memory for process #{$$}.  Disabling memory sampler."
                 @broken = true
               end
-              return m
-            rescue => e
-              ::NewRelic::Agent.logger.warn "Unable to get the resident memory for process #{$$}. Disabling memory sampler.", e
+              m
+            rescue StandardError => e
+              ::NewRelic::Agent.logger.warn "Unable to get the resident memory for process #{$$}. Disabling memory sampler.",
+                                            e
               @broken = true
-              return nil
+              nil
             end
           end
         end
@@ -94,11 +98,16 @@ module NewRelic
         class JavaHeapSampler < Base
           def get_memory
             raise "Can't sample Java heap unless running in JRuby" unless defined? JRuby
-            java.lang.Runtime.getRuntime.totalMemory / (1024 * 1024).to_f rescue nil
+
+            begin
+              java.lang.Runtime.getRuntime.totalMemory / (1024 * 1024).to_f
+            rescue StandardError
+              nil
+            end
           end
 
           def to_s
-            "JRuby Java heap sampler"
+            'JRuby Java heap sampler'
           end
         end
 
@@ -112,12 +121,18 @@ module NewRelic
           #
           def get_memory
             process = $$
-            memory = `#{@command} #{process}`.split("\n")[1].to_f / 1024.0 rescue nil
+            memory = begin
+              `#{@command} #{process}`.split("\n")[1].to_f / 1024.0
+            rescue StandardError
+              nil
+            end
             # if for some reason the ps command doesn't work on the resident os,
             # then don't execute it any more.
             raise "Faulty command: `#{@command} #{process}`" if memory.nil? || memory <= 0
+
             memory
           end
+
           def to_s
             "shell command sampler: #{@command}"
           end
@@ -130,10 +145,9 @@ module NewRelic
         class ProcStatus < Base
           # Returns the amount of resident memory this process is using in MB
           def get_memory
-            proc_status = File.open(proc_status_file, "r") {|f| f.read_nonblock(4096).strip }
-            if proc_status =~ /RSS:\s*(\d+) kB/i
-              return $1.to_f / 1024.0
-            end
+            proc_status = File.open(proc_status_file, 'r') { |f| f.read_nonblock(4096).strip }
+            return Regexp.last_match(1).to_f / 1024.0 if proc_status =~ /RSS:\s*(\d+) kB/i
+
             raise "Unable to find RSS in #{proc_status_file}"
           end
 

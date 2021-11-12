@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -9,7 +8,6 @@ require 'new_relic/agent/http_clients/uri_util'
 module NewRelic
   module Agent
     class Transaction
-
       #
       # This class represents an external segment in a transaction trace.
       #
@@ -18,15 +16,14 @@ module NewRelic
         NR_SYNTHETICS_HEADER = 'X-NewRelic-Synthetics'
         APP_DATA_KEY = 'NewRelicAppData'
 
-        EXTERNAL_ALL = "External/all"
-        EXTERNAL_ALL_WEB = "External/allWeb"
-        EXTERNAL_ALL_OTHER = "External/allOther"
-        MISSING_STATUS_CODE = "MissingHTTPStatusCode"
+        EXTERNAL_ALL = 'External/all'
+        EXTERNAL_ALL_WEB = 'External/allWeb'
+        EXTERNAL_ALL_OTHER = 'External/allOther'
+        MISSING_STATUS_CODE = 'MissingHTTPStatusCode'
 
-        attr_reader :library, :uri, :procedure
-        attr_reader :http_status_code
+        attr_reader :library, :uri, :procedure, :http_status_code
 
-        def initialize library, uri, procedure, start_time = nil # :nodoc:
+        def initialize(library, uri, procedure, start_time = nil) # :nodoc:
           @library = library
           @uri = HTTPClients::URIUtil.obfuscated_uri(uri)
           @procedure = procedure
@@ -53,7 +50,7 @@ module NewRelic
         # object (must belong to a subclass of NewRelic::Agent::HTTPClients::AbstractRequest)
         #
         # @api public
-        def add_request_headers request
+        def add_request_headers(request)
           process_host_header request
           synthetics_header = transaction && transaction.raw_synthetics_header
           insert_synthetics_header request, synthetics_header if synthetics_header
@@ -61,8 +58,8 @@ module NewRelic
           return unless record_metrics?
 
           transaction.distributed_tracer.insert_headers request
-        rescue => e
-          NewRelic::Agent.logger.error "Error in add_request_headers", e
+        rescue StandardError => e
+          NewRelic::Agent.logger.error 'Error in add_request_headers', e
         end
 
         # This method extracts app data from an external response if present. If
@@ -72,9 +69,10 @@ module NewRelic
         # @param [Hash] response a hash of response headers
         #
         # @api public
-        def read_response_headers response
+        def read_response_headers(response)
           return unless record_metrics? && CrossAppTracing.cross_app_enabled?
           return unless CrossAppTracing.response_has_crossapp_header?(response)
+
           unless data = CrossAppTracing.extract_appdata(response)
             NewRelic::Agent.logger.debug "Couldn't extract_appdata from external segment response"
             return
@@ -84,10 +82,10 @@ module NewRelic
             @app_data = data
             update_segment_name
           else
-            NewRelic::Agent.logger.debug "External segment response has invalid cross_app_id"
+            NewRelic::Agent.logger.debug 'External segment response has invalid cross_app_id'
           end
-        rescue => e
-          NewRelic::Agent.logger.error "Error in read_response_headers", e
+        rescue StandardError => e
+          NewRelic::Agent.logger.error 'Error in read_response_headers', e
         end
 
         def cross_app_request? # :nodoc:
@@ -145,8 +143,8 @@ module NewRelic
             obfuscator.obfuscate ::JSON.dump(rmd)
 
           end
-        rescue => e
-          NewRelic::Agent.logger.error "error during get_request_metadata", e
+        rescue StandardError => e
+          NewRelic::Agent.logger.error 'error during get_request_metadata', e
         end
 
         # Process obfuscated +String+ sent from a called application that is also running a New Relic agent and
@@ -157,24 +155,24 @@ module NewRelic
         #
         # @api public
         #
-        def process_response_metadata response_metadata
+        def process_response_metadata(response_metadata)
           NewRelic::Agent.record_api_supportability_metric(:process_response_metadata)
           if transaction
             app_data = ::JSON.parse(obfuscator.deobfuscate(response_metadata))[APP_DATA_KEY]
 
             # validate cross app id
             #
-            if Array === app_data and CrossAppTracing.trusted_valid_cross_app_id? app_data[0]
+            if app_data.is_a?(Array) and CrossAppTracing.trusted_valid_cross_app_id? app_data[0]
               @app_data = app_data
               update_segment_name
             else
-              NewRelic::Agent.logger.error "error processing response metadata: invalid/non-trusted ID"
+              NewRelic::Agent.logger.error 'error processing response metadata: invalid/non-trusted ID'
             end
           end
 
           nil
-        rescue => e
-          NewRelic::Agent.logger.error "error during process_response_metadata", e
+        rescue StandardError => e
+          NewRelic::Agent.logger.error 'error during process_response_metadata', e
         end
 
         def record_metrics
@@ -182,7 +180,7 @@ module NewRelic
           super
         end
 
-        def process_response_headers response # :nodoc:
+        def process_response_headers(response) # :nodoc:
           set_http_status_code response
           read_response_headers response
         end
@@ -190,43 +188,36 @@ module NewRelic
         private
 
         # Only sets the http_status_code if response.status_code is non-empty value
-        def set_http_status_code response
+        def set_http_status_code(response)
           if response.respond_to? :status_code
             @http_status_code = response.status_code if response.has_status_code?
           else
-            NewRelic::Agent.logger.warn "Cannot extract HTTP Status Code from response #{response.class.to_s}"
+            NewRelic::Agent.logger.warn "Cannot extract HTTP Status Code from response #{response.class}"
             NewRelic::Agent.record_metric "#{name}/#{MISSING_STATUS_CODE}", 1
           end
         end
 
-        def insert_synthetics_header request, header
+        def insert_synthetics_header(request, header)
           request[NR_SYNTHETICS_HEADER] = header
         end
 
         def segment_complete
           params[:uri] = uri.to_s
-          if cross_app_request?
-            params[:transaction_guid] = transaction_guid
-          end
+          params[:transaction_guid] = transaction_guid if cross_app_request?
 
           super
         end
 
-        def process_host_header request
-          if @host_header = request.host_from_header
-            update_segment_name
-          end
+        def process_host_header(request)
+          update_segment_name if @host_header = request.host_from_header
         end
 
         def add_unscoped_metrics
-          @unscoped_metrics = [ EXTERNAL_ALL,
-            "External/#{host}/all",
-            suffixed_rollup_metric
-          ]
+          @unscoped_metrics = [EXTERNAL_ALL,
+                               "External/#{host}/all",
+                               suffixed_rollup_metric]
 
-          if cross_app_request?
-            @unscoped_metrics << "ExternalApp/#{host}/#{cross_process_id}/all"
-          end
+          @unscoped_metrics << "ExternalApp/#{host}/#{cross_process_id}/all" if cross_app_request?
         end
 
         def suffixed_rollup_metric
@@ -238,11 +229,11 @@ module NewRelic
         end
 
         def update_segment_name
-          if @app_data
-            @name = "ExternalTransaction/#{host}/#{cross_process_id}/#{cross_process_transaction_name}"
-          else
-            @name = "External/#{host}/#{library}/#{procedure}"
-          end
+          @name = if @app_data
+                    "ExternalTransaction/#{host}/#{cross_process_id}/#{cross_process_transaction_name}"
+                  else
+                    "External/#{host}/#{library}/#{procedure}"
+                  end
         end
 
         def obfuscator

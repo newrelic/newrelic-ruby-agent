@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -20,20 +19,18 @@ module Performance
     end
 
     def exception=(e)
-      if e.is_a?(Exception)
-        @exception = {
-          'class'     => e.class.name,
-          'message'   => e.message,
-          'backtrace' => e.backtrace
-        }
-      else
-        @exception = e
-      end
+      @exception = if e.is_a?(Exception)
+                     {
+                       'class' => e.class.name,
+                       'message' => e.message,
+                       'backtrace' => e.backtrace
+                     }
+                   else
+                     e
+                   end
     end
 
-    def elapsed=(elapsed)
-      @elapsed = elapsed
-    end
+    attr_writer :elapsed
 
     def elapsed
       @elapsed || @timer.elapsed
@@ -52,7 +49,7 @@ module Performance
     end
 
     def measurements_hash
-      @measurements.merge(:elapsed => elapsed)
+      @measurements.merge(elapsed: elapsed)
     end
 
     def format_timestamp(t)
@@ -69,11 +66,11 @@ module Performance
 
     def to_h
       h = {
-        "suite"        => suite_name,
-        "name"         => @test_name,
-        "measurements" => measurements_hash,
-        "tags"         => @tags,
-        "iterations"   => @iterations
+        'suite' => suite_name,
+        'name' => @test_name,
+        'measurements' => measurements_hash,
+        'tags' => @tags,
+        'iterations' => @iterations
       }
       h['exception'] = @exception if @exception
       h['artifacts'] = @artifacts if @artifacts && !@artifacts.empty?
@@ -84,7 +81,7 @@ module Performance
 
     def self.from_hash(hash)
       elapsed = hash['measurements'].delete('elapsed')
-      result = self.new(hash['suite'], hash['name'])
+      result = new(hash['suite'], hash['name'])
       hash['measurements'].each do |key, value|
         result.measurements[key.to_sym] = value
       end

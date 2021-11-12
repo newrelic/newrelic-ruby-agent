@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -16,21 +15,21 @@ module Performance
         :wall
       end
 
-      def before(test, test_name)
-        StackProf.start(:mode => mode)
+      def before(_test, _test_name)
+        StackProf.start(mode: mode)
       end
 
       def after(test, test_name)
         StackProf.stop
 
-        output_dump_path = artifact_path(test, test_name, "dump")
+        output_dump_path = artifact_path(test, test_name, 'dump')
         StackProf.results(output_dump_path)
         @artifacts << output_dump_path
 
         results = Marshal.load(File.read(output_dump_path))
-        output_dot_path = artifact_path(test, test_name, "dot")
+        output_dot_path = artifact_path(test, test_name, 'dot')
         report = StackProf::Report.new(results)
-        File.open(output_dot_path, "w") do |f|
+        File.open(output_dot_path, 'w') do |f|
           report.print_graphviz({}, f)
         end
         @artifacts << output_dot_path

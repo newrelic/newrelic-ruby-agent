@@ -1,20 +1,18 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../test_helper', __FILE__
+require File.expand_path '../../../test_helper', __dir__
 require 'new_relic/agent/instrumentation/mongodb_command_subscriber'
 
 class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest::Test
-
   def setup
     nr_freeze_process_time
     @started_event = mock('started event')
     @started_event.stubs(:operation_id).returns(1)
     @started_event.stubs(:command_name).returns('find')
     @started_event.stubs(:database_name).returns('mongodb-test')
-    @started_event.stubs(:command).returns({ 'find' => 'users', 'filter' => { 'name' => 'test' }})
-    address = stub('address', :host => "127.0.0.1", :port => 27017)
+    @started_event.stubs(:command).returns({ 'find' => 'users', 'filter' => { 'name' => 'test' } })
+    address = stub('address', host: '127.0.0.1', port: 27_017)
     @started_event.stubs(:address).returns(address)
 
     @succeeded_event = mock('succeeded event')
@@ -23,7 +21,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
     @subscriber = NewRelic::Agent::Instrumentation::MongodbCommandSubscriber.new
 
-    NewRelic::Agent::Hostname.stubs(:get).returns("nerd-server")
+    NewRelic::Agent::Hostname.stubs(:get).returns('nerd-server')
     @stats_engine = NewRelic::Agent.instance.stats_engine
     @stats_engine.clear_stats
   end
@@ -33,7 +31,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
     metric_name = 'Datastore/statement/MongoDB/users/find'
     assert_metrics_recorded(
-      metric_name => { :call_count => 1, :total_call_time => 2.0 }
+      metric_name => { call_count: 1, total_call_time: 2.0 }
     )
   end
 
@@ -42,23 +40,23 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
     metric_name = 'Datastore/statement/MongoDB/users/find'
     assert_metrics_recorded(
-      [ metric_name, 'test_txn' ] => { :call_count => 1, :total_call_time => 2 }
+      [metric_name, 'test_txn'] => { call_count: 1, total_call_time: 2 }
     )
   end
 
   def test_records_nothing_if_tracing_disabled
     NewRelic::Agent.disable_all_tracing { simulate_query }
     metric_name = 'Datastore/statement/MongoDB/users/find'
-    assert_metrics_not_recorded([ metric_name ])
+    assert_metrics_not_recorded([metric_name])
   end
 
   def test_records_rollup_metrics
     in_web_transaction { simulate_query }
 
     assert_metrics_recorded(
-      'Datastore/operation/MongoDB/find' => { :call_count => 1, :total_call_time => 2 },
-      'Datastore/allWeb' => { :call_count => 1, :total_call_time => 2 },
-      'Datastore/all' => { :call_count => 1, :total_call_time => 2 }
+      'Datastore/operation/MongoDB/find' => { call_count: 1, total_call_time: 2 },
+      'Datastore/allWeb' => { call_count: 1, total_call_time: 2 },
+      'Datastore/all' => { call_count: 1, total_call_time: 2 }
     )
   end
 
@@ -73,7 +71,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
   end
 
   def test_records_instance_metrics_for_unix_domain_socket
-    address = stub('address', :host => "/tmp/mongodb-27017.sock", :port => nil)
+    address = stub('address', host: '/tmp/mongodb-27017.sock', port: nil)
     @started_event.stubs(:address).returns(address)
     in_transaction { simulate_query }
     assert_metrics_recorded('Datastore/instance/MongoDB/nerd-server//tmp/mongodb-27017.sock')
@@ -90,7 +88,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
     tt = last_transaction_trace
 
-    node = find_node_with_name_matching tt, /^Datastore\//
+    node = find_node_with_name_matching tt, %r{^Datastore/}
 
     assert_equal(NewRelic::Agent::Hostname.get, node[:host])
     assert_equal('27017', node[:port_path_or_id])
@@ -98,7 +96,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
   end
 
   def test_does_not_record_unknown_unknown_metric_when_data_empty
-    address = stub('address', :host => "", :port => "")
+    address = stub('address', host: '', port: '')
     @started_event.stubs(:address).returns(address)
     in_transaction { simulate_query }
     assert_metrics_not_recorded('Datastore/instance/MongoDB/unknown/unknown')

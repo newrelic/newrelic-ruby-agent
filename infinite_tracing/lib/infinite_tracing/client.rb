@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -7,9 +6,9 @@
 #
 # Restarting the client will cause a new connection to the gRPC server.
 # When the client is restarted, a new streaming buffer is started and contents of old
-# buffer are transferred to the new buffer.  
+# buffer are transferred to the new buffer.
 #
-# Suspending the client will prevent the client from attempting to reconnect to the 
+# Suspending the client will prevent the client from attempting to reconnect to the
 # gRPC server, but will still continue to record the span events `seen` metric.
 module NewRelic::Agent
   module InfiniteTracing
@@ -22,14 +21,15 @@ module NewRelic::Agent
         @lock = Mutex.new
       end
 
-      def << segment
+      def <<(segment)
         buffer << segment
       end
 
       # Transfers spans in streaming buffer from previous
       # client (if any) and returns self (so we chain the call)
-      def transfer previous_client
+      def transfer(previous_client)
         return self unless previous_client
+
         previous_client.buffer.transfer buffer
         self
       end
@@ -50,29 +50,29 @@ module NewRelic::Agent
       end
 
       # Turns camelcase base class name into upper snake case version of the name.
-      def formatted_class_name class_name
-        class_name = class_name.split(":")[-1]
-        formatted_class_name = (class_name.gsub!(/(.)([A-Z])/,'\1_\2') || class_name).upcase
+      def formatted_class_name(class_name)
+        class_name = class_name.split(':')[-1]
+        formatted_class_name = (class_name.gsub!(/(.)([A-Z])/, '\1_\2') || class_name).upcase
       end
 
       # Literal codes are all mapped to unique class names, so we can deduce the
       # name of the error to report in the metric from the error's class name.
-      def grpc_error_metric_name error
+      def grpc_error_metric_name(error)
         GRPC_ERROR_NAME_METRIC % formatted_class_name(error.class.name)
       end
 
       # Reports AND logs general response metric along with a more specific error metric
-      def record_error_metrics_and_log error
+      def record_error_metrics_and_log(error)
         NewRelic::Agent.record_metric RESPONSE_ERROR_METRIC, 0.0
         if error.is_a? GRPC::BadStatus
           NewRelic::Agent.record_metric grpc_error_metric_name(error), 0.0
         else
           NewRelic::Agent.record_metric GRPC_OTHER_ERROR_METRIC, 0.0
         end
-        NewRelic::Agent.logger.warn "gRPC response error received.", error
+        NewRelic::Agent.logger.warn 'gRPC response error received.', error
       end
 
-      def handle_error error
+      def handle_error(error)
         record_error_metrics_and_log error
 
         case error
@@ -91,25 +91,26 @@ module NewRelic::Agent
 
       # This method is called when the server closes the record status stream without
       # raising an error.  The Channel/Connection is not closed or reset in this case.
-      # We simply start streaming again, which will reuse the channel/connection to the 
+      # We simply start streaming again, which will reuse the channel/connection to the
       # server and re-establish the gRPC bi-directional stream.  Useful for the server
       # to initiate a load-balancing scheme.
       def handle_close
-        NewRelic::Agent.logger.debug "The gRPC Trace Observer closed the stream with OK response. " \
-          "Restarting the stream."
+        NewRelic::Agent.logger.debug 'The gRPC Trace Observer closed the stream with OK response. ' \
+          'Restarting the stream.'
         start_streaming
       end
 
-      # Places the client into suspended state whereby client will no longer attempt to 
+      # Places the client into suspended state whereby client will no longer attempt to
       # reconnect to the gRPC server nor will it attempt to send span events henceforth.
       # The Suspended Streaming Buffer will be installed in this state.
       def suspend
         return if suspended?
+
         @lock.synchronize do
           @suspended = true
           @buffer = new_streaming_buffer
-          NewRelic::Agent.logger.warn "The Trace Observer host signaled to suspend streaming span events. " \
-            "No more span events will be sent during this session."
+          NewRelic::Agent.logger.warn 'The Trace Observer host signaled to suspend streaming span events. ' \
+            'No more span events will be sent during this session.'
         end
       end
 
@@ -135,23 +136,25 @@ module NewRelic::Agent
 
       def stop
         return unless @response_handler
+
         @lock.synchronize do
           @response_handler.stop
           @response_handler = nil
         end
       end
 
-      def start_streaming exponential_backoff=true
+      def start_streaming(exponential_backoff = true)
         return if suspended?
+
         Connection.instance.wait_for_agent_connect
         @lock.synchronize { @response_handler = record_spans exponential_backoff }
       end
 
-      def record_spans exponential_backoff
+      def record_spans(exponential_backoff)
         RecordStatusHandler.new self, Connection.record_spans(self, buffer.enumerator, exponential_backoff)
       end
 
-      def record_span_batches exponential_backoff
+      def record_span_batches(exponential_backoff)
         RecordStatusHandler.new self, Connection.record_span_batches(self, buffer.batch_enumerator, exponential_backoff)
       end
     end

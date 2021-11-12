@@ -1,18 +1,17 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../test_helper', __FILE__
+require File.expand_path '../../../test_helper', __dir__
 
 module NewRelic
   module Agent
     class TraceContextPayloadTest < Minitest::Test
       def test_to_s
         payload = TraceContextPayload.create \
-          parent_account_id: "12345",
-          parent_app_id: "6789",
-          id: "f85f42fd82a4cf1d",
-          transaction_id: "164d3b4b0d09cb05",
+          parent_account_id: '12345',
+          parent_app_id: '6789',
+          id: 'f85f42fd82a4cf1d',
+          transaction_id: '164d3b4b0d09cb05',
           sampled: true,
           priority: 0.123
 
@@ -24,9 +23,9 @@ module NewRelic
         # and to_s should be able to deal with that.
 
         payload = TraceContextPayload.create \
-          parent_account_id: "12345",
-          parent_app_id: "6789",
-          transaction_id: "164d3b4b0d09cb05",
+          parent_account_id: '12345',
+          parent_app_id: '6789',
+          transaction_id: '164d3b4b0d09cb05',
           sampled: true,
           priority: 0.123
 
@@ -34,12 +33,11 @@ module NewRelic
       end
 
       def test_to_s_does_not_convert_to_scientific_notation
-
         payload = TraceContextPayload.create \
-          parent_account_id: "12345",
-          parent_app_id: "6789",
-          id: "f85f42fd82a4cf1d",
-          transaction_id: "164d3b4b0d09cb05",
+          parent_account_id: '12345',
+          parent_app_id: '6789',
+          id: 'f85f42fd82a4cf1d',
+          transaction_id: '164d3b4b0d09cb05',
           sampled: true,
           priority: 0.000012
 
@@ -54,11 +52,11 @@ module NewRelic
 
         assert_equal 0, payload.version
         assert_equal 0, payload.parent_type_id
-        assert_equal "App", payload.parent_type
-        assert_equal "12345", payload.parent_account_id
-        assert_equal "6789", payload.parent_app_id
-        assert_equal "f85f42fd82a4cf1d", payload.id
-        assert_equal "164d3b4b0d09cb05", payload.transaction_id
+        assert_equal 'App', payload.parent_type
+        assert_equal '12345', payload.parent_account_id
+        assert_equal '6789', payload.parent_app_id
+        assert_equal 'f85f42fd82a4cf1d', payload.id
+        assert_equal '164d3b4b0d09cb05', payload.transaction_id
         assert_equal true, payload.sampled
         assert_equal 0.123, payload.priority
       end
@@ -69,14 +67,14 @@ module NewRelic
 
         assert_equal 0, payload.version
         assert_equal 1, payload.parent_type_id
-        assert_equal "Browser", payload.parent_type
+        assert_equal 'Browser', payload.parent_type
         assert_equal '212311', payload.parent_account_id
         assert_equal '51424', payload.parent_app_id
         assert_equal '0996096a36a1cd29', payload.id
         assert_nil payload.transaction_id
         assert_nil payload.sampled
         assert_nil payload.priority
-        assert_equal 1482959525577, payload.timestamp
+        assert_equal 1_482_959_525_577, payload.timestamp
       end
 
       def test_additional_attributes
@@ -87,22 +85,22 @@ module NewRelic
 
         assert_equal 1, payload.version
         assert_equal 0, payload.parent_type_id
-        assert_equal "App", payload.parent_type
-        assert_equal "12345", payload.parent_account_id
-        assert_equal "6789", payload.parent_app_id
-        assert_equal "f85f42fd82a4cf1d", payload.id
-        assert_equal "164d3b4b0d09cb05", payload.transaction_id
+        assert_equal 'App', payload.parent_type
+        assert_equal '12345', payload.parent_account_id
+        assert_equal '6789', payload.parent_app_id
+        assert_equal 'f85f42fd82a4cf1d', payload.id
+        assert_equal '164d3b4b0d09cb05', payload.transaction_id
         assert_equal true, payload.sampled
         assert_equal 0.123, payload.priority
       end
 
       def test_valid
         valid_payloads = [
-          "1-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-1482959525577",
-          "1-0-12345-6789--164d3b4b0d09cb05-1-0.123-1482959525577",
-          "1-0-12345-6789-f85f42fd82a4cf1d--1-0.123-1482959525577",
-          "1-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05--0.123-1482959525577",
-          "1-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05---1482959525577"
+          '1-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-1482959525577',
+          '1-0-12345-6789--164d3b4b0d09cb05-1-0.123-1482959525577',
+          '1-0-12345-6789-f85f42fd82a4cf1d--1-0.123-1482959525577',
+          '1-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05--0.123-1482959525577',
+          '1-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05---1482959525577'
         ]
 
         valid_payloads.each do |payload_str|
@@ -111,11 +109,11 @@ module NewRelic
         end
 
         invalid_payloads = [
-          "-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-1482959525577",
-          "1--12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-1482959525577",
-          "1-0--6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-1482959525577",
-          "1-0-12345--f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-1482959525577",
-          "1-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-"
+          '-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-1482959525577',
+          '1--12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-1482959525577',
+          '1-0--6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-1482959525577',
+          '1-0-12345--f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-1482959525577',
+          '1-0-12345-6789-f85f42fd82a4cf1d-164d3b4b0d09cb05-1-0.123-'
         ]
 
         invalid_payloads.each do |payload_str|

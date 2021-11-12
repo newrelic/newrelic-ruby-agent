@@ -1,12 +1,12 @@
 # Add your own tasks in files placed in lib/tasks ending in .rake,
 # for example lib/tasks/capistrano.rake, and they will automatically be available to Rake.
 
-require File.expand_path('../config/application', __FILE__)
+require File.expand_path('config/application', __dir__)
 require 'rake'
 
 RpmTestApp::Application.load_tasks
 require 'tasks/all'
 
-Rake::Task["default"].clear
-task :default => [:'test:newrelic_with_db']
-task :'test:newrelic_with_db' => [:'db:create', :'test:newrelic']
+Rake::Task['default'].clear
+task default: [:'test:newrelic_with_db']
+task 'test:newrelic_with_db': %i[db:create test:newrelic]

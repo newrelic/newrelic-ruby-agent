@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -9,7 +8,7 @@ module NewRelic
   module Agent
     module HTTPClients
       class ExconHTTPResponse < AbstractResponse
-        def initialize wrapped_response
+        def initialize(wrapped_response)
           super wrapped_response
 
           # Since HTTP headers are case-insensitive, we normalize all of them to
@@ -30,9 +29,9 @@ module NewRelic
 
         private
 
-        def get_attribute name
-          if @wrapped_response.respond_to?(name) 
-            @wrapped_response.send(name) 
+        def get_attribute(name)
+          if @wrapped_response.respond_to?(name)
+            @wrapped_response.send(name)
           else
             @wrapped_response[name]
           end
@@ -47,7 +46,7 @@ module NewRelic
       class ExconHTTPRequest < AbstractRequest
         attr_reader :method
 
-        EXCON = "Excon"
+        EXCON = 'Excon'
         LHOST = 'host'
         UHOST = 'Host'
         COLON = ':'

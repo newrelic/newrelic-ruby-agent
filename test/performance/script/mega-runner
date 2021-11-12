@@ -17,11 +17,11 @@ def checkout_commit(commit, repo)
 end
 
 runner_options = {
-  :agent_path => repo_path,
-  :reporter_classes => ['HakoReporter'],
-  :isolate          => true,
-  :tags => {
-    :run_id => 'ben-perf-test'
+  agent_path: repo_path,
+  reporter_classes: ['HakoReporter'],
+  isolate: true,
+  tags: {
+    run_id: 'ben-perf-test'
   }
 }
 commits = commits_between(start_commit, stop_commit, repo_path)

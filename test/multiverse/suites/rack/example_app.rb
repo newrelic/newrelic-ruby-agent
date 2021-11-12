@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,7 +7,7 @@ class ExampleApp
     body = req.params['body'] || 'A barebones rack app.'
 
     status = '404' unless req.path == '/'
-    [status || '200', {'Content-Type' => 'text/html', 'ExampleApp' => '0'}, [body]]
+    [status || '200', { 'Content-Type' => 'text/html', 'ExampleApp' => '0' }, [body]]
   end
 end
 
@@ -20,7 +19,7 @@ class FirstCascadeExampleApp
     body = req.params['body'] || 'A barebones rack cascade app.'
 
     status = '404' unless req.path == '/'
-    [status || '200', {'Content-Type' => 'text/html', 'FirstCascadeExampleApp' => '0'}, [body]]
+    [status || '200', { 'Content-Type' => 'text/html', 'FirstCascadeExampleApp' => '0' }, [body]]
   end
   add_transaction_tracer :call
 end
@@ -33,7 +32,7 @@ class SecondCascadeExampleApp
     body = req.params['body'] || 'A barebones rack cascade app.'
 
     status = '404' unless req.path == '/'
-    [status || '200', {'Content-Type' => 'text/html', 'SecondCascadeExampleApp' => '0'}, [body]]
+    [status || '200', { 'Content-Type' => 'text/html', 'SecondCascadeExampleApp' => '0' }, [body]]
   end
   add_transaction_tracer :call
 end
@@ -65,7 +64,9 @@ class MiddlewareTwo
     request = Rack::Request.new(env)
 
     if request.params['return-early']
-      status, headers, body = '200', {}, ['Hi']
+      status = '200'
+      headers = {}
+      body = ['Hi']
     else
       status, headers, body = @app.call(env)
     end
@@ -106,11 +107,11 @@ class ResponseCodeMiddleware
 
     result = @app.call(env)
 
-    if req.params['override-response-code']
-      response_code = req.params['override-response-code'].to_i
-    else
-      response_code = result[0]
-    end
+    response_code = if req.params['override-response-code']
+                      req.params['override-response-code'].to_i
+                    else
+                      result[0]
+                    end
 
     [response_code, result[1], result[2]]
   end
@@ -128,7 +129,7 @@ class ResponseContentTypeMiddleware
 
     if req.params['override-content-type']
       content_type = req.params['override-content-type']
-      headers.update("Content-Type" => content_type)
+      headers.update('Content-Type' => content_type)
     end
 
     [status, headers, body]

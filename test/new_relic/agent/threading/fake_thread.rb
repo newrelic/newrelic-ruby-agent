@@ -1,11 +1,10 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class FakeThread
   @@list = []
 
-  def initialize(locals={}, &block)
+  def initialize(locals = {})
     @locals = locals
     yield if block_given?
   end
@@ -38,6 +37,5 @@ class FakeThread
     @locals[:backtrace] || []
   end
 
-  def join
-  end
+  def join; end
 end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -15,7 +14,7 @@ module NewRelic
         # initialize it as an array that would be empty, have one item, or many items.
         attr_reader :unscoped_metrics, :custom_transaction_attributes
 
-        def initialize name=nil, unscoped_metrics=nil, start_time=nil
+        def initialize(name = nil, unscoped_metrics = nil, start_time = nil)
           @unscoped_metrics = unscoped_metrics
           super name, start_time
         end
@@ -24,7 +23,7 @@ module NewRelic
           @attributes ||= Attributes.new(NewRelic::Agent.instance.attribute_filter)
         end
 
-        def add_agent_attribute(key, value, default_destinations=AttributeFilter::DST_SPAN_EVENTS)
+        def add_agent_attribute(key, value, default_destinations = AttributeFilter::DST_SPAN_EVENTS)
           attributes.add_agent_attribute(key, value, default_destinations)
         end
 
@@ -32,12 +31,13 @@ module NewRelic
           if segment = NewRelic::Agent::Tracer.current_segment
             segment.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
           else
-            NewRelic::Agent.logger.debug "Attempted to merge untrusted attributes without segment"
+            NewRelic::Agent.logger.debug 'Attempted to merge untrusted attributes without segment'
           end
         end
 
         def merge_untrusted_agent_attributes(agent_attributes, prefix, default_destinations)
           return if agent_attributes.nil?
+
           attributes.merge_untrusted_agent_attributes(agent_attributes, prefix, default_destinations)
         end
 
@@ -53,14 +53,12 @@ module NewRelic
           else
             append_unscoped_metric name
           end
-          if unscoped_metrics
-            metric_cache.record_unscoped unscoped_metrics, duration, exclusive_duration
-          end
+          metric_cache.record_unscoped unscoped_metrics, duration, exclusive_duration if unscoped_metrics
         end
 
-        def append_unscoped_metric metric
+        def append_unscoped_metric(metric)
           if @unscoped_metrics
-            if Array === @unscoped_metrics
+            if @unscoped_metrics.is_a?(Array)
               if unscoped_metrics.frozen?
                 @unscoped_metrics += [name]
               else

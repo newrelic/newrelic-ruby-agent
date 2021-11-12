@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,17 +7,20 @@ module NewRelic
   module Instrumentation
     module ActsAsSolrInstrumentation
       module ParserMethodsInstrumentation
+        def parse_query_with_newrelic(*args)
+          self.class.trace_execution_scoped(['SolrClient/ActsAsSolr/query']) do
+            parse_query_without_newrelic(*args)
+          ensure
+            return unless txn = ::NewRelic::Agent::Tracer.current_transaction
 
-          def parse_query_with_newrelic(*args)
-            self.class.trace_execution_scoped(["SolrClient/ActsAsSolr/query"]) do
+            txn.current_segment.params[:statement] =
               begin
-                parse_query_without_newrelic(*args)
-              ensure
-                return unless txn = ::NewRelic::Agent::Tracer.current_transaction
-                txn.current_segment.params[:statement] = ::NewRelic::Agent::Database.truncate_query(args.first.inspect) rescue nil
+                ::NewRelic::Agent::Database.truncate_query(args.first.inspect)
+              rescue StandardError
+                nil
               end
-            end
           end
+        end
       end
     end
   end
@@ -50,8 +52,8 @@ DependencyDetection.defer do
   executes do
     ActsAsSolr::ParserMethods.module_eval do
       include NewRelic::Instrumentation::ActsAsSolrInstrumentation::ParserMethodsInstrumentation
-      alias :parse_query_without_newrelic :parse_query
-      alias :parse_query :parse_query_with_newrelic
+      alias_method :parse_query_without_newrelic, :parse_query
+      alias_method :parse_query, :parse_query_with_newrelic
     end
   end
 

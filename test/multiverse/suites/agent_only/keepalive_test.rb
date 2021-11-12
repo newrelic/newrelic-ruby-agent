@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,7 +7,7 @@ class KeepaliveTest < Minitest::Test
   include MultiverseHelpers
 
   def test_can_reestablish_connection
-    setup_agent(:aggressive_keepalive => true)
+    setup_agent(aggressive_keepalive: true)
 
     NewRelic::Agent.agent.send(:transmit_data)
 

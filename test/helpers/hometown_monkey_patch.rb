@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -6,6 +5,7 @@ module Hometown
   class CreationTracer
     def find_trace_for(instance)
       return unless instance.instance_variable_defined?(HOMETOWN_TRACE_ON_INSTANCE)
+
       instance.instance_variable_get(HOMETOWN_TRACE_ON_INSTANCE)
     end
 
@@ -13,12 +13,11 @@ module Hometown
     # after it's been created without forcing them to patch new themselves
     def update_on_instance_created(clazz, on_instance_created)
       return unless on_instance_created
+
       clazz.instance_eval do
         def instance_hooks
-          hooks = (self.ancestors + [self]).map do |target|
-            if target.instance_variable_defined?(:@instance_hooks)
-              target.instance_variable_get(:@instance_hooks)
-            end
+          hooks = (ancestors + [self]).map do |target|
+            target.instance_variable_get(:@instance_hooks) if target.instance_variable_defined?(:@instance_hooks)
           end
 
           hooks.flatten!

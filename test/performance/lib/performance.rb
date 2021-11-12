@@ -1,10 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'logger'
 
-$: << File.expand_path('..', __FILE__)
+$: << File.expand_path(__dir__)
 
 require 'performance/platform'
 require 'performance/result'

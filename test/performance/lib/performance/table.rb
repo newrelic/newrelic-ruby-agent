@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -7,7 +6,7 @@ module Performance
     class Formatter
       attr_reader :name
 
-      def initialize(name, format_string=nil, &blk)
+      def initialize(name, format_string = nil, &blk)
         @name = name
         @format_string = format_string
         @format_proc   = blk
@@ -17,14 +16,14 @@ module Performance
         format(value).size
       end
 
-      def format(value, width=nil)
+      def format(value, width = nil)
         formatted = if @format_string
-          sprintf(@format_string, value)
-        elsif @format_proc
-          @format_proc.call(value)
-        else
-          value.to_s
-        end
+                      format(@format_string, value)
+                    elsif @format_proc
+                      @format_proc.call(value)
+                    else
+                      value.to_s
+                    end
 
         formatted = justify(value, formatted, width) if width
         formatted
@@ -45,7 +44,7 @@ module Performance
         @formatters = []
       end
 
-      def column(name, format_string=nil, &blk)
+      def column(name, format_string = nil, &blk)
         @formatters << Formatter.new(name, format_string, &blk)
       end
     end
@@ -73,13 +72,13 @@ module Performance
     end
 
     def render_row(parts)
-      "| " + parts.join(" | ") + " |"
+      '| ' + parts.join(' | ') + ' |'
     end
 
     def render
       widths = column_widths
 
-      blanks    = widths.map { |w| "-" * w }
+      blanks    = widths.map { |w| '-' * w }
       top       = '+-' + blanks.join('-+-') + '-+'
       separator = '|-' + blanks.join('-+-') + '-|'
       bottom    = '+-' + blanks.join('-+-') + '-+'

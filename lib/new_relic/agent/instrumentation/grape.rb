@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -11,24 +10,22 @@ DependencyDetection.defer do
   # not shipping yet, overloading the name interferes with the plugin.
   named :grape_instrumentation
   configure_with :grape
-  
+
   depends_on do
     defined?(::Grape::VERSION) &&
       Gem::Version.new(::Grape::VERSION) >= ::NewRelic::Agent::Instrumentation::Grape::Instrumentation::MIN_VERSION
   end
 
   depends_on do
-    begin
-      if defined?(Bundler) && Bundler.rubygems.all_specs.map(&:name).include?("newrelic-grape")
-        ::NewRelic::Agent.logger.info("Not installing New Relic supported Grape instrumentation because the third party newrelic-grape gem is present")
-        false
-      else
-        true
-      end
-    rescue => e
-      ::NewRelic::Agent.logger.info("Could not determine if third party newrelic-grape gem is installed", e)
+    if defined?(Bundler) && Bundler.rubygems.all_specs.map(&:name).include?('newrelic-grape')
+      ::NewRelic::Agent.logger.info('Not installing New Relic supported Grape instrumentation because the third party newrelic-grape gem is present')
+      false
+    else
       true
     end
+  rescue StandardError => e
+    ::NewRelic::Agent.logger.info('Could not determine if third party newrelic-grape gem is installed', e)
+    true
   end
 
   executes do
@@ -37,9 +34,8 @@ DependencyDetection.defer do
     if use_prepend?
       instrumented_class = ::NewRelic::Agent::Instrumentation::Grape::Instrumentation.instrumented_class
       prepend_instrument instrumented_class, ::NewRelic::Agent::Instrumentation::Grape::Prepend
-    else 
+    else
       chain_instrument ::NewRelic::Agent::Instrumentation::Grape::Chain
     end
   end
-
 end

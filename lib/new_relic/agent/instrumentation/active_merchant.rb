@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -23,13 +22,13 @@ DependencyDetection.defer do
     ActiveMerchant::Billing::Gateway.implementations.each do |gateway|
       gateway.class_eval do
         implemented_methods = public_instance_methods(false).map(&:to_sym)
-        gateway_name = self.name.split('::').last
-        [:authorize, :purchase, :credit, :void, :capture, :recurring, :store, :unstore, :update].each do |operation|
-          if implemented_methods.include?(operation)
-            add_method_tracer operation, [-> (*) { "ActiveMerchant/gateway/#{gateway_name}/#{operation}" },
-                                          -> (*) { "ActiveMerchant/gateway/#{gateway_name}" },
-                                          -> (*) { "ActiveMerchant/operation/#{operation}" }]
-          end
+        gateway_name = name.split('::').last
+        %i[authorize purchase credit void capture recurring store unstore update].each do |operation|
+          next unless implemented_methods.include?(operation)
+
+          add_method_tracer operation, [->(*) { "ActiveMerchant/gateway/#{gateway_name}/#{operation}" },
+                                        ->(*) { "ActiveMerchant/gateway/#{gateway_name}" },
+                                        ->(*) { "ActiveMerchant/operation/#{operation}" }]
         end
       end
     end

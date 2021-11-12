@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 class NewRelic::Agent::EventLoopTest < Minitest::Test
   def setup
@@ -153,9 +152,9 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
 
   def test_exceptions_do_not_exit_loop
     call_count = 0
-    @loop.on(:e) { raise StandardError.new }
+    @loop.on(:e) { raise StandardError }
     @loop.on(:e) { call_count += 1 }
-    @loop.on(:e) { raise StandardError.new }
+    @loop.on(:e) { raise StandardError }
 
     @loop.fire(:e)
 
@@ -165,10 +164,10 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
 
   def test_timer_period_reset_from_event
     call_count = 0
-    @loop.on(:e           ) { call_count += 1          }
+    @loop.on(:e) { call_count += 1 }
     @loop.on(:reset_period) { @loop.fire_every(30, :e) }
 
-    @loop.fire_every( 5, :e           )
+    @loop.fire_every(5, :e)
     @loop.fire_after(31, :reset_period)
 
     advance_loop(3)  # total time 3
@@ -186,7 +185,7 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
     advance_loop(29)  # total time 59
     assert_equal(6, call_count)
 
-    advance_loop(1)  # total time 60
+    advance_loop(1) # total time 60
     assert_equal(7, call_count)
 
     advance_loop(60)  # total time 120

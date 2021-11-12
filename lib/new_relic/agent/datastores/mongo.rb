@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -13,7 +12,7 @@ module NewRelic
         def self.is_unsupported_2x?
           defined?(::Mongo::VERSION) &&
             Gem::Version.new(::Mongo::VERSION).segments[0] == 2 &&
-            !self.is_monitoring_enabled?
+            !is_monitoring_enabled?
         end
 
         def self.is_monitoring_enabled?

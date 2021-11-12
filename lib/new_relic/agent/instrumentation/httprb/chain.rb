@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -12,9 +11,9 @@ module NewRelic::Agent::Instrumentation
           def perform_with_newrelic_trace(request, options)
             with_tracing(request) { perform_without_newrelic_trace(request, options) }
           end
-       
-          alias perform_without_newrelic_trace perform
-          alias perform perform_with_newrelic_trace
+
+          alias_method :perform_without_newrelic_trace, :perform
+          alias_method :perform, :perform_with_newrelic_trace
         end
       end
     end

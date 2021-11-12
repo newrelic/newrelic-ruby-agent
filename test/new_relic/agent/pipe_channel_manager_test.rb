@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -11,7 +10,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
   include TransactionSampleTestHelper
 
   def setup
-    @test_config = { :monitor_mode => true }
+    @test_config = { monitor_mode: true }
     NewRelic::Agent.agent.drop_buffered_data
     NewRelic::Agent.config.add_config_for_testing(@test_config)
     NewRelic::Agent.config.notify_server_source_added
@@ -35,8 +34,8 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     NewRelic::Agent::PipeChannelManager.register_report_channel(1)
     pipe = NewRelic::Agent::PipeChannelManager.channels[1]
 
-    assert pipe.out.kind_of?(IO)
-    assert pipe.in.kind_of?(IO)
+    assert pipe.out.is_a?(IO)
+    assert pipe.in.is_a?(IO)
 
     NewRelic::Agent::PipeChannelManager.listener.close_all_pipes
   end
@@ -57,7 +56,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         service.metric_data(new_engine.harvest!)
       end
 
-      assert_metrics_recorded(metric => { :total_call_time => 3.0 })
+      assert_metrics_recorded(metric => { total_call_time: 3.0 })
     end
 
     def test_listener_merges_transaction_traces
@@ -67,7 +66,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       start_listener_with_pipe(667)
       run_child(667) do
         NewRelic::Agent.after_fork
-        with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
+        with_config('transaction_tracer.transaction_threshold': 0.0) do
           in_transaction {}
           service = NewRelic::Agent::PipeService.new(667)
           service.transaction_sample_data(sampler.harvest!)
@@ -79,9 +78,9 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
     def test_listener_merges_error_traces
       sampler = NewRelic::Agent.agent.error_collector
-      sampler.notice_error(Exception.new("message"), :uri => '/myurl/',
-                           :metric => 'path', :referer => 'test_referer',
-                           :request_params => {:x => 'y'})
+      sampler.notice_error(Exception.new('message'), uri: '/myurl/',
+                                                     metric: 'path', referer: 'test_referer',
+                                                     request_params: { x: 'y' })
       NewRelic::Agent.agent.merge_data_for_endpoint(:error_data, sampler.error_trace_aggregator.harvest!)
 
       errors = NewRelic::Agent.agent.error_collector.error_trace_aggregator.instance_variable_get :@errors
@@ -92,9 +91,9 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       run_child(668) do
         NewRelic::Agent.after_fork
         new_sampler = NewRelic::Agent::ErrorCollector.new NewRelic::Agent.instance.events
-        new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
-                                 :metric => 'path', :referer => 'test_referer',
-                                 :request_params => {:x => 'y'})
+        new_sampler.notice_error(Exception.new('new message'), uri: '/myurl/',
+                                                               metric: 'path', referer: 'test_referer',
+                                                               request_params: { x: 'y' })
         service = NewRelic::Agent::PipeService.new(668)
         service.error_data(new_sampler.error_trace_aggregator.harvest!)
       end
@@ -109,14 +108,14 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       start_listener_with_pipe(699)
       NewRelic::Agent.agent.stubs(:connected?).returns(true)
       run_child(699) do
-        NewRelic::Agent.after_fork(:report_to_channel => 699)
+        NewRelic::Agent.after_fork(report_to_channel: 699)
         transaction_event_aggregator.record event: NewRelic::Agent::TransactionEventPrimitive.create({
-          :start_timestamp => Process.clock_gettime(Process::CLOCK_REALTIME),
-          :name => 'whatever',
-          :duration => 10,
-          :type => :controller,
-          :priority => 0.5
-        })
+                                                                                                       start_timestamp: Process.clock_gettime(Process::CLOCK_REALTIME),
+                                                                                                       name: 'whatever',
+                                                                                                       duration: 10,
+                                                                                                       type: :controller,
+                                                                                                       priority: 0.5
+                                                                                                     })
         NewRelic::Agent.agent.send(:transmit_analytic_event_data)
       end
 
@@ -131,18 +130,18 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
       reset_lifetime_counts! error_event_aggregator
 
       sampler = NewRelic::Agent.agent.error_collector
-      sampler.notice_error(Exception.new("message"), :uri => '/myurl/',
-                           :metric => 'path', :referer => 'test_referer',
-                           :request_params => {:x => 'y'})
+      sampler.notice_error(Exception.new('message'), uri: '/myurl/',
+                                                     metric: 'path', referer: 'test_referer',
+                                                     request_params: { x: 'y' })
 
       start_listener_with_pipe(668)
 
       run_child(668) do
         NewRelic::Agent.after_fork
         new_sampler = NewRelic::Agent::ErrorCollector.new NewRelic::Agent.instance.events
-        new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
-                                 :metric => 'path', :referer => 'test_referer',
-                                 :request_params => {:x => 'y'})
+        new_sampler.notice_error(Exception.new('new message'), uri: '/myurl/',
+                                                               metric: 'path', referer: 'test_referer',
+                                                               request_params: { x: 'y' })
         service = NewRelic::Agent::PipeService.new(668)
         service.error_event_data(new_sampler.error_event_aggregator.harvest!)
       end
@@ -214,13 +213,13 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
     def assert_pipe_finished(id)
       assert(pipe_finished?(id),
-        "Expected pipe with ID #{id} to be nil or closed")
+             "Expected pipe with ID #{id} to be nil or closed")
     end
 
     def create_sql_sample(sampler)
       state = NewRelic::Agent::Tracer.state
       sampler.on_start_transaction(state)
-      sampler.notice_sql("SELECT * FROM table", "ActiveRecord/Widgets/find", nil, 100, state)
+      sampler.notice_sql('SELECT * FROM table', 'ActiveRecord/Widgets/find', nil, 100, state)
       sampler.on_finishing_transaction(state, 'noodles')
     end
   end
@@ -233,25 +232,25 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
   end
 
   def test_pipe_read_length_failure
-    write_pipe = stub(:set_encoding => nil, :closed? => false, :close => nil)
+    write_pipe = stub(set_encoding: nil, closed?: false, close: nil)
 
     # If we only read three bytes, it isn't valid.
     # We can't tell whether any four bytes or more are a "good" length or not.
-    read_pipe = stub(:read => "jrc")
+    read_pipe = stub(read: 'jrc')
     IO.stubs(:pipe).returns([read_pipe, write_pipe])
 
     # Includes the failed bytes
-    expects_logging(:error, includes("[6a 72 63]"))
+    expects_logging(:error, includes('[6a 72 63]'))
 
     pipe = NewRelic::Agent::PipeChannelManager::Pipe.new
     assert_nil pipe.read
   end
 
   def test_pipe_read_length_nil_fails
-    write_pipe = stub(:set_encoding => nil, :closed? => false, :close => nil)
+    write_pipe = stub(set_encoding: nil, closed?: false, close: nil)
 
     # No length at all returned on pipe, also a failure.
-    read_pipe = stub(:read => nil)
+    read_pipe = stub(read: nil)
     IO.stubs(:pipe).returns([read_pipe, write_pipe])
 
     pipe = NewRelic::Agent::PipeChannelManager::Pipe.new
@@ -259,57 +258,51 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
   end
 
   def test_listener_pipes_race_condition
-    begin
-      listener = NewRelic::Agent::PipeChannelManager.listener
-      listener.instance_variable_set(:@select_timeout, 0.00001)
-      listener.start
+    listener = NewRelic::Agent::PipeChannelManager.listener
+    listener.instance_variable_set(:@select_timeout, 0.00001)
+    listener.start
 
-      listener.register_pipe(0)
-      pipe_out = listener.pipes[0].out
+    listener.register_pipe(0)
+    pipe_out = listener.pipes[0].out
 
-      mutex = Mutex.new
-      mutex.lock
-      tried_to_close = false
-      pipe_out.singleton_class.send(:define_method, :closed?, Proc.new do
-        tried_to_close = true
-        mutex.synchronize do
-        end
-      end)
-
-      # Make sure we're actually paused in closed? call
-      until tried_to_close
+    mutex = Mutex.new
+    mutex.lock
+    tried_to_close = false
+    pipe_out.singleton_class.send(:define_method, :closed?, proc do
+      tried_to_close = true
+      mutex.synchronize do
       end
+    end)
 
-      t = Thread.new do
-        listener.register_pipe(1)
-      end
-
-      mutex.unlock
-      t.join
-    ensure
-      listener.close_all_pipes
-      listener.stop
+    # Make sure we're actually paused in closed? call
+    until tried_to_close
     end
+
+    t = Thread.new do
+      listener.register_pipe(1)
+    end
+
+    mutex.unlock
+    t.join
+  ensure
+    listener.close_all_pipes
+    listener.stop
   end
 
-  def run_child(channel_id)
-    pid = Process.fork do
-      yield
-    end
+  def run_child(channel_id, &block)
+    pid = Process.fork(&block)
 
     Process.wait(pid)
-    until pipe_finished?(channel_id)
-      sleep 0.01
-    end
+    sleep 0.01 until pipe_finished?(channel_id)
   end
 
-  def assert_lifetime_counts container, value
+  def assert_lifetime_counts(container, value)
     buffer = container.instance_variable_get :@buffer
     assert_equal value, buffer.captured_lifetime
     assert_equal value, buffer.seen_lifetime
   end
 
-  def reset_lifetime_counts! container
+  def reset_lifetime_counts!(container)
     buffer = container.instance_variable_get :@buffer
     buffer.instance_variable_set :@captured_lifetime, 0
     buffer.instance_variable_set :@seen_lifetime, 0

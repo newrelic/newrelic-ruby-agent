@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../test_helper', __FILE__
+require File.expand_path '../../../test_helper', __dir__
 
 require 'new_relic/agent/messaging'
 require 'new_relic/agent/transaction'
@@ -10,45 +9,42 @@ require 'new_relic/agent/transaction'
 module NewRelic::Agent
   module DistributedTracing
     class DistributedTracerTest < Minitest::Test
-
       def teardown
         reset_buffers_and_caches
       end
 
       def distributed_tracing_enabled
         {
-          :'cross_application_tracer.enabled' => false,
-          :'distributed_tracing.enabled'      => true,
-          :account_id => "190",
-          :primary_application_id => "46954",
-          :trusted_account_key => "trust_this!"
+          'cross_application_tracer.enabled': false,
+          'distributed_tracing.enabled': true,
+          account_id: '190',
+          primary_application_id: '46954',
+          trusted_account_key: 'trust_this!'
         }
       end
 
-      def exclude_newrelic_header_setting value
-        distributed_tracing_enabled.merge :'exclude_newrelic_header' => value
+      def exclude_newrelic_header_setting(value)
+        distributed_tracing_enabled.merge 'exclude_newrelic_header': value
       end
 
-      def build_trace_context_header env={}
+      def build_trace_context_header(env = {})
         env['HTTP_TRACEPARENT'] = '00-12345678901234567890123456789012-1234567890123456-00'
         env['HTTP_TRACESTATE'] = ''
-        return env
+        env
       end
 
-      def build_distributed_trace_header env={}
-        begin
-          NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
-          with_config distributed_tracing_enabled do
-            in_transaction "referring_txn" do |txn|
-              payload = txn.distributed_tracer.create_distributed_trace_payload
-              assert payload, "failed to build a distributed_trace payload!"
-              env['HTTP_NEWRELIC'] = payload.http_safe
-            end
+      def build_distributed_trace_header(env = {})
+        NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+        with_config distributed_tracing_enabled do
+          in_transaction 'referring_txn' do |txn|
+            payload = txn.distributed_tracer.create_distributed_trace_payload
+            assert payload, 'failed to build a distributed_trace payload!'
+            env['HTTP_NEWRELIC'] = payload.http_safe
           end
-          return env
-        ensure
-          NewRelic::Agent::DistributedTracePayload.unstub(:connected?)
         end
+        env
+      ensure
+        NewRelic::Agent::DistributedTracePayload.unstub(:connected?)
       end
 
       def tests_accepts_trace_context_header
@@ -59,8 +55,9 @@ module NewRelic::Agent
         with_config(distributed_tracing_enabled) do
           in_transaction do |txn|
             txn.distributed_tracer.accept_incoming_request env
-            assert txn.distributed_tracer.trace_context_header_data, "Expected to accept trace context headers"
-            refute txn.distributed_tracer.distributed_trace_payload, "Did not expect to accept a distributed trace payload"
+            assert txn.distributed_tracer.trace_context_header_data, 'Expected to accept trace context headers'
+            refute txn.distributed_tracer.distributed_trace_payload,
+                   'Did not expect to accept a distributed trace payload'
           end
         end
       end
@@ -73,8 +70,8 @@ module NewRelic::Agent
         with_config(distributed_tracing_enabled) do
           in_transaction do |txn|
             txn.distributed_tracer.accept_incoming_request env
-            refute txn.distributed_tracer.trace_context_header_data, "Did not expect to accept trace context headers"
-            assert txn.distributed_tracer.distributed_trace_payload, "Expected to accept a distributed trace payload"
+            refute txn.distributed_tracer.trace_context_header_data, 'Did not expect to accept trace context headers'
+            assert txn.distributed_tracer.distributed_trace_payload, 'Expected to accept a distributed trace payload'
           end
         end
       end
@@ -87,8 +84,9 @@ module NewRelic::Agent
         with_config(distributed_tracing_enabled) do
           in_transaction do |txn|
             txn.distributed_tracer.accept_incoming_request env
-            assert txn.distributed_tracer.trace_context_header_data, "Expected to accept trace context headers"
-            refute txn.distributed_tracer.distributed_trace_payload, "Did not expect to accept a distributed trace payload"
+            assert txn.distributed_tracer.trace_context_header_data, 'Expected to accept trace context headers'
+            refute txn.distributed_tracer.distributed_trace_payload,
+                   'Did not expect to accept a distributed trace payload'
           end
         end
       end

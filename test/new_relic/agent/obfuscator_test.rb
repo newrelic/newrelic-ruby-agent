@@ -1,17 +1,15 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require "new_relic/agent/obfuscator"
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require 'new_relic/agent/obfuscator'
 
 class NewRelic::Agent::ObfuscatorTest < Minitest::Test
-
   OBFUSCATION_KEY = (1..40).to_a.pack('c*')
   RUM_KEY_LENGTH  = 13
 
   def setup
-    @config = { :license_key => OBFUSCATION_KEY }
+    @config = { license_key: OBFUSCATION_KEY }
     NewRelic::Agent.config.add_config_for_testing(@config)
   end
 
@@ -20,7 +18,7 @@ class NewRelic::Agent::ObfuscatorTest < Minitest::Test
     @obfuscator = nil
   end
 
-  def obfuscator(length=nil)
+  def obfuscator(length = nil)
     @obfuscator ||= NewRelic::Agent::Obfuscator.new(OBFUSCATION_KEY, length)
   end
 
@@ -38,24 +36,23 @@ class NewRelic::Agent::ObfuscatorTest < Minitest::Test
 
   def test_obfuscate_utf8
     assert_encoded(RUM_KEY_LENGTH,
-                   "foooooééoooo - blah",
-                   "Z21sa2ppxKHKo2RjYm4iLiRnamZg")
+                   'foooooééoooo - blah',
+                   'Z21sa2ppxKHKo2RjYm4iLiRnamZg')
   end
-
 
   def test_decoding_blank
     obfuscator = NewRelic::Agent::Obfuscator.new('query')
-    assert_equal "", obfuscator.deobfuscate("")
+    assert_equal '', obfuscator.deobfuscate('')
   end
 
   def test_decoding_empty_key
-    obfuscator = NewRelic::Agent::Obfuscator.new("")
-    assert_equal "querty", obfuscator.encode('querty')
+    obfuscator = NewRelic::Agent::Obfuscator.new('')
+    assert_equal 'querty', obfuscator.encode('querty')
   end
 
   def test_encode_with_nil_uses_empty_key
     obfuscator = NewRelic::Agent::Obfuscator.new(nil)
-    assert_equal "querty", obfuscator.encode('querty')
+    assert_equal 'querty', obfuscator.encode('querty')
   end
 
   def test_encoding_functions_can_roundtrip_utf8_text
@@ -63,7 +60,7 @@ class NewRelic::Agent::ObfuscatorTest < Minitest::Test
     obfuscator = NewRelic::Agent::Obfuscator.new('potap')
     encoded = obfuscator.obfuscate(str)
     decoded = obfuscator.deobfuscate(encoded)
-    decoded.force_encoding( 'utf-8' ) if decoded.respond_to?( :force_encoding )
+    decoded.force_encoding('utf-8') if decoded.respond_to?(:force_encoding)
     assert_equal str, decoded
   end
 

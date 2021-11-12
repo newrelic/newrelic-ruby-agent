@@ -1,22 +1,21 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/configuration/yaml_source'
 
 module NewRelic::Agent::Configuration
   class YamlSourceTest < Minitest::Test
     def setup
       @test_yml_path = File.expand_path(File.join(File.dirname(__FILE__),
-                                                 '..','..','..',
-                                                 'config','newrelic.yml'))
+                                                  '..', '..', '..',
+                                                  'config', 'newrelic.yml'))
       @source = YamlSource.new(@test_yml_path, 'test')
     end
 
     def test_should_load_hash_for_specified_configs
-      ignore_messages = {"RuntimeError"=>["test error3"]}
-      expected_messages = {"StandardError"=>["test error1", "test error2"]}
+      ignore_messages = { 'RuntimeError' => ['test error3'] }
+      expected_messages = { 'StandardError' => ['test error1', 'test error2'] }
       assert_equal ignore_messages, @source[:'error_collector.ignore_messages']
       assert_equal expected_messages, @source[:'error_collector.expected_messages']
     end
@@ -90,7 +89,7 @@ module NewRelic::Agent::Configuration
         ::NewRelic::Agent::StartupLogger.any_instance.expects(:error)
 
         File.stubs(:exist?).returns(true)
-        File.stubs(:read).raises(StandardError.new("boo"))
+        File.stubs(:read).raises(StandardError.new('boo'))
 
         YamlSource.new('fake.yml', 'test')
       end
@@ -98,14 +97,14 @@ module NewRelic::Agent::Configuration
 
     def test_should_mark_error_on_read_as_failure
       File.stubs(:exist?).returns(true)
-      File.stubs(:read).raises(StandardError.new("boo"))
+      File.stubs(:read).raises(StandardError.new('boo'))
 
       source = YamlSource.new('fake.yml', 'test')
       assert source.failed?
     end
 
     def test_should_mark_erb_error_as_failure
-      ERB.stubs(:new).raises(StandardError.new("boo"))
+      ERB.stubs(:new).raises(StandardError.new('boo'))
 
       source = YamlSource.new(@test_yml_path, 'test')
       assert source.failed?

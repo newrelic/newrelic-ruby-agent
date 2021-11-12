@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,7 +7,8 @@ require 'new_relic/agent/transaction/trace_node'
 class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   def test_node_creation
     # basic smoke test
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
     assert_equal NewRelic::Agent::Transaction::TraceNode, s.class
   end
 
@@ -22,14 +22,16 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   end
 
   def test_end_trace
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
     t = Process.clock_gettime(Process::CLOCK_REALTIME)
     s.end_trace(t)
     assert_equal(t, s.exit_timestamp)
   end
 
   def test_to_s
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
     s.expects(:to_debug_str).with(0)
     s.to_s
   end
@@ -41,7 +43,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     child.end_trace(3)
     parent.children << child
     parent.end_trace(4)
-    expected_array = [1000, 4000, 'Custom/test/parent', {:test => 'value'},
+    expected_array = [1000, 4000, 'Custom/test/parent', { test: 'value' },
                       [[2000, 3000, 'Custom/test/child', {}, []]]]
     assert_equal(expected_array, parent.to_array)
   end
@@ -49,31 +51,32 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   def test_to_array_with_bad_values
     node = NewRelic::Agent::Transaction::TraceNode.new(nil, nil)
     node.end_trace(Rational(10, 1))
-    expected = [0, 10_000.0, "<unknown>", {}, []]
+    expected = [0, 10_000.0, '<unknown>', {}, []]
     assert_equal(expected, node.to_array)
   end
 
   def test_path_string
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
-    assert_equal("Custom/test/metric[]", s.path_string)
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
+    assert_equal('Custom/test/metric[]', s.path_string)
 
     fake_node = mock('node')
     fake_node.expects(:path_string).returns('Custom/other/metric[]')
 
-
     s.children << fake_node
-    assert_equal("Custom/test/metric[Custom/other/metric[]]", s.path_string)
+    assert_equal('Custom/test/metric[Custom/other/metric[]]', s.path_string)
   end
 
   def test_to_s_compact
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
-    assert_equal("Custom/test/metric", s.to_s_compact)
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
+    assert_equal('Custom/test/metric', s.to_s_compact)
 
     fake_node = mock('node')
     fake_node.expects(:to_s_compact).returns('Custom/other/metric')
     s.children << fake_node
 
-    assert_equal("Custom/test/metric{Custom/other/metric}", s.to_s_compact)
+    assert_equal('Custom/test/metric{Custom/other/metric}', s.to_s_compact)
   end
 
   def test_to_debug_str_basic
@@ -83,8 +86,10 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
   def test_to_debug_str_with_params
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', 0.0)
-    s.params = {:whee => 'a param'}
-    assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n    -whee            : a param\n<<  n/a Custom/test/metric\n", s.to_debug_str(0))
+    s.params = { whee: 'a param' }
+    assert_equal(
+      ">>   0 ms [TraceNode] Custom/test/metric \n    -whee            : a param\n<<  n/a Custom/test/metric\n", s.to_debug_str(0)
+    )
   end
 
   def test_to_debug_str_closed
@@ -95,29 +100,37 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
   def test_to_debug_str_closed_with_nonnumeric
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', 0.0)
-    s.end_trace("0.1")
+    s.end_trace('0.1')
     assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n<< 0.1 Custom/test/metric\n", s.to_debug_str(0))
   end
 
   def test_to_debug_str_one_child
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', 0.0)
     s.children << NewRelic::Agent::Transaction::TraceNode.new('Custom/test/other', 0.1)
-    assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/other \n  <<  n/a Custom/test/other\n<<  n/a Custom/test/metric\n", s.to_debug_str(0))
+    assert_equal(
+      ">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/other \n  <<  n/a Custom/test/other\n<<  n/a Custom/test/metric\n", s.to_debug_str(0)
+    )
     # try closing it
     s.children.first.end_trace(0.15)
     s.end_trace(0.2)
-    assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/other \n  << 150 ms Custom/test/other\n<< 200 ms Custom/test/metric\n", s.to_debug_str(0))
+    assert_equal(
+      ">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/other \n  << 150 ms Custom/test/other\n<< 200 ms Custom/test/metric\n", s.to_debug_str(0)
+    )
   end
 
   def test_to_debug_str_multichild
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', 0.0)
     s.children << NewRelic::Agent::Transaction::TraceNode.new('Custom/test/other', 0.1)
     s.children << NewRelic::Agent::Transaction::TraceNode.new('Custom/test/extra', 0.11)
-    assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/other \n  <<  n/a Custom/test/other\n  >> 110 ms [TraceNode] Custom/test/extra \n  <<  n/a Custom/test/extra\n<<  n/a Custom/test/metric\n", s.to_debug_str(0))
+    assert_equal(
+      ">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/other \n  <<  n/a Custom/test/other\n  >> 110 ms [TraceNode] Custom/test/extra \n  <<  n/a Custom/test/extra\n<<  n/a Custom/test/metric\n", s.to_debug_str(0)
+    )
     ending = 0.12
     s.children.each { |x| x.end_trace(ending += 0.01) }
     s.end_trace(0.2)
-    assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/other \n  << 130 ms Custom/test/other\n  >> 110 ms [TraceNode] Custom/test/extra \n  << 140 ms Custom/test/extra\n<< 200 ms Custom/test/metric\n", s.to_debug_str(0))
+    assert_equal(
+      ">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/other \n  << 130 ms Custom/test/other\n  >> 110 ms [TraceNode] Custom/test/extra \n  << 140 ms Custom/test/extra\n<< 200 ms Custom/test/metric\n", s.to_debug_str(0)
+    )
   end
 
   def test_to_debug_str_nested
@@ -126,22 +139,28 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', 0.0)
     middle.children << inner
     s.children << middle
-    assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/middle \n    >> 200 ms [TraceNode] Custom/test/inner \n    <<  n/a Custom/test/inner\n  <<  n/a Custom/test/middle\n<<  n/a Custom/test/metric\n", s.to_debug_str(0))
+    assert_equal(
+      ">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/middle \n    >> 200 ms [TraceNode] Custom/test/inner \n    <<  n/a Custom/test/inner\n  <<  n/a Custom/test/middle\n<<  n/a Custom/test/metric\n", s.to_debug_str(0)
+    )
 
     # close them
     inner.end_trace(0.21)
     middle.end_trace(0.22)
     s.end_trace(0.23)
-    assert_equal(">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/middle \n    >> 200 ms [TraceNode] Custom/test/inner \n    << 210 ms Custom/test/inner\n  << 220 ms Custom/test/middle\n<< 230 ms Custom/test/metric\n", s.to_debug_str(0))
+    assert_equal(
+      ">>   0 ms [TraceNode] Custom/test/metric \n  >> 100 ms [TraceNode] Custom/test/middle \n    >> 200 ms [TraceNode] Custom/test/inner \n    << 210 ms Custom/test/inner\n  << 220 ms Custom/test/middle\n<< 230 ms Custom/test/metric\n", s.to_debug_str(0)
+    )
   end
 
   def test_children_default
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
     assert_equal([], s.children)
   end
 
   def test_children_with_nodes
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
     fake_node = mock('node')
     s.children << fake_node
 
@@ -161,13 +180,15 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   end
 
   def test_exclusive_duration_no_children
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
     s.expects(:duration).returns(0.5)
     assert_equal(0.5, s.exclusive_duration)
   end
 
   def test_exclusive_duration_with_children
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
 
     s.expects(:duration).returns(0.5)
 
@@ -180,12 +201,14 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   end
 
   def test_count_nodes_default
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
     assert_equal(1, s.count_nodes)
   end
 
   def test_count_nodes_with_children
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
 
     fake_node = mock('node')
     fake_node.expects(:count_nodes).returns(1)
@@ -196,7 +219,8 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   end
 
   def test_key_equals
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
     # doing this to hold the reference to the hash
     params = {}
     s.params = params
@@ -209,23 +233,26 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   end
 
   def test_key
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
-    s.params = {:foo => 'correct'}
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
+    s.params = { foo: 'correct' }
     assert_equal('correct', s[:foo])
   end
 
   def test_params
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
 
     assert_equal({}, s.params)
 
     # should otherwise take the value from the @params var
-    s.instance_eval { @params = {:foo => 'correct'} }
-    assert_equal({:foo => 'correct'}, s.params)
+    s.instance_eval { @params = { foo: 'correct' } }
+    assert_equal({ foo: 'correct' }, s.params)
   end
 
   def test_each_node_default
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
     # in the base case it just yields the block to itself
     count = 0
     s.each_node do |x|
@@ -237,7 +264,8 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   end
 
   def test_each_node_with_children
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
 
     fake_node = mock('node')
     fake_node.expects(:each_node).yields(fake_node)
@@ -245,7 +273,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     s.children << fake_node
 
     count = 0
-    s.each_node do |x|
+    s.each_node do |_x|
       count += 1
     end
 
@@ -253,48 +281,53 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   end
 
   def test_each_node_with_nest_tracking
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
 
     summary = mock('summary')
     summary.expects(:current_nest_count).twice.returns(0).then.returns(1)
     summary.expects(:current_nest_count=).twice
-    s.each_node_with_nest_tracking do |x|
+    s.each_node_with_nest_tracking do |_x|
       summary
     end
   end
 
   def test_explain_sql_raising_an_error
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
-    config = { :adapter => 'mysql' }
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
+    config = { adapter: 'mysql' }
     statement = NewRelic::Agent::Database::Statement.new('SELECT')
     statement.config = config
     statement.explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
-    s.params = {:sql => statement}
-    NewRelic::Agent::Database.expects(:get_connection).with(config).raises(RuntimeError.new("whee"))
+    s.params = { sql: statement }
+    NewRelic::Agent::Database.expects(:get_connection).with(config).raises(RuntimeError.new('whee'))
     s.explain_sql
   end
 
   def test_explain_sql_can_handle_missing_config
     # If TT node came over from Resque child, might not be a Statement
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
-    s.params = { :sql => "SELECT * FROM galaxy" }
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
+    s.params = { sql: 'SELECT * FROM galaxy' }
     s.explain_sql
   end
 
   def test_explain_sql_can_use_already_existing_plan
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
     s.params = {
-      :sql => "SELECT * FROM galaxy",
-      :explain_plan => "EXPLAIN IT!"
+      sql: 'SELECT * FROM galaxy',
+      explain_plan: 'EXPLAIN IT!'
     }
 
-    assert_equal("EXPLAIN IT!", s.explain_sql)
+    assert_equal('EXPLAIN IT!', s.explain_sql)
   end
 
   def test_params_equal
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
 
-    params = {:foo => 'correct'}
+    params = { foo: 'correct' }
 
     s.params = params
     assert_equal(params, s.instance_variable_get(:@params))
@@ -302,20 +335,23 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
   def test_obfuscated_sql
     sql = 'select * from table where id = 1'
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
     s[:sql] = NewRelic::Agent::Database::Statement.new(sql)
     assert_equal('select * from table where id = ?', s.obfuscated_sql)
   end
 
   def test_children_equals
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
     assert_nil(s.instance_eval { @children })
     s.children = [1, 2, 3]
     assert_equal([1, 2, 3], s.instance_eval { @children })
   end
 
   def test_parent_node_equals
-    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
+    s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric',
+                                                    Process.clock_gettime(Process::CLOCK_REALTIME))
     assert_nil(s.parent_node)
     fake_node = mock('node')
     s.send(:parent_node=, fake_node)

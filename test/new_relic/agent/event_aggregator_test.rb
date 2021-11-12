@@ -1,9 +1,8 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
 require 'new_relic/agent/event_aggregator'
 
 module NewRelic
@@ -16,7 +15,7 @@ module NewRelic
 
         attr_reader :buffer
 
-        def record item
+        def record(item)
           event = { 'name' => "Event#{item}", 'priority' => rand }
           @buffer.append(event: [event])
           notify_if_full
@@ -26,7 +25,7 @@ module NewRelic
       class FnTestAggregator < EventAggregator
         named :RubeGoldbergTestAggregator
         capacity_key :cap_key
-        enabled_fn ->(){ Agent.config[:enabled_key] && enabled_for_test }
+        enabled_fn -> { Agent.config[:enabled_key] && enabled_for_test }
 
         class << self
           attr_accessor :enabled_for_test
@@ -41,9 +40,9 @@ module NewRelic
 
       def setup
         NewRelic::Agent.config.add_config_for_testing(
-          :cap_key => 100,
-          :enabled_key => true,
-          :enabled_key2 => true
+          cap_key: 100,
+          enabled_key: true,
+          enabled_key2: true
         )
 
         @events = NewRelic::Agent.instance.events
@@ -65,79 +64,79 @@ module NewRelic
       end
 
       def test_enabled_relects_config_value
-        assert @aggregator.enabled?, "Expected enabled? to be true"
+        assert @aggregator.enabled?, 'Expected enabled? to be true'
 
-        with_server_source :enabled_key => false do
-          refute @aggregator.enabled?, "Expected enabled? to be false"
+        with_server_source enabled_key: false do
+          refute @aggregator.enabled?, 'Expected enabled? to be false'
         end
       end
 
       def test_enabled_uses_multiple_keys_by_default
         @aggregator = MultiKeyTestAggregator.new @events
-        with_server_source :enabled_key2 => true do
+        with_server_source enabled_key2: true do
           assert @aggregator.enabled?
         end
 
-        with_server_source :enabled_key2 => false do
+        with_server_source enabled_key2: false do
           refute @aggregator.enabled?
         end
       end
 
       def test_after_harvest_invoked_with_report
-        metadata = {:meta => true}
+        metadata = { meta: true }
         @aggregator.buffer.stubs(:metadata).returns(metadata)
         @aggregator.expects(:after_harvest).with(metadata)
         @aggregator.harvest!
       end
 
       def test_notifies_full
-        expects_logging :debug, includes("TestAggregator capacity of 5 reached")
-        with_config :cap_key => 5 do
-          5.times { |i| @aggregator.record i}
+        expects_logging :debug, includes('TestAggregator capacity of 5 reached')
+        with_config cap_key: 5 do
+          5.times { |i| @aggregator.record i }
         end
       end
 
       def test_notifies_full_only_once
-        with_config :cap_key => 5 do
-          msg = "TestAggregator capacity of 5 reached"
+        with_config cap_key: 5 do
+          msg = 'TestAggregator capacity of 5 reached'
           # this will trigger a message to be logged
-          5.times { |i| @aggregator.record i}
+          5.times { |i| @aggregator.record i }
 
           # we expect subsequent records not to trigger logging
           expects_logging :debug, Not(includes(msg))
-          3.times {@aggregator.record 'no logs'}
+          3.times { @aggregator.record 'no logs' }
         end
       end
 
       def test_notifies_full_resets_after_harvest
-        msg = "TestAggregator capacity of 5 reached"
+        msg = 'TestAggregator capacity of 5 reached'
 
         expects_logging :debug, includes(msg)
-        with_config :cap_key => 5 do
-          5.times { |i| @aggregator.record i}
+        with_config cap_key: 5 do
+          5.times { |i| @aggregator.record i }
         end
 
         @aggregator.harvest!
 
         expects_logging :debug, includes(msg)
-        with_config :cap_key => 5 do
-          5.times { |i| @aggregator.record i}
+        with_config cap_key: 5 do
+          5.times { |i| @aggregator.record i }
         end
       end
 
       def test_notifies_full_resets_after_buffer_reset
-        msg = "TestAggregator capacity of 5 reached"
+        msg = 'TestAggregator capacity of 5 reached'
 
         expects_logging :debug, includes(msg)
-        with_config :cap_key => 5 do
-          5.times { |i| @aggregator.record i}
+        with_config cap_key: 5 do
+          5.times { |i| @aggregator.record i }
         end
 
         @aggregator.reset!
 
         expects_logging :debug, includes(msg)
-        with_config :cap_key => 5 do
-          5.times { |i| @aggregator.record i}
+        with_config cap_key: 5 do
+          5.times { |i| @aggregator.record i }
         end
       end
 
@@ -162,10 +161,10 @@ module NewRelic
       end
 
       def test_buffer_adjusts_count_by_default_on_merge
-        with_config :cap_key => 5 do
+        with_config cap_key: 5 do
           buffer = @aggregator.buffer
 
-          4.times { |i| @aggregator.record i  }
+          4.times { |i| @aggregator.record i }
           last_harvest = @aggregator.harvest!
 
           assert_equal 4, buffer.seen_lifetime
@@ -185,10 +184,10 @@ module NewRelic
       end
 
       def test_buffer_adds_to_original_count_on_merge_when_specified
-        with_config :cap_key => 5 do
+        with_config cap_key: 5 do
           buffer = @aggregator.buffer
 
-          4.times { |i| @aggregator.record i  }
+          4.times { |i| @aggregator.record i }
           last_harvest = @aggregator.harvest!
 
           assert_equal 4, buffer.seen_lifetime

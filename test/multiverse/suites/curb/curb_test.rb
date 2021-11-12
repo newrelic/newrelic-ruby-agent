@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -9,13 +8,11 @@ require 'http_client_test_cases'
 require 'new_relic/agent/http_clients/curb_wrappers'
 
 class CurbTest < Minitest::Test
-
   #
   # Tests
   #
 
   include HttpClientTestCases
-
 
   def test_shouldnt_clobber_existing_header_callback
     headers = []
@@ -37,13 +34,13 @@ class CurbTest < Minitest::Test
       end
     end
 
-    assert completed, "completion block was never run"
+    assert completed, 'completion block was never run'
   end
 
   def test_get_works_with_the_shortcut_api
     # Override the mechanism for getting a response and run the test_get test
     # again
-    @get_response_proc = Proc.new do |url|
+    @get_response_proc = proc do |url|
       Curl.get(url || default_url)
     end
     test_get
@@ -53,7 +50,7 @@ class CurbTest < Minitest::Test
 
   def test_background_works_with_the_shortcut_api
     # Override the mechanism for getting a response and run test_background again
-    @get_response_proc = Proc.new do |url|
+    @get_response_proc = proc do |url|
       Curl.get(url || default_url)
     end
     test_background
@@ -66,14 +63,14 @@ class CurbTest < Minitest::Test
     header_str = rsp.header_str
 
     # Make sure that we got something that looks like a header string
-    assert_match(/^HTTP\/1\.1 200 OK\s+$/, header_str)
+    assert_match(%r{^HTTP/1\.1 200 OK\s+$}, header_str)
     assert_match(/^Content-Length: \d+\s+$/, header_str)
 
     # Make sure there are no lines that appear multiple times, which would
     # happen if we installed callbacks repeatedly on one request.
     header_lines = header_str.split
     assert_equal(header_lines.uniq.size, header_lines.size,
-      "Found some header lines appearing multiple times in header_str:\n#{header_str}")
+                 "Found some header lines appearing multiple times in header_str:\n#{header_str}")
   end
 
   def test_get_via_multi_preserves_header_str
@@ -83,7 +80,7 @@ class CurbTest < Minitest::Test
       header_str = easy.header_str
     end
 
-    assert_match(/^HTTP\/1\.1 200 OK\s+$/, header_str)
+    assert_match(%r{^HTTP/1\.1 200 OK\s+$}, header_str)
     assert_match(/^Content-Length: \d+\s+$/, header_str)
   end
 
@@ -92,32 +89,30 @@ class CurbTest < Minitest::Test
     assert_equal(200, status_code)
   end
 
-
   def test_doesnt_propagate_errors_in_instrumentation
-    NewRelic::Agent::CrossAppTracing.stubs(:cross_app_enabled?).raises("Booom")
+    NewRelic::Agent::CrossAppTracing.stubs(:cross_app_enabled?).raises('Booom')
 
     res = Curl::Easy.http_get(default_url)
 
     assert_kind_of Curl::Easy, res
   end
 
-
   def test_works_with_parallel_fetches
     results = []
     other_url = "http://localhost:#{$fake_server.port}/"
 
-    in_transaction("test") do
-      Curl::Multi.get [default_url,other_url] do |easy|
+    in_transaction('test') do
+      Curl::Multi.get [default_url, other_url] do |easy|
         results << easy.body_str
       end
 
       results.each do |res|
-        assert_match %r/<head>/i, res
+        assert_match /<head>/i, res
       end
     end
 
-    last_node = find_last_transaction_node()
-    assert_equal "External/Multiple/Curb::Multi/perform", last_node.metric_name
+    last_node = find_last_transaction_node
+    assert_equal 'External/Multiple/Curb::Multi/perform', last_node.metric_name
   end
 
   def test_block_passed_to_multi_perform_should_be_called
@@ -125,12 +120,12 @@ class CurbTest < Minitest::Test
     num_requests = 2
     perform_block_called = false
 
-    in_transaction("test") do
+    in_transaction('test') do
       multi = Curl::Multi.new
 
-      num_requests.times do |i|
+      num_requests.times do |_i|
         req = Curl::Easy.new(default_url) do |easy|
-          easy.on_success { |curl| successes += 1 }
+          easy.on_success { |_curl| successes += 1 }
         end
         multi.add(req)
       end
@@ -138,11 +133,11 @@ class CurbTest < Minitest::Test
       multi.perform { perform_block_called = true }
 
       assert_equal(num_requests, successes)
-      assert(perform_block_called, "Block passed to Curl::Multi.perform should have been called")
+      assert(perform_block_called, 'Block passed to Curl::Multi.perform should have been called')
     end
 
-    last_node = find_last_transaction_node()
-    assert_equal "External/Multiple/Curb::Multi/perform", last_node.metric_name
+    last_node = find_last_transaction_node
+    assert_equal 'External/Multiple/Curb::Multi/perform', last_node.metric_name
   end
 
   #
@@ -150,7 +145,7 @@ class CurbTest < Minitest::Test
   #
 
   def client_name
-    "Curb"
+    'Curb'
   end
 
   def timeout_error_class
@@ -158,10 +153,10 @@ class CurbTest < Minitest::Test
   end
 
   def simulate_error_response
-    get_response "http://localhost:666/evil"
+    get_response 'http://localhost:666/evil'
   end
 
-  def get_response url=nil, headers=nil
+  def get_response(url = nil, headers = nil)
     if @get_response_proc
       @get_response_proc.call(url)
     else
@@ -172,7 +167,7 @@ class CurbTest < Minitest::Test
     end
   end
 
-  def get_wrapped_response url
+  def get_wrapped_response(url)
     NewRelic::Agent::HTTPClients::CurbResponse.new get_response url
   end
 
@@ -192,21 +187,20 @@ class CurbTest < Minitest::Test
     Curl::Easy.http_delete default_url
   end
 
-  def body res
+  def body(res)
     res.body_str
   end
 
   def request_instance
-    NewRelic::Agent::HTTPClients::CurbRequest.new(Curl::Easy.new("http://localhost"))
+    NewRelic::Agent::HTTPClients::CurbRequest.new(Curl::Easy.new('http://localhost'))
   end
 
-  def response_instance headers={}
-    res = NewRelic::Agent::HTTPClients::CurbResponse.new(Curl::Easy.new("http://localhost"))
+  def response_instance(headers = {})
+    res = NewRelic::Agent::HTTPClients::CurbResponse.new(Curl::Easy.new('http://localhost'))
     headers.each do |hdr, val|
       res.append_header_data "#{hdr}: #{val}"
     end
 
-    return res
+    res
   end
-
 end

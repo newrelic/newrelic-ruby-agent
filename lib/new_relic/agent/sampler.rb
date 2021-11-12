@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 #
@@ -12,11 +11,11 @@
 module NewRelic
   module Agent
     class Sampler
-
       # Exception denotes a sampler is not available and it will not be registered.
-      class Unsupported < StandardError;  end
+      class Unsupported < StandardError; end
 
       attr_reader :id
+
       @sampler_classes = []
 
       class << self
@@ -39,25 +38,25 @@ module NewRelic
       def self.enabled?
         if shorthand_name
           config_key = "disable_#{shorthand_name}_sampler"
-          !(Agent.config[config_key])
+          !Agent.config[config_key]
         else
           true
         end
       end
 
-      def self.sampler_classes
-        @sampler_classes
+      class << self
+        attr_reader :sampler_classes
       end
 
       # The ID passed in here is unused by our code, but is preserved in case
       # we have clients who are defining their own subclasses of this class, and
       # expecting to be able to call super with an ID.
-      def initialize(id=nil)
+      def initialize(id = nil)
         @id = id || self.class.shorthand_name
       end
 
       def poll
-        raise "Implement in the subclass"
+        raise 'Implement in the subclass'
       end
     end
   end

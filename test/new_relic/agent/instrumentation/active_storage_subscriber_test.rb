@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../test_helper', __FILE__
+require File.expand_path '../../../test_helper', __dir__
 require 'new_relic/agent/instrumentation/active_storage_subscriber'
 
 def supported_active_storage_available?
@@ -15,4 +14,3 @@ if supported_active_storage_available?
 else
   puts "Skipping tests in #{__FILE__} because ActiveStorage is unavailable"
 end
-

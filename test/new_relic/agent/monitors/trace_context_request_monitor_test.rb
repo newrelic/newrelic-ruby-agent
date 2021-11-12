@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../test_helper', __FILE__
+require File.expand_path '../../../test_helper', __dir__
 
 module NewRelic
   module Agent
@@ -14,12 +13,12 @@ module NewRelic
         @events  = EventListener.new
         @monitor = DistributedTracing::Monitor.new(@events)
         @config = {
-          :'cross_application_tracer.enabled' => false,
-          :'distributed_tracing.enabled' => true,
-          :encoding_key                  => "\0",
-          :account_id                    => "190",
-          :primary_application_id        => "46954",
-          :trusted_account_key           => "99999"
+          'cross_application_tracer.enabled': false,
+          'distributed_tracing.enabled': true,
+          encoding_key: "\0",
+          account_id: '190',
+          primary_application_id: '46954',
+          trusted_account_key: '99999'
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config, true)
@@ -34,7 +33,7 @@ module NewRelic
       def test_accepts_trace_context
         parent_txn, carrier = build_parent_transaction_headers
 
-        child_txn = in_transaction "receiving_txn" do |txn|
+        child_txn = in_transaction 'receiving_txn' do |_txn|
           @events.notify(:before_call, carrier)
         end
 
@@ -44,8 +43,8 @@ module NewRelic
       end
 
       def test_accepts_trace_context_with_trace_parent_and_no_trace_state
-        carrier = {'HTTP_TRACEPARENT' => '00-12345678901234567890123456789012-1234567890123456-01'}
-        txn = in_transaction "receiving_txn" do |txn|
+        carrier = { 'HTTP_TRACEPARENT' => '00-12345678901234567890123456789012-1234567890123456-01' }
+        txn = in_transaction 'receiving_txn' do |_txn|
           @events.notify(:before_call, carrier)
         end
 
@@ -57,7 +56,7 @@ module NewRelic
           'HTTP_TRACEPARENT' => '00-12345678901234567890123456789012-1234567890123456-00',
           'HTTP_TRACESTATE' => ''
         }
-        txn = in_transaction "receiving_txn" do |txn|
+        txn = in_transaction 'receiving_txn' do |_txn|
           @events.notify(:before_call, carrier)
         end
 
@@ -69,7 +68,7 @@ module NewRelic
           'HTTP_TRACEPARENT' => '00-00000000000000000000000000000000-1234567890123456-00',
           'HTTP_TRACESTATE' => ''
         }
-        txn = in_transaction "receiving_txn" do |txn|
+        txn = in_transaction 'receiving_txn' do |_txn|
           @events.notify(:before_call, carrier)
         end
 
@@ -83,19 +82,19 @@ module NewRelic
 
       def test_does_not_accept_trace_context_if_no_trace_context_headers
         carrier = {}
-        child_txn = in_transaction 'child' do |txn|
+        child_txn = in_transaction 'child' do |_txn|
           @events.notify(:before_call, carrier)
         end
         assert_nil child_txn.distributed_tracer.trace_context_header_data
       end
 
       def test_does_not_accept_malformed_trace_context
-        carrier ={
+        carrier = {
           'HTTP_TRACESTATE' => 'alsdkfja;lskdjfa',
           'HTTP_TRACEPARENT' => 'alkjhdsfasdf'
         }
 
-        child_txn = in_transaction 'child' do |txn|
+        child_txn = in_transaction 'child' do |_txn|
           @events.notify(:before_call, carrier)
         end
 
@@ -107,7 +106,7 @@ module NewRelic
 
         # stubbing contexted allows trace_context_active? to pass
         # which, in turn, allows us to insert a trace_context header here.
-        parent_txn = in_transaction "referring_txn" do |txn|
+        parent_txn = in_transaction 'referring_txn' do |txn|
           Agent.instance.stubs(:connected?).returns(true)
           txn.sampled = true
           txn.distributed_tracer.insert_trace_context_header carrier, NewRelic::FORMAT_RACK

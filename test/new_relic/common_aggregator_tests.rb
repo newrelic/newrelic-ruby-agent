@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -29,8 +28,8 @@ module NewRelic
     end
 
     def test_records_background_tasks
-      generate_event('a', :type => :controller)
-      generate_event('b', :type => :background)
+      generate_event('a', type: :controller)
+      generate_event('b', type: :background)
       assert_equal 2, last_events.size
     end
 
@@ -80,7 +79,7 @@ module NewRelic
     end
 
     def test_does_not_drop_samples_when_used_from_multiple_threads
-      with_config( aggregator.class.capacity_key => 100 * 100 ) do
+      with_config(aggregator.class.capacity_key => 100 * 100) do
         threads = []
         25.times do
           threads << Thread.new do
@@ -95,8 +94,8 @@ module NewRelic
 
     def test_lower_priority_events_discarded_in_favor_higher_priority_events
       with_config aggregator.class.capacity_key => 5 do
-        5.times { |i| generate_event "totally_not_sampled_#{i}", :priority => rand     }
-        5.times { |i| generate_event "sampled_#{i}",             :priority => rand + 1 }
+        5.times { |i| generate_event "totally_not_sampled_#{i}", priority: rand     }
+        5.times { |i| generate_event "sampled_#{i}",             priority: rand + 1 }
 
         _, events = aggregator.harvest!
 
@@ -108,8 +107,8 @@ module NewRelic
 
     def test_higher_priority_events_not_discarded_in_favor_of_lower_priority_events
       with_config aggregator.class.capacity_key => 5 do
-        5.times { |i| generate_event "sampled_#{i}",             :priority => rand + 1 }
-        5.times { |i| generate_event "totally_not_sampled_#{i}", :priority => rand     }
+        5.times { |i| generate_event "sampled_#{i}",             priority: rand + 1 }
+        5.times { |i| generate_event "totally_not_sampled_#{i}", priority: rand     }
 
         _, events = aggregator.harvest!
 
@@ -122,10 +121,10 @@ module NewRelic
     def test_reservoir_stats_reset_after_harvest
       5.times { generate_event }
 
-      reservoir_stats, _ = aggregator.harvest!
+      reservoir_stats, = aggregator.harvest!
       assert_equal 5, reservoir_stats[:events_seen]
 
-      reservoir_stats, _ = aggregator.harvest!
+      reservoir_stats, = aggregator.harvest!
       assert_equal 0, reservoir_stats[:events_seen]
     end
 
@@ -164,12 +163,11 @@ module NewRelic
       end
     end
 
-    def with_container_disabled &blk
-      options = enabled_keys.inject({}) do |memo, opt|
+    def with_container_disabled(&blk)
+      options = enabled_keys.each_with_object({}) do |opt, memo|
         memo[opt] = false
-        memo
       end
-      aggregator.class.stubs(:enabled_fn).returns(Proc.new { false })
+      aggregator.class.stubs(:enabled_fn).returns(proc { false })
       with_server_source(options, &blk)
     end
   end

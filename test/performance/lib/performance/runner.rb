@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -9,17 +8,17 @@ module Performance
     attr_reader :instrumentors
 
     DEFAULTS = {
-      :instrumentors    => [],
-      :inline           => false,
-      :iterations       => nil,
-      :reporter_classes => ['ConsoleReporter'],
-      :brief            => false,
-      :tags             => {},
-      :dir              => File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'suites')),
-      :agent_path       => ENV['AGENT_PATH'] || File.join(File.dirname(__FILE__), '..', '..', '..', '..')
+      instrumentors: [],
+      inline: false,
+      iterations: nil,
+      reporter_classes: ['ConsoleReporter'],
+      brief: false,
+      tags: {},
+      dir: File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'suites')),
+      agent_path: ENV['AGENT_PATH'] || File.join(File.dirname(__FILE__), '..', '..', '..', '..')
     }
 
-    def initialize(options={})
+    def initialize(options = {})
       @options = DEFAULTS.merge(options)
       create_instrumentors(options[:instrumentors] || [])
       load_test_files(@options[:dir])
@@ -46,7 +45,7 @@ module Performance
     end
 
     def load_test_files(dir)
-      Dir.glob(File.join(dir, "**", "*.rb")).each do |filename|
+      Dir.glob(File.join(dir, '**', '*.rb')).each do |filename|
         require filename
       end
     end
@@ -55,7 +54,7 @@ module Performance
       test_case.on(:before_each) do |_test_case, name|
         print "#{name}: "
       end
-      test_case.on(:after_each) do |_test_case, name, result|
+      test_case.on(:after_each) do |_test_case, _name, result|
         print "#{result.elapsed} s\n"
       end
     end
@@ -77,12 +76,12 @@ module Performance
     end
 
     def add_metadata_callbacks(test_case)
-      test_case.on(:after_each) do |test, test_name, result|
+      test_case.on(:after_each) do |_test, _test_name, result|
         result.tags.merge!(
-          :newrelic_rpm_version => @newrelic_rpm_version,
-          :newrelic_rpm_git_sha => @newrelic_rpm_git_sha,
-          :ruby_version         => RUBY_DESCRIPTION,
-          :host                 => @hostname
+          newrelic_rpm_version: @newrelic_rpm_version,
+          newrelic_rpm_git_sha: @newrelic_rpm_git_sha,
+          ruby_version: RUBY_DESCRIPTION,
+          host: @hostname
         )
         result.tags.merge!(@options[:tags])
       end
@@ -119,7 +118,7 @@ module Performance
       unless @loaded_newrelic_rpm
         path = newrelic_rpm_path
         $:.unshift(path)
-        require "newrelic_rpm"
+        require 'newrelic_rpm'
         @newrelic_rpm_version = NewRelic::VERSION::STRING
         @newrelic_rpm_git_sha = find_newrelic_rpm_git_sha(path)
         @loaded_newrelic_rpm = true
@@ -130,9 +129,9 @@ module Performance
       build_file_path = File.join(path, 'new_relic', 'build.rb')
       if File.exist?(build_file_path)
         build_file_contents = File.read(build_file_path)
-        return $1.strip if build_file_contents =~ /GITSHA: (.*)/
+        return Regexp.last_match(1).strip if build_file_contents =~ /GITSHA: (.*)/
       else
-        %x((cd '#{path}' && git log --pretty='%h' -n 1)).strip
+        `(cd '#{path}' && git log --pretty='%h' -n 1)`.strip
       end
     end
 
@@ -155,23 +154,21 @@ module Performance
     end
 
     def run_test_inline(test_case, method)
-      begin
-        load_newrelic_rpm
-        GC.start
-        GC.start
-        GC.start
-        GC.disable
-        result = test_case.run(method)
-        GC.enable
-        GC.start
-        GC.start
-        GC.start
-        result
-      rescue => e
-        result = Result.new(test_case.class.name, method)
-        result.exception = e
-        result
-      end
+      load_newrelic_rpm
+      GC.start
+      GC.start
+      GC.start
+      GC.disable
+      result = test_case.run(method)
+      GC.enable
+      GC.start
+      GC.start
+      GC.start
+      result
+    rescue StandardError => e
+      result = Result.new(test_case.class.name, method)
+      result.exception = e
+      result
     end
 
     def run_test_case(test_case)

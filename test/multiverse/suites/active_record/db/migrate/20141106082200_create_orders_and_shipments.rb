@@ -1,17 +1,16 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-class CreateOrdersAndShipments < ActiveRecord::VERSION::STRING >= "5.0.0" ? ActiveRecord::Migration[5.0] : ActiveRecord::Migration
+class CreateOrdersAndShipments < ActiveRecord::VERSION::STRING >= '5.0.0' ? ActiveRecord::Migration[5.0] : ActiveRecord::Migration
   def self.up
     create_table :orders do |t|
       t.string :name
     end
 
-    create_table :shipments, :force => true do |t|
+    create_table :shipments, force: true do |t|
     end
 
-    create_table :order_shipments, :force => true, :id => false do |t|
+    create_table :order_shipments, force: true, id: false do |t|
       t.integer :order_id
       t.integer :shipment_id, :integer
     end

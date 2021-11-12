@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -7,8 +6,8 @@ module NewRelic
     module AttributeProcessing
       module_function
 
-      EMPTY_HASH_STRING_LITERAL = "{}".freeze
-      EMPTY_ARRAY_STRING_LITERAL = "[]".freeze
+      EMPTY_HASH_STRING_LITERAL = '{}'.freeze
+      EMPTY_ARRAY_STRING_LITERAL = '[]'.freeze
 
       def flatten_and_coerce(object, prefix = nil, result = {}, &blk)
         if object.is_a? Hash

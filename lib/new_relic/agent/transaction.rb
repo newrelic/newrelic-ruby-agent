@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -24,10 +23,10 @@ module NewRelic
       include Tracing
 
       # for nested transactions
-      NESTED_TRANSACTION_PREFIX    = "Nested/"
-      CONTROLLER_PREFIX            = "Controller/"
-      MIDDLEWARE_PREFIX            = "Middleware/Rack/"
-      OTHER_TRANSACTION_PREFIX     = "OtherTransaction/"
+      NESTED_TRANSACTION_PREFIX    = 'Nested/'
+      CONTROLLER_PREFIX            = 'Controller/'
+      MIDDLEWARE_PREFIX            = 'Middleware/Rack/'
+      OTHER_TRANSACTION_PREFIX     = 'OtherTransaction/'
       TASK_PREFIX                  = "#{OTHER_TRANSACTION_PREFIX}Background/"
       RAKE_PREFIX                  = "#{OTHER_TRANSACTION_PREFIX}Rake/"
       MESSAGE_PREFIX               = "#{OTHER_TRANSACTION_PREFIX}Message/"
@@ -36,24 +35,25 @@ module NewRelic
       GRAPE_PREFIX                 = "#{CONTROLLER_PREFIX}Grape/"
       ACTION_CABLE_PREFIX          = "#{CONTROLLER_PREFIX}ActionCable/"
 
-      WEB_TRANSACTION_CATEGORIES   = [:web, :controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
-      TRANSACTION_NAMING_SOURCES   = [:child, :api].freeze
+      WEB_TRANSACTION_CATEGORIES   = %i[web controller uri rack sinatra grape middleware
+                                        action_cable].freeze
+      TRANSACTION_NAMING_SOURCES   = %i[child api].freeze
 
-      MIDDLEWARE_SUMMARY_METRICS   = ["Middleware/all"].freeze
-      WEB_SUMMARY_METRIC           = "HttpDispatcher"
+      MIDDLEWARE_SUMMARY_METRICS   = ['Middleware/all'].freeze
+      WEB_SUMMARY_METRIC           = 'HttpDispatcher'
       OTHER_SUMMARY_METRIC         = "#{OTHER_TRANSACTION_PREFIX}all"
-      QUEUE_TIME_METRIC            = "WebFrontend/QueueTime"
+      QUEUE_TIME_METRIC            = 'WebFrontend/QueueTime'
 
-      APDEX_S                       = "S"
-      APDEX_T                       = "T"
-      APDEX_F                       = "F"
-      APDEX_ALL_METRIC              = "ApdexAll"
-      APDEX_METRIC                  = "Apdex"
-      APDEX_OTHER_METRIC            = "ApdexOther"
-      APDEX_TXN_METRIC_PREFIX       = "Apdex/"
-      APDEX_OTHER_TXN_METRIC_PREFIX = "ApdexOther/Transaction/"
+      APDEX_S                       = 'S'
+      APDEX_T                       = 'T'
+      APDEX_F                       = 'F'
+      APDEX_ALL_METRIC              = 'ApdexAll'
+      APDEX_METRIC                  = 'Apdex'
+      APDEX_OTHER_METRIC            = 'ApdexOther'
+      APDEX_TXN_METRIC_PREFIX       = 'Apdex/'
+      APDEX_OTHER_TXN_METRIC_PREFIX = 'ApdexOther/Transaction/'
 
-      JRUBY_CPU_TIME_ERROR = "Error calculating JRuby CPU Time"
+      JRUBY_CPU_TIME_ERROR = 'Error calculating JRuby CPU Time'
 
       # reference to the transaction state managing this transaction
       attr_accessor :state
@@ -86,8 +86,7 @@ module NewRelic
                   :end_time,
                   :duration
 
-      attr_writer :sampled,
-                  :priority
+      attr_writer :sampled, :priority, :trace_id
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -100,13 +99,13 @@ module NewRelic
         Tracer.current_transaction
       end
 
-      def self.set_default_transaction_name(partial_name, category = nil) #THREAD_LOCAL_ACCESS
+      def self.set_default_transaction_name(partial_name, category = nil) # THREAD_LOCAL_ACCESS
         txn  = tl_current
         name = name_from_partial(partial_name, category || txn.category)
         txn.set_default_transaction_name(name, category)
       end
 
-      def self.set_overriding_transaction_name(partial_name, category = nil) #THREAD_LOCAL_ACCESS
+      def self.set_overriding_transaction_name(partial_name, category = nil) # THREAD_LOCAL_ACCESS
         txn = tl_current
         return unless txn
 
@@ -143,7 +142,7 @@ module NewRelic
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
-      def self.notice_error(e, options={})
+      def self.notice_error(e, options = {})
         if txn = Tracer.current_transaction
           txn.notice_error(e, options)
         elsif NewRelic::Agent.instance
@@ -156,7 +155,7 @@ module NewRelic
       #
       # @api public
       #
-      def self.recording_web_transaction? #THREAD_LOCAL_ACCESS
+      def self.recording_web_transaction? # THREAD_LOCAL_ACCESS
         NewRelic::Agent.record_api_supportability_metric(:recording_web_transaction?)
 
         txn = tl_current
@@ -164,12 +163,11 @@ module NewRelic
       end
 
       def self.apdex_bucket(duration, failed, apdex_t)
-        case
-        when failed
+        if failed
           :apdex_f
-        when duration <= apdex_t
+        elsif duration <= apdex_t
           :apdex_s
-        when duration <= 4 * apdex_t
+        elsif duration <= 4 * apdex_t
           :apdex_t
         else
           :apdex_f
@@ -193,7 +191,7 @@ module NewRelic
         if txn = tl_current
           txn.merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
         else
-          NewRelic::Agent.logger.debug "Attempted to merge untrusted attributes without transaction"
+          NewRelic::Agent.logger.debug 'Attempted to merge untrusted attributes without transaction'
         end
       end
 
@@ -210,7 +208,7 @@ module NewRelic
           java_import 'java.lang.management.ManagementFactory'
           java_import 'com.sun.management.OperatingSystemMXBean'
           @@java_classes_loaded = true
-        rescue
+        rescue StandardError
         end
       end
 
@@ -220,8 +218,8 @@ module NewRelic
         @segments = []
 
         self.default_name = options[:transaction_name]
-        @overridden_name    = nil
-        @frozen_name      = nil
+        @overridden_name = nil
+        @frozen_name = nil
 
         @category = category
         @start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
@@ -252,11 +250,9 @@ module NewRelic
 
         merge_request_parameters(@filtered_params)
 
-        if request = options[:request]
-          @request_attributes = RequestAttributes.new request
-        else
-          @request_attributes = nil
-        end
+        @request_attributes = if request = options[:request]
+                                RequestAttributes.new request
+                              end
       end
 
       def distributed_tracer
@@ -265,18 +261,13 @@ module NewRelic
 
       def sampled?
         return unless Agent.config[:'distributed_tracing.enabled']
-        if @sampled.nil?
-          @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled?
-        end
+
+        @sampled = NewRelic::Agent.instance.adaptive_sampler.sampled? if @sampled.nil?
         @sampled
       end
 
       def trace_id
         @trace_id ||= NewRelic::Agent::GuidGenerator.generate_guid 32
-      end
-
-      def trace_id=(value)
-        @trace_id = value
       end
 
       def priority
@@ -327,6 +318,7 @@ module NewRelic
 
       def set_default_transaction_name(name, category)
         return log_frozen_name(name) if name_frozen?
+
         if influences_transaction_name?(category)
           self.default_name = name
           @category = category if category
@@ -335,6 +327,7 @@ module NewRelic
 
       def set_overriding_transaction_name(name, category)
         return log_frozen_name(name) if name_frozen?
+
         if influences_transaction_name?(category)
           self.overridden_name = name
           @category = category if category
@@ -352,13 +345,13 @@ module NewRelic
 
       def best_name
         @frozen_name ||
-        @overridden_name ||
-        @default_name ||
-        NewRelic::Agent::UNKNOWN_METRIC
+          @overridden_name ||
+          @default_name ||
+          NewRelic::Agent::UNKNOWN_METRIC
       end
 
       # For common interface with Trace
-      alias_method :transaction_name, :best_name
+      alias transaction_name best_name
       # End common interface
 
       def promoted_transaction_name(name)
@@ -370,7 +363,7 @@ module NewRelic
       end
 
       def freeze_name_and_execute_if_not_ignored
-        if !name_frozen?
+        unless name_frozen?
           name = promoted_transaction_name(best_name)
           name = NewRelic::Agent.instance.transaction_rules.rename(name)
           @name_frozen = true
@@ -383,9 +376,7 @@ module NewRelic
           end
         end
 
-        if block_given? && !@ignore_this_transaction
-          yield
-        end
+        yield if block_given? && !@ignore_this_transaction
       end
 
       def name_frozen?
@@ -393,7 +384,7 @@ module NewRelic
       end
 
       def start
-        return if !state.is_execution_traced?
+        return unless state.is_execution_traced?
 
         sql_sampler.on_start_transaction(state, request_path)
         NewRelic::Agent.instance.events.notify(:start_transaction)
@@ -420,18 +411,14 @@ module NewRelic
       def create_segment(name)
         summary_metrics = nil
 
-        if name.start_with?(MIDDLEWARE_PREFIX)
-          summary_metrics = MIDDLEWARE_SUMMARY_METRICS
-        end
+        summary_metrics = MIDDLEWARE_SUMMARY_METRICS if name.start_with?(MIDDLEWARE_PREFIX)
 
         @nesting_max_depth += 1
 
-        segment = Tracer.start_segment(
+        Tracer.start_segment(
           name: name,
           unscoped_metrics: summary_metrics
         )
-
-        segment
       end
 
       def create_nested_segment(category, options)
@@ -451,7 +438,7 @@ module NewRelic
       end
 
       def nest_initial_segment
-        self.initial_segment.name = self.class.nested_transaction_name initial_segment.name
+        initial_segment.name = self.class.nested_transaction_name initial_segment.name
         initial_segment.record_scoped_metric = true
       end
 
@@ -484,13 +471,12 @@ module NewRelic
 
       def finish
         return unless state.is_execution_traced?
+
         @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         @duration = @end_time - @start_time
         freeze_name_and_execute_if_not_ignored
 
-        if nesting_max_depth == 1
-          initial_segment.name = @frozen_name
-        end
+        initial_segment.name = @frozen_name if nesting_max_depth == 1
 
         initial_segment.transaction_name = @frozen_name
         assign_segment_dt_attributes
@@ -500,8 +486,8 @@ module NewRelic
         NewRelic::Agent::TransactionTimeAggregator.transaction_stop(@end_time, @starting_thread_id)
 
         commit!(initial_segment.name) unless @ignore_this_transaction
-      rescue => e
-        NewRelic::Agent.logger.error("Exception during Transaction#finish", e)
+      rescue StandardError => e
+        NewRelic::Agent.logger.error('Exception during Transaction#finish', e)
         nil
       ensure
         state.reset
@@ -549,9 +535,7 @@ module NewRelic
                                AttributeFilter::DST_TRANSACTION_EVENTS |
                                AttributeFilter::DST_ERROR_COLLECTOR
 
-        if http_response_code
-          add_agent_attribute(:'http.statusCode', http_response_code, default_destinations)
-        end
+        add_agent_attribute(:'http.statusCode', http_response_code, default_destinations) if http_response_code
 
         if response_content_length
           add_agent_attribute(:'response.headers.contentLength', response_content_length.to_i, default_destinations)
@@ -561,9 +545,7 @@ module NewRelic
           add_agent_attribute(:'response.headers.contentType', response_content_type, default_destinations)
         end
 
-        if @request_attributes
-          @request_attributes.assign_agent_attributes self
-        end
+        @request_attributes.assign_agent_attributes self if @request_attributes
 
         display_host = Agent.config[:'process_host.display_name']
         unless display_host == NewRelic::Agent::Hostname.get
@@ -599,7 +581,7 @@ module NewRelic
       # This method returns transport_duration in seconds. Transport duration
       # is stored in milliseconds on the payload, but it's needed in seconds
       # for metrics and intrinsics.
-      def calculate_transport_duration distributed_trace_payload
+      def calculate_transport_duration(distributed_trace_payload)
         return unless distributed_trace_payload
 
         duration = start_time - (distributed_trace_payload.timestamp / 1000.0)
@@ -622,14 +604,14 @@ module NewRelic
 
       def generate_payload
         @payload = {
-          :name                 => @frozen_name,
-          :bucket               => recording_web_transaction? ? :request : :background,
-          :start_timestamp      => start_time,
-          :duration             => duration,
-          :metrics              => @metrics,
-          :attributes           => @attributes,
-          :error                => false,
-          :priority             => priority
+          name: @frozen_name,
+          bucket: recording_web_transaction? ? :request : :background,
+          start_timestamp: start_time,
+          duration: duration,
+          metrics: @metrics,
+          attributes: @attributes,
+          error: false,
+          priority: priority
         }
 
         distributed_tracer.append_payload(@payload)
@@ -642,7 +624,7 @@ module NewRelic
       end
 
       def is_synthetics_request?
-        synthetics_payload != nil && raw_synthetics_header != nil
+        !synthetics_payload.nil? && !raw_synthetics_header.nil?
       end
 
       def synthetics_version
@@ -680,11 +662,10 @@ module NewRelic
         return unless bucket
 
         bucket_str = case bucket
-        when :apdex_s then APDEX_S
-        when :apdex_t then APDEX_T
-        when :apdex_f then APDEX_F
-        else nil
-        end
+                     when :apdex_s then APDEX_S
+                     when :apdex_t then APDEX_T
+                     when :apdex_f then APDEX_F
+                     end
         payload[:apdex_perf_zone] = bucket_str if bucket_str
       end
 
@@ -715,8 +696,7 @@ module NewRelic
       end
 
       # Do not call this.  Invoke the class method instead.
-      def notice_error(error, options={}) # :nodoc:
-
+      def notice_error(error, options = {}) # :nodoc:
         # Only the last error is kept
         if @current_segment
           @current_segment.notice_error error, expected: options[:expected]
@@ -744,7 +724,8 @@ module NewRelic
           if value < MethodTracerHelpers::MAX_ALLOWED_METRIC_DURATION
             @metrics.record_unscoped(QUEUE_TIME_METRIC, value)
           else
-            ::NewRelic::Agent.logger.log_once(:warn, :too_high_queue_time, "Not recording unreasonably large queue time of #{value} s")
+            ::NewRelic::Agent.logger.log_once(:warn, :too_high_queue_time,
+                                              "Not recording unreasonably large queue time of #{value} s")
           end
         end
       end
@@ -786,7 +767,7 @@ module NewRelic
 
         @metrics.record_unscoped(rollup_metric, apdex_bucket_global, current_apdex_t)
         @metrics.record_unscoped(APDEX_ALL_METRIC, apdex_bucket_global, current_apdex_t)
-        txn_apdex_metric = @frozen_name.sub(/^[^\/]+\//, transaction_prefix)
+        txn_apdex_metric = @frozen_name.sub(%r{^[^/]+/}, transaction_prefix)
         @metrics.record_unscoped(txn_apdex_metric, apdex_bucket_txn, current_apdex_t)
       end
 
@@ -800,7 +781,7 @@ module NewRelic
       end
 
       def threshold
-         source_class = Agent.config.source(:'transaction_tracer.transaction_threshold').class
+        source_class = Agent.config.source(:'transaction_tracer.transaction_threshold').class
         if source_class == Configuration::DefaultSource
           apdex_t * 4
         else
@@ -808,8 +789,8 @@ module NewRelic
         end
       end
 
-      def with_database_metric_name(model, method, product=nil)
-        previous = self.instrumentation_state[:datastore_override]
+      def with_database_metric_name(model, method, product = nil)
+        previous = instrumentation_state[:datastore_override]
         model_name = case model
                      when Class
                        model.name
@@ -818,10 +799,10 @@ module NewRelic
                      else
                        model.to_s
                      end
-        self.instrumentation_state[:datastore_override] = [method, model_name, product]
+        instrumentation_state[:datastore_override] = [method, model_name, product]
         yield
       ensure
-        self.instrumentation_state[:datastore_override] = previous
+        instrumentation_state[:datastore_override] = previous
       end
 
       def add_custom_attributes(p)
@@ -846,11 +827,13 @@ module NewRelic
 
       def normal_cpu_burn
         return unless @process_cpu_start
+
         process_cpu - @process_cpu_start
       end
 
       def jruby_cpu_burn
         return unless @jruby_cpu_start
+
         jruby_cpu_time - @jruby_cpu_start
       end
 
@@ -886,19 +869,22 @@ module NewRelic
 
       def process_cpu
         return nil if defined? JRuby
+
         p = Process.times
         p.stime + p.utime
       end
 
       def jruby_cpu_time
         return nil unless @@java_classes_loaded
-        threadMBean = Java::JavaLangManagement::ManagementFactory.getThreadMXBean()
+
+        threadMBean = Java::JavaLangManagement::ManagementFactory.getThreadMXBean
 
         return nil unless threadMBean.isCurrentThreadCpuTimeSupported
-        java_utime = threadMBean.getCurrentThreadUserTime()  # ns
 
-        -1 == java_utime ? 0.0 : java_utime/1e9
-      rescue => e
+        java_utime = threadMBean.getCurrentThreadUserTime  # ns
+
+        -1 == java_utime ? 0.0 : java_utime / 1e9
+      rescue StandardError => e
         ::NewRelic::Agent.logger.log_once(:warn, :jruby_cpu_time, JRUBY_CPU_TIME_ERROR, e)
         ::NewRelic::Agent.logger.debug(JRUBY_CPU_TIME_ERROR, e)
         nil

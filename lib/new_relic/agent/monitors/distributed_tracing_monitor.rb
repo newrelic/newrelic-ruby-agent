@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,12 +7,13 @@ module NewRelic
       class Monitor < InboundRequestMonitor
         def on_finished_configuring(events)
           return unless NewRelic::Agent.config[:'distributed_tracing.enabled']
+
           events.subscribe(:before_call, &method(:on_before_call))
         end
 
         def on_before_call(request)
           unless NewRelic::Agent.config[:'distributed_tracing.enabled']
-            NewRelic::Agent.logger.warn "Not configured to accept distributed trace headers" 
+            NewRelic::Agent.logger.warn 'Not configured to accept distributed trace headers'
             return
           end
 

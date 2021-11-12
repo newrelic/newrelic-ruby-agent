@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -59,20 +58,22 @@ module NewRelic
       super(DEFAULT_PORT)
       @id_counter = 0
       @mock = {
-        'preconnect'              => Response.new(200, {'return_value' => {'redirect_host' => 'localhost'}}),
-        'connect'                 => Response.new(200, Proc.new { {'return_value' => {"agent_run_id" => agent_run_id}} }),
-        'get_agent_commands'      => Response.new(200, {'return_value' => []}),
-        'agent_command_results'   => Response.new(200, {'return_value' => []}),
-        'metric_data'             => Response.new(200, {'return_value' => [[{'name' => 'Some/Metric/Spec'}, 1]]}),
-        'sql_trace_data'          => Response.new(200, {'return_value' => nil}),
-        'transaction_sample_data' => Response.new(200, {'return_value' => nil}),
-        'error_data'              => Response.new(200, {'return_value' => nil}),
-        'profile_data'            => Response.new(200, {'return_value' => nil}),
-        'shutdown'                => Response.new(200, {'return_value' => nil}),
-        'analytic_event_data'     => Response.new(200, {'return_value' => nil}),
-        'custom_event_data'       => Response.new(200, {'return_value' => nil}),
-        'error_event_data'        => Response.new(200, {'return_value' => nil}),
-        'span_event_data'         => Response.new(200, {'return_value' => nil})
+        'preconnect' => Response.new(200, { 'return_value' => { 'redirect_host' => 'localhost' } }),
+        'connect' => Response.new(200, proc {
+                                         { 'return_value' => { 'agent_run_id' => agent_run_id } }
+                                       }),
+        'get_agent_commands' => Response.new(200, { 'return_value' => [] }),
+        'agent_command_results' => Response.new(200, { 'return_value' => [] }),
+        'metric_data' => Response.new(200, { 'return_value' => [[{ 'name' => 'Some/Metric/Spec' }, 1]] }),
+        'sql_trace_data' => Response.new(200, { 'return_value' => nil }),
+        'transaction_sample_data' => Response.new(200, { 'return_value' => nil }),
+        'error_data' => Response.new(200, { 'return_value' => nil }),
+        'profile_data' => Response.new(200, { 'return_value' => nil }),
+        'shutdown' => Response.new(200, { 'return_value' => nil }),
+        'analytic_event_data' => Response.new(200, { 'return_value' => nil }),
+        'custom_event_data' => Response.new(200, { 'return_value' => nil }),
+        'error_event_data' => Response.new(200, { 'return_value' => nil }),
+        'span_event_data' => Response.new(200, { 'return_value' => nil })
       }
       reset
     end
@@ -88,30 +89,33 @@ module NewRelic
     end
 
     def default_response
-      Response.new(200, {'return_value' => nil})
+      Response.new(200, { 'return_value' => nil })
     end
 
-    def stub(method, return_value, status=200)
-      self.mock[method] ||= default_response
-      self.mock[method].override(status, {'return_value' => return_value})
+    def stub(method, return_value, status = 200)
+      mock[method] ||= default_response
+      mock[method].override(status, { 'return_value' => return_value })
     end
 
-    def stub_exception(method, exception, status=200)
-      self.mock[method] ||= default_response
-      self.mock[method].override(status, {'exception' => exception})
+    def stub_exception(method, exception, status = 200)
+      mock[method] ||= default_response
+      mock[method].override(status, { 'exception' => exception })
     end
 
-    def stub_wait(method, wait_time, status=200)
-      self.mock[method] ||= default_response
-      self.mock[method].override(status, Proc.new { sleep(wait_time); {'return_value' => ""}})
+    def stub_wait(method, wait_time, status = 200)
+      mock[method] ||= default_response
+      mock[method].override(status, proc {
+                                      sleep(wait_time)
+                                      { 'return_value' => '' }
+                                    })
     end
 
     def method_from_request(req)
       case req.url
-      when %r{agent_listener/\d+/.+/(\w+)} then $1
+      when %r{agent_listener/\d+/.+/(\w+)} then Regexp.last_match(1)
       when %r{agent_listener/invoke_raw_method\?} then req.params.fetch('method')
       else
-        raise ArgumentError.new("FakeCollector does not recognize URI: #{uri}")
+        raise ArgumentError, "FakeCollector does not recognize URI: #{uri}"
       end
     end
 
@@ -129,17 +133,17 @@ module NewRelic
         res.write ::JSON.dump(body)
       else
         res.status = 500
-        res.write "Method not found"
+        res.write 'Method not found'
       end
-      run_id = uri.query =~ /run_id=(\d+)/ ? $1 : nil
+      run_id = uri.query =~ /run_id=(\d+)/ ? Regexp.last_match(1) : nil
       req.body.rewind
 
       begin
         raw_body = req.body.read
-        raw_body = Zlib::Inflate.inflate(raw_body) if req.env["HTTP_CONTENT_ENCODING"] == "deflate"
+        raw_body = Zlib::Inflate.inflate(raw_body) if req.env['HTTP_CONTENT_ENCODING'] == 'deflate'
 
         body = ::JSON.load(raw_body)
-      rescue
+      rescue StandardError
         body = "UNABLE TO DECODE BODY: #{raw_body}"
 
         # Since this is for testing, output failure at this point. If we
@@ -150,11 +154,11 @@ module NewRelic
 
       query_params = req.GET
 
-      @agent_data << AgentPost.create(:action       => method,
-                                      :body         => body,
-                                      :run_id       => run_id,
-                                      :format       => :json,
-                                      :query_params => query_params)
+      @agent_data << AgentPost.create(action: method,
+                                      body: body,
+                                      run_id: run_id,
+                                      format: :json,
+                                      query_params: query_params)
 
       res.finish
     end
@@ -167,18 +171,19 @@ module NewRelic
       @agent_data.select { |d| d.action == method.to_s }
     end
 
-    def reported_stats_for_metric(name, scope=nil)
+    def reported_stats_for_metric(name, scope = nil)
       calls_for('metric_data').map do |post|
         post.body[3].find do |metric_record|
           metric_record[0]['name'] == name &&
             (!scope || metric_record[0]['scope'] == scope)
         end
-      end.compact.map{|m| m[1]}
+      end.compact.map { |m| m[1] }
     end
 
     class AgentPost
       attr_accessor :action, :body, :run_id, :format, :query_params
-      def initialize(opts={})
+
+      def initialize(opts = {})
         @action       = opts[:action]
         @body         = opts[:body]
         @run_id       = opts[:run_id]
@@ -186,7 +191,7 @@ module NewRelic
         @query_params = opts[:query_params]
       end
 
-      def self.create(opts={})
+      def self.create(opts = {})
         case opts[:action]
         when 'connect'
           ConnectPost.new(opts)
@@ -223,13 +228,13 @@ module NewRelic
 
       def self.unblob(blob)
         return unless blob
+
         JSON.load(Zlib::Inflate.inflate(Base64.decode64(blob)))
       end
     end
 
-
     class MetricDataPost < AgentPost
-      def initialize(opts={})
+      def initialize(opts = {})
         super
       end
 
@@ -238,24 +243,25 @@ module NewRelic
       end
 
       def metric_names
-        metrics.map {|m| m[0]["name"] }
+        metrics.map { |m| m[0]['name'] }
       end
     end
 
     class ConnectPost < AgentPost
-      def initialize(opts={})
+      def initialize(opts = {})
         super
         @body = @body[0]
       end
 
       def utilization
-        @body["utilization"]
+        @body['utilization']
       end
     end
 
     class ProfileDataPost < AgentPost
       attr_accessor :poll_count, :traces
-      def initialize(opts={})
+
+      def initialize(opts = {})
         super
         @poll_count = @body[1][0][3]
         @body[1][0][4] = unblob(@body[1][0][4]) if @format == :json
@@ -264,7 +270,7 @@ module NewRelic
     end
 
     class SqlTraceDataPost < AgentPost
-      def initialize(opts={})
+      def initialize(opts = {})
         super
         @body[0][0][9] = unblob(@body[0][0][9]) if @format == :json
       end
@@ -313,7 +319,7 @@ module NewRelic
       class SubmittedTransactionTraceTree
         attr_reader :attributes, :nodes, :node_params
 
-        def initialize(body, format)
+        def initialize(body, _format)
           @body = body
           @attributes = body[4]
           @nodes = extract_by_index(body[3], 2)
@@ -331,7 +337,7 @@ module NewRelic
         end
       end
 
-      def initialize(opts={})
+      def initialize(opts = {})
         super
         @body[1][0][4] = unblob(@body[1][0][4]) if @format == :json
       end
@@ -348,7 +354,7 @@ module NewRelic
     class ReservoirSampledContainerPost < AgentPost
       attr_reader :reservoir_metadata, :events
 
-      def initialize opts={}
+      def initialize(opts = {})
         super
         @reservoir_metadata = body[1]
         @events = body[2]
@@ -356,22 +362,23 @@ module NewRelic
     end
 
     class AnalyticEventDataPost < ReservoirSampledContainerPost; end
+
     class CustomEventDataPost < ReservoirSampledContainerPost; end
+
     class ErrorEventDataPost < ReservoirSampledContainerPost; end
+
     class SpanEventDataPost < ReservoirSampledContainerPost; end
 
     class ErrorDataPost < AgentPost
-
       attr_reader :errors
 
-      def initialize(opts={})
+      def initialize(opts = {})
         super
         @errors = @body[1].map { |e| SubmittedError.new(e) }
       end
     end
 
     class SubmittedError
-
       attr_reader :timestamp, :path, :message, :exception_class_name, :params
 
       def initialize(error_info)
@@ -383,15 +390,15 @@ module NewRelic
       end
 
       def agent_attributes
-        @params["agentAttributes"]
+        @params['agentAttributes']
       end
 
       def custom_attributes
-        @params["userAttributes"]
+        @params['userAttributes']
       end
 
       def intrinsic_attributes
-        @params["intrinsics"]
+        @params['intrinsics']
       end
     end
   end

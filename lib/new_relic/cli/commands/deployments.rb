@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -16,7 +15,8 @@ require 'new_relic/control' unless defined? NewRelic::Control
 
 class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   attr_reader :control
-  def self.command; "deployments"; end
+
+  def self.command() = 'deployments'
 
   # Initialize the deployment uploader with command line args.
   # Use -h to see options.
@@ -27,13 +27,13 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   #
   # Will throw CommandFailed exception if there's any error.
   #
-  def initialize command_line_args
+  def initialize(command_line_args)
     @control = NewRelic::Control.instance
     @environment = nil
     @changelog   = nil
     @user        = nil
     super(command_line_args)
-    @description ||= @leftover && @leftover.join(" ")
+    @description ||= @leftover && @leftover.join(' ')
     @user ||= ENV['USER']
     control.env = @environment if @environment
 
@@ -48,7 +48,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
     yaml = NewRelic::Agent::Configuration::YamlSource.new(NewRelic::Agent.config[:config_path], env)
     if yaml.failed?
       messages = yaml.failures.flatten.map(&:to_s).join("\n")
-      raise NewRelic::Cli::Command::CommandFailure.new("Error in loading newrelic.yml.\n#{messages}")
+      raise NewRelic::Cli::Command::CommandFailure, "Error in loading newrelic.yml.\n#{messages}"
     end
 
     NewRelic::Agent.config.replace_or_add_config(yaml)
@@ -62,75 +62,74 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   # Run the Deployment upload in New Relic via Active Resource.
   # Will possibly print errors and exit the VM
   def run
-    begin
-      @description = nil if @description && @description.strip.empty?
-      create_params = {}
-      {
-            :application_id => @appname,
-            :host => NewRelic::Agent::Hostname.get,
-            :description => @description,
-            :user => @user,
-            :revision => @revision,
-            :changelog => @changelog
-      }.each do |k, v|
-        create_params["deployment[#{k}]"] = v unless v.nil? || v == ''
-      end
-      http = ::NewRelic::Agent::NewRelicService.new(nil, control.api_server).http_connection
-
-      uri = "/deployments.xml"
-
-      if @license_key.nil? || @license_key.empty?
-        raise "license_key was not set in newrelic.yml for #{control.env}"
-      end
-      request = Net::HTTP::Post.new(uri, {'x-license-key' => @license_key})
-      request.content_type = "application/octet-stream"
-
-      request.set_form_data(create_params)
-
-      response = http.request(request)
-
-      if response.is_a? Net::HTTPSuccess
-        info "Recorded deployment to '#{@appname}' (#{@description || Time.now })"
-      else
-        err_string = REXML::Document.new(response.body).elements['errors/error'].map(&:to_s).join("; ") rescue  response.message
-        raise NewRelic::Cli::Command::CommandFailure, "Deployment not recorded: #{err_string}"
-      end
-    rescue SystemCallError, SocketError => e
-      # These include Errno connection errors
-      err_string = "Transient error attempting to connect to #{control.api_server} (#{e})"
-      raise NewRelic::Cli::Command::CommandFailure.new(err_string)
-    rescue NewRelic::Cli::Command::CommandFailure
-      raise
-    rescue => e
-      err "Unexpected error attempting to connect to #{control.api_server}"
-      info "#{e}: #{e.backtrace.join("\n   ")}"
-      raise NewRelic::Cli::Command::CommandFailure.new(e.to_s)
+    @description = nil if @description && @description.strip.empty?
+    create_params = {}
+    {
+      application_id: @appname,
+      host: NewRelic::Agent::Hostname.get,
+      description: @description,
+      user: @user,
+      revision: @revision,
+      changelog: @changelog
+    }.each do |k, v|
+      create_params["deployment[#{k}]"] = v unless v.nil? || v == ''
     end
+    http = ::NewRelic::Agent::NewRelicService.new(nil, control.api_server).http_connection
+
+    uri = '/deployments.xml'
+
+    raise "license_key was not set in newrelic.yml for #{control.env}" if @license_key.nil? || @license_key.empty?
+
+    request = Net::HTTP::Post.new(uri, { 'x-license-key' => @license_key })
+    request.content_type = 'application/octet-stream'
+
+    request.set_form_data(create_params)
+
+    response = http.request(request)
+
+    if response.is_a? Net::HTTPSuccess
+      info "Recorded deployment to '#{@appname}' (#{@description || Time.now})"
+    else
+      err_string = begin
+        REXML::Document.new(response.body).elements['errors/error'].map(&:to_s).join('; ')
+      rescue StandardError
+        response.message
+      end
+      raise NewRelic::Cli::Command::CommandFailure, "Deployment not recorded: #{err_string}"
+    end
+  rescue SystemCallError, SocketError => e
+    # These include Errno connection errors
+    err_string = "Transient error attempting to connect to #{control.api_server} (#{e})"
+    raise NewRelic::Cli::Command::CommandFailure, err_string
+  rescue NewRelic::Cli::Command::CommandFailure
+    raise
+  rescue StandardError => e
+    err "Unexpected error attempting to connect to #{control.api_server}"
+    info "#{e}: #{e.backtrace.join("\n   ")}"
+    raise NewRelic::Cli::Command::CommandFailure, e.to_s
   end
 
   private
 
   def options
-    OptionParser.new %Q{Usage: #{$0} #{self.class.command} [OPTIONS] ["description"] }, 40 do |o|
-      o.separator "OPTIONS:"
-      o.on("-a", "--appname=NAME", String,
-             "Set the application name.",
-             "Default is app_name setting in newrelic.yml") { | e | @appname = e }
-      o.on("-e", "--environment=name", String,
-               "Override the (RAILS|RUBY|RACK)_ENV setting",
-               "currently: #{control.env}") { | e | @environment = e }
-      o.on("-u", "--user=USER", String,
-             "Specify the user deploying, for information only",
-             "Default: #{@user || '<none>'}") { | u | @user = u }
-      o.on("-r", "--revision=REV", String,
-             "Specify the revision being deployed") { | r | @revision = r }
-      o.on("-l", "--license-key=KEY", String,
-             "Specify the license key of the account for the app being deployed") { | l | @license_key = l }
-      o.on("-c", "--changes",
-             "Read in a change log from the standard input") { @changelog = STDIN.read }
+    OptionParser.new %(Usage: #{$0} #{self.class.command} [OPTIONS] ["description"] ), 40 do |o|
+      o.separator 'OPTIONS:'
+      o.on('-a', '--appname=NAME', String,
+           'Set the application name.',
+           'Default is app_name setting in newrelic.yml') { |e| @appname = e }
+      o.on('-e', '--environment=name', String,
+           'Override the (RAILS|RUBY|RACK)_ENV setting',
+           "currently: #{control.env}") { |e| @environment = e }
+      o.on('-u', '--user=USER', String,
+           'Specify the user deploying, for information only',
+           "Default: #{@user || '<none>'}") { |u| @user = u }
+      o.on('-r', '--revision=REV', String,
+           'Specify the revision being deployed') { |r| @revision = r }
+      o.on('-l', '--license-key=KEY', String,
+           'Specify the license key of the account for the app being deployed') { |l| @license_key = l }
+      o.on('-c', '--changes',
+           'Read in a change log from the standard input') { @changelog = STDIN.read }
       yield o if block_given?
     end
   end
-
-
 end

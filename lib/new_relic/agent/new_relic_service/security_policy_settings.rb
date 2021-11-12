@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -6,7 +5,7 @@ module NewRelic
   module Agent
     class NewRelicService
       module SecurityPolicySettings
-        EXPECTED_SECURITY_POLICIES = %w(
+        EXPECTED_SECURITY_POLICIES = %w[
           record_sql
           attributes_include
           allow_raw_exception_messages
@@ -14,15 +13,15 @@ module NewRelic
           custom_parameters
           custom_instrumentation_editor
           message_parameters
-          job_arguments).map(&:freeze)
+          job_arguments
+        ].map(&:freeze)
 
         def self.preliminary_settings(security_policies)
           enabled_key = 'enabled'.freeze
-          settings = EXPECTED_SECURITY_POLICIES.inject({}) do |memo, policy_name|
-            memo[policy_name] =  {enabled_key => security_policies[policy_name][enabled_key]}
-            memo
+          settings = EXPECTED_SECURITY_POLICIES.each_with_object({}) do |policy_name, memo|
+            memo[policy_name] = { enabled_key => security_policies[policy_name][enabled_key] }
           end
-          {'security_policies' => settings}
+          { 'security_policies' => settings }
         end
 
         class Validator
@@ -43,7 +42,7 @@ module NewRelic
               message = "The agent received one or more required security policies \
 that it does not recognize and will shut down: #{missing_from_agent.join(',')}. \
 Please check if a newer agent version supports these policies or contact support."
-              raise NewRelic::Agent::UnrecoverableAgentException.new(message)
+              raise NewRelic::Agent::UnrecoverableAgentException, message
             end
 
             missing_from_server = agent_keys - all_server_keys
@@ -51,7 +50,7 @@ Please check if a newer agent version supports these policies or contact support
               message = "The agent did not receive one or more security policies \
 that it expected and will shut down: #{missing_from_server.join(',')}. Please \
 contact support."
-              raise NewRelic::Agent::UnrecoverableAgentException.new(message)
+              raise NewRelic::Agent::UnrecoverableAgentException, message
             end
           end
         end

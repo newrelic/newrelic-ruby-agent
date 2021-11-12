@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -7,12 +6,11 @@ module Multiverse
   # bundler
   class Envfile
     attr_accessor :file_path, :condition
-    attr_reader :before, :after, :mode, :skip_message, :omit_collector
-    attr_reader :instrumentation_permutations
+    attr_reader :before, :after, :mode, :skip_message, :omit_collector, :instrumentation_permutations
 
     def initialize(file_path)
       self.file_path = file_path
-      @instrumentation_permutations = ["chain"]
+      @instrumentation_permutations = ['chain']
       @gemfiles = []
       @mode = 'fork'
       if File.exist? file_path
@@ -27,7 +25,7 @@ module Multiverse
       @condition = block
     end
 
-    def strip_leading_spaces content
+    def strip_leading_spaces(content)
       content.split("\n").map(&:strip).join("\n") << "\n"
     end
 
@@ -37,18 +35,18 @@ module Multiverse
     end
 
     def ruby3_gem_webrick
-      RUBY_VERSION >= "3.0.0" ? "gem 'webrick'" : ""
+      RUBY_VERSION >= '3.0.0' ? "gem 'webrick'" : ''
     end
 
     def ruby3_gem_sorted_set
-      RUBY_VERSION >= "3.0.0" ? "gem 'sorted_set'" : ""
+      RUBY_VERSION >= '3.0.0' ? "gem 'sorted_set'" : ''
     end
 
     def omit_collector!
       @omit_collector = true
     end
 
-    def instrumentation_methods *args
+    def instrumentation_methods(*args)
       @instrumentation_permutations = args.map(&:to_s)
     end
 
@@ -61,10 +59,11 @@ module Multiverse
     end
 
     def execute_mode(mode)
-      valid_modes = %w| fork spawn |
+      valid_modes = %w[fork spawn]
       unless valid_modes.member? mode
         raise ArgumentError, "#{mode.inspect} is not a valid execute mode.  Valid modes: #{valid_modes.inspect}"
       end
+
       @mode = mode
     end
 
@@ -80,10 +79,9 @@ module Multiverse
     def permutations
       @instrumentation_permutations.size
     end
-    
+
     def size
       @gemfiles.size * permutations
     end
-
   end
 end

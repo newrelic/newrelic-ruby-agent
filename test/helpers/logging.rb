@@ -1,16 +1,13 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-def with_verbose_logging
+def with_verbose_logging(&block)
   orig_logger = NewRelic::Agent.logger
-  $stderr.puts '', '---', ''
-  new_logger = NewRelic::Agent::AgentLogger.new('', Logger.new($stderr) )
+  warn '', '---', ''
+  new_logger = NewRelic::Agent::AgentLogger.new('', Logger.new($stderr))
   NewRelic::Agent.logger = new_logger
 
-  with_config(:log_level => 'debug') do
-    yield
-  end
+  with_config(log_level: 'debug', &block)
 ensure
   NewRelic::Agent.logger = orig_logger
 end

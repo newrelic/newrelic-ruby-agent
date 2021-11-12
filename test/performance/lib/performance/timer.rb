@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -13,7 +12,7 @@ module Performance
       @most_recent_start = nil
     end
 
-    def start(t=Process.clock_gettime(Process::CLOCK_REALTIME))
+    def start(t = Process.clock_gettime(Process::CLOCK_REALTIME))
       @start_timestamp ||= t
       @most_recent_start = t
     end
@@ -22,7 +21,7 @@ module Performance
       !!@stop_timestamp
     end
 
-    def stop(t=Process.clock_gettime(Process::CLOCK_REALTIME))
+    def stop(t = Process.clock_gettime(Process::CLOCK_REALTIME))
       @stop_timestamp = t
       @elapsed += t - @most_recent_start
     end

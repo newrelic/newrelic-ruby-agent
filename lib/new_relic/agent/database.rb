@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -9,22 +8,22 @@ require 'new_relic/agent/database/obfuscator'
 module NewRelic
   # columns for a mysql explain plan
   MYSQL_EXPLAIN_COLUMNS = [
-                           "Id",
-                           "Select Type",
-                           "Table",
-                           "Type",
-                           "Possible Keys",
-                           "Key",
-                           "Key Length",
-                           "Ref",
-                           "Rows",
-                           "Extra"
-                          ].freeze
+    'Id',
+    'Select Type',
+    'Table',
+    'Type',
+    'Possible Keys',
+    'Key',
+    'Key Length',
+    'Ref',
+    'Rows',
+    'Extra'
+  ].freeze
 
   module Agent
     module Database
-      MAX_QUERY_LENGTH = 16384
-      ELLIPSIS = "...".freeze
+      MAX_QUERY_LENGTH = 16_384
+      ELLIPSIS = '...'.freeze
 
       extend self
 
@@ -57,7 +56,7 @@ module NewRelic
         Obfuscator.instance.set_sql_obfuscator(type, &block)
       end
 
-      def record_sql_method(config_section=:transaction_tracer)
+      def record_sql_method(config_section = :transaction_tracer)
         key = record_sql_method_key(config_section)
 
         case Agent.config[key].to_s
@@ -85,13 +84,13 @@ module NewRelic
         end
       end
 
-      RECORD_FOR = [:raw, :obfuscated].freeze
+      RECORD_FOR = %i[raw obfuscated].freeze
 
-      def should_record_sql?(config_section=:transaction_tracer)
+      def should_record_sql?(config_section = :transaction_tracer)
         RECORD_FOR.include?(record_sql_method(config_section))
       end
 
-      def should_collect_explain_plans?(config_section=:transaction_tracer)
+      def should_collect_explain_plans?(config_section = :transaction_tracer)
         should_record_sql?(config_section) &&
           Agent.config["#{config_section}.explain_enabled".to_sym]
       end
@@ -114,22 +113,23 @@ module NewRelic
       # in a report period, selected for shipment to New Relic
       def explain_sql(statement)
         return nil unless statement.sql && statement.explainer && statement.config
+
         statement.sql = statement.sql.split(";\n")[0] # only explain the first
-        return statement.explain || []
+        statement.explain || []
       end
 
-      KNOWN_OPERATIONS = [
-        'alter',
-        'select',
-        'update',
-        'delete',
-        'insert',
-        'create',
-        'show',
-        'set',
-        'exec',
-        'execute',
-        'call'
+      KNOWN_OPERATIONS = %w[
+        alter
+        select
+        update
+        delete
+        insert
+        create
+        show
+        set
+        exec
+        execute
+        call
       ]
 
       SQL_COMMENT_REGEX = Regexp.new('/\*.*?\*/', Regexp::MULTILINE).freeze
@@ -137,7 +137,7 @@ module NewRelic
       def parse_operation_from_query(sql)
         sql = Helper.correctly_encoded(sql).gsub(SQL_COMMENT_REGEX, NewRelic::EMPTY_STR)
         if sql =~ /(\w+)/
-          op = $1.downcase
+          op = Regexp.last_match(1).downcase
           return op if KNOWN_OPERATIONS.include?(op)
         end
       end
@@ -158,8 +158,8 @@ module NewRelic
 
           begin
             @connections[config] = connector.call(config)
-          rescue => e
-            ::NewRelic::Agent.logger.error("Caught exception trying to get connection to DB for explain.", e)
+          rescue StandardError => e
+            ::NewRelic::Agent.logger.error('Caught exception trying to get connection to DB for explain.', e)
             nil
           end
         end
@@ -168,10 +168,8 @@ module NewRelic
         def close_connections
           @connections ||= {}
           @connections.values.each do |connection|
-            begin
-              connection.disconnect!
-            rescue
-            end
+            connection.disconnect!
+          rescue StandardError
           end
 
           @connections = {}
@@ -183,9 +181,9 @@ module NewRelic
 
         attr_accessor :sql, :config, :explainer, :binds, :name, :host, :port_path_or_id, :database_name
 
-        DEFAULT_QUERY_NAME = "SQL".freeze
+        DEFAULT_QUERY_NAME = 'SQL'.freeze
 
-        def initialize(sql, config={}, explainer=nil, binds=nil, name=DEFAULT_QUERY_NAME, host=nil, port_path_or_id=nil, database_name=nil)
+        def initialize(sql, config = {}, explainer = nil, binds = nil, name = DEFAULT_QUERY_NAME, host = nil, port_path_or_id = nil, database_name = nil)
           @sql = Database.capture_query(sql)
           @config = config
           @explainer = explainer
@@ -201,13 +199,11 @@ module NewRelic
         # the config. The format will be safe for transmission to New Relic.
         def safe_sql
           @safe_sql ||= case Database.record_sql_method
-            when :obfuscated
-              Database.obfuscate_sql(self)
-            when :raw
-              sql.to_s
-            else
-              nil
-            end
+                        when :obfuscated
+                          Database.obfuscate_sql(self)
+                        when :raw
+                          sql.to_s
+                        end
         end
 
         # This takes a connection config hash from ActiveRecord or Sequel and
@@ -216,22 +212,21 @@ module NewRelic
           return unless @config
 
           @adapter ||= if @config[:adapter]
-            symbolized_adapter(@config[:adapter].to_s.downcase)
-          elsif @config[:uri] && @config[:uri].to_s =~ /^jdbc:([^:]+):/
-            # This case is for Sequel with the jdbc-mysql, jdbc-postgres, or jdbc-sqlite3 gems.
-            symbolized_adapter($1)
-          else
-            nil
-          end
+                         symbolized_adapter(@config[:adapter].to_s.downcase)
+                       elsif @config[:uri] && @config[:uri].to_s =~ /^jdbc:([^:]+):/
+                         # This case is for Sequel with the jdbc-mysql, jdbc-postgres, or jdbc-sqlite3 gems.
+                         symbolized_adapter(Regexp.last_match(1))
+                       end
         end
 
         def explain
           return unless explainable?
+
           handle_exception_in_explain do
             start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
             plan = @explainer.call(self)
             ::NewRelic::Agent.record_metric(
-              "Supportability/Database/execute_explain_plan",
+              'Supportability/Database/execute_explain_plan',
               Process.clock_gettime(Process::CLOCK_MONOTONIC) - start
             )
             return process_resultset(plan, adapter) if plan
@@ -240,8 +235,9 @@ module NewRelic
 
         NEWLINE = "\n".freeze
 
-        def append_sql new_sql
+        def append_sql(new_sql)
           return if new_sql.empty?
+
           @sql = Database.truncate_query(@sql << NEWLINE << new_sql)
         end
 
@@ -282,7 +278,7 @@ module NewRelic
             return false
           end
 
-          if !SUPPORTED_ADAPTERS_FOR_EXPLAIN.include?(adapter)
+          unless SUPPORTED_ADAPTERS_FOR_EXPLAIN.include?(adapter)
             NewRelic::Agent.logger.debug("Not collecting explain plan because an unknown connection adapter ('#{adapter}') was used.")
             return false
           end

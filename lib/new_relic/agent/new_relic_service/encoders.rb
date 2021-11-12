@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -12,22 +11,22 @@ module NewRelic
     class NewRelicService
       module Encoders
         module Identity
-          def self.encode(data, opts=nil)
+          def self.encode(data, _opts = nil)
             data
           end
         end
 
         module Compressed
           module Deflate
-            def self.encode(data, opts=nil)
+            def self.encode(data, _opts = nil)
               Zlib::Deflate.deflate(data, Zlib::DEFAULT_COMPRESSION)
             end
           end
 
           module Gzip
-            BINARY = "BINARY".freeze
+            BINARY = 'BINARY'.freeze
 
-            def self.encode(data, opts=nil)
+            def self.encode(data, _opts = nil)
               output = StringIO.new
               output.set_encoding BINARY
               gz = Zlib::GzipWriter.new(output, Zlib::DEFAULT_COMPRESSION, Zlib::DEFAULT_STRATEGY)
@@ -40,7 +39,7 @@ module NewRelic
         end
 
         module Base64CompressedJSON
-          def self.encode(data, opts={})
+          def self.encode(data, opts = {})
             if !opts[:skip_normalization] && Agent.config[:normalize_json_string_encodings]
               data = NewRelic::Agent::EncodingNormalizer.normalize_object(data)
             end

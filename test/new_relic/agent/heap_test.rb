@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path('../../../test_helper', __FILE__)
+require File.expand_path('../../test_helper', __dir__)
 require 'new_relic/agent/heap'
 
 module NewRelic
@@ -39,9 +38,7 @@ module NewRelic
 
         ordered_items = []
 
-        until heap.empty?
-          ordered_items << heap.pop
-        end
+        ordered_items << heap.pop until heap.empty?
 
         assert_equal [1, 4, 5, 7, 12, 30], ordered_items
         assert_equal [], heap.to_a
@@ -56,9 +53,7 @@ module NewRelic
 
         ordered_items = []
 
-        until heap.empty?
-          ordered_items << heap.pop
-        end
+        ordered_items << heap.pop until heap.empty?
 
         assert_equal (0..100).to_a - [replaced_value], ordered_items
         assert_equal [], heap.to_a
@@ -72,9 +67,7 @@ module NewRelic
 
         ordered_items = []
 
-        until heap.empty?
-          ordered_items << heap.pop
-        end
+        ordered_items << heap.pop until heap.empty?
 
         assert_equal [4, 5, 7, 12, 30, 50], ordered_items
         assert_equal [], heap.to_a
@@ -88,9 +81,7 @@ module NewRelic
 
         ordered_items = []
 
-        until heap.empty?
-          ordered_items << heap.pop
-        end
+        ordered_items << heap.pop until heap.empty?
 
         assert_equal (2..101).to_a, ordered_items
         assert_equal [], heap.to_a
@@ -106,9 +97,7 @@ module NewRelic
 
         ordered_items = []
 
-        until heap.empty?
-          ordered_items << heap.pop
-        end
+        ordered_items << heap.pop until heap.empty?
 
         assert_equal [4, 5, 7, 9, 12, 30], ordered_items
         assert_equal [], heap.to_a
@@ -119,9 +108,7 @@ module NewRelic
 
         ordered_items = []
 
-        until heap.empty?
-          ordered_items << heap.pop
-        end
+        ordered_items << heap.pop until heap.empty?
 
         assert_equal [4, 5, 7, 8, 12, 30], ordered_items
         assert_equal [], heap.to_a
@@ -129,29 +116,27 @@ module NewRelic
 
       def test_items_are_popped_in_ascending_order_with_priority_function
         items = [
-          {priority: 12},
-          {priority: 5},
-          {priority: 4},
-          {priority: 8},
-          {priority: 30},
-          {priority: 7}
+          { priority: 12 },
+          { priority: 5 },
+          { priority: 4 },
+          { priority: 8 },
+          { priority: 30 },
+          { priority: 7 }
         ]
 
-        heap = Heap.new(items) {|x| x[:priority] }
+        heap = Heap.new(items) { |x| x[:priority] }
 
         ordered_items = []
 
-        until heap.empty?
-          ordered_items << heap.pop
-        end
+        ordered_items << heap.pop until heap.empty?
 
         expected = [
-          {priority: 4},
-          {priority: 5},
-          {priority: 7},
-          {priority: 8},
-          {priority: 12},
-          {priority: 30}
+          { priority: 4 },
+          { priority: 5 },
+          { priority: 7 },
+          { priority: 8 },
+          { priority: 12 },
+          { priority: 30 }
         ]
 
         assert_equal expected, ordered_items
@@ -162,21 +147,17 @@ module NewRelic
         heap = Heap.new((0..100).to_a.shuffle)
 
         output = []
-        until heap.empty?
-          output << heap.pop
-        end
+        output << heap.pop until heap.empty?
 
         assert_equal (0..100).to_a, output
         assert_equal [], heap.to_a
       end
 
       def test_large_heap_odd_number_of_items
-       heap = Heap.new((0..101).to_a.shuffle)
+        heap = Heap.new((0..101).to_a.shuffle)
 
         output = []
-        until heap.empty?
-          output << heap.pop
-        end
+        output << heap.pop until heap.empty?
 
         assert_equal (0..101).to_a, output
         assert_equal [], heap.to_a

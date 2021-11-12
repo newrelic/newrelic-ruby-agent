@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -15,7 +14,7 @@ module NewRelic
         ALL_QUEUE_METRIC        = 'WebFrontend/QueueTime'.freeze
         # any timestamps before this are thrown out and the parser
         # will try again with a larger unit (2000/1/1 UTC)
-        EARLIEST_ACCEPTABLE_TIME = Time.at(946684800).to_f
+        EARLIEST_ACCEPTABLE_TIME = Time.at(946_684_800).to_f
 
         CANDIDATE_HEADERS = [
           REQUEST_START_HEADER,
@@ -27,16 +26,14 @@ module NewRelic
 
         module_function
 
-        def parse_frontend_timestamp(headers, now=Process.clock_gettime(Process::CLOCK_REALTIME))
+        def parse_frontend_timestamp(headers, now = Process.clock_gettime(Process::CLOCK_REALTIME))
           earliest = nil
 
           CANDIDATE_HEADERS.each do |header|
-            if headers[header]
-              parsed = parse_timestamp(timestamp_string_from_header_value(headers[header]))
-              if parsed && (!earliest || parsed < earliest)
-                earliest = parsed
-              end
-            end
+            next unless headers[header]
+
+            parsed = parse_timestamp(timestamp_string_from_header_value(headers[header]))
+            earliest = parsed if parsed && (!earliest || parsed < earliest)
           end
 
           if earliest && earliest > now
@@ -49,23 +46,21 @@ module NewRelic
 
         def timestamp_string_from_header_value(value)
           case value
-          when /^\s*([\d+\.]+)\s*$/ then $1
+          when /^\s*([\d+.]+)\s*$/ then Regexp.last_match(1)
           # following regexp intentionally unanchored to handle
           # (ie ignore) leading server names
-          when /t=([\d+\.]+)/       then $1
+          when /t=([\d+.]+)/       then Regexp.last_match(1)
           end
         end
 
         def parse_timestamp(string)
           DIVISORS.each do |divisor|
-            begin
-              t = (string.to_f / divisor)
-              return t if t > EARLIEST_ACCEPTABLE_TIME
-            rescue RangeError
-              # On Ruby versions built with a 32-bit time_t, attempting to
-              # instantiate a Time object in the far future raises a RangeError,
-              # in which case we know we've chosen the wrong divisor.
-            end
+            t = (string.to_f / divisor)
+            return t if t > EARLIEST_ACCEPTABLE_TIME
+          rescue RangeError
+            # On Ruby versions built with a 32-bit time_t, attempting to
+            # instantiate a Time object in the far future raises a RangeError,
+            # in which case we know we've chosen the wrong divisor.
           end
 
           nil

@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path('../../../test_helper', __FILE__)
+require File.expand_path('../../test_helper', __dir__)
 require 'net/http'
 
 module NewRelic
@@ -10,15 +9,15 @@ module NewRelic
     class CollectorResponseCodeTest < Minitest::Test
       def setup
         @agent = NewRelic::Agent::Agent.new
-        @errors = ["e1", "e2"]
+        @errors = %w[e1 e2]
       end
 
-      def stub_service response
-        conn = stub("http_connection", request: response)
+      def stub_service(response)
+        conn = stub('http_connection', request: response)
         @agent.service.stubs(:http_connection).returns(conn)
       end
 
-      def self.check_discards *response_codes
+      def self.check_discards(*response_codes)
         response_codes.each do |response_code|
           define_method "test_#{response_code}_discards" do
             klass = Net::HTTPResponse::CODE_TO_OBJ[response_code.to_s]
@@ -33,7 +32,7 @@ module NewRelic
         end
       end
 
-      def self.check_merges *response_codes
+      def self.check_merges(*response_codes)
         response_codes.each do |response_code|
           define_method "test_#{response_code}_merges" do
             klass = Net::HTTPResponse::CODE_TO_OBJ[response_code.to_s]
@@ -48,7 +47,7 @@ module NewRelic
         end
       end
 
-      def self.check_restarts *response_codes
+      def self.check_restarts(*response_codes)
         response_codes.each do |response_code|
           define_method "test_#{response_code}_restarts" do
             klass = Net::HTTPResponse::CODE_TO_OBJ[response_code.to_s]
@@ -67,7 +66,7 @@ module NewRelic
         end
       end
 
-      def self.check_disconnects *response_codes
+      def self.check_disconnects(*response_codes)
         response_codes.each do |response_code|
           define_method "test_#{response_code}_disconnects" do
             klass = Net::HTTPResponse::CODE_TO_OBJ[response_code.to_s]

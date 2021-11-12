@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -34,7 +33,7 @@ module NewRelic
             end
           else
             NewRelic::Agent.logger.log_once(:warn, :gc_profiler_disabled,
-              "Tried to measure GC time, but GC::Profiler was not enabled.")
+                                            'Tried to measure GC time, but GC::Profiler was not enabled.')
           end
 
           @total_time_s

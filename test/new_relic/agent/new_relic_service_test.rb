@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,7 +7,7 @@ require 'new_relic/agent/commands/thread_profiler_session'
 
 class NewRelicServiceTest < Minitest::Test
   def setup
-    @server = NewRelic::Control::Server.new('somewhere.example.com', 30303)
+    @server = NewRelic::Control::Server.new('somewhere.example.com', 30_303)
     @service = NewRelic::Agent::NewRelicService.new('license-key', @server)
 
     @http_handle = create_http_handle
@@ -27,7 +26,7 @@ class NewRelicServiceTest < Minitest::Test
     reset_buffers_and_caches
   end
 
-  def create_http_handle(name='connection')
+  def create_http_handle(name = 'connection')
     HTTPHandle.new(name)
   end
 
@@ -42,7 +41,7 @@ class NewRelicServiceTest < Minitest::Test
       end
     end
 
-    assert(!block_ran, "Expected block passed to #session to have not run")
+    assert(!block_ran, 'Expected block passed to #session to have not run')
   end
 
   def test_session_block_reuses_http_handle_with_aggressive_keepalive_off
@@ -51,7 +50,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.stubs(:create_http_connection).returns(handle1, handle2)
 
     block_ran = false
-    with_config(:aggressive_keepalive => false) do
+    with_config(aggressive_keepalive: false) do
       @service.session do
         block_ran = true
         assert(@service.http_connection)
@@ -63,8 +62,8 @@ class NewRelicServiceTest < Minitest::Test
     end
     assert(block_ran)
 
-    assert_equal([:start, :finish], handle1.calls)
-    assert_equal([],                handle2.calls)
+    assert_equal(%i[start finish], handle1.calls)
+    assert_equal([], handle2.calls)
   end
 
   def test_multiple_http_handles_are_used_outside_session_block
@@ -91,20 +90,20 @@ class NewRelicServiceTest < Minitest::Test
   def test_session_starts_and_finishes_http_session_with_aggressive_keepalive_off
     block_ran = false
 
-    with_config(:aggressive_keepalive => false) do
+    with_config(aggressive_keepalive: false) do
       @service.session do
         block_ran = true
       end
     end
 
     assert(block_ran)
-    assert_equal([:start, :finish], @http_handle.calls)
+    assert_equal(%i[start finish], @http_handle.calls)
   end
 
   def test_session_does_not_close_connection_if_aggressive_keepalive_on
     calls_to_block = 0
 
-    with_config(:aggressive_keepalive => true) do
+    with_config(aggressive_keepalive: true) do
       2.times do
         @service.session { calls_to_block += 1 }
       end
@@ -133,8 +132,8 @@ class NewRelicServiceTest < Minitest::Test
       @service.send(:invoke_remote, :baz, ['payload'])
     end
 
-    assert_equal([:start, :request, :finish], conn0.calls)
-    assert_equal([:start, :request, :request, :request], conn1.calls)
+    assert_equal(%i[start request finish], conn0.calls)
+    assert_equal(%i[start request request request], conn1.calls)
     assert_equal([], conn2.calls)
   end
 
@@ -159,9 +158,9 @@ class NewRelicServiceTest < Minitest::Test
       @service.send(:invoke_remote, :baz, ['payload'])
     end
 
-    assert_equal([:start, :request, :finish], conn0.calls)
-    assert_equal([:start, :request, :finish], conn1.calls)
-    assert_equal([:start, :request, :request], conn2.calls)
+    assert_equal(%i[start request finish], conn0.calls)
+    assert_equal(%i[start request finish], conn1.calls)
+    assert_equal(%i[start request request], conn2.calls)
   end
 
   def test_repeated_connection_failures_on_reconnect
@@ -207,13 +206,13 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_cert_file_path_uses_path_from_config
     fake_cert_path = '/certpath/cert.pem'
-    with_config(:ca_bundle_path => fake_cert_path) do
+    with_config(ca_bundle_path: fake_cert_path) do
       assert_equal @service.cert_file_path, fake_cert_path
     end
   end
 
   def test_initialize_uses_license_key_from_config
-    with_config(:license_key => 'abcde') do
+    with_config(license_key: 'abcde') do
       service = NewRelic::Agent::NewRelicService.new
       assert_equal 'abcde', service.send(:license_key)
     end
@@ -221,7 +220,7 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_initialize_uses_license_key_from_manual_start
     service = NewRelic::Agent::NewRelicService.new
-    NewRelic::Agent.manual_start :license_key => "geronimo"
+    NewRelic::Agent.manual_start license_key: 'geronimo'
 
     assert_equal 'geronimo', service.send(:license_key)
     NewRelic::Agent.shutdown
@@ -259,15 +258,15 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_preconnect_never_uses_redirect_host
     # Use locally configured collector for initial preconnect
-    initial_preconnect_log = with_array_logger(level=:debug) { @service.preconnect }
+    initial_preconnect_log = with_array_logger(level = :debug) { @service.preconnect }
     assert_log_contains initial_preconnect_log, 'Sending request to somewhere.example.com'
 
     # Connect has set the redirect host as the collector
-    initial_connect_log = with_array_logger(level=:debug) { @service.connect }
+    initial_connect_log = with_array_logger(level = :debug) { @service.connect }
     assert_log_contains initial_connect_log, 'Sending request to localhost'
 
     # If we need to reconnect, preconnect should use the locally configured collector again
-    reconnect_log = with_array_logger(level=:debug) { @service.preconnect }
+    reconnect_log = with_array_logger(level = :debug) { @service.preconnect }
     assert_log_contains reconnect_log, 'Sending request to somewhere.example.com'
   end
 
@@ -282,7 +281,7 @@ class NewRelicServiceTest < Minitest::Test
 
     @http_handle.respond_to(:preconnect, preconnect_response_for_policies('localhost', policies))
 
-    with_config(:security_policies_token => 'please-use-lasp') do
+    with_config(security_policies_token: 'please-use-lasp') do
       response = @service.preconnect
       assert_equal 'localhost', response['redirect_host']
       refute response['security_policies'].empty?
@@ -291,15 +290,15 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_preconnect_with_unexpected_required_server_policy
     policies = DEFAULT_PRECONNECT_POLICIES.merge({
-      'super_whizbang_feature' => {
-        'enabled' => true,
-        'required' => true
-      }
-    })
+                                                   'super_whizbang_feature' => {
+                                                     'enabled' => true,
+                                                     'required' => true
+                                                   }
+                                                 })
 
     @http_handle.respond_to(:preconnect, preconnect_response_for_policies('localhost', policies))
 
-    with_config(:security_policies_token => 'please-check-these-policies') do
+    with_config(security_policies_token: 'please-check-these-policies') do
       assert_raises(NewRelic::Agent::UnrecoverableAgentException) do
         @service.preconnect
       end
@@ -308,15 +307,15 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_preconnect_with_unexpected_optional_server_policy
     policies = DEFAULT_PRECONNECT_POLICIES.merge({
-      'super_whizbang_feature' => {
-        'enabled' => true,
-        'required' => false
-      }
-    })
+                                                   'super_whizbang_feature' => {
+                                                     'enabled' => true,
+                                                     'required' => false
+                                                   }
+                                                 })
 
     @http_handle.respond_to(:preconnect, preconnect_response_for_policies('localhost', policies))
 
-    with_config(:security_policies_token => 'please-check-these-policies') do
+    with_config(security_policies_token: 'please-check-these-policies') do
       assert_equal @service.preconnect['redirect_host'], 'localhost'
     end
   end
@@ -328,7 +327,7 @@ class NewRelicServiceTest < Minitest::Test
 
     @http_handle.respond_to(:preconnect, preconnect_response_for_policies('localhost', policies))
 
-    with_config(:security_policies_token => 'please-check-these-policies') do
+    with_config(security_policies_token: 'please-check-these-policies') do
       assert_raises(NewRelic::Agent::UnrecoverableAgentException) do
         @service.preconnect
       end
@@ -336,13 +335,13 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def test_high_security_mode_sent_on_preconnect
-    with_config(:high_security => true) do
+    with_config(high_security: true) do
       @service.preconnect
       payload = @http_handle.last_request_payload.first
       assert payload['high_security']
     end
 
-    with_config(:high_security => false) do
+    with_config(high_security: false) do
       @service.preconnect
       payload = @http_handle.last_request_payload.first
       refute_nil payload['high_security']
@@ -355,7 +354,7 @@ class NewRelicServiceTest < Minitest::Test
 
     @http_handle.respond_to(:preconnect, preconnect_response_for_policies('localhost', policies))
 
-    with_config(:security_policies_token => 'please-use-lasp') do
+    with_config(security_policies_token: 'please-use-lasp') do
       @service.connect
       payload = @http_handle.last_request_payload.first
       refute payload['security_policies'].empty?
@@ -368,7 +367,7 @@ class NewRelicServiceTest < Minitest::Test
 
     @http_handle.respond_to(:preconnect, preconnect_response_for_policies('localhost', policies))
 
-    with_config(:security_policies_token => 'please-use-lasp') do
+    with_config(security_policies_token: 'please-use-lasp') do
       response = @service.connect
       refute response['security_policies'].empty?
       assert_equal policies.keys, response['security_policies'].keys
@@ -408,7 +407,7 @@ class NewRelicServiceTest < Minitest::Test
 
     @service.metric_data(stats_hash)
     payload = @http_handle.last_request_payload
-    _, last_harvest_timestamp, harvest_timestamp, _ = payload
+    _, last_harvest_timestamp, harvest_timestamp, = payload
     assert_in_delta(t0, harvest_timestamp, 0.0001)
 
     t1 = advance_process_time(10)
@@ -416,7 +415,7 @@ class NewRelicServiceTest < Minitest::Test
 
     @service.metric_data(stats_hash)
     payload = @http_handle.last_request_payload
-    _, last_harvest_timestamp, harvest_timestamp, _ = payload
+    _, last_harvest_timestamp, harvest_timestamp, = payload
     assert_in_delta(t1, harvest_timestamp, 0.0001)
     assert_in_delta(t0, last_harvest_timestamp, 0.0001)
   end
@@ -472,7 +471,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_profile_data
     @http_handle.respond_to(:profile_data, 'profile' => 123)
     response = @service.profile_data([])
-    assert_equal({ "profile" => 123 }, response)
+    assert_equal({ 'profile' => 123 }, response)
   end
 
   def test_profile_data_does_not_normalize_encodings
@@ -483,10 +482,10 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_get_agent_commands
     @service.agent_id = 666
-    @http_handle.respond_to(:get_agent_commands, [1,2,3])
+    @http_handle.respond_to(:get_agent_commands, [1, 2, 3])
 
     response = @service.get_agent_commands
-    assert_equal [1,2,3], response
+    assert_equal [1, 2, 3], response
   end
 
   def test_get_agent_commands_with_no_response
@@ -499,12 +498,12 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_agent_command_results
     @http_handle.respond_to(:agent_command_results, {})
-    response = @service.agent_command_results({'1' => {}})
+    response = @service.agent_command_results({ '1' => {} })
     assert_equal({}, response)
   end
 
   def test_request_timeout
-    with_config(:timeout => 600) do
+    with_config(timeout: 600) do
       service = NewRelic::Agent::NewRelicService.new('abcdef', @server)
       assert_equal 600, service.request_timeout
     end
@@ -532,11 +531,11 @@ class NewRelicServiceTest < Minitest::Test
     @service.sql_trace_data([])
   end
 
-  def self.check_status_code_handling( expected_exceptions )
+  def self.check_status_code_handling(expected_exceptions)
     expected_exceptions.each do |status_code, exception_type|
       method_name = "test_#{status_code}_raises_#{exception_type.name.split('::').last}"
       define_method method_name do
-        @http_handle.respond_to(:metric_data, 'payload', :code => status_code)
+        @http_handle.respond_to(:metric_data, 'payload', code: status_code)
         assert_raises exception_type do
           stats_hash = NewRelic::Agent::StatsHash.new
           @service.metric_data(stats_hash)
@@ -546,31 +545,31 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   check_status_code_handling(400 => NewRelic::Agent::UnrecoverableServerException,
-    401 => NewRelic::Agent::ForceRestartException,
-    403 => NewRelic::Agent::UnrecoverableServerException,
-    405 => NewRelic::Agent::UnrecoverableServerException,
-    407 => NewRelic::Agent::UnrecoverableServerException,
-    408 => NewRelic::Agent::ServerConnectionException,
-    409 => NewRelic::Agent::ForceRestartException,
-    410 => NewRelic::Agent::ForceDisconnectException,
-    411 => NewRelic::Agent::UnrecoverableServerException,
-    413 => NewRelic::Agent::UnrecoverableServerException,
-    415 => NewRelic::Agent::UnrecoverableServerException,
-    417 => NewRelic::Agent::UnrecoverableServerException,
-    429 => NewRelic::Agent::ServerConnectionException,
-    431 => NewRelic::Agent::UnrecoverableServerException)
+                             401 => NewRelic::Agent::ForceRestartException,
+                             403 => NewRelic::Agent::UnrecoverableServerException,
+                             405 => NewRelic::Agent::UnrecoverableServerException,
+                             407 => NewRelic::Agent::UnrecoverableServerException,
+                             408 => NewRelic::Agent::ServerConnectionException,
+                             409 => NewRelic::Agent::ForceRestartException,
+                             410 => NewRelic::Agent::ForceDisconnectException,
+                             411 => NewRelic::Agent::UnrecoverableServerException,
+                             413 => NewRelic::Agent::UnrecoverableServerException,
+                             415 => NewRelic::Agent::UnrecoverableServerException,
+                             417 => NewRelic::Agent::UnrecoverableServerException,
+                             429 => NewRelic::Agent::ServerConnectionException,
+                             431 => NewRelic::Agent::UnrecoverableServerException)
 
   # protocol 17
   def test_supportability_metrics_for_http_error_responses
     NewRelic::Agent.drop_buffered_data
-    @http_handle.respond_to(:metric_data, 'bad format', :code => 400)
+    @http_handle.respond_to(:metric_data, 'bad format', code: 400)
     assert_raises NewRelic::Agent::UnrecoverableServerException do
       stats_hash = NewRelic::Agent::StatsHash.new
       @service.metric_data(stats_hash)
     end
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/HTTPError/400" => { :call_count => 1 }
+      'Supportability/Agent/Collector/HTTPError/400' => { call_count: 1 }
     )
   end
 
@@ -578,12 +577,12 @@ class NewRelicServiceTest < Minitest::Test
   def test_supportability_metrics_for_endpoint_response_time
     NewRelic::Agent.drop_buffered_data
 
-    payload = ['eggs', 'spam']
+    payload = %w[eggs spam]
     @http_handle.respond_to(:foobar, 'foobar')
     @service.send(:invoke_remote, :foobar, payload)
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/foobar/Duration" => { :call_count => 1 }
+      'Supportability/Agent/Collector/foobar/Duration' => { call_count: 1 }
     )
   end
 
@@ -591,20 +590,20 @@ class NewRelicServiceTest < Minitest::Test
   def test_supportability_metrics_for_unsuccessful_endpoint_attempts
     NewRelic::Agent.drop_buffered_data
 
-    @http_handle.respond_to(:metric_data, 'bad format', :code => 400)
+    @http_handle.respond_to(:metric_data, 'bad format', code: 400)
     assert_raises NewRelic::Agent::UnrecoverableServerException do
       stats_hash = NewRelic::Agent::StatsHash.new
       @service.metric_data(stats_hash)
     end
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/metric_data/Attempts" => { :call_count => 1 }
+      'Supportability/Agent/Collector/metric_data/Attempts' => { call_count: 1 }
     )
   end
 
   def test_json_marshaller_handles_responses_from_collector
     marshaller = NewRelic::Agent::NewRelicService::JsonMarshaller.new
-    assert_equal ['beep', 'boop'], marshaller.load('{"return_value": ["beep","boop"]}')
+    assert_equal %w[beep boop], marshaller.load('{"return_value": ["beep","boop"]}')
   end
 
   def test_json_marshaller_returns_nil_on_empty_response_from_collector
@@ -625,7 +624,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def test_raises_serialization_error_if_encoding_normalization_fails
-    with_config(:normalize_json_string_encodings => true) do
+    with_config(normalize_json_string_encodings: true) do
       @http_handle.respond_to(:wiggle, 'hi')
       NewRelic::Agent::EncodingNormalizer.stubs(:normalize_object).raises('blah')
       assert_raises(NewRelic::Agent::SerializationError) do
@@ -636,14 +635,14 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_skips_normalization_if_configured_to
     @http_handle.respond_to(:wiggle, 'hello')
-    with_config(:normalize_json_string_encodings => false) do
+    with_config(normalize_json_string_encodings: false) do
       NewRelic::Agent::EncodingNormalizer.expects(:normalize_object).never
       @service.send(:invoke_remote, 'wiggle', [{ 'foo' => 'bar' }])
     end
   end
 
   def test_json_marshaller_handles_binary_strings
-    input_string = (0..255).to_a.pack("C*")
+    input_string = (0..255).to_a.pack('C*')
     roundtripped_string = roundtrip_data(input_string)
     assert_equal(Encoding.find('ASCII-8BIT'), input_string.encoding)
     expected = force_to_utf8(input_string.dup)
@@ -651,7 +650,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def test_json_marshaller_handles_strings_with_incorrect_encoding
-    input_string = (0..255).to_a.pack("C*").force_encoding("UTF-8")
+    input_string = (0..255).to_a.pack('C*').force_encoding('UTF-8')
     roundtripped_string = roundtrip_data(input_string)
 
     assert_equal(Encoding.find('UTF-8'), input_string.encoding)
@@ -660,7 +659,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def test_json_marshaller_failure_when_not_normalizing
-    input_string = (0..255).to_a.pack("C*")
+    input_string = (0..255).to_a.pack('C*')
     assert_raises(NewRelic::Agent::SerializationError) do
       roundtrip_data(input_string, false)
     end
@@ -705,13 +704,13 @@ class NewRelicServiceTest < Minitest::Test
   def test_compress_request_if_needed_compresses_large_payloads_gzip
     large_payload = 'a' * 65 * 1024
     body, encoding = @service.compress_request_if_needed(large_payload, :foobar)
-    zstream = Zlib::Inflate.new(16+Zlib::MAX_WBITS)
+    zstream = Zlib::Inflate.new(16 + Zlib::MAX_WBITS)
     assert_equal(large_payload, zstream.inflate(body))
     assert_equal('gzip', encoding)
   end
 
   def test_compress_request_if_needed_compresses_large_payloads_deflate
-    with_config(:compressed_content_encoding => 'deflate') do
+    with_config(compressed_content_encoding: 'deflate') do
       large_payload = 'a' * 65 * 1024
       body, encoding = @service.compress_request_if_needed(large_payload, :foobar)
       assert_equal(large_payload, Zlib::Inflate.inflate(body))
@@ -729,16 +728,16 @@ class NewRelicServiceTest < Minitest::Test
   def test_marshaller_obeys_requested_encoder
     dummy = ['hello there']
     def dummy.to_collector_array(encoder)
-      self.map { |x| encoder.encode(x) }
+      map { |x| encoder.encode(x) }
     end
     marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
 
     identity_encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
 
-    prepared = marshaller.prepare(dummy, :encoder => identity_encoder)
+    prepared = marshaller.prepare(dummy, encoder: identity_encoder)
     assert_equal(dummy, prepared)
 
-    prepared = marshaller.prepare(dummy, :encoder => ReverseEncoder)
+    prepared = marshaller.prepare(dummy, encoder: ReverseEncoder)
     decoded = prepared.map { |x| x.reverse }
     assert_equal(dummy, decoded)
   end
@@ -746,11 +745,11 @@ class NewRelicServiceTest < Minitest::Test
   def test_marshaller_prepare_passes_on_options
     inner_array = ['abcd']
     def inner_array.to_collector_array(encoder)
-      self.map { |x| encoder.encode(x) }
+      map { |x| encoder.encode(x) }
     end
     dummy = [[inner_array]]
     marshaller = NewRelic::Agent::NewRelicService::Marshaller.new
-    prepared = marshaller.prepare(dummy, :encoder => ReverseEncoder)
+    prepared = marshaller.prepare(dummy, encoder: ReverseEncoder)
     assert_equal([[['dcba']]], prepared)
   end
 
@@ -791,7 +790,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def test_not_valid_to_marshal
-    @service.marshaller.stubs(:dump).raises(StandardError.new("Failed to marshal"))
+    @service.marshaller.stubs(:dump).raises(StandardError.new('Failed to marshal'))
     refute @service.valid_to_marshal?({})
   end
 
@@ -803,23 +802,23 @@ class NewRelicServiceTest < Minitest::Test
   def test_supportability_metrics_with_item_count
     NewRelic::Agent.drop_buffered_data
 
-    payload = ['eggs', 'spam']
+    payload = %w[eggs spam]
     @http_handle.respond_to(:foobar, 'foobar')
-    @service.send(:invoke_remote, :foobar, payload, :item_count => 12)
+    @service.send(:invoke_remote, :foobar, payload, item_count: 12)
 
     expected_size_bytes = @service.marshaller.dump(payload).size
     expected_values = {
-      :call_count           => 1,
-      :total_call_time      => expected_size_bytes,
-      :total_exclusive_time => 12
+      call_count: 1,
+      total_call_time: expected_size_bytes,
+      total_exclusive_time: 12
     }
 
     assert_metrics_recorded(
-      'Supportability/Agent/Collector/foobar/Duration' => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize'         => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize/foobar'  => { :call_count => 1},
-      'Supportability/invoke_remote_size'              => expected_values,
-      'Supportability/invoke_remote_size/foobar'       => expected_values
+      'Supportability/Agent/Collector/foobar/Duration' => { call_count: 1 },
+      'Supportability/invoke_remote_serialize' => { call_count: 1 },
+      'Supportability/invoke_remote_serialize/foobar' => { call_count: 1 },
+      'Supportability/invoke_remote_size' => expected_values,
+      'Supportability/invoke_remote_size/foobar' => expected_values
     )
   end
 
@@ -832,37 +831,37 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/foobar/MaxPayloadSizeLimit" => { :call_count => 1 }
+      'Supportability/Agent/Collector/foobar/MaxPayloadSizeLimit' => { call_count: 1 }
     )
   end
 
   def test_supportability_metrics_without_item_count
     NewRelic::Agent.drop_buffered_data
 
-    payload = ['eggs', 'spam']
+    payload = %w[eggs spam]
     @http_handle.respond_to(:foobar, 'foobar')
     @service.send(:invoke_remote, :foobar, payload)
 
     expected_size_bytes = @service.marshaller.dump(payload).size
     expected_values = {
-      :call_count           => 1,
-      :total_call_time      => expected_size_bytes,
-      :total_exclusive_time => 0
+      call_count: 1,
+      total_call_time: expected_size_bytes,
+      total_exclusive_time: 0
     }
 
     assert_metrics_recorded(
-      'Supportability/Agent/Collector/foobar/Duration' => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize'         => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize/foobar'  => { :call_count => 1},
-      'Supportability/invoke_remote_size'              => expected_values,
-      'Supportability/invoke_remote_size/foobar'       => expected_values
+      'Supportability/Agent/Collector/foobar/Duration' => { call_count: 1 },
+      'Supportability/invoke_remote_serialize' => { call_count: 1 },
+      'Supportability/invoke_remote_serialize/foobar' => { call_count: 1 },
+      'Supportability/invoke_remote_size' => expected_values,
+      'Supportability/invoke_remote_size/foobar' => expected_values
     )
   end
 
   def test_supportability_metrics_with_serialization_failure
     NewRelic::Agent.drop_buffered_data
 
-    payload = ['eggs', 'spam']
+    payload = %w[eggs spam]
     @http_handle.respond_to(:foobar, 'foobar')
     @service.marshaller.stubs(:dump).raises(StandardError.new)
 
@@ -870,19 +869,19 @@ class NewRelicServiceTest < Minitest::Test
       @service.send(:invoke_remote, :foobar, payload)
     end
 
-    expected_values = { :call_count => 1 }
+    expected_values = { call_count: 1 }
 
     assert_metrics_recorded(
-      'Supportability/serialization_failure'        => expected_values,
+      'Supportability/serialization_failure' => expected_values,
       'Supportability/serialization_failure/foobar' => expected_values
     )
 
     assert_metrics_not_recorded([
-      'Supportability/invoke_remote_serialize',
-      'Supportability/invoke_remote_serialize/foobar',
-      'Supportability/invoke_remote_size',
-      'Supportability/invoke_remote_size/foobar'
-    ])
+                                  'Supportability/invoke_remote_serialize',
+                                  'Supportability/invoke_remote_serialize/foobar',
+                                  'Supportability/invoke_remote_size',
+                                  'Supportability/invoke_remote_size/foobar'
+                                ])
   end
 
   def test_force_restart_closes_shared_connections
@@ -892,7 +891,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def test_marshal_with_json_only
-    with_config(:marshaller => 'pruby') do
+    with_config(marshaller: 'pruby') do
       assert_equal 'json', @service.marshaller.format
     end
   end
@@ -939,7 +938,7 @@ class NewRelicServiceTest < Minitest::Test
     refute_includes header_keys, 'x-nr-metadata'
   end
 
-  def build_stats_hash(items={})
+  def build_stats_hash(items = {})
     hash = NewRelic::Agent::StatsHash.new
     items.each do |key, value|
       hash.record(NewRelic::MetricSpec.new(key), value)
@@ -952,13 +951,13 @@ class NewRelicServiceTest < Minitest::Test
     string.force_encoding('ISO-8859-1').encode('UTF-8')
   end
 
-  def generate_random_byte_sequence(length=255, encoding=nil)
+  def generate_random_byte_sequence(length = 255, encoding = nil)
     bytes = []
     alphabet = (0..255).to_a
     meth = alphabet.respond_to?(:sample) ? :sample : :choice
     length.times { bytes << alphabet.send(meth) }
 
-    string = bytes.pack("C*")
+    string = bytes.pack('C*')
     string.force_encoding(encoding) if encoding
     string
   end
@@ -978,7 +977,7 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def roundtrip_data(data, normalize = true)
-    with_config(:normalize_json_string_encodings => normalize) do
+    with_config(normalize_json_string_encodings: normalize) do
       @http_handle.respond_to(:roundtrip, 'roundtrip')
       @service.send(:invoke_remote, 'roundtrip', [data])
       @http_handle.last_request_payload[0]
@@ -989,14 +988,13 @@ class NewRelicServiceTest < Minitest::Test
     { 'redirect_host' => host }
   end
 
-  DEFAULT_PRECONNECT_POLICIES = NewRelic::Agent::NewRelicService::SecurityPolicySettings::EXPECTED_SECURITY_POLICIES.inject({}) do |policies, name|
+  DEFAULT_PRECONNECT_POLICIES = NewRelic::Agent::NewRelicService::SecurityPolicySettings::EXPECTED_SECURITY_POLICIES.each_with_object({}) do |name, policies|
     policies[name] = { 'enabled' => false, 'required' => true }
-    policies
   end
 
   def preconnect_response_for_policies(host, policies)
     {
-      'redirect_host'     => host,
+      'redirect_host' => host,
       'security_policies' => policies
     }
   end
@@ -1037,7 +1035,7 @@ class NewRelicServiceTest < Minitest::Test
     module HTTPResponseMock
       attr_accessor :code, :body, :message, :headers
 
-      def initialize(body, code=200, message='OK')
+      def initialize(body, code = 200, message = 'OK')
         @code = code
         @body = body
         @message = message
@@ -1084,23 +1082,23 @@ class NewRelicServiceTest < Minitest::Test
       8080
     end
 
-    def create_response_mock(payload, opts={})
+    def create_response_mock(payload, opts = {})
       opts = {
-        :code => 200,
-        :format => :json
+        code: 200,
+        format: :json
       }.merge(opts)
 
-      klass = Class.new(Net::HTTPResponse::CODE_TO_OBJ[opts[:code].to_s]) {
+      klass = Class.new(Net::HTTPResponse::CODE_TO_OBJ[opts[:code].to_s]) do
         include HTTPResponseMock
-      }
+      end
       klass.new(JSON.dump('return_value' => payload), opts[:code], {})
     end
 
-    def respond_to(method, payload, opts={})
-      case payload
-      when Exception then rsp = payload
-      else                rsp = create_response_mock(payload, opts)
-      end
+    def respond_to(method, payload, opts = {})
+      rsp = case payload
+            when Exception then payload
+            else create_response_mock(payload, opts)
+            end
 
       @route_table[method.to_s] = rsp
     end
@@ -1115,10 +1113,11 @@ class NewRelicServiceTest < Minitest::Test
 
       if route
         response = @route_table[route]
-        raise response if response.kind_of?(Exception)
+        raise response if response.is_a?(Exception)
+
         response
       else
-        create_response_mock 'not found', :code => 404
+        create_response_mock 'not found', code: 404
       end
     end
 
@@ -1133,13 +1132,13 @@ class NewRelicServiceTest < Minitest::Test
 
       content_encoding = @last_request['Content-Encoding']
       body = if content_encoding == 'deflate'
-        Zlib::Inflate.inflate(@last_request.body)
-      elsif content_encoding == 'gzip'
-        zstream = Zlib::Inflate.new(16+Zlib::MAX_WBITS)
-        zstream.inflate(@last_request.body)
-      else
-        @last_request.body
-      end
+               Zlib::Inflate.inflate(@last_request.body)
+             elsif content_encoding == 'gzip'
+               zstream = Zlib::Inflate.new(16 + Zlib::MAX_WBITS)
+               zstream.inflate(@last_request.body)
+             else
+               @last_request.body
+             end
 
       uri = URI.parse(@last_request.path)
       params = CGI.parse(uri.query)

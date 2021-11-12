@@ -1,15 +1,13 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../test_helper', __FILE__)
+require File.expand_path('test_helper', __dir__)
 
 module NewRelic
   module Agent
     module InfiniteTracing
       class InfiniteTracingTest < Minitest::Test
-
         # Ensures we're tracking versions against agent's version.
         def test_version_matches_agent_version
           refute_nil NewRelic::Agent::InfiniteTracing::VERSION::STRING
@@ -23,7 +21,6 @@ module NewRelic
           assert_kind_of Hash, span_event[1]
           assert_kind_of Hash, span_event[2]
         end
-
       end
     end
   end

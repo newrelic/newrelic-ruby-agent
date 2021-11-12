@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -22,11 +21,11 @@ class MongoReplicaSet
   end
 
   def start
-    self.servers.each { |server| server.start }
+    servers.each { |server| server.start }
     initiate
 
-    retry_on_exception(:exception => Mongo::ConnectionFailure, :tries => 100) do
-      self.client = MongoReplicaSetClient.new(server_connections, :read => :secondary)
+    retry_on_exception(exception: Mongo::ConnectionFailure, tries: 100) do
+      self.client = MongoReplicaSetClient.new(server_connections, read: :secondary)
     end
 
     self
@@ -42,9 +41,7 @@ class MongoReplicaSet
     begin
       yield
     rescue exception => e
-      if message
-        raise e unless e.message.include? message
-      end
+      raise e if message && !(e.message.include? message)
 
       sleep 0.1
       tries += 1
@@ -54,24 +51,25 @@ class MongoReplicaSet
   end
 
   def server_connections
-    self.servers.map do |server|
+    servers.map do |server|
       "localhost:#{server.port}"
     end
   end
 
   def stop
-    self.servers.each { |server| server.stop }
+    servers.each { |server| server.stop }
     self.client = nil
   end
 
   def running?
-    server_running_statuses = self.servers.map(&:running?).uniq
+    server_running_statuses = servers.map(&:running?).uniq
     server_running_statuses.length == 1 && server_running_statuses.first
   end
 
   def status
     return nil unless running?
-    self.servers.first.client['admin'].command( { 'replSetGetStatus' => 1 } )
+
+    servers.first.client['admin'].command({ 'replSetGetStatus' => 1 })
   rescue Mongo::OperationFailure => e
     raise e unless e.message.include? 'EMPTYCONFIG'
   end
@@ -79,10 +77,10 @@ class MongoReplicaSet
   def config
     return unless running?
 
-    config = { :_id => 'multiverse', :members => [] }
+    config = { _id: 'multiverse', members: [] }
 
-    self.servers.each_with_index do |server, index|
-      config[:members] << { :_id => index, :host => "localhost:#{server.port}" }
+    servers.each_with_index do |server, index|
+      config[:members] << { _id: index, host: "localhost:#{server.port}" }
     end
 
     config
@@ -90,7 +88,8 @@ class MongoReplicaSet
 
   def initiate
     return nil unless running?
-    self.servers.first.client['admin'].command( { 'replSetInitiate' => config } )
+
+    servers.first.client['admin'].command({ 'replSetInitiate' => config })
   rescue Mongo::OperationFailure => e
     raise e unless e.message.match(/already initialized/)
   end

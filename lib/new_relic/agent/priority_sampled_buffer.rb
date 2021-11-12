@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,7 +7,7 @@ require 'new_relic/agent/event_buffer'
 module NewRelic
   module Agent
     class PrioritySampledBuffer < EventBuffer
-      PRIORITY_KEY = "priority".freeze
+      PRIORITY_KEY = 'priority'.freeze
 
       attr_reader :seen_lifetime, :captured_lifetime
 
@@ -19,9 +18,7 @@ module NewRelic
       end
 
       def heapify_items_array
-        if @items.is_a?(Array)
-          @items = Heap.new(@items) { |x| priority_for(x) } 
-        end
+        @items = Heap.new(@items) { |x| priority_for(x) } if @items.is_a?(Array)
       end
 
       # expects priority and a block, or an event as a hash with a `priority` key.
@@ -38,8 +35,6 @@ module NewRelic
             @items[0] = incoming
             @items.fix(0)
             incoming
-          else
-            nil
           end
         else
           @items << (event || blk.call)
@@ -48,7 +43,7 @@ module NewRelic
         end
       end
 
-      alias_method :append_event, :append
+      alias append_event append
 
       def capacity=(new_capacity)
         @capacity = new_capacity
@@ -56,14 +51,14 @@ module NewRelic
         old_seen  = @seen
         reset!
         old_items.each { |i| append(event: i) }
-        @seen     = old_seen
+        @seen = old_seen
       end
 
       def to_a
         @items.to_a.dup
       end
 
-      def decrement_lifetime_counts_by n
+      def decrement_lifetime_counts_by(n)
         @captured_lifetime -= n
         @seen_lifetime -= n
       end
@@ -74,8 +69,8 @@ module NewRelic
 
       def metadata
         super.merge!(
-          :captured_lifetime => @captured_lifetime,
-          :seen_lifetime => @seen_lifetime
+          captured_lifetime: @captured_lifetime,
+          seen_lifetime: @seen_lifetime
         )
       end
 
@@ -92,4 +87,3 @@ module NewRelic
     end
   end
 end
-

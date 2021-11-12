@@ -1,11 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../test_helper', __FILE__
+require File.expand_path '../../../test_helper', __dir__
 
 class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
-
   def setup
     NewRelic::Agent.drop_buffered_data
   end
@@ -14,7 +12,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     middleware_class = Class.new
 
     generator = NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
-    wrapped_instance  = generator.new
+    wrapped_instance = generator.new
 
     assert_kind_of(NewRelic::Agent::Instrumentation::MiddlewareProxy, wrapped_instance)
     assert_kind_of(middleware_class, wrapped_instance.target)
@@ -79,7 +77,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     wrapped_instance = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(middleware_class.new)
 
     name = wrapped_instance.transaction_options[:transaction_name]
-    assert_equal("Middleware/Rack/AnonymousClass/call", name)
+    assert_equal('Middleware/Rack/AnonymousClass/call', name)
   end
 
   class BaseForAnonymous
@@ -125,7 +123,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
 
   def test_should_wrap_non_instrumented_middlewares
     app_class = Class.new do
-      def call(env)
+      def call(_env)
         :yay
       end
     end
@@ -180,7 +178,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_should_start_transaction_if_none_is_running
-    app = lambda do |env|
+    app = lambda do |_env|
       :super_duper
     end
 
@@ -188,17 +186,17 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
 
     wrapped.call({})
 
-    assert_metrics_recorded("HttpDispatcher")
+    assert_metrics_recorded('HttpDispatcher')
   end
 
   def test_should_respect_force_transaction_flag
-    app = lambda do |env|
+    app = lambda do |_env|
       :super_duper
     end
 
     wrapped = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
 
-    in_transaction('Controller/foo', :category => :controller) do
+    in_transaction('Controller/foo', category: :controller) do
       wrapped.call({})
     end
 
@@ -208,10 +206,10 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   def test_should_get_the_right_name_when_target_is_a_class
     target_class = Class.new do
       def self.name
-        "GreatClass"
+        'GreatClass'
       end
 
-      def self.call(env)
+      def self.call(_env)
         :super_duper
       end
     end
@@ -224,8 +222,8 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_should_emit_events_once
-    app = Proc.new { |env| [200, {}, ["nothing"]]}
-    middleware = Proc.new { |env| app.call(env) }
+    app = proc { |_env| [200, {}, ['nothing']] }
+    middleware = proc { |env| app.call(env) }
     wrapped_middleware = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(middleware, true)
 
     before_call_count = 0
@@ -240,7 +238,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_before_call_should_receive_rack_env_hash
-    app = Proc.new { |env| [200, {}, ["nothing"]]}
+    app = proc { |_env| [200, {}, ['nothing']] }
     wrapped_app = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
 
     original_env = {}
@@ -253,7 +251,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_after_call_should_receive_rack_env_hash
-    app = Proc.new { |env| [200, {}, ["nothing"]] }
+    app = proc { |_env| [200, {}, ['nothing']] }
     wrapped_app = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
 
     original_env = {}
@@ -271,4 +269,3 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     assert_same result, result_from_after_call
   end
 end
-

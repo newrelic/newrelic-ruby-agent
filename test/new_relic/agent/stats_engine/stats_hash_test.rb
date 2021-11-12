@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 class NewRelic::Agent::StatsHashTest < Minitest::Test
   def setup
@@ -147,7 +146,6 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     assert_equal(1, hash[specs[3]].call_count)
   end
 
-
   def test_marshal_dump
     @hash.record(NewRelic::MetricSpec.new('foo'), 1)
     @hash.record(NewRelic::MetricSpec.new('bar'), 2)
@@ -192,6 +190,6 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
   def fake_borked_default_proc(stats_hash)
     exception = NoMethodError.new("borked default proc gives a NoMethodError on `yield'")
     hash = stats_hash.instance_variable_get(:@unscoped)
-    hash.default_proc = Proc.new { raise exception }
+    hash.default_proc = proc { raise exception }
   end
 end

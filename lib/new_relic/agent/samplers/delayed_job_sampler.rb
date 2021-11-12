@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -21,21 +20,28 @@ module NewRelic
         # DelayedJob supports multiple backends, only some of which we can
         # handle. Check whether we think we've got what we need here.
         def self.supported_backend?
-          ::Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
+          ::Delayed::Worker.backend.to_s == 'Delayed::Backend::ActiveRecord::Job'
         end
 
         def initialize
-          raise Unsupported, "DJ queue sampler disabled" if Agent.config[:disable_dj]
-          raise Unsupported, "DJ queue sampling unsupported with backend '#{::Delayed::Worker.backend}'" unless self.class.supported_backend?
-          raise Unsupported, "No DJ worker present. Skipping DJ queue sampler" unless NewRelic::DelayedJobInjection.worker_name
+          raise Unsupported, 'DJ queue sampler disabled' if Agent.config[:disable_dj]
+
+          unless self.class.supported_backend?
+            raise Unsupported,
+                  "DJ queue sampling unsupported with backend '#{::Delayed::Worker.backend}'"
+          end
+          unless NewRelic::DelayedJobInjection.worker_name
+            raise Unsupported,
+                  'No DJ worker present. Skipping DJ queue sampler'
+          end
         end
 
         def record_failed_jobs(value)
-          NewRelic::Agent.record_metric("Workers/DelayedJob/failed_jobs", value)
+          NewRelic::Agent.record_metric('Workers/DelayedJob/failed_jobs', value)
         end
 
         def record_locked_jobs(value)
-          NewRelic::Agent.record_metric("Workers/DelayedJob/locked_jobs", value)
+          NewRelic::Agent.record_metric('Workers/DelayedJob/locked_jobs', value)
         end
 
         FAILED_QUERY = 'failed_at is not NULL'.freeze
@@ -51,7 +57,7 @@ module NewRelic
 
         def count(query)
           if ::ActiveRecord::VERSION::MAJOR.to_i < 4
-            ::Delayed::Job.count(:conditions => query)
+            ::Delayed::Job.count(conditions: query)
           else
             ::Delayed::Job.where(query).count
           end
@@ -74,10 +80,10 @@ module NewRelic
 
         def record_queue_length_metrics
           counts = []
-          counts << record_counts_by("queue", "name") if ::Delayed::Job.instance_methods.include?(:queue)
-          counts << record_counts_by("priority")
+          counts << record_counts_by('queue', 'name') if ::Delayed::Job.instance_methods.include?(:queue)
+          counts << record_counts_by('priority')
 
-          all_metric = "Workers/DelayedJob/queue_length/all"
+          all_metric = 'Workers/DelayedJob/queue_length/all'
           NewRelic::Agent.record_metric(all_metric, counts.max)
         end
 
@@ -87,7 +93,7 @@ module NewRelic
           all_count = 0
           queue_counts(column_name).each do |column_val, count|
             all_count += count
-            column_val = "default" if column_val.nil? || column_val == ""
+            column_val = 'default' if column_val.nil? || column_val == ''
             metric = "Workers/DelayedJob/queue_length/#{metric_node}/#{column_val}"
             NewRelic::Agent.record_metric(metric, count)
           end
@@ -99,13 +105,13 @@ module NewRelic
           # There is not an ActiveRecord syntax for what we're trying to do
           # here that's valid on 2.x through 4.1, so split it up.
           result = if ::ActiveRecord::VERSION::MAJOR.to_i < 4
-            ::Delayed::Job.count(:group => column_name,
-              :conditions => [QUEUE_QUERY_CONDITION, now])
-          else
-            ::Delayed::Job.where(QUEUE_QUERY_CONDITION, now).
-              group(column_name).
-              count
-          end
+                     ::Delayed::Job.count(group: column_name,
+                                          conditions: [QUEUE_QUERY_CONDITION, now])
+                   else
+                     ::Delayed::Job.where(QUEUE_QUERY_CONDITION, now)
+                                   .group(column_name)
+                                   .count
+                   end
           result.to_a
         end
       end

@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), "..", "agent_helper"))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'agent_helper'))
 
 class Minitest::Test
   def after_teardown
@@ -13,7 +12,6 @@ class Minitest::Test
 end
 
 module MultiverseHelpers
-
   #
   # Agent startup/shutdown
   #
@@ -46,7 +44,7 @@ module MultiverseHelpers
     # Give caller a shot to setup before we start
     # Don't just yield, as that won't necessarily have the intended receiver
     # (the test case instance itself)
-    self.instance_exec($collector, &block) if block_given? && self.respond_to?(:instance_exec)
+    instance_exec($collector, &block) if block_given? && respond_to?(:instance_exec)
 
     # It's important that this be called after the instance_exec above, so that
     # test cases have the chance to change settings on the fake collector first
@@ -86,13 +84,13 @@ module MultiverseHelpers
     NewRelic::Control.reset
   end
 
-  def run_agent(options={}, &block)
+  def run_agent(options = {})
     setup_agent(options)
     yield if block_given?
     teardown_agent
   end
 
-  def trigger_agent_reconnect(opts={})
+  def trigger_agent_reconnect(opts = {})
     # Clean-up if others don't (or we're first test after auto-loading of agent)
     if NewRelic::Agent.instance.started?
       NewRelic::Agent.shutdown
@@ -103,7 +101,7 @@ module MultiverseHelpers
     NewRelic::Agent.instance.instance_variable_set(:@connect_state, :pending)
 
     # Almost always want a test to force a new connect when setting up
-    defaults = { :sync_startup => true, :force_reconnect => true }
+    defaults = { sync_startup: true, force_reconnect: true }
 
     NewRelic::Agent.manual_start(defaults.merge(opts))
   end
@@ -121,22 +119,20 @@ module MultiverseHelpers
   #       net_http: <%= $instrumentation_method.value %>
 
   class InstrumentationMethod
-    def initialize instrumentation_method
+    def initialize(instrumentation_method)
       @value = instrumentation_method
       @emitted = false
     end
 
     def value
       unless @emitted
-        puts "*" * 40, "INSTRUMENTING #{@value}", "*" * 40
+        puts '*' * 40, "INSTRUMENTING #{@value}", '*' * 40
         @emitted = true
       end
       @value
     end
 
-    def value= new_value
-      @value = new_value
-    end
+    attr_writer :value
 
     def to_s
       value.to_s
@@ -144,7 +140,7 @@ module MultiverseHelpers
   end
 
   def instrumentation_method
-    ENV["MULTIVERSE_INSTRUMENTATION_METHOD"] ||= "chain"
+    ENV['MULTIVERSE_INSTRUMENTATION_METHOD'] ||= 'chain'
   end
 
   def ensure_instrumentation_method
@@ -172,7 +168,7 @@ module MultiverseHelpers
   end
 
   def omit_collector?
-    ENV["NEWRELIC_OMIT_FAKE_COLLECTOR"] == "true"
+    ENV['NEWRELIC_OMIT_FAKE_COLLECTOR'] == 'true'
   end
 
   def stub_for_span_collection
@@ -189,33 +185,33 @@ module MultiverseHelpers
   end
 
   def single_transaction_trace_posted
-    posts = $collector.calls_for("transaction_sample_data")
-    assert_equal 1, posts.length, "Unexpected post count"
+    posts = $collector.calls_for('transaction_sample_data')
+    assert_equal 1, posts.length, 'Unexpected post count'
 
     transactions = posts.first.samples
-    assert_equal 1, transactions.length, "Unexpected trace count"
+    assert_equal 1, transactions.length, 'Unexpected trace count'
 
     transactions.first
   end
 
   def single_error_posted
-    assert_equal 1, $collector.calls_for("error_data").length
-    assert_equal 1, $collector.calls_for("error_data").first.errors.length
+    assert_equal 1, $collector.calls_for('error_data').length
+    assert_equal 1, $collector.calls_for('error_data').first.errors.length
 
-    $collector.calls_for("error_data").first.errors.first
+    $collector.calls_for('error_data').first.errors.first
   end
 
   def single_event_posted
-    assert_equal 1, $collector.calls_for("analytic_event_data").length
-    assert_equal 1, $collector.calls_for("analytic_event_data").first.events.length
+    assert_equal 1, $collector.calls_for('analytic_event_data').length
+    assert_equal 1, $collector.calls_for('analytic_event_data').first.events.length
 
-    $collector.calls_for("analytic_event_data").first.events.first
+    $collector.calls_for('analytic_event_data').first.events.first
   end
 
   def single_metrics_post
-    assert_equal 1, $collector.calls_for("metric_data").length
+    assert_equal 1, $collector.calls_for('metric_data').length
 
-    $collector.calls_for("metric_data").first
+    $collector.calls_for('metric_data').first
   end
 
   def single_connect_posted
@@ -225,11 +221,12 @@ module MultiverseHelpers
 
   def capture_js_data
     return unless (transaction = NewRelic::Agent::Tracer.current_transaction)
-    events = stub(:subscribe => nil)
+
+    events = stub(subscribe: nil)
     @instrumentor = NewRelic::Agent::JavascriptInstrumentor.new(events)
     @js_data = @instrumentor.data_for_js_agent(transaction)
 
-    raw_attributes = @js_data["atts"]
+    raw_attributes = @js_data['atts']
 
     if raw_attributes
       attributes = ::JSON.load @instrumentor.obfuscator.deobfuscate(raw_attributes)
@@ -248,7 +245,7 @@ module MultiverseHelpers
   end
 
   def assert_error_has_agent_attribute(attribute, expected)
-    assert_equal expected, single_error_posted.params["agentAttributes"][attribute]
+    assert_equal expected, single_error_posted.params['agentAttributes'][attribute]
   end
 
   def assert_transaction_tracer_has_custom_attributes(attribute, expected)
@@ -261,7 +258,7 @@ module MultiverseHelpers
   end
 
   def assert_error_collector_has_custom_attributes(attribute, expected)
-    assert_equal expected, single_error_posted.params["userAttributes"][attribute]
+    assert_equal expected, single_error_posted.params['userAttributes'][attribute]
   end
 
   def assert_browser_monitoring_has_custom_attributes(attribute, expected)
@@ -281,7 +278,7 @@ module MultiverseHelpers
   end
 
   def refute_error_collector_has_custom_attributes(attribute)
-    refute_includes single_error_posted.params["userAttributes"], attribute
+    refute_includes single_error_posted.params['userAttributes'], attribute
   end
 
   def refute_browser_monitoring_has_custom_attributes(_)
@@ -297,11 +294,11 @@ module MultiverseHelpers
   end
 
   def refute_error_has_agent_attribute(attribute)
-    refute_includes single_error_posted.params["agentAttributes"], attribute
+    refute_includes single_error_posted.params['agentAttributes'], attribute
   end
 
   def refute_browser_monitoring_has_any_attributes
-    refute_includes @js_data, "atts"
+    refute_includes @js_data, 'atts'
   end
 
   def refute_browser_monitoring_has_agent_attribute(_)
@@ -321,11 +318,11 @@ module MultiverseHelpers
   end
 
   def user_attributes_for_single_error_posted
-    attributes_for_single_error_posted("userAttributes")
+    attributes_for_single_error_posted('userAttributes')
   end
 
   def agent_attributes_for_single_error_posted
-    attributes_for_single_error_posted("agentAttributes")
+    attributes_for_single_error_posted('agentAttributes')
   end
 
   def agent_attributes_for_single_event_posted
@@ -334,8 +331,8 @@ module MultiverseHelpers
   end
 
   def agent_attributes_for_single_event_posted_without_ignored_attributes
-    ignored_keys = ["http.statusCode", "request.headers.referer",
-      "request.parameters.controller", "request.parameters.action", "http.statusCode"]
+    ignored_keys = ['http.statusCode', 'request.headers.referer',
+                    'request.parameters.controller', 'request.parameters.action', 'http.statusCode']
     attrs = agent_attributes_for_single_event_posted
     ignored_keys.each { |k| attrs.delete(k) }
     attrs

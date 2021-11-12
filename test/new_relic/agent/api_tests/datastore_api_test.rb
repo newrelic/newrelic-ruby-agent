@@ -1,7 +1,6 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/transaction'
 
 module NewRelic
@@ -18,7 +17,7 @@ module NewRelic
 
           params = test['input']['parameters']
           txn_helper_method = test['input']['is_web'] ? :in_web_transaction : :in_background_transaction
-          config = test['input']['configuration'].merge(:disable_harvest_thread => true)
+          config = test['input']['configuration'].merge(disable_harvest_thread: true)
 
           with_config config do
             send(txn_helper_method) do
@@ -30,13 +29,14 @@ module NewRelic
                 port_path_or_id: params['port_path_or_id'],
                 database_name: params['database_name']
               )
-              segment.notice_sql "select * from foo"
+              segment.notice_sql 'select * from foo'
               advance_process_time 2.0
               segment.finish
             end
 
             host, port_path_or_id, database_name =
-              test['expectation']['transaction_segment_and_slow_query_trace'].values_at('host', 'port_path_or_id', 'database_name')
+              test['expectation']['transaction_segment_and_slow_query_trace'].values_at('host', 'port_path_or_id',
+                                                                                        'database_name')
 
             segment_name = test['expectation']['metrics_scoped'][0]
 
@@ -47,7 +47,7 @@ module NewRelic
         end
       end
 
-      def assert_expected_tt_segment_params segment_name, host, port_path_or_id, database_name
+      def assert_expected_tt_segment_params(segment_name, host, port_path_or_id, database_name)
         trace = last_transaction_trace
         segment = find_node_with_name trace, segment_name
 
@@ -68,7 +68,7 @@ module NewRelic
         end
       end
 
-      def assert_expected_slow_sql_params host, port_path_or_id, database_name
+      def assert_expected_slow_sql_params(host, port_path_or_id, database_name)
         sql_trace = last_sql_trace
 
         if host.nil?

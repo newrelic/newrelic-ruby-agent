@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -37,7 +36,7 @@ module SinatraTestCases
       'GET /precondition'
     end
 
-    #get '/ignored'
+    # get '/ignored'
     def ignored_segment
       'GET /ignored'
     end
@@ -64,7 +63,7 @@ module SinatraTestCases
       'GET precondition'
     end
 
-    #get '/ignored'
+    # get '/ignored'
     def ignored_segment
       'GET ignored'
     end
@@ -77,7 +76,7 @@ module SinatraTestCases
   end
 
   def app
-    raise "Must implement app on your test case"
+    raise 'Must implement app on your test case'
   end
 
   def app_name
@@ -104,13 +103,13 @@ module SinatraTestCases
 
   def test_queue_time_headers_are_passed_to_agent
     get '/user/login', {}, { 'HTTP_X_REQUEST_START' => 't=1360973845' }
-    assert_metrics_recorded(["WebFrontend/QueueTime"])
+    assert_metrics_recorded(['WebFrontend/QueueTime'])
   end
 
   def test_shown_errors_get_caught
-     get '/raise'
-     errors = harvest_error_traces!
-     assert_equal 1, errors.size
+    get '/raise'
+    errors = harvest_error_traces!
+    assert_equal 1, errors.size
   end
 
   def test_does_not_break_pass
@@ -122,7 +121,7 @@ module SinatraTestCases
   def test_does_not_break_error_handling
     get '/error'
     assert_equal 200, last_response.status
-    assert_equal "nothing happened", last_response.body
+    assert_equal 'nothing happened', last_response.body
   end
 
   def test_sees_handled_error
@@ -150,7 +149,7 @@ module SinatraTestCases
   end
 
   # this test is not applicable to environments that use sinatra.route for txn naming
-  if self.include? NRRouteNaming
+  if include? NRRouteNaming
     def test_set_unknown_transaction_name_if_error_in_routing
       ::NewRelic::Agent::Instrumentation::Sinatra::TransactionNamer \
         .stubs(:http_verb).raises(StandardError.new('madness'))
@@ -195,7 +194,8 @@ module SinatraTestCases
 
   def test_rack_request_params_errors_are_logged
     NewRelic::Agent.logger.stubs(:debug)
-    NewRelic::Agent.logger.expects(:debug).with("Failed to get params from Rack request.", kind_of(StandardError)).at_least_once
+    NewRelic::Agent.logger.expects(:debug).with('Failed to get params from Rack request.',
+                                                kind_of(StandardError)).at_least_once
 
     trigger_error_on_params
 
@@ -224,15 +224,15 @@ module SinatraTestCases
 
   if Gem::Version.new(Sinatra::VERSION).segments[0] < 2
     def trigger_error_on_params
-      Sinatra::Request.any_instance.
-      stubs(:params).returns({}).
-      then.raises(StandardError.new "Rack::Request#params error")
+      Sinatra::Request.any_instance
+                      .stubs(:params).returns({})
+                      .then.raises(StandardError.new('Rack::Request#params error'))
     end
   else
     def trigger_error_on_params
-      Sinatra::Request.any_instance.
-      stubs(:params).
-      raises(Sinatra::BadRequest.new)
+      Sinatra::Request.any_instance
+                      .stubs(:params)
+                      .raises(Sinatra::BadRequest.new)
     end
   end
 

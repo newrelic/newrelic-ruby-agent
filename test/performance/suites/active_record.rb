@@ -1,14 +1,12 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/instrumentation/active_record_helper'
 
 class ActiveRecordTest < Performance::TestCase
-
-  NAME    = "Model Load"
-  SQL     = "SELECT * FROM star"
-  ADAPTER = "mysql2"
+  NAME    = 'Model Load'
+  SQL     = 'SELECT * FROM star'
+  ADAPTER = 'mysql2'
 
   def test_helper_by_name
     measure do
@@ -16,7 +14,7 @@ class ActiveRecordTest < Performance::TestCase
     end
   end
 
-  UNKNOWN_NAME = "Blah"
+  UNKNOWN_NAME = 'Blah'
 
   def test_helper_by_sql
     measure do

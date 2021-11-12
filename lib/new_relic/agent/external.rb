@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -31,7 +30,7 @@ module NewRelic
       #
       # @api public
       #
-      def process_request_metadata request_metadata
+      def process_request_metadata(request_metadata)
         NewRelic::Agent.record_api_supportability_metric(:process_request_metadata)
         return unless CrossAppTracing.cross_app_enabled?
 
@@ -64,7 +63,7 @@ module NewRelic
 
           nil
         end
-      rescue => e
+      rescue StandardError => e
         NewRelic::Agent.logger.error 'error during process_request_metadata', e
       end
 
@@ -96,8 +95,8 @@ module NewRelic
           #
           obfuscator.obfuscate ::JSON.dump(rmd)
         end
-      rescue => e
-        NewRelic::Agent.logger.error "error during get_response_metadata", e
+      rescue StandardError => e
+        NewRelic::Agent.logger.error 'error during get_response_metadata', e
       end
 
       private
@@ -105,7 +104,6 @@ module NewRelic
       def obfuscator
         CrossAppTracing.obfuscator
       end
-
     end
   end
 end

@@ -1,19 +1,18 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 module Performance
   class Baseline
-    PERSIST_PATH = File.expand_path("~/.newrelic_rpm_baseline")
+    PERSIST_PATH = File.expand_path('~/.newrelic_rpm_baseline')
 
     attr_reader :results
 
     def self.load!
-      self.new.load!
+      new.load!
     end
 
     def self.save!(results)
-      baseline = self.new
+      baseline = new
       results.each { |r| baseline.results << r }
       baseline.save!
     end
@@ -28,7 +27,7 @@ module Performance
     end
 
     def save!
-      File.open(PERSIST_PATH, "w") do |f|
+      File.open(PERSIST_PATH, 'w') do |f|
         f.write(JSON.dump(@results.map(&:to_h)))
       end
     end

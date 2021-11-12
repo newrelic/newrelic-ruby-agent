@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/vm'
 
 class NewRelic::Agent::VMTestCase < Minitest::Test
@@ -17,16 +16,16 @@ class NewRelic::Agent::VMTestCase < Minitest::Test
     refute_nil snapshot
   end
 
-  EXPECTED_SNAPSHOT_VALUES = [
-    :gc_runs,
-    :total_allocated_object,
-    :major_gc_count,
-    :minor_gc_count,
-    :heap_live,
-    :heap_free,
-    :method_cache_invalidations,
-    :constant_cache_invalidations,
-    :thread_count
+  EXPECTED_SNAPSHOT_VALUES = %i[
+    gc_runs
+    total_allocated_object
+    major_gc_count
+    minor_gc_count
+    heap_live
+    heap_free
+    method_cache_invalidations
+    constant_cache_invalidations
+    thread_count
   ]
 
   EXPECTED_SNAPSHOT_VALUES.each do |val|
@@ -45,4 +44,3 @@ class NewRelic::Agent::VMTestCase < Minitest::Test
     end
   end
 end
-

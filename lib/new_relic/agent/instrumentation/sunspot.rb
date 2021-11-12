@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -16,7 +15,7 @@ DependencyDetection.defer do
   executes do
     ::Sunspot.module_eval do
       class << self
-        %w(index index!).each do |method|
+        %w[index index!].each do |method|
           add_method_tracer method, 'SolrClient/Sunspot/index'
         end
         add_method_tracer :commit, 'SolrClient/Sunspot/commit'

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -14,29 +13,29 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
       'test'
     end
 
-    newrelic_ignore :only => :ignored_action
-    newrelic_ignore_apdex :only => :ignored_apdex
-    newrelic_ignore_enduser :only => :ignored_enduser
+    newrelic_ignore only: :ignored_action
+    newrelic_ignore_apdex only: :ignored_apdex
+    newrelic_ignore_enduser only: :ignored_enduser
   end
 
   def setup
     nr_freeze_process_time
     @subscriber = NewRelic::Agent::Instrumentation::ActionControllerSubscriber.new
     NewRelic::Agent.drop_buffered_data
-    @request = ActionDispatch::Request.new({'REQUEST_METHOD'=> 'POST'})
+    @request = ActionDispatch::Request.new({ 'REQUEST_METHOD' => 'POST' })
     @headers = ActionDispatch::Http::Headers.new(@request)
     @entry_payload = {
-      :controller => TestController.to_s,
-      :action => 'index',
-      :format => :html,
-      :method => 'GET',
-      :path => '/tests',
-      :headers => @headers,
-      :params => { :controller => 'test_controller', :action => 'index' },
+      controller: TestController.to_s,
+      action: 'index',
+      format: :html,
+      method: 'GET',
+      path: '/tests',
+      headers: @headers,
+      params: { controller: 'test_controller', action: 'index' }
     }
 
-    @exit_payload = @entry_payload.merge(:status => 200, :view_runtime => 5.0,
-                                         :db_runtime => 0.5 )
+    @exit_payload = @entry_payload.merge(status: 200, view_runtime: 5.0,
+                                         db_runtime: 0.5)
     @stats_engine = NewRelic::Agent.instance.stats_engine
     @stats_engine.clear_stats
     NewRelic::Agent.manual_start
@@ -53,7 +52,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     advance_process_time(2)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    expected_values = { :call_count => 1, :total_call_time => 2.0 }
+    expected_values = { call_count: 1, total_call_time: 2.0 }
     assert_metrics_recorded(
       'Controller/test/index' => expected_values,
       'HttpDispatcher' => expected_values
@@ -65,7 +64,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     advance_process_time(1.5)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    expected_values = { :apdex_f => 0, :apdex_t => 1, :apdex_s => 0 }
+    expected_values = { apdex_f: 0, apdex_t: 1, apdex_s: 0 }
     assert_metrics_recorded(
       'Apdex/test/index' => expected_values,
       'Apdex' => expected_values
@@ -76,13 +75,13 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     advance_process_time(1.5)
 
-    error = StandardError.new("boo")
+    error = StandardError.new('boo')
     @exit_payload[:exception] = error
     NewRelic::Agent.notice_error(error)
 
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    expected_values = { :apdex_f => 1, :apdex_t => 0, :apdex_s => 0 }
+    expected_values = { apdex_f: 1, apdex_t: 0, apdex_s: 0 }
     assert_metrics_recorded(
       'Apdex/test/index' => expected_values,
       'Apdex' => expected_values
@@ -92,35 +91,35 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   def test_records_scoped_metrics_for_evented_child_txn
     @subscriber.start('process_action.action_controller', :id, @entry_payload)
     @subscriber.start('process_action.action_controller', :id, @entry_payload \
-                        .merge(:action => 'child', :path => '/child'))
+                        .merge(action: 'child', path: '/child'))
     @subscriber.finish('process_action.action_controller', :id, @exit_payload \
-                         .merge(:action => 'child', :path => '/child'))
+                         .merge(action: 'child', path: '/child'))
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
     assert_metrics_recorded(
-      ['Nested/Controller/test/child', 'Controller/test/child'] => { :call_count => 1 }
+      ['Nested/Controller/test/child', 'Controller/test/child'] => { call_count: 1 }
     )
   end
 
   def test_records_scoped_metrics_for_traced_child_txn
     controller = TestController.new
-    controller.perform_action_with_newrelic_trace(:category => :controller,
-                                                  :name => 'index',
-                                                  :class_name => 'test') do
+    controller.perform_action_with_newrelic_trace(category: :controller,
+                                                  name: 'index',
+                                                  class_name: 'test') do
       @subscriber.start('process_action.action_controller', :id, @entry_payload \
-                          .merge(:action => 'child', :path => '/child'))
+                          .merge(action: 'child', path: '/child'))
       @subscriber.finish('process_action.action_controller', :id, @exit_payload \
-                           .merge(:action => 'child', :path => '/child'))
+                           .merge(action: 'child', path: '/child'))
     end
 
     assert_metrics_recorded(
-      ['Nested/Controller/test/child', 'Controller/test/child'] => { :call_count => 1 }
+      ['Nested/Controller/test/child', 'Controller/test/child'] => { call_count: 1 }
     )
   end
 
   def test_format_metric_name
-      metric_name = @subscriber.format_metric_name('index', TestController)
-      assert_equal 'Controller/test/index', metric_name
+    metric_name = @subscriber.format_metric_name('index', TestController)
+    assert_equal 'Controller/test/index', metric_name
   end
 
   def test_sets_default_transaction_name_on_start
@@ -160,11 +159,11 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
     assert_metrics_not_recorded([
-      'Controller/test/ignored_action',
-      'Apdex/test/ignored_action',
-      'Apdex',
-      'HttpDispatcher'
-    ])
+                                  'Controller/test/ignored_action',
+                                  'Apdex/test/ignored_action',
+                                  'Apdex',
+                                  'HttpDispatcher'
+                                ])
   end
 
   def test_record_no_apdex_metric_for_ignored_apdex_action
@@ -193,7 +192,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
     NewRelic::Agent::TransactionTimeAggregator.harvest!
 
-    assert_metrics_recorded('Instance/Busy' => { :call_count => 1, :total_call_time => 1.0 })
+    assert_metrics_recorded('Instance/Busy' => { call_count: 1, total_call_time: 1.0 })
   end
 
   def test_creates_transaction
@@ -209,7 +208,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_applies_txn_name_rules
-    rule_specs = [{'match_expression' => 'test', 'replacement' => 'taste'}]
+    rule_specs = [{ 'match_expression' => 'test', 'replacement' => 'taste' }]
 
     with_transaction_renaming_rules(rule_specs) do
       @subscriber.start('process_action.action_controller', :id, @entry_payload)
@@ -221,7 +220,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_record_queue_time_metrics
-    app = lambda do |env|
+    app = lambda do |_env|
       @subscriber.start('process_action.action_controller', :id, @entry_payload)
       advance_process_time(2)
       @subscriber.finish('process_action.action_controller', :id, @exit_payload)
@@ -233,8 +232,8 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => {
-        :call_count => 1,
-        :total_call_time => 5.0
+        call_count: 1,
+        total_call_time: 5.0
       }
     )
   end
@@ -247,7 +246,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_dont_record_queue_time_in_nested_transaction
-    app = lambda do |env|
+    app = lambda do |_env|
       @subscriber.start('process_action.action_controller',  :id, @entry_payload)
       @subscriber.start('process_action.action_controller',  :id, @entry_payload)
       @subscriber.finish('process_action.action_controller', :id, @exit_payload)
@@ -260,14 +259,14 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => {
-        :call_count => 1,
-        :total_call_time => 5.0
+        call_count: 1,
+        total_call_time: 5.0
       }
     )
   end
 
   def test_records_request_params_in_txn
-    with_config(:capture_params => true) do
+    with_config(capture_params: true) do
       @entry_payload[:params]['number'] = '666'
       @subscriber.start('process_action.action_controller', :id, @entry_payload)
       @subscriber.finish('process_action.action_controller', :id, @exit_payload)
@@ -278,8 +277,8 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_records_filtered_request_params_in_txn
-    @request.env["action_dispatch.parameter_filter"] = [:password]
-    with_config(:capture_params => true) do
+    @request.env['action_dispatch.parameter_filter'] = [:password]
+    with_config(capture_params: true) do
       @entry_payload[:params]['password'] = 'secret'
       @subscriber.start('process_action.action_controller', :id, @entry_payload)
       @subscriber.finish('process_action.action_controller', :id, @exit_payload)
@@ -300,18 +299,18 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
   def test_records_span_level_error
     exception_class = StandardError
-    exception_msg = "Natural 1"
-    exception = exception_class.new(msg=exception_msg)
+    exception_msg = 'Natural 1'
+    exception = exception_class.new(msg = exception_msg)
     # :exception_object was added in Rails 5 and above
-    params = { :exception_object => exception, :exception => [exception_class.name, exception_msg] }
+    params = { exception_object: exception, exception: [exception_class.name, exception_msg] }
 
     txn = nil
 
     in_transaction do |test_txn|
       txn = test_txn
-        @entry_payload[:params]['password'] = 'secret'
-        @subscriber.start('process_action.action_controller', :id, @entry_payload)
-        @subscriber.finish('process_action.action_controller', :id, params)
+      @entry_payload[:params]['password'] = 'secret'
+      @subscriber.start('process_action.action_controller', :id, @entry_payload)
+      @subscriber.finish('process_action.action_controller', :id, params)
     end
 
     assert_segment_noticed_error txn, /controller/i, exception_class.name, /Natural 1/i

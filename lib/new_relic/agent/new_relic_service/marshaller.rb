@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -6,11 +5,11 @@ module NewRelic
   module Agent
     class NewRelicService
       class Marshaller
-        def prepare(data, options={})
+        def prepare(data, options = {})
           encoder = options[:encoder] || default_encoder
           if data.respond_to?(:to_collector_array)
             data.to_collector_array(encoder)
-          elsif data.kind_of?(Array)
+          elsif data.is_a?(Array)
             data.map { |element| prepare(element, options) }
           else
             data

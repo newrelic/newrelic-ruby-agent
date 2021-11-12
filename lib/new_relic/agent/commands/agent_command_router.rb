@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -19,19 +18,17 @@ module NewRelic
 
         attr_accessor :thread_profiler_session, :backtrace_service
 
-        def initialize(event_listener=nil)
-          @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
+        def initialize(event_listener = nil)
+          @handlers = Hash.new { |*| proc { |cmd| unrecognized_agent_command(cmd) } }
 
           @backtrace_service = Threading::BacktraceService.new(event_listener)
 
           @thread_profiler_session = ThreadProfilerSession.new(@backtrace_service)
 
-          @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler_session.handle_start_command(cmd) }
-          @handlers['stop_profiler']  = Proc.new { |cmd| thread_profiler_session.handle_stop_command(cmd) }
+          @handlers['start_profiler'] = proc { |cmd| thread_profiler_session.handle_start_command(cmd) }
+          @handlers['stop_profiler']  = proc { |cmd| thread_profiler_session.handle_stop_command(cmd) }
 
-          if event_listener
-            event_listener.subscribe(:before_shutdown, &method(:on_before_shutdown))
-          end
+          event_listener.subscribe(:before_shutdown, &method(:on_before_shutdown)) if event_listener
         end
 
         def new_relic_service
@@ -45,10 +42,8 @@ module NewRelic
           new_relic_service.agent_command_results(results) unless results.empty?
         end
 
-        def on_before_shutdown(*args)
-          if self.thread_profiler_session.running?
-            self.thread_profiler_session.stop(true)
-          end
+        def on_before_shutdown(*_args)
+          thread_profiler_session.stop(true) if thread_profiler_session.running?
         end
 
         def harvest!
@@ -63,12 +58,13 @@ module NewRelic
         # Same with reset! - we don't support asynchronous cancellation of a
         # running thread profile currently.
         def merge!(*args); end
+
         def reset!; end
 
         def harvest_from_thread_profiler_session
-          if self.thread_profiler_session.ready_to_harvest?
-            self.thread_profiler_session.stop(true)
-            [self.thread_profiler_session.harvest]
+          if thread_profiler_session.ready_to_harvest?
+            thread_profiler_session.stop(true)
+            [thread_profiler_session.harvest]
           else
             []
           end
@@ -76,17 +72,17 @@ module NewRelic
 
         def log_profiles(profiles)
           if profiles.empty?
-            ::NewRelic::Agent.logger.debug "No thread profiles with data found to send."
+            ::NewRelic::Agent.logger.debug 'No thread profiles with data found to send.'
           else
             profile_descriptions = profiles.map { |p| p.to_log_description }
-            ::NewRelic::Agent.logger.debug "Sending thread profiles [#{profile_descriptions.join(", ")}]"
+            ::NewRelic::Agent.logger.debug "Sending thread profiles [#{profile_descriptions.join(', ')}]"
           end
         end
 
         def get_agent_commands
           commands = new_relic_service.get_agent_commands
           NewRelic::Agent.logger.debug "Received get_agent_commands = #{commands.inspect}"
-          commands.map {|collector_command| AgentCommand.new(collector_command)}
+          commands.map { |collector_command| AgentCommand.new(collector_command) }
         end
 
         def invoke_commands(agent_commands)
@@ -103,17 +99,15 @@ module NewRelic
         end
 
         def invoke_command(agent_command)
-          begin
-            call_handler_for(agent_command)
-            return success
-          rescue AgentCommandError => e
-            NewRelic::Agent.logger.debug(e)
-            error(e)
-          end
+          call_handler_for(agent_command)
+          success
+        rescue AgentCommandError => e
+          NewRelic::Agent.logger.debug(e)
+          error(e)
         end
 
         SUCCESS_RESULT = {}.freeze
-        ERROR_KEY = "error"
+        ERROR_KEY = 'error'
 
         def success
           SUCCESS_RESULT

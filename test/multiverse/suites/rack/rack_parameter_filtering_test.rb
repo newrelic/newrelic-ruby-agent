@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -18,29 +17,29 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     end
 
     def test_file_upload_params_are_filtered
-      with_config(:capture_params => true) do
+      with_config(capture_params: true) do
         params = {
-          :title => "blah",
-          :file => Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
+          title: 'blah',
+          file: Rack::Test::UploadedFile.new(__FILE__, 'text/plain')
         }
         post '/', params
 
         expected = {
-          "request.parameters.title" => "blah",
-          "request.parameters.file" => "[FILE]"
+          'request.parameters.title' => 'blah',
+          'request.parameters.file' => '[FILE]'
         }
         assert_equal expected, last_transaction_trace_request_params
       end
     end
 
     def test_apply_filters_returns_params_when_rails_is_not_present
-      with_config(:capture_params => true) do
-        params = {"name" => "name", "password" => "mypass"}
+      with_config(capture_params: true) do
+        params = { 'name' => 'name', 'password' => 'mypass' }
         post '/', params
 
         expected = {
-          "request.parameters.name" => "name",
-          "request.parameters.password" => "mypass"
+          'request.parameters.name' => 'name',
+          'request.parameters.password' => 'mypass'
         }
         assert_equal expected, last_transaction_trace_request_params
       end

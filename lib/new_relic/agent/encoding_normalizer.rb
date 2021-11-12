@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -19,9 +18,11 @@ module NewRelic
           normalize_string(object.to_s)
         when Array
           return object if object.empty?
+
           object.map { |x| normalize_object(x) }
         when Hash
           return object if object.empty?
+
           hash = {}
           object.each_pair do |k, v|
             k = normalize_string(k)      if k.is_a?(String)
@@ -39,9 +40,7 @@ module NewRelic
       module EncodingNormalizer
         def self.normalize(raw_string)
           encoding = raw_string.encoding
-          if (encoding == Encoding::UTF_8 || encoding == Encoding::ISO_8859_1) && raw_string.valid_encoding?
-            return raw_string
-          end
+          return raw_string if [Encoding::UTF_8, Encoding::ISO_8859_1].include?(encoding) && raw_string.valid_encoding?
 
           # If the encoding is not valid, or it's ASCII-8BIT, we know conversion to
           # UTF-8 is likely to fail, so treat it as ISO-8859-1 (byte-preserving).
@@ -53,7 +52,7 @@ module NewRelic
             # to UTF-8. Give it a try and fall back to ISO-8859-1 if it fails.
             begin
               normalized.encode!(Encoding::UTF_8)
-            rescue
+            rescue StandardError
               normalized.force_encoding(Encoding::ISO_8859_1)
             end
           end

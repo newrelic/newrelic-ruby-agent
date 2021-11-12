@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -8,13 +7,12 @@ require_relative 'abstract'
 module NewRelic
   module Agent
     module HTTPClients
-
       class CurbRequest
         CURB = 'Curb'
         LHOST = 'host'
         UHOST = 'Host'
 
-        def initialize curlobj
+        def initialize(curlobj)
           @curlobj = curlobj
         end
 
@@ -27,14 +25,14 @@ module NewRelic
         end
 
         def host
-          host_from_header || self.uri.host
+          host_from_header || uri.host
         end
 
         def method
           @curlobj._nr_http_verb
         end
 
-        def []( key )
+        def [](key)
           @curlobj.headers[key]
         end
 
@@ -48,8 +46,7 @@ module NewRelic
       end
 
       class CurbResponse < AbstractResponse
-
-        def initialize wrapped_response
+        def initialize(wrapped_response)
           super wrapped_response
           @headers = {}
         end
@@ -62,7 +59,7 @@ module NewRelic
           @headers.dup
         end
 
-        def append_header_data data
+        def append_header_data(data)
           key, value = data.split(/:\s*/, 2)
           @headers[key.downcase] = value
           @wrapped_response._nr_header_str ||= String.new
@@ -75,8 +72,6 @@ module NewRelic
           get_status_code_using :response_code
         end
       end
-
     end
-
   end
 end

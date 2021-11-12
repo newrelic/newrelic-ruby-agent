@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -50,152 +49,152 @@ module NewRelic
         #   permitted by the security policy and is also enabled by the config
 
         SECURITY_SETTINGS_MAP = {
-          "record_sql" => [
+          'record_sql' => [
             {
-              option:         :'transaction_tracer.record_sql',
-              supported:      true,
-              enabled_fn:     method(:record_sql_enabled?),
+              option: :'transaction_tracer.record_sql',
+              supported: true,
+              enabled_fn: method(:record_sql_enabled?),
               disabled_value: 'off',
-              permitted_fn:   proc { |policies|
+              permitted_fn: proc { |policies|
                 change_setting(policies, :'transaction_tracer.record_sql', 'obfuscated')
               }
             },
             {
-              option:         :'slow_sql.record_sql',
-              supported:      true,
-              enabled_fn:     method(:record_sql_enabled?),
+              option: :'slow_sql.record_sql',
+              supported: true,
+              enabled_fn: method(:record_sql_enabled?),
               disabled_value: 'off',
-              permitted_fn:   proc { |policies|
+              permitted_fn: proc { |policies|
                 change_setting(policies, :'slow_sql.record_sql', 'obfuscated')
               }
             },
             {
-              option:         :'mongo.capture_queries',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'mongo.capture_queries',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   proc{ |policies|
+              permitted_fn: proc { |policies|
                 change_setting(policies, :'mongo.obfuscate_queries', true)
               }
             },
             {
-              option:         :'transaction_tracer.record_redis_arguments',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'transaction_tracer.record_redis_arguments',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ],
-          "attributes_include" => [
+          'attributes_include' => [
             {
-              option:         :'attributes.include',
-              supported:      true,
-              enabled_fn:     method(:not_empty?),
+              option: :'attributes.include',
+              supported: true,
+              enabled_fn: method(:not_empty?),
               disabled_value: [],
-              permitted_fn:   nil
+              permitted_fn: nil
             },
             {
-              option:         :'transaction_tracer.attributes.include',
-              supported:      true,
-              enabled_fn:     method(:not_empty?),
+              option: :'transaction_tracer.attributes.include',
+              supported: true,
+              enabled_fn: method(:not_empty?),
               disabled_value: [],
-              permitted_fn:   nil
+              permitted_fn: nil
             },
             {
-              option:         :'transaction_events.attributes.include',
-              supported:      true,
-              enabled_fn:     method(:not_empty?),
+              option: :'transaction_events.attributes.include',
+              supported: true,
+              enabled_fn: method(:not_empty?),
               disabled_value: [],
-              permitted_fn:   nil
+              permitted_fn: nil
             },
             {
-              option:         :'error_collector.attributes.include',
-              supported:      true,
-              enabled_fn:     method(:not_empty?),
+              option: :'error_collector.attributes.include',
+              supported: true,
+              enabled_fn: method(:not_empty?),
               disabled_value: [],
-              permitted_fn:   nil
+              permitted_fn: nil
             },
             {
-              option:         :'browser_monitoring.attributes.include',
-              supported:      true,
-              enabled_fn:     method(:not_empty?),
+              option: :'browser_monitoring.attributes.include',
+              supported: true,
+              enabled_fn: method(:not_empty?),
               disabled_value: [],
-              permitted_fn:   nil
+              permitted_fn: nil
             },
             {
-              option:         :'span_events.attributes.include',
-              supported:      true,
-              enabled_fn:     method(:not_empty?),
+              option: :'span_events.attributes.include',
+              supported: true,
+              enabled_fn: method(:not_empty?),
               disabled_value: [],
-              permitted_fn:   nil
+              permitted_fn: nil
             },
             {
-              option:         :'transaction_segments.attributes.include',
-              supported:      true,
-              enabled_fn:     method(:not_empty?),
+              option: :'transaction_segments.attributes.include',
+              supported: true,
+              enabled_fn: method(:not_empty?),
               disabled_value: [],
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ],
-          "allow_raw_exception_messages" => [
+          'allow_raw_exception_messages' => [
             {
-              option:         :'strip_exception_messages.enabled',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'strip_exception_messages.enabled',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ],
-          "custom_events" => [
+          'custom_events' => [
             {
-              option:         :'custom_insights_events.enabled',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'custom_insights_events.enabled',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ],
-          "custom_parameters" => [
+          'custom_parameters' => [
             {
-              option:         :'custom_attributes.enabled',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'custom_attributes.enabled',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ],
-          "custom_instrumentation_editor" => [
+          'custom_instrumentation_editor' => [
             {
-              option:         nil,
-              supported:      false,
-              enabled_fn:     nil,
+              option: nil,
+              supported: false,
+              enabled_fn: nil,
               disabled_value: nil,
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ],
-          "message_parameters" => [
+          'message_parameters' => [
             {
-              option:         :'message_tracer.segment_parameters.enabled',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'message_tracer.segment_parameters.enabled',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ],
-          "job_arguments" => [
+          'job_arguments' => [
             {
-              option:         :'resque.capture_params',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'resque.capture_params',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   nil
+              permitted_fn: nil
             },
             {
-              option:         :'sidekiq.capture_params',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'sidekiq.capture_params',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ]
         }
@@ -204,13 +203,14 @@ module NewRelic
           super(build_overrides(security_policies))
         end
 
-        ENABLED = "enabled".freeze
-        COLON_COLON = "::".freeze
+        ENABLED = 'enabled'.freeze
+        COLON_COLON = '::'.freeze
 
         def build_overrides(security_policies)
-          security_policies.inject({}) do |settings, (policy_name, policy_settings)|
+          security_policies.each_with_object({}) do |(policy_name, policy_settings), settings|
             SECURITY_SETTINGS_MAP[policy_name].each do |policy|
               next unless policy[:supported]
+
               if policy_settings[ENABLED]
                 if policy[:enabled_fn].call(policy[:option])
                   if permitted_fn = policy[:permitted_fn]
@@ -223,13 +223,12 @@ module NewRelic
                     "Source: #{config_source}"
                 end
               else
-                settings[policy[:option]] =  policy[:disabled_value]
+                settings[policy[:option]] = policy[:disabled_value]
                 NewRelic::Agent.logger.info \
                   "Setting applied: {#{policy[:option]}: #{policy[:disabled_value]}}. " \
-                  "Source: SecurityPolicySource"
+                  'Source: SecurityPolicySource'
               end
             end
-            settings
           end
         end
       end

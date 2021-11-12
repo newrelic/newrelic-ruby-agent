@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -30,10 +29,9 @@ require 'new_relic/agent/internal_agent_error'
 module NewRelic
   module Agent
     class StatsHash
-
       attr_accessor :started_at, :harvested_at
 
-      def initialize(started_at=Process.clock_gettime(Process::CLOCK_REALTIME))
+      def initialize(started_at = Process.clock_gettime(Process::CLOCK_REALTIME))
         @started_at = started_at.to_f
         @scoped     = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
         @unscoped   = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
@@ -52,7 +50,7 @@ module NewRelic
       end
 
       def ==(other)
-        self.to_h == other.to_h
+        to_h == other.to_h
       end
 
       def to_h
@@ -75,10 +73,8 @@ module NewRelic
         end
       end
 
-      def each
-        @scoped.each do |k, v|
-          yield k, v
-        end
+      def each(&block)
+        @scoped.each(&block)
         @unscoped.each do |k, v|
           spec = NewRelic::MetricSpec.new(k)
           yield spec, v
@@ -94,12 +90,12 @@ module NewRelic
       end
 
       class StatsHashLookupError < NewRelic::Agent::InternalAgentError
-        def initialize(original_error, hash, metric_spec)
+        def initialize(original_error, _hash, metric_spec)
           super("Lookup error in StatsHash: #{original_error.class}: #{original_error.message}. Falling back adding #{metric_spec.inspect}")
         end
       end
 
-      def record(metric_specs, value=nil, aux=nil, &blk)
+      def record(metric_specs, value = nil, aux = nil, &blk)
         Array(metric_specs).each do |metric_spec|
           if metric_spec.scope.empty?
             key = metric_spec.name
@@ -122,14 +118,12 @@ module NewRelic
       def handle_stats_lookup_error(key, hash, error)
         # This only happen in the case of a corrupted default_proc
         # Side-step it manually, notice the issue, and carry on....
-        NewRelic::Agent.instance.error_collector. \
-          notice_agent_error(StatsHashLookupError.new(error, hash, key))
+        NewRelic::Agent.instance.error_collector \
+                       .notice_agent_error(StatsHashLookupError.new(error, hash, key))
         stats = NewRelic::Agent::Stats.new
         hash[key] = stats
         # Try to restore the default_proc so we won't continually trip the error
-        if hash.respond_to?(:default_proc=)
-          hash.default_proc = Proc.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
-        end
+        hash.default_proc = proc { |h, k| h[k] = NewRelic::Agent::Stats.new } if hash.respond_to?(:default_proc=)
         stats
       end
 

@@ -1,11 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 class SamplerCollectionTest < Minitest::Test
-
   class DummySampler < NewRelic::Agent::Sampler
     named :dummy
     def poll; end
@@ -47,7 +45,7 @@ class SamplerCollectionTest < Minitest::Test
   end
 
   def test_add_sampler_omits_disabled_samplers
-    with_config(:disable_dummy_sampler => true) do
+    with_config(disable_dummy_sampler: true) do
       @collection.add_sampler(DummySampler)
       assert_equal(0, @collection.to_a.size)
     end

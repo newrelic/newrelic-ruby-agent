@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -18,7 +17,7 @@ DependencyDetection.defer do
     Rainbows::HttpServer.class_eval do
       old_worker_loop = instance_method(:worker_loop)
       define_method(:worker_loop) do |worker|
-        NewRelic::Agent.after_fork(:force_reconnect => true)
+        NewRelic::Agent.after_fork(force_reconnect: true)
         old_worker_loop.bind(self).call(worker)
       end
     end

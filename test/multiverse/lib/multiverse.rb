@@ -1,14 +1,12 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'fileutils'
 
 module Multiverse
-
   # <ruby_agent>/test/multiverse
   #
-  ROOT = File.expand_path '../..', __FILE__
+  ROOT = File.expand_path '..', __dir__
 
   # append <ruby_agent>/test/multiverse/lib to the load path
   #
@@ -22,7 +20,6 @@ module Multiverse
   # suites dir from env var, default to <ruby_agent>/test/multiverse/suites
   #
   SUITES_DIRECTORY = ENV['SUITES_DIRECTORY'] || File.expand_path('suites', ROOT)
-
 end
 
 require 'multiverse/bundler_patch'

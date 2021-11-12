@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -31,13 +30,13 @@ DependencyDetection.defer do
   end
 
   conflicts_with_prepend do
-    source_location_for(Net::HTTP, "request") =~ /airbrake|profiler/i
+    source_location_for(Net::HTTP, 'request') =~ /airbrake|profiler/i
   end
 
   executes do
     if use_prepend?
       prepend_instrument ::Net::HTTP, ::NewRelic::Agent::Instrumentation::NetHTTP::Prepend
-    else 
+    else
       chain_instrument ::NewRelic::Agent::Instrumentation::NetHTTP::Chain
     end
   end

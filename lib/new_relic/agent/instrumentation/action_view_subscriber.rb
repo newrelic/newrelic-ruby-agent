@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/notifications_subscriber'
@@ -9,8 +8,7 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionViewSubscriber < NotificationsSubscriber
-
-        def start(name, id, payload) #THREAD_LOCAL_ACCESS
+        def start(name, id, payload) # THREAD_LOCAL_ACCESS
           parent = segment_stack[id].last
           metric_name = format_metric_name(name, payload, parent)
 
@@ -19,7 +17,7 @@ module NewRelic
             event.finishable = Tracer.start_segment(name: metric_name)
           end
           push_segment id, event
-        rescue => e
+        rescue StandardError => e
           log_notification_error(e, name, 'start')
         end
 
@@ -30,7 +28,7 @@ module NewRelic
             end
             segment.finish
           end
-        rescue => e
+        rescue StandardError => e
           log_notification_error(e, name, 'finish')
         end
 
@@ -39,11 +37,11 @@ module NewRelic
              && (payload[:virtual_path] \
               || (parent.identifier =~ /template$/))
 
-          if payload.key?(:virtual_path)
-            identifier = payload[:virtual_path]
-          else
-            identifier = payload[:identifier]
-          end
+          identifier = if payload.key?(:virtual_path)
+                         payload[:virtual_path]
+                       else
+                         payload[:identifier]
+                       end
 
           "View/#{metric_path(event_name, identifier)}/#{metric_action(event_name)}"
         end
@@ -102,11 +100,10 @@ module NewRelic
           @finishable.finish if @finishable
         end
 
-        def notice_error error
+        def notice_error(error)
           @finishable.notice_error error if @finishable
         end
       end
     end
-
   end
 end

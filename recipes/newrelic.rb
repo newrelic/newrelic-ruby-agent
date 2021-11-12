@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -7,4 +6,4 @@
 # the lib directory.  We have to make them available from
 # both locations
 
-require File.join(File.dirname(__FILE__),'..','lib','new_relic','recipes')
+require File.join(File.dirname(__FILE__), '..', 'lib', 'new_relic', 'recipes')

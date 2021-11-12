@@ -1,19 +1,18 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require "./memcache_test_cases"
+require './memcache_test_cases'
 
 if defined?(Memcached)
   class MemcachedTest < Minitest::Test
     include MemcacheTestCases
 
     def setup
-      @cache = Memcached.new('localhost', :support_cas => true)
+      @cache = Memcached.new('localhost', support_cas: true)
     end
 
     def simulate_error
-      Memcached.any_instance.stubs("check_return_code").raises(simulated_error_class, "No server available")
+      Memcached.any_instance.stubs('check_return_code').raises(simulated_error_class, 'No server available')
       key = set_key_for_testcase
       @cache.get(key)
     end
@@ -22,14 +21,14 @@ if defined?(Memcached)
       Memcached::ServerError
     end
 
-    def additional_web_metrics_for command
+    def additional_web_metrics_for(command)
       [
         "Datastore/operation/Memcached/#{command}",
         ["Datastore/operation/Memcached/#{command}", "Controller/#{self.class}/action"]
       ]
     end
 
-    def additional_bg_metrics_for command
+    def additional_bg_metrics_for(command)
       [
         "Datastore/operation/Memcached/#{command}",
         ["Datastore/operation/Memcached/#{command}", "OtherTransaction/Background/#{self.class}/bg_task"]
@@ -55,6 +54,7 @@ if defined?(Memcached)
 
     def test_get_multi_in_web
       return unless Memcached::VERSION >= '1.8.0'
+
       key = set_key_for_testcase
 
       expected_metrics = expected_web_metrics(:multi_get)
@@ -104,7 +104,7 @@ if defined?(Memcached)
       end
 
       in_web_transaction("Controller/#{self.class}/action") do
-        @cache.cas(key) {|val| val += 2}
+        @cache.cas(key) { |val| val += 2 }
       end
 
       assert_memcache_metrics_recorded expected_metrics
@@ -179,7 +179,7 @@ if defined?(Memcached)
       end
 
       in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
-        @cache.cas(key) {|val| val += 2}
+        @cache.cas(key) { |val| val += 2 }
       end
 
       assert_memcache_metrics_recorded expected_metrics

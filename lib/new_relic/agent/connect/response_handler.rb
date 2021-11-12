@@ -1,14 +1,10 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
-
 
 module NewRelic
   module Agent
     module Connect
-
       class ResponseHandler
-
         def initialize(agent, config)
           @agent = agent
           @config = config
@@ -22,7 +18,7 @@ module NewRelic
         # Can accommodate most arbitrary data - anything extra is
         # ignored unless we say to do something with it here.
         def configure_agent(config_data)
-          return if config_data == nil
+          return if config_data.nil?
 
           @agent.agent_id = config_data['agent_run_id']
 
@@ -39,9 +35,7 @@ module NewRelic
         end
 
         def add_server_side_config(config_data)
-          if config_data['agent_config']
-            ::NewRelic::Agent.logger.debug "Using config from server"
-          end
+          ::NewRelic::Agent.logger.debug 'Using config from server' if config_data['agent_config']
 
           ::NewRelic::Agent.logger.debug "Server provided config: #{config_data.inspect}"
           server_config = NewRelic::Agent::Configuration::ServerSource.new(config_data, @config)

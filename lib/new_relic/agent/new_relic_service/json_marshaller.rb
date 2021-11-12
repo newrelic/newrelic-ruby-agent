@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -14,7 +13,7 @@ module NewRelic
           warn_for_yajl
         end
 
-        OK_YAJL_VERSION = Gem::Version.new("1.2.1")
+        OK_YAJL_VERSION = Gem::Version.new('1.2.1')
 
         def warn_for_yajl
           if defined?(::Yajl)
@@ -23,11 +22,11 @@ module NewRelic
               ::NewRelic::Agent.logger.warn "Detected yajl-ruby version #{::Yajl::VERSION} which can cause segfaults with newrelic_rpm's thread profiling features. We strongly recommend you upgrade to the latest yajl-ruby version available."
             end
           end
-        rescue => err
-          ::NewRelic::Agent.logger.warn "Failed trying to watch for problematic yajl-ruby version.", err
+        rescue StandardError => e
+          ::NewRelic::Agent.logger.warn 'Failed trying to watch for problematic yajl-ruby version.', e
         end
 
-        def dump(ruby, opts={})
+        def dump(ruby, opts = {})
           prepared = prepare(ruby, opts)
 
           if !opts[:skip_normalization] && Agent.config[:normalize_json_string_encodings]
@@ -38,12 +37,10 @@ module NewRelic
         end
 
         def load(data)
-          if data.nil? || data.empty?
-            return nil
-          end
+          return nil if data.nil? || data.empty?
 
           return_value(::JSON.load(data))
-        rescue => e
+        rescue StandardError => e
           ::NewRelic::Agent.logger.debug "#{e.class.name} : #{e.message} encountered loading collector response: #{data}"
           raise
         end

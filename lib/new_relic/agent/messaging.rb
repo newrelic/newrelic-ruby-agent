@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -15,7 +14,7 @@ module NewRelic
     module Messaging
       extend self
 
-      RABBITMQ_TRANSPORT_TYPE = "RabbitMQ"
+      RABBITMQ_TRANSPORT_TYPE = 'RabbitMQ'
 
       ATTR_DESTINATION = AttributeFilter::DST_TRANSACTION_EVENTS |
                          AttributeFilter::DST_TRANSACTION_TRACER |
@@ -122,6 +121,7 @@ module NewRelic
 
         state = Tracer.state
         return yield if state.current_transaction
+
         txn = nil
 
         begin
@@ -141,16 +141,16 @@ module NewRelic
           txn.add_agent_attribute :'message.correlationId', correlation_id, AttributeFilter::DST_NONE if correlation_id
           txn.add_agent_attribute :'message.queueName', queue_name, ATTR_DESTINATION if queue_name
           txn.add_agent_attribute :'message.replyTo', reply_to, AttributeFilter::DST_NONE if reply_to
-        rescue => e
-          NewRelic::Agent.logger.error "Error starting Message Broker consume transaction", e
+        rescue StandardError => e
+          NewRelic::Agent.logger.error 'Error starting Message Broker consume transaction', e
         end
 
         yield
       ensure
         begin
           txn.finish if txn
-        rescue => e
-          NewRelic::Agent.logger.error "Error stopping Message Broker consume transaction", e
+        rescue StandardError => e
+          NewRelic::Agent.logger.error 'Error stopping Message Broker consume transaction', e
         end
       end
 
@@ -300,13 +300,13 @@ module NewRelic
       #
       # @api public
       #
-      def wrap_amqp_consume_transaction library: nil,
+      def wrap_amqp_consume_transaction(library: nil,
                                         destination_name: nil,
                                         delivery_info: nil,
                                         message_properties: nil,
                                         exchange_type: nil,
                                         queue_name: nil,
-                                        &block
+                                        &block)
 
         wrap_message_broker_consume_transaction library: library,
                                                 destination_type: :exchange,
@@ -326,7 +326,7 @@ module NewRelic
         NewRelic::Agent.config[:'message_tracer.segment_parameters.enabled']
       end
 
-      def transaction_name library, destination_type, destination_name
+      def transaction_name(library, destination_type, destination_name)
         transaction_name = Transaction::MESSAGE_PREFIX + library
         transaction_name << Transaction::MessageBrokerSegment::SLASH
         transaction_name << Transaction::MessageBrokerSegment::TYPES[destination_type]
@@ -352,7 +352,6 @@ module NewRelic
 
         transaction_name
       end
-
     end
   end
 end

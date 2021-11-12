@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -6,7 +5,7 @@ module Performance
   module Instrumentation
     def self.load_instrumentors
       dir = File.expand_path(File.join(File.dirname(__FILE__), 'instrumentation'))
-      Dir.glob(File.join(dir, "*.rb")).each do |filename|
+      Dir.glob(File.join(dir, '*.rb')).each do |filename|
         require filename
       end
     end
@@ -18,18 +17,16 @@ module Performance
     end
 
     def self.instrumentor_class_by_name(name)
-      begin
-        cls = self.const_get(name)
-        if cls.supported?
-          cls
-        else
-          Performance.logger.warn("Instrumentor '#{name}' is unsupported on this platform")
-          nil
-        end
-      rescue NameError => e
-        Performance.logger.error("Failed to load instrumentor '#{name}': #{e.inspect}")
+      cls = const_get(name)
+      if cls.supported?
+        cls
+      else
+        Performance.logger.warn("Instrumentor '#{name}' is unsupported on this platform")
         nil
       end
+    rescue NameError => e
+      Performance.logger.error("Failed to load instrumentor '#{name}': #{e.inspect}")
+      nil
     end
 
     class Instrumentor
@@ -73,7 +70,7 @@ module Performance
       end
 
       def pretty_name
-        self.class.name.split("::").last
+        self.class.name.split('::').last
       end
 
       def artifacts_dir_for(test_case, test_name)
@@ -87,8 +84,10 @@ module Performance
       end
 
       def before(*); end
+
       def after(*); end
-      def results; {}; end
+
+      def results() = {}
     end
   end
 end

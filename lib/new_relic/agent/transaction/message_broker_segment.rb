@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -20,13 +19,13 @@ module NewRelic
         TOPIC    = 'Topic'.freeze
         UNKNOWN  = 'Unknown'.freeze
 
-        DESTINATION_TYPES = [
-          :exchange,
-          :queue,
-          :topic,
-          :temporary_queue,
-          :temporary_topic,
-          :unknown
+        DESTINATION_TYPES = %i[
+          exchange
+          queue
+          topic
+          temporary_queue
+          temporary_topic
+          unknown
         ]
 
         ACTIONS = {
@@ -36,12 +35,12 @@ module NewRelic
         }
 
         TYPES = {
-          exchange:        EXCHANGE,
+          exchange: EXCHANGE,
           temporary_queue: QUEUE,
-          queue:           QUEUE,
+          queue: QUEUE,
           temporary_topic: TOPIC,
-          topic:           TOPIC,
-          unknown:         EXCHANGE
+          topic: TOPIC,
+          unknown: EXCHANGE
         }
 
         METRIC_PREFIX = 'MessageBroker/'.freeze
@@ -71,6 +70,7 @@ module NewRelic
 
         def name
           return @name if @name
+
           @name = METRIC_PREFIX + library
           @name << SLASH << TYPES[destination_type] << SLASH << ACTIONS[action] << SLASH
 
@@ -89,8 +89,8 @@ module NewRelic
             transaction.distributed_tracer.insert_cat_headers headers
             transaction.distributed_tracer.log_request_headers headers
           end
-        rescue => e
-          NewRelic::Agent.logger.error "Error during message header processing", e
+        rescue StandardError => e
+          NewRelic::Agent.logger.error 'Error during message header processing', e
         end
       end
     end

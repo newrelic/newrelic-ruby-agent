@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'stringio'
 require 'json'
 
@@ -10,7 +9,6 @@ module NewRelic
   module Agent
     module Logging
       class LoggingTest < Minitest::Test
-
         def setup
           @output = StringIO.new
         end
@@ -40,7 +38,6 @@ module NewRelic
 
           assert_includes message, 'timestamp'
           refute_nil message['timestamp']
-
         end
 
         def test_app_name
@@ -59,7 +56,7 @@ module NewRelic
 
         def test_constructor_arguments_shift_age
           shift_age = 350
-          shift_size = 10000
+          shift_size = 10_000
           logger = DecoratingLogger.new '/tmp/tmp.log', shift_age = 30, shift_size = 1000
           device = logger.instance_variable_get :@logdev
           assert_equal '/tmp/tmp.log', device.instance_variable_get(:@filename)
@@ -71,13 +68,13 @@ module NewRelic
           'quote' => 'message with a quote "',
           'escaped_quote' => 'message with an escaped quote \"',
           'backslash' => "message with a backslash \ ",
-          'forward_slash' => "message with a forward slash / ",
+          'forward_slash' => 'message with a forward slash / ',
           'backspace' => 'message with a backspace \b ',
           'form_feed' => "message with a form feed \f ",
           'newline' => "message with a newline \n ",
           'carriage_return' => "message with a carriage return \r",
           'tab' => "message with a tab \t ",
-          'unicode' => "message with a unicode snowman ☃ ",
+          'unicode' => 'message with a unicode snowman ☃ ',
           'unicode_hex' => "message with a unicode snowman \u2603  "
         }
         messages_to_escape.each do |name, message|
@@ -87,7 +84,6 @@ module NewRelic
             assert_equal message, last_message['message']
           end
         end
-
 
         if RUBY_VERSION >= '2.4.0'
           def test_constructor_arguments_level

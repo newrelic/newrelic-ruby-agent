@@ -1,27 +1,26 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require "http"
-require "newrelic_rpm"
-require "http_client_test_cases"
+require 'http'
+require 'newrelic_rpm'
+require 'http_client_test_cases'
 
 class HTTPTest < Minitest::Test
   include HttpClientTestCases
 
   def client_name
-    "http.rb"
+    'http.rb'
   end
 
   def is_unsupported_1x?
     defined?(::HTTP::VERSION) && HTTP::VERSION < '1.0.0'
   end
 
-  def get_response(url=nil, headers=nil)
-    HTTP.get(url || default_url, :headers => headers)
+  def get_response(url = nil, headers = nil)
+    HTTP.get(url || default_url, headers: headers)
   end
 
-  def get_wrapped_response url
+  def get_wrapped_response(url)
     NewRelic::Agent::HTTPClients::HTTPResponse.new get_response url
   end
 
@@ -30,19 +29,19 @@ class HTTPTest < Minitest::Test
   end
 
   def post_response
-    HTTP.post(default_url, :body => "")
+    HTTP.post(default_url, body: '')
   end
 
   def put_response
-    HTTP.put(default_url, :body => "")
+    HTTP.put(default_url, body: '')
   end
 
   def delete_response
-    HTTP.delete(default_url, :body => "")
+    HTTP.delete(default_url, body: '')
   end
 
   # NOTE, some versions of HTTPrb gem implements body with
-  # String.new("").force_encoding(@encoding) which won't work 
+  # String.new("").force_encoding(@encoding) which won't work
   # with Ruby 2.7 and it's automatic freezing of string literals.
   def body(res)
     res.body.to_s
@@ -70,7 +69,7 @@ class HTTPTest < Minitest::Test
       version: '1.1',
       headers: headers,
       body: '',
-      request: HTTP::Request.new(uri: "http://newrelic.com", verb: :get)
+      request: HTTP::Request.new(uri: 'http://newrelic.com', verb: :get)
     }
 
     httprb_resp = is_unsupported_1x? ? HTTP::Response.new(*options.values) : HTTP::Response.new(options)
@@ -86,5 +85,4 @@ class HTTPTest < Minitest::Test
     HTTP::Connection.any_instance.stubs(:send_proxy_connect_request).raises(timeout_error_class.new)
     get_response
   end
-
 end

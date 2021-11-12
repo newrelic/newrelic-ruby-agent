@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -26,10 +25,10 @@ module NewRelic
     include BasicDataContainerMethodTests
 
     def num_data_items
-      self.respond_to?(:max_data_items) ? max_data_items : 5
+      respond_to?(:max_data_items) ? max_data_items : 5
     end
 
-    def harvest_size container, items
+    def harvest_size(container, items)
       if container.respond_to?(:has_metadata?) && container.has_metadata? && !items.empty?
         items.last.size
       else

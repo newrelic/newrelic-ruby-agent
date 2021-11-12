@@ -1,8 +1,6 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require 'thread'
 require 'new_relic/agent/vm/snapshot'
 
 module NewRelic
@@ -23,9 +21,7 @@ module NewRelic
         end
 
         def gather_gc_stats(snap)
-          if supports?(:gc_runs)
-            snap.gc_runs = GC.count
-          end
+          snap.gc_runs = GC.count if supports?(:gc_runs)
 
           if GC.respond_to?(:stat)
             gc_stats = GC.stat
@@ -38,15 +34,11 @@ module NewRelic
         end
 
         def gather_gc_time(snap)
-          if supports?(:gc_total_time)
-            snap.gc_total_time = NewRelic::Agent.instance.monotonic_gc_profiler.total_time_s
-          end
+          snap.gc_total_time = NewRelic::Agent.instance.monotonic_gc_profiler.total_time_s if supports?(:gc_total_time)
         end
 
         def gather_ruby_vm_stats(snap)
-          if supports?(:method_cache_invalidations)
-            snap.method_cache_invalidations = RubyVM.stat[:global_method_state]
-          end
+          snap.method_cache_invalidations = RubyVM.stat[:global_method_state] if supports?(:method_cache_invalidations)
 
           if supports?(:constant_cache_invalidations)
             snap.constant_cache_invalidations = RubyVM.stat[:global_constant_state]

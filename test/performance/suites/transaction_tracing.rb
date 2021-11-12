@@ -1,14 +1,13 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class TransactionTracingPerfTests < Performance::TestCase
-  FAILURE_MESSAGE = "O_o"
+  FAILURE_MESSAGE = 'O_o'
 
-  BOO = "boo"
-  HOO = "hoo"
-  OH  = "oh"
-  NO  = "no"
+  BOO = 'boo'
+  HOO = 'hoo'
+  OH  = 'oh'
+  NO  = 'no'
 
   def klass(instrument)
     Class.new do
@@ -35,7 +34,6 @@ class TransactionTracingPerfTests < Performance::TestCase
         end
       end
 
-
       def failure
         raise FAILURE_MESSAGE
       end
@@ -45,14 +43,11 @@ class TransactionTracingPerfTests < Performance::TestCase
         method_3
       end
 
-      def method_2
-      end
+      def method_2; end
 
-      def method_3
-      end
+      def method_3; end
 
-      def method_4
-      end
+      def method_4; end
 
       def method_5
         NewRelic::Agent.add_custom_span_attributes(BOO => HOO, OH => NO)
@@ -73,14 +68,13 @@ class TransactionTracingPerfTests < Performance::TestCase
         add_transaction_tracer :transaction_with_attributes
         add_transaction_tracer :failure
       end
-
     end
   end
 
   def setup
     @dummy = klass(true).new
     NewRelic::Agent.manual_start(
-      :monitor_mode   => false
+      monitor_mode: false
     )
   end
 
@@ -94,7 +88,7 @@ class TransactionTracingPerfTests < Performance::TestCase
 
   def test_long_transactions
     measure do
-      @dummy.long_transaction(10000)
+      @dummy.long_transaction(10_000)
     end
   end
 
@@ -108,20 +102,18 @@ class TransactionTracingPerfTests < Performance::TestCase
 
   def test_failure
     measure do
-      begin
-        @dummy.failure
-      rescue
-        # Whatever...
-      end
+      @dummy.failure
+    rescue StandardError
+      # Whatever...
     end
   end
 
-  TXNAME = "Controller/Blogs/index".freeze
+  TXNAME = 'Controller/Blogs/index'.freeze
 
   def test_start_with_tracer_start
     measure do
       if NewRelic::Agent::Tracer.tracing_enabled? &&
-          !NewRelic::Agent::Tracer.current_transaction
+         !NewRelic::Agent::Tracer.current_transaction
         finishable = NewRelic::Agent::Tracer.start_transaction(
           name: TXNAME,
           category: :controller
@@ -136,9 +128,9 @@ class TransactionTracingPerfTests < Performance::TestCase
       in_transaction do |txn|
         txn.sampled = true
         segment = NewRelic::Agent::Tracer.start_datastore_segment(
-          product: "SQLite",
-          operation: "insert",
-          collection: "Blog"
+          product: 'SQLite',
+          operation: 'insert',
+          collection: 'Blog'
         )
         segment.finish
       end
@@ -150,9 +142,9 @@ class TransactionTracingPerfTests < Performance::TestCase
       in_transaction do |txn|
         txn.sampled = true
         segment = NewRelic::Agent::Tracer.start_external_request_segment(
-          library: "Net::HTTP",
-          uri: "http://remotehost.com/blogs/index",
-          procedure: "GET"
+          library: 'Net::HTTP',
+          uri: 'http://remotehost.com/blogs/index',
+          procedure: 'GET'
         )
         segment.finish
       end

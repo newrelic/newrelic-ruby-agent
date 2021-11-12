@@ -1,10 +1,8 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 class NewRelic::LocalEnvironmentTest < Minitest::Test
-
   def teardown
     NewRelic::Control.reset
   end
@@ -16,7 +14,7 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
       assert_equal :passenger, e.discovered_dispatcher
       assert_equal :passenger, NewRelic::Agent.config[:dispatcher]
 
-      with_config(:app_name => 'myapp') do
+      with_config(app_name: 'myapp') do
         e = NewRelic::LocalEnvironment.new
         assert_equal :passenger, e.discovered_dispatcher
       end
@@ -24,9 +22,9 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
   end
 
   def test_not_resque
-    combinations = [["notrake", "resque:work",    { "QUEUE" => "*" } ],
-                    ["rake",    "notresque:work", { "QUEUE" => "*" } ],
-                    ["rake",    "resque:work",    { "BBQ"   => "*" } ]]
+    combinations = [['notrake', 'resque:work',    { 'QUEUE' => '*' }],
+                    ['rake',    'notresque:work', { 'QUEUE' => '*' }],
+                    ['rake',    'resque:work',    { 'BBQ'   => '*' }]]
 
     combinations.each do |settings|
       with_resque(*settings) do
@@ -36,8 +34,8 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
   end
 
   def test_resque
-    combinations = [["rake", "resque:work", { "QUEUE"  => "*" }],
-                    ["rake", "resque:work", { "QUEUES" => "*" }]]
+    combinations = [['rake', 'resque:work', { 'QUEUE'  => '*' }],
+                    ['rake', 'resque:work', { 'QUEUES' => '*' }]]
 
     combinations.each do |settings|
       with_resque(*settings) do
@@ -47,8 +45,8 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
   end
 
   def test_not_resque_pool
-    combinations = [["notresque-pool", nil],
-                    ["rake", "notresque:pool"]]
+    combinations = [['notresque-pool', nil],
+                    ['rake', 'notresque:pool']]
 
     combinations.each do |settings|
       with_resque_pool(*settings) do
@@ -58,8 +56,8 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
   end
 
   def test_resque_pool
-    combinations = [["resque-pool", nil],
-                    ["rake", "resque:pool"]]
+    combinations = [['resque-pool', nil],
+                    ['rake', 'resque:pool']]
 
     combinations.each do |settings|
       with_resque_pool(*settings) do
@@ -83,11 +81,9 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
     end
   end
 
-  def with_resque_pool(basename, *args)
+  def with_resque_pool(basename, *args, &block)
     with_resque(basename, *args) do
-      with_constant_defined(:'Resque::Pool') do
-        yield
-      end
+      with_constant_defined(:'Resque::Pool', &block)
     end
   end
 

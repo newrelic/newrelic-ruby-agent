@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -10,15 +9,15 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       # This lets us peek into the Event Listener to see what events
       # are subscribed.
       class EventListener
-        def still_subscribed event
+        def still_subscribed(event)
           return [] if @events[event].nil?
-          @events[event].select{|e| e.inspect =~ /infinite_tracing/}
+
+          @events[event].select { |e| e.inspect =~ /infinite_tracing/ }
         end
       end
 
       module InfiniteTracing
         module FakeTraceObserverHelpers
-
           FAKE_SERVER_PORT = 10_000
 
           def setup
@@ -62,7 +61,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           # a clean start with each test scenario
           class NewRelic::Agent::InfiniteTracing::Connection
             def self.reset!
-              self.reset
+              reset
               @@instance = nil
             end
           end
@@ -74,12 +73,9 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           # One ServerContext instance per unit test is expected and is in play for
           # the duration of the unit test.
           class ServerContext
-            attr_reader :port
-            attr_reader :tracer_class
-            attr_reader :server
-            attr_reader :spans
+            attr_reader :port, :tracer_class, :server, :spans
 
-            def initialize port, tracer_class
+            def initialize(port, tracer_class)
               @port = port
               @tracer_class = tracer_class
               @lock = Mutex.new
@@ -117,21 +113,19 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             # one Thread in a "run" state solves the issues altogether.
             def wait_for_agent_infinite_tracer_thread_to_close
               timeout_cap(3.0) do
-                while Thread.list.select{|t| t.status == "run"}.size > 1
-                  sleep(0.01)
-                end
+                sleep(0.01) while Thread.list.select { |t| t.status == 'run' }.size > 1
                 sleep(0.01)
               end
             end
 
-            def flush count=0
+            def flush(_count = 0)
               wait_for_agent_infinite_tracer_thread_to_close
               @lock.synchronize do
                 @flushed = true
               end
             end
 
-            def restart tracer_class=nil
+            def restart(tracer_class = nil)
               @tracer_class = tracer_class unless tracer_class.nil?
               flush
               stop
@@ -139,26 +133,26 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             end
           end
 
-          def restart_fake_trace_observer_server context, tracer_class=nil
+          def restart_fake_trace_observer_server(context, tracer_class = nil)
             context.restart tracer_class
           end
 
           def localhost_config
             {
-              :'distributed_tracing.enabled' => true,
-              :'span_events.enabled' => true,
-              :'infinite_tracing.trace_observer.host' => "localhost:80",
-              :'license_key' => "swiss_cheese"
+              'distributed_tracing.enabled': true,
+              'span_events.enabled': true,
+              'infinite_tracing.trace_observer.host': 'localhost:80',
+              'license_key': 'swiss_cheese'
             }
           end
 
           def fake_server_config
             {
-              :'distributed_tracing.enabled' => true,
-              :'span_events.enabled' => true,
-              :'infinite_tracing.trace_observer.host' => "localhost",
-              :'infinite_tracing.trace_observer.port' => FAKE_SERVER_PORT,
-              :'license_key' => "swiss_cheese"
+              'distributed_tracing.enabled': true,
+              'span_events.enabled': true,
+              'infinite_tracing.trace_observer.host': 'localhost',
+              'infinite_tracing.trace_observer.port': FAKE_SERVER_PORT,
+              'license_key': 'swiss_cheese'
             }
           end
 
@@ -179,7 +173,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           # simulates applying a server-side config to the agent instance.
           # the sleep 0.01 allows us to choose whether to join and wait
           # or set it up and continue with test scenario's flow.
-          def simulate_connect_to_collector config, delay=0.01
+          def simulate_connect_to_collector(config, delay = 0.01)
             thread = Thread.new do
               sleep delay
               NewRelic::Agent.instance.stubs(:connected?).returns(true)
@@ -193,14 +187,16 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           # Used to emulate when a force reconnect
           # happens and a new agent run token is presented.
-          def simulate_reconnect_to_collector config
+          def simulate_reconnect_to_collector(config)
             NewRelic::Agent.instance.stubs(:connected?).returns(true)
             @response_handler.configure_agent config
           end
 
-          def emulate_streaming_with_tracer tracer_class, count, max_buffer_size, &block
+          def emulate_streaming_with_tracer(tracer_class, count, _max_buffer_size, &block)
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
-            NewRelic::Agent::InfiniteTracing::Client.any_instance.stubs(:handle_close).returns(nil) unless tracer_class == OkCloseInfiniteTracer
+            unless tracer_class == OkCloseInfiniteTracer
+              NewRelic::Agent::InfiniteTracing::Client.any_instance.stubs(:handle_close).returns(nil)
+            end
             client = nil
             server = nil
 
@@ -215,7 +211,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
                 client.start_streaming
 
                 segments = []
-                count.times do |index|
+                count.times do |_index|
                   with_segment do |segment|
                     segments << segment
                     client << deferred_span(segment)
@@ -238,23 +234,23 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             server.stop unless server.nil?
           end
 
-          def emulate_streaming_segments count, max_buffer_size=100_000, &block
+          def emulate_streaming_segments(count, max_buffer_size = 100_000, &block)
             emulate_streaming_with_tracer InfiniteTracer, count, max_buffer_size, &block
           end
 
-          def emulate_streaming_to_unimplemented count, max_buffer_size=100_000, &block
+          def emulate_streaming_to_unimplemented(count, max_buffer_size = 100_000, &block)
             emulate_streaming_with_tracer UnimplementedInfiniteTracer, count, max_buffer_size, &block
           end
 
-          def emulate_streaming_to_failed_precondition count, max_buffer_size=100_000, &block
+          def emulate_streaming_to_failed_precondition(count, max_buffer_size = 100_000, &block)
             emulate_streaming_with_tracer FailedPreconditionInfiniteTracer, count, max_buffer_size, &block
           end
 
-          def emulate_streaming_with_initial_error count, max_buffer_size=100_000, &block
+          def emulate_streaming_with_initial_error(count, max_buffer_size = 100_000, &block)
             emulate_streaming_with_tracer ErroringInfiniteTracer, count, max_buffer_size, &block
           end
 
-          def emulate_streaming_with_ok_close_response count, max_buffer_size=100_000, &block
+          def emulate_streaming_with_ok_close_response(count, max_buffer_size = 100_000, &block)
             emulate_streaming_with_tracer OkCloseInfiniteTracer, count, max_buffer_size, &block
           end
 
@@ -295,7 +291,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
               end
             end
           end
-
         end
       end
     end

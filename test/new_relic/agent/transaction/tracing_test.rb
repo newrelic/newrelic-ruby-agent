@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 require 'new_relic/agent/transaction'
 
@@ -21,33 +20,33 @@ module NewRelic
         end
 
         def test_segment_bound_to_transaction_records_metrics
-          in_transaction "test_txn" do
+          in_transaction 'test_txn' do
             segment = Tracer.start_segment(
-              name: "Custom/simple/segment",
-              unscoped_metrics: "Segment/all"
+              name: 'Custom/simple/segment',
+              unscoped_metrics: 'Segment/all'
             )
             segment.start
             advance_process_time 1.0
             segment.finish
 
-            refute_metrics_recorded ["Custom/simple/segment", "Segment/all"]
+            refute_metrics_recorded ['Custom/simple/segment', 'Segment/all']
           end
 
-          assert_metrics_recorded ["Custom/simple/segment", "Segment/all"]
+          assert_metrics_recorded ['Custom/simple/segment', 'Segment/all']
         end
 
         def test_segment_bound_to_transaction_invokes_complete_callback_when_finished
-          in_transaction "test_txn" do |txn|
+          in_transaction 'test_txn' do |txn|
             segment = Tracer.start_segment(
-              name: "Custom/simple/segment",
-              unscoped_metrics: "Segment/all"
+              name: 'Custom/simple/segment',
+              unscoped_metrics: 'Segment/all'
             )
             txn.expects(:segment_complete).with(segment)
             segment.start
             advance_process_time 1.0
             segment.finish
 
-            #clean up traced method stack
+            # clean up traced method stack
             txn.unstub(:segment_complete)
             txn.segment_complete(segment)
           end
@@ -55,11 +54,11 @@ module NewRelic
 
         def test_segment_data_is_copied_to_trace
           segment = nil
-          segment_name = "Custom/simple/segment"
-          in_transaction "test_txn" do
+          segment_name = 'Custom/simple/segment'
+          in_transaction 'test_txn' do
             segment = Tracer.start_segment(
               name: segment_name,
-              unscoped_metrics: "Segment/all"
+              unscoped_metrics: 'Segment/all'
             )
             segment.start
             advance_process_time 1.0
@@ -74,8 +73,8 @@ module NewRelic
         end
 
         def test_start_segment
-          in_transaction "test_txn" do |txn|
-            segment = Tracer.start_segment name: "Custom/segment/method"
+          in_transaction 'test_txn' do |txn|
+            segment = Tracer.start_segment name: 'Custom/segment/method'
             assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.start_time
             assert_equal txn, segment.transaction
 
@@ -89,9 +88,9 @@ module NewRelic
           start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
           advance_process_time 2
 
-          in_transaction "test_txn" do |txn|
+          in_transaction 'test_txn' do |_txn|
             segment = Tracer.start_segment(
-              name: "Custom/segment/method",
+              name: 'Custom/segment/method',
               start_time: start_time
             )
 
@@ -103,11 +102,11 @@ module NewRelic
         end
 
         def test_start_datastore_segment
-          in_transaction "test_txn" do |txn|
+          in_transaction 'test_txn' do |txn|
             segment = Tracer.start_datastore_segment(
-              product: "SQLite",
-              operation: "insert",
-              collection: "Blog"
+              product: 'SQLite',
+              operation: 'insert',
+              collection: 'Blog'
             )
             assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.start_time
             assert_equal txn, segment.transaction
@@ -122,59 +121,58 @@ module NewRelic
           segment = Tracer.start_datastore_segment
           segment.finish
 
-          assert_equal "Datastore/operation/Unknown/other", segment.name
-          assert_equal "Unknown", segment.product
-          assert_equal "other", segment.operation
+          assert_equal 'Datastore/operation/Unknown/other', segment.name
+          assert_equal 'Unknown', segment.product
+          assert_equal 'other', segment.operation
         end
 
         def test_start_datastore_segment_does_not_record_metrics_outside_of_txn
           segment = Tracer.start_datastore_segment(
-              product: "SQLite",
-              operation: "insert",
-              collection: "Blog"
+            product: 'SQLite',
+            operation: 'insert',
+            collection: 'Blog'
           )
           segment.start
           advance_process_time 1
           segment.finish
 
           refute_metrics_recorded [
-            "Datastore/statement/SQLite/Blog/insert",
-            "Datastore/operation/SQLite/insert",
-            "Datastore/SQLite/allWeb",
-            "Datastore/SQLite/all",
-            "Datastore/allWeb",
-            "Datastore/all"
+            'Datastore/statement/SQLite/Blog/insert',
+            'Datastore/operation/SQLite/insert',
+            'Datastore/SQLite/allWeb',
+            'Datastore/SQLite/all',
+            'Datastore/allWeb',
+            'Datastore/all'
           ]
         end
 
         def test_start_segment_with_tracing_disabled_in_transaction
           segment = nil
-          in_transaction "test_txn" do |txn|
+          in_transaction 'test_txn' do |_txn|
             NewRelic::Agent.disable_all_tracing do
               segment = Tracer.start_segment(
-                name:"Custom/segment/method",
-                unscoped_metrics: "Custom/all"
+                name: 'Custom/segment/method',
+                unscoped_metrics: 'Custom/all'
               )
               advance_process_time 1
               segment.finish
             end
           end
-          assert_nil segment.transaction, "Did not expect segment to associated with a transaction"
-          refute_metrics_recorded ["Custom/segment/method", "Custom/all"]
+          assert_nil segment.transaction, 'Did not expect segment to associated with a transaction'
+          refute_metrics_recorded ['Custom/segment/method', 'Custom/all']
         end
 
-
         def test_current_segment_in_transaction
-          in_transaction "test_txn" do |txn|
+          in_transaction 'test_txn' do |txn|
             assert_equal txn.initial_segment, txn.current_segment
             ds_segment = Tracer.start_datastore_segment(
-              product: "SQLite",
-              operation: "insert",
-              collection: "Blog"
+              product: 'SQLite',
+              operation: 'insert',
+              collection: 'Blog'
             )
             assert_equal ds_segment, txn.current_segment
 
-            segment = Tracer.start_segment name: "Custom/basic/segment"
+            segment = Tracer.start_segment name: 'Custom/basic/segment'
             assert_equal segment, txn.current_segment
 
             segment.finish
@@ -186,17 +184,17 @@ module NewRelic
         end
 
         def test_segments_are_properly_parented
-          in_transaction "test_txn" do |txn|
+          in_transaction 'test_txn' do |txn|
             assert_nil txn.initial_segment.parent
 
             ds_segment = Tracer.start_datastore_segment(
-              product: "SQLite",
-              operation: "insert",
-              collection: "Blog"
+              product: 'SQLite',
+              operation: 'insert',
+              collection: 'Blog'
             )
             assert_equal txn.initial_segment, ds_segment.parent
 
-            segment = Tracer.start_segment name: "Custom/basic/segment"
+            segment = Tracer.start_segment name: 'Custom/basic/segment'
             assert_equal ds_segment, segment.parent
 
             segment.finish
@@ -206,28 +204,28 @@ module NewRelic
 
         def test_segment_started_oustide_txn_does_not_record_metrics
           segment = Tracer.start_segment(
-            name:"Custom/segment/method",
-            unscoped_metrics: "Custom/all"
+            name: 'Custom/segment/method',
+            unscoped_metrics: 'Custom/all'
           )
           advance_process_time 1
           segment.finish
 
-          assert_nil segment.transaction, "Did not expect segment to associated with a transaction"
-          refute_metrics_recorded ["Custom/segment/method", "Custom/all"]
+          assert_nil segment.transaction, 'Did not expect segment to associated with a transaction'
+          refute_metrics_recorded ['Custom/segment/method', 'Custom/all']
         end
 
         def test_start_external_request_segment
-          in_transaction "test_txn" do |txn|
+          in_transaction 'test_txn' do |txn|
             segment = Tracer.start_external_request_segment(
-              library: "Net::HTTP",
-              uri: "http://site.com/endpoint",
-              procedure: "GET"
+              library: 'Net::HTTP',
+              uri: 'http://site.com/endpoint',
+              procedure: 'GET'
             )
             assert_equal Process.clock_gettime(Process::CLOCK_REALTIME), segment.start_time
             assert_equal txn, segment.transaction
-            assert_equal "Net::HTTP", segment.library
-            assert_equal "http://site.com/endpoint", segment.uri.to_s
-            assert_equal "GET", segment.procedure
+            assert_equal 'Net::HTTP', segment.library
+            assert_equal 'http://site.com/endpoint', segment.uri.to_s
+            assert_equal 'GET', segment.procedure
 
             advance_process_time 1
             segment.finish
@@ -237,38 +235,41 @@ module NewRelic
 
         def test_segment_does_not_record_metrics_outside_of_txn
           segment = Tracer.start_external_request_segment(
-            library: "Net::HTTP",
-            uri: "http://remotehost.com/blogs/index",
-            procedure: "GET"
+            library: 'Net::HTTP',
+            uri: 'http://remotehost.com/blogs/index',
+            procedure: 'GET'
           )
           segment.finish
 
           refute_metrics_recorded [
-            "External/remotehost.com/Net::HTTP/GET",
-            "External/all",
-            "External/remotehost.com/all",
-            "External/allWeb",
-            ["External/remotehost.com/Net::HTTP/GET", "test"]
+            'External/remotehost.com/Net::HTTP/GET',
+            'External/all',
+            'External/remotehost.com/all',
+            'External/allWeb',
+            ['External/remotehost.com/Net::HTTP/GET', 'test']
           ]
         end
 
         def test_children_time
-          segment_a, segment_b, segment_c, segment_d = nil, nil, nil, nil
+          segment_a = nil
+          segment_b = nil
+          segment_c = nil
+          segment_d = nil
 
-          in_transaction "test" do
-            segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
+          in_transaction 'test' do
+            segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric a'
             advance_process_time(0.001)
 
-            segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
+            segment_b = NewRelic::Agent::Tracer.start_segment name: 'metric b'
             advance_process_time(0.002)
 
-            segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
+            segment_c = NewRelic::Agent::Tracer.start_segment name: 'metric c'
             advance_process_time(0.003)
             segment_c.finish
 
             advance_process_time(0.001)
 
-            segment_d = NewRelic::Agent::Tracer.start_segment name: "metric d"
+            segment_d = NewRelic::Agent::Tracer.start_segment name: 'metric d'
             advance_process_time(0.002)
             segment_d.finish
 
@@ -294,8 +295,10 @@ module NewRelic
         end
 
         def test_segments_retain_exclusive_time_after_surpassing_limit
-          with_config(:'transaction_tracer.limit_segments' => 2) do
-            segment_a, segment_b, segment_c = nil, nil, nil
+          with_config('transaction_tracer.limit_segments': 2) do
+            segment_a = nil
+            segment_b = nil
+            segment_c = nil
             in_transaction do
               advance_process_time(1)
               segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric_a'
@@ -318,8 +321,10 @@ module NewRelic
         end
 
         def test_segments_over_limit_still_record_metrics
-          with_config(:'transaction_tracer.limit_segments' => 2) do
-            segment_a, segment_b, segment_c = nil, nil, nil
+          with_config('transaction_tracer.limit_segments': 2) do
+            segment_a = nil
+            segment_b = nil
+            segment_c = nil
             in_transaction do
               advance_process_time(1)
               segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric_a'
@@ -333,14 +338,14 @@ module NewRelic
               segment_a.finish
             end
 
-            assert_metrics_recorded ['metric_a', 'metric_b', 'metric_c']
+            assert_metrics_recorded %w[metric_a metric_b metric_c]
           end
         end
 
         def test_should_not_collect_nodes_beyond_limit
-          with_config(:'transaction_tracer.limit_segments' => 3) do
+          with_config('transaction_tracer.limit_segments': 3) do
             in_transaction do
-              %w[ wheat challah semolina ].each do |bread|
+              %w[wheat challah semolina].each do |bread|
                 s = NewRelic::Agent::Tracer.start_datastore_segment
                 s.notice_sql("SELECT * FROM sandwiches WHERE bread = '#{bread}'")
                 s.finish
@@ -368,7 +373,9 @@ module NewRelic
         # unexpected conditon arises.
 
         def test_unfinished_segment_is_truncated_at_transaction_end_exclusive_times_incorrect
-          segment_a, segment_b, segment_c = nil, nil, nil
+          segment_a = nil
+          segment_b = nil
+          segment_c = nil
           in_transaction do
             advance_process_time(1)
             segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric_a'
@@ -395,12 +402,11 @@ module NewRelic
 
         def test_large_transaction_trace
           config = {
-            :'transaction_tracer.enabled' => true,
-            :'transaction_tracer.transaction_threshold' => 0,
-            :'transaction_tracer.limit_segments' => 100
+            'transaction_tracer.enabled': true,
+            'transaction_tracer.transaction_threshold': 0,
+            'transaction_tracer.limit_segments': 100
           }
           with_config(config) do
-
             in_transaction 'test_txn' do
               110.times do |i|
                 segment = NewRelic::Agent::Tracer.start_segment name: "segment_#{i}"
@@ -416,7 +422,7 @@ module NewRelic
         end
 
         def test_txn_not_recorded_when_tracing_is_disabled
-          with_config :'transaction_tracer.enabled' => false do
+          with_config 'transaction_tracer.enabled': false do
             in_transaction 'dont_trace_this' do
               segment = NewRelic::Agent::Tracer.start_segment name: 'seg'
               segment.finish
@@ -427,16 +433,16 @@ module NewRelic
         end
 
         def test_trace_should_log_segment_limit_reached_once
-          with_config(:'transaction_tracer.limit_segments' => 3) do
-            in_transaction do |txn|
-              expects_logging(:debug, includes("Segment limit"))
-              8.times {|i| NewRelic::Agent::Tracer.start_segment name: "segment_#{i}" }
+          with_config('transaction_tracer.limit_segments': 3) do
+            in_transaction do |_txn|
+              expects_logging(:debug, includes('Segment limit'))
+              8.times { |i| NewRelic::Agent::Tracer.start_segment name: "segment_#{i}" }
             end
           end
         end
 
         def test_threshold_recorded_for_trace
-          with_config :'transaction_tracer.transaction_threshold' => 2.0 do
+          with_config 'transaction_tracer.transaction_threshold': 2.0 do
             in_transaction {}
             trace = last_transaction_trace
             assert_equal 2.0, trace.threshold
@@ -446,10 +452,9 @@ module NewRelic
         def test_sets_start_time_from_api
           t = Process.clock_gettime(Process::CLOCK_REALTIME)
 
-          in_transaction do |txn|
-
+          in_transaction do |_txn|
             segment = NewRelic::Agent::Tracer.start_segment(
-              name: "segment_a",
+              name: 'segment_a',
               start_time: t
             )
             segment.finish
@@ -487,9 +492,9 @@ module NewRelic
             segment_a = NewRelic::Agent::Tracer.start_segment name: 'segment_a'
             segment_b = NewRelic::Agent::Tracer.start_segment name: 'segment_b'
             segment_c = NewRelic::Agent::Tracer.start_datastore_segment(
-              product: "SQLite",
-              operation: "Select",
-              collection: "blogs",
+              product: 'SQLite',
+              operation: 'Select',
+              collection: 'blogs',
               parent: segment_a
             )
             segment_c.finish
@@ -506,9 +511,9 @@ module NewRelic
             segment_a = NewRelic::Agent::Tracer.start_segment name: 'segment_a'
             segment_b = NewRelic::Agent::Tracer.start_segment name: 'segment_b'
             segment_c = NewRelic::Agent::Tracer.start_external_request_segment(
-              library: "MyLib",
-              uri: "https://blog.newrelic.com",
-              procedure: "GET",
+              library: 'MyLib',
+              uri: 'https://blog.newrelic.com',
+              procedure: 'GET',
               parent: segment_a
             )
             segment_c.finish
@@ -526,9 +531,9 @@ module NewRelic
             segment_b = NewRelic::Agent::Tracer.start_segment name: 'segment_b'
             segment_c = NewRelic::Agent::Tracer.start_message_broker_segment(
               action: :produce,
-              library: "RabbitMQ",
+              library: 'RabbitMQ',
               destination_type: :exchange,
-              destination_name: "Default",
+              destination_name: 'Default',
               parent: segment_a
             )
             segment_c.finish
@@ -539,7 +544,6 @@ module NewRelic
             assert_equal segment_a, segment_c.parent
           end
         end
-
 
         # The following three tests will build the following trace.
         # Segments b and c are disjoint, but segments e and f overlap.
@@ -590,24 +594,27 @@ module NewRelic
         #             |     D                 |
 
         def test_concurrent_durations
-          segment_a, segment_b, segment_c, segment_d = nil, nil, nil, nil
+          segment_a = nil
+          segment_b = nil
+          segment_c = nil
+          segment_d = nil
 
-          in_transaction "test" do
-            segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
+          in_transaction 'test' do
+            segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric a'
             advance_process_time 2
 
-            segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
+            segment_b = NewRelic::Agent::Tracer.start_segment name: 'metric b'
             advance_process_time 1
 
             segment_c = NewRelic::Agent::Tracer.start_segment(
-              name: "metric c",
+              name: 'metric c',
               parent: segment_a
             )
 
             advance_process_time 1
 
             segment_d = NewRelic::Agent::Tracer.start_segment(
-              name: "metric d",
+              name: 'metric d',
               parent: segment_a
             )
 
@@ -646,17 +653,19 @@ module NewRelic
         #          |    C               |
 
         def test_child_segment_ends_after_parent_durations_correct
-          segment_a, segment_b, segment_c = nil, nil, nil
+          segment_a = nil
+          segment_b = nil
+          segment_c = nil
 
-          in_transaction "test" do
-            segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
+          in_transaction 'test' do
+            segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric a'
             advance_process_time 1
 
-            segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
+            segment_b = NewRelic::Agent::Tracer.start_segment name: 'metric b'
             advance_process_time 2
 
             segment_b.finish
-            segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
+            segment_c = NewRelic::Agent::Tracer.start_segment name: 'metric c'
 
             advance_process_time 3
             segment_a.finish
@@ -688,22 +697,24 @@ module NewRelic
         #             |     D                 |
 
         def test_durations_correct_with_sync_child_followed_by_concurrent_children
-          segment_a, segment_b, segment_c, segment_d = nil, nil, nil, nil
+          segment_a = nil
+          segment_b = nil
+          segment_c = nil
+          segment_d = nil
 
-          in_transaction "test" do
-            segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
+          in_transaction 'test' do
+            segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric a'
             advance_process_time 1
 
-            segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
+            segment_b = NewRelic::Agent::Tracer.start_segment name: 'metric b'
             advance_process_time 2
             segment_b.finish
 
-
-            segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
+            segment_c = NewRelic::Agent::Tracer.start_segment name: 'metric c'
             advance_process_time 1
 
             segment_d = NewRelic::Agent::Tracer.start_segment(
-              name: "metric d",
+              name: 'metric d',
               parent: segment_a
             )
 
@@ -729,19 +740,21 @@ module NewRelic
         end
 
         def test_transaction_detects_async_when_there_are_concurrent_children
-          segment_a, segment_b, segment_c = nil, nil, nil
+          segment_a = nil
+          segment_b = nil
+          segment_c = nil
 
-          in_transaction "test" do |txn|
-            segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
+          in_transaction 'test' do |txn|
+            segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric a'
             advance_process_time 2
 
-            segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
+            segment_b = NewRelic::Agent::Tracer.start_segment name: 'metric b'
             advance_process_time 1
 
             refute txn.async?
 
             segment_c = NewRelic::Agent::Tracer.start_segment(
-              name: "metric c",
+              name: 'metric c',
               parent: segment_a
             )
 
@@ -759,20 +772,22 @@ module NewRelic
         end
 
         def test_transaction_detects_async_when_child_ends_after_parent
-          segment_a, segment_b, segment_c = nil, nil, nil
+          segment_a = nil
+          segment_b = nil
+          segment_c = nil
 
-          in_transaction "test" do |txn|
-            segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
+          in_transaction 'test' do |txn|
+            segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric a'
             advance_process_time 1
 
-            segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
+            segment_b = NewRelic::Agent::Tracer.start_segment name: 'metric b'
             advance_process_time 2
 
             segment_b.finish
 
-            refute txn.async?, "Expected transaction not to be asynchronous"
+            refute txn.async?, 'Expected transaction not to be asynchronous'
 
-            segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
+            segment_c = NewRelic::Agent::Tracer.start_segment name: 'metric c'
 
             advance_process_time 3
             segment_a.finish
@@ -780,22 +795,24 @@ module NewRelic
             advance_process_time 4
             segment_c.finish
 
-            assert txn.async?, "Expected transaction to be asynchronous"
+            assert txn.async?, 'Expected transaction to be asynchronous'
           end
         end
 
         def test_transaction_records_exclusive_duration_millis_segment_param_when_transaction_async
-          segment_a, segment_b, segment_c = nil, nil, nil
+          segment_a = nil
+          segment_b = nil
+          segment_c = nil
 
-          in_transaction "test" do
-            segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
+          in_transaction 'test' do
+            segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric a'
             advance_process_time 2
 
-            segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
+            segment_b = NewRelic::Agent::Tracer.start_segment name: 'metric b'
             advance_process_time 1
 
             segment_c = NewRelic::Agent::Tracer.start_segment(
-              name: "metric c",
+              name: 'metric c',
               parent: segment_a
             )
 
@@ -825,22 +842,24 @@ module NewRelic
         #             |     D  |
 
         def test_total_time_metrics_async_sync_children_non_web
-          segment_a, segment_b, segment_c, segment_d = nil, nil, nil, nil
+          segment_a = nil
+          segment_b = nil
+          segment_c = nil
+          segment_d = nil
 
-          transaction = in_transaction "test" do
-            segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
+          transaction = in_transaction 'test' do
+            segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric a'
             advance_process_time 1
 
-            segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
+            segment_b = NewRelic::Agent::Tracer.start_segment name: 'metric b'
             advance_process_time 2
             segment_b.finish
 
-
-            segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
+            segment_c = NewRelic::Agent::Tracer.start_segment name: 'metric c'
             advance_process_time 1
 
             segment_d = NewRelic::Agent::Tracer.start_segment(
-              name: "metric d",
+              name: 'metric d',
               parent: segment_a
             )
 
@@ -856,38 +875,40 @@ module NewRelic
           assert_equal 9.0, transaction.total_time
 
           assert_metrics_recorded(
-            "OtherTransactionTotalTime" =>
+            'OtherTransactionTotalTime' =>
               {
-                :call_count => 1,
-                :total_call_time => 9.0,
-                :total_exclusive_time => 9.0
+                call_count: 1,
+                total_call_time: 9.0,
+                total_exclusive_time: 9.0
               },
-            "OtherTransactionTotalTime/test" =>
+            'OtherTransactionTotalTime/test' =>
               {
-                :call_count => 1,
-                :total_call_time => 9.0,
-                :total_exclusive_time => 9.0
+                call_count: 1,
+                total_call_time: 9.0,
+                total_exclusive_time: 9.0
               }
           )
         end
 
         def test_total_time_metrics_async_sync_children_web
-          segment_a, segment_b, segment_c, segment_d = nil, nil, nil, nil
+          segment_a = nil
+          segment_b = nil
+          segment_c = nil
+          segment_d = nil
 
-          transaction = in_web_transaction "test" do
-            segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
+          transaction = in_web_transaction 'test' do
+            segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric a'
             advance_process_time 1
 
-            segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
+            segment_b = NewRelic::Agent::Tracer.start_segment name: 'metric b'
             advance_process_time 2
             segment_b.finish
 
-
-            segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
+            segment_c = NewRelic::Agent::Tracer.start_segment name: 'metric c'
             advance_process_time 1
 
             segment_d = NewRelic::Agent::Tracer.start_segment(
-              name: "metric d",
+              name: 'metric d',
               parent: segment_a
             )
 
@@ -903,17 +924,17 @@ module NewRelic
           assert_equal 9.0, transaction.total_time
 
           assert_metrics_recorded(
-            "WebTransactionTotalTime" =>
+            'WebTransactionTotalTime' =>
               {
-                :call_count => 1,
-                :total_call_time => 9.0,
-                :total_exclusive_time => 9.0
+                call_count: 1,
+                total_call_time: 9.0,
+                total_exclusive_time: 9.0
               },
-            "WebTransactionTotalTime/test" =>
+            'WebTransactionTotalTime/test' =>
               {
-                :call_count => 1,
-                :total_call_time => 9.0,
-                :total_exclusive_time => 9.0
+                call_count: 1,
+                total_call_time: 9.0,
+                total_exclusive_time: 9.0
               }
           )
         end
@@ -935,22 +956,24 @@ module NewRelic
         # removed from the "test" wrapper segment
 
         def test_times_accurate_when_child_finishes_after_parent
-          segment_a, segment_b, segment_c, segment_d = nil, nil, nil, nil
+          segment_a = nil
+          segment_b = nil
+          segment_c = nil
+          segment_d = nil
 
-          txn = in_transaction "test" do
-            segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
+          txn = in_transaction 'test' do
+            segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric a'
             advance_process_time 1
 
-            segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
+            segment_b = NewRelic::Agent::Tracer.start_segment name: 'metric b'
             advance_process_time 2
             segment_b.finish
 
-
-            segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
+            segment_c = NewRelic::Agent::Tracer.start_segment name: 'metric c'
             advance_process_time 1
 
             segment_d = NewRelic::Agent::Tracer.start_segment(
-              name: "metric d",
+              name: 'metric d',
               parent: segment_a
             )
 
@@ -1002,24 +1025,27 @@ module NewRelic
         # removed from segment_a and the "test" wrapper segment
 
         def test_times_accurate_when_child_finishes_after_parent_more_nesting
-          segment_a, segment_b, segment_c, segment_d, segment_e = nil, nil, nil, nil, nil
+          segment_a = nil
+          segment_b = nil
+          segment_c = nil
+          segment_d = nil
+          segment_e = nil
 
-          txn = in_transaction "test" do
-            segment_a = NewRelic::Agent::Tracer.start_segment name: "metric a"
+          txn = in_transaction 'test' do
+            segment_a = NewRelic::Agent::Tracer.start_segment name: 'metric a'
             advance_process_time 1
 
-            segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
+            segment_b = NewRelic::Agent::Tracer.start_segment name: 'metric b'
 
-            segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
+            segment_c = NewRelic::Agent::Tracer.start_segment name: 'metric c'
             advance_process_time 2
             segment_c.finish
 
-
-            segment_d = NewRelic::Agent::Tracer.start_segment name: "metric d"
+            segment_d = NewRelic::Agent::Tracer.start_segment name: 'metric d'
             advance_process_time 1
 
             segment_e = NewRelic::Agent::Tracer.start_segment(
-              name: "metric e",
+              name: 'metric e',
               parent: segment_b
             )
 
@@ -1063,4 +1089,3 @@ module NewRelic
     end
   end
 end
-

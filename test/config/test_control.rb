@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,11 +7,11 @@ require 'new_relic/control/frameworks/rails4'
 
 if defined?(::Rails)
   parent_class = case ::Rails::VERSION::MAJOR.to_i
-  when 4
-    NewRelic::Control::Frameworks::Rails4
-  when 3
-    NewRelic::Control::Frameworks::Rails3
-  end
+                 when 4
+                   NewRelic::Control::Frameworks::Rails4
+                 when 3
+                   NewRelic::Control::Frameworks::Rails3
+                 end
 end
 parent_class ||= NewRelic::Control::Frameworks::Rails
 
@@ -40,8 +39,9 @@ class NewRelic::Control::Frameworks::Test < parent_class
     super
     ActionController::Routing::RouteSet.class_eval do
       return if defined? draw_without_test_route
+
       def draw_with_test_route
-        draw_without_test_route do | map |
+        draw_without_test_route do |map|
           map.connect ':controller/:action/:id'
           yield map
         end

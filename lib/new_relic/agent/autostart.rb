@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -18,18 +17,17 @@ module NewRelic
     module Autostart
       extend self
 
-
       # The constants, executables (i.e. $0) and rake tasks used can be
       # configured with the config keys 'autostart.denylisted_constants',
       # 'autostart.denylisted_executables' and
       # 'autostart.denylisted_rake_tasks'
       def agent_should_start?
-          !denylisted_constants? &&
+        !denylisted_constants? &&
           !denylisted_executables? &&
           !in_denylisted_rake_task?
       end
 
-      COMMA = ",".freeze
+      COMMA = ','.freeze
 
       def denylisted_constants?
         constants = NewRelic::Agent.config[:'autostart.denylisted_constants']
@@ -57,11 +55,11 @@ module NewRelic
 
       def in_denylisted_rake_task?
         tasks = begin
-                  ::Rake.application.top_level_tasks
-                rescue => e
-            ::NewRelic::Agent.logger.debug("Not in Rake environment so skipping denylisted_rake_tasks check: #{e}")
-            []
-          end
+          ::Rake.application.top_level_tasks
+        rescue StandardError => e
+          ::NewRelic::Agent.logger.debug("Not in Rake environment so skipping denylisted_rake_tasks check: #{e}")
+          []
+        end
         !(tasks & ::NewRelic::Agent.config[:'autostart.denylisted_rake_tasks'].split(/\s*,\s*/)).empty?
       end
     end

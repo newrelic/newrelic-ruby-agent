@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -6,7 +5,7 @@ module NewRelic
   module Agent
     module Datastores
       module Redis
-        BINARY_DATA_PLACEHOLDER = "<binary data>"
+        BINARY_DATA_PLACEHOLDER = '<binary data>'
 
         MAXIMUM_COMMAND_LENGTH = 1000
         MAXIMUM_ARGUMENT_LENGTH = 64
@@ -25,20 +24,18 @@ module NewRelic
 
         def self.format_command(command_with_args)
           if Agent.config[:'transaction_tracer.record_redis_arguments']
-            result = ""
+            result = ''
 
             append_command_with_args(result, command_with_args)
 
             trim_result(result) if result.length >= MAXIMUM_COMMAND_LENGTH
             result.strip!
             result
-          else
-            nil
           end
         end
 
         def self.format_pipeline_commands(commands_with_args)
-          result = ""
+          result = ''
 
           commands_with_args.each do |command|
             if result.length >= MAXIMUM_COMMAND_LENGTH
@@ -85,7 +82,7 @@ module NewRelic
         end
 
         def self.is_supported_version?
-          Gem::Version.new(::Redis::VERSION) >= Gem::Version.new("3.0.0")
+          Gem::Version.new(::Redis::VERSION) >= Gem::Version.new('3.0.0')
         end
 
         def self.ellipsize(result, string)
@@ -108,8 +105,8 @@ module NewRelic
         end
 
         def self.safe_from_third_party_gem?
-          if NewRelic::LanguageSupport.bundled_gem?("newrelic-redis")
-            ::NewRelic::Agent.logger.info("Not installing New Relic supported Redis instrumentation because the third party newrelic-redis gem is present")
+          if NewRelic::LanguageSupport.bundled_gem?('newrelic-redis')
+            ::NewRelic::Agent.logger.info('Not installing New Relic supported Redis instrumentation because the third party newrelic-redis gem is present')
             false
           else
             true
@@ -117,7 +114,7 @@ module NewRelic
         end
 
         def self.trim_result(result)
-          result.slice!((MAXIMUM_COMMAND_LENGTH-ELLIPSES.length)..-1)
+          result.slice!((MAXIMUM_COMMAND_LENGTH - ELLIPSES.length)..-1)
           result.strip!
           result << ELLIPSES
         end

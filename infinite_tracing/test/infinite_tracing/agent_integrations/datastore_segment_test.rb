@@ -1,9 +1,8 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../../test_helper', __FILE__)
+require File.expand_path('../../test_helper', __dir__)
 
 module NewRelic
   module Agent
@@ -17,20 +16,19 @@ module NewRelic
           sampled       = nil
           priority      = nil
           timestamp     = nil
-          sql_statement = "select * from table"
+          sql_statement = 'select * from table'
 
           span_events = generate_and_stream_segments do
-
             in_web_transaction('wat') do |txn|
               txn.stubs(:sampled?).returns(true)
 
               segment = Tracer.start_datastore_segment(
-                product: "SQLite",
-                collection: "Blahg",
-                operation: "select",
-                host: "rachel.foo",
-                port_path_or_id: 1337807,
-                database_name: "calzone_zone",
+                product: 'SQLite',
+                collection: 'Blahg',
+                operation: 'select',
+                host: 'rachel.foo',
+                port_path_or_id: 1_337_807,
+                database_name: 'calzone_zone'
               )
 
               segment.notice_sql sql_statement
@@ -82,9 +80,9 @@ module NewRelic
               txn.stubs(:sampled?).returns(false)
 
               segment = Tracer.start_datastore_segment(
-                product: "SQLite",
-                operation: "select",
-                port_path_or_id: 1337807
+                product: 'SQLite',
+                operation: 'select',
+                port_path_or_id: 1_337_807
               )
 
               segment.start
@@ -95,7 +93,6 @@ module NewRelic
 
           assert_equal 2, span_events.size
         end
-
       end
     end
   end

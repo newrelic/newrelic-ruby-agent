@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -49,14 +48,10 @@ module NewRelic
           end
         end
 
-        def record_gc_runs_metric(snapshot, txn_count) #THREAD_LOCAL_ACCESS
+        def record_gc_runs_metric(snapshot, txn_count) # THREAD_LOCAL_ACCESS
           if snapshot.gc_total_time || snapshot.gc_runs
-            if snapshot.gc_total_time
-              gc_time = snapshot.gc_total_time - @last_snapshot.gc_total_time.to_f
-            end
-            if snapshot.gc_runs
-              gc_runs = snapshot.gc_runs - @last_snapshot.gc_runs
-            end
+            gc_time = snapshot.gc_total_time - @last_snapshot.gc_total_time.to_f if snapshot.gc_total_time
+            gc_runs = snapshot.gc_runs - @last_snapshot.gc_runs if snapshot.gc_runs
             wall_clock_time = snapshot.taken_at - @last_snapshot.taken_at
             NewRelic::Agent.agent.stats_engine.tl_record_unscoped_metrics(GC_RUNS_METRIC) do |stats|
               stats.call_count           += txn_count
@@ -68,7 +63,7 @@ module NewRelic
           end
         end
 
-        def record_delta(snapshot, key, metric, txn_count) #THREAD_LOCAL_ACCESS
+        def record_delta(snapshot, key, metric, txn_count) # THREAD_LOCAL_ACCESS
           value = snapshot.send(key)
           if value
             delta = value - @last_snapshot.send(key)
@@ -79,7 +74,7 @@ module NewRelic
           end
         end
 
-        def record_gauge_metric(metric_name, value) #THREAD_LOCAL_ACCESS
+        def record_gauge_metric(metric_name, value) # THREAD_LOCAL_ACCESS
           NewRelic::Agent.agent.stats_engine.tl_record_unscoped_metrics(metric_name) do |stats|
             stats.call_count      = value
             stats.sum_of_squares  = 1
@@ -87,21 +82,15 @@ module NewRelic
         end
 
         def record_heap_live_metric(snapshot)
-          if snapshot.heap_live
-            record_gauge_metric(HEAP_LIVE_METRIC, snapshot.heap_live)
-          end
+          record_gauge_metric(HEAP_LIVE_METRIC, snapshot.heap_live) if snapshot.heap_live
         end
 
         def record_heap_free_metric(snapshot)
-          if snapshot.heap_free
-            record_gauge_metric(HEAP_FREE_METRIC, snapshot.heap_free)
-          end
+          record_gauge_metric(HEAP_FREE_METRIC, snapshot.heap_free) if snapshot.heap_free
         end
 
         def record_thread_count_metric(snapshot)
-          if snapshot.thread_count
-            record_gauge_metric(THREAD_COUNT_METRIC, snapshot.thread_count)
-          end
+          record_gauge_metric(THREAD_COUNT_METRIC, snapshot.thread_count) if snapshot.thread_count
         end
 
         def poll

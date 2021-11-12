@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -11,14 +10,12 @@ module NewRelic
   module Agent
     class Transaction
       class DatastoreSegment < Segment
-
         UNKNOWN = 'unknown'.freeze
 
         attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :host, :port_path_or_id
         attr_accessor :database_name, :record_sql
 
-
-        def initialize product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name = nil, start_time = nil
+        def initialize(product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name = nil, start_time = nil)
           @product = product
           @operation = operation
           @collection = collection
@@ -32,23 +29,22 @@ module NewRelic
                 start_time
         end
 
-        def set_instance_info host = nil, port_path_or_id = nil
+        def set_instance_info(host = nil, port_path_or_id = nil)
           port_path_or_id = port_path_or_id.to_s if port_path_or_id
           host_present = host && !host.empty?
           ppi_present = port_path_or_id && !port_path_or_id.empty?
 
           host = NewRelic::Agent::Hostname.get_external host if host_present
 
-          case
-          when host_present && ppi_present
+          if host_present && ppi_present
             @host = host
             @port_path_or_id = port_path_or_id
 
-          when host_present && !ppi_present
+          elsif host_present && !ppi_present
             @host = host
             @port_path_or_id = UNKNOWN
 
-          when !host_present && ppi_present
+          elsif !host_present && ppi_present
             @host = UNKNOWN
             @port_path_or_id = port_path_or_id
 
@@ -57,15 +53,17 @@ module NewRelic
           end
         end
 
-        def notice_sql sql
+        def notice_sql(sql)
           _notice_sql sql
           nil
         end
 
         # @api private
-        def _notice_sql sql, config=nil, explainer=nil, binds=nil, name=nil
+        def _notice_sql(sql, config = nil, explainer = nil, binds = nil, name = nil)
           return unless record_sql?
-          @sql_statement = Database::Statement.new sql, config, explainer, binds, name, host, port_path_or_id, database_name
+
+          @sql_statement = Database::Statement.new sql, config, explainer, binds, name, host, port_path_or_id,
+                                                   database_name
         end
 
         # Method for simplifying attaching non-SQL data statements to a
@@ -85,14 +83,16 @@ module NewRelic
         #   please ensure all data passed to this method is safe to transmit to
         #   New Relic.
 
-        def notice_nosql_statement nosql_statement
+        def notice_nosql_statement(nosql_statement)
           return unless record_sql?
+
           @nosql_statement = Database.truncate_query(nosql_statement)
           nil
         end
 
         def record_metrics
-          @unscoped_metrics = Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, host, port_path_or_id)
+          @unscoped_metrics = Datastores::MetricHelper.unscoped_metrics_for(product, operation, collection, host,
+                                                                            port_path_or_id)
           super
         end
 
@@ -120,8 +120,9 @@ module NewRelic
         NEWLINE = "\n".freeze
 
         def add_backtrace_parameter
-           return unless duration >= Agent.config[:'transaction_tracer.stack_trace_threshold']
-           params[:backtrace] = caller.join(NEWLINE)
+          return unless duration >= Agent.config[:'transaction_tracer.stack_trace_threshold']
+
+          params[:backtrace] = caller.join(NEWLINE)
         end
 
         def notice_sql_statement

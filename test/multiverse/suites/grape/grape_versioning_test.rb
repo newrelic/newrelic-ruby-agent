@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -46,7 +45,7 @@ unless ::Grape::VERSION == '0.1.5'
       assert_metrics_recorded('Controller/Grape/GrapeVersioning::ApiV3-v3/fish (GET)')
     end
 
-    #version from http accept header is not supported in older versions of grape
+    # version from http accept header is not supported in older versions of grape
     if Gem::Version.new(Grape::VERSION) >= Gem::Version.new('0.16.0')
       def test_version_from_accept_version_header_is_recorded_in_transaction_name
         @app_class = GrapeVersioning::ApiV4
@@ -75,7 +74,7 @@ unless ::Grape::VERSION == '0.1.5'
 
     def test_shared_version_declaration_in_tranasaction_names
       @app_class = GrapeVersioning::SharedApi
-      %w[ v1 v2 v3 v4 ].each do |v|
+      %w[v1 v2 v3 v4].each do |v|
         get "/#{v}/fish"
         assert_metrics_recorded("Controller/Grape/GrapeVersioning::SharedApi-#{v}/fish (GET)")
       end
@@ -83,7 +82,7 @@ unless ::Grape::VERSION == '0.1.5'
 
     def test_shared_version_block_in_tranasaction_names
       @app_class = GrapeVersioning::SharedBlockApi
-      %w[ v1 v2 v3 v4 ].each do |v|
+      %w[v1 v2 v3 v4].each do |v|
         get "/#{v}/fish"
         assert_metrics_recorded("Controller/Grape/GrapeVersioning::SharedBlockApi-#{v}/fish (GET)")
       end
@@ -98,8 +97,8 @@ unless ::Grape::VERSION == '0.1.5'
     #
     def test_default_header_version_in_tranasaction_names
       @app_class = GrapeVersioning::DefaultHeaderApi
-      get "/fish", nil, 'HTTP_ACCEPT' => 'application/json'
-      assert_metrics_recorded("Controller/Grape/GrapeVersioning::DefaultHeaderApi-v2|v3/fish (GET)")
+      get '/fish', nil, 'HTTP_ACCEPT' => 'application/json'
+      assert_metrics_recorded('Controller/Grape/GrapeVersioning::DefaultHeaderApi-v2|v3/fish (GET)')
     end
 
     # :accept_version_header introduced in 0.5
@@ -109,10 +108,9 @@ unless ::Grape::VERSION == '0.1.5'
     if Gem::Version.new(Grape::VERSION) >= Gem::Version.new('0.5.0')
       def test_default_accept_version_header_version_in_tranasaction_names
         @app_class = GrapeVersioning::DefaultAcceptVersionHeaderApi
-        get "/fish", nil, 'HTTP_ACCEPT_VERSION' => ''
-        assert_metrics_recorded("Controller/Grape/GrapeVersioning::DefaultAcceptVersionHeaderApi-v2|v3/fish (GET)")
+        get '/fish', nil, 'HTTP_ACCEPT_VERSION' => ''
+        assert_metrics_recorded('Controller/Grape/GrapeVersioning::DefaultAcceptVersionHeaderApi-v2|v3/fish (GET)')
       end
     end
-
   end
 end

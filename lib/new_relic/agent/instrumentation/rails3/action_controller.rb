@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -20,17 +19,16 @@ module NewRelic
             end
           end
 
-          def process_action(*args) #THREAD_LOCAL_ACCESS
+          def process_action(*args) # THREAD_LOCAL_ACCESS
             munged_params = NewRelic::Agent::ParameterFiltering.filter_rails_request_parameters(request.filtered_parameters)
-            perform_action_with_newrelic_trace(:category => :controller,
-                                               :name => self.action_name,
-                                               :path => newrelic_metric_path,
-                                               :params => munged_params,
-                                               :class_name => self.class.name)  do
+            perform_action_with_newrelic_trace(category: :controller,
+                                               name: action_name,
+                                               path: newrelic_metric_path,
+                                               params: munged_params,
+                                               class_name: self.class.name) do
               super
             end
           end
-
         end
 
         module ActionView
@@ -38,7 +36,7 @@ module NewRelic
             extend self
             def template_metric(identifier, options = {})
               if options[:file]
-                "file"
+                'file'
               elsif identifier.nil?
                 ::NewRelic::Agent::UNKNOWN_METRIC
               elsif identifier.include? '/' # this is a filepath
@@ -47,12 +45,13 @@ module NewRelic
                 identifier
               end
             end
+
             def render_type(file_path)
               file = File.basename(file_path)
               if file.starts_with?('_')
-                return 'Partial'
+                'Partial'
               else
-                return 'Rendering'
+                'Rendering'
               end
             end
           end
@@ -113,7 +112,8 @@ DependencyDetection.defer do
         # This is needed for rails 3.2 compatibility
         @details = extract_details(options) if respond_to? :extract_details, true
         identifier = determine_template(options) ? determine_template(options).identifier : nil
-        scope_name = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier, options)}/Rendering"
+        scope_name = "View/#{NewRelic::Agent::Instrumentation::Rails3::ActionView::NewRelic.template_metric(identifier,
+                                                                                                            options)}/Rendering"
         trace_execution_scoped scope_name do
           render_without_newrelic(context, options)
         end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -22,9 +21,9 @@ class NewRelic::NoticedError
   UNKNOWN_ERROR_CLASS_NAME = 'Error'
   NIL_ERROR_MESSAGE = '<no message>'
 
-  USER_ATTRIBUTES = "userAttributes"
-  AGENT_ATTRIBUTES = "agentAttributes"
-  INTRINSIC_ATTRIBUTES = "intrinsics"
+  USER_ATTRIBUTES = 'userAttributes'
+  AGENT_ATTRIBUTES = 'agentAttributes'
+  INTRINSIC_ATTRIBUTES = 'intrinsics'
 
   DESTINATION = NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
@@ -77,12 +76,12 @@ class NewRelic::NoticedError
 
   include NewRelic::Coerce
 
-  def to_collector_array(encoder=nil)
-    [ NewRelic::Helper.time_to_millis(timestamp),
-      string(path),
-      string(message),
-      string(exception_class_name),
-      processed_attributes ]
+  def to_collector_array(_encoder = nil)
+    [NewRelic::Helper.time_to_millis(timestamp),
+     string(path),
+     string(message),
+     string(exception_class_name),
+     processed_attributes]
   end
 
   # Note that we process attributes lazily and store the result. This is because
@@ -136,19 +135,19 @@ class NewRelic::NoticedError
   def build_error_attributes
     @attributes_from_notice_error ||= {}
     @attributes_from_notice_error.merge!({
-      ERROR_MESSAGE_KEY => string(message),
-      ERROR_CLASS_KEY => string(exception_class_name)
-    })
+                                           ERROR_MESSAGE_KEY => string(message),
+                                           ERROR_CLASS_KEY => string(exception_class_name)
+                                         })
 
     @attributes_from_notice_error[ERROR_EXPECTED_KEY] = true if expected
   end
 
   def build_agent_attributes(merged_attributes)
     agent_attributes = if @attributes
-      @attributes.agent_attributes_for(DESTINATION)
-    else
-      NewRelic::EMPTY_HASH
-    end
+                         @attributes.agent_attributes_for(DESTINATION)
+                       else
+                         NewRelic::EMPTY_HASH
+                       end
 
     # It's possible to override the request_uri from the transaction attributes
     # with a uri passed to notice_error. Add it to merged_attributes filter and
@@ -200,5 +199,4 @@ class NewRelic::NoticedError
       @message = exception.to_s
     end
   end
-
 end

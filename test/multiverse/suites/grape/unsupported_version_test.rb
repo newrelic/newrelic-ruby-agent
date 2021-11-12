@@ -1,9 +1,8 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require "grape"
-require "newrelic_rpm"
+require 'grape'
+require 'newrelic_rpm'
 require './grape_test_api'
 
 class UnsupportedGrapeTest < Minitest::Test

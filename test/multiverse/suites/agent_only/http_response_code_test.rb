@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -11,7 +10,7 @@ class HttpResponseCodeTest < Minitest::Test
   setup_and_teardown_agent
 
   def test_request_entity_too_large
-    $collector.stub_exception('metric_data', {'error_type' => 'RuntimeError', 'message' => 'too much'}, 413)
+    $collector.stub_exception('metric_data', { 'error_type' => 'RuntimeError', 'message' => 'too much' }, 413)
 
     NewRelic::Agent.increment_metric('Custom/too_big')
     assert_metrics_recorded(['Custom/too_big'])
@@ -24,7 +23,7 @@ class HttpResponseCodeTest < Minitest::Test
   end
 
   def test_unsupported_media_type
-    $collector.stub_exception('metric_data', {'error_type' => 'RuntimeError', 'message' => 'looks bad'}, 415)
+    $collector.stub_exception('metric_data', { 'error_type' => 'RuntimeError', 'message' => 'looks bad' }, 415)
 
     NewRelic::Agent.increment_metric('Custom/too_big')
     assert_metrics_recorded(['Custom/too_big'])

@@ -1,15 +1,13 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../test_helper', __FILE__)
+require File.expand_path('../test_helper', __dir__)
 
 module NewRelic
   module Agent
     module InfiniteTracing
       class SuspendedStreamingBufferTest < Minitest::Test
-
         def setup
           @threads = {}
           NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
@@ -28,19 +26,18 @@ module NewRelic
           assert_equal 0, spans.size
           spans.each_with_index do |span, index|
             assert_kind_of NewRelic::Agent::InfiniteTracing::Span, span
-            assert_equal segments[index].transaction.trace_id, span["trace_id"]
+            assert_equal segments[index].transaction.trace_id, span['trace_id']
           end
 
           refute_metrics_recorded([
-            "Supportability/InfiniteTracing/Span/AgentQueueDumped",
-            "Supportability/InfiniteTracing/Span/Sent"
-          ])
+                                    'Supportability/InfiniteTracing/Span/AgentQueueDumped',
+                                    'Supportability/InfiniteTracing/Span/Sent'
+                                  ])
           assert_metrics_recorded({
-            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-          })
+                                    'Supportability/InfiniteTracing/Span/Seen' => { call_count: total_spans }
+                                  })
           assert_watched_threads_finished buffer
         end
-
 
         def test_can_close_an_empty_buffer
           total_spans = 10
@@ -55,11 +52,11 @@ module NewRelic
           closer = watch_thread(:closer) do
             timeout_cap do
               loop do
-                if segments.size == total_spans
-                  emptied = buffer.empty?
-                  closed = true
-                  break
-                end
+                next unless segments.size == total_spans
+
+                emptied = buffer.empty?
+                closed = true
+                break
               end
             end
           end
@@ -68,24 +65,24 @@ module NewRelic
           generator.join
           buffer.flush_queue
 
-          assert emptied, "spans streamed reached total but buffer not empty!"
-          assert closed, "failed to close the buffer"
+          assert emptied, 'spans streamed reached total but buffer not empty!'
+          assert closed, 'failed to close the buffer'
           assert_equal total_spans, segments.size
           assert_equal 0, spans.size
 
           refute_metrics_recorded([
-            "Supportability/InfiniteTracing/Span/AgentQueueDumped",
-            "Supportability/InfiniteTracing/Span/Sent"
-          ])
+                                    'Supportability/InfiniteTracing/Span/AgentQueueDumped',
+                                    'Supportability/InfiniteTracing/Span/Sent'
+                                  ])
           assert_metrics_recorded({
-            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-          })
+                                    'Supportability/InfiniteTracing/Span/Seen' => { call_count: total_spans }
+                                  })
           assert_watched_threads_finished buffer
         end
 
         private
 
-        def assert_watched_threads_finished buffer
+        def assert_watched_threads_finished(_buffer)
           @threads.each do |thread_name, thread|
             refute thread.alive?, "Thread #{thread_name} is still alive!"
           end
@@ -95,24 +92,24 @@ module NewRelic
           @threads.each(&:join)
         end
 
-        def watch_thread name, &block
+        def watch_thread(name, &block)
           @threads[name] = Thread.new(&block)
         end
 
-        def prepare_to_consume_spans buffer, sleep_delay=0
+        def prepare_to_consume_spans(buffer, _sleep_delay = 0)
           spans = []
-          consumer = watch_thread(:consumer) { buffer.enumerator.each{ |span| spans << span } }
+          consumer = watch_thread(:consumer) { buffer.enumerator.each { |span| spans << span } }
 
-          return spans, consumer
+          [spans, consumer]
         end
 
         # pops all the serializable spans off the buffer and returns them.
-        def consume_spans buffer
+        def consume_spans(buffer)
           buffer.enumerator.map(&:itself)
-        end          
+        end
 
         # starts a watched thread that will generate segments asynchronously.
-        def prepare_to_stream_segments count, max_buffer_size=100_000
+        def prepare_to_stream_segments(count, max_buffer_size = 100_000)
           buffer = SuspendedStreamingBuffer.new max_buffer_size
           segments = []
 
@@ -126,16 +123,16 @@ module NewRelic
             end
           end
 
-          return generator, buffer, segments
+          [generator, buffer, segments]
         end
 
         # Opens a streaming buffer,enqueues count segments to the buffer
         # closes the queue when done as we assume no more will be
         # generated and don't want to block indefinitely.
-        # 
+        #
         # Returns the buffer with segments on the queue as well
         # as the segments that were generated separately.
-        def stream_segments count, max_buffer_size=100_000
+        def stream_segments(count, max_buffer_size = 100_000)
           buffer = SuspendedStreamingBuffer.new max_buffer_size
           segments = []
 
@@ -147,13 +144,12 @@ module NewRelic
             end
           end
 
-          # if we don't close, we block the pop 
+          # if we don't close, we block the pop
           # in the enumerator indefinitely
           buffer.close_queue
 
-          return buffer, segments
+          [buffer, segments]
         end
-
       end
     end
   end

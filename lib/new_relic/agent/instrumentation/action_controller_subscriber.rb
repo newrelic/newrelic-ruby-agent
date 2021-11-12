@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/notifications_subscriber'
@@ -9,8 +8,7 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionControllerSubscriber < NotificationsSubscriber
-
-        def start(name, id, payload) #THREAD_LOCAL_ACCESS
+        def start(name, id, payload) # THREAD_LOCAL_ACCESS
           # @req is a historically stable but not guaranteed Rails header property
           request = payload[:headers].instance_variable_get(:@req)
 
@@ -25,11 +23,11 @@ module NewRelic
             state.current_transaction.ignore! if state.current_transaction
             NewRelic::Agent.instance.push_trace_execution_flag(false)
           end
-        rescue => e
+        rescue StandardError => e
           log_notification_error(e, name, 'start')
         end
 
-        def finish(name, id, payload) #THREAD_LOCAL_ACCESS
+        def finish(name, id, payload) # THREAD_LOCAL_ACCESS
           finishable = pop_segment(id)
 
           if state.is_execution_traced? \
@@ -43,27 +41,27 @@ module NewRelic
           else
             Agent.instance.pop_trace_execution_flag
           end
-        rescue => e
+        rescue StandardError => e
           log_notification_error(e, name, 'finish')
         end
 
         def start_transaction_or_segment(payload, request, controller_class)
           Tracer.start_transaction_or_segment(
-            name:      format_metric_name(payload[:action], controller_class),
-            category:  :controller,
-            options:   {
-              request:          request,
-              filtered_params:  NewRelic::Agent::ParameterFiltering.filter_using_rails(
+            name: format_metric_name(payload[:action], controller_class),
+            category: :controller,
+            options: {
+              request: request,
+              filtered_params: NewRelic::Agent::ParameterFiltering.filter_using_rails(
                 payload[:params],
                 Rails.application.config.filter_parameters
               ),
               apdex_start_time: queue_start(request),
-              ignore_apdex:     NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
+              ignore_apdex: NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
                 ControllerInstrumentation::NR_IGNORE_APDEX_KEY,
                 controller_class,
                 payload[:action]
               ),
-              ignore_enduser:   NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
+              ignore_enduser: NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
                 ControllerInstrumentation::NR_IGNORE_ENDUSER_KEY,
                 controller_class,
                 payload[:action]

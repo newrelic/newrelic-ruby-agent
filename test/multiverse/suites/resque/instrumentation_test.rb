@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -22,17 +21,17 @@ class ResqueTest < Minitest::Test
       @count = 0
     end
 
-    def self.count
-      @count
+    class << self
+      attr_reader :count
     end
 
-    def self.perform(name, sleep_duration=0)
+    def self.perform(_name, sleep_duration = 0)
       sleep sleep_duration
       @count += 1
     end
 
-    def self.request(args)
-      "we are not amused"
+    def self.request(_args)
+      'we are not amused'
     end
   end
 
@@ -47,9 +46,9 @@ class ResqueTest < Minitest::Test
     # will be done in our upcoming end-to-end testing suites
     Resque.inline = true
 
-    with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-      JOB_COUNT.times do |i|
-        Resque.enqueue(JobForTesting, "testing")
+    with_config('transaction_tracer.transaction_threshold': 0.0) do
+      JOB_COUNT.times do |_i|
+        Resque.enqueue(JobForTesting, 'testing')
       end
     end
 
@@ -83,7 +82,7 @@ class ResqueTest < Minitest::Test
   def test_isnt_influenced_by_global_capture_params
     stub_for_span_collection
 
-    with_config(:capture_params => true) do
+    with_config(capture_params: true) do
       run_jobs
     end
 
@@ -94,7 +93,7 @@ class ResqueTest < Minitest::Test
   def test_agent_posts_captured_args_to_job
     stub_for_span_collection
 
-    with_config(:'resque.capture_params' => true) do
+    with_config('resque.capture_params': true) do
       run_jobs
     end
 
@@ -105,7 +104,7 @@ class ResqueTest < Minitest::Test
   def test_arguments_are_captured_on_transaction_and_span_events_when_enabled
     stub_for_span_collection
 
-    with_config(:'attributes.include' => 'job.resque.args.*') do
+    with_config('attributes.include': 'job.resque.args.*') do
       run_jobs
     end
 
@@ -114,7 +113,7 @@ class ResqueTest < Minitest::Test
 
   def assert_metric_and_call_count(name, expected_call_count)
     metric_data = $collector.calls_for('metric_data')
-    assert_equal(1, metric_data.size, "expected exactly one metric_data post from agent")
+    assert_equal(1, metric_data.size, 'expected exactly one metric_data post from agent')
     metric = metric_data.first.metrics.find { |m| m[0]['name'] == name }
     assert(metric, "could not find metric named #{name}")
 
@@ -129,7 +128,7 @@ class ResqueTest < Minitest::Test
     transaction_samples.each do |post|
       post.samples.each do |sample|
         assert_equal sample.metric_name, TRANSACTION_NAME, "Huh, that transaction shouldn't be in there!"
-        assert_equal 'testing', sample.agent_attributes["job.resque.args.0"]
+        assert_equal 'testing', sample.agent_attributes['job.resque.args.0']
       end
     end
   end
@@ -151,7 +150,7 @@ class ResqueTest < Minitest::Test
     span_event_posts = $collector.calls_for('span_event_data')[0].events
     events = transaction_event_posts + span_event_posts
     events.each do |event|
-      assert_includes event[2].keys, "job.resque.args.0"
+      assert_includes event[2].keys, 'job.resque.args.0'
     end
   end
 
@@ -161,7 +160,7 @@ class ResqueTest < Minitest::Test
     events = transaction_event_posts + span_event_posts
 
     events.each do |event|
-      assert event[2].keys.none? { |k| k.start_with?("job.resque.args") }, "Found unexpected resque arguments"
+      assert event[2].keys.none? { |k| k.start_with?('job.resque.args') }, 'Found unexpected resque arguments'
     end
   end
 end

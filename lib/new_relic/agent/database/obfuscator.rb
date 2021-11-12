@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -13,8 +12,8 @@ module NewRelic
 
         attr_reader :obfuscator
 
-        QUERY_TOO_LARGE_MESSAGE = "Query too large (over 16k characters) to safely obfuscate".freeze
-        ELLIPSIS = "...".freeze
+        QUERY_TOO_LARGE_MESSAGE = 'Query too large (over 16k characters) to safely obfuscate'.freeze
+        ELLIPSIS = '...'.freeze
 
         def initialize
           reset
@@ -43,16 +42,14 @@ module NewRelic
           elsif type == :replace
             @obfuscator = block
           else
-            fail "unknown sql_obfuscator type #{type}"
+            raise "unknown sql_obfuscator type #{type}"
           end
         end
 
         def default_sql_obfuscator(sql)
-          stmt = sql.kind_of?(Statement) ? sql : Statement.new(sql)
+          stmt = sql.is_a?(Statement) ? sql : Statement.new(sql)
 
-          if stmt.sql.end_with? ELLIPSIS
-            return QUERY_TOO_LARGE_MESSAGE
-          end
+          return QUERY_TOO_LARGE_MESSAGE if stmt.sql.end_with? ELLIPSIS
 
           obfuscate(stmt.sql, stmt.adapter).to_s
         end

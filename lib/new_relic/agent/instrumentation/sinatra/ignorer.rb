@@ -1,13 +1,11 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 module NewRelic::Agent::Instrumentation
   module Sinatra
     module Ignorer
-
       def self.should_ignore?(app, type)
-        return false if !app.settings.respond_to?(:newrelic_ignores)
+        return false unless app.settings.respond_to?(:newrelic_ignores)
 
         app.settings.newrelic_ignores[type].any? do |pattern|
           pattern.match(app.request.path_info)
@@ -31,10 +29,10 @@ module NewRelic::Agent::Instrumentation
       def set_newrelic_ignore(type, *routes)
         # Important to default this in the context of the actual app
         # If it's done at register time, ignores end up shared between apps.
-        set :newrelic_ignores, Hash.new([]) if !respond_to?(:newrelic_ignores)
+        set :newrelic_ignores, Hash.new([]) unless respond_to?(:newrelic_ignores)
 
         # If we call an ignore without a route, it applies to the whole app
-        routes = ["*"] if routes.empty?
+        routes = ['*'] if routes.empty?
 
         settings.newrelic_ignores[type] += routes.map do |r|
           # Ugly sending to private Base#compile, but we want to mimic

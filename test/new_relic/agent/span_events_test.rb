@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path('../../../test_helper', __FILE__)
+require File.expand_path('../../test_helper', __dir__)
 require 'new_relic/agent/transaction_event_primitive'
 
 module NewRelic
@@ -10,10 +9,10 @@ module NewRelic
     class SpanEventsTest < Minitest::Test
       def setup
         @config = {
-          :'distributed_tracing.enabled' => true,
-          :account_id => "190",
-          :primary_application_id => "46954",
-          :trusted_account_key => "trust_this!"
+          'distributed_tracing.enabled': true,
+          account_id: '190',
+          primary_application_id: '46954',
+          trusted_account_key: 'trust_this!'
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config)
@@ -32,10 +31,10 @@ module NewRelic
         payload = nil
         external_segment = nil
         transaction = in_transaction('test_txn') do |txn|
-          external_segment = NewRelic::Agent::Tracer.\
-                       start_external_request_segment library: "net/http",
-                                                      uri: "http://docs.newrelic.com",
-                                                      procedure: "GET"
+          external_segment = NewRelic::Agent::Tracer\
+                             .start_external_request_segment library: 'net/http',
+                                                             uri: 'http://docs.newrelic.com',
+                                                             procedure: 'GET'
           payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
@@ -49,10 +48,10 @@ module NewRelic
         payload = nil
         external_segment = nil
         in_transaction('test_txn') do |txn|
-          external_segment = NewRelic::Agent::Tracer.\
-                       start_external_request_segment library: "net/http",
-                                                      uri: "http://docs.newrelic.com",
-                                                      procedure: "GET"
+          external_segment = NewRelic::Agent::Tracer\
+                             .start_external_request_segment library: 'net/http',
+                                                             uri: 'http://docs.newrelic.com',
+                                                             procedure: 'GET'
           payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
@@ -61,9 +60,9 @@ module NewRelic
         end
 
         last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
-        txn2_entry_span = last_span_events.detect{ |ev| ev[0]["name"] == "test_txn2" }
+        txn2_entry_span = last_span_events.detect { |ev| ev[0]['name'] == 'test_txn2' }
 
-        assert_equal external_segment.guid, txn2_entry_span[0]["parentId"]
+        assert_equal external_segment.guid, txn2_entry_span[0]['parentId']
       end
 
       def test_span_event_parenting
@@ -79,22 +78,22 @@ module NewRelic
           segment_a.finish
         end
 
-        last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+        last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
 
-        txn_segment_event, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "test_txn" }
+        txn_segment_event, = last_span_events.detect { |ev| ev[0]['name'] == 'test_txn' }
 
-        assert_equal txn.guid, txn_segment_event["transactionId"]
-        assert_nil   txn_segment_event["parentId"]
+        assert_equal txn.guid, txn_segment_event['transactionId']
+        assert_nil   txn_segment_event['parentId']
 
-        segment_event_a, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_a" }
+        segment_event_a, = last_span_events.detect { |ev| ev[0]['name'] == 'segment_a' }
 
-        assert_equal txn.guid, segment_event_a["transactionId"]
-        assert_equal txn_segment.guid, segment_event_a["parentId"]
+        assert_equal txn.guid, segment_event_a['transactionId']
+        assert_equal txn_segment.guid, segment_event_a['parentId']
 
-        segment_event_b, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_b" }
+        segment_event_b, = last_span_events.detect { |ev| ev[0]['name'] == 'segment_b' }
 
-        assert_equal txn.guid, segment_event_b["transactionId"]
-        assert_equal segment_a.guid, segment_event_b["parentId"]
+        assert_equal txn.guid, segment_event_b['transactionId']
+        assert_equal segment_a.guid, segment_event_b['parentId']
       end
 
       def test_entrypoint_attribute_added_to_first_span_only
@@ -104,11 +103,11 @@ module NewRelic
           segment_a.finish
         end
 
-        last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+        last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
 
-        txn_segment_event, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "test_txn" }
+        txn_segment_event, = last_span_events.detect { |ev| ev[0]['name'] == 'test_txn' }
 
-        segment_event_a, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_a" }
+        segment_event_a, = last_span_events.detect { |ev| ev[0]['name'] == 'segment_a' }
 
         assert txn_segment_event.key?('nr.entryPoint')
         assert txn_segment_event.fetch('nr.entryPoint')

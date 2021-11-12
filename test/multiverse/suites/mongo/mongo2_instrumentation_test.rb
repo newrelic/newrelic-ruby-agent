@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,7 +7,7 @@ require 'new_relic/agent/datastores/mongo'
 require 'helpers/mongo_metric_builder'
 
 if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
-    NewRelic::Agent::Datastores::Mongo.is_monitoring_enabled?
+   NewRelic::Agent::Datastores::Mongo.is_monitoring_enabled?
 
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_helpers')
 
@@ -22,7 +21,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
           def setup
             Mongo::Logger.logger = mongo_logger
-            @database_name = "multiverse"
+            @database_name = 'multiverse'
             @client = Mongo::Client.new(
               ["#{$mongo.host}:#{$mongo.port}"],
               database: @database_name
@@ -32,8 +31,8 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             @collection_name = "tribbles-#{fake_guid(16)}"
             @collection = @database.collection(@collection_name)
 
-            @tribbles = [{'name' => 'soterios johnson', 'count' => 1}, {'name' => 'wes mantooth', 'count' => 2}]
-            @tribble = {:_id => 1, 'name' => 'soterios johnson'}
+            @tribbles = [{ 'name' => 'soterios johnson', 'count' => 1 }, { 'name' => 'wes mantooth', 'count' => 2 }]
+            @tribble = { :_id => 1, 'name' => 'soterios johnson' }
 
             NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
             NewRelic::Agent.drop_buffered_data
@@ -45,7 +44,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           end
 
           def test_noticed_error_at_segment_and_txn_when_violating_unique_contraints
-            expected_error_class = /Mongo\:\:Error/
+            expected_error_class = /Mongo::Error/
             txn = nil
             begin
               in_transaction do |db_txn|
@@ -62,16 +61,14 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           end
 
           def test_noticed_error_only_at_segment_when_violating_unique_constraints
-            expected_error_class = /Mongo\:\:Error/
+            expected_error_class = /Mongo::Error/
             txn = nil
             in_transaction do |db_txn|
-              begin
-                txn = db_txn
-                @collection.insert_one(_id: 1)
-                @collection.insert_one(_id: 1)
-              rescue Mongo::Error::OperationFailure => e
-                # NOP -- allowing ONLY span to notice error
-              end
+              txn = db_txn
+              @collection.insert_one(_id: 1)
+              @collection.insert_one(_id: 1)
+            rescue Mongo::Error::OperationFailure => e
+              # NOP -- allowing ONLY span to notice error
             end
 
             assert_segment_noticed_error txn, /insert/i, expected_error_class, /duplicate key error/i
@@ -79,17 +76,15 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           end
 
           def test_noticed_error_only_at_segment_when_command_fails
-            expected_error_class = /Mongo\:\:Error/
+            expected_error_class = /Mongo::Error/
             txn = nil
             in_transaction do |db_txn|
-              begin
-                txn = db_txn
-                @database.collection("bogus").drop
-              rescue Mongo::Error::OperationFailure => e
-                # NOP -- allowing ONLY span to notice error
-              end
+              txn = db_txn
+              @database.collection('bogus').drop
+            rescue Mongo::Error::OperationFailure => e
+              # NOP -- allowing ONLY span to notice error
             end
-            assert_segment_noticed_error txn, /bogus\/drop/i, expected_error_class, /ns not found/i
+            assert_segment_noticed_error txn, %r{bogus/drop}i, expected_error_class, /ns not found/i
             refute_transaction_noticed_error txn, expected_error_class
           end
 
@@ -162,7 +157,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             NewRelic::Agent.drop_buffered_data
 
             in_transaction do
-              @collection.update_one(@tribbles[0], "$set" => @tribbles[1])
+              @collection.update_one(@tribbles[0], '$set' => @tribbles[1])
             end
 
             metrics = build_test_metrics(:update, true)
@@ -176,7 +171,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             NewRelic::Agent.drop_buffered_data
 
             in_transaction do
-              @collection.update_many(@tribbles[0], "$set" => @tribbles[1])
+              @collection.update_many(@tribbles[0], '$set' => @tribbles[1])
             end
 
             metrics = build_test_metrics(:update, true)
@@ -232,7 +227,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             NewRelic::Agent.drop_buffered_data
 
             in_transaction do
-              @collection.find_one_and_update(@tribbles[0], "$set" => @tribbles[1])
+              @collection.find_one_and_update(@tribbles[0], '$set' => @tribbles[1])
             end
 
             metrics = build_test_metrics(:findAndModify, true)
@@ -266,9 +261,9 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           def test_records_metrics_for_aggregate
             in_transaction do
               @collection.aggregate([
-                {'$group' => {'_id' => "name", "max" => {'$max'=>"$count"}}},
-                {'$match' => {'max' => {'$gte' => 1}}}
-              ]).to_a
+                                      { '$group' => { '_id' => 'name', 'max' => { '$max' => '$count' } } },
+                                      { '$match' => { 'max' => { '$gte' => 1 } } }
+                                    ]).to_a
             end
 
             metrics = build_test_metrics(:aggregate, true)
@@ -280,9 +275,9 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           def test_aggregate_pipeline_obfuscated_by_default
             in_transaction do
               @collection.aggregate([
-                {'$group' => {'_id' => "name", "max" => {'$max'=>"$count"}}},
-                {'$match' => {'max' => {'$gte' => 1}}}
-              ]).to_a
+                                      { '$group' => { '_id' => 'name', 'max' => { '$max' => '$count' } } },
+                                      { '$match' => { 'max' => { '$gte' => 1 } } }
+                                    ]).to_a
             end
 
             sample = last_transaction_trace
@@ -290,72 +285,72 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             node = find_node_with_name(sample, metric)
 
             expected = [
-              {"$group"=>{"_id"=>"?", "max"=>{"$max"=>"?"}}},
-              {"$match"=>{"max"=>{"$gte"=>"?"}}}
+              { '$group' => { '_id' => '?', 'max' => { '$max' => '?' } } },
+              { '$match' => { 'max' => { '$gte' => '?' } } }
             ]
 
-            assert_equal expected, node[:statement]["pipeline"]
+            assert_equal expected, node[:statement]['pipeline']
           end
 
           def test_filter_obfuscated_by_default
             in_transaction do
-              @collection.find("name" => "Wes Mantooth", "count" => {"$gte" => 1}).to_a
+              @collection.find('name' => 'Wes Mantooth', 'count' => { '$gte' => 1 }).to_a
             end
 
             sample = last_transaction_trace
             metric = "Datastore/statement/MongoDB/#{@collection_name}/find"
             node = find_node_with_name(sample, metric)
 
-            expected = {"name"=>"?", "count"=>{"$gte"=>"?"}}
+            expected = { 'name' => '?', 'count' => { '$gte' => '?' } }
 
-            assert_equal expected, node[:statement]["filter"]
+            assert_equal expected, node[:statement]['filter']
           end
 
           def test_batched_queries
             25.times do |i|
-              @collection.insert_one :name => "test-#{i}", :active => true
+              @collection.insert_one name: "test-#{i}", active: true
             end
             NewRelic::Agent.drop_buffered_data
 
-            in_transaction("test_txn") do
-              @collection.find(:active => true).batch_size(10).to_a
+            in_transaction('test_txn') do
+              @collection.find(active: true).batch_size(10).to_a
             end
 
             expected = {
-              "test_txn" => {:call_count=>1},
-              "OtherTransactionTotalTime" => {:call_count=>1},
-              "OtherTransactionTotalTime/test_txn" => {:call_count=>1},
-              ["Datastore/statement/MongoDB/#{@collection_name}/find", "test_txn"] => {:call_count=>1},
-              "Datastore/statement/MongoDB/#{@collection_name}/find" => {:call_count=>1},
-              ["Datastore/statement/MongoDB/#{@collection_name}/getMore", "test_txn"] => {:call_count=>2},
-              "Datastore/statement/MongoDB/#{@collection_name}/getMore" => {:call_count=>2},
-              "Datastore/operation/MongoDB/find" => {:call_count=>1},
-              "Datastore/operation/MongoDB/getMore" => {:call_count=>2},
-              "Datastore/instance/MongoDB/#{NewRelic::Agent::Hostname.get}/27017" => {:call_count=>3},
-              "Datastore/MongoDB/allWeb" => {:call_count=>3},
-              "Datastore/MongoDB/all" => {:call_count=>3},
-              "Datastore/allWeb" => { :call_count=>3},
-              "Datastore/all" => {:call_count=>3},
-              "Supportability/API/drop_buffered_data" => { :call_count => 1 },
-              "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => { :call_count => 1},
-              "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb" => { :call_count => 1 },
-              "Logging/lines" => {},
-              "Logging/lines/DEBUG" => {},
-              "Logging/size" => {},
-              "Logging/size/DEBUG" => {},
-              "Supportability/API/increment_metric" => {},
-              "Supportability/API/record_metric" => {},
+              'test_txn' => { call_count: 1 },
+              'OtherTransactionTotalTime' => { call_count: 1 },
+              'OtherTransactionTotalTime/test_txn' => { call_count: 1 },
+              ["Datastore/statement/MongoDB/#{@collection_name}/find", 'test_txn'] => { call_count: 1 },
+              "Datastore/statement/MongoDB/#{@collection_name}/find" => { call_count: 1 },
+              ["Datastore/statement/MongoDB/#{@collection_name}/getMore", 'test_txn'] => { call_count: 2 },
+              "Datastore/statement/MongoDB/#{@collection_name}/getMore" => { call_count: 2 },
+              'Datastore/operation/MongoDB/find' => { call_count: 1 },
+              'Datastore/operation/MongoDB/getMore' => { call_count: 2 },
+              "Datastore/instance/MongoDB/#{NewRelic::Agent::Hostname.get}/27017" => { call_count: 3 },
+              'Datastore/MongoDB/allWeb' => { call_count: 3 },
+              'Datastore/MongoDB/all' => { call_count: 3 },
+              'Datastore/allWeb' => { call_count: 3 },
+              'Datastore/all' => { call_count: 3 },
+              'Supportability/API/drop_buffered_data' => { call_count: 1 },
+              'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => { call_count: 1 },
+              'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb' => { call_count: 1 },
+              'Logging/lines' => {},
+              'Logging/lines/DEBUG' => {},
+              'Logging/size' => {},
+              'Logging/size/DEBUG' => {},
+              'Supportability/API/increment_metric' => {},
+              'Supportability/API/record_metric' => {}
             }
             assert_metrics_recorded_exclusive expected
           end
 
           def test_batched_queries_have_node_per_query
             25.times do |i|
-              @collection.insert_one :name => "test-#{i}", :active => true
+              @collection.insert_one name: "test-#{i}", active: true
             end
             NewRelic::Agent.drop_buffered_data
-            in_transaction "webby" do
-              @collection.find(:active => true).batch_size(10).to_a
+            in_transaction 'webby' do
+              @collection.find(active: true).batch_size(10).to_a
             end
 
             expected = [
@@ -367,21 +362,21 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             trace = last_transaction_trace
             actual = []
             trace.each_node do |n|
-              actual << n.metric_name if n.metric_name.start_with? "Datastore/statement/MongoDB"
+              actual << n.metric_name if n.metric_name.start_with? 'Datastore/statement/MongoDB'
             end
 
             assert_equal expected, actual
           end
 
           def test_trace_nodes_have_instance_attributes
-            @collection.insert_one :name => "test", :active => true
+            @collection.insert_one name: 'test', active: true
             NewRelic::Agent.drop_buffered_data
-            in_transaction "webby" do
-              @collection.find(:active => true).to_a
+            in_transaction 'webby' do
+              @collection.find(active: true).to_a
             end
 
             trace = last_transaction_trace
-            node = find_node_with_name_matching trace, /^Datastore\//
+            node = find_node_with_name_matching trace, %r{^Datastore/}
 
             assert_equal NewRelic::Agent::Hostname.get, node[:host]
             assert_equal '27017', node[:port_path_or_id]
@@ -400,21 +395,21 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           end
 
           def test_web_scoped_metrics
-            in_web_transaction("webby") do
+            in_web_transaction('webby') do
               @collection.insert_one(@tribbles.first)
             end
 
             metric = statement_metric(:insert)
-            assert_metrics_recorded([[metric, "webby"]])
+            assert_metrics_recorded([[metric, 'webby']])
           end
 
           def test_background_scoped_metrics
-            in_background_transaction("backed-up") do
+            in_background_transaction('backed-up') do
               @collection.insert_one(@tribbles.first)
             end
 
             metric = statement_metric(:insert)
-            assert_metrics_recorded([[metric, "backed-up"]])
+            assert_metrics_recorded([[metric, 'backed-up']])
           end
 
           def test_notices_nosql
@@ -427,10 +422,10 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             node = find_last_transaction_node
 
             expected = {
-              :database   => @database_name,
+              :database => @database_name,
               :collection => @collection_name,
               'insert' => @collection_name,
-              :operation  => :insert,
+              :operation => :insert,
               'ordered' => true
             }
 
@@ -440,9 +435,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             # strings instead of symbols.  Let's adjust our
             # expectations accordingly.
             #
-            if result[:operation].is_a?(String)
-              expected[:operation] = expected[:operation].to_s
-            end
+            expected[:operation] = expected[:operation].to_s if result[:operation].is_a?(String)
 
             # The writeConcern is added by some, but not all versions
             # of the mongo driver, we don't care if it's present or
@@ -513,11 +506,11 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           end
 
           def test_noticed_nosql_does_not_contain_selector_values
-            @collection.insert_one({'password' => '$ecret'})
+            @collection.insert_one({ 'password' => '$ecret' })
             node = nil
 
             in_transaction do
-              @collection.find({'password' => '$ecret'}).to_a
+              @collection.find({ 'password' => '$ecret' }).to_a
             end
 
             node = find_last_transaction_node
@@ -569,7 +562,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
           def statement_metric(action)
             metrics = build_test_metrics(action, true)
-            metrics.select { |m| m.start_with?("Datastore/statement") }.first
+            metrics.select { |m| m.start_with?('Datastore/statement') }.first
           end
 
           def assert_mongo_operation(expected_value, query)

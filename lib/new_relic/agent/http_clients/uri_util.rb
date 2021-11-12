@@ -14,7 +14,6 @@ module NewRelic
   module Agent
     module HTTPClients
       module URIUtil
-
         def self.obfuscated_uri(url)
           parse_and_normalize_url(url).tap do |obfuscated|
             obfuscated.user = nil
@@ -42,7 +41,7 @@ module NewRelic
           uri
         end
 
-        QUESTION_MARK = "?"
+        QUESTION_MARK = '?'
 
         def self.strip_query_string(fragment)
           if fragment.include? QUESTION_MARK

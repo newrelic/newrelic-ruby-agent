@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -10,11 +9,9 @@ module NewRelic
                     :match_expression, :replacement)
 
         def initialize(options)
-          if !options['match_expression']
-            raise ArgumentError.new('missing required match_expression')
-          end
+          raise ArgumentError, 'missing required match_expression' unless options['match_expression']
           if !options['replacement'] && !options['ignore']
-            raise ArgumentError.new('must specify replacement when ignore is false')
+            raise ArgumentError, 'must specify replacement when ignore is false'
           end
 
           @match_expression = Regexp.new(options['match_expression'], Regexp::IGNORECASE)

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -16,13 +15,13 @@ class ExclusiveTimeTest < Minitest::Test
         advance_process_time 2
         outer_b
       end
-      add_transaction_tracer :outer_a, :class_name => 'traced'
+      add_transaction_tracer :outer_a, class_name: 'traced'
 
       def outer_b
         advance_process_time 5
         inner
       end
-      add_transaction_tracer :outer_b, :class_name => 'traced'
+      add_transaction_tracer :outer_b, class_name: 'traced'
 
       def inner
         advance_process_time 10
@@ -35,25 +34,25 @@ class ExclusiveTimeTest < Minitest::Test
 
     txn_name = 'Controller/traced/outer_b'
     assert_metrics_recorded(
-       txn_name => {
-        :call_count           => 1,
-        :total_call_time      => 2 + 5 + 10,
-        :total_exclusive_time => 0
+      txn_name => {
+        call_count: 1,
+        total_call_time: 2 + 5 + 10,
+        total_exclusive_time: 0
       },
       ['Nested/Controller/traced/outer_a', txn_name] => {
-        :call_count           => 1,
-        :total_call_time      => 2 + 5 + 10,
-        :total_exclusive_time => 2
+        call_count: 1,
+        total_call_time: 2 + 5 + 10,
+        total_exclusive_time: 2
       },
       ['Nested/Controller/traced/outer_b', txn_name] => {
-        :call_count           => 1,
-        :total_call_time      => 5 + 10,
-        :total_exclusive_time => 5
+        call_count: 1,
+        total_call_time: 5 + 10,
+        total_exclusive_time: 5
       },
       ['inner', txn_name] => {
-        :call_count           => 1,
-        :total_call_time      => 10,
-        :total_exclusive_time => 10
+        call_count: 1,
+        total_call_time: 10,
+        total_exclusive_time: 10
       }
     )
   end
@@ -67,7 +66,7 @@ class ExclusiveTimeTest < Minitest::Test
         advance_process_time 2
         inner
       end
-      add_transaction_tracer :outer, :class_name => 'traced'
+      add_transaction_tracer :outer, class_name: 'traced'
 
       def inner
         advance_process_time 10
@@ -80,15 +79,15 @@ class ExclusiveTimeTest < Minitest::Test
 
     txn_name = 'Controller/traced/outer'
     assert_metrics_recorded(
-       txn_name => {
-        :call_count           => 1,
-        :total_call_time      => 2 + 10,
-        :total_exclusive_time => 2
+      txn_name => {
+        call_count: 1,
+        total_call_time: 2 + 10,
+        total_exclusive_time: 2
       },
       ['inner', txn_name] => {
-        :call_count           => 1,
-        :total_call_time      => 10,
-        :total_exclusive_time => 10
+        call_count: 1,
+        total_call_time: 10,
+        total_exclusive_time: 10
       }
     )
   end

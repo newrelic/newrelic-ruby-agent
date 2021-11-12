@@ -1,11 +1,10 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 module Performance
   class Platform
     def self.current
-      @current ||= self.new
+      @current ||= new
     end
 
     def jruby?

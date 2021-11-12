@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -19,7 +18,8 @@ class NewRelic::Agent::SamplerTest < Minitest::Test
   def test_inherited_should_append_subclasses_to_sampler_classes
     test_class = Class.new(NewRelic::Agent::Sampler)
     sampler_classes = NewRelic::Agent::Sampler.instance_variable_get :@sampler_classes
-    assert(sampler_classes.include?(test_class), "Sampler classes (#{sampler_classes.inspect}) does not include #{test_class.inspect}")
+    assert(sampler_classes.include?(test_class),
+           "Sampler classes (#{sampler_classes.inspect}) does not include #{test_class.inspect}")
     # cleanup the sampler created above
     NewRelic::Agent::Sampler.instance_eval { @sampler_classes.delete(test_class) }
   end
@@ -27,7 +27,8 @@ class NewRelic::Agent::SamplerTest < Minitest::Test
   def test_sampler_classes_should_be_an_array
     sampler_classes = NewRelic::Agent::Sampler.instance_variable_get('@sampler_classes')
     assert(sampler_classes.is_a?(Array), 'Sampler classes should be saved as an array')
-    assert(sampler_classes.include?(NewRelic::Agent::Samplers::CpuSampler), 'Sampler classes should include the CPU sampler')
+    assert(sampler_classes.include?(NewRelic::Agent::Samplers::CpuSampler),
+           'Sampler classes should include the CPU sampler')
   end
 
   def test_enabled_should_return_true_if_name_unknown
@@ -53,13 +54,13 @@ class NewRelic::Agent::SamplerTest < Minitest::Test
   end
 
   def test_enabled_should_return_false_if_disabled_via_config_setting
-    with_config(:disable_dummy_sampler => true) do
+    with_config(disable_dummy_sampler: true) do
       refute DummySampler.enabled?
     end
   end
 
   def test_enabled_should_return_true_if_enabled_via_config_setting
-    with_config(:disable_dummy_sampler => false) do
+    with_config(disable_dummy_sampler: false) do
       assert DummySampler.enabled?
     end
   end

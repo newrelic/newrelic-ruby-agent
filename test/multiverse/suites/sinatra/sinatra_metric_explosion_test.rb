@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -44,22 +43,22 @@ class SinatraMetricExplosionTest < Minitest::Test
     get '/hello/world'
 
     segment = if last_request.env.key? 'sinatra.route'
-      'GET /hello/:name'
-    else
-      'GET hello/([^/?#]+)'
-    end
+                'GET /hello/:name'
+              else
+                'GET hello/([^/?#]+)'
+              end
     assert_metrics_recorded([
-      "Controller/Sinatra/SinatraTestApp/#{segment}",
-      "Apdex/Sinatra/SinatraTestApp/#{segment}"
-    ])
+                              "Controller/Sinatra/SinatraTestApp/#{segment}",
+                              "Apdex/Sinatra/SinatraTestApp/#{segment}"
+                            ])
   end
 
   def test_transaction_name_from_path
     get '/wrong'
     assert_metrics_recorded([
-      'Controller/Sinatra/SinatraTestApp/GET (unknown)',
-      'Apdex/Sinatra/SinatraTestApp/GET (unknown)'
-    ])
+                              'Controller/Sinatra/SinatraTestApp/GET (unknown)',
+                              'Apdex/Sinatra/SinatraTestApp/GET (unknown)'
+                            ])
   end
 
   def test_transaction_name_does_not_explode
@@ -72,20 +71,20 @@ class SinatraMetricExplosionTest < Minitest::Test
     metric_names = ::NewRelic::Agent.agent.stats_engine.to_h.keys.map(&:to_s)
     metric_names -= [
       'CPU/User Time',
-      "Middleware/all",
-      "WebFrontend/QueueTime",
-      "WebFrontend/WebServer/all",
+      'Middleware/all',
+      'WebFrontend/QueueTime',
+      'WebFrontend/WebServer/all'
     ]
 
     name_beginnings_to_ignore = [
-      "ApdexAll",
-      "Supportability",
-      "GC/Transaction",
-      "Nested/Controller",
-      "Middleware"
+      'ApdexAll',
+      'Supportability',
+      'GC/Transaction',
+      'Nested/Controller',
+      'Middleware'
     ]
-    metric_names.delete_if do|metric|
-      name_beginnings_to_ignore.any? {|name| metric.start_with?(name)}
+    metric_names.delete_if do |metric|
+      name_beginnings_to_ignore.any? { |name| metric.start_with?(name) }
     end
 
     assert_equal 17, metric_names.size, "Explosion detected in: #{metric_names.inspect}"
@@ -95,8 +94,8 @@ class SinatraMetricExplosionTest < Minitest::Test
     post '/some/garbage'
 
     assert_metrics_recorded([
-      'Controller/Sinatra/SinatraTestApp/POST (unknown)',
-      'Apdex/Sinatra/SinatraTestApp/POST (unknown)'
-    ])
+                              'Controller/Sinatra/SinatraTestApp/POST (unknown)',
+                              'Apdex/Sinatra/SinatraTestApp/POST (unknown)'
+                            ])
   end
 end

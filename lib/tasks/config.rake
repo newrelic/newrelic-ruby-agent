@@ -1,23 +1,23 @@
 namespace :newrelic do
   namespace :config do
-    desc "Describe available New Relic configuration settings."
+    desc 'Describe available New Relic configuration settings.'
 
-    GENERAL    = "general"
-    DISABLING  = "disabling"
-    ATTRIBUTES = "attributes"
+    GENERAL    = 'general'
+    DISABLING  = 'disabling'
+    ATTRIBUTES = 'attributes'
 
     SECTION_DESCRIPTIONS = {
-      GENERAL              => 'These settings are available for agent configuration. Some settings depend on your New Relic subscription level.',
-      DISABLING            => 'Use these settings to toggle instrumentation types during agent startup.',
-      ATTRIBUTES           => '[Attributes](/docs/features/agent-attributes) are key-value pairs containing information that determines the properties of an event or transaction. These key-value pairs can be viewed within transaction traces in APM, traced errors in APM, transaction events in dashboards, and page views in dashboards. You can customize exactly which attributes will be sent to each of these destinations',
-      "transaction_tracer" => 'The [transaction traces](/docs/apm/traces/transaction-traces/transaction-traces) feature collects detailed information from a selection of transactions, including a summary of the calling sequence, a breakdown of time spent, and a list of SQL queries and their query plans (on mysql and postgresql). Available features depend on your New Relic subscription level.',
-      "error_collector"    => 'The agent collects and reports all uncaught exceptions by default. These configuration options allow you to customize the error collection.',
-      "browser_monitoring" => 'The Browser monitoring [page load timing](/docs/browser/new-relic-browser/page-load-timing/page-load-timing-process) feature (sometimes referred to as real user monitoring or RUM) gives you insight into the performance real users are experiencing with your website. This is accomplished by measuring the time it takes for your users\' browsers to download and render your web pages by injecting a small amount of JavaScript code into the header and footer of each page.',
-      "analytics_events"   => '[New Relic dashboards](/docs/query-your-data/explore-query-data/dashboards/introduction-new-relic-one-dashboards) is a resource to gather and visualize data about your software and what it says about your business. With it you can quickly and easily create real-time dashboards to get immediate answers about end-user experiences, clickstreams, mobile activities, and server transactions.'
+      GENERAL => 'These settings are available for agent configuration. Some settings depend on your New Relic subscription level.',
+      DISABLING => 'Use these settings to toggle instrumentation types during agent startup.',
+      ATTRIBUTES => '[Attributes](/docs/features/agent-attributes) are key-value pairs containing information that determines the properties of an event or transaction. These key-value pairs can be viewed within transaction traces in APM, traced errors in APM, transaction events in dashboards, and page views in dashboards. You can customize exactly which attributes will be sent to each of these destinations',
+      'transaction_tracer' => 'The [transaction traces](/docs/apm/traces/transaction-traces/transaction-traces) feature collects detailed information from a selection of transactions, including a summary of the calling sequence, a breakdown of time spent, and a list of SQL queries and their query plans (on mysql and postgresql). Available features depend on your New Relic subscription level.',
+      'error_collector' => 'The agent collects and reports all uncaught exceptions by default. These configuration options allow you to customize the error collection.',
+      'browser_monitoring' => 'The Browser monitoring [page load timing](/docs/browser/new-relic-browser/page-load-timing/page-load-timing-process) feature (sometimes referred to as real user monitoring or RUM) gives you insight into the performance real users are experiencing with your website. This is accomplished by measuring the time it takes for your users\' browsers to download and render your web pages by injecting a small amount of JavaScript code into the header and footer of each page.',
+      'analytics_events' => '[New Relic dashboards](/docs/query-your-data/explore-query-data/dashboards/introduction-new-relic-one-dashboards) is a resource to gather and visualize data about your software and what it says about your business. With it you can quickly and easily create real-time dashboards to get immediate answers about end-user experiences, clickstreams, mobile activities, and server transactions.'
     }
 
     NAME_OVERRIDES = {
-      "slow_sql"     => "Slow SQL"
+      'slow_sql' => 'Slow SQL'
     }
 
     def output(format)
@@ -29,28 +29,28 @@ namespace :newrelic do
     end
 
     def build_config_hash
-      sections = Hash.new {|hash, key| hash[key] = []}
+      sections = Hash.new { |hash, key| hash[key] = [] }
       NewRelic::Agent::Configuration::DEFAULTS.each do |key, value|
         next unless value[:public]
 
         section_key = GENERAL
         key = key.to_s
-        components = key.split(".")
+        components = key.split('.')
 
         if key.match(/^disable_/)           # "disable_httpclient"
           section_key = DISABLING
         elsif components.length == 2        # "analytics_events.enabled"
           section_key = components.first
-        elsif components[1] == "attributes" # "transaction_tracer.attributes.enabled"
+        elsif components[1] == 'attributes' # "transaction_tracer.attributes.enabled"
           section_key = ATTRIBUTES
         end
 
         sections[section_key] << {
-          :key         => key,
-          :type        => format_type(value[:type]),
-          :description => format_description(value),
-          :default     => format_default_value(value),
-          :env_var     => format_env_var(key)
+          key: key,
+          type: format_type(value[:type]),
+          description: format_description(value),
+          default: format_default_value(value),
+          env_var: format_env_var(key)
         }
       end
       sections
@@ -59,11 +59,11 @@ namespace :newrelic do
     def flatten_config_hash(config_hash)
       sections = []
       sections << pluck(GENERAL, config_hash)
-      sections << pluck("transaction_tracer", config_hash)
-      sections << pluck("error_collector",    config_hash)
-      sections << pluck("browser_monitoring", config_hash)
-      sections << pluck("analytics_events",   config_hash)
-      sections.concat(config_hash.to_a.sort_by { |a| a.first})
+      sections << pluck('transaction_tracer', config_hash)
+      sections << pluck('error_collector',    config_hash)
+      sections << pluck('browser_monitoring', config_hash)
+      sections << pluck('analytics_events',   config_hash)
+      sections.concat(config_hash.to_a.sort_by { |a| a.first })
 
       add_data_to_sections(sections)
 
@@ -82,14 +82,14 @@ namespace :newrelic do
       name = NAME_OVERRIDES[key]
       return name if name
 
-      key.split("_").
-          each { |fragment| fragment[0] = fragment[0].upcase }.
-          join(" ")
+      key.split('_')
+         .each { |fragment| fragment[0] = fragment[0].upcase }
+         .join(' ')
     end
 
     def format_type(type)
       if type == NewRelic::Agent::Configuration::Boolean
-        "Boolean"
+        'Boolean'
       else
         type
       end
@@ -97,7 +97,7 @@ namespace :newrelic do
 
     def format_description(value)
       description = ''
-      description += "<b>DEPRECATED</b> " if value[:deprecated]
+      description += '<b>DEPRECATED</b> ' if value[:deprecated]
       description += value[:description]
       description
     end
@@ -106,12 +106,12 @@ namespace :newrelic do
       if spec[:default].is_a?(Proc)
         '(Dynamic)'
       else
-        "#{spec[:default].inspect}"
+        spec[:default].inspect.to_s
       end
     end
 
     def format_env_var(key)
-      "NEW_RELIC_#{key.gsub(".", "_").upcase}"
+      "NEW_RELIC_#{key.gsub('.', '_').upcase}"
     end
 
     def pluck(key, config_hash)
@@ -126,9 +126,10 @@ namespace :newrelic do
       ERB.new(template)
     end
 
-    task :docs, [:format] => [] do |t, args|
-      require File.expand_path(File.join(File.dirname(__FILE__), "..", "new_relic", "agent", "configuration", "default_source.rb"))
-      format = args[:format] || "text"
+    task :docs, [:format] => [] do |_t, args|
+      require File.expand_path(File.join(File.dirname(__FILE__), '..', 'new_relic', 'agent', 'configuration',
+                                         'default_source.rb'))
+      format = args[:format] || 'text'
       output(format)
     end
   end

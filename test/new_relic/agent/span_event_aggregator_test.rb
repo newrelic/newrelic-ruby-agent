@@ -1,18 +1,16 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path('../../../test_helper', __FILE__)
-require File.expand_path('../../data_container_tests', __FILE__)
-require File.expand_path('../../common_aggregator_tests', __FILE__)
+require File.expand_path('../../test_helper', __dir__)
+require File.expand_path('../data_container_tests', __dir__)
+require File.expand_path('../common_aggregator_tests', __dir__)
 require 'new_relic/agent/span_event_aggregator'
 
 module NewRelic
   module Agent
     class SpanEventAggregatorTest < Minitest::Test
-
       def setup
-        @additional_config = { :'distributed_tracing.enabled' => true }
+        @additional_config = { 'distributed_tracing.enabled': true }
         NewRelic::Agent.config.add_config_for_testing(@additional_config)
 
         nr_freeze_process_time
@@ -31,7 +29,7 @@ module NewRelic
         @event_aggregator
       end
 
-      def populate_container(sampler, n)
+      def populate_container(_sampler, n)
         n.times do |i|
           generate_event("whatever#{i}")
         end
@@ -41,19 +39,19 @@ module NewRelic
 
       # Helpers for CommonAggregatorTests
 
-      def generate_event(name='operation_name', options = {})
+      def generate_event(name = 'operation_name', options = {})
         guid = fake_guid(16)
 
         event = [
           {
-          'name' => name,
-          'priority' => options[:priority] || rand,
-          'sampled' => false,
-          'guid'    => guid,
-          'traceId' => guid,
-          'timestamp' => Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond),
-          'duration' => rand,
-          'category' => 'custom'
+            'name' => name,
+            'priority' => options[:priority] || rand,
+            'sampled' => false,
+            'guid' => guid,
+            'traceId' => guid,
+            'timestamp' => Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond),
+            'duration' => rand,
+            'category' => 'custom'
           },
           {},
           {}
@@ -71,7 +69,7 @@ module NewRelic
       end
 
       def name_for(event)
-        event[0]["name"]
+        event[0]['name']
       end
 
       def enabled_key
@@ -87,9 +85,9 @@ module NewRelic
 
         assert_equal 5, last_events.size
 
-        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSeen' => { call_count: 12 }})
-        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSent' => { call_count:  5 }})
-        assert_metrics_recorded({'Supportability/SpanEvent/Discarded'       => { call_count:  7 }})
+        assert_metrics_recorded({ 'Supportability/SpanEvent/TotalEventsSeen' => { call_count: 12 } })
+        assert_metrics_recorded({ 'Supportability/SpanEvent/TotalEventsSent' => { call_count:  5 } })
+        assert_metrics_recorded({ 'Supportability/SpanEvent/Discarded'       => { call_count:  7 } })
       end
     end
   end

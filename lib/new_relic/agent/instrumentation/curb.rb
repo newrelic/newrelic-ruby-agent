@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,7 +7,7 @@ require_relative 'curb/prepend'
 DependencyDetection.defer do
   named :curb
 
-  CURB_MIN_VERSION = Gem::Version.new("0.8.1")
+  CURB_MIN_VERSION = Gem::Version.new('0.8.1')
 
   depends_on do
     defined?(::Curl) && defined?(::Curl::CURB_VERSION) &&

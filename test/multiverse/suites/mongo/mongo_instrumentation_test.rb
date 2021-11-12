@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -7,13 +6,13 @@ require 'newrelic_rpm'
 require 'new_relic/agent/datastores/mongo'
 
 if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
-    !NewRelic::Agent::Datastores::Mongo.is_monitoring_enabled?
+   !NewRelic::Agent::Datastores::Mongo.is_monitoring_enabled?
   require File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'mongo_metric_builder')
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_server')
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_replica_set')
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_operation_tests')
   require File.join(File.dirname(__FILE__), 'helpers', 'mongo_helpers')
-  
+
   class NewRelic::Agent::Instrumentation::MongoInstrumentationTest < Minitest::Test
     include Mongo
     include ::NewRelic::TestHelpers::MongoMetricBuilder
@@ -22,19 +21,19 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
 
     def setup
       @client = Mongo::MongoClient.new($mongo.host, $mongo.port, logger: mongo_logger)
-      @database_name = "multiverse"
+      @database_name = 'multiverse'
       @database = @client.db(@database_name)
       @collection_name = "tribbles-#{fake_guid(16)}"
       @collection = @database.collection(@collection_name)
 
-      @tribble = {'name' => 'soterios johnson'}
+      @tribble = { 'name' => 'soterios johnson' }
 
       NewRelic::Agent::Transaction.stubs(:recording_web_transaction?).returns(true)
       NewRelic::Agent.drop_buffered_data
     end
 
     def test_noticed_error_at_segment_and_txn_when_violating_unique_contraints
-      expected_error_class = "Mongo::OperationFailure"
+      expected_error_class = 'Mongo::OperationFailure'
       txn = nil
       begin
         in_transaction do |db_txn|
@@ -51,16 +50,14 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
     end
 
     def test_noticed_error_only_at_segment_when_violating_unique_contraints
-      expected_error_class = "Mongo::OperationFailure"
+      expected_error_class = 'Mongo::OperationFailure'
       txn = nil
       in_transaction do |db_txn|
-        begin
-          txn = db_txn
-          @collection.insert(@tribble)
-          @collection.insert(@tribble)
-        rescue StandardError => e
-          # NOP -- allowing ONLY span to notice error
-        end
+        txn = db_txn
+        @collection.insert(@tribble)
+        @collection.insert(@tribble)
+      rescue StandardError => e
+        # NOP -- allowing ONLY span to notice error
       end
 
       assert_segment_noticed_error txn, /insert/i, expected_error_class, /duplicate key error|'insert' failed/i

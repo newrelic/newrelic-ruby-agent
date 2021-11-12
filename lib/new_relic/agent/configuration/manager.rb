@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -31,11 +30,12 @@ module NewRelic
 
         def initialize
           reset_to_defaults
-          @callbacks = Hash.new {|hash,key| hash[key] = [] }
+          @callbacks = Hash.new { |hash, key| hash[key] = [] }
         end
 
-        def add_config_for_testing(source, level=0)
+        def add_config_for_testing(source, level = 0)
           raise 'Invalid config type for testing' unless [Hash, DottedHash].include?(source.class)
+
           invoke_callbacks(:add, source)
           @configs_for_testing << [source.freeze, level]
           reset_cache
@@ -44,14 +44,14 @@ module NewRelic
 
         def remove_config_type(sym)
           source = case sym
-          when :security_policy then @security_policy_source
-          when :high_security   then @high_security_source
-          when :environment     then @environment_source
-          when :server          then @server_source
-          when :manual          then @manual_source
-          when :yaml            then @yaml_source
-          when :default         then @default_source
-          end
+                   when :security_policy then @security_policy_source
+                   when :high_security   then @high_security_source
+                   when :environment     then @environment_source
+                   when :server          then @server_source
+                   when :manual          then @manual_source
+                   when :yaml            then @yaml_source
+                   when :default         then @default_source
+                   end
 
           remove_config(source)
         end
@@ -66,7 +66,7 @@ module NewRelic
           when YamlSource           then @yaml_source            = nil
           when DefaultSource        then @default_source         = nil
           else
-            @configs_for_testing.delete_if {|src,lvl| src == source}
+            @configs_for_testing.delete_if { |src, _lvl| src == source }
           end
 
           reset_cache
@@ -95,31 +95,30 @@ module NewRelic
           reset_cache
           log_config(:add, source)
 
-          notify_server_source_added if ServerSource === source
+          notify_server_source_added if source.is_a?(ServerSource)
           notify_finished_configuring if !was_finished && finished_configuring?
         end
 
         def source(key)
           config_stack.each do |config|
-            if config.respond_to?(key.to_sym) || config.has_key?(key.to_sym)
-              return config
-            end
+            return config if config.respond_to?(key.to_sym) || config.has_key?(key.to_sym)
           end
         end
 
         def fetch(key)
           config_stack.each do |config|
             next unless config
+
             accessor = key.to_sym
 
-            if config.has_key?(accessor)
-              evaluated = evaluate_procs(config[accessor])
+            next unless config.has_key?(accessor)
 
-              begin
-                return apply_transformations(accessor, evaluated)
-              rescue
-                next
-              end
+            evaluated = evaluate_procs(config[accessor])
+
+            begin
+              return apply_transformations(accessor, evaluated)
+            rescue StandardError
+              next
             end
           end
 
@@ -138,8 +137,10 @@ module NewRelic
           if transform = transform_from_default(key)
             begin
               transform.call(value)
-            rescue => e
-              ::NewRelic::Agent.logger.error("Error applying transformation for #{key}, pre-transform value was: #{value}.", e)
+            rescue StandardError => e
+              ::NewRelic::Agent.logger.error(
+                "Error applying transformation for #{key}, pre-transform value was: #{value}.", e
+              )
               raise e
             end
           else
@@ -158,14 +159,15 @@ module NewRelic
 
         def invoke_callbacks(direction, source)
           return unless source
+
           source.keys.each do |key|
-            if @cache[key] != source[key]
-              @callbacks[key].each do |proc|
-                if direction == :add
-                  proc.call(source[key])
-                else
-                  proc.call(@cache[key])
-                end
+            next unless @cache[key] != source[key]
+
+            @callbacks[key].each do |proc|
+              if direction == :add
+                proc.call(source[key])
+              else
+                proc.call(@cache[key])
               end
             end
           end
@@ -191,12 +193,12 @@ module NewRelic
         end
 
         def flattened
-          config_stack.reverse.inject({}) do |flat,layer|
+          config_stack.reverse.inject({}) do |flat, layer|
             thawed_layer = layer.to_hash.dup
-            thawed_layer.each do |k,v|
+            thawed_layer.each do |k, v|
               begin
                 thawed_layer[k] = instance_eval(&v) if v.respond_to?(:call)
-              rescue => e
+              rescue StandardError => e
                 ::NewRelic::Agent.logger.debug("#{e.class.name} : #{e.message} - when accessing config key #{k}")
                 thawed_layer[k] = nil
               end
@@ -207,14 +209,14 @@ module NewRelic
         end
 
         def apply_mask(hash)
-          MASK_DEFAULTS. \
-            select {|_, proc| proc.call}. \
-            each {|key, _| hash.delete(key) }
+          MASK_DEFAULTS \
+            .select { |_, proc| proc.call } \
+            .each { |key, _| hash.delete(key) }
           hash
         end
 
         def to_collector_hash
-          DottedHash.new(apply_mask(flattened)).to_hash.delete_if do |k, v|
+          DottedHash.new(apply_mask(flattened)).to_hash.delete_if do |k, _v|
             default = DEFAULTS[k]
             if default
               default[:exclude_from_reported_settings]
@@ -227,8 +229,8 @@ module NewRelic
           end
         end
 
-        MALFORMED_LABELS_WARNING = "Skipping malformed labels configuration"
-        PARSING_LABELS_FAILURE   = "Failure during parsing labels. Ignoring and carrying on with connect."
+        MALFORMED_LABELS_WARNING = 'Skipping malformed labels configuration'
+        PARSING_LABELS_FAILURE   = 'Failure during parsing labels. Ignoring and carrying on with connect.'
 
         MAX_LABEL_COUNT  = 64
         MAX_LABEL_LENGTH = 255
@@ -240,7 +242,7 @@ module NewRelic
           else
             parse_labels_from_dictionary
           end
-        rescue => e
+        rescue StandardError => e
           NewRelic::Agent.logger.error(PARSING_LABELS_FAILURE, e)
           []
         end
@@ -252,7 +254,7 @@ module NewRelic
         end
 
         def break_label_string_into_pairs(labels)
-          stripped_labels = labels.strip.sub(/^;*/,'').sub(/;*$/,'')
+          stripped_labels = labels.strip.sub(/^;*/, '').sub(/;*$/, '')
           stripped_labels.split(';').map do |pair|
             pair.split(':').map(&:strip)
           end
@@ -281,7 +283,7 @@ module NewRelic
           pairs = Array(pairs)
 
           unless valid_label_pairs?(pairs)
-            NewRelic::Agent.logger.warn("#{MALFORMED_LABELS_WARNING}: #{labels||pairs}")
+            NewRelic::Agent.logger.warn("#{MALFORMED_LABELS_WARNING}: #{labels || pairs}")
             return []
           end
 
@@ -289,13 +291,13 @@ module NewRelic
           pairs = remove_duplicates(pairs)
           pairs.map do |key, value|
             {
-              'label_type'  => truncate(key),
+              'label_type' => truncate(key),
               'label_value' => truncate(value.to_s, key)
             }
           end
         end
 
-        def truncate(text, key=nil)
+        def truncate(text, key = nil)
           if text.length > MAX_LABEL_LENGTH
             if key
               msg = "The value for the label '#{key}' is longer than the allowed #{MAX_LABEL_LENGTH} and will be truncated. Value = '#{text}'"
@@ -303,7 +305,7 @@ module NewRelic
               msg = "Label name longer than the allowed #{MAX_LABEL_LENGTH} will be truncated. Name = '#{text}'"
             end
             NewRelic::Agent.logger.warn(msg)
-            text[0..MAX_LABEL_LENGTH-1]
+            text[0..MAX_LABEL_LENGTH - 1]
           else
             text
           end
@@ -344,7 +346,7 @@ module NewRelic
         end
 
         def reset_cache
-          @cache = Hash.new { |hash,key| hash[key] = self.fetch(key) }
+          @cache = Hash.new { |hash, key| hash[key] = fetch(key) }
         end
 
         def log_config(direction, source)

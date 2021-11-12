@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -10,25 +9,22 @@ require 'json'
 
 module NewRelic
   class FakeExternalServer < FakeServer
+    STATUS_MESSAGE = '<html><head><title>FakeExternalServer status</title></head>' +
+                     "<body>The FakeExternalServer is rockin'</body></html>"
 
-    STATUS_MESSAGE = "<html><head><title>FakeExternalServer status</title></head>" +
-      "<body>The FakeExternalServer is rockin'</body></html>"
+    attr_reader :overridden_response_headers, :requests
 
-    attr_reader :overridden_response_headers
-
-    def initialize( * )
+    def initialize(*)
       super
       @requests = []
     end
-
-    attr_reader :requests
 
     def call(env)
       @requests << env.dup
 
       req = ::Rack::Request.new(env)
       res = ::Rack::Response.new
-      res.status = req.params["status"].to_i if req.params["status"]
+      res.status = req.params['status'].to_i if req.params['status']
 
       in_transaction('test') do
         res.write STATUS_MESSAGE
@@ -48,7 +44,7 @@ module NewRelic
     def app
       inner_app = NewRelic::Rack::AgentHooks.new(self)
       server = self
-      Proc.new do |env|
+      proc do |env|
         result = inner_app.call(env)
         result[1].merge!(server.overridden_response_headers)
         result

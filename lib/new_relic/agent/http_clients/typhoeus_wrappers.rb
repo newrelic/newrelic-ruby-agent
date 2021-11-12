@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -9,7 +8,6 @@ module NewRelic
   module Agent
     module HTTPClients
       class TyphoeusHTTPResponse < AbstractResponse
-
         def [](key)
           unless headers.nil?
             result = headers[key]
@@ -22,7 +20,7 @@ module NewRelic
 
         def to_hash
           hash = {}
-          headers.each do |(k,v)|
+          headers.each do |(k, v)|
             hash[k] = v
           end
           hash
@@ -39,19 +37,19 @@ module NewRelic
         def initialize(request)
           @request = request
           @uri = case request.url
-            when ::URI then request.url
-            else NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(request.url)
-            end
+                 when ::URI then request.url
+                 else NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(request.url)
+                 end
         end
 
-        TYPHOEUS = "Typhoeus".freeze
+        TYPHOEUS = 'Typhoeus'
 
         def type
           TYPHOEUS
         end
 
-        LHOST = 'host'.freeze
-        UHOST = 'Host'.freeze
+        LHOST = 'host'
+        UHOST = 'Host'
 
         def host_from_header
           self[LHOST] || self[UHOST]
@@ -61,7 +59,7 @@ module NewRelic
           host_from_header || @uri.host
         end
 
-        GET = 'GET'.freeze
+        GET = 'GET'
 
         def method
           (@request.options[:method] || GET).to_s.upcase
@@ -69,6 +67,7 @@ module NewRelic
 
         def [](key)
           return nil unless @request.options && @request.options[:headers]
+
           @request.options[:headers][key]
         end
 
@@ -77,9 +76,7 @@ module NewRelic
           @request.options[:headers][key] = value
         end
 
-        def uri
-          @uri
-        end
+        attr_reader :uri
       end
     end
   end

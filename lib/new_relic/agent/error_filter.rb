@@ -1,29 +1,29 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 module NewRelic
   module Agent
-
     # Handles loading of ignored and expected errors from the agent configuration, and
     # determining at runtime whether an exception is ignored or expected.
     class ErrorFilter
-
       def initialize
         reset
       end
 
       def reset
-        @ignore_classes, @expected_classes = [], []
-        @ignore_messages, @expected_messages = {}, {}
-        @ignore_status_codes, @expected_status_codes = [], []
+        @ignore_classes = []
+        @expected_classes = []
+        @ignore_messages = {}
+        @expected_messages = {}
+        @ignore_status_codes = []
+        @expected_status_codes = []
       end
 
       def load_all
-        %i(
+        %i[
           ignore_errors ignore_classes ignore_messages ignore_status_codes
           expected_classes expected_messages expected_status_codes
-        ).each { |setting| load_from_config(setting) }
+        ].each { |setting| load_from_config(setting) }
       end
 
       def load_from_config(setting, value = nil)
@@ -82,7 +82,7 @@ module NewRelic
             @ignore_messages.update(errors)
             log_filter(:ignore_messages, errors)
           when String
-            if errors.match(/^[\d\,\-]+$/)
+            if errors.match(/^[\d,\-]+$/)
               @ignore_status_codes |= parse_status_codes(errors)
               log_filter(:ignore_status_codes, errors)
             else
@@ -106,7 +106,7 @@ module NewRelic
             @expected_messages.update(errors)
             log_filter(:expected_messages, errors)
           when String
-            if errors.match(/^[\d\,\-]+$/)
+            if errors.match(/^[\d,\-]+$/)
               @expected_status_codes |= parse_status_codes(errors)
               log_filter(:expected_status_codes, errors)
             else
@@ -127,7 +127,7 @@ module NewRelic
             ::NewRelic::Agent.logger.debug("Ignoring errors of type '#{error}'")
           end
         when :ignore_messages
-          errors.each do |error,messages|
+          errors.each do |error, messages|
             ::NewRelic::Agent.logger.debug("Ignoring errors of type '#{error}' with messages: #{messages.join(',')}")
           end
         when :ignore_status_codes
@@ -137,7 +137,7 @@ module NewRelic
             ::NewRelic::Agent.logger.debug("Expecting errors of type '#{error}'")
           end
         when :expected_messages
-          errors.each do |error,messages|
+          errors.each do |error, messages|
             ::NewRelic::Agent.logger.debug("Expecting errors of type '#{error}' with messages: #{messages.join(',')}")
           end
         when :expected_status_codes
@@ -147,16 +147,17 @@ module NewRelic
 
       def parse_status_codes(codes)
         code_list = case codes
-          when String
-            codes.split(',')
-          when Integer
-            [codes]
-          else
-            codes
-          end
+                    when String
+                      codes.split(',')
+                    when Integer
+                      [codes]
+                    else
+                      codes
+                    end
         result = []
         code_list.each do |code|
           result << code && next if code.is_a?(Integer)
+
           m = code.match(/(\d{3})(-\d{3})?/)
           if m.nil? || m[1].nil?
             ::NewRelic::Agent.logger.warn("Invalid HTTP status code: '#{code}'; ignoring config")

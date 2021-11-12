@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -9,23 +8,23 @@ module NewRelic
     module Utilization
       class Vendor
         class << self
-          def vendor_name vendor_name = nil
+          def vendor_name(vendor_name = nil)
             vendor_name ? @vendor_name = vendor_name.freeze : @vendor_name
           end
 
-          def endpoint endpoint = nil
+          def endpoint(endpoint = nil)
             endpoint ? @endpoint = URI(endpoint) : @endpoint
           end
 
-          def headers headers = nil
+          def headers(headers = nil)
             headers ? @headers = headers.freeze : @headers
           end
 
-          def keys keys = nil
+          def keys(keys = nil)
             keys ? @keys = keys.freeze : @keys
           end
 
-          def key_transforms key_transforms = nil
+          def key_transforms(key_transforms = nil)
             key_transforms ? @key_transforms = Array(key_transforms).freeze : @key_transforms
           end
         end
@@ -36,7 +35,7 @@ module NewRelic
           @metadata = {}
         end
 
-        [:vendor_name, :endpoint, :headers, :keys, :key_transforms].each do |method_name|
+        %i[vendor_name endpoint headers keys key_transforms].each do |method_name|
           define_method(method_name) { self.class.send(method_name) }
         end
 
@@ -52,7 +51,7 @@ module NewRelic
             else
               false
             end
-          rescue => e
+          rescue StandardError => e
             NewRelic::Agent.logger.error "Error occurred detecting: #{vendor_name}", e
             record_supportability_metric
             false
@@ -70,15 +69,15 @@ module NewRelic
             end
             response
           end
-        rescue
+        rescue StandardError
           NewRelic::Agent.logger.debug "#{vendor_name} environment not detected"
         end
 
-        def prepare_response response
+        def prepare_response(response)
           JSON.parse response.body
         end
 
-        def process_response response
+        def process_response(response)
           keys.each do |key|
             normalized = normalize response[key]
             if normalized
@@ -92,7 +91,7 @@ module NewRelic
           true
         end
 
-        def normalize value
+        def normalize(value)
           return if value.nil?
 
           value = value.to_s
@@ -107,7 +106,7 @@ module NewRelic
           value
         end
 
-        def valid_length? value
+        def valid_length?(value)
           if value.bytesize <= 255
             true
           else
@@ -116,11 +115,12 @@ module NewRelic
           end
         end
 
-        VALID_CHARS = /^[0-9a-zA-Z_ .\/-]$/
+        VALID_CHARS = %r{^[0-9a-zA-Z_ ./-]$}
 
-        def valid_chars? value
+        def valid_chars?(value)
           value.each_char do |ch|
             next if ch =~ VALID_CHARS
+
             code_point = ch[0].ord # this works in Ruby 1.8.7 - 2.1.2
             next if code_point >= 0x80
 
@@ -130,8 +130,9 @@ module NewRelic
           true
         end
 
-        def transform_key key
+        def transform_key(key)
           return key unless key_transforms
+
           key_transforms.inject(key) { |memo, transform| memo.send(transform) }
         end
 

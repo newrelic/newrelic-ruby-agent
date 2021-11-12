@@ -1,17 +1,15 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../test_helper', __FILE__
+require File.expand_path '../../../test_helper', __dir__
 
 module NewRelic
   module Agent
     module DistributedTracing
       class TraceContext
         class TraceContextHeaderDataTest < Minitest::Test
-
           def test_tracestate_built_from_array
-            other_entries = ['one', 'two']
+            other_entries = %w[one two]
             header_data = HeaderData.new 'traceparent', 'tracestate_entry', other_entries, 0, ''
 
             assert_nil header_data.instance_variable_get :@trace_state
@@ -50,7 +48,7 @@ module NewRelic
 
           def test_trace_state_trims_large_entries_if_total_size_is_greater_than_512_bytes
             trace_state_array = [
-              "#{random_text(2)}=#{random_text(130)}", # 133 bytes
+              "#{random_text(2)}=#{random_text(130)}" # 133 bytes
             ]
             # also add 500 more bytes
             trace_state_array += (0...50).map { "#{random_text(2)}=#{random_text(6)}" }
@@ -78,7 +76,7 @@ module NewRelic
           end
 
           LETTERS = ('a'..'z').to_a
-          def random_text length
+          def random_text(length)
             letters = (0...length).map { LETTERS.sample }
             letters.join('')
           end

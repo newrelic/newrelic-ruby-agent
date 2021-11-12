@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -19,7 +18,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
       def call(env)
         Thread.new do
           100.times do
-            env.each do |k, v|
+            env.each do |_k, _v|
               # allow main thread to run while we're still in the middle of
               # iterating
               Thread.pass

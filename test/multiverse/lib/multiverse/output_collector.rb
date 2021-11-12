@@ -1,12 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 # This module is responsible for intercepting output made through various stdlib
 # calls (i.e. puts, print, etc.) and printing summary information (e.g. a list
 # of failing tests) at the end of the process.
-
-require 'thread'
 
 module Multiverse
   module OutputCollector
@@ -24,7 +21,7 @@ module Multiverse
       key = [suite, env]
       @buffer_lock.synchronize do
         @buffers ||= {}
-        @buffers[key] ||= ""
+        @buffers[key] ||= ''
         @buffers[key]
       end
     end
@@ -46,9 +43,9 @@ module Multiverse
     end
 
     def self.overall_report
-      output("", "")
+      output('', '')
       if failing_output.empty?
-        output(green("There were no test failures"))
+        output(green('There were no test failures'))
       else
         to_output = failing_output_header + failing_output + failing_output_footer
         output(*to_output)
@@ -57,37 +54,35 @@ module Multiverse
     end
 
     def self.failing_output_header
-      [red("*" * 80),
-        red("Repeating failed test output"),
-        red("*" * 80),
-        ""]
+      [red('*' * 80),
+       red('Repeating failed test output'),
+       red('*' * 80),
+       '']
     end
 
     def self.failing_output_footer
-      ["",
-        red("*" * 80),
-        red("There were failures in #{failing_output.size} test suites"),
-        "",
-        @failing_suites.map { |suite, env| red("#{suite} failed in env #{env}") },
-        red("*" * 80)]
+      ['',
+       red('*' * 80),
+       red("There were failures in #{failing_output.size} test suites"),
+       '',
+       @failing_suites.map { |suite, env| red("#{suite} failed in env #{env}") },
+       red('*' * 80)]
     end
 
     # Saves the failing out put to the working directory of the container
     # where it is later read and output as annotations of the github workflow
     def self.save_output_to_error_file(lines)
       @output_lock.synchronize do
-        filepath = ENV["GITHUB_WORKSPACE"] || File.expand_path(File.dirname(__FILE__))
-        output_file = File.join(filepath, "errors.txt")
+        filepath = ENV['GITHUB_WORKSPACE'] || __dir__
+        output_file = File.join(filepath, 'errors.txt')
 
         existing_lines = []
-        if File.exist?(output_file)
-          existing_lines += File.read(output_file).split("\n")
-        end
+        existing_lines += File.read(output_file).split("\n") if File.exist?(output_file)
 
         lines = lines.split("\n") if lines.is_a?(String)
         File.open(output_file, 'w') do |f|
           f.puts existing_lines
-          f.puts "*" * 80
+          f.puts '*' * 80
           f.puts lines
         end
       end

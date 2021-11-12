@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -9,7 +8,7 @@ module NewRelic
 
       extend self
 
-      def trace_execution_scoped(metric_names, options=NewRelic::EMPTY_HASH) #THREAD_LOCAL_ACCESS
+      def trace_execution_scoped(metric_names, options = NewRelic::EMPTY_HASH, &block) # THREAD_LOCAL_ACCESS
         state = NewRelic::Agent::Tracer.state
         return yield unless state.is_execution_traced?
 
@@ -22,12 +21,10 @@ module NewRelic
           unscoped_metrics: metric_names
         )
 
-        if options[:metric] == false
-          segment.record_metrics = false
-        end
+        segment.record_metrics = false if options[:metric] == false
 
         begin
-          Tracer.capture_segment_error(segment) { yield }
+          Tracer.capture_segment_error(segment, &block)
         ensure
           segment.finish if segment
         end

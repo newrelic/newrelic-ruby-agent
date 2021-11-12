@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -11,7 +10,7 @@ module NewRelic
         @already_logged_lock.synchronize do
           return if @already_logged.include?(key)
 
-          if @already_logged.size >= NUM_LOG_ONCE_KEYS && key.kind_of?(String)
+          if @already_logged.size >= NUM_LOG_ONCE_KEYS && key.is_a?(String)
             # The reason for preventing too many keys in `logged` is for
             # memory concerns.
             # The reason for checking the type of the key is that we always want
@@ -26,7 +25,7 @@ module NewRelic
           @already_logged[key] = true
         end
 
-        self.send(level, *msgs)
+        send(level, *msgs)
       end
 
       def clear_already_logged

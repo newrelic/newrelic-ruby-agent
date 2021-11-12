@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -30,14 +29,14 @@ class AuditLogTest < Minitest::Test
   end
 
   def test_logs_nothing_when_disabled
-    run_agent(:'audit_log.enabled' => false) do
+    run_agent('audit_log.enabled': false) do
       perform_actions
       assert_equal('', audit_log_contents)
     end
   end
 
   def test_logs_request_bodies_human_readably_ish
-    run_agent(:'audit_log.enabled' => true) do
+    run_agent('audit_log.enabled': true) do
       perform_actions
       $collector.agent_data.each do |req|
         assert_audit_log_contains_object(audit_log_contents, req.body)
@@ -48,9 +47,9 @@ class AuditLogTest < Minitest::Test
   def perform_actions
     state = NewRelic::Agent::Tracer.state
     NewRelic::Agent.instance.sql_sampler.on_start_transaction(state)
-    NewRelic::Agent.instance.sql_sampler.notice_sql("select * from test",
-                                 "Database/test/select",
-                                 nil, 1.5, state)
+    NewRelic::Agent.instance.sql_sampler.notice_sql('select * from test',
+                                                    'Database/test/select',
+                                                    nil, 1.5, state)
     NewRelic::Agent.instance.sql_sampler.on_finishing_transaction(state, 'txn')
     NewRelic::Agent.instance.send(:harvest_and_send_slowest_sql)
   end

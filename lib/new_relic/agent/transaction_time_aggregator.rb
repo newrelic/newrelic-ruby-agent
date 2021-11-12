@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -67,9 +66,7 @@ module NewRelic
           end
         end
 
-        if Agent.config[:report_instance_busy]
-          NewRelic::Agent.record_metric(INSTANCE_BUSY_METRIC, result)
-        end
+        NewRelic::Agent.record_metric(INSTANCE_BUSY_METRIC, result) if Agent.config[:report_instance_busy]
 
         result
       end
@@ -110,13 +107,13 @@ module NewRelic
         # perfomance reasons. We have two implmentations of `thread_by_id`
         # based on ruby implementation.
         if RUBY_ENGINE == 'jruby'
-          def thread_by_id thread_id
+          def thread_by_id(thread_id)
             Thread.list.detect { |t| t.object_id == thread_id }
           end
         else
           require 'objspace'
 
-          def thread_by_id thread_id
+          def thread_by_id(thread_id)
             ObjectSpace._id2ref(thread_id)
           end
         end
@@ -127,11 +124,12 @@ module NewRelic
 
         def split_transaction_at_harvest(timestamp, thread_id = nil)
           raise ArgumentError, 'thread_id required' unless thread_id
+
           @stats[thread_id].transaction_started_at = timestamp
           @stats[thread_id].elapsed_transaction_time = 0.0
         end
 
-        def transaction_time_in_thread timestamp, thread_id, entry
+        def transaction_time_in_thread(timestamp, thread_id, entry)
           return entry.elapsed_transaction_time unless in_transaction? thread_id
 
           # Count the portion of the transaction that's elapsed so far,...
@@ -145,8 +143,8 @@ module NewRelic
 
         def log_missing_elapsed_transaction_time
           transaction_name = Tracer.current_transaction &&
-            Tracer.current_transaction.best_name ||
-              "unknown"
+                             Tracer.current_transaction.best_name ||
+                             'unknown'
           NewRelic::Agent.logger.warn("Unable to calculate elapsed transaction time for #{transaction_name}")
         end
       end

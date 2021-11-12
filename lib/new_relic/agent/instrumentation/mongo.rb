@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -12,7 +11,8 @@ DependencyDetection.defer do
   depends_on do
     require 'new_relic/agent/datastores/mongo'
     unless NewRelic::Agent::Datastores::Mongo.is_supported_version?
-      NewRelic::Agent.logger.log_once(:warn, :mongo2, 'Detected unsupported Mongo 2, upgrade your Mongo Driver to 2.1 or newer for instrumentation')
+      NewRelic::Agent.logger.log_once(:warn, :mongo2,
+                                      'Detected unsupported Mongo 2, upgrade your Mongo Driver to 2.1 or newer for instrumentation')
     end
     NewRelic::Agent::Datastores::Mongo.is_supported_version?
   end

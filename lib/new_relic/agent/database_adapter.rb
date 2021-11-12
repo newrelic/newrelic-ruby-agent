@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -13,6 +12,7 @@ module NewRelic
 
       def self.value
         return unless defined? ActiveRecord::Base
+
         new(::NewRelic::Control.instance.env, ActiveRecord::VERSION::STRING).value
       end
 
@@ -26,6 +26,7 @@ module NewRelic
       def value
         match = VERSIONS.keys.find { |key| version >= Gem::Version.new(key) }
         return unless match
+
         VERSIONS[match].call(env)
       end
     end

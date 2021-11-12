@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -33,13 +32,13 @@ class NewRelic::Control::InstanceMethodsTest < Minitest::Test
 
   def test_no_high_security_config_by_default
     refute_has_config NewRelic::Agent::Configuration::HighSecuritySource
-    @test.configure_agent('test', {:high_security => false})
+    @test.configure_agent('test', { high_security: false })
     refute_has_config NewRelic::Agent::Configuration::HighSecuritySource
   end
 
   def test_high_security_config_added_if_requested
     refute_has_config NewRelic::Agent::Configuration::HighSecuritySource
-    @test.configure_agent('test', {:high_security => true})
+    @test.configure_agent('test', { high_security: true })
     assert_has_config NewRelic::Agent::Configuration::HighSecuritySource
   end
 
@@ -52,10 +51,10 @@ class NewRelic::Control::InstanceMethodsTest < Minitest::Test
 
   def test_configure_agent_invalid_yaml_value_logs_to_stdout
     config_path = File.expand_path(File.join(
-      File.dirname(__FILE__),
-      '..','..', 'config','newrelic.yml')
-    )
-    @test.configure_agent('invalid', {:config_path => config_path})
+                                     File.dirname(__FILE__),
+                                     '..', '..', 'config', 'newrelic.yml'
+                                   ))
+    @test.configure_agent('invalid', { config_path: config_path })
     assert NewRelic::Agent.config.instance_variable_get(:@yaml_source).failed?
     expected_err = "** [NewRelic] FATAL : Unexpected value (cultured groats) for 'enabled' in #{config_path}\n"
     assert_equal expected_err, @test.stdout.string

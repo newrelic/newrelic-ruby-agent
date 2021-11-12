@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -6,7 +5,6 @@ require 'base64'
 
 module NewRelic
   module Agent
-
     #--
     # Manages the registering and servicing of pipes used by child
     # processes to report data to their parent, rather than directly
@@ -56,7 +54,7 @@ module NewRelic
       # 4 GB - much larger than we'd ever need or want for this application.
       #
       class Pipe
-        READY_MARKER = "READY"
+        READY_MARKER = 'READY'
         NUM_LENGTH_BYTES = 4
 
         attr_accessor :in, :out
@@ -64,9 +62,7 @@ module NewRelic
 
         def initialize
           @out, @in = IO.pipe
-          if defined?(::Encoding::ASCII_8BIT)
-            @in.set_encoding(::Encoding::ASCII_8BIT)
-          end
+          @in.set_encoding(::Encoding::ASCII_8BIT) if defined?(::Encoding::ASCII_8BIT)
           @last_read = Process.clock_gettime(Process::CLOCK_REALTIME)
           @parent_pid = $$
         end
@@ -77,11 +73,11 @@ module NewRelic
         end
 
         def serialize_message_length(data)
-          [data.bytesize].pack("L>")
+          [data.bytesize].pack('L>')
         end
 
         def deserialize_message_length(data)
-          data.unpack("L>").first
+          data.unpack1('L>')
         end
 
         def write(data)
@@ -104,7 +100,7 @@ module NewRelic
               nil
             end
           else
-            NewRelic::Agent.logger.error("Failed to read bytes for length from pipe.")
+            NewRelic::Agent.logger.error('Failed to read bytes for length from pipe.')
             nil
           end
         end
@@ -161,6 +157,7 @@ module NewRelic
 
         def start
           return if @started == true
+
           @started = true
           @thread = NewRelic::Agent::Threading::AgentThread.create('Pipe Channel Manager') do
             now = nil
@@ -168,7 +165,7 @@ module NewRelic
               clean_up_pipes
 
               pipes_to_listen_to = @pipes_lock.synchronize do
-                @pipes.values.map{|pipe| pipe.out} + [wake.out]
+                @pipes.values.map { |pipe| pipe.out } + [wake.out]
               end
 
               if now
@@ -203,6 +200,7 @@ module NewRelic
 
         def stop
           return unless @started == true
+
           stop_listener_thread
           close_all_pipes
           @wake.close
@@ -211,7 +209,7 @@ module NewRelic
 
         def close_all_pipes
           @pipes_lock.synchronize do
-            @pipes.each do |id, pipe|
+            @pipes.each do |_id, pipe|
               pipe.close if pipe
             end
             @pipes = {}
@@ -249,29 +247,27 @@ module NewRelic
         def unmarshal(data)
           Marshal.load(data)
         rescue StandardError => e
-          ::NewRelic::Agent.logger.error "Failure unmarshalling message from Resque child process", e
+          ::NewRelic::Agent.logger.error 'Failure unmarshalling message from Resque child process', e
           ::NewRelic::Agent.logger.debug Base64.encode64(data)
           nil
         end
 
         def should_keep_listening?
-          @started || @pipes_lock.synchronize { @pipes.values.find{|pipe| !pipe.in.closed?} }
+          @started || @pipes_lock.synchronize { @pipes.values.find { |pipe| !pipe.in.closed? } }
         end
 
         def clean_up_pipes
           @pipes_lock.synchronize do
             @pipes.values.each do |pipe|
-              if pipe.last_read + @timeout < Process.clock_gettime(Process::CLOCK_REALTIME)
-                pipe.close unless pipe.closed?
-              end
+              pipe.close if pipe.last_read + @timeout < Process.clock_gettime(Process::CLOCK_REALTIME) && !pipe.closed?
             end
-            @pipes.reject! {|id, pipe| pipe.out.closed? }
+            @pipes.reject! { |_id, pipe| pipe.out.closed? }
           end
         end
 
         def find_pipe_for_handle(out_handle)
           @pipes_lock.synchronize do
-            @pipes.values.find{|pipe| pipe.out == out_handle }
+            @pipes.values.find { |pipe| pipe.out == out_handle }
           end
         end
       end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -20,7 +19,7 @@ require 'new_relic/control'
 if defined?(Rails::VERSION)
   module NewRelic
     class Railtie < Rails::Railtie
-      initializer "newrelic_rpm.start_plugin", before: :load_config_initializers do |app|
+      initializer 'newrelic_rpm.start_plugin', before: :load_config_initializers do |app|
         NewRelic::Control.instance.init_plugin(config: app.config)
       end
     end

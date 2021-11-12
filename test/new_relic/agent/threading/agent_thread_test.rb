@@ -1,27 +1,25 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/threading/agent_thread'
 
 module NewRelic::Agent::Threading
   class AgentThreadTest < Minitest::Test
-
     def test_sets_label
-      t = AgentThread.create("labelled") {}
-      assert_equal "labelled", t[:newrelic_label]
+      t = AgentThread.create('labelled') {}
+      assert_equal 'labelled', t[:newrelic_label]
       t.join
     end
 
     def test_bucket_thread_as_agent_when_profiling
-      t = AgentThread.create("labelled") {}
+      t = AgentThread.create('labelled') {}
       assert_equal :agent, AgentThread.bucket_thread(t, true)
       t.join
     end
 
     def test_bucket_thread_as_agent_when_not_profiling
-      t = AgentThread.create("labelled") {}
+      t = AgentThread.create('labelled') {}
       assert_equal :ignore, AgentThread.bucket_thread(t, false)
       t.join
     end
@@ -31,15 +29,13 @@ module NewRelic::Agent::Threading
       q1 = Queue.new
 
       t = Thread.new do
-        begin
-          in_web_transaction do
-            q0.push 'unblock main thread'
-            q1.pop
-          end
-        rescue => e
+        in_web_transaction do
           q0.push 'unblock main thread'
-          fail e
+          q1.pop
         end
+      rescue StandardError => e
+        q0.push 'unblock main thread'
+        raise e
       end
 
       q0.pop # wait until thread has had a chance to start up
@@ -54,15 +50,13 @@ module NewRelic::Agent::Threading
       q1 = Queue.new
 
       t = ::Thread.new do
-        begin
-          in_transaction do
-            q0.push 'unblock main thread'
-            q1.pop
-          end
-        rescue => e
+        in_transaction do
           q0.push 'unblock main thread'
-          fail e
+          q1.pop
         end
+      rescue StandardError => e
+        q0.push 'unblock main thread'
+        raise e
       end
 
       q0.pop # wait until thread pushes to q
@@ -81,16 +75,16 @@ module NewRelic::Agent::Threading
     def test_runs_block
       called = false
 
-      t = AgentThread.create("labelled") { called = true }
+      t = AgentThread.create('labelled') { called = true }
       t.join
 
       assert called
     end
 
     def test_standard_error_is_caught
-      expects_logging(:error, includes("exited"), any_parameters)
+      expects_logging(:error, includes('exited'), any_parameters)
 
-      t = AgentThread.create("fail") { raise "O_o" }
+      t = AgentThread.create('fail') { raise 'O_o' }
       t.join
 
       assert_thread_completed(t)
@@ -98,15 +92,13 @@ module NewRelic::Agent::Threading
 
     def test_exception_is_reraised
       with_thread_report_on_exception_disabled do
-        expects_logging(:error, includes("exited"), any_parameters)
+        expects_logging(:error, includes('exited'), any_parameters)
 
         assert_raises(Exception) do
-          begin
-            t = AgentThread.create("fail") { raise Exception.new }
-            t.join
-          ensure
-            assert_thread_died_from_exception(t)
-          end
+          t = AgentThread.create('fail') { raise Exception }
+          t.join
+        ensure
+          assert_thread_died_from_exception(t)
         end
       end
     end
@@ -125,24 +117,22 @@ module NewRelic::Agent::Threading
         Thread.report_on_exception = false
       end
       blk.call
-      if Thread.respond_to? :report_on_exception
-        Thread.report_on_exception = report_on_exception_original_value
-      end
+      Thread.report_on_exception = report_on_exception_original_value if Thread.respond_to? :report_on_exception
     end
 
     TRACE = [
       "/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/gems/1.9.1/gems/eventmachine-0.12.10/lib/eventmachine.rb:100:in `catch'",
       "/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/gems/1.9.1/gems/newrelic_rpm-3.5.3.452.dev/lib/new_relic/agent/agent.rb:200:in `start_worker_thread'",
-      "/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/gems/1.9.1/gems/thin-1.5.0/lib/thin/backends/base.rb:300:in `block (3 levels) in run'",
+      "/Users/jclark/.rbenv/versions/1.9.3-p194/lib/ruby/gems/1.9.1/gems/thin-1.5.0/lib/thin/backends/base.rb:300:in `block (3 levels) in run'"
     ]
 
     def test_scrubs_backtrace_when_not_profiling_agent_code
-      result = AgentThread.scrub_backtrace(stub(:backtrace => TRACE.dup), false)
+      result = AgentThread.scrub_backtrace(stub(backtrace: TRACE.dup), false)
       assert_equal [TRACE[0], TRACE[2]], result
     end
 
     def test_doesnt_scrub_backtrace_when_profiling_agent_code
-      result = AgentThread.scrub_backtrace(stub(:backtrace => TRACE.dup), true)
+      result = AgentThread.scrub_backtrace(stub(backtrace: TRACE.dup), true)
       assert_equal TRACE, result
     end
 
@@ -153,7 +143,7 @@ module NewRelic::Agent::Threading
     end
 
     def test_scrub_backtrace_handles_nil_backtrace
-      bt = AgentThread.scrub_backtrace(stub(:backtrace => nil), false)
+      bt = AgentThread.scrub_backtrace(stub(backtrace: nil), false)
       assert_nil(bt)
     end
 

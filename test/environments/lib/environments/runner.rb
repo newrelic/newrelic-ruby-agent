@@ -1,10 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../multiverse/lib/multiverse/bundler_patch', __FILE__
-require File.expand_path '../../../../multiverse/lib/multiverse/color', __FILE__
-require File.expand_path '../../../../multiverse/lib/multiverse/shell_utils', __FILE__
+require File.expand_path '../../../multiverse/lib/multiverse/bundler_patch', __dir__
+require File.expand_path '../../../multiverse/lib/multiverse/color', __dir__
+require File.expand_path '../../../multiverse/lib/multiverse/shell_utils', __dir__
 
 module Environments
   class Runner
@@ -17,24 +16,24 @@ module Environments
     end
 
     def env_root
-      File.expand_path '../../..', __FILE__
+      File.expand_path '../..', __dir__
     end
 
     def run_and_report
       overall_status = 0
       failures = []
 
-      puts yellow("Tests to run:\n\t#{tests_to_run.map{|s|s.gsub(env_root + "/", "")}.join("\n\t")}")
-      env_file = ENV["file"]
+      puts yellow("Tests to run:\n\t#{tests_to_run.map { |s| s.gsub(env_root + '/', '') }.join("\n\t")}")
+      env_file = ENV['file']
       tests_to_run.each do |dir|
         Bundler.with_unbundled_env do
-          ENV["file"] = env_file if env_file
+          ENV['file'] = env_file if env_file
           dir = File.expand_path(dir)
-          puts "", yellow("Running tests for #{dir}")
+          puts '', yellow("Running tests for #{dir}")
           status = bundle(dir)
           status = run(dir) if status.success?
 
-          if !status.success?
+          unless status.success?
             overall_status += 1
             failures << dir
           end
@@ -42,9 +41,9 @@ module Environments
       end
 
       if overall_status == 0
-        puts green("All good to go. Yippy!")
+        puts green('All good to go. Yippy!')
       else
-        puts red("Oh no, #{overall_status} environments failed!"), "", red(failures.join("\n"))
+        puts red("Oh no, #{overall_status} environments failed!"), '', red(failures.join("\n"))
       end
 
       exit(overall_status)
@@ -60,9 +59,10 @@ module Environments
     end
 
     def potential_directories
-      original_dirs = Dir["#{env_root}/*"].reject { |d| File.basename(d) == "lib"}
+      original_dirs = Dir["#{env_root}/*"].reject { |d| File.basename(d) == 'lib' }
 
       return original_dirs if envs.empty?
+
       dirs = []
       envs.each do |dir|
         dirs.concat(original_dirs.select { |d| File.basename(d).index(dir) == 0 })
@@ -71,20 +71,22 @@ module Environments
     end
 
     # Ensures we bundle will recognize an explicit version number on command line
-    def safe_explicit version
-      return version if version.to_s == ""
+    def safe_explicit(version)
+      return version if version.to_s == ''
+
       test_version = `bundle #{version} --version` =~ /Could not find command/
-      test_version ? "" : version
+      test_version ? '' : version
     end
 
-    def explicit_bundler_version dir
+    def explicit_bundler_version(dir)
       return if RUBY_VERSION.to_f <= 2.3
-      fn = File.join(dir, ".bundler-version")
+
+      fn = File.join(dir, '.bundler-version')
       version = File.exist?(fn) ? File.read(fn).chomp!.strip : nil
-      safe_explicit(version.to_s == "" ? nil : "_#{version}_")
+      safe_explicit(version.to_s == '' ? nil : "_#{version}_")
     end
 
-    def bundle_config dir, bundle_cmd
+    def bundle_config(dir, bundle_cmd)
       `cd #{dir} && #{bundle_cmd} config build.nokogiri --use-system-libraries`
     end
 
@@ -103,13 +105,11 @@ module Environments
     end
 
     def run(dir)
-      puts "Starting tests..."
+      puts 'Starting tests...'
       cmd = "cd #{dir} && bundle exec rake"
-      cmd << " file=#{ENV['file']}" if ENV["file"]
+      cmd << " file=#{ENV['file']}" if ENV['file']
       IO.popen(cmd) do |io|
-        until io.eof do
-          print io.read(1)
-        end
+        print io.read(1) until io.eof
       end
       $?
     end

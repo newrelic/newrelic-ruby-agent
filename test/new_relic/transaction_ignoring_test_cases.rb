@@ -1,19 +1,17 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 module TransactionIgnoringTestCases
-
   include MultiverseHelpers
 
   TXN_PREFIX = 'Controller/'
 
   setup_and_teardown_agent do |collector|
     collector.stub('connect', {
-      'transaction_name_rules' => [{"match_expression" => "ignored_transaction",
-                                    "ignore"           => true}],
-      'agent_run_id' => 1,
-    })
+                     'transaction_name_rules' => [{ 'match_expression' => 'ignored_transaction',
+                                                    'ignore' => true }],
+                     'agent_run_id' => 1
+                   })
   end
 
   # Test classes that include this module are expected to define:
@@ -21,17 +19,16 @@ module TransactionIgnoringTestCases
   #   trigger_transaction_with_error(txn_name, error_msg)
   #   trigger_transaction_with_slow_sql(txn_name)
 
-
   def test_does_not_record_metrics_for_ignored_transaction
     trigger_transaction('accepted_transaction')
     trigger_transaction('ignored_transaction')
 
     NewRelic::Agent.instance.send(:harvest_and_send_timeslice_data)
 
-    stats = $collector.reported_stats_for_metric(TXN_PREFIX+'accepted_transaction')
+    stats = $collector.reported_stats_for_metric(TXN_PREFIX + 'accepted_transaction')
     assert_equal(1, stats.size)
 
-    stats = $collector.reported_stats_for_metric(TXN_PREFIX+'ignored_transaction')
+    stats = $collector.reported_stats_for_metric(TXN_PREFIX + 'ignored_transaction')
     assert_equal(0, stats.size)
   end
 
@@ -51,7 +48,7 @@ module TransactionIgnoringTestCases
   end
 
   def test_does_not_record_transaction_trace_for_ignored_transactions
-    with_config(:'transaction_tracer.transaction_threshold' => 0) do
+    with_config('transaction_tracer.transaction_threshold': 0) do
       trigger_transaction('accepted_transaction')
       NewRelic::Agent.instance.send(:harvest_and_send_transaction_traces)
       assert_equal(1, $collector.calls_for('transaction_sample_data').size)
@@ -74,7 +71,7 @@ module TransactionIgnoringTestCases
     events = posts.first.events
 
     assert_equal(1, events.size)
-    assert_equal(TXN_PREFIX+'accepted_transaction', events.first[0]['name'])
+    assert_equal(TXN_PREFIX + 'accepted_transaction', events.first[0]['name'])
   end
 
   def test_does_not_record_sql_traces_for_ignored_transactions
@@ -95,8 +92,7 @@ module TransactionIgnoringTestCases
     # From SqlTrace#to_collector_array
     # 0 -> path
     # 5 -> call_count
-    assert_equal(TXN_PREFIX+'accepted_transaction', trace[0])
+    assert_equal(TXN_PREFIX + 'accepted_transaction', trace[0])
     assert_equal(1, trace[5])
   end
-
 end

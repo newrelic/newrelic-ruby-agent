@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -44,7 +43,7 @@ module NewRelic
         messages << [:debug, msgs, blk]
       end
 
-      def log_exception(level, e, backtrace_level=level)
+      def log_exception(level, e, backtrace_level = level)
         messages << [:log_exception, [level, e, backtrace_level]]
       end
 

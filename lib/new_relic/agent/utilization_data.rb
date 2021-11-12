@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -7,17 +6,16 @@ require 'new_relic/agent/utilization/gcp'
 require 'new_relic/agent/utilization/azure'
 require 'new_relic/agent/utilization/pcf'
 
-
 module NewRelic
   module Agent
     class UtilizationData
       METADATA_VERSION = 5
 
       VENDORS = {
-        Utilization::AWS   => :'utilization.detect_aws',
-        Utilization::GCP   => :'utilization.detect_gcp',
+        Utilization::AWS => :'utilization.detect_aws',
+        Utilization::GCP => :'utilization.detect_gcp',
         Utilization::Azure => :'utilization.detect_azure',
-        Utilization::PCF   => :'utilization.detect_pcf'
+        Utilization::PCF => :'utilization.detect_pcf'
       }
 
       def hostname
@@ -68,10 +66,10 @@ module NewRelic
 
       def to_collector_hash
         result = {
-          :metadata_version => METADATA_VERSION,
-          :logical_processors => cpu_count,
-          :total_ram_mib => ram_in_mib,
-          :hostname => hostname
+          metadata_version: METADATA_VERSION,
+          logical_processors: cpu_count,
+          total_ram_mib: ram_in_mib,
+          hostname: hostname
         }
 
         append_vendor_info(result)
@@ -88,13 +86,14 @@ module NewRelic
       def append_vendor_info(collector_hash)
         VENDORS.each_pair do |klass, config_option|
           next unless Agent.config[config_option]
+
           vendor = klass.new
 
-          if vendor.detect
-            collector_hash[:vendors] ||= {}
-            collector_hash[:vendors][vendor.vendor_name.to_sym] = vendor.metadata
-            break
-          end
+          next unless vendor.detect
+
+          collector_hash[:vendors] ||= {}
+          collector_hash[:vendors][vendor.vendor_name.to_sym] = vendor.metadata
+          break
         end
       end
 
@@ -103,7 +102,7 @@ module NewRelic
 
         if docker_container_id = container_id
           collector_hash[:vendors] ||= {}
-          collector_hash[:vendors][:docker] = {:id => docker_container_id}
+          collector_hash[:vendors][:docker] = { id: docker_container_id }
         end
       end
 
@@ -126,6 +125,7 @@ module NewRelic
 
       def append_kubernetes_info(collector_hash)
         return unless Agent.config[:'utilization.detect_kubernetes']
+
         if host = ENV[KUBERNETES_SERVICE_HOST]
           collector_hash[:vendors] ||= {}
           collector_hash[:vendors][:kubernetes] = {
@@ -137,6 +137,7 @@ module NewRelic
       def append_full_hostname(collector_hash)
         full_hostname = fqdn
         return if full_hostname.nil? || full_hostname.empty?
+
         collector_hash[:full_hostname] = full_hostname
       end
 

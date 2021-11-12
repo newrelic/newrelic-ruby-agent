@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -18,16 +17,16 @@ module NewRelic::Agent::Instrumentation
       end
 
       def client_methods
-        [:get, :get_multi, :set, :add, :incr, :decr, :delete, :replace, :append,
-          :prepend, :cas, :single_get, :multi_get, :single_cas, :multi_cas]
+        %i[get get_multi set add incr decr delete replace append
+           prepend cas single_get multi_get single_cas multi_cas]
       end
 
       def dalli_methods
-        [:get, :set, :add, :incr, :decr, :delete, :replace, :append, :prepend, :cas]
+        %i[get set add incr decr delete replace append prepend cas]
       end
 
       def dalli_cas_methods
-        [:get_cas, :set_cas, :replace_cas, :delete_cas]
+        %i[get_cas set_cas replace_cas delete_cas]
       end
 
       def supported_methods_for(client_class, methods)
@@ -58,4 +57,3 @@ module NewRelic::Agent::Instrumentation
     end
   end
 end
-

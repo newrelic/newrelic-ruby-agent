@@ -1,16 +1,15 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require "httpclient"
-require "newrelic_rpm"
-require "http_client_test_cases"
+require 'httpclient'
+require 'newrelic_rpm'
+require 'http_client_test_cases'
 
 class HTTPClientTest < Minitest::Test
   include HttpClientTestCases
 
   def client_name
-    "HTTPClient"
+    'HTTPClient'
   end
 
   def timeout_error_class
@@ -22,11 +21,11 @@ class HTTPClientTest < Minitest::Test
     get_response
   end
 
-  def get_response(url=nil, headers=nil)
-    HTTPClient.get(url || default_url, :header => headers)
+  def get_response(url = nil, headers = nil)
+    HTTPClient.get(url || default_url, header: headers)
   end
 
-  def get_wrapped_response url
+  def get_wrapped_response(url)
     NewRelic::Agent::HTTPClients::HTTPClientResponse.new get_response url
   end
 
@@ -35,15 +34,15 @@ class HTTPClientTest < Minitest::Test
   end
 
   def post_response
-    HTTPClient.post(default_url, :body => "")
+    HTTPClient.post(default_url, body: '')
   end
 
   def put_response
-    HTTPClient.put(default_url, :body => "")
+    HTTPClient.put(default_url, body: '')
   end
 
   def delete_response
-    HTTPClient.delete(default_url, :body => "")
+    HTTPClient.delete(default_url, body: '')
   end
 
   def request_instance
@@ -65,7 +64,7 @@ class HTTPClientTest < Minitest::Test
       evil_connection = HTTPClient::Connection.new
       evil_connection.instance_variable_set(:@test_exception, test_exception)
       evil_connection.instance_eval do
-        def new_push(request)
+        def new_push(_request)
           @queue.push(@test_exception)
         end
 
@@ -77,12 +76,12 @@ class HTTPClientTest < Minitest::Test
 
       begin
         get_response(default_url)
-      rescue => e
+      rescue StandardError => e
         raise e unless e == test_exception
       end
     end
 
-    last_node = find_last_transaction_node()
-    assert_equal("External/localhost/HTTPClient/GET", last_node.metric_name)
+    last_node = find_last_transaction_node
+    assert_equal('External/localhost/HTTPClient/GET', last_node.metric_name)
   end
 end

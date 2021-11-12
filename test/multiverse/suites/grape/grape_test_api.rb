@@ -1,16 +1,16 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'grape'
 
 class GrapeTestApiError < StandardError; end
+
 class GrapeTestApi < Grape::API
   # namespace, group, resource, and resources all do the same thing.
   # They are aliases for namespace.
 
   get :self_destruct do
-    raise GrapeTestApiError.new("I'm sorry Dave, I'm afraid I can't do that.")
+    raise GrapeTestApiError, "I'm sorry Dave, I'm afraid I can't do that."
   end
 
   namespace :grape_ape do
@@ -19,7 +19,7 @@ class GrapeTestApi < Grape::API
     end
 
     get 'renamed' do
-      ::NewRelic::Agent.set_transaction_name("RenamedTxn")
+      ::NewRelic::Agent.set_transaction_name('RenamedTxn')
       'Totally renamed it.'
     end
 
@@ -48,7 +48,7 @@ class GrapeTestApi < Grape::API
 
   resource :grape_ape_fail do
     post do
-      raise GrapeTestApiError.new("I'm sorry Dave, I'm afraid I can't do that.")
+      raise GrapeTestApiError, "I'm sorry Dave, I'm afraid I can't do that."
     end
   end
 
@@ -58,7 +58,7 @@ class GrapeTestApi < Grape::API
     end
 
     post do
-      raise GrapeTestApiError.new("I'm sorry Dave, I'm afraid I can't do that.")
+      raise GrapeTestApiError, "I'm sorry Dave, I'm afraid I can't do that."
     end
   end
 end

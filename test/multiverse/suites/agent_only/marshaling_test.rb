@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -10,7 +9,7 @@ class MarshalingTest < Minitest::Test
   include MultiverseHelpers
   include NewRelic::Agent::MethodTracer
 
-  setup_and_teardown_agent(:'transaction_tracer.transaction_threshold' => 0.0) do |collector|
+  setup_and_teardown_agent('transaction_tracer.transaction_threshold': 0.0) do |collector|
     collector.stub('connect', { 'agent_run_id' => 666 })
   end
 
@@ -44,7 +43,7 @@ class MarshalingTest < Minitest::Test
     NewRelic::Agent.record_metric metric, 1.0
     NewRelic::Agent.record_metric metric, 2.0
 
-    expected = [ 2, 3.0, 3.0, 1.0, 2.0, 5.0 ]
+    expected = [2, 3.0, 3.0, 1.0, 2.0, 5.0]
 
     agent.service.connect
     agent.send(:harvest_and_send_timeslice_data)
@@ -68,8 +67,8 @@ class MarshalingTest < Minitest::Test
 
   def test_sql_trace_data_marshalling
     in_transaction do
-      agent.sql_sampler.notice_sql("select * from test", "Database/test/select",
-                                    nil, 1.5)
+      agent.sql_sampler.notice_sql('select * from test', 'Database/test/select',
+                                   nil, 1.5)
     end
 
     agent.service.connect
@@ -81,7 +80,7 @@ class MarshalingTest < Minitest::Test
 
   def test_connect_marshalling
     agent.service.connect('pid' => 1, 'agent_version' => '9000',
-                           'app_name' => 'test')
+                          'app_name' => 'test')
 
     connect_data = $collector.calls_for('connect').last
     assert_equal '9000', connect_data['agent_version']

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 require 'new_relic/agent/instrumentation/active_record_helper'
@@ -32,7 +31,7 @@ module NewRelic
           # defensive.
           return if defined?(cached?)
 
-          if defined?(::ActiveRecord) && ::ActiveRecord::VERSION::STRING >= "5.1.0"
+          if defined?(::ActiveRecord) && ::ActiveRecord::VERSION::STRING >= '5.1.0'
             def cached?(payload)
               payload.fetch(:cached, false)
             end
@@ -43,18 +42,18 @@ module NewRelic
           end
         end
 
-        def start(name, id, payload) #THREAD_LOCAL_ACCESS
+        def start(name, id, payload) # THREAD_LOCAL_ACCESS
           return if cached?(payload)
           return unless NewRelic::Agent.tl_is_execution_traced?
 
           config = active_record_config(payload)
           segment = start_segment(config, payload)
           push_segment(id, segment)
-        rescue => e
+        rescue StandardError => e
           log_notification_error(e, name, 'start')
         end
 
-        def finish(name, id, payload) #THREAD_LOCAL_ACCESS
+        def finish(name, id, payload) # THREAD_LOCAL_ACCESS
           return if cached?(payload)
           return unless state.is_execution_traced?
 
@@ -64,8 +63,7 @@ module NewRelic
             end
             segment.finish
           end
-
-        rescue => e
+        rescue StandardError => e
           log_notification_error(e, name, 'finish')
         end
 
@@ -75,11 +73,11 @@ module NewRelic
                                       statement.config)
           end
           if connection && connection.respond_to?(:exec_query)
-            return connection.exec_query("EXPLAIN #{statement.sql}",
-                                         "Explain #{statement.name}",
-                                         statement.binds)
+            connection.exec_query("EXPLAIN #{statement.sql}",
+                                  "Explain #{statement.name}",
+                                  statement.binds)
           end
-        rescue => e
+        rescue StandardError => e
           NewRelic::Agent.logger.debug "Couldn't fetch the explain plan for #{statement} due to #{e}"
         end
 
@@ -92,6 +90,7 @@ module NewRelic
           end
 
           return unless connection_id = payload[:connection_id]
+
           connection = nil
 
           ::ActiveRecord::Base.connection_handler.connection_pool_list.each do |handler|
@@ -124,11 +123,11 @@ module NewRelic
           end
 
           segment = Tracer.start_datastore_segment(product: product,
-            operation: operation,
-            collection: collection,
-            host: host,
-            port_path_or_id: port_path_or_id,
-            database_name: database)
+                                                   operation: operation,
+                                                   collection: collection,
+                                                   host: host,
+                                                   port_path_or_id: port_path_or_id,
+                                                   database_name: database)
 
           segment._notice_sql sql, config, @explainer, payload[:binds], payload[:name]
           segment

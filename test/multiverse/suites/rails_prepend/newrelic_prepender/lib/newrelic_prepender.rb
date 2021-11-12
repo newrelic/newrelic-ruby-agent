@@ -1,13 +1,12 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require "newrelic_prepender/version"
+require 'newrelic_prepender/version'
 
 module NewRelic
   module Prepender
-    def self.do_prepend *bases
-      bases.each {|b| b.__send__ :prepend, self}
+    def self.do_prepend(*bases)
+      bases.each { |b| b.__send__ :prepend, self }
     end
   end
 end
@@ -16,9 +15,7 @@ require 'action_controller'
 
 NewRelic::Prepender.do_prepend ::ActionController::Base
 
-if ::Rails::VERSION::MAJOR.to_i == 5
-  NewRelic::Prepender.do_prepend ::ActionController::API
-end
+NewRelic::Prepender.do_prepend ::ActionController::API if ::Rails::VERSION::MAJOR.to_i == 5
 
 require 'action_view'
 

@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 class OrphanedConfigTest < Minitest::Test
   include NewRelic::TestHelpers::FileSearching
@@ -15,11 +14,11 @@ class OrphanedConfigTest < Minitest::Test
   def test_all_agent_config_keys_are_declared_in_default_source
     non_test_files.each do |file|
       lines_in(file).each_with_index do |line, index|
-        config_match = line.match(/Agent\.config\[:['"]?([a-z\._]+)['"]?\]/)
+        config_match = line.match(/Agent\.config\[:['"]?([a-z._]+)['"]?\]/)
         next unless config_match
 
         config_keys = config_match.captures.map do |key|
-          key.gsub("'", "").to_sym
+          key.gsub("'", '').to_sym
         end
 
         config_keys.each do |key|
@@ -45,21 +44,21 @@ class OrphanedConfigTest < Minitest::Test
 
   def test_documented_all_named_instrumentation_files
     non_test_files.each do |file|
-      next unless file.include?("new_relic/agent/instrumentation")
+      next unless file.include?('new_relic/agent/instrumentation')
 
       lines_in(file).each_with_index do |line, index|
         dependency = line.match(NAMED_DEPENDENCY_PATTERN)
-        if dependency
-          name = dependency[1]
-          disable_key = "disable_#{name}".to_sym
-          instrumentation_key = "instrumentation.#{name}".to_sym
+        next unless dependency
 
-          has_disable_key = !!NewRelic::Agent::Configuration::DEFAULTS[disable_key]
-          has_instrumentation_key = !!NewRelic::Agent::Configuration::DEFAULTS[instrumentation_key]
+        name = dependency[1]
+        disable_key = "disable_#{name}".to_sym
+        instrumentation_key = "instrumentation.#{name}".to_sym
 
-          assert has_instrumentation_key || has_disable_key,
-            "#{file}:#{index+1} - Document key `#{instrumentation_key}` found as name for instrumentation.\n"
-        end
+        has_disable_key = !!NewRelic::Agent::Configuration::DEFAULTS[disable_key]
+        has_instrumentation_key = !!NewRelic::Agent::Configuration::DEFAULTS[instrumentation_key]
+
+        assert has_instrumentation_key || has_disable_key,
+               "#{file}:#{index + 1} - Document key `#{instrumentation_key}` found as name for instrumentation.\n"
       end
     end
   end

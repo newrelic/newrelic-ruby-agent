@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -46,9 +45,9 @@ module NewRelic
         add(@intrinsic_attributes, key, value)
       end
 
-      def merge_untrusted_agent_attributes(attributes, prefix, default_destinations)
+      def merge_untrusted_agent_attributes(attributes, prefix, _default_destinations)
         return if @filter.high_security?
-        return if !@filter.might_allow_prefix?(prefix)
+        return unless @filter.might_allow_prefix?(prefix)
 
         AttributeProcessing.flatten_and_coerce(attributes, prefix) do |k, v|
           add_agent_attribute_with_key_check(k, v, AttributeFilter::DST_NONE)
@@ -58,6 +57,7 @@ module NewRelic
       def merge_custom_attributes(other)
         return unless Agent.config[:'custom_attributes.enabled']
         return if other.empty?
+
         AttributeProcessing.flatten_and_coerce(other) do |k, v|
           add_custom_attribute(k, v)
         end
@@ -72,8 +72,8 @@ module NewRelic
       end
 
       def intrinsic_attributes_for(destination)
-        if destination == NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER ||
-           destination == NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+        if [NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER,
+            NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR].include?(destination)
           @intrinsic_attributes
         else
           NewRelic::EMPTY_HASH
@@ -111,9 +111,7 @@ module NewRelic
       def add(attributes, key, value)
         return if value.nil?
 
-        if exceeds_bytesize_limit?(value, VALUE_LIMIT)
-          value = slice(value)
-        end
+        value = slice(value) if exceeds_bytesize_limit?(value, VALUE_LIMIT)
 
         attributes[key] = value
       end
@@ -122,11 +120,8 @@ module NewRelic
         # Avoid allocating anything if there are no attrs at all
         return NewRelic::EMPTY_HASH if attributes.empty?
 
-        attributes.inject({}) do |memo, (key, value)|
-          if @filter.allows?(calculated_destinations[key], destination)
-            memo[key] = value
-          end
-          memo
+        attributes.each_with_object({}) do |(key, value), memo|
+          memo[key] = value if @filter.allows?(calculated_destinations[key], destination)
         end
       end
 

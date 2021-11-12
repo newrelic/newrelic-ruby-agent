@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -26,7 +25,7 @@ class MongoServer
   end
 
   def self.tmp_directory
-    ENV["MULTIVERSE_TMP"] || File.join(gem_root, 'tmp')
+    ENV['MULTIVERSE_TMP'] || File.join(gem_root, 'tmp')
   end
 
   def self.port_lock_directory
@@ -46,12 +45,13 @@ class MongoServer
   end
 
   def ping
-    return unless self.client
-    self.client['admin'].command( { 'ping' => 1 } )
+    return unless client
+
+    client['admin'].command({ 'ping' => 1 })
   end
 
   def pingable?
-    ping == { "ok" => 1.0 }
+    ping == { 'ok' => 1.0 }
   end
 
   def make_directories
@@ -70,19 +70,19 @@ class MongoServer
   end
 
   def port_lock_path
-    File.join(MongoServer.port_lock_directory, "#{self.port}.lock")
+    File.join(MongoServer.port_lock_directory, "#{port}.lock")
   end
 
   def pid_path
-    File.join(MongoServer.pid_directory, "#{self.port}-#{self.object_id}-#{Process.pid}.pid")
+    File.join(MongoServer.pid_directory, "#{port}-#{object_id}-#{Process.pid}.pid")
   end
 
   def db_path
-    File.join(MongoServer.db_directory, "data_#{self.port}")
+    File.join(MongoServer.db_directory, "data_#{port}")
   end
 
   def log_path
-    File.join(MongoServer.log_directory, "#{self.port}.log")
+    File.join(MongoServer.log_directory, "#{port}.log")
   end
 
   def start(wait_for_startup = true)
@@ -115,35 +115,36 @@ class MongoServer
   def startup_command
     pid_file = "--pidfilepath #{pid_path}"
     log_file = "--logpath #{log_path} "
-    fork     = "--fork"
+    fork     = '--fork'
 
     dbpath = "--dbpath #{db_path}"
-    port_flag = "--port #{self.port}"
-    small_mongo = "--oplogSize 128 --smallfiles"
-    repl_set = "--replSet multiverse"
+    port_flag = "--port #{port}"
+    small_mongo = '--oplogSize 128 --smallfiles'
+    repl_set = '--replSet multiverse'
 
     base = "#{port_flag} #{fork} #{pid_file} #{log_file} #{small_mongo} #{dbpath}"
 
     mongod_path = ENV['MONGOD_PATH'] || 'mongod'
-    if self.type == :single
+    if type == :single
       "#{mongod_path} #{base}"
-    elsif self.type == :replica
+    elsif type == :replica
       "#{mongod_path} #{repl_set} #{base}"
     end
   end
 
   def create_client(client_class = nil)
     require 'mongo'
-    if defined? MongoClient
-      client_class ||= MongoClient
-    else
-      client_class ||= Mongo::Connection
-    end
+    client_class ||= if defined? MongoClient
+                       MongoClient
+                     else
+                       Mongo::Connection
+                     end
 
     begin
-      self.client = client_class.new('localhost', self.port, :connect_timeout => 10)
+      self.client = client_class.new('localhost', port, connect_timeout: 10)
     rescue Mongo::ConnectionFailure => e
       raise e unless message == "Failed to connect to a master node at localhost:#{port}"
+
       retry
     end
   end
@@ -170,13 +171,14 @@ class MongoServer
 
   def running?
     return false unless pid
+
     Process.kill(0, pid) == 1
   rescue Errno::ESRCH
     false
   end
 
   def pid
-    File.read(pid_path).to_i if File.exists? pid_path
+    File.read(pid_path).to_i if File.exist? pid_path
   end
 
   def next_available_port
@@ -185,7 +187,7 @@ class MongoServer
     end
 
     if used_ports.empty?
-      27017
+      27_017
     else
       used_ports.sort.last + 1
     end
@@ -196,13 +198,13 @@ class MongoServer
   end
 
   def lock_port
-    return if self.port
+    return if port
 
     make_port_lock_directory
 
-    retry_on_exception(:exception => Errno::EEXIST, :tries => 10) do
+    retry_on_exception(exception: Errno::EEXIST, tries: 10) do
       self.port = next_available_port
-      File.new(port_lock_path, File::CREAT|File::EXCL)
+      File.new(port_lock_path, File::CREAT | File::EXCL)
     end
   end
 
@@ -216,9 +218,7 @@ class MongoServer
     begin
       yield
     rescue exception => e
-      if message
-        raise e unless e.message.include? message
-      end
+      raise e if message && !(e.message.include? message)
 
       sleep 0.1
       tries += 1
@@ -228,7 +228,7 @@ class MongoServer
   end
 
   def release_port
-    FileUtils.rm port_lock_path, :force => true
+    FileUtils.rm port_lock_path, force: true
     self.port = nil
   end
 

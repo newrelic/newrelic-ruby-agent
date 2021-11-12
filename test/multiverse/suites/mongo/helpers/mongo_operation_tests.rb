@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -117,9 +116,9 @@ module MongoOperationTests
   def test_records_metrics_for_group
     begin
       in_transaction do
-        @collection.group({:key => "name",
-                           :initial => {:count => 0},
-                           :reduce => "function(k,v) { v.count += 1; }" })
+        @collection.group({ key: 'name',
+                            initial: { count: 0 },
+                            reduce: 'function(k,v) { v.count += 1; }' })
       end
     rescue Mongo::OperationFailure
       # We get occasional group failures, but should still record metrics
@@ -136,7 +135,7 @@ module MongoOperationTests
     updated['name'] = 'codemonkey'
 
     in_transaction do
-      @collection.find_and_modify(:query => @tribble, :update => updated)
+      @collection.find_and_modify(query: @tribble, update: updated)
     end
 
     metrics = build_test_metrics(:findAndModify)
@@ -147,7 +146,7 @@ module MongoOperationTests
 
   def test_records_metrics_for_find_and_remove
     in_transaction do
-      @collection.find_and_modify(:query => @tribble, :remove =>true)
+      @collection.find_and_modify(query: @tribble, remove: true)
     end
 
     metrics = build_test_metrics(:findAndRemove)
@@ -239,7 +238,7 @@ module MongoOperationTests
   end
 
   def test_records_metrics_for_drop_index
-    name =  @collection.create_index([[unique_field_name, Mongo::ASCENDING]])
+    name = @collection.create_index([[unique_field_name, Mongo::ASCENDING]])
     NewRelic::Agent.drop_buffered_data
 
     in_transaction do
@@ -271,7 +270,7 @@ module MongoOperationTests
     NewRelic::Agent.drop_buffered_data
 
     in_transaction do
-      @database.command({ :reIndex => @collection_name })
+      @database.command({ reIndex: @collection_name })
     end
 
     metrics = build_test_metrics(:reIndex)
@@ -338,21 +337,21 @@ module MongoOperationTests
   end
 
   def test_web_scoped_metrics
-    in_web_transaction("webby") do
+    in_web_transaction('webby') do
       @collection.insert(@tribble)
     end
 
     metric = statement_metric(:insert)
-    assert_metrics_recorded([[metric, "webby"]])
+    assert_metrics_recorded([[metric, 'webby']])
   end
 
   def test_background_scoped_metrics
-    in_background_transaction("backed-up") do
+    in_background_transaction('backed-up') do
       @collection.insert(@tribble)
     end
 
     metric = statement_metric(:insert)
-    assert_metrics_recorded([[metric, "backed-up"]])
+    assert_metrics_recorded([[metric, 'backed-up']])
   end
 
   def test_notices_nosql
@@ -365,9 +364,9 @@ module MongoOperationTests
     node = find_last_transaction_node
 
     expected = {
-      :database   => @database_name,
-      :collection => @collection_name,
-      :operation  => :insert
+      database: @database_name,
+      collection: @collection_name,
+      operation: :insert
     }
 
     result = node.params[:statement]
@@ -458,7 +457,7 @@ module MongoOperationTests
     node = nil
 
     in_transaction do
-      @collection.insert({'name' => 'soterios johnson'})
+      @collection.insert({ 'name' => 'soterios johnson' })
     end
 
     node = find_last_transaction_node
@@ -468,11 +467,11 @@ module MongoOperationTests
   end
 
   def test_noticed_nosql_does_not_contain_selector_values
-    @collection.insert({'password' => '$ecret'})
+    @collection.insert({ 'password' => '$ecret' })
     node = nil
 
     in_transaction do
-      @collection.remove({'password' => '$ecret'})
+      @collection.remove({ 'password' => '$ecret' })
     end
 
     node = find_last_transaction_node
@@ -532,18 +531,19 @@ module MongoOperationTests
   end
 
   def ensure_collection_exists
-    @collection.insert(:junk => "data")
+    @collection.insert(junk: 'data')
     NewRelic::Agent.drop_buffered_data
   end
 
   def server_is_2_6_or_later?
     client = @collection.db.respond_to?(:client) && @collection.db.client
     return false unless client
+
     client.respond_to?(:max_wire_version) && client.max_wire_version >= 2
   end
 
   def statement_metric(action)
     metrics = build_test_metrics(action)
-    metrics.select { |m| m.start_with?("Datastore/statement") }.first
+    metrics.select { |m| m.start_with?('Datastore/statement') }.first
   end
 end

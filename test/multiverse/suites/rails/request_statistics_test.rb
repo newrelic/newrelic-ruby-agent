@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -9,17 +8,17 @@ require './app'
 class RequestStatsController < ApplicationController
   def stats_action
     sleep 0.01
-    render body:  'some stuff'
+    render body: 'some stuff'
   end
 
   def cross_app_action
     ::NewRelic::Agent::Transaction.tl_current.distributed_tracer.is_cross_app_caller = true
-    render body:  'some stuff'
+    render body: 'some stuff'
   end
 
   def stats_action_with_custom_params
     ::NewRelic::Agent.add_custom_attributes('color' => 'blue', 1 => :bar, 'bad' => {})
-    render body:  'some stuff'
+    render body: 'some stuff'
   end
 end
 
@@ -34,7 +33,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
   #
 
   def test_doesnt_send_when_disabled
-    with_config( :'analytics_events.enabled' => false ) do
+    with_config('analytics_events.enabled': false) do
       5.times { get '/request_stats/stats_action' }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
@@ -44,14 +43,14 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
   end
 
   def test_request_times_should_be_reported_if_enabled
-    with_config( :'analytics_events.enabled' => true ) do
+    with_config('analytics_events.enabled': true) do
       5.times { get '/request_stats/stats_action' }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
       post = $collector.calls_for('analytic_event_data').first
 
-      refute_nil( post )
+      refute_nil(post)
       assert_kind_of Array, post.events
       assert_kind_of Array, post.events.first
 
@@ -74,7 +73,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
   end
 
   def test_request_should_include_guid_if_cross_app
-    with_config( :'analytics_events.enabled' => true ) do
+    with_config('analytics_events.enabled': true) do
       5.times { get '/request_stats/cross_app_action' }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
@@ -93,14 +92,14 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
   end
 
   def test_request_should_include_referring_guid_if_needed
-    with_config(:'cross_application_tracer.enabled' => true,
-                :'distributed_tracing.enabled' => false,
-                :'analytics_events.enabled' => true,
-                :'cross_process_id' => 'boo',
-                :'encoding_key' => "\0",
-                :'trusted_account_ids' => [1]) do
+    with_config('cross_application_tracer.enabled': true,
+                'distributed_tracing.enabled': false,
+                'analytics_events.enabled': true,
+                'cross_process_id': 'boo',
+                'encoding_key': "\0",
+                'trusted_account_ids': [1]) do
       rack_env = {
-        'HTTP_X_NEWRELIC_ID'          => Base64.encode64('1#234'),
+        'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234'),
         'HTTP_X_NEWRELIC_TRANSACTION' => Base64.encode64('["8badf00d",1]')
       }
 
@@ -110,7 +109,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
 
       post = $collector.calls_for('analytic_event_data').first
 
-      refute_nil( post )
+      refute_nil(post)
       assert_kind_of Array, post.events
       assert_kind_of Array, post.events.first
 
@@ -123,14 +122,14 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
   end
 
   def test_custom_params_should_be_reported_with_events_and_coerced_to_safe_types
-    with_config( :'analytics_events.enabled' => true ) do
+    with_config('analytics_events.enabled': true) do
       5.times { get '/request_stats/stats_action_with_custom_params' }
 
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
       post = $collector.calls_for('analytic_event_data').first
 
-      refute_nil( post )
+      refute_nil(post)
       assert_kind_of Array, post.events
       assert_kind_of Array, post.events.first
 
@@ -141,7 +140,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
       assert_encoding 'utf-8', sample['name']
       assert_equal 'Transaction', sample['type']
 
-      ['blue', 'bar', 'bad'].each do |key|
+      %w[blue bar bad].each do |key|
         assert_not_includes(sample, key)
       end
 
@@ -154,7 +153,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
   end
 
   def test_request_samples_should_be_preserved_upon_failure
-    with_config(:'analytics_events.enabled' => true) do
+    with_config('analytics_events.enabled': true) do
       5.times { get '/request_stats/stats_action' }
 
       # fail once
@@ -162,7 +161,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
       # recover
-      $collector.stub('analytic_event_data', {'return_value'=>nil}, 200)
+      $collector.stub('analytic_event_data', { 'return_value' => nil }, 200)
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
       post = $collector.calls_for('analytic_event_data').last
@@ -179,17 +178,15 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
     end
   end
 
-
   #
   # Helpers
   #
 
-  def assert_encoding( encname, string )
-    return unless string.respond_to?( :encoding )
-    expected_encoding = Encoding.find( encname ) or raise "no such encoding #{encname.dump}"
-    msg = "Expected encoding of %p to be %p, but it was %p" %
-      [ string, expected_encoding, string.encoding ]
-    assert_equal( expected_encoding, string.encoding, msg )
-  end
+  def assert_encoding(encname, string)
+    return unless string.respond_to?(:encoding)
 
+    expected_encoding = Encoding.find(encname) or raise "no such encoding #{encname.dump}"
+    msg = format('Expected encoding of %p to be %p, but it was %p', string, expected_encoding, string.encoding)
+    assert_equal(expected_encoding, string.encoding, msg)
+  end
 end

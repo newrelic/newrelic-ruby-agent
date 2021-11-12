@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -47,7 +46,7 @@ class ConfigFileLoadingTest < Minitest::Test
     FakeFS.deactivate!
   end
 
-  def setup_config(path, manual_config_options = {}, config_file_content=nil)
+  def setup_config(path, manual_config_options = {}, config_file_content = nil)
     teardown_agent
 
     FileUtils.mkdir_p(File.dirname(path))
@@ -56,13 +55,13 @@ class ConfigFileLoadingTest < Minitest::Test
       if config_file_content
         f.write(config_file_content)
       else
-        f.print <<-YAML
-development:
-  foo: "success!!"
-test:
-  foo: "success!!"
-bazbangbarn:
-  i_am: "bazbangbarn"
+        f.print <<~YAML
+          development:
+            foo: "success!!"
+          test:
+            foo: "success!!"
+          bazbangbarn:
+            i_am: "bazbangbarn"
         YAML
       end
     end
@@ -70,35 +69,37 @@ bazbangbarn:
     setup_agent(manual_config_options)
   end
 
-  def assert_config_read_from(path, manual_config_options={})
+  def assert_config_read_from(path, manual_config_options = {})
     setup_config(path, manual_config_options)
-    assert NewRelic::Agent.config[:foo] == "success!!", "Failed to read yaml config from #{path.inspect[0..100]}\n\n#{NewRelic::Agent.config.inspect[0..100]}"
+    assert NewRelic::Agent.config[:foo] == 'success!!',
+           "Failed to read yaml config from #{path.inspect[0..100]}\n\n#{NewRelic::Agent.config.inspect[0..100]}"
   end
 
   def assert_config_not_read_from(path)
     setup_config(path)
-    assert NewRelic::Agent.config[:foo] != "success!!", "Read yaml config from #{path.inspect}\n\n#{NewRelic::Agent.config.inspect}"
+    assert NewRelic::Agent.config[:foo] != 'success!!',
+           "Read yaml config from #{path.inspect}\n\n#{NewRelic::Agent.config.inspect}"
   end
 
   def test_config_loads_from_config_newrelic_yml
-    assert_config_read_from(File.join(@cwd, "config/newrelic.yml"))
+    assert_config_read_from(File.join(@cwd, 'config/newrelic.yml'))
   end
 
   def test_config_loads_from_newrelic_yml
-    assert_config_read_from(File.join(@cwd, "newrelic.yml"))
+    assert_config_read_from(File.join(@cwd, 'newrelic.yml'))
   end
 
   def test_config_loads_from_home_newrelic_yml
-    assert_config_read_from(ENV['HOME'] + "/newrelic.yml")
+    assert_config_read_from(ENV['HOME'] + '/newrelic.yml')
   end
 
   def test_config_loads_from_home_dot_newrelic_newrelic_yml
-    assert_config_read_from(ENV['HOME'] + "/.newrelic/newrelic.yml")
+    assert_config_read_from(ENV['HOME'] + '/.newrelic/newrelic.yml')
   end
 
   def test_config_loads_from_config_path_option_to_manual_start
     path = File.join(@cwd, 'otherplace', 'newrelic.yml')
-    assert_config_read_from(path, :config_path => path)
+    assert_config_read_from(path, config_path: path)
   end
 
   def test_warning_logged_when_no_config_file
@@ -116,11 +117,11 @@ bazbangbarn:
     setup_agent
 
     log = with_array_logger do
-      NewRelic::Agent.manual_start(:config_path => 'otherplace/newrelic.yml')
+      NewRelic::Agent.manual_start(config_path: 'otherplace/newrelic.yml')
     end
 
     assert_log_contains(log, /WARN.*No configuration file found/)
-    assert_log_contains(log, /WARN.*Looked in these locations.*based on API call.*otherplace\/newrelic\.yml/)
+    assert_log_contains(log, %r{WARN.*Looked in these locations.*based on API call.*otherplace/newrelic\.yml})
   end
 
   def test_warning_logged_when_no_config_file_environment_variable
@@ -131,7 +132,8 @@ bazbangbarn:
     log = with_array_logger { NewRelic::Agent.manual_start }
 
     assert_log_contains(log, /WARN.*No configuration file found/)
-    assert_log_contains(log, /WARN.*Looked in these locations.*based on environment variable.*otherplace\/newrelic\.yml/)
+    assert_log_contains(log,
+                        %r{WARN.*Looked in these locations.*based on environment variable.*otherplace/newrelic\.yml})
   ensure
     ENV['NRCONFIG'] = nil
   end
@@ -143,7 +145,7 @@ bazbangbarn:
 
     log = with_array_logger { NewRelic::Agent.manual_start }
 
-    assert_log_contains(log, /ERROR.*Failed to read or parse configuration file at config\/newrelic\.yml/)
+    assert_log_contains(log, %r{ERROR.*Failed to read or parse configuration file at config/newrelic\.yml})
   end
 
   def test_warning_logged_when_config_file_erb_error
@@ -158,14 +160,14 @@ bazbangbarn:
   end
 
   def test_exclude_commented_out_erb_lines
-    config_contents = <<-YAML
-development:
-  foo: "success!!"
-test:
-  foo: "success!!"
-boom:
-  # <%= this is not ruby %>
-        YAML
+    config_contents = <<~YAML
+      development:
+        foo: "success!!"
+      test:
+        foo: "success!!"
+      boom:
+        # <%= this is not ruby %>
+    YAML
 
     path = File.join(@cwd, 'config', 'newrelic.yml')
     setup_config(path, {}, config_contents)
@@ -173,49 +175,50 @@ boom:
 
     log = with_array_logger { NewRelic::Agent.manual_start }
 
-    assert_equal "success!!", NewRelic::Agent.config[:foo]
+    assert_equal 'success!!', NewRelic::Agent.config[:foo]
 
     refute_log_contains(log, /ERROR.*Failed ERB processing/)
     refute_log_contains(log, /\(erb\)/)
   end
 
   def test_config_loads_from_env_NRCONFIG
-    ENV["NRCONFIG"] = "/tmp/foo/bar.yml"
-    assert_config_read_from("/tmp/foo/bar.yml")
+    ENV['NRCONFIG'] = '/tmp/foo/bar.yml'
+    assert_config_read_from('/tmp/foo/bar.yml')
   ensure
-    ENV["NRCONFIG"] = nil
+    ENV['NRCONFIG'] = nil
   end
 
   def test_config_isnt_loaded_from_somewhere_crazy
-    assert_config_not_read_from(File.join(@cwd, "somewhere/crazy/newrelic.yml"))
+    assert_config_not_read_from(File.join(@cwd, 'somewhere/crazy/newrelic.yml'))
   end
 
   def test_config_will_load_settings_for_environment_passed_manual_start
-    path = File.join(@cwd, "config/newrelic.yml")
+    path = File.join(@cwd, 'config/newrelic.yml')
 
     # pass an env key to NewRelic::Agent.manual_start which should cause it to
     # load that section of newrelic.yml
-    setup_config(path, {:env => 'bazbangbarn'} )
-    assert_equal 'bazbangbarn', NewRelic::Agent.config[:i_am], "Agent.config did not load bazbangbarn config as requested"
+    setup_config(path, { env: 'bazbangbarn' })
+    assert_equal 'bazbangbarn', NewRelic::Agent.config[:i_am],
+                 'Agent.config did not load bazbangbarn config as requested'
   end
 
   def test_parses_default_settings_correctly
-    config_contents = <<-YAML
-common: &default_settings
-  app_name: playground
-  foo: success!!
+    config_contents = <<~YAML
+      common: &default_settings
+        app_name: playground
+        foo: success!!
 
-development:
-  <<: *default_settings
-  app_name: playground (Development)
+      development:
+        <<: *default_settings
+        app_name: playground (Development)
 
-test:
-  <<: *default_settings
-  monitor_mode: false
+      test:
+        <<: *default_settings
+        monitor_mode: false
 
-bazbangbarn:
-  <<: *default_settings
-  app_name: playground (Bazbangbarn)
+      bazbangbarn:
+        <<: *default_settings
+        app_name: playground (Bazbangbarn)
     YAML
 
     path = File.join(@cwd, 'config', 'newrelic.yml')

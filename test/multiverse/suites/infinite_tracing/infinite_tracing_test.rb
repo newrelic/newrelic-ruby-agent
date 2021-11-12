@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -10,9 +9,8 @@ require 'test_helper'
 if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
   class InfiniteTracingTest < Minitest::Test
-
-    def self.load_test_files pattern
-      Dir.glob(File.join(INFINITE_TRACING_TEST_PATH, pattern)).each{ |fn| require fn }
+    def self.load_test_files(pattern)
+      Dir.glob(File.join(INFINITE_TRACING_TEST_PATH, pattern)).each { |fn| require fn }
     end
 
     load_test_files '*_test.rb'

@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/transaction/segment'
 require 'new_relic/agent/tracer'
@@ -21,7 +20,7 @@ module NewRelic::Agent
     end
 
     def test_in_background_transaction
-      in_transaction(:category => :task) do |txn|
+      in_transaction(category: :task) do |txn|
         assert !txn.recording_web_transaction?
       end
     end
@@ -51,7 +50,7 @@ module NewRelic::Agent
       state.reset
 
       # Anything in this list should be tested explicitly by itself!
-      skip_checking = [:@traced_method_stack, :@record_sql, :@untraced]
+      skip_checking = %i[@traced_method_stack @record_sql @untraced]
       variables = state.instance_variables.map(&:to_sym) - skip_checking
 
       variables.each do |ivar|

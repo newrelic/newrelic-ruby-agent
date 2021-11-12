@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -34,7 +33,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     end
 
     def test_skips_response_content_type_if_middleware_tracing_disabled
-      with_config(:disable_middleware_instrumentation => true) do
+      with_config(disable_middleware_instrumentation: true) do
         rsp = get '/', { 'override-content-type' => 'application/json' }
         assert_equal('application/json', rsp.headers['Content-Type'])
         refute get_last_analytics_event[2][:'response.headers.contentType']

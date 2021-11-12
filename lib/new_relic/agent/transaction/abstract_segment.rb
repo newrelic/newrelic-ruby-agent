@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -25,7 +24,7 @@ module NewRelic
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
         attr_reader :noticed_error
 
-        def initialize name=nil, start_time=nil
+        def initialize(name = nil, start_time = nil)
           @name = name
           @transaction_name = nil
           @transaction = nil
@@ -50,6 +49,7 @@ module NewRelic
         def start
           @start_time ||= Process.clock_gettime(Process::CLOCK_REALTIME)
           return unless transaction
+
           parent.child_start self if parent
         end
 
@@ -57,9 +57,10 @@ module NewRelic
           @end_time = Process.clock_gettime(Process::CLOCK_REALTIME)
           @duration = end_time - start_time
           return unless transaction
+
           run_complete_callbacks
           finalize if record_on_finish?
-        rescue => e
+        rescue StandardError => e
           NewRelic::Agent.logger.error "Exception finishing segment: #{name}", e
         end
 
@@ -94,7 +95,7 @@ module NewRelic
         end
 
         def time_range
-          @start_time.to_f .. @end_time.to_f
+          @start_time.to_f..@end_time.to_f
         end
 
         def children_time_ranges
@@ -109,20 +110,19 @@ module NewRelic
           @concurrent_children
         end
 
-        INSPECT_IGNORE = [:@transaction, :@transaction_state].freeze
+        INSPECT_IGNORE = %i[@transaction @transaction_state].freeze
 
         def inspect
           ivars = (instance_variables - INSPECT_IGNORE).inject([]) do |memo, var_name|
             memo << "#{var_name}=#{instance_variable_get(var_name).inspect}"
           end
-          sprintf('#<%s:0x%x %s>', self.class.name, object_id, ivars.join(', '))
+          format('#<%s:0x%x %s>', self.class.name, object_id, ivars.join(', '))
         end
 
         # callback for subclasses to override
-        def transaction_assigned
-        end
+        def transaction_assigned; end
 
-        def set_noticed_error noticed_error
+        def set_noticed_error(noticed_error)
           if @noticed_error
             NewRelic::Agent.logger.debug \
               "Segment: #{name} overwriting previously noticed " \
@@ -131,7 +131,7 @@ module NewRelic
           @noticed_error = noticed_error
         end
 
-        def notice_error exception, options={}
+        def notice_error(exception, options = {})
           if Agent.config[:high_security]
             NewRelic::Agent.logger.debug \
               "Segment: #{name} ignores notice_error for " \
@@ -143,6 +143,7 @@ module NewRelic
 
         def noticed_error_attributes
           return unless @noticed_error
+
           @noticed_error.attributes_from_notice_error
         end
 
@@ -154,14 +155,14 @@ module NewRelic
           @range_recorded
         end
 
-        def child_start segment
+        def child_start(_segment)
           @active_children += 1
-          @concurrent_children = @concurrent_children || @active_children > 1
+          @concurrent_children ||= @active_children > 1
 
           transaction.async = true if @concurrent_children
         end
 
-        def child_complete segment
+        def child_complete(segment)
           @active_children -= 1
           record_child_time segment
 
@@ -178,9 +179,9 @@ module NewRelic
         # we can stop the propagation. We pass along the direct child so we can
         # make any corrections needed for exclusive time calculation.
 
-        def descendant_complete child, descendant
+        def descendant_complete(child, descendant)
           RangeExtensions.merge_or_append descendant.time_range,
-                                            children_time_ranges
+                                          children_time_ranges
           # If this child's time was previously added to this segment's
           # aggregate children time, we need to re-record it using a time range
           # for proper exclusive time calculation
@@ -189,9 +190,7 @@ module NewRelic
             record_child_time_as_range child
           end
 
-          if parent && finished? && descendant.end_time >= end_time
-            parent.descendant_complete self, descendant
-          end
+          parent.descendant_complete self, descendant if parent && finished? && descendant.end_time >= end_time
         end
 
         private
@@ -210,14 +209,13 @@ module NewRelic
         end
 
         def record_metrics
-          raise NotImplementedError, "Subclasses must implement record_metrics"
+          raise NotImplementedError, 'Subclasses must implement record_metrics'
         end
 
         # callback for subclasses to override
-        def segment_complete
-        end
+        def segment_complete; end
 
-        def record_child_time child
+        def record_child_time(child)
           if concurrent_children? || finished? && end_time < child.end_time
             record_child_time_as_range child
           else
@@ -225,22 +223,22 @@ module NewRelic
           end
         end
 
-        def record_child_time_as_range child
+        def record_child_time_as_range(child)
           RangeExtensions.merge_or_append child.time_range,
                                           children_time_ranges
           child.range_recorded = true
         end
 
-        def record_child_time_as_number child
+        def record_child_time_as_number(child)
           self.children_time += child.duration
         end
 
         def record_exclusive_duration
           overlapping_duration = if children_time_ranges?
-            RangeExtensions.compute_overlap time_range, children_time_ranges
-          else
-            0.0
-          end
+                                   RangeExtensions.compute_overlap time_range, children_time_ranges
+                                 else
+                                   0.0
+                                 end
 
           @exclusive_duration = duration - children_time - overlapping_duration
           transaction.total_time += @exclusive_duration
@@ -253,10 +251,10 @@ module NewRelic
 
         def transaction_state
           @transaction_state ||= if @transaction
-            transaction.state
-          else
-            Tracer.state
-          end
+                                   transaction.state
+                                 else
+                                   Tracer.state
+                                 end
         end
       end
     end

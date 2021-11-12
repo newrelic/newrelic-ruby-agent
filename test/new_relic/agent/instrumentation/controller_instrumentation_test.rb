@@ -1,21 +1,21 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path '../../../../test_helper', __FILE__
+require File.expand_path '../../../test_helper', __dir__
 
 module NewRelic::Agent::Instrumentation
   class ControllerInstrumentationTest < Minitest::Test
-
     class TestObject
       include ControllerInstrumentation
 
       def public_transaction(*args); end
 
       protected
+
       def protected_transaction(*args); end
 
       private
+
       def private_transaction(*args); end
 
       add_transaction_tracer :public_transaction
@@ -42,19 +42,19 @@ module NewRelic::Agent::Instrumentation
     class TestNonBlockObject
       attr_reader :called
 
-      def perform_action_without_newrelic_trace(*args)
+      def perform_action_without_newrelic_trace(*_args)
         @called = true
       end
 
       include ControllerInstrumentation
 
-      alias_method :perform_action, :perform_action_with_newrelic_trace
+      alias perform_action perform_action_with_newrelic_trace
     end
 
     def setup
       NewRelic::Agent.drop_buffered_data
       @object = TestObject.new
-      @dummy_headers = { :request => 'headers' }
+      @dummy_headers = { request: 'headers' }
       @txn_namer = ControllerInstrumentation::TransactionNamer
     end
 
@@ -64,13 +64,13 @@ module NewRelic::Agent::Instrumentation
 
     def test_apdex_recorded
       @object.public_transaction
-      assert_metrics_recorded("Apdex")
+      assert_metrics_recorded('Apdex')
     end
 
     def test_apdex_ignored
       @object.stubs(:ignore_apdex?).returns(true)
       @object.public_transaction
-      assert_metrics_not_recorded("Apdex")
+      assert_metrics_not_recorded('Apdex')
     end
 
     def test_apdex_ignored_if_ignored_in_parent_class
@@ -79,23 +79,23 @@ module NewRelic::Agent::Instrumentation
       obj.foo
       obj.bar
 
-      assert_metrics_not_recorded("Apdex")
+      assert_metrics_not_recorded('Apdex')
     end
 
     def test_children_respect_parental_ignore_rules_with_only
       parent = Class.new do
         include ControllerInstrumentation
-        newrelic_ignore(:only => :foo)
+        newrelic_ignore(only: :foo)
       end
 
       child = Class.new(parent) do
-        newrelic_ignore(:only => :bar)
+        newrelic_ignore(only: :bar)
       end
 
       key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
 
-      assert IgnoreActions.is_filtered?(key, child, :foo )
-      assert IgnoreActions.is_filtered?(key, child, :bar )
+      assert IgnoreActions.is_filtered?(key, child, :foo)
+      assert IgnoreActions.is_filtered?(key, child, :bar)
       refute IgnoreActions.is_filtered?(key, child, :foo2)
       refute IgnoreActions.is_filtered?(key, child, :bar2)
     end
@@ -103,17 +103,17 @@ module NewRelic::Agent::Instrumentation
     def test_children_respect_parental_ignore_rules_with_except
       parent = Class.new do
         include ControllerInstrumentation
-        newrelic_ignore(:except => :foo)
+        newrelic_ignore(except: :foo)
       end
 
       child = Class.new(parent) do
-        newrelic_ignore(:except => :bar)
+        newrelic_ignore(except: :bar)
       end
 
       key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
 
-      assert IgnoreActions.is_filtered?(key, child, :foo )
-      assert IgnoreActions.is_filtered?(key, child, :bar )
+      assert IgnoreActions.is_filtered?(key, child, :foo)
+      assert IgnoreActions.is_filtered?(key, child, :bar)
       assert IgnoreActions.is_filtered?(key, child, :foo2)
       assert IgnoreActions.is_filtered?(key, child, :bar2)
     end
@@ -121,17 +121,17 @@ module NewRelic::Agent::Instrumentation
     def test_children_respect_parental_ignore_rules_with_except_and_only
       parent = Class.new do
         include ControllerInstrumentation
-        newrelic_ignore(:only => :foo)
+        newrelic_ignore(only: :foo)
       end
 
       child = Class.new(parent) do
-        newrelic_ignore(:except => :foo)
+        newrelic_ignore(except: :foo)
       end
 
       key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
 
-      assert IgnoreActions.is_filtered?(key, child, :foo )
-      assert IgnoreActions.is_filtered?(key, child, :bar )
+      assert IgnoreActions.is_filtered?(key, child, :foo)
+      assert IgnoreActions.is_filtered?(key, child, :bar)
       assert IgnoreActions.is_filtered?(key, child, :foo2)
     end
 
@@ -139,7 +139,7 @@ module NewRelic::Agent::Instrumentation
       controller = Class.new do
         include ControllerInstrumentation
 
-        newrelic_ignore(:only => "foo")
+        newrelic_ignore(only: 'foo')
       end
 
       key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
@@ -150,7 +150,7 @@ module NewRelic::Agent::Instrumentation
       controller = Class.new do
         include ControllerInstrumentation
 
-        newrelic_ignore(:only => ["foo", :bar])
+        newrelic_ignore(only: ['foo', :bar])
       end
 
       key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
@@ -166,44 +166,44 @@ module NewRelic::Agent::Instrumentation
     def test_transaction_name_applies_category_and_path
       assert_equal('Controller/metric/path',
                    @txn_namer.name_for(nil,
-                                   @object,
-                                   :controller,
-                                   :path => 'metric/path'))
+                                       @object,
+                                       :controller,
+                                       path: 'metric/path'))
       assert_equal('Controller/metric/path',
                    @txn_namer.name_for(nil,
-                                   @object,
-                                   :web,
-                                   :path => 'metric/path'))
+                                       @object,
+                                       :web,
+                                       path: 'metric/path'))
       assert_equal('OtherTransaction/Background/metric/path',
                    @txn_namer.name_for(nil,
-                                   @object,
-                                   :task,
-                                   :path => 'metric/path'))
+                                       @object,
+                                       :task,
+                                       path: 'metric/path'))
       assert_equal('OtherTransaction/Background/metric/path',
                    @txn_namer.name_for(nil,
-                                   @object,
-                                   :background,
-                                   :path => 'metric/path'))
+                                       @object,
+                                       :background,
+                                       path: 'metric/path'))
       assert_equal('Controller/Rack/metric/path',
                    @txn_namer.name_for(nil,
-                                   @object,
-                                   :rack,
-                                   :path => 'metric/path'))
+                                       @object,
+                                       :rack,
+                                       path: 'metric/path'))
       assert_equal('Controller/metric/path',
                    @txn_namer.name_for(nil,
-                                   @object,
-                                   :uri,
-                                   :path => 'metric/path'))
+                                       @object,
+                                       :uri,
+                                       path: 'metric/path'))
       assert_equal('Controller/Sinatra/metric/path',
                    @txn_namer.name_for(nil,
-                                   @object,
-                                   :sinatra,
-                                   :path => 'metric/path'))
+                                       @object,
+                                       :sinatra,
+                                       path: 'metric/path'))
       assert_equal('Blarg/metric/path',
                    @txn_namer.name_for(nil,
-                                   @object,
-                                   'Blarg',
-                                   :path => 'metric/path'))
+                                       @object,
+                                       'Blarg',
+                                       path: 'metric/path'))
     end
 
     def test_transaction_name_uses_class_name_if_path_not_specified
@@ -213,10 +213,10 @@ module NewRelic::Agent::Instrumentation
 
     def test_transaction_name_applies_action_name_if_specified_and_not_path
       assert_equal('Controller/NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject/action',
-                     @txn_namer.name_for(nil,
-                                     @object,
-                                     :controller,
-                                     :name => 'action'))
+                   @txn_namer.name_for(nil,
+                                       @object,
+                                       :controller,
+                                       name: 'action'))
     end
 
     def test_transaction_namer_determines_prefix
@@ -239,17 +239,17 @@ module NewRelic::Agent::Instrumentation
 
     def test_transaction_path_name
       result = @txn_namer.path_name(@object)
-      assert_equal("NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject", result)
+      assert_equal('NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject', result)
     end
 
     def test_transaction_path_name_with_name
-      result = @txn_namer.path_name(@object, :name => "test")
-      assert_equal("NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject/test", result )
+      result = @txn_namer.path_name(@object, name: 'test')
+      assert_equal('NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject/test', result)
     end
 
     def test_transaction_path_name_with_overridden_class_name
-      result = @txn_namer.path_name(@object, :name => "perform", :class_name => 'Resque')
-      assert_equal("Resque/perform", result)
+      result = @txn_namer.path_name(@object, name: 'perform', class_name: 'Resque')
+      assert_equal('Resque/perform', result)
     end
 
     def test_add_transaction_tracer_should_not_double_instrument
@@ -278,15 +278,15 @@ module NewRelic::Agent::Instrumentation
     end
 
     def test_argument_list
-      options = {:foo => :bar, :params => '{ :account_name => args[0].name }', :far => 7}
+      options = { foo: :bar, params: '{ :account_name => args[0].name }', far: 7 }
       result = TestObject.generate_argument_list(options)
-      expected = [":far => \"7\"", ":foo => :bar", ":params => { :account_name => args[0].name }"]
+      expected = [':far => "7"', ':foo => :bar', ':params => { :account_name => args[0].name }']
       assert_equal expected.sort, result.sort
     end
 
     def test_build_method_names
       result = TestObject.build_method_names('foo', '?')
-      expected = ["foo_with_newrelic_transaction_trace?", "foo_without_newrelic_transaction_trace?"]
+      expected = ['foo_with_newrelic_transaction_trace?', 'foo_without_newrelic_transaction_trace?']
       assert_equal expected, result
     end
 
@@ -325,7 +325,7 @@ module NewRelic::Agent::Instrumentation
 
         def doit
           perform_action_with_newrelic_trace do
-            raise UserError.new
+            raise UserError
           end
         end
       end

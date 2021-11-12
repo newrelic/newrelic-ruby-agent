@@ -1,9 +1,8 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-require File.expand_path('../../../test_helper', __FILE__)
+require File.expand_path('../../test_helper', __dir__)
 
 module NewRelic
   module Agent
@@ -24,9 +23,9 @@ module NewRelic
               txn.stubs(:sampled?).returns(true)
 
               segment = Transaction::ExternalRequestSegment.new \
-                "Typhoeus",
-                "http://remotehost.com/blogs/index",
-                "GET"
+                'Typhoeus',
+                'http://remotehost.com/blogs/index',
+                'GET'
 
               txn.add_segment segment
               segment.start
@@ -72,9 +71,9 @@ module NewRelic
               txn.stubs(:sampled?).returns(false)
 
               segment = Transaction::ExternalRequestSegment.new \
-                "Typhoeus",
-                 "http://remotehost.com/blogs/index",
-                 "GET"
+                'Typhoeus',
+                'http://remotehost.com/blogs/index',
+                'GET'
 
               txn.add_segment segment
               segment.start
@@ -85,7 +84,6 @@ module NewRelic
 
           assert_equal 2, span_events.size
         end
-
       end
     end
   end

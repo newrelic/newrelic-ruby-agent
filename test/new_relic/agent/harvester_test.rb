@@ -1,14 +1,12 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/harvester'
 
 module NewRelic
   module Agent
     class HarvesterTest < Minitest::Test
-
       attr_reader :harvester
 
       def setup
@@ -24,7 +22,7 @@ module NewRelic
         harvester.mark_started
         @after_forker.expects(:after_fork).never
 
-        with_config(:restart_thread_in_children => true) do
+        with_config(restart_thread_in_children: true) do
           harvester.on_transaction
         end
       end
@@ -40,7 +38,7 @@ module NewRelic
         pretend_started_in_another_process
         @after_forker.expects(:after_fork).once
 
-        with_config(:restart_thread_in_children => true) do
+        with_config(restart_thread_in_children: true) do
           harvester.on_transaction
         end
       end
@@ -49,7 +47,7 @@ module NewRelic
         pretend_started_in_another_process
         @after_forker.expects(:after_fork).never
 
-        with_config(:restart_thread_in_children => false) do
+        with_config(restart_thread_in_children: false) do
           harvester.on_transaction
         end
       end
@@ -58,7 +56,7 @@ module NewRelic
         pretend_started_in_another_process
         @after_forker.expects(:after_fork).never
 
-        with_config(:disable_harvest_thread => true) do
+        with_config(disable_harvest_thread: true) do
           harvester.on_transaction
         end
       end

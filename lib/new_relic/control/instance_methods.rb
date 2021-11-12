@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,7 +7,6 @@ require 'new_relic/agent/agent_logger'
 
 module NewRelic
   class Control
-
     # Contains methods that relate to the runtime usage of the control
     # object. Note that these are subject to override in the
     # NewRelic::Control::Framework classes that are actually instantiated
@@ -47,7 +45,7 @@ module NewRelic
       # Subclasses are not allowed to override, but must implement
       # init_config({}) which is called one or more times.
       #
-      def init_plugin(options={})
+      def init_plugin(options = {})
         env = determine_env(options)
 
         configure_agent(env, options)
@@ -64,8 +62,8 @@ module NewRelic
 
         # An artifact of earlier implementation, we put both #add_method_tracer and #trace_execution
         # methods in the module methods.
-        Module.send :include, NewRelic::Agent::MethodTracer::ClassMethods
-        Module.send :include, NewRelic::Agent::MethodTracer
+        Module.include NewRelic::Agent::MethodTracer::ClassMethods
+        Module.include NewRelic::Agent::MethodTracer
         init_config(options)
         NewRelic::Agent.agent = NewRelic::Agent::Agent.instance
 
@@ -110,7 +108,7 @@ module NewRelic
         Agent.config.replace_or_add_config(yaml_source)
 
         if security_settings_valid? && Agent.config[:high_security]
-          Agent.logger.info("Installing high security configuration based on local configuration")
+          Agent.logger.info('Installing high security configuration based on local configuration')
           Agent.config.replace_or_add_config(Agent::Configuration::HighSecuritySource.new(Agent.config))
         end
       end
@@ -121,17 +119,17 @@ module NewRelic
       end
 
       def handle_invalid_security_settings
-        NewRelic::Agent.logger.error "Security Policies and High Security " \
-          "Mode cannot both be present in the agent configuration. If " \
-          "Security Policies have been set for your account, please " \
-          "ensure the security_policies_token is set but high_security is " \
-          "disabled (default)."
+        NewRelic::Agent.logger.error 'Security Policies and High Security ' \
+          'Mode cannot both be present in the agent configuration. If ' \
+          'Security Policies have been set for your account, please ' \
+          'ensure the security_policies_token is set but high_security is ' \
+          'disabled (default).'
         install_shim
       end
 
       # Install the real agent into the Agent module, and issue the start command.
       def start_agent
-        @started_in_env = self.env
+        @started_in_env = env
         NewRelic::Agent.agent.start
       end
 
@@ -164,7 +162,7 @@ module NewRelic
 
       protected
 
-      def initialize(local_env, config_file_override=nil)
+      def initialize(local_env, config_file_override = nil)
         @install_lock = Mutex.new
         @local_env = local_env
         @started_in_env = nil

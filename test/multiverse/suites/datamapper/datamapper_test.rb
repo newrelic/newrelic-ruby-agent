@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-DataMapper::Logger.new("/dev/null", :debug)
+DataMapper::Logger.new('/dev/null', :debug)
 DataMapper.setup(:default, 'sqlite::memory:')
 class Post
   include DataMapper::Resource
@@ -30,10 +29,10 @@ class DataMapperTest < Minitest::Test
   def test_create
     # DM 1.0 generates a create method on inclusion of a module that internally
     # calls the instance #save method, so that's all we see on that version.
-    expected_metric = DataMapper::VERSION < "1.1" ? :save : :create
+    expected_metric = DataMapper::VERSION < '1.1' ? :save : :create
     assert_basic_metrics(expected_metric) do
       in_transaction do
-        Post.create(:title => "Dummy post", :body => "whatever, man")
+        Post.create(title: 'Dummy post', body: 'whatever, man')
       end
     end
   end
@@ -41,7 +40,7 @@ class DataMapperTest < Minitest::Test
   def test_create!
     assert_basic_metrics(:create) do
       in_transaction do
-        Post.create!(:title => "Dummy post", :body => "whatever, man")
+        Post.create!(title: 'Dummy post', body: 'whatever, man')
       end
     end
   end
@@ -89,7 +88,7 @@ class DataMapperTest < Minitest::Test
   def test_bulk_update
     assert_against_record(:update) do
       in_transaction do
-        Post.update(:title => 'other title')
+        Post.update(title: 'other title')
       end
     end
   end
@@ -97,7 +96,7 @@ class DataMapperTest < Minitest::Test
   def test_bulk_update!
     assert_against_record(:update) do
       in_transaction do
-        Post.update!(:title => 'other title')
+        Post.update!(title: 'other title')
       end
     end
   end
@@ -105,7 +104,7 @@ class DataMapperTest < Minitest::Test
   def test_instance_update
     assert_against_record(:update) do |post|
       in_transaction do
-        post.update(:title => 'other title')
+        post.update(title: 'other title')
       end
     end
   end
@@ -113,7 +112,7 @@ class DataMapperTest < Minitest::Test
   def test_bulk_update!
     assert_against_record(:update) do |post|
       in_transaction do
-        post.update!(:title => 'other title')
+        post.update!(title: 'other title')
       end
     end
   end
@@ -191,19 +190,19 @@ class DataMapperTest < Minitest::Test
   end
 
   def test_in_web_transaction
-    in_web_transaction("dm4evr") do
+    in_web_transaction('dm4evr') do
       Post.all
     end
 
     assert_metrics_recorded([
-      'Datastore/all',
-      'Datastore/allWeb',
-      'Datastore/DataMapper/all',
-      'Datastore/DataMapper/allWeb',
-      'Datastore/operation/DataMapper/all',
-      'Datastore/statement/DataMapper/Post/all',
-      ['Datastore/statement/DataMapper/Post/all', 'dm4evr']
-    ])
+                              'Datastore/all',
+                              'Datastore/allWeb',
+                              'Datastore/DataMapper/all',
+                              'Datastore/DataMapper/allWeb',
+                              'Datastore/operation/DataMapper/all',
+                              'Datastore/statement/DataMapper/Post/all',
+                              ['Datastore/statement/DataMapper/Post/all', 'dm4evr']
+                            ])
   end
 
   def test_collection_get
@@ -238,7 +237,7 @@ class DataMapperTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      'Datastore/statement/DataMapper/Post/all' => { :call_count => 2 }
+      'Datastore/statement/DataMapper/Post/all' => { call_count: 2 }
     )
   end
 
@@ -253,7 +252,7 @@ class DataMapperTest < Minitest::Test
   def test_collection_create
     assert_against_record(:create) do
       in_transaction do
-        Post.all.create(:title => "The Title", :body => "Body")
+        Post.all.create(title: 'The Title', body: 'Body')
       end
     end
   end
@@ -261,7 +260,7 @@ class DataMapperTest < Minitest::Test
   def test_collection_create!
     assert_against_record(:create) do
       in_transaction do
-        Post.all.create!(:title => "The Title", :body => "Body")
+        Post.all.create!(title: 'The Title', body: 'Body')
       end
     end
   end
@@ -269,7 +268,7 @@ class DataMapperTest < Minitest::Test
   def test_collection_update
     assert_against_record(:update) do
       in_transaction do
-        Post.all.update(:title => "Another")
+        Post.all.update(title: 'Another')
       end
     end
   end
@@ -277,7 +276,7 @@ class DataMapperTest < Minitest::Test
   def test_collection_update!
     assert_against_record(:update) do
       in_transaction do
-        Post.all.update!(:title => "Another")
+        Post.all.update!(title: 'Another')
       end
     end
   end
@@ -321,13 +320,13 @@ class DataMapperTest < Minitest::Test
     end
 
     assert_metrics_recorded([
-      'Datastore/all',
-      'Datastore/allWeb',
-      'Datastore/DataMapper/all',
-      'Datastore/DataMapper/allWeb',
-      'Datastore/operation/DataMapper/select',
-      ['Datastore/operation/DataMapper/select', 'dm4evr'],
-    ])
+                              'Datastore/all',
+                              'Datastore/allWeb',
+                              'Datastore/DataMapper/all',
+                              'Datastore/DataMapper/allWeb',
+                              'Datastore/operation/DataMapper/select',
+                              ['Datastore/operation/DataMapper/select', 'dm4evr']
+                            ])
   end
 
   def test_direct_execute_on_adapter
@@ -336,29 +335,29 @@ class DataMapperTest < Minitest::Test
     end
 
     assert_metrics_recorded([
-      'Datastore/all',
-      'Datastore/allOther',
-      'Datastore/DataMapper/all',
-      'Datastore/DataMapper/allOther',
-      'Datastore/operation/DataMapper/execute',
-      ['Datastore/operation/DataMapper/execute', 'background'],
-    ])
+                              'Datastore/all',
+                              'Datastore/allOther',
+                              'Datastore/DataMapper/all',
+                              'Datastore/DataMapper/allOther',
+                              'Datastore/operation/DataMapper/execute',
+                              ['Datastore/operation/DataMapper/execute', 'background']
+                            ])
   end
 
   def test_datamapper_transaction_commit
     in_transaction do
-      Post.transaction do |t|
+      Post.transaction do |_t|
         Post.destroy!
       end
     end
 
     assert_metrics_recorded([
-      'Datastore/all',
-      'Datastore/allOther',
-      'Datastore/DataMapper/all',
-      'Datastore/DataMapper/allOther',
-      'Datastore/operation/DataMapper/commit'
-    ])
+                              'Datastore/all',
+                              'Datastore/allOther',
+                              'Datastore/DataMapper/all',
+                              'Datastore/DataMapper/allOther',
+                              'Datastore/operation/DataMapper/commit'
+                            ])
   end
 
   # https://support.newrelic.com/tickets/2101
@@ -379,14 +378,12 @@ class DataMapperTest < Minitest::Test
 
   def test_obfuscate_query_in_sqlerror
     invalid_query = "select * from users where password='Slurms McKenzie' limit 1"
-    with_config(:'slow_sql.record_sql' => 'obfuscated') do
-      begin
-        in_transaction do
-          DataMapper.repository.adapter.select(invalid_query)
-        end
-      rescue => e
-        NewRelic::Agent.notice_error(e)
+    with_config('slow_sql.record_sql': 'obfuscated') do
+      in_transaction do
+        DataMapper.repository.adapter.select(invalid_query)
       end
+    rescue StandardError => e
+      NewRelic::Agent.notice_error(e)
     end
 
     refute last_traced_error.message.include?(invalid_query)
@@ -401,28 +398,28 @@ class DataMapperTest < Minitest::Test
         txn = test_txn
         DataMapper.repository.adapter.select(invalid_query)
       end
-    rescue => e
+    rescue StandardError => e
       # No-op for error noticing
     end
 
-    assert_segment_noticed_error txn, /DataMapper\/select/i, "DataObjects::SyntaxError", /no such table: users/i
+    assert_segment_noticed_error txn, %r{DataMapper/select}i, 'DataObjects::SyntaxError', /no such table: users/i
   end
 
   def test_splice_user_password_from_sqlerror
     begin
       in_transaction do
-        DataMapper.repository.adapter.select("select * from users")
+        DataMapper.repository.adapter.select('select * from users')
       end
-    rescue => e
+    rescue StandardError => e
       NewRelic::Agent.notice_error(e)
     end
 
     refute last_traced_error.message.include?('&password='),
-      "error message expected not to contain '&password=' but did: #{last_traced_error && last_traced_error.message}"
+           "error message expected not to contain '&password=' but did: #{last_traced_error && last_traced_error.message}"
   end
 
   def assert_against_record(operation)
-    post = Post.create!(:title => "Dummy post", :body => "whatever, man")
+    post = Post.create!(title: 'Dummy post', body: 'whatever, man')
 
     # Want to ignore our default record's creation for these tests
     NewRelic::Agent.drop_buffered_data
@@ -435,11 +432,10 @@ class DataMapperTest < Minitest::Test
   def assert_basic_metrics(operation)
     yield
     assert_metrics_recorded([
-      "Datastore/all",
-      "Datastore/allOther",
-      "Datastore/operation/DataMapper/#{operation}",
-      "Datastore/statement/DataMapper/Post/#{operation}"
-    ])
+                              'Datastore/all',
+                              'Datastore/allOther',
+                              "Datastore/operation/DataMapper/#{operation}",
+                              "Datastore/statement/DataMapper/Post/#{operation}"
+                            ])
   end
-
 end

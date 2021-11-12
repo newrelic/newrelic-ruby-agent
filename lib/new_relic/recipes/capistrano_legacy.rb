@@ -1,15 +1,12 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-make_notify_task = Proc.new do
-
+make_notify_task = proc do
   namespace :newrelic do
-
     # on all deployments, notify New Relic
-    desc "Record a deployment in New Relic (newrelic.com)"
-    task :notice_deployment, :roles => :app, :except => {:no_release => true } do
-      rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, "production"))
+    desc 'Record a deployment in New Relic (newrelic.com)'
+    task :notice_deployment, roles: :app, except: { no_release: true } do
+      rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, 'production'))
 
       require 'new_relic/cli/command'
 
@@ -29,40 +26,39 @@ make_notify_task = Proc.new do
 
         new_revision = rev
         deploy_options = {
-          :environment => rails_env,
-          :revision    => new_revision,
-          :changelog   => changelog,
-          :description => description,
-          :appname     => appname,
-          :user        => user,
-          :license_key => license_key
+          environment: rails_env,
+          revision: new_revision,
+          changelog: changelog,
+          description: description,
+          appname: appname,
+          user: user,
+          license_key: license_key
         }
 
-        logger.debug "Uploading deployment to New Relic"
+        logger.debug 'Uploading deployment to New Relic'
         deployment = NewRelic::Cli::Deployments.new deploy_options
         deployment.run
-        logger.info "Uploaded deployment information to New Relic"
-
+        logger.info 'Uploaded deployment information to New Relic'
       rescue NewRelic::Cli::Command::CommandFailure => e
         logger.info e.message
       rescue Capistrano::CommandError
-        logger.info "Unable to notify New Relic of the deployment... skipping"
-      rescue => e
+        logger.info 'Unable to notify New Relic of the deployment... skipping'
+      rescue StandardError => e
         logger.info "Error creating New Relic deployment (#{e})\n#{e.backtrace.join("\n")}"
       end
     end
 
     def lookup_changelog(changelog)
-      if !changelog
-        logger.debug "Getting log of changes for New Relic Deployment details"
+      unless changelog
+        logger.debug 'Getting log of changes for New Relic Deployment details'
         from_revision = source.next_revision(current_revision)
 
-        if scm == :git
-          log_command = "git --no-pager log --no-color --pretty=format:'  * %an: %s' " +
-            "--abbrev-commit --no-merges #{previous_revision}..#{real_revision}"
-        else
-          log_command = "#{source.log(from_revision)}"
-        end
+        log_command = if scm == :git
+                        "git --no-pager log --no-color --pretty=format:'  * %an: %s' " +
+                          "--abbrev-commit --no-merges #{previous_revision}..#{real_revision}"
+                      else
+                        source.log(from_revision).to_s
+                      end
 
         changelog = `#{log_command}`
       end
@@ -71,7 +67,7 @@ make_notify_task = Proc.new do
 
     def lookup_rev(rev)
       if rev.nil?
-        rev = source.query_revision(source.head()) do |cmd|
+        rev = source.query_revision(source.head) do |cmd|
           logger.debug "executing locally: '#{cmd}'"
           `#{cmd}`
         end
@@ -86,7 +82,7 @@ end
 require 'capistrano/version'
 
 if defined?(Capistrano::Version::MAJOR) && Capistrano::Version::MAJOR < 2
-  STDERR.puts "Unable to load #{__FILE__}\nNew Relic Capistrano hooks require at least version 2.0.0"
+  warn "Unable to load #{__FILE__}\nNew Relic Capistrano hooks require at least version 2.0.0"
 else
   instance = Capistrano::Configuration.instance
 

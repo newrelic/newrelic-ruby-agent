@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,7 +7,6 @@ module NewRelic
   module Agent
     class Transaction
       class SlowestSampleBuffer < TransactionSampleBuffer
-
         CAPACITY = 1
 
         def capacity
@@ -18,7 +16,6 @@ module NewRelic
         def allow_sample?(sample)
           sample.threshold && sample.duration >= sample.threshold
         end
-
       end
     end
   end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -21,8 +20,8 @@ module Performance
         heap_live_after  = @stats_after[:heap_live_slots]  || @stats_after[:heap_live_num]  || @stats_after[:heap_live_slot]
 
         res = {
-          :gc_runs      => @stats_after[:count] - @stats_before[:count],
-          :live_objects => heap_live_after      - heap_live_before
+          gc_runs: @stats_after[:count] - @stats_before[:count],
+          live_objects: heap_live_after - heap_live_before
         }
         allocs_before = @stats_before[:total_allocated_objects] || @stats_before[:total_allocated_object]
         allocs_after  = @stats_after[:total_allocated_objects]  || @stats_after[:total_allocated_object]
@@ -50,8 +49,8 @@ module Performance
 
       def results
         {
-          :allocations => @allocations_after - @allocations_before,
-          :live_objects => @live_objects_after - @live_objects_before,
+          allocations: @allocations_after - @allocations_before,
+          live_objects: @live_objects_after - @live_objects_before
         }
       end
     end

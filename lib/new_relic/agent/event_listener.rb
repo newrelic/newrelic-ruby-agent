@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -9,7 +8,6 @@ module NewRelic::Agent
   # While an EventListener could be used elsewhere, it's strongly expected
   # your eventing needs should be met by the agent's instance.
   class EventListener
-
     attr_accessor :runaway_threshold
 
     def initialize
@@ -25,7 +23,9 @@ module NewRelic::Agent
 
     def check_for_runaway_subscriptions(event)
       count = @events[event].size
-      NewRelic::Agent.logger.debug("Run-away event subscription on #{event}? Subscribed #{count}") if count > @runaway_threshold
+      if count > @runaway_threshold
+        NewRelic::Agent.logger.debug("Run-away event subscription on #{event}? Subscribed #{count}")
+      end
     end
 
     def clear
@@ -36,11 +36,9 @@ module NewRelic::Agent
       return unless @events.has_key?(event)
 
       @events[event].each do |handler|
-        begin
-          handler.call(*args)
-        rescue => err
-          NewRelic::Agent.logger.debug("Failure during notify for #{event}", err)
-        end
+        handler.call(*args)
+      rescue StandardError => e
+        NewRelic::Agent.logger.debug("Failure during notify for #{event}", e)
       end
     end
   end

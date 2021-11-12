@@ -1,8 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path('../../../../test_helper.rb', __FILE__)
+require File.expand_path('../../../test_helper.rb', __dir__)
 require 'new_relic/agent/transaction/trace'
 require 'new_relic/agent/database'
 
@@ -48,7 +47,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_each_node_delegates_to_root_node
-    block = Proc.new {}
+    block = proc {}
     @trace.root_node.expects(:each_node)
     @trace.each_node(&block)
   end
@@ -60,7 +59,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_root_node
     assert_equal 0.0, @trace.root_node.entry_timestamp
-    assert_equal "ROOT", @trace.root_node.metric_name
+    assert_equal 'ROOT', @trace.root_node.metric_name
   end
 
   def test_prepare_to_send_returns_self
@@ -103,11 +102,11 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     node = @trace.create_node(0.0, 'has_sql')
     node.stubs(:duration).returns(2)
     node.stubs(:explain_sql).returns('')
-    node[:sql] = NewRelic::Agent::Database::Statement.new "select * from pelicans"
+    node[:sql] = NewRelic::Agent::Database::Statement.new 'select * from pelicans'
 
     @trace.root_node.children << node
 
-    with_config(:'transaction_tracer.explain_threshold' => 1) do
+    with_config('transaction_tracer.explain_threshold': 1) do
       @trace.prepare_to_send!
     end
 
@@ -123,7 +122,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     @trace.root_node.children << node
 
     @trace.prepare_to_send!
-    assert_equal "select * from pelicans where name = ?;", node[:sql]
+    assert_equal 'select * from pelicans where name = ?;', node[:sql]
   end
 
   def test_prepare_to_send_strips_sql
@@ -147,7 +146,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     @trace.root_node.children << node
 
-    with_config(:'transaction_tracer.explain_threshold' => 1) do
+    with_config('transaction_tracer.explain_threshold': 1) do
       @trace.collect_explain_plans!
     end
 
@@ -162,7 +161,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     @trace.root_node.children << node
 
-    with_config(:'transaction_tracer.explain_threshold' => 2) do
+    with_config('transaction_tracer.explain_threshold': 2) do
       @trace.collect_explain_plans!
     end
 
@@ -177,7 +176,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     @trace.root_node.children << node
 
-    with_config(:'transaction_tracer.explain_threshold' => 1) do
+    with_config('transaction_tracer.explain_threshold': 1) do
       @trace.collect_explain_plans!
     end
 
@@ -194,7 +193,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     @trace.root_node.children << node
 
-    with_config(:'transaction_tracer.explain_threshold' => 1) do
+    with_config('transaction_tracer.explain_threshold': 1) do
       @trace.collect_explain_plans!
     end
 
@@ -209,7 +208,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
     @trace.root_node.children << node
 
     @trace.prepare_sql_for_transmission!
-    assert_equal "select * from pelicans where name = ?;", node[:sql]
+    assert_equal 'select * from pelicans where name = ?;', node[:sql]
   end
 
   def test_prepare_sql_for_transmission_does_not_modify_sql_if_record_sql_method_is_raw
@@ -257,7 +256,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_transaction_name_gets_coerced_into_a_string
-    @trace.transaction_name = 1337807
+    @trace.transaction_name = 1_337_807
     assert_collector_array_contains(:transaction_name, '1337807')
   end
 
@@ -305,7 +304,7 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def test_synthetics_resource_id_gets_coerced_to_a_string
-    @fake_attributes.add_intrinsic_attribute(:synthetics_resource_id, 31415926)
+    @fake_attributes.add_intrinsic_attribute(:synthetics_resource_id, 31_415_926)
     assert_collector_array_contains(:synthetics_resource_id, '31415926')
   end
 
@@ -332,12 +331,12 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   def test_trace_tree_contains_attributes
     @fake_attributes.add_agent_attribute(:foo, 'bar', NewRelic::Agent::AttributeFilter::DST_ALL)
     @fake_attributes.add_intrinsic_attribute(:foo, 'bar')
-    @fake_attributes.merge_custom_attributes(:foo => 'bar')
+    @fake_attributes.merge_custom_attributes(foo: 'bar')
 
     expected = {
-      'agentAttributes' => { :foo => 'bar' },
-      'userAttributes'  => { "foo" => 'bar' },
-      'intrinsics'      => { :foo => 'bar' }
+      'agentAttributes' => { foo: 'bar' },
+      'userAttributes' => { 'foo' => 'bar' },
+      'intrinsics' => { foo: 'bar' }
     }
 
     assert_trace_tree_contains(:attributes, expected)
@@ -348,12 +347,12 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def assert_trace_tree_contains(key, expected)
-    indices = [
-      :start_time,
-      :unused_legacy_request_params,
-      :unused_legacy_custom_params,
-      :root_node,
-      :attributes
+    indices = %i[
+      start_time
+      unused_legacy_request_params
+      unused_legacy_custom_params
+      root_node
+      attributes
     ]
 
     tree = extract_trace_tree(@trace)
@@ -362,17 +361,17 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
   end
 
   def assert_collector_array_contains(key, expected)
-    indices = [
-      :start_time,
-      :duration,
-      :transaction_name,
-      :uri,
-      :trace_tree,
-      :guid,
-      :reserved,
-      :forced?,
-      :xray_session_id,
-      :synthetics_resource_id
+    indices = %i[
+      start_time
+      duration
+      transaction_name
+      uri
+      trace_tree
+      guid
+      reserved
+      forced?
+      xray_session_id
+      synthetics_resource_id
     ]
 
     encoder = NewRelic::Agent::NewRelicService::Encoders::Identity

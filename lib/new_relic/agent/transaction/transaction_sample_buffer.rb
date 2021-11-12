@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -29,12 +28,13 @@ module NewRelic
           reset!
         end
 
-        def allow_sample?(sample)
+        def allow_sample?(_sample)
           true
         end
 
         def store(sample)
           return unless enabled?
+
           if allow_sample?(sample)
             add_sample(sample)
             truncate_samples_if_needed
@@ -43,6 +43,7 @@ module NewRelic
 
         def store_previous(previous_samples)
           return unless enabled?
+
           previous_samples.each do |sample|
             add_sample(sample) if allow_sample?(sample)
           end
@@ -62,7 +63,7 @@ module NewRelic
         #
         # This value will be forcibly capped by the max_capacity
         def capacity
-          raise NotImplementedError.new("TransactionSampleBuffer subclasses must provide a capacity override")
+          raise NotImplementedError, 'TransactionSampleBuffer subclasses must provide a capacity override'
         end
 
         # Apply hard upper limit to the capacity to prevent users from
@@ -81,7 +82,7 @@ module NewRelic
         # This doesn't use the more convenient #last and #sort_by to avoid
         # additional array allocations (and abundant alliteration)
         def truncate_samples
-          @samples.sort!{|a,b| a.duration <=> b.duration}
+          @samples.sort! { |a, b| a.duration <=> b.duration }
           @samples.slice!(0..-(max_capacity + 1))
         end
 
@@ -98,7 +99,6 @@ module NewRelic
         def add_sample(sample)
           @samples << sample
         end
-
       end
     end
   end

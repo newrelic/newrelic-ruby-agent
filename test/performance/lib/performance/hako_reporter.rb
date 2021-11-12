@@ -1,10 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 module Performance
   class HakoReporter
-    def initialize(results, elapsed, options={})
+    def initialize(results, _elapsed, options = {})
       @results = results
       @token = ENV['HAKO_TOKEN'] || options[:hako_token]
     end
@@ -16,7 +15,7 @@ module Performance
         rsp = client.submit(result)
         case rsp
         when Net::HTTPSuccess
-          Performance.logger.debug("Successfully posted result to Hako")
+          Performance.logger.debug('Successfully posted result to Hako')
         else
           Performance.logger.error("Failed to post results to Hako: #{rsp.inspect}")
         end

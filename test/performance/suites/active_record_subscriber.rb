@@ -1,10 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/instrumentation/active_record_subscriber'
 
-# Note: This test was cobbled together from the AR Subscriber Unit Test and
+# NOTE: This test was cobbled together from the AR Subscriber Unit Test and
 # by cut & paste of ActiveSupport::Notifcations::Event from Rails source.
 # This test is here because it's useful, not because it's well written.
 # If you have a desire to improve this test, do it!
@@ -56,31 +55,29 @@ end
 
 class ActiveRecordSubscriberTest < Performance::TestCase
   def setup
-    @config = { :adapter => 'mysql', :host => 'server' }
+    @config = { adapter: 'mysql', host: 'server' }
     @connection = Object.new
     @connection.instance_variable_set(:@config, @config)
 
-
     @params = {
-      :name => 'NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order Load',
-      :sql => 'SELECT * FROM sandwiches',
-      :connection_id => @connection.object_id
+      name: 'NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order Load',
+      sql: 'SELECT * FROM sandwiches',
+      connection_id: @connection.object_id
     }
 
     @subscriber = NewRelic::Agent::Instrumentation::ActiveRecordSubscriber.new
     if @subscriber.respond_to? :active_record_config_for_event
       @subscriber.class.send(:remove_method, :active_record_config_for_event)
-      @subscriber.class.send(:define_method, :active_record_config_for_event) do |args|
+      @subscriber.class.send(:define_method, :active_record_config_for_event) do |_args|
         @config
       end
     else
       @subscriber.class.send(:remove_method, :active_record_config)
-      @subscriber.class.send(:define_method, :active_record_config) do |args|
+      @subscriber.class.send(:define_method, :active_record_config) do |_args|
         @config
       end
     end
   end
-
 
   def test_subscriber_in_txn
     measure do
@@ -92,7 +89,7 @@ class ActiveRecordSubscriberTest < Performance::TestCase
 
   EVENT_NAME = 'sql.active_record'.freeze
 
-  def simulate_query(duration=nil)
+  def simulate_query(duration = nil)
     @subscriber.start(EVENT_NAME, :id, @params)
     advance_process_time(duration) if duration
     @subscriber.finish(EVENT_NAME, :id, @params)

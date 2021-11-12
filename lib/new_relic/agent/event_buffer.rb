@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -37,7 +36,7 @@ module NewRelic
         @items    = []
         old_seen  = @seen
         old_items.each { |i| append(i) }
-        @seen     = old_seen
+        @seen = old_seen
       end
 
       def append(x)
@@ -80,12 +79,11 @@ module NewRelic
 
       def metadata
         {
-          :capacity => @capacity,
-          :captured => @items.size,
-          :seen => @seen
+          capacity: @capacity,
+          captured: @items.size,
+          seen: @seen
         }
       end
     end
   end
 end
-

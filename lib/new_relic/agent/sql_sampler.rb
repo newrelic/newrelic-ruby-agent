@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -46,14 +45,12 @@ module NewRelic
           NewRelic::Agent::Database.should_record_sql?(:slow_sql)
       end
 
-      def on_start_transaction(state, uri=nil)
+      def on_start_transaction(state, uri = nil)
         return unless enabled?
 
         state.sql_sampler_transaction_data = TransactionSqlData.new
 
-        if state.current_transaction
-          guid = state.current_transaction.guid
-        end
+        guid = state.current_transaction.guid if state.current_transaction
 
         if Agent.config[:'slow_sql.enabled'] && state.sql_sampler_transaction_data
           state.sql_sampler_transaction_data.set_transaction_info(uri, guid)
@@ -98,9 +95,7 @@ module NewRelic
               sql_trace = SqlTrace.new(normalized_sql, sql_item, path, uri)
             end
 
-            if sql_trace
-              @sql_traces[normalized_sql] = sql_trace
-            end
+            @sql_traces[normalized_sql] = sql_trace if sql_trace
           end
         end
       end
@@ -119,7 +114,7 @@ module NewRelic
 
       # this should always be called under the @samples_lock
       def remove_shortest_trace
-        shortest_key, _ = @sql_traces.min_by { |(_, trace)| trace.max_call_time }
+        shortest_key, = @sql_traces.min_by { |(_, trace)| trace.max_call_time }
         @sql_traces.delete(shortest_key)
       end
 
@@ -140,21 +135,19 @@ module NewRelic
       # @api public
       # @deprecated Use {Datastores.notice_sql} instead.
       #
-      def notice_sql(sql, metric_name, config, duration, state=nil, explainer=nil, binds=nil, name=nil) #THREAD_LOCAL_ACCESS sometimes
+      def notice_sql(sql, metric_name, config, duration, state = nil, explainer = nil, binds = nil, name = nil) # THREAD_LOCAL_ACCESS sometimes
         state ||= Tracer.state
         data = state.sql_sampler_transaction_data
         return unless data
 
-        if state.is_sql_recorded?
-          if duration > Agent.config[:'slow_sql.explain_threshold']
-            backtrace = caller.join("\n")
-            statement = Database::Statement.new(sql, config, explainer, binds, name)
-            data.sql_data << SlowSql.new(statement, metric_name, duration, backtrace)
-          end
+        if state.is_sql_recorded? && (duration > Agent.config[:'slow_sql.explain_threshold'])
+          backtrace = caller.join("\n")
+          statement = Database::Statement.new(sql, config, explainer, binds, name)
+          data.sql_data << SlowSql.new(statement, metric_name, duration, backtrace)
         end
       end
 
-      PRIORITY = "priority".freeze
+      PRIORITY = 'priority'.freeze
 
       def distributed_trace_attributes(state)
         transaction = state.current_transaction
@@ -173,12 +166,10 @@ module NewRelic
         data = state.sql_sampler_transaction_data
         return unless data
 
-        if state.is_sql_recorded?
-          if duration > Agent.config[:'slow_sql.explain_threshold']
-            backtrace = caller.join("\n")
-            params = distributed_trace_attributes state
-            data.sql_data << SlowSql.new(statement, metric_name, duration, backtrace, params)
-          end
+        if state.is_sql_recorded? && (duration > Agent.config[:'slow_sql.explain_threshold'])
+          backtrace = caller.join("\n")
+          params = distributed_trace_attributes state
+          data.sql_data << SlowSql.new(statement, metric_name, duration, backtrace, params)
         end
       end
 
@@ -203,7 +194,7 @@ module NewRelic
           slowest = @sql_traces.values
           @sql_traces = {}
         end
-        slowest.each {|trace| trace.prepare_to_send }
+        slowest.each { |trace| trace.prepare_to_send }
         slowest
       end
 
@@ -215,10 +206,7 @@ module NewRelic
     end
 
     class TransactionSqlData
-      attr_reader :path
-      attr_reader :uri
-      attr_reader :sql_data
-      attr_reader :guid
+      attr_reader :path, :uri, :sql_data, :guid
 
       def initialize
         @sql_data = []
@@ -235,12 +223,9 @@ module NewRelic
     end
 
     class SlowSql
-      attr_reader :statement
-      attr_reader :metric_name
-      attr_reader :duration
-      attr_reader :backtrace
+      attr_reader :statement, :metric_name, :duration, :backtrace
 
-      def initialize(statement, metric_name, duration, backtrace=nil, params=nil)
+      def initialize(statement, metric_name, duration, backtrace = nil, params = nil)
         @statement = statement
         @metric_name = metric_name
         @duration = duration
@@ -272,13 +257,11 @@ module NewRelic
 
       def normalize
         NewRelic::Agent::Database::Obfuscator.instance \
-          .default_sql_obfuscator(statement).gsub(/\?\s*\,\s*/, '').gsub(/\s/, '')
+                                             .default_sql_obfuscator(statement).gsub(/\?\s*,\s*/, '').gsub(/\s/, '')
       end
 
       def explain
-        if statement.config && statement.explainer
-          NewRelic::Agent::Database.explain_sql(statement)
-        end
+        NewRelic::Agent::Database.explain_sql(statement) if statement.config && statement.explainer
       end
 
       # We can't serialize the explainer, so clear it before we transmit
@@ -288,13 +271,7 @@ module NewRelic
     end
 
     class SqlTrace < Stats
-      attr_reader :path
-      attr_reader :url
-      attr_reader :sql_id
-      attr_reader :sql
-      attr_reader :database_metric_name
-      attr_reader :params
-      attr_reader :slow_sql
+      attr_reader :path, :url, :sql_id, :sql, :database_metric_name, :params, :slow_sql
 
       def initialize(normalized_query, slow_sql, path, uri)
         super()
@@ -314,9 +291,7 @@ module NewRelic
       end
 
       def aggregate(slow_sql, path, uri)
-        if slow_sql.duration > max_call_time
-          set_primary slow_sql, path, uri
-        end
+        set_primary slow_sql, path, uri if slow_sql.duration > max_call_time
 
         record_data_point(float(slow_sql.duration))
       end
@@ -342,16 +317,16 @@ module NewRelic
       include NewRelic::Coerce
 
       def to_collector_array(encoder)
-        [ string(@path),
-          string(@url),
-          int(@sql_id),
-          string(@sql),
-          string(@database_metric_name),
-          int(@call_count),
-          Helper.time_to_millis(@total_call_time),
-          Helper.time_to_millis(@min_call_time),
-          Helper.time_to_millis(@max_call_time),
-          encoder.encode(@params) ]
+        [string(@path),
+         string(@url),
+         int(@sql_id),
+         string(@sql),
+         string(@database_metric_name),
+         int(@call_count),
+         Helper.time_to_millis(@total_call_time),
+         Helper.time_to_millis(@min_call_time),
+         Helper.time_to_millis(@max_call_time),
+         encoder.encode(@params)]
       end
 
       private
@@ -359,10 +334,10 @@ module NewRelic
       # need to hash the same way in every process, to be able to aggregate slow SQL traces
       def consistent_hash(string)
         if NewRelic::Agent.config[:'slow_sql.use_longer_sql_id']
-          Digest::SHA1.hexdigest(string).hex.modulo(2**63-1)
+          Digest::SHA1.hexdigest(string).hex.modulo(2**63 - 1)
         else
           # from when sql_id needed to fit in an INT(11)
-          Digest::SHA1.hexdigest(string).hex.modulo(2**31-1)
+          Digest::SHA1.hexdigest(string).hex.modulo(2**31 - 1)
         end
       end
     end

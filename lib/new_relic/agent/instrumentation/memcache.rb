@@ -1,9 +1,8 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# NOTE there are multiple implementations of the MemCache client in Ruby,
+# NOTE: there are multiple implementations of the MemCache client in Ruby,
 # each with slightly different API's and semantics.
 # See:
 #     http://www.deveiate.org/code/Ruby-MemCache/ (Gem: Ruby-MemCache)
@@ -24,9 +23,9 @@ DependencyDetection.defer do
   executes do
     if use_prepend?
       prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend.client_prepender(::MemCache)
-      prepend_instrument ::MemCache, prepend_module, "MemcacheClient"
+      prepend_instrument ::MemCache, prepend_module, 'MemcacheClient'
     else
-      chain_instrument_target ::MemCache, ::NewRelic::Agent::Instrumentation::Memcache::Chain, "MemcacheClient"
+      chain_instrument_target ::MemCache, ::NewRelic::Agent::Instrumentation::Memcache::Chain, 'MemcacheClient'
     end
   end
 end
@@ -39,9 +38,9 @@ DependencyDetection.defer do
   executes do
     if use_prepend?
       prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend.client_prepender(::Memcached)
-      prepend_instrument ::Memcached, prepend_module, "Memcached"
+      prepend_instrument ::Memcached, prepend_module, 'Memcached'
     else
-      chain_instrument_target ::Memcached, ::NewRelic::Agent::Instrumentation::Memcache::Chain, "Memcached"
+      chain_instrument_target ::Memcached, ::NewRelic::Agent::Instrumentation::Memcache::Chain, 'Memcached'
     end
   end
 end
@@ -56,7 +55,7 @@ DependencyDetection.defer do
     if use_prepend?
       prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend
       prepend_module.dalli_prependers do |client_class, instrumenting_module|
-        prepend_instrument client_class, instrumenting_module, "MemecacheDalli"
+        prepend_instrument client_class, instrumenting_module, 'MemecacheDalli'
       end
     else
       chain_instrument ::NewRelic::Agent::Instrumentation::Memcache::Dalli
@@ -79,7 +78,7 @@ DependencyDetection.defer do
     if use_prepend?
       prepend_module = ::NewRelic::Agent::Instrumentation::Memcache::Prepend
       prepend_module.dalli_cas_prependers do |client_class, instrumenting_module|
-        prepend_instrument client_class, instrumenting_module, "MemecacheDalliCAS"
+        prepend_instrument client_class, instrumenting_module, 'MemecacheDalliCAS'
       end
     else
       chain_instrument ::NewRelic::Agent::Instrumentation::Memcache::DalliCAS

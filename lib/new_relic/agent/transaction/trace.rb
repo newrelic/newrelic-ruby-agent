@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -14,7 +13,7 @@ module NewRelic
         attr_accessor :transaction_name, :guid, :attributes,
                       :node_count, :finished, :threshold, :profile
 
-        ROOT = "ROOT".freeze
+        ROOT = 'ROOT'.freeze
 
         def initialize(start_time)
           @start_time = start_time
@@ -24,20 +23,21 @@ module NewRelic
         end
 
         def sample_id
-          self.object_id
+          object_id
         end
 
         def count_nodes
           node_count = 0
           each_node do |node|
             next if node == root_node
-            node_count +=1
+
+            node_count += 1
           end
           node_count
         end
 
         def duration
-          self.root_node.duration
+          root_node.duration
         end
 
         def synthetics_resource_id
@@ -50,13 +50,14 @@ module NewRelic
         end
 
         def create_node(time_since_start, metric_name = nil)
-          raise FinishedTraceError.new "Can't create additional node for finished trace." if self.finished
+          raise FinishedTraceError, "Can't create additional node for finished trace." if finished
+
           self.node_count += 1
           NewRelic::Agent::Transaction::TraceNode.new(metric_name, time_since_start)
         end
 
         def each_node(&block)
-          self.root_node.each_node(&block)
+          root_node.each_node(&block)
         end
 
         def prepare_to_send!
@@ -75,18 +76,18 @@ module NewRelic
 
         def collect_explain_plans!
           return unless NewRelic::Agent::Database.should_collect_explain_plans?
+
           threshold = NewRelic::Agent.config[:'transaction_tracer.explain_threshold']
 
           each_node do |node|
-            if node[:sql] && node.duration > threshold
-              node[:explain_plan] = node.explain_sql
-            end
+            node[:explain_plan] = node.explain_sql if node[:sql] && node.duration > threshold
           end
         end
 
         def prepare_sql_for_transmission!
           each_node do |node|
             next unless node[:sql]
+
             node[:sql] = node[:sql].safe_sql
           end
         end
@@ -110,23 +111,23 @@ module NewRelic
         def attributes_for_tracer_destination
           destination = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER
 
-          agent_attributes     = self.attributes.agent_attributes_for(destination)
-          custom_attributes    = self.attributes.custom_attributes_for(destination)
-          intrinsic_attributes = self.attributes.intrinsic_attributes_for(destination)
+          agent_attributes     = attributes.agent_attributes_for(destination)
+          custom_attributes    = attributes.custom_attributes_for(destination)
+          intrinsic_attributes = attributes.intrinsic_attributes_for(destination)
 
           {
-            AGENT_ATTRIBUTES_KEY     => agent_attributes,
-            USER_ATTRIBUTES_KEY      => custom_attributes,
+            AGENT_ATTRIBUTES_KEY => agent_attributes,
+            USER_ATTRIBUTES_KEY => custom_attributes,
             INTRINSIC_ATTRIBUTES_KEY => intrinsic_attributes
           }
         end
 
-        def trace_tree attributes_hash
+        def trace_tree(attributes_hash)
           [
-            NewRelic::Coerce.float(self.start_time),
+            NewRelic::Coerce.float(start_time),
             NewRelic::EMPTY_HASH,
             NewRelic::EMPTY_HASH,
-            self.root_node.to_array,
+            root_node.to_array,
             attributes_hash
           ]
         end
@@ -134,16 +135,16 @@ module NewRelic
         def to_collector_array(encoder)
           attributes_hash = attributes_for_tracer_destination
           [
-            NewRelic::Helper.time_to_millis(self.start_time),
-            NewRelic::Helper.time_to_millis(self.root_node.duration),
-            NewRelic::Coerce.string(self.transaction_name),
+            NewRelic::Helper.time_to_millis(start_time),
+            NewRelic::Helper.time_to_millis(root_node.duration),
+            NewRelic::Coerce.string(transaction_name),
             NewRelic::Coerce.string(attributes_hash[AGENT_ATTRIBUTES_KEY][:'request.uri']),
             encoder.encode(trace_tree(attributes_hash)),
-            NewRelic::Coerce.string(self.guid),
+            NewRelic::Coerce.string(guid),
             nil,
             false, # forced?,
             nil, # NewRelic::Coerce.int_or_nil(xray_session_id),
-            NewRelic::Coerce.string(self.synthetics_resource_id)
+            NewRelic::Coerce.string(synthetics_resource_id)
           ]
         end
       end

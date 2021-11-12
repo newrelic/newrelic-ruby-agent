@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -10,8 +9,8 @@ module NewRelic
 
         def initialize(raw_collector_command)
           @id        = raw_collector_command[0]
-          @name      = raw_collector_command[1]["name"]
-          @arguments = raw_collector_command[1]["arguments"]
+          @name      = raw_collector_command[1]['name']
+          @arguments = raw_collector_command[1]['arguments']
         end
       end
     end

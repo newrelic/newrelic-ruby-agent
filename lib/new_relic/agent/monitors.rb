@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -12,16 +11,13 @@ require_relative 'monitors/distributed_tracing_monitor'
 module NewRelic
   module Agent
     class Monitors
-      attr_reader :cross_app_monitor
-      attr_reader :synthetics_monitor
-      attr_reader :distributed_tracing_monitor
+      attr_reader :cross_app_monitor, :synthetics_monitor, :distributed_tracing_monitor
 
-      def initialize events
+      def initialize(events)
         @synthetics_monitor = NewRelic::Agent::SyntheticsMonitor.new events
         @cross_app_monitor = NewRelic::Agent::DistributedTracing::CrossAppMonitor.new events
         @distributed_tracing_monitor = NewRelic::Agent::DistributedTracing::Monitor.new events
       end
-
     end
   end
 end

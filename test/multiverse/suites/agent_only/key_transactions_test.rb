@@ -1,9 +1,7 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class KeyTransactionsTest < Minitest::Test
-
   include MultiverseHelpers
 
   WEB_KEY_TXN   = 'Controller/KeyTransactionsTest::TestWidget/key_txn'
@@ -12,12 +10,12 @@ class KeyTransactionsTest < Minitest::Test
 
   setup_and_teardown_agent do |collector|
     collector.stub('connect', {
-      'web_transactions_apdex' => {
-        WEB_KEY_TXN   => 1,
-        OTHER_KEY_TXN => 1
-      },
-      'apdex_t' => 10
-    })
+                     'web_transactions_apdex' => {
+                       WEB_KEY_TXN => 1,
+                       OTHER_KEY_TXN => 1
+                     },
+                     'apdex_t' => 10
+                   })
   end
 
   def after_setup
@@ -113,5 +111,4 @@ class KeyTransactionsTest < Minitest::Test
     assert_equal 1, traces.size
     assert_equal(OTHER_KEY_TXN, traces[0].metric_name)
   end
-
 end

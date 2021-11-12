@@ -1,10 +1,9 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','common_aggregator_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'common_aggregator_tests'))
 
 require 'new_relic/agent/custom_event_aggregator'
 
@@ -24,7 +23,7 @@ module NewRelic::Agent
 
     def populate_container(container, n)
       n.times do |i|
-        container.record(:atype, { :number => i })
+        container.record(:atype, { number: i })
       end
     end
 
@@ -36,8 +35,8 @@ module NewRelic::Agent
       generate_request(name, options)
     end
 
-    def generate_request(name='Controller/whatever', options={})
-      payload = options.merge(:name => name)
+    def generate_request(name = 'Controller/whatever', options = {})
+      payload = options.merge(name: name)
 
       @aggregator.record :custom, payload
     end
@@ -46,12 +45,10 @@ module NewRelic::Agent
       aggregator.harvest![1]
     end
 
-    def aggregator
-      @aggregator
-    end
+    attr_reader :aggregator
 
     def name_for(event)
-      event[1]["name"]
+      event[1]['name']
     end
 
     include NewRelic::CommonAggregatorTests
@@ -60,7 +57,7 @@ module NewRelic::Agent
       max_samples = NewRelic::Agent.config[:'custom_insights_events.max_samples_stored']
       n = max_samples + 1
       n.times do |i|
-        @aggregator.record(:footype, :number => i)
+        @aggregator.record(:footype, number: i)
       end
 
       metadata, results = @aggregator.harvest!
@@ -73,11 +70,11 @@ module NewRelic::Agent
       orig_max_samples = NewRelic::Agent.config[:'custom_insights_events.max_samples_stored']
 
       orig_max_samples.times do |i|
-        @aggregator.record(:footype, :number => i)
+        @aggregator.record(:footype, number: i)
       end
 
       new_max_samples = orig_max_samples - 10
-      with_config(:'custom_insights_events.max_samples_stored' => new_max_samples) do
+      with_config('custom_insights_events.max_samples_stored': new_max_samples) do
         metadata, results = @aggregator.harvest!
         assert_equal(new_max_samples, metadata[:reservoir_size])
         assert_equal(orig_max_samples, metadata[:events_seen])
@@ -86,14 +83,14 @@ module NewRelic::Agent
     end
 
     def test_merge_respects_event_limits_by_type
-      with_config(:'custom_insights_events.max_samples_stored' => 10) do
-        11.times do |i|
-          @aggregator.record(:t, :foo => :bar)
+      with_config('custom_insights_events.max_samples_stored': 10) do
+        11.times do |_i|
+          @aggregator.record(:t, foo: :bar)
         end
         old_events = @aggregator.harvest!
 
-        3.times do |i|
-          @aggregator.record(:t, :foo => :bar)
+        3.times do |_i|
+          @aggregator.record(:t, foo: :bar)
         end
 
         @aggregator.merge!(old_events)
@@ -106,7 +103,7 @@ module NewRelic::Agent
 
     def test_record_adds_type_and_timestamp
       t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
-      @aggregator.record(:type_a, :foo => :bar, :baz => :qux)
+      @aggregator.record(:type_a, foo: :bar, baz: :qux)
 
       _, events = @aggregator.harvest!
 
@@ -116,17 +113,17 @@ module NewRelic::Agent
       event[0].delete('priority')
 
       assert_equal({ 'type' => 'type_a', 'timestamp' => t0.to_i }, event[0])
-      assert_equal({ 'foo'  => 'bar'   , 'baz'       => 'qux'   }, event[1])
+      assert_equal({ 'foo'  => 'bar', 'baz' => 'qux' }, event[1])
     end
 
     def test_records_supportability_metrics_after_harvest
-      with_config :'custom_insights_events.max_samples_stored' => 5 do
+      with_config 'custom_insights_events.max_samples_stored': 5 do
         engine = NewRelic::Agent.instance.stats_engine
-        engine.expects(:tl_record_supportability_metric_count).with("Events/Customer/Seen", 9)
-        engine.expects(:tl_record_supportability_metric_count).with("Events/Customer/Sent", 5)
-        engine.expects(:tl_record_supportability_metric_count).with("Events/Customer/Dropped", 4)
+        engine.expects(:tl_record_supportability_metric_count).with('Events/Customer/Seen', 9)
+        engine.expects(:tl_record_supportability_metric_count).with('Events/Customer/Sent', 5)
+        engine.expects(:tl_record_supportability_metric_count).with('Events/Customer/Dropped', 4)
 
-        9.times { @aggregator.record(:t, :foo => :bar) }
+        9.times { @aggregator.record(:t, foo: :bar) }
         @aggregator.harvest!
       end
     end

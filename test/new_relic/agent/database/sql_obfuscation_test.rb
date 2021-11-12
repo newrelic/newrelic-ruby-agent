@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -8,7 +7,7 @@ module NewRelic::Agent::Database
   class SqlObfuscationTest < Minitest::Test
     def self.create_input_statements(raw_query, dialects)
       dialects.map do |dialect|
-        NewRelic::Agent::Database::Statement.new(raw_query, {:adapter => dialect})
+        NewRelic::Agent::Database::Statement.new(raw_query, { adapter: dialect })
       end
     end
 
@@ -36,9 +35,7 @@ module NewRelic::Agent::Database
       # If the entire query is obfuscated because it's malformed, we use a
       # placeholder message instead of just '?', so add that to the acceptable
       # outputs.
-      if test_case['malformed']
-        acceptable_outputs << NewRelic::Agent::Database::Obfuscator::FAILED_TO_OBFUSCATE_MESSAGE
-      end
+      acceptable_outputs << NewRelic::Agent::Database::Obfuscator::FAILED_TO_OBFUSCATE_MESSAGE if test_case['malformed']
 
       create_input_statements(query, dialects).each do |statement|
         define_method("test_sql_obfuscation_#{name}_#{statement.adapter}") do

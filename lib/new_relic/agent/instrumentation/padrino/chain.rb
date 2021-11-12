@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -15,8 +14,8 @@ module NewRelic
                 dispatch_with_tracing { dispatch_without_newrelic }
               end
 
-              alias dispatch_without_newrelic dispatch!
-              alias dispatch! dispatch_with_newrelic
+              alias_method :dispatch_without_newrelic, :dispatch!
+              alias_method :dispatch!, :dispatch_with_newrelic
 
               # Padrino 0.13 mustermann routing
               if private_method_defined?(:invoke_route)
@@ -26,8 +25,8 @@ module NewRelic
                   invoke_route_with_tracing(*args) { invoke_route_without_newrelic(*args, &block) }
                 end
 
-                alias invoke_route_without_newrelic invoke_route
-                alias invoke_route invoke_route_with_newrelic
+                alias_method :invoke_route_without_newrelic, :invoke_route
+                alias_method :invoke_route, :invoke_route_with_newrelic
               end
             end
           end

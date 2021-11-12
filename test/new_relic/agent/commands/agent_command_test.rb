@@ -1,19 +1,18 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/commands/agent_command'
 
 module NewRelic::Agent::Commands
   class AgentCommandTest < Minitest::Test
     ID = 123
     NAME = 'nuke_it_from_orbit'
-    ARGUMENTS = { "profile_id" => 42 }
+    ARGUMENTS = { 'profile_id' => 42 }
 
-    NUKE_IT_FROM_ORBIT = [ID,{
-      "name" => NAME,
-      "arguments" => ARGUMENTS
+    NUKE_IT_FROM_ORBIT = [ID, {
+      'name' => NAME,
+      'arguments' => ARGUMENTS
     }]
 
     def test_destructures_name_from_collector_command

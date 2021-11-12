@@ -1,18 +1,14 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 # https://newrelic.atlassian.net/wiki/display/eng/Agent+Thread+Profiling
 # https://newrelic.atlassian.net/browse/RUBY-917
 
-require 'thread'
-
 class ThreadProfilingTest < Minitest::Test
-
   include MultiverseHelpers
 
-  setup_and_teardown_agent(:'thread_profiler.enabled' => true) do |collector|
-    collector.stub('connect', {"agent_run_id" => 666 })
+  setup_and_teardown_agent('thread_profiler.enabled': true) do |collector|
+    collector.stub('connect', { 'agent_run_id' => 666 })
     collector.stub('get_agent_commands', [])
     collector.stub('agent_command_results', [])
   end
@@ -30,25 +26,25 @@ class ThreadProfilingTest < Minitest::Test
     @threads = nil
   end
 
-  START_COMMAND = [[666,{
-      "name" => "start_profiler",
-      "arguments" => {
-        "profile_id" => -1,
-        "sample_period" => 0.01,
-        "duration" => 0.75,
-        "only_runnable_threads" => false,
-        "only_request_threads" => false,
-        "profile_agent_code" => true
-      }
-    }]]
+  START_COMMAND = [[666, {
+    'name' => 'start_profiler',
+    'arguments' => {
+      'profile_id' => -1,
+      'sample_period' => 0.01,
+      'duration' => 0.75,
+      'only_runnable_threads' => false,
+      'only_request_threads' => false,
+      'profile_agent_code' => true
+    }
+  }]]
 
-  STOP_COMMAND = [[666,{
-      "name" => "stop_profiler",
-      "arguments" => {
-        "profile_id" => -1,
-        "report_data" => true
-      }
-    }]]
+  STOP_COMMAND = [[666, {
+    'name' => 'stop_profiler',
+    'arguments' => {
+      'profile_id' => -1,
+      'report_data' => true
+    }
+  }]]
 
   # These are potentially fragile for being timing based
   # START_COMMAND with 0.01 sampling and 0.5 duration expects to get
@@ -69,10 +65,10 @@ class ThreadProfilingTest < Minitest::Test
     assert_equal('666', profile_data.run_id, "Missing run_id, profile_data was #{profile_data.inspect}")
     assert(profile_data.poll_count >= 2, "Expected sample_count >= 2, but was #{profile_data.poll_count}")
 
-    assert_saw_traces(profile_data, "OTHER")
-    assert_saw_traces(profile_data, "AGENT")
-    assert_saw_traces(profile_data, "REQUEST")
-    assert_saw_traces(profile_data, "BACKGROUND")
+    assert_saw_traces(profile_data, 'OTHER')
+    assert_saw_traces(profile_data, 'AGENT')
+    assert_saw_traces(profile_data, 'REQUEST')
+    assert_saw_traces(profile_data, 'BACKGROUND')
   end
 
   def test_thread_profiling_can_stop
@@ -99,7 +95,7 @@ class ThreadProfilingTest < Minitest::Test
     q = Queue.new
     @threads ||= []
     @threads << Thread.new do
-      in_transaction(:category => category) do
+      in_transaction(category: category) do
         q.push('.')
         sleep # sleep until explicitly woken in join_background_threads
       end
@@ -108,7 +104,7 @@ class ThreadProfilingTest < Minitest::Test
   end
 
   def let_it_finish
-    wait_for_backtrace_service_poll(:timeout => 10.0, :iterations => 1)
+    wait_for_backtrace_service_poll(timeout: 10.0, iterations: 1)
     harvest
     join_background_threads
   end
@@ -133,5 +129,4 @@ class ThreadProfilingTest < Minitest::Test
     assert_kind_of Array, traces_for_type
     assert !profile_data.traces[type].empty?, "Zero #{type} traces seen"
   end
-
 end

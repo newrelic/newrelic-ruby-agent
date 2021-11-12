@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -13,7 +12,7 @@ DependencyDetection.defer do
   # Why not :redis? newrelic-redis used that name, so avoid conflicting
   named :redis_instrumentation
   configure_with :redis
-  
+
   depends_on do
     defined?(::Redis) && defined?(::Redis::VERSION)
   end

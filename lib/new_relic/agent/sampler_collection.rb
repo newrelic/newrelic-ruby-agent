@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -17,12 +16,12 @@ module NewRelic
         @samplers.each(&blk)
       end
 
-      def clear()
+      def clear
         @samplers.clear
       end
 
       def sampler_class_registered?(sampler_class)
-        self.any? { |s| s.class == sampler_class }
+        any? { |s| s.instance_of?(sampler_class) }
       end
 
       # adds samplers to the sampler collection so that they run every
@@ -34,16 +33,13 @@ module NewRelic
         end
       end
 
-
       def poll_samplers
         @samplers.delete_if do |sampler|
-          begin
-            sampler.poll
-            false # it's okay.  don't delete it.
-          rescue => e
-            ::NewRelic::Agent.logger.warn("Removing #{sampler} from list", e)
-            true # remove the sampler
-          end
+          sampler.poll
+          false # it's okay.  don't delete it.
+        rescue StandardError => e
+          ::NewRelic::Agent.logger.warn("Removing #{sampler} from list", e)
+          true # remove the sampler
         end
       end
 
@@ -64,8 +60,8 @@ module NewRelic
         end
       rescue NewRelic::Agent::Sampler::Unsupported => e
         ::NewRelic::Agent.logger.info("#{sampler_class.name} not available: #{e}")
-      rescue => e
-        ::NewRelic::Agent.logger.error("Error registering sampler:", e)
+      rescue StandardError => e
+        ::NewRelic::Agent.logger.error('Error registering sampler:', e)
       end
     end
   end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -36,9 +35,9 @@ module NewRelic
     def initialize
       # Extend self with any any submodules of LocalEnvironment.  These can override
       # the discover methods to discover new framworks and dispatchers.
-      NewRelic::LocalEnvironment.constants.each do | const |
+      NewRelic::LocalEnvironment.constants.each do |const|
         mod = NewRelic::LocalEnvironment.const_get const
-        self.extend mod if mod.instance_of? Module
+        extend mod if mod.instance_of? Module
       end
 
       @discovered_dispatcher = nil
@@ -53,7 +52,7 @@ module NewRelic
           return x
         end
       end
-      return nil
+      nil
     end
 
     private
@@ -76,27 +75,36 @@ module NewRelic
         rainbows
         unicorn
       ]
-      while dispatchers.any? && @discovered_dispatcher.nil?
-        send 'check_for_'+(dispatchers.shift)
-      end
+      send 'check_for_' + dispatchers.shift while dispatchers.any? && @discovered_dispatcher.nil?
     end
 
     def check_for_torquebox
       return unless defined?(::JRuby) &&
-         ( org.torquebox::TorqueBox rescue nil)
+                    begin
+                      org.torquebox::TorqueBox
+                    rescue StandardError
+                      nil
+                    end
+
       @discovered_dispatcher = :torquebox
     end
 
     def check_for_glassfish
       return unless defined?(::JRuby) &&
-        (((com.sun.grizzly.jruby.rack.DefaultRackApplicationFactory rescue nil) &&
-          defined?(com::sun::grizzly::jruby::rack::DefaultRackApplicationFactory)) ||
-         (jruby_rack? && defined?(::GlassFish::Server)))
+                    ((begin
+                      com.sun.grizzly.jruby.rack.DefaultRackApplicationFactory
+                    rescue StandardError
+                      nil
+                    end &&
+                      defined?(com.sun.grizzly.jruby.rack::DefaultRackApplicationFactory)) ||
+                     (jruby_rack? && defined?(::GlassFish::Server)))
+
       @discovered_dispatcher = :glassfish
     end
 
     def check_for_trinidad
       return unless defined?(::JRuby) && jruby_rack? && defined?(::Trinidad::Server)
+
       @discovered_dispatcher = :trinidad
     end
 
@@ -106,17 +114,20 @@ module NewRelic
 
     def check_for_webrick
       return unless defined?(::WEBrick) && defined?(::WEBrick::VERSION)
+
       @discovered_dispatcher = :webrick
     end
 
     def check_for_fastcgi
       return unless defined?(::FCGI)
+
       @discovered_dispatcher = :fastcgi
     end
 
     # this case covers starting by mongrel_rails
     def check_for_mongrel
       return unless defined?(::Mongrel) && defined?(::Mongrel::HttpServer)
+
       @discovered_dispatcher = :mongrel
     end
 
@@ -135,9 +146,7 @@ module NewRelic
     end
 
     def check_for_puma
-      if defined?(::Puma) && File.basename($0) == 'puma'
-        @discovered_dispatcher = :puma
-      end
+      @discovered_dispatcher = :puma if defined?(::Puma) && File.basename($0) == 'puma'
     end
 
     def check_for_delayed_job
@@ -153,16 +162,14 @@ module NewRelic
       resque_pool_executable = executable == 'resque-pool' && defined?(::Resque::Pool)
 
       using_resque = defined?(::Resque) &&
-        (has_queue && resque_rake) ||
-        (resque_pool_executable || resque_pool_rake)
+                     (has_queue && resque_rake) ||
+                     (resque_pool_executable || resque_pool_rake)
 
       @discovered_dispatcher = :resque if using_resque
     end
 
     def check_for_sidekiq
-      if defined?(::Sidekiq) && File.basename($0) == 'sidekiq'
-        @discovered_dispatcher = :sidekiq
-      end
+      @discovered_dispatcher = :sidekiq if defined?(::Sidekiq) && File.basename($0) == 'sidekiq'
     end
 
     def check_for_thin
@@ -170,7 +177,7 @@ module NewRelic
         # If ObjectSpace is available, use it to search for a Thin::Server
         # instance. Otherwise, just the presence of the constant is sufficient.
         if NewRelic::LanguageSupport.object_space_usable?
-          ObjectSpace.each_object(Thin::Server) do |thin_dispatcher|
+          ObjectSpace.each_object(Thin::Server) do |_thin_dispatcher|
             @discovered_dispatcher = :thin
           end
         else
@@ -180,28 +187,24 @@ module NewRelic
     end
 
     def check_for_litespeed
-      if caller.pop =~ /fcgi-bin\/RailsRunner\.rb/
-        @discovered_dispatcher = :litespeed
-      end
+      @discovered_dispatcher = :litespeed if caller.pop =~ %r{fcgi-bin/RailsRunner\.rb}
     end
 
     def check_for_passenger
-      if defined?(::PhusionPassenger)
-        @discovered_dispatcher = :passenger
-      end
+      @discovered_dispatcher = :passenger if defined?(::PhusionPassenger)
     end
 
     public
+
     # outputs a human-readable description
     def to_s
-      s = "LocalEnvironment["
+      s = 'LocalEnvironment['
       s << ";dispatcher=#{@discovered_dispatcher}" if @discovered_dispatcher
-      s << "]"
+      s << ']'
     end
 
     def executable
       File.basename($0)
     end
-
   end
 end

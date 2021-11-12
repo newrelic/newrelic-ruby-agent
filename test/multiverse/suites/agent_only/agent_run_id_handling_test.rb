@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -10,7 +9,7 @@ class AgentRunIdHandlingTest < Minitest::Test
   NON_NUMERIC_RUN_ID = 'some-crazy-non-integer-thing'
 
   setup_and_teardown_agent do
-    $collector.stub('connect', { "agent_run_id" => NON_NUMERIC_RUN_ID })
+    $collector.stub('connect', { 'agent_run_id' => NON_NUMERIC_RUN_ID })
   end
 
   # This test verifies that the Ruby agent is able to accept non-numeric values
@@ -32,7 +31,7 @@ class AgentRunIdHandlingTest < Minitest::Test
 
   def simulate_slow_sql_trace
     in_transaction do
-      agent.sql_sampler.notice_sql("select * from test", "Database/test/select", nil, 1.5)
+      agent.sql_sampler.notice_sql('select * from test', 'Database/test/select', nil, 1.5)
     end
     NewRelic::Agent.agent.send(:harvest_and_send_slowest_sql)
   end

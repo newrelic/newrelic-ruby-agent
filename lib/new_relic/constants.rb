@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -8,16 +7,16 @@ module NewRelic
 
   EMPTY_ARRAY = [].freeze
   EMPTY_HASH = {}.freeze
-  EMPTY_STR = ""
+  EMPTY_STR = ''
 
-  HTTP = "HTTP"
-  HTTPS = "HTTPS"
-  UNKNOWN = "Unknown"
+  HTTP = 'HTTP'
+  HTTPS = 'HTTPS'
+  UNKNOWN = 'Unknown'
 
   FORMAT_NON_RACK = 0
   FORMAT_RACK = 1
 
-  NEWRELIC_KEY = "newrelic"
+  NEWRELIC_KEY = 'newrelic'
   CANDIDATE_NEWRELIC_KEYS = [
     NEWRELIC_KEY,
     'NEWRELIC',
@@ -25,8 +24,8 @@ module NewRelic
     'Newrelic'
   ].freeze
 
-  TRACEPARENT_KEY = "traceparent"
-  TRACESTATE_KEY = "tracestate"
+  TRACEPARENT_KEY = 'traceparent'
+  TRACESTATE_KEY = 'tracestate'
 
   HTTP_TRACEPARENT_KEY = "HTTP_#{TRACEPARENT_KEY.upcase}"
   HTTP_TRACESTATE_KEY = "HTTP_#{TRACESTATE_KEY.upcase}"

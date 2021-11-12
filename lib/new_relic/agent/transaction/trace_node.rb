@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -6,18 +5,15 @@ module NewRelic
   module Agent
     class Transaction
       class TraceNode
+        attr_accessor :parent_node, :metric_name
         attr_reader :entry_timestamp
         # The exit timestamp will be relative except for the outermost sample which will
         # have a timestamp.
         attr_accessor :exit_timestamp
 
-        attr_reader :parent_node
-
-        attr_accessor :metric_name
-
         UNKNOWN_NODE_NAME = '<unknown>'.freeze
 
-        def initialize(metric_name, relative_start, relative_end=nil, params=nil, parent=nil)
+        def initialize(metric_name, relative_start, relative_end = nil, params = nil, parent = nil)
           @entry_timestamp = relative_start
           @metric_name     = metric_name || UNKNOWN_NODE_NAME
           @exit_timestamp  = relative_end
@@ -26,8 +22,9 @@ module NewRelic
           @parent_node     = parent
         end
 
-        def select_allowed_params params
+        def select_allowed_params(params)
           return unless params
+
           params.select do |p|
             NewRelic::Agent.instance.attribute_filter.allows_key? p, AttributeFilter::DST_TRANSACTION_SEGMENTS
           end
@@ -44,45 +41,44 @@ module NewRelic
         end
 
         def to_array
-          params = @params ? @params : NewRelic::EMPTY_HASH
-          [ NewRelic::Helper.time_to_millis(@entry_timestamp),
-            NewRelic::Helper.time_to_millis(@exit_timestamp),
-            NewRelic::Coerce.string(@metric_name),
-            params ] +
-            [ (@children ? @children.map{|s| s.to_array} : NewRelic::EMPTY_ARRAY) ]
+          params = @params || NewRelic::EMPTY_HASH
+          [NewRelic::Helper.time_to_millis(@entry_timestamp),
+           NewRelic::Helper.time_to_millis(@exit_timestamp),
+           NewRelic::Coerce.string(@metric_name),
+           params] +
+            [(@children ? @children.map { |s| s.to_array } : NewRelic::EMPTY_ARRAY)]
         end
 
         def path_string
-          "#{metric_name}[#{children.collect {|node| node.path_string }.join('')}]"
+          "#{metric_name}[#{children.collect { |node| node.path_string }.join('')}]"
         end
 
         def to_s_compact
-          str = ""
+          str = ''
           str << metric_name
-          if children.any?
-            str << "{#{children.map { | cs | cs.to_s_compact }.join(",")}}"
-          end
+          str << "{#{children.map { |cs| cs.to_s_compact }.join(',')}}" if children.any?
           str
         end
 
         def to_debug_str(depth)
-          tab = "  " * depth
+          tab = '  ' * depth
           s = tab.clone
-          s << ">> #{'%3i ms' % (@entry_timestamp*1000)} [#{self.class.name.split("::").last}] #{metric_name} \n"
+          s << ">> #{format('%3i ms',
+                            (@entry_timestamp * 1000))} [#{self.class.name.split('::').last}] #{metric_name} \n"
           unless params.empty?
-            params.each do |k,v|
+            params.each do |k, v|
               s << "#{tab}    -#{'%-16s' % k}: #{v.to_s[0..80]}\n"
             end
           end
           children.each do |cs|
             s << cs.to_debug_str(depth + 1)
           end
-          s << tab + "<< "
+          s << tab + '<< '
           s << case @exit_timestamp
-          when nil then ' n/a'
-          when Numeric then '%3i ms' % (@exit_timestamp*1000)
-          else @exit_timestamp.to_s
-          end
+               when nil then ' n/a'
+               when Numeric then format('%3i ms', (@exit_timestamp * 1000))
+               else @exit_timestamp.to_s
+               end
           s << " #{metric_name}\n"
         end
 
@@ -90,7 +86,7 @@ module NewRelic
           @children ||= []
         end
 
-        attr_writer :children
+        attr_writer :children, :params, :parent_node
 
         # return the total duration of this node
         def duration
@@ -110,15 +106,13 @@ module NewRelic
 
         def count_nodes
           count = 1
-          children.each { | node | count  += node.count_nodes }
+          children.each { |node| count += node.count_nodes }
           count
         end
 
         def params
           @params ||= {}
         end
-
-        attr_writer :params
 
         def []=(key, value)
           # only create a parameters field if a parameter is set; this will save
@@ -168,12 +162,7 @@ module NewRelic
 
         def obfuscated_sql
           NewRelic::Agent::Database.obfuscate_sql(params[:sql].sql)
-        end
-
-        def parent_node=(s)
-          @parent_node = s
-        end
-      end
+        end end
     end
   end
 end

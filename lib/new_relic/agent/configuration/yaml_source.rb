@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -13,7 +12,7 @@ module NewRelic
 
         # These are configuration options that have a value of a Hash
         # This is used in YamlSource#dot_flattened prevent flattening these values
-        CONFIG_WITH_HASH_VALUE = ['expected_messages', 'ignore_messages']
+        CONFIG_WITH_HASH_VALUE = %w[expected_messages ignore_messages]
 
         def initialize(path, env)
           @path = path
@@ -84,34 +83,32 @@ module NewRelic
           # so warn about it since it's very likely to be unintended.
           NewRelic::Agent.logger.warn(
             "No configuration file found. Working directory = #{Dir.pwd}",
-            "Looked in these locations (based on #{based_on}): #{candidate_paths.join(", ")}"
+            "Looked in these locations (based on #{based_on}): #{candidate_paths.join(', ')}"
           )
         end
 
         def process_erb(file)
-          begin
-            # Exclude lines that are commented out so failing Ruby code in an
-            # ERB template commented at the YML level is fine. Leave the line,
-            # though, so ERB line numbers remain correct.
-            file.gsub!(/^\s*#.*$/, '#')
-            ERB.new(file).result(binding)
-          rescue ScriptError, StandardError => e
-            log_failure("Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.", e)
-            nil
-          end
+          # Exclude lines that are commented out so failing Ruby code in an
+          # ERB template commented at the YML level is fine. Leave the line,
+          # though, so ERB line numbers remain correct.
+          file.gsub!(/^\s*#.*$/, '#')
+          ERB.new(file).result(binding)
+        rescue ScriptError, StandardError => e
+          log_failure(
+            'Failed ERB processing configuration file. This is typically caused by a Ruby error in <% %> templating blocks in your newrelic.yml file.', e
+          )
+          nil
         end
 
         def process_yaml(file, env, config, path)
           if file
             confighash = if YAML.respond_to?(:unsafe_load)
                            YAML.unsafe_load(file)
-                         else 
+                         else
                            YAML.load(file)
                          end
 
-            unless confighash.key?(env)
-              log_failure("Config file at #{path} doesn't include a '#{env}' section!")
-            end
+            log_failure("Config file at #{path} doesn't include a '#{env}' section!") unless confighash.key?(env)
 
             config = confighash[env] || {}
           end
@@ -121,7 +118,7 @@ module NewRelic
 
         def substitute_transaction_threshold(config)
           if config['transaction_tracer'] &&
-              config['transaction_tracer']['transaction_threshold'].to_s =~ /apdex_f/i
+             config['transaction_tracer']['transaction_threshold'].to_s =~ /apdex_f/i
             # when value is "apdex_f" remove the config and defer to default
             config['transaction_tracer'].delete('transaction_threshold')
           end
@@ -134,9 +131,7 @@ module NewRelic
               config.delete(option)
             elsif !config[option].nil? && !is_boolean?(config[option])
               coerced_value = !!(config[option].to_s =~ /yes|on|true/i)
-              if !coerced_value
-                log_failure "Unexpected value (#{config[option]}) for '#{option}' in #{@path}"
-              end
+              log_failure "Unexpected value (#{config[option]}) for '#{option}' in #{@path}" unless coerced_value
               config[option] = coerced_value
             end
           end
@@ -151,9 +146,10 @@ module NewRelic
           messages.each { |message| @failures << message }
         end
 
-        def dot_flattened(nested_hash, names=[], result={})
+        def dot_flattened(nested_hash, names = [], result = {})
           nested_hash.each do |key, val|
-            next if val == nil
+            next if val.nil?
+
             if val.respond_to?(:has_key?) && !CONFIG_WITH_HASH_VALUE.include?(key)
               dot_flattened(val, names + [key], result)
             else

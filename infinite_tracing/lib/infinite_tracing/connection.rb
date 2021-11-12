@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
@@ -18,23 +17,18 @@
 module NewRelic::Agent
   module InfiniteTracing
     class Connection
-
-
       # listens for server side configurations added to the agent.  When a new config is
       # added, we have a new agent run token and need to restart the client's RPC stream
       # with the new metadata information.
       NewRelic::Agent.agent.events.subscribe(:server_source_configuration_added) do
-        begin
-          Connection.instance.notify_agent_started
-        rescue => error
-          NewRelic::Agent.logger.error \
-            "Error during notify :server_source_configuration_added event",
-            error
-        end
+        Connection.instance.notify_agent_started
+      rescue StandardError => e
+        NewRelic::Agent.logger.error \
+          'Error during notify :server_source_configuration_added event',
+          e
       end
 
       class << self
-
         def instance
           @@instance ||= new
         end
@@ -46,14 +40,14 @@ module NewRelic::Agent
         # RPC calls will pass the calling client instance in.  We track this
         # so we're able to signal the client to restart when connectivity to the
         # server is disrupted.
-        def record_spans client, enumerator, exponential_backoff
+        def record_spans(client, enumerator, exponential_backoff)
           instance.record_spans client, enumerator, exponential_backoff
         end
 
         # RPC calls will pass the calling client instance in.  We track this
         # so we're able to signal the client to restart when connectivity to the
         # server is disrupted.
-        def record_span_batches client, enumerator, exponential_backoff
+        def record_span_batches(client, enumerator, exponential_backoff)
           instance.record_span_batch client, enumerator, exponential_backoff
         end
 
@@ -64,15 +58,15 @@ module NewRelic::Agent
 
       # We attempt to connect and record spans with reconnection backoff in order to deal with
       # unavailable errors coming from the stub being created and record_span call
-      def record_spans client, enumerator, exponential_backoff
-          @active_clients[client] = client
-          with_reconnection_backoff(exponential_backoff) { rpc.record_span enumerator, metadata: metadata }
+      def record_spans(client, enumerator, exponential_backoff)
+        @active_clients[client] = client
+        with_reconnection_backoff(exponential_backoff) { rpc.record_span enumerator, metadata: metadata }
       end
 
       # RPC calls will pass the calling client instance in.  We track this
       # so we're able to signal the client to restart when connectivity to the
       # server is disrupted.
-      def record_span_batches client, enumerator, exponential_backoff
+      def record_span_batches(client, enumerator, exponential_backoff)
         @active_clients[client] = client
         with_reconnection_backoff(exponential_backoff) { rpc.record_span_batch enumerator, metadata: metadata }
       end
@@ -84,10 +78,10 @@ module NewRelic::Agent
         wait_for_agent_connect
         @rpc ||= Channel.new.stub
       end
-      
+
       def wait_for_agent_connect
         @lock.synchronize do
-          @agent_started.wait(@lock) if !@agent_connected
+          @agent_started.wait(@lock) unless @agent_connected
         end
       end
 
@@ -98,10 +92,9 @@ module NewRelic::Agent
         return @metadata if @metadata
 
         @lock.synchronize do
-
           @metadata = {
-            "license_key" => license_key,
-            "agent_run_token" => agent_id
+            'license_key' => license_key,
+            'agent_run_token' => agent_id
           }
           @metadata.merge!(request_headers_map)
         end
@@ -152,13 +145,13 @@ module NewRelic::Agent
       end
 
       # Continues retrying the connection at backoff intervals until a successful connection is made
-      def with_reconnection_backoff exponential_backoff=true, &block
+      def with_reconnection_backoff(exponential_backoff = true)
         @connection_attempts = 0
         begin
           yield
-        rescue => exception
+        rescue StandardError => e
           retry_connection_period = retry_connection_period(exponential_backoff)
-          ::NewRelic::Agent.logger.error "Error establishing connection with infinite tracing service:", exception
+          ::NewRelic::Agent.logger.error 'Error establishing connection with infinite tracing service:', e
           ::NewRelic::Agent.logger.info "Will re-attempt infinte tracing connection in #{retry_connection_period} seconds"
           sleep retry_connection_period
           note_connect_failure
@@ -166,7 +159,7 @@ module NewRelic::Agent
         end
       end
 
-      def retry_connection_period exponential_backoff=true
+      def retry_connection_period(exponential_backoff = true)
         if exponential_backoff
           NewRelic::CONNECT_RETRY_PERIODS[@connection_attempts] || NewRelic::MAX_RETRY_PERIOD
         else
@@ -178,7 +171,6 @@ module NewRelic::Agent
       def note_connect_failure
         @connection_attempts += 1
       end
-
     end
   end
 end

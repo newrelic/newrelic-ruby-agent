@@ -1,22 +1,21 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class DatastoresPerfTest < Performance::TestCase
   class FauxDB
     def self.query
-      "foo"
+      'foo'
     end
   end
 
   def test_instrumentation_via_trace
     db_class = Class.new do
       def query
-        "foo"
+        'foo'
       end
     end
 
-    NewRelic::Agent::Datastores.trace(db_class, "query", "FakeDB")
+    NewRelic::Agent::Datastores.trace(db_class, 'query', 'FakeDB')
     db = db_class.new
 
     measure do
@@ -27,9 +26,9 @@ class DatastoresPerfTest < Performance::TestCase
   end
 
   def test_wrap
-    product = "FauxDB".freeze
-    operation = "query".freeze
-    collection = "collection".freeze
+    product = 'FauxDB'.freeze
+    operation = 'query'.freeze
+    collection = 'collection'.freeze
 
     measure do
       in_transaction do
@@ -40,8 +39,8 @@ class DatastoresPerfTest < Performance::TestCase
     end
   end
 
-  SQL = "select * from users".freeze
-  METRIC_NAME = "Datastore/statement/MySQL/users/select".freeze
+  SQL = 'select * from users'.freeze
+  METRIC_NAME = 'Datastore/statement/MySQL/users/select'.freeze
 
   def test_notice_sql
     measure do
@@ -50,8 +49,8 @@ class DatastoresPerfTest < Performance::TestCase
   end
 
   def test_segment_notice_sql
-    segment = NewRelic::Agent::Transaction::DatastoreSegment.new "MySQL", "select", "users"
-    conf = {:adapter => :mysql}
+    segment = NewRelic::Agent::Transaction::DatastoreSegment.new 'MySQL', 'select', 'users'
+    conf = { adapter: :mysql }
     measure do
       segment._notice_sql SQL, conf
     end

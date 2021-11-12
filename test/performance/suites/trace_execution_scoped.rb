@@ -1,11 +1,10 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class TestClass
   def method_1
-    trace_execution_scoped(['a', 'b']) do
-      "hi"
+    trace_execution_scoped(%w[a b]) do
+      'hi'
     end
   end
 end
@@ -13,7 +12,7 @@ end
 class TraceExecutionScopedTests < Performance::TestCase
   def setup
     @test_class = TestClass.new
-    TestClass.instance_eval('include NewRelic::Agent::MethodTracer')
+    TestClass.instance_eval('include NewRelic::Agent::MethodTracer', __FILE__, __LINE__)
     require 'new_relic/agent/method_tracer'
   end
 
@@ -26,6 +25,6 @@ class TraceExecutionScopedTests < Performance::TestCase
       in_transaction do
         @test_class.method_1
       end
-   end
+    end
   end
 end

@@ -1,4 +1,3 @@
-# encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
@@ -10,30 +9,30 @@ module NewRelic
         # response, but should still be merged in as config settings to the
         # main agent configuration.
         TOP_LEVEL_KEYS = [
-          "account_id",
-          "apdex_t",
-          "application_id",
-          "beacon",
-          "browser_key",
-          "browser_monitoring.debug",
-          "browser_monitoring.loader",
-          "browser_monitoring.loader_version",
-          "cross_process_id",
-          "data_report_period",
-          "encoding_key",
-          "entity_guid",
-          "error_beacon",
-          "js_agent_file",
-          "js_agent_loader",
-          "max_payload_size_in_bytes",
-          "primary_application_id",
-          "sampling_target",
-          "sampling_target_period_in_seconds",
-          "trusted_account_ids",
-          "trusted_account_key"
+          'account_id',
+          'apdex_t',
+          'application_id',
+          'beacon',
+          'browser_key',
+          'browser_monitoring.debug',
+          'browser_monitoring.loader',
+          'browser_monitoring.loader_version',
+          'cross_process_id',
+          'data_report_period',
+          'encoding_key',
+          'entity_guid',
+          'error_beacon',
+          'js_agent_file',
+          'js_agent_loader',
+          'max_payload_size_in_bytes',
+          'primary_application_id',
+          'sampling_target',
+          'sampling_target_period_in_seconds',
+          'trusted_account_ids',
+          'trusted_account_key'
         ]
 
-        def initialize(connect_reply, existing_config={})
+        def initialize(connect_reply, existing_config = {})
           merged_settings = {}
 
           merge_top_level_keys(merged_settings, connect_reply)
@@ -56,16 +55,12 @@ module NewRelic
 
         def merge_top_level_keys(merged_settings, connect_reply)
           TOP_LEVEL_KEYS.each do |key_name|
-            if connect_reply[key_name]
-              merged_settings[key_name] = connect_reply[key_name]
-            end
+            merged_settings[key_name] = connect_reply[key_name] if connect_reply[key_name]
           end
         end
 
         def merge_agent_config_hash(merged_settings, connect_reply)
-          if connect_reply['agent_config']
-            merged_settings.merge!(connect_reply['agent_config'])
-          end
+          merged_settings.merge!(connect_reply['agent_config']) if connect_reply['agent_config']
         end
 
         def fix_transaction_threshold(merged_settings)
@@ -76,12 +71,12 @@ module NewRelic
         end
 
         EVENT_HARVEST_CONFIG_SUPPORTABILITY_METRIC_NAMES = {
-          :'analytics_events.max_samples_stored' => 'Supportability/EventHarvest/AnalyticEventData/HarvestLimit',
-          :'custom_insights_events.max_samples_stored' => 'Supportability/EventHarvest/CustomEventData/HarvestLimit',
-          :'error_collector.max_event_samples_stored'=> 'Supportability/EventHarvest/ErrorEventData/HarvestLimit',
-          :'span_events.max_samples_stored' => 'Supportability/SpanEvent/Limit',
-          :event_report_period => 'Supportability/EventHarvest/ReportPeriod',
-          :'event_report_period.span_event_data' => 'Supportability/SpanEvent/ReportPeriod',
+          'analytics_events.max_samples_stored': 'Supportability/EventHarvest/AnalyticEventData/HarvestLimit',
+          'custom_insights_events.max_samples_stored': 'Supportability/EventHarvest/CustomEventData/HarvestLimit',
+          'error_collector.max_event_samples_stored': 'Supportability/EventHarvest/ErrorEventData/HarvestLimit',
+          'span_events.max_samples_stored': 'Supportability/SpanEvent/Limit',
+          event_report_period: 'Supportability/EventHarvest/ReportPeriod',
+          'event_report_period.span_event_data': 'Supportability/SpanEvent/ReportPeriod'
         }
 
         def add_event_harvest_config(merged_settings, connect_reply)
@@ -95,14 +90,14 @@ module NewRelic
           merged_settings.merge! event_harvest_config
         end
 
-        def event_harvest_config_is_valid connect_reply
+        def event_harvest_config_is_valid(connect_reply)
           event_harvest_config = connect_reply['event_harvest_config']
 
           if event_harvest_config.nil? \
               || event_harvest_config['harvest_limits'].values.min < 0 \
               || (event_harvest_config['report_period_ms'] / 1000) <= 0
-            NewRelic::Agent.logger.warn "Invalid event harvest config found " \
-                "in connect response; using default event report period."
+            NewRelic::Agent.logger.warn 'Invalid event harvest config found ' \
+                'in connect response; using default event report period.'
             false
           else
             true
@@ -133,21 +128,21 @@ module NewRelic
         # do the real enforcement there.
         def apply_feature_gates(merged_settings, connect_reply, existing_config)
           gated_features = {
-            'transaction_tracer.enabled'     => 'collect_traces',
-            'slow_sql.enabled'               => 'collect_traces',
-            'error_collector.enabled'        => 'collect_errors',
-            'analytics_events.enabled'       => 'collect_analytics_events',
+            'transaction_tracer.enabled' => 'collect_traces',
+            'slow_sql.enabled' => 'collect_traces',
+            'error_collector.enabled' => 'collect_errors',
+            'analytics_events.enabled' => 'collect_analytics_events',
             'custom_insights_events.enabled' => 'collect_custom_events',
             'error_collector.capture_events' => 'collect_error_events',
-            'span_events.enabled'            => 'collect_span_events'
+            'span_events.enabled' => 'collect_span_events'
           }
           gated_features.each do |config_key, gate_key|
-            if connect_reply.has_key?(gate_key)
-              allowed_by_server = connect_reply[gate_key]
-              requested_value   = ungated_value(config_key, merged_settings, existing_config)
-              effective_value   = (allowed_by_server && requested_value)
-              merged_settings[config_key] = effective_value
-            end
+            next unless connect_reply.has_key?(gate_key)
+
+            allowed_by_server = connect_reply[gate_key]
+            requested_value   = ungated_value(config_key, merged_settings, existing_config)
+            effective_value   = (allowed_by_server && requested_value)
+            merged_settings[config_key] = effective_value
           end
         end
 
