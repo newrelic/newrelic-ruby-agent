@@ -1,10 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
-  ## v8.1.0
+  ## v8.2.0
 
   * **New Instrumentation for Tilt gem**
 
     Template rendering using [Tilt](https://github.com/rtomayko/tilt) is now instrumented. See [PR #847](https://github.com/newrelic/newrelic-ruby-agent/pull/847) for details.
+
+
+  ## v8.1.0
 
   * **Instrumentation for Ruby standard library Logger**
 
