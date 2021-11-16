@@ -2,6 +2,10 @@
 
   ## v8.1.0
 
+  * **New Instrumentation for Tilt gem**
+
+    Template rendering using [Tilt](https://github.com/rtomayko/tilt) is now instrumented. See [PR #847](https://github.com/newrelic/newrelic-ruby-agent/pull/847) for details.
+
   * **Instrumentation for Ruby standard library Logger**
 
     The agent will now automatically instrument Logger, recording number of lines and size of logging output, with breakdown by severity.
