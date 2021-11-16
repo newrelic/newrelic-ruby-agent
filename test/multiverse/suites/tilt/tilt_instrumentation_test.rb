@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class TiltInstrumentationTest < Minitest::Test
-  include MultiverseHelpers
 
   def setup
     @stats_engine = NewRelic::Agent.instance.stats_engine
@@ -21,7 +20,7 @@ class TiltInstrumentationTest < Minitest::Test
     "View/Tilt::HamlTemplate/#{filename}/Rendering"
   end
 
-  ### Render Tests ###
+  ### Tilt::Template#render tests ###
   def test_records_metrics_for_haml_template
     in_transaction do
       haml_template
@@ -120,7 +119,11 @@ class TiltInstrumentationTest < Minitest::Test
 
   ### File name parsing tests ###
   def call_create_filename_for_metric(filename)
-    Class.new.extend(NewRelic::Agent::Instrumentation::Tilt).create_filename_for_metric(filename)
+    Class.new.extend(
+      NewRelic::Agent::Instrumentation::Tilt
+    ).create_filename_for_metric(
+      filename
+    )
   end
 
   def non_nested_path
