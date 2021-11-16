@@ -33,6 +33,7 @@ module NewRelic
         COLON = ':'.freeze
         COMMA = ','.freeze
         CLOSING_BRACE = '}'.freeze
+        REPLACEMENT_CHAR = '�'
 
         def initialize
           Agent.config.register_callback :app_name do
@@ -86,14 +87,10 @@ module NewRelic
           message << QUOTE << key << QUOTE << COLON << QUOTE << value << QUOTE
         end
 
-        def escape message
-          message = message.inspect unless message.is_a?(String)
-          message.encode(
-            Encoding::UTF_8,
-            invalid: :replace,
-            undef: :replace,
-            replace: "�"
-          ).to_json
+        def escape(message)
+          message = message.to_s unless message.is_a?(String)
+          message = message.scrub(REPLACEMENT_CHAR) unless message.valid_encoding?
+          message.to_json
         end
 
         def clear_tags!
