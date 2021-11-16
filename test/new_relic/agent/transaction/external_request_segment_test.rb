@@ -877,6 +877,23 @@ module NewRelic::Agent
         assert_empty last_span_events
       end
 
+      def test_non_sampled_segment_does_not_record_span_event
+        in_transaction('wat') do |txn|
+          txn.stubs(:ignore?).returns(true)
+
+          segment = ExternalRequestSegment.new "Typhoeus",
+                                               "http://remotehost.com/blogs/index",
+                                               "GET"
+          txn.add_segment segment
+          segment.start
+          advance_process_time 1.0
+          segment.finish
+        end
+
+        last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+        assert_empty last_span_events
+      end
+
       def test_span_event_truncates_long_value
         with_config(distributed_tracing_config) do
           in_transaction('wat') do |txn|

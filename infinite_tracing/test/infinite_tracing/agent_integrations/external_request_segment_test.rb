@@ -86,6 +86,25 @@ module NewRelic
           assert_equal 2, span_events.size
         end
 
+        def test_ignored_transaction_does_not_record_span_event
+          span_events = generate_and_stream_segments do
+            in_transaction('wat') do |txn|
+              txn.stubs(:ignore?).returns(true)
+
+              segment = Transaction::ExternalRequestSegment.new \
+                "Typhoeus",
+                 "http://remotehost.com/blogs/index",
+                 "GET"
+
+              txn.add_segment segment
+              segment.start
+              advance_process_time(1.0)
+              segment.finish
+            end
+          end
+
+          assert_equal 0, span_events.size
+        end
       end
     end
   end
