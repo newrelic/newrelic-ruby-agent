@@ -78,7 +78,7 @@ module NewRelic
           'carriage_return' => "message with a carriage return \r",
           'tab' => "message with a tab \t ",
           'unicode' => "message with a unicode snowman ☃ ",
-          'unicode_hex' => "message with a unicode snowman \u2603  "
+          'unicode_hex' => "message with a unicode snowman \u2603  ",
         }
         messages_to_escape.each do |name, message|
           define_method "test_escape_message_#{name}" do
@@ -88,6 +88,16 @@ module NewRelic
           end
         end
 
+        def test_to_replace_non_utf_8_chars
+          message = 'message with a non-unicode code '
+          input = "#{message} \xb3"
+          expectation = "#{message} #{DecoratingFormatter::REPLACEMENT_CHAR}"
+          logger = DecoratingLogger.new @output
+
+          logger.info input
+          assert_equal expectation,
+            last_message['message']
+        end
 
         if RUBY_VERSION >= '2.4.0'
           def test_constructor_arguments_level
