@@ -12,7 +12,7 @@ DependencyDetection.defer do
   depends_on { defined?(::Tilt) }
 
   executes do
-    ::NewRelic::Agent.logger.info("Installing Tilt instrumentation")
+    ::NewRelic::Agent.logger.info('Installing Tilt instrumentation')
   end
 
   executes do
