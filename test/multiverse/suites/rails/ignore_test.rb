@@ -77,4 +77,11 @@ class IgnoredActionsTest < ActionDispatch::IntegrationTest
 
     assert_metrics_not_recorded("Apdex")
   end
+
+  def test_ignored_transaction_does_not_record_span_events
+    get '/ignored/action_to_ignore'
+
+    last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+    assert_empty last_span_events
+  end
 end
