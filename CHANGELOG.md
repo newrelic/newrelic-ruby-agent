@@ -6,6 +6,9 @@
 
     Template rendering using [Tilt](https://github.com/rtomayko/tilt) is now instrumented. See [PR #847](https://github.com/newrelic/newrelic-ruby-agent/pull/847) for details.
 
+  * **Bugfix: Scrub non-unicode characters from DecoratingLogger**
+
+    To prevent `JSON::GeneratorErrors`, the DecoratingLogger replaces non-unicode characters with the replacement character: �. Thank you Jonathan del Strother (@jdelStrother) for bringing this to our attention!
 
   ## v8.1.0
 
