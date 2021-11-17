@@ -10,6 +10,9 @@
 
     Previously, the agent was incorrectly recording span events only on transactions that should be ignored. This fix will prevent any span events from being created for transactions using newrelic_ignore, or ignored through the `rules.ignore_url_regexes` configuration option.
   
+  * **Bugfix: Scrub non-unicode characters from DecoratingLogger**
+
+    To prevent `JSON::GeneratorErrors`, the DecoratingLogger replaces non-unicode characters with the replacement character: �. Thank you Jonathan del Strother (@jdelStrother) for bringing this to our attention!
 
   ## v8.1.0
 
