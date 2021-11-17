@@ -6,10 +6,22 @@
 
     Template rendering using [Tilt](https://github.com/rtomayko/tilt) is now instrumented. See [PR #847](https://github.com/newrelic/newrelic-ruby-agent/pull/847) for details.
 
+  * **Configuration `error_collector.ignore_errors` is marked as deprecated**
+
+    This setting has been marked as deprecated in the documentation since version 7.2.0 and is now flagged as deprecated within the code.
+
+  * **Remove Rails-2 specific instrumentation**
+
+    Though any version of Rails 2 has not been supported by the Ruby Agent since v3.18.1.330, instrumentation for ActionController and ActionWebService specific to that version were still part of the agent. This instrumentation has been removed.
+
   * **Bugfix: Span Events recorded when using newrelic_ignore**
 
     Previously, the agent was incorrectly recording span events only on transactions that should be ignored. This fix will prevent any span events from being created for transactions using newrelic_ignore, or ignored through the `rules.ignore_url_regexes` configuration option.
   
+  * **Bugfix: Print deprecation warning for Cross-Application Tracing if enabled**
+
+    Prior to this change, the deprecation warning would log whenever the agent started up, regardless of configuration. Thank you @alpha-san for bringing this to our attention!
+
   * **Bugfix: Scrub non-unicode characters from DecoratingLogger**
 
     To prevent `JSON::GeneratorErrors`, the DecoratingLogger replaces non-unicode characters with the replacement character: �. Thank you Jonathan del Strother (@jdelStrother) for bringing this to our attention!
