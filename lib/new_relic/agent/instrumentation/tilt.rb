@@ -12,14 +12,14 @@ DependencyDetection.defer do
   depends_on { defined?(::Tilt) }
 
   executes do
-    ::NewRelic::Agent.logger.info  "Installing Tilt instrumentation"
+    ::NewRelic::Agent.logger.info('Installing Tilt instrumentation')
   end
 
   executes do
     if use_prepend?
       prepend_instrument ::Tilt::Template, NewRelic::Agent::Instrumentation::Tilt::Prepend
     else
-      chain_instrument NewRelic::Agent::Instrumentation::Tilt
+      chain_instrument NewRelic::Agent::Instrumentation::Tilt::Chain
     end
   end
 end
