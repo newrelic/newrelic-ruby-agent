@@ -8,6 +8,9 @@ module NewRelic
     class Transaction
       class ExternalRequestSegment
         def record_span_event
+          # don't record a span event if the transaction is ignored
+          return if transaction.ignore?
+          
           tracer = ::NewRelic::Agent.agent.infinite_tracer
           tracer << Proc.new { SpanEventPrimitive.for_external_request_segment self }
         end

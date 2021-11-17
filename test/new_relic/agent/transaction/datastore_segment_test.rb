@@ -210,6 +210,25 @@ module NewRelic
           assert_empty last_span_events
         end
 
+        def test_ignored_transaction_does_not_record_span_event
+          in_web_transaction('wat') do |txn|
+            txn.stubs(:ignore?).returns(true)
+
+            segment = Tracer.start_datastore_segment(
+              product: "SQLite",
+              operation: "select",
+              port_path_or_id: 1337807
+            )
+
+            segment.start
+            advance_process_time 1.0
+            segment.finish
+          end
+
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          assert_empty last_span_events
+        end
+
         def test_sampled_segment_records_span_event
           trace_id      = nil
           txn_guid      = nil

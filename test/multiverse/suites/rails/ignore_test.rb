@@ -17,6 +17,10 @@ class IgnoredController < ApplicationController
   def action_to_ignore_apdex
     render body:  "This too"
   end
+  
+  def action_not_ignored
+    render body:  "Not this!"
+  end
 end
 
 class ParentController < ApplicationController
@@ -76,5 +80,21 @@ class IgnoredActionsTest < ActionDispatch::IntegrationTest
     get '/child/bar'
 
     assert_metrics_not_recorded("Apdex")
+  end
+
+  def test_ignored_transaction_does_not_record_span_events
+    get '/ignored/action_to_ignore'
+
+    last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+    assert_empty last_span_events
+  end
+
+  def test_ignored_by_ignore_url_regexes_does_not_record_span_events
+    with_config(:rules => { :ignore_url_regexes => ['/ignored/action_not_ignored'] }) do
+      get '/ignored/action_not_ignored'
+
+      last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+      assert_empty last_span_events
+    end
   end
 end
