@@ -24,7 +24,7 @@
 
   * **Bugfix: Scrub non-unicode characters from DecoratingLogger**
 
-    To prevent `JSON::GeneratorErrors`, the DecoratingLogger replaces non-unicode characters with the replacement character: �. Thank you Jonathan del Strother (@jdelStrother) for bringing this to our attention!
+    To prevent `JSON::GeneratorErrors`, the DecoratingLogger replaces non-unicode characters with the replacement character: �. Thank you @jdelStrother for bringing this to our attention!
 
   ## v8.1.0
 
