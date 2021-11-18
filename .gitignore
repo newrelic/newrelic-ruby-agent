@@ -8,7 +8,6 @@ Guard*
 pkg/
 *.gem
 !rails
-Manifest*
 .idea/
 tmp/
 TAGS
