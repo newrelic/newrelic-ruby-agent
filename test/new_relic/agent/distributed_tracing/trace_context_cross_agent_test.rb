@@ -13,6 +13,7 @@ module NewRelic
 
         def setup
           NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
+          NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
           NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
           NewRelic::Agent::Transaction::DistributedTracer.any_instance.stubs(:trace_context_active?).returns(true)
           @request_monitor = DistributedTracing::Monitor.new(EventListener.new)
@@ -20,6 +21,10 @@ module NewRelic
         end
 
         def teardown
+          NewRelic::Agent::DistributedTracePayload.unstub(:connected?)
+          NewRelic::Agent::Agent.any_instance.unstub(:connected?)
+          NewRelic::Agent::Harvester.any_instance.unstub(:harvest_thread_enabled?)
+          NewRelic::Agent::Transaction::DistributedTracer.any_instance.unstub(:trace_context_active?)
           reset_buffers_and_caches
         end
 
