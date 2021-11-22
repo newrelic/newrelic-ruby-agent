@@ -163,7 +163,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       Order.exists?(["name=?", "jeff"])
     end
 
-    if active_record_major_version == 3 && [0,1].include?(active_record_minor_version)
+    if active_record_major_version == 3 && [0, 1].include?(active_record_minor_version)
       # Bugginess in Rails 3.0 and 3.1 doesn't let us get ActiveRecord/find
       assert_generic_rollup_metrics('select')
     else

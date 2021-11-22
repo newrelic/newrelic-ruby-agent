@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 class Insider
   def initialize(stats_engine)
@@ -145,7 +145,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     @metric_name = METRIC
     self.class.add_method_tracer :method_to_be_traced, METRIC
     in_transaction do
-      method_to_be_traced 1,2,3,true,METRIC
+      method_to_be_traced 1, 2, 3, true, METRIC
     end
 
     begin
@@ -277,7 +277,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     self.class.add_method_tracer :method_to_be_traced, METRIC
 
     in_transaction do
-      method_to_be_traced 1,2,3,true,METRIC
+      method_to_be_traced 1, 2, 3, true, METRIC
     end
 
     begin
@@ -296,7 +296,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     self.class.add_method_tracer :method_to_be_traced, metric_code
 
     in_transaction do
-      method_to_be_traced 1,2,3,true,expected_metric
+      method_to_be_traced 1, 2, 3, true, expected_metric
     end
 
     begin
@@ -311,7 +311,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   def test_trace_method_with_block
     self.class.add_method_tracer :method_with_block, METRIC
     in_transaction do
-      method_with_block(1,2,3,true,METRIC) do
+      method_with_block(1, 2, 3, true, METRIC) do
         advance_process_time 0.1
       end
     end
@@ -323,7 +323,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
     self.class.add_method_tracer :method_to_be_traced, METRIC
     self.class.remove_method_tracer :method_to_be_traced
 
-    method_to_be_traced 1,2,3,false,METRIC
+    method_to_be_traced 1, 2, 3, false, METRIC
 
     assert_metrics_not_recorded METRIC
   end
@@ -375,11 +375,11 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   def test_add_multiple_tracers
     in_transaction('test_txn') do
       self.class.add_method_tracer :method_to_be_traced, 'XX', :push_scope => false
-      method_to_be_traced 1,2,3,true,nil
+      method_to_be_traced 1, 2, 3, true, nil
       self.class.remove_method_tracer :method_to_be_traced
-      method_to_be_traced 1,2,3,true,nil
+      method_to_be_traced 1, 2, 3, true, nil
       self.class.add_method_tracer :method_to_be_traced, 'YY'
-      method_to_be_traced 1,2,3,true,'YY'
+      method_to_be_traced 1, 2, 3, true, 'YY'
     end
 
     assert_metrics_recorded({
@@ -433,9 +433,9 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   def trace_no_push_scope
     in_transaction 'test_txn' do
       self.class.add_method_tracer :method_to_be_traced, 'X', :push_scope => false
-      method_to_be_traced 1,2,3,true,nil
+      method_to_be_traced 1, 2, 3, true, nil
       self.class.remove_method_tracer :method_to_be_traced
-      method_to_be_traced 1,2,3,false,'X'
+      method_to_be_traced 1, 2, 3, false, 'X'
     end
 
     assert_metrics_not_recorded ['X', 'test_txn']

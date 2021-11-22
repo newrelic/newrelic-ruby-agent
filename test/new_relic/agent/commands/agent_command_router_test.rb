@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','data_container_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'data_container_tests'))
 
 require 'new_relic/agent/commands/agent_command_router'
 
@@ -14,13 +14,13 @@ class AgentCommandRouterTest < Minitest::Test
   }
 
   BAZZLE_ID = 123
-  BAZZLE = [BAZZLE_ID,{
+  BAZZLE = [BAZZLE_ID, {
     "name" => "bazzle",
     "arguments" => DEFAULT_ARGS
   }]
 
   BOOM_ID = 666
-  BOOM = [BOOM_ID,{
+  BOOM = [BOOM_ID, {
     "name" => "boom",
     "arguments" => DEFAULT_ARGS
   }]

@@ -172,7 +172,7 @@ module Multiverse
 
     def change_lock_version filepath, gemfile, new_version=Bundler::VERSION
       begin
-        lock_filename = "#{filepath}/#{gemfile}.lock".gsub(/\n|\r/,'')
+        lock_filename = "#{filepath}/#{gemfile}.lock".gsub(/\n|\r/, '')
       rescue => e
         puts "ERROR: #{e.inspect}"
         puts "ERROR: on lock_filename #{filepath.inspect} / #{gemfile.inspect}"
@@ -254,7 +254,7 @@ module Multiverse
       pin_rack_version_if_needed(gemfile_text)
 
       gemfile = File.join(Dir.pwd, "Gemfile.#{env_index}")
-      File.open(gemfile,'w') do |f|
+      File.open(gemfile, 'w') do |f|
         f.puts 'source "https://rubygems.org"'
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./

@@ -20,7 +20,7 @@ module NewRelic::Agent
     APP_TIME                  = 2.0
 
     ENCODING_KEY_NOOP         = "\0"
-    TRUSTED_ACCOUNT_IDS       = [42,13]
+    TRUSTED_ACCOUNT_IDS       = [42, 13]
 
     CROSS_APP_ID_POSITION     = 0
     TRANSACTION_NAME_POSITION = 1

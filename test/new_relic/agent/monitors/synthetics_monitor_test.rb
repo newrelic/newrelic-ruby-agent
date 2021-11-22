@@ -7,7 +7,7 @@ require File.expand_path '../../../../test_helper', __FILE__
 module NewRelic::Agent
   class SyntheticsMonitorTest < Minitest::Test
     ENCODING_KEY_NOOP         = "\0"
-    TRUSTED_ACCOUNT_IDS       = [42,13]
+    TRUSTED_ACCOUNT_IDS       = [42, 13]
 
     VERSION_ID  = 1
     ACCOUNT_ID  = 42

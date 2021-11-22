@@ -118,7 +118,7 @@ class LoggingTest < Minitest::Test
 
   def test_logs_unknown_config_setting_from_environment
     env_var = 'NEW_RELIC_TOTORO'
-    setting = env_var.gsub(/NEW_RELIC_|NEWRELIC_/,'').downcase
+    setting = env_var.gsub(/NEW_RELIC_|NEWRELIC_/, '').downcase
 
     running_agent_writes_to_log({}, "#{env_var} does not have a corresponding configuration setting (#{setting} does not exist).") do
       ENV[env_var] = 'Ponyo'

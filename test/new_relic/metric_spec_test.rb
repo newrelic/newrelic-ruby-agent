@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 class NewRelic::MetricSpecTest < Minitest::Test
 
   def test_equal
@@ -18,8 +18,8 @@ class NewRelic::MetricSpecTest < Minitest::Test
   define_method(:'test_<=>') do
     s1 = NewRelic::MetricSpec.new('ActiveRecord')
     s2 = NewRelic::MetricSpec.new('Controller')
-    assert_equal [s1, s2].sort, [s1,s2]
-    assert_equal [s2, s1].sort, [s1,s2]
+    assert_equal [s1, s2].sort, [s1, s2]
+    assert_equal [s2, s1].sort, [s1, s2]
 
     s1 = NewRelic::MetricSpec.new('Controller', nil)
     s2 = NewRelic::MetricSpec.new('Controller', 'hap')

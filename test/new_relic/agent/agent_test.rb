@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 module NewRelic
   module Agent
@@ -259,8 +259,8 @@ module NewRelic
         @agent.instance_eval {
           @transaction_sampler = transaction_sampler
         }
-        transaction_sampler.expects(:merge!).with([1,2,3])
-        @agent.merge_data_for_endpoint(:transaction_sample_data, [1,2,3])
+        transaction_sampler.expects(:merge!).with([1, 2, 3])
+        @agent.merge_data_for_endpoint(:transaction_sample_data, [1, 2, 3])
       end
 
       def test_merge_data_for_endpoint_abides_by_error_queue_limit
@@ -292,7 +292,7 @@ module NewRelic
       end
 
       def test_harvest_and_send_timeslice_data_merges_back_on_failure
-        timeslices = [1,2,3]
+        timeslices = [1, 2, 3]
 
         @agent.stats_engine.expects(:harvest!).returns(timeslices)
         @agent.service.stubs(:metric_data).raises('wat')
@@ -583,7 +583,7 @@ module NewRelic
 
       def test_harvest_and_send_from_container_does_not_merge_on_serialization_failure
         container = mock('data container')
-        container.stubs(:harvest!).returns([1,2,3])
+        container.stubs(:harvest!).returns([1, 2, 3])
         @agent.service.stubs(:dummy_endpoint).raises(SerializationError)
         container.expects(:merge!).never
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
@@ -591,17 +591,17 @@ module NewRelic
 
       def test_harvest_and_send_from_container_does_not_merge_on_unrecoverable_failure
         container = mock('data container')
-        container.stubs(:harvest!).returns([1,2,3])
-        @agent.service.expects(:dummy_endpoint).with([1,2,3]).raises(UnrecoverableServerException)
+        container.stubs(:harvest!).returns([1, 2, 3])
+        @agent.service.expects(:dummy_endpoint).with([1, 2, 3]).raises(UnrecoverableServerException)
         container.expects(:merge!).never
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
       end
 
       def test_harvest_and_send_from_container_merges_on_other_failure
         container = mock('data container')
-        container.stubs(:harvest!).returns([1,2,3])
-        @agent.service.expects(:dummy_endpoint).with([1,2,3]).raises('other error')
-        container.expects(:merge!).with([1,2,3])
+        container.stubs(:harvest!).returns([1, 2, 3])
+        @agent.service.expects(:dummy_endpoint).with([1, 2, 3]).raises('other error')
+        container.expects(:merge!).with([1, 2, 3])
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
       end
 

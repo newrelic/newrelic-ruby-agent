@@ -30,7 +30,7 @@ class ThreadProfilingTest < Minitest::Test
     @threads = nil
   end
 
-  START_COMMAND = [[666,{
+  START_COMMAND = [[666, {
       "name" => "start_profiler",
       "arguments" => {
         "profile_id" => -1,
@@ -42,7 +42,7 @@ class ThreadProfilingTest < Minitest::Test
       }
     }]]
 
-  STOP_COMMAND = [[666,{
+  STOP_COMMAND = [[666, {
       "name" => "stop_profiler",
       "arguments" => {
         "profile_id" => -1,

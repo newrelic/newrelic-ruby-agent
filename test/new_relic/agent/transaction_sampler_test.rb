@@ -199,7 +199,7 @@ module NewRelic::Agent
       GC.extend MockGCStats
       # These are effectively Garbage Collects, detected each time GC.time is
       # called by the transaction sampler.  One time value in seconds for each call.
-      MockGCStats.mock_values = [0,0,0,1,0,0,1,0,0,0,0,0,0,0,0]
+      MockGCStats.mock_values = [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
 
       with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
 

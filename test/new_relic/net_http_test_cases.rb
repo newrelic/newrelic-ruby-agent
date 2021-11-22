@@ -91,7 +91,7 @@ module NetHttpTestCases
 
   def response_instance(headers = {})
     response = Net::HTTPResponse.new(nil, nil, nil)
-    headers.each do |k,v|
+    headers.each do |k, v|
       response[k] = v
     end
     NewRelic::Agent::HTTPClients::NetHTTPResponse.new response

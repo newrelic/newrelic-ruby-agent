@@ -64,7 +64,7 @@ Visit support.newrelic.com if you are experiencing installation issues.
   end
 
   def content
-    @src_file ||= File.expand_path(File.join(File.dirname(__FILE__),"..","..","..","..","newrelic.yml"))
+    @src_file ||= File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "..", "newrelic.yml"))
     template = File.read(@src_file)
     ERB.new(template).result(binding)
   end

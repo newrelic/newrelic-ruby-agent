@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'pry'
 module NewRelic::Agent
 
@@ -619,7 +619,7 @@ module NewRelic::Agent
 
     def test_is_not_synthetic_request_without_header
       in_transaction do |txn|
-        txn.synthetics_payload = [1,2,3,4,5]
+        txn.synthetics_payload = [1, 2, 3, 4, 5]
         refute txn.is_synthetics_request?
       end
     end
@@ -627,7 +627,7 @@ module NewRelic::Agent
     def test_is_synthetic_request
       in_transaction do |txn|
         txn.raw_synthetics_header = ""
-        txn.synthetics_payload = [1,2,3,4,5]
+        txn.synthetics_payload = [1, 2, 3, 4, 5]
         assert txn.is_synthetics_request?
       end
     end
@@ -636,7 +636,7 @@ module NewRelic::Agent
       in_transaction do
         state = Tracer.state
         txn = state.current_transaction
-        txn.synthetics_payload = [1,2,3,4,5]
+        txn.synthetics_payload = [1, 2, 3, 4, 5]
 
         assert_equal 1, txn.synthetics_version
         assert_equal 2, txn.synthetics_account_id

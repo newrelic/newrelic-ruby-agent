@@ -396,7 +396,7 @@ module NewRelic
         }
 
         uri = "/agent_listener/invoke_raw_method?"
-        uri << params.map do |k,v|
+        uri << params.map do |k, v|
           next unless v
           "#{k}=#{v}"
         end.compact.join('&')

@@ -153,7 +153,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
     result = NewRelic::Agent::Database.explain_sql(statement)
     expected_result = [["select_type", "key_len", "table", "id", "possible_keys", "type",
-                        "Extra", "rows", "ref","key"],
+                        "Extra", "rows", "ref", "key"],
                        [["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil]]]
 
     assert_equal(expected_result[0].sort, result[0].sort, "Headers don't match")

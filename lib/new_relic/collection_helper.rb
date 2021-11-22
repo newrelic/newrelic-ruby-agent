@@ -15,7 +15,7 @@ module NewRelic
         return params if params.empty?
         new_params = {}
         params.each do |key, value|
-          new_params[truncate(normalize_params(key),64)] = normalize_params(value)
+          new_params[truncate(normalize_params(key), 64)] = normalize_params(value)
         end
         new_params
       when Symbol, FalseClass, TrueClass, nil

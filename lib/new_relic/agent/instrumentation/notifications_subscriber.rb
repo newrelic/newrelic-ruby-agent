@@ -64,7 +64,7 @@ module NewRelic
         end
 
         def segment_stack
-          Thread.current[@queue_key] ||= Hash.new {|h,id| h[id] = [] }
+          Thread.current[@queue_key] ||= Hash.new {|h, id| h[id] = [] }
         end
 
         def state

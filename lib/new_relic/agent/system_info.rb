@@ -113,7 +113,7 @@ module NewRelic
 
         num_physical_packages  = cores.keys.map(&:first).uniq.size
         num_physical_cores     = cores.size
-        num_logical_processors = cores.values.reduce(0,:+)
+        num_logical_processors = cores.values.reduce(0, :+)
 
         if num_physical_cores == 0
           num_logical_processors = total_processors
@@ -254,7 +254,7 @@ module NewRelic
       end
 
       def self.parse_linux_meminfo_in_mib(meminfo)
-        if meminfo && mem_total = meminfo[/MemTotal:\s*(\d*)\skB/,1]
+        if meminfo && mem_total = meminfo[/MemTotal:\s*(\d*)\skB/, 1]
           (mem_total.to_i / 1024).to_i
         else
           ::NewRelic::Agent.logger.debug("Failed to parse MemTotal from /proc/meminfo: #{meminfo}")
@@ -279,7 +279,7 @@ module NewRelic
             else
               ::NewRelic::Agent.logger.debug("Found boot_id with invalid length: #{bid}")
               ::NewRelic::Agent.increment_metric "Supportability/utilization/boot_id/error"
-              bid[0,128]
+              bid[0, 128]
 
             end
           else

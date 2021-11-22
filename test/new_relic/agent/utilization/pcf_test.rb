@@ -55,7 +55,7 @@ module NewRelic
         # ---
 
         def with_pcf_env vars, &blk
-          vars.each_pair { |k,v| ENV[k] = v }
+          vars.each_pair { |k, v| ENV[k] = v }
           blk.call
           vars.keys.each { |k| ENV.delete k }
         end
@@ -67,7 +67,7 @@ module NewRelic
 
           define_method("test_#{test_case[:testname]}".gsub(" ", "_")) do
             timeout = false
-            pcf_env = test_case[:env_vars].reduce({}) do |h,(k,v)|
+            pcf_env = test_case[:env_vars].reduce({}) do |h, (k, v)|
               h[k.to_s] = v[:response] if v[:response]
               timeout = v[:timeout]
               h
@@ -83,7 +83,7 @@ module NewRelic
                 assert_equal expected, {pcf: @vendor.metadata}
 
                 if test_case[:expected_metrics]
-                  test_case[:expected_metrics].each do |metric,v|
+                  test_case[:expected_metrics].each do |metric, v|
                     if v[:call_count] == 0
                       if timeout
                         refute detection, '@vendor.detect should have returned false'

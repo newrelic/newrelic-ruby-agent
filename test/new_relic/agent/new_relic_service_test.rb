@@ -483,10 +483,10 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_get_agent_commands
     @service.agent_id = 666
-    @http_handle.respond_to(:get_agent_commands, [1,2,3])
+    @http_handle.respond_to(:get_agent_commands, [1, 2, 3])
 
     response = @service.get_agent_commands
-    assert_equal [1,2,3], response
+    assert_equal [1, 2, 3], response
   end
 
   def test_get_agent_commands_with_no_response

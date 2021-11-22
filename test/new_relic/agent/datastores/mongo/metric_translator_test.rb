@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/datastores/mongo/metric_translator'
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'test_helper'))
 
 class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   include ::NewRelic::TestHelpers::MongoMetricBuilder
@@ -42,7 +42,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal ['findOne' ,@collection_name], result
+    assert_equal ['findOne' , @collection_name], result
   end
 
   def test_operation_and_collection_for_remove

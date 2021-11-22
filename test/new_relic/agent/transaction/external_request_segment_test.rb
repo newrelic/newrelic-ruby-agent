@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/transaction/external_request_segment'
@@ -916,7 +916,7 @@ module NewRelic::Agent
       def cat_config
         {
           :cross_process_id    => "269975#22824",
-          :trusted_account_ids => [1,269975],
+          :trusted_account_ids => [1, 269975],
           :'cross_application_tracer.enabled' => true,
           :'distributed_tracing.enabled' => false,
         }

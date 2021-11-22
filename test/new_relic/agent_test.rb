@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 require 'ostruct'
 
 module NewRelic
@@ -480,7 +480,7 @@ module NewRelic
         visited << a = stack.pop
         if a.respond_to? :name
           b = if RUBY_VERSION < '2.0.0'
-                a.name.split('::').reduce(nil) { |c,n| (c || Kernel).const_get n }
+                a.name.split('::').reduce(nil) { |c, n| (c || Kernel).const_get n }
               else
                 Kernel.const_get a.name
               end
@@ -528,7 +528,7 @@ module NewRelic
           nil
         end
 
-        def fetch(k,d)
+        def fetch(k, d)
           nil
         end
       end

@@ -78,9 +78,9 @@ module NewRelic
         def self.config_search_paths
           Proc.new {
             paths = [
-              File.join("config","newrelic.yml"),
+              File.join("config", "newrelic.yml"),
               File.join("newrelic.yml"),
-              File.join("config","newrelic.yml.erb"),
+              File.join("config", "newrelic.yml.erb"),
               File.join("newrelic.yml.erb")
             ]
 

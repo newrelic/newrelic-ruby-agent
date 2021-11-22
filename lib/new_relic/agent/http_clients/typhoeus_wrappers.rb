@@ -22,7 +22,7 @@ module NewRelic
 
         def to_hash
           hash = {}
-          headers.each do |(k,v)|
+          headers.each do |(k, v)|
             hash[k] = v
           end
           hash

@@ -71,7 +71,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
     end
 
     def response_instance(headers = {})
-      headers = headers.map do |k,v|
+      headers = headers.map do |k, v|
         "#{k}: #{v}"
       end.join("\r\n")
 

@@ -220,7 +220,7 @@ class ProcessReport
 
       section(f, "Open files") { @target.open_files }
       section(f, "Log") do
-        commands = Logger.messages.map { |(_,msg)| msg }
+        commands = Logger.messages.map { |(_, msg)| msg }
         commands.join("\n")
       end
     end

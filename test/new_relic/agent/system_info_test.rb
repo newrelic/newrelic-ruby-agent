@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 class NewRelic::Agent::SystemInfoTest < Minitest::Test
   def setup
@@ -169,7 +169,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
     test_boot_id = VALID_UUID*8
     NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(test_boot_id)
-    assert_equal test_boot_id[0,128], NewRelic::Agent::SystemInfo.boot_id
+    assert_equal test_boot_id[0, 128], NewRelic::Agent::SystemInfo.boot_id
     assert_metrics_recorded "Supportability/utilization/boot_id/error"
   end
 

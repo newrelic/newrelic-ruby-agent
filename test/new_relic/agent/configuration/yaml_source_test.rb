@@ -2,15 +2,15 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/configuration/yaml_source'
 
 module NewRelic::Agent::Configuration
   class YamlSourceTest < Minitest::Test
     def setup
       @test_yml_path = File.expand_path(File.join(File.dirname(__FILE__),
-                                                 '..','..','..',
-                                                 'config','newrelic.yml'))
+                                                 '..', '..', '..',
+                                                 'config', 'newrelic.yml'))
       @source = YamlSource.new(@test_yml_path, 'test')
     end
 

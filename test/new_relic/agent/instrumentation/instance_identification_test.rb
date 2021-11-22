@@ -150,7 +150,7 @@ module NewRelic
           }
 
           def convert_test_case_to_config test_case
-            config = test_case.inject({}) do |memo, (k,v)|
+            config = test_case.inject({}) do |memo, (k, v)|
               if config_key = CONFIG_NAMES[k]
                 memo[config_key] = v
               end

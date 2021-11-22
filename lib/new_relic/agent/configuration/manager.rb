@@ -31,7 +31,7 @@ module NewRelic
 
         def initialize
           reset_to_defaults
-          @callbacks = Hash.new {|hash,key| hash[key] = [] }
+          @callbacks = Hash.new {|hash, key| hash[key] = [] }
         end
 
         def add_config_for_testing(source, level=0)
@@ -66,7 +66,7 @@ module NewRelic
           when YamlSource           then @yaml_source            = nil
           when DefaultSource        then @default_source         = nil
           else
-            @configs_for_testing.delete_if {|src,lvl| src == source}
+            @configs_for_testing.delete_if {|src, lvl| src == source}
           end
 
           reset_cache
@@ -191,9 +191,9 @@ module NewRelic
         end
 
         def flattened
-          config_stack.reverse.inject({}) do |flat,layer|
+          config_stack.reverse.inject({}) do |flat, layer|
             thawed_layer = layer.to_hash.dup
-            thawed_layer.each do |k,v|
+            thawed_layer.each do |k, v|
               begin
                 thawed_layer[k] = instance_eval(&v) if v.respond_to?(:call)
               rescue => e
@@ -252,7 +252,7 @@ module NewRelic
         end
 
         def break_label_string_into_pairs(labels)
-          stripped_labels = labels.strip.sub(/^;*/,'').sub(/;*$/,'')
+          stripped_labels = labels.strip.sub(/^;*/, '').sub(/;*$/, '')
           stripped_labels.split(';').map do |pair|
             pair.split(':').map(&:strip)
           end
@@ -344,7 +344,7 @@ module NewRelic
         end
 
         def reset_cache
-          @cache = Hash.new { |hash,key| hash[key] = self.fetch(key) }
+          @cache = Hash.new { |hash, key| hash[key] = self.fetch(key) }
         end
 
         def log_config(direction, source)

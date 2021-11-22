@@ -60,7 +60,7 @@ module NewRelic
         @stopped     = false
         @timers      = {}
 
-        @subscriptions = Hash.new { |h,k| h[k] = [] }
+        @subscriptions = Hash.new { |h, k| h[k] = [] }
         @subscriptions[:__add_timer] << Proc.new { |t| set_timer(t) }
         @subscriptions[:__add_event] << Proc.new { |e, blk| @subscriptions[e] << blk }
       end

@@ -7,7 +7,7 @@ require 'socket'
 class ServiceTimeoutTest < Minitest::Test
 
   def setup
-    hk = TCPServer.new('127.0.0.1',0)
+    hk = TCPServer.new('127.0.0.1', 0)
     @port = hk.addr[1]
 
     Thread.new {

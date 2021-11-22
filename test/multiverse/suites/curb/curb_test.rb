@@ -107,7 +107,7 @@ class CurbTest < Minitest::Test
     other_url = "http://localhost:#{$fake_server.port}/"
 
     in_transaction("test") do
-      Curl::Multi.get [default_url,other_url] do |easy|
+      Curl::Multi.get [default_url, other_url] do |easy|
         results << easy.body_str
       end
 

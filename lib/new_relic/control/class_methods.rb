@@ -35,7 +35,7 @@ module NewRelic
 
       # nb this does not 'load test' the framework, it loads the 'test framework'
       def load_test_framework
-        config = File.expand_path(File.join('..','..','..','..', "test","config","newrelic.yml"), __FILE__)
+        config = File.expand_path(File.join('..', '..', '..', '..', "test", "config", "newrelic.yml"), __FILE__)
         require "config/test_control"
         NewRelic::Control::Frameworks::Test.new(local_env, config)
       end

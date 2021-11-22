@@ -23,7 +23,7 @@ module NewRelic
         end
 
         def vendor_root
-          @vendor_root ||= File.join(root,'vendor','rails')
+          @vendor_root ||= File.join(root, 'vendor', 'rails')
         end
 
         def version

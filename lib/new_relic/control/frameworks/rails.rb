@@ -103,7 +103,7 @@ module NewRelic
         protected
 
         def rails_vendor_root
-          File.join(root,'vendor','rails')
+          File.join(root, 'vendor', 'rails')
         end
 
         def install_shim

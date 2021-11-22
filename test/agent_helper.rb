@@ -160,7 +160,7 @@ end
 def assert_audit_log_contains_object audit_log_contents, o, format = :json
   case o
   when Hash
-    o.each do |k,v|
+    o.each do |k, v|
       assert_audit_log_contains_object(audit_log_contents, v, format)
       assert_audit_log_contains_object(audit_log_contents, k, format)
     end

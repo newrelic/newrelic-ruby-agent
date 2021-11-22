@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 class NewRelic::Agent::StatsTest < Minitest::Test
   def mock_plusequals(first, second, method, first_value, second_value)
@@ -50,7 +50,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
     stats = NewRelic::Agent::Stats.new
     validate stats, 0, 0, 0, 0
 
-    assert_equal stats.call_count,0
+    assert_equal stats.call_count, 0
     stats.trace_call 10
     stats.trace_call 20
     stats.trace_call 30

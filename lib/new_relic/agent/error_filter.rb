@@ -127,7 +127,7 @@ module NewRelic
             ::NewRelic::Agent.logger.debug("Ignoring errors of type '#{error}'")
           end
         when :ignore_messages
-          errors.each do |error,messages|
+          errors.each do |error, messages|
             ::NewRelic::Agent.logger.debug("Ignoring errors of type '#{error}' with messages: #{messages.join(',')}")
           end
         when :ignore_status_codes
@@ -137,7 +137,7 @@ module NewRelic
             ::NewRelic::Agent.logger.debug("Expecting errors of type '#{error}'")
           end
         when :expected_messages
-          errors.each do |error,messages|
+          errors.each do |error, messages|
             ::NewRelic::Agent.logger.debug("Expecting errors of type '#{error}' with messages: #{messages.join(',')}")
           end
         when :expected_status_codes

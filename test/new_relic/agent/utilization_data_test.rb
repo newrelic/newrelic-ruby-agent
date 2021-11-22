@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/utilization_data'
 require 'new_relic/agent/utilization/aws'
 
@@ -327,7 +327,7 @@ module NewRelic::Agent
     end
 
     def with_pcf_env vars, &blk
-      vars.each_pair { |k,v| ENV[k] = v }
+      vars.each_pair { |k, v| ENV[k] = v }
       blk.call
       vars.keys.each { |k| ENV.delete k }
     end
@@ -411,7 +411,7 @@ module NewRelic::Agent
     }
 
     def stub_aws_inputs test_case
-      resp = test_case.reduce({}) {|h,(k,v)| h[AWS_INPUTS[k]] = v if AWS_INPUTS[k]; h}
+      resp = test_case.reduce({}) {|h, (k, v)| h[AWS_INPUTS[k]] = v if AWS_INPUTS[k]; h}
       stub_aws_info response_body: JSON.dump(resp) unless resp.empty?
     end
 
@@ -441,7 +441,7 @@ module NewRelic::Agent
     }
 
     def stub_azure_inputs test_case
-      resp = test_case.reduce({}) {|h,(k,v)| h[AZURE_INPUTS[k]] = v if AZURE_INPUTS[k]; h}
+      resp = test_case.reduce({}) {|h, (k, v)| h[AZURE_INPUTS[k]] = v if AZURE_INPUTS[k]; h}
       stub_azure_info response_body: JSON.dump(resp) unless resp.empty?
     end
 
@@ -453,7 +453,7 @@ module NewRelic::Agent
     }
 
     def stub_gcp_inputs test_case
-      resp = test_case.reduce({}) {|h,(k,v)| h[GCP_INPUTS[k]] = v if GCP_INPUTS[k]; h}
+      resp = test_case.reduce({}) {|h, (k, v)| h[GCP_INPUTS[k]] = v if GCP_INPUTS[k]; h}
       stub_gcp_info response_body: JSON.dump(resp) unless resp.empty?
     end
 
@@ -464,7 +464,7 @@ module NewRelic::Agent
     }
 
     def stub_pcf_env test_case
-      PCF_INPUTS.reduce({}) {|h,(k,v)| h[v] = test_case[k]; h}
+      PCF_INPUTS.reduce({}) {|h, (k, v)| h[v] = test_case[k]; h}
     end
 
   end

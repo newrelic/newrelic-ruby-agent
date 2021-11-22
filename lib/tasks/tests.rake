@@ -23,7 +23,7 @@ if defined? Rake::TestTask
       ENV["TESTOPTS"] += " --" + seed
     end
 
-    agent_home = File.expand_path(File.join(File.dirname(__FILE__),'..','..'))
+    agent_home = File.expand_path(File.join(File.dirname(__FILE__), '..', '..'))
 
     Rake::TestTask.new(:newrelic) do |t|
 

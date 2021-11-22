@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.expand_path('../../../../test_helper', __FILE__)
-require File.expand_path(File.join(File.dirname(__FILE__),'../../..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '../../..', 'test_helper'))
 require 'new_relic/agent/configuration/security_policy_source'
 
 module NewRelic
