@@ -22,4 +22,3 @@ module NewRelic::Agent::Instrumentation
     end
   end
 end
-

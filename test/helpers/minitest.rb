@@ -50,4 +50,3 @@ class Minitest::Test
   end
 
 end
-

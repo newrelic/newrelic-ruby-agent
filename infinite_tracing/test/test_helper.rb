@@ -91,6 +91,3 @@ def with_detailed_trace
     yield
   end
 end
-
-
-

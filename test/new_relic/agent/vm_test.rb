@@ -45,4 +45,3 @@ class NewRelic::Agent::VMTestCase < Minitest::Test
     end
   end
 end
-

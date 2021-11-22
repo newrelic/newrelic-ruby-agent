@@ -173,4 +173,3 @@ class MongoServerTest < Test::Unit::TestCase
     servers.each(&:stop)
   end
 end
-

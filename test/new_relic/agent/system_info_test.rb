@@ -200,4 +200,3 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     assert_metrics_not_recorded "Supportability/utilization/boot_id/error"
   end
 end
-

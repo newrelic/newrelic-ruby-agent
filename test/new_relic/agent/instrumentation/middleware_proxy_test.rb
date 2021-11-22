@@ -271,4 +271,3 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     assert_same result, result_from_after_call
   end
 end
-
