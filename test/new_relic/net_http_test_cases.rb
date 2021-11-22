@@ -7,7 +7,7 @@ require "net/http"
 require "newrelic_rpm"
 require "http_client_test_cases"
 
-module NetHttpTestCases  
+module NetHttpTestCases
   include HttpClientTestCases
 
   #
@@ -126,7 +126,7 @@ module NetHttpTestCases
     assert_metrics_recorded(
       'External/localhost/Net::HTTP/GET' => { :call_count => 1 })
   end
-  
+
   def test_ipv6_host_get_request_records_metric
     http = Net::HTTP.new('::1', default_uri.port)
     in_transaction do

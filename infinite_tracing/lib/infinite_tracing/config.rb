@@ -24,8 +24,8 @@ module NewRelic::Agent
       #      AND the collect_span_events connect response field, AND
       #   c) A Trace Observer host is configured by setting infinite_tracing.trace_observer.host.
       def enabled?
-        distributed_tracing_enabled? && 
-        span_events_enabled? && 
+        distributed_tracing_enabled? &&
+        span_events_enabled? &&
         trace_observer_configured?
       end
 
@@ -39,9 +39,9 @@ module NewRelic::Agent
         NewRelic::Agent.config[:'span_events.enabled']
       end
 
-      # running locally is akin to communicating with the gRPC server with an 
+      # running locally is akin to communicating with the gRPC server with an
       # unencrypted channel.  Generally, this is _not_ allowed by the agent
-      # in normal use-cases.  The only known use-case for this is when 
+      # in normal use-cases.  The only known use-case for this is when
       # streaming under TEST conditions.
       def local?
         test_framework?
@@ -74,7 +74,7 @@ module NewRelic::Agent
         port_from_host_entry || NewRelic::Agent.config[:'infinite_tracing.trace_observer.port']
       end
 
-      # The scheme is based on whether the Trace Observer is running locally or remotely. 
+      # The scheme is based on whether the Trace Observer is running locally or remotely.
       # Remote unsecure (unencypted) streaming is disallowed!
       def trace_observer_scheme
         local? ? NewRelic::HTTP : NewRelic::HTTPS
@@ -95,7 +95,7 @@ module NewRelic::Agent
         "#{trace_observer_host}:#{trace_observer_port}"
       end
 
-      # The maximum number of span events the Streaming Buffer can hold when buffering 
+      # The maximum number of span events the Streaming Buffer can hold when buffering
       # to stream across the gRPC channel.
       def span_events_queue_size
         NewRelic::Agent.config[:'span_events.queue_size']

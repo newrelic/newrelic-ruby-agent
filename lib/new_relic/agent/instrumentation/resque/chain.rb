@@ -5,13 +5,13 @@
 
 module NewRelic::Agent::Instrumentation
   module Resque
-    module Chain 
+    module Chain
       def self.instrument!
         ::Resque::Job.class_eval do
           include NewRelic::Agent::Instrumentation::Resque
 
           alias_method :perform_without_instrumentation, :perform
-  
+
           def perform
             with_tracing { perform_without_instrumentation }
           end

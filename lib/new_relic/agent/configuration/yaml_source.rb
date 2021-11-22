@@ -105,7 +105,7 @@ module NewRelic
           if file
             confighash = if YAML.respond_to?(:unsafe_load)
                            YAML.unsafe_load(file)
-                         else 
+                         else
                            YAML.load(file)
                          end
 

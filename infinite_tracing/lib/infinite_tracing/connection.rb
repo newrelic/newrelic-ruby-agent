@@ -84,7 +84,7 @@ module NewRelic::Agent
         wait_for_agent_connect
         @rpc ||= Channel.new.stub
       end
-      
+
       def wait_for_agent_connect
         @lock.synchronize do
           @agent_started.wait(@lock) if !@agent_connected

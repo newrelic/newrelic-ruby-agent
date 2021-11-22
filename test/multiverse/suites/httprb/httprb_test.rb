@@ -42,7 +42,7 @@ class HTTPTest < Minitest::Test
   end
 
   # NOTE, some versions of HTTPrb gem implements body with
-  # String.new("").force_encoding(@encoding) which won't work 
+  # String.new("").force_encoding(@encoding) which won't work
   # with Ruby 2.7 and it's automatic freezing of string literals.
   def body(res)
     res.body.to_s

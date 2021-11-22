@@ -72,7 +72,7 @@ module Performance
     def estimate_time_per_iteration(action, duration)
       start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
       deadline = start_time + duration
-      
+
       iterations = 0
       while Process.clock_gettime(Process::CLOCK_MONOTONIC) < deadline
         action.call

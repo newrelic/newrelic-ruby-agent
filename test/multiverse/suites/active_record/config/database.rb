@@ -21,7 +21,7 @@ config_raw = File.read(File.join(config_dir, 'database.yml'))
 config_erb = ERB.new(config_raw).result
 config_yml = if YAML.respond_to?(:unsafe_load)
                YAML.unsafe_load(config_erb)
-             else 
+             else
                YAML.load(config_erb)
              end
 

@@ -18,7 +18,7 @@ module NewRelic::Agent
         NewRelic::Agent.drop_buffered_data
       end
 
-      # This method, when returning a non-empty array, will cause the tests defined in the 
+      # This method, when returning a non-empty array, will cause the tests defined in the
       # JSON file to be skipped if they're not listed here.  Useful for focusing on specific
       # failing tests.
       def self.focus_tests
@@ -48,7 +48,7 @@ module NewRelic::Agent
         else
           define_method("test_#{test_case['test_name']}") do
             skip("marked pending by exclusion from #only_tests")
-          end          
+          end
         end
       end
 

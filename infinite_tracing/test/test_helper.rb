@@ -62,12 +62,12 @@ end
 
 TRACE_POINT_ENABLED = false
 
-def trace 
+def trace
   @trace ||= TracePoint.new(:call, :b_call) do |tp|
     next unless tp.defined_class.to_s =~ /InfiniteTracing/
     next unless [
-      :record_spans, 
-      :record_span, 
+      :record_spans,
+      :record_span,
       :emulate_streaming_with_ok_close_response,
       :handle_error,
       :handle_close,

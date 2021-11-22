@@ -19,7 +19,7 @@ module NewRelic
         def instrument_save_methods
           ::ActiveRecord::Base.class_eval do
             alias_method :save_without_newrelic, :save
-            
+
             def save(*args, &blk)
               ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
                 save_without_newrelic(*args, &blk)
@@ -45,7 +45,7 @@ module NewRelic
                 update_all_without_newrelic(*args, &blk)
               end
             end
-            
+
             alias_method :delete_all_without_newrelic, :delete_all
 
             if RUBY_VERSION < "2.7.0"
@@ -167,7 +167,7 @@ module NewRelic
 
           # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
           "jdbcpostgresql" => "Postgres",
-          
+
           # https://rubygems.org/gems/activerecord-postgis-adapter
           "postgis"    => "Postgres",
 

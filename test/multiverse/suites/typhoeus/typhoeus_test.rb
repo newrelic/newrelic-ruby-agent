@@ -49,7 +49,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
     def get_wrapped_response url
       NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new get_response url
     end
-    
+
     def head_response
       Typhoeus::Request.head(default_url, ssl_option)
     end
@@ -91,7 +91,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
       end
       assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
 
-      # Typhoeus doesn't raise errors, so transactions never see it, 
+      # Typhoeus doesn't raise errors, so transactions never see it,
       # which diverges from behavior of other HTTP client libraries
       refute_transaction_noticed_error txn, timeout_error_class.name
     end
@@ -185,7 +185,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
       assert_equal 5, get_segments.size
       assert get_segments.all?{|s| s.noticed_error}, "Expected every GET to notice an error"
 
-      # Typhoeus doesn't raise errors, so transactions never see it, 
+      # Typhoeus doesn't raise errors, so transactions never see it,
       # which diverges from behavior of other HTTP client libraries
       refute_transaction_noticed_error txn, timeout_error_class.name
     end

@@ -41,13 +41,13 @@ module NewRelic
         end
       end
 
-      # This class implements the adaptor pattern and is used internally provide 
+      # This class implements the adaptor pattern and is used internally provide
       # uniform access to the underlying HTTP Client's response object
       # NOTE: response_object should be non-nil!
       class AbstractResponse # :nodoc:
 
         def initialize(wrapped_response)
-          if wrapped_response.nil? 
+          if wrapped_response.nil?
             raise ArgumentError, WHINY_NIL_ERROR % self.class
           end
           @wrapped_response = wrapped_response
@@ -57,13 +57,13 @@ module NewRelic
           !!status_code
         end
 
-        # most HTTP client libraries report the HTTP status code as an integer, so 
+        # most HTTP client libraries report the HTTP status code as an integer, so
         # we expect status_code to be set only if a non-zero value is present
         def status_code
           @status_code ||= get_status_code
         end
 
-        private 
+        private
 
         def get_status_code_using(method_name)
           return unless @wrapped_response.respond_to?(method_name)
@@ -71,7 +71,7 @@ module NewRelic
           code == 0 ? nil : code
         end
 
-        # Override this method to memoize a non-zero Integer representation 
+        # Override this method to memoize a non-zero Integer representation
         # of HTTP status code from the response object
         def get_status_code
           get_status_code_using :code

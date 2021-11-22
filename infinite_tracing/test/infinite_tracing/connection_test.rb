@@ -159,10 +159,10 @@ module NewRelic
 
         def test_handling_ok_and_close_server_response
           timeout_cap 5 do
-            with_detailed_trace do 
+            with_detailed_trace do
               total_spans = 5
               expects_logging(:debug, all_of(includes("closed the stream"), includes("OK response.")), anything)
-            
+
               spans, segments = emulate_streaming_with_ok_close_response(total_spans) do |client, segments, server|
                 server.wait_for_notice
               end

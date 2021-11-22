@@ -8,7 +8,7 @@ ruby_options = %{-w -I"#{rake_lib_path}" "#{rake_lib_path}/rake/rake_test_loader
 
 guard_options = {
   spring: "bundle exec ruby #{ruby_options} ",
-  test_folders: ['test/new_relic'] + test_folders, 
+  test_folders: ['test/new_relic'] + test_folders,
   all_after_pass: false,
   all_on_start: false
 }

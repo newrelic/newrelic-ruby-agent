@@ -11,7 +11,7 @@ DependencyDetection.defer do
   # not shipping yet, overloading the name interferes with the plugin.
   named :grape_instrumentation
   configure_with :grape
-  
+
   depends_on do
     defined?(::Grape::VERSION) &&
       Gem::Version.new(::Grape::VERSION) >= ::NewRelic::Agent::Instrumentation::Grape::Instrumentation::MIN_VERSION
@@ -37,7 +37,7 @@ DependencyDetection.defer do
     if use_prepend?
       instrumented_class = ::NewRelic::Agent::Instrumentation::Grape::Instrumentation.instrumented_class
       prepend_instrument instrumented_class, ::NewRelic::Agent::Instrumentation::Grape::Prepend
-    else 
+    else
       chain_instrument ::NewRelic::Agent::Instrumentation::Grape::Chain
     end
   end

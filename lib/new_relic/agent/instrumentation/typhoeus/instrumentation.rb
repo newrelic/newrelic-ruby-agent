@@ -27,7 +27,7 @@ module NewRelic
             response.return_message
           else
             # 0.5.4 seems to have lost xxxx_message methods altogether.
-            "timeout" 
+            "timeout"
           end
         end
 
@@ -68,7 +68,7 @@ module NewRelic
             if request.response.code == 0
               segment.notice_error NoticibleError.new NOTICIBLE_ERROR_CLASS, response_message(request.response)
             end
-           
+
             segment.finish if segment
           end
           request.on_complete.unshift(callback)

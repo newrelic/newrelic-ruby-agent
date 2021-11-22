@@ -35,7 +35,7 @@ module NewRelic
             segment = segments.delete(event.operation_id)
             return unless segment
 
-            # operations that succeed but have errors return CommandSucceeded 
+            # operations that succeed but have errors return CommandSucceeded
             # with an error_key that is populated with error specfics
             if error_key = error_key_present?(event)
               # taking the last error as there can potentially be many
@@ -76,7 +76,7 @@ module NewRelic
         def operation(command_name)
           # from 2.0 to 2.5, :findandmodify was the command_name
           if command_name == :findandmodify
-            :findAndModify 
+            :findAndModify
           else
             command_name
           end

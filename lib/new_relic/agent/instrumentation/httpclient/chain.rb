@@ -4,7 +4,7 @@
 
 module NewRelic::Agent::Instrumentation
   module HTTPClient
-    module Chain 
+    module Chain
       def self.instrument!
         ::HTTPClient.class_eval do
           include NewRelic::Agent::Instrumentation::HTTPClient::Instrumentation
@@ -14,7 +14,7 @@ module NewRelic::Agent::Instrumentation
               do_get_block_without_newrelic(req, proxy, conn, &block)
             end
           end
-    
+
           alias :do_get_block_without_newrelic :do_get_block
           alias :do_get_block :do_get_block_with_newrelic
         end

@@ -133,7 +133,7 @@ module NewRelic
                                          partial_name: nil,
                                          category:,
                                          options: {})
-          
+
           raise ArgumentError, 'missing required argument: name or partial_name' if name.nil? && partial_name.nil?
 
           if name
@@ -163,7 +163,7 @@ module NewRelic
                               name: nil,
                               partial_name: nil,
                               **options)
-          
+
           raise ArgumentError, 'missing required argument: name or partial_name' if name.nil? && partial_name.nil?
 
           return current_transaction if current_transaction
@@ -347,7 +347,7 @@ module NewRelic
 
         # Will potentially capture and notice an error at the
         # segment that was executing when error occurred.
-        # if passed +segment+ is something that doesn't 
+        # if passed +segment+ is something that doesn't
         # respond to +notice_segment_error+ then this method
         # is effectively just a yield to the given &block
         def capture_segment_error segment

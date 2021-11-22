@@ -10,16 +10,16 @@ module NewRelic
     module InfiniteTracing
       class ChannelTest < Minitest::Test
 
-        def local_config 
-          { 
+        def local_config
+          {
             :'distributed_tracing.enabled' => true,
             :'span_events.enabled' => true,
             :'infinite_tracing.trace_observer.host' => "localhost:80"
           }
         end
 
-        def remote_config 
-          { 
+        def remote_config
+          {
             :'distributed_tracing.enabled' => true,
             :'span_events.enabled' => true,
             :'infinite_tracing.trace_observer.host' => "https://example.com"
@@ -30,7 +30,7 @@ module NewRelic
           with_config local_config do
             channel = Channel.new
             credentials = channel.send(:credentials)
-    
+
             assert_equal "localhost:80", channel.send(:host_and_port)
             assert_equal :this_channel_is_insecure, credentials
           end
@@ -42,7 +42,7 @@ module NewRelic
           with_config remote_config do
             channel = Channel.new
             credentials = channel.send(:credentials)
-    
+
             assert_equal "example.com:443", channel.send(:host_and_port)
             assert_kind_of GRPC::Core::ChannelCredentials, credentials
           end
@@ -61,7 +61,7 @@ module NewRelic
           with_config insecure_remote_config do
             channel = Channel.new
             credentials = channel.send(:credentials)
-    
+
             assert_equal "example.com:443", channel.send(:host_and_port)
             assert_kind_of GRPC::Core::ChannelCredentials, credentials
           end

@@ -38,7 +38,7 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
       'sample_rate' => 10,
       'agent_config' => { 'transaction_tracer.record_sql' => 'raw' }
     }
-    
+
     with_config(:'transaction_tracer.enabled' => true) do
       @response_handler.configure_agent(config)
       assert_equal 'fishsticks', @agent.service.agent_id

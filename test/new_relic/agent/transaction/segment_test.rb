@@ -216,7 +216,7 @@ module NewRelic
         def test_ignored_transaction_does_not_record_span_events
           in_transaction('wat') do |txn|
             txn.stubs(:ignore?).returns(true)
-            
+
             segment = Segment.new 'Ummm'
             txn.add_segment segment
             segment.start

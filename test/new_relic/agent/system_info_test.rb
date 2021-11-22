@@ -38,7 +38,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
         else
           assert_equal num_physical_cores, info[:num_physical_cores]
         end
-        
+
         if num_logical_processors.nil?
           assert_nil info[:num_logical_processors]
         else

@@ -114,9 +114,9 @@ class BunnyTest < Minitest::Test
           correlation_id: "abc"
         }
       end
-  
+
       node = find_node_with_name_matching last_transaction_trace, /^MessageBroker\//
-  
+
       assert_equal :fanout, node.params[:exchange_type]
       assert_equal "red", node.params[:routing_key]
       assert_equal headers, node.params[:headers]

@@ -34,7 +34,7 @@ module NewRelic
               ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
                 super
               end
-            end  
+            end
 
           end
         end

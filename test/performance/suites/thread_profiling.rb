@@ -54,7 +54,7 @@ class ThreadProfiling < Performance::TestCase
 
   def teardown
     mocha_teardown
-    
+
     @cvar.broadcast
     @threads.each(&:join)
     mocha_teardown

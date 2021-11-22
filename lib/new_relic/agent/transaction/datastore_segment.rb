@@ -140,7 +140,7 @@ module NewRelic
         def record_span_event
           # don't record a span event if the transaction is ignored
           return if transaction.ignore?
-          
+
           aggregator = ::NewRelic::Agent.agent.span_event_aggregator
           priority   = transaction.priority
 

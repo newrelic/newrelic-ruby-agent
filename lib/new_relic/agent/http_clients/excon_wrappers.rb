@@ -31,8 +31,8 @@ module NewRelic
         private
 
         def get_attribute name
-          if @wrapped_response.respond_to?(name) 
-            @wrapped_response.send(name) 
+          if @wrapped_response.respond_to?(name)
+            @wrapped_response.send(name)
           else
             @wrapped_response[name]
           end

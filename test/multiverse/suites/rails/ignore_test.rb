@@ -17,7 +17,7 @@ class IgnoredController < ApplicationController
   def action_to_ignore_apdex
     render body:  "This too"
   end
-  
+
   def action_not_ignored
     render body:  "Not this!"
   end

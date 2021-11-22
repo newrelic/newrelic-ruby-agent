@@ -32,7 +32,7 @@ module NewRelic::Agent::InfiniteTracing
         raise "Oops!"
         NewRelic::Agent.record_metric("Supportability/InfiniteTracing/Error", 0.0)
       end
-      
+
       begin
         worker.join
       rescue => err

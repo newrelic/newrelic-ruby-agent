@@ -31,9 +31,9 @@ module NewRelic::Agent
         KLASS_TO_ARG[Fixnum] = :int_value
       end
       if defined? BigDecimal
-        KLASS_TO_ARG[BigDecimal] = :double_value 
+        KLASS_TO_ARG[BigDecimal] = :double_value
       end
-      
+
       def safe_param_name value
         KLASS_TO_ARG[value.class] || raise("Unhandled class #{value.class.name}")
       end

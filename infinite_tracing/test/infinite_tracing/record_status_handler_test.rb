@@ -51,7 +51,7 @@ module NewRelic::Agent::InfiniteTracing
       assert_equal 0, handler.messages_seen
     end
 
-    private 
+    private
 
     class TestClient
       def handle_error error

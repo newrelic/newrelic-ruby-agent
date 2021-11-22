@@ -44,7 +44,7 @@ module NewRelic
     require 'new_relic/agent/sql_sampler'
     require 'new_relic/agent/commands/thread_profiler_session'
     require 'new_relic/agent/error_collector'
-    require 'new_relic/agent/error_filter'   
+    require 'new_relic/agent/error_filter'
     require 'new_relic/agent/sampler'
     require 'new_relic/agent/database'
     require 'new_relic/agent/database_adapter'

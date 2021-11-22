@@ -135,7 +135,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       # A simple debug helper that returns list of server context statuses.
       # When there are intermittent errors happening, usually, instead of seeing
       # everything in :stopped state, we'll see one or more server contexts in
-      # :running state.  
+      # :running state.
       #
       # This is our hint to research into what's not being shutdown properly!
       def running_contexts

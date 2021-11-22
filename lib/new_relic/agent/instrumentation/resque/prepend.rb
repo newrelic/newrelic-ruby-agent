@@ -5,7 +5,7 @@
 
 module NewRelic::Agent::Instrumentation
   module Resque
-    module Prepend 
+    module Prepend
       include NewRelic::Agent::Instrumentation::Resque
 
       def perform

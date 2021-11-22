@@ -11,18 +11,18 @@ module NewRelic::Agent
         NewRelic::Agent.logger.debug "Infinite Tracer Opening Channel to #{host_and_port}"
 
         Com::Newrelic::Trace::V1::IngestService::Stub.new \
-          host_and_port, 
-          credentials, 
+          host_and_port,
+          credentials,
           channel_override: channel
       end
 
       def channel
         GRPC::Core::Channel.new(host_and_port, settings, credentials)
       end
-      
+
       def credentials
         if Config.local?
-          :this_channel_is_insecure 
+          :this_channel_is_insecure
         else
           # Uses system configured certificates by default
           GRPC::Core::ChannelCredentials.new

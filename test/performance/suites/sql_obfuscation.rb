@@ -26,7 +26,7 @@ class SqlObfuscationTests < Performance::TestCase
     measure do
       NewRelic::Agent::Database.obfuscate_sql(@long_query_pg)
       NewRelic::Agent::Database.obfuscate_sql(@short_query_pg)
-    end    
+    end
   end
 
   def test_obfuscate_cross_agent_tests

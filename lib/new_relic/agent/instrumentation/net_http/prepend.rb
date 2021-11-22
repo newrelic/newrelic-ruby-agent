@@ -4,13 +4,13 @@
 
 require_relative 'instrumentation'
 
-module NewRelic 
-  module Agent 
+module NewRelic
+  module Agent
     module Instrumentation
       module NetHTTP
         module Prepend
           include NewRelic::Agent::Instrumentation::NetHTTP
-          
+
           def request(request, *args, &block)
             request_with_tracing(request) { super }
           end

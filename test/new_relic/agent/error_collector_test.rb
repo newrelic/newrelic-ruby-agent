@@ -495,7 +495,7 @@ module NewRelic::Agent
           recorded_error_attributes = SpanEventPrimitive.error_attributes segment
 
           expected_error_attributes = {
-            "error.message" => "Oops!", 
+            "error.message" => "Oops!",
             "error.class"   => "StandardError"
           }
           assert_equal expected_error_attributes, segment.noticed_error.attributes_from_notice_error
@@ -518,7 +518,7 @@ module NewRelic::Agent
           recorded_error_attributes = SpanEventPrimitive.error_attributes segment
 
           expected_error_attributes = {
-            "error.message"   => "Oops!", 
+            "error.message"   => "Oops!",
             "error.class"     => "StandardError",
             "error.expected"  => true
           }
@@ -542,7 +542,7 @@ module NewRelic::Agent
           recorded_error_attributes = SpanEventPrimitive.error_attributes segment
 
           expected_error_attributes = {
-            "error.message"   => "Oops!", 
+            "error.message"   => "Oops!",
             "error.class"     => "StandardError",
             "error.expected"  => true
           }
@@ -586,7 +586,7 @@ module NewRelic::Agent
         assert_equal 0, traces.length
         assert_equal 0, events.length
       end
-      
+
       def wrapped_filter_proc
         Proc.new do |e|
           if e.is_a? IOError

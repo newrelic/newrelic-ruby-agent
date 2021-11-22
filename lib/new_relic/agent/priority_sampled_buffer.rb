@@ -20,7 +20,7 @@ module NewRelic
 
       def heapify_items_array
         if @items.is_a?(Array)
-          @items = Heap.new(@items) { |x| priority_for(x) } 
+          @items = Heap.new(@items) { |x| priority_for(x) }
         end
       end
 

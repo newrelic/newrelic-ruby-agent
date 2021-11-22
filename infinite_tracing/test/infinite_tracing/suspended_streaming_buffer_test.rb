@@ -109,7 +109,7 @@ module NewRelic
         # pops all the serializable spans off the buffer and returns them.
         def consume_spans buffer
           buffer.enumerator.map(&:itself)
-        end          
+        end
 
         # starts a watched thread that will generate segments asynchronously.
         def prepare_to_stream_segments count, max_buffer_size=100_000
@@ -132,7 +132,7 @@ module NewRelic
         # Opens a streaming buffer,enqueues count segments to the buffer
         # closes the queue when done as we assume no more will be
         # generated and don't want to block indefinitely.
-        # 
+        #
         # Returns the buffer with segments on the queue as well
         # as the segments that were generated separately.
         def stream_segments count, max_buffer_size=100_000
@@ -147,7 +147,7 @@ module NewRelic
             end
           end
 
-          # if we don't close, we block the pop 
+          # if we don't close, we block the pop
           # in the enumerator indefinitely
           buffer.close_queue
 

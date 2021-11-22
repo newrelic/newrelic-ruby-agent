@@ -14,7 +14,7 @@ class EnumeratorQueue
 
   def preload items
     Array(items).each{ |item| @queue.push item }
-    self   
+    self
   end
 
   def each_item

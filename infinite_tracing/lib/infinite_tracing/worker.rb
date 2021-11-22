@@ -4,7 +4,7 @@
 # frozen_string_literal: true
 
 # The Worker class makes it easy to stop and start a thread at will.
-# Some basic error handling/capture is wrapped around the Thread to help 
+# Some basic error handling/capture is wrapped around the Thread to help
 # propagate the exceptions arising from the threaded processes to the main process
 # where the main agent code lives.
 module NewRelic::Agent
@@ -37,11 +37,11 @@ module NewRelic::Agent
       def join timeout=nil
         return unless @worker_thread
         NewRelic::Agent.logger.debug "joining worker #{@name} thread..."
-        @worker_thread.join timeout 
+        @worker_thread.join timeout
       end
 
       def stop
-        @lock.synchronize do 
+        @lock.synchronize do
           return unless @worker_thread
           NewRelic::Agent.logger.debug "stopping worker #{@name} thread..."
           @worker_thread.kill

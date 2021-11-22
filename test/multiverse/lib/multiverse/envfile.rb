@@ -80,7 +80,7 @@ module Multiverse
     def permutations
       @instrumentation_permutations.size
     end
-    
+
     def size
       @gemfiles.size * permutations
     end

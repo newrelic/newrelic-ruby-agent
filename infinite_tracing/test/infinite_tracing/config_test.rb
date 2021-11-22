@@ -90,8 +90,8 @@ module NewRelic
               :'infinite_tracing.trace_observer.host' => hostname,
             }
             with_config(config) do
-              assert_equal host_and_port, 
-                Config.trace_observer_host_and_port, 
+              assert_equal host_and_port,
+                Config.trace_observer_host_and_port,
                 "expected #{host_and_port.inspect} when host is: #{hostname.inspect}"
             end
           end
