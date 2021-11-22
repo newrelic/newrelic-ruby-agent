@@ -14,7 +14,7 @@ module NewRelic
         # optimize for empty hash since that is often what this is called with.
         return params if params.empty?
         new_params = {}
-        params.each do | key, value |
+        params.each do |key, value|
           new_params[truncate(normalize_params(key),64)] = normalize_params(value)
         end
         new_params

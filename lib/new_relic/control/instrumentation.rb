@@ -61,7 +61,7 @@ module NewRelic
         @instrumentation_files <<
         File.join(instrumentation_path, '*.rb') <<
         File.join(instrumentation_path, app.to_s, '*.rb')
-        @instrumentation_files.each { | pattern |  load_instrumentation_files pattern }
+        @instrumentation_files.each { |pattern|  load_instrumentation_files pattern }
         DependencyDetection.detect!
         ::NewRelic::Agent.logger.info "Finished instrumentation"
       end

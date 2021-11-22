@@ -90,13 +90,13 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     # Verify StringIO works like this normally:
     s = StringIO.new "start" + ("foo bar bat " * 1000)
     val = nil
-    s.each { | entry | val = entry; break }
+    s.each { |entry| val = entry; break }
     assert_match(/^startfoo bar/, val)
 
     # make sure stringios aren't affected by calling normalize_params:
     s = StringIO.new "start" + ("foo bar bat " * 1000)
     normalize_params({ :foo => s.string })
-    s.each { | entry | val = entry; break }
+    s.each { |entry| val = entry; break }
     assert_match(/^startfoo bar/, val)
   end
   class MyEnumerable

@@ -60,7 +60,7 @@ module NewRelic
           str = ""
           str << metric_name
           if children.any?
-            str << "{#{children.map { | cs | cs.to_s_compact }.join(",")}}"
+            str << "{#{children.map { |cs| cs.to_s_compact }.join(",")}}"
           end
           str
         end
@@ -110,7 +110,7 @@ module NewRelic
 
         def count_nodes
           count = 1
-          children.each { | node | count  += node.count_nodes }
+          children.each { |node| count  += node.count_nodes }
           count
         end
 

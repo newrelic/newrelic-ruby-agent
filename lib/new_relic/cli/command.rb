@@ -32,12 +32,12 @@ module NewRelic
       def initialize(command_line_args)
         if Hash === command_line_args
           # command line args is an options hash
-          command_line_args.each do | key, value |
+          command_line_args.each do |key, value|
             instance_variable_set "@#{key}", value.to_s if value
           end
         else
           # parse command line args.  Throw an exception on a bad arg.
-          @options = options do | opts |
+          @options = options do |opts|
             opts.on("-h", "Show this help") {  raise CommandFailure, opts.to_s }
           end
           @leftover = @options.parse(command_line_args)

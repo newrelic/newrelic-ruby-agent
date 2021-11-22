@@ -115,17 +115,17 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
       o.separator "OPTIONS:"
       o.on("-a", "--appname=NAME", String,
              "Set the application name.",
-             "Default is app_name setting in newrelic.yml") { | e | @appname = e }
+             "Default is app_name setting in newrelic.yml") { |e| @appname = e }
       o.on("-e", "--environment=name", String,
                "Override the (RAILS|RUBY|RACK)_ENV setting",
-               "currently: #{control.env}") { | e | @environment = e }
+               "currently: #{control.env}") { |e| @environment = e }
       o.on("-u", "--user=USER", String,
              "Specify the user deploying, for information only",
-             "Default: #{@user || '<none>'}") { | u | @user = u }
+             "Default: #{@user || '<none>'}") { |u| @user = u }
       o.on("-r", "--revision=REV", String,
-             "Specify the revision being deployed") { | r | @revision = r }
+             "Specify the revision being deployed") { |r| @revision = r }
       o.on("-l", "--license-key=KEY", String,
-             "Specify the license key of the account for the app being deployed") { | l | @license_key = l }
+             "Specify the license key of the account for the app being deployed") { |l| @license_key = l }
       o.on("-c", "--changes",
              "Read in a change log from the standard input") { @changelog = STDIN.read }
       yield o if block_given?
