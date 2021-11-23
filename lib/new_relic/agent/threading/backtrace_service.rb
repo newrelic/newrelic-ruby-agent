@@ -23,7 +23,7 @@ module NewRelic
                     :overhead_percent_threshold
         attr_accessor :worker_thread, :profile_agent_code
 
-        def initialize(event_listener=nil)
+        def initialize(event_listener = nil)
           @profiles = {}
           @buffer = {}
           @last_poll = nil
@@ -52,7 +52,7 @@ module NewRelic
           @running
         end
 
-        def subscribe(transaction_name, command_arguments={})
+        def subscribe(transaction_name, command_arguments = {})
           if self.class.is_resque?
             NewRelic::Agent.logger.info("Backtracing threads on Resque is not supported, so not subscribing transaction '#{transaction_name}'")
             return

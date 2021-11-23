@@ -19,7 +19,7 @@ module NewRelic
           :created_at, :command_arguments, :profile_agent_code
         attr_accessor :finished_at
 
-        def initialize(command_arguments={})
+        def initialize(command_arguments = {})
           @command_arguments  = command_arguments
           @profile_id         = command_arguments.fetch('profile_id', -1)
           @duration           = command_arguments.fetch('duration', 120)

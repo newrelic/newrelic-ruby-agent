@@ -12,7 +12,7 @@ module NewRelic
     class AgentLogger
       include LogOnce
 
-      def initialize(root = "", override_logger=nil)
+      def initialize(root = "", override_logger = nil)
         @already_logged_lock = Mutex.new
         clear_already_logged
         create_log(root, override_logger)
@@ -50,7 +50,7 @@ module NewRelic
       # the log level that the backtrace is logged at. If you just want the
       # default behavior of backtraces logged at debug, use one of the methods
       # above and pass an Exception as one of the args.
-      def log_exception(level, e, backtrace_level=level)
+      def log_exception(level, e, backtrace_level = level)
         @log.send(level, "%p: %s" % [ e.class, e.message ])
         @log.send(backtrace_level) do
           backtrace = backtrace_from_exception(e)

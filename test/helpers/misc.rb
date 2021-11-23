@@ -38,7 +38,7 @@ def fixture_tcp_socket( response )
     # Simulate a bunch of socket-ey stuff since Mocha doesn't really
     # provide any other way to do it
 
-    stubs(:sysread) do |size, buf=''|
+    stubs(:sysread) do |size, buf = ''|
       @data ||= response.to_s
       raise EOFError if @data.empty?
       buf.replace @data.slice!(0, size)
@@ -63,7 +63,7 @@ def fixture_tcp_socket( response )
   return socket
 end
 
-def dummy_mysql_explain_result(hash=nil)
+def dummy_mysql_explain_result(hash = nil)
   hash ||= {
     'Id' => '1',
     'Select Type' => 'SIMPLE',

@@ -19,7 +19,7 @@ module NewRelic
 
         attr_accessor :thread_profiler_session, :backtrace_service
 
-        def initialize(event_listener=nil)
+        def initialize(event_listener = nil)
           @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
 
           @backtrace_service = Threading::BacktraceService.new(event_listener)

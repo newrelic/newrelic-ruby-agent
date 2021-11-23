@@ -441,7 +441,7 @@ module NewRelic
         end
 
         # This starts the timer for the transaction.
-        def reset(transaction=nil)
+        def reset(transaction = nil)
           # We purposefully don't reset @untraced or @record_sql
           # since those are managed by NewRelic::Agent.disable_* calls explicitly
           # and (more importantly) outside the scope of a transaction

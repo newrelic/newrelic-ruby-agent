@@ -33,7 +33,7 @@ module NewRelic
 
       attr_accessor :started_at, :harvested_at
 
-      def initialize(started_at=Process.clock_gettime(Process::CLOCK_REALTIME))
+      def initialize(started_at = Process.clock_gettime(Process::CLOCK_REALTIME))
         @started_at = started_at.to_f
         @scoped     = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
         @unscoped   = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
@@ -99,7 +99,7 @@ module NewRelic
         end
       end
 
-      def record(metric_specs, value=nil, aux=nil, &blk)
+      def record(metric_specs, value = nil, aux = nil, &blk)
         Array(metric_specs).each do |metric_spec|
           if metric_spec.scope.empty?
             key = metric_spec.name

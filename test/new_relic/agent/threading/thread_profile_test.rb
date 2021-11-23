@@ -67,7 +67,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         assert_equal 1, count_backtrace_nodes(@profile.traces[:other  ])
       end
 
-      def build_well_known_trace(args={})
+      def build_well_known_trace(args = {})
         @profile = ThreadProfile.new(args)
 
         thread = stub

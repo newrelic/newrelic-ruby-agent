@@ -84,12 +84,12 @@ module NewRelic
       # Helpers
       #
 
-      def generate_request(name='Controller/whatever', options={})
+      def generate_request(name = 'Controller/whatever', options = {})
         payload = generate_payload name, options
         @event_aggregator.record event: TransactionEventPrimitive.create(payload)
       end
 
-      def generate_payload(name='Controller/whatever', options={})
+      def generate_payload(name = 'Controller/whatever', options = {})
         {
           :name => name,
           :type => :controller,

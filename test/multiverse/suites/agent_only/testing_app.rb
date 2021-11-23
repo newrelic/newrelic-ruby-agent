@@ -41,11 +41,11 @@ class TestingBackgroundJob
   FIRST_NAME = "OtherTransaction/Custom/TestingBackgroundJob/first"
   SECOND_NAME = "OtherTransaction/Custom/TestingBackgroundJob/second"
 
-  def first(awhile=nil)
+  def first(awhile = nil)
     job(FIRST_NAME, awhile)
   end
 
-  def second(awhile=nil)
+  def second(awhile = nil)
     job(SECOND_NAME, awhile)
   end
 

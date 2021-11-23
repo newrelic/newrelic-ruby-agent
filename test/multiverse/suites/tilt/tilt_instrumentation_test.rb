@@ -16,7 +16,7 @@ class TiltInstrumentationTest < Minitest::Test
     Tilt.new('test.haml').render
   end
 
-  def haml_render_metric(filename='test.haml')
+  def haml_render_metric(filename = 'test.haml')
     "View/Tilt::HamlTemplate/#{filename}/Rendering"
   end
 

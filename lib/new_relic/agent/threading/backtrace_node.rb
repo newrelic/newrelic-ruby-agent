@@ -115,7 +115,7 @@ module NewRelic
           @as_array << child_arrays
         end
 
-        def dump_string(indent=0)
+        def dump_string(indent = 0)
           @file, @method, @line_no = parse_backtrace_frame(@raw_line)
           result = "#{" " * indent}#<BacktraceNode:#{object_id} [#{@runnable_count}] #{@file}:#{@line_no} in #{@method}>"
           child_results = @children.map { |c| c.dump_string(indent+2) }.join("\n")

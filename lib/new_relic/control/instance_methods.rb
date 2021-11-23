@@ -47,7 +47,7 @@ module NewRelic
       # Subclasses are not allowed to override, but must implement
       # init_config({}) which is called one or more times.
       #
-      def init_plugin(options={})
+      def init_plugin(options = {})
         env = determine_env(options)
 
         configure_agent(env, options)
@@ -164,7 +164,7 @@ module NewRelic
 
       protected
 
-      def initialize(local_env, config_file_override=nil)
+      def initialize(local_env, config_file_override = nil)
         @install_lock = Mutex.new
         @local_env = local_env
         @started_in_env = nil

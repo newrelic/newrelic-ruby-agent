@@ -16,7 +16,7 @@ module NewRelic
 
       # Optional argument :duration (in seconds) for how long the worker loop runs
       # or :limit (integer) for max number of iterations
-      def initialize(opts={})
+      def initialize(opts = {})
         @should_run = true
         @next_invocation_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         @period = 60.0
@@ -42,7 +42,7 @@ module NewRelic
       # Run infinitely, calling the registered tasks at their specified
       # call periods.  The caller is responsible for creating the thread
       # that runs this worker loop.  This will run the task immediately.
-      def run(period=nil, &block)
+      def run(period = nil, &block)
         setup(period, block)
         while keep_running? do
           sleep_time = schedule_next_invocation

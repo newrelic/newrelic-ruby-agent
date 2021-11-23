@@ -25,7 +25,7 @@ module NewRelic
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
         attr_reader :noticed_error
 
-        def initialize name=nil, start_time=nil
+        def initialize name = nil, start_time = nil
           @name = name
           @transaction_name = nil
           @transaction = nil
@@ -131,7 +131,7 @@ module NewRelic
           @noticed_error = noticed_error
         end
 
-        def notice_error exception, options={}
+        def notice_error exception, options = {}
           if Agent.config[:high_security]
             NewRelic::Agent.logger.debug \
               "Segment: #{name} ignores notice_error for " \

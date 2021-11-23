@@ -7,7 +7,7 @@ module Performance
     class Formatter
       attr_reader :name
 
-      def initialize(name, format_string=nil, &blk)
+      def initialize(name, format_string = nil, &blk)
         @name = name
         @format_string = format_string
         @format_proc   = blk
@@ -17,7 +17,7 @@ module Performance
         format(value).size
       end
 
-      def format(value, width=nil)
+      def format(value, width = nil)
         formatted = if @format_string
           sprintf(@format_string, value)
         elsif @format_proc
@@ -45,7 +45,7 @@ module Performance
         @formatters = []
       end
 
-      def column(name, format_string=nil, &blk)
+      def column(name, format_string = nil, &blk)
         @formatters << Formatter.new(name, format_string, &blk)
       end
     end

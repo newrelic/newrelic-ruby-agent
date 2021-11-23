@@ -9,7 +9,7 @@ module NewRelic
       attr_accessor :starting_pid
 
       # Inject target for after_fork call to avoid spawning thread in tests
-      def initialize(events, after_forker=NewRelic::Agent)
+      def initialize(events, after_forker = NewRelic::Agent)
         # We intentionally don't set our pid as started at this point.
         # Startup routines must call mark_started when they consider us set!
         @starting_pid = nil

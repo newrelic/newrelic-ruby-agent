@@ -314,7 +314,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     errors.select{|error| error.message == message}
   end
 
-  def assert_errors_reported(message, queued_count, total_count=queued_count, txn_name=nil, apdex_f=1)
+  def assert_errors_reported(message, queued_count, total_count = queued_count, txn_name = nil, apdex_f = 1)
     expected = { :call_count => total_count }
     assert_metrics_recorded("Errors/all" => expected)
     assert_metrics_recorded("Errors/#{txn_name}" => expected) if txn_name
@@ -328,7 +328,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
       "Wrong number of errors with message #{message.inspect} found")
   end
 
-  def assert_error_reported_once(message, txn_name=nil, apdex_f=1)
+  def assert_error_reported_once(message, txn_name = nil, apdex_f = 1)
     assert_errors_reported(message, 1, 1, txn_name, apdex_f)
   end
 end

@@ -42,7 +42,7 @@ module NewRelic
       else "#<#{object.class.to_s}>"
     end
   end
-  def truncate(string, len=DEFAULT_TRUNCATION_SIZE)
+  def truncate(string, len = DEFAULT_TRUNCATION_SIZE)
     case string
     when Symbol then string
     when nil then ""

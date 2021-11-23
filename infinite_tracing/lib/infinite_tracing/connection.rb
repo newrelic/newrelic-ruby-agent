@@ -152,7 +152,7 @@ module NewRelic::Agent
       end
 
       # Continues retrying the connection at backoff intervals until a successful connection is made
-      def with_reconnection_backoff exponential_backoff=true, &block
+      def with_reconnection_backoff exponential_backoff = true, &block
         @connection_attempts = 0
         begin
           yield
@@ -166,7 +166,7 @@ module NewRelic::Agent
         end
       end
 
-      def retry_connection_period exponential_backoff=true
+      def retry_connection_period exponential_backoff = true
         if exponential_backoff
           NewRelic::CONNECT_RETRY_PERIODS[@connection_attempts] || NewRelic::MAX_RETRY_PERIOD
         else

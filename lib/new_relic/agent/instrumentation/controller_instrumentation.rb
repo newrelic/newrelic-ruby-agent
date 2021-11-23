@@ -54,7 +54,7 @@ module NewRelic
           #
           # @api public
           #
-          def newrelic_ignore(specifiers={})
+          def newrelic_ignore(specifiers = {})
             NewRelic::Agent.record_api_supportability_metric(:newrelic_ignore)
             newrelic_ignore_aspect(NR_DO_NOT_TRACE_KEY, specifiers)
           end
@@ -64,18 +64,18 @@ module NewRelic
           #
           # @api public
           #
-          def newrelic_ignore_apdex(specifiers={})
+          def newrelic_ignore_apdex(specifiers = {})
             NewRelic::Agent.record_api_supportability_metric(:newrelic_ignore_apdex)
             newrelic_ignore_aspect(NR_IGNORE_APDEX_KEY, specifiers)
           end
 
           # @api public
-          def newrelic_ignore_enduser(specifiers={})
+          def newrelic_ignore_enduser(specifiers = {})
             NewRelic::Agent.record_api_supportability_metric(:newrelic_ignore_enduser)
             newrelic_ignore_aspect(NR_IGNORE_ENDUSER_KEY, specifiers)
           end
 
-          def newrelic_ignore_aspect(property, specifiers={}) # :nodoc:
+          def newrelic_ignore_aspect(property, specifiers = {}) # :nodoc:
             if specifiers.empty?
               self.newrelic_write_attr property, true
             elsif ! (Hash === specifiers)
@@ -158,7 +158,7 @@ module NewRelic
           #
           # @api public
           #
-          def add_transaction_tracer(method, options={})
+          def add_transaction_tracer(method, options = {})
             NewRelic::Agent.record_api_supportability_metric(:add_transaction_tracer)
 
             # The metric path:
@@ -226,7 +226,7 @@ module NewRelic
         # @!parse extend ClassMethods
 
         class TransactionNamer
-          def self.name_for(txn, traced_obj, category, options={})
+          def self.name_for(txn, traced_obj, category, options = {})
             "#{prefix_for_category(txn, category)}#{path_name(traced_obj, options)}"
           end
 
@@ -249,7 +249,7 @@ module NewRelic
             end
           end
 
-          def self.path_name(traced_obj, options={})
+          def self.path_name(traced_obj, options = {})
             return options[:path] if options[:path]
 
             class_name = class_name(traced_obj, options)
@@ -266,7 +266,7 @@ module NewRelic
             end
           end
 
-          def self.class_name(traced_obj, options={})
+          def self.class_name(traced_obj, options = {})
             return options[:class_name] if options[:class_name]
             if (traced_obj.is_a?(Class) || traced_obj.is_a?(Module))
               traced_obj.name

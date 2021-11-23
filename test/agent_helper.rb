@@ -28,7 +28,7 @@ module MiniTest
 end
 
 class ArrayLogDevice
-  def initialize array=[]
+  def initialize array = []
     @array = array
   end
   attr_reader :array
@@ -40,7 +40,7 @@ class ArrayLogDevice
   def close; end
 end
 
-def fake_guid length=16
+def fake_guid length = 16
   NewRelic::Agent::GuidGenerator.generate_guid length
 end
 
@@ -51,7 +51,7 @@ def assert_match matcher, obj, msg = nil
   assert matcher =~ obj, msg
 end
 
-def assert_between floor, ceiling, value, message="expected #{floor} <= #{value} <= #{ceiling}"
+def assert_between floor, ceiling, value, message = "expected #{floor} <= #{value} <= #{ceiling}"
   assert((floor <= value && value <= ceiling), message)
 end
 
@@ -109,21 +109,21 @@ unless defined? assert_block
 end
 
 unless defined? assert_includes
-  def assert_includes collection, member, msg=nil
+  def assert_includes collection, member, msg = nil
     msg = "Expected #{collection.inspect} to include #{member.inspect}"
     assert_block( msg ) { collection.include?(member) }
   end
 end
 
 unless defined? assert_not_includes
-  def assert_not_includes collection, member, msg=nil
+  def assert_not_includes collection, member, msg = nil
     msg = "Expected #{collection.inspect} not to include #{member.inspect}"
     assert !collection.include?(member), msg
   end
 end
 
 unless defined? assert_empty
-  def assert_empty collection, msg=nil
+  def assert_empty collection, msg = nil
     assert collection.empty?, msg
   end
 end
@@ -259,7 +259,7 @@ end
 # the :ignore_filter option. This will allow you to specify a Regex that
 # allowlists broad swathes of metric territory (e.g. 'Supportability/').
 #
-def assert_metrics_recorded_exclusive expected, options={}
+def assert_metrics_recorded_exclusive expected, options = {}
   expected = _normalize_metric_expectations(expected)
   assert_metrics_recorded(expected)
 
@@ -333,12 +333,12 @@ def format_metric_spec_list specs
   "[\n  #{spec_strings.join(",\n  ")}\n]"
 end
 
-def assert_truthy expected, msg=nil
+def assert_truthy expected, msg = nil
   msg ||= "Expected #{expected.inspect} to be truthy"
   assert !!expected, msg
 end
 
-def assert_falsy expected, msg=nil
+def assert_falsy expected, msg = nil
   msg ||= "Expected #{expected.inspect} to be falsy"
   assert !expected, msg
 end
@@ -442,13 +442,13 @@ end
 
 # Convenience wrapper around in_transaction that sets the category so that it
 # looks like we are in a web transaction
-def in_web_transaction name='dummy'
+def in_web_transaction name = 'dummy'
   in_transaction(name, :category => :controller, :request => stub(:path => '/')) do |txn|
     yield txn
   end
 end
 
-def in_background_transaction name='silly'
+def in_background_transaction name = 'silly'
   in_transaction(name, :category => :task) do |txn|
     yield txn
   end
@@ -483,7 +483,7 @@ def last_sql_trace
   NewRelic::Agent.agent.sql_sampler.sql_traces.values.last
 end
 
-def find_last_transaction_node transaction_sample=nil
+def find_last_transaction_node transaction_sample = nil
   if transaction_sample
     root_node = transaction_sample.root_node
   else
@@ -531,7 +531,7 @@ def find_all_nodes_with_name_matching transaction_sample, regexes
   matching_nodes
 end
 
-def with_config config_hash, at_start=true
+def with_config config_hash, at_start = true
   config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
   NewRelic::Agent.config.add_config_for_testing(config, at_start)
   NewRelic::Agent.instance.refresh_attribute_filter
@@ -543,7 +543,7 @@ def with_config config_hash, at_start=true
   end
 end
 
-def with_server_source config_hash, at_start=true
+def with_server_source config_hash, at_start = true
   with_config config_hash, at_start do
     NewRelic::Agent.config.notify_server_source_added
     yield
@@ -582,7 +582,7 @@ unless Time.respond_to?(:__original_now)
   end
 end
 
-def nr_freeze_time now=Time.now
+def nr_freeze_time now = Time.now
   Time.__frozen_now = now
 end
 
@@ -607,11 +607,11 @@ unless Process.respond_to?(:__original_clock_gettime)
   end
 end
 
-def advance_process_time(seconds, clock_id=Process::CLOCK_REALTIME)
+def advance_process_time(seconds, clock_id = Process::CLOCK_REALTIME)
   Process.__frozen_clock_gettime = Process.clock_gettime(clock_id) + seconds
 end
 
-def nr_freeze_process_time(now=Process.clock_gettime(Process::CLOCK_REALTIME))
+def nr_freeze_process_time(now = Process.clock_gettime(Process::CLOCK_REALTIME))
   Process.__frozen_clock_gettime = now
 end
 
@@ -619,7 +619,7 @@ def nr_unfreeze_process_time
   Process.__frozen_clock_gettime = nil
 end
 
-def with_constant_defined constant_symbol, implementation=Module.new
+def with_constant_defined constant_symbol, implementation = Module.new
   const_path = constant_path(constant_symbol.to_s)
 
   if const_path
@@ -639,7 +639,7 @@ def with_constant_defined constant_symbol, implementation=Module.new
   end
 end
 
-def constant_path name, opts={}
+def constant_path name, opts = {}
   allow_partial = opts[:allow_partial]
   path = [Object]
   parts = name.gsub(/^::/, '').split('::')
@@ -682,11 +682,11 @@ ensure
   NewRelic::Agent.logger = orig_logger
 end
 
-def create_agent_command args={}
+def create_agent_command args = {}
   NewRelic::Agent::Commands::AgentCommand.new([-1, { "name" => "command_name", "arguments" => args}])
 end
 
-def wait_for_backtrace_service_poll opts={}
+def wait_for_backtrace_service_poll opts = {}
   defaults = {
     :timeout => 10.0,
     :service => NewRelic::Agent.agent.agent_command_router.backtrace_service,
@@ -712,7 +712,7 @@ def wait_for_backtrace_service_poll opts={}
   end
 end
 
-def with_array_logger level=:info
+def with_array_logger level = :info
   orig_logger = NewRelic::Agent.logger
   config = { :log_level => level }
   logdev = ArrayLogDevice.new
@@ -749,7 +749,7 @@ class EnvUpdater
 
   # Will attempt the given block up to MAX_RETRIES before
   # surfacing the exception down the chain.
-  def with_retry retry_limit=MAX_RETRIES
+  def with_retry retry_limit = MAX_RETRIES
     retries ||= 0
     sleep(retries)
     yield
@@ -930,7 +930,7 @@ end
 # http status code associated with it.
 # a "status_code" may be passed in the headers to alter the HTTP Status Code
 # that is wrapped in the response.
-def mock_http_response headers, wrap_it=true
+def mock_http_response headers, wrap_it = true
   status_code = (headers.delete("status_code") || 200).to_i
   net_http_resp = Net::HTTPResponse.new(1.0, status_code, message_for_status_code(status_code))
   headers.each do |key, value|
@@ -997,7 +997,7 @@ def assert_implements instance, method, *args
   end
 end
 
-def defer_testing_to_min_supported_rails test_file, min_rails_version, supports_jruby=true
+def defer_testing_to_min_supported_rails test_file, min_rails_version, supports_jruby = true
   if defined?(::Rails) &&
     defined?(::Rails::VERSION::STRING) &&
     (::Rails::VERSION::STRING.to_f >= min_rails_version) &&

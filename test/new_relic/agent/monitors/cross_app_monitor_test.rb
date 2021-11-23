@@ -220,7 +220,7 @@ module NewRelic::Agent
     # Helpers
     #
 
-    def when_request_runs(request=for_id(REQUEST_CROSS_APP_ID), name = 'transaction', duration = nil)
+    def when_request_runs(request = for_id(REQUEST_CROSS_APP_ID), name = 'transaction', duration = nil)
       nr_freeze_process_time if duration
 
       in_transaction(name) do |txn|

@@ -17,7 +17,7 @@ class SidekiqServer
     @sidekiq = Sidekiq::CLI.instance
   end
 
-  def run(file="test_worker.rb")
+  def run(file = "test_worker.rb")
     @sidekiq.parse(["--require", File.join(File.dirname(__FILE__), file),
                     "--queue", "#{queue_name},1"])
     @cli_thread = Thread.new { @sidekiq.run }

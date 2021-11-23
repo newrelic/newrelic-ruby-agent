@@ -54,7 +54,7 @@ module NewRelic
         rules.uniq! { |rule| rule.prefix }
       end
 
-      def initialize(rules=[], segment_term_rules=[])
+      def initialize(rules = [], segment_term_rules = [])
         @rules = rules.sort
         @segment_term_rules = segment_term_rules
       end

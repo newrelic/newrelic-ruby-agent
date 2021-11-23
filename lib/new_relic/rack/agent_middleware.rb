@@ -13,7 +13,7 @@ module NewRelic
 
       attr_reader :transaction_options, :category, :target
 
-      def initialize(app, options={})
+      def initialize(app, options = {})
         @app = app
         @category = :middleware
         @target   = self

@@ -41,7 +41,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
     # We use the Typhoeus::Request rather than right on Typhoeus to support
     # prior to convenience methods being added on the top-level module (0.5.x)
-    def get_response(url=nil, headers=nil)
+    def get_response(url = nil, headers = nil)
       options = {:headers => headers}.merge(ssl_option)
       Typhoeus::Request.get(url || default_url, options)
     end

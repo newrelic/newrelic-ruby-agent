@@ -77,7 +77,7 @@ class NewRelic::NoticedError
 
   include NewRelic::Coerce
 
-  def to_collector_array(encoder=nil)
+  def to_collector_array(encoder = nil)
     [ NewRelic::Helper.time_to_millis(timestamp),
       string(path),
       string(message),

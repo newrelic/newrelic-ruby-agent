@@ -14,7 +14,7 @@ module NewRelic
       PACK_FORMAT = 'm'
 
       # RUM uses a shortened key, so just trim it up front
-      def initialize(key, length=nil)
+      def initialize(key, length = nil)
         if key.nil? || key.empty?
           @key_bytes = EMPTY_KEY_BYTES
         else

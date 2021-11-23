@@ -11,7 +11,7 @@ module NewRelic
       # out specifically because in this context we are not monitoring
       # the running process, but actually external things.
       class External < NewRelic::Control::Frameworks::Ruby
-        def init_config(options={})
+        def init_config(options = {})
           super
         end
       end

@@ -34,7 +34,7 @@ module NewRelic
           @callbacks = Hash.new {|hash, key| hash[key] = [] }
         end
 
-        def add_config_for_testing(source, level=0)
+        def add_config_for_testing(source, level = 0)
           raise 'Invalid config type for testing' unless [Hash, DottedHash].include?(source.class)
           invoke_callbacks(:add, source)
           @configs_for_testing << [source.freeze, level]
@@ -295,7 +295,7 @@ module NewRelic
           end
         end
 
-        def truncate(text, key=nil)
+        def truncate(text, key = nil)
           if text.length > MAX_LABEL_LENGTH
             if key
               msg = "The value for the label '#{key}' is longer than the allowed #{MAX_LABEL_LENGTH} and will be truncated. Value = '#{text}'"

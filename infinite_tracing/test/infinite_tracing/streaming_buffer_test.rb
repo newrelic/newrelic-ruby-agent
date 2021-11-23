@@ -179,7 +179,7 @@ module NewRelic
           @threads[name] = Thread.new(&block)
         end
 
-        def prepare_to_consume_spans buffer, sleep_delay=0
+        def prepare_to_consume_spans buffer, sleep_delay = 0
           spans = []
           consumer = watch_thread(:consumer) { buffer.enumerator.each{ |span| spans << span } }
 
@@ -192,7 +192,7 @@ module NewRelic
         end
 
         # starts a watched thread that will generate segments asynchronously.
-        def prepare_to_stream_segments count, max_buffer_size=100_000
+        def prepare_to_stream_segments count, max_buffer_size = 100_000
           buffer = StreamingBuffer.new max_buffer_size
           segments = []
 
@@ -215,7 +215,7 @@ module NewRelic
         #
         # Returns the buffer with segments on the queue as well
         # as the segments that were generated separately.
-        def stream_segments count, max_buffer_size=100_000
+        def stream_segments count, max_buffer_size = 100_000
           buffer = StreamingBuffer.new max_buffer_size
           segments = []
 

@@ -46,7 +46,7 @@ module NewRelic
           NewRelic::Agent::Database.should_record_sql?(:slow_sql)
       end
 
-      def on_start_transaction(state, uri=nil)
+      def on_start_transaction(state, uri = nil)
         return unless enabled?
 
         state.sql_sampler_transaction_data = TransactionSqlData.new
@@ -140,7 +140,7 @@ module NewRelic
       # @api public
       # @deprecated Use {Datastores.notice_sql} instead.
       #
-      def notice_sql(sql, metric_name, config, duration, state=nil, explainer=nil, binds=nil, name=nil) #THREAD_LOCAL_ACCESS sometimes
+      def notice_sql(sql, metric_name, config, duration, state = nil, explainer = nil, binds = nil, name = nil) #THREAD_LOCAL_ACCESS sometimes
         state ||= Tracer.state
         data = state.sql_sampler_transaction_data
         return unless data
@@ -240,7 +240,7 @@ module NewRelic
       attr_reader :duration
       attr_reader :backtrace
 
-      def initialize(statement, metric_name, duration, backtrace=nil, params=nil)
+      def initialize(statement, metric_name, duration, backtrace = nil, params = nil)
         @statement = statement
         @metric_name = metric_name
         @duration = duration

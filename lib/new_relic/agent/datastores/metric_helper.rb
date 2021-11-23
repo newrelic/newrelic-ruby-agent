@@ -48,7 +48,7 @@ module NewRelic
           end
         end
 
-        def self.scoped_metric_for product, operation, collection=nil
+        def self.scoped_metric_for product, operation, collection = nil
           if collection
             statement_metric_for product, collection, operation
           else
@@ -56,7 +56,7 @@ module NewRelic
           end
         end
 
-        def self.unscoped_metrics_for product, operation, collection=nil, host=nil, port_path_or_id=nil
+        def self.unscoped_metrics_for product, operation, collection = nil, host = nil, port_path_or_id = nil
           suffix = all_suffix
 
           metrics = [
@@ -74,7 +74,7 @@ module NewRelic
           metrics
         end
 
-        def self.product_operation_collection_for product, operation, collection=nil, generic_product = nil
+        def self.product_operation_collection_for product, operation, collection = nil, generic_product = nil
           if overrides = overridden_operation_and_collection
             if should_override?(overrides, product, generic_product)
               operation  = overrides[0] || operation
@@ -84,7 +84,7 @@ module NewRelic
           [product, operation, collection]
         end
 
-        def self.metrics_for(product, operation, collection = nil, generic_product = nil, host=nil, port_path_or_id=nil)
+        def self.metrics_for(product, operation, collection = nil, generic_product = nil, host = nil, port_path_or_id = nil)
           product, operation, collection = product_operation_collection_for(product, operation, collection, generic_product)
 
           # Order of these metrics matters--the first metric in the list will

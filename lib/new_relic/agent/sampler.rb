@@ -52,7 +52,7 @@ module NewRelic
       # The ID passed in here is unused by our code, but is preserved in case
       # we have clients who are defining their own subclasses of this class, and
       # expecting to be able to call super with an ID.
-      def initialize(id=nil)
+      def initialize(id = nil)
         @id = id || self.class.shorthand_name
       end
 

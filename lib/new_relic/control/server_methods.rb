@@ -22,7 +22,7 @@ module NewRelic
         @api_server ||= NewRelic::Control::Server.new(Agent.config[:api_host], Agent.config[:api_port])
       end
 
-      def server_from_host(hostname=nil)
+      def server_from_host(hostname = nil)
         NewRelic::Control::Server.new(hostname || Agent.config[:host], Agent.config[:port])
       end
     end

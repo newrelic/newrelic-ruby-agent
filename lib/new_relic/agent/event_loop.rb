@@ -10,7 +10,7 @@ module NewRelic
       class Timer
         attr_reader :next_fire_time, :event, :interval, :last_fired_at
 
-        def initialize(interval, event, repeat=false)
+        def initialize(interval, event, repeat = false)
           @interval      = interval
           @event         = event
           @repeat        = repeat
@@ -45,7 +45,7 @@ module NewRelic
           @last_fired_at = Process.clock_gettime(Process::CLOCK_REALTIME)
         end
 
-        def due?(now=Process.clock_gettime(Process::CLOCK_REALTIME))
+        def due?(now = Process.clock_gettime(Process::CLOCK_REALTIME))
           now >= @next_fire_time
         end
 
@@ -100,7 +100,7 @@ module NewRelic
         end
       end
 
-      def run_once(nonblock=false)
+      def run_once(nonblock = false)
         wait_to_run(nonblock)
 
         prune_timers

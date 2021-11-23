@@ -15,7 +15,7 @@ module NewRelic
         # initialize it as an array that would be empty, have one item, or many items.
         attr_reader :unscoped_metrics, :custom_transaction_attributes
 
-        def initialize name=nil, unscoped_metrics=nil, start_time=nil
+        def initialize name = nil, unscoped_metrics = nil, start_time = nil
           @unscoped_metrics = unscoped_metrics
           super name, start_time
         end
@@ -24,7 +24,7 @@ module NewRelic
           @attributes ||= Attributes.new(NewRelic::Agent.instance.attribute_filter)
         end
 
-        def add_agent_attribute(key, value, default_destinations=AttributeFilter::DST_SPAN_EVENTS)
+        def add_agent_attribute(key, value, default_destinations = AttributeFilter::DST_SPAN_EVENTS)
           attributes.add_agent_attribute(key, value, default_destinations)
         end
 

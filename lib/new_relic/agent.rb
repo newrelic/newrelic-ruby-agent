@@ -217,7 +217,7 @@ module NewRelic
 
     SUPPORTABILITY_INCREMENT_METRIC = 'Supportability/API/increment_metric'.freeze
 
-    def increment_metric(metric_name, amount=1) #THREAD_LOCAL_ACCESS
+    def increment_metric(metric_name, amount = 1) #THREAD_LOCAL_ACCESS
       return unless agent
       if amount == 1
         metrics = [metric_name, SUPPORTABILITY_INCREMENT_METRIC]
@@ -281,7 +281,7 @@ module NewRelic
     #
     # @api public
     #
-    def notice_error(exception, options={})
+    def notice_error(exception, options = {})
       record_api_supportability_metric(:notice_error)
 
       Transaction.notice_error(exception, options)
@@ -347,7 +347,7 @@ module NewRelic
     #
     # @api public
     #
-    def manual_start(options={})
+    def manual_start(options = {})
       raise "Options must be a hash" unless Hash === options
       NewRelic::Control.instance.init_plugin({ :agent_enabled => true, :sync_startup => true }.merge(options))
       record_api_supportability_metric(:manual_start)
@@ -378,7 +378,7 @@ module NewRelic
     #
     # @api public
     #
-    def after_fork(options={})
+    def after_fork(options = {})
       record_api_supportability_metric(:after_fork)
       agent.after_fork(options) if agent
     end
@@ -390,7 +390,7 @@ module NewRelic
     #
     # @api public
     #
-    def shutdown(options={})
+    def shutdown(options = {})
       record_api_supportability_metric(:shutdown)
       agent.shutdown if agent
     end
@@ -644,7 +644,7 @@ module NewRelic
     #
     # @api public
     #
-    def set_transaction_name(name, options={})
+    def set_transaction_name(name, options = {})
       record_api_supportability_metric(:set_transaction_name)
       Transaction.set_overriding_transaction_name(name, options[:category])
     end
@@ -763,7 +763,7 @@ module NewRelic
     #
     # @api public
     #
-    def browser_timing_header(nonce=nil)
+    def browser_timing_header(nonce = nil)
       record_api_supportability_metric(:browser_timing_header)
 
       return "" unless agent

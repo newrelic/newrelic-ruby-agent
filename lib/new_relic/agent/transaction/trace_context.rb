@@ -56,7 +56,7 @@ module NewRelic
         end
         private :accept_trace_context_incoming_request
 
-        def insert_trace_context_header header, format=NewRelic::FORMAT_NON_RACK
+        def insert_trace_context_header header, format = NewRelic::FORMAT_NON_RACK
           return unless Agent.config[:'distributed_tracing.enabled']
 
           NewRelic::Agent::DistributedTracing::TraceContext.insert \

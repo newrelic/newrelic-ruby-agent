@@ -13,7 +13,7 @@ module Performance
       @most_recent_start = nil
     end
 
-    def start(t=Process.clock_gettime(Process::CLOCK_REALTIME))
+    def start(t = Process.clock_gettime(Process::CLOCK_REALTIME))
       @start_timestamp ||= t
       @most_recent_start = t
     end
@@ -22,7 +22,7 @@ module Performance
       !!@stop_timestamp
     end
 
-    def stop(t=Process.clock_gettime(Process::CLOCK_REALTIME))
+    def stop(t = Process.clock_gettime(Process::CLOCK_REALTIME))
       @stop_timestamp = t
       @elapsed += t - @most_recent_start
     end

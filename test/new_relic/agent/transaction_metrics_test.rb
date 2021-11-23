@@ -88,11 +88,11 @@ class TransactionMetricsTest < Minitest::Test
     refute @metrics.has_key?('foo')
   end
 
-  def assert_unscoped_metrics(txn_metrics, expected_metric_names, expected_attrs={})
+  def assert_unscoped_metrics(txn_metrics, expected_metric_names, expected_attrs = {})
     assert_scoped_or_unscoped_metrics(:unscoped, txn_metrics, expected_metric_names, expected_attrs)
   end
 
-  def assert_scoped_metrics(txn_metrics, expected_metric_names, expected_attrs={})
+  def assert_scoped_metrics(txn_metrics, expected_metric_names, expected_attrs = {})
     assert_scoped_or_unscoped_metrics(:scoped, txn_metrics, expected_metric_names, expected_attrs)
   end
 

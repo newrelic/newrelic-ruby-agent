@@ -15,7 +15,7 @@ if !defined?(MyApp)
   ENV['NEW_RELIC_DISPATCHER'] = 'test'
 
   class NamedMiddleware
-    def initialize(app, options={})
+    def initialize(app, options = {})
       @app = app
     end
 

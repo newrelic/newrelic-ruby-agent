@@ -19,7 +19,7 @@ module Performance
       :agent_path       => ENV['AGENT_PATH'] || File.join(File.dirname(__FILE__), '..', '..', '..', '..')
     }
 
-    def initialize(options={})
+    def initialize(options = {})
       @options = DEFAULTS.merge(options)
       create_instrumentors(options[:instrumentors] || [])
       load_test_files(@options[:dir])

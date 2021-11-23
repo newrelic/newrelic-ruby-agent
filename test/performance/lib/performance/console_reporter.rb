@@ -8,7 +8,7 @@ module Performance
   class ConsoleReporter
     include Reporting
 
-    def initialize(results, elapsed, options={})
+    def initialize(results, elapsed, options = {})
       @results = results
       @elapsed = elapsed
       @options = options

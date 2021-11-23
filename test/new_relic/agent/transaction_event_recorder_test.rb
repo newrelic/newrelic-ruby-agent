@@ -72,7 +72,7 @@ module NewRelic
         end
       end
 
-      def generate_request name='whatever', options={}
+      def generate_request name = 'whatever', options = {}
         payload = {
           :name => "Controller/#{name}",
           :type => :controller,

@@ -36,7 +36,7 @@ module NewRelic::Agent
       generate_request(name, options)
     end
 
-    def generate_request(name='Controller/whatever', options={})
+    def generate_request(name = 'Controller/whatever', options = {})
       payload = options.merge(:name => name)
 
       @aggregator.record :custom, payload

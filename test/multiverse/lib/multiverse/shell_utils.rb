@@ -6,7 +6,7 @@ module Multiverse
   module ShellUtils
     module_function
 
-    def try_command_n_times(cmd, n, wait_time=1)
+    def try_command_n_times(cmd, n, wait_time = 1)
       count = 0
       loop do
         count += 1

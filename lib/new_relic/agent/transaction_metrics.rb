@@ -25,11 +25,11 @@ module NewRelic
       # propagate them into unscoped metrics as well when instances of this
       # class are merged into the global metric store.
       #
-      def record_scoped_and_unscoped(names, value=nil, aux=nil, &blk)
+      def record_scoped_and_unscoped(names, value = nil, aux = nil, &blk)
         _record_metrics(names, value, aux, @scoped, &blk)
       end
 
-      def record_unscoped(names, value=nil, aux=nil, &blk)
+      def record_unscoped(names, value = nil, aux = nil, &blk)
         _record_metrics(names, value, aux, @unscoped, &blk)
       end
 

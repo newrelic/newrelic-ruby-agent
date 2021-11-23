@@ -43,7 +43,7 @@ module NewRelic
         # In versions of Rails prior to 2.0, the rails config was only available to
         # the init.rb, so it had to be passed on from there.  This is a best effort to
         # find a config and use that.
-        def init_config(options={})
+        def init_config(options = {})
           @config = options[:config]
           # Install the dependency detection,
           if rails_config && ::Rails.configuration.respond_to?(:after_initialize)

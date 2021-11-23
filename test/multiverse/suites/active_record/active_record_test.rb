@@ -627,7 +627,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
-  def assert_activerecord_metrics(model, operation, stats={})
+  def assert_activerecord_metrics(model, operation, stats = {})
     operation = operation_for(operation) if ['create', 'delete'].include?(operation)
 
     assert_metrics_recorded({

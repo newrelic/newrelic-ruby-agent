@@ -87,7 +87,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
     assert_in_delta(now, QueueTime.parse_timestamp((now * 1_000_000).to_s).to_f, 0.001)
   end
 
-  def format_header_time(time=Process.clock_gettime(Process::CLOCK_REALTIME))
+  def format_header_time(time = Process.clock_gettime(Process::CLOCK_REALTIME))
     "t=#{(time * 1_000_000).to_i}"
   end
 

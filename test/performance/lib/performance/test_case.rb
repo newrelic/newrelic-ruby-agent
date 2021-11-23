@@ -29,7 +29,7 @@ module Performance
     def setup; end
     def teardown; end
 
-    def self.skip_test(test_method_name, options={})
+    def self.skip_test(test_method_name, options = {})
       skip_specifiers << [test_method_name, options]
     end
 
@@ -59,7 +59,7 @@ module Performance
       results
     end
 
-    def with_callbacks(name, warmup=false)
+    def with_callbacks(name, warmup = false)
       fire(:before_each, self, name) unless warmup
       yield
       fire(:after_each, self, name, @result) unless warmup

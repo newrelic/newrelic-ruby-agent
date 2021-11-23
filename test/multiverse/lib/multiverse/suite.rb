@@ -19,7 +19,7 @@ module Multiverse
     include Color
     attr_accessor :directory, :opts
 
-    def initialize(directory, opts={})
+    def initialize(directory, opts = {})
       self.directory  = File.expand_path directory
       self.opts       = opts
       ENV["VERBOSE"]  = '1' if opts[:verbose]
@@ -84,7 +84,7 @@ module Multiverse
     end
 
     # load the environment for this suite after we've forked
-    def load_dependencies(gemfile_text, env_index, should_print=true)
+    def load_dependencies(gemfile_text, env_index, should_print = true)
       ENV["BUNDLE_GEMFILE"] = "Gemfile.#{env_index}"
       clean_gemfiles(env_index)
       begin
@@ -151,7 +151,7 @@ module Multiverse
       `cd #{dir} && #{bundle_cmd} config build.nokogiri --use-system-libraries`
     end
 
-    def bundle_install(dir, exact_version=nil)
+    def bundle_install(dir, exact_version = nil)
       puts "Bundling in #{dir}..."
       bundler_version = exact_version || explicit_bundler_version(dir)
       bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
@@ -170,7 +170,7 @@ module Multiverse
       $?
     end
 
-    def change_lock_version filepath, gemfile, new_version=Bundler::VERSION
+    def change_lock_version filepath, gemfile, new_version = Bundler::VERSION
       begin
         lock_filename = "#{filepath}/#{gemfile}.lock".gsub(/\n|\r/, '')
       rescue => e

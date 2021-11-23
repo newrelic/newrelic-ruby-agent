@@ -134,7 +134,7 @@ class NewRelic::Agent::StatsEngine
       end
     end
 
-    def assert_gc_metrics(name, expected_values={})
+    def assert_gc_metrics(name, expected_values = {})
       assert_metrics_recorded(
         [GCProfiler::GC_ROLLUP, ''] => expected_values,
         name => expected_values

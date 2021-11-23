@@ -143,7 +143,7 @@ module NewRelic
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
-      def self.notice_error(e, options={})
+      def self.notice_error(e, options = {})
         if txn = Tracer.current_transaction
           txn.notice_error(e, options)
         elsif NewRelic::Agent.instance
@@ -715,7 +715,7 @@ module NewRelic
       end
 
       # Do not call this.  Invoke the class method instead.
-      def notice_error(error, options={}) # :nodoc:
+      def notice_error(error, options = {}) # :nodoc:
 
         # Only the last error is kept
         if @current_segment
@@ -808,7 +808,7 @@ module NewRelic
         end
       end
 
-      def with_database_metric_name(model, method, product=nil)
+      def with_database_metric_name(model, method, product = nil)
         previous = self.instrumentation_state[:datastore_override]
         model_name = case model
                      when Class

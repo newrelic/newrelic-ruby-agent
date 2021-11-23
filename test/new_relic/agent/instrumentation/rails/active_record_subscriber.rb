@@ -218,7 +218,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
 
   private
 
-  def simulate_query(duration=nil)
+  def simulate_query(duration = nil)
     @subscriber.start('sql.active_record', :id, @params)
     advance_process_time(duration) if duration
     @subscriber.finish('sql.active_record', :id, @params)

@@ -27,7 +27,7 @@ module NewRelic
       #     - if user set prepend to `false` then we use method_alias chaining
       #     - auto, when returned means, try to use prepend unless conflicting gems discovered
       #
-      def self.instrumentation_value_of(disable_key, prepend_key=nil)
+      def self.instrumentation_value_of(disable_key, prepend_key = nil)
         Proc.new do
           if NewRelic::Agent.config[disable_key]
             "disabled"

@@ -183,7 +183,7 @@ class AgentCommandRouterTest < Minitest::Test
     raise NewRelic::Agent::Commands::AgentCommandRouter::AgentCommandError.new("BOOOOOM")
   end
 
-  def start_profile(args={})
+  def start_profile(args = {})
     nr_freeze_process_time
     agent_commands.backtrace_service.worker_loop.stubs(:run)
     agent_commands.thread_profiler_session.start(create_agent_command(args))

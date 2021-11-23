@@ -27,7 +27,7 @@ class NewRelicServiceTest < Minitest::Test
     reset_buffers_and_caches
   end
 
-  def create_http_handle(name='connection')
+  def create_http_handle(name = 'connection')
     HTTPHandle.new(name)
   end
 
@@ -939,7 +939,7 @@ class NewRelicServiceTest < Minitest::Test
     refute_includes header_keys, 'x-nr-metadata'
   end
 
-  def build_stats_hash(items={})
+  def build_stats_hash(items = {})
     hash = NewRelic::Agent::StatsHash.new
     items.each do |key, value|
       hash.record(NewRelic::MetricSpec.new(key), value)
@@ -952,7 +952,7 @@ class NewRelicServiceTest < Minitest::Test
     string.force_encoding('ISO-8859-1').encode('UTF-8')
   end
 
-  def generate_random_byte_sequence(length=255, encoding=nil)
+  def generate_random_byte_sequence(length = 255, encoding = nil)
     bytes = []
     alphabet = (0..255).to_a
     meth = alphabet.respond_to?(:sample) ? :sample : :choice
@@ -1037,7 +1037,7 @@ class NewRelicServiceTest < Minitest::Test
     module HTTPResponseMock
       attr_accessor :code, :body, :message, :headers
 
-      def initialize(body, code=200, message='OK')
+      def initialize(body, code = 200, message = 'OK')
         @code = code
         @body = body
         @message = message
@@ -1084,7 +1084,7 @@ class NewRelicServiceTest < Minitest::Test
       8080
     end
 
-    def create_response_mock(payload, opts={})
+    def create_response_mock(payload, opts = {})
       opts = {
         :code => 200,
         :format => :json
@@ -1096,7 +1096,7 @@ class NewRelicServiceTest < Minitest::Test
       klass.new(JSON.dump('return_value' => payload), opts[:code], {})
     end
 
-    def respond_to(method, payload, opts={})
+    def respond_to(method, payload, opts = {})
       case payload
       when Exception then rsp = payload
       else                rsp = create_response_mock(payload, opts)

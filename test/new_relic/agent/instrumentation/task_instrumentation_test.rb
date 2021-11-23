@@ -12,7 +12,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     run_task_inner(n-1)
   end
 
-  def run_task_outer(n=0)
+  def run_task_outer(n = 0)
     run_task_inner(n)
     run_task_inner(n)
   end

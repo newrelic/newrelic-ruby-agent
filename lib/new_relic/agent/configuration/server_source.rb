@@ -33,7 +33,7 @@ module NewRelic
           "trusted_account_key"
         ]
 
-        def initialize(connect_reply, existing_config={})
+        def initialize(connect_reply, existing_config = {})
           merged_settings = {}
 
           merge_top_level_keys(merged_settings, connect_reply)

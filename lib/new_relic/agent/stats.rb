@@ -58,7 +58,7 @@ module NewRelic
         }.to_json(*_)
       end
 
-      def record(value=nil, aux=nil, &blk)
+      def record(value = nil, aux = nil, &blk)
         if blk
           yield self
         else

@@ -104,7 +104,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
     class FakeTraceObserverServer
       attr_reader :trace_observer, :worker
 
-      def initialize(port_no, tracer_class=InfiniteTracer)
+      def initialize(port_no, tracer_class = InfiniteTracer)
         @port_no = port_no
         @tracer_class = tracer_class
         start

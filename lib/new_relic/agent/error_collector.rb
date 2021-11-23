@@ -165,7 +165,7 @@ module NewRelic
       end
 
       # Increments a statistic that tracks total error rate
-      def increment_error_count!(state, exception, options={})
+      def increment_error_count!(state, exception, options = {})
         txn = state.current_transaction
 
         metric_names  = aggregated_metric_names(txn)
@@ -209,7 +209,7 @@ module NewRelic
         sense_method(actual_exception, :backtrace) || '<no stack trace>'
       end
 
-      def notice_segment_error(segment, exception, options={})
+      def notice_segment_error(segment, exception, options = {})
         return if skip_notice_error?(exception)
 
         segment.set_noticed_error create_noticed_error(exception, options)
@@ -220,7 +220,7 @@ module NewRelic
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
-      def notice_error(exception, options={}, span_id=nil)
+      def notice_error(exception, options = {}, span_id = nil)
         state = ::NewRelic::Agent::Tracer.state
         transaction = state.current_transaction
         status_code = transaction ? transaction.http_response_code : nil
@@ -247,7 +247,7 @@ module NewRelic
         nil
       end
 
-      def truncate_trace(trace, keep_frames=nil)
+      def truncate_trace(trace, keep_frames = nil)
         keep_frames ||= Agent.config[:'error_collector.max_backtrace_frames']
         return trace if !keep_frames || trace.length < keep_frames || trace.length == 0
 

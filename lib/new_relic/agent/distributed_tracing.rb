@@ -42,7 +42,7 @@ module NewRelic
       #
       # @api public
       #
-      def insert_distributed_trace_headers headers={}
+      def insert_distributed_trace_headers headers = {}
         record_api_supportability_metric(:insert_distributed_trace_headers)
 
         unless Agent.config[:'distributed_tracing.enabled']

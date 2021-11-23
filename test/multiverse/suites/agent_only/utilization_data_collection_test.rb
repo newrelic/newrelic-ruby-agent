@@ -94,7 +94,7 @@ class UtilizationDataCollectionTest < Minitest::Test
       @dummy_port = p
 
       class << self
-        def start_with_patch(address, port=nil, p_addr=nil, p_port=nil, p_user=nil, p_pass=nil, &block)
+        def start_with_patch(address, port = nil, p_addr = nil, p_port = nil, p_user = nil, p_pass = nil, &block)
           if address == '169.254.169.254'
             address = 'localhost'
             port = @dummy_port

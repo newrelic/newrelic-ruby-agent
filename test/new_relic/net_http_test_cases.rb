@@ -27,7 +27,7 @@ module NetHttpTestCases
     get_response
   end
 
-  def get_response(url=nil, headers={})
+  def get_response(url = nil, headers = {})
     uri = default_uri
     uri = URI.parse(url) unless url.nil?
     path = uri.path.empty? ? '/' : uri.path

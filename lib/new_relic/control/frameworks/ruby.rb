@@ -16,7 +16,7 @@ module NewRelic
           @root ||= ENV['APP_ROOT'] || '.'
         end
 
-        def init_config(options={})
+        def init_config(options = {})
         end
       end
     end

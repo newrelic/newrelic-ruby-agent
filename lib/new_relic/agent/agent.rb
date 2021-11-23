@@ -184,7 +184,7 @@ module NewRelic
         # * <tt>:keep_retrying => false</tt> if we try to initiate a new
         #   connection, this tells me to only try it once so this method returns
         #   quickly if there is some kind of latency with the server.
-        def after_fork(options={})
+        def after_fork(options = {})
           needs_restart = false
           @after_fork_lock.synchronize do
             needs_restart = @harvester.needs_restart?
@@ -295,7 +295,7 @@ module NewRelic
         # thread. This uses a stack which allows us to disable tracing
         # children of a transaction without affecting the tracing of
         # the whole transaction
-        def push_trace_execution_flag(should_trace=false) #THREAD_LOCAL_ACCESS
+        def push_trace_execution_flag(should_trace = false) #THREAD_LOCAL_ACCESS
           Tracer.state.push_traced(should_trace)
         end
 
@@ -492,7 +492,7 @@ module NewRelic
           # after_fork call restarting the thread in deferred dispatchers.
           #
           # Treatment of @started and env report is important to get right.
-          def setup_and_start_agent(options={})
+          def setup_and_start_agent(options = {})
             @started = true
             @harvester.mark_started
 
@@ -755,7 +755,7 @@ module NewRelic
           # Don't connect if we're already connected, or if we tried to connect
           # and were rejected with prejudice because of a license issue, unless
           # we're forced to by force_reconnect.
-          def should_connect?(force=false)
+          def should_connect?(force = false)
             force || (!connected? && !disconnected?)
           end
 
@@ -931,7 +931,7 @@ module NewRelic
         #   This is useful primarily when re-establishing a new connection after
         #   forking off from a parent process.
         #
-        def connect(options={})
+        def connect(options = {})
           defaults = {
             :keep_retrying => Agent.config[:keep_retrying],
             :force_reconnect => Agent.config[:force_reconnect]

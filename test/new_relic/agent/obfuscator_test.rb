@@ -20,7 +20,7 @@ class NewRelic::Agent::ObfuscatorTest < Minitest::Test
     @obfuscator = nil
   end
 
-  def obfuscator(length=nil)
+  def obfuscator(length = nil)
     @obfuscator ||= NewRelic::Agent::Obfuscator.new(OBFUSCATION_KEY, length)
   end
 

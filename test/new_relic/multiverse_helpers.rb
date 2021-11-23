@@ -86,13 +86,13 @@ module MultiverseHelpers
     NewRelic::Control.reset
   end
 
-  def run_agent(options={}, &block)
+  def run_agent(options = {}, &block)
     setup_agent(options)
     yield if block_given?
     teardown_agent
   end
 
-  def trigger_agent_reconnect(opts={})
+  def trigger_agent_reconnect(opts = {})
     # Clean-up if others don't (or we're first test after auto-loading of agent)
     if NewRelic::Agent.instance.started?
       NewRelic::Agent.shutdown

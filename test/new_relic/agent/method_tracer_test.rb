@@ -8,7 +8,7 @@ class Insider
   def initialize(stats_engine)
     @stats_engine = stats_engine
   end
-  def catcher(level=0)
+  def catcher(level = 0)
     thrower(level) if level>0
   end
   def thrower(level)

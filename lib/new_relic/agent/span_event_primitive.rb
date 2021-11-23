@@ -191,7 +191,7 @@ module NewRelic
         Integer(segment.start_time.to_f * 1000.0)
       end
 
-      def truncate value, max_size=255
+      def truncate value, max_size = 255
         value = value.to_s
         if value.bytesize > max_size
           value.byteslice(0, max_size - 2).chop! << ELLIPSIS

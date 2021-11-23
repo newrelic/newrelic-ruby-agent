@@ -21,7 +21,7 @@ class NewRelic::Cli::Install < NewRelic::Cli::Command
   # Will throw CommandFailed exception if there's any error.
   #
   attr_reader :dest_dir, :license_key, :generated_for_user, :quiet, :src_file, :app_name
-  def initialize command_line_args={}
+  def initialize command_line_args = {}
     @dest_dir = nil
     super command_line_args
     if @dest_dir.nil?

@@ -17,7 +17,7 @@ module NewRelic
 
         UNKNOWN_NODE_NAME = '<unknown>'.freeze
 
-        def initialize(metric_name, relative_start, relative_end=nil, params=nil, parent=nil)
+        def initialize(metric_name, relative_start, relative_end = nil, params = nil, parent = nil)
           @entry_timestamp = relative_start
           @metric_name     = metric_name || UNKNOWN_NODE_NAME
           @exit_timestamp  = relative_end

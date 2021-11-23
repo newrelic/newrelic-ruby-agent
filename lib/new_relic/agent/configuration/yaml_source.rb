@@ -151,7 +151,7 @@ module NewRelic
           messages.each { |message| @failures << message }
         end
 
-        def dot_flattened(nested_hash, names=[], result={})
+        def dot_flattened(nested_hash, names = [], result = {})
           nested_hash.each do |key, val|
             next if val == nil
             if val.respond_to?(:has_key?) && !CONFIG_WITH_HASH_VALUE.include?(key)

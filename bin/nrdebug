@@ -7,7 +7,7 @@
 require 'tempfile'
 require 'rbconfig'
 
-def fail(msg, opts={})
+def fail(msg, opts = {})
   $stderr.puts(msg)
   usage() if opts[:usage]
   exit(-1)
@@ -170,7 +170,7 @@ end
 class ProcessReport
   attr_reader :target, :path
 
-  def initialize(target, path=nil)
+  def initialize(target, path = nil)
     @target = target
     @path = path
   end
@@ -185,7 +185,7 @@ class ProcessReport
     end
   end
 
-  def section(f, name=nil)
+  def section(f, name = nil)
     content = begin
       yield
     rescue StandardError => e

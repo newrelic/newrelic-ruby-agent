@@ -91,17 +91,17 @@ module NewRelic
       Response.new(200, {'return_value' => nil})
     end
 
-    def stub(method, return_value, status=200)
+    def stub(method, return_value, status = 200)
       self.mock[method] ||= default_response
       self.mock[method].override(status, {'return_value' => return_value})
     end
 
-    def stub_exception(method, exception, status=200)
+    def stub_exception(method, exception, status = 200)
       self.mock[method] ||= default_response
       self.mock[method].override(status, {'exception' => exception})
     end
 
-    def stub_wait(method, wait_time, status=200)
+    def stub_wait(method, wait_time, status = 200)
       self.mock[method] ||= default_response
       self.mock[method].override(status, Proc.new { sleep(wait_time); {'return_value' => ""}})
     end
@@ -167,7 +167,7 @@ module NewRelic
       @agent_data.select { |d| d.action == method.to_s }
     end
 
-    def reported_stats_for_metric(name, scope=nil)
+    def reported_stats_for_metric(name, scope = nil)
       calls_for('metric_data').map do |post|
         post.body[3].find do |metric_record|
           metric_record[0]['name'] == name &&
@@ -178,7 +178,7 @@ module NewRelic
 
     class AgentPost
       attr_accessor :action, :body, :run_id, :format, :query_params
-      def initialize(opts={})
+      def initialize(opts = {})
         @action       = opts[:action]
         @body         = opts[:body]
         @run_id       = opts[:run_id]
@@ -186,7 +186,7 @@ module NewRelic
         @query_params = opts[:query_params]
       end
 
-      def self.create(opts={})
+      def self.create(opts = {})
         case opts[:action]
         when 'connect'
           ConnectPost.new(opts)
@@ -229,7 +229,7 @@ module NewRelic
 
 
     class MetricDataPost < AgentPost
-      def initialize(opts={})
+      def initialize(opts = {})
         super
       end
 
@@ -243,7 +243,7 @@ module NewRelic
     end
 
     class ConnectPost < AgentPost
-      def initialize(opts={})
+      def initialize(opts = {})
         super
         @body = @body[0]
       end
@@ -255,7 +255,7 @@ module NewRelic
 
     class ProfileDataPost < AgentPost
       attr_accessor :poll_count, :traces
-      def initialize(opts={})
+      def initialize(opts = {})
         super
         @poll_count = @body[1][0][3]
         @body[1][0][4] = unblob(@body[1][0][4]) if @format == :json
@@ -264,7 +264,7 @@ module NewRelic
     end
 
     class SqlTraceDataPost < AgentPost
-      def initialize(opts={})
+      def initialize(opts = {})
         super
         @body[0][0][9] = unblob(@body[0][0][9]) if @format == :json
       end
@@ -331,7 +331,7 @@ module NewRelic
         end
       end
 
-      def initialize(opts={})
+      def initialize(opts = {})
         super
         @body[1][0][4] = unblob(@body[1][0][4]) if @format == :json
       end
@@ -348,7 +348,7 @@ module NewRelic
     class ReservoirSampledContainerPost < AgentPost
       attr_reader :reservoir_metadata, :events
 
-      def initialize opts={}
+      def initialize opts = {}
         super
         @reservoir_metadata = body[1]
         @events = body[2]
@@ -364,7 +364,7 @@ module NewRelic
 
       attr_reader :errors
 
-      def initialize(opts={})
+      def initialize(opts = {})
         super
         @errors = @body[1].map { |e| SubmittedError.new(e) }
       end

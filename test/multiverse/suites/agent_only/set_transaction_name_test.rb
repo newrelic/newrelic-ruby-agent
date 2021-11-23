@@ -15,7 +15,7 @@ class SetTransactionNameTest < Minitest::Test
   class TestTransactor
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
-    def parent_txn(child_category=nil)
+    def parent_txn(child_category = nil)
       NewRelic::Agent.set_transaction_name('TestTransactor/parent')
       yield if block_given?
       child_txn(child_category)

@@ -95,19 +95,19 @@ module DependencyDetection
       yield
     end
 
-    def prepend_instrument target_class, instrumenting_module, supportability_name=nil
+    def prepend_instrument target_class, instrumenting_module, supportability_name = nil
       log_and_instrument("Prepend", instrumenting_module, supportability_name) do
         target_class.send :prepend, instrumenting_module
       end
     end
 
-    def chain_instrument instrumenting_module, supportability_name=nil
+    def chain_instrument instrumenting_module, supportability_name = nil
       log_and_instrument("MethodChaining", instrumenting_module, supportability_name) do
         instrumenting_module.instrument!
       end
     end
 
-    def chain_instrument_target target, instrumenting_module, supportability_name=nil
+    def chain_instrument_target target, instrumenting_module, supportability_name = nil
       NewRelic::Agent.logger.info "Installing deferred #{target} instrumentation"
       log_and_instrument("MethodChaining", instrumenting_module, supportability_name) do
         instrumenting_module.instrument! target

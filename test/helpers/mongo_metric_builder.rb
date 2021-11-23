@@ -7,7 +7,7 @@ require 'new_relic/agent/datastores/mongo/metric_translator'
 module NewRelic
   module TestHelpers
     module MongoMetricBuilder
-      def build_test_metrics(name, instance_metrics=false)
+      def build_test_metrics(name, instance_metrics = false)
         host = nil
         port = nil
 

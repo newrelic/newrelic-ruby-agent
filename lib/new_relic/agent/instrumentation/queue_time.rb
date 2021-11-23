@@ -27,7 +27,7 @@ module NewRelic
 
         module_function
 
-        def parse_frontend_timestamp(headers, now=Process.clock_gettime(Process::CLOCK_REALTIME))
+        def parse_frontend_timestamp(headers, now = Process.clock_gettime(Process::CLOCK_REALTIME))
           earliest = nil
 
           CANDIDATE_HEADERS.each do |header|

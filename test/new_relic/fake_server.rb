@@ -34,7 +34,7 @@ module NewRelic
       :SSLCertName     => [["CN", "newrelic.com"]]
     }
 
-    def initialize(port=DEFAULT_PORT)
+    def initialize(port = DEFAULT_PORT)
       @port    = port
       @thread  = nil
       @server  = nil

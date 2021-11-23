@@ -644,7 +644,7 @@ module HttpClientTestCases
     NewRelic::Agent.set_transaction_name(parts.join('/'), :category => category)
   end
 
-  def assert_externals_recorded_for(host, meth, opts={})
+  def assert_externals_recorded_for(host, meth, opts = {})
     txn_type   = opts.fetch(:transaction_type, "Other")
     counts     = opts.fetch(:counts, nil)
 

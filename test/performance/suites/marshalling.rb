@@ -105,7 +105,7 @@ class Marshalling < Performance::TestCase
   end
 
   # Build an object graph that approximates a transaction trace in structure
-  def build_transaction_trace_payload(depth=6)
+  def build_transaction_trace_payload(depth = 6)
     root = []
     fanout = depth
     fanout.times do |i|

@@ -19,7 +19,7 @@ module Sequel
         # Install a method named +method_name+ that will trace execution
         # with a metric name derived from +operation_name+ (or +method_name+ if +operation_name+
         # isn't specified).
-        def wrap_sequel_method(method_name, operation_name=method_name)
+        def wrap_sequel_method(method_name, operation_name = method_name)
           define_method(method_name) do |*args, &block|
             klass = self.is_a?(Class) ? self : self.class
             product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(db.adapter_scheme)

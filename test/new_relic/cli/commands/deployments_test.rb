@@ -10,7 +10,7 @@ NewRelic::Cli::Deployments.class_eval do
   attr_accessor :messages, :exit_status, :errors, :revision, :license_key
   def err(message); @errors = "#{@errors ||= nil}#{message}"; end
   def info(message); @messages = "#{@messages ||=nil}#{message}"; end
-  def just_exit(status=0); @exit_status ||= status; end
+  def just_exit(status = 0); @exit_status ||= status; end
 end
 
 class NewRelic::Cli::DeploymentsTest < Minitest::Test

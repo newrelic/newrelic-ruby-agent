@@ -50,7 +50,7 @@ module NewRelic
           )
         end
 
-        def self.wrap(target, is_app=false)
+        def self.wrap(target, is_app = false)
           if needs_wrapping?(target)
             self.new(target, is_app)
           else
@@ -60,7 +60,7 @@ module NewRelic
 
         attr_reader :target, :category, :transaction_options
 
-        def initialize(target, is_app=false)
+        def initialize(target, is_app = false)
           @target            = target
           @is_app            = is_app
           @category          = determine_category

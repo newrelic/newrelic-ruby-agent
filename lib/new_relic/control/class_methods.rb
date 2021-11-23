@@ -9,7 +9,7 @@ module NewRelic
     module ClassMethods
       # Access the Control singleton, lazy initialized.  Default will instantiate a new
       # instance or pass false to defer
-      def instance(create=true)
+      def instance(create = true)
         @instance ||= create && new_instance
       end
 

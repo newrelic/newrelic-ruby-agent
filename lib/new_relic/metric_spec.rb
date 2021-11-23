@@ -12,7 +12,7 @@ class NewRelic::MetricSpec
   LENGTH_RANGE = (0...MAX_LENGTH)
   EMPTY_SCOPE = ''.freeze
 
-  def initialize(metric_name='', metric_scope=nil)
+  def initialize(metric_name = '', metric_scope = nil)
     if metric_name.to_s.length > MAX_LENGTH
       @name = metric_name.to_s[LENGTH_RANGE]
     else

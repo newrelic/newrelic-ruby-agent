@@ -503,7 +503,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         end
       end
 
-      def fake_transaction_finished(name, start_timestamp, duration, thread, bucket=:request)
+      def fake_transaction_finished(name, start_timestamp, duration, thread, bucket = :request)
         payload = {
           :name            => name,
           :bucket          => bucket,
@@ -523,7 +523,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         dummy_loop
       end
 
-      def fake_thread(bucket, backtrace=[])
+      def fake_thread(bucket, backtrace = [])
         thread = FakeThread.new(:backtrace => backtrace)
         mark_bucket_for_thread(thread, bucket)
 

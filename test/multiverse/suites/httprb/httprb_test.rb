@@ -17,7 +17,7 @@ class HTTPTest < Minitest::Test
     defined?(::HTTP::VERSION) && HTTP::VERSION < '1.0.0'
   end
 
-  def get_response(url=nil, headers=nil)
+  def get_response(url = nil, headers = nil)
     HTTP.get(url || default_url, :headers => headers)
   end
 

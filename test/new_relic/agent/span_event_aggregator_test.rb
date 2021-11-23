@@ -41,7 +41,7 @@ module NewRelic
 
       # Helpers for CommonAggregatorTests
 
-      def generate_event(name='operation_name', options = {})
+      def generate_event(name = 'operation_name', options = {})
         guid = fake_guid(16)
 
         event = [

@@ -15,7 +15,7 @@ module NewRelic
       # Capture a failure to execute the command.
       class CommandFailure < StandardError
         attr_reader :options
-        def initialize message, opt_parser=nil
+        def initialize message, opt_parser = nil
           super message
           @options = opt_parser
         end

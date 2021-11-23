@@ -28,7 +28,7 @@ module NewRelic
 
         private
 
-        def map_metric(metric_name, to_add={})
+        def map_metric(metric_name, to_add = {})
           to_add.values.each(&:freeze)
 
           mappings = SPEC_MAPPINGS.fetch(metric_name, {})

@@ -32,7 +32,7 @@ module NewRelic::Agent::Instrumentation
 
     private
 
-    def with_tracing operation, statement=nil
+    def with_tracing operation, statement = nil
       segment = NewRelic::Agent::Tracer.start_datastore_segment(
         product: PRODUCT_NAME,
         operation: operation,

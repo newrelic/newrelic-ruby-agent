@@ -32,7 +32,7 @@ module NewRelic::Agent
         Agent.config.reset_to_defaults
       end
 
-      def after_notify_event rack_scheme=nil
+      def after_notify_event rack_scheme = nil
         payload = nil
 
         in_transaction "referring_txn" do |txn|

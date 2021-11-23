@@ -26,12 +26,12 @@ module SequelHelpers
 
   # This is particular to sqlite plans currently. To abstract it up, we'd need to
   # be able to specify a flavor (e.g., :sqlite, :postgres, :mysql, etc.)
-  def assert_node_has_explain_plan( node, msg=nil )
+  def assert_node_has_explain_plan( node, msg = nil )
     msg = "Expected #{node.inspect} to have an explain plan"
     assert_block( msg ) { node.params[:explain_plan].join =~ SQLITE_EXPLAIN_PLAN_COLUMNS_RE }
   end
 
-  def last_node_for(options={})
+  def last_node_for(options = {})
       in_transaction('sandwiches/index') do
         yield
       end

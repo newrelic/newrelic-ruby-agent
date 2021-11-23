@@ -35,7 +35,7 @@ module NewRelic
       attr_accessor :request_timeout
       attr_reader :collector, :marshaller, :agent_id
 
-      def initialize(license_key=nil, collector=control.server)
+      def initialize(license_key = nil, collector = control.server)
         @license_key = license_key
         @collector = collector
         @configured_collector = collector
@@ -69,7 +69,7 @@ module NewRelic
         @agent_id = id
       end
 
-      def connect(settings={})
+      def connect(settings = {})
         @request_headers_map = nil
         security_policies = nil
         if response = preconnect
