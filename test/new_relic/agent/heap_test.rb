@@ -171,7 +171,7 @@ module NewRelic
       end
 
       def test_large_heap_odd_number_of_items
-       heap = Heap.new((0..101).to_a.shuffle)
+        heap = Heap.new((0..101).to_a.shuffle)
 
         output = []
         until heap.empty?

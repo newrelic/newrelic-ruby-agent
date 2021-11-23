@@ -904,7 +904,7 @@ def attributes_for sample, type
 end
 
 def uncache_trusted_account_key
-   NewRelic::Agent::Transaction::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
+  NewRelic::Agent::Transaction::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
 end
 
 def reset_buffers_and_caches

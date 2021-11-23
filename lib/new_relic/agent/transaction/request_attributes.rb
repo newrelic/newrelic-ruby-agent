@@ -26,9 +26,9 @@ module NewRelic
         end
 
         def assign_agent_attributes txn
-         default_destinations = AttributeFilter::DST_TRANSACTION_TRACER |
-                                AttributeFilter::DST_TRANSACTION_EVENTS |
-                                AttributeFilter::DST_ERROR_COLLECTOR
+          default_destinations = AttributeFilter::DST_TRANSACTION_TRACER |
+                                 AttributeFilter::DST_TRANSACTION_EVENTS |
+                                 AttributeFilter::DST_ERROR_COLLECTOR
 
           if referer
             txn.add_agent_attribute :'request.headers.referer', referer, AttributeFilter::DST_ERROR_COLLECTOR

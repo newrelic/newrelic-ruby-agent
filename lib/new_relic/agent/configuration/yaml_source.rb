@@ -104,9 +104,9 @@ module NewRelic
         def process_yaml(file, env, config, path)
           if file
             confighash = if YAML.respond_to?(:unsafe_load)
-                           YAML.unsafe_load(file)
-                         else
-                           YAML.load(file)
+              YAML.unsafe_load(file)
+            else
+              YAML.load(file)
                          end
 
             unless confighash.key?(env)

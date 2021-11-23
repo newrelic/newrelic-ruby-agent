@@ -23,9 +23,9 @@ module NewRelic
       # 'autostart.denylisted_executables' and
       # 'autostart.denylisted_rake_tasks'
       def agent_should_start?
-          !denylisted_constants? &&
-          !denylisted_executables? &&
-          !in_denylisted_rake_task?
+        !denylisted_constants? &&
+        !denylisted_executables? &&
+        !in_denylisted_rake_task?
       end
 
       COMMA = ",".freeze
@@ -56,10 +56,10 @@ module NewRelic
 
       def in_denylisted_rake_task?
         tasks = begin
-                  ::Rake.application.top_level_tasks
-                rescue => e
+            ::Rake.application.top_level_tasks
+          rescue => e
             ::NewRelic::Agent.logger.debug("Not in Rake environment so skipping denylisted_rake_tasks check: #{e}")
-            []
+      []
           end
         !(tasks & ::NewRelic::Agent.config[:'autostart.denylisted_rake_tasks'].split(/\s*,\s*/)).empty?
       end

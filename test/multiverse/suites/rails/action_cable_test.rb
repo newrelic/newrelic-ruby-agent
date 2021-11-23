@@ -9,12 +9,12 @@ end
 
 if defined?(ActionCable::Channel)
 
-require 'stringio'
+  require 'stringio'
 require 'logger'
 require 'json'
 
 class ActionCableTest < Minitest::Test
-include MultiverseHelpers
+  include MultiverseHelpers
 
   class TestConnection
     attr_reader :transmissions, :identifiers, :logger

@@ -87,11 +87,11 @@ class NewRelic::MetricDataTest < Minitest::Test
   end
 
   if {}.respond_to?(:to_json)
-  def test_to_json
-    md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::Agent::Stats.new)
-    json = md.to_json
-    assert(json.include?('"Custom/test/method"'), "should include the metric spec in the json")
-  end
+    def test_to_json
+      md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', ''), NewRelic::Agent::Stats.new)
+      json = md.to_json
+      assert(json.include?('"Custom/test/method"'), "should include the metric spec in the json")
+    end
 
   else
     puts "Skipping tests in #{__FILE__} because Hash#to_json not available"

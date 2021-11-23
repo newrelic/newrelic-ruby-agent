@@ -11,9 +11,9 @@ if defined?(Dalli)
 
     MULTI_OPERATIONS = [:get_multi, :get_multi_cas]
     DALLI_SERVER_PROTOCOL = if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_binary_protocol?
-                              ::Dalli::Protocol::Binary
-                            else
-                              ::Dalli::Server
+      ::Dalli::Protocol::Binary
+    else
+      ::Dalli::Server
                             end
 
     def setup

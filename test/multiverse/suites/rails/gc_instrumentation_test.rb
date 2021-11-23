@@ -7,27 +7,27 @@ require './app'
 # These tests only return consistent results MRI >= 1.9.2
 if !NewRelic::LanguageSupport.jruby?
 
-class GcController < ApplicationController
-  def gc_action
-    begin
-      NewRelic::Agent::StatsEngine::GCProfiler.init
-      initial_gc_count = ::GC.count
+  class GcController < ApplicationController
+    def gc_action
+      begin
+        NewRelic::Agent::StatsEngine::GCProfiler.init
+        initial_gc_count = ::GC.count
 
-      Timeout.timeout(5) do
-        until ::GC.count > initial_gc_count
-          long_string = "01234567" * 100_000
-          long_string = nil
-          another_long_string = "01234567" * 100_000
-          another_long_string = nil
+        Timeout.timeout(5) do
+          until ::GC.count > initial_gc_count
+            long_string = "01234567" * 100_000
+            long_string = nil
+            another_long_string = "01234567" * 100_000
+            another_long_string = nil
+          end
         end
+      rescue Timeout::Error
+        puts "Timed out waiting for GC..."
       end
-    rescue Timeout::Error
-      puts "Timed out waiting for GC..."
-    end
 
-    render body: 'ha'
+      render body: 'ha'
+    end
   end
-end
 
 class GCRailsInstrumentationTest < ActionController::TestCase
   tests GcController

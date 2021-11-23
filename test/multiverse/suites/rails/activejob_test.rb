@@ -11,7 +11,7 @@ require 'stringio'
 # we try to load.
 if Rails::VERSION::STRING >= "4.2.0"
 
-require 'active_job'
+  require 'active_job'
 
 ActiveJob::Base.queue_adapter = :inline
 

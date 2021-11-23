@@ -439,7 +439,7 @@ module NewRelic::Agent
                                     trace_state_payload: nil,
                                     trace_state: ["other=asdf"],
                                     trace_state_vendors: ''
-            NewRelic::Agent::DistributedTracing::TraceContext::HeaderData.new trace_parent, trace_state_payload, trace_state, 10, trace_state_vendors
+          NewRelic::Agent::DistributedTracing::TraceContext::HeaderData.new trace_parent, trace_state_payload, trace_state, 10, trace_state_vendors
         end
       end
     end

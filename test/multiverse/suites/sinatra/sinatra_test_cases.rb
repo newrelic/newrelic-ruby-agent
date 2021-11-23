@@ -108,7 +108,7 @@ module SinatraTestCases
   end
 
   def test_shown_errors_get_caught
-     get '/raise'
+    get '/raise'
      errors = harvest_error_traces!
      assert_equal 1, errors.size
   end

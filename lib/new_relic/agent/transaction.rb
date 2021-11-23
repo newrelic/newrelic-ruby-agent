@@ -799,7 +799,7 @@ module NewRelic
       end
 
       def threshold
-         source_class = Agent.config.source(:'transaction_tracer.transaction_threshold').class
+        source_class = Agent.config.source(:'transaction_tracer.transaction_threshold').class
         if source_class == Configuration::DefaultSource
           apdex_t * 4
         else

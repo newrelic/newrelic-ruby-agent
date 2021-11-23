@@ -8,16 +8,16 @@ module NewRelic
   module Instrumentation
     module ActsAsSolrInstrumentation
       module ParserMethodsInstrumentation
-          def parse_query_with_newrelic(*args)
-            self.class.trace_execution_scoped(["SolrClient/ActsAsSolr/query"]) do
-              begin
-                parse_query_without_newrelic(*args)
-              ensure
-                return unless txn = ::NewRelic::Agent::Tracer.current_transaction
-                txn.current_segment.params[:statement] = ::NewRelic::Agent::Database.truncate_query(args.first.inspect) rescue nil
-              end
+        def parse_query_with_newrelic(*args)
+          self.class.trace_execution_scoped(["SolrClient/ActsAsSolr/query"]) do
+            begin
+              parse_query_without_newrelic(*args)
+            ensure
+              return unless txn = ::NewRelic::Agent::Tracer.current_transaction
+              txn.current_segment.params[:statement] = ::NewRelic::Agent::Database.truncate_query(args.first.inspect) rescue nil
             end
           end
+        end
       end
     end
   end

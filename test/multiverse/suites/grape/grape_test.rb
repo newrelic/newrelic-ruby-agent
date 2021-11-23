@@ -192,7 +192,7 @@ class GrapeTest < Minitest::Test
     end
 
     def test_request_and_response_attributes_recorded_as_agent_attributes
-        post '/grape_ape'
+      post '/grape_ape'
 
         expected = {
           "response.headers.contentLength" => last_response.content_length.to_i,

@@ -119,7 +119,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   end
 
   def test_format_metric_name
-      metric_name = @subscriber.format_metric_name('index', TestController)
+    metric_name = @subscriber.format_metric_name('index', TestController)
       assert_equal 'Controller/test/index', metric_name
   end
 

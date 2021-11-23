@@ -118,7 +118,7 @@ module NewRelic
         NEWLINE = "\n".freeze
 
         def add_backtrace_parameter
-           return unless duration >= Agent.config[:'transaction_tracer.stack_trace_threshold']
+          return unless duration >= Agent.config[:'transaction_tracer.stack_trace_threshold']
            params[:backtrace] = caller.join(NEWLINE)
         end
 

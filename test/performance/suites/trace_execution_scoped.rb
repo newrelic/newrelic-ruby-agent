@@ -23,9 +23,9 @@ class TraceExecutionScopedTests < Performance::TestCase
 
   def test_trace_execution_scoped_in_a_transaction
     measure do
-      in_transaction do
-        @test_class.method_1
-      end
+     in_transaction do
+       @test_class.method_1
+     end
    end
   end
 end

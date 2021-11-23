@@ -131,11 +131,11 @@ module NewRelic
         max_q_length = ErrorCollector::MAX_ERROR_QUEUE_LENGTH
 
         silence_stream(::STDOUT) do
-         (max_q_length + 5).times do |n|
-            notice_error(StandardError.new("exception #{n}"),
-              :metric => "path",
-              :custom_params => {:x => n})
-          end
+          (max_q_length + 5).times do |n|
+             notice_error(StandardError.new("exception #{n}"),
+               :metric => "path",
+               :custom_params => {:x => n})
+           end
         end
 
         errors = error_trace_aggregator.harvest!

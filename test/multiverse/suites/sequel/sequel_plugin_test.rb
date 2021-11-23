@@ -9,7 +9,7 @@ if Sequel.const_defined?(:MAJOR) &&
       (Sequel::MAJOR > 3 ||
         Sequel::MAJOR == 3 && Sequel::MINOR >= 37)
 
-require 'newrelic_rpm'
+  require 'newrelic_rpm'
 
 class SequelPluginTest < Minitest::Test
   include SequelHelpers

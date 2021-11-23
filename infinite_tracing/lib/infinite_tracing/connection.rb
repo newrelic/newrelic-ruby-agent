@@ -62,7 +62,7 @@ module NewRelic::Agent
       # We attempt to connect and record spans with reconnection backoff in order to deal with
       # unavailable errors coming from the stub being created and record_span call
       def record_spans client, enumerator, exponential_backoff
-          @active_clients[client] = client
+        @active_clients[client] = client
           with_reconnection_backoff(exponential_backoff) { rpc.record_span enumerator, metadata: metadata }
       end
 

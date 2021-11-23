@@ -6,17 +6,17 @@ require './app'
 
 if defined?(ActionController::Live)
 
-class UndeadController < ApplicationController
-  RESPONSE_BODY = "<html><head></head><body>Brains!</body></html>"
+  class UndeadController < ApplicationController
+    RESPONSE_BODY = "<html><head></head><body>Brains!</body></html>"
 
-  def brains
-    render :inline => RESPONSE_BODY
-  end
+    def brains
+      render :inline => RESPONSE_BODY
+    end
 
-  def brain_stream
-    render :inline => RESPONSE_BODY, :stream => true
+    def brain_stream
+      render :inline => RESPONSE_BODY, :stream => true
+    end
   end
-end
 
 class LiveController < UndeadController
   include ActionController::Live

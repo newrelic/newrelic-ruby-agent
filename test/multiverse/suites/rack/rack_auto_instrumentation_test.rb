@@ -4,7 +4,7 @@
 
 if NewRelic::Agent::Instrumentation::RackHelpers.version_supported? && defined? Rack
 
-require File.join(File.dirname(__FILE__), 'example_app')
+  require File.join(File.dirname(__FILE__), 'example_app')
 require 'new_relic/rack/browser_monitoring'
 require 'new_relic/rack/agent_hooks'
 

@@ -10,7 +10,7 @@ module NewRelic
       ACTION_DISPATCH_PARAMETER_FILTER = "action_dispatch.parameter_filter".freeze
 
       RAILS_FILTER_CLASS = if defined?(ActiveSupport::ParameterFilter)
-         ActiveSupport::ParameterFilter
+        ActiveSupport::ParameterFilter
       elsif defined?(ActionDispatch::Http::ParameterFilter)
         ActionDispatch::Http::ParameterFilter
       else
