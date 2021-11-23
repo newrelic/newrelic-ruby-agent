@@ -58,7 +58,7 @@ module NewRelic
 
         def self.generate_regex(dialect)
           components = DIALECT_COMPONENTS[dialect]
-          Regexp.union(components.map{|component| COMPONENTS_REGEX_MAP[component]})
+          Regexp.union(components.map{ |component| COMPONENTS_REGEX_MAP[component] })
         end
 
         MYSQL_COMPONENTS_REGEX = self.generate_regex(:mysql)

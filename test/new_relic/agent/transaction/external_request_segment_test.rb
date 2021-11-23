@@ -587,7 +587,7 @@ module NewRelic::Agent
       def test_get_request_metadata
         with_config cat_config.merge(:'cross_application_tracer.enabled' => true) do
           in_transaction do |txn|
-            rmd = external_request_segment {|s| s.get_request_metadata}
+            rmd = external_request_segment { |s| s.get_request_metadata }
             assert_instance_of String, rmd
             rmd = @obfuscator.deobfuscate rmd
             rmd = JSON.parse rmd
@@ -612,7 +612,7 @@ module NewRelic::Agent
       def test_get_request_metadata_with_cross_app_tracing_disabled
         with_config cat_config.merge(:'cross_application_tracer.enabled' => false) do
           in_transaction do |txn|
-            rmd = external_request_segment {|s| s.get_request_metadata}
+            rmd = external_request_segment { |s| s.get_request_metadata }
             refute rmd, "`get_request_metadata` should return nil with cross app tracing disabled"
           end
         end
@@ -623,7 +623,7 @@ module NewRelic::Agent
           in_transaction do |txn|
             txn.raw_synthetics_header = 'raw_synth'
 
-            rmd = external_request_segment {|s| s.get_request_metadata}
+            rmd = external_request_segment { |s| s.get_request_metadata }
 
             rmd = @obfuscator.deobfuscate rmd
             rmd = JSON.parse rmd
@@ -635,7 +635,7 @@ module NewRelic::Agent
 
       def test_get_request_metadata_not_in_transaction
         with_config cat_config do
-          refute external_request_segment {|s| s.get_request_metadata}
+          refute external_request_segment { |s| s.get_request_metadata }
         end
       end
 
@@ -655,7 +655,7 @@ module NewRelic::Agent
               ]
             })
 
-            segment = external_request_segment {|s| s.process_response_metadata rmd; s}
+            segment = external_request_segment { |s| s.process_response_metadata rmd; s }
             assert_equal 'ExternalTransaction/example.com/269975#22824/Controller/root/index', segment.name
           end
         end
@@ -674,7 +674,7 @@ module NewRelic::Agent
             ]
           })
 
-          segment = external_request_segment {|s| s.process_response_metadata rmd; s}
+          segment = external_request_segment { |s| s.process_response_metadata rmd; s }
           assert_equal 'External/example.com/foo/get', segment.name
         end
       end
@@ -695,7 +695,7 @@ module NewRelic::Agent
 
             segment = nil
             l = with_array_logger do
-              segment = external_request_segment {|s| s.process_response_metadata rmd; s}
+              segment = external_request_segment { |s| s.process_response_metadata rmd; s }
             end
             refute l.array.empty?, "process_response_metadata should log error on invalid ID"
             assert l.array.first =~ %r{invalid/non-trusted ID}
@@ -721,7 +721,7 @@ module NewRelic::Agent
 
             segment = nil
             l = with_array_logger do
-              segment = external_request_segment {|s| s.process_response_metadata rmd; s}
+              segment = external_request_segment { |s| s.process_response_metadata rmd; s }
             end
             refute l.array.empty?, "process_response_metadata should log error on invalid ID"
             assert l.array.first =~ %r{invalid/non-trusted ID}

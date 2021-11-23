@@ -33,7 +33,7 @@ module DependencyDetection
   end
 
   def dependency_by_name(name)
-    @items.find {|i| i.name == name }
+    @items.find { |i| i.name == name }
   end
 
   def installed?(name)

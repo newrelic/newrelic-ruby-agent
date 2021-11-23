@@ -423,7 +423,6 @@ module NewRelic
       end
     end
 
-
     def test_disable_transaction_tracing_deprecated
       log = with_array_logger(:warn) do
         NewRelic::Agent.disable_transaction_tracing do

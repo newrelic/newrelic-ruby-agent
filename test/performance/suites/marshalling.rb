@@ -118,7 +118,7 @@ class Marshalling < Performance::TestCase
         },
         []
       ]
-      node[-1] = build_transaction_trace_payload(depth-1) if depth > 0
+      node[-1] = build_transaction_trace_payload(depth - 1) if depth > 0
       root << node
     end
     root
@@ -134,7 +134,7 @@ class Marshalling < Performance::TestCase
         'type'             => "Transaction",
         'duration'         => rand,
         'databaseDuration' => rand,
-        'databaseCallCount'=> rand,
+        'databaseCallCount' => rand,
         'gcCumulative'     => rand,
         'host'             => 'lo-calhost',
         'color'            => 'blue-green',

@@ -33,7 +33,6 @@ module NewRelic
           assert_equal "Datastore/operation/SQLite/select", segment.name
         end
 
-
         def test_segment_does_not_record_metrics_outside_of_txn
           segment = DatastoreSegment.new "SQLite", "insert", "Blog"
           segment.start

@@ -77,7 +77,7 @@ module NewRelic
         unicorn
       ]
       while dispatchers.any? && @discovered_dispatcher.nil?
-        send 'check_for_'+(dispatchers.shift)
+        send 'check_for_' + (dispatchers.shift)
       end
     end
 

@@ -357,7 +357,7 @@ module NewRelic::Agent
         with_environment env do
           with_config options do
             test = ->{ assert_equal test_case[:expected_output_json], UtilizationData.new.to_collector_hash }
-            if PCF_INPUTS.keys.all? {|k| test_case.key? k}
+            if PCF_INPUTS.keys.all? { |k| test_case.key? k }
               with_pcf_env stub_pcf_env(test_case), &test
             else
               test[]
@@ -408,7 +408,7 @@ module NewRelic::Agent
     }
 
     def stub_aws_inputs test_case
-      resp = test_case.reduce({}) {|h, (k, v)| h[AWS_INPUTS[k]] = v if AWS_INPUTS[k]; h}
+      resp = test_case.reduce({}) { |h, (k, v)| h[AWS_INPUTS[k]] = v if AWS_INPUTS[k]; h }
       stub_aws_info response_body: JSON.dump(resp) unless resp.empty?
     end
 
@@ -438,7 +438,7 @@ module NewRelic::Agent
     }
 
     def stub_azure_inputs test_case
-      resp = test_case.reduce({}) {|h, (k, v)| h[AZURE_INPUTS[k]] = v if AZURE_INPUTS[k]; h}
+      resp = test_case.reduce({}) { |h, (k, v)| h[AZURE_INPUTS[k]] = v if AZURE_INPUTS[k]; h }
       stub_azure_info response_body: JSON.dump(resp) unless resp.empty?
     end
 
@@ -450,7 +450,7 @@ module NewRelic::Agent
     }
 
     def stub_gcp_inputs test_case
-      resp = test_case.reduce({}) {|h, (k, v)| h[GCP_INPUTS[k]] = v if GCP_INPUTS[k]; h}
+      resp = test_case.reduce({}) { |h, (k, v)| h[GCP_INPUTS[k]] = v if GCP_INPUTS[k]; h }
       stub_gcp_info response_body: JSON.dump(resp) unless resp.empty?
     end
 
@@ -461,7 +461,7 @@ module NewRelic::Agent
     }
 
     def stub_pcf_env test_case
-      PCF_INPUTS.reduce({}) {|h, (k, v)| h[v] = test_case[k]; h}
+      PCF_INPUTS.reduce({}) { |h, (k, v)| h[v] = test_case[k]; h }
     end
 
   end

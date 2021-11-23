@@ -31,7 +31,7 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
   end
 
   def test_parse_frontend_timestamp_from_earliest_header
-    headers = {'HTTP_X_REQUEST_START'    => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 63),
+    headers = {'HTTP_X_REQUEST_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 63),
                 'HTTP_X_QUEUE_START'      => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 62),
                 'HTTP_X_MIDDLEWARE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 61)}
 

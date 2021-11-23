@@ -91,10 +91,10 @@ module Multiverse
       "rails"         => ["active_record", "rails", "rails_prepend", "activemerchant"],
       "frameworks"    => ["sinatra", "padrino", "grape"],
       "httpclients"   => ["curb", "excon", "httpclient"],
-      "httpclients_2"   => ["typhoeus", "net_http", "httprb"],
+      "httpclients_2" => ["typhoeus", "net_http", "httprb"],
       "infinite_tracing" => ["infinite_tracing"],
 
-      "rest"          => [] # Specially handled below
+      "rest" => [] # Specially handled below
     }
 
     # Would like to reinstate but requires investigation, see RUBY-1749
@@ -118,7 +118,6 @@ module Multiverse
       return true if suite == 'active_record' and RUBY_VERSION >= '3.0.0'
       return true if ["grape"].include?(suite) and RUBY_VERSION >= '3.0'
     end
-
 
     def passes_filter?(dir, filter)
       return true if filter.nil?

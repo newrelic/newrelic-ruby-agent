@@ -43,7 +43,9 @@ if !defined?(DB)
   create_tables(DB)
 
   class Author < Sequel::Model; end
+
   class Post < Sequel::Model; end
+
   class User < Sequel::Model; end
 
   # Version 4.0 of Sequel moved update_except off to a plugin

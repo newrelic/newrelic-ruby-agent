@@ -116,8 +116,8 @@ class AttributeProcessingTest < Minitest::Test
           'bang'   => 'woot',
           'ok'     => :dokey,
           'yes'    => [],
-          'yup'  => {},
-          'yayuh'   => Rational(1),
+          'yup' => {},
+          'yayuh' => Rational(1),
           'truthy' => true,
           'falsy'  => false
         }
@@ -148,7 +148,7 @@ class AttributeProcessingTest < Minitest::Test
     params = {:foo => {:bar => ["qux", "quux"]}}
     yielded = {}
 
-    NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params) { |k, v| yielded[k] = v}
+    NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params) { |k, v| yielded[k] = v }
 
     expected = {"foo.bar.0" => "qux", "foo.bar.1" => "quux"}
     assert_equal expected, yielded

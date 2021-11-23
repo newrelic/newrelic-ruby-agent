@@ -140,7 +140,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       # This is our hint to research into what's not being shutdown properly!
       def running_contexts
         contexts = FakeTraceObserverHelpers::RUNNING_SERVER_CONTEXTS
-        contexts.map{|k, v| v}.inspect
+        contexts.map{ |k, v| v }.inspect
       end
 
       def add_http2_port

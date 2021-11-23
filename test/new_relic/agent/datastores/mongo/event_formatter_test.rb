@@ -57,10 +57,10 @@ module NewRelic
           }.freeze
 
           AGGREGATE_COMMAND = {
-            "aggregate"=>"tribbles",
-            "pipeline"=>[
-              {"$group"=> {"_id"=>"name", "max"=>{"$max"=>"$count"}}},
-              {"$match"=>{"max"=>{"$gte"=>1}}}
+            "aggregate" => "tribbles",
+            "pipeline" => [
+              {"$group" => {"_id" => "name", "max" => {"$max" => "$count"}}},
+              {"$match" => {"max" => {"$gte" => 1}}}
             ]
           }
 

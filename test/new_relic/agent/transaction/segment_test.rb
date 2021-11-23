@@ -77,7 +77,7 @@ module NewRelic
             agent_attributes = attributes_for(segment, :agent)
 
             # No error attributes
-            assert_equal({"parent.transportType"=>"Unknown"}, agent_attributes)
+            assert_equal({"parent.transportType" => "Unknown"}, agent_attributes)
           end
         end
 
@@ -332,7 +332,6 @@ module NewRelic
           assert_equal "Use This!", actual[:'request.headers.userAgent']
           assert_equal "GET", actual[:'request.method']
         end
-
 
         def test_transaction_response_attributes_included_in_agent_attributes
           txn = in_transaction do |t|

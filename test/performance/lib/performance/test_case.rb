@@ -27,6 +27,7 @@ module Performance
     end
 
     def setup; end
+
     def teardown; end
 
     def self.skip_test(test_method_name, options = {})

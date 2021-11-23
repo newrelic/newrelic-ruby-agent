@@ -266,7 +266,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           def test_records_metrics_for_aggregate
             in_transaction do
               @collection.aggregate([
-                {'$group' => {'_id' => "name", "max" => {'$max'=>"$count"}}},
+                {'$group' => {'_id' => "name", "max" => {'$max' => "$count"}}},
                 {'$match' => {'max' => {'$gte' => 1}}}
               ]).to_a
             end
@@ -280,7 +280,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
           def test_aggregate_pipeline_obfuscated_by_default
             in_transaction do
               @collection.aggregate([
-                {'$group' => {'_id' => "name", "max" => {'$max'=>"$count"}}},
+                {'$group' => {'_id' => "name", "max" => {'$max' => "$count"}}},
                 {'$match' => {'max' => {'$gte' => 1}}}
               ]).to_a
             end
@@ -290,8 +290,8 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             node = find_node_with_name(sample, metric)
 
             expected = [
-              {"$group"=>{"_id"=>"?", "max"=>{"$max"=>"?"}}},
-              {"$match"=>{"max"=>{"$gte"=>"?"}}}
+              {"$group" => {"_id" => "?", "max" => {"$max" => "?"}}},
+              {"$match" => {"max" => {"$gte" => "?"}}}
             ]
 
             assert_equal expected, node[:statement]["pipeline"]
@@ -306,7 +306,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             metric = "Datastore/statement/MongoDB/#{@collection_name}/find"
             node = find_node_with_name(sample, metric)
 
-            expected = {"name"=>"?", "count"=>{"$gte"=>"?"}}
+            expected = {"name" => "?", "count" => {"$gte" => "?"}}
 
             assert_equal expected, node[:statement]["filter"]
           end
@@ -322,20 +322,20 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             end
 
             expected = {
-              "test_txn" => {:call_count=>1},
-              "OtherTransactionTotalTime" => {:call_count=>1},
-              "OtherTransactionTotalTime/test_txn" => {:call_count=>1},
-              ["Datastore/statement/MongoDB/#{@collection_name}/find", "test_txn"] => {:call_count=>1},
-              "Datastore/statement/MongoDB/#{@collection_name}/find" => {:call_count=>1},
-              ["Datastore/statement/MongoDB/#{@collection_name}/getMore", "test_txn"] => {:call_count=>2},
-              "Datastore/statement/MongoDB/#{@collection_name}/getMore" => {:call_count=>2},
-              "Datastore/operation/MongoDB/find" => {:call_count=>1},
-              "Datastore/operation/MongoDB/getMore" => {:call_count=>2},
-              "Datastore/instance/MongoDB/#{NewRelic::Agent::Hostname.get}/27017" => {:call_count=>3},
-              "Datastore/MongoDB/allWeb" => {:call_count=>3},
-              "Datastore/MongoDB/all" => {:call_count=>3},
-              "Datastore/allWeb" => {:call_count=>3},
-              "Datastore/all" => {:call_count=>3},
+              "test_txn" => {:call_count => 1},
+              "OtherTransactionTotalTime" => {:call_count => 1},
+              "OtherTransactionTotalTime/test_txn" => {:call_count => 1},
+              ["Datastore/statement/MongoDB/#{@collection_name}/find", "test_txn"] => {:call_count => 1},
+              "Datastore/statement/MongoDB/#{@collection_name}/find" => {:call_count => 1},
+              ["Datastore/statement/MongoDB/#{@collection_name}/getMore", "test_txn"] => {:call_count => 2},
+              "Datastore/statement/MongoDB/#{@collection_name}/getMore" => {:call_count => 2},
+              "Datastore/operation/MongoDB/find" => {:call_count => 1},
+              "Datastore/operation/MongoDB/getMore" => {:call_count => 2},
+              "Datastore/instance/MongoDB/#{NewRelic::Agent::Hostname.get}/27017" => {:call_count => 3},
+              "Datastore/MongoDB/allWeb" => {:call_count => 3},
+              "Datastore/MongoDB/all" => {:call_count => 3},
+              "Datastore/allWeb" => {:call_count => 3},
+              "Datastore/all" => {:call_count => 3},
               "Supportability/API/drop_buffered_data" => {:call_count => 1},
               "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
               "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb" => {:call_count => 1},
@@ -430,7 +430,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               :database   => @database_name,
               :collection => @collection_name,
               'insert' => @collection_name,
-              :operation  => :insert,
+              :operation => :insert,
               'ordered' => true
             }
 

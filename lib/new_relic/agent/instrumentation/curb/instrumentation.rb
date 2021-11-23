@@ -29,7 +29,6 @@ module NewRelic
             yield
           end
 
-
           def http_put_with_tracing
             self._nr_http_verb = :PUT
             yield
@@ -113,7 +112,6 @@ module NewRelic
           rescue => err
             NewRelic::Agent.logger.error("Untrapped exception", err)
           end
-
 
           # Create request and response adapter objects for the specified +request+
           # NOTE: Although strange to wrap request and response at once, it works

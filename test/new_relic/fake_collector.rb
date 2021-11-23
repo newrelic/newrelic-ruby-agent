@@ -103,7 +103,7 @@ module NewRelic
 
     def stub_wait(method, wait_time, status = 200)
       self.mock[method] ||= default_response
-      self.mock[method].override(status, Proc.new { sleep(wait_time); {'return_value' => ""}})
+      self.mock[method].override(status, Proc.new { sleep(wait_time); {'return_value' => ""} })
     end
 
     def method_from_request(req)
@@ -173,7 +173,7 @@ module NewRelic
           metric_record[0]['name'] == name &&
             (!scope || metric_record[0]['scope'] == scope)
         end
-      end.compact.map{|m| m[1]}
+      end.compact.map{ |m| m[1] }
     end
 
     class AgentPost
@@ -227,7 +227,6 @@ module NewRelic
       end
     end
 
-
     class MetricDataPost < AgentPost
       def initialize(opts = {})
         super
@@ -238,7 +237,7 @@ module NewRelic
       end
 
       def metric_names
-        metrics.map {|m| m[0]["name"] }
+        metrics.map { |m| m[0]["name"] }
       end
     end
 
@@ -356,8 +355,11 @@ module NewRelic
     end
 
     class AnalyticEventDataPost < ReservoirSampledContainerPost; end
+
     class CustomEventDataPost < ReservoirSampledContainerPost; end
+
     class ErrorEventDataPost < ReservoirSampledContainerPost; end
+
     class SpanEventDataPost < ReservoirSampledContainerPost; end
 
     class ErrorDataPost < AgentPost

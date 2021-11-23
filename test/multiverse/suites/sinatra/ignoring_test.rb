@@ -201,7 +201,6 @@ class SinatraIgnoreItAllTest < SinatraTestCase
   end
 end
 
-
 # Blanket ignore for whole app if calls made without parameters
 class SinatraIgnoreApdexAndEndUserApp < Sinatra::Base
   newrelic_ignore_apdex

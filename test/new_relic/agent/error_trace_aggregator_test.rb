@@ -83,7 +83,6 @@ module NewRelic
         undef inspect
       end
 
-
       def test_supported_param_types
         types = [[1, '1'],
         [1.1, '1.1'],
@@ -221,7 +220,7 @@ module NewRelic
         errors = error_trace_aggregator.harvest!
         trace = errors.first.stack_trace
 
-        assert trace.any? {|line| line.include?(__FILE__)}
+        assert trace.any? { |line| line.include?(__FILE__) }
       end
 
       def test_notice_agent_error_allows_an_error_past_queue_limit

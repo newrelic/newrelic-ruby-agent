@@ -117,7 +117,7 @@ module NewRelic
         end
 
         def self.trim_result(result)
-          result.slice!((MAXIMUM_COMMAND_LENGTH-ELLIPSES.length)..-1)
+          result.slice!((MAXIMUM_COMMAND_LENGTH - ELLIPSES.length)..-1)
           result.strip!
           result << ELLIPSES
         end

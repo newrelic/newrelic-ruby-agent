@@ -162,7 +162,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
       # recover
-      $collector.stub('analytic_event_data', {'return_value'=>nil}, 200)
+      $collector.stub('analytic_event_data', {'return_value' => nil}, 200)
       NewRelic::Agent.agent.send(:harvest_and_send_analytic_event_data)
 
       post = $collector.calls_for('analytic_event_data').last

@@ -144,7 +144,9 @@ module NewRelic
       end
 
       def self.num_physical_packages ; get_processor_info[:num_physical_packages ] end
+
       def self.num_physical_cores ; get_processor_info[:num_physical_cores ] end
+
       def self.num_logical_processors; get_processor_info[:num_logical_processors] end
 
       def self.processor_arch
@@ -241,12 +243,12 @@ module NewRelic
 
       def self.ram_in_mib
         if darwin?
-          (sysctl_value('hw.memsize').to_i / (1024 ** 2)).to_i
+          (sysctl_value('hw.memsize').to_i / (1024**2)).to_i
         elsif linux?
           meminfo = proc_try_read('/proc/meminfo')
           parse_linux_meminfo_in_mib(meminfo)
         elsif bsd?
-          (sysctl_value('hw.realmem').to_i / (1024 ** 2)).to_i
+          (sysctl_value('hw.realmem').to_i / (1024**2)).to_i
         else
           ::NewRelic::Agent.logger.debug("Unable to determine ram_in_mib for host os: #{ruby_os_identifier}")
           nil

@@ -31,8 +31,6 @@ module NewRelic::Agent
         reset_buffers_and_caches
       end
 
-
-
       def test_accept_distributed_trace_headers_api
         carrier = {'HTTP_TRACEPARENT' => 'pretend_this_is_valid'}
         in_transaction "test_txn" do |txn|
@@ -56,7 +54,6 @@ module NewRelic::Agent
           DistributedTracing.insert_distributed_trace_headers carrier
         end
       end
-
 
       def test_accept_distributed_trace_headers_api_case_insensitive
         carrier = {

@@ -15,8 +15,8 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_load_hash_for_specified_configs
-      ignore_messages = {"RuntimeError"=>["test error3"]}
-      expected_messages = {"StandardError"=>["test error1", "test error2"]}
+      ignore_messages = {"RuntimeError" => ["test error3"]}
+      expected_messages = {"StandardError" => ["test error1", "test error2"]}
       assert_equal ignore_messages, @source[:'error_collector.ignore_messages']
       assert_equal expected_messages, @source[:'error_collector.expected_messages']
     end

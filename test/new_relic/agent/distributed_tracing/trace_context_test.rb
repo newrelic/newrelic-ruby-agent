@@ -206,7 +206,6 @@ module NewRelic::Agent::DistributedTracing
       assert_equal '12345678901234567890123456789012', trace_parent['trace_id']
     end
 
-
     def test_extract_trace_parent_zero_version_with_trailing_fields
       carrier = make_inbound_carrier({
         NewRelic::TRACEPARENT_KEY => '00-12345678901234567890123456789012-1234567890123456-01-what-the-future-will-be-like'

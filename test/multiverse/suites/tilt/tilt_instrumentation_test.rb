@@ -97,7 +97,7 @@ class TiltInstrumentationTest < Minitest::Test
     end
 
     last_node = nil
-    last_transaction_trace.root_node.each_node{|s| last_node = s }
+    last_transaction_trace.root_node.each_node{ |s| last_node = s }
     NewRelic::Agent.shutdown
 
     assert_equal(haml_render_metric,

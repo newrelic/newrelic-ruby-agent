@@ -123,7 +123,6 @@ module NewRelic
           assert last_span_event[2]["parent.transportDuration"], "Expected parent.transportDuration in agent attributes"
         end
 
-
         def test_empty_error_message_can_override_previous_error_message_attribute
           begin
             with_segment do |segment|

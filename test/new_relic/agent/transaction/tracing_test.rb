@@ -163,7 +163,6 @@ module NewRelic
           refute_metrics_recorded ["Custom/segment/method", "Custom/all"]
         end
 
-
         def test_current_segment_in_transaction
           in_transaction "test_txn" do |txn|
             assert_equal txn.initial_segment, txn.current_segment
@@ -429,7 +428,7 @@ module NewRelic
           with_config(:'transaction_tracer.limit_segments' => 3) do
             in_transaction do |txn|
               expects_logging(:debug, includes("Segment limit"))
-              8.times {|i| NewRelic::Agent::Tracer.start_segment name: "segment_#{i}" }
+              8.times { |i| NewRelic::Agent::Tracer.start_segment name: "segment_#{i}" }
             end
           end
         end

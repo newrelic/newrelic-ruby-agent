@@ -98,7 +98,6 @@ module NewRelic
         end
       end
 
-
       # This logger decorates logs with trace and entity metadata, and emits log
       # messages formatted as JSON objects.  It extends the Logger class from
       # the Ruby standard library, and accepts the same constructor parameters.

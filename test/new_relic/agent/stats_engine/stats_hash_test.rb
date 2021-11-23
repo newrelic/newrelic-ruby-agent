@@ -147,7 +147,6 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     assert_equal(1, hash[specs[3]].call_count)
   end
 
-
   def test_marshal_dump
     @hash.record(NewRelic::MetricSpec.new('foo'), 1)
     @hash.record(NewRelic::MetricSpec.new('bar'), 2)

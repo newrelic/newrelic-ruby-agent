@@ -64,7 +64,7 @@ module Multiverse
 
     def clean_gemfiles(env_index)
       gemfiles = ["Gemfile.#{env_index}", "Gemfile.#{env_index}.lock"]
-      gemfiles.each {|f| File.delete(f) if File.exist?(f)}
+      gemfiles.each { |f| File.delete(f) if File.exist?(f) }
     end
 
     def envfile_path
@@ -184,7 +184,7 @@ module Multiverse
       old_version = lock_contents.pop.strip
 
       lock_contents << "   #{new_version}"
-      File.open(lock_filename, 'w'){|f| f.puts lock_contents}
+      File.open(lock_filename, 'w'){ |f| f.puts lock_contents }
 
       if verbose?
         puts "Changing the Bundler version lock in #{lock_filename}"
@@ -197,7 +197,7 @@ module Multiverse
     # things out more, this is more of an issue, so start locking it down.
     def exclusive_bundle
       bundler_out = nil
-      File.open(bundling_lock_file, File::RDWR|File::CREAT) do |f|
+      File.open(bundling_lock_file, File::RDWR | File::CREAT) do |f|
         puts "Waiting on '#{bundling_lock_file}' for our chance to bundle" if verbose?
         f.flock(File::LOCK_EX)
         puts "Let's get ready to BUNDLE!" if verbose?
@@ -394,7 +394,7 @@ module Multiverse
     end
 
     def prime
-      ENV["VERBOSE"]= "1"
+      ENV["VERBOSE"] = "1"
       return unless check_environment_condition
 
       puts yellow("\nPriming #{directory.inspect}")
@@ -460,7 +460,7 @@ module Multiverse
       with_each_environment do |_, i|
         threads << Thread.new { execute_in_background(i, instrumentation_method) }
       end
-      threads.each {|t| t.join}
+      threads.each { |t| t.join }
     end
 
     def with_each_environment
@@ -533,7 +533,7 @@ module Multiverse
       options = []
       options << "-v" if verbose?
       options << "--seed=#{seed}" unless seed == ""
-      options << "--name=/#{names.map {|n| n + ".*"}.join("|")}/" unless names == []
+      options << "--name=/#{names.map { |n| n + ".*" }.join("|")}/" unless names == []
 
       original_options = options.dup
 
@@ -643,7 +643,7 @@ module Multiverse
 
       # Important that we filter after removing before/after so they don't get
       # tromped for not matching our pattern!
-      files.select! {|file| file.include?(filter_file) } if filter_file
+      files.select! { |file| file.include?(filter_file) } if filter_file
 
       # Just put before_suite.rb at the head of the list.
       # Will explicitly load after_suite.rb after the test run

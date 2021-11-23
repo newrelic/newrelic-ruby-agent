@@ -31,7 +31,6 @@ module NewRelic
         end
       end
 
-
       class BacktraceRoot < BacktraceBase
         attr_reader :flattened
 
@@ -78,7 +77,6 @@ module NewRelic
         end
       end
 
-
       class BacktraceNode < BacktraceBase
         attr_reader :file, :method, :line_no, :raw_line, :as_array
         attr_accessor :runnable_count, :depth
@@ -118,7 +116,7 @@ module NewRelic
         def dump_string(indent = 0)
           @file, @method, @line_no = parse_backtrace_frame(@raw_line)
           result = "#{" " * indent}#<BacktraceNode:#{object_id} [#{@runnable_count}] #{@file}:#{@line_no} in #{@method}>"
-          child_results = @children.map { |c| c.dump_string(indent+2) }.join("\n")
+          child_results = @children.map { |c| c.dump_string(indent + 2) }.join("\n")
           result << "\n" unless child_results.empty?
           result << child_results
         end

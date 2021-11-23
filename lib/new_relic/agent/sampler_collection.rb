@@ -34,7 +34,6 @@ module NewRelic
         end
       end
 
-
       def poll_samplers
         @samplers.delete_if do |sampler|
           begin

@@ -12,7 +12,7 @@ module NewRelic
         end
 
         def self.subscribed?
-          find_all_subscribers.find{|s| s.instance_variable_get(:@delegate).class == self }
+          find_all_subscribers.find{ |s| s.instance_variable_get(:@delegate).class == self }
         end
 
         def self.find_all_subscribers
@@ -64,7 +64,7 @@ module NewRelic
         end
 
         def segment_stack
-          Thread.current[@queue_key] ||= Hash.new {|h, id| h[id] = [] }
+          Thread.current[@queue_key] ||= Hash.new { |h, id| h[id] = [] }
         end
 
         def state

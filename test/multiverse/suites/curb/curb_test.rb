@@ -92,7 +92,6 @@ class CurbTest < Minitest::Test
     assert_equal(200, status_code)
   end
 
-
   def test_doesnt_propagate_errors_in_instrumentation
     NewRelic::Agent::CrossAppTracing.stubs(:cross_app_enabled?).raises("Booom")
 
@@ -100,7 +99,6 @@ class CurbTest < Minitest::Test
 
     assert_kind_of Curl::Easy, res
   end
-
 
   def test_works_with_parallel_fetches
     results = []

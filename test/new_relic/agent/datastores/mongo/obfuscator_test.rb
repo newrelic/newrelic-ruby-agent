@@ -70,8 +70,8 @@ module NewRelic
           end
 
           def test_obfuscates_array_statement
-            statement = [{"$group"=>{:_id=>"$says", :total=>{"$sum"=>1}}}]
-            expected = [{"$group"=>{:_id=>"?", :total=>{"$sum"=>"?"}}}]
+            statement = [{"$group" => {:_id => "$says", :total => {"$sum" => 1}}}]
+            expected = [{"$group" => {:_id => "?", :total => {"$sum" => "?"}}}]
 
             obfuscated = Obfuscator.obfuscate_statement(statement)
             assert_equal expected, obfuscated
@@ -80,12 +80,12 @@ module NewRelic
           def test_obfuscate_nested_arrays
             selector = {
               "aggregate" => "mongeese",
-              "pipeline"  => [{"$group"=>{:_id=>"$says", :total=>{"$sum"=>1}}}]
+              "pipeline"  => [{"$group" => {:_id => "$says", :total => {"$sum" => 1}}}]
             }
 
             expected = {
               "aggregate" => "?",
-              "pipeline"  => [{"$group"=>{:_id=>"?", :total=>{"$sum"=>"?"}}}]
+              "pipeline"  => [{"$group" => {:_id => "?", :total => {"$sum" => "?"}}}]
             }
 
             obfuscated = Obfuscator.obfuscate_statement(selector)

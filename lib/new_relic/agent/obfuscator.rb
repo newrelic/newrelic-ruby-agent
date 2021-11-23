@@ -39,7 +39,7 @@ module NewRelic
         index = 0
         text.each_byte do |byte|
           encoded.concat((byte ^ key_bytes[index % key_bytes.length]))
-          index+=1
+          index += 1
         end
         encoded
       end

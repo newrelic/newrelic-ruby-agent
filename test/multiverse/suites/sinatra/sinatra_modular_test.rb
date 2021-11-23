@@ -40,7 +40,7 @@ class SinatraModularTestApp < Sinatra::Base
 
   # check that pass works properly
   condition { pass { halt 418, "I'm a teapot." } }
-  get('/pass') { }
+  get('/pass') {}
 
   get '/pass' do
     "I'm not a teapot."
@@ -48,7 +48,7 @@ class SinatraModularTestApp < Sinatra::Base
 
   error(NewRelic::TestHelpers::Exceptions::TestError) { halt 200, 'nothing happened' }
   condition { raise NewRelic::TestHelpers::Exceptions::TestError }
-  get('/error') { }
+  get('/error') {}
 
   condition do
     raise "Boo" if $precondition_already_checked

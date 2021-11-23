@@ -411,7 +411,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     refute_metrics_match(/Memcached.*Order/)
   end
 
-
   def test_metrics_for_destroy
     in_web_transaction do
       order = Order.create("name" => "burt")

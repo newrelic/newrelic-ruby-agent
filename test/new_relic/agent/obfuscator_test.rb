@@ -42,7 +42,6 @@ class NewRelic::Agent::ObfuscatorTest < Minitest::Test
                    "Z21sa2ppxKHKo2RjYm4iLiRnamZg")
   end
 
-
   def test_decoding_blank
     obfuscator = NewRelic::Agent::Obfuscator.new('query')
     assert_equal "", obfuscator.deobfuscate("")

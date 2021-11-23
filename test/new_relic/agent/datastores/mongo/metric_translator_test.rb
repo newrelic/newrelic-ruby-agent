@@ -25,7 +25,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_find
-    payload = {:database   => @database_name,
+    payload = {:database => @database_name,
                 :collection => @collection_name,
                 :selector   => {"name" => "soterios johnson"}}
 
@@ -35,7 +35,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_find_one
-    payload = {:database   => @database_name,
+    payload = {:database => @database_name,
                 :collection => @collection_name,
                 :selector   => {},
                 :limit      => -1}
@@ -46,7 +46,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_remove
-    payload = {:database   => @database_name,
+    payload = {:database => @database_name,
                 :collection => @collection_name,
                 :selector   => {"name" => "soterios johnson"}}
 
@@ -56,7 +56,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_update
-    payload = {:database   => @database_name,
+    payload = {:database => @database_name,
                 :collection => @collection_name,
                 :selector   => {"name" => "soterios johnson"},
                 :document   => {"name" => "codemonkey"}}
@@ -67,7 +67,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_distinct
-    payload = {:database   => @database_name,
+    payload = {:database => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
                 :selector   => {:distinct => @collection_name,
@@ -80,10 +80,10 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_count
-    payload = {:database   => @database_name,
+    payload = {:database => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
-                :selector   => {"count"  => @collection_name,
+                :selector   => {"count" => @collection_name,
                                  "query"  => {},
                                  "fields" => nil}}
 
@@ -93,14 +93,14 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_group
-    payload = {:database   => @database_name,
+    payload = {:database => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
-                :selector   => {"group" => {"ns"      => @collection_name,
+                :selector   => {"group" => {"ns" => @collection_name,
                                               "$reduce" => stub("BSON::Code"),
                                               "cond"    => {},
-                                              "initial" => {:count=>0},
-                                              "key"     => {"name"=>1}}}}
+                                              "initial" => {:count => 0},
+                                              "key"     => {"name" => 1}}}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
@@ -108,7 +108,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_aggregate
-    payload = {:database   => @database_name,
+    payload = {:database => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
                 :selector   =>  {"aggregate" => @collection_name,
@@ -120,7 +120,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_mapreduce
-    payload = {:database   => @database_name,
+    payload = {:database => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
                 :selector   =>  {"mapreduce" => @collection_name,
@@ -133,9 +133,8 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
     assert_equal ['mapreduce', @collection_name], result
   end
 
-
   def test_operation_and_collection_for_find_and_modify
-    payload = {:database   => @database_name,
+    payload = {:database => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
                 :selector   => {:findandmodify => @collection_name,
@@ -148,7 +147,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_find_and_remove
-    payload = {:database   => @database_name,
+    payload = {:database => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
                 :selector   => {:findandmodify => @collection_name,
@@ -161,7 +160,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_create_index
-    payload = {:database   => @database_name,
+    payload = {:database => @database_name,
                 :collection => "system.indexes",
                 :documents  => [ {:name => "name_1",
                                     :ns   => "#{@database_name}.#{@collection_name}",
@@ -173,11 +172,11 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_drop_indexes
-    payload = {:database   => @database_name,
+    payload = {:database => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
                 :selector => {:deleteIndexes => @collection_name,
-                               :index         => "*"}}
+                               :index => "*"}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
@@ -200,7 +199,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
     payload = {:database => @database_name,
                 :collection => "$cmd",
                 :limit => -1,
-                :selector => {:reIndex=> @collection_name}}
+                :selector => {:reIndex => @collection_name}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
@@ -208,8 +207,8 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_drop_collection
-    payload = {:database   => @database_name,
-                :collection =>"$cmd",
+    payload = {:database => @database_name,
+                :collection => "$cmd",
                 :limit      => -1,
                 :selector   => {:drop => @collection_name}}
 
@@ -219,11 +218,11 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_rename_collection
-    payload = {:database   => @database_name,
+    payload = {:database => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
                 :selector   => {:renameCollection => "#{@database_name}.#{@collection_name}",
-                                 :to=>"#{@database_name}.renamed_#{@collection_name}"}}
+                                 :to => "#{@database_name}.renamed_#{@collection_name}"}}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
@@ -231,7 +230,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_ismaster
-    payload = {:database   => @database_name,
+    payload = {:database => @database_name,
                 :collection => "$cmd",
                 :limit      => -1,
                 :selector   => {:ismaster => 1}}
@@ -244,8 +243,8 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
   end
 
   def test_operation_and_collection_for_collstats
-    payload = {:database   => @database_name,
-                :collection =>"$cmd",
+    payload = {:database => @database_name,
+                :collection => "$cmd",
                 :limit      => -1,
                 :selector   => {:collstats => @collection_name}}
 

@@ -12,6 +12,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     NewRelic::Agent.manual_start
     super
   end
+
   def teardown
     NewRelic::Agent.shutdown
     super
@@ -22,15 +23,18 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     val = (('A'..'Z').to_a.join * 1024).to_s
     assert_equal val[0...16384] + "...", normalize_params(val)
   end
+
   def test_array
     new_array = normalize_params [ 1000 ] * 2000
     assert_equal 128, new_array.size
     assert_equal '1000', new_array[0]
   end
+
   def test_boolean
     np = normalize_params('monitor_mode' => false)
     assert_equal false, np['monitor_mode']
   end
+
   def test_string__singleton
     val = "This String"
     def val.hello; end
@@ -38,7 +42,9 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     assert val.respond_to?(:hello)
     assert !normalize_params(val).respond_to?(:hello)
   end
+
   class MyString < String; end
+
   def test_kind_of_string
     s = MyString.new "This is a string"
     assert_equal "This is a string", s.to_s
@@ -49,21 +55,26 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     assert_equal String, flatten(s).class
     assert_equal String, truncate(s, 2).class
   end
+
   def test_number
     normalize_params({'one' => 1.0, 'two' => '2'})
   end
+
   def test_nil
     np = normalize_params({nil => 1.0, 'two' => nil})
     assert_equal "1.0", np['']
     assert_nil np['two']
   end
+
   def test_hash
     val = ('A'..'Z').to_a.join * 100
-    assert_equal Hash[(val[0..63] + "...") => (("0"*16384) + "...")], normalize_params({val => '0' * (16384*2)})
+    assert_equal Hash[(val[0..63] + "...") => (("0" * 16384) + "...")], normalize_params({val => '0' * (16384 * 2)})
   end
+
   class MyHash < Hash
 
   end
+
   # Test to ensure that hash subclasses are properly converted
   def test_hash_subclass
     h = MyHash.new
@@ -75,8 +86,6 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     myhash = nh[:one][:myhash]
     assert_equal Hash, myhash.class
   end
-
-
 
   def test_enumerable
     e = MyEnumerable.new
@@ -99,6 +108,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     s.each { |entry| val = entry; break }
     assert_match(/^startfoo bar/, val)
   end
+
   class MyEnumerable
     include Enumerable
 
@@ -108,6 +118,6 @@ class NewRelic::CollectionHelperTest < Minitest::Test
   end
 
   def test_object
-    assert_equal ["foo", '#<OpenStruct>'], normalize_params(['foo', OpenStruct.new('z'=>'q')])
+    assert_equal ["foo", '#<OpenStruct>'], normalize_params(['foo', OpenStruct.new('z' => 'q')])
   end
 end

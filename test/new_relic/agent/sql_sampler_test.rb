@@ -134,15 +134,15 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     data.set_transaction_info("/c/a", 'guid')
     data.set_transaction_name("WebTransaction/Controller/c/a")
     15.times do |i|
-      statement = NewRelic::Agent::Database::Statement.new("select * from test#{(i+97).chr}")
-      data.sql_data << NewRelic::Agent::SlowSql.new(statement, "Database/test#{(i+97).chr}/select", i)
+      statement = NewRelic::Agent::Database::Statement.new("select * from test#{(i + 97).chr}")
+      data.sql_data << NewRelic::Agent::SlowSql.new(statement, "Database/test#{(i + 97).chr}/select", i)
     end
 
     @sampler.save_slow_sql data
     result = @sampler.harvest!
 
     assert_equal(10, result.size)
-    assert_equal(14, result.sort{|a, b| b.max_call_time <=> a.max_call_time}.first.total_call_time)
+    assert_equal(14, result.sort{ |a, b| b.max_call_time <=> a.max_call_time }.first.total_call_time)
   end
 
   def test_harvest_should_aggregate_similar_queries

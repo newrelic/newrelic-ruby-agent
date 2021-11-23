@@ -279,8 +279,8 @@ module NewRelic
 
           prepend(_nr_traced_method_module)
 
-          ::NewRelic::Agent.logger.debug("Traced method: class = #{_nr_derived_class_name},"+
-                                         "method = #{method_name}, "+
+          ::NewRelic::Agent.logger.debug("Traced method: class = #{_nr_derived_class_name}," +
+                                         "method = #{method_name}, " +
                                          "metric = '#{metric_name}'")
         end
 

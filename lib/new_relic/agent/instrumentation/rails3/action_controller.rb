@@ -47,6 +47,7 @@ module NewRelic
                 identifier
               end
             end
+
             def render_type(file_path)
               file = File.basename(file_path)
               if file.starts_with?('_')

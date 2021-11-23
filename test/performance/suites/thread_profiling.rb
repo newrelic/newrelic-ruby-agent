@@ -11,7 +11,7 @@ class ThreadProfiling < Performance::TestCase
     if n == 0
       final.call
     else
-      recurse(n-1, final)
+      recurse(n - 1, final)
     end
   end
 
@@ -112,8 +112,8 @@ class ThreadProfiling < Performance::TestCase
   def aggregate_lots_of_nodes(profile, depth, trace)
     if depth > 0
       7.times do |i|
-        trace.push("path#{i}:#{i+50}:in `depth#{depth}'")
-        aggregate_lots_of_nodes(profile, depth-1, trace)
+        trace.push("path#{i}:#{i + 50}:in `depth#{depth}'")
+        aggregate_lots_of_nodes(profile, depth - 1, trace)
         trace.pop
       end
     else

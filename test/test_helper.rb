@@ -22,7 +22,7 @@ require_relative 'helpers/hometown_monkey_patch'
 
 Hometown.watch(::Thread)
 
-Dir[File.expand_path('../helpers/*', __FILE__)].each {|f| require f.sub(/.*test\//, '')}
+Dir[File.expand_path('../helpers/*', __FILE__)].each { |f| require f.sub(/.*test\//, '') }
 
 # We can speed things up in tests that don't need to load rails.
 # You can also run the tests in a mode without rails.  Many tests

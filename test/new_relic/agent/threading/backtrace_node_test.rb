@@ -37,8 +37,8 @@ module NewRelic::Agent::Threading
     end
 
     def convert_nodes_to_array(nodes)
-      nodes.each {|n| n.mark_for_array_conversion }
-      nodes.each {|n| n.complete_array_conversion }
+      nodes.each { |n| n.mark_for_array_conversion }
+      nodes.each { |n| n.complete_array_conversion }
     end
 
     def test_single_node_converts_to_array

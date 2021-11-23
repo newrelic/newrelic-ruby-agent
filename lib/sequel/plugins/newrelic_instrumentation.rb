@@ -54,7 +54,6 @@ module Sequel
 
       end # module InstanceMethods
 
-
       # Methods to be added to Sequel::Model classes.
       module ClassMethods
         extend Sequel::Plugins::NewrelicInstrumentation::MethodWrapping

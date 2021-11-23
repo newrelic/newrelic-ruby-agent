@@ -137,7 +137,7 @@ module NewRelic
           {priority: 7}
         ]
 
-        heap = Heap.new(items) {|x| x[:priority] }
+        heap = Heap.new(items) { |x| x[:priority] }
 
         ordered_items = []
 

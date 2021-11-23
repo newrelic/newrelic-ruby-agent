@@ -35,7 +35,6 @@ class TransactionTracingPerfTests < Performance::TestCase
         end
       end
 
-
       def failure
         raise FAILURE_MESSAGE
       end

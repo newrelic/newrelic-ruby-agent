@@ -30,6 +30,7 @@ class UrlMapTest < Minitest::Test
   end
 
   class MiddlewareOne < SimpleMiddleware; end
+
   class MiddlewareTwo < SimpleMiddleware; end
 
   class ExampleApp
@@ -39,6 +40,7 @@ class UrlMapTest < Minitest::Test
   end
 
   class PrefixAppOne < ExampleApp; end
+
   class PrefixAppTwo < ExampleApp; end
 
   def app
@@ -156,9 +158,9 @@ class UrlMapTest < Minitest::Test
   # revisit how we verify that
   def get path
     env = {
-      "REQUEST_METHOD"=>"GET",
-      "PATH_INFO"=>path,
-      "SCRIPT_NAME"=>""
+      "REQUEST_METHOD" => "GET",
+      "PATH_INFO" => path,
+      "SCRIPT_NAME" => ""
     }
 
     app.call env

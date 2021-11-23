@@ -246,7 +246,6 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     end
   end
 
-
   def test_data_for_js_agent_gets_custom_attributes_with_old_config
     with_config(CAPTURE_ATTRIBUTES => true) do
       in_transaction do

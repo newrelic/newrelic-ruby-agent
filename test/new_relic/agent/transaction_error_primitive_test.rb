@@ -16,7 +16,6 @@ module NewRelic
         @span_id = NewRelic::Agent::GuidGenerator.generate_guid
       end
 
-
       def test_event_includes_expected_intrinsics
         intrinsics, *_ = create_event
 
@@ -41,9 +40,9 @@ module NewRelic
 
       def test_event_includes_synthetics
         intrinsics, *_ = create_event :payload_options => {
-          :synthetics_resource_id=>3,
-          :synthetics_job_id=>4,
-          :synthetics_monitor_id=>5
+          :synthetics_resource_id => 3,
+          :synthetics_job_id => 4,
+          :synthetics_monitor_id => 5
         }
 
         assert_equal 3, intrinsics['nr.syntheticsResourceId']
@@ -69,7 +68,7 @@ module NewRelic
       end
 
       def test_includes_cat_attributes
-        intrinsics, *_ = create_event :payload_options => {:guid => "GUID", :referring_transaction_guid=>"REFERRING_GUID"}
+        intrinsics, *_ = create_event :payload_options => {:guid => "GUID", :referring_transaction_guid => "REFERRING_GUID"}
 
         assert_equal "GUID", intrinsics["nr.transactionGuid"]
         assert_equal "REFERRING_GUID", intrinsics["nr.referringTransactionGuid"]

@@ -65,8 +65,6 @@ module NewRelic
           assert_nil payload
         end
 
-
-
         def test_accept_distributed_trace_payload_assigns_json_payload
           payload = create_distributed_trace_payload
 

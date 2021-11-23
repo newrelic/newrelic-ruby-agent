@@ -44,6 +44,7 @@ DependencyDetection.defer do
           }
         end
       end
+
       class Client
         def call(_worker_class, job, *_)
           job[NewRelic::NEWRELIC_KEY] ||= distributed_tracing_headers if ::NewRelic::Agent.config[:'distributed_tracing.enabled']

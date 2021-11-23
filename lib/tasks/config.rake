@@ -17,7 +17,7 @@ namespace :newrelic do
     }
 
     NAME_OVERRIDES = {
-      "slow_sql"     => "Slow SQL"
+      "slow_sql" => "Slow SQL"
     }
 
     def output(format)
@@ -29,7 +29,7 @@ namespace :newrelic do
     end
 
     def build_config_hash
-      sections = Hash.new {|hash, key| hash[key] = []}
+      sections = Hash.new { |hash, key| hash[key] = [] }
       NewRelic::Agent::Configuration::DEFAULTS.each do |key, value|
         next unless value[:public]
 
@@ -63,7 +63,7 @@ namespace :newrelic do
       sections << pluck("error_collector", config_hash)
       sections << pluck("browser_monitoring", config_hash)
       sections << pluck("analytics_events", config_hash)
-      sections.concat(config_hash.to_a.sort_by { |a| a.first})
+      sections.concat(config_hash.to_a.sort_by { |a| a.first })
 
       add_data_to_sections(sections)
 

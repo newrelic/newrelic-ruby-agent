@@ -184,8 +184,8 @@ class SidekiqTest < Minitest::Test
     assert_equal(1, metric_data.size, "expected exactly one metric_data post from agent")
 
     metric = metric_data.first.metrics.find { |m| m[0]['name'] == name }
-    assert(metric, "Could not find metric named #{name}. Did have metrics:\n"+
-                   metric_data.first.metrics.map{|m| m[0]['name']}.join("\t\n"))
+    assert(metric, "Could not find metric named #{name}. Did have metrics:\n" +
+                   metric_data.first.metrics.map{ |m| m[0]['name'] }.join("\t\n"))
 
     call_count = metric[1][0]
     assert_equal(expected_call_count, call_count)

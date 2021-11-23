@@ -34,7 +34,7 @@ module NewRelic::Agent
       # Tests
 
       def test_empty
-        @error_collector.notice_error(nil, :metric=> 'path')
+        @error_collector.notice_error(nil, :metric => 'path')
         traces = harvest_error_traces
         events = harvest_error_events
 

@@ -57,7 +57,7 @@ include MultiverseHelpers
   end
 
   def test_creates_web_transaction
-    @channel.perform_action({'action'=> :test_action, 'content' => 'hello'})
+    @channel.perform_action({'action' => :test_action, 'content' => 'hello'})
 
     expected_metrics = {
       'HttpDispatcher' => {:call_count => 1},
@@ -68,7 +68,7 @@ include MultiverseHelpers
   end
 
   def test_action_with_error_is_noticed_by_agent
-    @channel.perform_action({'action'=> :boom}) rescue nil
+    @channel.perform_action({'action' => :boom}) rescue nil
 
     error_trace = last_traced_error
 

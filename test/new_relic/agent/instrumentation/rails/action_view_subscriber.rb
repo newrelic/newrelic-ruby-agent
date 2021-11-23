@@ -138,7 +138,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
   def test_records_span_level_error
     exception_class = StandardError
     exception_msg = "Natural 1"
-    exception = exception_class.new(msg=exception_msg)
+    exception = exception_class.new(msg = exception_msg)
     # :exception_object was added in Rails 5 and above
     params = {:exception_object => exception, :exception => [exception_class.name, exception_msg]}
 
@@ -179,7 +179,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     end
 
     last_node = nil
-    last_transaction_trace.root_node.each_node{|s| last_node = s }
+    last_transaction_trace.root_node.each_node{ |s| last_node = s }
     NewRelic::Agent.shutdown
 
     assert_equal('View/model/index.html.erb/Rendering',

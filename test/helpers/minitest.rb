@@ -21,7 +21,7 @@ class Minitest::Test
     NewRelic::Agent.logger.info("*** #{self.class}##{test_method_name} **")
 
     @__thread_count = ruby_threads.count
-    @__threads = ruby_threads.map{|rt| Hometown.for(rt).backtrace[0]}
+    @__threads = ruby_threads.map{ |rt| Hometown.for(rt).backtrace[0] }
     super
   end
 

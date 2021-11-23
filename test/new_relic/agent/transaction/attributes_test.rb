@@ -231,7 +231,7 @@ class AttributesTest < Minitest::Test
     with_config(:'attributes.include' => "request.parameters.*") do
       attributes = create_attributes
       params = {
-        "a"*256 => "too long",
+        "a" * 256 => "too long",
         "foo" => "bar"
       }
       attributes.merge_untrusted_agent_attributes(params, 'request.parameters', AttributeFilter::DST_NONE)

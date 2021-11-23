@@ -28,10 +28,10 @@ module TransactionIgnoringTestCases
 
     NewRelic::Agent.instance.send(:harvest_and_send_timeslice_data)
 
-    stats = $collector.reported_stats_for_metric(TXN_PREFIX+'accepted_transaction')
+    stats = $collector.reported_stats_for_metric(TXN_PREFIX + 'accepted_transaction')
     assert_equal(1, stats.size)
 
-    stats = $collector.reported_stats_for_metric(TXN_PREFIX+'ignored_transaction')
+    stats = $collector.reported_stats_for_metric(TXN_PREFIX + 'ignored_transaction')
     assert_equal(0, stats.size)
   end
 
@@ -74,7 +74,7 @@ module TransactionIgnoringTestCases
     events = posts.first.events
 
     assert_equal(1, events.size)
-    assert_equal(TXN_PREFIX+'accepted_transaction', events.first[0]['name'])
+    assert_equal(TXN_PREFIX + 'accepted_transaction', events.first[0]['name'])
   end
 
   def test_does_not_record_sql_traces_for_ignored_transactions
@@ -95,7 +95,7 @@ module TransactionIgnoringTestCases
     # From SqlTrace#to_collector_array
     # 0 -> path
     # 5 -> call_count
-    assert_equal(TXN_PREFIX+'accepted_transaction', trace[0])
+    assert_equal(TXN_PREFIX + 'accepted_transaction', trace[0])
     assert_equal(1, trace[5])
   end
 

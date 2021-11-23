@@ -65,15 +65,14 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
 
     rules = @agent.transaction_rules
     assert_equal 2, rules.size
-    assert(rules.find{|r| r.match_expression == /88/i && r.replacement == '**' },
+    assert(rules.find{ |r| r.match_expression == /88/i && r.replacement == '**' },
            "rule not found among #{rules}")
-    assert(rules.find{|r| r.match_expression == /xx/i && r.replacement == 'XX' },
+    assert(rules.find{ |r| r.match_expression == /xx/i && r.replacement == 'XX' },
            "rule not found among #{rules}")
   ensure
     @agent.instance_variable_set(:@transaction_rules,
                                             NewRelic::Agent::RulesEngine.new)
   end
-
 
   def test_configure_agent_saves_metric_name_rules
     @agent.instance_variable_set(:@metric_rules,
@@ -88,9 +87,9 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
 
     rules = @agent.stats_engine.metric_rules
     assert_equal 2, rules.size
-    assert(rules.find{|r| r.match_expression == /77/i && r.replacement == '&&' },
+    assert(rules.find{ |r| r.match_expression == /77/i && r.replacement == '&&' },
            "rule not found among #{rules}")
-    assert(rules.find{|r| r.match_expression == /yy/i && r.replacement == 'YY' },
+    assert(rules.find{ |r| r.match_expression == /yy/i && r.replacement == 'YY' },
            "rule not found among #{rules}")
   ensure
     @agent.instance_variable_set(:@metric_rules,

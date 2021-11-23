@@ -46,7 +46,6 @@ module NewRelic
           assert_metrics_recorded "Supportability/utilization/azure/error" => {:call_count => 1}
         end
 
-
         def test_fails_when_response_is_missing_required_value
           fixture = File.read File.join(azure_fixture_path, "missing_value.json")
 
@@ -56,7 +55,6 @@ module NewRelic
           refute @vendor.detect
           assert_metrics_recorded "Supportability/utilization/azure/error" => {:call_count => 1}
         end
-
 
         def test_fails_based_on_response_code
           fixture = File.read File.join(azure_fixture_path, "valid.json")

@@ -18,7 +18,6 @@ module NewRelic
           @environment_report = sanitize_environment_report(environment_report)
         end
 
-
         # Initializes the hash of settings that we send to the
         # server. Returns a literal hash containing the options
         def connect_payload
@@ -50,7 +49,7 @@ module NewRelic
 
         def environment_metadata
           env_copy = {}
-          ENV.keys.each {|k| env_copy[k] = ENV[k] if k =~ /^NEW_RELIC_METADATA_/}
+          ENV.keys.each { |k| env_copy[k] = ENV[k] if k =~ /^NEW_RELIC_METADATA_/ }
           env_copy
         end
 

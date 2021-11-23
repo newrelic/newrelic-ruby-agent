@@ -53,11 +53,10 @@ module NewRelic::Agent
       end
     end
 
-
     def test_allows_with_multiple_default_destinations
       with_all_enabled do
         filter = AttributeFilter.new(NewRelic::Agent.config)
-        default_destination = AttributeFilter::DST_ERROR_COLLECTOR|AttributeFilter::DST_TRANSACTION_TRACER
+        default_destination = AttributeFilter::DST_ERROR_COLLECTOR | AttributeFilter::DST_TRANSACTION_TRACER
 
         assert filter.allows?(default_destination, AttributeFilter::DST_ERROR_COLLECTOR)
         assert filter.allows?(default_destination, AttributeFilter::DST_TRANSACTION_TRACER)
@@ -156,7 +155,6 @@ module NewRelic::Agent
         assert_destinations ['transaction_segments'], result
       end
     end
-
 
     def test_might_allow_prefix_default_case
       filter = AttributeFilter.new(NewRelic::Agent.config)

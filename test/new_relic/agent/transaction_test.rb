@@ -888,7 +888,7 @@ module NewRelic::Agent
           bean = stub(:getCurrentThreadUserTime => java_utime)
           bean.stubs(:isCurrentThreadCpuTimeSupported).returns(true)
           ::Java::JavaLangManagement::ManagementFactory.stubs(:getThreadMXBean).returns(bean)
-          assert_equal java_utime/1e9, txn.send(:jruby_cpu_time)
+          assert_equal java_utime / 1e9, txn.send(:jruby_cpu_time)
         end
       end
     end
@@ -1322,7 +1322,6 @@ module NewRelic::Agent
       assert_equal 200, result[:synthetics_job_id]
       assert_equal 300, result[:synthetics_monitor_id]
     end
-
 
     def test_intrinsic_attributes_include_gc_time
       txn = in_transaction do |t|

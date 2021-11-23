@@ -8,9 +8,11 @@ class Insider
   def initialize(stats_engine)
     @stats_engine = stats_engine
   end
+
   def catcher(level = 0)
-    thrower(level) if level>0
+    thrower(level) if level > 0
   end
+
   def thrower(level)
     if level == 0
       # don't use a real sampler because we can't instantiate one
@@ -20,7 +22,7 @@ class Insider
       rescue
       end
     else
-      thrower(level-1)
+      thrower(level - 1)
     end
   end
 end

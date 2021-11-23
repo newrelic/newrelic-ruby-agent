@@ -30,7 +30,9 @@ module NewRelic
         # This module is for importing stubs when the agent is disabled
         module ClassMethodsShim # :nodoc:
           def newrelic_ignore(*args); end
+
           def newrelic_ignore_apdex(*args); end
+
           def newrelic_ignore_enduser(*args); end
         end
 
@@ -38,7 +40,9 @@ module NewRelic
           def self.included(clazz)
             clazz.extend(ClassMethodsShim)
           end
+
           def new_relic_trace_controller_action(*args); yield; end
+
           def perform_action_with_newrelic_trace(*args); yield; end
         end
 
@@ -58,6 +62,7 @@ module NewRelic
             NewRelic::Agent.record_api_supportability_metric(:newrelic_ignore)
             newrelic_ignore_aspect(NR_DO_NOT_TRACE_KEY, specifiers)
           end
+
           # Have NewRelic omit apdex measurements on the given actions.  Typically used for
           # actions that are not user facing or that skew your overall apdex measurement.
           # Accepts :except and :only options, as with #newrelic_ignore.

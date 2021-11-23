@@ -27,9 +27,9 @@ module NewRelic
 
       def test_event_includes_synthetics
         payload = generate_payload 'whatever', {
-          :synthetics_resource_id=>3,
-          :synthetics_job_id=>4,
-          :synthetics_monitor_id=>5
+          :synthetics_resource_id => 3,
+          :synthetics_job_id => 4,
+          :synthetics_monitor_id => 5
         }
 
         intrinsics, *_ = TransactionEventPrimitive.create payload
@@ -169,7 +169,7 @@ module NewRelic
       end
 
       def test_samples_on_transaction_finished_event_includes_referring_transaction_guid
-        event_data, *_ = TransactionEventPrimitive.create generate_payload('name', :referring_transaction_guid=> "REFER")
+        event_data, *_ = TransactionEventPrimitive.create generate_payload('name', :referring_transaction_guid => "REFER")
         assert_equal "REFER", event_data["nr.referringTransactionGuid"]
       end
 

@@ -32,7 +32,7 @@ module NewRelic
             if value.is_a?(Hash)
               obfuscate_statement(value, allowlist)
             elsif value.is_a?(Array)
-              value.map {|v| obfuscate_value(v, allowlist)}
+              value.map { |v| obfuscate_value(v, allowlist) }
             else
               QUESTION_MARK
             end

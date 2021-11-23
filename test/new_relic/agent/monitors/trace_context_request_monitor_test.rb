@@ -90,7 +90,7 @@ module NewRelic
       end
 
       def test_does_not_accept_malformed_trace_context
-        carrier ={
+        carrier = {
           'HTTP_TRACESTATE' => 'alsdkfja;lskdjfa',
           'HTTP_TRACEPARENT' => 'alkjhdsfasdf'
         }

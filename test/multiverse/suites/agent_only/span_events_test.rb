@@ -23,7 +23,7 @@ class SpanEventsTest < Minitest::Test
   def test_span_events_are_not_recorded_when_disabled_by_feature_gate
     with_config :'distributed_tracing.enabled' => true do
       connect_response = {
-        'agent_run_id'          => 1,
+        'agent_run_id' => 1,
         'collect_span_events' => false
       }
 

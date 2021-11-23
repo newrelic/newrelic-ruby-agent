@@ -71,7 +71,7 @@ class DependencyDetectionTest < Minitest::Test
     # Requires that depends_on would let failures pass through, which it does
     DependencyDetection.defer do
       depends_on { false }
-      depends_on { raise "OH NOES"}
+      depends_on { raise "OH NOES" }
       executes { executed = true }
     end
     DependencyDetection.detect!
@@ -330,7 +330,6 @@ class DependencyDetectionTest < Minitest::Test
 
     assert_falsy( DependencyDetection.items.first.executed )
   end
-
 
   def test_exception_during_execution_doesnt_propagate
     ran_second_block = false

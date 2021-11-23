@@ -23,7 +23,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     nr_freeze_process_time
     @subscriber = NewRelic::Agent::Instrumentation::ActionControllerSubscriber.new
     NewRelic::Agent.drop_buffered_data
-    @request = ActionDispatch::Request.new({'REQUEST_METHOD'=> 'POST'})
+    @request = ActionDispatch::Request.new({'REQUEST_METHOD' => 'POST'})
     @headers = ActionDispatch::Http::Headers.new(@request)
     @entry_payload = {
       :controller => TestController.to_s,
@@ -301,7 +301,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   def test_records_span_level_error
     exception_class = StandardError
     exception_msg = "Natural 1"
-    exception = exception_class.new(msg=exception_msg)
+    exception = exception_class.new(msg = exception_msg)
     # :exception_object was added in Rails 5 and above
     params = {:exception_object => exception, :exception => [exception_class.name, exception_msg]}
 

@@ -120,7 +120,7 @@ module NewRelic::Agent
       buffer.capacity = 5
       assert_equal(5, buffer.size)
 
-      expected = (5..9).map{ |i| create_event(priority: i)}
+      expected = (5..9).map{ |i| create_event(priority: i) }
 
       assert_equal_unordered(expected, buffer.to_a)
       assert_equal(10, buffer.num_seen )
@@ -233,7 +233,7 @@ module NewRelic::Agent
     end
 
     def create_events(priorities)
-      priorities.map { |i| create_event(priority: i)}
+      priorities.map { |i| create_event(priority: i) }
     end
   end
 end

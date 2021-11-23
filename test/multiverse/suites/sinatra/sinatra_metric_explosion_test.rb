@@ -85,7 +85,7 @@ class SinatraMetricExplosionTest < Minitest::Test
       "Middleware"
     ]
     metric_names.delete_if do|metric|
-      name_beginnings_to_ignore.any? {|name| metric.start_with?(name)}
+      name_beginnings_to_ignore.any? { |name| metric.start_with?(name) }
     end
 
     assert_equal 17, metric_names.size, "Explosion detected in: #{metric_names.inspect}"

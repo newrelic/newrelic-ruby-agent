@@ -58,7 +58,7 @@ class OrphanedConfigTest < Minitest::Test
           has_instrumentation_key = !!NewRelic::Agent::Configuration::DEFAULTS[instrumentation_key]
 
           assert has_instrumentation_key || has_disable_key,
-            "#{file}:#{index+1} - Document key `#{instrumentation_key}` found as name for instrumentation.\n"
+            "#{file}:#{index + 1} - Document key `#{instrumentation_key}` found as name for instrumentation.\n"
         end
       end
     end

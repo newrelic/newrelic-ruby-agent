@@ -218,7 +218,7 @@ module NewRelic
       end
 
       def reject_messaging_cat_headers headers
-        headers.reject {|k, _| k == NR_MESSAGE_BROKER_ID_HEADER || k == NR_MESSAGE_BROKER_TXN_HEADER}
+        headers.reject { |k, _| k == NR_MESSAGE_BROKER_ID_HEADER || k == NR_MESSAGE_BROKER_TXN_HEADER }
       end
 
       def trusts? id

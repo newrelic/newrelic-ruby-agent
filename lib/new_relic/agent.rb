@@ -221,10 +221,10 @@ module NewRelic
       return unless agent
       if amount == 1
         metrics = [metric_name, SUPPORTABILITY_INCREMENT_METRIC]
-        agent.stats_engine.tl_record_unscoped_metrics(metrics) {|stats| stats.increment_count}
+        agent.stats_engine.tl_record_unscoped_metrics(metrics) { |stats| stats.increment_count }
       else
-        agent.stats_engine.tl_record_unscoped_metrics(metric_name) {|stats| stats.increment_count(amount)}
-        agent.stats_engine.tl_record_unscoped_metrics(SUPPORTABILITY_INCREMENT_METRIC) {|stats| stats.increment_count}
+        agent.stats_engine.tl_record_unscoped_metrics(metric_name) { |stats| stats.increment_count(amount) }
+        agent.stats_engine.tl_record_unscoped_metrics(SUPPORTABILITY_INCREMENT_METRIC) { |stats| stats.increment_count }
       end
     end
 

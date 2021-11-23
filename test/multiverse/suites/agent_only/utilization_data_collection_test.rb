@@ -22,7 +22,7 @@ class UtilizationDataCollectionTest < Minitest::Test
           "availabilityZone" => "us-west-2c"
         },
         "docker" => {
-          "id"=>"47cbd16b77c50cbf71401"
+          "id" => "47cbd16b77c50cbf71401"
         }
       }
     }

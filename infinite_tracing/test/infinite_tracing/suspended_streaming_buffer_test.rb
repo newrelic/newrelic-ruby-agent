@@ -41,7 +41,6 @@ module NewRelic
           assert_watched_threads_finished buffer
         end
 
-
         def test_can_close_an_empty_buffer
           total_spans = 10
           generator, buffer, segments = prepare_to_stream_segments total_spans

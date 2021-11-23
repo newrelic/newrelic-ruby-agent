@@ -201,7 +201,7 @@ module NewRelic
           with_serial_lock do
             timeout_cap do
               with_config localhost_config do
-                NewRelic::Agent.agent.service.instance_variable_set(:@request_headers_map, {"NR-UtilizationMetadata"=>"test_metadata"})
+                NewRelic::Agent.agent.service.instance_variable_set(:@request_headers_map, {"NR-UtilizationMetadata" => "test_metadata"})
 
                 connection = Connection.instance # instantiate before simulation
                 simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|

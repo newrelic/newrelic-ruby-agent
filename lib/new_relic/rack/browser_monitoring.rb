@@ -123,7 +123,7 @@ module NewRelic::Rack
 
     def gather_source(response)
       source = nil
-      response.each {|fragment| source ? (source << fragment.to_s) : (source = fragment.to_s)}
+      response.each { |fragment| source ? (source << fragment.to_s) : (source = fragment.to_s) }
       source
     end
 

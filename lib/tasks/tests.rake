@@ -16,7 +16,7 @@ if defined? Rake::TestTask
 
     tasks = Rake.application.top_level_tasks
     ENV["TESTOPTS"] ||= ""
-    if tasks.any? { |t| t.include?("verbose")}
+    if tasks.any? { |t| t.include?("verbose") }
       ENV["TESTOPTS"] += " -v"
     end
     if seed = look_for_seed(tasks)
@@ -27,7 +27,7 @@ if defined? Rake::TestTask
 
     Rake::TestTask.new(:newrelic) do |t|
       file_pattern = ENV["file"]
-      file_pattern = file_pattern.split(",").map{|f| "#{agent_home}/#{f}".gsub("//", "/")} if file_pattern
+      file_pattern = file_pattern.split(",").map{ |f| "#{agent_home}/#{f}".gsub("//", "/") } if file_pattern
       file_pattern ||= "#{agent_home}/test/new_relic/**/*_test.rb"
 
       t.libs << "#{agent_home}/test"

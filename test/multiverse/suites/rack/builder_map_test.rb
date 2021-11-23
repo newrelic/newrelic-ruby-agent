@@ -29,7 +29,9 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     end
 
     class MiddlewareOne < SimpleMiddleware; end
+
     class MiddlewareTwo < SimpleMiddleware; end
+
     class MiddlewareThree < SimpleMiddleware; end
 
     class ExampleApp
@@ -39,6 +41,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     end
 
     class PrefixAppOne < ExampleApp; end
+
     class PrefixAppTwo < ExampleApp; end
 
     def app

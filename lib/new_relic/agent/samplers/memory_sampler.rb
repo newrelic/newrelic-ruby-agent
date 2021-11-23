@@ -52,6 +52,7 @@ module NewRelic
             RUBY_PLATFORM.downcase
           end
         end
+
         def platform
           NewRelic::Agent::Samplers::MemorySampler.platform
         end
@@ -118,6 +119,7 @@ module NewRelic
             raise "Faulty command: `#{@command} #{process}`" if memory.nil? || memory <= 0
             memory
           end
+
           def to_s
             "shell command sampler: #{@command}"
           end
@@ -130,7 +132,7 @@ module NewRelic
         class ProcStatus < Base
           # Returns the amount of resident memory this process is using in MB
           def get_memory
-            proc_status = File.open(proc_status_file, "r") {|f| f.read_nonblock(4096).strip }
+            proc_status = File.open(proc_status_file, "r") { |f| f.read_nonblock(4096).strip }
             if proc_status =~ /RSS:\s*(\d+) kB/i
               return $1.to_f / 1024.0
             end

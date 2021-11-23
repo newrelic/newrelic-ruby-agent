@@ -142,8 +142,8 @@ class LoggingTest < Minitest::Test
 
     flattened = logger.messages.flatten
     expected_messages.each do |expected|
-      found = flattened.any? {|msg| msg.to_s.include?(expected)}
-      logger.messages.each {|msg| puts msg.inspect} if !found
+      found = flattened.any? { |msg| msg.to_s.include?(expected) }
+      logger.messages.each { |msg| puts msg.inspect } if !found
       assert(found, "Didn't see message '#{expected}'")
     end
   end

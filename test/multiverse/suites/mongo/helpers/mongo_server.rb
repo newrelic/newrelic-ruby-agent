@@ -202,7 +202,7 @@ class MongoServer
 
     retry_on_exception(:exception => Errno::EEXIST, :tries => 10) do
       self.port = next_available_port
-      File.new(port_lock_path, File::CREAT|File::EXCL)
+      File.new(port_lock_path, File::CREAT | File::EXCL)
     end
   end
 

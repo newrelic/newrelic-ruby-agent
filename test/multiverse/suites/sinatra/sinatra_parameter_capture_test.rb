@@ -12,7 +12,6 @@ class SinatraParameterCaptureTestApp < Sinatra::Base
   end
 end
 
-
 class SinatraParameterCaptureTest < Minitest::Test
   include Rack::Test::Methods
   include MultiverseHelpers

@@ -168,7 +168,7 @@ module NewRelic
               clean_up_pipes
 
               pipes_to_listen_to = @pipes_lock.synchronize do
-                @pipes.values.map{|pipe| pipe.out} + [wake.out]
+                @pipes.values.map{ |pipe| pipe.out } + [wake.out]
               end
 
               if now
@@ -255,7 +255,7 @@ module NewRelic
         end
 
         def should_keep_listening?
-          @started || @pipes_lock.synchronize { @pipes.values.find{|pipe| !pipe.in.closed?} }
+          @started || @pipes_lock.synchronize { @pipes.values.find{ |pipe| !pipe.in.closed? } }
         end
 
         def clean_up_pipes
@@ -265,13 +265,13 @@ module NewRelic
                 pipe.close unless pipe.closed?
               end
             end
-            @pipes.reject! {|id, pipe| pipe.out.closed? }
+            @pipes.reject! { |id, pipe| pipe.out.closed? }
           end
         end
 
         def find_pipe_for_handle(out_handle)
           @pipes_lock.synchronize do
-            @pipes.values.find{|pipe| pipe.out == out_handle }
+            @pipes.values.find{ |pipe| pipe.out == out_handle }
           end
         end
       end

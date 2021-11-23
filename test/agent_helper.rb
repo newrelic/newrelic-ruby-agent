@@ -70,7 +70,7 @@ end
 def assert_has_traced_error error_class
   errors = harvest_error_traces!
   assert \
-    errors.find {|e| e.exception_class_name == error_class.name} != nil, \
+    errors.find { |e| e.exception_class_name == error_class.name } != nil, \
     "Didn't find error of class #{error_class}"
 end
 
@@ -176,7 +176,7 @@ def assert_audit_log_contains_object audit_log_contents, o, format = :json
 end
 
 def compare_metrics expected, actual
-  actual.delete_if {|a| a.include?('GC/Transaction/') }
+  actual.delete_if { |a| a.include?('GC/Transaction/') }
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
 end
 
@@ -320,7 +320,7 @@ def assert_no_metrics_match regex
   assert_equal(
     [],
     matching_metrics,
-    "Found unexpected metrics:\n" + matching_metrics.map { |m| "  '#{m}'"}.join("\n") + "\n\n"
+    "Found unexpected metrics:\n" + matching_metrics.map { |m| "  '#{m}'" }.join("\n") + "\n\n"
   )
 end
 
@@ -491,7 +491,7 @@ def find_last_transaction_node transaction_sample = nil
   end
 
   last_node = nil
-  root_node.each_node {|s| last_node = s }
+  root_node.each_node { |s| last_node = s }
 
   return last_node
 end
@@ -868,7 +868,7 @@ end
 def each_cross_agent_test options
   options = {:dir => nil, :pattern => "*"}.update(options)
   path = File.join [cross_agent_tests_dir, options[:dir], options[:pattern]].compact
-  Dir.glob(path).each { |file| yield file}
+  Dir.glob(path).each { |file| yield file }
 end
 
 def assert_event_attributes event, test_name, expected_attributes, non_expected_attributes
@@ -952,7 +952,7 @@ end
 # selects the last segment with a noticed_error and checks
 # the expectations against it.
 def assert_segment_noticed_error txn, segment_name, error_classes, error_message
-  error_segment = txn.segments.reverse.detect{|s| s.noticed_error}
+  error_segment = txn.segments.reverse.detect{ |s| s.noticed_error }
   assert error_segment, "Expected at least one segment with a noticed_error"
 
   assert_match_or_equal segment_name, error_segment.name
@@ -969,7 +969,7 @@ def assert_transaction_noticed_error txn, error_classes
 end
 
 def refute_transaction_noticed_error txn, error_class
-  error_segment = txn.segments.reverse.detect{|s| s.noticed_error}
+  error_segment = txn.segments.reverse.detect{ |s| s.noticed_error }
   assert error_segment, "Expected at least one segment with a noticed_error"
   assert_empty txn.exceptions, "Expected transaction to NOT notice any segment errors"
 end

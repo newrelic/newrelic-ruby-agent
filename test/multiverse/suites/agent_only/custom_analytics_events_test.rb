@@ -72,7 +72,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
     NewRelic::Agent.agent.send(:harvest_and_send_custom_event_data)
     post = last_custom_event_post
 
-    assert_equal({"reservoir_size"=>1000, "events_seen"=>10}, post.reservoir_metadata)
+    assert_equal({"reservoir_size" => 1000, "events_seen" => 10}, post.reservoir_metadata)
   end
 
   def last_custom_event_post

@@ -8,7 +8,7 @@ require 'new_relic/agent/obfuscator'
 class ExternalSegment < Performance::TestCase
 
   CAT_CONFIG = {
-      :license_key     => 'a' * 40,
+      :license_key => 'a' * 40,
       :'cross_application_tracer.enabled' => true,
       :cross_process_id                   => "1#1884",
       :encoding_key                       => "jotorotoes",

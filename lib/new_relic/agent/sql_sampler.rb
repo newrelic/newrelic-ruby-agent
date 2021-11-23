@@ -203,7 +203,7 @@ module NewRelic
           slowest = @sql_traces.values
           @sql_traces = {}
         end
-        slowest.each {|trace| trace.prepare_to_send }
+        slowest.each { |trace| trace.prepare_to_send }
         slowest
       end
 
@@ -359,10 +359,10 @@ module NewRelic
       # need to hash the same way in every process, to be able to aggregate slow SQL traces
       def consistent_hash(string)
         if NewRelic::Agent.config[:'slow_sql.use_longer_sql_id']
-          Digest::SHA1.hexdigest(string).hex.modulo(2**63-1)
+          Digest::SHA1.hexdigest(string).hex.modulo(2**63 - 1)
         else
           # from when sql_id needed to fit in an INT(11)
-          Digest::SHA1.hexdigest(string).hex.modulo(2**31-1)
+          Digest::SHA1.hexdigest(string).hex.modulo(2**31 - 1)
         end
       end
     end

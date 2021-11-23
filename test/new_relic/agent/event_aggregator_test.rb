@@ -93,7 +93,7 @@ module NewRelic
       def test_notifies_full
         expects_logging :debug, includes("TestAggregator capacity of 5 reached")
         with_config :cap_key => 5 do
-          5.times { |i| @aggregator.record i}
+          5.times { |i| @aggregator.record i }
         end
       end
 
@@ -101,11 +101,11 @@ module NewRelic
         with_config :cap_key => 5 do
           msg = "TestAggregator capacity of 5 reached"
           # this will trigger a message to be logged
-          5.times { |i| @aggregator.record i}
+          5.times { |i| @aggregator.record i }
 
           # we expect subsequent records not to trigger logging
           expects_logging :debug, Not(includes(msg))
-          3.times {@aggregator.record 'no logs'}
+          3.times { @aggregator.record 'no logs' }
         end
       end
 
@@ -114,14 +114,14 @@ module NewRelic
 
         expects_logging :debug, includes(msg)
         with_config :cap_key => 5 do
-          5.times { |i| @aggregator.record i}
+          5.times { |i| @aggregator.record i }
         end
 
         @aggregator.harvest!
 
         expects_logging :debug, includes(msg)
         with_config :cap_key => 5 do
-          5.times { |i| @aggregator.record i}
+          5.times { |i| @aggregator.record i }
         end
       end
 
@@ -130,14 +130,14 @@ module NewRelic
 
         expects_logging :debug, includes(msg)
         with_config :cap_key => 5 do
-          5.times { |i| @aggregator.record i}
+          5.times { |i| @aggregator.record i }
         end
 
         @aggregator.reset!
 
         expects_logging :debug, includes(msg)
         with_config :cap_key => 5 do
-          5.times { |i| @aggregator.record i}
+          5.times { |i| @aggregator.record i }
         end
       end
 

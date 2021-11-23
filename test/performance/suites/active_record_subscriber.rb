@@ -81,7 +81,6 @@ class ActiveRecordSubscriberTest < Performance::TestCase
     end
   end
 
-
   def test_subscriber_in_txn
     measure do
       in_transaction do

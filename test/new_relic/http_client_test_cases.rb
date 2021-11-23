@@ -197,7 +197,6 @@ module HttpClientTestCases
     ])
   end
 
-
   def test_transactional_traces_nodes
     perform_action_with_newrelic_trace(:name => "task") do
       get_response
@@ -290,7 +289,7 @@ module HttpClientTestCases
 
   def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
     in_transaction { get_response }
-    assert_equal false, server.requests.last.keys.any? {|k| k =~ /NEWRELIC_ID/}
+    assert_equal false, server.requests.last.keys.any? { |k| k =~ /NEWRELIC_ID/ }
   end
 
   def test_agent_doesnt_add_a_request_header_if_empty_cross_process_id
@@ -298,7 +297,7 @@ module HttpClientTestCases
       :'distributed_tracing.enabled' => false,
                 :cross_process_id => "") do
       in_transaction { get_response }
-      assert_equal false, server.requests.last.keys.any? {|k| k =~ /NEWRELIC_ID/}
+      assert_equal false, server.requests.last.keys.any? { |k| k =~ /NEWRELIC_ID/ }
     end
   end
 
@@ -308,7 +307,7 @@ module HttpClientTestCases
       :'distributed_tracing.enabled' => false,
       :encoding_key => "") do
       in_transaction { get_response }
-      assert_equal false, server.requests.last.keys.any? {|k| k =~ /NEWRELIC_ID/}
+      assert_equal false, server.requests.last.keys.any? { |k| k =~ /NEWRELIC_ID/ }
     end
   end
 
@@ -434,7 +433,7 @@ module HttpClientTestCases
     end
 
     refute_match( /undefined method `.*" for nil:NilClass/i,
-                     logger.messages.flatten.map {|log| log.to_s }.join(" ") )
+                     logger.messages.flatten.map { |log| log.to_s }.join(" ") )
   end
 
   def test_includes_full_url_in_transaction_trace
@@ -714,7 +713,7 @@ module HttpClientTestCases
       end
     end
 
-    segment = txn.segments.detect{|s| s.name =~ /GET$/}
+    segment = txn.segments.detect{ |s| s.name =~ /GET$/ }
     assert segment, "Expected a .../GET Segment for #{client_name} HTTP Client instrumentation."
 
     assert_equal 403, segment.http_status_code
@@ -732,7 +731,7 @@ module HttpClientTestCases
       end
     end
 
-    segment = txn.segments.detect{|s| s.name =~ /GET$/}
+    segment = txn.segments.detect{ |s| s.name =~ /GET$/ }
     assert segment, "Expected a .../GET Segment for #{client_name} HTTP Client instrumentation."
 
     assert_equal 500, segment.http_status_code

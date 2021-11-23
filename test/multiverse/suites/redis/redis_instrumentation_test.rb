@@ -74,9 +74,9 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     expected = {
       "Datastore/operation/Redis/set" => {:call_count => 1},
       "Datastore/Redis/allOther" => {:call_count => 1},
-      "Datastore/Redis/all"=> {:call_count => 1},
-      "Datastore/allOther"=> {:call_count => 1},
-      "Datastore/all"=> {:call_count => 1},
+      "Datastore/Redis/all" => {:call_count => 1},
+      "Datastore/allOther" => {:call_count => 1},
+      "Datastore/all" => {:call_count => 1},
       "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1}
     }
     assert_metrics_recorded(expected)
@@ -90,9 +90,9 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     expected = {
       "Datastore/operation/Redis/set" => {:call_count => 1},
       "Datastore/Redis/allWeb" => {:call_count => 1},
-      "Datastore/Redis/all"=> {:call_count => 1},
-      "Datastore/allWeb"=> {:call_count => 1},
-      "Datastore/all"=> {:call_count => 1},
+      "Datastore/Redis/all" => {:call_count => 1},
+      "Datastore/allWeb" => {:call_count => 1},
+      "Datastore/all" => {:call_count => 1},
       "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1}
     }
     assert_metrics_recorded(expected)
@@ -106,9 +106,9 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     expected = {
       "Datastore/operation/Redis/get" => {:call_count => 1},
       "Datastore/Redis/allOther" => {:call_count => 1},
-      "Datastore/Redis/all"=> {:call_count => 1},
-      "Datastore/allOther"=> {:call_count => 1},
-      "Datastore/all"=> {:call_count => 1},
+      "Datastore/Redis/all" => {:call_count => 1},
+      "Datastore/allOther" => {:call_count => 1},
+      "Datastore/all" => {:call_count => 1},
       "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1}
     }
     assert_metrics_recorded(expected)
@@ -144,9 +144,9 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     expected = {
       "Datastore/operation/Redis/get" => {:call_count => 1},
       "Datastore/Redis/allWeb" => {:call_count => 1},
-      "Datastore/Redis/all"=> {:call_count => 1},
-      "Datastore/allWeb"=> {:call_count => 1},
-      "Datastore/all"=> {:call_count => 1},
+      "Datastore/Redis/all" => {:call_count => 1},
+      "Datastore/allWeb" => {:call_count => 1},
+      "Datastore/all" => {:call_count => 1},
       "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1}
     }
     assert_metrics_recorded(expected)

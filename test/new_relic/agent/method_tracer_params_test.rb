@@ -35,18 +35,23 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     def no_args
       {foo: {bar: "foobar"}}
     end
+
     def last_arg_expects_a_hash foo, bar = {}
       {foo => bar}
     end
+
     def last_arg_is_a_keyword foo, bar:
       {foo => bar}
     end
+
     def all_args_are_keywords(foo: '', bar: '')
       {foo => bar}
     end
+
     def wildcard_args *args
       {args[0] => args[1]}
     end
+
     def args_and_kwargs *args, **kwargs
       {args[0] => kwargs}
     end
@@ -132,7 +137,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     # This very large run ensures order of calls always happen in predictable order.
     define_method "test_expected_results_#{traced_class_name}" do
       expected = {foo: {bar: "foobar"}}
-      expected369 = {1=>3, 2=>6, 3=>9}
+      expected369 = {1 => 3, 2 => 6, 3 => 9}
       instance = traced_class.new
 
       # Test deprecation warnings first!

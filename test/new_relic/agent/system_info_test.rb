@@ -159,7 +159,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
   def test_invalid_length_ascii_boot_id
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
-    test_boot_id = VALID_UUID*2
+    test_boot_id = VALID_UUID * 2
     NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(test_boot_id)
     assert_equal test_boot_id, NewRelic::Agent::SystemInfo.boot_id
     assert_metrics_recorded "Supportability/utilization/boot_id/error"
@@ -167,7 +167,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
   def test_truncated_invalid_length_ascii_boot_id
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
-    test_boot_id = VALID_UUID*8
+    test_boot_id = VALID_UUID * 8
     NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(test_boot_id)
     assert_equal test_boot_id[0, 128], NewRelic::Agent::SystemInfo.boot_id
     assert_metrics_recorded "Supportability/utilization/boot_id/error"

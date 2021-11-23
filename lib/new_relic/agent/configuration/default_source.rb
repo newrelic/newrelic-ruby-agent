@@ -177,7 +177,7 @@ module NewRelic
         # set. Once JS errors are GA, browser_monitoring.loader can stop
         # being dynamic.
         def self.browser_monitoring_loader
-          Proc.new { NewRelic::Agent.config[:js_errors_beta] ? "full" : "rum"}
+          Proc.new { NewRelic::Agent.config[:js_errors_beta] ? "full" : "rum" }
         end
 
         def self.transaction_tracer_transaction_threshold
@@ -973,7 +973,7 @@ module NewRelic
           :type         => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'Controls auto-instrumentation of Puma::Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of Puma::Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.memcached' => {
           :default => instrumentation_value_of(:disable_memcached),
@@ -981,7 +981,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'Controls auto-instrumentation of memcached gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of memcached gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.memcache_client' => {
           :default => instrumentation_value_of(:disable_memcache_client),
@@ -989,7 +989,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'Controls auto-instrumentation of memcache-client gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of memcache-client gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.memcache' => {
           :default => instrumentation_value_of(:disable_dalli),
@@ -997,7 +997,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'Controls auto-instrumentation of dalli gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of dalli gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.logger' => {
           :default => "auto",
@@ -1243,7 +1243,7 @@ module NewRelic
           :public       => true,
           :type         => Boolean,
           :allowed_from_server => true,
-          :description  => 'If `true`, the agent will collect metadata about messages and attach them as segment parameters.'
+          :description => 'If `true`, the agent will collect metadata about messages and attach them as segment parameters.'
         },
         :'slow_sql.enabled' => {
           :default => value_of(:'transaction_tracer.enabled'),
@@ -1659,7 +1659,7 @@ module NewRelic
           :dynamic_name => true,
           :deprecated   => true,
           :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.excon', 'If `true`, disables instrumentation for the excon gem.')
+          :description => deprecated_description(:'instrumentation.excon', 'If `true`, disables instrumentation for the excon gem.')
         },
         :'instrumentation.excon' => {
           :default => instrumentation_value_of(:disable_excon),
@@ -1943,7 +1943,7 @@ module NewRelic
           :public      => true,
           :type        => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from transaction events. Allows `*` as wildcard at end.'
         },
         :'error_collector.attributes.exclude' => {
@@ -1951,7 +1951,7 @@ module NewRelic
           :public      => true,
           :type        => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from error collection. Allows `*` as wildcard at end.'
         },
         :'browser_monitoring.attributes.exclude' => {
@@ -1959,7 +1959,7 @@ module NewRelic
           :public      => true,
           :type        => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from browser monitoring. Allows `*` as wildcard at end.'
         },
         :'span_events.attributes.exclude' => {
@@ -1983,7 +1983,7 @@ module NewRelic
           :public      => true,
           :type        => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in all destinations. Allows `*` as wildcard at end.'
         },
         :'transaction_tracer.attributes.include' => {
@@ -1991,7 +1991,7 @@ module NewRelic
           :public      => true,
           :type        => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in transaction traces. Allows `*` as wildcard at end.'
         },
         :'transaction_events.attributes.include' => {
@@ -1999,7 +1999,7 @@ module NewRelic
           :public      => true,
           :type        => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in transaction events. Allows `*` as wildcard at end.'
         },
         :'error_collector.attributes.include' => {
@@ -2007,7 +2007,7 @@ module NewRelic
           :public      => true,
           :type        => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in error collection. Allows `*` as wildcard at end.'
         },
         :'browser_monitoring.attributes.include' => {
@@ -2015,7 +2015,7 @@ module NewRelic
           :public      => true,
           :type        => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in browser monitoring. Allows `*` as wildcard at end.'
         },
         :'span_events.attributes.include' => {
@@ -2023,7 +2023,7 @@ module NewRelic
           :public      => true,
           :type        => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include on span events. Allows `*` as wildcard at end.'
         },
         :'transaction_segments.attributes.include' => {
@@ -2031,7 +2031,7 @@ module NewRelic
           :public      => true,
           :type        => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include on transaction segments. Allows `*` as wildcard at end.'
         },
         :'custom_attributes.enabled' => {

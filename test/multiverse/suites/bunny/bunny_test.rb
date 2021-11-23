@@ -297,7 +297,6 @@ class BunnyTest < Minitest::Test
     refute_transaction_noticed_error txn, "Timeout::Error"
   end
 
-
   def test_error_starting_message_broker_segment_does_not_interfere_with_transaction
     with_queue do |queue|
       NewRelic::Agent::Tracer.stubs(:start_message_broker_segment).raises(StandardError.new("Boo"))

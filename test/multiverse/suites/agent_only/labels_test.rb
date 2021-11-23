@@ -77,7 +77,7 @@ class LabelsTest < Minitest::Test
 
   def assert_connect_had_labels(expected)
     result = $collector.calls_for('connect').last['labels']
-    assert_equal expected.sort_by { |h| h['label_type']},
-                 result.sort_by { |h| h['label_type']}
+    assert_equal expected.sort_by { |h| h['label_type'] },
+                 result.sort_by { |h| h['label_type'] }
   end
 end

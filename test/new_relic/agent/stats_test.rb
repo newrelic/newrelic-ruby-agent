@@ -55,7 +55,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
     stats.trace_call 20
     stats.trace_call 30
 
-    validate stats, 3, (10+20+30), 10, 30
+    validate stats, 3, (10 + 20 + 30), 10, 30
   end
 
   def test_to_s
@@ -88,12 +88,12 @@ class NewRelic::Agent::StatsTest < Minitest::Test
 
     validate s2, 1, 20, 20, 20
     s3 = s1.merge s2
-    validate s3, 2, (10+20), 10, 20
+    validate s3, 2, (10 + 20), 10, 20
     validate s1, 1, 10, 10, 10
     validate s2, 1, 20, 20, 20
 
     s1.merge! s2
-    validate s1, 2, (10+20), 10, 20
+    validate s1, 2, (10 + 20), 10, 20
     validate s2, 1, 20, 20, 20
   end
 
@@ -108,12 +108,12 @@ class NewRelic::Agent::StatsTest < Minitest::Test
 
     validate s2, 1, 20, 20, 20, 10
     s3 = s1.merge s2
-    validate s3, 2, (10+20), 10, 20, (10+5)
+    validate s3, 2, (10 + 20), 10, 20, (10 + 5)
     validate s1, 1, 10, 10, 10, 5
     validate s2, 1, 20, 20, 20, 10
 
     s1.merge! s2
-    validate s1, 2, (10+20), 10, 20, (5+10)
+    validate s1, 2, (10 + 20), 10, 20, (5 + 10)
     validate s2, 1, 20, 20, 20, 10
   end
 
@@ -144,8 +144,8 @@ class NewRelic::Agent::StatsTest < Minitest::Test
 
     s3 = s1.merge(s2)
 
-    assert_equal(s1.sum_of_squares, 4*4 + 7*7)
-    assert_equal(s3.sum_of_squares, 4*4 + 7*7 + 13*13 + 16*16, "check sum of squares")
+    assert_equal(s1.sum_of_squares, 4 * 4 + 7 * 7)
+    assert_equal(s3.sum_of_squares, 4 * 4 + 7 * 7 + 13 * 13 + 16 * 16, "check sum of squares")
   end
 
   def test_to_json_enforces_float_values

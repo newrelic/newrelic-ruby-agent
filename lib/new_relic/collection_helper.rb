@@ -4,8 +4,8 @@
 
 module NewRelic
   module CollectionHelper
-  DEFAULT_TRUNCATION_SIZE=16 * 1024
-  DEFAULT_ARRAY_TRUNCATION_SIZE=128
+  DEFAULT_TRUNCATION_SIZE = 16 * 1024
+  DEFAULT_ARRAY_TRUNCATION_SIZE = 128
   # Transform parameter hash into a hash whose values are strictly
   # strings
   def normalize_params(params)
@@ -25,7 +25,7 @@ module NewRelic
       when String
         truncate(params)
       when Array
-        params.first(DEFAULT_ARRAY_TRUNCATION_SIZE).map{|item| normalize_params(item)}
+        params.first(DEFAULT_ARRAY_TRUNCATION_SIZE).map{ |item| normalize_params(item) }
     else
       truncate(flatten(params))
     end
@@ -42,6 +42,7 @@ module NewRelic
       else "#<#{object.class.to_s}>"
     end
   end
+
   def truncate(string, len = DEFAULT_TRUNCATION_SIZE)
     case string
     when Symbol then string

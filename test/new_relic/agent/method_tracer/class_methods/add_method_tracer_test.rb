@@ -39,7 +39,7 @@ module NewRelic
             end
 
             def test_check_for_illegal_keys_negative
-              test_keys = Hash[*ALLOWED_KEYS.map {|x| [x, true]}.flatten]
+              test_keys = Hash[*ALLOWED_KEYS.map { |x| [x, true] }.flatten]
               _nr_validate_method_tracer_options(:rainbow_dash, test_keys)
             end
 

@@ -5,6 +5,7 @@
 require 'grape'
 
 class GrapeTestApiError < StandardError; end
+
 class GrapeTestApi < Grape::API
   # namespace, group, resource, and resources all do the same thing.
   # They are aliases for namespace.

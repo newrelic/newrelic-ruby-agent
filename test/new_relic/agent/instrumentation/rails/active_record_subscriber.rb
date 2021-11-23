@@ -152,7 +152,7 @@ class NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest < Minitest::T
     end
 
     last_node = nil
-    last_transaction_trace.root_node.each_node{|s| last_node = s }
+    last_transaction_trace.root_node.each_node{ |s| last_node = s }
 
     assert_equal('Datastore/statement/ActiveRecord/NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order/find',
                  last_node.metric_name)

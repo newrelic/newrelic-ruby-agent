@@ -38,7 +38,9 @@ class Foo
   end
 
   def valid?() true end
+
   def new_record?() true end
+
   def destroyed?() true end
 
   def raise_error
@@ -48,6 +50,7 @@ class Foo
   def errors
     obj = Object.new
     def obj.[](key) [] end
+
     def obj.full_messages() [] end
     obj
   end

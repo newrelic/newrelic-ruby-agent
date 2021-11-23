@@ -31,7 +31,7 @@ module NewRelic
 
         def initialize
           reset_to_defaults
-          @callbacks = Hash.new {|hash, key| hash[key] = [] }
+          @callbacks = Hash.new { |hash, key| hash[key] = [] }
         end
 
         def add_config_for_testing(source, level = 0)
@@ -66,7 +66,7 @@ module NewRelic
           when YamlSource then @yaml_source = nil
           when DefaultSource then @default_source = nil
           else
-            @configs_for_testing.delete_if {|src, lvl| src == source}
+            @configs_for_testing.delete_if { |src, lvl| src == source }
           end
 
           reset_cache
@@ -208,8 +208,8 @@ module NewRelic
 
         def apply_mask(hash)
           MASK_DEFAULTS. \
-            select {|_, proc| proc.call}. \
-            each {|key, _| hash.delete(key) }
+            select { |_, proc| proc.call }. \
+            each { |key, _| hash.delete(key) }
           hash
         end
 
@@ -281,7 +281,7 @@ module NewRelic
           pairs = Array(pairs)
 
           unless valid_label_pairs?(pairs)
-            NewRelic::Agent.logger.warn("#{MALFORMED_LABELS_WARNING}: #{labels||pairs}")
+            NewRelic::Agent.logger.warn("#{MALFORMED_LABELS_WARNING}: #{labels || pairs}")
             return []
           end
 
@@ -303,7 +303,7 @@ module NewRelic
               msg = "Label name longer than the allowed #{MAX_LABEL_LENGTH} will be truncated. Name = '#{text}'"
             end
             NewRelic::Agent.logger.warn(msg)
-            text[0..MAX_LABEL_LENGTH-1]
+            text[0..MAX_LABEL_LENGTH - 1]
           else
             text
           end

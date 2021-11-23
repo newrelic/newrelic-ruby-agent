@@ -37,7 +37,6 @@ class ChildController < ParentController
   add_transaction_tracer :bar
 end
 
-
 class IgnoredActionsTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
 

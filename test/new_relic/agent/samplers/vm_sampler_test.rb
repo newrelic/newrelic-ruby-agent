@@ -331,7 +331,7 @@ module NewRelic
 
         def generate_transactions(n)
           n.times do
-            in_transaction('txn') { }
+            in_transaction('txn') {}
           end
         end
 

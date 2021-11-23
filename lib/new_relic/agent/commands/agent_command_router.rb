@@ -63,6 +63,7 @@ module NewRelic
         # Same with reset! - we don't support asynchronous cancellation of a
         # running thread profile currently.
         def merge!(*args); end
+
         def reset!; end
 
         def harvest_from_thread_profiler_session
@@ -86,7 +87,7 @@ module NewRelic
         def get_agent_commands
           commands = new_relic_service.get_agent_commands
           NewRelic::Agent.logger.debug "Received get_agent_commands = #{commands.inspect}"
-          commands.map {|collector_command| AgentCommand.new(collector_command)}
+          commands.map { |collector_command| AgentCommand.new(collector_command) }
         end
 
         def invoke_commands(agent_commands)

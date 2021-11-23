@@ -311,7 +311,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   end
 
   def errors_with_message(message)
-    errors.select{|error| error.message == message}
+    errors.select{ |error| error.message == message }
   end
 
   def assert_errors_reported(message, queued_count, total_count = queued_count, txn_name = nil, apdex_f = 1)

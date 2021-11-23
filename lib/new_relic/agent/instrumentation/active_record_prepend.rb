@@ -18,6 +18,7 @@ module NewRelic
                 super
               end
             end
+
             def save!(*args, &blk)
               ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
                 super
@@ -30,6 +31,7 @@ module NewRelic
                 super
               end
             end
+
             def save!(*args, **kwargs, &blk)
               ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
                 super

@@ -897,7 +897,7 @@ module NewRelic
         return nil unless threadMBean.isCurrentThreadCpuTimeSupported
         java_utime = threadMBean.getCurrentThreadUserTime() # ns
 
-        -1 == java_utime ? 0.0 : java_utime/1e9
+        -1 == java_utime ? 0.0 : java_utime / 1e9
       rescue => e
         ::NewRelic::Agent.logger.log_once(:warn, :jruby_cpu_time, JRUBY_CPU_TIME_ERROR, e)
         ::NewRelic::Agent.logger.debug(JRUBY_CPU_TIME_ERROR, e)

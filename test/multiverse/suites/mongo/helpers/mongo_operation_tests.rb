@@ -147,7 +147,7 @@ module MongoOperationTests
 
   def test_records_metrics_for_find_and_remove
     in_transaction do
-      @collection.find_and_modify(:query => @tribble, :remove =>true)
+      @collection.find_and_modify(:query => @tribble, :remove => true)
     end
 
     metrics = build_test_metrics(:findAndRemove)

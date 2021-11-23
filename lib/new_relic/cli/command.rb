@@ -79,7 +79,7 @@ module NewRelic
             STDERR.puts "Unrecognized command: #{command}"
             STDERR.puts options
           else
-            command_class = @commands.find{ |c| c.command == command}
+            command_class = @commands.find{ |c| c.command == command }
             command_class.new(extra).run
           end
       rescue OptionParser::InvalidOption => e

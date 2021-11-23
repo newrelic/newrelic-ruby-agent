@@ -184,8 +184,8 @@ module NewRelic
           }
 
           enabled.each { |name| policies[name]["enabled"] = true }
-          disabled.each { |name| policies[name]["enabled"] = false}
-          required.each { |name| policies[name]["required"] = true}
+          disabled.each { |name| policies[name]["enabled"] = false }
+          required.each { |name| policies[name]["required"] = true }
 
           policies
         end

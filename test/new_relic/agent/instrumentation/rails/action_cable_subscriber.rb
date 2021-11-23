@@ -104,7 +104,7 @@ module NewRelic
         end
 
         def payload_for_perform_action action = 'test_action'
-          {:channel_class => "TestChannel", :action => action.to_sym, :data => {"action"=>"#{action}"}}
+          {:channel_class => "TestChannel", :action => action.to_sym, :data => {"action" => "#{action}"}}
         end
 
         def payload_for_transmit data = {}, via = nil

@@ -52,7 +52,7 @@ module Performance
       rows = []
 
       common_identifiers.each do |identifier|
-        old_result = baseline.find { |r| r.identifier == identifier}
+        old_result = baseline.find { |r| r.identifier == identifier }
         new_result = results.find { |r| r.identifier == identifier }
 
         delta = new_result.time_per_iteration - old_result.time_per_iteration

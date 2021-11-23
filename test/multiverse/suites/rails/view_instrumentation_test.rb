@@ -62,7 +62,7 @@ class ViewsController < ApplicationController
   end
 
   def collection_render
-    render((1..3).map{|x| Foo.new })
+    render((1..3).map{ |x| Foo.new })
   end
 
   # proc rendering isn't available in rails 3 but you can do nonsense like this

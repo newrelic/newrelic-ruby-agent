@@ -89,7 +89,7 @@ def symbolize_keys_in_object(object)
       memo
     end
   when Array
-    object.map {|o| symbolize_keys_in_object(o)}
+    object.map { |o| symbolize_keys_in_object(o) }
   else
     object
   end
@@ -103,7 +103,7 @@ def stringify_keys_in_object(object)
       memo
     end
   when Array
-    object.map {|o| stringify_keys_in_object(o)}
+    object.map { |o| stringify_keys_in_object(o) }
   else
     object
   end

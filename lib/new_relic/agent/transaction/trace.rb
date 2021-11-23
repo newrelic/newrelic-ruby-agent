@@ -31,7 +31,7 @@ module NewRelic
           node_count = 0
           each_node do |node|
             next if node == root_node
-            node_count +=1
+            node_count += 1
           end
           node_count
         end

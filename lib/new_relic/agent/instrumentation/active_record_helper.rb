@@ -169,10 +169,10 @@ module NewRelic
           "jdbcpostgresql" => "Postgres",
 
           # https://rubygems.org/gems/activerecord-postgis-adapter
-          "postgis"    => "Postgres",
+          "postgis" => "Postgres",
 
           # https://rubygems.org/gems/activerecord-jdbcsqlite3-adapter
-          "jdbcsqlite3"    => "SQLite",
+          "jdbcsqlite3" => "SQLite",
 
           # https://rubygems.org/gems/activerecord-jdbcderby-adapter
           "derby"      => "Derby",

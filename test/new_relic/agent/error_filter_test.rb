@@ -5,7 +5,9 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 class TestExceptionA < StandardError; end
+
 class TestExceptionB < StandardError; end
+
 class TestExceptionC < StandardError; end
 
 module NewRelic::Agent

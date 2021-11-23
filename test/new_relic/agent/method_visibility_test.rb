@@ -37,7 +37,6 @@ class MethodVisibilityTest < Minitest::Test
     add_transaction_tracer :protected_transaction!
   end
 
-
   class ObjectWithInstrumentation
     include NewRelic::Agent::MethodTracer
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
@@ -47,11 +46,13 @@ class MethodVisibilityTest < Minitest::Test
     private
     def a_private_method
     end
+
     def a_private_transaction
     end
     protected
     def a_protected_method
     end
+
     def a_protected_transaction
     end
 
@@ -61,18 +62,17 @@ class MethodVisibilityTest < Minitest::Test
     add_transaction_tracer :a_protected_transaction
   end
 
-
   def setup
     @instance = InstrumentedClass.new
   end
 
   %w| public private protected |.each do |visibility|
     define_method "test_should_preserve_visibility_of_#{visibility}_traced_method" do
-      assert @instance.send("#{visibility}_methods").map{|s| s.to_sym}.include?(:"#{visibility}_method!"), "Method #{visibility}_method should be #{visibility}"
+      assert @instance.send("#{visibility}_methods").map{ |s| s.to_sym }.include?(:"#{visibility}_method!"), "Method #{visibility}_method should be #{visibility}"
     end
 
     define_method "test_should_preserve_visibility_of_#{visibility}_traced_transaction" do
-      assert @instance.send("#{visibility}_methods").map{|s| s.to_sym}.include?(:"#{visibility}_transaction!"), "Transcation #{visibility}_transaction should be #{visibility}"
+      assert @instance.send("#{visibility}_methods").map{ |s| s.to_sym }.include?(:"#{visibility}_transaction!"), "Transcation #{visibility}_transaction should be #{visibility}"
     end
   end
 

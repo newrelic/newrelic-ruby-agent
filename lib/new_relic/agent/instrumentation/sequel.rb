@@ -34,7 +34,7 @@ DependencyDetection.defer do
           "https://newrelic.com/docs/ruby/sequel-instrumentation"
       end
 
-      Sequel.synchronize{Sequel::DATABASES.dup}.each do |db|
+      Sequel.synchronize{ Sequel::DATABASES.dup }.each do |db|
         db.extension :newrelic_instrumentation
       end
 

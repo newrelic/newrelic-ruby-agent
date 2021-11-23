@@ -20,14 +20,23 @@ begin
     # different metric names for each one. This is more realistic than using the
     # same name 10 times.
     class TestMiddlewareA < TestMiddleware; def call(e); @app.call(e); end; end
+
     class TestMiddlewareB < TestMiddleware; def call(e); @app.call(e); end; end
+
     class TestMiddlewareC < TestMiddleware; def call(e); @app.call(e); end; end
+
     class TestMiddlewareD < TestMiddleware; def call(e); @app.call(e); end; end
+
     class TestMiddlewareE < TestMiddleware; def call(e); @app.call(e); end; end
+
     class TestMiddlewareF < TestMiddleware; def call(e); @app.call(e); end; end
+
     class TestMiddlewareG < TestMiddleware; def call(e); @app.call(e); end; end
+
     class TestMiddlewareH < TestMiddleware; def call(e); @app.call(e); end; end
+
     class TestMiddlewareI < TestMiddleware; def call(e); @app.call(e); end; end
+
     class TestMiddlewareJ < TestMiddleware; def call(e); @app.call(e); end; end
 
     class TestAppWithParams
