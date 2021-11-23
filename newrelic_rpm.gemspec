@@ -11,7 +11,6 @@ Gem::Specification.new do |s|
   s.required_ruby_version = '>= 2.0.0'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
   s.authors = ["Aaron Huntsman", "Tanna McClure", "Kayla Reopelle"]
-  s.date = Time.now.strftime('%Y-%m-%d')
   s.licenses = ['Apache-2.0']
   s.description = <<-EOS
 New Relic is a performance management system, developed by New Relic,
