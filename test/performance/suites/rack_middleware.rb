@@ -122,7 +122,7 @@ begin
       }
     end
 
-    def test_basic_middleware_stack()
+    def test_basic_middleware_stack
       measure do
         @stack.call(@env.dup)
       end

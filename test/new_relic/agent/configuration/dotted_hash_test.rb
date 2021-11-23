@@ -38,7 +38,7 @@ module NewRelic::Agent::Configuration
       hash = DottedHash.new({:turtle => {:turtle => 1}}, true)
       expected = {
         :turtle => {:turtle => 1},
-        :'turtle.turtle' => 1,
+        :'turtle.turtle' => 1
       }
 
       assert_equal(expected, hash)

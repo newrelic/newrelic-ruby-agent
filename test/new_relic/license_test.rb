@@ -17,7 +17,7 @@ class LicenseTest < Minitest::Test
     'BSD' => /\bBSD\b/i,
     'MIT' => /\bMIT\b/i,
     'Apache' => /\bapache\b/i,
-    'rights reserved' => /rights reserved/i,
+    'rights reserved' => /rights reserved/i
   }
 
   # Known occurrences of the above license terms

@@ -130,7 +130,7 @@ module NewRelic
             "OtherTransactionTotalTime/test",
             "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
             "Supportability/API/recording_web_transaction?",
-            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther"
           ]
         end
 
@@ -171,7 +171,7 @@ module NewRelic
             'Logging/size',
             'Logging/size/INFO',
             'Supportability/API/increment_metric',
-            'Supportability/API/record_metric',
+            'Supportability/API/record_metric'
           ]
         end
 
@@ -194,7 +194,7 @@ module NewRelic
             "OtherTransactionTotalTime/test",
             "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
             "Supportability/API/recording_web_transaction?",
-            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther"
           ]
         end
 
@@ -288,7 +288,7 @@ module NewRelic
             # If the segment constructor fails to create a random guid, the
             # exception would be a RuntimeError
             assert_raises(Errno::EMFILE, Errno::ENFILE) do
-              while true do
+              while true
                 file_descriptors << IO.sysopen(__FILE__)
                 Segment.new "Test #{file_descriptors[-1]}"
               end

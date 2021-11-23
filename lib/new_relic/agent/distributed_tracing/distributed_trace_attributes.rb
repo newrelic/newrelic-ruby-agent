@@ -19,7 +19,7 @@ module NewRelic
         TRACE_ID_KEY = "traceId",
         PARENT_TRANSACTION_ID_KEY = "parentId",
         PARENT_SPAN_ID_KEY = "parentSpanId",
-        SAMPLED_KEY = "sampled",
+        SAMPLED_KEY = "sampled"
       ].freeze
 
       # This method extracts intrinsics from the transaction_payload and

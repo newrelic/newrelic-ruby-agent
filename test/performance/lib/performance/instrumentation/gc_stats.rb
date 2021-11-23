@@ -51,7 +51,7 @@ module Performance
       def results
         {
           :allocations => @allocations_after - @allocations_before,
-          :live_objects => @live_objects_after - @live_objects_before,
+          :live_objects => @live_objects_after - @live_objects_before
         }
       end
     end

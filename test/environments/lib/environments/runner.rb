@@ -107,7 +107,7 @@ module Environments
       cmd = "cd #{dir} && bundle exec rake"
       cmd << " file=#{ENV['file']}" if ENV["file"]
       IO.popen(cmd) do |io|
-        until io.eof do
+        until io.eof
           print io.read(1)
         end
       end

@@ -74,7 +74,7 @@ class SinatraMetricExplosionTest < Minitest::Test
       'CPU/User Time',
       "Middleware/all",
       "WebFrontend/QueueTime",
-      "WebFrontend/WebServer/all",
+      "WebFrontend/WebServer/all"
     ]
 
     name_beginnings_to_ignore = [

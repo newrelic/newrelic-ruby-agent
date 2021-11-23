@@ -433,7 +433,7 @@ module NewRelic
           end
         end
 
-        until @agent.waited_on_connect? do
+        until @agent.waited_on_connect?
           # hold on there....
         end
 
@@ -455,7 +455,7 @@ module NewRelic
           end
         end
 
-        until @agent.waited_on_connect? do
+        until @agent.waited_on_connect?
           # hold on there....
         end
 
@@ -477,7 +477,7 @@ module NewRelic
           end
         end
 
-        until @agent.waited_on_connect? do
+        until @agent.waited_on_connect?
           # hold on there....
         end
 
@@ -749,7 +749,7 @@ module NewRelic
             "HTTP/1.1 200",
             "Content-Encoding: gzip",
             "Content-Length: #{gzip.length}",
-            gzip.byteslice(0..-2),
+            gzip.byteslice(0..-2)
         ].join("\r\n")
 
           server.accept.write headers.chomp

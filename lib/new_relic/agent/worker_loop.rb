@@ -42,7 +42,7 @@ module NewRelic
       # that runs this worker loop.  This will run the task immediately.
       def run(period = nil, &block)
         setup(period, block)
-        while keep_running? do
+        while keep_running?
           sleep_time = schedule_next_invocation
           sleep(sleep_time) if sleep_time > 0
           run_task if keep_running?

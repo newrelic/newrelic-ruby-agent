@@ -99,7 +99,7 @@ class EnvironmentReportTest < Minitest::Test
       'Rails Env',
       'Rails version',
       'Rails threadsafe',
-      'OpenSSL version',
+      'OpenSSL version'
     ].each do |key|
       assert NewRelic::EnvironmentReport.registered_reporters.has_key?(key), "Expected logic for #{key.inspect} in EnvironmentReport."
     end

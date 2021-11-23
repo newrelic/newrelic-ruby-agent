@@ -154,7 +154,7 @@ module NewRelic
         "info" => ::Logger::INFO,
         "warn" => ::Logger::WARN,
         "error" => ::Logger::ERROR,
-        "fatal" => ::Logger::FATAL,
+        "fatal" => ::Logger::FATAL
       }
 
       def self.log_level_for(level)

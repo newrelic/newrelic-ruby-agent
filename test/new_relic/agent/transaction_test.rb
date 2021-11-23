@@ -1618,7 +1618,7 @@ module NewRelic::Agent
         # If the segment constructor fails to create a random guid, the
         # exception would be a RuntimeError
         assert_raises Errno::EMFILE, Errno::ENFILE do
-          while true do
+          while true
             file_descriptors << IO.sysopen(__FILE__)
             in_transaction do |txn|
               refute_nil txn.guid

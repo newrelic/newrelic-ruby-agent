@@ -81,7 +81,7 @@ module NewRelic
           :'error_collector.max_event_samples_stored' => 'Supportability/EventHarvest/ErrorEventData/HarvestLimit',
           :'span_events.max_samples_stored' => 'Supportability/SpanEvent/Limit',
           :event_report_period => 'Supportability/EventHarvest/ReportPeriod',
-          :'event_report_period.span_event_data' => 'Supportability/SpanEvent/ReportPeriod',
+          :'event_report_period.span_event_data' => 'Supportability/SpanEvent/ReportPeriod'
         }
 
         def add_event_harvest_config(merged_settings, connect_reply)

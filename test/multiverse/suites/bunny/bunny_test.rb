@@ -225,7 +225,7 @@ class BunnyTest < Minitest::Test
 
         assert_equal({:"message.routingKey" => "some.key",
                        :"message.queueName" => queue.name,
-                       :"message.exchangeType" => :direct,
+                       :"message.exchangeType" => :direct
                      },
           tt.attributes.agent_attributes_for(expected_destinations))
 

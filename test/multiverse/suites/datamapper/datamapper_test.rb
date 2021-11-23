@@ -326,7 +326,7 @@ class DataMapperTest < Minitest::Test
       'Datastore/DataMapper/all',
       'Datastore/DataMapper/allWeb',
       'Datastore/operation/DataMapper/select',
-      ['Datastore/operation/DataMapper/select', 'dm4evr'],
+      ['Datastore/operation/DataMapper/select', 'dm4evr']
     ])
   end
 
@@ -341,7 +341,7 @@ class DataMapperTest < Minitest::Test
       'Datastore/DataMapper/all',
       'Datastore/DataMapper/allOther',
       'Datastore/operation/DataMapper/execute',
-      ['Datastore/operation/DataMapper/execute', 'background'],
+      ['Datastore/operation/DataMapper/execute', 'background']
     ])
   end
 

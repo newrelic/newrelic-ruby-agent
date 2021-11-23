@@ -35,7 +35,7 @@ module NewRelic::Agent
       def settings
         {
           'grpc.minimal_stack' => 1,
-          'grpc.enable_deadline_checking' => 0,
+          'grpc.enable_deadline_checking' => 0
         }
       end
     end

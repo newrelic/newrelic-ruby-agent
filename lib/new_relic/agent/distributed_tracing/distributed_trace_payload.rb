@@ -140,7 +140,7 @@ module NewRelic
           TRACE_ID_KEY => trace_id,
           SAMPLED_KEY => sampled,
           PRIORITY_KEY => priority,
-          TIMESTAMP_KEY => timestamp,
+          TIMESTAMP_KEY => timestamp
         }
 
         result[DATA_KEY][ID_KEY] = id if id

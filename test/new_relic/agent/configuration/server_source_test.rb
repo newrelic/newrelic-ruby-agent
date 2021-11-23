@@ -21,7 +21,7 @@ module NewRelic::Agent::Configuration
           'harvest_limits' => {
             'analytic_event_data' => 833,
             'custom_event_data' => 833,
-            'error_event_data' => 8,
+            'error_event_data' => 8
           }
         },
         'span_event_harvest_config' => {
@@ -135,7 +135,7 @@ module NewRelic::Agent::Configuration
         'harvest_limits' => {
           'analytic_event_data' => 833,
           'custom_event_data' => 833,
-          'error_event_data' => 8,
+          'error_event_data' => 8
         }
       }
 

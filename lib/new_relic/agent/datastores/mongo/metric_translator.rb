@@ -79,7 +79,7 @@ module NewRelic
 
             :collstats,
             :renameCollection,
-            :drop,
+            :drop
           ]
 
           def self.command_key_from_selector(payload)

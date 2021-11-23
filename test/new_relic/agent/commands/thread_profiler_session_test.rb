@@ -18,17 +18,17 @@ module ThreadProfilerSessionTestHelpers
     "duration" => 0.025,
     "only_runnable_threads" => false,
     "only_request_threads" => false,
-    "profile_agent_code" => false,
+    "profile_agent_code" => false
   }
 
   STOP = {
     "profile_id" => 42,
-    "report_data" => true,
+    "report_data" => true
   }
 
   STOP_AND_DISCARD = {
     "profile_id" => 42,
-    "report_data" => false,
+    "report_data" => false
   }
 
   def start_command

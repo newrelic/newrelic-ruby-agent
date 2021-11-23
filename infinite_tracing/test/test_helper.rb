@@ -78,7 +78,7 @@ def trace
       :rpc,
       :start_streaming,
       :notice_span,
-      :wait_for_notice,
+      :wait_for_notice
     ].include? tp.method_id
     p [tp.lineno, tp.defined_class, tp.method_id, tp.event]
   end

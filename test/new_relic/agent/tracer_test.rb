@@ -247,7 +247,7 @@ module NewRelic
           "Controller/blogs/index",
           "Nested/Controller/Rack/Test::App/call",
           "Middleware/Rack/MyMiddleware/call",
-          "Nested/Controller/blogs/index",
+          "Nested/Controller/blogs/index"
         ]
       end
 

@@ -187,7 +187,7 @@ module NewRelic
           'Logging/size',
           'Logging/size/INFO',
           'Supportability/API/increment_metric',
-          'Supportability/API/record_metric',
+          'Supportability/API/record_metric'
         ])
       end
 

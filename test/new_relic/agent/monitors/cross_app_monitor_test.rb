@@ -41,7 +41,7 @@ module NewRelic::Agent
         :trusted_account_ids => TRUSTED_ACCOUNT_IDS,
         :disable_harvest_thread => true,
         :'cross_application_tracer.enabled' => true,
-        :'distributed_tracing.enabled' => false,
+        :'distributed_tracing.enabled' => false
       }
 
       NewRelic::Agent.config.add_config_for_testing(@config)
@@ -238,7 +238,7 @@ module NewRelic::Agent
 
       return {
         NEWRELIC_ID_HEADER => encoded_id,
-        NEWRELIC_TXN_HEADER => encoded_txn_info,
+        NEWRELIC_TXN_HEADER => encoded_txn_info
       }
     end
 

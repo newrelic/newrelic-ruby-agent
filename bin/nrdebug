@@ -243,7 +243,7 @@ def prompt_for_confirmation(target_pid, target_cmd)
   puts ''
   puts "To continue, type 'continue':"
 
-  until ($stdin.gets.strip == 'continue') do
+  until ($stdin.gets.strip == 'continue')
     puts "Please type 'continue' to continue, or ctrl-c to abort."
   end
 end

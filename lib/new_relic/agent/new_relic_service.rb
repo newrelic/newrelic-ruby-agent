@@ -391,7 +391,7 @@ module NewRelic
           'license_key' => license_key,
           'run_id' => @agent_id,
           'method' => method,
-          'marshal_format' => 'json', # Other formats are explicitly
+          'marshal_format' => 'json' # Other formats are explicitly
                                         # ruled out; see the initializer
         }
 

@@ -143,27 +143,27 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     assert_metrics_recorded_exclusive(
       'txn' => {
-        :call_count => 1,
+        :call_count => 1
       },
       'parent' => {
         :call_count => 1,
         :total_call_time => 20,
-        :total_exclusive_time => 10,
+        :total_exclusive_time => 10
       },
       ['parent', 'txn'] => {
         :call_count => 1,
         :total_call_time => 20,
-        :total_exclusive_time => 10,
+        :total_exclusive_time => 10
       },
       'child' => {
         :call_count => 1,
         :total_call_time => 10,
-        :total_exclusive_time => 10,
+        :total_exclusive_time => 10
       },
       ['child', 'txn'] => {
         :call_count => 1,
         :total_call_time => 10,
-        :total_exclusive_time => 10,
+        :total_exclusive_time => 10
       },
       'Supportability/API/trace_execution_scoped' => {
         call_count: 2

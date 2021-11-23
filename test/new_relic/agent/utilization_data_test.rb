@@ -444,7 +444,7 @@ module NewRelic::Agent
       input_gcp_id: :id,
       input_gcp_type: :machineType,
       input_gcp_name: :name,
-      input_gcp_zone: :zone,
+      input_gcp_zone: :zone
     }
 
     def stub_gcp_inputs test_case

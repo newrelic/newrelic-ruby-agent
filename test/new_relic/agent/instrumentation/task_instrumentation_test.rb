@@ -54,7 +54,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
       'ApdexAll',
       'Apdex',
       'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all',
-      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb',
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
     ])
   end
 
@@ -74,7 +74,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
         [
           'Nested/Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_1',
           'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0'
-        ],
+        ]
       ],
       :filter => /^(Sub)?Controller/
     )
@@ -108,7 +108,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
         [
           'Nested/Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_3',
           'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0'
-        ],
+        ]
       ],
       :filter => /^(Nested\/)?Controller/
     )

@@ -41,7 +41,7 @@ class HighSecurityTest < Minitest::Test
         "error_collector.attributes.include" => ["*", "request.parameters.*"],
 
         "browser_monitoring.attributes.enabled" => true,
-        "browser_monitoring.attributes.include" => ["*", "request.parameters.*"],
+        "browser_monitoring.attributes.include" => ["*", "request.parameters.*"]
       }
     }, 200)
   end

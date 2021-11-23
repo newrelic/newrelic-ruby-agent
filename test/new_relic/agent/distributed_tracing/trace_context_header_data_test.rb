@@ -49,7 +49,7 @@ module NewRelic
 
           def test_trace_state_trims_large_entries_if_total_size_is_greater_than_512_bytes
             trace_state_array = [
-              "#{random_text(2)}=#{random_text(130)}", # 133 bytes
+              "#{random_text(2)}=#{random_text(130)}" # 133 bytes
             ]
             # also add 500 more bytes
             trace_state_array += (0...50).map { "#{random_text(2)}=#{random_text(6)}" }

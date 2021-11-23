@@ -128,7 +128,7 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
   [["untraced_methods", UntracedMethods],
     ["traced_methods", TracedMethods],
     ["traced_metric_methods", TracedMetricMethods],
-    ["traced_metric_methods_unscoped", TracedMetricMethodsUnscoped],].each do |traced_class_name, traced_class|
+    ["traced_metric_methods_unscoped", TracedMetricMethodsUnscoped]].each do |traced_class_name, traced_class|
     # We're doing it all in one big super test because order of invocation matters!
     # When many small test scenarios, if the tests for deprecation warnings emitted
     # by the compiler are not invoked first, then we miss our chance to capture

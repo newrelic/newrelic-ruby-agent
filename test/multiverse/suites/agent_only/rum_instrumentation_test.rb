@@ -24,7 +24,7 @@ class RumAutoTest < Minitest::Test
     collector.stub('connect', {
       'transaction_name_rules' => [{"match_expression" => "ignored_transaction",
                                     "ignore" => true}],
-      'agent_run_id' => 1,
+      'agent_run_id' => 1
     })
   end
 

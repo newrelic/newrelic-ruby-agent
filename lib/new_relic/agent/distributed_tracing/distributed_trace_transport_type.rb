@@ -17,12 +17,12 @@ module NewRelic
         "IronMQ",
         "AMQP",
         "Queue",
-        "Other",
+        "Other"
       ].freeze
 
       URL_SCHEMES = {
         'http' => NewRelic::HTTP,
-        'https' => NewRelic::HTTPS,
+        'https' => NewRelic::HTTPS
       }.freeze
 
       RACK_URL_SCHEME = 'rack.url_scheme'

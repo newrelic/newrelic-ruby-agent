@@ -117,7 +117,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           pool_size: 10,
           max_waiting_requests: 10,
           server_args: {
-            'grpc.so_reuseport' => 0, # eliminates chance of cross-talks
+            'grpc.so_reuseport' => 0 # eliminates chance of cross-talks
           }
         }
       end

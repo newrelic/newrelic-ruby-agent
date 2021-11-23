@@ -31,7 +31,7 @@ module NewRelic
             'example.com',
             'http://example.com',
             'https://example.com',
-            'https://example.com:443',
+            'https://example.com:443'
           ]
           hostnames.each do |hostname|
             with_config(:'infinite_tracing.trace_observer.host' => hostname) do
@@ -47,7 +47,7 @@ module NewRelic
             ['example.com', 443],
             ['http://example.com', 443],
             ['https://example.com', 443],
-            ['https://example.com:80', 80],
+            ['https://example.com:80', 80]
           ]
           hostnames.each do |hostname, port|
             with_config(:'infinite_tracing.trace_observer.host' => hostname) do
@@ -63,12 +63,12 @@ module NewRelic
             ['example.com', 443],
             ['http://example.com', 443],
             ['https://example.com', 443],
-            ['https://example.com:80', 80],
+            ['https://example.com:80', 80]
           ]
           hostnames.each do |hostname, port|
             config = {
               :'infinite_tracing.trace_observer.host' => hostname,
-              :'infinite_tracing.trace_observer.port' => 443,
+              :'infinite_tracing.trace_observer.port' => 443
             }
             with_config(config) do
               assert_equal port, Config.trace_observer_port, "expected #{port} for port because host overrides: #{hostname}"
@@ -83,11 +83,11 @@ module NewRelic
             ['example.com:443', 'example.com:443'],
             ['http://example.com', 'example.com:443'],
             ['https://example.com', 'example.com:443'],
-            ['https://example.com:80', 'example.com:80'],
+            ['https://example.com:80', 'example.com:80']
           ]
           hostnames.each do |hostname, host_and_port|
             config = {
-              :'infinite_tracing.trace_observer.host' => hostname,
+              :'infinite_tracing.trace_observer.host' => hostname
             }
             with_config(config) do
               assert_equal host_and_port,

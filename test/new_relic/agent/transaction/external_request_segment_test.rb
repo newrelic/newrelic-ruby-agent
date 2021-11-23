@@ -458,7 +458,7 @@ module NewRelic::Agent
       def test_sets_http_status_code_ok
         headers = {
           'X-NewRelic-App-Data' => "this#is#not#valid#appdata",
-          'status_code' => 200,
+          'status_code' => 200
         }
         segment_params = {
           library: "Net::HTTP",
@@ -492,7 +492,7 @@ module NewRelic::Agent
         expected_metrics = [
           "External/remotehost.com/Net::HTTP/GET/MissingHTTPStatusCode",
           "External/remotehost.com/Net::HTTP/GET",
-          "External/allWeb",
+          "External/allWeb"
         ]
        assert_metrics_recorded expected_metrics
       end
@@ -500,7 +500,7 @@ module NewRelic::Agent
       def test_sets_http_status_code_not_found
         headers = {
           'X-NewRelic-App-Data' => "this#is#not#valid#appdata",
-          'status_code' => 404,
+          'status_code' => 404
         }
 
         segment_params = {
@@ -909,7 +909,7 @@ module NewRelic::Agent
           :cross_process_id => "269975#22824",
           :trusted_account_ids => [1, 269975],
           :'cross_application_tracer.enabled' => true,
-          :'distributed_tracing.enabled' => false,
+          :'distributed_tracing.enabled' => false
         }
       end
 
@@ -917,7 +917,7 @@ module NewRelic::Agent
         {
           :'distributed_tracing.enabled' => true,
           :'cross_application_tracer.enabled' => false,
-          :'span_events.enabled' => true,
+          :'span_events.enabled' => true
         }
       end
 

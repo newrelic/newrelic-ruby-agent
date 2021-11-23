@@ -150,7 +150,7 @@ module NewRelic
           :synthetics_resource_id => 100,
           :attributes => attributes,
           :error => false,
-          :priority => rand,
+          :priority => rand
         }.merge(options)
 
         @synthetics_event_aggregator.record TransactionEventPrimitive.create(payload)

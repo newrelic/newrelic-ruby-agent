@@ -26,7 +26,7 @@ class LoggerInstrumentationTest < Minitest::Test
     ['error', Logger::ERROR],
     ['fatal', Logger::FATAL],
     ['info', Logger::INFO],
-    ['warn', Logger::WARN],
+    ['warn', Logger::WARN]
   ]
 
   LEVELS.each do |(name, level)|

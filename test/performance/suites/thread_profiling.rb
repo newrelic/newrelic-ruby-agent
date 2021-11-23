@@ -42,7 +42,7 @@ class ThreadProfiling < Performance::TestCase
 
     # Ensure that all threads have had a chance to start up
     started_count = 0
-    while started_count < @nthreads do
+    while started_count < @nthreads
       @threadq.pop
       started_count += 1
     end

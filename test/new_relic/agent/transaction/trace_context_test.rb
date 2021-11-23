@@ -17,7 +17,7 @@ module NewRelic::Agent
             :account_id => "190",
             :primary_application_id => "46954",
             :trusted_account_key => "999999",
-            :disable_harvest_thread => true,
+            :disable_harvest_thread => true
           }
           NewRelic::Agent.agent.stubs(:connected?).returns(true)
           Agent.config.add_config_for_testing(@config)

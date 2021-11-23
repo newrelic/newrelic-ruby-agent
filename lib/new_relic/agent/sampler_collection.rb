@@ -17,7 +17,7 @@ module NewRelic
         @samplers.each(&blk)
       end
 
-      def clear()
+      def clear
         @samplers.clear
       end
 

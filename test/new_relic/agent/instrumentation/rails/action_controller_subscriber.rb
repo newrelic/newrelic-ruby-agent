@@ -32,7 +32,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
       :method => 'GET',
       :path => '/tests',
       :headers => @headers,
-      :params => {:controller => 'test_controller', :action => 'index'},
+      :params => {:controller => 'test_controller', :action => 'index'}
     }
 
     @exit_payload = @entry_payload.merge(:status => 200, :view_runtime => 5.0,

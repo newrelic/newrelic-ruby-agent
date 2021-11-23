@@ -25,7 +25,7 @@ module NewRelic::Agent
         TrueClass => :bool_value,
         FalseClass => :bool_value,
         Integer => :int_value,
-        Float => :double_value,
+        Float => :double_value
       }
       if RUBY_VERSION < '2.4.0'
         KLASS_TO_ARG[Fixnum] = :int_value

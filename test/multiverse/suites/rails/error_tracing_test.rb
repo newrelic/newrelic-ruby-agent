@@ -338,7 +338,7 @@ class ErrorsWithSSCTest < ErrorsWithoutSSCTest
       "agent_run_id" => 1,
       "agent_config" => {
         "error_collector.ignore_errors" => 'NewRelic::TestHelpers::Exceptions::IgnoredError,NewRelic::TestHelpers::Exceptions::ServerIgnoredError',
-        "error_collector.enabled" => true,
+        "error_collector.enabled" => true
       },
       "collect_errors" => true
     }, 200)

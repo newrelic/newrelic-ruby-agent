@@ -35,7 +35,7 @@ module NewRelic
             "Supportability/InfiniteTracing/Span/Sent"
           ])
           assert_metrics_recorded({
-            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans}
           })
           assert_watched_threads_finished buffer
         end
@@ -76,7 +76,7 @@ module NewRelic
             "Supportability/InfiniteTracing/Span/Sent"
           ])
           assert_metrics_recorded({
-            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans}
           })
           assert_watched_threads_finished buffer
         end

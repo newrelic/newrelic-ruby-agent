@@ -501,7 +501,7 @@ module Multiverse
         OutputCollector.write(suite, env, yellow("Running #{suite.inspect} using #{instrumentation_method.upcase} for Envfile entry #{env}\n"))
 
         IO.popen(child_command_line(env, instrumentation_method)) do |io|
-          until io.eof do
+          until io.eof
             chars = io.read
             OutputCollector.write(suite, env, chars)
           end

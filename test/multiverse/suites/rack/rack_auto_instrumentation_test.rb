@@ -153,7 +153,7 @@ class RackAutoInstrumentationTest < Minitest::Test
         'Logging/lines/WARN',
         'Logging/size',
         'Logging/size/INFO',
-        'Logging/size/WARN',
+        'Logging/size/WARN'
       ],
       :ignore_filter => /^Supportability/
     )
