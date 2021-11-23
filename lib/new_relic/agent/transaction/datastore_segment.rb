@@ -11,12 +11,10 @@ module NewRelic
   module Agent
     class Transaction
       class DatastoreSegment < Segment
-
         UNKNOWN = 'unknown'.freeze
 
         attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :host, :port_path_or_id
         attr_accessor :database_name, :record_sql
-
 
         def initialize product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name = nil, start_time = nil
           @product = product

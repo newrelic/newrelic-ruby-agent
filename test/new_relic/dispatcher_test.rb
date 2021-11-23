@@ -6,7 +6,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 
 # Test logic around detecting or configuring dispatcher
 class DispatcherTest < Minitest::Test
-
   def setup
     NewRelic::Agent.shutdown
     NewRelic::Agent.reset_config
@@ -56,5 +55,4 @@ class DispatcherTest < Minitest::Test
     assert_dispatcher_reported_to_environment_report :resque
     NewRelic::Agent.shutdown
   end
-
 end

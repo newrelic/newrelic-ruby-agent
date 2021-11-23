@@ -10,7 +10,6 @@ module NewRelic
     module Instrumentation
       module ActiveRecordHelper
         class InstanceIdentificationTest < Minitest::Test
-
           def test_for_constructs_id_with_configured_host_and_port
             config = {
               :host => "jonan.local",

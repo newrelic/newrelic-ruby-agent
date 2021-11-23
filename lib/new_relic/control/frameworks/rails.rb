@@ -10,9 +10,8 @@ module NewRelic
       # Rails specific configuration, instrumentation, environment values,
       # etc.
       class Rails < NewRelic::Control::Frameworks::Ruby
-
         def env
-          @env ||= ( ENV['NEW_RELIC_ENV'] || RAILS_ENV.dup )
+          @env ||= (ENV['NEW_RELIC_ENV'] || RAILS_ENV.dup)
         end
 
         # Rails can return an empty string from this method, causing
@@ -63,8 +62,8 @@ module NewRelic
           end
         rescue => e
           ::NewRelic::Agent.logger.error("Failure during init_config for Rails. Is Rails required in a non-Rails app? Set NEW_RELIC_FRAMEWORK=ruby to avoid this message.",
-                                         "The Ruby agent will continue running, but Rails-specific features may be missing.",
-                                         e)
+            "The Ruby agent will continue running, but Rails-specific features may be missing.",
+            e)
         end
 
         def install_agent_hooks(config)

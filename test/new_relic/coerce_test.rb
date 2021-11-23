@@ -6,7 +6,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 require 'new_relic/coerce'
 
 class CoerceTest < Minitest::Test
-
   include NewRelic::Coerce
 
   def test_int_coerce

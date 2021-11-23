@@ -6,7 +6,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_hel
 require 'new_relic/agent/autostart'
 
 class AutostartTest < Minitest::Test
-
   def test_typically_the_agent_should_autostart
     assert ::NewRelic::Agent::Autostart.agent_should_start?
   end
@@ -51,7 +50,6 @@ class AutostartTest < Minitest::Test
       assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't start during #{task.inspect} rake task"
     end
   end
-
 
   MyConst = true
   def test_denylisted_constants_can_be_configured

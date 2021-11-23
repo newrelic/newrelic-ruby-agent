@@ -5,7 +5,6 @@
 require File.expand_path '../../../../test_helper', __FILE__
 
 class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
-
   def setup
     NewRelic::Agent.drop_buffered_data
   end

@@ -98,7 +98,6 @@ module NewRelic
             return
           end
 
-
           span_guid = Agent.config[:'span_events.enabled'] ? transaction.current_segment.guid : nil
           transaction_guid = Agent.config[:'analytics_events.enabled'] ? transaction.guid : nil
 
@@ -161,7 +160,6 @@ module NewRelic
         def trace_context_inserted?
           @trace_context_inserted ||= false
         end
-
       end
     end
   end

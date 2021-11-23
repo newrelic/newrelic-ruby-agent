@@ -11,7 +11,7 @@ module NewRelic
         EXPLAINER = lambda do |statement|
           connection = NewRelic::Agent::Database.get_connection(statement.config) do
             ::ActiveRecord::Base.send("#{statement.config[:adapter]}_connection",
-                                      statement.config)
+              statement.config)
           end
           if connection && connection.respond_to?(:execute)
             return connection.execute("EXPLAIN #{statement.sql}")
@@ -56,7 +56,8 @@ module NewRelic
             product, operation, collection = ActiveRecordHelper.product_operation_collection_for(
               NewRelic::Helper.correctly_encoded(name),
               NewRelic::Helper.correctly_encoded(sql),
-              @config && @config[:adapter])
+              @config && @config[:adapter]
+)
 
             host = nil
             port_path_or_id = nil
@@ -99,7 +100,8 @@ module NewRelic
             product, operation, collection = ActiveRecordHelper.product_operation_collection_for(
               NewRelic::Helper.correctly_encoded(name),
               NewRelic::Helper.correctly_encoded(sql),
-              @config && @config[:adapter])
+              @config && @config[:adapter]
+)
 
             host = nil
             port_path_or_id = nil

@@ -7,7 +7,6 @@ require 'new_relic/agent/configuration/environment_source'
 
 module NewRelic::Agent::Configuration
   class EnvironmentSourceTest < Minitest::Test
-
     def setup
       @original_env = {}
       @original_env.replace(ENV)
@@ -196,6 +195,5 @@ module NewRelic::Agent::Configuration
       assert_equal true, EnvironmentSource.new[config_var.to_sym]
       ENV.delete(env_var)
     end
-
   end
 end

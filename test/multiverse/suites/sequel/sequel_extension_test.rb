@@ -5,9 +5,9 @@
 require File.join(File.dirname(__FILE__), 'database.rb')
 require File.join(File.dirname(__FILE__), 'sequel_helpers.rb')
 
-if Sequel.const_defined?( :MAJOR ) &&
-      ( Sequel::MAJOR > 3 ||
-        Sequel::MAJOR == 3 && Sequel::MINOR >= 37 )
+if Sequel.const_defined?(:MAJOR) &&
+      (Sequel::MAJOR > 3 ||
+        Sequel::MAJOR == 3 && Sequel::MINOR >= 37)
 
 require 'newrelic_rpm'
 
@@ -22,7 +22,7 @@ class SequelExtensionTest < Minitest::Test
     @posts = DB[:posts]
 
     NewRelic::Agent.disable_all_tracing do
-      post_id = @posts.insert( :title => 'All The Things', :content => 'A nice short story.' )
+      post_id = @posts.insert(:title => 'All The Things', :content => 'A nice short story.')
       @post = @posts[:id => post_id]
     end
   end
@@ -60,7 +60,7 @@ class SequelExtensionTest < Minitest::Test
 
   def test_model_create_method_generates_metrics
     in_web_transaction do
-      @posts.insert( :title => 'The Thing', :content => 'A wicked short story.' )
+      @posts.insert(:title => 'The Thing', :content => 'A wicked short story.')
     end
 
     assert_datastore_metrics_recorded_exclusive(expected_metrics_for_operation(:insert))
@@ -75,7 +75,7 @@ class SequelExtensionTest < Minitest::Test
 
   def test_update
     in_web_transaction do
-      @posts.where(:id => @post[:id]).update( :title => 'A Lot of the Things' )
+      @posts.where(:id => @post[:id]).update(:title => 'A Lot of the Things')
     end
 
     assert_datastore_metrics_recorded_exclusive(expected_metrics_for_operation(:update))
@@ -90,13 +90,13 @@ class SequelExtensionTest < Minitest::Test
   end
 
   def test_slow_queries_get_an_explain_plan
-    with_config( :'transaction_tracer.explain_threshold' => -0.01,
-                 :'transaction_tracer.record_sql' => 'raw' ) do
+    with_config(:'transaction_tracer.explain_threshold' => -0.01,
+      :'transaction_tracer.record_sql' => 'raw') do
       node = last_node_for do
         @posts[:id => 11]
       end
       assert_match %r{select \* from `posts` where \(?`id` = 11\)?( limit 1)?}i, node.params[:sql]
-      assert_node_has_explain_plan( node )
+      assert_node_has_explain_plan(node)
     end
   end
 
@@ -119,7 +119,7 @@ class SequelExtensionTest < Minitest::Test
         @posts[:id => 11]
       end
       assert_match %r{select \* from `posts` where \(?`id` = \?\)?}i, node.params[:sql]
-      assert_node_has_explain_plan( node )
+      assert_node_has_explain_plan(node)
     end
   end
 

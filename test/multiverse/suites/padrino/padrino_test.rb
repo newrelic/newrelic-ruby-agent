@@ -6,7 +6,6 @@
 Padrino::Logger::Config[:development][:stream] = :null
 
 class PadrinoTestApp < Padrino::Application
-
   register Padrino::Rendering
   register Padrino::Routing
   register Padrino::Helpers
@@ -38,7 +37,8 @@ class PadrinoRoutesTest < Minitest::Test
 
     assert_metrics_recorded([
         "Controller/Sinatra/PadrinoTestApp/GET user/login",
-        "Apdex/Sinatra/PadrinoTestApp/GET user/login"])
+        "Apdex/Sinatra/PadrinoTestApp/GET user/login"
+])
   end
 
   def test_regex_route
@@ -48,6 +48,7 @@ class PadrinoRoutesTest < Minitest::Test
 
     assert_metrics_recorded([
         "Controller/Sinatra/PadrinoTestApp/GET regex.*",
-        "Apdex/Sinatra/PadrinoTestApp/GET regex.*"])
+        "Apdex/Sinatra/PadrinoTestApp/GET regex.*"
+])
   end
 end

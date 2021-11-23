@@ -12,20 +12,20 @@ require 'sequel'
 if !defined?(DB)
 
   def create_tables(db)
-    db.create_table( :authors ) do
+    db.create_table(:authors) do
       primary_key :id
       string :name
       string :login
     end
 
-    db.create_table( :posts ) do
+    db.create_table(:posts) do
       primary_key :id
       string :title
       string :content
       time :created_at
     end
 
-    db.create_table( :users ) do
+    db.create_table(:users) do
       primary_key :uid
       string :login
       string :firstname

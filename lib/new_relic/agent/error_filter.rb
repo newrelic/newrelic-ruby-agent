@@ -4,11 +4,9 @@
 
 module NewRelic
   module Agent
-
     # Handles loading of ignored and expected errors from the agent configuration, and
     # determining at runtime whether an exception is ignored or expected.
     class ErrorFilter
-
       def initialize
         reset
       end

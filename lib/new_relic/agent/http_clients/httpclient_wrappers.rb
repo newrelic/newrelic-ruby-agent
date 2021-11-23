@@ -9,7 +9,6 @@ module NewRelic
   module Agent
     module HTTPClients
       class HTTPClientResponse < AbstractResponse
-
         def [](key)
           @wrapped_response.headers.each do |k, v|
             if key.downcase == k.downcase

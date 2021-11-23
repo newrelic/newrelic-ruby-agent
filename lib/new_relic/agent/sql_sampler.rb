@@ -140,7 +140,7 @@ module NewRelic
       # @api public
       # @deprecated Use {Datastores.notice_sql} instead.
       #
-      def notice_sql(sql, metric_name, config, duration, state = nil, explainer = nil, binds = nil, name = nil) #THREAD_LOCAL_ACCESS sometimes
+      def notice_sql(sql, metric_name, config, duration, state = nil, explainer = nil, binds = nil, name = nil) # THREAD_LOCAL_ACCESS sometimes
         state ||= Tracer.state
         data = state.sql_sampler_transaction_data
         return unless data
@@ -342,7 +342,7 @@ module NewRelic
       include NewRelic::Coerce
 
       def to_collector_array(encoder)
-        [ string(@path),
+        [string(@path),
           string(@url),
           int(@sql_id),
           string(@sql),
@@ -351,7 +351,7 @@ module NewRelic
           Helper.time_to_millis(@total_call_time),
           Helper.time_to_millis(@min_call_time),
           Helper.time_to_millis(@max_call_time),
-          encoder.encode(@params) ]
+          encoder.encode(@params)]
       end
 
       private

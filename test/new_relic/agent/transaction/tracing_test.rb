@@ -47,7 +47,7 @@ module NewRelic
             advance_process_time 1.0
             segment.finish
 
-            #clean up traced method stack
+            # clean up traced method stack
             txn.unstub(:segment_complete)
             txn.segment_complete(segment)
           end
@@ -129,9 +129,9 @@ module NewRelic
 
         def test_start_datastore_segment_does_not_record_metrics_outside_of_txn
           segment = Tracer.start_datastore_segment(
-              product: "SQLite",
-              operation: "insert",
-              collection: "Blog"
+            product: "SQLite",
+            operation: "insert",
+            collection: "Blog"
           )
           segment.start
           advance_process_time 1
@@ -537,7 +537,6 @@ module NewRelic
           end
         end
 
-
         # The following three tests will build the following trace.
         # Segments b and c are disjoint, but segments e and f overlap.
         #                       test_txn
@@ -695,7 +694,6 @@ module NewRelic
             advance_process_time 2
             segment_b.finish
 
-
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
             advance_process_time 1
 
@@ -832,7 +830,6 @@ module NewRelic
             advance_process_time 2
             segment_b.finish
 
-
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
             advance_process_time 1
 
@@ -878,7 +875,6 @@ module NewRelic
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
             advance_process_time 2
             segment_b.finish
-
 
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
             advance_process_time 1
@@ -941,7 +937,6 @@ module NewRelic
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
             advance_process_time 2
             segment_b.finish
-
 
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
             advance_process_time 1
@@ -1010,7 +1005,6 @@ module NewRelic
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
             advance_process_time 2
             segment_c.finish
-
 
             segment_d = NewRelic::Agent::Tracer.start_segment name: "metric d"
             advance_process_time 1

@@ -23,7 +23,7 @@ module NewRelic::Agent
           expected_destinations = to_bitfield(test_case['expected_destinations'])
 
           assert_equal(to_names(expected_destinations), to_names(actual_destinations),
-                       PP.pp(test_case, "") + PP.pp(filter.rules, ""))
+            PP.pp(test_case, "") + PP.pp(filter.rules, ""))
         end
       end
     end
@@ -212,7 +212,7 @@ module NewRelic::Agent
 
     def test_span_global_include_exclude
       with_config(:'attributes.include' => ['request.headers.contentType'],
-                  :'attributes.exclude' => ['request.headers.*']) do
+        :'attributes.exclude' => ['request.headers.*']) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
 
         result = filter.apply 'request.headers.contentType', AttributeFilter::DST_ALL
@@ -231,7 +231,7 @@ module NewRelic::Agent
 
     def test_span_include_exclude
       with_config(:'span_events.attributes.include' => ['request.headers.contentType'],
-                  :'span_events.attributes.exclude' => ['request.headers.*']) do
+        :'span_events.attributes.exclude' => ['request.headers.*']) do
         filter = AttributeFilter.new(NewRelic::Agent.config)
 
         result = filter.apply 'request.headers.contentType', AttributeFilter::DST_SPAN_EVENTS
@@ -245,7 +245,7 @@ module NewRelic::Agent
     def test_key_cache_global_include_exclude
       with_all_enabled do
         with_config :'attributes.include' => ['request.headers.contentType'],
-                    :'attributes.exclude' => ['request.headers.*'] do
+          :'attributes.exclude' => ['request.headers.*'] do
           filter = AttributeFilter.new(NewRelic::Agent.config)
 
           assert filter.allows_key?('request.headers.contentType', AttributeFilter::DST_ALL)
@@ -256,7 +256,7 @@ module NewRelic::Agent
 
     def test_key_cache_span_include_exclude
       with_config :'span_events.attributes.include' => ['request.headers.contentType'],
-                  :'span_events.attributes.exclude' => ['request.headers.*'] do
+        :'span_events.attributes.exclude' => ['request.headers.*'] do
         filter = AttributeFilter.new(NewRelic::Agent.config)
 
         assert filter.allows_key?('request.headers.contentType', AttributeFilter::DST_SPAN_EVENTS)
@@ -316,7 +316,8 @@ module NewRelic::Agent
         :'error_collector.attributes.enabled' => true,
         :'browser_monitoring.attributes.enabled' => true,
         :'span_events.attributes.enabled' => true,
-        :'transaction_segments.attributes.enabled' => true) do
+        :'transaction_segments.attributes.enabled' => true
+) do
         yield
       end
     end

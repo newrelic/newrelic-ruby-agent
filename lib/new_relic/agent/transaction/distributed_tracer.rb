@@ -169,7 +169,6 @@ module NewRelic
         def deobfuscate message
           CrossAppTracing.obfuscator.deobfuscate message
         end
-
       end
     end
   end

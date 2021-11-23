@@ -10,7 +10,6 @@ module NewRelic
   module Agent
     module Logging
       class LoggingTest < Minitest::Test
-
         def setup
           @output = StringIO.new
         end
@@ -40,7 +39,6 @@ module NewRelic
 
           assert_includes message, 'timestamp'
           refute_nil message['timestamp']
-
         end
 
         def test_app_name

@@ -3,17 +3,15 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require 'sequel' unless defined?( Sequel )
-require 'newrelic_rpm' unless defined?( NewRelic )
+require 'sequel' unless defined?(Sequel)
+require 'newrelic_rpm' unless defined?(NewRelic)
 require 'new_relic/agent/instrumentation/sequel_helper'
 require 'new_relic/agent/datastores/metric_helper'
 
 module Sequel
   module Plugins
-
     # Sequel::Model instrumentation for the New Relic agent.
     module NewrelicInstrumentation
-
       # Meta-programming for creating method tracers for the Sequel::Model plugin.
       module MethodWrapping
         # Install a method named +method_name+ that will trace execution
@@ -36,7 +34,6 @@ module Sequel
             end
           end
         end
-
       end # module MethodTracer
 
       # Methods to be added to Sequel::Model instances.
@@ -51,7 +48,6 @@ module Sequel
         wrap_sequel_method :update_fields
         wrap_sequel_method :update_only
         wrap_sequel_method :save
-
       end # module InstanceMethods
 
       # Methods to be added to Sequel::Model classes.
@@ -63,7 +59,6 @@ module Sequel
         wrap_sequel_method :first
         wrap_sequel_method :create
       end # module ClassMethods
-
     end # module NewRelicInstrumentation
   end # module Plugins
 end # module Sequel

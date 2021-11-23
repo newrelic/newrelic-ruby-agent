@@ -6,11 +6,9 @@ require 'thread'
 
 module NewRelic
   module Agent
-
     # A worker loop executes a set of registered tasks on a single thread.
     # A task is a proc or block with a specified call period in seconds.
     class WorkerLoop
-
       attr_accessor :period, :propagate_errors
       attr_reader :iterations
 

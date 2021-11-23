@@ -6,7 +6,6 @@ require File.expand_path '../../../../test_helper', __FILE__
 
 module NewRelic::Agent::Instrumentation
   class ControllerInstrumentationTest < Minitest::Test
-
     class TestObject
       include ControllerInstrumentation
 
@@ -94,8 +93,8 @@ module NewRelic::Agent::Instrumentation
 
       key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
 
-      assert IgnoreActions.is_filtered?(key, child, :foo )
-      assert IgnoreActions.is_filtered?(key, child, :bar )
+      assert IgnoreActions.is_filtered?(key, child, :foo)
+      assert IgnoreActions.is_filtered?(key, child, :bar)
       refute IgnoreActions.is_filtered?(key, child, :foo2)
       refute IgnoreActions.is_filtered?(key, child, :bar2)
     end
@@ -112,8 +111,8 @@ module NewRelic::Agent::Instrumentation
 
       key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
 
-      assert IgnoreActions.is_filtered?(key, child, :foo )
-      assert IgnoreActions.is_filtered?(key, child, :bar )
+      assert IgnoreActions.is_filtered?(key, child, :foo)
+      assert IgnoreActions.is_filtered?(key, child, :bar)
       assert IgnoreActions.is_filtered?(key, child, :foo2)
       assert IgnoreActions.is_filtered?(key, child, :bar2)
     end
@@ -130,8 +129,8 @@ module NewRelic::Agent::Instrumentation
 
       key = ControllerInstrumentation::NR_DO_NOT_TRACE_KEY
 
-      assert IgnoreActions.is_filtered?(key, child, :foo )
-      assert IgnoreActions.is_filtered?(key, child, :bar )
+      assert IgnoreActions.is_filtered?(key, child, :foo)
+      assert IgnoreActions.is_filtered?(key, child, :bar)
       assert IgnoreActions.is_filtered?(key, child, :foo2)
     end
 
@@ -165,58 +164,58 @@ module NewRelic::Agent::Instrumentation
 
     def test_transaction_name_applies_category_and_path
       assert_equal('Controller/metric/path',
-                   @txn_namer.name_for(nil,
-                                   @object,
-                                   :controller,
-                                   :path => 'metric/path'))
+        @txn_namer.name_for(nil,
+          @object,
+          :controller,
+          :path => 'metric/path'))
       assert_equal('Controller/metric/path',
-                   @txn_namer.name_for(nil,
-                                   @object,
-                                   :web,
-                                   :path => 'metric/path'))
+        @txn_namer.name_for(nil,
+          @object,
+          :web,
+          :path => 'metric/path'))
       assert_equal('OtherTransaction/Background/metric/path',
-                   @txn_namer.name_for(nil,
-                                   @object,
-                                   :task,
-                                   :path => 'metric/path'))
+        @txn_namer.name_for(nil,
+          @object,
+          :task,
+          :path => 'metric/path'))
       assert_equal('OtherTransaction/Background/metric/path',
-                   @txn_namer.name_for(nil,
-                                   @object,
-                                   :background,
-                                   :path => 'metric/path'))
+        @txn_namer.name_for(nil,
+          @object,
+          :background,
+          :path => 'metric/path'))
       assert_equal('Controller/Rack/metric/path',
-                   @txn_namer.name_for(nil,
-                                   @object,
-                                   :rack,
-                                   :path => 'metric/path'))
+        @txn_namer.name_for(nil,
+          @object,
+          :rack,
+          :path => 'metric/path'))
       assert_equal('Controller/metric/path',
-                   @txn_namer.name_for(nil,
-                                   @object,
-                                   :uri,
-                                   :path => 'metric/path'))
+        @txn_namer.name_for(nil,
+          @object,
+          :uri,
+          :path => 'metric/path'))
       assert_equal('Controller/Sinatra/metric/path',
-                   @txn_namer.name_for(nil,
-                                   @object,
-                                   :sinatra,
-                                   :path => 'metric/path'))
+        @txn_namer.name_for(nil,
+          @object,
+          :sinatra,
+          :path => 'metric/path'))
       assert_equal('Blarg/metric/path',
-                   @txn_namer.name_for(nil,
-                                   @object,
-                                   'Blarg',
-                                   :path => 'metric/path'))
+        @txn_namer.name_for(nil,
+          @object,
+          'Blarg',
+          :path => 'metric/path'))
     end
 
     def test_transaction_name_uses_class_name_if_path_not_specified
       assert_equal('Controller/NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject',
-                   @txn_namer.name_for(nil, @object, :controller))
+        @txn_namer.name_for(nil, @object, :controller))
     end
 
     def test_transaction_name_applies_action_name_if_specified_and_not_path
       assert_equal('Controller/NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject/action',
-                     @txn_namer.name_for(nil,
-                                     @object,
-                                     :controller,
-                                     :name => 'action'))
+        @txn_namer.name_for(nil,
+          @object,
+          :controller,
+          :name => 'action'))
     end
 
     def test_transaction_namer_determines_prefix
@@ -244,7 +243,7 @@ module NewRelic::Agent::Instrumentation
 
     def test_transaction_path_name_with_name
       result = @txn_namer.path_name(@object, :name => "test")
-      assert_equal("NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject/test", result )
+      assert_equal("NewRelic::Agent::Instrumentation::ControllerInstrumentationTest::TestObject/test", result)
     end
 
     def test_transaction_path_name_with_overridden_class_name

@@ -7,7 +7,6 @@ require 'forwardable'
 module NewRelic
   module Agent
     module Configuration
-
       # Helper since default Procs are evaluated in the context of this module
       def self.value_of(key)
         Proc.new do
@@ -780,8 +779,7 @@ module NewRelic
           :deprecated => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.delayed_job', 'If `true`, disables [Delayed::Job instrumentation](/docs/agents/ruby-agent/background-jobs/delayedjob).'
-          )
+          :description => deprecated_description(:'instrumentation.delayed_job', 'If `true`, disables [Delayed::Job instrumentation](/docs/agents/ruby-agent/background-jobs/delayedjob).')
         },
         :disable_sinatra => {
           :default => false,
@@ -789,7 +787,7 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.sinatra', 'If `true` , disables [Sinatra instrumentation](/docs/agents/ruby-agent/frameworks/sinatra-support).' )
+          :description => deprecated_description(:'instrumentation.sinatra', 'If `true` , disables [Sinatra instrumentation](/docs/agents/ruby-agent/frameworks/sinatra-support).')
         },
         :disable_sinatra_auto_middleware => {
           :default => false,
@@ -840,8 +838,7 @@ module NewRelic
           :allowed_from_server => false,
           :deprecated => true,
           :description => deprecated_description(:'instrumentation.net_http',
-            'If `true`, uses `Module#prepend` rather than alias_method for Net::HTTP instrumentation.'
-          )
+            'If `true`, uses `Module#prepend` rather than alias_method for Net::HTTP instrumentation.')
         },
         :'instrumentation.net_http' => {
           :default => instrumentation_value_of(:disable_net_http, :prepend_net_instrumentation),
@@ -1650,7 +1647,7 @@ module NewRelic
           :deprecated => true,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.curb', 'If `true`, disables instrumentation for the curb gem.' )
+          :description => deprecated_description(:'instrumentation.curb', 'If `true`, disables instrumentation for the curb gem.')
         },
         :disable_excon => {
           :default => false,
@@ -1686,8 +1683,7 @@ module NewRelic
           :allowed_from_server => false,
           :deprecated => true,
           :description => deprecated_description(:'instrumentation.net_http',
-            'If `true`, disables instrumentation for Net::HTTP.'
-          )
+            'If `true`, disables instrumentation for Net::HTTP.')
         },
         :disable_rack => {
           :default => false,
@@ -1732,7 +1728,7 @@ module NewRelic
           :dynamic_name => true,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.typhoeus', 'If `true`, the agent won\'t install instrumentation for the typhoeus gem.' )
+          :description => deprecated_description(:'instrumentation.typhoeus', 'If `true`, the agent won\'t install instrumentation for the typhoeus gem.')
         },
         :disable_httprb => {
           :default => false,
@@ -1741,7 +1737,7 @@ module NewRelic
           :dynamic_name => true,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.httprb', 'If `true`, the agent won\'t install instrumentation for the http.rb gem.' )
+          :description => deprecated_description(:'instrumentation.httprb', 'If `true`, the agent won\'t install instrumentation for the http.rb gem.')
         },
         :disable_middleware_instrumentation => {
           :default => false,
@@ -1773,7 +1769,7 @@ module NewRelic
           :description => 'Ordinarily the agent reports dyno names with a trailing dot and process ID (for example, <b>worker.3</b>). You can remove this trailing data by specifying the prefixes you want to report without trailing data (for example, <b>worker</b>).'
         },
         :'process_host.display_name' => {
-          :default => Proc.new{ NewRelic::Agent::Hostname.get },
+          :default => Proc.new { NewRelic::Agent::Hostname.get },
           :public => true,
           :type => String,
           :allowed_from_server => false,
@@ -1852,8 +1848,7 @@ module NewRelic
           :allowed_from_server => false,
           :deprecated => true,
           :description => deprecated_description(:'instrumentation.grape',
-            'If `true`, the agent won\'t install Grape instrumentation.'
-          )
+            'If `true`, the agent won\'t install Grape instrumentation.')
         },
         :disable_grape => {
           :default => false,
@@ -1862,8 +1857,7 @@ module NewRelic
           :allowed_from_server => false,
           :deprecated => true,
           :description => deprecated_description(:'instrumentation.grape',
-            'If `true`, the agent won\'t install Grape instrumentation.'
-          )
+            'If `true`, the agent won\'t install Grape instrumentation.')
         },
         :'instrumentation.grape' => {
           :default => instrumentation_value_of(:disable_grape_instrumentation),

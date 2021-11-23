@@ -6,11 +6,9 @@ require File.expand_path '../../../../test_helper', __FILE__
 
 module NewRelic::Agent
   class DistributedTracePayloadTest < Minitest::Test
-
     def setup
       nr_freeze_process_time(Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond))
       NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
-
 
       @config = {
         :'distributed_tracing.enabled' => true,

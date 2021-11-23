@@ -37,7 +37,7 @@ module SinatraTestCases
       'GET /precondition'
     end
 
-    #get '/ignored'
+    # get '/ignored'
     def ignored_segment
       'GET /ignored'
     end
@@ -64,7 +64,7 @@ module SinatraTestCases
       'GET precondition'
     end
 
-    #get '/ignored'
+    # get '/ignored'
     def ignored_segment
       'GET ignored'
     end
@@ -224,15 +224,15 @@ module SinatraTestCases
 
   if Gem::Version.new(Sinatra::VERSION).segments[0] < 2
     def trigger_error_on_params
-      Sinatra::Request.any_instance.
-      stubs(:params).returns({}).
-      then.raises(StandardError.new "Rack::Request#params error")
+      Sinatra::Request.any_instance
+      .stubs(:params).returns({})
+      .then.raises(StandardError.new "Rack::Request#params error")
     end
   else
     def trigger_error_on_params
-      Sinatra::Request.any_instance.
-      stubs(:params).
-      raises(Sinatra::BadRequest.new)
+      Sinatra::Request.any_instance
+      .stubs(:params)
+      .raises(Sinatra::BadRequest.new)
     end
   end
 

@@ -80,7 +80,7 @@ module NewRelic
     end
 
     def test_does_not_drop_samples_when_used_from_multiple_threads
-      with_config( aggregator.class.capacity_key => 100 * 100 ) do
+      with_config(aggregator.class.capacity_key => 100 * 100) do
         threads = []
         25.times do
           threads << Thread.new do

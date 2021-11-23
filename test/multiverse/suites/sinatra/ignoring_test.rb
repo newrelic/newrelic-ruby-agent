@@ -48,9 +48,9 @@ class SinatraTestCase < Minitest::Test
   JS_AGENT_LOADER = "JS_AGENT_LOADER"
 
   setup_and_teardown_agent(:application_id => 'appId',
-                           :beacon => 'beacon',
-                           :browser_key => 'browserKey',
-                           :js_agent_loader => JS_AGENT_LOADER)
+    :beacon => 'beacon',
+    :browser_key => 'browserKey',
+    :js_agent_loader => JS_AGENT_LOADER)
 
   def get_and_assert_ok(path)
     get(path)
@@ -85,7 +85,8 @@ class SinatraIgnoreTest < SinatraTestCase
     segment = name_for_route 'record'
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
-      "Apdex/Sinatra/#{app_name}/#{segment}"])
+      "Apdex/Sinatra/#{app_name}/#{segment}"
+])
   end
 
   def test_ignores_exact_match
@@ -93,7 +94,8 @@ class SinatraIgnoreTest < SinatraTestCase
     segment = name_for_route 'ignore'
     assert_metrics_not_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
-      "Apdex/Sinatra/#{app_name}/#{segment}"])
+      "Apdex/Sinatra/#{app_name}/#{segment}"
+])
   end
 
   def test_ignores_by_splats
@@ -101,7 +103,8 @@ class SinatraIgnoreTest < SinatraTestCase
     segment = name_for_route 'splattered'
     assert_metrics_not_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
-      "Apdex/Sinatra/#{app_name}/#{segment}"])
+      "Apdex/Sinatra/#{app_name}/#{segment}"
+])
   end
 
   def test_ignores_can_be_declared_in_batches
@@ -117,11 +120,13 @@ class SinatraIgnoreTest < SinatraTestCase
       "Controller/Sinatra/#{app_name}/#{v1_segment}",
       "Controller/Sinatra/#{app_name}/#{v2_segment}",
       "Apdex/Sinatra/#{app_name}/#{v1_segment}",
-      "Apdex/Sinatra/#{app_name}/#{v2_segment}"])
+      "Apdex/Sinatra/#{app_name}/#{v2_segment}"
+])
 
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/#{v3_segment}",
-      "Apdex/Sinatra/#{app_name}/#{v3_segment}"])
+      "Apdex/Sinatra/#{app_name}/#{v3_segment}"
+])
   end
 
   def test_seen_with_regex
@@ -129,7 +134,8 @@ class SinatraIgnoreTest < SinatraTestCase
     segment = name_for_route 'regex_seen'
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
-      "Apdex/Sinatra/#{app_name}/#{segment}"])
+      "Apdex/Sinatra/#{app_name}/#{segment}"
+])
   end
 
   def test_ignores_by_regex
@@ -137,7 +143,8 @@ class SinatraIgnoreTest < SinatraTestCase
     segment = name_for_route 'skip_regex'
     assert_metrics_not_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
-      "Apdex/Sinatra/#{app_name}/#{segment}"])
+      "Apdex/Sinatra/#{app_name}/#{segment}"
+])
   end
 
   def test_ignore_apdex
@@ -153,7 +160,8 @@ class SinatraIgnoreTest < SinatraTestCase
     refute_enduser_ignored(last_response)
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
-      "Apdex/Sinatra/#{app_name}/#{segment}"])
+      "Apdex/Sinatra/#{app_name}/#{segment}"
+])
   end
 
   def test_ignore_enduser
@@ -162,7 +170,8 @@ class SinatraIgnoreTest < SinatraTestCase
     assert_enduser_ignored(last_response)
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
-      "Apdex/Sinatra/#{app_name}/#{segment}"])
+      "Apdex/Sinatra/#{app_name}/#{segment}"
+])
   end
 
   def test_ignore_errors_in_ignored_transactions
@@ -197,7 +206,8 @@ class SinatraIgnoreItAllTest < SinatraTestCase
     get_and_assert_ok '/'
     assert_metrics_recorded_exclusive(
       [],
-      :ignore_filter => /^(Supportability|Logging)/)
+      :ignore_filter => /^(Supportability|Logging)/
+)
   end
 end
 

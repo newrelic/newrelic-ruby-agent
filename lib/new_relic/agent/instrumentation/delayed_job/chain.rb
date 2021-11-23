@@ -18,7 +18,6 @@ module NewRelic::Agent::Instrumentation
           alias initialize_without_new_relic initialize
           alias initialize initialize_with_new_relic
 
-
           def install_newrelic_job_tracer
             Delayed::Job.class_eval do
               include NewRelic::Agent::Instrumentation::DelayedJobTracer

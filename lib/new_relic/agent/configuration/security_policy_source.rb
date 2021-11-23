@@ -74,7 +74,7 @@ module NewRelic
               supported: true,
               enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn: proc{ |policies|
+              permitted_fn: proc { |policies|
                 change_setting(policies, :'mongo.obfuscate_queries', true)
               }
             },

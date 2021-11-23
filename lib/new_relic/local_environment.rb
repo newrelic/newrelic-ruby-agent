@@ -83,7 +83,7 @@ module NewRelic
 
     def check_for_torquebox
       return unless defined?(::JRuby) &&
-         ( org.torquebox::TorqueBox rescue nil)
+         (org.torquebox::TorqueBox rescue nil)
       @discovered_dispatcher = :torquebox
     end
 
@@ -202,6 +202,5 @@ module NewRelic
     def executable
       File.basename($0)
     end
-
   end
 end

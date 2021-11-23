@@ -215,7 +215,9 @@ module NewRelic::Agent
         test_case_payloads.zip(actual_payloads).each do |test_case_data, actual|
           actual = stringify_keys_in_object(
             NewRelic::Agent::Configuration::DottedHash.new(
-              JSON.parse(actual.text)))
+              JSON.parse(actual.text)
+)
+)
           verify_attributes test_case_data, actual, 'Payload'
         end
       end

@@ -3,12 +3,10 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-
 module NewRelic
   module Agent
     module Instrumentation
       module DelayedJob
-
         def initialize_with_tracing
           yield
           worker_name = case
@@ -45,7 +43,6 @@ module NewRelic
             yield
           end
         end
-
       end
     end
   end

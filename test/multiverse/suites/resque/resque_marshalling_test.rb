@@ -7,7 +7,6 @@ require File.join(File.dirname(__FILE__), '..', '..', '..', 'new_relic', 'marsha
 if NewRelic::LanguageSupport.can_fork?
 
 class ResqueMarshallingTest < Minitest::Test
-
   include MultiverseHelpers
   include MarshallingTestCases
 

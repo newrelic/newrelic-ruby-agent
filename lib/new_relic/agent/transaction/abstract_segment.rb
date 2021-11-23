@@ -180,7 +180,7 @@ module NewRelic
 
         def descendant_complete child, descendant
           RangeExtensions.merge_or_append descendant.time_range,
-                                            children_time_ranges
+            children_time_ranges
           # If this child's time was previously added to this segment's
           # aggregate children time, we need to re-record it using a time range
           # for proper exclusive time calculation
@@ -227,7 +227,7 @@ module NewRelic
 
         def record_child_time_as_range child
           RangeExtensions.merge_or_append child.time_range,
-                                          children_time_ranges
+            children_time_ranges
           child.range_recorded = true
         end
 

@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require 'newrelic_rpm' unless defined?( NewRelic )
-require 'new_relic/agent' unless defined?( NewRelic::Agent )
+require 'newrelic_rpm' unless defined?(NewRelic)
+require 'new_relic/agent' unless defined?(NewRelic::Agent)
 require 'new_relic/agent/event_aggregator'
 require 'new_relic/agent/priority_sampled_buffer'
 
@@ -14,7 +14,7 @@ module NewRelic
       capacity_key :'span_events.max_samples_stored'
 
       enabled_keys :'span_events.enabled',
-                   :'distributed_tracing.enabled'
+        :'distributed_tracing.enabled'
 
       def record(priority: nil, event: nil, &blk)
         unless(event || priority && blk)

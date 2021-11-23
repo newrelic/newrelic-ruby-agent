@@ -53,7 +53,6 @@ module NewRelic::Agent
       @events.clear
     end
 
-
     #
     # Tests
     #
@@ -92,7 +91,7 @@ module NewRelic::Agent
     end
 
     def test_doesnt_add_header_if_no_id_on_agent
-      with_config( :cross_process_id => '' ) do
+      with_config(:cross_process_id => '') do
         when_request_runs
         assert_nil response_app_data
       end
@@ -119,13 +118,13 @@ module NewRelic::Agent
 
     def test_old_cat_disabled_when_better_cat_enabled
       with_config(:"cross_application_tracer.enabled" => true,
-                  :"distributed_tracing.enabled"      => true) do
+        :"distributed_tracing.enabled"      => true) do
         refute CrossAppTracing.cross_application_tracer_enabled?
       end
     end
 
     def test_doesnt_add_header_if_missing_encoding_key
-      with_config( :encoding_key => '' ) do
+      with_config(:encoding_key => '') do
         when_request_runs
         assert_nil response_app_data
       end
@@ -235,7 +234,7 @@ module NewRelic::Agent
 
     def for_id(id)
       encoded_id = id == "" ? "" : Base64.encode64(id)
-      encoded_txn_info = json_dump_and_encode([ REF_TRANSACTION_GUID, false ])
+      encoded_txn_info = json_dump_and_encode([REF_TRANSACTION_GUID, false])
 
       return {
         NEWRELIC_ID_HEADER => encoded_id,
@@ -251,6 +250,5 @@ module NewRelic::Agent
       return nil unless response_app_data
       ::JSON.load(Base64.decode64(response_app_data))
     end
-
   end
 end

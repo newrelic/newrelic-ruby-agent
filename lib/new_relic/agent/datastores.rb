@@ -13,7 +13,6 @@ module NewRelic
     #
     # @api public
     module Datastores
-
       # @!group Tracing query methods
 
       # Add Datastore tracing to a method. This properly generates the metrics
@@ -202,7 +201,6 @@ module NewRelic
         end
         nil
       end
-
     end
   end
 end

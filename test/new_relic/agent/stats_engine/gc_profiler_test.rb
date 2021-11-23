@@ -25,7 +25,7 @@ class NewRelic::Agent::StatsEngine
       ::GC.stubs(:collections)
 
       assert_equal(GCProfiler::RailsBenchProfiler,
-                   GCProfiler.init.class)
+        GCProfiler.init.class)
     end
 
     def test_init_profiler_for_ruby_19_and_greater
@@ -35,7 +35,7 @@ class NewRelic::Agent::StatsEngine
       ::GC::Profiler.stubs(:enabled?).returns(true)
 
       assert_equal(GCProfiler::CoreGCProfiler,
-                   GCProfiler.init.class)
+        GCProfiler.init.class)
     end
 
     def test_record_delta_returns_nil_when_snapshots_are_nil
@@ -64,7 +64,7 @@ class NewRelic::Agent::StatsEngine
         GCProfiler.record_delta(start_snapshot, end_snapshot)
 
         assert_gc_metrics(GCProfiler::GC_OTHER,
-                          :call_count => 2, :total_call_time => 1.5)
+          :call_count => 2, :total_call_time => 1.5)
       end
 
       # This test is asserting that the implementation of GC::Profiler provided by
@@ -110,7 +110,7 @@ class NewRelic::Agent::StatsEngine
         end
 
         assert_gc_metrics(GCProfiler::GC_OTHER,
-                          :call_count => 2, :total_call_time => 3.0)
+          :call_count => 2, :total_call_time => 3.0)
         assert_metrics_not_recorded(GCProfiler::GC_WEB)
 
         tracer = NewRelic::Agent.instance.transaction_sampler
@@ -129,7 +129,7 @@ class NewRelic::Agent::StatsEngine
         end
 
         assert_gc_metrics(GCProfiler::GC_WEB,
-                          :call_count => 2, :total_call_time => 3.0)
+          :call_count => 2, :total_call_time => 3.0)
         assert_metrics_not_recorded(GCProfiler::GC_OTHER)
       end
     end

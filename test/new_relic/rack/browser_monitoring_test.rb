@@ -10,7 +10,7 @@ end
 
 if defined?(::Rack::Test)
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..',
-                                   'test_helper'))
+  'test_helper'))
 require 'new_relic/rack/browser_monitoring'
 
 ENV['RACK_ENV'] = 'test'
@@ -47,7 +47,7 @@ class BrowserMonitoringTest < Minitest::Test
   </head>
   <body>im some body text</body>
 </html>
-EOL
+      EOL
       response = @@next_response || Rack::Response.new(@@doc)
       @@next_response = nil
 

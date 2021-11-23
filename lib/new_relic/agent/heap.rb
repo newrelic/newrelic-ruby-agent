@@ -18,7 +18,6 @@ module NewRelic
     #
 
     class Heap
-
       # @param [Array] items an optional array of items to intialize the heap
       #
       # @param [Callable] priority_fn an optional priority function used to
@@ -27,7 +26,7 @@ module NewRelic
       def initialize(items = nil, &priority_fn)
         @items = []
         @priority_fn = priority_fn || ->(x) { x }
-        items.each{ |item| push(item) } if items
+        items.each { |item| push(item) } if items
       end
 
       def [](index)
@@ -135,6 +134,5 @@ module NewRelic
         @items[i], @items[j] = @items[j], @items[i]
       end
     end
-
   end
 end

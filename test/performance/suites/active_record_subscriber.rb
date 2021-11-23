@@ -60,7 +60,6 @@ class ActiveRecordSubscriberTest < Performance::TestCase
     @connection = Object.new
     @connection.instance_variable_set(:@config, @config)
 
-
     @params = {
       :name => 'NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order Load',
       :sql => 'SELECT * FROM sandwiches',

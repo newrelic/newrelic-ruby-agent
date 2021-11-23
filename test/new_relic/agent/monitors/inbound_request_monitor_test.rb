@@ -6,7 +6,6 @@ require File.expand_path '../../../../test_helper', __FILE__
 
 module NewRelic::Agent
   class InboundRequestMonitorTest < Minitest::Test
-
     ENCODING_KEY_NOOP = "\0"
 
     def setup

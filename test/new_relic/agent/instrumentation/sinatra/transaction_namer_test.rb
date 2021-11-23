@@ -9,9 +9,7 @@ module NewRelic
   module Agent
     module Instrumentation
       module Sinatra
-
         class TransactionNamerTest < Minitest::Test
-
           def test_transaction_name_for_route
             env = {"newrelic.last_route" => /^\/the_route$/}
             request = stub(:request_method => "GET")
@@ -54,7 +52,6 @@ module NewRelic
           def assert_transaction_name(expected, original)
             assert_equal expected, TransactionNamer.transaction_name(original, nil)
           end
-
         end
       end
     end

@@ -36,7 +36,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     }
 
     @exit_payload = @entry_payload.merge(:status => 200, :view_runtime => 5.0,
-                                         :db_runtime => 0.5 )
+      :db_runtime => 0.5)
     @stats_engine = NewRelic::Agent.instance.stats_engine
     @stats_engine.clear_stats
     NewRelic::Agent.manual_start
@@ -105,8 +105,8 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
   def test_records_scoped_metrics_for_traced_child_txn
     controller = TestController.new
     controller.perform_action_with_newrelic_trace(:category => :controller,
-                                                  :name => 'index',
-                                                  :class_name => 'test') do
+      :name => 'index',
+      :class_name => 'test') do
       @subscriber.start('process_action.action_controller', :id, @entry_payload \
                           .merge(:action => 'child', :path => '/child'))
       @subscriber.finish('process_action.action_controller', :id, @exit_payload \
@@ -203,9 +203,9 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     last_sample = last_transaction_trace
 
     assert_equal('Controller/test/index',
-                 last_sample.transaction_name)
+      last_sample.transaction_name)
     assert_equal('Controller/test/index',
-                 last_sample.root_node.children[0].metric_name)
+      last_sample.root_node.children[0].metric_name)
   end
 
   def test_applies_txn_name_rules

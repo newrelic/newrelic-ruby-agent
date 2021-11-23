@@ -35,26 +35,26 @@ class ExclusiveTimeTest < Minitest::Test
 
     txn_name = 'Controller/traced/outer_b'
     assert_metrics_recorded(
-       txn_name => {
-         :call_count => 1,
-         :total_call_time => 2 + 5 + 10,
-         :total_exclusive_time => 0
-       },
-       ['Nested/Controller/traced/outer_a', txn_name] => {
-         :call_count => 1,
-         :total_call_time => 2 + 5 + 10,
-         :total_exclusive_time => 2
-       },
-       ['Nested/Controller/traced/outer_b', txn_name] => {
-         :call_count => 1,
-         :total_call_time => 5 + 10,
-         :total_exclusive_time => 5
-       },
-       ['inner', txn_name] => {
-         :call_count => 1,
-         :total_call_time => 10,
-         :total_exclusive_time => 10
-       }
+      txn_name => {
+        :call_count => 1,
+        :total_call_time => 2 + 5 + 10,
+        :total_exclusive_time => 0
+      },
+      ['Nested/Controller/traced/outer_a', txn_name] => {
+        :call_count => 1,
+        :total_call_time => 2 + 5 + 10,
+        :total_exclusive_time => 2
+      },
+      ['Nested/Controller/traced/outer_b', txn_name] => {
+        :call_count => 1,
+        :total_call_time => 5 + 10,
+        :total_exclusive_time => 5
+      },
+      ['inner', txn_name] => {
+        :call_count => 1,
+        :total_call_time => 10,
+        :total_exclusive_time => 10
+      }
     )
   end
 
@@ -80,16 +80,16 @@ class ExclusiveTimeTest < Minitest::Test
 
     txn_name = 'Controller/traced/outer'
     assert_metrics_recorded(
-       txn_name => {
-         :call_count => 1,
-         :total_call_time => 2 + 10,
-         :total_exclusive_time => 2
-       },
-       ['inner', txn_name] => {
-         :call_count => 1,
-         :total_call_time => 10,
-         :total_exclusive_time => 10
-       }
+      txn_name => {
+        :call_count => 1,
+        :total_call_time => 2 + 10,
+        :total_exclusive_time => 2
+      },
+      ['inner', txn_name] => {
+        :call_count => 1,
+        :total_call_time => 10,
+        :total_exclusive_time => 10
+      }
     )
   end
 end

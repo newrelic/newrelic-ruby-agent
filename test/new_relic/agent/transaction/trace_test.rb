@@ -263,15 +263,15 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
   def test_collector_array_contains_uri
     @fake_attributes.add_agent_attribute(:'request.uri',
-                                         'http://windows95tips.com/',
-                                         NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+      'http://windows95tips.com/',
+      NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     assert_collector_array_contains(:uri, 'http://windows95tips.com/')
   end
 
   def test_uri_gets_coerced_into_a_string
     @fake_attributes.add_agent_attribute(:'request.uri',
-                                         95,
-                                         NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
+      95,
+      NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER)
     assert_collector_array_contains(:uri, '95')
   end
 

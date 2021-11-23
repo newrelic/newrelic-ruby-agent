@@ -100,7 +100,7 @@ module NewRelic
         clazz.class_eval do
           if method_defined?(method_name) || private_method_defined?(method_name)
             define_method("#{method_name}_with_newrelic",
-                          NewRelic::Agent::DataMapperTracing.method_body(clazz, method_name, operation_only))
+              NewRelic::Agent::DataMapperTracing.method_body(clazz, method_name, operation_only))
 
             alias_method "#{method_name}_without_newrelic", method_name
             alias_method method_name, "#{method_name}_with_newrelic"
@@ -186,7 +186,7 @@ module NewRelic
         # We rely on the assumption that all possible entry points have been
         # hooked with tracers, ensuring that notice_sql attaches this SQL to
         # the proper call scope.
-        def log(msg) #THREAD_LOCAL_ACCESS
+        def log(msg) # THREAD_LOCAL_ACCESS
           state = NewRelic::Agent::Tracer.state
           return unless state.is_execution_traced?
 

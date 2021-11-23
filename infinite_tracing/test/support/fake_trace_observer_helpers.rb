@@ -12,13 +12,12 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       class EventListener
         def still_subscribed event
           return [] if @events[event].nil?
-          @events[event].select{ |e| e.inspect =~ /infinite_tracing/ }
+          @events[event].select { |e| e.inspect =~ /infinite_tracing/ }
         end
       end
 
       module InfiniteTracing
         module FakeTraceObserverHelpers
-
           FAKE_SERVER_PORT = 10_000
 
           def setup
@@ -117,7 +116,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             # one Thread in a "run" state solves the issues altogether.
             def wait_for_agent_infinite_tracer_thread_to_close
               timeout_cap(3.0) do
-                while Thread.list.select{ |t| t.status == "run" }.size > 1
+                while Thread.list.select { |t| t.status == "run" }.size > 1
                   sleep(0.01)
                 end
                 sleep(0.01)
@@ -295,7 +294,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
               end
             end
           end
-
         end
       end
     end

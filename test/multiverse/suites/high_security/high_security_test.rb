@@ -9,7 +9,6 @@ require 'fake_server'
 # and confirm that high security changes the actual agent behavior, not just
 # the settings in question.
 class HighSecurityTest < Minitest::Test
-
   include MultiverseHelpers
 
   setup_and_teardown_agent do |collector|

@@ -5,7 +5,6 @@
 require File.expand_path(File.join(__FILE__, "..", "app", "models", "models"))
 
 class ActiveRecordInstrumentationTest < Minitest::Test
-
   include MultiverseHelpers
   setup_and_teardown_agent
 
@@ -519,7 +518,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       if supports_explain_plans?
         refute_nil explanations, "No explains in node: #{sql_node}"
         assert_equal(2, explanations.size,
-                     "No explains in node: #{sql_node}")
+          "No explains in node: #{sql_node}")
       end
     end
   end
@@ -592,7 +591,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       {
         "Datastore/statement/#{current_product}/Eel/squirm" => {:call_count => 1},
         "Datastore/operation/#{current_product}/squirm" => {:call_count => 1}
-      })
+      }
+)
   end
 
   ## helpers

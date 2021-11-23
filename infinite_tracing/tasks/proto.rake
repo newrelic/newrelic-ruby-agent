@@ -20,7 +20,7 @@ namespace :proto do
       license_terms = extract_license_terms File.readlines(File.join(gemspec_path, "Gemfile"))
       Dir.glob(File.join output_path, "*.rb") do |filename|
         contents = File.readlines filename
-        contents.reject!{ |r| r =~ /^\s*require\s.*$/ }
+        contents.reject! { |r| r =~ /^\s*require\s.*$/ }
         File.open(filename, 'w') do |output|
           output.puts license_terms
           output.puts contents

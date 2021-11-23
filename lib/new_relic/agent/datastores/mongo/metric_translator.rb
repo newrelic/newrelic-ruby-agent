@@ -176,9 +176,7 @@ module NewRelic
             parts.shift
             parts.join('.')
           end
-
         end
-
       end
     end
   end

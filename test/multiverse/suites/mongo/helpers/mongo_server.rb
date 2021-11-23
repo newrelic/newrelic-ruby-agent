@@ -47,7 +47,7 @@ class MongoServer
 
   def ping
     return unless self.client
-    self.client['admin'].command( {'ping' => 1} )
+    self.client['admin'].command({'ping' => 1})
   end
 
   def pingable?

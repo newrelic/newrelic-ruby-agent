@@ -10,7 +10,6 @@ require 'new_relic/agent/transaction'
 module NewRelic::Agent
   module DistributedTracing
     class DistributedTracerTest < Minitest::Test
-
       def teardown
         reset_buffers_and_caches
       end

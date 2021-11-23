@@ -90,7 +90,7 @@ class DeferredSinatraTest < Minitest::Test
   include SinatraTestCases
 
   def app
-    Rack::Builder.new( DeferredSinatraTestApp ).to_app
+    Rack::Builder.new(DeferredSinatraTestApp).to_app
   end
 
   def test_ignores_route_metrics
@@ -100,9 +100,8 @@ class DeferredSinatraTest < Minitest::Test
 
   # (RUBY-1169)
   def test_only_tries_deferred_detection_once
-    Rack::Builder.new( DeferredSinatraTestApp ).to_app
-    ::DependencyDetection.expects( :detect! ).never
-    Rack::Builder.new( DeferredSinatraTestApp ).to_app
+    Rack::Builder.new(DeferredSinatraTestApp).to_app
+    ::DependencyDetection.expects(:detect!).never
+    Rack::Builder.new(DeferredSinatraTestApp).to_app
   end
-
 end

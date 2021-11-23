@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class SSLTest < Minitest::Test
-
   include MultiverseHelpers
 
   def setup

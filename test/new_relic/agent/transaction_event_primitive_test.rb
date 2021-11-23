@@ -191,7 +191,6 @@ module NewRelic
           NewRelic::Agent::Attributes.new(filter)
         end
       end
-
     end
   end
 end

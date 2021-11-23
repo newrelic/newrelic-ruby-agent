@@ -44,7 +44,7 @@ class MarshalingTest < Minitest::Test
     NewRelic::Agent.record_metric metric, 1.0
     NewRelic::Agent.record_metric metric, 2.0
 
-    expected = [ 2, 3.0, 3.0, 1.0, 2.0, 5.0 ]
+    expected = [2, 3.0, 3.0, 1.0, 2.0, 5.0]
 
     agent.service.connect
     agent.send(:harvest_and_send_timeslice_data)
@@ -69,7 +69,7 @@ class MarshalingTest < Minitest::Test
   def test_sql_trace_data_marshalling
     in_transaction do
       agent.sql_sampler.notice_sql("select * from test", "Database/test/select",
-                                    nil, 1.5)
+        nil, 1.5)
     end
 
     agent.service.connect
@@ -81,7 +81,7 @@ class MarshalingTest < Minitest::Test
 
   def test_connect_marshalling
     agent.service.connect('pid' => 1, 'agent_version' => '9000',
-                           'app_name' => 'test')
+      'app_name' => 'test')
 
     connect_data = $collector.calls_for('connect').last
     assert_equal '9000', connect_data['agent_version']

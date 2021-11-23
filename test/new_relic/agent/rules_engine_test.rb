@@ -7,7 +7,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_hel
 class RulesEngineTest < Minitest::Test
   def test_rule_defaults
     rule = create_rule('match_expression' => '.*',
-                       'replacement'      => '*')
+      'replacement'      => '*')
     assert !rule.terminate_chain
     assert !rule.each_segment
     assert !rule.ignore
@@ -17,7 +17,7 @@ class RulesEngineTest < Minitest::Test
 
   def test_rule_applies_regex_rename
     rule = create_rule('match_expression' => '[0-9]+',
-                       'replacement'      => '*')
+      'replacement'      => '*')
 
     input = 'foo/1/bar/22'
 
@@ -28,7 +28,7 @@ class RulesEngineTest < Minitest::Test
 
   def test_rules_can_apply_to_frozen_strings
     rule = create_rule('match_expression' => '[0-9]+',
-                       'replacement'      => '*')
+      'replacement'      => '*')
 
     input = 'foo/1/bar/22'.freeze
 
@@ -39,7 +39,7 @@ class RulesEngineTest < Minitest::Test
 
   def test_rule_applies_grouping_with_replacements
     rule = create_rule('match_expression' => '([0-9]+)',
-                       'replacement'      => '\\1\\1')
+      'replacement'      => '\\1\\1')
 
     input = 'foo/1/bar/22'
 
@@ -50,8 +50,8 @@ class RulesEngineTest < Minitest::Test
 
   def test_rule_renames_all_matches_when_replace_all_is_true
     rule = create_rule('match_expression' => '[0-9]+',
-                       'replacement'      => '*',
-                       'replace_all'      => true)
+      'replacement'      => '*',
+      'replace_all'      => true)
 
     refute(rule.terminal?)
     assert(rule.matches?('foo/1/bar/22'))
@@ -60,7 +60,7 @@ class RulesEngineTest < Minitest::Test
 
   def test_rule_with_no_match
     rule = create_rule('match_expression' => 'QQ',
-                       'replacement'      => 'qq')
+      'replacement'      => 'qq')
 
     refute(rule.terminal?)
     refute(rule.matches?('foo/1/bar/22'))
@@ -69,14 +69,14 @@ class RulesEngineTest < Minitest::Test
 
   def test_applies_rules_in_order
     rule = create_rule('match_expression' => '[0-9]+',
-                       'replacement'      => '*',
-                       'replace_all'      => true,
-                       'eval_order'       => 0)
+      'replacement'      => '*',
+      'replace_all'      => true,
+      'eval_order'       => 0)
 
     rerule = create_rule('match_expression' => '\*',
-                         'replacement'      => 'x',
-                         'replace_all'      => true,
-                         'eval_order'       => 1)
+      'replacement'      => 'x',
+      'replace_all'      => true,
+      'eval_order'       => 1)
 
     engine = NewRelic::Agent::RulesEngine.new([rerule, rule])
 
@@ -85,8 +85,8 @@ class RulesEngineTest < Minitest::Test
 
   def test_can_apply_rules_to_all_segments
     rule = create_rule('match_expression' => '[0-9]+.*',
-                       'replacement'      => '*',
-                       'each_segment'     => true)
+      'replacement'      => '*',
+      'each_segment'     => true)
 
     engine = NewRelic::Agent::RulesEngine.new([rule])
 
@@ -95,15 +95,15 @@ class RulesEngineTest < Minitest::Test
 
   def test_stops_after_terminate_chain
     rule0 = create_rule('match_expression' => '[0-9]+',
-                        'replacement'      => '*',
-                        'each_segment'     => true,
-                        'eval_order'       => 0,
-                        'terminate_chain'  => true)
+      'replacement'      => '*',
+      'each_segment'     => true,
+      'eval_order'       => 0,
+      'terminate_chain'  => true)
 
     rule1 = create_rule('match_expression' => '.*',
-                        'replacement'      => 'X',
-                        'replace_all'      => true,
-                        'eval_order'       => 1)
+      'replacement'      => 'X',
+      'replace_all'      => true,
+      'eval_order'       => 1)
 
     engine = NewRelic::Agent::RulesEngine.new([rule0, rule1])
 
@@ -136,5 +136,4 @@ class RulesEngineTest < Minitest::Test
       end
     end
   end
-
 end

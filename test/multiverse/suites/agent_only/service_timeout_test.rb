@@ -5,7 +5,6 @@
 require 'socket'
 
 class ServiceTimeoutTest < Minitest::Test
-
   def setup
     hk = TCPServer.new('127.0.0.1', 0)
     @port = hk.addr[1]
@@ -31,9 +30,8 @@ class ServiceTimeoutTest < Minitest::Test
 
     assert_raises NewRelic::Agent::ServerConnectionException do
       service.send('send_request',
-                   :uri => '/agent_listener/8/bd0e1d52adade840f7ca727d29a86249e89a6f1c/preconnect',
-                   :encoding => 'UTF-8', :collector => server, :data => 'blah')
+        :uri => '/agent_listener/8/bd0e1d52adade840f7ca727d29a86249e89a6f1c/preconnect',
+        :encoding => 'UTF-8', :collector => server, :data => 'blah')
     end
   end
-
 end

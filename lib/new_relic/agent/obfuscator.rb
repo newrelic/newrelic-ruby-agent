@@ -2,12 +2,11 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-#require 'base64'
+# require 'base64'
 
 module NewRelic
   module Agent
     class Obfuscator
-
       attr_reader :key_bytes
 
       EMPTY_KEY_BYTES = [0]
@@ -24,18 +23,18 @@ module NewRelic
       end
 
       def obfuscate(text)
-        [ encode(text) ].pack(PACK_FORMAT).gsub(/\n/, '')
+        [encode(text)].pack(PACK_FORMAT).gsub(/\n/, '')
       end
 
       def deobfuscate(text)
-        encode(text.unpack(PACK_FORMAT).first )
+        encode(text.unpack(PACK_FORMAT).first)
       end
 
       def encode(text)
         return text unless key_bytes
 
         encoded = ""
-        encoded.force_encoding('binary') if encoded.respond_to?( :force_encoding )
+        encoded.force_encoding('binary') if encoded.respond_to?(:force_encoding)
         index = 0
         text.each_byte do |byte|
           encoded.concat((byte ^ key_bytes[index % key_bytes.length]))
@@ -43,7 +42,6 @@ module NewRelic
         end
         encoded
       end
-
     end
   end
 end

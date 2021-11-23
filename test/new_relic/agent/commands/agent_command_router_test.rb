@@ -8,7 +8,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'data_con
 require 'new_relic/agent/commands/agent_command_router'
 
 class AgentCommandRouterTest < Minitest::Test
-
   DEFAULT_ARGS = {
     "profile_id" => 42
   }
@@ -194,5 +193,4 @@ class AgentCommandRouterTest < Minitest::Test
       profile.aggregate([], :request, Thread.current)
     end
   end
-
 end

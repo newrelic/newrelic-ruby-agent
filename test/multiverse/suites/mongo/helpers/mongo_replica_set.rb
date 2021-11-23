@@ -71,7 +71,7 @@ class MongoReplicaSet
 
   def status
     return nil unless running?
-    self.servers.first.client['admin'].command( {'replSetGetStatus' => 1} )
+    self.servers.first.client['admin'].command({'replSetGetStatus' => 1})
   rescue Mongo::OperationFailure => e
     raise e unless e.message.include? 'EMPTYCONFIG'
   end
@@ -90,7 +90,7 @@ class MongoReplicaSet
 
   def initiate
     return nil unless running?
-    self.servers.first.client['admin'].command( {'replSetInitiate' => config} )
+    self.servers.first.client['admin'].command({'replSetInitiate' => config})
   rescue Mongo::OperationFailure => e
     raise e unless e.message.match(/already initialized/)
   end

@@ -7,9 +7,7 @@ require File.expand_path '../../data_container_tests', __FILE__
 
 module NewRelic::Agent
   class TransactionSamplerTest < Minitest::Test
-
     module MockGCStats
-
       def time
         return 0 if @@values.empty?
         raise "too many calls" if @@index >= @@values.size
@@ -23,7 +21,6 @@ module NewRelic::Agent
         @@values = array
         @@index = 0
       end
-
     end
 
     def setup
@@ -40,16 +37,15 @@ module NewRelic::Agent
 
       attributes = Attributes.new(agent.attribute_filter)
       @txn = stub('txn',
-                  :best_name => '/path',
-                  :request_path => '/request_path',
-                  :guid => 'a guid',
-                  :ignore_trace? => false,
-                  :cat_trip_id => '',
-                  :cat_path_hash => '',
-                  :is_synthetics_request? => false,
-                  :filtered_params => {},
-                  :attributes => attributes
-                 )
+        :best_name => '/path',
+        :request_path => '/request_path',
+        :guid => 'a guid',
+        :ignore_trace? => false,
+        :cat_trip_id => '',
+        :cat_path_hash => '',
+        :is_synthetics_request? => false,
+        :filtered_params => {},
+        :attributes => attributes)
     end
 
     def teardown
@@ -256,7 +252,7 @@ module NewRelic::Agent
         slowest = @sampler.harvest![0]
         first_duration = slowest.duration
         assert((first_duration.round >= 2),
-               "expected sample duration = 2, but was: #{slowest.duration.inspect}")
+          "expected sample duration = 2, but was: #{slowest.duration.inspect}")
 
         # 1 second duration
         in_transaction do
@@ -394,7 +390,7 @@ module NewRelic::Agent
     end
 
     # TODO: this test seems to be destabilizing CI in a way that I don't grok.
-    #def sadly_do_not_test_harvest_during_transaction_safety
+    # def sadly_do_not_test_harvest_during_transaction_safety
     #  n = 3000
     #  harvester = Thread.new do
     #    n.times { @sampler.harvest! }
@@ -403,7 +399,7 @@ module NewRelic::Agent
     #  Dummy.new.run(n)
 
     #  harvester.join
-    #end
+    # end
 
     private
 

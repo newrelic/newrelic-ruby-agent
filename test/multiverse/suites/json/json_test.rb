@@ -7,10 +7,8 @@ require File.join(File.dirname(__FILE__), '..', '..', '..', 'new_relic', 'marsha
 # This is intended as a sanity check for our serialization to JSON via the
 # json gem across various Ruby versions.
 class JsonTest < Minitest::Test
-
   include MultiverseHelpers
   include MarshallingTestCases
 
   setup_and_teardown_agent
-
 end

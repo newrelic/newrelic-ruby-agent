@@ -36,7 +36,7 @@ module NewRelic
         end
 
         assert(@agent.service.kind_of?(NewRelic::Agent::PipeService),
-               'Agent should use PipeService when directed to report to pipe channel')
+          'Agent should use PipeService when directed to report to pipe channel')
         NewRelic::Agent::PipeService.any_instance.expects(:shutdown).never
         assert_equal 123, @agent.service.channel_id
       end
@@ -168,13 +168,13 @@ module NewRelic
 
       def test_harvest_and_send_transaction_traces
         with_config(:'transaction_tracer.explain_threshold' => 2,
-                    :'transaction_tracer.explain_enabled' => true,
-                    :'transaction_tracer.record_sql' => 'raw') do
+          :'transaction_tracer.explain_enabled' => true,
+          :'transaction_tracer.record_sql' => 'raw') do
           trace = stub('transaction trace',
-                       :duration => 2.0, :threshold => 1.0,
-                       :transaction_name => nil,
-                       :force_persist => true,
-                       :truncate => 4000)
+            :duration => 2.0, :threshold => 1.0,
+            :transaction_name => nil,
+            :force_persist => true,
+            :truncate => 4000)
 
           @agent.transaction_sampler.stubs(:harvest!).returns([trace])
           @agent.send :harvest_and_send_transaction_traces
@@ -499,7 +499,7 @@ module NewRelic
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)
 
         # :send_data_on_exit setting to avoid setting an at_exit
-        with_config( :monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque ) do
+        with_config(:monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque) do
           @agent.start
         end
 
@@ -509,7 +509,7 @@ module NewRelic
       def test_doesnt_defer_start_if_resque_dispatcher_and_channel_manager_started
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(true)
 
-        with_config( :monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque ) do
+        with_config(:monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque) do
           @agent.start
         end
 
@@ -521,7 +521,7 @@ module NewRelic
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)
 
         # :send_data_on_exit setting to avoid setting an at_exit
-        with_config( :monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque ) do
+        with_config(:monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque) do
           @agent.start
         end
 
@@ -529,15 +529,15 @@ module NewRelic
       end
 
       def test_defer_start_if_no_application_name_configured
-        logdev = with_array_logger( :error ) do
-          with_config( :app_name => false ) do
+        logdev = with_array_logger(:error) do
+          with_config(:app_name => false) do
             @agent.start
           end
         end
         logmsg = logdev.array.first.gsub(/\n/, '')
 
         assert !@agent.started?, "agent was started"
-        assert_match( /No application name configured/i, logmsg )
+        assert_match(/No application name configured/i, logmsg)
       end
 
       def test_harvest_from_container
@@ -785,7 +785,6 @@ module NewRelic
           assert_equal threads_before, Thread.list.length
         end
       end
-
     end
   end
 end

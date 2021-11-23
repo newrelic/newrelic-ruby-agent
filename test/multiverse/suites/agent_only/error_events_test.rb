@@ -70,7 +70,6 @@ class ErrorEventsTest < Minitest::Test
   end
 
   def test_does_not_record_error_events_when_disabled_by_feature_gate
-
     $collector.stub('connect', {
       'agent_run_id' => 1,
       'collect_error_events' => false

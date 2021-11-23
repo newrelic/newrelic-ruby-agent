@@ -30,7 +30,6 @@ require 'new_relic/agent/internal_agent_error'
 module NewRelic
   module Agent
     class StatsHash
-
       attr_accessor :started_at, :harvested_at
 
       def initialize(started_at = Process.clock_gettime(Process::CLOCK_REALTIME))
@@ -122,8 +121,8 @@ module NewRelic
       def handle_stats_lookup_error(key, hash, error)
         # This only happen in the case of a corrupted default_proc
         # Side-step it manually, notice the issue, and carry on....
-        NewRelic::Agent.instance.error_collector. \
-          notice_agent_error(StatsHashLookupError.new(error, hash, key))
+        NewRelic::Agent.instance.error_collector \
+          .notice_agent_error(StatsHashLookupError.new(error, hash, key))
         stats = NewRelic::Agent::Stats.new
         hash[key] = stats
         # Try to restore the default_proc so we won't continually trip the error

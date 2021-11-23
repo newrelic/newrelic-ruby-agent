@@ -21,7 +21,6 @@ class LoggerInstrumentationTest < Minitest::Test
     NewRelic::Agent.instance.stats_engine.reset!
   end
 
-
   LEVELS = [
     ['debug', Logger::DEBUG],
     ['error', Logger::ERROR],

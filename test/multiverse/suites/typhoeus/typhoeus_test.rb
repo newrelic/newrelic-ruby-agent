@@ -181,15 +181,14 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
       assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
 
-      get_segments = txn.segments.select{ |s| s.name =~ /GET$/ }
+      get_segments = txn.segments.select { |s| s.name =~ /GET$/ }
       assert_equal 5, get_segments.size
-      assert get_segments.all?{ |s| s.noticed_error }, "Expected every GET to notice an error"
+      assert get_segments.all? { |s| s.noticed_error }, "Expected every GET to notice an error"
 
       # Typhoeus doesn't raise errors, so transactions never see it,
       # which diverges from behavior of other HTTP client libraries
       refute_transaction_noticed_error txn, timeout_error_class.name
     end
-
 
     if CURRENT_TYPHOEUS_VERSION >= SUPPORTS_URI_OBJECT_VERSION
       def test_get_with_uri

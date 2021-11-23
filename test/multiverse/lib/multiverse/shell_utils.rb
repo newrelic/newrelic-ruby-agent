@@ -22,6 +22,5 @@ module Multiverse
         end
       end
     end
-
   end
 end

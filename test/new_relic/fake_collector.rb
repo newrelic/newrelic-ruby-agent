@@ -151,10 +151,10 @@ module NewRelic
       query_params = req.GET
 
       @agent_data << AgentPost.create(:action       => method,
-                                      :body         => body,
-                                      :run_id       => run_id,
-                                      :format       => :json,
-                                      :query_params => query_params)
+        :body         => body,
+        :run_id       => run_id,
+        :format       => :json,
+        :query_params => query_params)
 
       res.finish
     end
@@ -173,7 +173,7 @@ module NewRelic
           metric_record[0]['name'] == name &&
             (!scope || metric_record[0]['scope'] == scope)
         end
-      end.compact.map{ |m| m[1] }
+      end.compact.map { |m| m[1] }
     end
 
     class AgentPost
@@ -363,7 +363,6 @@ module NewRelic
     class SpanEventDataPost < ReservoirSampledContainerPost; end
 
     class ErrorDataPost < AgentPost
-
       attr_reader :errors
 
       def initialize(opts = {})
@@ -373,7 +372,6 @@ module NewRelic
     end
 
     class SubmittedError
-
       attr_reader :timestamp, :path, :message, :exception_class_name, :params
 
       def initialize(error_info)

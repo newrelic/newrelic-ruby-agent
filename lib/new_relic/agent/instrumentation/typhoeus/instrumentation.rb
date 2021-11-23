@@ -6,7 +6,6 @@ module NewRelic
   module Agent
     module Instrumentation
       module Typhoeus
-
         HYDRA_SEGMENT_NAME = "External/Multiple/Typhoeus::Hydra/run"
         NOTICIBLE_ERROR_CLASS = "Typhoeus::Errors::TyphoeusError"
 
@@ -72,7 +71,6 @@ module NewRelic
             segment.finish if segment
           end
           request.on_complete.unshift(callback)
-
         rescue => e
           NewRelic::Agent.logger.error("Exception during trace setup for Typhoeus request", e)
         end

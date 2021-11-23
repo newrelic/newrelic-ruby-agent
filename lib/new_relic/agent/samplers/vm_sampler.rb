@@ -49,7 +49,7 @@ module NewRelic
           end
         end
 
-        def record_gc_runs_metric(snapshot, txn_count) #THREAD_LOCAL_ACCESS
+        def record_gc_runs_metric(snapshot, txn_count) # THREAD_LOCAL_ACCESS
           if snapshot.gc_total_time || snapshot.gc_runs
             if snapshot.gc_total_time
               gc_time = snapshot.gc_total_time - @last_snapshot.gc_total_time.to_f
@@ -68,7 +68,7 @@ module NewRelic
           end
         end
 
-        def record_delta(snapshot, key, metric, txn_count) #THREAD_LOCAL_ACCESS
+        def record_delta(snapshot, key, metric, txn_count) # THREAD_LOCAL_ACCESS
           value = snapshot.send(key)
           if value
             delta = value - @last_snapshot.send(key)
@@ -79,7 +79,7 @@ module NewRelic
           end
         end
 
-        def record_gauge_metric(metric_name, value) #THREAD_LOCAL_ACCESS
+        def record_gauge_metric(metric_name, value) # THREAD_LOCAL_ACCESS
           NewRelic::Agent.agent.stats_engine.tl_record_unscoped_metrics(metric_name) do |stats|
             stats.call_count = value
             stats.sum_of_squares = 1

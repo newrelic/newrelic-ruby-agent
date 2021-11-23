@@ -3,13 +3,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require 'sequel' unless defined?( Sequel )
-require 'newrelic_rpm' unless defined?( NewRelic )
+require 'sequel' unless defined?(Sequel)
+require 'newrelic_rpm' unless defined?(NewRelic)
 require 'new_relic/agent/instrumentation/sequel_helper'
 require 'new_relic/agent/datastores/metric_helper'
 
 module Sequel
-
   # New Relic's Sequel instrumentation is implemented via a plugin for
   # Sequel::Models, and an extension for Sequel::Databases. Every database
   # handle that Sequel knows about when New Relic is loaded will automatically
@@ -31,7 +30,6 @@ module Sequel
   # `disable_activerecord_instrumentation` setting.
   #
   module NewRelicInstrumentation
-
     module Naming
       def self.query_method_name
         if Sequel::VERSION >= "4.35.0"
@@ -42,7 +40,7 @@ module Sequel
       end
     end
 
-    define_method Naming.query_method_name do |*args, &blk| #THREAD_LOCAL_ACCESS
+    define_method Naming.query_method_name do |*args, &blk| # THREAD_LOCAL_ACCESS
       sql = args.first
 
       product = NewRelic::Agent::Instrumentation::SequelHelper.product_name_from_adapter(self.class.adapter_scheme)
@@ -97,5 +95,4 @@ module Sequel
 
   NewRelic::Agent.logger.debug "Registering the :newrelic_instrumentation extension."
   Database.register_extension(:newrelic_instrumentation, NewRelicInstrumentation)
-
 end # module Sequel

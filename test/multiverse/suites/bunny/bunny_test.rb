@@ -166,9 +166,9 @@ class BunnyTest < Minitest::Test
 
     with_queue do |queue|
       in_transaction "test_txn" do
-        #our instrumentation should error here, but not interfere with bunny
+        # our instrumentation should error here, but not interfere with bunny
         queue.publish("test_msg")
-         #this segment should be fine
+         # this segment should be fine
         segment = NewRelic::Agent::Tracer.start_segment name: "Custom/blah/method"
         segment.finish if segment
       end
@@ -227,7 +227,7 @@ class BunnyTest < Minitest::Test
                        :"message.queueName" => queue.name,
                        :"message.exchangeType" => :direct,
                      },
-                     tt.attributes.agent_attributes_for(expected_destinations))
+          tt.attributes.agent_attributes_for(expected_destinations))
 
         # metrics
         assert_metrics_recorded ["OtherTransaction/Message/RabbitMQ/Exchange/Named/myDirectExchange"]
@@ -305,7 +305,7 @@ class BunnyTest < Minitest::Test
         # This should error
         queue.publish "test_msg"
 
-        #this segment should be fine
+        # this segment should be fine
         segment = NewRelic::Agent::Tracer.start_segment name: "Custom/blah/method"
         segment.finish
       end

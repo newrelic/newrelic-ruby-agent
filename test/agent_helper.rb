@@ -111,7 +111,7 @@ end
 unless defined? assert_includes
   def assert_includes collection, member, msg = nil
     msg = "Expected #{collection.inspect} to include #{member.inspect}"
-    assert_block( msg ) { collection.include?(member) }
+    assert_block(msg) { collection.include?(member) }
   end
 end
 
@@ -673,7 +673,7 @@ def with_debug_logging
   orig_logger = NewRelic::Agent.logger
   $stderr.puts '', '---', ''
   NewRelic::Agent.logger =
-    NewRelic::Agent::AgentLogger.new('', Logger.new($stderr) )
+    NewRelic::Agent::AgentLogger.new('', Logger.new($stderr))
 
   with_config(:log_level => 'debug') do
     yield
@@ -761,7 +761,7 @@ class EnvUpdater
   def safe_update env
     with_retry do
       @mutex.synchronize do
-        env.each{ |key, val| ENV[key] = val.to_s }
+        env.each { |key, val| ENV[key] = val.to_s }
       end
     end
   end
@@ -770,7 +770,7 @@ class EnvUpdater
   def safe_restore old_env
     with_retry do
       @mutex.synchronize do
-        old_env.each{ |key, val| val ? ENV[key] = val : ENV.delete(key) }
+        old_env.each { |key, val| val ? ENV[key] = val : ENV.delete(key) }
       end
     end
   end
@@ -792,7 +792,7 @@ class EnvUpdater
   # runs given block, then restores ENV to original state before returning.
   def self.inject env, &block
     old_env = {}
-    env.each{ |key, val| old_env[key] = ENV[key] }
+    env.each { |key, val| old_env[key] = ENV[key] }
     begin
       safe_update(env)
       yield
@@ -952,7 +952,7 @@ end
 # selects the last segment with a noticed_error and checks
 # the expectations against it.
 def assert_segment_noticed_error txn, segment_name, error_classes, error_message
-  error_segment = txn.segments.reverse.detect{ |s| s.noticed_error }
+  error_segment = txn.segments.reverse.detect { |s| s.noticed_error }
   assert error_segment, "Expected at least one segment with a noticed_error"
 
   assert_match_or_equal segment_name, error_segment.name
@@ -969,7 +969,7 @@ def assert_transaction_noticed_error txn, error_classes
 end
 
 def refute_transaction_noticed_error txn, error_class
-  error_segment = txn.segments.reverse.detect{ |s| s.noticed_error }
+  error_segment = txn.segments.reverse.detect { |s| s.noticed_error }
   assert error_segment, "Expected at least one segment with a noticed_error"
   assert_empty txn.exceptions, "Expected transaction to NOT notice any segment errors"
 end

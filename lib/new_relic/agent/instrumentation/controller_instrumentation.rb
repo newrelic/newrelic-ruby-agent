@@ -22,7 +22,6 @@ module NewRelic
       # @api public
       #
       module ControllerInstrumentation
-
         def self.included(clazz) # :nodoc:
           clazz.extend(ClassMethods)
         end
@@ -215,8 +214,8 @@ module NewRelic
           end
 
           def build_method_names(traced_method, punctuation)
-            [ "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}",
-              "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}" ]
+            ["#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}",
+              "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}"]
           end
 
           def already_added_transaction_tracer?(target, with_method_name)
@@ -350,7 +349,7 @@ module NewRelic
         #
         # @api public
         #
-        def perform_action_with_newrelic_trace(*args, &block) #THREAD_LOCAL_ACCESS
+        def perform_action_with_newrelic_trace(*args, &block) # THREAD_LOCAL_ACCESS
           NewRelic::Agent.record_api_supportability_metric(:perform_action_with_newrelic_trace)
           state = NewRelic::Agent::Tracer.state
           request = newrelic_request(args)
@@ -384,7 +383,6 @@ module NewRelic
               NewRelic::Agent.notice_error(e)
               raise
             end
-
           ensure
             finishable.finish if finishable
           end
@@ -462,7 +460,8 @@ module NewRelic
           NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
             key,
             self.class,
-            name)
+            name
+)
         end
 
         def detect_queue_start_time(request)

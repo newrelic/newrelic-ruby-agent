@@ -5,7 +5,6 @@
 # These tests are intended to exercise the basic marshalling functionality of
 # the agent in it's different permutations (Ruby and JSON)
 module MarshallingTestCases
-
   def test_sends_metrics
     with_around_hook do
       NewRelic::Agent.record_metric('Boo', 42)
@@ -147,7 +146,6 @@ module MarshallingTestCases
     assert event[0]["traceId"] != nil
 
     assert_equal 12, event[0].size
-
 
     assert_equal event[1], {}
     assert_equal event[2], {}

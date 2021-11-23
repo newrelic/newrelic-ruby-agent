@@ -300,14 +300,14 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
   def assert_has_js_agent_loader(header)
     assert_match(%Q[\n<script type="text/javascript">loader</script>],
-                 header,
-                 "expected new JS agent loader 'loader' but saw '#{header}'")
+      header,
+      "expected new JS agent loader 'loader' but saw '#{header}'")
   end
 
   def assert_has_js_agent_loader_with_nonce(header)
     assert_match(%Q[\n<script type="text/javascript" nonce="NONCE_TEST">loader</script>],
-                 header,
-                 "expected new JS agent loader 'loader' but saw '#{header}'")
+      header,
+      "expected new JS agent loader 'loader' but saw '#{header}'")
   end
 
   def assert_has_text(snippet, footer)
@@ -347,5 +347,4 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
       value
     end
   end
-
 end

@@ -119,8 +119,8 @@ module NewRelic::Agent::Configuration
       @manager.add_config_for_testing(:setting => 'correct value')
       assert_equal 'correct value', @manager[:setting]
 
-      @manager.instance_variable_get(:@configs_for_testing).
-               unshift(:setting => 'wrong value')
+      @manager.instance_variable_get(:@configs_for_testing)
+               .unshift(:setting => 'wrong value')
 
       assert_equal 'correct value', @manager[:setting]
     end
@@ -139,7 +139,7 @@ module NewRelic::Agent::Configuration
       @manager.add_config_for_testing(:'nested.madness' => 'test')
 
       assert_equal({:eins => 1, :one => 1, :two => 2, :'nested.madness' => 'test'},
-                   @manager.to_collector_hash)
+        @manager.to_collector_hash)
     end
 
     # Necessary to keep the pruby marshaller happy
@@ -306,8 +306,8 @@ module NewRelic::Agent::Configuration
 
         assert_warning if testcase["warning"]
         assert_equal(testcase["expected"].sort_by { |h| h["label_type"] },
-                     @manager.parse_labels_from_string.sort_by { |h| h["label_type"] },
-                     "failed on #{testcase["name"]}")
+          @manager.parse_labels_from_string.sort_by { |h| h["label_type"] },
+          "failed on #{testcase["name"]}")
       end
     end
 
@@ -339,7 +339,7 @@ module NewRelic::Agent::Configuration
 
     def test_parse_labels_from_dictionary_applies_length_limits
       @manager.add_config_for_testing(:labels => {'K' * 256 => 'V' * 256})
-      expected = [ {'label_type' => 'K' * 255, 'label_value' => 'V' * 255} ]
+      expected = [{'label_type' => 'K' * 255, 'label_value' => 'V' * 255}]
 
       expects_logging(:warn, includes("truncated"))
       assert_parsed_labels(expected)
@@ -480,6 +480,5 @@ module NewRelic::Agent::Configuration
     def assert_parsing_error
       expects_logging(:error, includes(Manager::PARSING_LABELS_FAILURE), any_parameters)
     end
-
   end
 end

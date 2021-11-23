@@ -47,10 +47,10 @@ module NewRelic
         METRIC_PREFIX = 'MessageBroker/'.freeze
 
         attr_reader :action,
-                    :destination_name,
-                    :destination_type,
-                    :library,
-                    :headers
+          :destination_name,
+          :destination_type,
+          :library,
+          :headers
 
         def initialize(action:,
                        library:,

@@ -441,5 +441,4 @@ class DataMapperTest < Minitest::Test
       "Datastore/statement/DataMapper/Post/#{operation}"
     ])
   end
-
 end

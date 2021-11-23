@@ -8,7 +8,6 @@ require 'new_relic/agent/parameter_filtering'
 module NewRelic
   module Agent
     class ParameterFilteringTest < Minitest::Test
-
       def test_apply_filters_returns_params_when_rails_is_not_present
         undefine_constant(:"ActionDispatch::Http::ParameterFilter") do
           undefine_constant(:"ActiveSupport::ParameterFilter") do

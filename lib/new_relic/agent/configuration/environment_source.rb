@@ -111,7 +111,6 @@ module NewRelic
         def collect_new_relic_environment_variable_keys
           ENV.keys.select { |key| key.match(SUPPORTED_PREFIXES) }
         end
-
       end
     end
   end

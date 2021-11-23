@@ -159,9 +159,9 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         thread = fake_thread(:agent, ["trace"])
 
-        AgentThread.stubs(:scrub_backtrace).
-                    with(thread, any_parameters).
-                    returns(scrubbed_backtrace)
+        AgentThread.stubs(:scrub_backtrace)
+                    .with(thread, any_parameters)
+                    .returns(scrubbed_backtrace)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.expects(:aggregate).with(scrubbed_backtrace, :agent, thread)
@@ -565,7 +565,6 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         @service.worker_thread.join
       end
     end
-
   end
 else
   module NewRelic::Agent::Threading
@@ -597,7 +596,6 @@ else
 
         assert_false service.running?
       end
-
     end
   end
 end

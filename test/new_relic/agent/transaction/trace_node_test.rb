@@ -60,7 +60,6 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     fake_node = mock('node')
     fake_node.expects(:path_string).returns('Custom/other/metric[]')
 
-
     s.children << fake_node
     assert_equal("Custom/test/metric[Custom/other/metric[]]", s.path_string)
   end

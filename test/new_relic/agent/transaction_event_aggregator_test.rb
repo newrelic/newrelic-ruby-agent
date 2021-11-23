@@ -13,7 +13,6 @@ require 'new_relic/agent/transaction_event_primitive'
 module NewRelic
   module Agent
     class TransactionEventAggregatorTest < Minitest::Test
-
       def setup
         nr_freeze_process_time
         events = NewRelic::Agent.instance.events

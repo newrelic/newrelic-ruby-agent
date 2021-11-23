@@ -18,7 +18,6 @@ module NewRelic
     module Autostart
       extend self
 
-
       # The constants, executables (i.e. $0) and rake tasks used can be
       # configured with the config keys 'autostart.denylisted_constants',
       # 'autostart.denylisted_executables' and

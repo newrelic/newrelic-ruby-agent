@@ -6,7 +6,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_hel
 
 module NewRelic::Agent
   class CollectorHostname < Minitest::Test
-
     test_cases = load_cross_agent_test("collector_hostname")
 
     test_cases.each do |test_case|
@@ -44,6 +43,5 @@ module NewRelic::Agent
         end
       end
     end
-
   end
 end

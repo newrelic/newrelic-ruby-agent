@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class TiltInstrumentationTest < Minitest::Test
-
   def setup
     @stats_engine = NewRelic::Agent.instance.stats_engine
   end
@@ -97,11 +96,11 @@ class TiltInstrumentationTest < Minitest::Test
     end
 
     last_node = nil
-    last_transaction_trace.root_node.each_node{ |s| last_node = s }
+    last_transaction_trace.root_node.each_node { |s| last_node = s }
     NewRelic::Agent.shutdown
 
     assert_equal(haml_render_metric,
-                 last_node.metric_name)
+      last_node.metric_name)
   end
 
   def test_creates_nested_partial_node_within_render_node
@@ -112,9 +111,9 @@ class TiltInstrumentationTest < Minitest::Test
     partial_node = template_node.children[0]
 
     assert_equal(haml_render_metric('layout.haml'),
-                 template_node.metric_name)
+      template_node.metric_name)
     assert_equal(haml_render_metric,
-                 partial_node.metric_name)
+      partial_node.metric_name)
   end
 
   ### File name parsing tests ###

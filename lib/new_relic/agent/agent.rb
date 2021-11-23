@@ -37,7 +37,6 @@ require 'new_relic/agent/connect/response_handler'
 
 module NewRelic
   module Agent
-
     # The Agent is a singleton that is instantiated when the plugin is
     # activated.  It collects performance data from ruby applications
     # in realtime as the application runs, and periodically sends that
@@ -66,7 +65,7 @@ module NewRelic
         @monotonic_gc_profiler = VM::MonotonicGCProfiler.new
         @javascript_instrumentor = JavascriptInstrumentor.new @events
         @adaptive_sampler = AdaptiveSampler.new(Agent.config[:sampling_target],
-                                                         Agent.config[:sampling_target_period_in_seconds])
+          Agent.config[:sampling_target_period_in_seconds])
 
         @harvester = Harvester.new @events
         @after_fork_lock = Mutex.new
@@ -110,7 +109,6 @@ module NewRelic
       # Holds all the methods defined on NewRelic::Agent::Agent
       # instances
       module InstanceMethods
-
         # the statistics engine that holds all the timeslice data
         attr_reader :stats_engine
         # the transaction sampler that handles recording transactions
@@ -284,7 +282,7 @@ module NewRelic
         # Sets a thread local variable as to whether we should or
         # should not record sql in the current thread. Returns the
         # previous value, if there is one
-        def set_record_sql(should_record) #THREAD_LOCAL_ACCESS
+        def set_record_sql(should_record) # THREAD_LOCAL_ACCESS
           state = Tracer.state
           prev = state.record_sql
           state.record_sql = should_record
@@ -295,13 +293,13 @@ module NewRelic
         # thread. This uses a stack which allows us to disable tracing
         # children of a transaction without affecting the tracing of
         # the whole transaction
-        def push_trace_execution_flag(should_trace = false) #THREAD_LOCAL_ACCESS
+        def push_trace_execution_flag(should_trace = false) # THREAD_LOCAL_ACCESS
           Tracer.state.push_traced(should_trace)
         end
 
         # Pop the current trace execution status.  Restore trace execution status
         # to what it was before we pushed the current flag.
-        def pop_trace_execution_flag #THREAD_LOCAL_ACCESS
+        def pop_trace_execution_flag # THREAD_LOCAL_ACCESS
           Tracer.state.pop_traced
         end
 
@@ -788,7 +786,8 @@ module NewRelic
           def handle_license_error(error)
             ::NewRelic::Agent.logger.error( \
               error.message, \
-              "Visit NewRelic.com to obtain a valid license key, or to upgrade your account.")
+              "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
+)
             disconnect
           end
 
@@ -881,7 +880,6 @@ module NewRelic
               raise WaitOnConnectTimeout, "Agent was unable to connect in #{timeout} seconds."
             end
           end
-
         end
         include Connect
 

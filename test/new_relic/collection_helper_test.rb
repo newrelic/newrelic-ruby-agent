@@ -7,7 +7,6 @@ require 'ostruct'
 
 require 'new_relic/collection_helper'
 class NewRelic::CollectionHelperTest < Minitest::Test
-
   def setup
     NewRelic::Agent.manual_start
     super
@@ -25,7 +24,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
   end
 
   def test_array
-    new_array = normalize_params [ 1000 ] * 2000
+    new_array = normalize_params [1000] * 2000
     assert_equal 128, new_array.size
     assert_equal '1000', new_array[0]
   end
@@ -72,7 +71,6 @@ class NewRelic::CollectionHelperTest < Minitest::Test
   end
 
   class MyHash < Hash
-
   end
 
   # Test to ensure that hash subclasses are properly converted

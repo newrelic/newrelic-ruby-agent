@@ -10,7 +10,6 @@ module NewRelic
     module Datastores
       module Mongo
         class EventFormatterTest < Minitest::Test
-
           DATABASE = 'multiverse'.freeze
 
           FIND_COMMAND = {

@@ -117,7 +117,6 @@ module NewRelic::Agent
             segment.finish
           end
 
-
           expected_metrics = [
             "External/remotehost.com/Net::HTTP/GET",
             "External/all",
@@ -152,7 +151,6 @@ module NewRelic::Agent
             segment.process_response_headers response
             segment.finish
           end
-
 
           expected_metrics = [
             "External/remotehost.com/Net::HTTP/GET",
@@ -223,7 +221,6 @@ module NewRelic::Agent
             segment.finish
           end
 
-
           expected_metrics = [
             "ExternalTransaction/newrelic.com/1#1884/txn-name",
             "ExternalApp/newrelic.com/1#1884/all",
@@ -244,7 +241,7 @@ module NewRelic::Agent
 
       def test_proper_metrics_recorded_for_distributed_trace_on_receiver
         with_config(:'distributed_tracing.enabled' => true,
-                    :trusted_account_key => 'trust_this!') do
+          :trusted_account_key => 'trust_this!') do
           request = RequestWrapper.new
           payload = nil
 
@@ -287,7 +284,8 @@ module NewRelic::Agent
       def test_proper_metrics_recorded_for_distributed_trace_on_receiver_when_error_occurs
         with_config(
           :'distributed_tracing.enabled' => true,
-          :trusted_account_key => 'trust_this') do
+          :trusted_account_key => 'trust_this'
+) do
           request = RequestWrapper.new
           payload = nil
 
@@ -787,8 +785,8 @@ module NewRelic::Agent
             txn.stubs(:sampled?).returns(true)
 
             segment = ExternalRequestSegment.new "Typhoeus",
-                                                 "http://remotehost.com/blogs/index",
-                                                 "GET"
+              "http://remotehost.com/blogs/index",
+              "GET"
             txn.add_segment segment
             segment.start
             advance_process_time 1.0
@@ -836,8 +834,8 @@ module NewRelic::Agent
             txn.stubs(:sampled?).returns(true)
 
             segment = ExternalRequestSegment.new "Typhoeus",
-                                                 "#{filtered_url}?a=1&b=2#fragment",
-                                                 "GET"
+              "#{filtered_url}?a=1&b=2#fragment",
+              "GET"
             txn.add_segment segment
             segment.start
             advance_process_time 1.0
@@ -858,8 +856,8 @@ module NewRelic::Agent
           txn.stubs(:sampled?).returns(false)
 
           segment = ExternalRequestSegment.new "Typhoeus",
-                                               "http://remotehost.com/blogs/index",
-                                               "GET"
+            "http://remotehost.com/blogs/index",
+            "GET"
           txn.add_segment segment
           segment.start
           advance_process_time 1.0
@@ -875,8 +873,8 @@ module NewRelic::Agent
           txn.stubs(:ignore?).returns(true)
 
           segment = ExternalRequestSegment.new "Typhoeus",
-                                               "http://remotehost.com/blogs/index",
-                                               "GET"
+            "http://remotehost.com/blogs/index",
+            "GET"
           txn.add_segment segment
           segment.start
           advance_process_time 1.0
@@ -933,8 +931,8 @@ module NewRelic::Agent
         }
       end
 
-      def make_app_data_payload( *args )
-        @obfuscator.obfuscate( args.to_json ) + "\n"
+      def make_app_data_payload(*args)
+        @obfuscator.obfuscate(args.to_json) + "\n"
       end
 
       def external_request_segment

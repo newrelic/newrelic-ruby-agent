@@ -239,6 +239,5 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         count
       end
     end
-
   end
 end

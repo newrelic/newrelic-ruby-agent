@@ -9,13 +9,11 @@ require 'http_client_test_cases'
 require 'new_relic/agent/http_clients/curb_wrappers'
 
 class CurbTest < Minitest::Test
-
   #
   # Tests
   #
 
   include HttpClientTestCases
-
 
   def test_shouldnt_clobber_existing_header_callback
     headers = []
@@ -206,5 +204,4 @@ class CurbTest < Minitest::Test
 
     return res
   end
-
 end

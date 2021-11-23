@@ -9,7 +9,6 @@ module NewRelic
   module Agent
     module HTTPClients
       class TyphoeusHTTPResponse < AbstractResponse
-
         def [](key)
           unless headers.nil?
             result = headers[key]

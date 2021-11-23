@@ -40,7 +40,6 @@ make_notify_task = Proc.new do
         deployment = NewRelic::Cli::Deployments.new deploy_options
         deployment.run
         logger.info "Uploaded deployment information to New Relic"
-
       rescue NewRelic::Cli::Command::CommandFailure => e
         logger.info e.message
       rescue Capistrano::CommandError

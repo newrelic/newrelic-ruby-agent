@@ -82,7 +82,6 @@ module NewRelic
           assert_equal 0.0, txn_segment.entry_timestamp
           assert_equal 2.0, txn_segment.exit_timestamp
 
-
           segment_a = txn_segment.children[0]
           assert_equal "segment_a", segment_a.metric_name
           assert_equal 1.0, segment_a.entry_timestamp

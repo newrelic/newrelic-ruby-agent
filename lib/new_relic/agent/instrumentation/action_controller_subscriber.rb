@@ -9,8 +9,7 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionControllerSubscriber < NotificationsSubscriber
-
-        def start(name, id, payload) #THREAD_LOCAL_ACCESS
+        def start(name, id, payload) # THREAD_LOCAL_ACCESS
           # @req is a historically stable but not guaranteed Rails header property
           request = payload[:headers].instance_variable_get(:@req)
 
@@ -29,7 +28,7 @@ module NewRelic
           log_notification_error(e, name, 'start')
         end
 
-        def finish(name, id, payload) #THREAD_LOCAL_ACCESS
+        def finish(name, id, payload) # THREAD_LOCAL_ACCESS
           finishable = pop_segment(id)
 
           if state.is_execution_traced? \

@@ -10,7 +10,6 @@ require 'new_relic/agent/transaction'
 module NewRelic
   module Agent
     class MessagingTest < Minitest::Test
-
       def setup
         NewRelic::Agent.drop_buffered_data
       end
@@ -438,10 +437,10 @@ module NewRelic
         tap.expects :tap
 
         with_config :"cross_application_tracer.enabled" => true,
-                    :cross_process_id => cross_process_id,
-                    :'distributed_tracing.enabled' => false,
-                    :trusted_account_ids => [321],
-                    :encoding_key => "abc" do
+          :cross_process_id => cross_process_id,
+          :'distributed_tracing.enabled' => false,
+          :trusted_account_ids => [321],
+          :encoding_key => "abc" do
           in_transaction do |txn|
             obfuscated_id = obfuscator.obfuscate cross_process_id
             raw_txn_info = [guid, false, guid, txn.distributed_tracer.cat_path_hash]
@@ -477,10 +476,10 @@ module NewRelic
         tap.expects :tap
 
         with_config :"cross_application_tracer.enabled" => true,
-                    :cross_process_id => cross_process_id,
-                    :'distributed_tracing.enabled' => false,
-                    :trusted_account_ids => [321],
-                    :encoding_key => "abc" do
+          :cross_process_id => cross_process_id,
+          :'distributed_tracing.enabled' => false,
+          :trusted_account_ids => [321],
+          :encoding_key => "abc" do
           in_transaction "test_txn" do |txn|
             obfuscated_id = obfuscator.obfuscate cross_process_id
             raw_txn_info = [guid, false, guid, txn.distributed_tracer.cat_path_hash]

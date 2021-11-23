@@ -8,7 +8,6 @@ module NewRelic
   module Agent
     module SpanEventPrimitive
       class SpanEventPrimitiveTest < Minitest::Test
-
         def setup
           @additional_config = {:'distributed_tracing.enabled' => true}
           NewRelic::Agent.config.add_config_for_testing(@additional_config)
@@ -102,10 +101,10 @@ module NewRelic
           payload = nil
           external_segment = nil
           in_transaction('test_txn') do |txn|
-            external_segment = NewRelic::Agent::Tracer.\
-                         start_external_request_segment library: "net/http",
-                                                        uri: "http://docs.newrelic.com",
-                                                        procedure: "GET"
+            external_segment = NewRelic::Agent::Tracer\
+                         .start_external_request_segment library: "net/http",
+                           uri: "http://docs.newrelic.com",
+                           procedure: "GET"
             payload = txn.distributed_tracer.create_distributed_trace_payload
           end
 
@@ -200,8 +199,8 @@ module NewRelic
             in_transaction('test_txn') do |t|
               t.stubs(:sampled?).returns(true)
               external_segment = Tracer.start_external_request_segment(library: 'Net::HTTP',
-                                                                            uri: "https://docs.newrelic.com",
-                                                                            procedure: "GET")
+                uri: "https://docs.newrelic.com",
+                procedure: "GET")
               external_segment.finish
             end
           end

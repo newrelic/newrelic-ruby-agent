@@ -7,7 +7,6 @@ require 'new_relic/agent/threading/agent_thread'
 
 module NewRelic::Agent::Threading
   class AgentThreadTest < Minitest::Test
-
     def test_sets_label
       t = AgentThread.create("labelled") {}
       assert_equal "labelled", t[:newrelic_label]

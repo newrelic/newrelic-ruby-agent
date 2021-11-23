@@ -5,7 +5,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 
 # Test logic around detecting or configuring framework
 class FrameworkTest < Minitest::Test
-
   def setup
     # muck with this constant which forces the agent to load the
     # NewRelic::Control::Frameworks::Test control so we can test the logic used

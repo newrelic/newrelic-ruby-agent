@@ -13,7 +13,6 @@ class Minitest::Test
 end
 
 module MultiverseHelpers
-
   #
   # Agent startup/shutdown
   #

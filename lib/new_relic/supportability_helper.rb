@@ -4,7 +4,6 @@
 
 module NewRelic
   module SupportabilityHelper
-
     API_SUPPORTABILITY_PREFIX = 'Supportability/API/'.freeze
 
     # pre-instantiate these strings as they may be used multiple times per

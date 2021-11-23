@@ -6,7 +6,6 @@
 module NewRelic
   module Agent
     module PayloadMetricMapping
-
       # this logic was extracted from TransactionEventAggregator for reuse by
       # the ErrorEventAggregator
 

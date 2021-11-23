@@ -143,7 +143,8 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   def test_connect_gets_config
     NewRelic::Agent.manual_start
     NewRelic::Agent.instance.service = default_service(
-      :connect => {'agent_run_id' => 23, 'config' => 'a lot'})
+      :connect => {'agent_run_id' => 23, 'config' => 'a lot'}
+)
 
     response = NewRelic::Agent.agent.connect_to_server
 
@@ -187,7 +188,8 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
       :connect => {
         'messages' => [{'message' => 'beep boop', 'level' => 'INFO'},
                        {'message' => 'ha cha cha', 'level' => 'WARN'}]
-      })
+      }
+)
 
     expects_logging(:info, 'beep boop')
     expects_logging(:warn, 'ha cha cha')
@@ -197,7 +199,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   end
 
   def test_environment_for_connect
-    assert environment_for_connect.detect{ |(k, _)|
+    assert environment_for_connect.detect { |(k, _)|
       k == 'Gems'
     }, "expected connect_settings to include gems from environment"
   end

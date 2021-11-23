@@ -2,13 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-
 module NewRelic
   module Agent
     module Connect
-
       class ResponseHandler
-
         def initialize(agent, config)
           @agent = agent
           @config = config

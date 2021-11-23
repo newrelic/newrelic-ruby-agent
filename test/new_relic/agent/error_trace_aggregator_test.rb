@@ -34,8 +34,8 @@ module NewRelic
 
       def test_simple
         notice_error(StandardError.new("message"),
-                                      :uri => '/myurl/',
-                                      :metric => 'path')
+          :uri => '/myurl/',
+          :metric => 'path')
 
         errors = error_trace_aggregator.harvest!
 
@@ -89,13 +89,12 @@ module NewRelic
         ['hi', 'hi'],
         [:hi, 'hi'],
         [StandardError.new("test"), "#<StandardError>"],
-        [TestClass.new, "#<NewRelic::Agent::ErrorTraceAggregatorTest::TestClass>"]
-        ]
+        [TestClass.new, "#<NewRelic::Agent::ErrorTraceAggregatorTest::TestClass>"]]
 
         types.each do |test|
           notice_error(StandardError.new("message"),
-                                        :metric => 'path',
-                                        :custom_params => {:x => test[0]})
+            :metric => 'path',
+            :custom_params => {:x => test[0]})
           error = error_trace_aggregator.harvest![0].to_collector_array
           actual = error.last["userAttributes"]["x"]
           assert_equal test[1], actual
@@ -134,8 +133,8 @@ module NewRelic
         silence_stream(::STDOUT) do
          (max_q_length + 5).times do |n|
             notice_error(StandardError.new("exception #{n}"),
-                                          :metric => "path",
-                                          :custom_params => {:x => n})
+              :metric => "path",
+              :custom_params => {:x => n})
           end
         end
 

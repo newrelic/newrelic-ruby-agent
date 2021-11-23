@@ -49,8 +49,9 @@ module NewRelic::Agent::Threading
       assert_equal([
                    ["irb.rb", "catch", 69],
                    0, 0,
-                   []],
-                   node.as_array)
+                   []
+],
+        node.as_array)
     end
 
     def test_multiple_nodes_converts_to_array
@@ -69,7 +70,8 @@ module NewRelic::Agent::Threading
                        0, 0,
                        []
       ]
-      ]],
+      ]
+],
         node.as_array)
     end
 
@@ -81,8 +83,9 @@ module NewRelic::Agent::Threading
       assert_equal([
                    ["transaction_sample_buffer.rb", "visit_node", -1],
                    0, 0,
-                   []],
-                   node.as_array)
+                   []
+],
+        node.as_array)
     end
 
     def test_gracefully_handle_bad_values_in_to_array
@@ -94,8 +97,9 @@ module NewRelic::Agent::Threading
       assert_equal([
                    ["irb.rb", "catch", 0],
                    10, 0,
-                   []],
-                   node.as_array)
+                   []
+],
+        node.as_array)
     end
 
     def test_add_child_twice

@@ -142,9 +142,8 @@ module NewRelic
       end
 
       def variant_key_value headers, variants
-        (headers.detect{ |k, v| has_variant_key?(k, variants) } || NewRelic::EMPTY_ARRAY)[1]
+        (headers.detect { |k, v| has_variant_key?(k, variants) } || NewRelic::EMPTY_ARRAY)[1]
       end
-
     end
   end
 end

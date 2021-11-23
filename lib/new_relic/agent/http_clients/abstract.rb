@@ -15,7 +15,6 @@ module NewRelic
       #
       # @api public
       class AbstractRequest
-
         def []
           raise NotImplementedError, MUST_IMPLEMENT_ERROR % [self.class, __method__]
         end
@@ -45,7 +44,6 @@ module NewRelic
       # uniform access to the underlying HTTP Client's response object
       # NOTE: response_object should be non-nil!
       class AbstractResponse # :nodoc:
-
         def initialize(wrapped_response)
           if wrapped_response.nil?
             raise ArgumentError, WHINY_NIL_ERROR % self.class

@@ -4,7 +4,6 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 class NewRelic::MetricSpecTest < Minitest::Test
-
   def test_equal
     spec1 = NewRelic::MetricSpec.new('Controller')
     spec2 = NewRelic::MetricSpec.new('Controller', nil)

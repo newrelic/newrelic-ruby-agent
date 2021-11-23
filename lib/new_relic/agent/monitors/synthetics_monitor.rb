@@ -14,7 +14,7 @@ module NewRelic
         events.subscribe(:before_call, &method(:on_before_call))
       end
 
-      def on_before_call(request) #THREAD_LOCAL_ACCESS
+      def on_before_call(request) # THREAD_LOCAL_ACCESS
         encoded_header = request[SYNTHETICS_HEADER_KEY]
         return unless encoded_header
 
@@ -31,7 +31,6 @@ module NewRelic
       end
 
       class << self
-
         def is_supported_version?(incoming_payload)
           incoming_payload.first == SUPPORTED_VERSION
         end
@@ -48,9 +47,7 @@ module NewRelic
         def reject_messaging_synthetics_header headers
           headers.reject { |k, _| k == CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER }
         end
-
       end
-
     end
   end
 end

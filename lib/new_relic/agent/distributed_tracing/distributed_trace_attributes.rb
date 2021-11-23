@@ -77,7 +77,6 @@ module NewRelic
       def enabled?
         return Agent.config[:'distributed_tracing.enabled']
       end
-
     end
   end
 end

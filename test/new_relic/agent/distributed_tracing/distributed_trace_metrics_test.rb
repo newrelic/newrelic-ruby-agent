@@ -6,7 +6,6 @@ require File.expand_path '../../../../test_helper', __FILE__
 
 module NewRelic::Agent
   class DistributedTraceMetricsTest < Minitest::Test
-
     def setup
       nr_freeze_process_time
       @config = {
@@ -137,6 +136,5 @@ module NewRelic::Agent
         "ErrorsByCaller/Browser/212311/51424/HTTP/allWeb",
       ])
     end
-
   end
 end

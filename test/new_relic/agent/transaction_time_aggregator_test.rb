@@ -29,7 +29,6 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
   end
 
   def test_transaction_split_across_harvest
-
     # First transaction lies entirely within the harvest:
     # 1-11s
     advance_process_time(1)
@@ -90,7 +89,6 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
   end
 
   def test_metrics
-
     NewRelic::Agent::TransactionTimeAggregator.transaction_start
     advance_process_time(12)
     NewRelic::Agent::TransactionTimeAggregator.transaction_stop

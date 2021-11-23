@@ -133,7 +133,7 @@ module NewRelic
         assert_nil Tracer.current_transaction
 
         txn = Tracer.start_transaction(name: "Controller/Blogs/index",
-                                       category: :controller)
+          category: :controller)
 
         assert_equal txn, Tracer.current_transaction
 
@@ -146,7 +146,7 @@ module NewRelic
           refute_nil Tracer.current_transaction
 
           txn2 = Tracer.start_transaction(name: "Controller/Blogs/index",
-                                         category: :controller)
+            category: :controller)
 
           assert_equal txn2, txn1
           assert_equal txn2, Tracer.current_transaction
@@ -174,7 +174,7 @@ module NewRelic
             category: :middleware
           )
 
-          #todo: Implement current_segment on Tracer
+          # todo: Implement current_segment on Tracer
           assert_equal finishable, Tracer.current_transaction.current_segment
 
           finishable.finish
@@ -293,10 +293,10 @@ module NewRelic
 
         in_transaction 'test' do
           segment = Tracer.start_segment(
-           name: name,
-           unscoped_metrics: unscoped_metrics,
-           parent: parent,
-           start_time: start_time
+            name: name,
+            unscoped_metrics: unscoped_metrics,
+            parent: parent,
+            start_time: start_time
           )
 
           assert_equal segment, Tracer.current_segment

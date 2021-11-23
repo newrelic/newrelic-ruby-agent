@@ -52,7 +52,7 @@ module NewRelic
 
     def to_collector_array(encoder = nil)
       stat_key = {'name' => metric_spec.name, 'scope' => metric_spec.scope}
-      [ stat_key,
+      [stat_key,
         [
           int(stats.call_count, stat_key),
           float(stats.total_call_time, stat_key),
@@ -60,8 +60,7 @@ module NewRelic
           float(stats.min_call_time, stat_key),
           float(stats.max_call_time, stat_key),
           float(stats.sum_of_squares, stat_key)
-        ]
-      ]
+        ]]
     end
   end
 end

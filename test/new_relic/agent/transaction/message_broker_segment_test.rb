@@ -74,7 +74,7 @@ module NewRelic
             )
 
             assert_equal "MessageBroker/RabbitMQ/Exchange/Produce/Named/this_is_totally_a_symbol",
-                         segment.name
+              segment.name
           end
         end
 
@@ -118,8 +118,8 @@ module NewRelic
         def test_segment_adds_distributed_trace_headers_to_message_properties_for_produce
           NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
           with_config :"distributed_tracing.enabled" => true,
-                      :account_id => "190",
-                      :primary_application_id => "46954" do
+            :account_id => "190",
+            :primary_application_id => "46954" do
             transaction = in_transaction "test_txn" do |txn|
               segment = NewRelic::Agent::Tracer.start_message_broker_segment(
                 action: :produce,
@@ -141,17 +141,17 @@ module NewRelic
           t = Process.clock_gettime(Process::CLOCK_REALTIME)
 
           segment = MessageBrokerSegment.new action: :produce,
-                                             library: "RabbitMQ",
-                                             destination_type: :exchange,
-                                             destination_name: "Default",
-                                             start_time: t
+            library: "RabbitMQ",
+            destination_type: :exchange,
+            destination_name: "Default",
+            start_time: t
           assert_equal t, segment.start_time
 
           segment = NewRelic::Agent::Tracer.start_message_broker_segment action: :produce,
-                                                                              library: "RabbitMQ",
-                                                                              destination_type: :exchange,
-                                                                              destination_name: "Default",
-                                                                              start_time: t
+            library: "RabbitMQ",
+            destination_type: :exchange,
+            destination_name: "Default",
+            start_time: t
           assert_equal t, segment.start_time
         end
       end

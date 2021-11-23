@@ -20,7 +20,7 @@ module NewRelic
         end
 
         attr_reader :worker_loop, :buffer, :effective_polling_period,
-                    :overhead_percent_threshold
+          :overhead_percent_threshold
         attr_accessor :worker_thread, :profile_agent_code
 
         def initialize(event_listener = nil)

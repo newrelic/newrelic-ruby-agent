@@ -82,9 +82,9 @@ namespace :newrelic do
       name = NAME_OVERRIDES[key]
       return name if name
 
-      key.split("_").
-          each { |fragment| fragment[0] = fragment[0].upcase }.
-          join(" ")
+      key.split("_")
+          .each { |fragment| fragment[0] = fragment[0].upcase }
+          .join(" ")
     end
 
     def format_type(type)

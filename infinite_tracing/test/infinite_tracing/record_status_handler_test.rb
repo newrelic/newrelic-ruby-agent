@@ -7,7 +7,6 @@ require File.expand_path('../../test_helper', __FILE__)
 
 module NewRelic::Agent::InfiniteTracing
   class RecordStatusHandlerTest < Minitest::Test
-
     def process_queue handler, queue
       Thread.pass until queue.empty?
       handler.stop
@@ -23,7 +22,7 @@ module NewRelic::Agent::InfiniteTracing
     end
 
     def test_processes_multiple_items_and_stops
-      items = 5.times.map{ |i| RecordStatus.new(messages_seen: i + 1) }
+      items = 5.times.map { |i| RecordStatus.new(messages_seen: i + 1) }
       queue = EnumeratorQueue.new.preload(items)
 
       handler = build_handler queue
@@ -62,6 +61,5 @@ module NewRelic::Agent::InfiniteTracing
     def build_handler queue
       RecordStatusHandler.new TestClient.new, queue.each_item
     end
-
   end
 end

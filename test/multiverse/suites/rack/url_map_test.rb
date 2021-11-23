@@ -54,7 +54,8 @@ class UrlMapTest < Minitest::Test
 
       run Rack::URLMap.new(
         '/prefix1' => PrefixAppOne.new,
-        '/prefix2' => PrefixAppTwo.new)
+        '/prefix2' => PrefixAppTwo.new
+)
     end
   end
 
@@ -65,7 +66,8 @@ class UrlMapTest < Minitest::Test
 
       run Puma::Rack::URLMap.new(
         '/prefix1' => PrefixAppOne.new,
-        '/prefix2' => PrefixAppTwo.new)
+        '/prefix2' => PrefixAppTwo.new
+)
     end
   end
 
@@ -89,7 +91,6 @@ class UrlMapTest < Minitest::Test
         ['Nested/Controller/Rack/UrlMapTest::ExampleApp/call', 'Controller/Rack/UrlMapTest::ExampleApp/call'],
         [nested_controller_metric, 'Controller/Rack/UrlMapTest::ExampleApp/call']
       ], :ignore_filter => /^(Supportability|Logging)/)
-
     end
   end
 

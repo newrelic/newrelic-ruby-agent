@@ -105,7 +105,6 @@ module NewRelic
       def obfuscator
         CrossAppTracing.obfuscator
       end
-
     end
   end
 end

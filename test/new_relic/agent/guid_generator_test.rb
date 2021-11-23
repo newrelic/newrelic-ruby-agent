@@ -8,7 +8,6 @@ require 'new_relic/agent/guid_generator'
 module NewRelic
   module Agent
     class GuidGeneratorTest < Minitest::Test
-
       def test_generate_guid
         guid = NewRelic::Agent::GuidGenerator.generate_guid
         # the result should be exactly 16 hexadecimal characters

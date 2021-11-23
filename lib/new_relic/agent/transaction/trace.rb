@@ -12,7 +12,7 @@ module NewRelic
 
         attr_reader :start_time, :root_node
         attr_accessor :transaction_name, :guid, :attributes,
-                      :node_count, :finished, :threshold, :profile
+          :node_count, :finished, :threshold, :profile
 
         ROOT = "ROOT".freeze
 

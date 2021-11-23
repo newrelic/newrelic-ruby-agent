@@ -8,7 +8,6 @@ module NewRelic
   module Instrumentation
     module ActsAsSolrInstrumentation
       module ParserMethodsInstrumentation
-
           def parse_query_with_newrelic(*args)
             self.class.trace_execution_scoped(["SolrClient/ActsAsSolr/query"]) do
               begin

@@ -8,7 +8,6 @@ require 'new_relic/agent/hostname'
 module NewRelic
   module Agent
     module Logging
-
       # This class can be used as the formatter for an existing logger.  It
       # decorates log messages with trace and entity metadata, and formats each
       # log messages as a JSON object.
@@ -114,7 +113,6 @@ module NewRelic
       #
       # @api public
       class DecoratingLogger < (defined?(::ActiveSupport) && defined?(::ActiveSupport::Logger) ? ::ActiveSupport::Logger : ::Logger)
-
         alias :write :info
 
         # Positional and Keyword arguments are separated beginning with Ruby 2.7

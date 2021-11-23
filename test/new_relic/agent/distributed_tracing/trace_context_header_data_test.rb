@@ -9,7 +9,6 @@ module NewRelic
     module DistributedTracing
       class TraceContext
         class TraceContextHeaderDataTest < Minitest::Test
-
           def test_tracestate_built_from_array
             other_entries = ['one', 'two']
             header_data = HeaderData.new 'traceparent', 'tracestate_entry', other_entries, 0, ''

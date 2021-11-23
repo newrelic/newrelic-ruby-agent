@@ -27,7 +27,7 @@ if defined? Rake::TestTask
 
     Rake::TestTask.new(:newrelic) do |t|
       file_pattern = ENV["file"]
-      file_pattern = file_pattern.split(",").map{ |f| "#{agent_home}/#{f}".gsub("//", "/") } if file_pattern
+      file_pattern = file_pattern.split(",").map { |f| "#{agent_home}/#{f}".gsub("//", "/") } if file_pattern
       file_pattern ||= "#{agent_home}/test/new_relic/**/*_test.rb"
 
       t.libs << "#{agent_home}/test"

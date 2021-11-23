@@ -4,7 +4,6 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 class NewRelic::LocalEnvironmentTest < Minitest::Test
-
   def teardown
     NewRelic::Control.reset
   end
@@ -24,9 +23,9 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
   end
 
   def test_not_resque
-    combinations = [["notrake", "resque:work", {"QUEUE" => "*"} ],
-                    ["rake", "notresque:work", {"QUEUE" => "*"} ],
-                    ["rake", "resque:work", {"BBQ" => "*"} ]]
+    combinations = [["notrake", "resque:work", {"QUEUE" => "*"}],
+                    ["rake", "notresque:work", {"QUEUE" => "*"}],
+                    ["rake", "resque:work", {"BBQ" => "*"}]]
 
     combinations.each do |settings|
       with_resque(*settings) do

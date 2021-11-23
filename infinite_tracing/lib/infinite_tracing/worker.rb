@@ -9,7 +9,6 @@
 # where the main agent code lives.
 module NewRelic::Agent
   module InfiniteTracing
-
     class Worker
       attr_reader :name, :error
 
@@ -69,6 +68,5 @@ module NewRelic::Agent
         end
       end
     end
-
   end
 end

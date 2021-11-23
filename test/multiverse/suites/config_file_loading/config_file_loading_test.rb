@@ -165,7 +165,7 @@ test:
   foo: "success!!"
 boom:
   # <%= this is not ruby %>
-        YAML
+    YAML
 
     path = File.join(@cwd, 'config', 'newrelic.yml')
     setup_config(path, {}, config_contents)
@@ -195,7 +195,7 @@ boom:
 
     # pass an env key to NewRelic::Agent.manual_start which should cause it to
     # load that section of newrelic.yml
-    setup_config(path, {:env => 'bazbangbarn'} )
+    setup_config(path, {:env => 'bazbangbarn'})
     assert_equal 'bazbangbarn', NewRelic::Agent.config[:i_am], "Agent.config did not load bazbangbarn config as requested"
   end
 

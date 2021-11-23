@@ -26,7 +26,7 @@ module NewRelic
       class FnTestAggregator < EventAggregator
         named :RubeGoldbergTestAggregator
         capacity_key :cap_key
-        enabled_fn ->(){ Agent.config[:enabled_key] && enabled_for_test }
+        enabled_fn ->() { Agent.config[:enabled_key] && enabled_for_test }
 
         class << self
           attr_accessor :enabled_for_test

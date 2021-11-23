@@ -28,7 +28,7 @@ def default_service(stubbed_method_overrides = {})
   service
 end
 
-def fixture_tcp_socket( response )
+def fixture_tcp_socket(response)
   # Don't actually talk to Google.
   socket = stub("socket").tap do |s|
     s.stubs(:closed?).returns(false)

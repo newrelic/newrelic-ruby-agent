@@ -115,7 +115,8 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
                             "Datastore/MyFirstDatabase/allOther",
                             "Datastore/MyFirstDatabase/all",
                             "Datastore/allOther",
-                            "Datastore/all"])
+                            "Datastore/all"
+])
   end
 
   def test_wrap_calls_notice
@@ -211,7 +212,8 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
                             "Datastore/MyFirstDatabase/all#{type}",
                             "Datastore/MyFirstDatabase/all",
                             "Datastore/all#{type}",
-                            "Datastore/all"])
+                            "Datastore/all"
+])
   end
 
   def assert_metrics(operation, type)
@@ -221,6 +223,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
                             "Datastore/MyFirstDatabase/all#{type}",
                             "Datastore/MyFirstDatabase/all",
                             "Datastore/all#{type}",
-                            "Datastore/all"])
+                            "Datastore/all"
+])
   end
 end

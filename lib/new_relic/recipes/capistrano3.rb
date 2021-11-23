@@ -56,7 +56,6 @@ namespace :newrelic do
       deployment = NewRelic::Cli::Deployments.new deploy_options
       deployment.run
       info "Uploaded deployment information to New Relic"
-
     rescue NewRelic::Cli::Command::CommandFailure => e
       info e.message
     rescue => e

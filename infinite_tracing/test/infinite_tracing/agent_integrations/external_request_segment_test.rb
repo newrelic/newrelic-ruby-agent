@@ -73,8 +73,8 @@ module NewRelic
 
               segment = Transaction::ExternalRequestSegment.new \
                 "Typhoeus",
-                 "http://remotehost.com/blogs/index",
-                 "GET"
+                "http://remotehost.com/blogs/index",
+                "GET"
 
               txn.add_segment segment
               segment.start
@@ -93,8 +93,8 @@ module NewRelic
 
               segment = Transaction::ExternalRequestSegment.new \
                 "Typhoeus",
-                 "http://remotehost.com/blogs/index",
-                 "GET"
+                "http://remotehost.com/blogs/index",
+                "GET"
 
               txn.add_segment segment
               segment.start

@@ -142,7 +142,6 @@ begin
       end
     end
   end
-
 rescue LoadError => error
   nil
 end

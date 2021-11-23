@@ -115,7 +115,6 @@ if defined?(Dalli)
     DependencyDetection.detect!
 
     class DalliCasClientTest < DalliTest
-
       def after_setup
         super
         @cas_key = set_key_for_testcase(1)
@@ -179,7 +178,6 @@ if defined?(Dalli)
         assert_memcache_metrics_recorded expected_metrics
         assert_nil @cache.get(@cas_key)
       end
-
     end
   end
 end

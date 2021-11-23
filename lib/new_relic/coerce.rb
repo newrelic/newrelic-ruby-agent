@@ -5,7 +5,6 @@
 
 module NewRelic
   module Coerce
-
     module_function
 
     # We really don't want to send bad values to the collector, and it doesn't

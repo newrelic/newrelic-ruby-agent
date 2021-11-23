@@ -12,9 +12,9 @@ class NewRelic::NoticedError
   extend NewRelic::CollectionHelper
 
   attr_accessor :path, :timestamp, :message, :exception_class_name,
-                :request_uri, :request_port, :file_name, :line_number,
-                :stack_trace, :attributes_from_notice_error, :attributes,
-                :expected
+    :request_uri, :request_port, :file_name, :line_number,
+    :stack_trace, :attributes_from_notice_error, :attributes,
+    :expected
 
   attr_reader :exception_id, :is_internal
 
@@ -78,11 +78,11 @@ class NewRelic::NoticedError
   include NewRelic::Coerce
 
   def to_collector_array(encoder = nil)
-    [ NewRelic::Helper.time_to_millis(timestamp),
+    [NewRelic::Helper.time_to_millis(timestamp),
       string(path),
       string(message),
       string(exception_class_name),
-      processed_attributes ]
+      processed_attributes]
   end
 
   # Note that we process attributes lazily and store the result. This is because
@@ -200,5 +200,4 @@ class NewRelic::NoticedError
       @message = exception.to_s
     end
   end
-
 end

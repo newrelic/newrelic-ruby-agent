@@ -340,5 +340,4 @@ module MemcacheTestCases
       assert_equal "get \"#{key}\"", segment[:statement]
     end
   end
-
 end

@@ -207,9 +207,9 @@ module NewRelic
         end
 
         def apply_mask(hash)
-          MASK_DEFAULTS. \
-            select { |_, proc| proc.call }. \
-            each { |key, _| hash.delete(key) }
+          MASK_DEFAULTS \
+            .select { |_, proc| proc.call } \
+            .each { |key, _| hash.delete(key) }
           hash
         end
 

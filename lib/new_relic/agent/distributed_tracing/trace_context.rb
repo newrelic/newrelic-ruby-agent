@@ -87,10 +87,10 @@ module NewRelic
                                   parent_id: nil,
                                   trace_flags: nil
             sprintf TRACE_PARENT_FORMAT_STRING,
-                    VERSION,
-                    trace_id,
-                    parent_id,
-                    trace_flags
+              VERSION,
+              trace_id,
+              parent_id,
+              trace_flags
           end
 
           def extract_traceparent format, carrier
@@ -158,9 +158,9 @@ module NewRelic
             trace_state_vendors.chomp! COMMA
 
             HeaderData.create trace_state_payload: payload ? decode_payload(payload) : nil,
-                        trace_state_entries: trace_state,
-                        trace_state_size: trace_state_size,
-                        trace_state_vendors: trace_state_vendors
+              trace_state_entries: trace_state,
+              trace_state_size: trace_state_size,
+              trace_state_vendors: trace_state_vendors
           end
 
           def decode_payload payload
@@ -181,10 +181,10 @@ module NewRelic
                        trace_state_size: 0,
                        trace_state_vendors: nil
               new trace_parent, \
-                  trace_state_payload, \
-                  trace_state_entries, \
-                  trace_state_size, \
-                  trace_state_vendors
+                trace_state_payload, \
+                trace_state_entries, \
+                trace_state_size, \
+                trace_state_vendors
             end
           end
 
@@ -237,9 +237,7 @@ module NewRelic
 
             joined_trace_state
           end
-
         end
-
       end
     end
   end

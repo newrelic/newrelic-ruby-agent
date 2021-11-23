@@ -9,7 +9,6 @@ module NewRelic
   module Agent
     module InfiniteTracing
       class ChannelTest < Minitest::Test
-
         def local_config
           {
             :'distributed_tracing.enabled' => true,
@@ -46,7 +45,6 @@ module NewRelic
             assert_equal "example.com:443", channel.send(:host_and_port)
             assert_kind_of GRPC::Core::ChannelCredentials, credentials
           end
-
         ensure
           Config.unstub(:test_framework?)
         end
@@ -65,11 +63,9 @@ module NewRelic
             assert_equal "example.com:443", channel.send(:host_and_port)
             assert_kind_of GRPC::Core::ChannelCredentials, credentials
           end
-
         ensure
           Config.unstub(:test_framework?)
         end
-
       end
     end
   end

@@ -18,8 +18,6 @@
 module NewRelic::Agent
   module InfiniteTracing
     class Connection
-
-
       # listens for server side configurations added to the agent.  When a new config is
       # added, we have a new agent run token and need to restart the client's RPC stream
       # with the new metadata information.
@@ -34,7 +32,6 @@ module NewRelic::Agent
       end
 
       class << self
-
         def instance
           @@instance ||= new
         end
@@ -177,7 +174,6 @@ module NewRelic::Agent
       def note_connect_failure
         @connection_attempts += 1
       end
-
     end
   end
 end

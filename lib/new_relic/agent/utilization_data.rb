@@ -7,7 +7,6 @@ require 'new_relic/agent/utilization/gcp'
 require 'new_relic/agent/utilization/azure'
 require 'new_relic/agent/utilization/pcf'
 
-
 module NewRelic
   module Agent
     class UtilizationData

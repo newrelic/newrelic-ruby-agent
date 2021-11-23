@@ -6,7 +6,6 @@ require File.expand_path '../../../../test_helper', __FILE__
 require 'new_relic/agent/instrumentation/sinatra'
 
 class NewRelic::Agent::Instrumentation::SinatraTest < Minitest::Test
-
   # This fake app is not an actual Sinatra app to avoid having our unit tests
   # take a dependency directly on it. If you need actual Sinatra classes, go
   # write the test in the multiver suite.

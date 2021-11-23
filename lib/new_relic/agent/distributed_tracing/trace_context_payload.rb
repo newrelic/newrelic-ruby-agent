@@ -29,7 +29,7 @@ module NewRelic
                    timestamp: now_ms
 
           new version, parent_type, parent_account_id, parent_app_id, id,
-              transaction_id, sampled, priority, timestamp
+            transaction_id, sampled, priority, timestamp
         end
 
         include NewRelic::Coerce
@@ -71,14 +71,14 @@ module NewRelic
       end
 
       attr_accessor :version,
-                    :parent_type_id,
-                    :parent_account_id,
-                    :parent_app_id,
-                    :id,
-                    :transaction_id,
-                    :sampled,
-                    :priority,
-                    :timestamp
+        :parent_type_id,
+        :parent_account_id,
+        :parent_app_id,
+        :id,
+        :transaction_id,
+        :sampled,
+        :priority,
+        :timestamp
 
       alias_method :sampled?, :sampled
 

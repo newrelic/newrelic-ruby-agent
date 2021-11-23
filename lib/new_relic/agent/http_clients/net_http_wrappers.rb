@@ -10,7 +10,6 @@ module NewRelic
   module Agent
     module HTTPClients
       class NetHTTPResponse < AbstractResponse
-
         def [](key)
           @wrapped_response[key]
         end

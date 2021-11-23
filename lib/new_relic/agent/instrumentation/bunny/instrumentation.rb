@@ -74,11 +74,11 @@ module NewRelic
 
             begin
               exch_name, exch_type = if delivery_info
-                [ exchange_name(delivery_info.exchange),
-                  exchange_type(delivery_info, channel) ]
+                [exchange_name(delivery_info.exchange),
+                  exchange_type(delivery_info, channel)]
               else
-                [ exchange_name(NewRelic::EMPTY_STR),
-                  exchange_type({}, channel) ]
+                [exchange_name(NewRelic::EMPTY_STR),
+                  exchange_type({}, channel)]
               end
 
               segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
@@ -139,11 +139,11 @@ module NewRelic
               delivery_info: delivery_info,
               message_properties: message_properties,
               exchange_type: exchange_type(delivery_info, channel),
-              queue_name: queue_name) do
+              queue_name: queue_name
+) do
               yield
             end
           end
-
         end
       end
     end

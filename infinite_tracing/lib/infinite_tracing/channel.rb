@@ -6,7 +6,6 @@
 module NewRelic::Agent
   module InfiniteTracing
     class Channel
-
       def stub
         NewRelic::Agent.logger.debug "Infinite Tracer Opening Channel to #{host_and_port}"
 
@@ -39,7 +38,6 @@ module NewRelic::Agent
           'grpc.enable_deadline_checking' => 0,
         }
       end
-
     end
   end
 end

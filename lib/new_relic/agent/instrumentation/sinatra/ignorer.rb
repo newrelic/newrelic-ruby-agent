@@ -5,7 +5,6 @@
 module NewRelic::Agent::Instrumentation
   module Sinatra
     module Ignorer
-
       def self.should_ignore?(app, type)
         return false if !app.settings.respond_to?(:newrelic_ignores)
 

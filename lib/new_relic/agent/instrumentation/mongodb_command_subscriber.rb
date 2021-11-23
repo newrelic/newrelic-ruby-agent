@@ -23,7 +23,7 @@ module NewRelic
 
         def error_key_present?(event)
           if reply = event.reply
-            ERROR_KEYS.detect{ |key| reply[key] }
+            ERROR_KEYS.detect { |key| reply[key] }
           end
         rescue
           false

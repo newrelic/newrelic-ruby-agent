@@ -127,7 +127,6 @@ module NewRelic
           [$1, $4, $3] # sic
         end
       end
-
     end
   end
 end

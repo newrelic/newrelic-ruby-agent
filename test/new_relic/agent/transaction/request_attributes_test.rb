@@ -9,7 +9,6 @@ module NewRelic
   module Agent
     class Transaction
       class RequestAttributesTest < Minitest::Test
-
         def test_tolerates_request_without_desired_methods
           request = stub 'request'
           attrs = RequestAttributes.new request

@@ -7,7 +7,6 @@ module NewRelic
     # Contains methods that relate to adding and executing files that
     # contain instrumentation for the Ruby Agent
     module Instrumentation
-
       # Adds a list of files in Dir.glob format
       # (e.g. '/app/foo/**/*_instrumentation.rb')
       # This requires the files within a rescue block, so that any

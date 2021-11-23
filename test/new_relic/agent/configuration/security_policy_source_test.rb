@@ -14,9 +14,9 @@ module NewRelic
           policies = generate_security_policies(default: false, enabled: ['record_sql'])
 
           with_config :'transaction_tracer.record_sql' => 'raw',
-                      :'slow_sql.record_sql'           => 'raw',
-                      :'mongo.capture_queries'         => true,
-                      :'mongo.obfuscate_queries'       => false do
+            :'slow_sql.record_sql'           => 'raw',
+            :'mongo.capture_queries'         => true,
+            :'mongo.obfuscate_queries'       => false do
             source = SecurityPolicySource.new(policies)
 
             assert_equal 'obfuscated', source[:'transaction_tracer.record_sql']
@@ -29,8 +29,8 @@ module NewRelic
           policies = generate_security_policies(default: true, disabled: ['record_sql'])
 
           with_config :'transaction_tracer.record_sql' => 'raw',
-                      :'slow_sql.record_sql'           => 'raw',
-                      :'mongo.capture_queries'         => true do
+            :'slow_sql.record_sql'           => 'raw',
+            :'mongo.capture_queries'         => true do
             source = SecurityPolicySource.new(policies)
 
             assert_equal 'off', source[:'transaction_tracer.record_sql']
@@ -42,12 +42,12 @@ module NewRelic
         def test_attributes_include_enabled
           policies = generate_security_policies(default: false, enabled: ['attributes_include'])
           with_config :'attributes.include'                        => ['request.parameters.*'],
-                      :'transaction_tracer.attributes.include'     => ['request.uri'],
-                      :'transaction_events.attributes.include'     => ['request.headers.*'],
-                      :'error_collector.attributes.include'        => ['request.method'],
-                      :'browser_monitoring.attributes.include'     => ['http.statusCode'],
-                      :'span_events.attributes.include'            => ['http.url'],
-                      :'transaction_segments.attributes.include'   => ['sql_statement'] do
+            :'transaction_tracer.attributes.include'     => ['request.uri'],
+            :'transaction_events.attributes.include'     => ['request.headers.*'],
+            :'error_collector.attributes.include'        => ['request.method'],
+            :'browser_monitoring.attributes.include'     => ['http.statusCode'],
+            :'span_events.attributes.include'            => ['http.url'],
+            :'transaction_segments.attributes.include'   => ['sql_statement'] do
             source = SecurityPolicySource.new(policies)
 
             refute_includes source.keys, :'attributes.include'
@@ -63,12 +63,12 @@ module NewRelic
         def test_attributes_include_disabled
           policies = generate_security_policies(default: true, disabled: ['attributes_include'])
           with_config :'attributes.include'                        => ['request.parameters.*'],
-                      :'transaction_tracer.attributes.include'     => ['request.uri'],
-                      :'transaction_events.attributes.include'     => ['request.headers.*'],
-                      :'error_collector.attributes.include'        => ['request.method'],
-                      :'browser_monitoring.attributes.include'     => ['http.statusCode'],
-                      :'span_events.attributes.include'            => ['http.url'],
-                      :'transaction_segments.attributes.include'   => ['sql_statement'] do
+            :'transaction_tracer.attributes.include'     => ['request.uri'],
+            :'transaction_events.attributes.include'     => ['request.headers.*'],
+            :'error_collector.attributes.include'        => ['request.method'],
+            :'browser_monitoring.attributes.include'     => ['http.statusCode'],
+            :'span_events.attributes.include'            => ['http.url'],
+            :'transaction_segments.attributes.include'   => ['sql_statement'] do
             source = SecurityPolicySource.new(policies)
 
             assert_equal [], source[:'attributes.include']
@@ -152,7 +152,7 @@ module NewRelic
         def test_job_arguments_enabled
           policies = generate_security_policies(default: false, enabled: ['job_arguments'])
           with_config :'resque.capture_params'  => true,
-                      :'sidekiq.capture_params' => true do
+            :'sidekiq.capture_params' => true do
             source = SecurityPolicySource.new(policies)
 
             refute_includes source.keys, :'resque.capture_params'
@@ -163,7 +163,7 @@ module NewRelic
         def test_job_arguments_disabled
           policies = generate_security_policies(default: true, disabled: ['job_arguments'])
           with_config :'resque.capture_params'  => true,
-                      :'sidekiq.capture_params' => true do
+            :'sidekiq.capture_params' => true do
             source = SecurityPolicySource.new(policies)
 
             assert_equal false, source[:'resque.capture_params']

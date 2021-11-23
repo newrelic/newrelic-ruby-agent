@@ -7,7 +7,6 @@ require 'new_relic/version'
 require 'erb'
 
 class NewRelic::Cli::Install < NewRelic::Cli::Command
-
   NO_LICENSE_KEY = "<PASTE LICENSE KEY HERE>"
 
   def self.command; "install"; end
@@ -60,7 +59,6 @@ you receive upon registration.
 
 Visit support.newrelic.com if you are experiencing installation issues.
     EOF
-
   end
 
   def content
@@ -75,12 +73,10 @@ Visit support.newrelic.com if you are experiencing installation issues.
     OptionParser.new "Usage: #{$0} #{self.class.command} [ OPTIONS] 'application name'", 40 do |o|
       o.on("-f", "--force", "Overwrite newrelic.yml if it exists") { |e| @force = true }
       o.on("-l", "--license_key=NAME", String,
-             "Use the given license key") { |e| @license_key = e }
+        "Use the given license key") { |e| @license_key = e }
       o.on("-d", "--destdir=name", String,
-               "Write the newrelic.yml to the given directory, default is '.'") { |e| @dest_dir = e }
+        "Write the newrelic.yml to the given directory, default is '.'") { |e| @dest_dir = e }
       yield o if block_given?
     end
   end
-
-
 end

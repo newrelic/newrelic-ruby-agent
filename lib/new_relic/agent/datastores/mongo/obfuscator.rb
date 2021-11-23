@@ -7,7 +7,6 @@ module NewRelic
     module Datastores
       module Mongo
         module Obfuscator
-
           ALLOWLIST = [:operation].freeze
 
           def self.obfuscate_statement(source, allowlist = ALLOWLIST)

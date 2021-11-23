@@ -11,9 +11,7 @@ require 'new_relic/agent/threading/backtrace_node'
 module NewRelic
   module Agent
     module Threading
-
       class ThreadProfile
-
         attr_reader :profile_id, :traces, :sample_period,
           :duration, :poll_count, :backtrace_count, :failure_count,
           :created_at, :command_arguments, :profile_agent_code
@@ -69,11 +67,11 @@ module NewRelic
           end
         end
 
-        def convert_N_trace_nodes_to_arrays(count_to_keep) #THREAD_LOCAL_ACCESS
+        def convert_N_trace_nodes_to_arrays(count_to_keep) # THREAD_LOCAL_ACCESS
           all_nodes = @traces.values.map { |n| n.flattened }.flatten
 
-          NewRelic::Agent.instance.stats_engine.
-            tl_record_supportability_metric_count("ThreadProfiler/NodeCount", all_nodes.size)
+          NewRelic::Agent.instance.stats_engine
+            .tl_record_supportability_metric_count("ThreadProfiler/NodeCount", all_nodes.size)
 
           all_nodes.sort! do |a, b|
             # we primarily prefer higher runnable_count
@@ -128,7 +126,6 @@ module NewRelic
             "@profile_id: #{profile_id} "\
             "@command_arguments=#{@command_arguments.inspect}>"
         end
-
       end
     end
   end

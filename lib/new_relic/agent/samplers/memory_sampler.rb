@@ -7,7 +7,6 @@ require 'new_relic/agent/sampler'
 module NewRelic
   module Agent
     module Samplers
-
       class MemorySampler < NewRelic::Agent::Sampler
         named :memory
 

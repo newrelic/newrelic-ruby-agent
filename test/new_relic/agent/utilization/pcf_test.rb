@@ -21,8 +21,8 @@ module NewRelic
 
         def test_generate_expected_vendors_hash_when_expected_env_vars_present
           with_pcf_env "CF_INSTANCE_GUID" => "fd326c0e-847e-47a1-65cc-45f6",
-                       "CF_INSTANCE_IP" => "10.10.149.48",
-                       "MEMORY_LIMIT"   => "1024m" do
+            "CF_INSTANCE_IP" => "10.10.149.48",
+            "MEMORY_LIMIT"   => "1024m" do
             expected = {
               :cf_instance_guid => "fd326c0e-847e-47a1-65cc-45f6",
               :cf_instance_ip => "10.10.149.48",
@@ -36,15 +36,15 @@ module NewRelic
 
         def test_fails_when_expected_value_has_invalid_chars
           with_pcf_env "CF_INSTANCE_GUID" => "**fd326c0e-847e-47a1-65cc-45f6**",
-                       "CF_INSTANCE_IP" => "10.10.149.48",
-                       "MEMORY_LIMIT"   => "1024m" do
+            "CF_INSTANCE_IP" => "10.10.149.48",
+            "MEMORY_LIMIT"   => "1024m" do
             refute @vendor.detect
           end
         end
 
         def test_fails_when_required_value_is_missing
           with_pcf_env "CF_INSTANCE_GUID" => "fd326c0e-847e-47a1-65cc-45f6",
-                       "CF_INSTANCE_IP" => "10.10.149.48" do
+            "CF_INSTANCE_IP" => "10.10.149.48" do
             refute @vendor.detect
           end
         end

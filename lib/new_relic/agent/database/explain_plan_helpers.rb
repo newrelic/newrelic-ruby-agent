@@ -9,7 +9,6 @@ module NewRelic
   module Agent
     module Database
       module ExplainPlanHelpers
-
         SUPPORTED_ADAPTERS_FOR_EXPLAIN = [:postgres, :mysql2, :mysql, :sqlite]
         SELECT = 'select'.freeze
 

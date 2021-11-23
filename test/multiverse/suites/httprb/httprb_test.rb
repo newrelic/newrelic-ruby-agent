@@ -86,5 +86,4 @@ class HTTPTest < Minitest::Test
     HTTP::Connection.any_instance.stubs(:send_proxy_connect_request).raises(timeout_error_class.new)
     get_response
   end
-
 end

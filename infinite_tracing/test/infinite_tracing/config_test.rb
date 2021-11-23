@@ -110,7 +110,6 @@ module NewRelic
         def non_test_files
           all_rb_files.reject { |filename| filename.include? 'test.rb' }
         end
-
       end
     end
   end

@@ -5,7 +5,6 @@
 require 'fileutils'
 
 module Multiverse
-
   # <ruby_agent>/test/multiverse
   #
   ROOT = File.expand_path '../..', __FILE__
@@ -22,7 +21,6 @@ module Multiverse
   # suites dir from env var, default to <ruby_agent>/test/multiverse/suites
   #
   SUITES_DIRECTORY = ENV['SUITES_DIRECTORY'] || File.expand_path('suites', ROOT)
-
 end
 
 require 'multiverse/bundler_patch'

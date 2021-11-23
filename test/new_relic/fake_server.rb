@@ -12,7 +12,6 @@ require 'json'
 
 module NewRelic
   class FakeServer
-
     # Use ephemeral ports by default
     DEFAULT_PORT = 0
 
@@ -69,7 +68,7 @@ module NewRelic
       @server = WEBrick::HTTPServer.new(@started_options)
       @server.mount "/", ::Rack::Handler.get(:webrick), app
 
-      @thread = Thread.new(&self.method(:run_server)).tap{ |t| t.abort_on_exception = true }
+      @thread = Thread.new(&self.method(:run_server)).tap { |t| t.abort_on_exception = true }
     end
 
     def stop
@@ -115,7 +114,7 @@ module NewRelic
 
     def app
       inner_app = NewRelic::Rack::AgentHooks.new(self)
-      Proc.new{ |env| inner_app.call(env) }
+      Proc.new { |env| inner_app.call(env) }
     end
   end
 
@@ -130,7 +129,7 @@ module NewRelic
 
     def app
       inner_app = NewRelic::Rack::AgentHooks.new(self)
-      Proc.new{ |env| inner_app.call(env) }
+      Proc.new { |env| inner_app.call(env) }
     end
   end
 end

@@ -86,9 +86,9 @@ if !defined?(MyApp)
 
   MyApp.routes.draw do
     get('/bad_route' => 'test#controller_error',
-        :constraints => lambda do |_|
-          raise ActionController::RoutingError.new('this is an uncaught routing error')
-        end)
+      :constraints => lambda do |_|
+        raise ActionController::RoutingError.new('this is an uncaught routing error')
+      end)
 
     mount SinatraTestApp, :at => '/sinatra_app' if defined?(Sinatra)
 

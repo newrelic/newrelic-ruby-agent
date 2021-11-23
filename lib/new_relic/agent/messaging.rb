@@ -309,14 +309,14 @@ module NewRelic
                                         &block
 
         wrap_message_broker_consume_transaction library: library,
-                                                destination_type: :exchange,
-                                                destination_name: Instrumentation::Bunny.exchange_name(destination_name),
-                                                routing_key: delivery_info[:routing_key],
-                                                reply_to: message_properties[:reply_to],
-                                                queue_name: queue_name,
-                                                exchange_type: exchange_type,
-                                                headers: message_properties[:headers],
-                                                correlation_id: message_properties[:correlation_id],
+          destination_type: :exchange,
+          destination_name: Instrumentation::Bunny.exchange_name(destination_name),
+          routing_key: delivery_info[:routing_key],
+          reply_to: message_properties[:reply_to],
+          queue_name: queue_name,
+          exchange_type: exchange_type,
+          headers: message_properties[:headers],
+          correlation_id: message_properties[:correlation_id],
                                                 &block
       end
 
@@ -352,7 +352,6 @@ module NewRelic
 
         transaction_name
       end
-
     end
   end
 end

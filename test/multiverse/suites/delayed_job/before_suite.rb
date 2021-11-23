@@ -14,7 +14,6 @@ begin
   if ActiveRecord::VERSION::STRING >= '5.0.0'
     migration_version = "[#{ActiveRecord::VERSION::MAJOR}.#{ActiveRecord::VERSION::MINOR}]"
   end
-
 rescue LoadError
   # Let it fail, might be working with another library
 end
@@ -24,8 +23,7 @@ Delayed::Worker.guess_backend
 
 if Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
   $db_connection = ActiveRecord::Base.establish_connection(:adapter  => "sqlite3",
-                                                           :database => ":memory:")
-
+    :database => ":memory:")
 
   # Evaluate the delayed_job_active_record ERB template for database migration
   # This handles the case where ActiveRecord versions greater than or equal to 5.0

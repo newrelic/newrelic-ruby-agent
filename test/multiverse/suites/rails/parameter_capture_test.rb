@@ -210,7 +210,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
   def test_parameters_attached_to_transaction_events_if_enabled
     with_config(:'attributes.include' => 'request.parameters.*',
-                :'attributes.exclude' => ['request.*', 'response.*']) do
+      :'attributes.exclude' => ['request.*', 'response.*']) do
       get '/parameter_capture/transaction?param1=value1&param2=value2'
     end
 
@@ -339,5 +339,4 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
       end
     end
   end
-
 end

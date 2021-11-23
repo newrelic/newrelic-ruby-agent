@@ -62,7 +62,7 @@ class ViewsController < ApplicationController
   end
 
   def collection_render
-    render((1..3).map{ |x| Foo.new })
+    render((1..3).map { |x| Foo.new })
   end
 
   # proc rendering isn't available in rails 3 but you can do nonsense like this
@@ -186,7 +186,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       assert find_node_with_name(sample, "View/foos/_foo.html.haml/Partial")
     end
 
-    [:js_render, :xml_render, :proc_render, :json_render ].each do |action|
+    [:js_render, :xml_render, :proc_render, :json_render].each do |action|
       define_method("test_should_not_instrument_rendering_of_#{action}") do
         get "/views/#{action}"
         sample = last_transaction_trace
@@ -222,10 +222,10 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       partial_metric = 'View/views/_a_partial.html.erb/Partial'
 
       assert_metrics_recorded(
-         partial_metric => expected_stats_partial,
-         template_metric => expected_stats_template,
-         [partial_metric, scope] => expected_stats_partial,
-         [template_metric, scope] => expected_stats_template
+        partial_metric => expected_stats_partial,
+        template_metric => expected_stats_template,
+        [partial_metric, scope] => expected_stats_partial,
+        [template_metric, scope] => expected_stats_template
       )
     end
   end

@@ -4,7 +4,6 @@
 
 class SegmentTermsRuleTests < Performance::TestCase
   def setup
-
   end
 
   def test_segment_terms_rule_matches?

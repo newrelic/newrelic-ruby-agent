@@ -104,7 +104,6 @@ module NewRelic
             @target.class
           end
         end
-
       end
     end
   end

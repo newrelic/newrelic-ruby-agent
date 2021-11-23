@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..',
-                                   'test_helper'))
+  'test_helper'))
 require 'new_relic/agent/database'
 class NewRelic::Agent::DatabaseTest < Minitest::Test
   def teardown
@@ -81,8 +81,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     expected_result = [['QUERY PLAN'],
                        [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
                         ["   Index Cond: ?"],
-                        ["   Filter: ?"]
-                      ]]
+                        ["   Filter: ?"]]]
 
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
       result = NewRelic::Agent::Database.explain_sql(statement)
@@ -144,7 +143,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     sql = 'SELECT foo'
 
     plan_fields = ["select_type", "key_len", "table", "id", "possible_keys", "type", "Extra", "rows", "ref", "key"]
-    plan_row = ["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil ]
+    plan_row = ["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil]
     explainer_result = mock('explain plan')
     explainer_result.expects(:fields).returns(plan_fields)
     explainer_result.expects(:each).yields(plan_row)
@@ -174,8 +173,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     expected_result = [['QUERY PLAN'],
                        [["Limit  (cost=11.75..11.76 rows=1 width=4)"],
                         ["  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"],
-                        ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]
-                       ]]
+                        ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]]]
 
     assert_equal expected_result, result
   end
@@ -194,8 +192,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     expected_result = [['QUERY PLAN'],
                        [["Limit  (cost=11.75..11.76 rows=1 width=4)"],
                         ["  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"],
-                        ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]
-                       ]]
+                        ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]]]
 
     assert_equal expected_result, result
   end
@@ -213,8 +210,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     expected_result = [['QUERY PLAN'],
                        [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
                         ["   Index Cond: ?"],
-                        ["   Filter: ?"]
-                      ]]
+                        ["   Filter: ?"]]]
 
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
       result = NewRelic::Agent::Database.explain_sql(statement)
@@ -235,8 +231,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     expected_result = [['QUERY PLAN'],
                        [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
                         ["   Index Cond: (id = 1234)"],
-                        ["   Filter: ((title)::text = 'sensitive text'::text)"]
-                      ]]
+                        ["   Filter: ((title)::text = 'sensitive text'::text)"]]]
 
     with_config(:'transaction_tracer.record_sql' => 'raw') do
       result = NewRelic::Agent::Database.explain_sql(statement)
@@ -332,7 +327,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
 
     assert_equal([['QUERY PLAN'], [["Some Jazz"]]],
-                 NewRelic::Agent::Database.explain_sql(statement))
+      NewRelic::Agent::Database.explain_sql(statement))
   end
 
   def test_do_collect_explain_for_parameterized_query_with_binds
@@ -345,7 +340,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer, binds)
 
     assert_equal([['QUERY PLAN'], [["Some Jazz"]]],
-                 NewRelic::Agent::Database.explain_sql(statement))
+      NewRelic::Agent::Database.explain_sql(statement))
   end
 
   def test_dont_collect_explain_if_adapter_not_recognized
@@ -392,7 +387,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
   def test_obfuscation_of_truncated_query
     insert = "INSERT INTO data (blah) VALUES ('abcdefg..."
     assert_equal("Query too large (over 16k characters) to safely obfuscate",
-                 NewRelic::Agent::Database.obfuscate_sql(insert))
+      NewRelic::Agent::Database.obfuscate_sql(insert))
   end
 
   def test_sql_obfuscation_filters
@@ -499,7 +494,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     sql = "select * from #{table_name}"
     statement = NewRelic::Agent::Database::Statement.new sql, {:adapter => :mysql}
 
-    #grow the statement larger than the 16384 character limit
+    # grow the statement larger than the 16384 character limit
     16.times { statement.append_sql sql }
 
     assert_equal NewRelic::Agent::Database::MAX_QUERY_LENGTH, statement.sql.size

@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class AgentAttributesTest < Minitest::Test
-
   include MultiverseHelpers
 
   setup_and_teardown_agent

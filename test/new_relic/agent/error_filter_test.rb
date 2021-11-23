@@ -13,7 +13,6 @@ class TestExceptionC < StandardError; end
 module NewRelic::Agent
   class ErrorFilter
     class ErrorFilterTest < Minitest::Test
-
       def setup
         @error_filter = NewRelic::Agent::ErrorFilter.new
       end

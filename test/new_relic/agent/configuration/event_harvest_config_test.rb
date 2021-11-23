@@ -7,7 +7,6 @@ require 'new_relic/agent/configuration/event_harvest_config'
 
 module NewRelic::Agent::Configuration
   class EventHarvestConfigTest < Minitest::Test
-
     def test_from_config
       config = NewRelic::Agent::Configuration::Manager.new
       config.add_config_for_testing(:'analytics_events.max_samples_stored' => 1000)
@@ -81,6 +80,5 @@ module NewRelic::Agent::Configuration
       }
       assert_equal expected, EventHarvestConfig.to_config_hash(connect_reply)
     end
-
   end
 end

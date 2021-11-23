@@ -176,7 +176,7 @@ class GrapeTest < Minitest::Test
 
     def test_params_are_captured_on_transaction_events
       with_config(:'attributes.include' => 'request.parameters.*',
-                  :'attributes.exclude' => ['request.*', 'response.*']) do
+        :'attributes.exclude' => ['request.*', 'response.*']) do
         json = {
           :foo => "bar",
           :bar => "baz"

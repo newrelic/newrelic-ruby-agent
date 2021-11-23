@@ -12,7 +12,6 @@ module NewRelic
   module Agent
     module DistributedTracing
       class CrossAppMonitor < InboundRequestMonitor
-
         NEWRELIC_ID_HEADER = 'X-NewRelic-ID'.freeze
         NEWRELIC_TXN_HEADER = 'X-NewRelic-Transaction'.freeze
         NEWRELIC_APPDATA_HEADER = 'X-NewRelic-App-Data'.freeze
@@ -45,10 +44,10 @@ module NewRelic
         #   :before_call will save our cross application request id to the thread
         #   :after_call will write our response headers/metrics and clean up the thread
         def register_event_listeners(events)
-          NewRelic::Agent.logger.
-            debug("Wiring up Cross Application Tracing to events after finished configuring")
+          NewRelic::Agent.logger
+            .debug("Wiring up Cross Application Tracing to events after finished configuring")
 
-          events.subscribe(:before_call) do |env| #THREAD_LOCAL_ACCESS
+          events.subscribe(:before_call) do |env| # THREAD_LOCAL_ACCESS
             if id = decoded_id(env) and should_process_request?(id)
               state = NewRelic::Agent::Tracer.state
 
@@ -63,7 +62,7 @@ module NewRelic
             end
           end
 
-          events.subscribe(:after_call) do |env, (_status_code, headers, _body)| #THREAD_LOCAL_ACCESS
+          events.subscribe(:after_call) do |env, (_status_code, headers, _body)| # THREAD_LOCAL_ACCESS
             state = NewRelic::Agent::Tracer.state
 
             insert_response_header(state, env, headers)
@@ -92,7 +91,9 @@ module NewRelic
         def set_response_headers(transaction, response_headers, content_length)
           payload = obfuscator.obfuscate(
             ::JSON.dump(
-              transaction.distributed_tracer.cross_app_payload.as_json_array(content_length)))
+              transaction.distributed_tracer.cross_app_payload.as_json_array(content_length)
+)
+)
 
           response_headers[NEWRELIC_APPDATA_HEADER] = payload
         end

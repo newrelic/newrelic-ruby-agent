@@ -70,7 +70,6 @@ module NewRelic
               end
             end
 
-
             alias_method :calculate_without_newrelic, :calculate
 
             def calculate(*args, &blk)
@@ -78,7 +77,6 @@ module NewRelic
                 calculate_without_newrelic(*args, &blk)
               end
             end
-
 
             if method_defined?(:pluck)
               alias_method :pluck_without_newrelic, :pluck
@@ -199,7 +197,7 @@ module NewRelic
 
         def map_product(adapter_name)
           PRODUCT_NAMES.fetch(adapter_name,
-                              ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
+            ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
         end
 
         module InstanceIdentification
@@ -239,7 +237,6 @@ module NewRelic
             else
               configured_value
             end
-
           rescue => e
             NewRelic::Agent.logger.debug "Failed to retrieve ActiveRecord host: #{e}"
             UNKNOWN
@@ -260,7 +257,6 @@ module NewRelic
             else
               UNKNOWN
             end
-
           rescue => e
             NewRelic::Agent.logger.debug "Failed to retrieve ActiveRecord port_path_or_id: #{e}"
             UNKNOWN

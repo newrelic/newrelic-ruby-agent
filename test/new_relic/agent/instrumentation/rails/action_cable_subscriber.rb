@@ -6,7 +6,6 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionCableSubscriberTest < Minitest::Test
-
         def setup
           nr_freeze_process_time
           @subscriber = ActionCableSubscriber.new
@@ -30,9 +29,9 @@ module NewRelic
           @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
 
           assert_equal('Controller/ActionCable/TestChannel/test_action',
-                       last_transaction_trace.transaction_name)
+            last_transaction_trace.transaction_name)
           assert_equal('Controller/ActionCable/TestChannel/test_action',
-                       last_transaction_trace.root_node.children[0].metric_name)
+            last_transaction_trace.root_node.children[0].metric_name)
         end
 
         def test_records_apdex_metrics

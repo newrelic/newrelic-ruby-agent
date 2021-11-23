@@ -4,7 +4,6 @@
 
 require_relative 'instrumentation'
 
-
 module NewRelic::Agent::Instrumentation
   module NetHTTP
     module Chain

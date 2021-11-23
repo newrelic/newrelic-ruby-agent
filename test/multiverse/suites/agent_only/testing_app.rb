@@ -5,7 +5,6 @@
 require 'new_relic/agent/instrumentation/rack'
 
 class TestingApp
-
   attr_accessor :response, :headers
 
   def initialize
@@ -34,7 +33,6 @@ class TestingApp
     sleep(params['sleep'].to_f) if params['sleep']
     [200, headers, [response]]
   end
-
 end
 
 class TestingBackgroundJob

@@ -165,10 +165,10 @@ class NewRelic::Agent::EventLoopTest < Minitest::Test
 
   def test_timer_period_reset_from_event
     call_count = 0
-    @loop.on(:e ) { call_count += 1 }
+    @loop.on(:e) { call_count += 1 }
     @loop.on(:reset_period) { @loop.fire_every(30, :e) }
 
-    @loop.fire_every( 5, :e )
+    @loop.fire_every(5, :e)
     @loop.fire_after(31, :reset_period)
 
     advance_loop(3) # total time 3

@@ -24,7 +24,7 @@ module Environments
       overall_status = 0
       failures = []
 
-      puts yellow("Tests to run:\n\t#{tests_to_run.map{ |s| s.gsub(env_root + "/", "") }.join("\n\t")}")
+      puts yellow("Tests to run:\n\t#{tests_to_run.map { |s| s.gsub(env_root + "/", "") }.join("\n\t")}")
       env_file = ENV["file"]
       tests_to_run.each do |dir|
         Bundler.with_unbundled_env do

@@ -12,7 +12,6 @@
 module NewRelic
   module Agent
     class Sampler
-
       # Exception denotes a sampler is not available and it will not be registered.
       class Unsupported < StandardError; end
 

@@ -10,7 +10,6 @@ require 'new_relic/agent/span_event_aggregator'
 module NewRelic
   module Agent
     class SpanEventAggregatorTest < Minitest::Test
-
       def setup
         @additional_config = {:'distributed_tracing.enabled' => true}
         NewRelic::Agent.config.add_config_for_testing(@additional_config)

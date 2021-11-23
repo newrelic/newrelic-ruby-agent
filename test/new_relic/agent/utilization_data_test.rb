@@ -8,7 +8,6 @@ require 'new_relic/agent/utilization/aws'
 
 module NewRelic::Agent
   class UtilizationDataTest < Minitest::Test
-
     def setup
       stub_aws_info response_code: '404'
       stub_gcp_info response_code: '404'
@@ -93,8 +92,8 @@ module NewRelic::Agent
       utilization_data = UtilizationData.new
 
       with_pcf_env "CF_INSTANCE_GUID" => "ab326c0e-123e-47a1-65cc-45f6",
-                   "CF_INSTANCE_IP"   => "101.1.149.48",
-                   "MEMORY_LIMIT"     => "2048m" do
+        "CF_INSTANCE_IP"   => "101.1.149.48",
+        "MEMORY_LIMIT"     => "2048m" do
         expected = {
           :cf_instance_guid => "ab326c0e-123e-47a1-65cc-45f6",
           :cf_instance_ip => "101.1.149.48",
@@ -109,8 +108,8 @@ module NewRelic::Agent
       with_config(:'utilization.detect_pcf' => false, :'utilization.detect_docker' => false) do
         utilization_data = UtilizationData.new
         with_pcf_env "CF_INSTANCE_GUID" => "ab326c0e-123e-47a1-65cc-45f6",
-                     "CF_INSTANCE_IP"   => "101.1.149.48",
-                     "MEMORY_LIMIT"     => "2048m" do
+          "CF_INSTANCE_IP"   => "101.1.149.48",
+          "MEMORY_LIMIT"     => "2048m" do
           assert_nil utilization_data.to_collector_hash[:vendors]
         end
       end
@@ -276,13 +275,13 @@ module NewRelic::Agent
         utilization_data = UtilizationData.new
 
         assert_equal({kubernetes_service_host: '10.96.0.1'},
-                     utilization_data.to_collector_hash[:vendors][:kubernetes])
+          utilization_data.to_collector_hash[:vendors][:kubernetes])
       end
     end
 
     def test_kubernetes_information_is_omitted_if_disabled
       with_config :'utilization.detect_kubernetes' => false,
-                  :'utilization.detect_docker'     => false do
+        :'utilization.detect_docker'     => false do
         with_environment 'KUBERNETES_SERVICE_HOST' => '10.96.0.1' do
           utilization_data = UtilizationData.new
 
@@ -353,10 +352,9 @@ module NewRelic::Agent
           test_case[:expected_output_json][:boot_id] = NewRelic::Agent::SystemInfo.proc_try_read('/proc/sys/kernel/random/boot_id').chomp
         end
 
-
         with_environment env do
           with_config options do
-            test = ->{ assert_equal test_case[:expected_output_json], UtilizationData.new.to_collector_hash }
+            test = -> { assert_equal test_case[:expected_output_json], UtilizationData.new.to_collector_hash }
             if PCF_INPUTS.keys.all? { |k| test_case.key? k }
               with_pcf_env stub_pcf_env(test_case), &test
             else
@@ -463,6 +461,5 @@ module NewRelic::Agent
     def stub_pcf_env test_case
       PCF_INPUTS.reduce({}) { |h, (k, v)| h[v] = test_case[k]; h }
     end
-
   end
 end

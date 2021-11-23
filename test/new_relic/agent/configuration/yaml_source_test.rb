@@ -9,8 +9,8 @@ module NewRelic::Agent::Configuration
   class YamlSourceTest < Minitest::Test
     def setup
       @test_yml_path = File.expand_path(File.join(File.dirname(__FILE__),
-                                                 '..', '..', '..',
-                                                 'config', 'newrelic.yml'))
+        '..', '..', '..',
+        'config', 'newrelic.yml'))
       @source = YamlSource.new(@test_yml_path, 'test')
     end
 

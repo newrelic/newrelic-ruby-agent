@@ -10,7 +10,6 @@ end
 # disable the threads everywhere, but not all tests have newrelic.yml loaded to
 # us to rely on, so instead we'll just watch for it.
 class Minitest::Test
-
   def before_setup
     if self.respond_to?(:name)
       test_method_name = self.name
@@ -21,7 +20,7 @@ class Minitest::Test
     NewRelic::Agent.logger.info("*** #{self.class}##{test_method_name} **")
 
     @__thread_count = ruby_threads.count
-    @__threads = ruby_threads.map{ |rt| Hometown.for(rt).backtrace[0] }
+    @__threads = ruby_threads.map { |rt| Hometown.for(rt).backtrace[0] }
     super
   end
 
@@ -48,5 +47,4 @@ class Minitest::Test
   def ruby_threads
     Thread.list.select { |t| Hometown.for(t) }
   end
-
 end

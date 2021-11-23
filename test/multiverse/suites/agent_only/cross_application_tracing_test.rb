@@ -10,10 +10,10 @@ require 'new_relic/rack/agent_hooks'
 class CrossApplicationTracingTest < Minitest::Test
   include MultiverseHelpers
   setup_and_teardown_agent(:'cross_application_tracer.enabled' => true,
-                           :'distributed_tracing.enabled' => false,
-                           :cross_process_id => "boo",
-                           :encoding_key => "\0",
-                           :trusted_account_ids => [1]) \
+    :'distributed_tracing.enabled' => false,
+    :cross_process_id => "boo",
+    :encoding_key => "\0",
+    :trusted_account_ids => [1]) \
   do |collector|
     collector.stub('connect', {
       'agent_run_id' => 666,
@@ -80,8 +80,8 @@ class CrossApplicationTracingTest < Minitest::Test
         }
 
         with_config('app_name' => test_case['appName'],
-                    :'cross_application_tracer.enabled' => true,
-                    :'distributed_tracing.enabled'      => false) do
+          :'cross_application_tracer.enabled' => true,
+          :'distributed_tracing.enabled'      => false) do
           get '/', request_params, request_headers
         end
 

@@ -25,7 +25,7 @@ module NewRelic
       when String
         truncate(params)
       when Array
-        params.first(DEFAULT_ARRAY_TRUNCATION_SIZE).map{ |item| normalize_params(item) }
+        params.first(DEFAULT_ARRAY_TRUNCATION_SIZE).map { |item| normalize_params(item) }
     else
       truncate(flatten(params))
     end

@@ -9,7 +9,6 @@ module NewRelic
   module Agent
     module InfiniteTracing
       class StreamingBufferTest < Minitest::Test
-
         def setup
           @threads = {}
           NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
@@ -181,7 +180,7 @@ module NewRelic
 
         def prepare_to_consume_spans buffer, sleep_delay = 0
           spans = []
-          consumer = watch_thread(:consumer) { buffer.enumerator.each{ |span| spans << span } }
+          consumer = watch_thread(:consumer) { buffer.enumerator.each { |span| spans << span } }
 
           return spans, consumer
         end
@@ -233,7 +232,6 @@ module NewRelic
 
           return buffer, segments
         end
-
       end
     end
   end

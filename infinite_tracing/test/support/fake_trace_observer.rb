@@ -6,7 +6,6 @@
 if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
   module NewRelic::Agent::InfiniteTracing
-
     class BaseInfiniteTracer < Com::Newrelic::Trace::V1::IngestService::Service
       attr_reader :spans
       attr_reader :seen
@@ -41,7 +40,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           @noticed.wait(@lock) if !@noticed
         end
       end
-
     end
 
     class InfiniteTracer < BaseInfiniteTracer
@@ -54,7 +52,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
     class OkCloseInfiniteTracer < BaseInfiniteTracer
       def record_span(record_spans)
-        record_spans.each{ |span| notice_span span }
+        record_spans.each { |span| notice_span span }
         [record_status]
       end
     end
@@ -140,7 +138,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       # This is our hint to research into what's not being shutdown properly!
       def running_contexts
         contexts = FakeTraceObserverHelpers::RUNNING_SERVER_CONTEXTS
-        contexts.map{ |k, v| v }.inspect
+        contexts.map { |k, v| v }.inspect
       end
 
       def add_http2_port

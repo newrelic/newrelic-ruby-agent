@@ -34,7 +34,7 @@ namespace :test do
   desc "Run agent within existing mini environments"
   task :env, [:env1, :env2, :env3, :env4, :env5, :env6] => [] do |t, args|
     require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'environments', 'lib', 'environments', 'runner'))
-    Environments::Runner.new(args.map{ |_, v| v }).run_and_report
+    Environments::Runner.new(args.map { |_, v| v }).run_and_report
   end
 
   Rake::TestTask.new(:intentional_fail) do |t|
@@ -54,7 +54,7 @@ namespace :test do
 end
 
 desc 'Record build number and stage'
-task :record_build, [ :build_number, :stage ] do |t, args|
+task :record_build, [:build_number, :stage] do |t, args|
   build_string = args.build_number
   build_string << ".#{args.stage}" unless args.stage.nil? || args.stage.empty?
 

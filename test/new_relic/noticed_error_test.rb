@@ -25,8 +25,8 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
     error = create_error(e)
     error.attributes.add_agent_attribute(:'request.uri',
-                                         "http://com.google",
-                                         NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+      "http://com.google",
+      NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
     error.attributes_from_notice_error = @attributes_from_notice_error
 
     expected = [
@@ -134,8 +134,8 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   end
 
   def test_long_message
-    #yes, times 500. it's a 5000 byte string. Assuming strings are
-    #still 1 byte / char.
+    # yes, times 500. it's a 5000 byte string. Assuming strings are
+    # still 1 byte / char.
     err = create_error(StandardError.new("1234567890" * 500))
     assert_equal 4096, err.message.length
     assert_equal ('1234567890' * 500)[0..4095], err.message

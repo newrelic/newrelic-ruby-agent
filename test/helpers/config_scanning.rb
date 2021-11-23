@@ -47,7 +47,6 @@ module NewRelic
       def lines_in(file)
         File.read(file).split("\n")
       end
-
     end
   end
 end

@@ -67,27 +67,27 @@ module NewRelic
       attr_accessor :apdex_start
 
       attr_accessor :exceptions,
-                    :filtered_params,
-                    :jruby_cpu_start,
-                    :process_cpu_start,
-                    :http_response_code,
-                    :response_content_length,
-                    :response_content_type,
-                    :parent_span_id
+        :filtered_params,
+        :jruby_cpu_start,
+        :process_cpu_start,
+        :http_response_code,
+        :response_content_length,
+        :response_content_type,
+        :parent_span_id
 
       attr_reader :guid,
-                  :metrics,
-                  :gc_start_snapshot,
-                  :category,
-                  :attributes,
-                  :payload,
-                  :nesting_max_depth,
-                  :segments,
-                  :end_time,
-                  :duration
+        :metrics,
+        :gc_start_snapshot,
+        :category,
+        :attributes,
+        :payload,
+        :nesting_max_depth,
+        :segments,
+        :end_time,
+        :duration
 
       attr_writer :sampled,
-                  :priority
+        :priority
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -100,13 +100,13 @@ module NewRelic
         Tracer.current_transaction
       end
 
-      def self.set_default_transaction_name(partial_name, category = nil) #THREAD_LOCAL_ACCESS
+      def self.set_default_transaction_name(partial_name, category = nil) # THREAD_LOCAL_ACCESS
         txn = tl_current
         name = name_from_partial(partial_name, category || txn.category)
         txn.set_default_transaction_name(name, category)
       end
 
-      def self.set_overriding_transaction_name(partial_name, category = nil) #THREAD_LOCAL_ACCESS
+      def self.set_overriding_transaction_name(partial_name, category = nil) # THREAD_LOCAL_ACCESS
         txn = tl_current
         return unless txn
 
@@ -156,7 +156,7 @@ module NewRelic
       #
       # @api public
       #
-      def self.recording_web_transaction? #THREAD_LOCAL_ACCESS
+      def self.recording_web_transaction? # THREAD_LOCAL_ACCESS
         NewRelic::Agent.record_api_supportability_metric(:recording_web_transaction?)
 
         txn = tl_current
@@ -716,7 +716,6 @@ module NewRelic
 
       # Do not call this.  Invoke the class method instead.
       def notice_error(error, options = {}) # :nodoc:
-
         # Only the last error is kept
         if @current_segment
           @current_segment.notice_error error, expected: options[:expected]
@@ -771,8 +770,8 @@ module NewRelic
             record_apdex_metrics(APDEX_METRIC, APDEX_TXN_METRIC_PREFIX, apdex_t)
           else
             record_apdex_metrics(APDEX_OTHER_METRIC,
-                                 APDEX_OTHER_TXN_METRIC_PREFIX,
-                                 transaction_specific_apdex_t)
+              APDEX_OTHER_TXN_METRIC_PREFIX,
+              transaction_specific_apdex_t)
           end
         end
       end

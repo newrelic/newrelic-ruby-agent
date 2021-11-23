@@ -36,7 +36,6 @@ module NewRelic
       PRIORITY_KEY = 'pr'
 
       class << self
-
         def for_transaction transaction
           return nil unless connected?
 
@@ -110,16 +109,16 @@ module NewRelic
       end
 
       attr_accessor :version,
-                    :parent_type,
-                    :parent_account_id,
-                    :parent_app_id,
-                    :trusted_account_key,
-                    :id,
-                    :transaction_id,
-                    :trace_id,
-                    :sampled,
-                    :priority,
-                    :timestamp
+        :parent_type,
+        :parent_account_id,
+        :parent_app_id,
+        :trusted_account_key,
+        :id,
+        :transaction_id,
+        :trace_id,
+        :sampled,
+        :priority,
+        :timestamp
 
       alias_method :sampled?, :sampled
 

@@ -59,29 +59,29 @@ class NewRelic::ControlTest < Minitest::Test
   def test_transaction_tracer_disabled
     with_config(:'transaction_tracer.enabled' => false, :monitor_mode => true) do
       assert(!NewRelic::Agent.instance.transaction_sampler.enabled?,
-             'transaction tracer enabled when config calls for disabled')
+        'transaction tracer enabled when config calls for disabled')
     end
   end
 
   def test_sql_tracer_disabled
     with_config(:'slow_sql.enabled' => false, :monitor_mode => true) do
       assert(!NewRelic::Agent.instance.sql_sampler.enabled?,
-             'sql tracer enabled when config calls for disabled')
+        'sql tracer enabled when config calls for disabled')
     end
   end
 
   def test_sql_tracer_disabled_with_record_sql_false
     with_config(:slow_sql => {:enabled => true, :record_sql => 'off'}) do
       refute NewRelic::Agent.instance.sql_sampler.enabled?,
-             'sql tracer enabled when config calls for disabled'
+        'sql tracer enabled when config calls for disabled'
     end
   end
 
   def test_sql_tracer_disabled_when_tt_disabled
     with_config(:'transaction_tracer.enabled' => false,
-                :'slow_sql.enabled' => true, :monitor_mode => true) do
+      :'slow_sql.enabled' => true, :monitor_mode => true) do
       refute NewRelic::Agent.instance.sql_sampler.enabled?,
-             'sql enabled when transaction tracer disabled'
+        'sql enabled when transaction tracer disabled'
     end
   end
 
@@ -89,10 +89,10 @@ class NewRelic::ControlTest < Minitest::Test
     reset_agent
 
     with_config(:disable_samplers       => false,
-                :disable_harvest_thread => true,
-                :agent_enabled          => true,
-                :monitor_mode           => true,
-                :license_key            => 'a' * 40) do
+      :disable_harvest_thread => true,
+      :agent_enabled          => true,
+      :monitor_mode           => true,
+      :license_key            => 'a' * 40) do
       NewRelic::Control.instance.init_plugin
       assert NewRelic::Agent.instance.harvest_samplers.any?
     end
@@ -102,10 +102,10 @@ class NewRelic::ControlTest < Minitest::Test
     reset_agent
 
     with_config(:disable_samplers       => true,
-                :disable_harvest_thread => true,
-                :agent_enabled          => true,
-                :monitor_mode           => true,
-                :license_key            => 'a' * 40) do
+      :disable_harvest_thread => true,
+      :agent_enabled          => true,
+      :monitor_mode           => true,
+      :license_key            => 'a' * 40) do
       NewRelic::Control.instance.init_plugin
       refute NewRelic::Agent.instance.harvest_samplers.any?
     end
@@ -117,10 +117,10 @@ class NewRelic::ControlTest < Minitest::Test
     NewRelic::Agent.instance.stubs(:defer_for_delayed_job?).returns(true)
 
     with_config(:disable_samplers       => false,
-                :disable_harvest_thread => true,
-                :agent_enabled          => true,
-                :monitor_mode           => true,
-                :license_key            => 'a' * 40) do
+      :disable_harvest_thread => true,
+      :agent_enabled          => true,
+      :monitor_mode           => true,
+      :license_key            => 'a' * 40) do
       NewRelic::Control.instance.init_plugin
       refute NewRelic::Agent.instance.already_started?
       refute NewRelic::Agent.instance.harvest_samplers.any?
@@ -133,10 +133,10 @@ class NewRelic::ControlTest < Minitest::Test
     NewRelic::Agent.instance.stubs(:defer_for_delayed_job?).returns(true)
 
     with_config(:disable_samplers       => false,
-                :disable_harvest_thread => true,
-                :agent_enabled          => true,
-                :monitor_mode           => true,
-                :license_key            => 'a' * 40) do
+      :disable_harvest_thread => true,
+      :agent_enabled          => true,
+      :monitor_mode           => true,
+      :license_key            => 'a' * 40) do
       NewRelic::Control.instance.init_plugin
       NewRelic::Agent.instance.stubs(:defer_for_delayed_job?).returns(false)
       NewRelic::Agent.after_fork

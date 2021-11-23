@@ -9,8 +9,7 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionViewSubscriber < NotificationsSubscriber
-
-        def start(name, id, payload) #THREAD_LOCAL_ACCESS
+        def start(name, id, payload) # THREAD_LOCAL_ACCESS
           parent = segment_stack[id].last
           metric_name = format_metric_name(name, payload, parent)
 
@@ -107,6 +106,5 @@ module NewRelic
         end
       end
     end
-
   end
 end

@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 module TransactionIgnoringTestCases
-
   include MultiverseHelpers
 
   TXN_PREFIX = 'Controller/'
@@ -20,7 +19,6 @@ module TransactionIgnoringTestCases
   #   trigger_transaction(txn_name)
   #   trigger_transaction_with_error(txn_name, error_msg)
   #   trigger_transaction_with_slow_sql(txn_name)
-
 
   def test_does_not_record_metrics_for_ignored_transaction
     trigger_transaction('accepted_transaction')
@@ -98,5 +96,4 @@ module TransactionIgnoringTestCases
     assert_equal(TXN_PREFIX + 'accepted_transaction', trace[0])
     assert_equal(1, trace[5])
   end
-
 end

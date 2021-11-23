@@ -9,13 +9,13 @@ module NewRelic
       module Curb
         module Easy
           attr_accessor :_nr_instrumented,
-                        :_nr_failure_instrumented,
-                        :_nr_http_verb,
-                        :_nr_header_str,
-                        :_nr_original_on_header,
-                        :_nr_original_on_complete,
-                        :_nr_original_on_failure,
-                        :_nr_serial
+            :_nr_failure_instrumented,
+            :_nr_http_verb,
+            :_nr_header_str,
+            :_nr_original_on_header,
+            :_nr_original_on_complete,
+            :_nr_original_on_failure,
+            :_nr_serial
 
           # We have to hook these three methods separately, as they don't use
           # Curl::Easy#http
@@ -64,7 +64,6 @@ module NewRelic
               yield
             end
           end
-
         end
 ####################################################
 
@@ -212,7 +211,6 @@ module NewRelic
 
             first.respond_to?(:_nr_serial) && first._nr_serial
           end
-
         end
       end
     end

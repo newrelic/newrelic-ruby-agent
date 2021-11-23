@@ -39,11 +39,11 @@ end
 module TestModuleWithLog
   class << self
     def other_method
-      #just here to be traced
+      # just here to be traced
       log "12345"
     end
 
-    def log( msg )
+    def log(msg)
       msg
     end
 

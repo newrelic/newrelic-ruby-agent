@@ -43,7 +43,7 @@ module NewRelic
           end
         end
 
-        def start(name, id, payload) #THREAD_LOCAL_ACCESS
+        def start(name, id, payload) # THREAD_LOCAL_ACCESS
           return if cached?(payload)
           return unless NewRelic::Agent.tl_is_execution_traced?
 
@@ -54,7 +54,7 @@ module NewRelic
           log_notification_error(e, name, 'start')
         end
 
-        def finish(name, id, payload) #THREAD_LOCAL_ACCESS
+        def finish(name, id, payload) # THREAD_LOCAL_ACCESS
           return if cached?(payload)
           return unless state.is_execution_traced?
 
@@ -64,7 +64,6 @@ module NewRelic
             end
             segment.finish
           end
-
         rescue => e
           log_notification_error(e, name, 'finish')
         end
@@ -72,12 +71,12 @@ module NewRelic
         def get_explain_plan(statement)
           connection = NewRelic::Agent::Database.get_connection(statement.config) do
             ::ActiveRecord::Base.send("#{statement.config[:adapter]}_connection",
-                                      statement.config)
+              statement.config)
           end
           if connection && connection.respond_to?(:exec_query)
             return connection.exec_query("EXPLAIN #{statement.sql}",
-                                         "Explain #{statement.name}",
-                                         statement.binds)
+              "Explain #{statement.name}",
+              statement.binds)
           end
         rescue => e
           NewRelic::Agent.logger.debug "Couldn't fetch the explain plan for #{statement} due to #{e}"

@@ -7,7 +7,6 @@ require 'new_relic/agent/instrumentation/active_record_helper'
 
 module NewRelic::Agent::Instrumentation
   class ActiveRecordHelperTest < Minitest::Test
-
     def test_product_operation_collection_for_find
       product, operation, collection = ActiveRecordHelper.product_operation_collection_for('Namespace::Model Load', nil, nil)
       assert_equal "ActiveRecord", product

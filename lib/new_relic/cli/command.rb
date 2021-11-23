@@ -55,8 +55,7 @@ module NewRelic
       Dir[cmds].each { |command| require command }
 
       def self.run
-
-        @command_names = @commands.map{ |c| c.command }
+        @command_names = @commands.map { |c| c.command }
 
         extra = []
         options = ARGV.options do |opts|
@@ -79,13 +78,12 @@ module NewRelic
             STDERR.puts "Unrecognized command: #{command}"
             STDERR.puts options
           else
-            command_class = @commands.find{ |c| c.command == command }
+            command_class = @commands.find { |c| c.command == command }
             command_class.new(extra).run
           end
       rescue OptionParser::InvalidOption => e
         raise NewRelic::Cli::Command::CommandFailure, e.message
       end
     end
-
   end
 end

@@ -6,7 +6,6 @@ require File.expand_path(File.join(__FILE__, '..', '..', 'test_helper'))
 
 module NewRelic
   class LatestChangesTest < MiniTest::Test
-
     def test_read_default_changelog
       result = NewRelic::LatestChanges.read
       assert_match(/# New Relic Ruby Agent Release Notes #/, result)
@@ -29,6 +28,5 @@ module NewRelic
 END
       assert_equal expected, result
     end
-
   end
 end

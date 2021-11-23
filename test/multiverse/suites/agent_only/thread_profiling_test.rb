@@ -8,7 +8,6 @@
 require 'thread'
 
 class ThreadProfilingTest < Minitest::Test
-
   include MultiverseHelpers
 
   setup_and_teardown_agent(:'thread_profiler.enabled' => true) do |collector|
@@ -133,5 +132,4 @@ class ThreadProfilingTest < Minitest::Test
     assert_kind_of Array, traces_for_type
     assert !profile_data.traces[type].empty?, "Zero #{type} traces seen"
   end
-
 end

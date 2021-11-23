@@ -167,8 +167,8 @@ module NewRelic::Agent
 
       def test_doesnt_increment_error_count_on_transaction_if_nameless
         @error_collector.increment_error_count!(NewRelic::Agent::Tracer.state,
-                                                StandardError.new('Boo'),
-                                                :metric => '(unknown)')
+          StandardError.new('Boo'),
+          :metric => '(unknown)')
 
         assert_metrics_not_recorded(['Errors/(unknown)'])
       end
@@ -352,7 +352,7 @@ module NewRelic::Agent
       def test_ignored_and_expected_error_is_ignored
         error = AnError.new
         with_config(:'error_collector.ignore_classes' => ['AnError'],
-                    :'error_collector.expected_classes' => ['AnError']) do
+          :'error_collector.expected_classes' => ['AnError']) do
           @error_collector.notice_error(AnError.new)
 
           events = harvest_error_events

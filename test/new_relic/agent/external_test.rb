@@ -8,7 +8,6 @@ require 'new_relic/agent/external'
 module NewRelic
   module Agent
     class ExternalTest < Minitest::Test
-
       TRANSACTION_GUID = 'BEC1BC64675138B9'
 
       def setup
@@ -184,7 +183,6 @@ module NewRelic
           :trusted_account_ids => [1, 269975]
         }
       end
-
     end
   end
 end

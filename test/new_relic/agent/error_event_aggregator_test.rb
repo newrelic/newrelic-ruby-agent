@@ -34,7 +34,7 @@ module NewRelic
       def populate_container(sampler, n)
         n.times do
           error = NewRelic::NoticedError.new "Controller/blogs/index", RuntimeError.new("Big Controller")
-          payload = in_transaction{}.payload
+          payload = in_transaction {}.payload
 
           @error_event_aggregator.record error, payload, @span_id
         end

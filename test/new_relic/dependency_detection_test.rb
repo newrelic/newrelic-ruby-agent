@@ -5,7 +5,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 
 class DependencyDetectionTest < Minitest::Test
-
   def setup
     @original_items = DependencyDetection.items
     DependencyDetection.items = []
@@ -328,7 +327,7 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.detect!
 
-    assert_falsy( DependencyDetection.items.first.executed )
+    assert_falsy(DependencyDetection.items.first.executed)
   end
 
   def test_exception_during_execution_doesnt_propagate
@@ -342,8 +341,8 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.detect!
 
-    assert_truthy( DependencyDetection.items.first.executed )
-    assert_falsy( ran_second_block )
+    assert_truthy(DependencyDetection.items.first.executed)
+    assert_falsy(ran_second_block)
   end
 
   def test_defer_should_be_idempotent_when_given_same_name

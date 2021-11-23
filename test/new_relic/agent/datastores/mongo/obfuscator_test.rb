@@ -91,7 +91,6 @@ module NewRelic
             obfuscated = Obfuscator.obfuscate_statement(selector)
             assert_equal expected, obfuscated
           end
-
         end
       end
     end

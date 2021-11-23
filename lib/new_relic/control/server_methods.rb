@@ -4,9 +4,8 @@
 
 module NewRelic
   class Control
-
     # Structs holding info for the remote server and proxy server
-    class Server < Struct.new :name, :port #:nodoc:
+    class Server < Struct.new :name, :port # :nodoc:
       def to_s; "#{name}:#{port}"; end
     end
 

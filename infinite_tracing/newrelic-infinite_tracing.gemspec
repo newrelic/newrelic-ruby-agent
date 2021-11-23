@@ -33,7 +33,7 @@ Gem::Specification.new do |s|
   s.version = NewRelic::VERSION::STRING
   s.required_ruby_version = '>= 2.5.0'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = [ "Aaron Huntsman", "Tanna McClure", "Kayla Reopelle" ]
+  s.authors = ["Aaron Huntsman", "Tanna McClure", "Kayla Reopelle"]
   s.date = Time.now.strftime('%Y-%m-%d')
   s.licenses = ['Apache-2.0']
   s.description = <<-EOS
@@ -49,7 +49,7 @@ Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
 in production. The New Relic Ruby Agent is dual-purposed as a either a
 Gem or plugin, hosted on https://github.com/newrelic/newrelic-ruby-agent/
-EOS
+  EOS
 
   s.email = "support@newrelic.com"
   s.executables = []

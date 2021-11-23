@@ -7,7 +7,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'te
 require 'new_relic/agent/samplers/cpu_sampler'
 
 class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
-
   def setup
     @original_jruby_version = JRUBY_VERSION if defined?(JRuby)
   end

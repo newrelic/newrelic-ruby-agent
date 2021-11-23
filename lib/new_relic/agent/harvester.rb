@@ -5,7 +5,6 @@
 module NewRelic
   module Agent
     class Harvester
-
       attr_accessor :starting_pid
 
       # Inject target for after_fork call to avoid spawning thread in tests

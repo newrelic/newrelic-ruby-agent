@@ -75,9 +75,9 @@ module NewRelic
       end
 
       module_function :reset!,
-                      :transaction_start,
-                      :transaction_stop,
-                      :harvest!
+        :transaction_start,
+        :transaction_stop,
+        :harvest!
 
       class << self
         private

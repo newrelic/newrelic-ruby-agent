@@ -8,9 +8,7 @@ require 'new_relic/agent/configuration/event_harvest_config'
 module NewRelic
   module Agent
     module Connect
-
       class RequestBuilder
-
         def initialize(new_relic_service, config, event_harvest_config, environment_report)
           @service = new_relic_service
           @config = config

@@ -312,7 +312,6 @@ module NewRelic
             assert_equal 2, last_span_events.size
             event = last_span_events[0][0]
 
-
             refute event.key("db.statement")
           end
         end
@@ -368,7 +367,6 @@ module NewRelic
           last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           assert_equal 2, last_span_events.size
           _, _, agent_attributes = last_span_events[0]
-
 
           assert_equal nosql_statement, agent_attributes["db.statement"]
         end

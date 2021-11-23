@@ -102,9 +102,9 @@ module NewRelic
             ::Delayed::Job.count(:group => column_name,
               :conditions => [QUEUE_QUERY_CONDITION, now])
           else
-            ::Delayed::Job.where(QUEUE_QUERY_CONDITION, now).
-              group(column_name).
-              count
+            ::Delayed::Job.where(QUEUE_QUERY_CONDITION, now)
+              .group(column_name)
+              .count
           end
           result.to_a
         end

@@ -7,7 +7,6 @@ require 'new_relic/agent/parameter_filtering'
 module NewRelic::Agent::Instrumentation
   module Grape
     module Instrumentation
-
       extend self
 
       # Since 1.2.0, the class `Grape::API` no longer refers to an API instance, rather, what used to be `Grape::API` is `Grape::API::Instance`

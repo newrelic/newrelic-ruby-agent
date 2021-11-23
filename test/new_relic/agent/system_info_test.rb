@@ -85,7 +85,6 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     end
   end
 
-
   each_cross_agent_test :dir => 'proc_meminfo', :pattern => '*.txt' do |file|
     if File.basename(file) =~ /^meminfo_(\d+)MB.txt$/
       test_name = "test_#{file}"

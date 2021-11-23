@@ -158,7 +158,6 @@ module NewRelic
 
           refute_metrics_recorded ['ErrorsByCaller/App/190/46954/Unknown/all',
                                    'ErrorsByCaller/App/190/46954/Unknown/allOther']
-
         end
 
         def test_accept_distributed_trace_payload_with_error_records_error_metrics
@@ -171,7 +170,6 @@ module NewRelic
 
           assert_metrics_recorded ['ErrorsByCaller/App/190/46954/Unknown/all',
                                    'ErrorsByCaller/App/190/46954/Unknown/allOther']
-
         end
 
         def test_sampled_flag_propagated_when_true_in_incoming_payload
@@ -223,7 +221,7 @@ module NewRelic
           transaction = nil
 
           transaction = in_transaction "test_txn" do |txn|
-            #simulate legacy cat
+            # simulate legacy cat
             referring_txn_info = [
               "b854df4feb2b1f06",
               false,
@@ -316,7 +314,6 @@ module NewRelic
         end
 
         def test_agent_attributes_always_recorded_when_distributed_tracing_enabled
-
           in_transaction("test_txn") {}
 
           intrinsics, _, _ = last_transaction_event
@@ -615,7 +612,8 @@ module NewRelic
 
           result[:parent_transaction] = in_transaction "text_txn2" do |txn|
             txn.distributed_tracer.accept_distributed_trace_payload(
-              result[:grandparent_payload].text)
+              result[:grandparent_payload].text
+)
 
             result[:parent_payload] =
               txn.distributed_tracer.create_distributed_trace_payload
@@ -625,7 +623,8 @@ module NewRelic
 
           result[:child_transaction] = in_transaction "text_txn3" do |txn|
             txn.distributed_tracer.accept_distributed_trace_payload(
-              result[:parent_payload].text)
+              result[:parent_payload].text
+)
           end
 
           result[:child_intrinsics], _, _ = last_transaction_event

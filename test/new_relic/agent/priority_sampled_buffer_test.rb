@@ -12,7 +12,7 @@ module NewRelic::Agent
 
       10.times { |i| buffer.append(event: create_event(priority: i)) }
 
-      expected = (5..9).map{ |i| create_event(priority: i) }
+      expected = (5..9).map { |i| create_event(priority: i) }
 
       assert_equal(5, buffer.size)
       assert_equal_unordered(expected, buffer.to_a)
@@ -35,9 +35,9 @@ module NewRelic::Agent
 
       11.times { |i| buffer.append(event: create_event(priority: i)) }
 
-      assert_equal(10, buffer.size )
-      assert_equal(11, buffer.num_seen )
-      assert_equal( 1, buffer.num_dropped)
+      assert_equal(10, buffer.size)
+      assert_equal(11, buffer.num_seen)
+      assert_equal(1, buffer.num_dropped)
     end
 
     def test_should_not_discard_items_if_not_needed_when_capacity_is_reset
@@ -48,10 +48,10 @@ module NewRelic::Agent
       events.each { |e| buffer.append(event: e) }
 
       buffer.capacity = 20
-      assert_equal(10, buffer.size )
-      assert_equal(20, buffer.capacity )
-      assert_equal(10, buffer.num_seen )
-      assert_equal( 0, buffer.num_dropped)
+      assert_equal(10, buffer.size)
+      assert_equal(20, buffer.capacity)
+      assert_equal(10, buffer.num_seen)
+      assert_equal(0, buffer.num_dropped)
       assert_equal(events, buffer.to_a)
     end
 
@@ -120,11 +120,11 @@ module NewRelic::Agent
       buffer.capacity = 5
       assert_equal(5, buffer.size)
 
-      expected = (5..9).map{ |i| create_event(priority: i) }
+      expected = (5..9).map { |i| create_event(priority: i) }
 
       assert_equal_unordered(expected, buffer.to_a)
-      assert_equal(10, buffer.num_seen )
-      assert_equal( 5, buffer.num_dropped)
+      assert_equal(10, buffer.num_seen)
+      assert_equal(5, buffer.num_dropped)
     end
 
     def test_num_seen_counts_all_seen_samples_since_last_reset

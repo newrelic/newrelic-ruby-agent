@@ -150,7 +150,6 @@ module NewRelic
           else
             Transaction.start_new_transaction(state, category, options)
           end
-
         rescue ArgumentError
           raise
         rescue => exception
@@ -178,8 +177,8 @@ module NewRelic
           end
 
           Transaction.start_new_transaction(state,
-                                            category,
-                                            options)
+            category,
+            options)
         rescue ArgumentError
           raise
         rescue => exception
@@ -237,7 +236,6 @@ module NewRelic
 
           segment = Transaction::Segment.new name, unscoped_metrics, start_time
           start_and_add_segment segment, parent
-
         rescue ArgumentError
           raise
         rescue => exception
@@ -296,7 +294,6 @@ module NewRelic
 
           segment = Transaction::DatastoreSegment.new product, operation, collection, host, port_path_or_id, database_name
           start_and_add_segment segment, parent
-
         rescue ArgumentError
           raise
         rescue => exception
@@ -338,7 +335,6 @@ module NewRelic
 
           segment = Transaction::ExternalRequestSegment.new library, uri, procedure, start_time
           start_and_add_segment segment, parent
-
         rescue ArgumentError
           raise
         rescue => exception
@@ -380,7 +376,6 @@ module NewRelic
             start_time: start_time
           )
           start_and_add_segment segment, parent
-
         rescue ArgumentError
           raise
         rescue => exception
@@ -433,7 +428,6 @@ module NewRelic
       # This is THE location to store thread local information during a transaction
       # Need a new piece of data? Add a method here, NOT a new thread local variable.
       class State
-
         def initialize
           @untraced = []
           @current_transaction = nil

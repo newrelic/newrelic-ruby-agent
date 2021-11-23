@@ -16,13 +16,13 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install?
         run_rake("named:all --multitask")
 
         assert_metric_names_posted "OtherTransaction/Rake/invoke/named:all",
-                                   "OtherTransaction/Rake/all",
-                                   "OtherTransaction/all",
-                                   "Rake/execute/multitask"
+          "OtherTransaction/Rake/all",
+          "OtherTransaction/all",
+          "Rake/execute/multitask"
 
         refute_metric_names_posted "Rake/execute/named:before",
-                                   "Rake/execute/named:during",
-                                   "Rake/execute/named:after"
+          "Rake/execute/named:during",
+          "Rake/execute/named:after"
       end
     end
 

@@ -24,7 +24,6 @@ end
 require 'newrelic_rpm'
 
 class ActiveMerchantTest < Minitest::Test
-
   attr_reader :gateway
 
   include MultiverseHelpers
@@ -104,7 +103,7 @@ class ActiveMerchantTest < Minitest::Test
       gateway.send(operation, *args)
     end
     assert_metrics_recorded([
-      [ "ActiveMerchant/gateway/BogusGateway/#{operation}", "txn"],
+      ["ActiveMerchant/gateway/BogusGateway/#{operation}", "txn"],
         "ActiveMerchant/gateway/BogusGateway",
         "ActiveMerchant/operation/#{operation}"
       ])

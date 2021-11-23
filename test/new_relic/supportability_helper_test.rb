@@ -5,7 +5,6 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 
 class NewRelic::SupportabilityHelperTest < Minitest::Test
-
   def teardown
     NewRelic::Agent.shutdown
     super

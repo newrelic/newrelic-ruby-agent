@@ -6,7 +6,6 @@ module NewRelic
   module Agent
     module Threading
       class AgentThread
-
         def self.create(label, &blk)
           ::NewRelic::Agent.logger.debug("Creating New Relic thread: #{label}")
           wrapped_blk = Proc.new do
@@ -33,7 +32,7 @@ module NewRelic
           backing_thread_class.list
         end
 
-        def self.bucket_thread(thread, profile_agent_code) #THREAD_LOCAL_ACCESS
+        def self.bucket_thread(thread, profile_agent_code) # THREAD_LOCAL_ACCESS
           if thread.key?(:newrelic_label)
             profile_agent_code ? :agent : :ignore
           else

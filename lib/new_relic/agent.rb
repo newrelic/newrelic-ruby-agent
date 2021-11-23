@@ -111,19 +111,19 @@ module NewRelic
     @tracer_queue = []
 
     # The singleton Agent instance.  Used internally.
-    def agent #:nodoc:
+    def agent # :nodoc:
       return @agent if @agent
       NewRelic::Agent.logger.warn("Agent unavailable as it hasn't been started.")
       NewRelic::Agent.logger.warn(caller.join("\n"))
       nil
     end
 
-    def agent=(new_instance)#:nodoc:
+    def agent=(new_instance)# :nodoc:
       @agent = new_instance
       add_deferred_method_tracers_now
     end
 
-    alias instance agent #:nodoc:
+    alias instance agent # :nodoc:
 
     # Primary interface to logging is fronted by this accessor
     # Access via ::NewRelic::Agent.logger
@@ -187,7 +187,7 @@ module NewRelic
     # This method is safe to use from any thread.
     #
     # @api public
-    def record_metric(metric_name, value) #THREAD_LOCAL_ACCESS
+    def record_metric(metric_name, value) # THREAD_LOCAL_ACCESS
       record_api_supportability_metric(:record_metric)
 
       return unless agent
@@ -217,7 +217,7 @@ module NewRelic
 
     SUPPORTABILITY_INCREMENT_METRIC = 'Supportability/API/increment_metric'.freeze
 
-    def increment_metric(metric_name, amount = 1) #THREAD_LOCAL_ACCESS
+    def increment_metric(metric_name, amount = 1) # THREAD_LOCAL_ACCESS
       return unless agent
       if amount == 1
         metrics = [metric_name, SUPPORTABILITY_INCREMENT_METRIC]
@@ -512,7 +512,7 @@ module NewRelic
     #
     def disable_transaction_tracing
       Deprecator.deprecate :disable_transaction_tracing,
-                           'disable_all_tracing or ignore_transaction'
+        'disable_all_tracing or ignore_transaction'
       record_api_supportability_metric(:disable_transaction_tracing)
       yield
     end
@@ -572,7 +572,7 @@ module NewRelic
     #
     # @api public
     #
-    def add_custom_attributes(params) #THREAD_LOCAL_ACCESS
+    def add_custom_attributes(params) # THREAD_LOCAL_ACCESS
       record_api_supportability_metric(:add_custom_attributes)
 
       if params.is_a? Hash
@@ -654,7 +654,7 @@ module NewRelic
     #
     # @api public
     #
-    def get_transaction_name #THREAD_LOCAL_ACCESS
+    def get_transaction_name # THREAD_LOCAL_ACCESS
       record_api_supportability_metric(:get_transaction_name)
 
       txn = Transaction.tl_current
@@ -686,13 +686,13 @@ module NewRelic
     # Subscribe to events of +event_type+, calling the given +handler+
     # when one is sent.
     def subscribe(event_type, &handler)
-      agent.events.subscribe( event_type, &handler )
+      agent.events.subscribe(event_type, &handler)
     end
 
     # Fire an event of the specified +event_type+, passing it an the given +args+
     # to any registered handlers.
     def notify(event_type, *args)
-      agent.events.notify( event_type, *args )
+      agent.events.notify(event_type, *args)
     rescue
       NewRelic::Agent.logger.debug "Ignoring exception during %p event notification" % [event_type]
     end
@@ -743,7 +743,7 @@ module NewRelic
       metadata
     end
 
-    #@!endgroup
+    # @!endgroup
 
     # @!group Manual browser monitoring configuration
 

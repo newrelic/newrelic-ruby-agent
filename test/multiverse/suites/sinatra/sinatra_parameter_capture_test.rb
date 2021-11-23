@@ -28,7 +28,7 @@ class SinatraParameterCaptureTest < Minitest::Test
 
   def test_request_params_are_captured_for_transaction_events
     with_config(:'attributes.include' => 'request.parameters.*',
-                :'attributes.exclude' => ['request.*', 'response.*']) do
+      :'attributes.exclude' => ['request.*', 'response.*']) do
       params = {
         :foo => "bar",
         :bar => "baz"

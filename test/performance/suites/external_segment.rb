@@ -6,7 +6,6 @@ require 'net/http'
 require 'new_relic/agent/obfuscator'
 
 class ExternalSegment < Performance::TestCase
-
   CAT_CONFIG = {
     :license_key => 'a' * 40,
     :'cross_application_tracer.enabled' => true,
@@ -23,7 +22,6 @@ class ExternalSegment < Performance::TestCase
   }
 
   def setup
-
     NewRelic::Agent.manual_start(
       :monitor_mode => false
     )

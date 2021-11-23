@@ -8,7 +8,6 @@ require 'new_relic/agent/transaction_event_recorder'
 module NewRelic
   module Agent
     class TransactionEventRecorderTest < Minitest::Test
-
       def setup
         events = NewRelic::Agent.instance.events
         @recorder = TransactionEventRecorder.new events

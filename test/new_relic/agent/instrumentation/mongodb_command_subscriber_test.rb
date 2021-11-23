@@ -6,7 +6,6 @@ require File.expand_path '../../../../test_helper', __FILE__
 require 'new_relic/agent/instrumentation/mongodb_command_subscriber'
 
 class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest::Test
-
   def setup
     nr_freeze_process_time
     @started_event = mock('started event')
@@ -42,14 +41,14 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
     metric_name = 'Datastore/statement/MongoDB/users/find'
     assert_metrics_recorded(
-      [ metric_name, 'test_txn' ] => {:call_count => 1, :total_call_time => 2}
+      [metric_name, 'test_txn'] => {:call_count => 1, :total_call_time => 2}
     )
   end
 
   def test_records_nothing_if_tracing_disabled
     NewRelic::Agent.disable_all_tracing { simulate_query }
     metric_name = 'Datastore/statement/MongoDB/users/find'
-    assert_metrics_not_recorded([ metric_name ])
+    assert_metrics_not_recorded([metric_name])
   end
 
   def test_records_rollup_metrics

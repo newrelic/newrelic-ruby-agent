@@ -8,7 +8,6 @@ require 'new_relic/agent/range_extensions'
 module NewRelic
   module Agent
     class RangeExtensionsTest < Minitest::Test
-
       def test_intersects_truthy_when_overlapping
         assert RangeExtensions.intersects? (1..3), (3..5)
       end

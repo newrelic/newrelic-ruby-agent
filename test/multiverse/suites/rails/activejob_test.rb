@@ -39,14 +39,12 @@ class MyJobWithParams < ActiveJob::Base
 end
 
 class MyFailure < ActiveJob::Base
-
   def perform
     raise ArgumentError.new("No it isn't!")
   end
 end
 
 class ActiveJobTest < Minitest::Test
-
   include MultiverseHelpers
 
   setup_and_teardown_agent do

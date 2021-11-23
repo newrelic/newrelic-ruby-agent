@@ -44,7 +44,6 @@ module NewRelic
           result
         end
       end
-
     end
   end
 end

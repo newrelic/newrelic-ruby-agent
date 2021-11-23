@@ -24,7 +24,6 @@ class QueueController < ApplicationController
 end
 
 class QueueTimeTest < ActionDispatch::IntegrationTest
-
   REQUEST_START_HEADER = 'HTTP_X_REQUEST_START'
 
   include MultiverseHelpers

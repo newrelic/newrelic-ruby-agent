@@ -39,7 +39,6 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
   end
 
   def test_active_record_prepended_metrics
-
     # rails 5.0 prepends an anonymous module on to AR::Relation
     #
     val = 1
@@ -59,5 +58,4 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
      total_call_time: val.to_f,
      total_exclusive_time: val.to_f}
   end
-
 end

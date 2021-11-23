@@ -6,7 +6,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'te
 require 'new_relic/agent/agent'
 
 class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
-
   def setup
     server = NewRelic::Control::Server.new('localhost', 30303)
     @service = NewRelic::Agent::NewRelicService.new('abcdef', server)
@@ -54,31 +53,31 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
 
   def test_configure_agent_saves_transaction_name_rules
     @agent.instance_variable_set(:@transaction_rules,
-                                            NewRelic::Agent::RulesEngine.new)
+      NewRelic::Agent::RulesEngine.new)
     config = {
-      'transaction_name_rules' => [ {'match_expression' => '88',
+      'transaction_name_rules' => [{'match_expression' => '88',
                                      'replacement' => '**'},
                                     {'match_expression' => 'xx',
-                                     'replacement' => 'XX'} ]
+                                     'replacement' => 'XX'}]
     }
     @response_handler.configure_agent(config)
 
     rules = @agent.transaction_rules
     assert_equal 2, rules.size
-    assert(rules.find{ |r| r.match_expression == /88/i && r.replacement == '**' },
-           "rule not found among #{rules}")
-    assert(rules.find{ |r| r.match_expression == /xx/i && r.replacement == 'XX' },
-           "rule not found among #{rules}")
+    assert(rules.find { |r| r.match_expression == /88/i && r.replacement == '**' },
+      "rule not found among #{rules}")
+    assert(rules.find { |r| r.match_expression == /xx/i && r.replacement == 'XX' },
+      "rule not found among #{rules}")
   ensure
     @agent.instance_variable_set(:@transaction_rules,
-                                            NewRelic::Agent::RulesEngine.new)
+      NewRelic::Agent::RulesEngine.new)
   end
 
   def test_configure_agent_saves_metric_name_rules
     @agent.instance_variable_set(:@metric_rules,
-                                            NewRelic::Agent::RulesEngine.new)
+      NewRelic::Agent::RulesEngine.new)
     config = {
-      'metric_name_rules' => [ {'match_expression' => '77',
+      'metric_name_rules' => [{'match_expression' => '77',
                                 'replacement' => '&&'},
                                {'match_expression' => 'yy',
                                 'replacement' => 'YY'}]
@@ -87,13 +86,13 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
 
     rules = @agent.stats_engine.metric_rules
     assert_equal 2, rules.size
-    assert(rules.find{ |r| r.match_expression == /77/i && r.replacement == '&&' },
-           "rule not found among #{rules}")
-    assert(rules.find{ |r| r.match_expression == /yy/i && r.replacement == 'YY' },
-           "rule not found among #{rules}")
+    assert(rules.find { |r| r.match_expression == /77/i && r.replacement == '&&' },
+      "rule not found among #{rules}")
+    assert(rules.find { |r| r.match_expression == /yy/i && r.replacement == 'YY' },
+      "rule not found among #{rules}")
   ensure
     @agent.instance_variable_set(:@metric_rules,
-                                            NewRelic::Agent::RulesEngine.new)
+      NewRelic::Agent::RulesEngine.new)
   end
 
   def test_sql_tracer_disabled_when_tt_disabled_by_server

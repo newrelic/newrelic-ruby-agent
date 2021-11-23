@@ -6,7 +6,6 @@ require File.expand_path '../../../../test_helper', __FILE__
 
 module NewRelic::Agent::DistributedTracing
   class TraceContextTest < Minitest::Test
-
     def setup
       @config = {
         :account_id => "190",
@@ -30,11 +29,11 @@ module NewRelic::Agent::DistributedTracing
       trace_state = 'k1=asdf,k2=qwerty'
 
       TraceContext.insert format: NewRelic::FORMAT_NON_RACK,
-                          carrier: carrier,
-                          trace_id: trace_id,
-                          parent_id: parent_id,
-                          trace_flags: trace_flags,
-                          trace_state: trace_state
+        carrier: carrier,
+        trace_id: trace_id,
+        parent_id: parent_id,
+        trace_flags: trace_flags,
+        trace_state: trace_state
 
       assert_equal "00-#{trace_id}-#{parent_id}-01", carrier['traceparent']
       assert_equal trace_state, carrier['tracestate']
@@ -49,8 +48,8 @@ module NewRelic::Agent::DistributedTracing
       }
 
       trace_context_header_data = TraceContext.parse format: NewRelic::FORMAT_NON_RACK,
-                                             carrier: carrier,
-                                             trace_state_entry_key: "190@nr"
+        carrier: carrier,
+        trace_state_entry_key: "190@nr"
 
       trace_parent = trace_context_header_data.trace_parent
 
@@ -72,8 +71,8 @@ module NewRelic::Agent::DistributedTracing
       }
 
       trace_context_header_data = TraceContext.parse format: NewRelic::FORMAT_RACK,
-                                             carrier: carrier,
-                                             trace_state_entry_key: "190@nr"
+        carrier: carrier,
+        trace_state_entry_key: "190@nr"
 
       trace_parent = trace_context_header_data.trace_parent
 
@@ -95,8 +94,8 @@ module NewRelic::Agent::DistributedTracing
       }
 
       trace_context_header_data = TraceContext.parse format: NewRelic::FORMAT_NON_RACK,
-                                             carrier: carrier,
-                                             trace_state_entry_key: "190@nr"
+        carrier: carrier,
+        trace_state_entry_key: "190@nr"
 
       trace_parent = trace_context_header_data.trace_parent
 
@@ -118,8 +117,8 @@ module NewRelic::Agent::DistributedTracing
       }
 
       trace_context_header_data = TraceContext.parse format: NewRelic::FORMAT_NON_RACK,
-                                             carrier: carrier,
-                                             trace_state_entry_key: "190@nr"
+        carrier: carrier,
+        trace_state_entry_key: "190@nr"
 
       trace_parent = trace_context_header_data.trace_parent
 
@@ -141,8 +140,8 @@ module NewRelic::Agent::DistributedTracing
       }
 
       trace_context_header_data = TraceContext.parse format: NewRelic::FORMAT_NON_RACK,
-                                             carrier: carrier,
-                                             trace_state_entry_key: "190@nr"
+        carrier: carrier,
+        trace_state_entry_key: "190@nr"
 
       trace_parent = trace_context_header_data.trace_parent
 
@@ -159,8 +158,8 @@ module NewRelic::Agent::DistributedTracing
       payload = make_payload
       carrier = make_inbound_carrier({'tracestate' => "190@nr=#{payload.to_s}"})
       trace_context_header_data = TraceContext.parse format: NewRelic::FORMAT_NON_RACK,
-                                             carrier: carrier,
-                                             trace_state_entry_key: "190@nr"
+        carrier: carrier,
+        trace_state_entry_key: "190@nr"
       assert_equal payload.to_s, trace_context_header_data.trace_state_payload.to_s
       assert_equal 'new=entry', trace_context_header_data.trace_state('new=entry')
     end
@@ -168,8 +167,8 @@ module NewRelic::Agent::DistributedTracing
     def test_parse_tracestate_no_nr_entry
       carrier = make_inbound_carrier
       trace_context_header_data = TraceContext.parse format: NewRelic::FORMAT_NON_RACK,
-                                             carrier: carrier,
-                                             trace_state_entry_key: "190@nr"
+        carrier: carrier,
+        trace_state_entry_key: "190@nr"
       assert_nil trace_context_header_data.trace_state_payload
       assert_equal 'new=entry,other=asdf', trace_context_header_data.trace_state('new=entry')
     end
@@ -177,8 +176,8 @@ module NewRelic::Agent::DistributedTracing
     def test_parse_tracestate_nr_entry_malformed
       carrier = make_inbound_carrier({'tracestate' => "190@nr=somethingincorrect"})
       trace_context_header_data = TraceContext.parse format: NewRelic::FORMAT_NON_RACK,
-                                             carrier: carrier,
-                                             trace_state_entry_key: "190@nr"
+        carrier: carrier,
+        trace_state_entry_key: "190@nr"
 
       refute trace_context_header_data.trace_state_payload, "no payload expected"
       assert_equal 'new=entry', trace_context_header_data.trace_state('new=entry')

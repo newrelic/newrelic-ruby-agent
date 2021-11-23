@@ -7,7 +7,6 @@ require 'new_relic/rack/browser_monitoring'
 require './testing_app'
 
 class RumAutoTest < Minitest::Test
-
   attr_reader :app
 
   include Rack::Test::Methods
@@ -19,9 +18,9 @@ class RumAutoTest < Minitest::Test
   CONFIG_REGEX = "\n<script.*>.*NREUM.info=.*</script>"
 
   setup_and_teardown_agent(:application_id => 'appId',
-                           :beacon => 'beacon',
-                           :browser_key => 'browserKey',
-                           :js_agent_loader => JS_AGENT_LOADER) do |collector|
+    :beacon => 'beacon',
+    :browser_key => 'browserKey',
+    :js_agent_loader => JS_AGENT_LOADER) do |collector|
     collector.stub('connect', {
       'transaction_name_rules' => [{"match_expression" => "ignored_transaction",
                                     "ignore" => true}],
@@ -91,7 +90,7 @@ class RumAutoTest < Minitest::Test
   def assert_response_includes(*texts)
     texts.each do |text|
       assert_match(Regexp.new(text), last_response.body,
-                   "Response missing #{text} for JS Agent instrumentation:\n #{last_response.body}")
+        "Response missing #{text} for JS Agent instrumentation:\n #{last_response.body}")
     end
   end
 end

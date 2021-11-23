@@ -69,7 +69,6 @@ if !NewRelic::Agent::Threading::BacktraceService.is_supported?
       end
       assert_equal false, @profiler.running?
     end
-
   end
 
 else
@@ -215,6 +214,5 @@ else
       assert_equal 42, profile.profile_id
       assert_equal 0.02, profile.requested_period
     end
-
   end
 end

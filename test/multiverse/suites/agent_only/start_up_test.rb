@@ -9,7 +9,7 @@ class StartUpTest < Minitest::Test
   GIT_NOISE = "fatal: Not a git repository (or any of the parent directories): .git\n"
   JRUBY_9000_NOISE = [
     /uri\:classloader\:\/jruby\/kernel\/kernel\.rb\:\d*\: warning: unsupported exec option: close_others/, # https://github.com/jruby/jruby/issues/1913
-    /.*\/lib\/ruby\/stdlib\/jar_dependencies.rb:\d*: warning: shadowing outer local variable - (group_id|artifact_id)/, #https://github.com/mkristian/jar-dependencies/commit/65c71261b1522f7b10fcb95de42ea4799de3a83a
+    /.*\/lib\/ruby\/stdlib\/jar_dependencies.rb:\d*: warning: shadowing outer local variable - (group_id|artifact_id)/, # https://github.com/mkristian/jar-dependencies/commit/65c71261b1522f7b10fcb95de42ea4799de3a83a
     /.*warning\: too many arguments for format string/ # Fixed in 9.1.3.0, see https://github.com/jruby/jruby/issues/3934
   ]
   BUNDLER_NOISE = [
@@ -120,7 +120,7 @@ RUBY
   if RUBY_VERSION >= "2.1"
     def test_no_warnings
       with_environment('NEW_RELIC_TRANSACTION_TRACER_TRANSACTION_THRESHOLD' => '-10',
-                       'NEW_RELIC_PORT' => $collector.port.to_s) do
+        'NEW_RELIC_PORT' => $collector.port.to_s) do
         output = `bundle exec ruby -w script/warnings.rb 2>&1`
         expected_noise = [GIT_NOISE, NET_HTTP_NOISE]
 

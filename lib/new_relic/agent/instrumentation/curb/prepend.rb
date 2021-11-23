@@ -54,7 +54,6 @@ module NewRelic
             def perform(&blk)
               perform_with_tracing { super }
             end
-
           end
         end
       end

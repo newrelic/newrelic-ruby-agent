@@ -10,7 +10,6 @@ module NewRelic
   module Agent
     module DistributedTracing
       class TraceContextCrossAgentTest < Minitest::Test
-
         def setup
           NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
           NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
@@ -225,8 +224,8 @@ module NewRelic
 
           (test_case_attributes['exact'] || []).each do |k, v|
             assert_equal v,
-                         actual_attributes[k.to_s],
-                         %Q|Wrong "#{k}" #{event_type} attribute; expected #{v.inspect}, was #{actual_attributes[k.to_s].inspect}|
+              actual_attributes[k.to_s],
+              %Q|Wrong "#{k}" #{event_type} attribute; expected #{v.inspect}, was #{actual_attributes[k.to_s].inspect}|
           end
 
           (test_case_attributes['notequal'] || []).each do |k, v|
@@ -239,12 +238,12 @@ module NewRelic
 
           (test_case_attributes['expected'] || []).each do |key|
             assert actual_attributes.has_key?(key),
-                   %Q|Missing expected #{event_type} attribute "#{key}"|
+              %Q|Missing expected #{event_type} attribute "#{key}"|
           end
 
           (test_case_attributes['unexpected'] || []).each do |key|
             refute actual_attributes.has_key?(key),
-                   %Q|Unexpected #{event_type} attribute "#{key}"|
+              %Q|Unexpected #{event_type} attribute "#{key}"|
           end
 
           # TODO: check vendors in test_case_attributes
@@ -317,8 +316,8 @@ module NewRelic
         def trace_context_headers_to_hash carrier
           entry_key = NewRelic::Agent::Transaction::TraceContext::AccountHelpers.trace_state_entry_key
           header_data = TraceContext.parse \
-              carrier: carrier,
-              trace_state_entry_key: entry_key
+            carrier: carrier,
+            trace_state_entry_key: entry_key
 
           return {} unless header_data
 

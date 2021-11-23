@@ -7,7 +7,6 @@
 # class.  The enumerator is blocking while the queue is empty.
 module NewRelic::Agent
   module InfiniteTracing
-
     BATCH_SIZE = 100
 
     class StreamingBuffer
@@ -148,7 +147,6 @@ module NewRelic::Agent
       def transform proc_or_segment
         Span.new Transformer.transform(span_event proc_or_segment)
       end
-
     end
   end
 end

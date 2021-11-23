@@ -6,7 +6,6 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'te
 require 'new_relic/agent/agent'
 
 class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
-
   def setup
     @service = default_service
     NewRelic::Agent.reset_config
@@ -55,7 +54,7 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
 
   def test_connect_settings_includes_labels_from_config
     with_config({:labels => {'Server' => 'East'}}) do
-      expected = [ {"label_type" => "Server", "label_value" => "East"} ]
+      expected = [{"label_type" => "Server", "label_value" => "East"}]
       assert_equal expected, @request_builder.connect_payload[:labels]
     end
   end
@@ -84,5 +83,4 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
   ensure
     ENV[key] = nil
   end
-
 end

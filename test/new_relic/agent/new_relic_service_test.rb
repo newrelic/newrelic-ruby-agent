@@ -532,7 +532,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.sql_trace_data([])
   end
 
-  def self.check_status_code_handling( expected_exceptions )
+  def self.check_status_code_handling(expected_exceptions)
     expected_exceptions.each do |status_code, exception_type|
       method_name = "test_#{status_code}_raises_#{exception_type.name.split('::').last}"
       define_method method_name do

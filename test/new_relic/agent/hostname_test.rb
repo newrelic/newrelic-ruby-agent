@@ -60,8 +60,8 @@ module NewRelic
 
       def test_only_shortens_if_matches_prefix_and_dot
         with_dyno_name('ImladrisImladrisFakeout.1',
-                       :'heroku.use_dyno_names' => true,
-                       :'heroku.dyno_name_prefixes_to_shorten' => ['Imladris']) do
+          :'heroku.use_dyno_names' => true,
+          :'heroku.dyno_name_prefixes_to_shorten' => ['Imladris']) do
           assert_equal 'ImladrisImladrisFakeout.1', NewRelic::Agent::Hostname.get
         end
       end

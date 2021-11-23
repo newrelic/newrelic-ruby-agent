@@ -13,7 +13,7 @@ class EnumeratorQueue
   end
 
   def preload items
-    Array(items).each{ |item| @queue.push item }
+    Array(items).each { |item| @queue.push item }
     self
   end
 

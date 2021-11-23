@@ -6,7 +6,6 @@ module NewRelic
   module Agent
     module Configuration
       module EventHarvestConfig
-
         extend self
 
         EVENT_HARVEST_CONFIG_KEY_MAPPING = {

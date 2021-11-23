@@ -379,7 +379,6 @@ module NewRelic
             return segment_with_error, parent_segment, exception
           end
         end
-
       end
     end
   end

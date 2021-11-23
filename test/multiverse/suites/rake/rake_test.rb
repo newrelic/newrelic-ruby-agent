@@ -13,7 +13,7 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
 
     def test_disabling_rake_instrumentation
       with_environment("NEW_RELIC_DISABLE_RAKE" => "true",
-                      "NEW_RELIC_SYNC_STARTUP" => "true") do
+        "NEW_RELIC_SYNC_STARTUP" => "true") do
         run_rake
       end
 
@@ -36,8 +36,8 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
       $collector.stub_wait('connect', 5)
 
       with_environment("NEW_RELIC_RAKE_CONNECT_TIMEOUT" => "0",
-                       "NEW_RELIC_LOG" => "stdout",
-                       "NEW_RELIC_SYNC_STARTUP" => "true") do
+        "NEW_RELIC_LOG" => "stdout",
+        "NEW_RELIC_SYNC_STARTUP" => "true") do
         run_rake
       end
 
@@ -49,11 +49,11 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
       run_rake
 
       assert_metric_names_posted "OtherTransaction/Rake/invoke/default",
-                                 "OtherTransaction/Rake/all",
-                                 "OtherTransaction/all",
-                                 "Rake/execute/before",
-                                 "Rake/execute/during",
-                                 "Rake/execute/after"
+        "OtherTransaction/Rake/all",
+        "OtherTransaction/all",
+        "Rake/execute/before",
+        "Rake/execute/during",
+        "Rake/execute/after"
     end
 
     def test_records_transaction_trace
@@ -83,11 +83,11 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
         run_rake("named:all")
 
         assert_metric_names_posted "OtherTransaction/Rake/invoke/named:all",
-                                   "OtherTransaction/Rake/all",
-                                   "OtherTransaction/all",
-                                   "Rake/execute/named:before",
-                                   "Rake/execute/named:during",
-                                   "Rake/execute/named:after"
+          "OtherTransaction/Rake/all",
+          "OtherTransaction/all",
+          "Rake/execute/named:before",
+          "Rake/execute/named:during",
+          "Rake/execute/named:after"
       end
     end
 
@@ -96,7 +96,7 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
         run_rake("before named:before during")
 
         assert_metric_names_posted "OtherTransaction/Rake/invoke/before",
-                                   "OtherTransaction/Rake/invoke/named:before"
+          "OtherTransaction/Rake/invoke/named:before"
 
         refute_metric_names_posted "OtherTransaction/Rake/invoke/during"
       end
@@ -107,14 +107,14 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
         run_rake("tree")
 
         assert_metric_names_posted "OtherTransaction/Rake/invoke/tree",
-                                   "OtherTransaction/Rake/all",
-                                   "OtherTransaction/all",
-                                   "Rake/execute/branch1",
-                                   "Rake/execute/branch1a",
-                                   "Rake/execute/branch1b",
-                                   "Rake/execute/branch2",
-                                   "Rake/execute/branch2a",
-                                   "Rake/execute/branch2b"
+          "OtherTransaction/Rake/all",
+          "OtherTransaction/all",
+          "Rake/execute/branch1",
+          "Rake/execute/branch1a",
+          "Rake/execute/branch1b",
+          "Rake/execute/branch2",
+          "Rake/execute/branch2a",
+          "Rake/execute/branch2b"
       end
     end
 
@@ -123,11 +123,11 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
         run_rake
 
         assert_metric_names_posted "OtherTransaction/Rake/invoke/default",
-                                   "OtherTransaction/Rake/all",
-                                   "OtherTransaction/all",
-                                   "Rake/execute/before",
-                                   "Rake/execute/during",
-                                   "Rake/execute/after"
+          "OtherTransaction/Rake/all",
+          "OtherTransaction/all",
+          "Rake/execute/before",
+          "Rake/execute/during",
+          "Rake/execute/after"
 
         refute_metric_names_posted "OtherTransaction/Rake/invoke/before"
       end

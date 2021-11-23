@@ -185,7 +185,7 @@ class SidekiqTest < Minitest::Test
 
     metric = metric_data.first.metrics.find { |m| m[0]['name'] == name }
     assert(metric, "Could not find metric named #{name}. Did have metrics:\n" +
-                   metric_data.first.metrics.map{ |m| m[0]['name'] }.join("\t\n"))
+                   metric_data.first.metrics.map { |m| m[0]['name'] }.join("\t\n"))
 
     call_count = metric[1][0]
     assert_equal(expected_call_count, call_count)

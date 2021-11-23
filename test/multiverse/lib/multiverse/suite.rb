@@ -184,7 +184,7 @@ module Multiverse
       old_version = lock_contents.pop.strip
 
       lock_contents << "   #{new_version}"
-      File.open(lock_filename, 'w'){ |f| f.puts lock_contents }
+      File.open(lock_filename, 'w') { |f| f.puts lock_contents }
 
       if verbose?
         puts "Changing the Bundler version lock in #{lock_filename}"

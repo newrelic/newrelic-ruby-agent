@@ -8,7 +8,6 @@ require File.expand_path('../../test_helper', __FILE__)
 module NewRelic
   module Agent
     module InfiniteTracing
-
       class ConnectionTest < Minitest::Test
         include FakeTraceObserverHelpers
 
@@ -235,7 +234,6 @@ module NewRelic
           Connection.instance.send(:note_connect_failure)
           result
         end
-
       end
     end
   end

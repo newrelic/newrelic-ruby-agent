@@ -84,6 +84,5 @@ module Multiverse
     def size
       @gemfiles.size * permutations
     end
-
   end
 end

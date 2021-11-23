@@ -7,7 +7,7 @@ module NewRelic
     class RulesEngine
       class ReplacementRule
         attr_reader(:terminate_chain, :each_segment, :ignore, :replace_all, :eval_order,
-                    :match_expression, :replacement)
+          :match_expression, :replacement)
 
         def initialize(options)
           if !options['match_expression']

@@ -45,8 +45,8 @@ module NewRelic
             assert_equal total_spans, segments.size
             assert_equal total_spans, spans.size
 
-            span_ids = spans.map{ |s| s["trace_id"] }.sort
-            segment_ids = segments.map{ |s| s.transaction.trace_id }.sort
+            span_ids = spans.map { |s| s["trace_id"] }.sort
+            segment_ids = segments.map { |s| s.transaction.trace_id }.sort
 
             assert_equal segment_ids, span_ids
 
@@ -76,8 +76,8 @@ module NewRelic
             assert_equal total_spans, segments.size
             assert_equal total_spans, spans.size
 
-            span_ids = spans.map{ |s| s["trace_id"] }.sort
-            segment_ids = segments.map{ |s| s.transaction.trace_id }.sort
+            span_ids = spans.map { |s| s["trace_id"] }.sort
+            segment_ids = segments.map { |s| s.transaction.trace_id }.sort
 
             assert_equal segment_ids, span_ids
 
@@ -145,7 +145,6 @@ module NewRelic
             assert_equal 5, client.buffer.queue.length
           end
         end
-
       end
     end
   end

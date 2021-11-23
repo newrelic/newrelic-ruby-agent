@@ -438,10 +438,10 @@ module NewRelic
         @audit_logger.log_request(full_uri, payload, @marshaller)
         request_send_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         response = send_request(:data      => data,
-                                :uri       => uri,
-                                :encoding  => encoding,
-                                :collector => @collector,
-                                :endpoint  => method)
+          :uri       => uri,
+          :encoding  => encoding,
+          :collector => @collector,
+          :endpoint  => method)
         response_check_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @marshaller.load(decompress_response(response))
       ensure

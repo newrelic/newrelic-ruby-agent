@@ -9,7 +9,6 @@ module NewRelic
   module Agent
     module InfiniteTracing
       class InfiniteTracingTest < Minitest::Test
-
         # Ensures we're tracking versions against agent's version.
         def test_version_matches_agent_version
           refute_nil NewRelic::Agent::InfiniteTracing::VERSION::STRING
@@ -23,7 +22,6 @@ module NewRelic
           assert_kind_of Hash, span_event[1]
           assert_kind_of Hash, span_event[2]
         end
-
       end
     end
   end

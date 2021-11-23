@@ -27,7 +27,6 @@ module NewRelic
   module Agent
     module Instrumentation
       module MiddlewareTracing
-
         TXN_STARTED_KEY = 'newrelic.transaction_started'
         CONTENT_TYPE = 'Content-Type'
         CONTENT_LENGTH = 'Content-Length'
@@ -71,7 +70,7 @@ module NewRelic
           if result.is_a?(Array) && state.current_transaction
             _, headers, _ = result
             length = headers[CONTENT_LENGTH]
-            length = length.reduce(0){ |sum, h| sum + h.to_i } if length.is_a?(Array)
+            length = length.reduce(0) { |sum, h| sum + h.to_i } if length.is_a?(Array)
             state.current_transaction.response_content_length = length
           end
         end

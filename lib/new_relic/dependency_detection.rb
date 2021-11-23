@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 module DependencyDetection
-
   module_function
 
   @items = []
@@ -55,7 +54,6 @@ module DependencyDetection
     attr_writer :config_name
     attr_reader :dependencies
     attr_reader :prepend_conflicts
-
 
     def executed!
       @executed = true
@@ -134,7 +132,7 @@ module DependencyDetection
         begin
           dep.call
         rescue => err
-          NewRelic::Agent.logger.error( "Error while detecting #{self.name}:", err )
+          NewRelic::Agent.logger.error("Error while detecting #{self.name}:", err)
           false
         end
       end
@@ -222,7 +220,7 @@ module DependencyDetection
         begin
           conflict.call
         rescue => err
-          NewRelic::Agent.logger.error( "Error while checking prepend conflicts #{self.name}:", err )
+          NewRelic::Agent.logger.error("Error while checking prepend conflicts #{self.name}:", err)
           false # assumes no conflicts exist since `prepend` is preferred method of instrumenting
         end
       end

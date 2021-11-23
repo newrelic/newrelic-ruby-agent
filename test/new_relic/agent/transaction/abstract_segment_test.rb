@@ -88,7 +88,7 @@ module NewRelic
             refute_metrics_recorded ["Custom/basic/segment", "Basic/all"]
           end
 
-          #local metrics will be merged into global store at the end of the transction
+          # local metrics will be merged into global store at the end of the transction
           assert_metrics_recorded ["Custom/basic/segment", "Basic/all"]
         end
 

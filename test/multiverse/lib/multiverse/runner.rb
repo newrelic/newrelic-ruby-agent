@@ -85,7 +85,7 @@ module Multiverse
 
     GROUPS = {
       "agent" => ["agent_only", "bare", "config_file_loading", "deferred_instrumentation", "high_security", "no_json", "json", "marshalling", "yajl"],
-      "background" => ["delayed_job", "sidekiq", "resque" ],
+      "background" => ["delayed_job", "sidekiq", "resque"],
       "background_2" => ["rake"],
       "database" => ["datamapper", "mongo", "redis", "sequel"],
       "rails" => ["active_record", "rails", "rails_prepend", "activemerchant"],
@@ -110,7 +110,6 @@ module Multiverse
       GROUPS['rails'].delete 'active_record'
       GROUPS['frameworks'].delete 'grape'
     end
-
 
     def excluded?(suite)
       return true if suite == 'rake' and RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
@@ -144,7 +143,7 @@ module Multiverse
         # the "rest" group is one of the groups being passed in AND the directory is not in any other group
         # OR
         # the directory is one of the suites included in one of the non-rest groups passed in
-        (keys.include?("rest") && !GROUPS.values.flatten.include?(dir) ) || (combined_groups.any? && combined_groups.include?(dir))
+        (keys.include?("rest") && !GROUPS.values.flatten.include?(dir)) || (combined_groups.any? && combined_groups.include?(dir))
       else
         dir.include?(filter)
       end
