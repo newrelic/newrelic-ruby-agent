@@ -32,6 +32,10 @@ common: &default_settings
 # Defines the maximum number of request events reported from a single harvest.
 # analytics_events.max_samples_stored: 1200
 
+# Prefix of attributes to exclude from all destinations. Allows * as wildcard at
+# end.
+# attributes_exclude: []
+
 # Prefix of attributes to include in all destinations. Allows * as wildcard at
 # end.
 # attributes_include: []
