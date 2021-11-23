@@ -22,8 +22,8 @@ module NewRelic
       # we get back empty string.  So, solution here is to check for non-zero
       # exit status and retry the command without the -f flag.
       def self.get_fqdn
-        fqdn = %x[hostname -f].chomp!
-        fqdn = %x[hostname].chomp! unless $?.exitstatus.zero?
+        fqdn = %x(hostname -f).chomp!
+        fqdn = %x(hostname).chomp! unless $?.exitstatus.zero?
         fqdn
       rescue => e
         NewRelic::Agent.logger.debug "Unable to determine fqdn #{e}"

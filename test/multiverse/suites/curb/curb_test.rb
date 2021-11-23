@@ -108,7 +108,7 @@ class CurbTest < Minitest::Test
       end
 
       results.each do |res|
-        assert_match %r/<head>/i, res
+        assert_match %r{<head>}i, res
       end
     end
 

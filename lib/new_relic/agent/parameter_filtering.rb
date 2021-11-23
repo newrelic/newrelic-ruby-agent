@@ -13,8 +13,6 @@ module NewRelic
         ActiveSupport::ParameterFilter
       elsif defined?(ActionDispatch::Http::ParameterFilter)
         ActionDispatch::Http::ParameterFilter
-      else
-        nil
       end
 
       def apply_filters(env, params)

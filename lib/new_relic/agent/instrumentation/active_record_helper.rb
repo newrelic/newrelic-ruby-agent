@@ -116,8 +116,6 @@ module NewRelic
         def model_from_splits(splits)
           if splits.length == 2
             splits.first
-          else
-            nil
           end
         end
 

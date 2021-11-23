@@ -667,7 +667,7 @@ module Multiverse
     # similar reasons, we should change this hardcoded file name into
     # a configuration option.
     #
-    EXCLUDED_FILES = %w(test_worker.rb)
+    EXCLUDED_FILES = %w[test_worker.rb]
 
     def exclude?(file)
       EXCLUDED_FILES.include?(File.basename(file))

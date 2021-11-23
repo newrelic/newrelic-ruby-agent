@@ -31,7 +31,7 @@ class NewRelic::Agent::Agent::RequestBuilderTest < Minitest::Test
 
   def test_connect_settings
     with_config :app_name => ["apps"] do
-      keys = %w(pid host identifier display_host app_name language agent_version environment settings).map(&:to_sym)
+      keys = %w[pid host identifier display_host app_name language agent_version environment settings].map(&:to_sym)
 
       settings = @request_builder.connect_payload
       keys.each do |k|

@@ -9,8 +9,6 @@ if defined? Rake::TestTask
       matches = tasks.map { |t| /(seed=.*?)[,\]]/.match(t) }.compact
       if matches.any?
         matches.first[1]
-      else
-        nil
       end
     end
 

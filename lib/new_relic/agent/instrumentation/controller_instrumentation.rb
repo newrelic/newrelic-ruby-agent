@@ -206,10 +206,10 @@ module NewRelic
               elsif key == :params
                 value.to_s
               else
-                %Q["#{value.to_s}"]
+                %Q("#{value.to_s}")
               end
 
-              %Q[:#{key} => #{value}]
+              %Q(:#{key} => #{value})
             end
           end
 
@@ -272,7 +272,7 @@ module NewRelic
 
           def self.class_name(traced_obj, options = {})
             return options[:class_name] if options[:class_name]
-            if (traced_obj.is_a?(Class) || traced_obj.is_a?(Module))
+            if traced_obj.is_a?(Class) || traced_obj.is_a?(Module)
               traced_obj.name
             else
               traced_obj.class.name

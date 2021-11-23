@@ -42,19 +42,19 @@ class RumAutoTest < Minitest::Test
   def test_autoinstrumentation_with_basic_page_puts_header_at_beginning_of_head
     @inner_app.response = "<html><head><title>foo</title></head><body><p>Hello World</p></body></html>"
     get '/'
-    assert_response_includes(%Q[<html><head>#{CONFIG_REGEX}#{LOADER_REGEX}<title>foo</title></head>])
+    assert_response_includes(%Q(<html><head>#{CONFIG_REGEX}#{LOADER_REGEX}<title>foo</title></head>))
   end
 
   def test_autoinstrumentation_with_body_only_puts_header_before_body
     @inner_app.response = "<html><body><p>Hello World</p></body></html>"
     get '/'
-    assert_response_includes %Q[<html>#{CONFIG_REGEX}#{LOADER_REGEX}<body>]
+    assert_response_includes %Q(<html>#{CONFIG_REGEX}#{LOADER_REGEX}<body>)
   end
 
   def test_autoinstrumentation_with_X_UA_Compatible_puts_header_after_meta_tag
     @inner_app.response = '<html><head><meta http-equiv="X-UA-Compatible"/></head><body><p>Hello World</p></body></html>'
     get '/'
-    assert_response_includes(%Q[<html><head><meta http-equiv="X-UA-Compatible"/>#{CONFIG_REGEX}#{LOADER_REGEX}</head><body>])
+    assert_response_includes(%Q(<html><head><meta http-equiv="X-UA-Compatible"/>#{CONFIG_REGEX}#{LOADER_REGEX}</head><body>))
   end
 
   def test_autoinstrumentation_doesnt_run_for_crazy_shit_like_this

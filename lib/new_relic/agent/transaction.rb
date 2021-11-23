@@ -683,7 +683,6 @@ module NewRelic
         when :apdex_s then APDEX_S
         when :apdex_t then APDEX_T
         when :apdex_f then APDEX_F
-        else nil
         end
         payload[:apdex_perf_zone] = bucket_str if bucket_str
       end

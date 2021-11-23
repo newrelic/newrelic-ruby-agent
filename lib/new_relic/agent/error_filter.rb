@@ -18,10 +18,10 @@ module NewRelic
       end
 
       def load_all
-        %i(
+        %i[
           ignore_errors ignore_classes ignore_messages ignore_status_codes
           expected_classes expected_messages expected_status_codes
-        ).each { |setting| load_from_config(setting) }
+        ].each { |setting| load_from_config(setting) }
       end
 
       def load_from_config(setting, value = nil)

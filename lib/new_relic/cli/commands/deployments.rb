@@ -111,7 +111,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   private
 
   def options
-    OptionParser.new %Q{Usage: #{$0} #{self.class.command} [OPTIONS] ["description"] }, 40 do |o|
+    OptionParser.new %Q(Usage: #{$0} #{self.class.command} [OPTIONS] ["description"] ), 40 do |o|
       o.separator "OPTIONS:"
       o.on("-a", "--appname=NAME", String,
         "Set the application name.",

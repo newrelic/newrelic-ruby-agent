@@ -165,7 +165,7 @@ module NewRelic
       end
 
       def build_uri_rule(excluded_attributes)
-        uri_aliases = %w(uri url request_uri request.uri http.url)
+        uri_aliases = %w[uri url request_uri request.uri http.url]
 
         if (excluded_attributes & uri_aliases).size > 0
           build_rule(uri_aliases - excluded_attributes, DST_ALL, false)

@@ -108,7 +108,7 @@ module HttpClientTestCases
     res = nil
     in_transaction { res = get_response }
 
-    assert_match %r/<head>/i, body(res)
+    assert_match %r{<head>}i, body(res)
     assert_externals_recorded_for("localhost", "GET")
   end
 
@@ -125,7 +125,7 @@ module HttpClientTestCases
       res = get_response(uri.to_s, 'Host' => 'test.local')
     end
 
-    assert_match %r/<head>/i, body(res)
+    assert_match %r{<head>}i, body(res)
     assert_externals_recorded_for("test.local", "GET")
   end
 
@@ -138,7 +138,7 @@ module HttpClientTestCases
       res = get_response(uri.to_s, 'host' => 'test.local')
     end
 
-    assert_match %r/<head>/i, body(res)
+    assert_match %r{<head>}i, body(res)
     assert_externals_recorded_for("test.local", "GET")
   end
 
@@ -154,7 +154,7 @@ module HttpClientTestCases
       end
 
       responses.each do |res|
-        assert_match %r/<head>/i, body(res)
+        assert_match %r{<head>}i, body(res)
       end
 
       expected = {:call_count => n}
@@ -169,7 +169,7 @@ module HttpClientTestCases
       res = get_response
     end
 
-    assert_match %r/<head>/i, body(res)
+    assert_match %r{<head>}i, body(res)
     assert_externals_recorded_for("localhost", "GET")
     assert_metrics_recorded([
       ["External/localhost/#{client_name}/GET", "OtherTransaction/Background/#{self.class.name}/task"],
@@ -186,7 +186,7 @@ module HttpClientTestCases
       res = get_response
     end
 
-    assert_match %r/<head>/i, body(res)
+    assert_match %r{<head>}i, body(res)
     assert_externals_recorded_for("localhost", "GET", :transaction_type => "Web")
     assert_metrics_recorded([
       "Controller/#{self.class.name}/task"
@@ -243,7 +243,7 @@ module HttpClientTestCases
         res = get_response("#{protocol}://foo:^password*12@localhost:#{server.port}/status")
       end
 
-      assert_match %r/<head>/i, body(res)
+      assert_match %r{<head>}i, body(res)
       assert_externals_recorded_for("localhost", "GET")
     end
   end

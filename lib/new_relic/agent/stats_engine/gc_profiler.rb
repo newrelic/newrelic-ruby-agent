@@ -30,8 +30,6 @@ module NewRelic
           init
           if @profiler
             GCSnapshot.new(@profiler.call_time_s, @profiler.call_count)
-          else
-            nil
           end
         end
 

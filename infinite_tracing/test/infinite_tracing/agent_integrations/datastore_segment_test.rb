@@ -29,7 +29,7 @@ module NewRelic
                 operation: "select",
                 host: "rachel.foo",
                 port_path_or_id: 1337807,
-                database_name: "calzone_zone",
+                database_name: "calzone_zone"
               )
 
               segment.notice_sql sql_statement

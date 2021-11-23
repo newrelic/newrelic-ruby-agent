@@ -205,9 +205,7 @@ module NewRelic
               Database.obfuscate_sql(self)
             when :raw
               sql.to_s
-            else
-              nil
-          end
+            end
         end
 
         # This takes a connection config hash from ActiveRecord or Sequel and
@@ -220,8 +218,6 @@ module NewRelic
           elsif @config[:uri] && @config[:uri].to_s =~ /^jdbc:([^:]+):/
             # This case is for Sequel with the jdbc-mysql, jdbc-postgres, or jdbc-sqlite3 gems.
             symbolized_adapter($1)
-          else
-            nil
           end
         end
 

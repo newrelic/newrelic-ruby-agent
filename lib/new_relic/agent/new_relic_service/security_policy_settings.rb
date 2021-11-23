@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     class NewRelicService
       module SecurityPolicySettings
-        EXPECTED_SECURITY_POLICIES = %w(
+        EXPECTED_SECURITY_POLICIES = %w[
           record_sql
           attributes_include
           allow_raw_exception_messages
@@ -15,7 +15,7 @@ module NewRelic
           custom_instrumentation_editor
           message_parameters
           job_arguments
-        ).map(&:freeze)
+        ].map(&:freeze)
 
         def self.preliminary_settings(security_policies)
           enabled_key = 'enabled'.freeze

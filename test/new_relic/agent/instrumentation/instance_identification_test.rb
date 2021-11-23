@@ -107,7 +107,7 @@ module NewRelic
           end
 
           def test_supports_supported_adapters
-            %w(mysql mysql2 postgresql).each do |adapter|
+            %w[mysql mysql2 postgresql].each do |adapter|
               assert InstanceIdentification.supported_adapter?({:adapter => adapter})
             end
           end

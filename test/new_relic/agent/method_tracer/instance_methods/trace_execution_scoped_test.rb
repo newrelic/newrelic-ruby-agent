@@ -35,7 +35,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       'OtherTransactionTotalTime/outer' => expected_values,
       'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => expected_values,
       'Supportability/API/recording_web_transaction?' => expected_values,
-      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => expected_values,
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => expected_values
     )
   end
 
@@ -66,7 +66,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       'OtherTransactionTotalTime/Controller/inner_txn' => expected_values,
       'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => expected_values,
       'Supportability/API/recording_web_transaction?' => expected_values,
-      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => expected_values,
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => expected_values
     )
   end
 
@@ -105,7 +105,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       'OtherTransactionTotalTime/outer' => expected_values,
       'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => expected_values,
       'Supportability/API/recording_web_transaction?' => expected_values,
-      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => expected_values,
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => expected_values
     )
   end
 
@@ -126,7 +126,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       'OtherTransactionTotalTime/outer' => expected_values,
       'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => expected_values,
       'Supportability/API/recording_web_transaction?' => expected_values,
-      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => expected_values,
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => expected_values
     )
   end
 

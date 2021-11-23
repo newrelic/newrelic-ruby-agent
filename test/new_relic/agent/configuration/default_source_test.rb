@@ -157,7 +157,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_agent_attribute_settings_convert_comma_delimited_strings_into_an_arrays
-      types = %w(transaction_tracer. transaction_events. error_collector. browser_monitoring.)
+      types = %w[transaction_tracer. transaction_events. error_collector. browser_monitoring.]
       types << ''
 
       types.each do |type|
@@ -180,7 +180,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_agent_attributes_settings_with_yaml_array
-      types = %w(transaction_tracer. transaction_events. error_collector. browser_monitoring.)
+      types = %w[transaction_tracer. transaction_events. error_collector. browser_monitoring.]
       types << ''
 
       types.each do |type|

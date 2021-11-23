@@ -53,8 +53,6 @@ module NewRelic
       when Float
         if val.finite?
           val
-        else
-          nil
         end
       when Symbol
         val.to_s

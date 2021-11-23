@@ -43,7 +43,7 @@ namespace :test do
 
   namespace :multiverse do
     def remove_local_multiverse_databases
-      list_databases_command = %{echo "show databases" | mysql -u root}
+      list_databases_command = %(echo "show databases" | mysql -u root)
       databases = `#{list_databases_command}`.chomp!.split("\n").select { |s| s =~ /multiverse/ }
       databases.each do |database|
         puts "Dropping #{database}"

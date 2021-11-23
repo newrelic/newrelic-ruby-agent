@@ -10,7 +10,7 @@ task :test => ['test:newrelic']
 
 namespace :test do
   desc "Run all tests"
-  task :all => %w{newrelic multiverse}
+  task :all => %w[newrelic multiverse]
 
   begin
     require 'test_bisect'

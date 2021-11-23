@@ -159,8 +159,8 @@ module NewRelic::Agent
 
       raw_payload = JSON.parse(payload.text)
 
-      assert_equal_unordered %w(v d), raw_payload.keys
-      assert_equal_unordered %w(ty ac ap tk id tx tr pr sa ti), raw_payload["d"].keys
+      assert_equal_unordered %w[v d], raw_payload.keys
+      assert_equal_unordered %w[ty ac ap tk id tx tr pr sa ti], raw_payload["d"].keys
     end
 
     def test_to_json_and_from_json_are_inverse_operations

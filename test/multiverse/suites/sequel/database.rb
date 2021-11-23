@@ -34,7 +34,7 @@ if !defined?(DB)
   end
 
   # Use an in-memory SQLite database
-  if (RUBY_ENGINE == 'jruby')
+  if RUBY_ENGINE == 'jruby'
     DB = Sequel.connect('jdbc:sqlite::memory:')
   else
     DB = Sequel.sqlite

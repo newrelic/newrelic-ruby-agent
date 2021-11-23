@@ -32,8 +32,6 @@ module NewRelic
             trim_result(result) if result.length >= MAXIMUM_COMMAND_LENGTH
             result.strip!
             result
-          else
-            nil
           end
         end
 

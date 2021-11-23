@@ -48,7 +48,7 @@ module NewRelic
           header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse(
             format: NewRelic::FORMAT_RACK,
             carrier: request,
-            trace_state_entry_key: AccountHelpers.trace_state_entry_key,
+            trace_state_entry_key: AccountHelpers.trace_state_entry_key
           )
           return if header_data.nil?
 

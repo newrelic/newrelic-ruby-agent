@@ -385,7 +385,7 @@ module NewRelic
             delivery_info: {routing_key: 'blue'},
             message_properties: {reply_to: 'reply.key', correlation_id: 'correlate', headers: {"foo" => "bar", "NewRelicID" => "baz"}},
             exchange_type: :fanout,
-            queue_name: 'some.queue',
+            queue_name: 'some.queue'
           ) { tap.tap }
 
           transaction_event = last_transaction_event

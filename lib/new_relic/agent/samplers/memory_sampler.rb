@@ -46,7 +46,7 @@ module NewRelic
 
         def self.platform
           if RUBY_PLATFORM =~ /java/
-            %x[uname -s].downcase
+            %x(uname -s).downcase
           else
             RUBY_PLATFORM.downcase
           end

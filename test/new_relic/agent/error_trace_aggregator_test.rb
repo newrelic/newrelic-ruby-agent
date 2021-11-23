@@ -66,7 +66,7 @@ module NewRelic
         errors = error_trace_aggregator.harvest!
 
         assert_equal 4, errors.length
-        assert_equal_unordered(%w(first second path last), errors.map { |e| e.path })
+        assert_equal_unordered(%w[first second path last], errors.map { |e| e.path })
 
         notice_error(StandardError.new("message"), :metric => 'first')
         notice_error(StandardError.new("message"), :metric => 'last')

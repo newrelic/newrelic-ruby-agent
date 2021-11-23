@@ -225,7 +225,7 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
         method_with_kwargs('baz', arg2: false)
       end
       # We shouldn't be seeing warning messages in stdout
-      refute_match %r%warn%, err
+      refute_match %r{warn}, err
     end
   end
 

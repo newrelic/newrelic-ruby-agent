@@ -136,7 +136,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
         ::NewRelic::Agent::CrossAppTracing.stubs(:cross_app_enabled?).raises("Booom")
         res = get_response
 
-        assert_match %r/<head>/i, body(res)
+        assert_match %r{<head>}i, body(res)
         assert_metrics_not_recorded(["External/all"])
       end
     end
@@ -194,7 +194,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
       def test_get_with_uri
         res = nil
         in_transaction { res = get_response(default_uri) }
-        assert_match %r/<head>/i, body(res)
+        assert_match %r{<head>}i, body(res)
         assert_externals_recorded_for("localhost", "GET")
       end
     end

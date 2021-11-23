@@ -299,13 +299,13 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   END_OF_FOOTER = '}</script>'
 
   def assert_has_js_agent_loader(header)
-    assert_match(%Q[\n<script type="text/javascript">loader</script>],
+    assert_match(%Q(\n<script type="text/javascript">loader</script>),
       header,
       "expected new JS agent loader 'loader' but saw '#{header}'")
   end
 
   def assert_has_js_agent_loader_with_nonce(header)
-    assert_match(%Q[\n<script type="text/javascript" nonce="NONCE_TEST">loader</script>],
+    assert_match(%Q(\n<script type="text/javascript" nonce="NONCE_TEST">loader</script>),
       header,
       "expected new JS agent loader 'loader' but saw '#{header}'")
   end
@@ -340,7 +340,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   def formatted_for_matching(value)
     case value
     when String
-      %Q["#{value}"]
+      %Q("#{value}")
     when NilClass
       "null"
     else

@@ -38,8 +38,6 @@ module NewRelic
             @items[0] = incoming
             @items.fix(0)
             incoming
-          else
-            nil
           end
         else
           @items << (event || blk.call)

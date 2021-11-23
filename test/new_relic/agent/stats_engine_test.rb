@@ -238,7 +238,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     harvested = @engine.harvest!.to_h
 
     # after harvest, all the metrics should be reset
-    refute_metrics_recorded %w(a c)
+    refute_metrics_recorded %w[a c]
 
     spec_a = NewRelic::MetricSpec.new('a')
 

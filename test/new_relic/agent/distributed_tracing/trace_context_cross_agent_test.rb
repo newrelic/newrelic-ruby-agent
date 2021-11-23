@@ -197,11 +197,11 @@ module NewRelic
           merged
         end
 
-        ALLOWED_EVENT_TYPES = %w{ Transaction TransactionError Span }
+        ALLOWED_EVENT_TYPES = %w[ Transaction TransactionError Span ]
 
         def intrinsics_for_event(test_case, event_type)
           unless ALLOWED_EVENT_TYPES.include? event_type
-            raise %Q|Test fixture refers to unexpected event type "#{event_type}"|
+            raise %Q(Test fixture refers to unexpected event type "#{event_type}")
           end
 
           return {} unless (intrinsics = test_case['intrinsics'])
@@ -225,7 +225,7 @@ module NewRelic
           (test_case_attributes['exact'] || []).each do |k, v|
             assert_equal v,
               actual_attributes[k.to_s],
-              %Q|Wrong "#{k}" #{event_type} attribute; expected #{v.inspect}, was #{actual_attributes[k.to_s].inspect}|
+              %Q(Wrong "#{k}" #{event_type} attribute; expected #{v.inspect}, was #{actual_attributes[k.to_s].inspect})
           end
 
           (test_case_attributes['notequal'] || []).each do |k, v|
@@ -238,12 +238,12 @@ module NewRelic
 
           (test_case_attributes['expected'] || []).each do |key|
             assert actual_attributes.has_key?(key),
-              %Q|Missing expected #{event_type} attribute "#{key}"|
+              %Q(Missing expected #{event_type} attribute "#{key}")
           end
 
           (test_case_attributes['unexpected'] || []).each do |key|
             refute actual_attributes.has_key?(key),
-              %Q|Unexpected #{event_type} attribute "#{key}"|
+              %Q(Unexpected #{event_type} attribute "#{key}")
           end
 
           # TODO: check vendors in test_case_attributes
