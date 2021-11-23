@@ -16,7 +16,7 @@ module SequelHelpers
 
     NewRelic::Agent.shutdown
   end
-	#
+  #
   # Helpers
   #
 

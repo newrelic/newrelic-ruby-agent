@@ -118,7 +118,7 @@ module NewRelic::Agent
 
     def test_old_cat_disabled_when_better_cat_enabled
       with_config(:"cross_application_tracer.enabled" => true,
-        :"distributed_tracing.enabled"      => true) do
+        :"distributed_tracing.enabled" => true) do
         refute CrossAppTracing.cross_application_tracer_enabled?
       end
     end

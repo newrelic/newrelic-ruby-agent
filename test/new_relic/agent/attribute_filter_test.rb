@@ -317,7 +317,7 @@ module NewRelic::Agent
         :'browser_monitoring.attributes.enabled' => true,
         :'span_events.attributes.enabled' => true,
         :'transaction_segments.attributes.enabled' => true
-) do
+      ) do
         yield
       end
     end

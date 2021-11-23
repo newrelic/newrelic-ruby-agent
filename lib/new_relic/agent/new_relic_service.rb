@@ -392,7 +392,7 @@ module NewRelic
           'run_id' => @agent_id,
           'method' => method,
           'marshal_format' => 'json' # Other formats are explicitly
-                                        # ruled out; see the initializer
+          # ruled out; see the initializer
         }
 
         uri = "/agent_listener/invoke_raw_method?"
@@ -437,7 +437,7 @@ module NewRelic
 
         @audit_logger.log_request(full_uri, payload, @marshaller)
         request_send_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        response = send_request(:data      => data,
+        response = send_request(:data => data,
           :uri       => uri,
           :encoding  => encoding,
           :collector => @collector,

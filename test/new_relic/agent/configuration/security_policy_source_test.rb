@@ -41,7 +41,7 @@ module NewRelic
 
         def test_attributes_include_enabled
           policies = generate_security_policies(default: false, enabled: ['attributes_include'])
-          with_config :'attributes.include'                        => ['request.parameters.*'],
+          with_config :'attributes.include' => ['request.parameters.*'],
             :'transaction_tracer.attributes.include'     => ['request.uri'],
             :'transaction_events.attributes.include'     => ['request.headers.*'],
             :'error_collector.attributes.include'        => ['request.method'],
@@ -62,7 +62,7 @@ module NewRelic
 
         def test_attributes_include_disabled
           policies = generate_security_policies(default: true, disabled: ['attributes_include'])
-          with_config :'attributes.include'                        => ['request.parameters.*'],
+          with_config :'attributes.include' => ['request.parameters.*'],
             :'transaction_tracer.attributes.include'     => ['request.uri'],
             :'transaction_events.attributes.include'     => ['request.headers.*'],
             :'error_collector.attributes.include'        => ['request.method'],
@@ -151,7 +151,7 @@ module NewRelic
 
         def test_job_arguments_enabled
           policies = generate_security_policies(default: false, enabled: ['job_arguments'])
-          with_config :'resque.capture_params'  => true,
+          with_config :'resque.capture_params' => true,
             :'sidekiq.capture_params' => true do
             source = SecurityPolicySource.new(policies)
 
@@ -162,7 +162,7 @@ module NewRelic
 
         def test_job_arguments_disabled
           policies = generate_security_policies(default: true, disabled: ['job_arguments'])
-          with_config :'resque.capture_params'  => true,
+          with_config :'resque.capture_params' => true,
             :'sidekiq.capture_params' => true do
             source = SecurityPolicySource.new(policies)
 

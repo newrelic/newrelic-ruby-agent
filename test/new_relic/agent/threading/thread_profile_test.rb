@@ -54,7 +54,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         @profile.convert_N_trace_nodes_to_arrays(1)
 
         assert_equal 0, count_backtrace_nodes(@profile.traces[:request])
-        assert_equal 1, count_backtrace_nodes(@profile.traces[:other ])
+        assert_equal 1, count_backtrace_nodes(@profile.traces[:other])
       end
 
       def test_prune_keeps_highest_count_then_depths
@@ -64,7 +64,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         @profile.convert_N_trace_nodes_to_arrays(2)
 
         assert_equal 1, count_backtrace_nodes(@profile.traces[:request])
-        assert_equal 1, count_backtrace_nodes(@profile.traces[:other ])
+        assert_equal 1, count_backtrace_nodes(@profile.traces[:other])
       end
 
       def build_well_known_trace(args = {})

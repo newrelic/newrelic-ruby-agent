@@ -50,7 +50,7 @@ module NewRelic
             ::NewRelic::Agent::Transaction.set_default_transaction_name(
               transaction_name_suffix_for_job(job),
               transaction_category
-)
+            )
             block.call
           else
             run_in_transaction(job, block)

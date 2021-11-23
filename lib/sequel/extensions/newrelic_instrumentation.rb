@@ -84,7 +84,7 @@ module Sequel
     def explainer_for sql
       Proc.new do |*|
         if THREAD_SAFE_CONNECTION_POOL_CLASSES.include?(self.pool.class)
-          self[ sql ].explain
+          self[sql].explain
         else
           NewRelic::Agent.logger.log_once(:info, :sequel_explain_skipped, "Not running SQL explains because Sequel is not in recognized multi-threaded mode")
           nil

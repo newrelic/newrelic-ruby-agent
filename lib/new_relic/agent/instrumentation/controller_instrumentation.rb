@@ -82,7 +82,7 @@ module NewRelic
           def newrelic_ignore_aspect(property, specifiers = {}) # :nodoc:
             if specifiers.empty?
               self.newrelic_write_attr property, true
-            elsif ! (Hash === specifiers)
+            elsif !(Hash === specifiers)
               ::NewRelic::Agent.logger.error "newrelic_#{property} takes an optional hash with :only and :except lists of actions (illegal argument type '#{specifiers.class}')"
             else
               # symbolize the incoming values
@@ -461,7 +461,7 @@ module NewRelic
             key,
             self.class,
             name
-)
+          )
         end
 
         def detect_queue_start_time(request)

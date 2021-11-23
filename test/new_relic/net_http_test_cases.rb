@@ -125,7 +125,7 @@ module NetHttpTestCases
 
     assert_metrics_recorded(
       'External/localhost/Net::HTTP/GET' => {:call_count => 1}
-)
+    )
   end
 
   def test_ipv6_host_get_request_records_metric
@@ -136,6 +136,6 @@ module NetHttpTestCases
 
     assert_metrics_recorded(
       'External/[::1]/Net::HTTP/GET' => {:call_count => 1}
-)
+    )
   end
 end

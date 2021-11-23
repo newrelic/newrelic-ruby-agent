@@ -26,6 +26,6 @@ class TraceExecutionScopedTests < Performance::TestCase
      in_transaction do
        @test_class.method_1
      end
-   end
+    end
   end
 end

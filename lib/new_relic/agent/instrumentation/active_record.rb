@@ -57,7 +57,7 @@ module NewRelic
               NewRelic::Helper.correctly_encoded(name),
               NewRelic::Helper.correctly_encoded(sql),
               @config && @config[:adapter]
-)
+            )
 
             host = nil
             port_path_or_id = nil
@@ -101,7 +101,7 @@ module NewRelic
               NewRelic::Helper.correctly_encoded(name),
               NewRelic::Helper.correctly_encoded(sql),
               @config && @config[:adapter]
-)
+            )
 
             host = nil
             port_path_or_id = nil

@@ -68,7 +68,7 @@ module NewRelic
          expected = (0..4).map { |i| "Controller/sampled_#{i}" }
 
          assert_equal_unordered expected, events.map { |e| e[0]["name"] }
-       end
+        end
       end
 
       def generate_request name = 'whatever', options = {}

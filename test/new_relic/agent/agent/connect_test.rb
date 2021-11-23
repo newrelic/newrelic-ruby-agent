@@ -144,7 +144,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     NewRelic::Agent.manual_start
     NewRelic::Agent.instance.service = default_service(
       :connect => {'agent_run_id' => 23, 'config' => 'a lot'}
-)
+    )
 
     response = NewRelic::Agent.agent.connect_to_server
 
@@ -189,7 +189,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
         'messages' => [{'message' => 'beep boop', 'level' => 'INFO'},
           {'message' => 'ha cha cha', 'level' => 'WARN'}]
       }
-)
+    )
 
     expects_logging(:info, 'beep boop')
     expects_logging(:warn, 'ha cha cha')

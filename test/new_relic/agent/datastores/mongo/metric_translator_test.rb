@@ -163,8 +163,8 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
     payload = {:database => @database_name,
                :collection => "system.indexes",
                :documents => [{:name => "name_1",
-                                :ns => "#{@database_name}.#{@collection_name}",
-                                :key => {"name" => 1}}]}
+                               :ns => "#{@database_name}.#{@collection_name}",
+                               :key => {"name" => 1}}]}
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:insert, payload)
 

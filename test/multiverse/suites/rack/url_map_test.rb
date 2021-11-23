@@ -55,7 +55,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported?
         run Rack::URLMap.new(
           '/prefix1' => PrefixAppOne.new,
           '/prefix2' => PrefixAppTwo.new
-  )
+        )
       end
     end
 
@@ -67,7 +67,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.version_supported?
         run Puma::Rack::URLMap.new(
           '/prefix1' => PrefixAppOne.new,
           '/prefix2' => PrefixAppTwo.new
-  )
+        )
       end
     end
 

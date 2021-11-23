@@ -88,7 +88,7 @@ class NewRelic::ControlTest < Minitest::Test
   def test_init_plugin_loads_samplers_enabled
     reset_agent
 
-    with_config(:disable_samplers       => false,
+    with_config(:disable_samplers => false,
       :disable_harvest_thread => true,
       :agent_enabled          => true,
       :monitor_mode           => true,
@@ -101,7 +101,7 @@ class NewRelic::ControlTest < Minitest::Test
   def test_init_plugin_loads_samplers_disabled
     reset_agent
 
-    with_config(:disable_samplers       => true,
+    with_config(:disable_samplers => true,
       :disable_harvest_thread => true,
       :agent_enabled          => true,
       :monitor_mode           => true,
@@ -116,7 +116,7 @@ class NewRelic::ControlTest < Minitest::Test
 
     NewRelic::Agent.instance.stubs(:defer_for_delayed_job?).returns(true)
 
-    with_config(:disable_samplers       => false,
+    with_config(:disable_samplers => false,
       :disable_harvest_thread => true,
       :agent_enabled          => true,
       :monitor_mode           => true,
@@ -132,7 +132,7 @@ class NewRelic::ControlTest < Minitest::Test
 
     NewRelic::Agent.instance.stubs(:defer_for_delayed_job?).returns(true)
 
-    with_config(:disable_samplers       => false,
+    with_config(:disable_samplers => false,
       :disable_harvest_thread => true,
       :agent_enabled          => true,
       :monitor_mode           => true,

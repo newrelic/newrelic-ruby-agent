@@ -613,7 +613,7 @@ module NewRelic
           result[:parent_transaction] = in_transaction "text_txn2" do |txn|
             txn.distributed_tracer.accept_distributed_trace_payload(
               result[:grandparent_payload].text
-)
+            )
 
             result[:parent_payload] =
               txn.distributed_tracer.create_distributed_trace_payload
@@ -624,7 +624,7 @@ module NewRelic
           result[:child_transaction] = in_transaction "text_txn3" do |txn|
             txn.distributed_tracer.accept_distributed_trace_payload(
               result[:parent_payload].text
-)
+            )
           end
 
           result[:child_intrinsics], _, _ = last_transaction_event

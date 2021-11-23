@@ -47,7 +47,7 @@ if defined?(::Rack::Test)
   </head>
   <body>im some body text</body>
 </html>
-      EOL
+        EOL
         response = @@next_response || Rack::Response.new(@@doc)
         @@next_response = nil
 

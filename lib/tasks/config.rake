@@ -83,8 +83,8 @@ namespace :newrelic do
       return name if name
 
       key.split("_")
-          .each { |fragment| fragment[0] = fragment[0].upcase }
-          .join(" ")
+        .each { |fragment| fragment[0] = fragment[0].upcase }
+        .join(" ")
     end
 
     def format_type(type)

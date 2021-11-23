@@ -592,7 +592,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
         "Datastore/statement/#{current_product}/Eel/squirm" => {:call_count => 1},
         "Datastore/operation/#{current_product}/squirm" => {:call_count => 1}
       }
-)
+    )
   end
 
   ## helpers

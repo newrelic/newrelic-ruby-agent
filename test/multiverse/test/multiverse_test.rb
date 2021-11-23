@@ -8,10 +8,10 @@ ENV['NEWRELIC_GEM_PATH'] = '../../../../../ruby_agent'
 class MultiverseTest < Test::Unit::TestCase
   RUNNER = File.expand_path(File.join(
     File.dirname(__FILE__), '..', 'script', 'runner'
-))
+  ))
   TEST_SUITE_EXAMPLES_ROOT = File.expand_path(File.join(
     File.dirname(__FILE__), 'suite_examples'
-))
+  ))
 
   # encapsulates state from a example test suite run
   class SuiteRun

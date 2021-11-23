@@ -207,7 +207,7 @@ class SinatraIgnoreItAllTest < SinatraTestCase
     assert_metrics_recorded_exclusive(
       [],
       :ignore_filter => /^(Supportability|Logging)/
-)
+    )
   end
 end
 

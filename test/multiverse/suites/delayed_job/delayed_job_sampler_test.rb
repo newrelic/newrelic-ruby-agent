@@ -40,7 +40,7 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
       assert_metrics_recorded(
         "Workers/DelayedJob/failed_jobs" => {:total_call_time => 0},
         "Workers/DelayedJob/locked_jobs" => {:total_call_time => 0}
-)
+      )
     end
 
     def test_sampler_sees_failures
@@ -53,7 +53,7 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
 
       assert_metrics_recorded(
         "Workers/DelayedJob/failed_jobs" => {:total_call_time => 1}
-)
+      )
     end
 
     def test_sampler_sees_locks
@@ -64,7 +64,7 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
 
       assert_metrics_recorded(
         "Workers/DelayedJob/locked_jobs" => {:total_call_time => 1}
-)
+      )
     end
 
     def test_sampler_queue_depth_with_job
@@ -75,7 +75,7 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
       assert_metrics_recorded(
         "Workers/DelayedJob/queue_length/priority/0" => {:total_call_time => 1},
         "Workers/DelayedJob/queue_length/all" => {:total_call_time => 1}
-)
+      )
     end
 
     def test_sampler_queue_depth_with_alternate_priority
@@ -86,7 +86,7 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
       assert_metrics_recorded(
         "Workers/DelayedJob/queue_length/priority/7" => {:total_call_time => 1},
         "Workers/DelayedJob/queue_length/all" => {:total_call_time => 1}
-)
+      )
     end
 
     def test_sampler_queue_depth_with_default_queue
@@ -99,7 +99,7 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
       assert_metrics_recorded(
         "Workers/DelayedJob/queue_length/name/default" => {:total_call_time => 1},
         "Workers/DelayedJob/queue_length/all" => {:total_call_time => 1}
-)
+      )
     end
 
     def test_sampler_queue_depth_with_alternate_queues
@@ -114,7 +114,7 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
         "Workers/DelayedJob/queue_length/name/cue" => {:total_call_time => 1},
         "Workers/DelayedJob/queue_length/name/cute" => {:total_call_time => 1},
         "Workers/DelayedJob/queue_length/all" => {:total_call_time => 2}
-)
+      )
     end
 
     def test_sampler_queue_depth_with_queues_and_priorities
@@ -130,7 +130,7 @@ if NewRelic::Agent::Samplers::DelayedJobSampler.supported_backend?
         "Workers/DelayedJob/queue_length/name/cute" => {:total_call_time => 1},
         "Workers/DelayedJob/queue_length/priority/1" => {:total_call_time => 2},
         "Workers/DelayedJob/queue_length/all" => {:total_call_time => 2}
-)
+      )
     end
   end
 end

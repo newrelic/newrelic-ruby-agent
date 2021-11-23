@@ -140,7 +140,7 @@ module NewRelic
               message_properties: message_properties,
               exchange_type: exchange_type(delivery_info, channel),
               queue_name: queue_name
-) do
+            ) do
               yield
             end
           end

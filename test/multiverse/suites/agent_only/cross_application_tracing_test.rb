@@ -19,7 +19,7 @@ class CrossApplicationTracingTest < Minitest::Test
       'agent_run_id' => 666,
       'transaction_name_rules' => [{"match_expression" => "ignored_transaction",
                                     "ignore" => true}]
-})
+    })
   end
 
   include Rack::Test::Methods

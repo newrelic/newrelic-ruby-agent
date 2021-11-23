@@ -22,7 +22,7 @@ end
 Delayed::Worker.guess_backend
 
 if Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
-  $db_connection = ActiveRecord::Base.establish_connection(:adapter  => "sqlite3",
+  $db_connection = ActiveRecord::Base.establish_connection(:adapter => "sqlite3",
     :database => ":memory:")
 
   # Evaluate the delayed_job_active_record ERB template for database migration

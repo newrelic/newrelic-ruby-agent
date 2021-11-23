@@ -281,7 +281,7 @@ module NewRelic::Agent
 
     def test_kubernetes_information_is_omitted_if_disabled
       with_config :'utilization.detect_kubernetes' => false,
-        :'utilization.detect_docker'     => false do
+        :'utilization.detect_docker' => false do
         with_environment 'KUBERNETES_SERVICE_HOST' => '10.96.0.1' do
           utilization_data = UtilizationData.new
 

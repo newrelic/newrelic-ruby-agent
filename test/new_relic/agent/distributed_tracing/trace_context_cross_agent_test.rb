@@ -233,7 +233,7 @@ module NewRelic
               v,
               actual_attributes[k.to_s],
               "#{event_type} #{k.to_s.inspect} attribute should not equal #{v.inspect}"
-              )
+            )
           end
 
           (test_case_attributes['expected'] || []).each do |key|

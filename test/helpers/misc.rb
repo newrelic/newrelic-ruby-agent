@@ -87,7 +87,7 @@ def symbolize_keys_in_object(object)
     object.inject({}) do |memo, (k, v)|
        memo[k.to_sym] = symbolize_keys_in_object(v)
        memo
-     end
+    end
   when Array
     object.map { |o| symbolize_keys_in_object(o) }
   else
@@ -101,7 +101,7 @@ def stringify_keys_in_object(object)
     object.inject({}) do |memo, (k, v)|
        memo[k.to_s] = stringify_keys_in_object(v)
        memo
-     end
+    end
   when Array
     object.map { |o| stringify_keys_in_object(o) }
   else

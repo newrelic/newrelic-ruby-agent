@@ -120,7 +120,7 @@ module NewRelic::Agent::Configuration
       assert_equal 'correct value', @manager[:setting]
 
       @manager.instance_variable_get(:@configs_for_testing)
-               .unshift(:setting => 'wrong value')
+        .unshift(:setting => 'wrong value')
 
       assert_equal 'correct value', @manager[:setting]
     end

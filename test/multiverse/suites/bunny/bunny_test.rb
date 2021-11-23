@@ -168,7 +168,7 @@ class BunnyTest < Minitest::Test
       in_transaction "test_txn" do
         # our instrumentation should error here, but not interfere with bunny
         queue.publish("test_msg")
-         # this segment should be fine
+        # this segment should be fine
         segment = NewRelic::Agent::Tracer.start_segment name: "Custom/blah/method"
         segment.finish if segment
       end

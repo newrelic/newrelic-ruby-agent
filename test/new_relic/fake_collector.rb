@@ -150,7 +150,7 @@ module NewRelic
 
       query_params = req.GET
 
-      @agent_data << AgentPost.create(:action       => method,
+      @agent_data << AgentPost.create(:action => method,
         :body         => body,
         :run_id       => run_id,
         :format       => :json,

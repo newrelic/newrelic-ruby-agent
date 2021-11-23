@@ -6,8 +6,8 @@ module NewRelic
   module CollectionHelper
     DEFAULT_TRUNCATION_SIZE = 16 * 1024
     DEFAULT_ARRAY_TRUNCATION_SIZE = 128
-  # Transform parameter hash into a hash whose values are strictly
-  # strings
+    # Transform parameter hash into a hash whose values are strictly
+    # strings
     def normalize_params(params)
       case params
         when Hash
@@ -33,7 +33,7 @@ module NewRelic
 
   private
 
-  # Convert any kind of object to a short string.
+    # Convert any kind of object to a short string.
     def flatten(object)
       case object
         when nil then ''

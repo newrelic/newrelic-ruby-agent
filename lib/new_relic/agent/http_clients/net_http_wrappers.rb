@@ -69,7 +69,7 @@ module NewRelic
             scheme = @connection.use_ssl? ? 'https' : 'http'
             ::NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(
               "#{scheme}://#{connection_address}:#{@connection.port}#{@request.path}"
-              )
+            )
           end
         end
       end

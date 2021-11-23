@@ -39,7 +39,7 @@ DependencyDetection.defer do
 
     if NewRelic::Agent::Instrumentation::Resque::Helper.resque_fork_per_job?
       ::Resque.before_first_fork do
-        NewRelic::Agent.manual_start(:dispatcher   => :resque,
+        NewRelic::Agent.manual_start(:dispatcher => :resque,
           :sync_startup => true,
           :start_channel_listener => true)
       end
@@ -56,7 +56,7 @@ DependencyDetection.defer do
       end
     else
       ::Resque.before_first_fork do
-        NewRelic::Agent.manual_start(:dispatcher   => :resque,
+        NewRelic::Agent.manual_start(:dispatcher => :resque,
           :sync_startup => true,
           :start_channel_listener => false)
       end

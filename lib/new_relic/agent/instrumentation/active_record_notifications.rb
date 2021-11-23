@@ -25,7 +25,7 @@ module NewRelic
               :connection => self,
               :statement_name => statement_name,
               :binds => binds
-) { yield }
+            ) { yield }
           rescue => e
             # The translate_exception_class method got introduced in 4.1
             if ::ActiveRecord::VERSION::MINOR == 0
@@ -48,7 +48,7 @@ module NewRelic
               statement_name: statement_name,
               connection_id: object_id,
               connection: self
-) { yield }
+            ) { yield }
           rescue => e
             raise translate_exception_class(e, sql)
           end
@@ -66,11 +66,11 @@ module NewRelic
               statement_name: statement_name,
               connection_id: object_id,
               connection: self
-) do
+            ) do
                 @lock.synchronize do
                   yield
                 end
-              end
+            end
           rescue => e
             raise translate_exception_class(e, sql)
           end
@@ -108,7 +108,7 @@ DependencyDetection.defer do
       ::NewRelic::Agent::PrependSupportability.record_metrics_for(
         ::ActiveRecord::Base,
         ::ActiveRecord::Relation
-)
+      )
 
       # Default to .prepending, unless the ActiveRecord version is <=4
       # **AND** the :prepend_active_record_instrumentation config is false

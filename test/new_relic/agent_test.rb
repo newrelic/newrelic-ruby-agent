@@ -44,10 +44,10 @@ module NewRelic
       NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => "a" * 40)
       response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(
         NewRelic::Agent.instance, NewRelic::Agent.config
-)
+      )
       response_handler.configure_agent(
         'agent_config' => {'data_report_period' => 10}
-)
+      )
       assert_equal 10, NewRelic::Agent.config[:data_report_period]
       NewRelic::Agent.shutdown
       assert_equal 60, NewRelic::Agent.config[:data_report_period]
@@ -56,15 +56,15 @@ module NewRelic
     def test_configure_agent_applied_server_side_config
       response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(
         NewRelic::Agent.instance, NewRelic::Agent.config
-)
+      )
       with_config_low_priority({
         :'transction_tracer.enabled' => true,
         :'error_collector.enabled' => true
-}) do
+      }) do
         response_handler.configure_agent(
           'agent_config' => {'transaction_tracer.enabled' => false},
           'collect_errors' => false
-)
+        )
         refute NewRelic::Agent.config[:'transaction_tracer.enabled']
         refute NewRelic::Agent.config[:'error_collector.enabled']
       end

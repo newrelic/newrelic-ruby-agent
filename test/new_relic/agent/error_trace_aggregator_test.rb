@@ -17,7 +17,7 @@ module NewRelic
         @error_trace_aggregator.reset!
       end
 
-     # Helpers for DataContainerTests
+      # Helpers for DataContainerTests
 
       def create_container
         ErrorTraceAggregator.new ErrorCollector::MAX_ERROR_QUEUE_LENGTH
@@ -135,7 +135,7 @@ module NewRelic
              notice_error(StandardError.new("exception #{n}"),
                :metric => "path",
                :custom_params => {:x => n})
-           end
+          end
         end
 
         errors = error_trace_aggregator.harvest!

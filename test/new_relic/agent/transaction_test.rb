@@ -813,7 +813,7 @@ module NewRelic::Agent
 
     def test_freeze_name_and_execute_if_not_ignored_executes_given_block_if_not_ignored
       NewRelic::Agent.instance.transaction_rules.expects(:rename)
-                                                 .returns('non-ignored-transaction')
+        .returns('non-ignored-transaction')
       in_transaction('non-ignored-transaction') do |txn|
         block_was_called = false
         txn.freeze_name_and_execute_if_not_ignored do
@@ -826,7 +826,7 @@ module NewRelic::Agent
 
     def test_freeze_name_and_execute_if_not_ignored_ignores_given_block_if_transaction_ignored
       NewRelic::Agent.instance.transaction_rules.expects(:rename)
-                                                 .returns(nil)
+        .returns(nil)
       in_transaction('ignored-transaction') do |txn|
         block_was_called = false
         txn.freeze_name_and_execute_if_not_ignored do

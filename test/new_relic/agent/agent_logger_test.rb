@@ -14,7 +14,7 @@ class AgentLoggerTest < Minitest::Test
       :log_file_path => "log/",
       :log_file_name => "testlog.log",
       :log_level => :info
-)
+    )
   end
 
   def teardown

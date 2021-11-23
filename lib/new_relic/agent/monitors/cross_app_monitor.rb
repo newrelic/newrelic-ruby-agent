@@ -92,8 +92,8 @@ module NewRelic
           payload = obfuscator.obfuscate(
             ::JSON.dump(
               transaction.distributed_tracer.cross_app_payload.as_json_array(content_length)
-)
-)
+            )
+          )
 
           response_headers[NEWRELIC_APPDATA_HEADER] = payload
         end

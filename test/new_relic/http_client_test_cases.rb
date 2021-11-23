@@ -22,7 +22,7 @@ module HttpClientTestCases
     :cross_process_id => "269975#22824",
     :encoding_key => "gringletoes",
     :trusted_account_ids => [269975]
-    )
+  )
 
   def after_setup
     $fake_server.reset
@@ -306,7 +306,7 @@ module HttpClientTestCases
       :'cross_application_tracer.enabled' => true,
       :'distributed_tracing.enabled' => false,
       :encoding_key => ""
-) do
+    ) do
       in_transaction { get_response }
       assert_equal false, server.requests.last.keys.any? { |k| k =~ /NEWRELIC_ID/ }
     end

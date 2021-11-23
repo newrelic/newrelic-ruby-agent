@@ -203,9 +203,9 @@ class GrapeTest < Minitest::Test
         "request.method" => last_request.request_method
       }
 
-        # Rack >= 2.1 changes how/when contentLength is computed and Grape >= 1.3 also changes to deal with this.
-        # interactions with Rack < 2.1 and >= 2.1 differ on response.headers.contentLength calculations
-        # so we remove it when it is zero since its not present in such cases.
+      # Rack >= 2.1 changes how/when contentLength is computed and Grape >= 1.3 also changes to deal with this.
+      # interactions with Rack < 2.1 and >= 2.1 differ on response.headers.contentLength calculations
+      # so we remove it when it is zero since its not present in such cases.
       if Gem::Version.new(::Grape::VERSION) >= Gem::Version.new("1.3.0")
         if expected["response.headers.contentLength"] == 0
           expected.delete "response.headers.contentLength"

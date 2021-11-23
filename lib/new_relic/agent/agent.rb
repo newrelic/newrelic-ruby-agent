@@ -787,7 +787,7 @@ module NewRelic
             ::NewRelic::Agent.logger.error( \
               error.message, \
               "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
-)
+            )
             disconnect
           end
 

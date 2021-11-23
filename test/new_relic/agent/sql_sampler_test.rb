@@ -163,9 +163,9 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_harvest_should_collect_explain_plans
     @connection.expects(:execute).with("EXPLAIN select * from test") \
-     .returns(dummy_mysql_explain_result({"header0" => 'foo0', "header1" => 'foo1', "header2" => 'foo2'}))
+      .returns(dummy_mysql_explain_result({"header0" => 'foo0', "header1" => 'foo1', "header2" => 'foo2'}))
     @connection.expects(:execute).with("EXPLAIN select * from test2") \
-     .returns(dummy_mysql_explain_result({"header0" => 'bar0', "header1" => 'bar1', "header2" => 'bar2'}))
+      .returns(dummy_mysql_explain_result({"header0" => 'bar0', "header1" => 'bar1', "header2" => 'bar2'}))
 
     data = NewRelic::Agent::TransactionSqlData.new
     data.set_transaction_info("/c/a", 'guid')
