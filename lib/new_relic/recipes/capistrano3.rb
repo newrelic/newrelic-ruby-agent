@@ -22,7 +22,7 @@ namespace :newrelic do
   def send_deployment_notification_to_newrelic
     environment = fetch(:newrelic_rails_env, fetch(:rack_env, fetch(:rails_env, fetch(:stage, "production"))))
 
-    require 'new_relic/cli/command.rb'
+    require 'new_relic/cli/command'
 
     begin
       # allow overrides to be defined for revision, description, changelog, appname, and user
