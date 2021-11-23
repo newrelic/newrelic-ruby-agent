@@ -58,7 +58,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       'Nested/Controller/outer_txn'                           => expected_values,
       ['Nested/Controller/outer_txn', 'Controller/inner_txn'] => expected_values,
 
-      ['foo'                    , 'Controller/inner_txn']     => expected_values,
+      ['foo' , 'Controller/inner_txn']     => expected_values,
       'foo'                                                   => expected_values,
       'bar'                                                   => expected_values,
       'Supportability/API/trace_execution_scoped'             => expected_values,

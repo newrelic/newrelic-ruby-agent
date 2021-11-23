@@ -9,7 +9,7 @@ class LabelsTest < Minitest::Test
 
   setup_and_teardown_agent
 
-  EXPECTED     = [{'label_type' => 'Server', 'label_value' => 'East'}]
+  EXPECTED = [{'label_type' => 'Server', 'label_value' => 'East'}]
   YML_EXPECTED = [{'label_type' => 'Server', 'label_value' => 'Yaml'}]
 
   def test_yaml_makes_it_to_the_collector

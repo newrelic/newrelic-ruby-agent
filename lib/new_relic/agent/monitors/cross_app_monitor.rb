@@ -13,12 +13,12 @@ module NewRelic
     module DistributedTracing
       class CrossAppMonitor < InboundRequestMonitor
 
-        NEWRELIC_ID_HEADER      = 'X-NewRelic-ID'.freeze
-        NEWRELIC_TXN_HEADER     = 'X-NewRelic-Transaction'.freeze
+        NEWRELIC_ID_HEADER = 'X-NewRelic-ID'.freeze
+        NEWRELIC_TXN_HEADER = 'X-NewRelic-Transaction'.freeze
         NEWRELIC_APPDATA_HEADER = 'X-NewRelic-App-Data'.freeze
 
-        NEWRELIC_ID_HEADER_KEY    = 'HTTP_X_NEWRELIC_ID'.freeze
-        NEWRELIC_TXN_HEADER_KEY   = 'HTTP_X_NEWRELIC_TRANSACTION'.freeze
+        NEWRELIC_ID_HEADER_KEY = 'HTTP_X_NEWRELIC_ID'.freeze
+        NEWRELIC_TXN_HEADER_KEY = 'HTTP_X_NEWRELIC_TRANSACTION'.freeze
         CONTENT_LENGTH_HEADER_KEY = 'HTTP_CONTENT_LENGTH'.freeze
 
         def on_finished_configuring(events)
@@ -33,8 +33,8 @@ module NewRelic
         end
 
         def path_hash(txn_name, seed)
-          rotated    = ((seed << 1) | (seed >> 31)) & 0xffffffff
-          app_name   = NewRelic::Agent.config[:app_name].first
+          rotated = ((seed << 1) | (seed >> 31)) & 0xffffffff
+          app_name = NewRelic::Agent.config[:app_name].first
           identifier = "#{app_name};#{txn_name}"
           sprintf("%08x", rotated ^ hash_transaction_name(identifier))
         end

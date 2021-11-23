@@ -79,12 +79,12 @@ module NewRelic
           segment_a.finish
         end
 
-        last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+        last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
 
         txn_segment_event, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "test_txn" }
 
         assert_equal txn.guid, txn_segment_event["transactionId"]
-        assert_nil   txn_segment_event["parentId"]
+        assert_nil txn_segment_event["parentId"]
 
         segment_event_a, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_a" }
 
@@ -104,7 +104,7 @@ module NewRelic
           segment_a.finish
         end
 
-        last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+        last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
 
         txn_segment_event, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "test_txn" }
 

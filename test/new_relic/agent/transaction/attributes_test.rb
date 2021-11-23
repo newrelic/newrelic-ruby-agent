@@ -8,7 +8,7 @@ require 'new_relic/agent/attribute_filter'
 
 class AttributesTest < Minitest::Test
 
-  Attributes      = NewRelic::Agent::Attributes
+  Attributes = NewRelic::Agent::Attributes
   AttributeFilter = NewRelic::Agent::AttributeFilter
 
   def setup

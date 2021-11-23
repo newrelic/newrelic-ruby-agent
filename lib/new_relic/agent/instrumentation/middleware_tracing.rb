@@ -29,8 +29,8 @@ module NewRelic
       module MiddlewareTracing
 
         TXN_STARTED_KEY = 'newrelic.transaction_started'
-        CONTENT_TYPE    = 'Content-Type'
-        CONTENT_LENGTH  = 'Content-Length'
+        CONTENT_TYPE = 'Content-Type'
+        CONTENT_LENGTH = 'Content-Length'
 
         def _nr_has_middleware_tracing
           true

@@ -20,10 +20,10 @@ require File.join(File.dirname(__FILE__), "test_worker")
 class SidekiqTest < Minitest::Test
   JOB_COUNT = 5
 
-  ROLLUP_METRIC            = 'OtherTransaction/SidekiqJob/all'
-  TRANSACTION_NAME         = 'OtherTransaction/SidekiqJob/TestWorker/perform'
+  ROLLUP_METRIC = 'OtherTransaction/SidekiqJob/all'
+  TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/TestWorker/perform'
   DELAYED_TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/TestModel/do_work'
-  DELAYED_FAILED_TXN_NAME  = 'OtherTransaction/SidekiqJob/Sidekiq::Extensions::DelayedClass/perform'
+  DELAYED_FAILED_TXN_NAME = 'OtherTransaction/SidekiqJob/Sidekiq::Extensions::DelayedClass/perform'
 
   include MultiverseHelpers
 

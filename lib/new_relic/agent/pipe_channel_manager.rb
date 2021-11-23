@@ -128,7 +128,7 @@ module NewRelic
       end
 
       class Listener
-        attr_reader   :thread
+        attr_reader :thread
 
         # This attr_accessor intentionally provides unsynchronized access to the
         # @pipes hash. It is used to look up the write end of the pipe from

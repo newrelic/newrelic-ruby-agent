@@ -100,7 +100,7 @@ module NewRelic
       def test_segment_parameters_recorded_for_consume
         in_transaction "test_txn" do
           message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
-          delivery_info      = {routing_key: "red", exchange_name: "foobar"}
+          delivery_info = {routing_key: "red", exchange_name: "foobar"}
 
           segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
             library: "RabbitMQ",
@@ -125,7 +125,7 @@ module NewRelic
           in_transaction "test_txn" do
 
             message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
-            delivery_info      = {routing_key: "red", exchange_name: "foobar"}
+            delivery_info = {routing_key: "red", exchange_name: "foobar"}
 
             segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
               library: "RabbitMQ",
@@ -248,7 +248,7 @@ module NewRelic
 
         in_transaction "test_txn" do
           message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
-          delivery_info      = {routing_key: "red", exchange_name: "foobar"}
+          delivery_info = {routing_key: "red", exchange_name: "foobar"}
 
           segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
             library: "RabbitMQ",
@@ -271,7 +271,7 @@ module NewRelic
 
       def test_agent_attributes_not_assigned_when_not_subscribed_nor_in_transaction
         message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
-        delivery_info      = {routing_key: "red", exchange_name: "foobar"}
+        delivery_info = {routing_key: "red", exchange_name: "foobar"}
 
         segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
           library: "RabbitMQ",
@@ -288,7 +288,7 @@ module NewRelic
 
       def test_consume_api_passes_message_properties_headers_to_underlying_api
         message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
-        delivery_info      = {routing_key: "red", exchange_name: "foobar"}
+        delivery_info = {routing_key: "red", exchange_name: "foobar"}
 
         segment = NewRelic::Agent::Messaging.start_amqp_consume_segment(
           library: "RabbitMQ",
@@ -428,12 +428,12 @@ module NewRelic
       end
 
       def test_wrap_message_broker_consume_transaction_reads_cat_headers
-        guid                 = "BEC1BC64675138B9"
-        cross_process_id     = "321#123"
+        guid = "BEC1BC64675138B9"
+        cross_process_id = "321#123"
         intrinsic_attributes = { client_cross_process_id: cross_process_id, referring_transaction_guid: guid }
-        obfuscated_id        = nil
-        raw_txn_info         = nil
-        obfuscated_txn_info  = nil
+        obfuscated_id = nil
+        raw_txn_info = nil
+        obfuscated_txn_info = nil
 
         tap = mock 'tap'
         tap.expects :tap
@@ -445,8 +445,8 @@ module NewRelic
                     :encoding_key => "abc" do
 
           in_transaction do |txn|
-            obfuscated_id       = obfuscator.obfuscate cross_process_id
-            raw_txn_info        = [guid, false, guid, txn.distributed_tracer.cat_path_hash]
+            obfuscated_id = obfuscator.obfuscate cross_process_id
+            raw_txn_info = [guid, false, guid, txn.distributed_tracer.cat_path_hash]
             obfuscated_txn_info = obfuscator.obfuscate raw_txn_info.to_json
           end
 
@@ -459,8 +459,8 @@ module NewRelic
             txn = NewRelic::Agent::Tracer.current_transaction
             payload = txn.distributed_tracer.cross_app_payload
             assert_equal cross_process_id, payload.id
-            assert_equal payload.referring_guid,      raw_txn_info[0]
-            assert_equal payload.referring_trip_id,   raw_txn_info[2]
+            assert_equal payload.referring_guid, raw_txn_info[0]
+            assert_equal payload.referring_trip_id, raw_txn_info[2]
             assert_equal payload.referring_path_hash, raw_txn_info[3]
             assert_equal txn.attributes.intrinsic_attributes_for(NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER), intrinsic_attributes
             tap.tap
@@ -469,11 +469,11 @@ module NewRelic
       end
 
       def test_wrap_message_broker_consume_transaction_records_proper_metrics_with_cat
-        guid                 = "BEC1BC64675138B9"
-        cross_process_id     = "321#123"
-        obfuscated_id        = nil
-        raw_txn_info         = nil
-        obfuscated_txn_info  = nil
+        guid = "BEC1BC64675138B9"
+        cross_process_id = "321#123"
+        obfuscated_id = nil
+        raw_txn_info = nil
+        obfuscated_txn_info = nil
 
         tap = mock 'tap'
         tap.expects :tap

@@ -20,7 +20,7 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.defer do
       depends_on { true }
-      executes   { executed = true }
+      executes { executed = true }
     end
     DependencyDetection.detect!
 
@@ -32,7 +32,7 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.defer do
       named :testing
-      executes   { key = config_key }
+      executes { key = config_key }
     end
     DependencyDetection.detect!
 
@@ -45,7 +45,7 @@ class DependencyDetectionTest < Minitest::Test
     DependencyDetection.defer do
       named :testing
       configure_with :alternate
-      executes   { key = config_key }
+      executes { key = config_key }
     end
     DependencyDetection.detect!
 
@@ -58,7 +58,7 @@ class DependencyDetectionTest < Minitest::Test
     DependencyDetection.defer do
       depends_on { true }
       depends_on { false }
-      executes   { executed = true }
+      executes { executed = true }
     end
     DependencyDetection.detect!
 
@@ -72,7 +72,7 @@ class DependencyDetectionTest < Minitest::Test
     DependencyDetection.defer do
       depends_on { false }
       depends_on { raise "OH NOES"}
-      executes   { executed = true }
+      executes { executed = true }
     end
     DependencyDetection.detect!
 

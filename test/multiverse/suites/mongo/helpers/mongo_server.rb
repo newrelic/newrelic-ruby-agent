@@ -115,7 +115,7 @@ class MongoServer
   def startup_command
     pid_file = "--pidfilepath #{pid_path}"
     log_file = "--logpath #{log_path} "
-    fork     = "--fork"
+    fork = "--fork"
 
     dbpath = "--dbpath #{db_path}"
     port_flag = "--port #{self.port}"

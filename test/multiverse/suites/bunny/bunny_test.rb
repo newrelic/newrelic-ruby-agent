@@ -45,7 +45,7 @@ class BunnyTest < Minitest::Test
   end
 
   def test_cat_headers_not_read_for_pop_by_default
-    cross_process_id     = "321#123"
+    cross_process_id = "321#123"
 
     with_queue do |queue|
       with_config :"cross_application_tracer.enabled" => true, :cross_process_id => cross_process_id, :encoding_key => "abc" do
@@ -104,7 +104,7 @@ class BunnyTest < Minitest::Test
 
   def test_segment_parameters_recorded_for_produce
     with_config(:'distributed_tracing.enabled' => false) do
-      x       = @chan.fanout "activity.events"
+      x = @chan.fanout "activity.events"
       headers = {foo: "bar"}
       in_transaction "test_txn" do
         x.publish "howdy", {
@@ -219,7 +219,7 @@ class BunnyTest < Minitest::Test
 
         refute_nil tt, "Did not expect tt to be nil. Something terrible has occurred."
 
-        expected_destinations =   NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
+        expected_destinations = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
                                   NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
                                   NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 

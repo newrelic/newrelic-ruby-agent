@@ -94,12 +94,12 @@ module NewRelic
         end
 
         ACTIVE_RECORD = "ActiveRecord".freeze
-        OTHER         = "other".freeze
+        OTHER = "other".freeze
 
         def product_operation_collection_for name, sql, adapter_name
-          product   = map_product(adapter_name)
-          splits    = split_name(name)
-          model     = model_from_splits(splits)
+          product = map_product(adapter_name)
+          splits = split_name(name)
+          model = model_from_splits(splits)
           operation = operation_from_splits(splits, sql)
           NewRelic::Agent::Datastores::MetricHelper.product_operation_collection_for product, operation, model, ACTIVE_RECORD
         end
@@ -228,7 +228,7 @@ module NewRelic
           def host(config)
             return UNKNOWN unless config
 
-            configured_value  = config[:host]
+            configured_value = config[:host]
             adapter = PRODUCT_SYMBOLS[config[:adapter]]
             if configured_value.nil? ||
               postgres_unix_domain_socket_case?(configured_value, adapter)

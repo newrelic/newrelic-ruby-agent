@@ -18,12 +18,12 @@ module NewRelic
           end
 
           @match_expression = Regexp.new(options['match_expression'], Regexp::IGNORECASE)
-          @replacement      = options['replacement']
-          @ignore           = options['ignore'] || false
-          @eval_order       = options['eval_order'] || 0
-          @replace_all      = options['replace_all'] || false
-          @each_segment     = options['each_segment'] || false
-          @terminate_chain  = options['terminate_chain'] || false
+          @replacement = options['replacement']
+          @ignore = options['ignore'] || false
+          @eval_order = options['eval_order'] || 0
+          @replace_all = options['replace_all'] || false
+          @each_segment = options['each_segment'] || false
+          @terminate_chain = options['terminate_chain'] || false
         end
 
         def terminal?
@@ -56,9 +56,9 @@ module NewRelic
         end
 
         def apply_to_each_segment(string)
-          string        = string.dup
+          string = string.dup
           leading_slash = string.slice!(LEADING_SLASH_REGEX)
-          segments      = string.split(SEGMENT_SEPARATOR)
+          segments = string.split(SEGMENT_SEPARATOR)
 
           segments.map! do |segment|
             apply_replacement(segment)

@@ -154,7 +154,7 @@ module NewRelic
         def self.audit_log_path
           Proc.new {
             log_file_path = NewRelic::Agent.config[:log_file_path]
-            wants_stdout  = (log_file_path.upcase == 'STDOUT')
+            wants_stdout = (log_file_path.upcase == 'STDOUT')
             audit_log_dir = wants_stdout ? DEFAULT_LOG_DIR : log_file_path
 
             File.join(audit_log_dir, 'newrelic_audit.log')
@@ -958,7 +958,7 @@ module NewRelic
           :description  => 'Controls auto-instrumentation of Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.puma_rack' => {
-          :default      => instrumentation_value_of(:disable_puma_rack),  # TODO: change to value_of(:'instrumentation.rack') when we remove :disable_puma_rack in 8.0)
+          :default      => instrumentation_value_of(:disable_puma_rack), # TODO: change to value_of(:'instrumentation.rack') when we remove :disable_puma_rack in 8.0)
           :public       => true,
           :type         => String,
           :dynamic_name => true,
@@ -968,7 +968,7 @@ module NewRelic
                            "application startup.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.puma_rack_urlmap' => {
-          :default      => instrumentation_value_of(:disable_puma_rack_urlmap),  # TODO: change to value_of(:'instrumentation.rack_urlmap') when we remove :disable_puma_rack_urlmap in 8.0)
+          :default      => instrumentation_value_of(:disable_puma_rack_urlmap), # TODO: change to value_of(:'instrumentation.rack_urlmap') when we remove :disable_puma_rack_urlmap in 8.0)
           :public       => true,
           :type         => String,
           :dynamic_name => true,
@@ -1696,7 +1696,7 @@ module NewRelic
           :dynamic_name => true,
           :allowed_from_server => false,
           :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.rack',  'If `true`, prevents the agent from hooking into the `to_app` method in Rack::Builder to find gems to instrument during application startup.')
+          :description  => deprecated_description(:'instrumentation.rack', 'If `true`, prevents the agent from hooking into the `to_app` method in Rack::Builder to find gems to instrument during application startup.')
         },
         :disable_rack_urlmap => {
           :default      => false,

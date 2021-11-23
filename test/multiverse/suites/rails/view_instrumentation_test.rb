@@ -23,7 +23,7 @@ class ViewsController < ApplicationController
   end
 
   def text_render
-    render body:  "Yay"
+    render body: "Yay"
   end
 
   def json_render
@@ -214,12 +214,12 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       expected_stats_template = {
         :call_count           => 1,
         :total_call_time      => 4.0,
-        :total_exclusive_time => 1.0  # top-level template takes 1s itself
+        :total_exclusive_time => 1.0 # top-level template takes 1s itself
       }
 
       scope = 'Controller/views/render_with_delays'
       template_metric = 'View/views/index.html.erb/Rendering'
-      partial_metric  = 'View/views/_a_partial.html.erb/Partial'
+      partial_metric = 'View/views/_a_partial.html.erb/Partial'
 
       assert_metrics_recorded(
          partial_metric           => expected_stats_partial,

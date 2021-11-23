@@ -54,31 +54,31 @@ module NewRelic
 
         @service = NewRelicService.new
 
-        @events                    = EventListener.new
-        @stats_engine              = StatsEngine.new
-        @transaction_sampler       = TransactionSampler.new
-        @sql_sampler               = SqlSampler.new
-        @agent_command_router      = Commands::AgentCommandRouter.new @events
-        @monitors                  = Monitors.new @events
-        @error_collector           = ErrorCollector.new @events
-        @transaction_rules         = RulesEngine.new
-        @harvest_samplers          = SamplerCollection.new @events
-        @monotonic_gc_profiler     = VM::MonotonicGCProfiler.new
-        @javascript_instrumentor   = JavascriptInstrumentor.new @events
-        @adaptive_sampler          = AdaptiveSampler.new(Agent.config[:sampling_target],
+        @events = EventListener.new
+        @stats_engine = StatsEngine.new
+        @transaction_sampler = TransactionSampler.new
+        @sql_sampler = SqlSampler.new
+        @agent_command_router = Commands::AgentCommandRouter.new @events
+        @monitors = Monitors.new @events
+        @error_collector = ErrorCollector.new @events
+        @transaction_rules = RulesEngine.new
+        @harvest_samplers = SamplerCollection.new @events
+        @monotonic_gc_profiler = VM::MonotonicGCProfiler.new
+        @javascript_instrumentor = JavascriptInstrumentor.new @events
+        @adaptive_sampler = AdaptiveSampler.new(Agent.config[:sampling_target],
                                                          Agent.config[:sampling_target_period_in_seconds])
 
-        @harvester       = Harvester.new @events
+        @harvester = Harvester.new @events
         @after_fork_lock = Mutex.new
 
         @transaction_event_recorder = TransactionEventRecorder.new @events
-        @custom_event_aggregator    = CustomEventAggregator.new @events
-        @span_event_aggregator      = SpanEventAggregator.new @events
+        @custom_event_aggregator = CustomEventAggregator.new @events
+        @span_event_aggregator = SpanEventAggregator.new @events
 
-        @connect_state      = :pending
-        @connect_attempts   = 0
-        @waited_on_connect  = nil
-        @connected_pid      = nil
+        @connect_state = :pending
+        @connect_attempts = 0
+        @waited_on_connect = nil
+        @connected_pid = nil
 
         @wait_on_connect_mutex = Mutex.new
         @wait_on_connect_condition = ConditionVariable.new
@@ -887,14 +887,14 @@ module NewRelic
 
         def container_for_endpoint(endpoint)
           case endpoint
-          when :metric_data             then @stats_engine
+          when :metric_data then @stats_engine
           when :transaction_sample_data then @transaction_sampler
-          when :error_data              then @error_collector.error_trace_aggregator
-          when :error_event_data        then @error_collector.error_event_aggregator
-          when :analytic_event_data     then transaction_event_aggregator
-          when :custom_event_data       then @custom_event_aggregator
-          when :span_event_data         then span_event_aggregator
-          when :sql_trace_data          then @sql_sampler
+          when :error_data then @error_collector.error_trace_aggregator
+          when :error_event_data then @error_collector.error_event_aggregator
+          when :analytic_event_data then transaction_event_aggregator
+          when :custom_event_data then @custom_event_aggregator
+          when :span_event_data then span_event_aggregator
+          when :sql_trace_data then @sql_sampler
           end
         end
 
@@ -1067,7 +1067,7 @@ module NewRelic
 
         def harvest_and_send_analytic_event_data
           harvest_and_send_from_container(transaction_event_aggregator, :analytic_event_data)
-          harvest_and_send_from_container(synthetics_event_aggregator,  :analytic_event_data)
+          harvest_and_send_from_container(synthetics_event_aggregator, :analytic_event_data)
         end
 
         def harvest_and_send_custom_event_data

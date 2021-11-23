@@ -7,8 +7,8 @@ class TransactionTracingPerfTests < Performance::TestCase
 
   BOO = "boo"
   HOO = "hoo"
-  OH  = "oh"
-  NO  = "no"
+  OH = "oh"
+  NO = "no"
 
   def klass(instrument)
     Class.new do
@@ -80,7 +80,7 @@ class TransactionTracingPerfTests < Performance::TestCase
   def setup
     @dummy = klass(true).new
     NewRelic::Agent.manual_start(
-      :monitor_mode   => false
+      :monitor_mode => false
     )
   end
 

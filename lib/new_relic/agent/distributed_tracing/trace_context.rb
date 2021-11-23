@@ -11,24 +11,24 @@ module NewRelic
       class TraceContext
         VERSION = 0x0
 
-        COMMA             = ','
-        EQUALS            = '='
-        INVALID_TRACE_ID  = ('0' * 32)
+        COMMA = ','
+        EQUALS = '='
+        INVALID_TRACE_ID = ('0' * 32)
         INVALID_PARENT_ID = ('0' * 16)
-        INVALID_VERSION   = 'ff'
+        INVALID_VERSION = 'ff'
 
-        TRACE_ID_KEY          = 'trace_id'
-        TRACE_FLAGS_KEY       = 'trace_flags'
-        PARENT_ID_KEY         = 'parent_id'
-        VERSION_KEY           = 'version'
-        UNDEFINED_FIELDS_KEY  = 'undefined_fields'
+        TRACE_ID_KEY = 'trace_id'
+        TRACE_FLAGS_KEY = 'trace_flags'
+        PARENT_ID_KEY = 'parent_id'
+        VERSION_KEY = 'version'
+        UNDEFINED_FIELDS_KEY = 'undefined_fields'
 
-        TP_VERSION          = "(?<#{VERSION_KEY}>[a-f\\d]{2})"
-        TP_TRACE_ID         = "(?<#{TRACE_ID_KEY}>[a-f\\d]{32})"
-        TP_PARENT_ID        = "(?<#{PARENT_ID_KEY}>[a-f\\d]{16})"
-        TP_TRACE_FLAGS      = "(?<#{TRACE_FLAGS_KEY}>\\d{2})"
+        TP_VERSION = "(?<#{VERSION_KEY}>[a-f\\d]{2})"
+        TP_TRACE_ID = "(?<#{TRACE_ID_KEY}>[a-f\\d]{32})"
+        TP_PARENT_ID = "(?<#{PARENT_ID_KEY}>[a-f\\d]{16})"
+        TP_TRACE_FLAGS = "(?<#{TRACE_FLAGS_KEY}>\\d{2})"
         TP_UNDEFINED_FIELDS = "(?<#{UNDEFINED_FIELDS_KEY}>-[a-zA-Z\\d-]*)"
-        TRACE_PARENT_REGEX  = /\A#{TP_VERSION}-#{TP_TRACE_ID}-#{TP_PARENT_ID}-#{TP_TRACE_FLAGS}#{TP_UNDEFINED_FIELDS}?\z/
+        TRACE_PARENT_REGEX = /\A#{TP_VERSION}-#{TP_TRACE_ID}-#{TP_PARENT_ID}-#{TP_TRACE_FLAGS}#{TP_UNDEFINED_FIELDS}?\z/
 
         TRACE_PARENT_FORMAT_STRING = "%02x-%s-%s-%02x"
 
@@ -36,7 +36,7 @@ module NewRelic
         MAX_TRACE_STATE_ENTRY_SIZE = 128 # bytes
 
         SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION = "Supportability/TraceContext/TraceParent/Parse/Exception"
-        SUPPORTABILITY_TRACE_STATE_PARSE_EXCEPTION  = "Supportability/TraceContext/TraceState/Parse/Exception"
+        SUPPORTABILITY_TRACE_STATE_PARSE_EXCEPTION = "Supportability/TraceContext/TraceState/Parse/Exception"
         SUPPORTABILITY_TRACE_STATE_INVALID_NR_ENTRY = "Supportability/TraceContext/TraceState/InvalidNrEntry"
 
         class << self

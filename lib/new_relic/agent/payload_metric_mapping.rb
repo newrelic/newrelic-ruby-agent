@@ -41,18 +41,18 @@ module NewRelic
       # All Transactions
       # Don't need to use the transaction-type specific metrics since this is
       # scoped to just one transaction, so Datastore/all has what we want.
-      map_metric('Datastore/all',         :total_call_time => 'databaseDuration')
-      map_metric('Datastore/all',         :call_count      => 'databaseCallCount')
-      map_metric('GC/Transaction/all',    :total_call_time => 'gcCumulative')
+      map_metric('Datastore/all', :total_call_time => 'databaseDuration')
+      map_metric('Datastore/all', :call_count => 'databaseCallCount')
+      map_metric('GC/Transaction/all', :total_call_time => 'gcCumulative')
 
       # Web Metrics
       map_metric('WebFrontend/QueueTime', :total_call_time => 'queueDuration')
-      map_metric('External/allWeb',       :total_call_time => 'externalDuration')
-      map_metric('External/allWeb',       :call_count      => 'externalCallCount')
+      map_metric('External/allWeb', :total_call_time => 'externalDuration')
+      map_metric('External/allWeb', :call_count => 'externalCallCount')
 
       # Background Metrics
-      map_metric('External/allOther',     :total_call_time => 'externalDuration')
-      map_metric('External/allOther',     :call_count      => 'externalCallCount')
+      map_metric('External/allOther', :total_call_time => 'externalDuration')
+      map_metric('External/allOther', :call_count => 'externalCallCount')
     end
   end
 end

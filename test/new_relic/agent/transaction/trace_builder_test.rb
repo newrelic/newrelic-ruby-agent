@@ -25,7 +25,7 @@ module NewRelic
             segment_b = Tracer.start_segment name: "segment_b"
             advance_process_time 2
             segment_b.finish
-            segment_c = Tracer.start_segment name:  "segment_c"
+            segment_c = Tracer.start_segment name: "segment_c"
             advance_process_time 3
             segment_c.finish
             segment_a.finish

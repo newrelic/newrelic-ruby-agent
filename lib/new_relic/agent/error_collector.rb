@@ -168,7 +168,7 @@ module NewRelic
       def increment_error_count!(state, exception, options = {})
         txn = state.current_transaction
 
-        metric_names  = aggregated_metric_names(txn)
+        metric_names = aggregated_metric_names(txn)
         blamed_metric = blamed_metric_name(txn, options)
         metric_names << blamed_metric if blamed_metric
 
@@ -267,9 +267,9 @@ module NewRelic
         noticed_error = NewRelic::NoticedError.new(error_metric, exception)
         noticed_error.request_uri = options.delete(:uri) || NewRelic::EMPTY_STR
         noticed_error.request_port = options.delete(:port)
-        noticed_error.attributes  = options.delete(:attributes)
+        noticed_error.attributes = options.delete(:attributes)
 
-        noticed_error.file_name   = sense_method(exception, :file_name)
+        noticed_error.file_name = sense_method(exception, :file_name)
         noticed_error.line_number = sense_method(exception, :line_number)
         noticed_error.stack_trace = truncate_trace(extract_stack_trace(exception))
 

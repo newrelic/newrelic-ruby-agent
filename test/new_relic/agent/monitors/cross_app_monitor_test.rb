@@ -6,27 +6,27 @@ require File.expand_path '../../../../test_helper', __FILE__
 
 module NewRelic::Agent
   class CrossAppMonitorTest < Minitest::Test
-    NEWRELIC_ID_HEADER        = DistributedTracing::CrossAppMonitor::NEWRELIC_ID_HEADER_KEY
-    NEWRELIC_TXN_HEADER       = DistributedTracing::CrossAppMonitor::NEWRELIC_TXN_HEADER_KEY
-    CONTENT_LENGTH_KEY        = "HTTP_CONTENT_LENGTH"
+    NEWRELIC_ID_HEADER = DistributedTracing::CrossAppMonitor::NEWRELIC_ID_HEADER_KEY
+    NEWRELIC_TXN_HEADER = DistributedTracing::CrossAppMonitor::NEWRELIC_TXN_HEADER_KEY
+    CONTENT_LENGTH_KEY = "HTTP_CONTENT_LENGTH"
 
-    AGENT_CROSS_APP_ID        = "qwerty"
-    REQUEST_CROSS_APP_ID      = "42#1234"
-    TRANSACTION_GUID          = '941B0E8001E444E8'
-    REF_TRANSACTION_GUID      = '830092CDE59421D4'
+    AGENT_CROSS_APP_ID = "qwerty"
+    REQUEST_CROSS_APP_ID = "42#1234"
+    TRANSACTION_GUID = '941B0E8001E444E8'
+    REF_TRANSACTION_GUID = '830092CDE59421D4'
 
-    TRANSACTION_NAME          = 'transaction'
-    QUEUE_TIME                = 1.0
-    APP_TIME                  = 2.0
+    TRANSACTION_NAME = 'transaction'
+    QUEUE_TIME = 1.0
+    APP_TIME = 2.0
 
-    ENCODING_KEY_NOOP         = "\0"
-    TRUSTED_ACCOUNT_IDS       = [42, 13]
+    ENCODING_KEY_NOOP = "\0"
+    TRUSTED_ACCOUNT_IDS = [42, 13]
 
-    CROSS_APP_ID_POSITION     = 0
+    CROSS_APP_ID_POSITION = 0
     TRANSACTION_NAME_POSITION = 1
-    QUEUE_TIME_POSITION       = 2
-    APP_TIME_POSITION         = 3
-    CONTENT_LENGTH_POSITION   = 4
+    QUEUE_TIME_POSITION = 2
+    APP_TIME_POSITION = 3
+    CONTENT_LENGTH_POSITION = 4
 
     def setup
       NewRelic::Agent.reset_config

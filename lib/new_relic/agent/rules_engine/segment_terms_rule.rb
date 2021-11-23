@@ -6,12 +6,12 @@ module NewRelic
   module Agent
     class RulesEngine
       class SegmentTermsRule
-        PREFIX_KEY                        = 'prefix'.freeze
-        TERMS_KEY                         = 'terms'.freeze
-        SEGMENT_PLACEHOLDER               = '*'.freeze
-        ADJACENT_PLACEHOLDERS_REGEX       = %r{((?:^|/)\*)(?:/\*)*}.freeze
+        PREFIX_KEY = 'prefix'.freeze
+        TERMS_KEY = 'terms'.freeze
+        SEGMENT_PLACEHOLDER = '*'.freeze
+        ADJACENT_PLACEHOLDERS_REGEX = %r{((?:^|/)\*)(?:/\*)*}.freeze
         ADJACENT_PLACEHOLDERS_REPLACEMENT = '\1'.freeze
-        VALID_PREFIX_SEGMENT_COUNT        = 2
+        VALID_PREFIX_SEGMENT_COUNT = 2
 
         attr_reader :prefix, :terms
 
@@ -30,9 +30,9 @@ module NewRelic
         end
 
         def initialize(options)
-          @prefix          = options[PREFIX_KEY]
-          @terms           = options[TERMS_KEY]
-          @trim_range      = (@prefix.size..-1)
+          @prefix = options[PREFIX_KEY]
+          @terms = options[TERMS_KEY]
+          @trim_range = (@prefix.size..-1)
         end
 
         def terminal?
@@ -50,7 +50,7 @@ module NewRelic
         end
 
         def apply(string)
-          rest          = string[@trim_range]
+          rest = string[@trim_range]
           leading_slash = rest.slice!(LEADING_SLASH_REGEX)
           segments = rest.split(SEGMENT_SEPARATOR, -1)
           segments.map! { |s| @terms.include?(s) ? s : SEGMENT_PLACEHOLDER }

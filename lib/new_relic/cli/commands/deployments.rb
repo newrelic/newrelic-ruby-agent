@@ -30,8 +30,8 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   def initialize command_line_args
     @control = NewRelic::Control.instance
     @environment = nil
-    @changelog   = nil
-    @user        = nil
+    @changelog = nil
+    @user = nil
     super(command_line_args)
     @description ||= @leftover && @leftover.join(" ")
     @user ||= ENV['USER']
@@ -92,7 +92,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
       if response.is_a? Net::HTTPSuccess
         info "Recorded deployment to '#{@appname}' (#{@description || Time.now })"
       else
-        err_string = REXML::Document.new(response.body).elements['errors/error'].map(&:to_s).join("; ") rescue  response.message
+        err_string = REXML::Document.new(response.body).elements['errors/error'].map(&:to_s).join("; ") rescue response.message
         raise NewRelic::Cli::Command::CommandFailure, "Deployment not recorded: #{err_string}"
       end
     rescue SystemCallError, SocketError => e

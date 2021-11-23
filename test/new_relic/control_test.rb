@@ -8,7 +8,7 @@ class NewRelic::ControlTest < Minitest::Test
   attr_reader :control
 
   def setup
-    @control =  NewRelic::Control.instance
+    @control = NewRelic::Control.instance
     raise 'oh geez, wrong class' unless NewRelic::Control.instance.is_a?(::NewRelic::Control::Frameworks::Test)
     NewRelic::Agent.config.reset_to_defaults
   end
@@ -24,7 +24,7 @@ class NewRelic::ControlTest < Minitest::Test
   def test_root
     assert File.directory?(NewRelic::Control.newrelic_root), NewRelic::Control.newrelic_root
     if defined?(Rails::VERSION)
-      assert File.directory?(File.join(NewRelic::Control.newrelic_root, "lib")), NewRelic::Control.newrelic_root +  "/lib"
+      assert File.directory?(File.join(NewRelic::Control.newrelic_root, "lib")), NewRelic::Control.newrelic_root + "/lib"
     end
   end
 

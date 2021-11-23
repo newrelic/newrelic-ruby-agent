@@ -42,10 +42,10 @@ module NewRelic
           def perform_action_with_newrelic_trace(*args); yield; end
         end
 
-        NR_DO_NOT_TRACE_KEY   = :'@do_not_trace'
-        NR_IGNORE_APDEX_KEY   = :'@ignore_apdex'
+        NR_DO_NOT_TRACE_KEY = :'@do_not_trace'
+        NR_IGNORE_APDEX_KEY = :'@ignore_apdex'
         NR_IGNORE_ENDUSER_KEY = :'@ignore_enduser'
-        NR_DEFAULT_OPTIONS    = {}.freeze
+        NR_DEFAULT_OPTIONS = {}.freeze
 
         # @api public
         module ClassMethods
@@ -233,18 +233,18 @@ module NewRelic
           def self.prefix_for_category(txn, category = nil)
             category ||= (txn && txn.category)
             case category
-            when :controller    then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
-            when :web           then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
-            when :task          then ::NewRelic::Agent::Transaction::TASK_PREFIX
-            when :background    then ::NewRelic::Agent::Transaction::TASK_PREFIX
-            when :rack          then ::NewRelic::Agent::Transaction::RACK_PREFIX
-            when :uri           then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
-            when :sinatra       then ::NewRelic::Agent::Transaction::SINATRA_PREFIX
-            when :middleware    then ::NewRelic::Agent::Transaction::MIDDLEWARE_PREFIX
-            when :grape         then ::NewRelic::Agent::Transaction::GRAPE_PREFIX
-            when :rake          then ::NewRelic::Agent::Transaction::RAKE_PREFIX
-            when :action_cable  then ::NewRelic::Agent::Transaction::ACTION_CABLE_PREFIX
-            when :message       then ::NewRelic::Agent::Transaction::MESSAGE_PREFIX
+            when :controller then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
+            when :web then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
+            when :task then ::NewRelic::Agent::Transaction::TASK_PREFIX
+            when :background then ::NewRelic::Agent::Transaction::TASK_PREFIX
+            when :rack then ::NewRelic::Agent::Transaction::RACK_PREFIX
+            when :uri then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
+            when :sinatra then ::NewRelic::Agent::Transaction::SINATRA_PREFIX
+            when :middleware then ::NewRelic::Agent::Transaction::MIDDLEWARE_PREFIX
+            when :grape then ::NewRelic::Agent::Transaction::GRAPE_PREFIX
+            when :rake then ::NewRelic::Agent::Transaction::RAKE_PREFIX
+            when :action_cable then ::NewRelic::Agent::Transaction::ACTION_CABLE_PREFIX
+            when :message then ::NewRelic::Agent::Transaction::MESSAGE_PREFIX
             else "#{category.to_s}/" # for internal use only
             end
           end
@@ -363,8 +363,8 @@ module NewRelic
           # the *args method signature to ensure backwards compatibility.
 
           trace_options = args.last.is_a?(Hash) ? args.last : NR_DEFAULT_OPTIONS
-          category      = trace_options[:category] || :controller
-          txn_options   = create_transaction_options(trace_options, category, state, queue_start_time)
+          category = trace_options[:category] || :controller
+          txn_options = create_transaction_options(trace_options, category, state, queue_start_time)
 
           begin
             finishable = Tracer.start_transaction_or_segment(
@@ -434,7 +434,7 @@ module NewRelic
 
         def create_transaction_options(trace_options, category, state, queue_start_time)
           txn_options = {}
-          txn_options[:request]   = trace_options[:request]
+          txn_options[:request] = trace_options[:request]
           txn_options[:request] ||= request if respond_to?(:request) rescue nil
           # params should have been filtered before calling perform_action_with_newrelic_trace
           txn_options[:filtered_params] = trace_options[:params]

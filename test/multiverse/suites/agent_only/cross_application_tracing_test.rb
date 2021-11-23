@@ -70,8 +70,8 @@ class CrossApplicationTracingTest < Minitest::Test
 
       define_method("test_#{test_case['name']}") do
         txn_name_parts = test_case['transactionName'].split('/')
-        txn_category   = txn_name_parts[0..1].join('/')
-        txn_name       = txn_name_parts[2..-1].join('/')
+        txn_category = txn_name_parts[0..1].join('/')
+        txn_name = txn_name_parts[2..-1].join('/')
 
         request_params = {
           'transaction_name' => txn_name,

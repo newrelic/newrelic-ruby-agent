@@ -15,9 +15,9 @@ require File.expand_path('../rails3_app/app_rails3_plus', __FILE__)
 
 module RequestHelpersCompatibility
   [:get, :post, :put, :patch, :delete, :head].each do |method_name|
-    define_method method_name do |path, **args|       # def get path, **args
-      super path, args[:params], args[:headers]       #   super path, args[:params], args[:headers]
-    end                                               # end
+    define_method method_name do |path, **args| # def get path, **args
+      super path, args[:params], args[:headers] #   super path, args[:params], args[:headers]
+    end # end
   end
 end
 
@@ -37,9 +37,9 @@ class Foo
     'foos/foo'
   end
 
-  def valid?()      true end
+  def valid?() true end
   def new_record?() true end
-  def destroyed?()  true end
+  def destroyed?() true end
 
   def raise_error
     raise 'this is an uncaught model error'
@@ -47,7 +47,7 @@ class Foo
 
   def errors
     obj = Object.new
-    def obj.[](key)         [] end
+    def obj.[](key) [] end
     def obj.full_messages() [] end
     obj
   end

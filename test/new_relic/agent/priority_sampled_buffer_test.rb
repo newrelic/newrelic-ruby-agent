@@ -35,8 +35,8 @@ module NewRelic::Agent
 
       11.times { |i| buffer.append(event: create_event(priority: i)) }
 
-      assert_equal(10, buffer.size       )
-      assert_equal(11, buffer.num_seen   )
+      assert_equal(10, buffer.size )
+      assert_equal(11, buffer.num_seen )
       assert_equal( 1, buffer.num_dropped)
     end
 
@@ -48,9 +48,9 @@ module NewRelic::Agent
       events.each { |e| buffer.append(event: e) }
 
       buffer.capacity = 20
-      assert_equal(10, buffer.size       )
-      assert_equal(20, buffer.capacity   )
-      assert_equal(10, buffer.num_seen   )
+      assert_equal(10, buffer.size )
+      assert_equal(20, buffer.capacity )
+      assert_equal(10, buffer.num_seen )
       assert_equal( 0, buffer.num_dropped)
       assert_equal(events, buffer.to_a)
     end
@@ -123,7 +123,7 @@ module NewRelic::Agent
       expected = (5..9).map{ |i| create_event(priority: i)}
 
       assert_equal_unordered(expected, buffer.to_a)
-      assert_equal(10, buffer.num_seen   )
+      assert_equal(10, buffer.num_seen )
       assert_equal( 5, buffer.num_dropped)
     end
 

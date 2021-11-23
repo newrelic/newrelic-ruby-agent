@@ -19,15 +19,15 @@ module NewRelic::Rack
     # examine in order to look for a RUM insertion point.
     SCAN_LIMIT = 50_000
 
-    CONTENT_TYPE        = 'Content-Type'.freeze
+    CONTENT_TYPE = 'Content-Type'.freeze
     CONTENT_DISPOSITION = 'Content-Disposition'.freeze
-    CONTENT_LENGTH      = 'Content-Length'.freeze
-    ATTACHMENT          = 'attachment'.freeze
-    TEXT_HTML           = 'text/html'.freeze
+    CONTENT_LENGTH = 'Content-Length'.freeze
+    ATTACHMENT = 'attachment'.freeze
+    TEXT_HTML = 'text/html'.freeze
 
-    BODY_START          = "<body".freeze
-    HEAD_START          = "<head".freeze
-    GT                  = ">".freeze
+    BODY_START = "<body".freeze
+    HEAD_START = "<head".freeze
+    GT = ">".freeze
 
     def traced_call(env)
       result = @app.call(env)
@@ -79,7 +79,7 @@ module NewRelic::Rack
         env['action_controller.instance'].class.included_modules.include?(ActionController::Live)
     end
 
-    CHARSET_RE         = /<\s*meta[^>]+charset\s*=[^>]*>/im.freeze
+    CHARSET_RE = /<\s*meta[^>]+charset\s*=[^>]*>/im.freeze
     X_UA_COMPATIBLE_RE = /<\s*meta[^>]+http-equiv\s*=\s*['"]x-ua-compatible['"][^>]*>/im.freeze
 
     def autoinstrument_source(response, headers, js_to_inject)

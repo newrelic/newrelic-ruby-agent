@@ -9,16 +9,16 @@ module NewRelic
   module Agent
     class Transaction
       class MessageBrokerSegment < Segment
-        CONSUME  = 'Consume'.freeze
+        CONSUME = 'Consume'.freeze
         EXCHANGE = 'Exchange'.freeze
-        NAMED    = 'Named/'.freeze
-        PRODUCE  = 'Produce'.freeze
-        QUEUE    = 'Queue'.freeze
-        PURGE    = 'Purge'.freeze
-        SLASH    = '/'.freeze
-        TEMP     = 'Temp'.freeze
-        TOPIC    = 'Topic'.freeze
-        UNKNOWN  = 'Unknown'.freeze
+        NAMED = 'Named/'.freeze
+        PRODUCE = 'Produce'.freeze
+        QUEUE = 'Queue'.freeze
+        PURGE = 'Purge'.freeze
+        SLASH = '/'.freeze
+        TEMP = 'Temp'.freeze
+        TOPIC = 'Topic'.freeze
+        UNKNOWN = 'Unknown'.freeze
 
         DESTINATION_TYPES = [
           :exchange,

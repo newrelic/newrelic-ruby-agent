@@ -20,10 +20,10 @@ module NewRelic
         attr_accessor :finished_at
 
         def initialize(command_arguments = {})
-          @command_arguments  = command_arguments
-          @profile_id         = command_arguments.fetch('profile_id', -1)
-          @duration           = command_arguments.fetch('duration', 120)
-          @sample_period      = command_arguments.fetch('sample_period', 0.1)
+          @command_arguments = command_arguments
+          @profile_id = command_arguments.fetch('profile_id', -1)
+          @duration = command_arguments.fetch('duration', 120)
+          @sample_period = command_arguments.fetch('sample_period', 0.1)
           @profile_agent_code = command_arguments.fetch('profile_agent_code', false)
           @finished = false
 
@@ -79,7 +79,7 @@ module NewRelic
             # we primarily prefer higher runnable_count
             comparison = b.runnable_count <=> a.runnable_count
             # we secondarily prefer lower depth
-            comparison = a.depth          <=> b.depth if comparison == 0
+            comparison = a.depth <=> b.depth if comparison == 0
             # it is thus impossible for any child to preceed their parent
             comparison
           end
@@ -102,9 +102,9 @@ module NewRelic
           convert_N_trace_nodes_to_arrays(THREAD_PROFILER_NODES)
 
           {
-            "OTHER"      => @traces[:other     ].as_array,
-            "REQUEST"    => @traces[:request   ].as_array,
-            "AGENT"      => @traces[:agent     ].as_array,
+            "OTHER"      => @traces[:other ].as_array,
+            "REQUEST"    => @traces[:request ].as_array,
+            "AGENT"      => @traces[:agent ].as_array,
             "BACKGROUND" => @traces[:background].as_array
           }
         end

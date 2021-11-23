@@ -195,7 +195,7 @@ module NewRelic
             "custom_instrumentation_editor" => {"enabled" => default, "required" => false, "position" => 5}
           }
 
-          enabled.each  { |name| policies[name]["enabled"] = true }
+          enabled.each { |name| policies[name]["enabled"] = true }
           disabled.each { |name| policies[name]["enabled"] = false}
           required.each { |name| policies[name]["required"] = true}
 

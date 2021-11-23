@@ -73,7 +73,7 @@ begin
       NewRelic::Agent.config.add_config_for_testing(@config)
 
       NewRelic::Agent.manual_start(
-        :monitor_mode   => false
+        :monitor_mode => false
       )
 
       NewRelic::Agent.agent.events.notify(:initial_configuration_complete)

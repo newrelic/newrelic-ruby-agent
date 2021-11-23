@@ -183,7 +183,7 @@ end
 def metric_spec_from_specish specish
   spec = case specish
   when String then NewRelic::MetricSpec.new(specish)
-  when Array  then NewRelic::MetricSpec.new(*specish)
+  when Array then NewRelic::MetricSpec.new(*specish)
   end
   spec
 end
@@ -203,7 +203,7 @@ def _normalize_metric_expectations expectations
 end
 
 def dump_stats stats
-  str =  "  Call count:           #{stats.call_count}\n"
+  str = "  Call count:           #{stats.call_count}\n"
   str << "  Total call time:      #{stats.total_call_time}\n"
   str << "  Total exclusive time: #{stats.total_exclusive_time}\n"
   str << "  Min call time:        #{stats.min_call_time}\n"
@@ -272,7 +272,7 @@ def assert_metrics_recorded_exclusive expected, options = {}
     recorded_metrics.reject! { |m| m.name.match(options[:ignore_filter]) }
   end
 
-  expected_metrics   = expected.keys.map { |s| metric_spec_from_specish(s) }
+  expected_metrics = expected.keys.map { |s| metric_spec_from_specish(s) }
 
   unexpected_metrics = recorded_metrics - expected_metrics
   unexpected_metrics.reject! { |m| m.name =~ /GC\/Transaction/ }
@@ -320,7 +320,7 @@ def assert_no_metrics_match regex
   assert_equal(
     [],
     matching_metrics,
-    "Found unexpected metrics:\n" +  matching_metrics.map { |m| "  '#{m}'"}.join("\n") + "\n\n"
+    "Found unexpected metrics:\n" + matching_metrics.map { |m| "  '#{m}'"}.join("\n") + "\n\n"
   )
 end
 
@@ -372,7 +372,7 @@ end
 #   in_transaction('foobar', :category => :controller) { ... }
 #
 def in_transaction *args, &blk
-  opts     = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
+  opts = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
   category = (opts && opts.delete(:category)) || :other
 
   # At least one test passes `:transaction_name => nil`, so handle it gently

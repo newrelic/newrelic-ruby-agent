@@ -43,7 +43,7 @@ module NewRelic
         end
 
         def test_segment_is_nameable
-          segment = BasicSegment.new  "Custom/basic/segment"
+          segment = BasicSegment.new "Custom/basic/segment"
           assert_equal "Custom/basic/segment", segment.name
         end
 

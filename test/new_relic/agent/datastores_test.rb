@@ -21,8 +21,8 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
     private :internal
 
-    NewRelic::Agent::Datastores.trace self, :find,     "MyFirstDatabase"
-    NewRelic::Agent::Datastores.trace self, :save,     "MyFirstDatabase", "create"
+    NewRelic::Agent::Datastores.trace self, :find, "MyFirstDatabase"
+    NewRelic::Agent::Datastores.trace self, :save, "MyFirstDatabase", "create"
     NewRelic::Agent::Datastores.trace self, :internal, "MyFirstDatabase"
 
     def boom
@@ -136,8 +136,8 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
   end
 
   def test_notice_sql
-    query   = "SELECT * FROM SomeThings"
-    metric  = "Datastore/statement/MyFirstDatabase/SomeThing/find"
+    query = "SELECT * FROM SomeThings"
+    metric = "Datastore/statement/MyFirstDatabase/SomeThing/find"
     elapsed = 1.0
 
     in_transaction do |txn|
@@ -158,7 +158,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
   end
 
   def test_notice_statement
-    query   = "key"
+    query = "key"
     elapsed = 1.0
 
     in_transaction do |txn|
@@ -179,7 +179,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
   end
 
   def test_dont_notice_statement_based_on_record_sql_setting
-    query   = "key"
+    query = "key"
     elapsed = 1.0
 
     agent = NewRelic::Agent.instance

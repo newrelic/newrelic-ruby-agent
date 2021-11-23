@@ -14,21 +14,21 @@ module NewRelic
         attr_accessor :distributed_trace_payload
         attr_writer :distributed_trace_payload_created
 
-        SUPPORTABILITY_DISTRIBUTED_TRACE       = "Supportability/DistributedTrace"
-        CREATE_PREFIX                          = "#{SUPPORTABILITY_DISTRIBUTED_TRACE}/CreatePayload"
-        ACCEPT_PREFIX                          = "#{SUPPORTABILITY_DISTRIBUTED_TRACE}/AcceptPayload"
-        IGNORE_PREFIX                          = "#{ACCEPT_PREFIX}/Ignored"
+        SUPPORTABILITY_DISTRIBUTED_TRACE = "Supportability/DistributedTrace"
+        CREATE_PREFIX = "#{SUPPORTABILITY_DISTRIBUTED_TRACE}/CreatePayload"
+        ACCEPT_PREFIX = "#{SUPPORTABILITY_DISTRIBUTED_TRACE}/AcceptPayload"
+        IGNORE_PREFIX = "#{ACCEPT_PREFIX}/Ignored"
 
-        CREATE_SUCCESS_METRIC                  = "#{CREATE_PREFIX}/Success"
-        CREATE_EXCEPTION_METRIC                = "#{CREATE_PREFIX}/Exception"
-        ACCEPT_SUCCESS_METRIC                  = "#{ACCEPT_PREFIX}/Success"
-        ACCEPT_EXCEPTION_METRIC                = "#{ACCEPT_PREFIX}/Exception"
-        ACCEPT_PARSE_EXCEPTION_METRIC          = "#{ACCEPT_PREFIX}/ParseException"
+        CREATE_SUCCESS_METRIC = "#{CREATE_PREFIX}/Success"
+        CREATE_EXCEPTION_METRIC = "#{CREATE_PREFIX}/Exception"
+        ACCEPT_SUCCESS_METRIC = "#{ACCEPT_PREFIX}/Success"
+        ACCEPT_EXCEPTION_METRIC = "#{ACCEPT_PREFIX}/Exception"
+        ACCEPT_PARSE_EXCEPTION_METRIC = "#{ACCEPT_PREFIX}/ParseException"
 
-        IGNORE_ACCEPT_AFTER_CREATE_METRIC      = "#{IGNORE_PREFIX}/CreateBeforeAccept"
-        IGNORE_MULTIPLE_ACCEPT_METRIC          = "#{IGNORE_PREFIX}/Multiple"
-        IGNORE_ACCEPT_NULL_METRIC              = "#{IGNORE_PREFIX}/Null"
-        IGNORE_ACCEPT_MAJOR_VERSION_METRIC     = "#{IGNORE_PREFIX}/MajorVersion"
+        IGNORE_ACCEPT_AFTER_CREATE_METRIC = "#{IGNORE_PREFIX}/CreateBeforeAccept"
+        IGNORE_MULTIPLE_ACCEPT_METRIC = "#{IGNORE_PREFIX}/Multiple"
+        IGNORE_ACCEPT_NULL_METRIC = "#{IGNORE_PREFIX}/Null"
+        IGNORE_ACCEPT_MAJOR_VERSION_METRIC = "#{IGNORE_PREFIX}/MajorVersion"
         IGNORE_ACCEPT_UNTRUSTED_ACCOUNT_METRIC = "#{IGNORE_PREFIX}/UntrustedAccount"
 
         LBRACE = "{"

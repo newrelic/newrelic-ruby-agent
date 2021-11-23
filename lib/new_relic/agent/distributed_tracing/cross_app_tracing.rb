@@ -18,7 +18,7 @@ module NewRelic
       # The cross app transaction header for "outgoing" calls
       NR_TXN_HEADER = 'X-NewRelic-Transaction'
 
-      NR_MESSAGE_BROKER_ID_HEADER  = 'NewRelicID'
+      NR_MESSAGE_BROKER_ID_HEADER = 'NewRelicID'
       NR_MESSAGE_BROKER_TXN_HEADER = 'NewRelicTransaction'
       NR_MESSAGE_BROKER_SYNTHETICS_HEADER = 'NewRelicSynthetics'
 
@@ -56,8 +56,8 @@ module NewRelic
         return unless CrossAppTracing.cross_app_enabled?
 
         @is_cross_app_caller = true
-        txn_guid  = transaction.guid
-        trip_id   = cat_trip_id
+        txn_guid = transaction.guid
+        trip_id = cat_trip_id
         path_hash = cat_path_hash
 
         insert_request_headers headers, txn_guid, trip_id, path_hash
@@ -91,7 +91,7 @@ module NewRelic
       private
 
       def insert_message_headers headers, txn_guid, trip_id, path_hash, synthetics_header
-        headers[NR_MESSAGE_BROKER_ID_HEADER]  = obfuscator.obfuscate(Agent.config[:cross_process_id])
+        headers[NR_MESSAGE_BROKER_ID_HEADER] = obfuscator.obfuscate(Agent.config[:cross_process_id])
         headers[NR_MESSAGE_BROKER_TXN_HEADER] = obfuscator.obfuscate(::JSON.dump([txn_guid, false, trip_id, path_hash]))
         headers[NR_MESSAGE_BROKER_SYNTHETICS_HEADER] = synthetics_header if synthetics_header
       end
@@ -116,11 +116,11 @@ module NewRelic
         payload[:guid] = transaction.guid
 
         return unless is_cross_app?
-        trip_id             = cat_trip_id
-        path_hash           = cat_path_hash
+        trip_id = cat_trip_id
+        path_hash = cat_path_hash
         referring_path_hash = cat_referring_path_hash
 
-        payload[:cat_trip_id]             = trip_id             if trip_id
+        payload[:cat_trip_id] = trip_id if trip_id
         payload[:cat_referring_path_hash] = referring_path_hash if referring_path_hash
 
         if path_hash
@@ -173,9 +173,9 @@ module NewRelic
 
       def insert_request_headers request, txn_guid, trip_id, path_hash
         cross_app_id = NewRelic::Agent.config[:cross_process_id]
-        txn_data  = ::JSON.dump([txn_guid, false, trip_id, path_hash])
+        txn_data = ::JSON.dump([txn_guid, false, trip_id, path_hash])
 
-        request[NR_ID_HEADER]  = obfuscator.obfuscate(cross_app_id)
+        request[NR_ID_HEADER] = obfuscator.obfuscate(cross_app_id)
         request[NR_TXN_HEADER] = obfuscator.obfuscate(txn_data)
       end
 

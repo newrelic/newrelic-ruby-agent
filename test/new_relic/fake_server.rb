@@ -22,9 +22,9 @@ module NewRelic
       :AccessLog => [['/dev/null', '']]
     }
 
-    CONFIG_PATH        = File.join(File.dirname(__FILE__), "..", "config")
+    CONFIG_PATH = File.join(File.dirname(__FILE__), "..", "config")
     FAKE_SSL_CERT_PATH = File.join(CONFIG_PATH, "test.cert.crt")
-    FAKE_SSL_KEY_PATH  = File.join(CONFIG_PATH, "test.cert.key")
+    FAKE_SSL_KEY_PATH = File.join(CONFIG_PATH, "test.cert.key")
 
     SSL_OPTIONS = {
       :SSLEnable       => true,
@@ -35,9 +35,9 @@ module NewRelic
     }
 
     def initialize(port = DEFAULT_PORT)
-      @port    = port
-      @thread  = nil
-      @server  = nil
+      @port = port
+      @thread = nil
+      @server = nil
       @use_ssl = false
     end
 

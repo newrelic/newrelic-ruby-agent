@@ -9,7 +9,7 @@ module NewRelic
       class Ruby < NewRelic::Control
         def env
           @env ||= ENV['NEW_RELIC_ENV'] || ENV['RUBY_ENV'] || ENV['RAILS_ENV'] ||
-                   ENV['APP_ENV']       || ENV['RACK_ENV'] || 'development'
+                   ENV['APP_ENV'] || ENV['RACK_ENV'] || 'development'
         end
 
         def root

@@ -6,14 +6,14 @@ require File.expand_path '../../../../test_helper', __FILE__
 
 module NewRelic::Agent
   class SyntheticsMonitorTest < Minitest::Test
-    ENCODING_KEY_NOOP         = "\0"
-    TRUSTED_ACCOUNT_IDS       = [42, 13]
+    ENCODING_KEY_NOOP = "\0"
+    TRUSTED_ACCOUNT_IDS = [42, 13]
 
-    VERSION_ID  = 1
-    ACCOUNT_ID  = 42
+    VERSION_ID = 1
+    ACCOUNT_ID = 42
     RESOURCE_ID = 100
-    JOB_ID      = 200
-    MONITOR_ID  = 300
+    JOB_ID = 200
+    MONITOR_ID = 300
 
     BAD_ACCOUNT_ID = 7
     BAD_VERSION_ID = 2
@@ -21,7 +21,7 @@ module NewRelic::Agent
     STANDARD_DATA = [ACCOUNT_ID, RESOURCE_ID, JOB_ID, MONITOR_ID]
 
     def setup
-      @events  = EventListener.new
+      @events = EventListener.new
       @monitor = SyntheticsMonitor.new(@events)
 
       NewRelic::Agent.reset_config
@@ -69,7 +69,7 @@ module NewRelic::Agent
         state = NewRelic::Agent::Tracer.state
         txn = state.current_transaction
         assert_equal @last_encoded_header, txn.raw_synthetics_header
-        assert_equal synthetics_payload,   txn.synthetics_payload
+        assert_equal synthetics_payload, txn.synthetics_payload
       end
     end
 

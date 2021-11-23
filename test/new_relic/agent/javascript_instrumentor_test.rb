@@ -15,7 +15,7 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
       :beacon                 => 'beacon',
       :browser_key            => 'browserKey',
       :js_agent_loader        => 'loader',
-      :license_key            => "\0",  # no-op obfuscation key
+      :license_key            => "\0", # no-op obfuscation key
       :'rum.enabled'          => true,
       :disable_harvest_thread => true
     }

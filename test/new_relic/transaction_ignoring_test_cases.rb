@@ -36,7 +36,7 @@ module TransactionIgnoringTestCases
   end
 
   def test_does_not_record_traced_errors_for_ignored_transactions
-    trigger_transaction_with_error('ignored_transaction',  'Buffy dies :(')
+    trigger_transaction_with_error('ignored_transaction', 'Buffy dies :(')
     trigger_transaction_with_error('accepted_transaction', 'Buffy lives :)')
 
     NewRelic::Agent.instance.send(:harvest_and_send_errors)

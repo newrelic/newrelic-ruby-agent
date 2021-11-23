@@ -70,10 +70,10 @@ module NewRelic
 
           assert_metrics_recorded(
             'RubyVM/GC/runs' => {
-              :call_count           => 50,  # number of transactions
-              :total_call_time      => 10,  # number of GC runs
+              :call_count           => 50, # number of transactions
+              :total_call_time      => 10, # number of GC runs
               :total_exclusive_time => 100, # total GC time
-              :sum_of_squares       => 200  # total wall clock time
+              :sum_of_squares       => 200 # total wall clock time
             }
           )
         end
@@ -86,7 +86,7 @@ module NewRelic
           assert_metrics_recorded(
             'RubyVM/GC/total_allocated_object' => {
               :call_count      => 50, # number of transactions
-              :total_call_time => 25  # number of allocated objects
+              :total_call_time => 25 # number of allocated objects
             }
           )
         end
@@ -99,11 +99,11 @@ module NewRelic
           assert_metrics_recorded(
             'RubyVM/GC/major_gc_count' => {
               :call_count      => 50, # number of transactions
-              :total_call_time => 10  # number of major GC runs
+              :total_call_time => 10 # number of major GC runs
             },
             'RubyVM/GC/minor_gc_count' => {
               :call_count      => 50, # number of transactions
-              :total_call_time => 20  # number of minor GC runs
+              :total_call_time => 20 # number of minor GC runs
             }
           )
         end
@@ -171,8 +171,8 @@ module NewRelic
             'RubyVM/GC/runs' => {
               :call_count           => 50, # number of transactions
               :total_call_time      => 10, # number of GC runs
-              :total_exclusive_time => 0,  # total GC time
-              :sum_of_squares       => 60  # total wall clock time
+              :total_exclusive_time => 0, # total GC time
+              :sum_of_squares       => 60 # total wall clock time
             }
           )
         end
@@ -296,7 +296,7 @@ module NewRelic
           assert_metrics_recorded(
             'RubyVM/GC/runs' => {
               :total_exclusive_time => 10, # total GC time
-              :sum_of_squares       => 60  # total wall clock time
+              :sum_of_squares       => 60 # total wall clock time
             }
           )
 

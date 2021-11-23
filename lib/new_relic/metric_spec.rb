@@ -5,7 +5,7 @@
 # this struct uniquely defines a metric, optionally inside
 # the call scope of another metric
 class NewRelic::MetricSpec
-  attr_reader   :name, :scope
+  attr_reader :name, :scope
 
   # the maximum length of a metric name or metric scope
   MAX_LENGTH = 255

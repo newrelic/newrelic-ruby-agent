@@ -30,7 +30,7 @@ if !defined?(MyApp)
     attr_reader :name
 
     def initialize
-      @app  = nil
+      @app = nil
       @name = 'InstanceMiddleware'
     end
 

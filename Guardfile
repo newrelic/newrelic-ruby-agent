@@ -14,11 +14,11 @@ guard_options = {
 }
 
 guard :minitest, guard_options do
-  watch(%r{^lib/(.+)\.rb$})     { |m| "test/#{m[1]}_test.rb" }
+  watch(%r{^lib/(.+)\.rb$}) { |m| "test/#{m[1]}_test.rb" }
   watch(%r{^test/.+_test\.rb$})
-  watch(%r{^test/rum/.*})       { "test/new_relic/rack/browser_monitoring_test.rb" }
+  watch(%r{^test/rum/.*}) { "test/new_relic/rack/browser_monitoring_test.rb" }
   watch(%r{^test/fixtures/cross_agent_tests/distributed_tracing/(.+).json}) { |m| "test/new_relic/agent/distributed_tracing/#{m[1]}_cross_agent_test.rb" }
-  watch('test/test_helper.rb')  { "test/new_relic" }
+  watch('test/test_helper.rb') { "test/new_relic" }
   watch('test/agent_helper.rb') { "test/new_relic" }
   watch('lib/new_relic/agent/configuration/default_source.rb') { "test/new_relic/agent/configuration/orphan_configuration_test.rb" }
   watch(%r{^lib/new_relic/agent/transaction/(.+).rb}) { |m| "test/new_relic/agent/distributed_tracing/#{m[1]}_cross_agent_test.rb" }

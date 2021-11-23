@@ -7,7 +7,7 @@ module NewRelic
     module Instrumentation
       module Typhoeus
 
-        HYDRA_SEGMENT_NAME    = "External/Multiple/Typhoeus::Hydra/run"
+        HYDRA_SEGMENT_NAME = "External/Multiple/Typhoeus::Hydra/run"
         NOTICIBLE_ERROR_CLASS = "Typhoeus::Errors::TyphoeusError"
 
         EARLIEST_VERSION = Gem::Version.new("0.5.3")

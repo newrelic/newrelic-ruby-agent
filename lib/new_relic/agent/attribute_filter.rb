@@ -64,25 +64,25 @@ module NewRelic
     class AttributeFilter
       DST_NONE = 0x0
 
-      DST_TRANSACTION_EVENTS   = 1 << 0
-      DST_TRANSACTION_TRACER   = 1 << 1
-      DST_ERROR_COLLECTOR      = 1 << 2
-      DST_BROWSER_MONITORING   = 1 << 3
-      DST_SPAN_EVENTS          = 1 << 4
+      DST_TRANSACTION_EVENTS = 1 << 0
+      DST_TRANSACTION_TRACER = 1 << 1
+      DST_ERROR_COLLECTOR = 1 << 2
+      DST_BROWSER_MONITORING = 1 << 3
+      DST_SPAN_EVENTS = 1 << 4
       DST_TRANSACTION_SEGMENTS = 1 << 5
 
-      DST_ALL                  = 0x3f
+      DST_ALL = 0x3f
 
       attr_reader :rules
 
       def initialize(config)
         @enabled_destinations = DST_NONE
 
-        @enabled_destinations |= DST_TRANSACTION_TRACER   if config[:'transaction_tracer.attributes.enabled']
-        @enabled_destinations |= DST_TRANSACTION_EVENTS   if config[:'transaction_events.attributes.enabled']
-        @enabled_destinations |= DST_ERROR_COLLECTOR      if config[:'error_collector.attributes.enabled']
-        @enabled_destinations |= DST_BROWSER_MONITORING   if config[:'browser_monitoring.attributes.enabled']
-        @enabled_destinations |= DST_SPAN_EVENTS          if config[:'span_events.attributes.enabled']
+        @enabled_destinations |= DST_TRANSACTION_TRACER if config[:'transaction_tracer.attributes.enabled']
+        @enabled_destinations |= DST_TRANSACTION_EVENTS if config[:'transaction_events.attributes.enabled']
+        @enabled_destinations |= DST_ERROR_COLLECTOR if config[:'error_collector.attributes.enabled']
+        @enabled_destinations |= DST_BROWSER_MONITORING if config[:'browser_monitoring.attributes.enabled']
+        @enabled_destinations |= DST_SPAN_EVENTS if config[:'span_events.attributes.enabled']
         @enabled_destinations |= DST_TRANSACTION_SEGMENTS if config[:'transaction_segments.attributes.enabled']
 
         @enabled_destinations = DST_NONE unless config[:'attributes.enabled']
@@ -90,26 +90,26 @@ module NewRelic
         @rules = []
 
         build_rule(config[:'attributes.exclude'], DST_ALL, false)
-        build_rule(config[:'transaction_tracer.attributes.exclude'],   DST_TRANSACTION_TRACER,   false)
-        build_rule(config[:'transaction_events.attributes.exclude'],   DST_TRANSACTION_EVENTS,   false)
-        build_rule(config[:'error_collector.attributes.exclude'],      DST_ERROR_COLLECTOR,      false)
-        build_rule(config[:'browser_monitoring.attributes.exclude'],   DST_BROWSER_MONITORING,   false)
-        build_rule(config[:'span_events.attributes.exclude'],          DST_SPAN_EVENTS,          false)
+        build_rule(config[:'transaction_tracer.attributes.exclude'], DST_TRANSACTION_TRACER, false)
+        build_rule(config[:'transaction_events.attributes.exclude'], DST_TRANSACTION_EVENTS, false)
+        build_rule(config[:'error_collector.attributes.exclude'], DST_ERROR_COLLECTOR, false)
+        build_rule(config[:'browser_monitoring.attributes.exclude'], DST_BROWSER_MONITORING, false)
+        build_rule(config[:'span_events.attributes.exclude'], DST_SPAN_EVENTS, false)
         build_rule(config[:'transaction_segments.attributes.exclude'], DST_TRANSACTION_SEGMENTS, false)
 
         build_rule(['request.parameters.*'], include_destinations_for_capture_params(config[:capture_params]), true)
-        build_rule(['job.resque.args.*'],    include_destinations_for_capture_params(config[:'resque.capture_params']), true)
-        build_rule(['job.sidekiq.args.*'],   include_destinations_for_capture_params(config[:'sidekiq.capture_params']), true)
+        build_rule(['job.resque.args.*'], include_destinations_for_capture_params(config[:'resque.capture_params']), true)
+        build_rule(['job.sidekiq.args.*'], include_destinations_for_capture_params(config[:'sidekiq.capture_params']), true)
 
         build_rule(['host', 'port_path_or_id'], DST_TRANSACTION_SEGMENTS, config[:'datastore_tracer.instance_reporting.enabled'])
-        build_rule(['database_name'],           DST_TRANSACTION_SEGMENTS, config[:'datastore_tracer.database_name_reporting.enabled'])
+        build_rule(['database_name'], DST_TRANSACTION_SEGMENTS, config[:'datastore_tracer.database_name_reporting.enabled'])
 
         build_rule(config[:'attributes.include'], DST_ALL, true)
-        build_rule(config[:'transaction_tracer.attributes.include'],   DST_TRANSACTION_TRACER,   true)
-        build_rule(config[:'transaction_events.attributes.include'],   DST_TRANSACTION_EVENTS,   true)
-        build_rule(config[:'error_collector.attributes.include'],      DST_ERROR_COLLECTOR,      true)
-        build_rule(config[:'browser_monitoring.attributes.include'],   DST_BROWSER_MONITORING,   true)
-        build_rule(config[:'span_events.attributes.include'],          DST_SPAN_EVENTS,          true)
+        build_rule(config[:'transaction_tracer.attributes.include'], DST_TRANSACTION_TRACER, true)
+        build_rule(config[:'transaction_events.attributes.include'], DST_TRANSACTION_EVENTS, true)
+        build_rule(config[:'error_collector.attributes.include'], DST_ERROR_COLLECTOR, true)
+        build_rule(config[:'browser_monitoring.attributes.include'], DST_BROWSER_MONITORING, true)
+        build_rule(config[:'span_events.attributes.include'], DST_SPAN_EVENTS, true)
         build_rule(config[:'transaction_segments.attributes.include'], DST_TRANSACTION_SEGMENTS, true)
 
         build_uri_rule(config[:'attributes.exclude'])
@@ -175,7 +175,7 @@ module NewRelic
       def apply(attribute_name, default_destinations)
         return DST_NONE if @enabled_destinations == DST_NONE
 
-        destinations   = default_destinations
+        destinations = default_destinations
         attribute_name = attribute_name.to_s
 
         @rules.each do |rule|
@@ -225,8 +225,8 @@ module NewRelic
       def cache_prefix_denylist
         @prefix_denylist = {}
         @prefix_denylist[:'request.parameters'] = true unless might_allow_prefix_uncached?(:'request.parameters')
-        @prefix_denylist[:'job.sidekiq.args']   = true unless might_allow_prefix_uncached?(:'job.sidekiq.args')
-        @prefix_denylist[:'job.resque.args']    = true unless might_allow_prefix_uncached?(:'job.resque.args')
+        @prefix_denylist[:'job.sidekiq.args'] = true unless might_allow_prefix_uncached?(:'job.sidekiq.args')
+        @prefix_denylist[:'job.resque.args'] = true unless might_allow_prefix_uncached?(:'job.resque.args')
       end
 
       # Note that the given prefix *must* be a Symbol
@@ -257,9 +257,9 @@ module NewRelic
 
       def initialize(attribute_name, destinations, is_include)
         @attribute_name = attribute_name.sub(/\*$/, "")
-        @wildcard       = attribute_name.end_with?("*")
-        @is_include     = is_include
-        @destinations   = is_include ? destinations : ~destinations
+        @wildcard = attribute_name.end_with?("*")
+        @is_include = is_include
+        @destinations = is_include ? destinations : ~destinations
       end
 
       # Rules are sorted from least specific to most specific

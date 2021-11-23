@@ -50,7 +50,7 @@ class NewRelic::Agent::StatsEngine
         GCProfiler.init
 
         start_snapshot = GCProfiler::GCSnapshot.new(1.0, 1)
-        end_snapshot   = GCProfiler::GCSnapshot.new(2.5, 3)
+        end_snapshot = GCProfiler::GCSnapshot.new(2.5, 3)
 
         result = GCProfiler.record_delta(start_snapshot, end_snapshot)
         assert_equal(1.5, result)
@@ -59,7 +59,7 @@ class NewRelic::Agent::StatsEngine
       def test_record_delta_records_gc_time_and_call_count_in_metric
         GCProfiler.init
         start_snapshot = GCProfiler::GCSnapshot.new(1.0, 1)
-        end_snapshot   = GCProfiler::GCSnapshot.new(2.5, 3)
+        end_snapshot = GCProfiler::GCSnapshot.new(2.5, 3)
 
         GCProfiler.record_delta(start_snapshot, end_snapshot)
 
@@ -83,7 +83,7 @@ class NewRelic::Agent::StatsEngine
         count_after_clear = GC.count
 
         assert_operator count_before_allocations, :<=, count_after_allocations
-        assert_operator count_after_allocations,  :<=, count_after_clear
+        assert_operator count_after_allocations, :<=, count_after_clear
       ensure
         GC::Profiler.disable if defined?(::GC::Profiler)
       end
@@ -95,7 +95,7 @@ class NewRelic::Agent::StatsEngine
         snapshot = GCProfiler.take_snapshot
 
         assert_equal(5.0, snapshot.gc_time_s)
-        assert_equal(10,  snapshot.gc_call_count)
+        assert_equal(10, snapshot.gc_call_count)
       end
 
       def test_collect_gc_data

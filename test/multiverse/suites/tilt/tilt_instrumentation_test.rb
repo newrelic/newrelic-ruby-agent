@@ -148,7 +148,7 @@ class TiltInstrumentationTest < Minitest::Test
 
   def with_fake_sinatra(&blk)
     sinatra_dummy_module = Module.new
-    sinatra_dummy_class  = Class.new(Object)
+    sinatra_dummy_class = Class.new(Object)
     with_constant_defined(:'::Sinatra', sinatra_dummy_module) do
       with_constant_defined(:'::Sinatra::Base', sinatra_dummy_class) do
         yield

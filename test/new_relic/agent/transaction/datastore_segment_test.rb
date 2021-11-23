@@ -230,11 +230,11 @@ module NewRelic
         end
 
         def test_sampled_segment_records_span_event
-          trace_id      = nil
-          txn_guid      = nil
-          sampled       = nil
-          priority      = nil
-          timestamp     = nil
+          trace_id = nil
+          txn_guid = nil
+          sampled = nil
+          priority = nil
+          timestamp = nil
           sql_statement = "select * from table"
 
           in_web_transaction('wat') do |txn|
@@ -257,36 +257,36 @@ module NewRelic
 
             trace_id = txn.trace_id
             txn_guid = txn.guid
-            sampled  = txn.sampled?
+            sampled = txn.sampled?
             priority = txn.priority
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           assert_equal 2, last_span_events.size
           intrinsics, _, agent_attributes = last_span_events[0]
-          root_span_event   = last_span_events[1][0]
-          root_guid         = root_span_event['guid']
+          root_span_event = last_span_events[1][0]
+          root_guid = root_span_event['guid']
 
           datastore = 'Datastore/statement/SQLite/Blahg/select'
 
-          assert_equal 'Span',      intrinsics.fetch('type')
-          assert_equal trace_id,    intrinsics.fetch('traceId')
-          refute_nil                intrinsics.fetch('guid')
-          assert_equal root_guid,   intrinsics.fetch('parentId')
-          assert_equal txn_guid,    intrinsics.fetch('transactionId')
-          assert_equal sampled,     intrinsics.fetch('sampled')
-          assert_equal priority,    intrinsics.fetch('priority')
-          assert_equal timestamp,   intrinsics.fetch('timestamp')
-          assert_equal 1.0,         intrinsics.fetch('duration')
-          assert_equal datastore,   intrinsics.fetch('name')
+          assert_equal 'Span', intrinsics.fetch('type')
+          assert_equal trace_id, intrinsics.fetch('traceId')
+          refute_nil intrinsics.fetch('guid')
+          assert_equal root_guid, intrinsics.fetch('parentId')
+          assert_equal txn_guid, intrinsics.fetch('transactionId')
+          assert_equal sampled, intrinsics.fetch('sampled')
+          assert_equal priority, intrinsics.fetch('priority')
+          assert_equal timestamp, intrinsics.fetch('timestamp')
+          assert_equal 1.0, intrinsics.fetch('duration')
+          assert_equal datastore, intrinsics.fetch('name')
           assert_equal 'datastore', intrinsics.fetch('category')
-          assert_equal 'SQLite',    intrinsics.fetch('component')
-          assert_equal 'client',    intrinsics.fetch('span.kind')
+          assert_equal 'SQLite', intrinsics.fetch('component')
+          assert_equal 'client', intrinsics.fetch('span.kind')
 
-          assert_equal 'calzone_zone',       agent_attributes.fetch('db.instance')
+          assert_equal 'calzone_zone', agent_attributes.fetch('db.instance')
           assert_equal 'rachel.foo:1337807', agent_attributes.fetch('peer.address')
-          assert_equal 'rachel.foo',         agent_attributes.fetch('peer.hostname')
-          assert_equal sql_statement,        agent_attributes.fetch('db.statement')
+          assert_equal 'rachel.foo', agent_attributes.fetch('peer.hostname')
+          assert_equal sql_statement, agent_attributes.fetch('db.statement')
         end
 
         def test_sql_statement_not_added_to_span_event_if_disabled
@@ -309,7 +309,7 @@ module NewRelic
               segment.finish
             end
 
-            last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+            last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
             assert_equal 2, last_span_events.size
             event = last_span_events[0][0]
 
@@ -338,7 +338,7 @@ module NewRelic
               segment.finish
             end
 
-            last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+            last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
             assert_equal 2, last_span_events.size
             _, _, agent_attributes = last_span_events[0]
 
@@ -366,7 +366,7 @@ module NewRelic
             segment.finish
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           assert_equal 2, last_span_events.size
           _, _, agent_attributes = last_span_events[0]
 
@@ -391,10 +391,10 @@ module NewRelic
             end
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           _, _, agent_attributes = last_span_events[0]
 
-          assert_equal 2000,                             agent_attributes['db.statement'].bytesize
+          assert_equal 2000, agent_attributes['db.statement'].bytesize
           assert_equal "select * from #{'a' * 1983}...", agent_attributes['db.statement']
         end
 
@@ -412,10 +412,10 @@ module NewRelic
             segment.finish
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           _, _, agent_attributes = last_span_events[0]
 
-          assert_equal 2000,                         agent_attributes['db.statement'].bytesize
+          assert_equal 2000, agent_attributes['db.statement'].bytesize
           assert_equal "set mykey #{'a' * 1987}...", agent_attributes['db.statement']
         end
 
@@ -434,7 +434,7 @@ module NewRelic
             segment.finish
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           _, _, agent_attributes = last_span_events[0]
 
           assert_equal 255, agent_attributes['peer.hostname'].bytesize
@@ -459,7 +459,7 @@ module NewRelic
             segment.finish
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           span_event = last_span_events[0][0]
 
           refute span_event.key?('db.instance')

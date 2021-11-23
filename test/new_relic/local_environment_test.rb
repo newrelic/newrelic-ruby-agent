@@ -24,9 +24,9 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
   end
 
   def test_not_resque
-    combinations = [["notrake", "resque:work",    { "QUEUE" => "*" } ],
-                    ["rake",    "notresque:work", { "QUEUE" => "*" } ],
-                    ["rake",    "resque:work",    { "BBQ"   => "*" } ]]
+    combinations = [["notrake", "resque:work", { "QUEUE" => "*" } ],
+                    ["rake", "notresque:work", { "QUEUE" => "*" } ],
+                    ["rake", "resque:work", { "BBQ" => "*" } ]]
 
     combinations.each do |settings|
       with_resque(*settings) do
@@ -36,7 +36,7 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
   end
 
   def test_resque
-    combinations = [["rake", "resque:work", { "QUEUE"  => "*" }],
+    combinations = [["rake", "resque:work", { "QUEUE" => "*" }],
                     ["rake", "resque:work", { "QUEUES" => "*" }]]
 
     combinations.each do |settings|
@@ -69,8 +69,8 @@ class NewRelic::LocalEnvironmentTest < Minitest::Test
   end
 
   def with_resque(basename, *args)
-    env  = {}
-    env  = args.last if args.last.is_a?(Hash)
+    env = {}
+    env = args.last if args.last.is_a?(Hash)
     argv = args[0..-1]
 
     with_constant_defined(:Resque) do

@@ -88,21 +88,21 @@ class NewRelic::MetricSpecTest < Minitest::Test
   end
 
   def test_initialize_can_take_a_non_string_name
-    name  = string_wrapper_class.new("name")
+    name = string_wrapper_class.new("name")
 
     spec = NewRelic::MetricSpec.new(name)
 
-    assert_equal('name',  spec.name)
-    assert_equal('',      spec.scope)
+    assert_equal('name', spec.name)
+    assert_equal('', spec.scope)
   end
 
   def test_initialize_can_take_a_non_string_scope
-    name  = "name"
+    name = "name"
     scope = string_wrapper_class.new("scope")
 
     spec = NewRelic::MetricSpec.new(name, scope)
 
-    assert_equal('name',  spec.name)
+    assert_equal('name', spec.name)
     assert_equal('scope', spec.scope)
   end
 

@@ -22,7 +22,7 @@ module NewRelic
         end
 
         def self.reset
-          @profiler    = nil
+          @profiler = nil
           @initialized = nil
         end
 
@@ -38,7 +38,7 @@ module NewRelic
         def self.record_delta(start_snapshot, end_snapshot)
           if @profiler && start_snapshot && end_snapshot
             elapsed_gc_time_s = end_snapshot.gc_time_s - start_snapshot.gc_time_s
-            num_calls         = end_snapshot.gc_call_count - start_snapshot.gc_call_count
+            num_calls = end_snapshot.gc_call_count - start_snapshot.gc_call_count
             record_gc_metric(num_calls, elapsed_gc_time_s)
 
             @profiler.reset
@@ -48,15 +48,15 @@ module NewRelic
 
         def self.record_gc_metric(call_count, elapsed) #THREAD_LOCAL_ACCESS
           NewRelic::Agent.agent.stats_engine.tl_record_scoped_and_unscoped_metrics(gc_metric_name, GC_ROLLUP) do |stats|
-            stats.call_count           += call_count
-            stats.total_call_time      += elapsed
+            stats.call_count += call_count
+            stats.total_call_time += elapsed
             stats.total_exclusive_time += elapsed
           end
         end
 
         GC_ROLLUP = 'GC/Transaction/all'.freeze
-        GC_OTHER  = 'GC/Transaction/allOther'.freeze
-        GC_WEB    = 'GC/Transaction/allWeb'.freeze
+        GC_OTHER = 'GC/Transaction/allOther'.freeze
+        GC_WEB = 'GC/Transaction/allWeb'.freeze
 
         def self.gc_metric_name
           if NewRelic::Agent::Transaction.recording_web_transaction?

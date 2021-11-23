@@ -11,7 +11,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
   class TyphoeusTest < Minitest::Test
     include HttpClientTestCases
 
-    USE_SSL_VERIFYPEER_VERSION  = Gem::Version.new("0.5.0")
+    USE_SSL_VERIFYPEER_VERSION = Gem::Version.new("0.5.0")
 
     # Starting in version 0.6.4, Typhoeus supports passing URI instances instead
     # of String URLs. Make sure we don't break that.

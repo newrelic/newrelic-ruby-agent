@@ -111,8 +111,8 @@ module NewRelic
         end
         cores[[phys_id, core_id]] += 1 if phys_id && core_id
 
-        num_physical_packages  = cores.keys.map(&:first).uniq.size
-        num_physical_cores     = cores.size
+        num_physical_packages = cores.keys.map(&:first).uniq.size
+        num_physical_cores = cores.size
         num_logical_processors = cores.values.reduce(0, :+)
 
         if num_physical_cores == 0
@@ -127,12 +127,12 @@ module NewRelic
             # Some older, single-core processors might not list ids,
             # so we'll just mark them all 1.
             num_physical_packages = 1
-            num_physical_cores    = 1
+            num_physical_cores = 1
           else
             # We have no way of knowing how many packages or cores
             # we have, even though we know how many processors there are.
             num_physical_packages = nil
-            num_physical_cores    = nil
+            num_physical_cores = nil
           end
         end
 
@@ -144,7 +144,7 @@ module NewRelic
       end
 
       def self.num_physical_packages ; get_processor_info[:num_physical_packages ] end
-      def self.num_physical_cores    ; get_processor_info[:num_physical_cores    ] end
+      def self.num_physical_cores ; get_processor_info[:num_physical_cores ] end
       def self.num_logical_processors; get_processor_info[:num_logical_processors] end
 
       def self.processor_arch
@@ -178,7 +178,7 @@ module NewRelic
             return
           end
         # docker native driver with systemd
-        when '/'              then nil
+        when '/' then nil
         # in a cgroup, but we don't recognize its format
         when /docker\/.*[^0-9a-f]/ then
           ::NewRelic::Agent.logger.debug("Cgroup indicates docker but container_id has invalid characters: '#{cpu_cgroup}'")

@@ -223,7 +223,7 @@ module NewRelic
                     "Source: #{config_source}"
                 end
               else
-                settings[policy[:option]] =  policy[:disabled_value]
+                settings[policy[:option]] = policy[:disabled_value]
                 NewRelic::Agent.logger.info \
                   "Setting applied: {#{policy[:option]}: #{policy[:disabled_value]}}. " \
                   "Source: SecurityPolicySource"

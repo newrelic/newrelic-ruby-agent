@@ -17,23 +17,23 @@ module NewRelic
     class DistributedTracePayload
       extend Coerce
 
-      VERSION     = [0, 1].freeze
+      VERSION = [0, 1].freeze
       PARENT_TYPE = "App"
-      POUND       = '#'
+      POUND = '#'
 
       # Key names for serialization
-      VERSION_KEY           = 'v'
-      DATA_KEY              = 'd'
-      PARENT_TYPE_KEY       = 'ty'
+      VERSION_KEY = 'v'
+      DATA_KEY = 'd'
+      PARENT_TYPE_KEY = 'ty'
       PARENT_ACCOUNT_ID_KEY = 'ac'
-      PARENT_APP_KEY        = 'ap'
-      TRUSTED_ACCOUNT_KEY   = 'tk'
-      ID_KEY                = 'id'
-      TX_KEY                = 'tx'
-      TRACE_ID_KEY          = 'tr'
-      SAMPLED_KEY           = 'sa'
-      TIMESTAMP_KEY         = 'ti'
-      PRIORITY_KEY          = 'pr'
+      PARENT_APP_KEY = 'ap'
+      TRUSTED_ACCOUNT_KEY = 'tk'
+      ID_KEY = 'id'
+      TX_KEY = 'tx'
+      TRACE_ID_KEY = 'tr'
+      SAMPLED_KEY = 'sa'
+      TIMESTAMP_KEY = 'ti'
+      PRIORITY_KEY = 'pr'
 
       class << self
 
@@ -64,17 +64,17 @@ module NewRelic
           payload_data = raw_payload[DATA_KEY]
 
           payload = new
-          payload.version             = raw_payload[VERSION_KEY]
-          payload.parent_type         = payload_data[PARENT_TYPE_KEY]
-          payload.parent_account_id   = payload_data[PARENT_ACCOUNT_ID_KEY]
-          payload.parent_app_id       = payload_data[PARENT_APP_KEY]
+          payload.version = raw_payload[VERSION_KEY]
+          payload.parent_type = payload_data[PARENT_TYPE_KEY]
+          payload.parent_account_id = payload_data[PARENT_ACCOUNT_ID_KEY]
+          payload.parent_app_id = payload_data[PARENT_APP_KEY]
           payload.trusted_account_key = payload_data[TRUSTED_ACCOUNT_KEY]
-          payload.timestamp           = payload_data[TIMESTAMP_KEY]
-          payload.id                  = payload_data[ID_KEY]
-          payload.transaction_id      = payload_data[TX_KEY]
-          payload.trace_id            = payload_data[TRACE_ID_KEY]
-          payload.sampled             = payload_data[SAMPLED_KEY]
-          payload.priority            = payload_data[PRIORITY_KEY]
+          payload.timestamp = payload_data[TIMESTAMP_KEY]
+          payload.id = payload_data[ID_KEY]
+          payload.transaction_id = payload_data[TX_KEY]
+          payload.trace_id = payload_data[TRACE_ID_KEY]
+          payload.sampled = payload_data[SAMPLED_KEY]
+          payload.priority = payload_data[PRIORITY_KEY]
 
           payload
         end
@@ -144,7 +144,7 @@ module NewRelic
           TIMESTAMP_KEY         => timestamp,
         }
 
-        result[DATA_KEY][ID_KEY]              = id if id
+        result[DATA_KEY][ID_KEY] = id if id
         result[DATA_KEY][TRUSTED_ACCOUNT_KEY] = trusted_account_key if trusted_account_key
 
         JSON.dump(result)

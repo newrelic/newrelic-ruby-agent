@@ -12,7 +12,7 @@ module NewRelic
         LIBRARY = 'RabbitMQ'
         DEFAULT_NAME = 'Default'
         DEFAULT_TYPE = :direct
-        SLASH   = '/'
+        SLASH = '/'
 
         def exchange_name name
           name.empty? ? DEFAULT_NAME : name

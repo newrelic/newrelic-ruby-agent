@@ -12,7 +12,7 @@ module NewRelic::Agent
       def setup
         Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
 
-        @events  = EventListener.new
+        @events = EventListener.new
         @monitor = DistributedTracing::Monitor.new(@events)
         @config = {
           :'cross_application_tracer.enabled' => false,

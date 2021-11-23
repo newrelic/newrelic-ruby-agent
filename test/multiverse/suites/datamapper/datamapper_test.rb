@@ -6,9 +6,9 @@ DataMapper::Logger.new("/dev/null", :debug)
 DataMapper.setup(:default, 'sqlite::memory:')
 class Post
   include DataMapper::Resource
-  property :id,         Serial    # An auto-increment integer key
-  property :title,      String    # A varchar type string, for short strings
-  property :body,       Text      # A text block, for longer string data.
+  property :id, Serial # An auto-increment integer key
+  property :title, String # A varchar type string, for short strings
+  property :body, Text # A text block, for longer string data.
 end
 DataMapper.auto_migrate!
 DataMapper.finalize

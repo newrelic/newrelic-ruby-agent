@@ -17,7 +17,7 @@ class SamplerCollectionTest < Minitest::Test
   end
 
   def setup
-    @events     = NewRelic::Agent::EventListener.new
+    @events = NewRelic::Agent::EventListener.new
     @collection = NewRelic::Agent::SamplerCollection.new(@events)
   end
 

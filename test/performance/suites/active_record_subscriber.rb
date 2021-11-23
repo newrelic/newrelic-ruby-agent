@@ -17,13 +17,13 @@ unless defined?(ActiveSupport::Notifications::Event)
         attr_accessor :end
 
         def initialize(name, start, ending, transaction_id, payload)
-          @name           = name
-          @payload        = payload.dup
-          @time           = start
+          @name = name
+          @payload = payload.dup
+          @time = start
           @transaction_id = transaction_id
-          @end            = ending
-          @children       = []
-          @duration       = nil
+          @end = ending
+          @children = []
+          @duration = nil
         end
 
         # Returns the difference in milliseconds between when the execution of the

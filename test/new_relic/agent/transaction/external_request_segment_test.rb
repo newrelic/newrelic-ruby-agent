@@ -783,12 +783,12 @@ module NewRelic::Agent
 
       def test_sampled_external_records_span_event
         with_config(distributed_tracing_config) do
-          trace_id  = nil
-          txn_guid  = nil
-          sampled   = nil
-          priority  = nil
+          trace_id = nil
+          txn_guid = nil
+          sampled = nil
+          priority = nil
           timestamp = nil
-          segment   = nil
+          segment = nil
 
           in_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(true)
@@ -805,38 +805,38 @@ module NewRelic::Agent
 
             trace_id = txn.trace_id
             txn_guid = txn.guid
-            sampled  = txn.sampled?
+            sampled = txn.sampled?
             priority = txn.priority
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           assert_equal 2, last_span_events.size
           external_intrinsics, _, external_agent_attributes = last_span_events[0]
-          root_span_event   = last_span_events[1][0]
-          root_guid         = root_span_event['guid']
+          root_span_event = last_span_events[1][0]
+          root_guid = root_span_event['guid']
 
           expected_name = 'External/remotehost.com/Typhoeus/GET'
 
-          assert_equal 'Span',            external_intrinsics.fetch('type')
-          assert_equal trace_id,          external_intrinsics.fetch('traceId')
-          refute_nil                      external_intrinsics.fetch('guid')
-          assert_equal root_guid,         external_intrinsics.fetch('parentId')
-          assert_equal txn_guid,          external_intrinsics.fetch('transactionId')
-          assert_equal sampled,           external_intrinsics.fetch('sampled')
-          assert_equal priority,          external_intrinsics.fetch('priority')
-          assert_equal timestamp,         external_intrinsics.fetch('timestamp')
-          assert_equal 1.0,               external_intrinsics.fetch('duration')
-          assert_equal expected_name,     external_intrinsics.fetch('name')
-          assert_equal segment.library,   external_intrinsics.fetch('component')
+          assert_equal 'Span', external_intrinsics.fetch('type')
+          assert_equal trace_id, external_intrinsics.fetch('traceId')
+          refute_nil external_intrinsics.fetch('guid')
+          assert_equal root_guid, external_intrinsics.fetch('parentId')
+          assert_equal txn_guid, external_intrinsics.fetch('transactionId')
+          assert_equal sampled, external_intrinsics.fetch('sampled')
+          assert_equal priority, external_intrinsics.fetch('priority')
+          assert_equal timestamp, external_intrinsics.fetch('timestamp')
+          assert_equal 1.0, external_intrinsics.fetch('duration')
+          assert_equal expected_name, external_intrinsics.fetch('name')
+          assert_equal segment.library, external_intrinsics.fetch('component')
           assert_equal segment.procedure, external_intrinsics.fetch('http.method')
-          assert_equal 'http',            external_intrinsics.fetch('category')
-          assert_equal segment.uri.to_s,  external_agent_attributes.fetch('http.url')
+          assert_equal 'http', external_intrinsics.fetch('category')
+          assert_equal segment.uri.to_s, external_agent_attributes.fetch('http.url')
         end
       end
 
       def test_urls_are_filtered
         with_config(distributed_tracing_config) do
-          segment   = nil
+          segment = nil
           filtered_url = "https://remotehost.com/bar/baz"
 
           in_transaction('wat') do |txn|
@@ -851,7 +851,7 @@ module NewRelic::Agent
             segment.finish
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           assert_equal 2, last_span_events.size
           _, _, external_agent_attributes = last_span_events[0]
 
@@ -905,10 +905,10 @@ module NewRelic::Agent
             segment.finish
           end
 
-          last_span_events  = NewRelic::Agent.instance.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.instance.span_event_aggregator.harvest![1]
           _, _, agent_attributes = last_span_events[0]
 
-          assert_equal 255,                      agent_attributes['http.url'].bytesize
+          assert_equal 255, agent_attributes['http.url'].bytesize
           assert_equal "http://#{'a' * 245}...", agent_attributes['http.url']
         end
       end

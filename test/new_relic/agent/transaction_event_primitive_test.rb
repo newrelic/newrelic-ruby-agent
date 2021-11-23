@@ -26,7 +26,7 @@ module NewRelic
       end
 
       def test_event_includes_synthetics
-        payload = generate_payload 'whatever',  {
+        payload = generate_payload 'whatever', {
           :synthetics_resource_id=>3,
           :synthetics_job_id=>4,
           :synthetics_monitor_id=>5
@@ -127,9 +127,9 @@ module NewRelic
       def test_samples_on_transaction_finished_event_includes_expected_web_metrics
         txn_metrics = NewRelic::Agent::TransactionMetrics.new
         txn_metrics.record_unscoped('WebFrontend/QueueTime', 13)
-        txn_metrics.record_unscoped('External/allWeb',       14)
-        txn_metrics.record_unscoped('Datastore/all',         15)
-        txn_metrics.record_unscoped("GC/Transaction/all",    16)
+        txn_metrics.record_unscoped('External/allWeb', 14)
+        txn_metrics.record_unscoped('Datastore/all', 15)
+        txn_metrics.record_unscoped("GC/Transaction/all", 16)
 
         event_data, *_ = TransactionEventPrimitive.create generate_payload('name', :metrics => txn_metrics)
         assert_equal 13, event_data["queueDuration"]
@@ -143,8 +143,8 @@ module NewRelic
 
       def test_samples_on_transaction_finished_includes_expected_background_metrics
         txn_metrics = NewRelic::Agent::TransactionMetrics.new
-        txn_metrics.record_unscoped('External/allOther',  12)
-        txn_metrics.record_unscoped('Datastore/all',      13)
+        txn_metrics.record_unscoped('External/allOther', 12)
+        txn_metrics.record_unscoped('Datastore/all', 13)
         txn_metrics.record_unscoped("GC/Transaction/all", 14)
 
         event_data, *_ = TransactionEventPrimitive.create generate_payload('name', :metrics => txn_metrics)

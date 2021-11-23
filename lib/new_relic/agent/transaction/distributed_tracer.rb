@@ -157,8 +157,8 @@ module NewRelic
 
           return unless CrossAppTracing.trusted_valid_cross_app_id?(decoded_id)
           txn_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER]
-          txn_info   = ::JSON.load(deobfuscate(txn_header))
-          payload    = CrossAppPayload.new(decoded_id, transaction, txn_info)
+          txn_info = ::JSON.load(deobfuscate(txn_header))
+          payload = CrossAppPayload.new(decoded_id, transaction, txn_info)
 
           @cross_app_payload = payload
         rescue => e

@@ -32,8 +32,8 @@ class TransactionMetricsTest < Minitest::Test
 
   def test_record_scoped_and_unscoped_should_take_a_block
     @metrics.record_scoped_and_unscoped('foo') do |stats|
-      stats.call_count           = 3
-      stats.total_call_time      = 2
+      stats.call_count = 3
+      stats.total_call_time = 2
       stats.total_exclusive_time = 1
     end
     assert_scoped_metrics(@metrics, ['foo'], {
@@ -66,8 +66,8 @@ class TransactionMetricsTest < Minitest::Test
 
   def test_record_unscoped_should_take_a_block
     @metrics.record_unscoped('foo') do |stats|
-      stats.call_count           = 3
-      stats.total_call_time      = 2
+      stats.call_count = 3
+      stats.total_call_time = 2
       stats.total_exclusive_time = 1
     end
     assert_unscoped_metrics(@metrics, ['foo'], {
@@ -97,11 +97,11 @@ class TransactionMetricsTest < Minitest::Test
   end
 
   def assert_scoped_or_unscoped_metrics(type, txn_metrics, expected_metric_names, expected_attrs)
-    names     = []
+    names = []
     all_stats = []
 
     txn_metrics.send("each_#{type}") do |name, stats|
-      names     << name
+      names << name
       all_stats << stats
     end
 

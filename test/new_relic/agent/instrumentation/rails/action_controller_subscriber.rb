@@ -248,8 +248,8 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
   def test_dont_record_queue_time_in_nested_transaction
     app = lambda do |env|
-      @subscriber.start('process_action.action_controller',  :id, @entry_payload)
-      @subscriber.start('process_action.action_controller',  :id, @entry_payload)
+      @subscriber.start('process_action.action_controller', :id, @entry_payload)
+      @subscriber.start('process_action.action_controller', :id, @entry_payload)
       @subscriber.finish('process_action.action_controller', :id, @exit_payload)
       @subscriber.finish('process_action.action_controller', :id, @exit_payload)
     end

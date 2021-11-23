@@ -2,8 +2,8 @@ namespace :newrelic do
   namespace :config do
     desc "Describe available New Relic configuration settings."
 
-    GENERAL    = "general"
-    DISABLING  = "disabling"
+    GENERAL = "general"
+    DISABLING = "disabling"
     ATTRIBUTES = "attributes"
 
     SECTION_DESCRIPTIONS = {
@@ -37,9 +37,9 @@ namespace :newrelic do
         key = key.to_s
         components = key.split(".")
 
-        if key.match(/^disable_/)           # "disable_httpclient"
+        if key.match(/^disable_/) # "disable_httpclient"
           section_key = DISABLING
-        elsif components.length == 2        # "analytics_events.enabled"
+        elsif components.length == 2 # "analytics_events.enabled"
           section_key = components.first
         elsif components[1] == "attributes" # "transaction_tracer.attributes.enabled"
           section_key = ATTRIBUTES
@@ -60,9 +60,9 @@ namespace :newrelic do
       sections = []
       sections << pluck(GENERAL, config_hash)
       sections << pluck("transaction_tracer", config_hash)
-      sections << pluck("error_collector",    config_hash)
+      sections << pluck("error_collector", config_hash)
       sections << pluck("browser_monitoring", config_hash)
-      sections << pluck("analytics_events",   config_hash)
+      sections << pluck("analytics_events", config_hash)
       sections.concat(config_hash.to_a.sort_by { |a| a.first})
 
       add_data_to_sections(sections)

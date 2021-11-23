@@ -58,15 +58,15 @@ module NewRelic
               || metric_name == "View/#{::NewRelic::Agent::UNKNOWN_METRIC}/Partial"
         end
 
-        RENDER_TEMPLATE_EVENT_NAME   = 'render_template.action_view'.freeze
-        RENDER_PARTIAL_EVENT_NAME    = 'render_partial.action_view'.freeze
+        RENDER_TEMPLATE_EVENT_NAME = 'render_template.action_view'.freeze
+        RENDER_PARTIAL_EVENT_NAME = 'render_partial.action_view'.freeze
         RENDER_COLLECTION_EVENT_NAME = 'render_collection.action_view'.freeze
 
         def metric_action(name)
           case name
           when /#{RENDER_TEMPLATE_EVENT_NAME}$/ then 'Rendering'
-          when RENDER_PARTIAL_EVENT_NAME        then 'Partial'
-          when RENDER_COLLECTION_EVENT_NAME     then 'Partial'
+          when RENDER_PARTIAL_EVENT_NAME then 'Partial'
+          when RENDER_COLLECTION_EVENT_NAME then 'Partial'
           end
         end
 

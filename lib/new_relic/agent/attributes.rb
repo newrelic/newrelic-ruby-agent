@@ -7,7 +7,7 @@ require 'new_relic/agent/attribute_processing'
 module NewRelic
   module Agent
     class Attributes
-      KEY_LIMIT   = 255
+      KEY_LIMIT = 255
       VALUE_LIMIT = 255
       COUNT_LIMIT = 64
 

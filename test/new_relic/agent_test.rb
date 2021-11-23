@@ -23,9 +23,9 @@ module NewRelic
     end
 
     def test_shutdown
-      mock_agent  = mocked_agent
+      mock_agent = mocked_agent
       mock_engine = mock
-      mock_stats  = mock
+      mock_stats = mock
       mock_agent.expects(:shutdown)
       mock_agent.expects(:stats_engine).returns(mock_engine)
       mock_engine.expects(:tl_record_unscoped_metrics).with('Supportability/API/shutdown').yields(mock_stats)
@@ -66,9 +66,9 @@ module NewRelic
     end
 
     def test_after_fork
-      mock_agent  = mocked_agent
+      mock_agent = mocked_agent
       mock_engine = mock
-      mock_stats  = mock
+      mock_stats = mock
       mock_agent.expects(:after_fork).with({})
       mock_agent.expects(:stats_engine).returns(mock_engine)
       mock_engine.expects(:tl_record_unscoped_metrics).yields(mock_stats)
@@ -433,7 +433,7 @@ module NewRelic
         end
       end
 
-      assert log.array.any? { |msg| msg.include?('The method disable_transaction_tracing is deprecated.'         ) }
+      assert log.array.any? { |msg| msg.include?('The method disable_transaction_tracing is deprecated.' ) }
       assert log.array.any? { |msg| msg.include?('Please use disable_all_tracing or ignore_transaction instead.' ) }
     end
 

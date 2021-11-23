@@ -103,15 +103,15 @@ module NewRelic
           @root_node.each_node_with_nest_tracking(&block)
         end
 
-        AGENT_ATTRIBUTES_KEY     = 'agentAttributes'.freeze
-        USER_ATTRIBUTES_KEY      = 'userAttributes'.freeze
+        AGENT_ATTRIBUTES_KEY = 'agentAttributes'.freeze
+        USER_ATTRIBUTES_KEY = 'userAttributes'.freeze
         INTRINSIC_ATTRIBUTES_KEY = 'intrinsics'.freeze
 
         def attributes_for_tracer_destination
           destination = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER
 
-          agent_attributes     = self.attributes.agent_attributes_for(destination)
-          custom_attributes    = self.attributes.custom_attributes_for(destination)
+          agent_attributes = self.attributes.agent_attributes_for(destination)
+          custom_attributes = self.attributes.custom_attributes_for(destination)
           intrinsic_attributes = self.attributes.intrinsic_attributes_for(destination)
 
           {

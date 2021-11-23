@@ -12,7 +12,7 @@ module NewRelic
         # Database::Obfuscator class because here we don't look for
         # backslash-escaped strings.
         QUOTED_STRINGS_REGEX = /'(?:[^']|'')*'|"(?:[^"]|"")*"/
-        LABEL_LINE_REGEX     = /^([^:\n]*:\s+).*$/.freeze
+        LABEL_LINE_REGEX = /^([^:\n]*:\s+).*$/.freeze
 
         def obfuscate(explain)
           # First, we replace all single-quoted strings.
@@ -35,7 +35,7 @@ module NewRelic
           # All parts of the query that can appear in the explain output are
           # prefixed with "<label>: ", so we want to preserve the label, but
           # remove the rest of the line.
-          explain.gsub!(LABEL_LINE_REGEX,   '\1?')
+          explain.gsub!(LABEL_LINE_REGEX, '\1?')
           explain
         end
       end

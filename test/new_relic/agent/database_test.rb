@@ -144,7 +144,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     sql = 'SELECT foo'
 
     plan_fields = ["select_type", "key_len", "table", "id", "possible_keys", "type", "Extra", "rows", "ref", "key"]
-    plan_row =    ["SIMPLE",       nil,      "blogs", "1",   nil,            "ALL",  "",      "2",     nil,   nil ]
+    plan_row = ["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil ]
     explainer_result = mock('explain plan')
     explainer_result.expects(:fields).returns(plan_fields)
     explainer_result.expects(:each).yields(plan_row)
@@ -250,7 +250,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
     plan = [
       {"addr"=>0, "opcode"=>"Trace", "p1"=>0, "p2"=>0, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>0, 1=>"Trace", 2=>0, 3=>0, 4=>0, 5=>"", 6=>"00", 7=>nil},
-      {"addr"=>1, "opcode"=>"Goto",  "p1"=>0, "p2"=>5, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>1, 1=>"Goto",  2=>0, 3=>5, 4=>0, 5=>"", 6=>"00", 7=>nil},
+      {"addr"=>1, "opcode"=>"Goto", "p1"=>0, "p2"=>5, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>1, 1=>"Goto", 2=>0, 3=>5, 4=>0, 5=>"", 6=>"00", 7=>nil},
       {"addr"=>2, "opcode"=>"String8", "p1"=>0, "p2"=>1, "p3"=>0, "p4"=>"foo", "p5"=>"00", "comment"=>nil, 0=>2, 1=>"String8", 2=>0, 3=>1, 4=>0, 5=>"foo", 6=>"00", 7=>nil},
       {"addr"=>3, "opcode"=>"ResultRow", "p1"=>1, "p2"=>1, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>3, 1=>"ResultRow", 2=>1, 3=>1, 4=>0, 5=>"", 6=>"00", 7=>nil},
       {"addr"=>4, "opcode"=>"Halt", "p1"=>0, "p2"=>0, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>4, 1=>"Halt", 2=>0, 3=>0, 4=>0, 5=>"", 6=>"00", 7=>nil},
@@ -262,7 +262,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     result = NewRelic::Agent::Database.explain_sql(statement)
 
     expected_headers = %w[addr opcode p1 p2 p3 p4 p5 comment]
-    expected_values  = plan.map do |row|
+    expected_values = plan.map do |row|
       expected_headers.map { |h| row[h] }
     end
 
@@ -276,7 +276,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
     plan = [
       {"addr"=>0, "opcode"=>"Trace", "p1"=>0, "p2"=>0, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>0, 1=>"Trace", 2=>0, 3=>0, 4=>0, 5=>"", 6=>"00", 7=>nil},
-      {"addr"=>1, "opcode"=>"Goto",  "p1"=>0, "p2"=>5, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>1, 1=>"Goto",  2=>0, 3=>5, 4=>0, 5=>"", 6=>"00", 7=>nil},
+      {"addr"=>1, "opcode"=>"Goto", "p1"=>0, "p2"=>5, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>1, 1=>"Goto", 2=>0, 3=>5, 4=>0, 5=>"", 6=>"00", 7=>nil},
       {"addr"=>2, "opcode"=>"String8", "p1"=>0, "p2"=>1, "p3"=>0, "p4"=>"foo", "p5"=>"00", "comment"=>nil, 0=>2, 1=>"String8", 2=>0, 3=>1, 4=>0, 5=>"foo", 6=>"00", 7=>nil},
       {"addr"=>3, "opcode"=>"ResultRow", "p1"=>1, "p2"=>1, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>3, 1=>"ResultRow", 2=>1, 3=>1, 4=>0, 5=>"", 6=>"00", 7=>nil},
       {"addr"=>4, "opcode"=>"Halt", "p1"=>0, "p2"=>0, "p3"=>0, "p4"=>"", "p5"=>"00", "comment"=>nil, 0=>4, 1=>"Halt", 2=>0, 3=>0, 4=>0, 5=>"", 6=>"00", 7=>nil},
@@ -288,7 +288,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     result = NewRelic::Agent::Database.explain_sql(statement)
 
     expected_headers = %w[addr opcode p1 p2 p3 p4 p5 comment]
-    expected_values  = plan.map do |row|
+    expected_values = plan.map do |row|
       expected_headers.map { |h| row[h] }
     end
 

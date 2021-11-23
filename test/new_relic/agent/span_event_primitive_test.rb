@@ -54,7 +54,7 @@ module NewRelic
             segment, _ = capture_segment_with_error
 
             eh = SpanEventPrimitive::error_attributes(segment)
-            refute  segment.noticed_error, "segment.noticed_error should be nil!"
+            refute segment.noticed_error, "segment.noticed_error should be nil!"
             refute eh, "expected nil when error present on segment and high_security is enabled"
           end
         end
@@ -207,7 +207,7 @@ module NewRelic
             end
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           _, optional_attrs, _ = last_span_events.detect { |ev| ev[0]["name"] == external_segment.name }
 
           assert_empty optional_attrs

@@ -31,7 +31,7 @@ module NewRelic::Agent::Configuration
         'apdex_t'                    => 1.0,
         'collect_errors'             => false,
         'collect_traces'             => true,
-        'web_transactions_apdex'     => { 'Controller/some/txn'     => 1.5 },
+        'web_transactions_apdex'     => { 'Controller/some/txn' => 1.5 },
         'trusted_account_key'        => '555',
         'account_id'                 => '190',
         'primary_application_id'     => '1441',

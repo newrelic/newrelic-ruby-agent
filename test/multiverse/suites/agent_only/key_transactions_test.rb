@@ -6,9 +6,9 @@ class KeyTransactionsTest < Minitest::Test
 
   include MultiverseHelpers
 
-  WEB_KEY_TXN   = 'Controller/KeyTransactionsTest::TestWidget/key_txn'
+  WEB_KEY_TXN = 'Controller/KeyTransactionsTest::TestWidget/key_txn'
   OTHER_KEY_TXN = 'OtherTransaction/SidekiqJob/JobClass/key_txn'
-  OTHER_TXN     = 'OtherTransaction/SidekiqJob/JobClass/other_txn'
+  OTHER_TXN = 'OtherTransaction/SidekiqJob/JobClass/other_txn'
 
   setup_and_teardown_agent do |collector|
     collector.stub('connect', {
@@ -56,7 +56,7 @@ class KeyTransactionsTest < Minitest::Test
 
   SATISFYING = 0
   TOLERATING = 1
-  FAILING    = 2
+  FAILING = 2
 
   def test_applied_correct_apdex_t_to_key_txn
     TestWidget.new.key_txn

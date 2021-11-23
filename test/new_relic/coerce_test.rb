@@ -73,13 +73,13 @@ class CoerceTest < Minitest::Test
   end
 
   def test_string_coerce
-    assert_equal "1",      string(1)
-    assert_equal "1.0",    string(1.0)
+    assert_equal "1", string(1)
+    assert_equal "1.0", string(1.0)
     assert_equal "string", string("string")
-    assert_equal "1/100",  string(Rational(1, 100))
-    assert_equal "yeah",   string(:yeah)
-    assert_nil             string(nil)
-    assert_equal "",       string(Unstringable.new)
+    assert_equal "1/100", string(Rational(1, 100))
+    assert_equal "yeah", string(:yeah)
+    assert_nil string(nil)
+    assert_equal "", string(Unstringable.new)
   end
 
   def test_int!

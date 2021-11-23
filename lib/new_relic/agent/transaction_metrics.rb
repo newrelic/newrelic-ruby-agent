@@ -14,7 +14,7 @@ module NewRelic
 
       def initialize
         @unscoped = Hash.new(&DEFAULT_PROC)
-        @scoped   = Hash.new(&DEFAULT_PROC)
+        @scoped = Hash.new(&DEFAULT_PROC)
       end
 
       # As a general rule, when recording a scoped metric, the corresponding

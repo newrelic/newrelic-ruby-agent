@@ -15,16 +15,16 @@ make_notify_task = Proc.new do
 
       begin
         # allow overrides to be defined for revision, description, changelog, appname, and user
-        rev         = fetch(:newrelic_revision)    if exists?(:newrelic_revision)
-        description = fetch(:newrelic_desc)        if exists?(:newrelic_desc)
-        changelog   = fetch(:newrelic_changelog)   if exists?(:newrelic_changelog)
-        appname     = fetch(:newrelic_appname)     if exists?(:newrelic_appname)
-        user        = fetch(:newrelic_user)        if exists?(:newrelic_user)
+        rev = fetch(:newrelic_revision) if exists?(:newrelic_revision)
+        description = fetch(:newrelic_desc) if exists?(:newrelic_desc)
+        changelog = fetch(:newrelic_changelog) if exists?(:newrelic_changelog)
+        appname = fetch(:newrelic_appname) if exists?(:newrelic_appname)
+        user = fetch(:newrelic_user) if exists?(:newrelic_user)
         license_key = fetch(:newrelic_license_key) if exists?(:newrelic_license_key)
 
         unless scm == :none
           changelog = lookup_changelog(changelog)
-          rev       = lookup_rev(rev)
+          rev = lookup_rev(rev)
         end
 
         new_revision = rev

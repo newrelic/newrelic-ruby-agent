@@ -55,10 +55,10 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   end
 
   def test_increment_retry_period
-    assert_equal  15, next_retry_period
-    assert_equal  15, next_retry_period
-    assert_equal  30, next_retry_period
-    assert_equal  60, next_retry_period
+    assert_equal 15, next_retry_period
+    assert_equal 15, next_retry_period
+    assert_equal 30, next_retry_period
+    assert_equal 60, next_retry_period
     assert_equal 120, next_retry_period
     assert_equal 300, next_retry_period
     assert_equal 300, next_retry_period

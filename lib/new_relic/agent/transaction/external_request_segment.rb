@@ -254,7 +254,7 @@ module NewRelic
           return if transaction.ignore?
 
           aggregator = ::NewRelic::Agent.agent.span_event_aggregator
-          priority   = transaction.priority
+          priority = transaction.priority
           aggregator.record(priority: priority) do
             SpanEventPrimitive.for_external_request_segment(self)
           end

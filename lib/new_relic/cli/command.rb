@@ -38,7 +38,7 @@ module NewRelic
         else
           # parse command line args.  Throw an exception on a bad arg.
           @options = options do |opts|
-            opts.on("-h", "Show this help") {  raise CommandFailure, opts.to_s }
+            opts.on("-h", "Show this help") { raise CommandFailure, opts.to_s }
           end
           @leftover = @options.parse(command_line_args)
         end

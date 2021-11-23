@@ -9,17 +9,17 @@ require './app'
 class RequestStatsController < ApplicationController
   def stats_action
     sleep 0.01
-    render body:  'some stuff'
+    render body: 'some stuff'
   end
 
   def cross_app_action
     ::NewRelic::Agent::Transaction.tl_current.distributed_tracer.is_cross_app_caller = true
-    render body:  'some stuff'
+    render body: 'some stuff'
   end
 
   def stats_action_with_custom_params
     ::NewRelic::Agent.add_custom_attributes('color' => 'blue', 1 => :bar, 'bad' => {})
-    render body:  'some stuff'
+    render body: 'some stuff'
   end
 end
 

@@ -6,12 +6,12 @@ require './app'
 
 class ParameterCaptureController < ApplicationController
   def transaction
-    render body:  'hi!'
+    render body: 'hi!'
   end
 
   def create
     raise 'problem' if params[:raise]
-    render body:  'created'
+    render body: 'created'
   end
 
   def sql
@@ -121,7 +121,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
       captured_params = agent_attributes_for_single_error_posted
       assert_equal('[FILTERED]', captured_params['request.parameters.secret'])
-      assert_equal('1234',       captured_params['request.parameters.other'])
+      assert_equal('1234', captured_params['request.parameters.other'])
     end
   end
 
@@ -132,7 +132,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
     captured_params = last_transaction_trace_request_params
     assert_equal('[FILTERED]', captured_params['request.parameters.secret'])
-    assert_equal('1234',       captured_params['request.parameters.other'])
+    assert_equal('1234', captured_params['request.parameters.other'])
   end
 
   def test_no_traced_error_params_captured_when_bails_before_rails
@@ -287,7 +287,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
   def test_parameter_filtering_should_not_mutate_argument
     input = { "foo" => "bar", "secret" => "baz" }
-    env   = { "action_dispatch.parameter_filter" => ["secret"] }
+    env = { "action_dispatch.parameter_filter" => ["secret"] }
     filtered = NewRelic::Agent::ParameterFiltering.apply_filters(env, input)
 
     assert_equal({ "foo" => "bar", "secret" => "[FILTERED]" }, filtered)

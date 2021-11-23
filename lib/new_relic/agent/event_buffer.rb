@@ -22,22 +22,22 @@ module NewRelic
 
       def initialize(capacity)
         @capacity = capacity
-        @items    = []
-        @seen     = 0
+        @items = []
+        @seen = 0
       end
 
       def reset!
         @items = []
-        @seen  = 0
+        @seen = 0
       end
 
       def capacity=(new_capacity)
         @capacity = new_capacity
         old_items = @items
-        @items    = []
-        old_seen  = @seen
+        @items = []
+        old_seen = @seen
         old_items.each { |i| append(i) }
-        @seen     = old_seen
+        @seen = old_seen
       end
 
       def append(x)

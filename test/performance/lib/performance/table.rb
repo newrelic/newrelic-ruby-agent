@@ -10,7 +10,7 @@ module Performance
       def initialize(name, format_string = nil, &blk)
         @name = name
         @format_string = format_string
-        @format_proc   = blk
+        @format_proc = blk
       end
 
       def measure(value)
@@ -33,7 +33,7 @@ module Performance
       def justify(value, formatted, width)
         case value
         when Numeric then formatted.rjust(width)
-        else              formatted.ljust(width)
+        else formatted.ljust(width)
         end
       end
     end
@@ -79,10 +79,10 @@ module Performance
     def render
       widths = column_widths
 
-      blanks    = widths.map { |w| "-" * w }
-      top       = '+-' + blanks.join('-+-') + '-+'
+      blanks = widths.map { |w| "-" * w }
+      top = '+-' + blanks.join('-+-') + '-+'
       separator = '|-' + blanks.join('-+-') + '-|'
-      bottom    = '+-' + blanks.join('-+-') + '-+'
+      bottom = '+-' + blanks.join('-+-') + '-+'
 
       text_rows = []
 

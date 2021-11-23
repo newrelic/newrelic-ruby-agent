@@ -20,9 +20,9 @@ module Multiverse
     attr_accessor :directory, :opts
 
     def initialize(directory, opts = {})
-      self.directory  = File.expand_path directory
-      self.opts       = opts
-      ENV["VERBOSE"]  = '1' if opts[:verbose]
+      self.directory = File.expand_path directory
+      self.opts = opts
+      ENV["VERBOSE"] = '1' if opts[:verbose]
     end
 
     def self.encode_options(decoded_opts)
@@ -637,7 +637,7 @@ module Multiverse
       files = Dir[File.join(directory, '*.rb')]
 
       @before_file = files.find { |file| File.basename(file) == "before_suite.rb" }
-      @after_file  = files.find { |file| File.basename(file) == "after_suite.rb" }
+      @after_file = files.find { |file| File.basename(file) == "after_suite.rb" }
 
       files.delete(@before_file)
       files.delete(@after_file)

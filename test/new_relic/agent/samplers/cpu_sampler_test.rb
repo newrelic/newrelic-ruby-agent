@@ -56,7 +56,7 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
 
     timeinfo1 = mock
     timeinfo1.stubs(:utime).returns(14.0) # +5s
-    timeinfo1.stubs(:stime).returns(7.0)  # +2s
+    timeinfo1.stubs(:stime).returns(7.0) # +2s
 
     elapsed = 10
 

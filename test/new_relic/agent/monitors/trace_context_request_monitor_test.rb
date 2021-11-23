@@ -11,7 +11,7 @@ module NewRelic
 
       def setup
         mocha_setup
-        @events  = EventListener.new
+        @events = EventListener.new
         @monitor = DistributedTracing::Monitor.new(@events)
         @config = {
           :'cross_application_tracer.enabled' => false,

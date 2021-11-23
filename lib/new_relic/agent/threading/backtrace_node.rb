@@ -13,7 +13,7 @@ module NewRelic
 
         def initialize
           @children = []
-          @depth    = 0
+          @depth = 0
         end
 
         def add_child_unless_present(child)
@@ -80,7 +80,7 @@ module NewRelic
 
 
       class BacktraceNode < BacktraceBase
-        attr_reader   :file, :method, :line_no, :raw_line, :as_array
+        attr_reader :file, :method, :line_no, :raw_line, :as_array
         attr_accessor :runnable_count, :depth
 
         def initialize(line)
@@ -92,8 +92,8 @@ module NewRelic
 
         def ==(other)
           (
-            @raw_line       == other.raw_line &&
-            @depth          == other.depth    &&
+            @raw_line == other.raw_line &&
+            @depth == other.depth &&
             @runnable_count == other.runnable_count
           )
         end

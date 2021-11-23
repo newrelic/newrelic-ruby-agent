@@ -32,7 +32,7 @@ module NewRelic
         SET_TO_OBFUSCATED = [RAW, OBFUSCATED]
 
         def record_sql_setting(local_settings, key)
-          original_value  = local_settings[key]
+          original_value = local_settings[key]
           result = if SET_TO_OBFUSCATED.include?(original_value)
             OBFUSCATED
           else

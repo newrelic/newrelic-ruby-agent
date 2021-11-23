@@ -64,7 +64,7 @@ class NewRelicServiceTest < Minitest::Test
     assert(block_ran)
 
     assert_equal([:start, :finish], handle1.calls)
-    assert_equal([],                handle2.calls)
+    assert_equal([], handle2.calls)
   end
 
   def test_multiple_http_handles_are_used_outside_session_block
@@ -198,7 +198,7 @@ class NewRelicServiceTest < Minitest::Test
 
     assert_equal([:request], conn0.calls)
     assert_equal([:request], conn1.calls)
-    assert_equal([],         conn2.calls)
+    assert_equal([], conn2.calls)
   end
 
   def test_no_default_cert_file_path
@@ -1053,7 +1053,7 @@ class NewRelicServiceTest < Minitest::Test
     attr_reader :calls, :last_request
 
     def initialize(name)
-      @name    = name
+      @name = name
       @started = false
       reset
     end
@@ -1099,7 +1099,7 @@ class NewRelicServiceTest < Minitest::Test
     def respond_to(method, payload, opts = {})
       case payload
       when Exception then rsp = payload
-      else                rsp = create_response_mock(payload, opts)
+      else rsp = create_response_mock(payload, opts)
       end
 
       @route_table[method.to_s] = rsp

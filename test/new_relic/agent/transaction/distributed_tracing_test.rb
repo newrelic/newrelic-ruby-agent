@@ -95,7 +95,7 @@ module NewRelic
           payload = create_distributed_trace_payload
 
           transaction = nil
-          accepted    = nil
+          accepted = nil
 
           with_config(trusted_account_key: "somekey") do
             transaction = in_transaction "test_txn" do |txn|
@@ -103,8 +103,8 @@ module NewRelic
             end
           end
 
-          assert_nil              transaction.distributed_tracer.distributed_trace_payload
-          assert_false            accepted
+          assert_nil transaction.distributed_tracer.distributed_trace_payload
+          assert_false accepted
           assert_metrics_recorded ['Supportability/DistributedTrace/AcceptPayload/Ignored/UntrustedAccount']
         end
 
@@ -114,7 +114,7 @@ module NewRelic
           payload.trusted_account_key = nil
 
           transaction = nil
-          accepted    = nil
+          accepted = nil
 
           with_config(trusted_account_key: "somekey") do
             transaction = in_transaction "test_txn" do |txn|
@@ -122,8 +122,8 @@ module NewRelic
             end
           end
 
-          assert_nil              transaction.distributed_tracer.distributed_trace_payload
-          assert_false            accepted
+          assert_nil transaction.distributed_tracer.distributed_trace_payload
+          assert_false accepted
           assert_metrics_recorded ['Supportability/DistributedTrace/AcceptPayload/Ignored/UntrustedAccount']
         end
 
@@ -133,7 +133,7 @@ module NewRelic
           payload.parent_account_id = "500"
 
           transaction = nil
-          accepted    = nil
+          accepted = nil
 
           with_config(trusted_account_key: "500") do
             transaction = in_transaction "test_txn" do |txn|
@@ -203,9 +203,9 @@ module NewRelic
         def test_proper_intrinsics_assigned_for_first_app_in_distributed_trace
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
-          result      = create_distributed_transactions
+          result = create_distributed_transactions
           transaction = result[:grandparent_transaction]
-          intrinsics  = result[:grandparent_intrinsics]
+          intrinsics = result[:grandparent_intrinsics]
 
           assert_equal transaction.guid, intrinsics['guid']
           assert_equal transaction.trace_id, intrinsics['traceId']
@@ -249,30 +249,30 @@ module NewRelic
         def test_intrinsics_assigned_to_transaction_event_from_distributed_trace
           NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(true)
 
-          result                  = create_distributed_transactions
-          parent_transaction      = result[:parent_transaction]
-          child_transaction       = result[:child_transaction]
-          child_intrinsics        = result[:child_intrinsics]
+          result = create_distributed_transactions
+          parent_transaction = result[:parent_transaction]
+          child_transaction = result[:child_transaction]
+          child_intrinsics = result[:child_intrinsics]
 
           inbound_payload = child_transaction.distributed_tracer.distributed_trace_payload
 
-          assert_equal inbound_payload.parent_type,       child_intrinsics["parent.type"]
-          assert_equal "Unknown",                         child_intrinsics["parent.transportType"]
-          assert_equal inbound_payload.parent_app_id,     child_intrinsics["parent.app"]
+          assert_equal inbound_payload.parent_type, child_intrinsics["parent.type"]
+          assert_equal "Unknown", child_intrinsics["parent.transportType"]
+          assert_equal inbound_payload.parent_app_id, child_intrinsics["parent.app"]
           assert_equal inbound_payload.parent_account_id, child_intrinsics["parent.account"]
 
-          assert_equal inbound_payload.trace_id,          child_intrinsics["traceId"]
-          assert_equal inbound_payload.id,                child_intrinsics["parentSpanId"]
-          assert_equal child_transaction.guid,            child_intrinsics["guid"]
-          assert_equal true,                              child_intrinsics["sampled"]
+          assert_equal inbound_payload.trace_id, child_intrinsics["traceId"]
+          assert_equal inbound_payload.id, child_intrinsics["parentSpanId"]
+          assert_equal child_transaction.guid, child_intrinsics["guid"]
+          assert_equal true, child_intrinsics["sampled"]
 
-          assert                                          child_intrinsics["parentId"]
-          assert_equal parent_transaction.guid,           child_intrinsics["parentId"]
+          assert child_intrinsics["parentId"]
+          assert_equal parent_transaction.guid, child_intrinsics["parentId"]
 
           # Make sure the parent / grandparent links are connected all
           # the way up.
           #
-          assert_equal inbound_payload.transaction_id,        parent_transaction.guid
+          assert_equal inbound_payload.transaction_id, parent_transaction.guid
         end
 
         def test_assign_distributed_trace_attributes_properly_assigned_on_receiving_dt
@@ -357,7 +357,7 @@ module NewRelic
           assert_equal transaction.guid, intrinsics["guid"]
           assert_equal inbound_payload.trace_id, intrinsics["traceId"]
           assert_equal true, intrinsics["sampled"]
-          assert       intrinsics["parentId"], "Child should be linked to parent transaction"
+          assert intrinsics["parentId"], "Child should be linked to parent transaction"
           assert_equal inbound_payload.transaction_id, intrinsics["parentId"]
         end
 

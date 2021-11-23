@@ -147,9 +147,9 @@ module NewRelic
     end
 
     def check_for_resque
-      has_queue              = ENV['QUEUE'] || ENV['QUEUES']
-      resque_rake            = executable == 'rake' && ARGV.include?('resque:work')
-      resque_pool_rake       = executable == 'rake' && ARGV.include?('resque:pool')
+      has_queue = ENV['QUEUE'] || ENV['QUEUES']
+      resque_rake = executable == 'rake' && ARGV.include?('resque:work')
+      resque_pool_rake = executable == 'rake' && ARGV.include?('resque:pool')
       resque_pool_executable = executable == 'resque-pool' && defined?(::Resque::Pool)
 
       using_resque = defined?(::Resque) &&

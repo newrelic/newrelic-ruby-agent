@@ -27,11 +27,11 @@ namespace :newrelic do
 
     begin
       # allow overrides to be defined for revision, description, changelog, appname, and user
-      rev         = fetch(:newrelic_revision)
+      rev = fetch(:newrelic_revision)
       description = fetch(:newrelic_desc)
-      changelog   = fetch(:newrelic_changelog)
-      appname     = fetch(:newrelic_appname)
-      user        = fetch(:newrelic_user)
+      changelog = fetch(:newrelic_changelog)
+      appname = fetch(:newrelic_appname)
+      user = fetch(:newrelic_user)
       license_key = fetch(:newrelic_license_key)
 
       has_scm_from_plugin = respond_to?(:scm_plugin_installed?) && scm_plugin_installed?
@@ -39,7 +39,7 @@ namespace :newrelic do
 
       if has_scm_from_plugin || has_scm_from_config
         changelog ||= lookup_changelog
-        rev       ||= fetch(:current_revision)
+        rev ||= fetch(:current_revision)
       end
 
       new_revision = rev

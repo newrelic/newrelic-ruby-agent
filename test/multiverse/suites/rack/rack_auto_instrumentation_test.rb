@@ -75,7 +75,7 @@ class RackAutoInstrumentationTest < Minitest::Test
         "Middleware/Rack/NewRelic::Rack::AgentHooks/call",
         "WebTransactionTotalTime",
         "WebTransactionTotalTime/Controller/Middleware/Rack/NewRelic::Rack::AgentHooks/call",
-        ["Middleware/Rack/NewRelic::Rack::AgentHooks/call",    "Controller/Middleware/Rack/NewRelic::Rack::AgentHooks/call"],
+        ["Middleware/Rack/NewRelic::Rack::AgentHooks/call", "Controller/Middleware/Rack/NewRelic::Rack::AgentHooks/call"],
         ["Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Middleware/Rack/NewRelic::Rack::AgentHooks/call"],
         'DurationByCaller/Unknown/Unknown/Unknown/HTTP/all',
         'Supportability/API/recording_web_transaction?',
@@ -106,11 +106,11 @@ class RackAutoInstrumentationTest < Minitest::Test
         "WebTransactionTotalTime",
         "WebTransactionTotalTime/Controller/Rack/ExampleApp/call",
         ["Middleware/Rack/NewRelic::Rack::BrowserMonitoring/call", "Controller/Rack/ExampleApp/call"],
-        ["Middleware/Rack/NewRelic::Rack::AgentHooks/call",        "Controller/Rack/ExampleApp/call"],
+        ["Middleware/Rack/NewRelic::Rack::AgentHooks/call", "Controller/Rack/ExampleApp/call"],
         ["Middleware/Rack/MiddlewareOne/call", "Controller/Rack/ExampleApp/call"],
         ["Middleware/Rack/MiddlewareTwo/call", "Controller/Rack/ExampleApp/call"],
         ["Middleware/Rack/MiddlewareThree/call", "Controller/Rack/ExampleApp/call"],
-        ["Nested/Controller/Rack/ExampleApp/call",    "Controller/Rack/ExampleApp/call"],
+        ["Nested/Controller/Rack/ExampleApp/call", "Controller/Rack/ExampleApp/call"],
         'DurationByCaller/Unknown/Unknown/Unknown/HTTP/all',
         'Supportability/API/recording_web_transaction?',
         'DurationByCaller/Unknown/Unknown/Unknown/HTTP/allWeb'
@@ -169,7 +169,7 @@ class RackAutoInstrumentationTest < Minitest::Test
     get '/'
 
     assert_equal('the correct tag', last_response.headers['MiddlewareTwoTag'])
-    assert_equal('the block tag',   last_response.headers['MiddlewareTwoBlockTag'])
+    assert_equal('the block tag', last_response.headers['MiddlewareTwoBlockTag'])
   end
 
   def test_middleware_created_with_kwargs_works

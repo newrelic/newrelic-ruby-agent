@@ -24,33 +24,33 @@ module NewRelic
       include Tracing
 
       # for nested transactions
-      NESTED_TRANSACTION_PREFIX    = "Nested/"
-      CONTROLLER_PREFIX            = "Controller/"
-      MIDDLEWARE_PREFIX            = "Middleware/Rack/"
-      OTHER_TRANSACTION_PREFIX     = "OtherTransaction/"
-      TASK_PREFIX                  = "#{OTHER_TRANSACTION_PREFIX}Background/"
-      RAKE_PREFIX                  = "#{OTHER_TRANSACTION_PREFIX}Rake/"
-      MESSAGE_PREFIX               = "#{OTHER_TRANSACTION_PREFIX}Message/"
-      RACK_PREFIX                  = "#{CONTROLLER_PREFIX}Rack/"
-      SINATRA_PREFIX               = "#{CONTROLLER_PREFIX}Sinatra/"
-      GRAPE_PREFIX                 = "#{CONTROLLER_PREFIX}Grape/"
-      ACTION_CABLE_PREFIX          = "#{CONTROLLER_PREFIX}ActionCable/"
+      NESTED_TRANSACTION_PREFIX = "Nested/"
+      CONTROLLER_PREFIX = "Controller/"
+      MIDDLEWARE_PREFIX = "Middleware/Rack/"
+      OTHER_TRANSACTION_PREFIX = "OtherTransaction/"
+      TASK_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Background/"
+      RAKE_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Rake/"
+      MESSAGE_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Message/"
+      RACK_PREFIX = "#{CONTROLLER_PREFIX}Rack/"
+      SINATRA_PREFIX = "#{CONTROLLER_PREFIX}Sinatra/"
+      GRAPE_PREFIX = "#{CONTROLLER_PREFIX}Grape/"
+      ACTION_CABLE_PREFIX = "#{CONTROLLER_PREFIX}ActionCable/"
 
-      WEB_TRANSACTION_CATEGORIES   = [:web, :controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
-      TRANSACTION_NAMING_SOURCES   = [:child, :api].freeze
+      WEB_TRANSACTION_CATEGORIES = [:web, :controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
+      TRANSACTION_NAMING_SOURCES = [:child, :api].freeze
 
-      MIDDLEWARE_SUMMARY_METRICS   = ["Middleware/all"].freeze
-      WEB_SUMMARY_METRIC           = "HttpDispatcher"
-      OTHER_SUMMARY_METRIC         = "#{OTHER_TRANSACTION_PREFIX}all"
-      QUEUE_TIME_METRIC            = "WebFrontend/QueueTime"
+      MIDDLEWARE_SUMMARY_METRICS = ["Middleware/all"].freeze
+      WEB_SUMMARY_METRIC = "HttpDispatcher"
+      OTHER_SUMMARY_METRIC = "#{OTHER_TRANSACTION_PREFIX}all"
+      QUEUE_TIME_METRIC = "WebFrontend/QueueTime"
 
-      APDEX_S                       = "S"
-      APDEX_T                       = "T"
-      APDEX_F                       = "F"
-      APDEX_ALL_METRIC              = "ApdexAll"
-      APDEX_METRIC                  = "Apdex"
-      APDEX_OTHER_METRIC            = "ApdexOther"
-      APDEX_TXN_METRIC_PREFIX       = "Apdex/"
+      APDEX_S = "S"
+      APDEX_T = "T"
+      APDEX_F = "F"
+      APDEX_ALL_METRIC = "ApdexAll"
+      APDEX_METRIC = "Apdex"
+      APDEX_OTHER_METRIC = "ApdexOther"
+      APDEX_TXN_METRIC_PREFIX = "Apdex/"
       APDEX_OTHER_TXN_METRIC_PREFIX = "ApdexOther/Transaction/"
 
       JRUBY_CPU_TIME_ERROR = "Error calculating JRuby CPU Time"
@@ -101,7 +101,7 @@ module NewRelic
       end
 
       def self.set_default_transaction_name(partial_name, category = nil) #THREAD_LOCAL_ACCESS
-        txn  = tl_current
+        txn = tl_current
         name = name_from_partial(partial_name, category || txn.category)
         txn.set_default_transaction_name(name, category)
       end
@@ -220,8 +220,8 @@ module NewRelic
         @segments = []
 
         self.default_name = options[:transaction_name]
-        @overridden_name    = nil
-        @frozen_name      = nil
+        @overridden_name = nil
+        @frozen_name = nil
 
         @category = category
         @start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
@@ -692,8 +692,8 @@ module NewRelic
         return unless is_synthetics_request?
 
         payload[:synthetics_resource_id] = synthetics_resource_id
-        payload[:synthetics_job_id]      = synthetics_job_id
-        payload[:synthetics_monitor_id]  = synthetics_monitor_id
+        payload[:synthetics_job_id] = synthetics_job_id
+        payload[:synthetics_monitor_id] = synthetics_monitor_id
       end
 
       def merge_metrics
@@ -703,9 +703,9 @@ module NewRelic
       def record_exceptions
         error_recorded = false
         @exceptions.each do |exception, options|
-          options[:uri]      ||= request_path if request_path
-          options[:port]       = request_port if request_port
-          options[:metric]     = best_name
+          options[:uri] ||= request_path if request_path
+          options[:port] = request_port if request_port
+          options[:metric] = best_name
           options[:attributes] = @attributes
 
           span_id = options.delete :span_id
@@ -780,9 +780,9 @@ module NewRelic
       def record_apdex_metrics(rollup_metric, transaction_prefix, current_apdex_t)
         return unless current_apdex_t
 
-        total_duration      = end_time - apdex_start
+        total_duration = end_time - apdex_start
         apdex_bucket_global = apdex_bucket(total_duration, current_apdex_t)
-        apdex_bucket_txn    = apdex_bucket(duration, current_apdex_t)
+        apdex_bucket_txn = apdex_bucket(duration, current_apdex_t)
 
         @metrics.record_unscoped(rollup_metric, apdex_bucket_global, current_apdex_t)
         @metrics.record_unscoped(APDEX_ALL_METRIC, apdex_bucket_global, current_apdex_t)
@@ -895,7 +895,7 @@ module NewRelic
         threadMBean = Java::JavaLangManagement::ManagementFactory.getThreadMXBean()
 
         return nil unless threadMBean.isCurrentThreadCpuTimeSupported
-        java_utime = threadMBean.getCurrentThreadUserTime()  # ns
+        java_utime = threadMBean.getCurrentThreadUserTime() # ns
 
         -1 == java_utime ? 0.0 : java_utime/1e9
       rescue => e

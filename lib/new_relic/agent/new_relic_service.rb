@@ -128,7 +128,7 @@ module NewRelic
 
       def metric_data(stats_hash)
         timeslice_start = stats_hash.started_at
-        timeslice_end  = stats_hash.harvested_at || Process.clock_gettime(Process::CLOCK_REALTIME)
+        timeslice_end = stats_hash.harvested_at || Process.clock_gettime(Process::CLOCK_REALTIME)
         metric_data_array = build_metric_data_array(stats_hash)
         result = invoke_remote(
           :metric_data,
@@ -289,7 +289,7 @@ module NewRelic
         # Jruby 1.6.8 requires a gem for full ssl support and will throw
         # an error when use_ssl=(true) is called and jruby-openssl isn't
         # installed
-        conn.use_ssl     = true
+        conn.use_ssl = true
         conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
         set_cert_store(conn)
       rescue StandardError, LoadError
@@ -299,7 +299,7 @@ module NewRelic
 
       def set_cert_store(conn)
         if NewRelic::Agent.config[:ca_bundle_path]
-          conn.cert_store  = ssl_cert_store
+          conn.cert_store = ssl_cert_store
         else
           ::NewRelic::Agent.logger.debug("Using default security certificates")
         end
@@ -526,10 +526,10 @@ module NewRelic
         request.content_type = "application/octet-stream"
         request.body = opts[:data]
 
-        response     = nil
-        attempts     = 0
+        response = nil
+        attempts = 0
         max_attempts = 2
-        endpoint     = opts[:endpoint]
+        endpoint = opts[:endpoint]
 
         begin
           attempts += 1

@@ -65,7 +65,7 @@ class ActiveJobTest < Minitest::Test
   ENQUEUE_PREFIX = "MessageBroker/ActiveJob::Inline/Queue/Produce/Named"
   PERFORM_PREFIX = "MessageBroker/ActiveJob::Inline/Queue/Consume/Named"
 
-  PERFORM_TRANSACTION_NAME   = 'OtherTransaction/ActiveJob::Inline/MyJob/execute'
+  PERFORM_TRANSACTION_NAME = 'OtherTransaction/ActiveJob::Inline/MyJob/execute'
   PERFORM_TRANSACTION_ROLLUP = 'OtherTransaction/ActiveJob::Inline/all'
 
   def test_record_enqueue_metrics

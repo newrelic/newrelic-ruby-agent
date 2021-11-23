@@ -5,7 +5,7 @@
 module NewRelic
   module Agent
     class SyntheticsMonitor < InboundRequestMonitor
-      SYNTHETICS_HEADER_KEY  = 'HTTP_X_NEWRELIC_SYNTHETICS'.freeze
+      SYNTHETICS_HEADER_KEY = 'HTTP_X_NEWRELIC_SYNTHETICS'.freeze
 
       SUPPORTED_VERSION = 1
       EXPECTED_PAYLOAD_LENGTH = 5
@@ -27,7 +27,7 @@ module NewRelic
 
         txn = Tracer.current_transaction
         txn.raw_synthetics_header = encoded_header
-        txn.synthetics_payload    = incoming_payload
+        txn.synthetics_payload = incoming_payload
       end
 
       class << self

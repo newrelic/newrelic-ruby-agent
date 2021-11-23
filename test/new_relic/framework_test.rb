@@ -22,7 +22,7 @@ class FrameworkTest < Minitest::Test
 
   def teardown
     # Put things back how we found them
-    ::NewRelic.send(:const_set, :TEST,  @old_newrelic_test_const)
+    ::NewRelic.send(:const_set, :TEST, @old_newrelic_test_const)
     NewRelic::Agent.reset_config
   end
 

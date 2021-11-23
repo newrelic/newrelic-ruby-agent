@@ -35,8 +35,8 @@ module NewRelic
 
       def initialize(started_at = Process.clock_gettime(Process::CLOCK_REALTIME))
         @started_at = started_at.to_f
-        @scoped     = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
-        @unscoped   = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
+        @scoped = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
+        @unscoped = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
       end
 
       def marshal_dump
@@ -45,7 +45,7 @@ module NewRelic
 
       def marshal_load(data)
         @started_at = data.shift
-        @scoped   = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
+        @scoped = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
         @unscoped = Hash.new { |h, k| h[k] = NewRelic::Agent::Stats.new }
         @scoped.merge!(data.shift)
         @unscoped.merge!(data.shift)
@@ -57,7 +57,7 @@ module NewRelic
 
       def to_h
         hash = {}
-        @scoped.each   { |k, v| hash[k] = v }
+        @scoped.each { |k, v| hash[k] = v }
         @unscoped.each { |k, v| hash[NewRelic::MetricSpec.new(k)] = v }
         hash
       end

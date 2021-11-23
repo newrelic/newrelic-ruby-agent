@@ -121,27 +121,27 @@ module NewRelic
         " nonce=\"#{nonce.to_s}\""
       end
 
-      BEACON_KEY           = "beacon".freeze
-      ERROR_BEACON_KEY     = "errorBeacon".freeze
-      LICENSE_KEY_KEY      = "licenseKey".freeze
-      APPLICATIONID_KEY    = "applicationID".freeze
+      BEACON_KEY = "beacon".freeze
+      ERROR_BEACON_KEY = "errorBeacon".freeze
+      LICENSE_KEY_KEY = "licenseKey".freeze
+      APPLICATIONID_KEY = "applicationID".freeze
       TRANSACTION_NAME_KEY = "transactionName".freeze
-      QUEUE_TIME_KEY       = "queueTime".freeze
+      QUEUE_TIME_KEY = "queueTime".freeze
       APPLICATION_TIME_KEY = "applicationTime".freeze
-      AGENT_KEY            = "agent".freeze
-      SSL_FOR_HTTP_KEY     = "sslForHttp".freeze
-      ATTS_KEY             = "atts".freeze
-      ATTS_USER_SUBKEY     = "u".freeze
-      ATTS_AGENT_SUBKEY    = "a".freeze
+      AGENT_KEY = "agent".freeze
+      SSL_FOR_HTTP_KEY = "sslForHttp".freeze
+      ATTS_KEY = "atts".freeze
+      ATTS_USER_SUBKEY = "u".freeze
+      ATTS_AGENT_SUBKEY = "a".freeze
 
       # NOTE: Internal prototyping may override this, so leave name stable!
       def data_for_js_agent(transaction)
         queue_time_in_seconds = [transaction.queue_time, 0.0].max
         start_time_in_seconds = [transaction.start_time, 0.0].max
-        app_time_in_seconds   = Process.clock_gettime(Process::CLOCK_REALTIME) - start_time_in_seconds
+        app_time_in_seconds = Process.clock_gettime(Process::CLOCK_REALTIME) - start_time_in_seconds
 
         queue_time_in_millis = (1000.0 * queue_time_in_seconds).round
-        app_time_in_millis   = (1000.0 * app_time_in_seconds).round
+        app_time_in_millis = (1000.0 * app_time_in_seconds).round
 
         transaction_name = transaction.best_name || ::NewRelic::Agent::UNKNOWN_METRIC
 

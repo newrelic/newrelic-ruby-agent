@@ -9,7 +9,7 @@ module NewRelic::Agent
   module DistributedTracing
     class MonitorTest < Minitest::Test
       def setup
-        @events  = EventListener.new
+        @events = EventListener.new
         @monitor = DistributedTracing::Monitor.new(@events)
       end
 

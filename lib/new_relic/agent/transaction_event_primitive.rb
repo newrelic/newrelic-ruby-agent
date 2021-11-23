@@ -20,25 +20,25 @@ module NewRelic
       COMMA = ','
 
       # The type field of the sample
-      SAMPLE_TYPE              = 'Transaction'
+      SAMPLE_TYPE = 'Transaction'
 
       # Strings for static keys of the sample structure
-      TYPE_KEY                       = 'type'
-      TIMESTAMP_KEY                  = 'timestamp'
-      NAME_KEY                       = 'name'
-      DURATION_KEY                   = 'duration'
-      ERROR_KEY                      = 'error'
-      SAMPLED_KEY                    = 'sampled'
-      PRIORITY_KEY                   = 'priority'
-      GUID_KEY                       = 'nr.guid'
+      TYPE_KEY = 'type'
+      TIMESTAMP_KEY = 'timestamp'
+      NAME_KEY = 'name'
+      DURATION_KEY = 'duration'
+      ERROR_KEY = 'error'
+      SAMPLED_KEY = 'sampled'
+      PRIORITY_KEY = 'priority'
+      GUID_KEY = 'nr.guid'
       REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'
-      CAT_PATH_HASH_KEY              = 'nr.pathHash'
-      CAT_REFERRING_PATH_HASH_KEY    = 'nr.referringPathHash'
-      CAT_ALTERNATE_PATH_HASHES_KEY  = 'nr.alternatePathHashes'
-      APDEX_PERF_ZONE_KEY            = 'nr.apdexPerfZone'
-      SYNTHETICS_RESOURCE_ID_KEY     = "nr.syntheticsResourceId"
-      SYNTHETICS_JOB_ID_KEY          = "nr.syntheticsJobId"
-      SYNTHETICS_MONITOR_ID_KEY      = "nr.syntheticsMonitorId"
+      CAT_PATH_HASH_KEY = 'nr.pathHash'
+      CAT_REFERRING_PATH_HASH_KEY = 'nr.referringPathHash'
+      CAT_ALTERNATE_PATH_HASHES_KEY = 'nr.alternatePathHashes'
+      APDEX_PERF_ZONE_KEY = 'nr.apdexPerfZone'
+      SYNTHETICS_RESOURCE_ID_KEY = "nr.syntheticsResourceId"
+      SYNTHETICS_JOB_ID_KEY = "nr.syntheticsJobId"
+      SYNTHETICS_MONITOR_ID_KEY = "nr.syntheticsMonitorId"
 
       def create(payload)
         intrinsics = {
@@ -64,14 +64,14 @@ module NewRelic
       private
 
       def append_optional_attributes(sample, payload)
-        optionally_append(GUID_KEY,                       :guid, sample, payload)
+        optionally_append(GUID_KEY, :guid, sample, payload)
         optionally_append(REFERRING_TRANSACTION_GUID_KEY, :referring_transaction_guid, sample, payload)
-        optionally_append(CAT_PATH_HASH_KEY,              :cat_path_hash, sample, payload)
-        optionally_append(CAT_REFERRING_PATH_HASH_KEY,    :cat_referring_path_hash, sample, payload)
-        optionally_append(APDEX_PERF_ZONE_KEY,            :apdex_perf_zone, sample, payload)
-        optionally_append(SYNTHETICS_RESOURCE_ID_KEY,     :synthetics_resource_id, sample, payload)
-        optionally_append(SYNTHETICS_JOB_ID_KEY,          :synthetics_job_id, sample, payload)
-        optionally_append(SYNTHETICS_MONITOR_ID_KEY,      :synthetics_monitor_id, sample, payload)
+        optionally_append(CAT_PATH_HASH_KEY, :cat_path_hash, sample, payload)
+        optionally_append(CAT_REFERRING_PATH_HASH_KEY, :cat_referring_path_hash, sample, payload)
+        optionally_append(APDEX_PERF_ZONE_KEY, :apdex_perf_zone, sample, payload)
+        optionally_append(SYNTHETICS_RESOURCE_ID_KEY, :synthetics_resource_id, sample, payload)
+        optionally_append(SYNTHETICS_JOB_ID_KEY, :synthetics_job_id, sample, payload)
+        optionally_append(SYNTHETICS_MONITOR_ID_KEY, :synthetics_monitor_id, sample, payload)
         append_cat_alternate_path_hashes(sample, payload)
       end
 

@@ -67,8 +67,8 @@ class AgentLoggerTest < Minitest::Test
 
     assert_logged(/FATAL/, /FATAL/,
                   /ERROR/, /ERROR/,
-                  /WARN/,  /WARN/,
-                  /INFO/,  /INFO/) # No DEBUG
+                  /WARN/, /WARN/,
+                  /INFO/, /INFO/) # No DEBUG
   end
 
   def test_forwards_calls_to_logger_once
@@ -112,8 +112,8 @@ class AgentLoggerTest < Minitest::Test
   def test_maps_log_levels
     assert_equal Logger::FATAL, NewRelic::Agent::AgentLogger.log_level_for(:fatal)
     assert_equal Logger::ERROR, NewRelic::Agent::AgentLogger.log_level_for(:error)
-    assert_equal Logger::WARN,  NewRelic::Agent::AgentLogger.log_level_for(:warn)
-    assert_equal Logger::INFO,  NewRelic::Agent::AgentLogger.log_level_for(:info)
+    assert_equal Logger::WARN, NewRelic::Agent::AgentLogger.log_level_for(:warn)
+    assert_equal Logger::INFO, NewRelic::Agent::AgentLogger.log_level_for(:info)
     assert_equal Logger::DEBUG, NewRelic::Agent::AgentLogger.log_level_for(:debug)
 
     assert_equal Logger::INFO, NewRelic::Agent::AgentLogger.log_level_for("")
@@ -335,7 +335,7 @@ class AgentLoggerTest < Minitest::Test
   end
 
   def test_can_overwrite_log_formatter
-    log_message   = 'How are you?'
+    log_message = 'How are you?'
     log_formatter = Proc.new { |s, t, p, m| m.reverse }
 
     logger = create_basic_logger

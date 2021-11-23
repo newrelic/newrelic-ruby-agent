@@ -21,8 +21,8 @@ module NewRelic
 
       class HTTPRequest < AbstractRequest
         HTTP_RB = 'http.rb'
-        HOST    = 'host'
-        COLON   = ':'
+        HOST = 'host'
+        COLON = ':'
 
         def initialize wrapped_request
           @wrapped_request = wrapped_request

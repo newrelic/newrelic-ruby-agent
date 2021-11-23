@@ -97,7 +97,7 @@ module NewRelic
 
         def process_explain_results_mysql(results)
           headers = []
-          values  = []
+          values = []
           if results.is_a?(Array)
             # We're probably using the jdbc-mysql gem for JRuby, which will give
             # us an array of hashes.
@@ -118,7 +118,7 @@ module NewRelic
 
         def process_explain_results_mysql2(results)
           headers = results.fields
-          values  = []
+          values = []
           results.each { |row| values << row }
           [headers, values]
         end
@@ -127,7 +127,7 @@ module NewRelic
 
         def process_explain_results_sqlite(results)
           headers = SQLITE_EXPLAIN_COLUMNS
-          values  = []
+          values = []
           results.each do |row|
             values << headers.map { |h| row[h] }
           end

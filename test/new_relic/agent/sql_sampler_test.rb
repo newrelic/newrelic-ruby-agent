@@ -74,7 +74,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
     @sampler.notice_sql_statement(statement, metric_name, 1.5)
 
-    slow_sql =  @sampler.tl_transaction_data.sql_data[0]
+    slow_sql = @sampler.tl_transaction_data.sql_data[0]
 
     assert_equal statement, slow_sql.statement
     assert_equal metric_name, slow_sql.metric_name
@@ -313,7 +313,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     sql_traces = @sampler.harvest!
 
     harvested_durations = sql_traces.map(&:total_call_time).sort
-    expected_durations  = durations.sort.last(10)
+    expected_durations = durations.sort.last(10)
 
     assert_equal expected_durations, harvested_durations
   end
@@ -501,14 +501,14 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
       trace_payload = txn.distributed_tracer.distributed_trace_payload
       transport_type = txn.distributed_tracer.caller_transport_type
 
-      assert_equal trace_payload.trace_id,                 sql_trace.params['traceId']
-      assert_equal txn.priority,                           sql_trace.params['priority']
-      assert_equal sampled,                                sql_trace.params['sampled']
-      assert_equal transport_type,                         sql_trace.params['parent.transportType']
+      assert_equal trace_payload.trace_id, sql_trace.params['traceId']
+      assert_equal txn.priority, sql_trace.params['priority']
+      assert_equal sampled, sql_trace.params['sampled']
+      assert_equal transport_type, sql_trace.params['parent.transportType']
       assert_equal 2.0, sql_trace.params['parent.transportDuration'].round
-      assert_equal payload.parent_type,                    sql_trace.params['parent.type']
-      assert_equal payload.parent_account_id,              sql_trace.params['parent.account']
-      assert_equal payload.parent_app_id,                  sql_trace.params['parent.app']
+      assert_equal payload.parent_type, sql_trace.params['parent.type']
+      assert_equal payload.parent_account_id, sql_trace.params['parent.account']
+      assert_equal payload.parent_app_id, sql_trace.params['parent.app']
     end
   end
 end

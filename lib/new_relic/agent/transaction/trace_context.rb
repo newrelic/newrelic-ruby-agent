@@ -21,24 +21,24 @@ module NewRelic
           end
         end
 
-        SUPPORTABILITY_PREFIX             = "Supportability/TraceContext"
-        CREATE_PREFIX                     = "#{SUPPORTABILITY_PREFIX}/Create"
-        ACCEPT_PREFIX                     = "#{SUPPORTABILITY_PREFIX}/Accept"
-        TRACESTATE_PREFIX                 = "#{SUPPORTABILITY_PREFIX}/TraceState"
+        SUPPORTABILITY_PREFIX = "Supportability/TraceContext"
+        CREATE_PREFIX = "#{SUPPORTABILITY_PREFIX}/Create"
+        ACCEPT_PREFIX = "#{SUPPORTABILITY_PREFIX}/Accept"
+        TRACESTATE_PREFIX = "#{SUPPORTABILITY_PREFIX}/TraceState"
 
-        CREATE_SUCCESS_METRIC             = "#{CREATE_PREFIX}/Success"
-        CREATE_EXCEPTION_METRIC           = "#{CREATE_PREFIX}/Exception"
+        CREATE_SUCCESS_METRIC = "#{CREATE_PREFIX}/Success"
+        CREATE_EXCEPTION_METRIC = "#{CREATE_PREFIX}/Exception"
 
-        ACCEPT_SUCCESS_METRIC             = "#{ACCEPT_PREFIX}/Success"
-        ACCEPT_EXCEPTION_METRIC           = "#{ACCEPT_PREFIX}/Exception"
-        IGNORE_MULTIPLE_ACCEPT_METRIC     = "#{ACCEPT_PREFIX}/Ignored/Multiple"
+        ACCEPT_SUCCESS_METRIC = "#{ACCEPT_PREFIX}/Success"
+        ACCEPT_EXCEPTION_METRIC = "#{ACCEPT_PREFIX}/Exception"
+        IGNORE_MULTIPLE_ACCEPT_METRIC = "#{ACCEPT_PREFIX}/Ignored/Multiple"
         IGNORE_ACCEPT_AFTER_CREATE_METRIC = "#{ACCEPT_PREFIX}/Ignored/CreateBeforeAccept"
 
-        NO_NR_ENTRY_TRACESTATE_METRIC     = "#{TRACESTATE_PREFIX}/NoNrEntry"
+        NO_NR_ENTRY_TRACESTATE_METRIC = "#{TRACESTATE_PREFIX}/NoNrEntry"
         INVALID_TRACESTATE_PAYLOAD_METRIC = "#{TRACESTATE_PREFIX}/InvalidNrEntry"
 
         attr_accessor :trace_context_header_data
-        attr_reader   :trace_state_payload
+        attr_reader :trace_state_payload
 
         def trace_parent_header_present? request
           request[NewRelic::HTTP_TRACEPARENT_KEY]

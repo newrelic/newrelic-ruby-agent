@@ -212,7 +212,7 @@ else
       @profiler.handle_start_command(start_command)
       @profiler.handle_stop_command(stop_command)
       profile = @profiler.harvest
-      assert_equal 42,  profile.profile_id
+      assert_equal 42, profile.profile_id
       assert_equal 0.02, profile.requested_period
     end
 

@@ -11,10 +11,10 @@ module NewRelic
         attr_reader :next_fire_time, :event, :interval, :last_fired_at
 
         def initialize(interval, event, repeat = false)
-          @interval      = interval
-          @event         = event
-          @repeat        = repeat
-          @started_at    = Process.clock_gettime(Process::CLOCK_REALTIME)
+          @interval = interval
+          @event = event
+          @repeat = repeat
+          @started_at = Process.clock_gettime(Process::CLOCK_REALTIME)
           @last_fired_at = nil
           reschedule
         end
@@ -57,8 +57,8 @@ module NewRelic
       def initialize
         @self_pipe_rd, @self_pipe_wr = IO.pipe
         @event_queue = Queue.new
-        @stopped     = false
-        @timers      = {}
+        @stopped = false
+        @timers = {}
 
         @subscriptions = Hash.new { |h, k| h[k] = [] }
         @subscriptions[:__add_timer] << Proc.new { |t| set_timer(t) }

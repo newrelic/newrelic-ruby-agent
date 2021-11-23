@@ -20,14 +20,14 @@ module NewRelic
         attr_accessor :thread_profiler_session, :backtrace_service
 
         def initialize(event_listener = nil)
-          @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
+          @handlers = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
 
           @backtrace_service = Threading::BacktraceService.new(event_listener)
 
           @thread_profiler_session = ThreadProfilerSession.new(@backtrace_service)
 
           @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler_session.handle_start_command(cmd) }
-          @handlers['stop_profiler']  = Proc.new { |cmd| thread_profiler_session.handle_stop_command(cmd) }
+          @handlers['stop_profiler'] = Proc.new { |cmd| thread_profiler_session.handle_stop_command(cmd) }
 
           if event_listener
             event_listener.subscribe(:before_shutdown, &method(:on_before_shutdown))

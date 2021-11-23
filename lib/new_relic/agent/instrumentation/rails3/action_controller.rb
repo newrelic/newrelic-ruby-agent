@@ -26,7 +26,7 @@ module NewRelic
                                                :name => self.action_name,
                                                :path => newrelic_metric_path,
                                                :params => munged_params,
-                                               :class_name => self.class.name)  do
+                                               :class_name => self.class.name) do
               super
             end
           end

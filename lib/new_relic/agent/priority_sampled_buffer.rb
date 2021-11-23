@@ -15,7 +15,7 @@ module NewRelic
       def initialize(capacity)
         super
         @captured_lifetime = 0
-        @seen_lifetime     = 0
+        @seen_lifetime = 0
       end
 
       def heapify_items_array
@@ -53,10 +53,10 @@ module NewRelic
       def capacity=(new_capacity)
         @capacity = new_capacity
         old_items = @items.to_a
-        old_seen  = @seen
+        old_seen = @seen
         reset!
         old_items.each { |i| append(event: i) }
-        @seen     = old_seen
+        @seen = old_seen
       end
 
       def to_a

@@ -57,8 +57,8 @@ module NewRelic
 
           @method = @datum[:method].to_s.upcase
           @scheme = @datum[:scheme]
-          @port   = @datum[:port]
-          @path   = @datum[:path]
+          @port = @datum[:port]
+          @path = @datum[:path]
         end
 
         def type

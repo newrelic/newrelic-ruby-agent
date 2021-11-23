@@ -38,8 +38,8 @@ module NewRelic::Agent::Configuration
       config2 = { :foo => 'real foo' }
       @manager.add_config_for_testing(config2)
 
-      assert_equal 'real foo'   , @manager['foo']
-      assert_equal 'real bar'   , @manager['bar']
+      assert_equal 'real foo' , @manager['foo']
+      assert_equal 'real bar' , @manager['bar']
       assert_equal 'default baz', @manager['baz']
     end
 
@@ -47,7 +47,7 @@ module NewRelic::Agent::Configuration
       # in order of precedence
       high_security = HighSecuritySource.new({})
       server_source = ServerSource.new('data_report_period' => 3, 'capture_params' => true)
-      manual_source = ManualSource.new(:data_report_period  => 2, :bar => 'bar', :capture_params => true)
+      manual_source = ManualSource.new(:data_report_period => 2, :bar => 'bar', :capture_params => true)
 
       # load them out of order, just to prove that load order
       # doesn't determine precedence
@@ -55,7 +55,7 @@ module NewRelic::Agent::Configuration
       @manager.replace_or_add_config(server_source)
       @manager.replace_or_add_config(high_security)
 
-      assert_equal 3,     @manager['data_report_period']
+      assert_equal 3, @manager['data_report_period']
       assert_equal 'bar', @manager['bar']
       assert_equal false, @manager['capture_params']
     end
@@ -371,7 +371,7 @@ module NewRelic::Agent::Configuration
 
       expected = [
         { 'label_type' => 'truthy', 'label_value' => 'true' },
-        { 'label_type' => 'falsy',  'label_value' => 'false' }
+        { 'label_type' => 'falsy', 'label_value' => 'false' }
       ]
       assert_parsed_labels(expected)
     end

@@ -18,7 +18,7 @@ class DeploymentTest < Minitest::Test
 
   def test_deploys_with_commandline_parameter
     cap_it("-s newrelic_user=someone -s newrelic_appname=somewhere")
-    assert_deployment_value("user",           "someone")
+    assert_deployment_value("user", "someone")
     assert_deployment_value("application_id", "somewhere")
   end
 

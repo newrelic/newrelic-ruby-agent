@@ -165,7 +165,7 @@ module NewRelic
         with_config :cap_key => 5 do
           buffer = @aggregator.buffer
 
-          4.times { |i| @aggregator.record i  }
+          4.times { |i| @aggregator.record i }
           last_harvest = @aggregator.harvest!
 
           assert_equal 4, buffer.seen_lifetime
@@ -188,7 +188,7 @@ module NewRelic
         with_config :cap_key => 5 do
           buffer = @aggregator.buffer
 
-          4.times { |i| @aggregator.record i  }
+          4.times { |i| @aggregator.record i }
           last_harvest = @aggregator.harvest!
 
           assert_equal 4, buffer.seen_lifetime

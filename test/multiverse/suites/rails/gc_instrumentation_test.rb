@@ -25,7 +25,7 @@ class GcController < ApplicationController
       puts "Timed out waiting for GC..."
     end
 
-    render body:  'ha'
+    render body: 'ha'
   end
 end
 

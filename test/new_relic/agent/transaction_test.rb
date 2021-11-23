@@ -568,11 +568,11 @@ module NewRelic::Agent
       end
 
       raw_synthetics_header = 'dummy data'
-      synthetics_payload    = [123, 456, 789, 111]
+      synthetics_payload = [123, 456, 789, 111]
 
       in_transaction do |txn|
         txn.raw_synthetics_header = raw_synthetics_header
-        txn.synthetics_payload    = synthetics_payload
+        txn.synthetics_payload = synthetics_payload
       end
 
       assert_includes keys, :guid
@@ -736,7 +736,7 @@ module NewRelic::Agent
       assert_equal 1, errors.count
 
       error = errors.first
-      assert_equal "/here",  error.request_uri
+      assert_equal "/here", error.request_uri
     end
 
     def test_notice_error_sets_expected_attribute
@@ -801,7 +801,7 @@ module NewRelic::Agent
 
     def test_records_gc_time
       gc_start = mock('gc start')
-      gc_end   = mock('gc end')
+      gc_end = mock('gc end')
       StatsEngine::GCProfiler.stubs(:take_snapshot).returns(gc_start, gc_end)
 
       txn = in_transaction do |transaction|
@@ -1029,7 +1029,7 @@ module NewRelic::Agent
     end
 
     def test_ignore_enduser_returns_true_if_enduser_is_ignored
-      in_transaction('Controller/test', :category => :sinatra) do  |txn|
+      in_transaction('Controller/test', :category => :sinatra) do |txn|
         txn.ignore_enduser!
         assert txn.ignore_enduser?
       end

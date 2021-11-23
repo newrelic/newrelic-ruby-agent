@@ -35,7 +35,7 @@ module NewRelic::Agent::Instrumentation
 
           # Hook the #http method to set the verb.
           def http_with_newrelic verb
-            http_with_tracing(verb) {  http_without_newrelic( verb ) }
+            http_with_tracing(verb) { http_without_newrelic( verb ) }
           end
 
           alias_method :http_without_newrelic, :http

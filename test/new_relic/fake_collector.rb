@@ -118,9 +118,9 @@ module NewRelic
     def call(env)
       @last_socket = Thread.current[:WEBrickSocket]
 
-      req    = ::Rack::Request.new(env)
-      res    = ::Rack::Response.new
-      uri    = URI.parse(req.url)
+      req = ::Rack::Request.new(env)
+      res = ::Rack::Response.new
+      uri = URI.parse(req.url)
       method = method_from_request(req)
 
       if @mock.keys.include? method
@@ -179,10 +179,10 @@ module NewRelic
     class AgentPost
       attr_accessor :action, :body, :run_id, :format, :query_params
       def initialize(opts = {})
-        @action       = opts[:action]
-        @body         = opts[:body]
-        @run_id       = opts[:run_id]
-        @format       = opts[:format]
+        @action = opts[:action]
+        @body = opts[:body]
+        @run_id = opts[:run_id]
+        @format = opts[:format]
         @query_params = opts[:query_params]
       end
 
@@ -375,11 +375,11 @@ module NewRelic
       attr_reader :timestamp, :path, :message, :exception_class_name, :params
 
       def initialize(error_info)
-        @timestamp            = error_info[0]
-        @path                 = error_info[1]
-        @message              = error_info[2]
+        @timestamp = error_info[0]
+        @path = error_info[1]
+        @message = error_info[2]
         @exception_class_name = error_info[3]
-        @params               = error_info[4]
+        @params = error_info[4]
       end
 
       def agent_attributes

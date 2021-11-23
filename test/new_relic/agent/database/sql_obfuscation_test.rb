@@ -29,9 +29,9 @@ module NewRelic::Agent::Database
     test_cases = load_cross_agent_test('sql_obfuscation/sql_obfuscation')
     test_cases.each do |test_case|
       name = test_case['name']
-      query              = test_case['sql']
+      query = test_case['sql']
       acceptable_outputs = test_case['obfuscated']
-      dialects           = test_case['dialects']
+      dialects = test_case['dialects']
 
       # If the entire query is obfuscated because it's malformed, we use a
       # placeholder message instead of just '?', so add that to the acceptable

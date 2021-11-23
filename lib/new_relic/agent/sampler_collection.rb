@@ -49,7 +49,7 @@ module NewRelic
 
       def add_sampler(sampler_class)
         supported = sampler_class.supported_on_this_platform?
-        enabled   = sampler_class.enabled?
+        enabled = sampler_class.enabled?
         if supported && enabled
           if !sampler_class_registered?(sampler_class)
             sampler = sampler_class.new

@@ -24,7 +24,7 @@ module NewRelic
       end
 
       def self.create_transaction_rules(connect_response)
-        txn_name_specs     = connect_response['transaction_name_rules']    || []
+        txn_name_specs = connect_response['transaction_name_rules'] || []
         segment_rule_specs = connect_response['transaction_segment_terms'] || []
 
         txn_name_rules = txn_name_specs.map { |s| ReplacementRule.new(s) }

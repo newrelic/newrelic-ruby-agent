@@ -7,10 +7,10 @@ require File.expand_path '../../../../test_helper', __FILE__
 module NewRelic::Agent
   class InboundRequestMonitorTest < Minitest::Test
 
-    ENCODING_KEY_NOOP         = "\0"
+    ENCODING_KEY_NOOP = "\0"
 
     def setup
-      @events  = NewRelic::Agent::EventListener.new
+      @events = NewRelic::Agent::EventListener.new
       @monitor = NewRelic::Agent::InboundRequestMonitor.new(@events)
 
       @config = { :encoding_key => ENCODING_KEY_NOOP }

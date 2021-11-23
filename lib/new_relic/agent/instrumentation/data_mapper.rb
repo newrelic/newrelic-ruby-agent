@@ -114,7 +114,7 @@ module NewRelic
       PASSWORD_PARAM = '&password='.freeze
 
       def self.method_body(clazz, method_name, operation_only)
-        use_model_name   = NewRelic::Helper.instance_methods_include?(clazz, :model)
+        use_model_name = NewRelic::Helper.instance_methods_include?(clazz, :model)
         metric_operation = method_name.to_s.gsub(/[!?]/, "")
 
         Proc.new do |*args, &blk|

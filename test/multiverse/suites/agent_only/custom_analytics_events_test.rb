@@ -35,10 +35,10 @@ class CustomAnalyticsEventsTest < Minitest::Test
   end
 
   def test_record_doesnt_record_if_invalid_event_type
-    bad_event_type  = 'bad$news'
+    bad_event_type = 'bad$news'
     good_event_type = 'good news'
 
-    NewRelic::Agent.record_custom_event(bad_event_type,  :foo => :bar)
+    NewRelic::Agent.record_custom_event(bad_event_type, :foo => :bar)
     NewRelic::Agent.record_custom_event(good_event_type, :foo => :bar)
 
     NewRelic::Agent.agent.send(:harvest_and_send_custom_event_data)

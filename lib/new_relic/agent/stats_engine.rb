@@ -13,8 +13,8 @@ module NewRelic
       attr_accessor :metric_rules
 
       def initialize
-        @stats_lock   = Mutex.new
-        @stats_hash   = StatsHash.new
+        @stats_lock = Mutex.new
+        @stats_hash = StatsHash.new
         @metric_rules = RulesEngine.new
       end
 

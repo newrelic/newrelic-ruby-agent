@@ -19,7 +19,7 @@ module NewRelic
         def self.preliminary_settings(security_policies)
           enabled_key = 'enabled'.freeze
           settings = EXPECTED_SECURITY_POLICIES.inject({}) do |memo, policy_name|
-            memo[policy_name] =  {enabled_key => security_policies[policy_name][enabled_key]}
+            memo[policy_name] = {enabled_key => security_policies[policy_name][enabled_key]}
             memo
           end
           {'security_policies' => settings}

@@ -83,7 +83,7 @@ module NewRelic
       # this should always be called under the @samples_lock
       def save_slow_sql(transaction_sql_data)
         path = transaction_sql_data.path
-        uri  = transaction_sql_data.uri
+        uri = transaction_sql_data.uri
 
         transaction_sql_data.sql_data.each do |sql_item|
           normalized_sql = sql_item.normalize

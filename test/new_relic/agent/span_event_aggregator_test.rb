@@ -88,8 +88,8 @@ module NewRelic
         assert_equal 5, last_events.size
 
         assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSeen' => { call_count: 12 }})
-        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSent' => { call_count:  5 }})
-        assert_metrics_recorded({'Supportability/SpanEvent/Discarded'       => { call_count:  7 }})
+        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSent' => { call_count: 5 }})
+        assert_metrics_recorded({'Supportability/SpanEvent/Discarded' => { call_count: 7 }})
       end
     end
   end

@@ -143,7 +143,7 @@ module NewRelic
         errors = error_trace_aggregator.harvest!
         assert errors.length == max_q_length
         errors.each_index do |i|
-          error  = errors.shift
+          error = errors.shift
           actual = error.to_collector_array.last["userAttributes"]["x"]
           assert_equal i.to_s, actual
         end
@@ -291,7 +291,7 @@ module NewRelic
         path = options.delete(:metric)
         noticed_error = NewRelic::NoticedError.new(path, exception)
         noticed_error.request_uri = options.delete(:uri)
-        noticed_error.attributes  = options.delete(:attributes)
+        noticed_error.attributes = options.delete(:attributes)
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
         noticed_error.attributes_from_notice_error.merge!(options)
         noticed_error

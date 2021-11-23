@@ -15,8 +15,8 @@ module NewRelic
 
             if collection_in_selector?(payload)
               command_key = command_key_from_selector(payload)
-              name        = get_name_from_selector(command_key, payload)
-              collection  = get_collection_from_selector(command_key, payload)
+              name = get_name_from_selector(command_key, payload)
+              collection = get_collection_from_selector(command_key, payload)
             else
               collection = payload[:collection]
             end

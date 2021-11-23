@@ -15,11 +15,11 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     if File.basename(file) =~ /^((\d+|X)pack_(\d+|X)core_(\d+|X)logical).txt$/
       test_name = "test_#{$1}"
 
-      num_physical_packages  = $2.to_i
-      num_physical_cores     = $3.to_i
+      num_physical_packages = $2.to_i
+      num_physical_cores = $3.to_i
       num_logical_processors = $4.to_i
-      num_physical_packages  = nil if num_physical_packages  < 1
-      num_physical_cores     = nil if num_physical_cores     < 1
+      num_physical_packages = nil if num_physical_packages < 1
+      num_physical_cores = nil if num_physical_cores < 1
       num_logical_processors = nil if num_logical_processors < 1
 
       define_method(test_name) do
@@ -58,7 +58,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     end
   end
 
-  container_id_test_dir   = File.join(cross_agent_tests_dir, 'docker_container_id')
+  container_id_test_dir = File.join(cross_agent_tests_dir, 'docker_container_id')
   container_id_test_cases = load_cross_agent_test(File.join('docker_container_id', 'cases'))
 
   container_id_test_cases.each do |test_case|

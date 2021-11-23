@@ -26,7 +26,7 @@ config_yml = if YAML.respond_to?(:unsafe_load)
              end
 
 # Rails 2.x didn't keep the Rails out of ActiveRecord much...
-RAILS_ENV  = "test"
+RAILS_ENV = "test"
 RAILS_ROOT = File.join(db_dir, "..")
 
 ActiveRecord::Base.configurations = config_yml

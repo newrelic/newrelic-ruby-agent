@@ -29,10 +29,10 @@ class DeploymentTest < Minitest::Test
 
     cap_it(env)
 
-    assert_deployment_value("user",           "Optimus Prime")
+    assert_deployment_value("user", "Optimus Prime")
     assert_deployment_value("application_id", "Tesseract")
-    assert_deployment_value("revision",       "C-001")
-    assert_deployment_value("changelog",      "The greatest weakness of most humans is their hesitancy to tell others they love them while they're alive.")
+    assert_deployment_value("revision", "C-001")
+    assert_deployment_value("changelog", "The greatest weakness of most humans is their hesitancy to tell others they love them while they're alive.")
   end
 
   def assert_deployment_value(key, value)

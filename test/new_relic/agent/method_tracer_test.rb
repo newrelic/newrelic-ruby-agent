@@ -29,7 +29,7 @@ module NewRelic
   module Agent
     extend self
     def module_method_to_be_traced(x, testcase)
-      testcase.assert_equal 'x',  x
+      testcase.assert_equal 'x', x
     end
   end
 end
@@ -404,10 +404,10 @@ class NewRelic::Agent::MethodTracerTest < Minitest::Test
   # the host class with any additional helper methods that are not part of the
   # official public API.
   def test_only_adds_methods_to_host_that_are_part_of_public_api
-    host_class  = Class.new { include ::NewRelic::Agent::MethodTracer }
+    host_class = Class.new { include ::NewRelic::Agent::MethodTracer }
     plain_class = Class.new
 
-    host_instance_methods  = host_class.new.methods
+    host_instance_methods = host_class.new.methods
     plain_instance_methods = plain_class.new.methods
 
     added_methods = host_instance_methods - plain_instance_methods

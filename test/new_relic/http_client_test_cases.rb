@@ -268,10 +268,10 @@ module HttpClientTestCases
 
   def test_adds_newrelic_transaction_header
     with_config(:cross_application_tracing => true, :'distributed_tracing.enabled' => false) do
-      guid      = nil
+      guid = nil
       path_hash = nil
       in_transaction do |txn|
-        guid      = txn.guid
+        guid = txn.guid
         path_hash = txn.distributed_tracer.cat_path_hash
         get_response
       end
@@ -281,9 +281,9 @@ module HttpClientTestCases
 
       decoded = decode_payload(transaction_data)
 
-      assert_equal(guid,      decoded[0])
-      assert_equal(false,     decoded[1])
-      assert_equal(guid,      decoded[2])
+      assert_equal(guid, decoded[0])
+      assert_equal(false, decoded[1])
+      assert_equal(guid, decoded[2])
       assert_equal(path_hash, decoded[3])
     end
   end
@@ -645,8 +645,8 @@ module HttpClientTestCases
   end
 
   def assert_externals_recorded_for(host, meth, opts = {})
-    txn_type   = opts.fetch(:transaction_type, "Other")
-    counts     = opts.fetch(:counts, nil)
+    txn_type = opts.fetch(:transaction_type, "Other")
+    counts = opts.fetch(:counts, nil)
 
     if counts.nil?
       assert_metrics_recorded([

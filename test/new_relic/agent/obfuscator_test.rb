@@ -8,7 +8,7 @@ require "new_relic/agent/obfuscator"
 class NewRelic::Agent::ObfuscatorTest < Minitest::Test
 
   OBFUSCATION_KEY = (1..40).to_a.pack('c*')
-  RUM_KEY_LENGTH  = 13
+  RUM_KEY_LENGTH = 13
 
   def setup
     @config = { :license_key => OBFUSCATION_KEY }

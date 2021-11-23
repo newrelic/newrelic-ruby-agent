@@ -10,9 +10,9 @@ module NewRelic
     class CustomEventAggregator < EventAggregator
       include NewRelic::Coerce
 
-      TYPE             = 'type'.freeze
-      TIMESTAMP        = 'timestamp'.freeze
-      PRIORITY         = 'priority'.freeze
+      TYPE = 'type'.freeze
+      TIMESTAMP = 'timestamp'.freeze
+      PRIORITY = 'priority'.freeze
       EVENT_TYPE_REGEX = /^[a-zA-Z0-9:_ ]+$/.freeze
 
       named :CustomEventAggregator
@@ -72,9 +72,9 @@ module NewRelic
 
       def record_supportability_metrics total_count, captured_count, dropped_count
         engine = NewRelic::Agent.instance.stats_engine
-        engine.tl_record_supportability_metric_count("Events/Customer/Seen"   ,    total_count)
-        engine.tl_record_supportability_metric_count("Events/Customer/Sent"   , captured_count)
-        engine.tl_record_supportability_metric_count("Events/Customer/Dropped",  dropped_count)
+        engine.tl_record_supportability_metric_count("Events/Customer/Seen" , total_count)
+        engine.tl_record_supportability_metric_count("Events/Customer/Sent" , captured_count)
+        engine.tl_record_supportability_metric_count("Events/Customer/Dropped", dropped_count)
       end
 
       def note_dropped_event(type)

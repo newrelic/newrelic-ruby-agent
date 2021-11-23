@@ -76,7 +76,7 @@ class MemoryLoggerTest < Minitest::Test
   end
 
   def test_implemented_agent_logger_interface
-    agent_logger_methods =  NewRelic::Agent::AgentLogger.instance_methods(false)
+    agent_logger_methods = NewRelic::Agent::AgentLogger.instance_methods(false)
     memory_logger_methods = NewRelic::Agent::MemoryLogger.instance_methods(false)
 
     unimplemented = agent_logger_methods - memory_logger_methods

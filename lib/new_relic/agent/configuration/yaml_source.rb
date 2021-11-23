@@ -17,7 +17,7 @@ module NewRelic
 
         def initialize(path, env)
           @path = path
-          config    = {}
+          config = {}
           @failures = []
 
           # These are needed in process_erb for populating the newrelic.yml via
@@ -34,7 +34,7 @@ module NewRelic
             ::NewRelic::Agent.logger.info("Reading configuration from #{path} (#{Dir.pwd})")
             raw_file = File.read(@file_path)
             erb_file = process_erb(raw_file)
-            config   = process_yaml(erb_file, env, config, @file_path)
+            config = process_yaml(erb_file, env, config, @file_path)
           rescue ScriptError, StandardError => e
             log_failure("Failed to read or parse configuration file at #{path}", e)
           end
@@ -63,8 +63,8 @@ module NewRelic
         end
 
         def warn_missing_config_file(path)
-          based_on        = 'unknown'
-          source          = ::NewRelic::Agent.config.source(:config_path)
+          based_on = 'unknown'
+          source = ::NewRelic::Agent.config.source(:config_path)
           candidate_paths = [path]
 
           case source

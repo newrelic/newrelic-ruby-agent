@@ -30,7 +30,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       if defined?(::ActiveRecord::VERSION::MINOR)
         Gem::Version.new(::ActiveRecord::VERSION::STRING)
       else
-        Gem::Version.new("2.1.0")  # Can't tell between 2.1 and 2.2. Meh.
+        Gem::Version.new("2.1.0") # Can't tell between 2.1 and 2.2. Meh.
       end
     end
   end
@@ -346,7 +346,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       u.destroy
     end
 
-    assert_activerecord_metrics(User,  'delete')
+    assert_activerecord_metrics(User, 'delete')
     assert_activerecord_metrics(Alias, 'delete')
   end
 

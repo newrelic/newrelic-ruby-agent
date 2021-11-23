@@ -4,8 +4,8 @@ require 'json'
 require File.join(File.dirname(__FILE__), '..', 'lib', 'performance')
 
 start_commit = ARGV[0]
-stop_commit  = ARGV[1]
-repo_path    = ARGV[2]
+stop_commit = ARGV[1]
+repo_path = ARGV[2]
 
 def commits_between(start_commit, stop_commit, repo)
   output = `cd #{repo} && git log --reverse --pretty=%H #{start_commit}..#{stop_commit}`

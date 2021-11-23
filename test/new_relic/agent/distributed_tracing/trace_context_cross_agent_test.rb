@@ -210,7 +210,7 @@ module NewRelic
           return {} unless target_events.include? event_type
 
           common_intrinsics = intrinsics['common'] || {}
-          event_intrinsics  = intrinsics[event_type] || {}
+          event_intrinsics = intrinsics[event_type] || {}
 
           merge_intrinsics [common_intrinsics, event_intrinsics]
         end

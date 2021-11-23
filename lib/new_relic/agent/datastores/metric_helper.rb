@@ -6,9 +6,9 @@ module NewRelic
   module Agent
     module Datastores
       module MetricHelper
-        ROLLUP_METRIC        = "Datastore/all".freeze
-        WEB_ROLLUP_METRIC    = "Datastore/allWeb".freeze
-        OTHER_ROLLUP_METRIC  = "Datastore/allOther".freeze
+        ROLLUP_METRIC = "Datastore/all".freeze
+        WEB_ROLLUP_METRIC = "Datastore/allWeb".freeze
+        OTHER_ROLLUP_METRIC = "Datastore/allOther".freeze
         DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
         OTHER = "Other".freeze
 
@@ -77,7 +77,7 @@ module NewRelic
         def self.product_operation_collection_for product, operation, collection = nil, generic_product = nil
           if overrides = overridden_operation_and_collection
             if should_override?(overrides, product, generic_product)
-              operation  = overrides[0] || operation
+              operation = overrides[0] || operation
               collection = overrides[1] || collection
             end
           end
@@ -107,7 +107,7 @@ module NewRelic
         # Allow Transaction#with_database_metric_name to override our
         # collection and operation
         def self.overridden_operation_and_collection #THREAD_LOCAL_ACCESS
-          txn   = Tracer.current_transaction
+          txn = Tracer.current_transaction
           txn ? txn.instrumentation_state[:datastore_override] : nil
         end
 

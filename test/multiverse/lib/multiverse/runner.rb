@@ -94,7 +94,7 @@ module Multiverse
       "httpclients_2"   => ["typhoeus", "net_http", "httprb"],
       "infinite_tracing" => ["infinite_tracing"],
 
-      "rest"          => []  # Specially handled below
+      "rest"          => [] # Specially handled below
     }
 
     # Would like to reinstate but requires investigation, see RUBY-1749

@@ -7,9 +7,9 @@ module NewRelic
     module Configuration
       class EnvironmentSource < DottedHash
         SUPPORTED_PREFIXES = /^new_relic_|^newrelic_/i
-        SPECIAL_CASE_KEYS  = [
+        SPECIAL_CASE_KEYS = [
           'NEW_RELIC_ENV', # read by NewRelic::Control::Frameworks::Ruby
-          'NEW_RELIC_LOG',  # read by set_log_file
+          'NEW_RELIC_LOG', # read by set_log_file
           /^NEW_RELIC_METADATA_/ # read by NewRelic::Agent::Connect::RequestBuilder
         ]
 

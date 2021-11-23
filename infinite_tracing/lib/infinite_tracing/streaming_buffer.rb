@@ -17,8 +17,8 @@ module NewRelic::Agent
       def_delegators :@queue, :empty?, :num_waiting, :push
 
       DEFAULT_QUEUE_SIZE = 10_000
-      FLUSH_DELAY        = 0.005
-      MAX_FLUSH_WAIT     = 3 # three seconds
+      FLUSH_DELAY = 0.005
+      MAX_FLUSH_WAIT = 3 # three seconds
 
       attr_reader :queue
 

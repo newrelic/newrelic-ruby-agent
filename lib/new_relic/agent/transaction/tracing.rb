@@ -49,7 +49,7 @@ module NewRelic
         end
 
 
-        WEB_TRANSACTION_TOTAL_TIME   = "WebTransactionTotalTime".freeze
+        WEB_TRANSACTION_TOTAL_TIME = "WebTransactionTotalTime".freeze
         OTHER_TRANSACTION_TOTAL_TIME = "OtherTransactionTotalTime".freeze
 
         def record_total_time_metrics

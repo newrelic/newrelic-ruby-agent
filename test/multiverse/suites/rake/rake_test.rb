@@ -147,8 +147,8 @@ if ::NewRelic::Agent::Instrumentation::Rake.should_install? &&
         run_rake("argument[someone,somewhere,vigorously]")
 
         attributes = single_transaction_trace_posted.agent_attributes
-        assert_equal "someone",    attributes["job.rake.args.who"]
-        assert_equal "somewhere",  attributes["job.rake.args.where"]
+        assert_equal "someone", attributes["job.rake.args.who"]
+        assert_equal "somewhere", attributes["job.rake.args.where"]
         assert_equal "vigorously", attributes["job.rake.args.2"]
       end
     end

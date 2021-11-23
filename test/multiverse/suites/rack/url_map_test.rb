@@ -29,8 +29,8 @@ class UrlMapTest < Minitest::Test
     end
   end
 
-  class MiddlewareOne   < SimpleMiddleware; end
-  class MiddlewareTwo   < SimpleMiddleware; end
+  class MiddlewareOne < SimpleMiddleware; end
+  class MiddlewareTwo < SimpleMiddleware; end
 
   class ExampleApp
     def call(env)

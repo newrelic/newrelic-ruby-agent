@@ -20,9 +20,9 @@ module NewRelic::Agent::Database
 
     input_files.each do |input_file|
       define_method("test_#{name_for_input_file(input_file)}_explain_plan_obfuscation") do
-        explain             = File.read(input_file)
+        explain = File.read(input_file)
         expected_obfuscated = File.read(obfuscated_filename(input_file))
-        actual_obfuscated   = PostgresExplainObfuscator.obfuscate(explain)
+        actual_obfuscated = PostgresExplainObfuscator.obfuscate(explain)
         assert_equal(expected_obfuscated, actual_obfuscated)
       end
     end

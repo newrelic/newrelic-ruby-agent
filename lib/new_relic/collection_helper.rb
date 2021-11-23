@@ -38,7 +38,7 @@ module NewRelic
     case object
       when nil then ''
       when object.instance_of?(String) then object
-      when String then String.new(object)  # convert string subclasses to strings
+      when String then String.new(object) # convert string subclasses to strings
       else "#<#{object.class.to_s}>"
     end
   end

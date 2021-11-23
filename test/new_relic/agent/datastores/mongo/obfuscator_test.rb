@@ -28,13 +28,13 @@ module NewRelic
           end
 
           def test_obfuscate_selector_values_skips_allowed_keys
-            selector   = {
+            selector = {
               :benign    => 'bland data',
               :operation => :find,
               :_id       => "BSON::ObjectId('?')"
             }
 
-            expected   = {
+            expected = {
               :benign    => 'bland data',
               :operation => :find,
               :_id       => '?'

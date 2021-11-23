@@ -19,11 +19,11 @@ module NewRelic
 
         def initialize(metric_name, relative_start, relative_end = nil, params = nil, parent = nil)
           @entry_timestamp = relative_start
-          @metric_name     = metric_name || UNKNOWN_NODE_NAME
-          @exit_timestamp  = relative_end
-          @children        = nil
-          @params          = select_allowed_params(params)
-          @parent_node     = parent
+          @metric_name = metric_name || UNKNOWN_NODE_NAME
+          @exit_timestamp = relative_end
+          @children = nil
+          @params = select_allowed_params(params)
+          @parent_node = parent
         end
 
         def select_allowed_params params
@@ -110,7 +110,7 @@ module NewRelic
 
         def count_nodes
           count = 1
-          children.each { |node| count  += node.count_nodes }
+          children.each { |node| count += node.count_nodes }
           count
         end
 

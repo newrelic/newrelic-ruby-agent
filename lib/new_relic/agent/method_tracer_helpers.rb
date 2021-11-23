@@ -14,7 +14,7 @@ module NewRelic
         return yield unless state.is_execution_traced?
 
         metric_names = Array(metric_names)
-        first_name   = metric_names.shift
+        first_name = metric_names.shift
         return yield unless first_name
 
         segment = NewRelic::Agent::Tracer.start_segment(

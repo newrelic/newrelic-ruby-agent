@@ -84,7 +84,7 @@ class ProcessDataProvider
 
   def self.for_process(pid)
     case RbConfig::CONFIG['target_os']
-    when /linux/  then LinuxProcessDataProvider.new(pid)
+    when /linux/ then LinuxProcessDataProvider.new(pid)
     when /darwin/ then DarwinProcessDataProvider.new(pid)
     end
   end
@@ -200,13 +200,13 @@ class ProcessReport
 
   def generate
     open do |f|
-      section(f, "Time")        { Time.now }
-      section(f, "PID")         { @target.pid }
-      section(f, "Command")     { @target.procline }
-      section(f, "RSS")         { @target.rss }
-      section(f, "CPU")         { @target.cpu }
-      section(f, "Parent PID")  { @target.ppid }
-      section(f, "OS")          { ShellWrapper.execute('uname -a') }
+      section(f, "Time") { Time.now }
+      section(f, "PID") { @target.pid }
+      section(f, "Command") { @target.procline }
+      section(f, "RSS") { @target.rss }
+      section(f, "CPU") { @target.cpu }
+      section(f, "Parent PID") { @target.ppid }
+      section(f, "OS") { ShellWrapper.execute('uname -a') }
       section(f, "Environment") { @target.environment }
 
       section(f) do
@@ -214,7 +214,7 @@ class ProcessReport
         if c_backtraces.match(/could not attach/i)
           fail("Failed to attach to target process. Please try again with sudo.")
         end
-        section(f, "C Backtraces")   { c_backtraces }
+        section(f, "C Backtraces") { c_backtraces }
         section(f, "Ruby Backtrace(s)") { ruby_backtraces }
       end
 

@@ -148,7 +148,7 @@ module NewRelic
         noticed_error = NewRelic::NoticedError.new(txn_name, exception)
         noticed_error.request_uri = "http://site.com/blogs"
         noticed_error.request_port = 80
-        noticed_error.attributes  = options.delete(:attributes)
+        noticed_error.attributes = options.delete(:attributes)
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
         noticed_error.attributes_from_notice_error.merge!(options)
 

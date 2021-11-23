@@ -91,7 +91,7 @@ module Performance
     def create_test_case(cls)
       test_case = cls.new
       test_case.target_iterations = @options[:iterations] if @options[:iterations]
-      test_case.target_duration   = @options[:duration]   if @options[:duration]
+      test_case.target_duration = @options[:duration] if @options[:duration]
       add_progress_callbacks(test_case) if @options[:progress]
       add_instrumentor_callbacks(test_case)
       add_metadata_callbacks(test_case)
@@ -143,7 +143,7 @@ module Performance
       cmd = "#{runner_script} -T #{test_identifier} -j -q -I"
       cmd << " -A #{@options[:agent_path]}"
       cmd << " -N #{@options[:iterations]}" if @options[:iterations]
-      cmd << " -d #{@options[:duration]}"   if @options[:duration]
+      cmd << " -d #{@options[:duration]}" if @options[:duration]
       output = nil
       IO.popen(cmd) do |io|
         output = io.read

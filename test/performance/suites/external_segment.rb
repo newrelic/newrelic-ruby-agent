@@ -25,7 +25,7 @@ class ExternalSegment < Performance::TestCase
   def setup
 
     NewRelic::Agent.manual_start(
-      :monitor_mode   => false
+      :monitor_mode => false
     )
   end
 

@@ -5,8 +5,8 @@
 module Performance
   class TestCase
     DEFAULT_WARMUP_DURATION = 2
-    DEFAULT_DURATION        = 5
-    BATCH_TIME              = 0.1
+    DEFAULT_DURATION = 5
+    BATCH_TIME = 0.1
 
     @subclasses = []
 
@@ -23,7 +23,7 @@ module Performance
     def initialize
       @callbacks = {}
       @target_iterations = nil
-      @target_duration   = DEFAULT_DURATION
+      @target_duration = DEFAULT_DURATION
     end
 
     def setup; end
@@ -117,8 +117,8 @@ module Performance
 
     def measure(&blk)
       total_iterations = 0
-      start_time       = nil
-      elapsed          = nil
+      start_time = nil
+      elapsed = nil
 
       batch_size = batch_size_in_iterations(blk) unless target_iterations
 
@@ -132,9 +132,9 @@ module Performance
         elapsed = Process.clock_gettime(Process::CLOCK_MONOTONIC) - start_time
       end
 
-      @result.iterations            = total_iterations
+      @result.iterations = total_iterations
       @result.timer.start_timestamp = start_time
-      @result.timer.elapsed         = elapsed
+      @result.timer.elapsed = elapsed
     end
 
     def run(name)

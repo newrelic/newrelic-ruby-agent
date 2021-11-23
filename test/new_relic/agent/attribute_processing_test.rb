@@ -155,7 +155,7 @@ class AttributeProcessingTest < Minitest::Test
   end
 
   def test_flatten_and_coerce_leaves_nils_alone
-    params   = { :referer => nil }
+    params = { :referer => nil }
     expected = { }
 
     result = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params)

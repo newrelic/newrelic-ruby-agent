@@ -283,7 +283,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
 
     renamed = @engine.apply_rules_to_metric_data(rules_engine, stats_hash)
 
-    assert_equal(1    , renamed.size)
+    assert_equal(1 , renamed.size)
     assert_equal('foo', renamed.to_h.keys.first.name)
   end
 
@@ -337,7 +337,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   end
 
   def test_record_supportability_metric_count_records_counts_only
-    @engine.tl_record_supportability_metric_count('foo/bar',  1)
+    @engine.tl_record_supportability_metric_count('foo/bar', 1)
     @engine.tl_record_supportability_metric_count('foo/bar', 42)
     assert_metrics_recorded(['Supportability/foo/bar'] => {
       :call_count => 42,
