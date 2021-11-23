@@ -89,7 +89,14 @@ module NewRelic
 
         def escape(message)
           message = message.to_s unless message.is_a?(String)
-          message = message.scrub(REPLACEMENT_CHAR) unless message.valid_encoding?
+          unless message.valid_encoding?
+            message = message.encode(
+              Encoding::UTF_8,
+              invalid: :replace,
+              undef: :replace,
+              replace: REPLACEMENT_CHAR
+            )
+          end
           message.to_json
         end
 
