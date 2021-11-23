@@ -123,7 +123,6 @@ module NewRelic
       def test_segment_params_not_recorded_for_consume_with_segment_params_disabled
         with_config(:'message_tracer.segment_parameters.enabled' => false) do
           in_transaction "test_txn" do
-
             message_properties = {headers: {foo: "bar"}, reply_to: "blue", correlation_id: "abc"}
             delivery_info = {routing_key: "red", exchange_name: "foobar"}
 
@@ -430,7 +429,7 @@ module NewRelic
       def test_wrap_message_broker_consume_transaction_reads_cat_headers
         guid = "BEC1BC64675138B9"
         cross_process_id = "321#123"
-        intrinsic_attributes = { client_cross_process_id: cross_process_id, referring_transaction_guid: guid }
+        intrinsic_attributes = {client_cross_process_id: cross_process_id, referring_transaction_guid: guid}
         obfuscated_id = nil
         raw_txn_info = nil
         obfuscated_txn_info = nil
@@ -443,7 +442,6 @@ module NewRelic
                     :'distributed_tracing.enabled' => false,
                     :trusted_account_ids => [321],
                     :encoding_key => "abc" do
-
           in_transaction do |txn|
             obfuscated_id = obfuscator.obfuscate cross_process_id
             raw_txn_info = [guid, false, guid, txn.distributed_tracer.cat_path_hash]
@@ -454,7 +452,7 @@ module NewRelic
             library: "RabbitMQ",
             destination_type: :exchange,
             destination_name: 'Default',
-            headers: { "NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info }
+            headers: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info}
           ) do
             txn = NewRelic::Agent::Tracer.current_transaction
             payload = txn.distributed_tracer.cross_app_payload
@@ -483,7 +481,6 @@ module NewRelic
                     :'distributed_tracing.enabled' => false,
                     :trusted_account_ids => [321],
                     :encoding_key => "abc" do
-
           in_transaction "test_txn" do |txn|
             obfuscated_id = obfuscator.obfuscate cross_process_id
             raw_txn_info = [guid, false, guid, txn.distributed_tracer.cat_path_hash]
@@ -494,7 +491,7 @@ module NewRelic
             library: "RabbitMQ",
             destination_type: :exchange,
             destination_name: "Default",
-            headers: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info }
+            headers: {"NewRelicID" => obfuscated_id, "NewRelicTransaction" => obfuscated_txn_info}
           ) do
             tap.tap
           end

@@ -288,7 +288,6 @@ module NewRelic::Agent
         with_config(
           :'distributed_tracing.enabled' => true,
           :trusted_account_key => 'trust_this') do
-
           request = RequestWrapper.new
           payload = nil
 
@@ -351,7 +350,6 @@ module NewRelic::Agent
       def test_segment_writes_outbound_request_headers_for_trace_context
         request = RequestWrapper.new
         with_config trace_context_config do
-
           in_transaction :category => :controller do
             segment = Tracer.start_external_request_segment(
               library: "Net::HTTP",
@@ -646,7 +644,6 @@ module NewRelic::Agent
       def test_process_response_metadata
         with_config cat_config do
           in_transaction do |txn|
-
             rmd = @obfuscator.obfuscate ::JSON.dump({
               NewRelicAppData: [
                 NewRelic::Agent.config[:cross_process_id],
@@ -666,7 +663,6 @@ module NewRelic::Agent
 
       def test_process_response_metadata_not_in_transaction
         with_config cat_config do
-
           rmd = @obfuscator.obfuscate ::JSON.dump({
             NewRelicAppData: [
               NewRelic::Agent.config[:cross_process_id],
@@ -686,7 +682,6 @@ module NewRelic::Agent
       def test_process_response_metadata_with_invalid_cross_app_id
         with_config cat_config do
           in_transaction do |txn|
-
             rmd = @obfuscator.obfuscate ::JSON.dump({
               NewRelicAppData: [
                 'bugz',
@@ -713,7 +708,6 @@ module NewRelic::Agent
       def test_process_response_metadata_with_untrusted_cross_app_id
         with_config cat_config do
           in_transaction do |txn|
-
             rmd = @obfuscator.obfuscate ::JSON.dump({
               NewRelicAppData: [
                 '190#666',
@@ -768,7 +762,6 @@ module NewRelic::Agent
         t = Process.clock_gettime(Process::CLOCK_REALTIME)
 
         in_transaction do |txn|
-
           segment = Tracer.start_external_request_segment(
             library: "Net::HTTP",
             uri: "http://remotehost.com/blogs/index",

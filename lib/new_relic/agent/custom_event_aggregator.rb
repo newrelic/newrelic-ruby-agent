@@ -46,7 +46,7 @@ module NewRelic
 
       def create_event(type, priority, attributes)
         [
-          { TYPE => type,
+          {TYPE => type,
             TIMESTAMP => Process.clock_gettime(Process::CLOCK_REALTIME).to_i,
             PRIORITY => priority
           },

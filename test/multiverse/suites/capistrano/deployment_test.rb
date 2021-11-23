@@ -42,7 +42,7 @@ class DeploymentTest < Minitest::Test
 
   def cap_it(custom_env = {})
     cmd = "cap production newrelic:notice_deployment"
-    default_env = { 'FAKE_RPM_SITE_PORT' => @rpm_site.port.to_s }
+    default_env = {'FAKE_RPM_SITE_PORT' => @rpm_site.port.to_s}
     output = with_environment(default_env.merge(custom_env)) do
       `#{cmd}`
     end

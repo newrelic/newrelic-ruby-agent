@@ -77,22 +77,22 @@ class AgentCommandRouterTest < Minitest::Test
 
   def test_check_for_and_handle_agent_commands_generates_results
     service.stubs(:get_agent_commands).returns([BAZZLE])
-    service.expects(:agent_command_results).with({ BAZZLE_ID.to_s => {} })
+    service.expects(:agent_command_results).with({BAZZLE_ID.to_s => {}})
 
     agent_commands.check_for_and_handle_agent_commands
   end
 
   def test_check_for_and_handle_agent_commands_dispatches_with_error
     service.stubs(:get_agent_commands).returns([BOOM])
-    service.expects(:agent_command_results).with({ BOOM_ID.to_s => { "error" => "BOOOOOM" }})
+    service.expects(:agent_command_results).with({BOOM_ID.to_s => {"error" => "BOOOOOM"}})
 
     agent_commands.check_for_and_handle_agent_commands
   end
 
   def test_check_for_and_handle_agent_commands_allows_multiple
     service.stubs(:get_agent_commands).returns([BAZZLE, BOOM])
-    service.expects(:agent_command_results).with({ BAZZLE_ID.to_s => {},
-                                                   BOOM_ID.to_s => { "error" => "BOOOOOM" }})
+    service.expects(:agent_command_results).with({BAZZLE_ID.to_s => {},
+                                                   BOOM_ID.to_s => {"error" => "BOOOOOM"}})
     agent_commands.check_for_and_handle_agent_commands
   end
 

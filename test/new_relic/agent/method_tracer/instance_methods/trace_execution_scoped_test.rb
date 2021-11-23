@@ -24,7 +24,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       end
     end
 
-    expected_values = { :call_count => 1 }
+    expected_values = {:call_count => 1}
     assert_metrics_recorded_exclusive(
       ['foo', 'outer'] => expected_values,
       'foo' => expected_values,
@@ -48,7 +48,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       end
     end
 
-    expected_values = { :call_count => 1 }
+    expected_values = {:call_count => 1}
     assert_metrics_recorded_exclusive(
       'HttpDispatcher'                                        => expected_values,
       'Controller/inner_txn'                                  => expected_values,
@@ -94,7 +94,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       end
     end
 
-    expected_values = { :call_count => 1 }
+    expected_values = {:call_count => 1}
     assert_metrics_recorded_exclusive(
       'outer'                                     => expected_values,
       'foo'                                       => expected_values,
@@ -110,7 +110,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
   end
 
   def test_metric_recording_with_metric_option_false
-    options = { :metric => false, :scoped_metric => false }
+    options = {:metric => false, :scoped_metric => false}
 
     in_transaction('outer') do
       trace_execution_scoped(['foo', 'bar'], options) do
@@ -118,7 +118,7 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
       end
     end
 
-    expected_values = { :call_count => 1 }
+    expected_values = {:call_count => 1}
     assert_metrics_recorded_exclusive(
       'outer' => expected_values,
       'Supportability/API/trace_execution_scoped' => expected_values,

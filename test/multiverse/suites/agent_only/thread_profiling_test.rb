@@ -12,7 +12,7 @@ class ThreadProfilingTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent(:'thread_profiler.enabled' => true) do |collector|
-    collector.stub('connect', {"agent_run_id" => 666 })
+    collector.stub('connect', {"agent_run_id" => 666})
     collector.stub('get_agent_commands', [])
     collector.stub('agent_command_results', [])
   end

@@ -92,7 +92,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
   # Let base class override this without moving where we start the agent
   def setup_collector_mocks
-    $collector.stub('connect', {"agent_run_id" => 666 }, 200)
+    $collector.stub('connect', {"agent_run_id" => 666}, 200)
   end
 
   def last_error
@@ -217,8 +217,8 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def test_should_not_fail_apdex_for_ignored_error_class_noticed
     get '/error/ignored_error'
     assert_metrics_recorded({
-      'Apdex'                     => { :apdex_f => 0 },
-      'Apdex/error/ignored_error' => { :apdex_f => 0 }
+      'Apdex'                     => {:apdex_f => 0},
+      'Apdex/error/ignored_error' => {:apdex_f => 0}
     })
   end
 
@@ -299,7 +299,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
       'Errors/Controller/error/noticed_error_with_expected_error'
     ])
 
-    assert_metrics_recorded("Apdex" => { :apdex_s => 1 })
+    assert_metrics_recorded("Apdex" => {:apdex_s => 1})
     assert_metrics_recorded(["ErrorsExpected/all"])
   end
 
@@ -315,12 +315,12 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   end
 
   def assert_errors_reported(message, queued_count, total_count = queued_count, txn_name = nil, apdex_f = 1)
-    expected = { :call_count => total_count }
+    expected = {:call_count => total_count}
     assert_metrics_recorded("Errors/all" => expected)
     assert_metrics_recorded("Errors/#{txn_name}" => expected) if txn_name
 
     unless apdex_f.nil?
-      assert_metrics_recorded("Apdex" => { :apdex_f => apdex_f })
+      assert_metrics_recorded("Apdex" => {:apdex_f => apdex_f})
     end
 
     assert_equal(queued_count,

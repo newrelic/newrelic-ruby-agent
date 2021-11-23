@@ -170,9 +170,9 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(
-          'ApdexAll'       => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'Apdex'          => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'Apdex/slow/txn' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
+          'ApdexAll'       => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'Apdex'          => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'Apdex/slow/txn' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1}
         )
       end
     end
@@ -197,9 +197,9 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(
-          'ApdexAll'        => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'Apdex'           => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'Apdex/other/txn' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
+          'ApdexAll'        => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'Apdex'           => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'Apdex/other/txn' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1}
         )
       end
     end
@@ -223,9 +223,9 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(
-          'ApdexAll'   => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'ApdexOther' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'ApdexOther/Transaction/back/ground' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
+          'ApdexAll'   => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'ApdexOther' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'ApdexOther/Transaction/back/ground' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1}
         )
       end
     end
@@ -255,7 +255,7 @@ module NewRelic::Agent
         end
       end
 
-      expected = { :min_call_time => 2.5, :max_call_time => 2.5 }
+      expected = {:min_call_time => 2.5, :max_call_time => 2.5}
       assert_metrics_recorded(
         'ApdexAll'       => expected,
         'Apdex'          => expected,
@@ -297,11 +297,11 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(
-          'ApdexAll'       => { :apdex_s => 2, :apdex_t => 2, :apdex_f => 2 },
-          'Apdex'          => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'Apdex/slow/txn' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'ApdexOther'     => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'ApdexOther/Transaction/back/ground' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
+          'ApdexAll'       => {:apdex_s => 2, :apdex_t => 2, :apdex_f => 2},
+          'Apdex'          => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'Apdex/slow/txn' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'ApdexOther'     => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'ApdexOther/Transaction/back/ground' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1}
         )
       end
     end
@@ -326,8 +326,8 @@ module NewRelic::Agent
       end
 
       assert_metrics_recorded(
-        'Apdex'          => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 },
-        'Apdex/whatever' => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 }
+        'Apdex'          => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1},
+        'Apdex/whatever' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1}
       )
     end
 
@@ -343,8 +343,8 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(
-          'Apdex'          => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 },
-          'Apdex/whatever' => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 }
+          'Apdex'          => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1},
+          'Apdex/whatever' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1}
         )
       end
     end
@@ -547,7 +547,7 @@ module NewRelic::Agent
       nr_freeze_process_time
 
       txn_name = 'OtherTransaction/back/ground'
-      key_transactions = { txn_name => 1.0 }
+      key_transactions = {txn_name => 1.0}
 
       with_config(:apdex_t => 1.0, :web_transactions_apdex => key_transactions) do
         in_background_transaction(txn_name) { advance_process_time 0.5 }
@@ -1112,7 +1112,7 @@ module NewRelic::Agent
         txn.notice_error(e1)
       end
 
-      assert_metrics_recorded('Errors/all' => { :call_count => 2 })
+      assert_metrics_recorded('Errors/all' => {:call_count => 2})
     end
 
     def test_start_safe_from_exceptions
@@ -1128,7 +1128,7 @@ module NewRelic::Agent
     end
 
     def test_start_ignores_transactions_from_ignored_paths
-      with_config(:rules => { :ignore_url_regexes => ['ignored/path'] }) do
+      with_config(:rules => {:ignore_url_regexes => ['ignored/path']}) do
         req = mock('request')
         req.stubs(:path).returns('ignored/path')
 
@@ -1152,7 +1152,7 @@ module NewRelic::Agent
 
     def test_user_defined_rules_ignore_returns_true_for_matched_path
       rule = 'ignored'
-      with_config(:rules => { :ignore_url_regexes => [rule] }) do
+      with_config(:rules => {:ignore_url_regexes => [rule]}) do
         in_transaction do |txn|
           txn.stubs(:request_path).returns(rule + '/path')
           assert txn.user_defined_rules_ignore?, "Paths should be ignored based on user defined rules. Rule: '#{rule}', Path: '#{txn.request_path}'."
@@ -1161,7 +1161,7 @@ module NewRelic::Agent
     end
 
     def test_user_defined_rules_ignore_returns_false_if_cannot_parse_uri
-      with_config(:rules => { :ignore_url_regexes => ['notempty'] }) do
+      with_config(:rules => {:ignore_url_regexes => ['notempty']}) do
         in_transaction do |txn|
           txn.stubs(:uri).returns('http://foo bar.com')
           refute txn.user_defined_rules_ignore?
@@ -1190,7 +1190,7 @@ module NewRelic::Agent
       in_transaction('boo', :apdex_start_time => t0) do
         # nothing
       end
-      assert_metrics_recorded('WebFrontend/QueueTime' => { :call_count => 1, :total_call_time => 10.0 })
+      assert_metrics_recorded('WebFrontend/QueueTime' => {:call_count => 1, :total_call_time => 10.0})
       assert_metrics_not_recorded(
         [['WebFrontend/QueueTime', 'boo']]
       )
@@ -1583,7 +1583,7 @@ module NewRelic::Agent
     end
 
     def test_has_correct_transaction_trace_threshold_when_explicitly_specified
-      config = { :'transaction_tracer.transaction_threshold' => 4.0 }
+      config = {:'transaction_tracer.transaction_threshold' => 4.0}
 
       in_transaction do |txn|
         with_config(config) do

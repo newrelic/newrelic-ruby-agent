@@ -165,14 +165,14 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           def fiddlesticks_config
             {
               'agent_run_id' => 'fiddlesticks',
-              'agent_config' => { 'transaction_tracer.record_sql' => 'raw' }
+              'agent_config' => {'transaction_tracer.record_sql' => 'raw'}
             }
           end
 
           def reconnect_config
             {
               'agent_run_id' => 'shazbat',
-              'agent_config' => { 'transaction_tracer.record_sql' => 'raw' }
+              'agent_config' => {'transaction_tracer.record_sql' => 'raw'}
             }
           end
 

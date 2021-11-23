@@ -8,11 +8,11 @@ class RenameRuleTest < Minitest::Test
 
   setup_and_teardown_agent do |collector|
     rules = [
-      { 'match_expression' => 'RenameRuleTest', 'replacement' => 'Class' },
-      { 'match_expression' => 'Nothing', 'replacement' => 'Something' }
+      {'match_expression' => 'RenameRuleTest', 'replacement' => 'Class'},
+      {'match_expression' => 'Nothing', 'replacement' => 'Something'}
     ]
     segment_terms_rules = [
-      { 'prefix' => 'other/qux', 'terms' => ['Nothing', 'one', 'two'] }
+      {'prefix' => 'other/qux', 'terms' => ['Nothing', 'one', 'two']}
     ]
     collector.stub('connect', {
       'agent_run_id'              => 666,

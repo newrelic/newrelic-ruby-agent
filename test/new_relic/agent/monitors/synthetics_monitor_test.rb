@@ -75,7 +75,7 @@ module NewRelic::Agent
 
     def synthetics_header(payload, header_key = SyntheticsMonitor::SYNTHETICS_HEADER_KEY)
       @last_encoded_header = json_dump_and_encode(payload)
-      { header_key => @last_encoded_header }
+      {header_key => @last_encoded_header}
     end
 
     def assert_no_synthetics_payload

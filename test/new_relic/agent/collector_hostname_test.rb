@@ -11,7 +11,6 @@ module NewRelic::Agent
 
     test_cases.each do |test_case|
       define_method("test_#{test_case['name']}".tr(" ", "_")) do
-
         # The configuration manager checks the following places to
         # determine the collector host:
         #
@@ -26,7 +25,7 @@ module NewRelic::Agent
         explicit_config[:host] = test_case['override_host'] if test_case['override_host']
         explicit_config = ::NewRelic::Agent::Configuration::DottedHash.new(explicit_config, true)
 
-        implicit_config = { license_key: test_case['key'] }
+        implicit_config = {license_key: test_case['key']}
         implicit_config = ::NewRelic::Agent::Configuration::DottedHash.new(implicit_config, true)
 
         default_config = ::NewRelic::Agent::Configuration::DefaultSource.new
@@ -44,7 +43,6 @@ module NewRelic::Agent
           end
         end
       end
-
     end
 
   end

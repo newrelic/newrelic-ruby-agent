@@ -48,7 +48,7 @@ class SyntheticsTest < Minitest::Test
   def request_headers_for_test(test)
     header_value = generate_synthetics_header(test)
     if header_value
-      { 'HTTP_X_NEWRELIC_SYNTHETICS' => header_value }
+      {'HTTP_X_NEWRELIC_SYNTHETICS' => header_value}
     else
       {}
     end
@@ -56,7 +56,7 @@ class SyntheticsTest < Minitest::Test
 
   def request_params_for_test(test)
     if test['settings']
-      { 'guid' => test['settings']['transactionGuid'] }
+      {'guid' => test['settings']['transactionGuid']}
     else
       {}
     end

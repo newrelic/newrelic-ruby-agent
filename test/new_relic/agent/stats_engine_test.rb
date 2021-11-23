@@ -87,7 +87,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
       end
     end
 
-    expected = { :total_call_time => 42, :call_count => 99 }
+    expected = {:total_call_time => 42, :call_count => 99}
     assert_metrics_recorded('a' => expected)
   end
 
@@ -97,7 +97,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
       stat.call_count = 99
     end
 
-    expected = { :total_call_time => 42, :call_count => 99 }
+    expected = {:total_call_time => 42, :call_count => 99}
     assert_metrics_recorded('a' => expected)
   end
 
@@ -117,8 +117,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     threads.each { |t| t.join }
 
     assert_metrics_recorded(
-      'm1' => { :call_count => nthreads * iterations },
-      'm2' => { :call_count => nthreads * iterations }
+      'm1' => {:call_count => nthreads * iterations},
+      'm2' => {:call_count => nthreads * iterations}
     )
   end
 
@@ -147,7 +147,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
       end
     end
 
-    expected = { :total_call_time => 42, :call_count => 99 }
+    expected = {:total_call_time => 42, :call_count => 99}
     assert_metrics_recorded(
       'a'          => expected,
       ['a', 'txn'] => expected,
@@ -195,7 +195,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     end
     threads.each { |t| t.join }
 
-    expected = { :call_count => nthreads * iterations }
+    expected = {:call_count => nthreads * iterations}
     assert_metrics_recorded(
       'm1'          => expected,
       'm2'          => expected,
@@ -332,7 +332,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     in_transaction('scopey') do
       @engine.tl_record_unscoped_metrics('foo', 42)
     end
-    assert_metrics_recorded('foo' => { :call_count => 1, :total_call_time => 42 })
+    assert_metrics_recorded('foo' => {:call_count => 1, :total_call_time => 42})
     assert_metrics_not_recorded([['foo', 'scopey']])
   end
 

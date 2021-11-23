@@ -98,7 +98,6 @@ module NewRelic::Agent
         return @metadata if @metadata
 
         @lock.synchronize do
-
           @metadata = {
             "license_key" => license_key,
             "agent_run_token" => agent_id

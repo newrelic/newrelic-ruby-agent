@@ -69,7 +69,7 @@ class HighSecurityTest < Minitest::Test
   end
 
   def test_doesnt_capture_params_to_transaction_traces
-    in_transaction(:filtered_params => { "loose" => "params" }) do
+    in_transaction(:filtered_params => {"loose" => "params"}) do
     end
 
     run_harvest
@@ -81,7 +81,7 @@ class HighSecurityTest < Minitest::Test
 
   def test_doesnt_capture_params_to_errors
     assert_raises(RuntimeError) do
-      in_transaction(:filtered_params => { "loose" => "params" }) do
+      in_transaction(:filtered_params => {"loose" => "params"}) do
         raise "O_o"
       end
     end
@@ -94,7 +94,7 @@ class HighSecurityTest < Minitest::Test
   end
 
   def test_doesnt_capture_params_to_events
-    in_transaction(:filtered_params => { "loose" => "params" }) do
+    in_transaction(:filtered_params => {"loose" => "params"}) do
     end
 
     run_harvest
@@ -105,7 +105,7 @@ class HighSecurityTest < Minitest::Test
   end
 
   def test_doesnt_capture_params_to_browser
-    in_transaction(:filtered_params => { "loose" => "params" }) do
+    in_transaction(:filtered_params => {"loose" => "params"}) do
       capture_js_data
     end
 
@@ -171,7 +171,7 @@ class HighSecurityTest < Minitest::Test
 
     run_harvest
 
-    expected = { "http.statusCode" => 200 }
+    expected = {"http.statusCode" => 200}
     assert_equal expected, single_transaction_trace_posted.agent_attributes
   end
 
@@ -185,7 +185,7 @@ class HighSecurityTest < Minitest::Test
 
     run_harvest
 
-    expected = {"http.statusCode" => 500 }
+    expected = {"http.statusCode" => 500}
     assert_equal expected, single_error_posted.agent_attributes
   end
 

@@ -113,7 +113,6 @@ module NewRelic
               end
             end
           end
-
         end
       end
     end

@@ -120,7 +120,7 @@ module NewRelic
         end
 
         def error(err)
-          { ERROR_KEY => err.message }
+          {ERROR_KEY => err.message}
         end
 
         def call_handler_for(agent_command)

@@ -41,5 +41,4 @@ DependencyDetection.defer do
       chain_instrument ::NewRelic::Agent::Instrumentation::Grape::Chain
     end
   end
-
 end

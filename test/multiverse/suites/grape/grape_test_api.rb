@@ -54,7 +54,7 @@ class GrapeTestApi < Grape::API
 
   resource :grape_ape_fail_rescue do
     rescue_from :all do |e|
-      error_response({ message: "rescued from #{e.class.name}" })
+      error_response({message: "rescued from #{e.class.name}"})
     end
 
     post do

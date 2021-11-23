@@ -88,7 +88,7 @@ module NewRelic
           @synthetics_event_aggregator.harvest!
 
           metric = 'Supportability/SyntheticsEventAggregator/synthetics_events_dropped'
-          assert_metrics_recorded(metric => { :call_count => 10 })
+          assert_metrics_recorded(metric => {:call_count => 10})
         end
       end
 

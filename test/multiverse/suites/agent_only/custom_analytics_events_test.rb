@@ -19,7 +19,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
     events = last_posted_events
     events.first[0].delete('priority')
 
-    expected_event = [{'type' => 'DummyType', 'timestamp' => t0.to_i },
+    expected_event = [{'type' => 'DummyType', 'timestamp' => t0.to_i},
                       {'foo' => 'bar', 'baz' => 'qux'}]
     assert_equal(expected_event, events.first)
   end

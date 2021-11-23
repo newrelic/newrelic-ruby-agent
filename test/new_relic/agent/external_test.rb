@@ -134,7 +134,6 @@ module NewRelic
 
       def test_get_response_metadata
         with_config cat_config do
-
           inbound_rmd = @obfuscator.obfuscate ::JSON.dump({
             NewRelicID: '1#666',
             NewRelicTransaction: ['xyz', false, 'uvw', 'rst']

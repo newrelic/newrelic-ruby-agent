@@ -129,12 +129,12 @@ module NewRelic::Agent
       def test_increments_count_on_errors
         @error_collector.notice_error(StandardError.new("Boo"))
         assert_metrics_recorded(
-          'Errors/all' => { :call_count => 1}
+          'Errors/all' => {:call_count => 1}
         )
 
         @error_collector.notice_error(StandardError.new("Boo"))
         assert_metrics_recorded(
-          'Errors/all' => { :call_count => 2}
+          'Errors/all' => {:call_count => 2}
         )
       end
 
@@ -176,7 +176,7 @@ module NewRelic::Agent
       def test_blamed_metric_from_options_outside_txn
         @error_collector.notice_error(StandardError.new('wut'), :metric => 'boo')
         assert_metrics_recorded(
-          'Errors/boo' => { :call_count => 1}
+          'Errors/boo' => {:call_count => 1}
         )
       end
 
@@ -186,9 +186,9 @@ module NewRelic::Agent
         end
         assert_metrics_recorded_exclusive(
           {
-            'Errors/all'      => { :call_count => 1 },
-            'Errors/boo'      => { :call_count => 1 },
-            'Errors/allOther' => { :call_count => 1 }
+            'Errors/all'      => {:call_count => 1},
+            'Errors/boo'      => {:call_count => 1},
+            'Errors/allOther' => {:call_count => 1}
           },
           :filter => /^Errors\//
         )
@@ -199,7 +199,7 @@ module NewRelic::Agent
           @error_collector.notice_error(StandardError.new('wut'))
         end
         assert_metrics_recorded(
-          'Errors/Controller/foo/bar' => { :call_count => 1 }
+          'Errors/Controller/foo/bar' => {:call_count => 1}
         )
       end
 
@@ -217,7 +217,7 @@ module NewRelic::Agent
 
         errors = @error_collector.error_trace_aggregator.harvest!
 
-        assert_metrics_recorded('Errors/all' => { :call_count => 1 })
+        assert_metrics_recorded('Errors/all' => {:call_count => 1})
         assert_equal 1, errors.length
       end
 

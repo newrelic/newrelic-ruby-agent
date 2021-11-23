@@ -36,7 +36,7 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
       'collect_traces' => true,
       'collect_errors' => true,
       'sample_rate' => 10,
-      'agent_config' => { 'transaction_tracer.record_sql' => 'raw' }
+      'agent_config' => {'transaction_tracer.record_sql' => 'raw'}
     }
 
     with_config(:'transaction_tracer.enabled' => true) do
@@ -56,10 +56,10 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
     @agent.instance_variable_set(:@transaction_rules,
                                             NewRelic::Agent::RulesEngine.new)
     config = {
-      'transaction_name_rules' => [ { 'match_expression' => '88',
-                                      'replacement'      => '**' },
-                                    { 'match_expression' => 'xx',
-                                      'replacement'      => 'XX' } ]
+      'transaction_name_rules' => [ {'match_expression' => '88',
+                                      'replacement'      => '**'},
+                                    {'match_expression' => 'xx',
+                                      'replacement'      => 'XX'} ]
     }
     @response_handler.configure_agent(config)
 
@@ -79,10 +79,10 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
     @agent.instance_variable_set(:@metric_rules,
                                             NewRelic::Agent::RulesEngine.new)
     config = {
-      'metric_name_rules' => [ { 'match_expression' => '77',
-                                 'replacement'      => '&&' },
-                               { 'match_expression' => 'yy',
-                                 'replacement'      => 'YY' }]
+      'metric_name_rules' => [ {'match_expression' => '77',
+                                 'replacement'      => '&&'},
+                               {'match_expression' => 'yy',
+                                 'replacement'      => 'YY'}]
     }
     @response_handler.configure_agent(config)
 

@@ -9,7 +9,7 @@ module NewRelic::Agent::Commands
   class AgentCommandTest < Minitest::Test
     ID = 123
     NAME = 'nuke_it_from_orbit'
-    ARGUMENTS = { "profile_id" => 42 }
+    ARGUMENTS = {"profile_id" => 42}
 
     NUKE_IT_FROM_ORBIT = [ID, {
       "name" => NAME,

@@ -26,7 +26,7 @@ class TiltInstrumentationTest < Minitest::Test
       haml_template
     end
 
-    expected = { call_count: 1 }
+    expected = {call_count: 1}
     assert_metrics_recorded(haml_render_metric => expected)
   end
 
@@ -35,7 +35,7 @@ class TiltInstrumentationTest < Minitest::Test
       Tilt.new('test.erb').render
     end
 
-    expected = { call_count: 1 }
+    expected = {call_count: 1}
     assert_metrics_recorded('View/Tilt::ERBTemplate/test.erb/Rendering' => expected)
   end
 
@@ -46,7 +46,7 @@ class TiltInstrumentationTest < Minitest::Test
       }
     end
 
-    expected = { call_count: 1 }
+    expected = {call_count: 1}
     assert_metrics_recorded(haml_render_metric('layout.haml') => expected)
     assert_metrics_recorded(haml_render_metric => expected)
   end
@@ -58,7 +58,7 @@ class TiltInstrumentationTest < Minitest::Test
       haml_template
     end
 
-    expected = { :call_count => 1 }
+    expected = {:call_count => 1}
     assert_metrics_recorded(
       [haml_render_metric, test_transaction] => expected
     )

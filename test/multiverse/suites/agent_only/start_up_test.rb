@@ -121,7 +121,6 @@ RUBY
     def test_no_warnings
       with_environment('NEW_RELIC_TRANSACTION_TRACER_TRANSACTION_THRESHOLD' => '-10',
                        'NEW_RELIC_PORT' => $collector.port.to_s) do
-
         output = `bundle exec ruby -w script/warnings.rb 2>&1`
         expected_noise = [GIT_NOISE, NET_HTTP_NOISE]
 

@@ -32,7 +32,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
       :method => 'GET',
       :path => '/tests',
       :headers => @headers,
-      :params => { :controller => 'test_controller', :action => 'index' },
+      :params => {:controller => 'test_controller', :action => 'index'},
     }
 
     @exit_payload = @entry_payload.merge(:status => 200, :view_runtime => 5.0,
@@ -53,7 +53,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     advance_process_time(2)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    expected_values = { :call_count => 1, :total_call_time => 2.0 }
+    expected_values = {:call_count => 1, :total_call_time => 2.0}
     assert_metrics_recorded(
       'Controller/test/index' => expected_values,
       'HttpDispatcher' => expected_values
@@ -65,7 +65,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     advance_process_time(1.5)
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    expected_values = { :apdex_f => 0, :apdex_t => 1, :apdex_s => 0 }
+    expected_values = {:apdex_f => 0, :apdex_t => 1, :apdex_s => 0}
     assert_metrics_recorded(
       'Apdex/test/index' => expected_values,
       'Apdex' => expected_values
@@ -82,7 +82,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
-    expected_values = { :apdex_f => 1, :apdex_t => 0, :apdex_s => 0 }
+    expected_values = {:apdex_f => 1, :apdex_t => 0, :apdex_s => 0}
     assert_metrics_recorded(
       'Apdex/test/index' => expected_values,
       'Apdex' => expected_values
@@ -98,7 +98,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
 
     assert_metrics_recorded(
-      ['Nested/Controller/test/child', 'Controller/test/child'] => { :call_count => 1 }
+      ['Nested/Controller/test/child', 'Controller/test/child'] => {:call_count => 1}
     )
   end
 
@@ -114,7 +114,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     end
 
     assert_metrics_recorded(
-      ['Nested/Controller/test/child', 'Controller/test/child'] => { :call_count => 1 }
+      ['Nested/Controller/test/child', 'Controller/test/child'] => {:call_count => 1}
     )
   end
 
@@ -193,7 +193,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     @subscriber.finish('process_action.action_controller', :id, @exit_payload)
     NewRelic::Agent::TransactionTimeAggregator.harvest!
 
-    assert_metrics_recorded('Instance/Busy' => { :call_count => 1, :total_call_time => 1.0 })
+    assert_metrics_recorded('Instance/Busy' => {:call_count => 1, :total_call_time => 1.0})
   end
 
   def test_creates_transaction
@@ -228,7 +228,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     end
 
     t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
-    env = { 'HTTP_X_REQUEST_START' => (t0 - 5).to_s }
+    env = {'HTTP_X_REQUEST_START' => (t0 - 5).to_s}
     ::NewRelic::Rack::AgentHooks.new(app).call(env)
 
     assert_metrics_recorded(
@@ -255,7 +255,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     end
 
     t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
-    env = { 'HTTP_X_REQUEST_START' => (t0 - 5).to_s }
+    env = {'HTTP_X_REQUEST_START' => (t0 - 5).to_s}
     ::NewRelic::Rack::AgentHooks.new(app).call(env)
 
     assert_metrics_recorded(
@@ -303,7 +303,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
     exception_msg = "Natural 1"
     exception = exception_class.new(msg=exception_msg)
     # :exception_object was added in Rails 5 and above
-    params = { :exception_object => exception, :exception => [exception_class.name, exception_msg] }
+    params = {:exception_object => exception, :exception => [exception_class.name, exception_msg]}
 
     txn = nil
 

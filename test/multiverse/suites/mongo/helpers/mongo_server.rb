@@ -47,11 +47,11 @@ class MongoServer
 
   def ping
     return unless self.client
-    self.client['admin'].command( { 'ping' => 1 } )
+    self.client['admin'].command( {'ping' => 1} )
   end
 
   def pingable?
-    ping == { "ok" => 1.0 }
+    ping == {"ok" => 1.0}
   end
 
   def make_directories

@@ -54,7 +54,7 @@ module NewRelic::Agent::Instrumentation
     def setup
       NewRelic::Agent.drop_buffered_data
       @object = TestObject.new
-      @dummy_headers = { :request => 'headers' }
+      @dummy_headers = {:request => 'headers'}
       @txn_namer = ControllerInstrumentation::TransactionNamer
     end
 

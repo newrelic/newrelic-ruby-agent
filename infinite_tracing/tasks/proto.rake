@@ -47,5 +47,4 @@ namespace :proto do
       puts "Failed to generate proto file."
     end
   end
-
 end

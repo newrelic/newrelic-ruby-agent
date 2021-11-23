@@ -17,7 +17,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     @time = Process.clock_gettime(Process::CLOCK_REALTIME)
 
     @attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-    @attributes_from_notice_error = { :user => 'params' }
+    @attributes_from_notice_error = {:user => 'params'}
   end
 
   def test_to_collector_array
@@ -35,7 +35,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       'test exception',
       'NewRelic::TestHelpers::Exceptions::TestError',
       {
-        'userAttributes'  => { 'user' => 'params' },
+        'userAttributes'  => {'user' => 'params'},
         'agentAttributes' => {:'request.uri' => 'http://com.google'},
         'intrinsics'      => {},
        :'error.expected' => false
@@ -119,7 +119,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   end
 
   def test_handles_non_string_exception_messages
-    e = Exception.new({ :non => :string })
+    e = Exception.new({:non => :string})
     error = NewRelic::NoticedError.new(@path, e, @time)
     assert_equal(String, error.message.class)
   end
@@ -205,7 +205,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       error.attributes = attributes
 
       serialized_attributes = extract_attributes(error)
-      assert_equal({ :intrinsic => "attribute" }, serialized_attributes["intrinsics"])
+      assert_equal({:intrinsic => "attribute"}, serialized_attributes["intrinsics"])
     end
   end
 

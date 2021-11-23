@@ -472,7 +472,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_profile_data
     @http_handle.respond_to(:profile_data, 'profile' => 123)
     response = @service.profile_data([])
-    assert_equal({ "profile" => 123 }, response)
+    assert_equal({"profile" => 123}, response)
   end
 
   def test_profile_data_does_not_normalize_encodings
@@ -570,7 +570,7 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/HTTPError/400" => { :call_count => 1 }
+      "Supportability/Agent/Collector/HTTPError/400" => {:call_count => 1}
     )
   end
 
@@ -583,7 +583,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.send(:invoke_remote, :foobar, payload)
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/foobar/Duration" => { :call_count => 1 }
+      "Supportability/Agent/Collector/foobar/Duration" => {:call_count => 1}
     )
   end
 
@@ -598,7 +598,7 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/metric_data/Attempts" => { :call_count => 1 }
+      "Supportability/Agent/Collector/metric_data/Attempts" => {:call_count => 1}
     )
   end
 
@@ -638,7 +638,7 @@ class NewRelicServiceTest < Minitest::Test
     @http_handle.respond_to(:wiggle, 'hello')
     with_config(:normalize_json_string_encodings => false) do
       NewRelic::Agent::EncodingNormalizer.expects(:normalize_object).never
-      @service.send(:invoke_remote, 'wiggle', [{ 'foo' => 'bar' }])
+      @service.send(:invoke_remote, 'wiggle', [{'foo' => 'bar'}])
     end
   end
 
@@ -815,9 +815,9 @@ class NewRelicServiceTest < Minitest::Test
     }
 
     assert_metrics_recorded(
-      'Supportability/Agent/Collector/foobar/Duration' => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize'         => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize/foobar'  => { :call_count => 1},
+      'Supportability/Agent/Collector/foobar/Duration' => {:call_count => 1},
+      'Supportability/invoke_remote_serialize'         => {:call_count => 1},
+      'Supportability/invoke_remote_serialize/foobar'  => {:call_count => 1},
       'Supportability/invoke_remote_size'              => expected_values,
       'Supportability/invoke_remote_size/foobar'       => expected_values
     )
@@ -832,7 +832,7 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/foobar/MaxPayloadSizeLimit" => { :call_count => 1 }
+      "Supportability/Agent/Collector/foobar/MaxPayloadSizeLimit" => {:call_count => 1}
     )
   end
 
@@ -851,9 +851,9 @@ class NewRelicServiceTest < Minitest::Test
     }
 
     assert_metrics_recorded(
-      'Supportability/Agent/Collector/foobar/Duration' => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize'         => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize/foobar'  => { :call_count => 1},
+      'Supportability/Agent/Collector/foobar/Duration' => {:call_count => 1},
+      'Supportability/invoke_remote_serialize'         => {:call_count => 1},
+      'Supportability/invoke_remote_serialize/foobar'  => {:call_count => 1},
       'Supportability/invoke_remote_size'              => expected_values,
       'Supportability/invoke_remote_size/foobar'       => expected_values
     )
@@ -870,7 +870,7 @@ class NewRelicServiceTest < Minitest::Test
       @service.send(:invoke_remote, :foobar, payload)
     end
 
-    expected_values = { :call_count => 1 }
+    expected_values = {:call_count => 1}
 
     assert_metrics_recorded(
       'Supportability/serialization_failure'        => expected_values,
@@ -986,11 +986,11 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def preconnect_response(host)
-    { 'redirect_host' => host }
+    {'redirect_host' => host}
   end
 
   DEFAULT_PRECONNECT_POLICIES = NewRelic::Agent::NewRelicService::SecurityPolicySettings::EXPECTED_SECURITY_POLICIES.inject({}) do |policies, name|
-    policies[name] = { 'enabled' => false, 'required' => true }
+    policies[name] = {'enabled' => false, 'required' => true}
     policies
   end
 

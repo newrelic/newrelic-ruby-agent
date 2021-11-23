@@ -157,7 +157,7 @@ module HttpClientTestCases
         assert_match %r/<head>/i, body(res)
       end
 
-      expected = { :call_count => n }
+      expected = {:call_count => n}
       assert_externals_recorded_for("localhost", "GET", :counts => expected)
     end
   end

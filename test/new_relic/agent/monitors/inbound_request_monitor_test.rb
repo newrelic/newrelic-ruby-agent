@@ -13,7 +13,7 @@ module NewRelic::Agent
       @events = NewRelic::Agent::EventListener.new
       @monitor = NewRelic::Agent::InboundRequestMonitor.new(@events)
 
-      @config = { :encoding_key => ENCODING_KEY_NOOP }
+      @config = {:encoding_key => ENCODING_KEY_NOOP}
       NewRelic::Agent.config.add_config_for_testing(@config)
 
       class << @monitor

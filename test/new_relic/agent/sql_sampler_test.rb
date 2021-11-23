@@ -171,7 +171,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     data.set_transaction_info("/c/a", 'guid')
     data.set_transaction_name("WebTransaction/Controller/c/a")
     explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
-    config = { :adapter => 'mysql' }
+    config = {:adapter => 'mysql'}
     queries = [
                NewRelic::Agent::SlowSql.new(NewRelic::Agent::Database::Statement.new("select * from test", config, explainer),
                                             "Database/test/select", 1.5),
@@ -466,8 +466,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
                  :primary_application_id => "46954",
                  :trusted_account_key => 'trust_this!',
                  :account_id => 190,
-                 :'slow_sql.explain_threshold' => -1 }) do
-
+                 :'slow_sql.explain_threshold' => -1}) do
       nr_freeze_process_time(Process.clock_gettime(Process::CLOCK_REALTIME))
 
       in_transaction do |txn|

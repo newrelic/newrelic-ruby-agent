@@ -265,7 +265,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
   def test_explain_sql_raising_an_error
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
-    config = { :adapter => 'mysql' }
+    config = {:adapter => 'mysql'}
     statement = NewRelic::Agent::Database::Statement.new('SELECT')
     statement.config = config
     statement.explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
@@ -277,7 +277,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   def test_explain_sql_can_handle_missing_config
     # If TT node came over from Resque child, might not be a Statement
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
-    s.params = { :sql => "SELECT * FROM galaxy" }
+    s.params = {:sql => "SELECT * FROM galaxy"}
     s.explain_sql
   end
 

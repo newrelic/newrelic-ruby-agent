@@ -81,7 +81,7 @@ class NewRelic::Agent::Agent::StartTest < Minitest::Test
   end
 
   def test_connect_in_foreground
-    self.expects(:connect).with({:keep_retrying => false })
+    self.expects(:connect).with({:keep_retrying => false})
     connect_in_foreground
   end
 

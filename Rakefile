@@ -51,7 +51,6 @@ namespace :test do
 
   # Note unit testing task is defined in lib/tasks/tests.rake to facilitate
   # running them in a rails application environment.
-
 end
 
 desc 'Record build number and stage'

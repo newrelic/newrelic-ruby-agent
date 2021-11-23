@@ -73,7 +73,6 @@ class TransactionTracingPerfTests < Performance::TestCase
         add_transaction_tracer :transaction_with_attributes
         add_transaction_tracer :failure
       end
-
     end
   end
 

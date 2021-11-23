@@ -141,9 +141,9 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       if major_version >= 4
         scope :jeffs, lambda { where(:name => 'Jeff') }
       elsif major_version == 3 && minor_version >= 1
-        scope :jeffs, :conditions => { :name => 'Jeff' }
+        scope :jeffs, :conditions => {:name => 'Jeff'}
       else
-        named_scope :jeffs, :conditions => { :name => 'Jeff' }
+        named_scope :jeffs, :conditions => {:name => 'Jeff'}
       end
     end
 

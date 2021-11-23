@@ -13,7 +13,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
   end
 
   def test_records_metrics_for_simple_template
-    params = { :identifier => '/root/app/views/model/index.html.erb' }
+    params = {:identifier => '/root/app/views/model/index.html.erb'}
     nr_freeze_process_time
     in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
@@ -24,12 +24,12 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
                          :virtual_path => 'model/index')
       @subscriber.finish('render_template.action_view', :id, params)
     end
-    expected = { :call_count => 1, :total_call_time => 2.0 }
+    expected = {:call_count => 1, :total_call_time => 2.0}
     assert_metrics_recorded('View/model/index.html.erb/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_file
-    params = { :identifier => '/root/something.txt' }
+    params = {:identifier => '/root/something.txt'}
     nr_freeze_process_time
     in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
@@ -40,12 +40,12 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
                          :virtual_path => nil)
       @subscriber.finish('render_template.action_view', :id, params)
     end
-    expected = { :call_count => 1, :total_call_time => 2.0 }
+    expected = {:call_count => 1, :total_call_time => 2.0}
     assert_metrics_recorded('View/file/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_inline
-    params = { :identifier => 'inline template' }
+    params = {:identifier => 'inline template'}
     nr_freeze_process_time
     in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
@@ -56,24 +56,24 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
                          :virtual_path => nil)
       @subscriber.finish('render_template.action_view', :id, params)
     end
-    expected = { :call_count => 1, :total_call_time => 2.0 }
+    expected = {:call_count => 1, :total_call_time => 2.0}
     assert_metrics_recorded('View/inline template/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_text
-    params = { :identifier => 'text template' }
+    params = {:identifier => 'text template'}
     nr_freeze_process_time
     in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
       advance_process_time 2.0
       @subscriber.finish('render_template.action_view', :id, params)
     end
-    expected = { :call_count => 1, :total_call_time => 2.0 }
+    expected = {:call_count => 1, :total_call_time => 2.0}
     assert_metrics_recorded('View/text template/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_partial
-    params = { :identifier => '/root/app/views/model/_form.html.erb' }
+    params = {:identifier => '/root/app/views/model/_form.html.erb'}
     nr_freeze_process_time
     in_transaction do
       @subscriber.start('render_partial.action_view', :id, params)
@@ -84,12 +84,12 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
                          :virtual_path => 'model/_form')
       @subscriber.finish('render_partial.action_view', :id, params)
     end
-    expected = { :call_count => 1, :total_call_time => 2.0 }
+    expected = {:call_count => 1, :total_call_time => 2.0}
     assert_metrics_recorded('View/model/_form.html.erb/Partial' => expected)
   end
 
   def test_records_metrics_for_simple_collection
-    params = { :identifier => '/root/app/views/model/_user.html.erb' }
+    params = {:identifier => '/root/app/views/model/_user.html.erb'}
     nr_freeze_process_time
     in_transaction do
       @subscriber.start('render_collection.action_view', :id, params)
@@ -100,7 +100,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
                          :virtual_path => 'model/_user')
       @subscriber.finish('render_collection.action_view', :id, params)
     end
-    expected = { :call_count => 1, :total_call_time => 2.0 }
+    expected = {:call_count => 1, :total_call_time => 2.0}
     assert_metrics_recorded('View/model/_user.html.erb/Partial' => expected)
   end
 
@@ -113,12 +113,12 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.finish('!render_template.action_view', :id,
                          :virtual_path => 'layouts/application')
     end
-    expected = { :call_count => 1, :total_call_time => 2.0 }
+    expected = {:call_count => 1, :total_call_time => 2.0}
     assert_metrics_recorded('View/layouts/application/Rendering' => expected)
   end
 
   def test_records_scoped_metric
-    params = { :identifier => '/root/app/views/model/index.html.erb' }
+    params = {:identifier => '/root/app/views/model/index.html.erb'}
 
     in_transaction('test_txn') do
       @subscriber.start('render_template.action_view', :id, params)
@@ -129,7 +129,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
       @subscriber.finish('render_template.action_view', :id, params)
     end
 
-    expected = { :call_count => 1 }
+    expected = {:call_count => 1}
     assert_metrics_recorded(
       ['View/model/index.html.erb/Rendering', 'test_txn'] => expected
     )
@@ -140,7 +140,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     exception_msg = "Natural 1"
     exception = exception_class.new(msg=exception_msg)
     # :exception_object was added in Rails 5 and above
-    params = { :exception_object => exception, :exception => [exception_class.name, exception_msg] }
+    params = {:exception_object => exception, :exception => [exception_class.name, exception_msg]}
 
     txn = nil
 
@@ -156,7 +156,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
   end
 
   def test_records_nothing_if_tracing_disabled
-    params = { :identifier => '/root/app/views/model/_user.html.erb' }
+    params = {:identifier => '/root/app/views/model/_user.html.erb'}
 
     NewRelic::Agent.disable_all_tracing do
       @subscriber.start('render_collection.action_view', :id, params)
@@ -167,7 +167,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
   end
 
   def test_creates_txn_node_for_simple_render
-    params = { :identifier => '/root/app/views/model/index.html.erb' }
+    params = {:identifier => '/root/app/views/model/index.html.erb'}
 
     in_transaction do
       @subscriber.start('render_template.action_view', :id, params)

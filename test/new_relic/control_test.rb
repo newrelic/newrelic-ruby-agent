@@ -51,7 +51,7 @@ class NewRelic::ControlTest < Minitest::Test
   end
 
   def test_transaction_threshold__override
-    with_config(:transaction_tracer => { :transaction_threshold => 1}) do
+    with_config(:transaction_tracer => {:transaction_threshold => 1}) do
       assert_equal 1, NewRelic::Agent.config[:'transaction_tracer.transaction_threshold']
     end
   end
@@ -71,7 +71,7 @@ class NewRelic::ControlTest < Minitest::Test
   end
 
   def test_sql_tracer_disabled_with_record_sql_false
-    with_config(:slow_sql => { :enabled => true, :record_sql => 'off' }) do
+    with_config(:slow_sql => {:enabled => true, :record_sql => 'off'}) do
       refute NewRelic::Agent.instance.sql_sampler.enabled?,
              'sql tracer enabled when config calls for disabled'
     end

@@ -124,7 +124,7 @@ module NewRelic::Agent::Configuration
     [1, 'no', 'off', 0, 'false', [], {}, 1.0, Time.now].each do |value|
       method_name = "test_booleanify_values_fails_with_value_#{value}"
       define_method(method_name) do
-        config = { 'key' => value }
+        config = {'key' => value}
         source = YamlSource.new(@test_yml_path, 'test')
         source.send :booleanify_values, config, 'key'
 
@@ -137,7 +137,7 @@ module NewRelic::Agent::Configuration
     [true, 'true', 'yes', 'on', 'YES', 'ON', 'TRUE'].each do |value|
       method_name = "test_booleanify_values_does_not_fail_with_value_#{value}_#{value.class.name}"
       define_method(method_name) do
-        config = { 'key' => value }
+        config = {'key' => value}
         source = YamlSource.new(@test_yml_path, 'test')
         refute source.failed?
         source.send :booleanify_values, config, 'key'

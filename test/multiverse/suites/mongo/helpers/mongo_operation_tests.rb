@@ -119,7 +119,7 @@ module MongoOperationTests
       in_transaction do
         @collection.group({:key => "name",
                            :initial => {:count => 0},
-                           :reduce => "function(k,v) { v.count += 1; }" })
+                           :reduce => "function(k,v) { v.count += 1; }"})
       end
     rescue Mongo::OperationFailure
       # We get occasional group failures, but should still record metrics
@@ -271,7 +271,7 @@ module MongoOperationTests
     NewRelic::Agent.drop_buffered_data
 
     in_transaction do
-      @database.command({ :reIndex => @collection_name })
+      @database.command({:reIndex => @collection_name})
     end
 
     metrics = build_test_metrics(:reIndex)

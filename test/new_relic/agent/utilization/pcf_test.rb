@@ -23,7 +23,6 @@ module NewRelic
           with_pcf_env "CF_INSTANCE_GUID" => "fd326c0e-847e-47a1-65cc-45f6",
                        "CF_INSTANCE_IP" => "10.10.149.48",
                        "MEMORY_LIMIT"   => "1024m" do
-
             expected = {
               :cf_instance_guid => "fd326c0e-847e-47a1-65cc-45f6",
               :cf_instance_ip => "10.10.149.48",
@@ -39,7 +38,6 @@ module NewRelic
           with_pcf_env "CF_INSTANCE_GUID" => "**fd326c0e-847e-47a1-65cc-45f6**",
                        "CF_INSTANCE_IP" => "10.10.149.48",
                        "MEMORY_LIMIT"   => "1024m" do
-
             refute @vendor.detect
           end
         end
@@ -47,7 +45,6 @@ module NewRelic
         def test_fails_when_required_value_is_missing
           with_pcf_env "CF_INSTANCE_GUID" => "fd326c0e-847e-47a1-65cc-45f6",
                        "CF_INSTANCE_IP" => "10.10.149.48" do
-
             refute @vendor.detect
           end
         end
@@ -100,7 +97,6 @@ module NewRelic
               end
             end
           end
-
         end
       end
     end

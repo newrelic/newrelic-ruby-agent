@@ -170,7 +170,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
         'agent_run_id' => 23,
         'event_harvest_config' => {
           'report_period_ms' => 5000,
-          'harvest_limits' => { 'analytic_event_data'=>833, 'custom_event_data'=>83, 'error_event_data'=>8 }
+          'harvest_limits' => {'analytic_event_data'=>833, 'custom_event_data'=>83, 'error_event_data'=>8}
         }
       })\
       # every call to :connect should pass the same expected event_harvest_config payload
@@ -185,8 +185,8 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     NewRelic::Agent.manual_start
     NewRelic::Agent.instance.service = default_service(
       :connect => {
-        'messages' => [{ 'message' => 'beep boop', 'level' => 'INFO' },
-                       { 'message' => 'ha cha cha', 'level' => 'WARN' }]
+        'messages' => [{'message' => 'beep boop', 'level' => 'INFO'},
+                       {'message' => 'ha cha cha', 'level' => 'WARN'}]
       })
 
     expects_logging(:info, 'beep boop')

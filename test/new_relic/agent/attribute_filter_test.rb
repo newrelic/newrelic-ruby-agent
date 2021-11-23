@@ -215,7 +215,6 @@ module NewRelic::Agent
     def test_span_global_include_exclude
       with_config(:'attributes.include' => ['request.headers.contentType'],
                   :'attributes.exclude' => ['request.headers.*']) do
-
         filter = AttributeFilter.new(NewRelic::Agent.config)
 
         result = filter.apply 'request.headers.contentType', AttributeFilter::DST_ALL
@@ -235,7 +234,6 @@ module NewRelic::Agent
     def test_span_include_exclude
       with_config(:'span_events.attributes.include' => ['request.headers.contentType'],
                   :'span_events.attributes.exclude' => ['request.headers.*']) do
-
         filter = AttributeFilter.new(NewRelic::Agent.config)
 
         result = filter.apply 'request.headers.contentType', AttributeFilter::DST_SPAN_EVENTS
@@ -250,7 +248,6 @@ module NewRelic::Agent
       with_all_enabled do
         with_config :'attributes.include' => ['request.headers.contentType'],
                     :'attributes.exclude' => ['request.headers.*'] do
-
           filter = AttributeFilter.new(NewRelic::Agent.config)
 
           assert filter.allows_key?('request.headers.contentType', AttributeFilter::DST_ALL)
@@ -262,7 +259,6 @@ module NewRelic::Agent
     def test_key_cache_span_include_exclude
       with_config :'span_events.attributes.include' => ['request.headers.contentType'],
                   :'span_events.attributes.exclude' => ['request.headers.*'] do
-
         filter = AttributeFilter.new(NewRelic::Agent.config)
 
         assert filter.allows_key?('request.headers.contentType', AttributeFilter::DST_SPAN_EVENTS)

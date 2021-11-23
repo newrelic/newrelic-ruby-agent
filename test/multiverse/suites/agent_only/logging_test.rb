@@ -52,7 +52,6 @@ class LoggingTest < Minitest::Test
     running_agent_writes_to_log(
       {:'transaction_tracer.record_sql' => 'obfuscated'},
       "Agent is configured to send raw SQL to the service") do
-
       NewRelic::Agent.config.add_config_for_testing(:'transaction_tracer.record_sql' => 'raw')
     end
 
@@ -62,7 +61,6 @@ class LoggingTest < Minitest::Test
     running_agent_writes_to_log(
       {:'error_collector.enabled' => false},
       "Error traces will be sent") do
-
       NewRelic::Agent.config.add_config_for_testing(:'error_collector.enabled' => true)
     end
   end
@@ -71,7 +69,6 @@ class LoggingTest < Minitest::Test
     running_agent_writes_to_log(
       {:'error_collector.enabled' => true},
       "Error traces will not be sent") do
-
       NewRelic::Agent.config.add_config_for_testing(:'error_collector.enabled' => false)
     end
   end
@@ -94,25 +91,25 @@ class LoggingTest < Minitest::Test
 
   def test_logs_monitor_mode_disabled
     running_agent_writes_to_log(
-      {:monitor_mode => false },
+      {:monitor_mode => false},
       "Agent configured not to send data in this environment.")
   end
 
   def test_logs_missing_license_key
     running_agent_writes_to_log(
-      { :license_key => false },
+      {:license_key => false},
       "No license key found.")
   end
 
   def test_logs_blank_license_key
     running_agent_writes_to_log(
-      { :license_key => '' },
+      {:license_key => ''},
       "No license key found.")
   end
 
   def test_logs_invalid_license_key
     running_agent_writes_to_log(
-      { :license_key => 'a' * 30 },
+      {:license_key => 'a' * 30},
       "Invalid license key: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
   end
 
@@ -129,7 +126,7 @@ class LoggingTest < Minitest::Test
 
   def test_logs_forking_workers
     running_agent_writes_to_log(
-      { :dispatcher => :passenger },
+      {:dispatcher => :passenger},
       "Deferring startup of agent reporting thread")
   end
 

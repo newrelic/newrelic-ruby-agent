@@ -35,7 +35,7 @@ module NewRelic::Agent
       @sampler = TransactionSampler.new
       @old_sampler = agent.transaction_sampler
       agent.instance_variable_set(:@transaction_sampler, @sampler)
-      @test_config = { :'transaction_tracer.enabled' => true }
+      @test_config = {:'transaction_tracer.enabled' => true}
       NewRelic::Agent.config.add_config_for_testing(@test_config)
 
       attributes = Attributes.new(agent.attribute_filter)
@@ -202,7 +202,6 @@ module NewRelic::Agent
       MockGCStats.mock_values = [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
 
       with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-
         in_transaction 'a' do
           segment_b = Tracer.start_segment name: "b"
           segment_b.finish

@@ -11,37 +11,37 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
   end
 
   def test_adapter_from_config_string
-    config = { :adapter => 'mysql' }
+    config = {:adapter => 'mysql'}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
     assert_equal(:mysql, statement.adapter)
   end
 
   def test_adapter_from_config_symbol
-    config = { :adapter => :mysql }
+    config = {:adapter => :mysql}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
     assert_equal(:mysql, statement.adapter)
   end
 
   def test_adapter_from_config_uri_jdbc_postgresql
-    config = { :uri=>"jdbc:postgresql://host/database?user=posgres" }
+    config = {:uri=>"jdbc:postgresql://host/database?user=posgres"}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
     assert_equal(:postgres, statement.adapter)
   end
 
   def test_adapter_from_config_uri_jdbc_mysql
-    config = { :uri=>"jdbc:mysql://host/database" }
+    config = {:uri=>"jdbc:mysql://host/database"}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
     assert_equal(:mysql, statement.adapter)
   end
 
   def test_adapter_from_config_uri_jdbc_sqlite
-    config = { :uri => "jdbc:sqlite::memory" }
+    config = {:uri => "jdbc:sqlite::memory"}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
     assert_equal(:sqlite, statement.adapter)
   end
 
   def test_adapter_from_config_string_postgis
-    config = { :adapter => 'postgis' }
+    config = {:adapter => 'postgis'}
     statement = NewRelic::Agent::Database::Statement.new('some query', config)
     assert_equal(:postgres, statement.adapter)
   end
@@ -118,7 +118,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
   end
 
   def test_explain_sql_select_with_sequel
-    config = { :adapter => 'mysql2' }
+    config = {:adapter => 'mysql2'}
     sql = 'SELECT * FROM items'
 
     # Sequel returns explain plans to us as one giant preformatted string rather
@@ -423,7 +423,7 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     foo_connection = mock('foo connection')
     bar_connection = mock('bar connection')
     NewRelic::Agent::Database::ConnectionManager.instance.instance_eval do
-      @connections = { :foo => foo_connection, :bar => bar_connection }
+      @connections = {:foo => foo_connection, :bar => bar_connection}
     end
     foo_connection.expects(:disconnect!)
     bar_connection.expects(:disconnect!)

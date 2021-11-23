@@ -42,7 +42,6 @@ namespace :test do
   end
 
   namespace :multiverse do
-
     def remove_local_multiverse_databases
       list_databases_command = %{echo "show databases" | mysql -u root}
       databases = `#{list_databases_command}`.chomp!.split("\n").select{|s| s =~ /multiverse/}
@@ -99,6 +98,5 @@ namespace :test do
     task :prime, [:suite] => [:env] do |_, args|
       Multiverse::Runner.prime(args.suite, Multiverse::Runner.parse_args(args))
     end
-
   end
 end

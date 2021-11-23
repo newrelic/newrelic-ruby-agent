@@ -22,7 +22,6 @@ class AgentAttributesTests < Performance::TestCase
   def test_with_attribute_rules
     with_config(:'attributes.include' => ['alpha'],
                 :'attributes.exclude' => ['beta']) do
-
       @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
 
       measure do
@@ -35,7 +34,6 @@ class AgentAttributesTests < Performance::TestCase
   def test_with_wildcards
     with_config(:'attributes.include' => ['alpha*'],
                 :'attributes.exclude' => ['beta*']) do
-
       @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
 
       measure do
@@ -48,7 +46,6 @@ class AgentAttributesTests < Performance::TestCase
   def test_with_tons_o_rules
     with_config(:'attributes.include' => 100.times.map { fake_guid(32) },
                 :'attributes.exclude' => 100.times.map { fake_guid(32) }) do
-
       @filter = NewRelic::Agent::AttributeFilter.new(NewRelic::Agent.config)
 
       measure do

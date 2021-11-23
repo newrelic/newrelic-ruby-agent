@@ -21,9 +21,9 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
     def ssl_option
       if CURRENT_TYPHOEUS_VERSION >= USE_SSL_VERIFYPEER_VERSION
-        { :ssl_verifypeer => false }
+        {:ssl_verifypeer => false}
       else
-        { :disable_ssl_peer_verification => true }
+        {:disable_ssl_peer_verification => true}
       end
     end
 

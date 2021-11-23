@@ -50,8 +50,8 @@ module NewRelic
                 "ns"      => "tribbles",
                 "$reduce" => stub("BSON::Code"),
                 "cond"    => {},
-                "initial" => { :count => 0 },
-                "key"     => { "name" => 1 }
+                "initial" => {:count => 0},
+                "key"     => {"name" => 1}
               }
             }
 
@@ -60,8 +60,8 @@ module NewRelic
                 "ns"      => "?",
                 "$reduce" => "?",
                 "cond"    => {},
-                "initial" => { :count => "?" },
-                "key"     => { "name" => "?" }
+                "initial" => {:count => "?"},
+                "key"     => {"name" => "?"}
               }
             }
 

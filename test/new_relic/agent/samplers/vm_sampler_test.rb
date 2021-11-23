@@ -316,7 +316,7 @@ module NewRelic
           @sampler.poll
 
           assert_metrics_recorded(
-            'RubyVM/GC/runs' => { :max_call_time => 1 }
+            'RubyVM/GC/runs' => {:max_call_time => 1}
           )
         end
 
@@ -325,7 +325,7 @@ module NewRelic
           @sampler.poll
 
           assert_metrics_recorded(
-            'RubyVM/GC/runs' => { :max_call_time => 0 }
+            'RubyVM/GC/runs' => {:max_call_time => 0}
           )
         end
 

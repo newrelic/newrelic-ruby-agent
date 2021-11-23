@@ -50,16 +50,16 @@ class NewRelic::CollectionHelperTest < Minitest::Test
     assert_equal String, truncate(s, 2).class
   end
   def test_number
-    normalize_params({ 'one' => 1.0, 'two' => '2'})
+    normalize_params({'one' => 1.0, 'two' => '2'})
   end
   def test_nil
-    np = normalize_params({ nil => 1.0, 'two' => nil})
+    np = normalize_params({nil => 1.0, 'two' => nil})
     assert_equal "1.0", np['']
     assert_nil np['two']
   end
   def test_hash
     val = ('A'..'Z').to_a.join * 100
-    assert_equal Hash[(val[0..63] + "...") => (("0"*16384) + "...")], normalize_params({ val => '0' * (16384*2) })
+    assert_equal Hash[(val[0..63] + "...") => (("0"*16384) + "...")], normalize_params({val => '0' * (16384*2)})
   end
   class MyHash < Hash
 
@@ -68,7 +68,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
   def test_hash_subclass
     h = MyHash.new
     h[:mine] = 'mine'
-    custom_params = { :one => {:hash => { :a => :b}, :myhash => h }}
+    custom_params = {:one => {:hash => {:a => :b}, :myhash => h}}
     nh = normalize_params(custom_params)
     myhash = custom_params[:one][:myhash]
     assert_equal MyHash, myhash.class
@@ -80,7 +80,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
 
   def test_enumerable
     e = MyEnumerable.new
-    custom_params = { :one => {:hash => { :a => :b}, :myenum => e }}
+    custom_params = {:one => {:hash => {:a => :b}, :myenum => e}}
     nh = normalize_params(custom_params)
     myenum = nh[:one][:myenum]
     assert_match(/MyEnumerable/, myenum)
@@ -95,7 +95,7 @@ class NewRelic::CollectionHelperTest < Minitest::Test
 
     # make sure stringios aren't affected by calling normalize_params:
     s = StringIO.new "start" + ("foo bar bat " * 1000)
-    normalize_params({ :foo => s.string })
+    normalize_params({:foo => s.string})
     s.each { |entry| val = entry; break }
     assert_match(/^startfoo bar/, val)
   end

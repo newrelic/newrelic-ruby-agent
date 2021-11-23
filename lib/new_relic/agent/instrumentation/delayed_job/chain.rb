@@ -28,7 +28,6 @@ module NewRelic::Agent::Instrumentation
               def invoke_job(*args, &block)
                 invoke_job_with_tracing { invoke_job_without_new_relic(*args, &block) }
               end
-
             end
           end
         end

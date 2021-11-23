@@ -242,7 +242,7 @@ class AttributesTest < Minitest::Test
   def test_merge_untrusted_agent_attributes_disallowed_in_high_security
     with_config(:high_security => true, :'attributes.include' => "request.parameters.*") do
       attributes = create_attributes
-      params = { "sneaky" => "code" }
+      params = {"sneaky" => "code"}
 
       attributes.merge_untrusted_agent_attributes('request.parameters', params, AttributeFilter::DST_NONE)
       assert_empty agent_attributes(attributes)

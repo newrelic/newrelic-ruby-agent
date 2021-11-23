@@ -17,7 +17,6 @@ module NewRelic
                       :'slow_sql.record_sql'           => 'raw',
                       :'mongo.capture_queries'         => true,
                       :'mongo.obfuscate_queries'       => false do
-
             source = SecurityPolicySource.new(policies)
 
             assert_equal 'obfuscated', source[:'transaction_tracer.record_sql']
@@ -32,7 +31,6 @@ module NewRelic
           with_config :'transaction_tracer.record_sql' => 'raw',
                       :'slow_sql.record_sql'           => 'raw',
                       :'mongo.capture_queries'         => true do
-
             source = SecurityPolicySource.new(policies)
 
             assert_equal 'off', source[:'transaction_tracer.record_sql']
@@ -50,7 +48,6 @@ module NewRelic
                       :'browser_monitoring.attributes.include'     => ['http.statusCode'],
                       :'span_events.attributes.include'            => ['http.url'],
                       :'transaction_segments.attributes.include'   => ['sql_statement'] do
-
             source = SecurityPolicySource.new(policies)
 
             refute_includes source.keys, :'attributes.include'
@@ -72,7 +69,6 @@ module NewRelic
                       :'browser_monitoring.attributes.include'     => ['http.statusCode'],
                       :'span_events.attributes.include'            => ['http.url'],
                       :'transaction_segments.attributes.include'   => ['sql_statement'] do
-
             source = SecurityPolicySource.new(policies)
 
             assert_equal [], source[:'attributes.include']
@@ -88,7 +84,6 @@ module NewRelic
         def test_allow_raw_exception_messages_enabled
           policies = generate_security_policies(default: false, enabled: ['allow_raw_exception_messages'])
           with_config :'strip_exception_messages.enabled' => true do
-
             source = SecurityPolicySource.new(policies)
 
             refute_includes source.keys, :'strip_exception_messages'
@@ -98,7 +93,6 @@ module NewRelic
         def test_allow_raw_exception_messages_disabled
           policies = generate_security_policies(default: true, disabled: ['allow_raw_exception_messages'])
           with_config :'strip_exception_messages.enabled' => true do
-
             source = SecurityPolicySource.new(policies)
 
             assert_equal false, source[:'strip_exception_messages.enabled']
@@ -108,7 +102,6 @@ module NewRelic
         def test_custom_events_enabled
           policies = generate_security_policies(default: false, enabled: ['custom_events'])
           with_config :'custom_insights_events.enabled' => true do
-
             source = SecurityPolicySource.new(policies)
 
             refute_includes source.keys, :'custom_insights_events.enabled'
@@ -118,7 +111,6 @@ module NewRelic
         def test_custom_events_disabled
           policies = generate_security_policies(default: true, disabled: ['custom_events'])
           with_config :'custom_insights_events.enabled' => true do
-
             source = SecurityPolicySource.new(policies)
 
             assert_equal false, source[:'custom_insights_events.enabled']
@@ -142,7 +134,6 @@ module NewRelic
         def test_message_parameters_enabled
           policies = generate_security_policies(default: false, enabled: ['message_parameters'])
           with_config :'message_tracer.segment_parameters.enabled' => true do
-
             source = SecurityPolicySource.new(policies)
 
             refute_includes source.keys, :'message_tracer.segment_parameters.enabled'
@@ -152,7 +143,6 @@ module NewRelic
         def test_message_parameters_disabled
           policies = generate_security_policies(default: true, disabled: ['message_parameters'])
           with_config :'message_tracer.segment_parameters.enabled' => true do
-
             source = SecurityPolicySource.new(policies)
 
             assert_equal false, source[:'message_tracer.segment_parameters.enabled']
@@ -163,7 +153,6 @@ module NewRelic
           policies = generate_security_policies(default: false, enabled: ['job_arguments'])
           with_config :'resque.capture_params'  => true,
                       :'sidekiq.capture_params' => true do
-
             source = SecurityPolicySource.new(policies)
 
             refute_includes source.keys, :'resque.capture_params'
@@ -175,7 +164,6 @@ module NewRelic
           policies = generate_security_policies(default: true, disabled: ['job_arguments'])
           with_config :'resque.capture_params'  => true,
                       :'sidekiq.capture_params' => true do
-
             source = SecurityPolicySource.new(policies)
 
             assert_equal false, source[:'resque.capture_params']

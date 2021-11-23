@@ -47,14 +47,14 @@ begin
           }
         }
         perform_action_with_newrelic_trace(:name => 'dorkbot', :params => params) do
-          [200, { 'Content-Type' => 'text/html' }, ['<body>hi</body>']]
+          [200, {'Content-Type' => 'text/html'}, ['<body>hi</body>']]
         end
       end
     end
 
     class TestApp
       def call(env)
-        [200, { 'Content-Type' => 'text/html' }, ['<body>hi</body>']]
+        [200, {'Content-Type' => 'text/html'}, ['<body>hi</body>']]
       end
     end
 

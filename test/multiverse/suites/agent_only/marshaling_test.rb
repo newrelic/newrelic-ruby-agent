@@ -11,7 +11,7 @@ class MarshalingTest < Minitest::Test
   include NewRelic::Agent::MethodTracer
 
   setup_and_teardown_agent(:'transaction_tracer.transaction_threshold' => 0.0) do |collector|
-    collector.stub('connect', { 'agent_run_id' => 666 })
+    collector.stub('connect', {'agent_run_id' => 666})
   end
 
   def test_transaction_trace_marshaling

@@ -90,7 +90,7 @@ class IgnoredActionsTest < ActionDispatch::IntegrationTest
   end
 
   def test_ignored_by_ignore_url_regexes_does_not_record_span_events
-    with_config(:rules => { :ignore_url_regexes => ['/ignored/action_not_ignored'] }) do
+    with_config(:rules => {:ignore_url_regexes => ['/ignored/action_not_ignored']}) do
       get '/ignored/action_not_ignored'
 
       last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]

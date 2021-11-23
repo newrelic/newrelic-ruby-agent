@@ -238,7 +238,7 @@ class DataMapperTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      'Datastore/statement/DataMapper/Post/all' => { :call_count => 2 }
+      'Datastore/statement/DataMapper/Post/all' => {:call_count => 2}
     )
   end
 

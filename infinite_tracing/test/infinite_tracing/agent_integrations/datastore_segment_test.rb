@@ -20,7 +20,6 @@ module NewRelic
           sql_statement = "select * from table"
 
           span_events = generate_and_stream_segments do
-
             in_web_transaction('wat') do |txn|
               txn.stubs(:sampled?).returns(true)
 

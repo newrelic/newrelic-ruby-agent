@@ -103,7 +103,7 @@ module MultiverseHelpers
     NewRelic::Agent.instance.instance_variable_set(:@connect_state, :pending)
 
     # Almost always want a test to force a new connect when setting up
-    defaults = { :sync_startup => true, :force_reconnect => true }
+    defaults = {:sync_startup => true, :force_reconnect => true}
 
     NewRelic::Agent.manual_start(defaults.merge(opts))
   end

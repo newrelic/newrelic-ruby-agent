@@ -119,7 +119,7 @@ module NewRelic
         with_config aggregator.class.capacity_key => 5 do
           5.times { generate_event }
           aggregator.expects(:create_event).never
-          aggregator.record(ImpossibleError.new, { priority: -999.0 }, @span_id)
+          aggregator.record(ImpossibleError.new, {priority: -999.0}, @span_id)
         end
       end
 

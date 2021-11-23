@@ -40,7 +40,7 @@ module NewRelic
           advance_process_time(1.5)
           @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
 
-          expected_values = { :apdex_f => 0, :apdex_t => 1, :apdex_s => 0 }
+          expected_values = {:apdex_f => 0, :apdex_t => 1, :apdex_s => 0}
           assert_metrics_recorded(
             'Apdex/ActionCable/TestChannel/test_action' => expected_values,
             'Apdex' => expected_values

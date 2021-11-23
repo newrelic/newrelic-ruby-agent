@@ -33,9 +33,9 @@ module NewRelic::Agent::Configuration
         :baz => 'default baz'
       }
       @manager.add_config_for_testing(config0, false)
-      config1 = { :foo => 'wrong foo', :bar => 'real bar' }
+      config1 = {:foo => 'wrong foo', :bar => 'real bar'}
       @manager.add_config_for_testing(config1)
-      config2 = { :foo => 'real foo' }
+      config2 = {:foo => 'real foo'}
       @manager.add_config_for_testing(config2)
 
       assert_equal 'real foo' , @manager['foo']
@@ -98,7 +98,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_not_apply_removed_sources
-      test_source = { :test_config_accessor => true }
+      test_source = {:test_config_accessor => true}
       @manager.add_config_for_testing(test_source)
       @manager.remove_config(test_source)
 
@@ -138,7 +138,7 @@ module NewRelic::Agent::Configuration
       @manager.add_config_for_testing(:nested => {:madness => 'test'})
       @manager.add_config_for_testing(:'nested.madness' => 'test')
 
-      assert_equal({ :eins => 1, :one => 1, :two => 2, :'nested.madness' => 'test' },
+      assert_equal({:eins => 1, :one => 1, :two => 2, :'nested.madness' => 'test'},
                    @manager.to_collector_hash)
     end
 
@@ -157,7 +157,7 @@ module NewRelic::Agent::Configuration
       @manager.add_config_for_testing(:one => 1)
       @manager.add_config_for_testing(:two => 2)
 
-      assert_equal({ :one => 1, :two => 2 }, @manager.to_collector_hash)
+      assert_equal({:one => 1, :two => 2}, @manager.to_collector_hash)
     end
 
     def test_config_masks
@@ -272,7 +272,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_should_log_when_removing
-      config = { :test => "asdf" }
+      config = {:test => "asdf"}
       @manager.add_config_for_testing(config)
 
       log = with_array_logger(:debug) do
@@ -329,17 +329,17 @@ module NewRelic::Agent::Configuration
     end
 
     def test_parse_labels_from_dictionary
-      @manager.add_config_for_testing(:labels => { 'Server' => 'East', 'Data Center' => 'North' })
+      @manager.add_config_for_testing(:labels => {'Server' => 'East', 'Data Center' => 'North'})
 
       assert_parsed_labels([
-        { 'label_type' => 'Server', 'label_value' => 'East' },
-        { 'label_type' => 'Data Center', 'label_value' => 'North' }
+        {'label_type' => 'Server', 'label_value' => 'East'},
+        {'label_type' => 'Data Center', 'label_value' => 'North'}
       ])
     end
 
     def test_parse_labels_from_dictionary_applies_length_limits
-      @manager.add_config_for_testing(:labels => { 'K' * 256 => 'V' * 256 })
-      expected = [ { 'label_type' => 'K' * 255, 'label_value' => 'V' * 255 } ]
+      @manager.add_config_for_testing(:labels => {'K' * 256 => 'V' * 256})
+      expected = [ {'label_type' => 'K' * 255, 'label_value' => 'V' * 255} ]
 
       expects_logging(:warn, includes("truncated"))
       assert_parsed_labels(expected)
@@ -347,7 +347,7 @@ module NewRelic::Agent::Configuration
 
     def test_parse_labels_from_dictionary_disallows_further_nested_hashes
       @manager.add_config_for_testing(:labels => {
-        "More Nesting" => { "Hahaha" => "Ha" }
+        "More Nesting" => {"Hahaha" => "Ha"}
       })
 
       assert_warning
@@ -359,7 +359,7 @@ module NewRelic::Agent::Configuration
         "the answer" => 42
       })
 
-      expected = [{ 'label_type' => 'the answer', 'label_value' => '42' }]
+      expected = [{'label_type' => 'the answer', 'label_value' => '42'}]
       assert_parsed_labels(expected)
     end
 
@@ -370,8 +370,8 @@ module NewRelic::Agent::Configuration
       })
 
       expected = [
-        { 'label_type' => 'truthy', 'label_value' => 'true' },
-        { 'label_type' => 'falsy', 'label_value' => 'false' }
+        {'label_type' => 'truthy', 'label_value' => 'true'},
+        {'label_type' => 'falsy', 'label_value' => 'false'}
       ]
       assert_parsed_labels(expected)
     end
@@ -384,7 +384,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_fetch_with_a_transform_returns_the_transformed_value
-      with_config(:rules => { :ignore_url_regexes => ['more than meets the eye'] }) do
+      with_config(:rules => {:ignore_url_regexes => ['more than meets the eye']}) do
         assert_equal [/more than meets the eye/], @manager.fetch(:'rules.ignore_url_regexes')
       end
     end

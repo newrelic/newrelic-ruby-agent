@@ -193,10 +193,10 @@ def _normalize_metric_expectations expectations
   when Array
     hash = {}
     # Just assert that the metric is present, nothing about the attributes
-    expectations.each { |k| hash[k] = { } }
+    expectations.each { |k| hash[k] = {} }
     hash
   when String
-    { expectations => {} }
+    {expectations => {}}
   else
     expectations
   end
@@ -683,7 +683,7 @@ ensure
 end
 
 def create_agent_command args = {}
-  NewRelic::Agent::Commands::AgentCommand.new([-1, { "name" => "command_name", "arguments" => args}])
+  NewRelic::Agent::Commands::AgentCommand.new([-1, {"name" => "command_name", "arguments" => args}])
 end
 
 def wait_for_backtrace_service_poll opts = {}
@@ -714,7 +714,7 @@ end
 
 def with_array_logger level = :info
   orig_logger = NewRelic::Agent.logger
-  config = { :log_level => level }
+  config = {:log_level => level}
   logdev = ArrayLogDevice.new
   override_logger = Logger.new(logdev)
 

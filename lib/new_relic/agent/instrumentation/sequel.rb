@@ -44,7 +44,5 @@ DependencyDetection.defer do
       NewRelic::Agent.logger.info "Sequel instrumentation requires at least version 3.37.0."
 
     end
-
   end
-
 end

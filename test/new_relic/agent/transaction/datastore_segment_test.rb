@@ -11,7 +11,7 @@ module NewRelic
     class Transaction
       class DatastoreSegmentTest < Minitest::Test
         def setup
-          @additional_config = { :'distributed_tracing.enabled' => true }
+          @additional_config = {:'distributed_tracing.enabled' => true}
           NewRelic::Agent.config.add_config_for_testing(@additional_config)
           NewRelic::Agent.config.notify_server_source_added
 
@@ -775,7 +775,6 @@ module NewRelic
           t = Process.clock_gettime(Process::CLOCK_REALTIME)
 
           in_transaction do |txn|
-
             segment = Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "insert",

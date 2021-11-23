@@ -13,7 +13,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
     @started_event.stubs(:operation_id).returns(1)
     @started_event.stubs(:command_name).returns('find')
     @started_event.stubs(:database_name).returns('mongodb-test')
-    @started_event.stubs(:command).returns({ 'find' => 'users', 'filter' => { 'name' => 'test' }})
+    @started_event.stubs(:command).returns({'find' => 'users', 'filter' => {'name' => 'test'}})
     address = stub('address', :host => "127.0.0.1", :port => 27017)
     @started_event.stubs(:address).returns(address)
 
@@ -33,7 +33,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
     metric_name = 'Datastore/statement/MongoDB/users/find'
     assert_metrics_recorded(
-      metric_name => { :call_count => 1, :total_call_time => 2.0 }
+      metric_name => {:call_count => 1, :total_call_time => 2.0}
     )
   end
 
@@ -42,7 +42,7 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
 
     metric_name = 'Datastore/statement/MongoDB/users/find'
     assert_metrics_recorded(
-      [ metric_name, 'test_txn' ] => { :call_count => 1, :total_call_time => 2 }
+      [ metric_name, 'test_txn' ] => {:call_count => 1, :total_call_time => 2}
     )
   end
 
@@ -56,9 +56,9 @@ class NewRelic::Agent::Instrumentation::MongodbCommandSubscriberTest < Minitest:
     in_web_transaction { simulate_query }
 
     assert_metrics_recorded(
-      'Datastore/operation/MongoDB/find' => { :call_count => 1, :total_call_time => 2 },
-      'Datastore/allWeb' => { :call_count => 1, :total_call_time => 2 },
-      'Datastore/all' => { :call_count => 1, :total_call_time => 2 }
+      'Datastore/operation/MongoDB/find' => {:call_count => 1, :total_call_time => 2},
+      'Datastore/allWeb' => {:call_count => 1, :total_call_time => 2},
+      'Datastore/all' => {:call_count => 1, :total_call_time => 2}
     )
   end
 

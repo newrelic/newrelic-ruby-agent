@@ -56,7 +56,7 @@ end
 
 class ActiveRecordSubscriberTest < Performance::TestCase
   def setup
-    @config = { :adapter => 'mysql', :host => 'server' }
+    @config = {:adapter => 'mysql', :host => 'server'}
     @connection = Object.new
     @connection.instance_variable_set(:@config, @config)
 

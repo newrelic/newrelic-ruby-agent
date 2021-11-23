@@ -11,7 +11,7 @@ class NewRelic::Agent::ObfuscatorTest < Minitest::Test
   RUM_KEY_LENGTH = 13
 
   def setup
-    @config = { :license_key => OBFUSCATION_KEY }
+    @config = {:license_key => OBFUSCATION_KEY}
     NewRelic::Agent.config.add_config_for_testing(@config)
   end
 

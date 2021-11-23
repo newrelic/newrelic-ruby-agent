@@ -358,7 +358,6 @@ module Multiverse
 
     def execute_child_environment(env_index, instrumentation_method)
       with_unbundled_env do
-
         configure_instrumentation_method instrumentation_method
         optimize_jruby_startups
         ENV["MULTIVERSE_ENV"] = env_index.to_s

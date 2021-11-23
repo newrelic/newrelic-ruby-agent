@@ -47,7 +47,7 @@ module NewRelic
           end
 
           def test_for_constructs_id_with_configured_host_without_port
-            config = { :host => "jonan.gummy_planet" }
+            config = {:host => "jonan.gummy_planet"}
 
             host = InstanceIdentification.host(config)
             ppid = InstanceIdentification.port_path_or_id(config)
@@ -57,7 +57,7 @@ module NewRelic
           end
 
           def test_for_constructs_id_with_port_without_host
-            config = { :port => 1337 }
+            config = {:port => 1337}
 
             host = InstanceIdentification.host(config)
             ppid = InstanceIdentification.port_path_or_id(config)
@@ -109,7 +109,7 @@ module NewRelic
 
           def test_supports_supported_adapters
             %w(mysql mysql2 postgresql).each do |adapter|
-              assert InstanceIdentification.supported_adapter?({:adapter => adapter })
+              assert InstanceIdentification.supported_adapter?({:adapter => adapter})
             end
           end
 

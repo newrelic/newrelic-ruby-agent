@@ -103,7 +103,7 @@ module SinatraTestCases
   end
 
   def test_queue_time_headers_are_passed_to_agent
-    get '/user/login', {}, { 'HTTP_X_REQUEST_START' => 't=1360973845' }
+    get '/user/login', {}, {'HTTP_X_REQUEST_START' => 't=1360973845'}
     assert_metrics_recorded(["WebFrontend/QueueTime"])
   end
 

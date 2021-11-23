@@ -349,7 +349,7 @@ module NewRelic
     #
     def manual_start(options = {})
       raise "Options must be a hash" unless Hash === options
-      NewRelic::Control.instance.init_plugin({ :agent_enabled => true, :sync_startup => true }.merge(options))
+      NewRelic::Control.instance.init_plugin({:agent_enabled => true, :sync_startup => true}.merge(options))
       record_api_supportability_metric(:manual_start)
     end
 

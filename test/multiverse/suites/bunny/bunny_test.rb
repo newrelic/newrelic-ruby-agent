@@ -223,7 +223,7 @@ class BunnyTest < Minitest::Test
                                   NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
                                   NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
-        assert_equal({ :"message.routingKey" => "some.key",
+        assert_equal({:"message.routingKey" => "some.key",
                        :"message.queueName" => queue.name,
                        :"message.exchangeType" => :direct,
                      },
@@ -237,7 +237,6 @@ class BunnyTest < Minitest::Test
 
   def test_metrics_recorded_for_purge_with_server_named_queue
     with_queue do |queue|
-
       in_transaction "test_txn" do
         queue.publish "test"
         queue.purge

@@ -99,7 +99,7 @@ module NewRelic
 
         def record_attributes(args, task)
           command_line = task.application.top_level_tasks.join(" ")
-          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes({ :command => command_line },
+          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes({:command => command_line},
                                                                         :'job.rake',
                                                                         NewRelic::Agent::AttributeFilter::DST_NONE)
           named_args = name_the_args(args, task.arg_names)

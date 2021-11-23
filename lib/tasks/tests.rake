@@ -26,7 +26,6 @@ if defined? Rake::TestTask
     agent_home = File.expand_path(File.join(File.dirname(__FILE__), '..', '..'))
 
     Rake::TestTask.new(:newrelic) do |t|
-
       file_pattern = ENV["file"]
       file_pattern = file_pattern.split(",").map{|f| "#{agent_home}/#{f}".gsub("//", "/")} if file_pattern
       file_pattern ||= "#{agent_home}/test/new_relic/**/*_test.rb"
@@ -36,6 +35,5 @@ if defined? Rake::TestTask
       t.pattern = Array(file_pattern)
       t.verbose = true
     end
-
   end
 end

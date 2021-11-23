@@ -50,25 +50,25 @@ include MultiverseHelpers
   end
 
   def test_creates_trace
-    @channel.perform_action({ 'action' => :test_action, 'content' => 'hello' })
+    @channel.perform_action({'action' => :test_action, 'content' => 'hello'})
 
     last_sample = last_transaction_trace
     assert_equal('Controller/ActionCable/ActionCableTest::TestChannel/test_action', last_sample.transaction_name)
   end
 
   def test_creates_web_transaction
-    @channel.perform_action({ 'action'=> :test_action, 'content' => 'hello' })
+    @channel.perform_action({'action'=> :test_action, 'content' => 'hello'})
 
     expected_metrics = {
-      'HttpDispatcher' => { :call_count => 1 },
-      'Controller/ActionCable/ActionCableTest::TestChannel/test_action' => { :call_count => 1}
+      'HttpDispatcher' => {:call_count => 1},
+      'Controller/ActionCable/ActionCableTest::TestChannel/test_action' => {:call_count => 1}
     }
 
     assert_metrics_recorded expected_metrics
   end
 
   def test_action_with_error_is_noticed_by_agent
-    @channel.perform_action({ 'action'=> :boom }) rescue nil
+    @channel.perform_action({'action'=> :boom}) rescue nil
 
     error_trace = last_traced_error
 

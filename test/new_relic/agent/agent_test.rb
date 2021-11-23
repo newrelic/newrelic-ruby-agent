@@ -19,7 +19,7 @@ module NewRelic
         @agent.agent_command_router.stubs(:new_relic_service).returns(@agent.service)
         @agent.stubs(:start_worker_thread)
 
-        @config = { :license_key => "a" * 40 }
+        @config = {:license_key => "a" * 40}
         NewRelic::Agent.config.add_config_for_testing(@config)
       end
 
@@ -63,7 +63,7 @@ module NewRelic
         pipe.expects(:after_fork_in_child)
         pipe.expects(:close)
         pipe.stubs(:parent_pid).returns(:digglewumpus)
-        dummy_channels = { 123 => pipe }
+        dummy_channels = {123 => pipe}
         NewRelic::Agent::PipeChannelManager.stubs(:channels).returns(dummy_channels)
 
         @agent.stubs(:connected?).returns(false)
@@ -690,7 +690,7 @@ module NewRelic
       end
 
       def test_log_ignore_url_regexes
-        with_config(:rules => { :ignore_url_regexes => ['foo', 'bar', 'baz'] }) do
+        with_config(:rules => {:ignore_url_regexes => ['foo', 'bar', 'baz']}) do
           expects_logging(:info, includes("/foo/, /bar/, /baz/"))
           @agent.log_ignore_url_regexes
         end

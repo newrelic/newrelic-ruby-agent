@@ -85,7 +85,6 @@ module NewRelic::Agent::Instrumentation
 
           alias_method :perform_without_newrelic, :perform
           alias_method :perform, :perform_with_newrelic
-
         end
       end
     end

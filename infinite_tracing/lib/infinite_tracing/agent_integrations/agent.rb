@@ -7,7 +7,6 @@ module NewRelic::Agent
   NewRelic::Agent.logger.debug "Installing Infinite Tracer in Agent"
 
   Agent.class_eval do
-
     def new_infinite_tracer
       # We must start streaming in a thread or we block/deadlock the
       # entire start up process for the Agent.

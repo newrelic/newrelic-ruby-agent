@@ -88,7 +88,7 @@ class SetTransactionNameTest < Minitest::Test
     connect_response = {
       'agent_run_id' => 1,
       'transaction_name_rules' => [
-        { 'match_expression' => 'child', 'replacement' => 'kid' }
+        {'match_expression' => 'child', 'replacement' => 'kid'}
       ]
     }
 

@@ -3,12 +3,10 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 make_notify_task = Proc.new do
-
   namespace :newrelic do
-
     # on all deployments, notify New Relic
     desc "Record a deployment in New Relic (newrelic.com)"
-    task :notice_deployment, :roles => :app, :except => {:no_release => true } do
+    task :notice_deployment, :roles => :app, :except => {:no_release => true} do
       rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, "production"))
 
       require 'new_relic/cli/command'

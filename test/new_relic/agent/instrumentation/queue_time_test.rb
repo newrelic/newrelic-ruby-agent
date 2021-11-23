@@ -16,22 +16,22 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
   end
 
   def test_parse_frontend_timestamp_given_queue_start_header
-    header = { 'HTTP_X_QUEUE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 60) }
+    header = {'HTTP_X_QUEUE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 60)}
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_given_request_start_header
-    header = { 'HTTP_X_REQUEST_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 60) }
+    header = {'HTTP_X_REQUEST_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 60)}
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_given_middleware_start_header
-    header = { 'HTTP_X_MIDDLEWARE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 60) }
+    header = {'HTTP_X_MIDDLEWARE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 60)}
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_earliest_header
-    headers = { 'HTTP_X_REQUEST_START'    => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 63),
+    headers = {'HTTP_X_REQUEST_START'    => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 63),
                 'HTTP_X_QUEUE_START'      => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 62),
                 'HTTP_X_MIDDLEWARE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 61)}
 
@@ -39,43 +39,43 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
   end
 
   def test_parse_frontend_timestamp_from_earliest_header_out_of_order
-    headers = { 'HTTP_X_MIDDLEWARE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 63),
+    headers = {'HTTP_X_MIDDLEWARE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 63),
                 'HTTP_X_REQUEST_START'    => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 62),
-                'HTTP_X_QUEUE_START'      => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 61) }
+                'HTTP_X_QUEUE_START'      => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 61)}
 
     assert_in_delta(seconds_ago(63), QueueTime.parse_frontend_timestamp(headers), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_header_in_seconds
-    header = { 'HTTP_X_QUEUE_START' => "t=#{Process.clock_gettime(Process::CLOCK_REALTIME) - 60}" }
+    header = {'HTTP_X_QUEUE_START' => "t=#{Process.clock_gettime(Process::CLOCK_REALTIME) - 60}"}
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_header_in_milliseconds
-    header = { 'HTTP_X_QUEUE_START' => "t=#{(Process.clock_gettime(Process::CLOCK_REALTIME) - 60) * 1_000}" }
+    header = {'HTTP_X_QUEUE_START' => "t=#{(Process.clock_gettime(Process::CLOCK_REALTIME) - 60) * 1_000}"}
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_header_with_multiple_servers
     now = Process.clock_gettime(Process::CLOCK_REALTIME)
-    header = { 'HTTP_X_QUEUE_START' => "servera t=#{now - 60}, serverb t=#{now - 30}" }
+    header = {'HTTP_X_QUEUE_START' => "servera t=#{now - 60}, serverb t=#{now - 30}"}
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_header_missing_t_equals
-    header = { 'HTTP_X_REQUEST_START' => (Process.clock_gettime(Process::CLOCK_REALTIME) - 60).to_s }
+    header = {'HTTP_X_REQUEST_START' => (Process.clock_gettime(Process::CLOCK_REALTIME) - 60).to_s}
     assert_in_delta(seconds_ago(60), QueueTime.parse_frontend_timestamp(header), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_header_negative
     now = Process.clock_gettime(Process::CLOCK_REALTIME)
     the_future = now + 60
-    header = { 'HTTP_X_REQUEST_START' => the_future.to_s }
+    header = {'HTTP_X_REQUEST_START' => the_future.to_s}
     assert_in_delta(now, QueueTime.parse_frontend_timestamp(header, now), 0.001)
   end
 
   def test_parsing_malformed_header
-    header = { 'HTTP_X_REQUEST_START' => 'gobledy gook' }
+    header = {'HTTP_X_REQUEST_START' => 'gobledy gook'}
 
     assert_nil QueueTime.parse_frontend_timestamp(header)
   end

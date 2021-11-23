@@ -102,7 +102,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_harvest_passes_on_original_args_to_new_thread_profiles
         fake_worker_loop(@service)
 
-        args = { 'profile_id' => 42, 'duration' => 99, 'sample_period' => 0.1 }
+        args = {'profile_id' => 42, 'duration' => 99, 'sample_period' => 0.1}
         @service.subscribe('foo', args)
         @service.harvest('foo')
         profile = @service.harvest('foo')
@@ -182,8 +182,8 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         # First poll doesn't record skew since we don't have a last poll time
         assert_metrics_recorded({
-          'Supportability/ThreadProfiler/PollingTime' => { :call_count => 2 },
-          'Supportability/ThreadProfiler/Skew'        => { :call_count => 1 }
+          'Supportability/ThreadProfiler/PollingTime' => {:call_count => 2},
+          'Supportability/ThreadProfiler/Skew'        => {:call_count => 1}
         })
       end
 
@@ -417,9 +417,9 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.poll
 
-        expected = { :call_count => 1, :total_call_time => 5 }
+        expected = {:call_count => 1, :total_call_time => 5}
         assert_metrics_recorded(
-          { 'Supportability/ThreadProfiler/PollingTime' => expected }
+          {'Supportability/ThreadProfiler/PollingTime' => expected}
         )
       end
 
@@ -551,7 +551,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_adding_subscriptions_is_thread_safe
         @service.worker_loop.propagate_errors = true
 
-        @service.subscribe('foo', { 'sample_period' => 0.01 })
+        @service.subscribe('foo', {'sample_period' => 0.01})
 
         wait_for_backtrace_service_poll(:service => @service)
 

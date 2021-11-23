@@ -5,7 +5,6 @@
 require 'capistrano/framework'
 
 namespace :newrelic do
-
   # notifies New Relic of a deployment
   desc "Record a deployment in New Relic (newrelic.com)"
   task :notice_deployment do

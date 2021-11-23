@@ -400,7 +400,6 @@ module NewRelic
             :'transaction_tracer.limit_segments' => 100
           }
           with_config(config) do
-
             in_transaction 'test_txn' do
               110.times do |i|
                 segment = NewRelic::Agent::Tracer.start_segment name: "segment_#{i}"
@@ -447,7 +446,6 @@ module NewRelic
           t = Process.clock_gettime(Process::CLOCK_REALTIME)
 
           in_transaction do |txn|
-
             segment = NewRelic::Agent::Tracer.start_segment(
               name: "segment_a",
               start_time: t

@@ -34,7 +34,7 @@ module NewRelic
         assert_equal expected, result
 
         # argument should not be mutated
-        assert_equal({ :filename => "data.jpg", :tempfile => "file_data" }, params[:file])
+        assert_equal({:filename => "data.jpg", :tempfile => "file_data"}, params[:file])
       end
     end
   end

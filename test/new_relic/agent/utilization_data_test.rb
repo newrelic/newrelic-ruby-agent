@@ -95,7 +95,6 @@ module NewRelic::Agent
       with_pcf_env "CF_INSTANCE_GUID" => "ab326c0e-123e-47a1-65cc-45f6",
                    "CF_INSTANCE_IP"   => "101.1.149.48",
                    "MEMORY_LIMIT"     => "2048m" do
-
         expected = {
           :cf_instance_guid => "ab326c0e-123e-47a1-65cc-45f6",
           :cf_instance_ip => "101.1.149.48",
@@ -112,7 +111,6 @@ module NewRelic::Agent
         with_pcf_env "CF_INSTANCE_GUID" => "ab326c0e-123e-47a1-65cc-45f6",
                      "CF_INSTANCE_IP"   => "101.1.149.48",
                      "MEMORY_LIMIT"     => "2048m" do
-
           assert_nil utilization_data.to_collector_hash[:vendors]
         end
       end
@@ -335,7 +333,6 @@ module NewRelic::Agent
     # ---
 
     load_cross_agent_test("utilization/utilization_json").each do |test_case|
-
       test_case = symbolize_keys_in_object test_case
 
       define_method("test_#{test_case[:testname]}".tr(" ", "_")) do

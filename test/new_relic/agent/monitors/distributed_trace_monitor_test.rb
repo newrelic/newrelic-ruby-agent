@@ -39,7 +39,7 @@ module NewRelic::Agent
           payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
-        env = { NEWRELIC_TRACE_KEY => payload.http_safe }
+        env = {NEWRELIC_TRACE_KEY => payload.http_safe}
         env['rack.url_scheme'] = rack_scheme if rack_scheme
 
         in_transaction "receiving_txn" do |txn|

@@ -5,7 +5,7 @@ require 'rack/handler/mongrel'
 require 'optparse'
 
 port = 3000
-options = { }
+options = {}
 appname = nil
 OptionParser.new do |opts|
   opts.banner = "Usage: #{File.basename($0)} [options] [app_name]"
@@ -26,7 +26,7 @@ ru_file = File.expand_path(File.join(File.dirname(__FILE__), "..", "lib", "new_r
 rackup_code = File.read ru_file
 builder = Rack::Builder.new { eval rackup_code, binding, ru_file }
 
-options = { :Host => '127.0.0.1', :Port => port }
+options = {:Host => '127.0.0.1', :Port => port}
 Rack::Handler::Mongrel.run(builder.to_app, options) do |server|
   NewRelic::Agent.logger.info "Started Mongrel listening for '#{NewRelic::Control.instance.app_names.join(" and ")}' data at #{server.host}:#{server.port}"
 end

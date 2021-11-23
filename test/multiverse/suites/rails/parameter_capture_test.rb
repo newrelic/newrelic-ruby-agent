@@ -64,7 +64,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
   def test_referrer_on_traced_errors_never_contains_query_string_without_capture_params
     with_config(:capture_params => false) do
       get '/parameter_capture/error?other=1234&secret=4567',
-        headers: { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
+        headers: {'HTTP_REFERER' => '/foo/bar?other=123&secret=456'}
       attributes = agent_attributes_for_single_error_posted
       assert_equal('/foo/bar', attributes["request.headers.referer"])
     end
@@ -73,7 +73,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
   def test_referrer_on_traced_errors_never_contains_query_string_even_with_capture_params
     with_config(:capture_params => true) do
       get '/parameter_capture/error?other=1234&secret=4567',
-        headers: { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
+        headers: {'HTTP_REFERER' => '/foo/bar?other=123&secret=456'}
       attributes = agent_attributes_for_single_error_posted
       assert_equal('/foo/bar', attributes["request.headers.referer"])
     end
@@ -286,12 +286,12 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
   end
 
   def test_parameter_filtering_should_not_mutate_argument
-    input = { "foo" => "bar", "secret" => "baz" }
-    env = { "action_dispatch.parameter_filter" => ["secret"] }
+    input = {"foo" => "bar", "secret" => "baz"}
+    env = {"action_dispatch.parameter_filter" => ["secret"]}
     filtered = NewRelic::Agent::ParameterFiltering.apply_filters(env, input)
 
-    assert_equal({ "foo" => "bar", "secret" => "[FILTERED]" }, filtered)
-    assert_equal({ "foo" => "bar", "secret" => "baz" }, input)
+    assert_equal({"foo" => "bar", "secret" => "[FILTERED]"}, filtered)
+    assert_equal({"foo" => "bar", "secret" => "baz"}, input)
   end
 
   if defined?(Sinatra)

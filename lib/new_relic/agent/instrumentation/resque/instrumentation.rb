@@ -13,7 +13,6 @@ module NewRelic::Agent::Instrumentation
           :name => 'perform',
           :class_name => self.payload_class,
           :category => 'OtherTransaction/ResqueJob') do
-
           NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(
             args,
             :'job.resque.args',

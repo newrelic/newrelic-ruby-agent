@@ -51,7 +51,7 @@ module NewRelic
     include NewRelic::Coerce
 
     def to_collector_array(encoder = nil)
-      stat_key = { 'name' => metric_spec.name, 'scope' => metric_spec.scope }
+      stat_key = {'name' => metric_spec.name, 'scope' => metric_spec.scope}
       [ stat_key,
         [
           int(stats.call_count, stat_key),

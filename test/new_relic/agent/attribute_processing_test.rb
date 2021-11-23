@@ -79,7 +79,7 @@ class AttributeProcessingTest < Minitest::Test
   def test_flatten_and_coerce_replaces_empty_hash_with_string_representation
     params = {:foo => {:bar => {}}}
 
-    expected = { "foo.bar" => "{}" }
+    expected = {"foo.bar" => "{}"}
 
     actual = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params)
 
@@ -89,7 +89,7 @@ class AttributeProcessingTest < Minitest::Test
   def test_flatten_and_coerce_replaces_empty_array_with_string_representation
     params = {:foo => {:bar => []}}
 
-    expected = { "foo.bar" => "[]" }
+    expected = {"foo.bar" => "[]"}
 
     actual = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params)
 
@@ -155,8 +155,8 @@ class AttributeProcessingTest < Minitest::Test
   end
 
   def test_flatten_and_coerce_leaves_nils_alone
-    params = { :referer => nil }
-    expected = { }
+    params = {:referer => nil}
+    expected = {}
 
     result = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params)
     assert_equal expected, result

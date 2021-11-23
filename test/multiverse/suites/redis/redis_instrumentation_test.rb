@@ -32,18 +32,18 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     end
 
     expected = {
-      "test_txn" => { :call_count => 1 },
-      "OtherTransactionTotalTime" => { :call_count => 1 },
-      "OtherTransactionTotalTime/test_txn" => { :call_count => 1 },
-      ["Datastore/operation/Redis/connect", "test_txn"] => { :call_count => 1 },
-      "Datastore/operation/Redis/connect" => { :call_count => 1 },
-      ["Datastore/operation/Redis/get", "test_txn"] => { :call_count => 1 },
-      "Datastore/operation/Redis/get" => { :call_count => 1 },
-      "Datastore/Redis/allOther" => { :call_count => 2 },
-      "Datastore/Redis/all" => { :call_count => 2 },
-      "Datastore/allOther" => { :call_count => 2 },
-      "Datastore/all" => { :call_count => 2 },
-      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 2 },
+      "test_txn" => {:call_count => 1},
+      "OtherTransactionTotalTime" => {:call_count => 1},
+      "OtherTransactionTotalTime/test_txn" => {:call_count => 1},
+      ["Datastore/operation/Redis/connect", "test_txn"] => {:call_count => 1},
+      "Datastore/operation/Redis/connect" => {:call_count => 1},
+      ["Datastore/operation/Redis/get", "test_txn"] => {:call_count => 1},
+      "Datastore/operation/Redis/get" => {:call_count => 1},
+      "Datastore/Redis/allOther" => {:call_count => 2},
+      "Datastore/Redis/all" => {:call_count => 2},
+      "Datastore/allOther" => {:call_count => 2},
+      "Datastore/all" => {:call_count => 2},
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 2},
       "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
       "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther" => {:call_count => 1}
     }
@@ -72,12 +72,12 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     end
 
     expected = {
-      "Datastore/operation/Redis/set" => { :call_count => 1 },
-      "Datastore/Redis/allOther" => { :call_count => 1 },
-      "Datastore/Redis/all"=> { :call_count => 1 },
-      "Datastore/allOther"=> { :call_count => 1 },
-      "Datastore/all"=> { :call_count => 1 },
-      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
+      "Datastore/operation/Redis/set" => {:call_count => 1},
+      "Datastore/Redis/allOther" => {:call_count => 1},
+      "Datastore/Redis/all"=> {:call_count => 1},
+      "Datastore/allOther"=> {:call_count => 1},
+      "Datastore/all"=> {:call_count => 1},
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1}
     }
     assert_metrics_recorded(expected)
   end
@@ -88,12 +88,12 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     end
 
     expected = {
-      "Datastore/operation/Redis/set" => { :call_count => 1 },
-      "Datastore/Redis/allWeb" => { :call_count => 1 },
-      "Datastore/Redis/all"=> { :call_count => 1 },
-      "Datastore/allWeb"=> { :call_count => 1 },
-      "Datastore/all"=> { :call_count => 1 },
-      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
+      "Datastore/operation/Redis/set" => {:call_count => 1},
+      "Datastore/Redis/allWeb" => {:call_count => 1},
+      "Datastore/Redis/all"=> {:call_count => 1},
+      "Datastore/allWeb"=> {:call_count => 1},
+      "Datastore/all"=> {:call_count => 1},
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1}
     }
     assert_metrics_recorded(expected)
   end
@@ -104,12 +104,12 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     end
 
     expected = {
-      "Datastore/operation/Redis/get" => { :call_count => 1 },
-      "Datastore/Redis/allOther" => { :call_count => 1 },
-      "Datastore/Redis/all"=> { :call_count => 1 },
-      "Datastore/allOther"=> { :call_count => 1 },
-      "Datastore/all"=> { :call_count => 1 },
-      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
+      "Datastore/operation/Redis/get" => {:call_count => 1},
+      "Datastore/Redis/allOther" => {:call_count => 1},
+      "Datastore/Redis/all"=> {:call_count => 1},
+      "Datastore/allOther"=> {:call_count => 1},
+      "Datastore/all"=> {:call_count => 1},
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1}
     }
     assert_metrics_recorded(expected)
   end
@@ -142,12 +142,12 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     end
 
     expected = {
-      "Datastore/operation/Redis/get" => { :call_count => 1 },
-      "Datastore/Redis/allWeb" => { :call_count => 1 },
-      "Datastore/Redis/all"=> { :call_count => 1 },
-      "Datastore/allWeb"=> { :call_count => 1 },
-      "Datastore/all"=> { :call_count => 1 },
-      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 }
+      "Datastore/operation/Redis/get" => {:call_count => 1},
+      "Datastore/Redis/allWeb" => {:call_count => 1},
+      "Datastore/Redis/all"=> {:call_count => 1},
+      "Datastore/allWeb"=> {:call_count => 1},
+      "Datastore/all"=> {:call_count => 1},
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1}
     }
     assert_metrics_recorded(expected)
   end
@@ -161,18 +161,18 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     end
 
     expected = {
-      "test_txn" => { :call_count => 1 },
-      "OtherTransactionTotalTime" => { :call_count => 1 },
-      "OtherTransactionTotalTime/test_txn" => { :call_count => 1 },
-      ["Datastore/operation/Redis/pipeline", "test_txn"] => { :call_count => 1 },
-      "Datastore/operation/Redis/pipeline" => { :call_count => 1 },
-      "Datastore/Redis/allOther" => { :call_count => 1 },
-      "Datastore/Redis/all" => { :call_count => 1 },
-      "Datastore/allOther" => { :call_count => 1 },
-      "Datastore/all" => { :call_count => 1 },
-      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 },
-      "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => { :call_count => 1 },
-      "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther" => { :call_count => 1 }
+      "test_txn" => {:call_count => 1},
+      "OtherTransactionTotalTime" => {:call_count => 1},
+      "OtherTransactionTotalTime/test_txn" => {:call_count => 1},
+      ["Datastore/operation/Redis/pipeline", "test_txn"] => {:call_count => 1},
+      "Datastore/operation/Redis/pipeline" => {:call_count => 1},
+      "Datastore/Redis/allOther" => {:call_count => 1},
+      "Datastore/Redis/all" => {:call_count => 1},
+      "Datastore/allOther" => {:call_count => 1},
+      "Datastore/all" => {:call_count => 1},
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1},
+      "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
+      "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther" => {:call_count => 1}
     }
     assert_metrics_recorded_exclusive(expected, :ignore_filter => /Supportability/)
   end
@@ -200,16 +200,16 @@ class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Tes
     end
 
     expected = {
-      "test_txn" => { :call_count => 1 },
-      "OtherTransactionTotalTime" => { :call_count => 1 },
-      "OtherTransactionTotalTime/test_txn" => { :call_count => 1 },
-      ["Datastore/operation/Redis/multi", "test_txn"] => { :call_count => 1 },
-      "Datastore/operation/Redis/multi" => { :call_count => 1 },
-      "Datastore/Redis/allOther" => { :call_count => 1 },
-      "Datastore/Redis/all" => { :call_count => 1 },
-      "Datastore/allOther" => { :call_count => 1 },
-      "Datastore/all" => { :call_count => 1 },
-      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => { :call_count => 1 },
+      "test_txn" => {:call_count => 1},
+      "OtherTransactionTotalTime" => {:call_count => 1},
+      "OtherTransactionTotalTime/test_txn" => {:call_count => 1},
+      ["Datastore/operation/Redis/multi", "test_txn"] => {:call_count => 1},
+      "Datastore/operation/Redis/multi" => {:call_count => 1},
+      "Datastore/Redis/allOther" => {:call_count => 1},
+      "Datastore/Redis/all" => {:call_count => 1},
+      "Datastore/allOther" => {:call_count => 1},
+      "Datastore/all" => {:call_count => 1},
+      "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1},
       "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
       "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther" => {:call_count => 1}
     }

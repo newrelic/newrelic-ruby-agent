@@ -77,7 +77,7 @@ module NewRelic::Agent
 
         inbound_payloads = payloads_for(test_case)
         inbound_payloads.each do |payload|
-          carrier = { "HTTP_NEWRELIC" => payload }
+          carrier = {"HTTP_NEWRELIC" => payload}
           DistributedTracing.accept_distributed_trace_headers carrier, test_case['transport_type']
         end
       end
