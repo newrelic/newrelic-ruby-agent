@@ -51,7 +51,7 @@ class NewRelic::NoticedError
 
     # replace error message if enabled
     if NewRelic::Agent.config[:'strip_exception_messages.enabled'] &&
-       !self.class.passes_message_allowlist(exception.class)
+        !self.class.passes_message_allowlist(exception.class)
       @message = STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE
     end
 

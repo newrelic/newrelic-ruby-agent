@@ -9,17 +9,17 @@ require 'new_relic/agent/database/obfuscator'
 module NewRelic
   # columns for a mysql explain plan
   MYSQL_EXPLAIN_COLUMNS = [
-                           "Id",
-                           "Select Type",
-                           "Table",
-                           "Type",
-                           "Possible Keys",
-                           "Key",
-                           "Key Length",
-                           "Ref",
-                           "Rows",
-                           "Extra"
-                          ].freeze
+    "Id",
+    "Select Type",
+    "Table",
+    "Type",
+    "Possible Keys",
+    "Key",
+    "Key Length",
+    "Ref",
+    "Rows",
+    "Extra"
+  ].freeze
 
   module Agent
     module Database
@@ -207,7 +207,7 @@ module NewRelic
               sql.to_s
             else
               nil
-            end
+          end
         end
 
         # This takes a connection config hash from ActiveRecord or Sequel and

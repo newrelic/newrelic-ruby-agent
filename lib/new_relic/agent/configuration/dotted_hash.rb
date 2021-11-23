@@ -31,6 +31,7 @@ module NewRelic
         end
 
         protected
+
         # turns {'a' => {'b' => 'c'}} into {'a.b' => 'c'}
         def dot_flattened(nested_hash, names = [], result = {})
           nested_hash.each do |key, val|

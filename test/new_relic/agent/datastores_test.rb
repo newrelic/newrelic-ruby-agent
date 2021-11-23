@@ -111,12 +111,12 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     end
 
     refute_metrics_recorded([
-                            "Datastore/operation/MyFirstDatabase/",
-                            "Datastore/MyFirstDatabase/allOther",
-                            "Datastore/MyFirstDatabase/all",
-                            "Datastore/allOther",
-                            "Datastore/all"
-])
+      "Datastore/operation/MyFirstDatabase/",
+      "Datastore/MyFirstDatabase/allOther",
+      "Datastore/MyFirstDatabase/all",
+      "Datastore/allOther",
+      "Datastore/all"
+    ])
   end
 
   def test_wrap_calls_notice
@@ -206,24 +206,24 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
   def assert_statement_metrics(operation, collection, type)
     assert_metrics_recorded([
-                            "Datastore/statement/MyFirstDatabase/#{collection}/#{operation}",
-                            ["Datastore/statement/MyFirstDatabase/#{collection}/#{operation}", "txn"],
-                            "Datastore/operation/MyFirstDatabase/#{operation}",
-                            "Datastore/MyFirstDatabase/all#{type}",
-                            "Datastore/MyFirstDatabase/all",
-                            "Datastore/all#{type}",
-                            "Datastore/all"
-])
+      "Datastore/statement/MyFirstDatabase/#{collection}/#{operation}",
+      ["Datastore/statement/MyFirstDatabase/#{collection}/#{operation}", "txn"],
+      "Datastore/operation/MyFirstDatabase/#{operation}",
+      "Datastore/MyFirstDatabase/all#{type}",
+      "Datastore/MyFirstDatabase/all",
+      "Datastore/all#{type}",
+      "Datastore/all"
+    ])
   end
 
   def assert_metrics(operation, type)
     assert_metrics_recorded([
-                            "Datastore/operation/MyFirstDatabase/#{operation}",
-                            ["Datastore/operation/MyFirstDatabase/#{operation}", "txn"],
-                            "Datastore/MyFirstDatabase/all#{type}",
-                            "Datastore/MyFirstDatabase/all",
-                            "Datastore/all#{type}",
-                            "Datastore/all"
-])
+      "Datastore/operation/MyFirstDatabase/#{operation}",
+      ["Datastore/operation/MyFirstDatabase/#{operation}", "txn"],
+      "Datastore/MyFirstDatabase/all#{type}",
+      "Datastore/MyFirstDatabase/all",
+      "Datastore/all#{type}",
+      "Datastore/all"
+    ])
   end
 end

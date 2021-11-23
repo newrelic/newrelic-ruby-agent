@@ -63,7 +63,7 @@ module NewRelic::Agent
       # unavailable errors coming from the stub being created and record_span call
       def record_spans client, enumerator, exponential_backoff
         @active_clients[client] = client
-          with_reconnection_backoff(exponential_backoff) { rpc.record_span enumerator, metadata: metadata }
+        with_reconnection_backoff(exponential_backoff) { rpc.record_span enumerator, metadata: metadata }
       end
 
       # RPC calls will pass the calling client instance in.  We track this

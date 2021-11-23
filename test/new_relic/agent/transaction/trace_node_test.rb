@@ -42,7 +42,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     parent.children << child
     parent.end_trace(4)
     expected_array = [1000, 4000, 'Custom/test/parent', {:test => 'value'},
-                      [[2000, 3000, 'Custom/test/child', {}, []]]]
+      [[2000, 3000, 'Custom/test/child', {}, []]]]
     assert_equal(expected_array, parent.to_array)
   end
 

@@ -18,7 +18,6 @@ require 'new_relic/control'
 # We need it to add dev mode routes after initialization finished.
 
 begin
-
   current_config = if defined?(config)
     config
   elsif defined?(Rails.configuration)

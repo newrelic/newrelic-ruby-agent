@@ -399,10 +399,10 @@ module NewRelic
           in_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(true)
 
-              segment = NewRelic::Agent::Tracer.start_datastore_segment(
-                product: "Redis",
-                operation: "set"
-              )
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
+              product: "Redis",
+              operation: "set"
+            )
             statement = "set mykey #{'a' * 2500}"
 
             segment.notice_nosql_statement statement
@@ -448,10 +448,10 @@ module NewRelic
           in_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(true)
 
-              segment = NewRelic::Agent::Tracer.start_datastore_segment(
-                product: "SQLite",
-                operation: "select"
-              )
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
+              product: "SQLite",
+              operation: "select"
+            )
 
             segment.finish
           end

@@ -23,7 +23,7 @@ config_yml = if YAML.respond_to?(:unsafe_load)
   YAML.unsafe_load(config_erb)
 else
   YAML.load(config_erb)
-             end
+end
 
 # Rails 2.x didn't keep the Rails out of ActiveRecord much...
 RAILS_ENV = "test"

@@ -107,7 +107,7 @@ module NewRelic
               YAML.unsafe_load(file)
             else
               YAML.load(file)
-                         end
+            end
 
             unless confighash.key?(env)
               log_failure("Config file at #{path} doesn't include a '#{env}' section!")

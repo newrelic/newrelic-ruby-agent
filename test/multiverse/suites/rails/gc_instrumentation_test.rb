@@ -29,45 +29,45 @@ if !NewRelic::LanguageSupport.jruby?
     end
   end
 
-class GCRailsInstrumentationTest < ActionController::TestCase
-  tests GcController
+  class GCRailsInstrumentationTest < ActionController::TestCase
+    tests GcController
 
-  include MultiverseHelpers
+    include MultiverseHelpers
 
-  setup_and_teardown_agent do
-    NewRelic::Agent.drop_buffered_data
-    NewRelic::Agent::StatsEngine::GCProfiler.reset
-    GC::Profiler.enable
-    @controller = GcController.new
+    setup_and_teardown_agent do
+      NewRelic::Agent.drop_buffered_data
+      NewRelic::Agent::StatsEngine::GCProfiler.reset
+      GC::Profiler.enable
+      @controller = GcController.new
+    end
+
+    def test_records_accurate_time_for_gc_activity
+      start = Process.clock_gettime(Process::CLOCK_REALTIME)
+      get :gc_action
+      elapsed = Process.clock_gettime(Process::CLOCK_REALTIME) - start
+
+      stats_hash = NewRelic::Agent.instance.stats_engine.reset!
+
+      gc_metric_unscoped = stats_hash[NewRelic::MetricSpec.new('GC/Transaction/allWeb')]
+      gc_metric_scoped = stats_hash[NewRelic::MetricSpec.new('GC/Transaction/allWeb', 'Controller/gc/gc_action')]
+
+      assert_in_range(elapsed, gc_metric_unscoped.total_call_time)
+      assert_in_range(elapsed, gc_metric_scoped.total_call_time)
+    end
+
+    def test_records_transaction_param_for_gc_activity
+      start = Process.clock_gettime(Process::CLOCK_REALTIME)
+      get :gc_action
+      elapsed = Process.clock_gettime(Process::CLOCK_REALTIME) - start
+
+      trace = last_transaction_trace
+      assert_in_range(elapsed, attributes_for(trace, :intrinsic)[:gc_time])
+    end
+
+    def assert_in_range(duration, gc_time)
+      assert gc_time > 0.0, "GC Time wasn't recorded!"
+      assert gc_time < duration, "GC Time #{gc_time} can't be more than elapsed #{duration}!"
+    end
   end
-
-  def test_records_accurate_time_for_gc_activity
-    start = Process.clock_gettime(Process::CLOCK_REALTIME)
-    get :gc_action
-    elapsed = Process.clock_gettime(Process::CLOCK_REALTIME) - start
-
-    stats_hash = NewRelic::Agent.instance.stats_engine.reset!
-
-    gc_metric_unscoped = stats_hash[NewRelic::MetricSpec.new('GC/Transaction/allWeb')]
-    gc_metric_scoped = stats_hash[NewRelic::MetricSpec.new('GC/Transaction/allWeb', 'Controller/gc/gc_action')]
-
-    assert_in_range(elapsed, gc_metric_unscoped.total_call_time)
-    assert_in_range(elapsed, gc_metric_scoped.total_call_time)
-  end
-
-  def test_records_transaction_param_for_gc_activity
-    start = Process.clock_gettime(Process::CLOCK_REALTIME)
-    get :gc_action
-    elapsed = Process.clock_gettime(Process::CLOCK_REALTIME) - start
-
-    trace = last_transaction_trace
-    assert_in_range(elapsed, attributes_for(trace, :intrinsic)[:gc_time])
-  end
-
-  def assert_in_range(duration, gc_time)
-    assert gc_time > 0.0, "GC Time wasn't recorded!"
-    assert gc_time < duration, "GC Time #{gc_time} can't be more than elapsed #{duration}!"
-  end
-end
 
 end

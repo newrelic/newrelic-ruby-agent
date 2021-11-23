@@ -57,8 +57,8 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
     config = {
       'transaction_name_rules' => [{'match_expression' => '88',
                                      'replacement' => '**'},
-                                    {'match_expression' => 'xx',
-                                     'replacement' => 'XX'}]
+        {'match_expression' => 'xx',
+         'replacement' => 'XX'}]
     }
     @response_handler.configure_agent(config)
 
@@ -79,8 +79,8 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
     config = {
       'metric_name_rules' => [{'match_expression' => '77',
                                 'replacement' => '&&'},
-                               {'match_expression' => 'yy',
-                                'replacement' => 'YY'}]
+        {'match_expression' => 'yy',
+         'replacement' => 'YY'}]
     }
     @response_handler.configure_agent(config)
 
@@ -99,7 +99,8 @@ class NewRelic::Agent::Agent::ResponseHandlerTest < Minitest::Test
     with_config_low_priority({
       :'slow_sql.enabled' => true,
       :'transaction_tracer.enabled' => true,
-      :monitor_mode => true}) do
+      :monitor_mode => true
+}) do
       @response_handler.configure_agent('collect_traces' => false)
 
       refute @agent.sql_sampler.enabled?, 'sql enabled when tracing disabled by server'

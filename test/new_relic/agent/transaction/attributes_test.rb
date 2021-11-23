@@ -52,9 +52,9 @@ class AttributesTest < Minitest::Test
 
   def test_merge_custom_attributes
     attributes = create_attributes
-      params = {:foo => {:bar => "baz"}}
-      attributes.merge_custom_attributes(params)
-      assert_equal({"foo.bar" => "baz"}, attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
+    params = {:foo => {:bar => "baz"}}
+    attributes.merge_custom_attributes(params)
+    assert_equal({"foo.bar" => "baz"}, attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
   end
 
   def test_adds_agent_attribute

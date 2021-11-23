@@ -12,9 +12,11 @@ module NewRelic::Agent::Instrumentation
       def public_transaction(*args); end
 
       protected
+
       def protected_transaction(*args); end
 
       private
+
       def private_transaction(*args); end
 
       add_transaction_tracer :public_transaction

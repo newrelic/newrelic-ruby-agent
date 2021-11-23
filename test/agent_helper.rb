@@ -703,11 +703,11 @@ def wait_for_backtrace_service_poll opts = {}
     sleep(0.01)
     if Process.clock_gettime(Process::CLOCK_REALTIME) > deadline
       raise "Timed out waiting #{opts[:timeout]} s for backtrace service poll\n" +
-            "Worker loop ran for #{opts[:service].worker_loop.iterations} iterations\n\n" +
-            Thread.list.map { |t|
-              "#{t.to_s}: newrelic_label: #{t[:newrelic_label].inspect}\n\n" +
-              (t.backtrace || []).join("\n\t")
-            }.join("\n\n")
+        "Worker loop ran for #{opts[:service].worker_loop.iterations} iterations\n\n" +
+        Thread.list.map { |t|
+          "#{t.to_s}: newrelic_label: #{t[:newrelic_label].inspect}\n\n" +
+            (t.backtrace || []).join("\n\t")
+        }.join("\n\n")
     end
   end
 end
@@ -999,9 +999,9 @@ end
 
 def defer_testing_to_min_supported_rails test_file, min_rails_version, supports_jruby = true
   if defined?(::Rails) &&
-    defined?(::Rails::VERSION::STRING) &&
-    (::Rails::VERSION::STRING.to_f >= min_rails_version) &&
-    (supports_jruby || !NewRelic::LanguageSupport.jruby?)
+      defined?(::Rails::VERSION::STRING) &&
+      (::Rails::VERSION::STRING.to_f >= min_rails_version) &&
+      (supports_jruby || !NewRelic::LanguageSupport.jruby?)
 
     yield
   else

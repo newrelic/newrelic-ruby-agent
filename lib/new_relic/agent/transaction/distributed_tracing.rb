@@ -122,12 +122,12 @@ module NewRelic
         def check_required_fields_present(payload)
           if \
             !payload.version.nil? &&
-            !payload.parent_account_id.nil? &&
-            !payload.parent_app_id.nil? &&
-            !payload.parent_type.nil? &&
-            (!payload.transaction_id.nil? || !payload.id.nil?) &&
-            !payload.trace_id.nil? &&
-            !payload.timestamp.nil?
+                !payload.parent_account_id.nil? &&
+                !payload.parent_app_id.nil? &&
+                !payload.parent_type.nil? &&
+                (!payload.transaction_id.nil? || !payload.id.nil?) &&
+                !payload.trace_id.nil? &&
+                !payload.timestamp.nil?
 
             true
           else

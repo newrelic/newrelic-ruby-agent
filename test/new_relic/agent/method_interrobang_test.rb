@@ -21,11 +21,11 @@ class MethodInterrobangTest < Minitest::Test
 
 	 def test_alias_method_ending_in_question_mark
  		 assert_respond_to self, :interrogate?
- 		assert_equal "say what?", interrogate?
+ 		 assert_equal "say what?", interrogate?
  	end
 
 	 def test_alias_method_ending_in_exclamation_mark
  		 assert_respond_to self, :mutate!
- 		assert_equal "oh yeah!", mutate!
+ 		 assert_equal "oh yeah!", mutate!
  	end
 end

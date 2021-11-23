@@ -160,7 +160,7 @@ module NewRelic
                     # DataMapper < 0.10.0
                     self.repository.adapter.uri.scheme
                   end
-                  end
+                end
                 statement = NewRelic::Agent::Database::Statement.new(e.query, :adapter => adapter_name)
                 obfuscated_sql = NewRelic::Agent::Database.obfuscate_sql(statement)
                 e.instance_variable_set(:@query, obfuscated_sql)

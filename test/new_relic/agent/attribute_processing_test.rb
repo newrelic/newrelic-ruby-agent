@@ -12,9 +12,7 @@ class AttributeProcessingTest < Minitest::Test
         [
           {"street" => "123 Street", "city" => "City", "state" => "ST", "zip" => "12345"},
           {"street" => "123 Blvd", "city" => "City2", "state" => "ST2", "zip" => "54321"}
-        ]
-      }
-    }
+        ]}}
 
     expected = {
       "request.parameters.user.addresses.0.street" => "123 Street",

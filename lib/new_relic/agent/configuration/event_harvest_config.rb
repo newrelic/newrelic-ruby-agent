@@ -21,8 +21,7 @@ module NewRelic
             ).inject({}) do |connect_payload, (connect_payload_key, config_key)|
               connect_payload[connect_payload_key] = config[config_key]
               connect_payload
-            end
-          }
+            end}
         end
 
         def to_config_hash(connect_reply)

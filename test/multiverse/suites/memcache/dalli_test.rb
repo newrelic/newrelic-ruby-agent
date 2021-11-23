@@ -14,7 +14,7 @@ if defined?(Dalli)
       ::Dalli::Protocol::Binary
     else
       ::Dalli::Server
-                            end
+    end
 
     def setup
       @cache = Dalli::Client.new("127.0.0.1:11211", :socket_timeout => 2.0)

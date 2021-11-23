@@ -137,7 +137,7 @@ module NewRelic
 
       def find_or_create_file_path(path_setting, root)
         for abs_path in [File.expand_path(path_setting),
-                          File.expand_path(File.join(root, path_setting))] do
+          File.expand_path(File.join(root, path_setting))] do
           if File.directory?(abs_path) || (Dir.mkdir(abs_path) rescue nil)
             return abs_path[%r{^(.*?)/?$}]
           end

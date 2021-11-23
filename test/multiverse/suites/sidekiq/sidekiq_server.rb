@@ -19,7 +19,7 @@ class SidekiqServer
 
   def run(file = "test_worker.rb")
     @sidekiq.parse(["--require", File.join(File.dirname(__FILE__), file),
-                    "--queue", "#{queue_name},1"])
+      "--queue", "#{queue_name},1"])
     @cli_thread = Thread.new { @sidekiq.run }
   end
 

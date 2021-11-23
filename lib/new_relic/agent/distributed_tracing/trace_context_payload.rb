@@ -19,14 +19,14 @@ module NewRelic
 
       class << self
         def create version: VERSION,
-                   parent_type: PARENT_TYPE,
-                   parent_account_id: nil,
-                   parent_app_id: nil,
-                   id: nil,
-                   transaction_id: nil,
-                   sampled: nil,
-                   priority: nil,
-                   timestamp: now_ms
+          parent_type: PARENT_TYPE,
+          parent_account_id: nil,
+          parent_app_id: nil,
+          id: nil,
+          transaction_id: nil,
+          sampled: nil,
+          priority: nil,
+          timestamp: now_ms
 
           new version, parent_type, parent_account_id, parent_app_id, id,
             transaction_id, sampled, priority, timestamp
@@ -83,7 +83,7 @@ module NewRelic
       alias_method :sampled?, :sampled
 
       def initialize version, parent_type_id, parent_account_id, parent_app_id,
-                     id, transaction_id, sampled, priority, timestamp
+        id, transaction_id, sampled, priority, timestamp
         @version = version
         @parent_type_id = parent_type_id
         @parent_account_id = parent_account_id

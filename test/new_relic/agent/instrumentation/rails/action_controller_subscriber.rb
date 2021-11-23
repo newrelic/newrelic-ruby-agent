@@ -120,7 +120,7 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
   def test_format_metric_name
     metric_name = @subscriber.format_metric_name('index', TestController)
-      assert_equal 'Controller/test/index', metric_name
+    assert_equal 'Controller/test/index', metric_name
   end
 
   def test_sets_default_transaction_name_on_start
@@ -309,9 +309,9 @@ class NewRelic::Agent::Instrumentation::ActionControllerSubscriberTest < Minites
 
     in_transaction do |test_txn|
       txn = test_txn
-        @entry_payload[:params]['password'] = 'secret'
-        @subscriber.start('process_action.action_controller', :id, @entry_payload)
-        @subscriber.finish('process_action.action_controller', :id, params)
+      @entry_payload[:params]['password'] = 'secret'
+      @subscriber.start('process_action.action_controller', :id, @entry_payload)
+      @subscriber.finish('process_action.action_controller', :id, params)
     end
 
     assert_segment_noticed_error txn, /controller/i, exception_class.name, /Natural 1/i

@@ -380,12 +380,12 @@ module NewRelic
 
         def config_stack
           stack = [@security_policy_source,
-                   @high_security_source,
-                   @environment_source,
-                   @server_source,
-                   @manual_source,
-                   @yaml_source,
-                   @default_source]
+            @high_security_source,
+            @environment_source,
+            @server_source,
+            @manual_source,
+            @yaml_source,
+            @default_source]
 
           stack.compact!
 

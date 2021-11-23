@@ -85,11 +85,11 @@ module NewRelic
 
       def test_supported_param_types
         types = [[1, '1'],
-        [1.1, '1.1'],
-        ['hi', 'hi'],
-        [:hi, 'hi'],
-        [StandardError.new("test"), "#<StandardError>"],
-        [TestClass.new, "#<NewRelic::Agent::ErrorTraceAggregatorTest::TestClass>"]]
+          [1.1, '1.1'],
+          ['hi', 'hi'],
+          [:hi, 'hi'],
+          [StandardError.new("test"), "#<StandardError>"],
+          [TestClass.new, "#<NewRelic::Agent::ErrorTraceAggregatorTest::TestClass>"]]
 
         types.each do |test|
           notice_error(StandardError.new("message"),

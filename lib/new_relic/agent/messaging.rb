@@ -18,8 +18,8 @@ module NewRelic
       RABBITMQ_TRANSPORT_TYPE = "RabbitMQ"
 
       ATTR_DESTINATION = AttributeFilter::DST_TRANSACTION_EVENTS |
-                         AttributeFilter::DST_TRANSACTION_TRACER |
-                         AttributeFilter::DST_ERROR_COLLECTOR
+        AttributeFilter::DST_TRANSACTION_TRACER |
+        AttributeFilter::DST_ERROR_COLLECTOR
 
       # Start a MessageBroker segment configured to trace a messaging action.
       # Finishing this segment will handle timing and recording of the proper
@@ -53,12 +53,12 @@ module NewRelic
       # @api public
       #
       def start_message_broker_segment(action: nil,
-                                       library: nil,
-                                       destination_type: nil,
-                                       destination_name: nil,
-                                       headers: nil,
-                                       parameters: nil,
-                                       start_time: nil)
+        library: nil,
+        destination_type: nil,
+        destination_name: nil,
+        headers: nil,
+        parameters: nil,
+        start_time: nil)
 
         Tracer.start_message_broker_segment(
           action: action,
@@ -111,14 +111,14 @@ module NewRelic
       # @api public
       #
       def wrap_message_broker_consume_transaction(library:,
-                                                  destination_type:,
-                                                  destination_name:,
-                                                  headers: nil,
-                                                  routing_key: nil,
-                                                  queue_name: nil,
-                                                  exchange_type: nil,
-                                                  reply_to: nil,
-                                                  correlation_id: nil)
+        destination_type:,
+        destination_name:,
+        headers: nil,
+        routing_key: nil,
+        queue_name: nil,
+        exchange_type: nil,
+        reply_to: nil,
+        correlation_id: nil)
 
         state = Tracer.state
         return yield if state.current_transaction
@@ -181,12 +181,12 @@ module NewRelic
       # @api public
       #
       def start_amqp_publish_segment(library:,
-                                     destination_name:,
-                                     headers: nil,
-                                     routing_key: nil,
-                                     reply_to: nil,
-                                     correlation_id: nil,
-                                     exchange_type: nil)
+        destination_name:,
+        headers: nil,
+        routing_key: nil,
+        reply_to: nil,
+        correlation_id: nil,
+        exchange_type: nil)
 
         raise ArgumentError, 'missing required argument: headers' if headers.nil? && CrossAppTracing.cross_app_enabled?
 
@@ -240,12 +240,12 @@ module NewRelic
       # @api public
       #
       def start_amqp_consume_segment(library:,
-                                     destination_name:,
-                                     delivery_info:,
-                                     message_properties:,
-                                     exchange_type: nil,
-                                     queue_name: nil,
-                                     start_time: nil)
+        destination_name:,
+        delivery_info:,
+        message_properties:,
+        exchange_type: nil,
+        queue_name: nil,
+        start_time: nil)
 
         segment = Tracer.start_message_broker_segment(
           action: :consume,
@@ -301,12 +301,12 @@ module NewRelic
       # @api public
       #
       def wrap_amqp_consume_transaction library: nil,
-                                        destination_name: nil,
-                                        delivery_info: nil,
-                                        message_properties: nil,
-                                        exchange_type: nil,
-                                        queue_name: nil,
-                                        &block
+        destination_name: nil,
+        delivery_info: nil,
+        message_properties: nil,
+        exchange_type: nil,
+        queue_name: nil,
+        &block
 
         wrap_message_broker_consume_transaction library: library,
           destination_type: :exchange,

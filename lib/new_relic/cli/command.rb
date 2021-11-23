@@ -72,15 +72,15 @@ module NewRelic
         command = extra.shift
         # just make it a little easier on them
         command = 'deployments' if command =~ /deploy/
-          if command.nil?
-            STDERR.puts options
-          elsif !@command_names.include?(command)
-            STDERR.puts "Unrecognized command: #{command}"
-            STDERR.puts options
-          else
-            command_class = @commands.find { |c| c.command == command }
-            command_class.new(extra).run
-          end
+        if command.nil?
+          STDERR.puts options
+        elsif !@command_names.include?(command)
+          STDERR.puts "Unrecognized command: #{command}"
+          STDERR.puts options
+        else
+          command_class = @commands.find { |c| c.command == command }
+          command_class.new(extra).run
+        end
       rescue OptionParser::InvalidOption => e
         raise NewRelic::Cli::Command::CommandFailure, e.message
       end

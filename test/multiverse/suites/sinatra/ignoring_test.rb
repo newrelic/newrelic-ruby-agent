@@ -86,7 +86,7 @@ class SinatraIgnoreTest < SinatraTestCase
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
       "Apdex/Sinatra/#{app_name}/#{segment}"
-])
+    ])
   end
 
   def test_ignores_exact_match
@@ -95,7 +95,7 @@ class SinatraIgnoreTest < SinatraTestCase
     assert_metrics_not_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
       "Apdex/Sinatra/#{app_name}/#{segment}"
-])
+    ])
   end
 
   def test_ignores_by_splats
@@ -104,7 +104,7 @@ class SinatraIgnoreTest < SinatraTestCase
     assert_metrics_not_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
       "Apdex/Sinatra/#{app_name}/#{segment}"
-])
+    ])
   end
 
   def test_ignores_can_be_declared_in_batches
@@ -121,12 +121,12 @@ class SinatraIgnoreTest < SinatraTestCase
       "Controller/Sinatra/#{app_name}/#{v2_segment}",
       "Apdex/Sinatra/#{app_name}/#{v1_segment}",
       "Apdex/Sinatra/#{app_name}/#{v2_segment}"
-])
+    ])
 
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/#{v3_segment}",
       "Apdex/Sinatra/#{app_name}/#{v3_segment}"
-])
+    ])
   end
 
   def test_seen_with_regex
@@ -135,7 +135,7 @@ class SinatraIgnoreTest < SinatraTestCase
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
       "Apdex/Sinatra/#{app_name}/#{segment}"
-])
+    ])
   end
 
   def test_ignores_by_regex
@@ -144,7 +144,7 @@ class SinatraIgnoreTest < SinatraTestCase
     assert_metrics_not_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
       "Apdex/Sinatra/#{app_name}/#{segment}"
-])
+    ])
   end
 
   def test_ignore_apdex
@@ -161,7 +161,7 @@ class SinatraIgnoreTest < SinatraTestCase
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
       "Apdex/Sinatra/#{app_name}/#{segment}"
-])
+    ])
   end
 
   def test_ignore_enduser
@@ -171,7 +171,7 @@ class SinatraIgnoreTest < SinatraTestCase
     assert_metrics_recorded([
       "Controller/Sinatra/#{app_name}/#{segment}",
       "Apdex/Sinatra/#{app_name}/#{segment}"
-])
+    ])
   end
 
   def test_ignore_errors_in_ignored_transactions

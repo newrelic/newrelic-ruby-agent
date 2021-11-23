@@ -197,7 +197,7 @@ module NewRelic
         # This method is expected to be called with @lock held
         def watching_for_transaction?
           @profiles.size > 1 ||
-          (@profiles.size == 1 && @profiles[ALL_TRANSACTIONS].nil?)
+            (@profiles.size == 1 && @profiles[ALL_TRANSACTIONS].nil?)
         end
 
         def allowed_bucket?(bucket)

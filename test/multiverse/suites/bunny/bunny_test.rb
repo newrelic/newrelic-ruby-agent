@@ -220,13 +220,12 @@ class BunnyTest < Minitest::Test
         refute_nil tt, "Did not expect tt to be nil. Something terrible has occurred."
 
         expected_destinations = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
-                                  NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
-                                  NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+          NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
+          NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
         assert_equal({:"message.routingKey" => "some.key",
                        :"message.queueName" => queue.name,
-                       :"message.exchangeType" => :direct
-                     },
+                       :"message.exchangeType" => :direct},
           tt.attributes.agent_attributes_for(expected_destinations))
 
         # metrics

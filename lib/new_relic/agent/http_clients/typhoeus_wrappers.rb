@@ -40,7 +40,7 @@ module NewRelic
           @uri = case request.url
             when ::URI then request.url
             else NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(request.url)
-            end
+          end
         end
 
         TYPHOEUS = "Typhoeus".freeze

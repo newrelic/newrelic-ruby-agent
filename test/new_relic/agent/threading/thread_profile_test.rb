@@ -48,8 +48,8 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
       def test_prune_keeps_highest_counts
         @profile.aggregate(@single_trace, :request, Thread.current)
-        @profile.aggregate(@single_trace, :other , Thread.current)
-        @profile.aggregate(@single_trace, :other , Thread.current)
+        @profile.aggregate(@single_trace, :other, Thread.current)
+        @profile.aggregate(@single_trace, :other, Thread.current)
 
         @profile.convert_N_trace_nodes_to_arrays(1)
 
@@ -59,7 +59,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
       def test_prune_keeps_highest_count_then_depths
         @profile.aggregate(@single_trace, :request, Thread.current)
-        @profile.aggregate(@single_trace, :other , Thread.current)
+        @profile.aggregate(@single_trace, :other, Thread.current)
 
         @profile.convert_N_trace_nodes_to_arrays(2)
 

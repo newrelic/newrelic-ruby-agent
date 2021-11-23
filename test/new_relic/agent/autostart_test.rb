@@ -37,14 +37,14 @@ class AutostartTest < Minitest::Test
   end
 
   RAILS_DEFAULT_RAKE_TASKS = %w| about assets:clean assets:clobber
-  assets:environment assets:precompile db:create db:drop db:fixtures:load
-  db:migrate db:migrate:status db:rollback db:schema:cache:clear
-  db:schema:cache:dump db:schema:dump db:schema:load db:seed db:setup
-  db:structure:dump db:version doc:app log:clear middleware notes notes:custom
-  rails:template rails:update routes secret spec spec:features spec:requests
-  spec:controllers spec:helpers spec:models spec:views spec:routing
-  spec:rcov stats test test:all test:all:db test:recent test:single
-  test:uncommitted time:zones:all tmp:clear tmp:create |.each do |task|
+    assets:environment assets:precompile db:create db:drop db:fixtures:load
+    db:migrate db:migrate:status db:rollback db:schema:cache:clear
+    db:schema:cache:dump db:schema:dump db:schema:load db:seed db:setup
+    db:structure:dump db:version doc:app log:clear middleware notes notes:custom
+    rails:template rails:update routes secret spec spec:features spec:requests
+    spec:controllers spec:helpers spec:models spec:views spec:routing
+    spec:rcov stats test test:all test:all:db test:recent test:single
+    test:uncommitted time:zones:all tmp:clear tmp:create |.each do |task|
     define_method("test_agent_wont_autostart_if_top_level_rake_task_is_#{task}") do
       Rake.stubs(:application => stub(:top_level_tasks => [task]))
       assert ! ::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't start during #{task.inspect} rake task"

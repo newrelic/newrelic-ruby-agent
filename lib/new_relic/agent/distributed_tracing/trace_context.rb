@@ -41,11 +41,11 @@ module NewRelic
 
         class << self
           def insert format: NewRelic::FORMAT_NON_RACK,
-                     carrier: nil,
-                     parent_id: nil,
-                     trace_id: nil,
-                     trace_flags: nil,
-                     trace_state: nil
+            carrier: nil,
+            parent_id: nil,
+            trace_id: nil,
+            trace_flags: nil,
+            trace_state: nil
 
             trace_parent_header = trace_parent_header_for_format format
             carrier[trace_parent_header] = format_trace_parent \
@@ -58,8 +58,8 @@ module NewRelic
           end
 
           def parse format: NewRelic::FORMAT_NON_RACK,
-                    carrier: nil,
-                    trace_state_entry_key: nil
+            carrier: nil,
+            trace_state_entry_key: nil
             trace_parent = extract_traceparent(format, carrier)
             unless trace_parent_valid? trace_parent
               NewRelic::Agent.increment_metric SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION
@@ -84,8 +84,8 @@ module NewRelic
           private
 
           def format_trace_parent trace_id: nil,
-                                  parent_id: nil,
-                                  trace_flags: nil
+            parent_id: nil,
+            trace_flags: nil
             sprintf TRACE_PARENT_FORMAT_STRING,
               VERSION,
               trace_id,
@@ -176,10 +176,10 @@ module NewRelic
         class HeaderData
           class << self
             def create trace_parent: nil,
-                       trace_state_payload: nil,
-                       trace_state_entries: nil,
-                       trace_state_size: 0,
-                       trace_state_vendors: nil
+              trace_state_payload: nil,
+              trace_state_entries: nil,
+              trace_state_size: 0,
+              trace_state_vendors: nil
               new trace_parent, \
                 trace_state_payload, \
                 trace_state_entries, \

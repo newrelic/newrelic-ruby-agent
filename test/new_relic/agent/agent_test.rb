@@ -750,7 +750,7 @@ module NewRelic
             "Content-Encoding: gzip",
             "Content-Length: #{gzip.length}",
             gzip.byteslice(0..-2)
-        ].join("\r\n")
+          ].join("\r\n")
 
           server.accept.write headers.chomp
         end

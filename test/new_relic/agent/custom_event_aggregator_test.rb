@@ -116,7 +116,7 @@ module NewRelic::Agent
       event[0].delete('priority')
 
       assert_equal({'type' => 'type_a', 'timestamp' => t0.to_i}, event[0])
-      assert_equal({'foo' => 'bar' , 'baz' => 'qux'}, event[1])
+      assert_equal({'foo' => 'bar', 'baz' => 'qux'}, event[1])
     end
 
     def test_records_supportability_metrics_after_harvest

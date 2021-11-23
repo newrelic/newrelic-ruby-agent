@@ -48,8 +48,7 @@ module NewRelic
         [
           {TYPE => type,
            TIMESTAMP => Process.clock_gettime(Process::CLOCK_REALTIME).to_i,
-           PRIORITY => priority
-          },
+           PRIORITY => priority},
           AttributeProcessing.flatten_and_coerce(attributes)
         ]
       end
@@ -72,8 +71,8 @@ module NewRelic
 
       def record_supportability_metrics total_count, captured_count, dropped_count
         engine = NewRelic::Agent.instance.stats_engine
-        engine.tl_record_supportability_metric_count("Events/Customer/Seen" , total_count)
-        engine.tl_record_supportability_metric_count("Events/Customer/Sent" , captured_count)
+        engine.tl_record_supportability_metric_count("Events/Customer/Seen", total_count)
+        engine.tl_record_supportability_metric_count("Events/Customer/Sent", captured_count)
         engine.tl_record_supportability_metric_count("Events/Customer/Dropped", dropped_count)
       end
 

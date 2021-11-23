@@ -17,8 +17,8 @@ module NewRelic
 
         def self.valid?(rule_spec)
           rule_spec[PREFIX_KEY].kind_of?(String) &&
-          rule_spec[TERMS_KEY].kind_of?(Array) &&
-          valid_prefix_segment_count?(rule_spec[PREFIX_KEY])
+            rule_spec[TERMS_KEY].kind_of?(Array) &&
+            valid_prefix_segment_count?(rule_spec[PREFIX_KEY])
         end
 
         def self.valid_prefix_segment_count?(prefix)
@@ -26,7 +26,7 @@ module NewRelic
           rindex = prefix.rindex(SEGMENT_SEPARATOR)
 
           (count == 2 && prefix[rindex + 1].nil?) ||
-          (count == 1 && !prefix[rindex + 1].nil?)
+            (count == 1 && !prefix[rindex + 1].nil?)
         end
 
         def initialize(options)

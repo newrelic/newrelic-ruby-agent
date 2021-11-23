@@ -21,8 +21,8 @@ module NewRelic
 
       def on_transaction(*_)
         return unless restart_in_children_enabled? &&
-                        needs_restart? &&
-                        harvest_thread_enabled?
+          needs_restart? &&
+          harvest_thread_enabled?
 
         restart_harvest_thread
       end

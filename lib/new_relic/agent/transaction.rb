@@ -352,9 +352,9 @@ module NewRelic
 
       def best_name
         @frozen_name ||
-        @overridden_name ||
-        @default_name ||
-        NewRelic::Agent::UNKNOWN_METRIC
+          @overridden_name ||
+          @default_name ||
+          NewRelic::Agent::UNKNOWN_METRIC
       end
 
       # For common interface with Trace
@@ -546,8 +546,8 @@ module NewRelic
 
       def assign_agent_attributes
         default_destinations = AttributeFilter::DST_TRANSACTION_TRACER |
-                               AttributeFilter::DST_TRANSACTION_EVENTS |
-                               AttributeFilter::DST_ERROR_COLLECTOR
+          AttributeFilter::DST_TRANSACTION_EVENTS |
+          AttributeFilter::DST_ERROR_COLLECTOR
 
         if http_response_code
           add_agent_attribute(:'http.statusCode', http_response_code, default_destinations)
@@ -816,7 +816,7 @@ module NewRelic
                        model
                      else
                        model.to_s
-                     end
+        end
         self.instrumentation_state[:datastore_override] = [method, model_name, product]
         yield
       ensure

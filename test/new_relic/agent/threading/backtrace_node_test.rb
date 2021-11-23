@@ -47,10 +47,10 @@ module NewRelic::Agent::Threading
       convert_nodes_to_array([node])
 
       assert_equal([
-                   ["irb.rb", "catch", 69],
-                   0, 0,
-                   []
-],
+        ["irb.rb", "catch", 69],
+        0, 0,
+        []
+      ],
         node.as_array)
     end
 
@@ -62,16 +62,16 @@ module NewRelic::Agent::Threading
       convert_nodes_to_array([node, child_node])
 
       assert_equal([
-                   ["irb.rb", "catch", 69],
-                   0, 0,
-                   [
-                     [
-                       ['bacon.rb', 'yum', 42],
-                       0, 0,
-                       []
-      ]
-      ]
-],
+        ["irb.rb", "catch", 69],
+        0, 0,
+        [
+          [
+            ['bacon.rb', 'yum', 42],
+            0, 0,
+            []
+          ]
+        ]
+      ],
         node.as_array)
     end
 
@@ -81,10 +81,10 @@ module NewRelic::Agent::Threading
       convert_nodes_to_array([node])
 
       assert_equal([
-                   ["transaction_sample_buffer.rb", "visit_node", -1],
-                   0, 0,
-                   []
-],
+        ["transaction_sample_buffer.rb", "visit_node", -1],
+        0, 0,
+        []
+      ],
         node.as_array)
     end
 
@@ -95,10 +95,10 @@ module NewRelic::Agent::Threading
       convert_nodes_to_array([node])
 
       assert_equal([
-                   ["irb.rb", "catch", 0],
-                   10, 0,
-                   []
-],
+        ["irb.rb", "catch", 0],
+        10, 0,
+        []
+      ],
         node.as_array)
     end
 

@@ -157,6 +157,7 @@ class NewRelic::Agent::StatsTest < Minitest::Test
   end
 
   private
+
   def validate(stats, count, total, min, max, exclusive = nil)
     assert_equal count, stats.call_count
     assert_equal total, stats.total_call_time

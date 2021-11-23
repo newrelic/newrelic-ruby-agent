@@ -7,6 +7,7 @@ module NewRelic::Agent::Instrumentation
   module Memcache
     module Prepend
       extend Helper
+
       module_function
 
       def client_prepender client_class

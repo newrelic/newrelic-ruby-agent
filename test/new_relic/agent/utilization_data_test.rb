@@ -165,7 +165,7 @@ module NewRelic::Agent
         }
       }
 
-       assert_equal expected, utilization_data.to_collector_hash[:vendors]
+      assert_equal expected, utilization_data.to_collector_hash[:vendors]
     end
 
     def test_vendor_information_is_omitted_if_unavailable

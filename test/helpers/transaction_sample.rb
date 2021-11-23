@@ -4,6 +4,7 @@
 
 module TransactionSampleTestHelper
   module_function
+
   def make_sql_transaction(*sql)
     sampler = nil
     state = NewRelic::Agent::Tracer.state

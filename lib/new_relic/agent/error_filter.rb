@@ -151,7 +151,7 @@ module NewRelic
             [codes]
           else
             codes
-          end
+        end
         result = []
         code_list.each do |code|
           result << code && next if code.is_a?(Integer)

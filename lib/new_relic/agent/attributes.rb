@@ -73,7 +73,7 @@ module NewRelic
 
       def intrinsic_attributes_for(destination)
         if destination == NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER ||
-           destination == NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+            destination == NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
           @intrinsic_attributes
         else
           NewRelic::EMPTY_HASH

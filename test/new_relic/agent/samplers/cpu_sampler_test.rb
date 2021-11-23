@@ -95,6 +95,6 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
     assert_metrics_not_recorded([
       'CPU/User/Utilization',
       'CPU/System/Utilization'
-      ])
+    ])
   end
 end

@@ -14,6 +14,7 @@ class MethodVisibilityTest < Minitest::Test
     end
 
     private
+
     def private_method!
     end
 
@@ -21,6 +22,7 @@ class MethodVisibilityTest < Minitest::Test
     end
 
     protected
+
     def protected_method!
     end
 
@@ -43,12 +45,15 @@ class MethodVisibilityTest < Minitest::Test
 
   class ObjectWithTracers < ObjectWithInstrumentation
     private
+
     def a_private_method
     end
 
     def a_private_transaction
     end
+
     protected
+
     def a_protected_method
     end
 

@@ -144,8 +144,8 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(['Errors/all',
-                                 'Errors/allWeb',
-                                 'Errors/Controller/class/method'])
+          'Errors/allWeb',
+          'Errors/Controller/class/method'])
       end
 
       def test_increment_error_count_record_summary_and_other_txn_metric
@@ -154,8 +154,8 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(['Errors/all',
-                                 'Errors/allOther',
-                                 'Errors/OtherTransaction/AnotherFramework/Job/perform'])
+          'Errors/allOther',
+          'Errors/OtherTransaction/AnotherFramework/Job/perform'])
       end
 
       def test_increment_error_count_summary_outside_transaction

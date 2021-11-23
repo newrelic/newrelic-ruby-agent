@@ -53,12 +53,12 @@ module NewRelic
           :headers
 
         def initialize(action:,
-                       library:,
-                       destination_type:,
-                       destination_name:,
-                       headers: nil,
-                       parameters: nil,
-                       start_time: nil)
+          library:,
+          destination_type:,
+          destination_name:,
+          headers: nil,
+          parameters: nil,
+          start_time: nil)
 
           @action = action
           @library = library

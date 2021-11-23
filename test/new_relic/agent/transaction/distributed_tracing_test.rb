@@ -151,13 +151,13 @@ module NewRelic
           end
 
           assert_metrics_recorded ['DurationByCaller/App/190/46954/Unknown/all',
-                                   'DurationByCaller/App/190/46954/Unknown/allOther']
+            'DurationByCaller/App/190/46954/Unknown/allOther']
 
           assert_metrics_recorded ['TransportDuration/App/190/46954/Unknown/all',
-                                   'TransportDuration/App/190/46954/Unknown/allOther']
+            'TransportDuration/App/190/46954/Unknown/allOther']
 
           refute_metrics_recorded ['ErrorsByCaller/App/190/46954/Unknown/all',
-                                   'ErrorsByCaller/App/190/46954/Unknown/allOther']
+            'ErrorsByCaller/App/190/46954/Unknown/allOther']
         end
 
         def test_accept_distributed_trace_payload_with_error_records_error_metrics
@@ -169,7 +169,7 @@ module NewRelic
           end
 
           assert_metrics_recorded ['ErrorsByCaller/App/190/46954/Unknown/all',
-                                   'ErrorsByCaller/App/190/46954/Unknown/allOther']
+            'ErrorsByCaller/App/190/46954/Unknown/allOther']
         end
 
         def test_sampled_flag_propagated_when_true_in_incoming_payload

@@ -194,26 +194,26 @@ class GrapeTest < Minitest::Test
     def test_request_and_response_attributes_recorded_as_agent_attributes
       post '/grape_ape'
 
-        expected = {
-          "response.headers.contentLength" => last_response.content_length.to_i,
-          "response.headers.contentType" => last_response.content_type,
-          "request.headers.contentLength" => last_request.content_length.to_i,
-          "request.headers.contentType" => last_request.content_type,
-          "request.headers.host" => last_request.host,
-          "request.method" => last_request.request_method
-        }
+      expected = {
+        "response.headers.contentLength" => last_response.content_length.to_i,
+        "response.headers.contentType" => last_response.content_type,
+        "request.headers.contentLength" => last_request.content_length.to_i,
+        "request.headers.contentType" => last_request.content_type,
+        "request.headers.host" => last_request.host,
+        "request.method" => last_request.request_method
+      }
 
         # Rack >= 2.1 changes how/when contentLength is computed and Grape >= 1.3 also changes to deal with this.
         # interactions with Rack < 2.1 and >= 2.1 differ on response.headers.contentLength calculations
         # so we remove it when it is zero since its not present in such cases.
-        if Gem::Version.new(::Grape::VERSION) >= Gem::Version.new("1.3.0")
-          if expected["response.headers.contentLength"] == 0
-            expected.delete "response.headers.contentLength"
-          end
+      if Gem::Version.new(::Grape::VERSION) >= Gem::Version.new("1.3.0")
+        if expected["response.headers.contentLength"] == 0
+          expected.delete "response.headers.contentLength"
         end
-        actual = agent_attributes_for_single_event_posted_without_ignored_attributes
+      end
+      actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
-        assert_equal(expected, actual)
+      assert_equal(expected, actual)
     end
 
     def assert_grape_metrics(expected_txn_name)
@@ -247,7 +247,7 @@ class GrapeApiInstanceTest < Minitest::Test
         expected_node_name,
         [expected_node_name, expected_txn_name],
         expected_txn_name
-        ])
+      ])
     end
   end
 end

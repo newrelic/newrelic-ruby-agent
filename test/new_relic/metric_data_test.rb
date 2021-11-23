@@ -108,7 +108,7 @@ class NewRelic::MetricDataTest < Minitest::Test
     stats.record_data_point(2.0, 1.0)
     md = NewRelic::MetricData.new(NewRelic::MetricSpec.new('Custom/test/method', 'scope'), stats)
     expected = [{'name' => 'Custom/test/method', 'scope' => 'scope'},
-                 [2, 3.0, 2.0, 1.0, 2.0, 5.0]]
+      [2, 3.0, 2.0, 1.0, 2.0, 5.0]]
     assert_equal expected, md.to_collector_array
   end
 

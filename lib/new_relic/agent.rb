@@ -118,7 +118,7 @@ module NewRelic
       nil
     end
 
-    def agent=(new_instance)# :nodoc:
+    def agent=(new_instance) # :nodoc:
       @agent = new_instance
       add_deferred_method_tracers_now
     end

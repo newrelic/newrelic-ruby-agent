@@ -58,8 +58,8 @@ module NewRelic
         # note this file is loaded only if the newrelic agent is enabled (through config/newrelic.yml)
         instrumentation_path = File.expand_path(File.join(File.dirname(__FILE__), '..', 'agent', 'instrumentation'))
         @instrumentation_files <<
-        File.join(instrumentation_path, '*.rb') <<
-        File.join(instrumentation_path, app.to_s, '*.rb')
+          File.join(instrumentation_path, '*.rb') <<
+          File.join(instrumentation_path, app.to_s, '*.rb')
         @instrumentation_files.each { |pattern| load_instrumentation_files pattern }
         DependencyDetection.detect!
         ::NewRelic::Agent.logger.info "Finished instrumentation"

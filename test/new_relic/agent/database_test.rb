@@ -72,16 +72,16 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
 
     columns = ["stuffs"]
     rows = [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
-            ["   Index Cond: (id = 1234)"],
-            ["   Filter: ((title)::text = 'sensitive text'::text)"]]
+      ["   Index Cond: (id = 1234)"],
+      ["   Filter: ((title)::text = 'sensitive text'::text)"]]
     activerecord_result = ::ActiveRecord::Result.new(columns, rows)
     explainer = lambda { |statement| activerecord_result }
 
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
     expected_result = [['QUERY PLAN'],
-                       [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
-                        ["   Index Cond: ?"],
-                        ["   Filter: ?"]]]
+      [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
+        ["   Index Cond: ?"],
+        ["   Filter: ?"]]]
 
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
       result = NewRelic::Agent::Database.explain_sql(statement)
@@ -109,8 +109,8 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
     result = NewRelic::Agent::Database.explain_sql(statement)
     expected_result = [["select_type", "key_len", "table", "id", "possible_keys", "type",
-                        "Extra", "rows", "ref", "key"],
-                       [["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil]]]
+      "Extra", "rows", "ref", "key"],
+      [["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil]]]
 
     assert_equal(expected_result[0].sort, result[0].sort, "Headers don't match")
     assert_equal(expected_result[1][0].compact.sort, result[1][0].compact.sort, "Values don't match")
@@ -152,8 +152,8 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
     result = NewRelic::Agent::Database.explain_sql(statement)
     expected_result = [["select_type", "key_len", "table", "id", "possible_keys", "type",
-                        "Extra", "rows", "ref", "key"],
-                       [["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil]]]
+      "Extra", "rows", "ref", "key"],
+      [["SIMPLE", nil, "blogs", "1", nil, "ALL", "", "2", nil, nil]]]
 
     assert_equal(expected_result[0].sort, result[0].sort, "Headers don't match")
     assert_equal(expected_result[1][0].compact.sort, result[1][0].compact.sort, "Values don't match")
@@ -164,16 +164,16 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     sql = 'select count(id) from blogs limit 1'
 
     plan = [{"QUERY PLAN" => "Limit  (cost=11.75..11.76 rows=1 width=4)"},
-            {"QUERY PLAN" => "  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"},
-            {"QUERY PLAN" => "        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"}]
+      {"QUERY PLAN" => "  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"},
+      {"QUERY PLAN" => "        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"}]
     explainer = lambda { |statement| plan }
 
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
     result = NewRelic::Agent::Database.explain_sql(statement)
     expected_result = [['QUERY PLAN'],
-                       [["Limit  (cost=11.75..11.76 rows=1 width=4)"],
-                        ["  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"],
-                        ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]]]
+      [["Limit  (cost=11.75..11.76 rows=1 width=4)"],
+        ["  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"],
+        ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]]]
 
     assert_equal expected_result, result
   end
@@ -190,9 +190,9 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
     result = NewRelic::Agent::Database.explain_sql(statement)
     expected_result = [['QUERY PLAN'],
-                       [["Limit  (cost=11.75..11.76 rows=1 width=4)"],
-                        ["  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"],
-                        ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]]]
+      [["Limit  (cost=11.75..11.76 rows=1 width=4)"],
+        ["  ->  Aggregate  (cost=11.75..11.76 rows=1 width=4)"],
+        ["        ->  Seq Scan on blogs  (cost=0.00..11.40 rows=140 width=4)"]]]
 
     assert_equal expected_result, result
   end
@@ -202,15 +202,15 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     sql = "SELECT * FROM blogs WHERE blogs.id=1234 AND blogs.title='sensitive text'"
 
     plan = [{"QUERY PLAN" => " Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"},
-            {"QUERY PLAN" => "   Index Cond: (id = 1234)"},
-            {"QUERY PLAN" => "   Filter: ((title)::text = 'sensitive text'::text)"}]
+      {"QUERY PLAN" => "   Index Cond: (id = 1234)"},
+      {"QUERY PLAN" => "   Filter: ((title)::text = 'sensitive text'::text)"}]
     explainer = lambda { |statement| plan }
 
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
     expected_result = [['QUERY PLAN'],
-                       [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
-                        ["   Index Cond: ?"],
-                        ["   Filter: ?"]]]
+      [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
+        ["   Index Cond: ?"],
+        ["   Filter: ?"]]]
 
     with_config(:'transaction_tracer.record_sql' => 'obfuscated') do
       result = NewRelic::Agent::Database.explain_sql(statement)
@@ -223,15 +223,15 @@ class NewRelic::Agent::DatabaseTest < Minitest::Test
     sql = "SELECT * FROM blogs WHERE blogs.id=1234 AND blogs.title='sensitive text'"
 
     plan = [{"QUERY PLAN" => " Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"},
-            {"QUERY PLAN" => "   Index Cond: (id = 1234)"},
-            {"QUERY PLAN" => "   Filter: ((title)::text = 'sensitive text'::text)"}]
+      {"QUERY PLAN" => "   Index Cond: (id = 1234)"},
+      {"QUERY PLAN" => "   Filter: ((title)::text = 'sensitive text'::text)"}]
     explainer = lambda { |statement| plan }
 
     statement = NewRelic::Agent::Database::Statement.new(sql, config, explainer)
     expected_result = [['QUERY PLAN'],
-                       [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
-                        ["   Index Cond: (id = 1234)"],
-                        ["   Filter: ((title)::text = 'sensitive text'::text)"]]]
+      [[" Index Scan using blogs_pkey on blogs  (cost=0.00..8.27 rows=1 width=540)"],
+        ["   Index Cond: (id = 1234)"],
+        ["   Filter: ((title)::text = 'sensitive text'::text)"]]]
 
     with_config(:'transaction_tracer.record_sql' => 'raw') do
       result = NewRelic::Agent::Database.explain_sql(statement)

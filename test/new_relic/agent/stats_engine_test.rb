@@ -283,7 +283,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
 
     renamed = @engine.apply_rules_to_metric_data(rules_engine, stats_hash)
 
-    assert_equal(1 , renamed.size)
+    assert_equal(1, renamed.size)
     assert_equal('foo', renamed.to_h.keys.first.name)
   end
 

@@ -31,7 +31,7 @@ if Delayed::Worker.backend.to_s == "Delayed::Backend::ActiveRecord::Job"
   # less than 5.0 do not.
 
   dj_gem_spec = Bundler.rubygems.loaded_specs("delayed_job_active_record") ||
-                Bundler.rubygems.loaded_specs("delayed_job")
+    Bundler.rubygems.loaded_specs("delayed_job")
 
   dj_gem_path = dj_gem_spec.full_gem_path
 

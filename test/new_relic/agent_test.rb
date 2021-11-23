@@ -59,7 +59,8 @@ module NewRelic
 )
       with_config_low_priority({
         :'transction_tracer.enabled' => true,
-        :'error_collector.enabled' => true}) do
+        :'error_collector.enabled' => true
+}) do
         response_handler.configure_agent(
           'agent_config' => {'transaction_tracer.enabled' => false},
           'collect_errors' => false
@@ -486,7 +487,7 @@ module NewRelic
             a.name.split('::').reduce(nil) { |c, n| (c || Kernel).const_get n }
           else
             Kernel.const_get a.name
-              end
+          end
           assert_equal a, b
         end
 

@@ -168,7 +168,7 @@ module NewRelic::Agent
         'Supportability/API/record_metric',
         'Supportability/API/increment_metric',
         'Supportability/Deprecated/cross_application_tracer'
-        ])
+      ])
     end
 
     def test_setting_response_headers_freezes_transaction_name

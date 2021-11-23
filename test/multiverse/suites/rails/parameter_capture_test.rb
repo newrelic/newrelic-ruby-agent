@@ -217,8 +217,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
     actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
     expected = {"request.parameters.param1" => "value1",
-                "request.parameters.param2" => "value2"
-    }
+                "request.parameters.param2" => "value2"}
 
     assert_equal expected, actual
   end

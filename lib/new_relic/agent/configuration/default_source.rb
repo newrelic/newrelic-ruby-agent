@@ -143,8 +143,8 @@ module NewRelic
         def self.agent_enabled
           Proc.new {
             NewRelic::Agent.config[:enabled] &&
-            (NewRelic::Agent.config[:test_mode] || NewRelic::Agent.config[:monitor_mode]) &&
-            NewRelic::Agent::Autostart.agent_should_start?
+              (NewRelic::Agent.config[:test_mode] || NewRelic::Agent.config[:monitor_mode]) &&
+              NewRelic::Agent::Autostart.agent_should_start?
           }
         end
 

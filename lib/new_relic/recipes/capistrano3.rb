@@ -72,7 +72,7 @@ namespace :newrelic do
 
     if Rake::Task.task_defined?("git:check")
       log_command = "git --no-pager log --no-color --pretty=format:'  * %an: %s' " +
-                    "--abbrev-commit --no-merges #{previous_revision}..#{current_revision}"
+        "--abbrev-commit --no-merges #{previous_revision}..#{current_revision}"
       `#{log_command}`
     end
   end

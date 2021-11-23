@@ -39,7 +39,7 @@ module NewRelic
           method_name_without_newrelic = "#{method_name}_without_newrelic"
 
           if NewRelic::Helper.instance_methods_include?(klass, method_name) &&
-             !NewRelic::Helper.instance_methods_include?(klass, method_name_without_newrelic)
+              !NewRelic::Helper.instance_methods_include?(klass, method_name_without_newrelic)
 
             visibility = NewRelic::Helper.instance_method_visibility(klass, method_name)
 

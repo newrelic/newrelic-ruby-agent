@@ -42,7 +42,7 @@ class NewRelic::Agent::Datastores::Mongo::MetricTranslatorTest < Minitest::Test
 
     result = NewRelic::Agent::Datastores::Mongo::MetricTranslator.operation_and_collection_for(:find, payload)
 
-    assert_equal ['findOne' , @collection_name], result
+    assert_equal ['findOne', @collection_name], result
   end
 
   def test_operation_and_collection_for_remove

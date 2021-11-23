@@ -65,7 +65,7 @@ DependencyDetection.defer do
           YAML.unsafe_load(msg['args'][0])
         else
           YAML.load(msg['args'][0])
-                                       end
+        end
 
         {
           :name => method_name,

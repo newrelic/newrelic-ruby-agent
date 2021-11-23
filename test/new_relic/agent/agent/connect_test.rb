@@ -187,7 +187,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     NewRelic::Agent.instance.service = default_service(
       :connect => {
         'messages' => [{'message' => 'beep boop', 'level' => 'INFO'},
-                       {'message' => 'ha cha cha', 'level' => 'WARN'}]
+          {'message' => 'ha cha cha', 'level' => 'WARN'}]
       }
 )
 

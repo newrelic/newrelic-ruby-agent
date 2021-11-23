@@ -229,7 +229,7 @@ module NewRelic
             configured_value = config[:host]
             adapter = PRODUCT_SYMBOLS[config[:adapter]]
             if configured_value.nil? ||
-              postgres_unix_domain_socket_case?(configured_value, adapter)
+                postgres_unix_domain_socket_case?(configured_value, adapter)
 
               LOCALHOST
             elsif configured_value.empty?

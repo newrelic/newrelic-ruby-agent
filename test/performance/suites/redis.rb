@@ -40,7 +40,7 @@ class RedisTest < Performance::TestCase
       pipeline = [
         ["first", "a" * 100, "b" * 100, "c" * 100],
         ["second", "a" * 100, "b" * 100, "c" * 100]
-]
+      ]
 
       measure do
         NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline)

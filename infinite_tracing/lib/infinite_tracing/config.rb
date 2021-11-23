@@ -25,8 +25,8 @@ module NewRelic::Agent
       #   c) A Trace Observer host is configured by setting infinite_tracing.trace_observer.host.
       def enabled?
         distributed_tracing_enabled? &&
-        span_events_enabled? &&
-        trace_observer_configured?
+          span_events_enabled? &&
+          trace_observer_configured?
       end
 
       # Distributed Tracing must be enabled for Infinite Tracing

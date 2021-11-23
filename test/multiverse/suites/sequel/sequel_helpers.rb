@@ -35,9 +35,9 @@ module SequelHelpers
     in_transaction('sandwiches/index') do
       yield
     end
-      sample = last_transaction_trace
-      sample.prepare_to_send!
-      last_node(sample)
+    sample = last_transaction_trace
+    sample.prepare_to_send!
+    last_node(sample)
   end
 
   def last_node(txn_sample)

@@ -116,7 +116,7 @@ module NewRelic
             unrecognized_keys = options.keys - ALLOWED_KEYS
             if unrecognized_keys.any?
               raise "Unrecognized options when adding method tracer to #{method_name}: " +
-                    unrecognized_keys.join(', ')
+                unrecognized_keys.join(', ')
             end
 
             options = DEFAULT_SETTINGS.merge(options)
@@ -297,8 +297,8 @@ module NewRelic
         end
 
         def _nr_define_traced_method(method_name, scoped_metric: nil, unscoped_metrics: [],
-                                     code_header: nil, code_footer: nil, record_metrics: true,
-                                     visibility: :public)
+          code_header: nil, code_footer: nil, record_metrics: true,
+          visibility: :public)
           _nr_traced_method_module.module_eval do
             define_method(method_name) do |*args, &block|
               return super(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?
@@ -311,7 +311,7 @@ module NewRelic
                   scoped_metric
                 else
                   nil
-                end
+              end
 
               unscoped_metrics_eval = unscoped_metrics.map do |metric|
                 metric.kind_of?(Proc) ? instance_exec(*args, &metric) : metric.to_s

@@ -494,7 +494,7 @@ module NewRelic::Agent
           "External/remotehost.com/Net::HTTP/GET",
           "External/allWeb"
         ]
-       assert_metrics_recorded expected_metrics
+        assert_metrics_recorded expected_metrics
       end
 
       def test_sets_http_status_code_not_found

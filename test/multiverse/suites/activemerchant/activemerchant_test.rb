@@ -104,8 +104,8 @@ class ActiveMerchantTest < Minitest::Test
     end
     assert_metrics_recorded([
       ["ActiveMerchant/gateway/BogusGateway/#{operation}", "txn"],
-        "ActiveMerchant/gateway/BogusGateway",
-        "ActiveMerchant/operation/#{operation}"
-      ])
+      "ActiveMerchant/gateway/BogusGateway",
+      "ActiveMerchant/operation/#{operation}"
+    ])
   end
 end

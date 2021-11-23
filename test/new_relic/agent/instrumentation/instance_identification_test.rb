@@ -123,7 +123,7 @@ module NewRelic
 
               in_transaction do
                 config = convert_test_case_to_config test
-                product, operation, collection = ActiveRecordHelper.product_operation_collection_for "Blog Find", nil , config[:adapter]
+                product, operation, collection = ActiveRecordHelper.product_operation_collection_for "Blog Find", nil, config[:adapter]
                 host = ActiveRecordHelper::InstanceIdentification.host(config)
                 port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(config)
 

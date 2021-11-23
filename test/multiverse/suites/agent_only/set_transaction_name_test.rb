@@ -46,7 +46,7 @@ class SetTransactionNameTest < Minitest::Test
       'Nested/Controller/SetTransactionNameTest::TestTransactor/child_txn',
       ['Nested/Controller/SetTransactionNameTest::TestTransactor/child_txn', 'Controller/TestTransactor/parent'],
       'Apdex/TestTransactor/parent'
-])
+    ])
   end
 
   def test_apply_to_metric_names
@@ -61,7 +61,7 @@ class SetTransactionNameTest < Minitest::Test
       ['Nested/Controller/SetTransactionNameTest::TestTransactor/parent_txn',
         'Controller/TestTransactor/child'],
       'Apdex/TestTransactor/child'
-])
+    ])
   end
 
   def test_apply_to_metric_scopes
@@ -69,7 +69,7 @@ class SetTransactionNameTest < Minitest::Test
       trace_execution_scoped('Custom/something') {}
     end
     assert_metrics_recorded(['Custom/something',
-                             'Controller/TestTransactor/child'])
+      'Controller/TestTransactor/child'])
   end
 
   def test_apply_to_traced_transactions

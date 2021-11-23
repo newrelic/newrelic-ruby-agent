@@ -135,6 +135,7 @@ module NewRelic
 
       ###############
       module_function
+
       ###############
 
       def cross_app_enabled?

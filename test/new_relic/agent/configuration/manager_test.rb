@@ -38,8 +38,8 @@ module NewRelic::Agent::Configuration
       config2 = {:foo => 'real foo'}
       @manager.add_config_for_testing(config2)
 
-      assert_equal 'real foo' , @manager['foo']
-      assert_equal 'real bar' , @manager['bar']
+      assert_equal 'real foo', @manager['foo']
+      assert_equal 'real bar', @manager['bar']
       assert_equal 'default baz', @manager['baz']
     end
 

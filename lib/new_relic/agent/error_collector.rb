@@ -187,9 +187,9 @@ module NewRelic
 
       def skip_notice_error?(exception, status_code = nil)
         disabled? ||
-        exception.nil? ||
-        exception_tagged_with?(EXCEPTION_TAG_IVAR, exception) ||
-        error_is_ignored?(exception, status_code)
+          exception.nil? ||
+          exception_tagged_with?(EXCEPTION_TAG_IVAR, exception) ||
+          error_is_ignored?(exception, status_code)
       end
 
       # calls a method on an object, if it responds to it - used for
@@ -205,7 +205,7 @@ module NewRelic
           sense_method(exception, :original_exception) || exception
         else
           exception
-                           end
+        end
         sense_method(actual_exception, :backtrace) || '<no stack trace>'
       end
 

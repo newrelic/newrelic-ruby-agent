@@ -86,9 +86,9 @@ module NewRelic
         #
         # @api public
         def in_transaction(name: nil,
-                           partial_name: nil,
-                           category: nil,
-                           options: {})
+          partial_name: nil,
+          category: nil,
+          options: {})
 
           finishable = start_transaction_or_segment(
             name: name,
@@ -130,9 +130,9 @@ module NewRelic
         #
         # @api public
         def start_transaction_or_segment(name: nil,
-                                         partial_name: nil,
-                                         category:,
-                                         options: {})
+          partial_name: nil,
+          category:,
+          options: {})
 
           raise ArgumentError, 'missing required argument: name or partial_name' if name.nil? && partial_name.nil?
 
@@ -159,9 +159,9 @@ module NewRelic
         # Takes name or partial_name and a category.
         # Returns a transaction instance or nil
         def start_transaction(category:,
-                              name: nil,
-                              partial_name: nil,
-                              **options)
+          name: nil,
+          partial_name: nil,
+          **options)
 
           raise ArgumentError, 'missing required argument: name or partial_name' if name.nil? && partial_name.nil?
 
@@ -230,9 +230,9 @@ module NewRelic
         #
         # @api public
         def start_segment(name:,
-                          unscoped_metrics:nil,
-                          start_time: nil,
-                          parent: nil)
+          unscoped_metrics:nil,
+          start_time: nil,
+          parent: nil)
 
           segment = Transaction::Segment.new name, unscoped_metrics, start_time
           start_and_add_segment segment, parent
@@ -281,13 +281,13 @@ module NewRelic
         #
         # @api public
         def start_datastore_segment(product: nil,
-                                    operation: nil,
-                                    collection: nil,
-                                    host: nil,
-                                    port_path_or_id: nil,
-                                    database_name: nil,
-                                    start_time: nil,
-                                    parent: nil)
+          operation: nil,
+          collection: nil,
+          host: nil,
+          port_path_or_id: nil,
+          database_name: nil,
+          start_time: nil,
+          parent: nil)
 
           product ||= UNKNOWN
           operation ||= OTHER
@@ -328,10 +328,10 @@ module NewRelic
         #
         # @api public
         def start_external_request_segment(library:,
-                                           uri:,
-                                           procedure:,
-                                           start_time: nil,
-                                           parent: nil)
+          uri:,
+          procedure:,
+          start_time: nil,
+          parent: nil)
 
           segment = Transaction::ExternalRequestSegment.new library, uri, procedure, start_time
           start_and_add_segment segment, parent
@@ -358,13 +358,13 @@ module NewRelic
 
         # For New Relic internal use only.
         def start_message_broker_segment(action:,
-                                         library:,
-                                         destination_type:,
-                                         destination_name:,
-                                         headers: nil,
-                                         parameters: nil,
-                                         start_time: nil,
-                                         parent: nil)
+          library:,
+          destination_type:,
+          destination_name:,
+          headers: nil,
+          parameters: nil,
+          start_time: nil,
+          parent: nil)
 
           segment = Transaction::MessageBrokerSegment.new(
             action: action,
@@ -410,7 +410,7 @@ module NewRelic
         def start_and_add_segment segment, parent = nil
           tracer_state = state
           if (txn = tracer_state.current_transaction) &&
-            tracer_state.tracing_enabled?
+              tracer_state.tracing_enabled?
             txn.add_segment segment, parent
           else
             segment.record_metrics = false

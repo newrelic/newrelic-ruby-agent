@@ -12,7 +12,7 @@ DependencyDetection.defer do
 
   depends_on do
     !NewRelic::Agent.config[:disable_sequel_instrumentation] &&
-    !NewRelic::Agent.config[:disable_database_instrumentation]
+      !NewRelic::Agent.config[:disable_database_instrumentation]
   end
 
   def supported_sequel_version?
