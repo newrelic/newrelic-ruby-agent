@@ -45,8 +45,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     end
 
     expected = {
-      :call_count           => 1,
-      :total_call_time      => 20,
+      :call_count => 1,
+      :total_call_time => 20,
       :total_exclusive_time => 10
     }
     assert_metrics_recorded(
@@ -58,8 +58,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   def test_record_unscoped_metrics_records_to_global_metrics_if_no_txn
     @engine.tl_record_unscoped_metrics(['a', 'b'], 20, 10)
     expected = {
-      :call_count           => 1,
-      :total_call_time      => 20,
+      :call_count => 1,
+      :total_call_time => 20,
       :total_exclusive_time => 10
     }
     assert_metrics_recorded(
@@ -72,8 +72,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     @engine.tl_record_unscoped_metrics('a', 20)
     assert_metrics_recorded(
       'a' => {
-        :call_count           => 1,
-        :total_call_time      => 20,
+        :call_count => 1,
+        :total_call_time => 20,
         :total_exclusive_time => 20
       }
     )
@@ -129,12 +129,12 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     end
 
     expected = {
-      :call_count           => 1,
-      :total_call_time      => 20,
+      :call_count => 1,
+      :total_call_time => 20,
       :total_exclusive_time => 10
     }
     assert_metrics_recorded(
-      'a'          => expected,
+      'a' => expected,
       ['a', 'txn'] => expected
     )
   end
@@ -149,9 +149,9 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
 
     expected = {:total_call_time => 42, :call_count => 99}
     assert_metrics_recorded(
-      'a'          => expected,
+      'a' => expected,
       ['a', 'txn'] => expected,
-      'b'          => expected
+      'b' => expected
     )
   end
 
@@ -162,15 +162,15 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     end
 
     expected = {
-      :call_count           => 1,
-      :total_call_time      => 20,
+      :call_count => 1,
+      :total_call_time => 20,
       :total_exclusive_time => 10
     }
     assert_metrics_recorded(
-      'a'          => expected,
+      'a' => expected,
       ['a', 'txn'] => expected,
-      'b'          => expected,
-      'c'          => expected
+      'b' => expected,
+      'c' => expected
     )
     assert_metrics_not_recorded([
       ['b', 'txn'],
@@ -197,12 +197,12 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
 
     expected = {:call_count => nthreads * iterations}
     assert_metrics_recorded(
-      'm1'          => expected,
-      'm2'          => expected,
+      'm1' => expected,
+      'm2' => expected,
       ['m1', 'txn'] => expected,
       ['m2', 'txn'] => expected,
-      'm3'          => expected,
-      'm4'          => expected
+      'm3' => expected,
+      'm4' => expected
     )
   end
 
@@ -210,8 +210,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     @engine.tl_record_scoped_and_unscoped_metrics('a', ['b'], 20, 10)
 
     expected = {
-      :call_count           => 1,
-      :total_call_time      => 20,
+      :call_count => 1,
+      :total_call_time => 20,
       :total_exclusive_time => 10
     }
 
@@ -250,8 +250,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   def test_harvest_applies_metric_rename_rules
     rule = NewRelic::Agent::RulesEngine::ReplacementRule.new(
       'match_expression' => '[0-9]+',
-      'replacement'      => '*',
-      'replace_all'      => true
+      'replacement' => '*',
+      'replace_all' => true
     )
     rules_engine = NewRelic::Agent::RulesEngine.new([rule])
 
@@ -272,7 +272,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   def test_apply_rules_to_metric_data_respects_ignore_rules
     rule = NewRelic::Agent::RulesEngine::ReplacementRule.new(
       'match_expression' => 'bar',
-      'ignore'           => 'true'
+      'ignore' => 'true'
     )
     rules_engine = NewRelic::Agent::RulesEngine.new([rule])
 

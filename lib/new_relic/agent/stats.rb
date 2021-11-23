@@ -49,12 +49,12 @@ module NewRelic
 
       def to_json(*_)
         {
-          'call_count'           => call_count.to_i,
-          'min_call_time'        => min_call_time.to_f,
-          'max_call_time'        => max_call_time.to_f,
-          'total_call_time'      => total_call_time.to_f,
+          'call_count' => call_count.to_i,
+          'min_call_time' => min_call_time.to_f,
+          'max_call_time' => max_call_time.to_f,
+          'total_call_time' => total_call_time.to_f,
           'total_exclusive_time' => total_exclusive_time.to_f,
-          'sum_of_squares'       => sum_of_squares.to_f
+          'sum_of_squares' => sum_of_squares.to_f
         }.to_json(*_)
       end
 

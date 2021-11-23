@@ -50,12 +50,12 @@ class UtilizationDataCollectionTest < Minitest::Test
 
   def test_omits_sending_vendor_data_on_connect_when_not_available
      expected = {
-      "hostname" => "host",
-      "ip_address" => ["127.0.0.1"],
-      "metadata_version" => 5,
-      "logical_processors" => 5,
-      "total_ram_mib" => 128
-    }
+       "hostname" => "host",
+       "ip_address" => ["127.0.0.1"],
+       "metadata_version" => 5,
+       "logical_processors" => 5,
+       "total_ram_mib" => 128
+     }
 
     NewRelic::Agent::Hostname.stubs(:get).returns("host")
     NewRelic::Agent::Hostname.stubs(:get_fqdn).returns(nil)

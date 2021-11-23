@@ -66,12 +66,12 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
       @description = nil if @description && @description.strip.empty?
       create_params = {}
       {
-            :application_id => @appname,
-            :host => NewRelic::Agent::Hostname.get,
-            :description => @description,
-            :user => @user,
-            :revision => @revision,
-            :changelog => @changelog
+        :application_id => @appname,
+        :host => NewRelic::Agent::Hostname.get,
+        :description => @description,
+        :user => @user,
+        :revision => @revision,
+        :changelog => @changelog
       }.each do |k, v|
         create_params["deployment[#{k}]"] = v unless v.nil? || v == ''
       end

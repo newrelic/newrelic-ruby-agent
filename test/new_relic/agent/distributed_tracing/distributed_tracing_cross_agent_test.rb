@@ -33,10 +33,10 @@ module NewRelic::Agent
             NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case["force_sampled_true"])
 
             config = {
-              :account_id                    => test_case['account_id'],
-              :primary_application_id        => "2827902",
-              :trusted_account_key           => test_case['trusted_account_key'],
-              :'span_events.enabled'         => test_case['span_events_enabled'],
+              :account_id => test_case['account_id'],
+              :primary_application_id => "2827902",
+              :trusted_account_key => test_case['trusted_account_key'],
+              :'span_events.enabled' => test_case['span_events_enabled'],
               :'distributed_tracing.enabled' => true
             }
 
@@ -105,13 +105,13 @@ module NewRelic::Agent
         if test_case['web_transaction']
           {
             transaction_name: "Controller/DistributedTracing/#{test_case['test_name']}",
-            category:         :controller,
-            request:          stub(:path => '/')
+            category: :controller,
+            request: stub(:path => '/')
           }
         else
           {
             transaction_name: "OtherTransaction/Background/#{test_case['test_name']}",
-            category:         :task
+            category: :task
           }
         end
       end

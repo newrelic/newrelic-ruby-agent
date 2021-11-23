@@ -28,11 +28,11 @@ make_notify_task = Proc.new do
         new_revision = rev
         deploy_options = {
           :environment => rails_env,
-          :revision    => new_revision,
-          :changelog   => changelog,
+          :revision => new_revision,
+          :changelog => changelog,
           :description => description,
-          :appname     => appname,
-          :user        => user,
+          :appname => appname,
+          :user => user,
           :license_key => license_key
         }
 

@@ -151,8 +151,8 @@ module NewRelic
 
       LOG_LEVELS = {
         "debug" => ::Logger::DEBUG,
-        "info"  => ::Logger::INFO,
-        "warn"  => ::Logger::WARN,
+        "info" => ::Logger::INFO,
+        "warn" => ::Logger::WARN,
         "error" => ::Logger::ERROR,
         "fatal" => ::Logger::FATAL,
       }

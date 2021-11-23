@@ -336,8 +336,8 @@ class NewRelic::Agent::Transaction::TraceTest < Minitest::Test
 
     expected = {
       'agentAttributes' => {:foo => 'bar'},
-      'userAttributes'  => {"foo" => 'bar'},
-      'intrinsics'      => {:foo => 'bar'}
+      'userAttributes' => {"foo" => 'bar'},
+      'intrinsics' => {:foo => 'bar'}
     }
 
     assert_trace_tree_contains(:attributes, expected)

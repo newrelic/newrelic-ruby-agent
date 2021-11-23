@@ -217,7 +217,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def test_should_not_fail_apdex_for_ignored_error_class_noticed
     get '/error/ignored_error'
     assert_metrics_recorded({
-      'Apdex'                     => {:apdex_f => 0},
+      'Apdex' => {:apdex_f => 0},
       'Apdex/error/ignored_error' => {:apdex_f => 0}
     })
   end

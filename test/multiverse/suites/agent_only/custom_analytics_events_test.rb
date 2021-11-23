@@ -50,7 +50,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
 
   def test_events_are_not_recorded_when_disabled_by_feature_gate
     connect_response = {
-      'agent_run_id'          => 1,
+      'agent_run_id' => 1,
       'collect_custom_events' => false
     }
 

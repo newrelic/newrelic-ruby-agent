@@ -31,24 +31,24 @@ class ThreadProfilingTest < Minitest::Test
   end
 
   START_COMMAND = [[666, {
-      "name" => "start_profiler",
-      "arguments" => {
-        "profile_id" => -1,
-        "sample_period" => 0.01,
-        "duration" => 0.75,
-        "only_runnable_threads" => false,
-        "only_request_threads" => false,
-        "profile_agent_code" => true
-      }
-    }]]
+    "name" => "start_profiler",
+    "arguments" => {
+      "profile_id" => -1,
+      "sample_period" => 0.01,
+      "duration" => 0.75,
+      "only_runnable_threads" => false,
+      "only_request_threads" => false,
+      "profile_agent_code" => true
+    }
+  }]]
 
   STOP_COMMAND = [[666, {
-      "name" => "stop_profiler",
-      "arguments" => {
-        "profile_id" => -1,
-        "report_data" => true
-      }
-    }]]
+    "name" => "stop_profiler",
+    "arguments" => {
+      "profile_id" => -1,
+      "report_data" => true
+    }
+  }]]
 
   # These are potentially fragile for being timing based
   # START_COMMAND with 0.01 sampling and 0.5 duration expects to get

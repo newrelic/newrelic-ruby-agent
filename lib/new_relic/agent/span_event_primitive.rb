@@ -115,14 +115,14 @@ module NewRelic
 
       def intrinsics_for segment
         intrinsics = {
-          TYPE_KEY           => EVENT_TYPE,
-          TRACE_ID_KEY       => segment.transaction.trace_id,
-          GUID_KEY           => segment.guid,
+          TYPE_KEY => EVENT_TYPE,
+          TRACE_ID_KEY => segment.transaction.trace_id,
+          GUID_KEY => segment.guid,
           TRANSACTION_ID_KEY => segment.transaction.guid,
-          PRIORITY_KEY       => segment.transaction.priority,
-          TIMESTAMP_KEY      => milliseconds_since_epoch(segment),
-          DURATION_KEY       => segment.duration,
-          NAME_KEY           => segment.name
+          PRIORITY_KEY => segment.transaction.priority,
+          TIMESTAMP_KEY => milliseconds_since_epoch(segment),
+          DURATION_KEY => segment.duration,
+          NAME_KEY => segment.name
         }
 
         # with infinite-tracing, transactions may or may not be sampled!

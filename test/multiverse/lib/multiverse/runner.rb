@@ -84,13 +84,13 @@ module Multiverse
     end
 
     GROUPS = {
-      "agent"         => ["agent_only", "bare", "config_file_loading", "deferred_instrumentation", "high_security", "no_json", "json", "marshalling", "yajl"],
-      "background"    => ["delayed_job", "sidekiq", "resque" ],
-      "background_2"  => ["rake"],
-      "database"      => ["datamapper", "mongo", "redis", "sequel"],
-      "rails"         => ["active_record", "rails", "rails_prepend", "activemerchant"],
-      "frameworks"    => ["sinatra", "padrino", "grape"],
-      "httpclients"   => ["curb", "excon", "httpclient"],
+      "agent" => ["agent_only", "bare", "config_file_loading", "deferred_instrumentation", "high_security", "no_json", "json", "marshalling", "yajl"],
+      "background" => ["delayed_job", "sidekiq", "resque" ],
+      "background_2" => ["rake"],
+      "database" => ["datamapper", "mongo", "redis", "sequel"],
+      "rails" => ["active_record", "rails", "rails_prepend", "activemerchant"],
+      "frameworks" => ["sinatra", "padrino", "grape"],
+      "httpclients" => ["curb", "excon", "httpclient"],
       "httpclients_2" => ["typhoeus", "net_http", "httprb"],
       "infinite_tracing" => ["infinite_tracing"],
 

@@ -69,10 +69,10 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
     s.poll
 
     assert_metrics_recorded({
-      'CPU/User Time'   => {:call_count => 1, :total_call_time => 4.0},
+      'CPU/User Time' => {:call_count => 1, :total_call_time => 4.0},
       'CPU/System Time' => {:call_count => 1, :total_call_time => 2.0},
       # (4s user time)   / ((10s elapsed time) * 4 cpus) = 0.1
-      'CPU/User/Utilization'   => {:call_count => 1, :total_call_time => 0.1},
+      'CPU/User/Utilization' => {:call_count => 1, :total_call_time => 0.1},
       # (2s system time) / ((10s elapsed time) * 4 cpus) = 0.05
       'CPU/System/Utilization' => {:call_count => 1, :total_call_time => 0.05}
     })

@@ -10,7 +10,7 @@ def default_service(stubbed_method_overrides = {})
     :agent_id= => nil,
     :agent_id => nil,
     :collector => stub_everything,
-    :request_timeout= =>  nil,
+    :request_timeout= => nil,
     :metric_data => nil,
     :error_data => nil,
     :transaction_sample_data => nil,

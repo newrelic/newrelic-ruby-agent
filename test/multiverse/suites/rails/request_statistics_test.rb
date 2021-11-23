@@ -100,7 +100,7 @@ class RequestStatsTest < ActionDispatch::IntegrationTest
                 :'encoding_key' => "\0",
                 :'trusted_account_ids' => [1]) do
       rack_env = {
-        'HTTP_X_NEWRELIC_ID'          => Base64.encode64('1#234'),
+        'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234'),
         'HTTP_X_NEWRELIC_TRANSACTION' => Base64.encode64('["8badf00d",1]')
       }
 

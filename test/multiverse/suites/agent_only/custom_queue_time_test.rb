@@ -40,7 +40,7 @@ class CustomQueueTimeTest < Minitest::Test
 
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => {
-        :call_count      => 1,
+        :call_count => 1,
         :total_call_time => 10
       }
     )
@@ -52,7 +52,7 @@ class CustomQueueTimeTest < Minitest::Test
 
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => {
-        :call_count      => 1,
+        :call_count => 1,
         :total_call_time => 10
       }
     )

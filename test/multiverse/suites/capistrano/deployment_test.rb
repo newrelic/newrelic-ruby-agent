@@ -21,10 +21,10 @@ class DeploymentTest < Minitest::Test
     # Capistrano 3 doesn't provide built-in commandline params -> settings
     # We wire our own up via ENV to test setting out setting custom values
     env = {
-      'NEWRELIC_CAPISTRANO_USER'        => "Optimus Prime",
-      'NEWRELIC_CAPISTRANO_APPNAME'     => "Tesseract",
-      'NEWRELIC_CAPISTRANO_REVISION'    => "C-001",
-      'NEWRELIC_CAPISTRANO_CHANGELOG'   => "The greatest weakness of most humans is their hesitancy to tell others they love them while they're alive.",
+      'NEWRELIC_CAPISTRANO_USER' => "Optimus Prime",
+      'NEWRELIC_CAPISTRANO_APPNAME' => "Tesseract",
+      'NEWRELIC_CAPISTRANO_REVISION' => "C-001",
+      'NEWRELIC_CAPISTRANO_CHANGELOG' => "The greatest weakness of most humans is their hesitancy to tell others they love them while they're alive.",
     }
 
     cap_it(env)

@@ -26,7 +26,7 @@ module NewRelic::Agent
 
       NewRelic::Agent.reset_config
       @config = {
-        :encoding_key        => ENCODING_KEY_NOOP,
+        :encoding_key => ENCODING_KEY_NOOP,
         :trusted_account_ids => TRUSTED_ACCOUNT_IDS
       }
       NewRelic::Agent.config.add_config_for_testing(@config)

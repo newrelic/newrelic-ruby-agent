@@ -26,9 +26,9 @@ module NewRelic
           @vendor.stubs(:request_metadata).returns(stubbed_response)
 
           expected = {
-            :vmId     => "c84ffaa7-1b0a-4aa6-9f5c-0912655d9870",
-            :name     => "rubytest",
-            :vmSize   => "Standard_DS1_v2",
+            :vmId => "c84ffaa7-1b0a-4aa6-9f5c-0912655d9870",
+            :name => "rubytest",
+            :vmSize => "Standard_DS1_v2",
             :location => "eastus"
           }
 

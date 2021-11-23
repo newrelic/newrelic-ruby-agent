@@ -183,7 +183,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         # First poll doesn't record skew since we don't have a last poll time
         assert_metrics_recorded({
           'Supportability/ThreadProfiler/PollingTime' => {:call_count => 2},
-          'Supportability/ThreadProfiler/Skew'        => {:call_count => 1}
+          'Supportability/ThreadProfiler/Skew' => {:call_count => 1}
         })
       end
 
@@ -505,10 +505,10 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
       def fake_transaction_finished(name, start_timestamp, duration, thread, bucket = :request)
         payload = {
-          :name            => name,
-          :bucket          => bucket,
+          :name => name,
+          :bucket => bucket,
           :start_timestamp => start_timestamp,
-          :duration        => duration
+          :duration => duration
         }
         payload[:thread] = thread if thread
         @event_listener.notify(:transaction_finished, payload)

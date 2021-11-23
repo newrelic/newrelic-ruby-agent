@@ -53,11 +53,11 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
 
   def metric_values_for val
     {call_count: 1,
-      max_call_time: val,
-      min_call_time: val,
-      sum_of_squares: val**2.to_f,
-      total_call_time: val.to_f,
-      total_exclusive_time: val.to_f}
+     max_call_time: val,
+     min_call_time: val,
+     sum_of_squares: val**2.to_f,
+     total_call_time: val.to_f,
+     total_exclusive_time: val.to_f}
   end
 
 end

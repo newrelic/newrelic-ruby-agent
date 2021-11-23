@@ -220,7 +220,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
     sampler = NewRelic::Agent.agent.sql_sampler
 
     settings = {
-      :'slow_sql.enabled'    => true,
+      :'slow_sql.enabled' => true,
       :'slow_sql.record_sql' => 'off'
     }
 
@@ -266,7 +266,7 @@ class NewRelic::Agent::SqlSamplerTest < Minitest::Test
 
   def test_sends_obfuscated_queries_when_configured_via_slow_sql_settings
     settings = {
-      :'slow_sql.record_sql'           => 'obfuscated',
+      :'slow_sql.record_sql' => 'obfuscated',
       :'transaction_tracer.record_sql' => 'raw'
     }
     with_config(settings) do

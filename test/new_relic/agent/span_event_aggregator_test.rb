@@ -46,14 +46,14 @@ module NewRelic
 
         event = [
           {
-          'name' => name,
-          'priority' => options[:priority] || rand,
-          'sampled' => false,
-          'guid'    => guid,
-          'traceId' => guid,
-          'timestamp' => Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond),
-          'duration' => rand,
-          'category' => 'custom'
+            'name' => name,
+            'priority' => options[:priority] || rand,
+            'sampled' => false,
+            'guid' => guid,
+            'traceId' => guid,
+            'timestamp' => Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond),
+            'duration' => rand,
+            'category' => 'custom'
           },
           {},
           {}

@@ -32,8 +32,8 @@ module NewRelic
 
       def test_event_includes_expected_errors
         intrinsics, *_ = create_event :error_options => {
-                                        :expected => true
-                                      }
+          :expected => true
+        }
 
         assert intrinsics['error.expected']
       end

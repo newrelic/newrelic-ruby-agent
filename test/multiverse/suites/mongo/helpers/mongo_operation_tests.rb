@@ -365,9 +365,9 @@ module MongoOperationTests
     node = find_last_transaction_node
 
     expected = {
-      :database   => @database_name,
+      :database => @database_name,
       :collection => @collection_name,
-      :operation  => :insert
+      :operation => :insert
     }
 
     result = node.params[:statement]

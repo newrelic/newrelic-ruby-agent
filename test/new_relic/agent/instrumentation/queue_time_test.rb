@@ -32,16 +32,16 @@ class NewRelic::Agent::Instrumentation::QueueTimeTest < Minitest::Test
 
   def test_parse_frontend_timestamp_from_earliest_header
     headers = {'HTTP_X_REQUEST_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 63),
-                'HTTP_X_QUEUE_START'      => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 62),
-                'HTTP_X_MIDDLEWARE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 61)}
+               'HTTP_X_QUEUE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 62),
+               'HTTP_X_MIDDLEWARE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 61)}
 
     assert_in_delta(seconds_ago(63), QueueTime.parse_frontend_timestamp(headers), 0.001)
   end
 
   def test_parse_frontend_timestamp_from_earliest_header_out_of_order
     headers = {'HTTP_X_MIDDLEWARE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 63),
-                'HTTP_X_REQUEST_START'    => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 62),
-                'HTTP_X_QUEUE_START'      => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 61)}
+               'HTTP_X_REQUEST_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 62),
+               'HTTP_X_QUEUE_START' => format_header_time(Process.clock_gettime(Process::CLOCK_REALTIME) - 61)}
 
     assert_in_delta(seconds_ago(63), QueueTime.parse_frontend_timestamp(headers), 0.001)
   end

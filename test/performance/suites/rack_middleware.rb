@@ -45,13 +45,13 @@ begin
           'user' => {
             'shipping_address' => {
               'street' => '1234 Nowhere Road',
-              'city'   => 'Nowhere',
-              'state'  => 'TX'
+              'city' => 'Nowhere',
+              'state' => 'TX'
             },
             'billing_address' => {
               'street' => '4321 Nowhere Lane',
-              'city'   => 'Nowhere',
-              'state'  => 'TX'
+              'city' => 'Nowhere',
+              'state' => 'TX'
             }
           }
         }
@@ -71,13 +71,13 @@ begin
       require 'new_relic/rack/browser_monitoring'
 
       @config = {
-        :beacon          => 'beacon',
-        :browser_key     => 'browserKey',
+        :beacon => 'beacon',
+        :browser_key => 'browserKey',
         :js_agent_loader => 'loader',
-        :encoding_key    => 'lolz',
-        :application_id  => '5, 6', # collector can return app multiple ids
-        :'rum.enabled'   => true,
-        :license_key     => 'a' * 40
+        :encoding_key => 'lolz',
+        :application_id => '5, 6', # collector can return app multiple ids
+        :'rum.enabled' => true,
+        :license_key => 'a' * 40
       }
       NewRelic::Agent.config.add_config_for_testing(@config)
 
@@ -116,8 +116,8 @@ begin
       end.to_app
 
       @env = {
-        'SCRIPT_NAME'  => '',
-        'PATH_INFO'    => '/users/12/blogs',
+        'SCRIPT_NAME' => '',
+        'PATH_INFO' => '/users/12/blogs',
         'QUERY_STRING' => 'q=foobar'
       }
     end

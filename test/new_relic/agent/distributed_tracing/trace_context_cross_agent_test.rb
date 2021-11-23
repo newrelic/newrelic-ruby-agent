@@ -44,11 +44,11 @@ module NewRelic
 
               config = {
                 :'distributed_tracing.enabled' => true,
-                :account_id                    => test_case['account_id'],
-                :primary_application_id        => "2827902",
-                :'analytics_events.enabled'    => test_case.fetch('transaction_events_enabled', true),
-                :trusted_account_key           => test_case['trusted_account_key'],
-                :'span_events.enabled'         => test_case.fetch('span_events_enabled', true)
+                :account_id => test_case['account_id'],
+                :primary_application_id => "2827902",
+                :'analytics_events.enabled' => test_case.fetch('transaction_events_enabled', true),
+                :trusted_account_key => test_case['trusted_account_key'],
+                :'span_events.enabled' => test_case.fetch('span_events_enabled', true)
               }
 
               with_server_source(config) do
@@ -163,13 +163,13 @@ module NewRelic
           if test_case['web_transaction']
             {
               transaction_name: "Controller/DistributedTracing/#{test_case['test_name']}",
-              category:         :controller,
-              request:          stub(:path => '/')
+              category: :controller,
+              request: stub(:path => '/')
             }
           else
             {
               transaction_name: "OtherTransaction/Background/#{test_case['test_name']}",
-              category:         :task
+              category: :task
             }
           end
         end

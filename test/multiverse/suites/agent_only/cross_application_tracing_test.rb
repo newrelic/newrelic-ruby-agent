@@ -18,7 +18,7 @@ class CrossApplicationTracingTest < Minitest::Test
     collector.stub('connect', {
       'agent_run_id' => 666,
       'transaction_name_rules' => [{"match_expression" => "ignored_transaction",
-                                    "ignore"           => true}]})
+                                    "ignore" => true}]})
   end
 
   include Rack::Test::Methods
@@ -61,7 +61,7 @@ class CrossApplicationTracingTest < Minitest::Test
     if !test_case["outboundRequests"]
       if test_case['inboundPayload']
         request_headers = {
-          'HTTP_X_NEWRELIC_ID'          => Base64.encode64('1#234'),
+          'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234'),
           'HTTP_X_NEWRELIC_TRANSACTION' => json_dump_and_encode(test_case['inboundPayload'])
         }
       else

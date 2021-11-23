@@ -19,7 +19,7 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
 
   def setup
     @config = {:license_key => 'a' * 40,
-                :config_path => 'test/config/newrelic.yml'}
+               :config_path => 'test/config/newrelic.yml'}
     NewRelic::Agent.config.add_config_for_testing(@config)
   end
 

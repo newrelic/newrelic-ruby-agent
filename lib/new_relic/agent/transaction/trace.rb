@@ -115,8 +115,8 @@ module NewRelic
           intrinsic_attributes = self.attributes.intrinsic_attributes_for(destination)
 
           {
-            AGENT_ATTRIBUTES_KEY     => agent_attributes,
-            USER_ATTRIBUTES_KEY      => custom_attributes,
+            AGENT_ATTRIBUTES_KEY => agent_attributes,
+            USER_ATTRIBUTES_KEY => custom_attributes,
             INTRINSIC_ATTRIBUTES_KEY => intrinsic_attributes
           }
         end

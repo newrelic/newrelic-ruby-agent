@@ -35,10 +35,10 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       'test exception',
       'NewRelic::TestHelpers::Exceptions::TestError',
       {
-        'userAttributes'  => {'user' => 'params'},
+        'userAttributes' => {'user' => 'params'},
         'agentAttributes' => {:'request.uri' => 'http://com.google'},
-        'intrinsics'      => {},
-       :'error.expected' => false
+        'intrinsics' => {},
+        :'error.expected' => false
       }
     ]
     assert_equal expected, error.to_collector_array
@@ -54,11 +54,11 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     actual = extract_attributes(error)
     expected = {
       'userAttributes' => {
-        'user'   => 'params',
+        'user' => 'params',
         'custom' => 'attribute'
       },
       'agentAttributes' => {},
-      'intrinsics'      => {},
+      'intrinsics' => {},
       :'error.expected' => false
     }
 
@@ -92,9 +92,9 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       "BOOM",
       "Error",
       {
-        'userAttributes'  => {},
+        'userAttributes' => {},
         'agentAttributes' => {},
-        'intrinsics'      => {},
+        'intrinsics' => {},
         :'error.expected' => false
       }
     ]
@@ -110,9 +110,9 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       "Error",
       {
         :'error.expected' => false,
-        'userAttributes'  => {},
+        'userAttributes' => {},
         'agentAttributes' => {},
-        'intrinsics'      => {}
+        'intrinsics' => {}
       }
     ]
     assert_equal expected, error.to_collector_array

@@ -107,7 +107,7 @@ class SyntheticsTest < Minitest::Test
   load_cross_agent_test('synthetics/synthetics').each do |test|
     define_method("test_synthetics_#{test['name']}") do
       config = {
-        :encoding_key        => test['settings']['agentEncodingKey'],
+        :encoding_key => test['settings']['agentEncodingKey'],
         :trusted_account_ids => test['settings']['trustedAccountIds'],
         :'transaction_tracer.transaction_threshold' => 0.0
       }

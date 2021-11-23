@@ -42,12 +42,12 @@ module NewRelic
 
       def create(payload)
         intrinsics = {
-        TIMESTAMP_KEY => float(payload[:start_timestamp]),
-        NAME_KEY      => string(payload[:name]),
-        DURATION_KEY  => float(payload[:duration]),
-        TYPE_KEY      => SAMPLE_TYPE,
-        ERROR_KEY     => payload[:error],
-        PRIORITY_KEY  => payload[:priority]
+          TIMESTAMP_KEY => float(payload[:start_timestamp]),
+          NAME_KEY => string(payload[:name]),
+          DURATION_KEY => float(payload[:duration]),
+          TYPE_KEY => SAMPLE_TYPE,
+          ERROR_KEY => payload[:error],
+          PRIORITY_KEY => payload[:priority]
         }
 
         intrinsics[SAMPLED_KEY] = payload[:sampled] if payload.key?(:sampled)

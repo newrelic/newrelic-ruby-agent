@@ -186,8 +186,8 @@ module NewRelic::Agent
         end
         assert_metrics_recorded_exclusive(
           {
-            'Errors/all'      => {:call_count => 1},
-            'Errors/boo'      => {:call_count => 1},
+            'Errors/all' => {:call_count => 1},
+            'Errors/boo' => {:call_count => 1},
             'Errors/allOther' => {:call_count => 1}
           },
           :filter => /^Errors\//
@@ -496,7 +496,7 @@ module NewRelic::Agent
 
           expected_error_attributes = {
             "error.message" => "Oops!",
-            "error.class"   => "StandardError"
+            "error.class" => "StandardError"
           }
           assert_equal expected_error_attributes, segment.noticed_error.attributes_from_notice_error
           assert_equal expected_error_attributes, recorded_error_attributes
@@ -518,9 +518,9 @@ module NewRelic::Agent
           recorded_error_attributes = SpanEventPrimitive.error_attributes segment
 
           expected_error_attributes = {
-            "error.message"   => "Oops!",
-            "error.class"     => "StandardError",
-            "error.expected"  => true
+            "error.message" => "Oops!",
+            "error.class" => "StandardError",
+            "error.expected" => true
           }
           assert_equal expected_error_attributes, segment.noticed_error.attributes_from_notice_error
           assert_equal expected_error_attributes, recorded_error_attributes
@@ -542,9 +542,9 @@ module NewRelic::Agent
           recorded_error_attributes = SpanEventPrimitive.error_attributes segment
 
           expected_error_attributes = {
-            "error.message"   => "Oops!",
-            "error.class"     => "StandardError",
-            "error.expected"  => true
+            "error.message" => "Oops!",
+            "error.class" => "StandardError",
+            "error.expected" => true
           }
           assert_equal expected_error_attributes, segment.noticed_error.attributes_from_notice_error
           assert_equal expected_error_attributes, recorded_error_attributes

@@ -143,7 +143,7 @@ class LoggerInstrumentationTest < Minitest::Test
 
   def assert_logging_metrics(label, count = 1)
     assert_metrics_recorded_exclusive({
-      "Logging/lines"          => {:call_count => count},
+      "Logging/lines" => {:call_count => count},
       "Logging/lines/#{label}" => {:call_count => count},
       "Logging/size" => {},
       "Logging/size/#{label}" => {},

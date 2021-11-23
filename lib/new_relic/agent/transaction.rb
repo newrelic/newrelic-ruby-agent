@@ -622,14 +622,14 @@ module NewRelic
 
       def generate_payload
         @payload = {
-          :name                 => @frozen_name,
-          :bucket               => recording_web_transaction? ? :request : :background,
-          :start_timestamp      => start_time,
-          :duration             => duration,
-          :metrics              => @metrics,
-          :attributes           => @attributes,
-          :error                => false,
-          :priority             => priority
+          :name => @frozen_name,
+          :bucket => recording_web_transaction? ? :request : :background,
+          :start_timestamp => start_time,
+          :duration => duration,
+          :metrics => @metrics,
+          :attributes => @attributes,
+          :error => false,
+          :priority => priority
         }
 
         distributed_tracer.append_payload(@payload)

@@ -354,7 +354,7 @@ module NewRelic::Agent
           now_ms = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
 
           disabled_analytics_events = @config.merge({
-             :'analytics_events.enabled' => false
+            :'analytics_events.enabled' => false
           })
 
           with_config disabled_analytics_events do
@@ -382,7 +382,7 @@ module NewRelic::Agent
           now_ms = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
 
           disabled_span_events = @config.merge({
-             :'span_events.enabled' => false
+            :'span_events.enabled' => false
           })
 
           with_config disabled_span_events do

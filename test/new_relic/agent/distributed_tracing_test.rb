@@ -58,7 +58,7 @@ module NewRelic::Agent
       def test_accept_distributed_trace_headers_api_case_insensitive
         carrier = {
           'tRacEpArEnT' => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-          'trAceSTatE'  => "190@nr=0-0-190-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035"
+          'trAceSTatE' => "190@nr=0-0-190-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.23456-1518469636035"
         }
         trace_context_header_data = nil
         in_transaction "test_txn" do |txn|

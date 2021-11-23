@@ -36,9 +36,9 @@ module NewRelic::Agent
 
       @monitor = DistributedTracing::CrossAppMonitor.new(@events)
       @config = {
-        :cross_process_id       => AGENT_CROSS_APP_ID,
-        :encoding_key           => ENCODING_KEY_NOOP,
-        :trusted_account_ids    => TRUSTED_ACCOUNT_IDS,
+        :cross_process_id => AGENT_CROSS_APP_ID,
+        :encoding_key => ENCODING_KEY_NOOP,
+        :trusted_account_ids => TRUSTED_ACCOUNT_IDS,
         :disable_harvest_thread => true,
         :'cross_application_tracer.enabled' => true,
         :'distributed_tracing.enabled' => false,

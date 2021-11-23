@@ -43,8 +43,8 @@ module NewRelic
         if @processor_info.nil?
           if darwin?
             @processor_info = {
-              :num_physical_packages  => sysctl_value('hw.packages').to_i,
-              :num_physical_cores     => sysctl_value('hw.physicalcpu_max').to_i,
+              :num_physical_packages => sysctl_value('hw.packages').to_i,
+              :num_physical_cores => sysctl_value('hw.physicalcpu_max').to_i,
               :num_logical_processors => sysctl_value('hw.logicalcpu_max').to_i
             }
             # in case those don't work, try backup values
@@ -64,8 +64,8 @@ module NewRelic
 
           elsif bsd?
             @processor_info = {
-              :num_physical_packages  => nil,
-              :num_physical_cores     => nil,
+              :num_physical_packages => nil,
+              :num_physical_cores => nil,
               :num_logical_processors => sysctl_value('hw.ncpu').to_i
             }
           end
@@ -137,8 +137,8 @@ module NewRelic
         end
 
         {
-          :num_physical_packages  => num_physical_packages,
-          :num_physical_cores     => num_physical_cores,
+          :num_physical_packages => num_physical_packages,
+          :num_physical_cores => num_physical_cores,
           :num_logical_processors => num_logical_processors
         }
       end

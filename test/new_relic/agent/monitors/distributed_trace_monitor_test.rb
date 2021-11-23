@@ -17,10 +17,10 @@ module NewRelic::Agent
         @config = {
           :'cross_application_tracer.enabled' => false,
           :'distributed_tracing.enabled' => true,
-          :encoding_key                  => "\0",
-          :account_id                    => "190",
-          :primary_application_id        => "46954",
-          :trusted_account_key           => "trust_this!"
+          :encoding_key => "\0",
+          :account_id => "190",
+          :primary_application_id => "46954",
+          :trusted_account_key => "trust_this!"
         }
         DistributedTracePayload.stubs(:connected?).returns(true)
 

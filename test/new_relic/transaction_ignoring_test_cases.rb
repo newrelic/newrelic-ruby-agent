@@ -11,7 +11,7 @@ module TransactionIgnoringTestCases
   setup_and_teardown_agent do |collector|
     collector.stub('connect', {
       'transaction_name_rules' => [{"match_expression" => "ignored_transaction",
-                                    "ignore"           => true}],
+                                    "ignore" => true}],
       'agent_run_id' => 1,
     })
   end

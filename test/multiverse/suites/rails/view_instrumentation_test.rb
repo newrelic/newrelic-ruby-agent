@@ -206,14 +206,14 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       get '/views/render_with_delays'
 
       expected_stats_partial = {
-        :call_count           => 3,
-        :total_call_time      => 3.0,
+        :call_count => 3,
+        :total_call_time => 3.0,
         :total_exclusive_time => 3.0
       }
 
       expected_stats_template = {
-        :call_count           => 1,
-        :total_call_time      => 4.0,
+        :call_count => 1,
+        :total_call_time => 4.0,
         :total_exclusive_time => 1.0 # top-level template takes 1s itself
       }
 
@@ -222,9 +222,9 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       partial_metric = 'View/views/_a_partial.html.erb/Partial'
 
       assert_metrics_recorded(
-         partial_metric           => expected_stats_partial,
-         template_metric          => expected_stats_template,
-         [partial_metric, scope]  => expected_stats_partial,
+         partial_metric => expected_stats_partial,
+         template_metric => expected_stats_template,
+         [partial_metric, scope] => expected_stats_partial,
          [template_metric, scope] => expected_stats_template
       )
     end

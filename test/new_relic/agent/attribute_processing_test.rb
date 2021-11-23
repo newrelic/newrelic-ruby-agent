@@ -18,13 +18,13 @@ class AttributeProcessingTest < Minitest::Test
 
     expected = {
       "request.parameters.user.addresses.0.street" => "123 Street",
-      "request.parameters.user.addresses.0.city"   => "City",
-      "request.parameters.user.addresses.0.state"  => "ST",
-      "request.parameters.user.addresses.0.zip"    => "12345",
+      "request.parameters.user.addresses.0.city" => "City",
+      "request.parameters.user.addresses.0.state" => "ST",
+      "request.parameters.user.addresses.0.zip" => "12345",
       "request.parameters.user.addresses.1.street" => "123 Blvd",
-      "request.parameters.user.addresses.1.city"   => "City2",
-      "request.parameters.user.addresses.1.state"  => "ST2",
-      "request.parameters.user.addresses.1.zip"    => "54321"
+      "request.parameters.user.addresses.1.city" => "City2",
+      "request.parameters.user.addresses.1.state" => "ST2",
+      "request.parameters.user.addresses.1.zip" => "54321"
     }
 
     actual = NewRelic::Agent::AttributeProcessing.flatten_and_coerce(params, 'request.parameters')
@@ -99,27 +99,27 @@ class AttributeProcessingTest < Minitest::Test
   def test_flatten_and_coerce_coerce_handles_values_mixed_and_complex_types_properly
     assert_equal(
       {
-        'foo'    => 1.0,
-        'bar'    => 2,
-        'bang'   => 'woot',
-        'ok'     => 'dokey',
-        'yes'    => '[]',
-        'yup'    => '{}',
-        'yayuh'  => '#<Rational>',
+        'foo' => 1.0,
+        'bar' => 2,
+        'bang' => 'woot',
+        'ok' => 'dokey',
+        'yes' => '[]',
+        'yup' => '{}',
+        'yayuh' => '#<Rational>',
         'truthy' => true,
-        'falsy'  => false
+        'falsy' => false
       },
       NewRelic::Agent::AttributeProcessing.flatten_and_coerce(
         {
-          'foo'    => 1.0,
-          'bar'    => 2,
-          'bang'   => 'woot',
-          'ok'     => :dokey,
-          'yes'    => [],
+          'foo' => 1.0,
+          'bar' => 2,
+          'bang' => 'woot',
+          'ok' => :dokey,
+          'yes' => [],
           'yup' => {},
           'yayuh' => Rational(1),
           'truthy' => true,
-          'falsy'  => false
+          'falsy' => false
         }
       )
     )
@@ -131,8 +131,8 @@ class AttributeProcessingTest < Minitest::Test
       },
       NewRelic::Agent::AttributeProcessing.flatten_and_coerce(
         {
-          'nan'  => Float::NAN,
-          'inf'  => Float::INFINITY,
+          'nan' => Float::NAN,
+          'inf' => Float::INFINITY,
           'ninf' => -Float::INFINITY
         }
       )

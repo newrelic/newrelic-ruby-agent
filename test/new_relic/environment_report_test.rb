@@ -66,9 +66,9 @@ class EnvironmentReportTest < Minitest::Test
   def test_gathers_system_info
     NewRelic::Agent::SystemInfo.stubs({
       :num_logical_processors => 8,
-      :processor_arch         => 'x86_64',
-      :os_version             => 'WiggleOS 1.1.1',
-      :ruby_os_identifier     => 'wiggleos'
+      :processor_arch => 'x86_64',
+      :os_version => 'WiggleOS 1.1.1',
+      :ruby_os_identifier => 'wiggleos'
     })
     report = ::NewRelic::EnvironmentReport.new
     assert_equal(8, report['Logical Processors'])

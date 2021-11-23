@@ -45,7 +45,7 @@ module NewRelic::Agent::DistributedTracing
 
       carrier = {
         NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-        NewRelic::TRACESTATE_KEY  => "190@nr=#{payload.to_s},other=asdf"
+        NewRelic::TRACESTATE_KEY => "190@nr=#{payload.to_s},other=asdf"
       }
 
       trace_context_header_data = TraceContext.parse format: NewRelic::FORMAT_NON_RACK,
@@ -68,7 +68,7 @@ module NewRelic::Agent::DistributedTracing
 
       carrier = {
         NewRelic::HTTP_TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-        NewRelic::HTTP_TRACESTATE_KEY  => "190@nr=#{payload.to_s},other=asdf"
+        NewRelic::HTTP_TRACESTATE_KEY => "190@nr=#{payload.to_s},other=asdf"
       }
 
       trace_context_header_data = TraceContext.parse format: NewRelic::FORMAT_RACK,
@@ -91,7 +91,7 @@ module NewRelic::Agent::DistributedTracing
 
       carrier = {
         NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-        NewRelic::TRACESTATE_KEY  => "other=asdf,190@nr=#{payload.to_s}"
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s}"
       }
 
       trace_context_header_data = TraceContext.parse format: NewRelic::FORMAT_NON_RACK,
@@ -114,7 +114,7 @@ module NewRelic::Agent::DistributedTracing
 
       carrier = {
         NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-        NewRelic::TRACESTATE_KEY  => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
+        NewRelic::TRACESTATE_KEY => "other=asdf,190@nr=#{payload.to_s},otherother=asdfasdf"
       }
 
       trace_context_header_data = TraceContext.parse format: NewRelic::FORMAT_NON_RACK,
@@ -137,7 +137,7 @@ module NewRelic::Agent::DistributedTracing
 
       carrier = {
         NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-        NewRelic::TRACESTATE_KEY  => "other=asdf , \t190@nr=#{payload.to_s},\totherother=asdfasdf"
+        NewRelic::TRACESTATE_KEY => "other=asdf , \t190@nr=#{payload.to_s},\totherother=asdfasdf"
       }
 
       trace_context_header_data = TraceContext.parse format: NewRelic::FORMAT_NON_RACK,
@@ -285,7 +285,7 @@ module NewRelic::Agent::DistributedTracing
     def make_inbound_carrier options = {}
       {
         NewRelic::TRACEPARENT_KEY => '00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01',
-        NewRelic::TRACESTATE_KEY  => "other=asdf"
+        NewRelic::TRACESTATE_KEY => "other=asdf"
       }.update(options)
     end
 

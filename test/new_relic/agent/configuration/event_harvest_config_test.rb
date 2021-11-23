@@ -31,10 +31,10 @@ module NewRelic::Agent::Configuration
       connect_reply = {
         'event_harvest_config' => {
           'report_period_ms' => 5000,
-          'harvest_limits'   => {
+          'harvest_limits' => {
             'analytic_event_data' => 833,
-            'custom_event_data'   => 83,
-            'error_event_data'    => 8
+            'custom_event_data' => 83,
+            'error_event_data' => 8
           }
         },
         'span_event_harvest_config' => {
@@ -62,10 +62,10 @@ module NewRelic::Agent::Configuration
       connect_reply = {
         'event_harvest_config' => {
           'report_period_ms' => 5000,
-          'harvest_limits'   => {
+          'harvest_limits' => {
             'analytic_event_data' => 833,
-            'custom_event_data'   => 83,
-            'error_event_data'    => 8
+            'custom_event_data' => 83,
+            'error_event_data' => 8
           }
         }
       }

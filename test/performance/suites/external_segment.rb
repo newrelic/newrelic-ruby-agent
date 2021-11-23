@@ -8,18 +8,18 @@ require 'new_relic/agent/obfuscator'
 class ExternalSegment < Performance::TestCase
 
   CAT_CONFIG = {
-      :license_key => 'a' * 40,
-      :'cross_application_tracer.enabled' => true,
-      :cross_process_id                   => "1#1884",
-      :encoding_key                       => "jotorotoes",
-      :trusted_account_ids                => [1]
+    :license_key => 'a' * 40,
+    :'cross_application_tracer.enabled' => true,
+    :cross_process_id => "1#1884",
+    :encoding_key => "jotorotoes",
+    :trusted_account_ids => [1]
   }
 
   TRACE_CONTEXT_CONFIG = {
-      :'distributed_tracing.enabled'      => true,
-      :account_id                         => "190",
-      :primary_application_id             => "46954",
-      :disable_harvest_thread             => true
+    :'distributed_tracing.enabled' => true,
+    :account_id => "190",
+    :primary_application_id => "46954",
+    :disable_harvest_thread => true
   }
 
   def setup

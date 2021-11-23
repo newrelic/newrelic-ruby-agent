@@ -48,9 +48,9 @@ module NewRelic::Agent
       utilization_data = UtilizationData.new
 
       expected = {
-        :vmId     => "c84ffaa7-1b0a-4aa6-9f5c-0912655d9870",
-        :name     => "rubytest",
-        :vmSize   => "Standard_DS1_v2",
+        :vmId => "c84ffaa7-1b0a-4aa6-9f5c-0912655d9870",
+        :name => "rubytest",
+        :vmSize => "Standard_DS1_v2",
         :location => "eastus"
       }
 
@@ -98,7 +98,7 @@ module NewRelic::Agent
         expected = {
           :cf_instance_guid => "ab326c0e-123e-47a1-65cc-45f6",
           :cf_instance_ip => "101.1.149.48",
-          :memory_limit   => "2048m"
+          :memory_limit => "2048m"
         }
 
         assert_equal expected, utilization_data.to_collector_hash[:vendors][:pcf]
@@ -402,7 +402,7 @@ module NewRelic::Agent
     end
 
     AWS_INPUTS = {
-      input_aws_id:   :instanceId,
+      input_aws_id: :instanceId,
       input_aws_type: :instanceType,
       input_aws_zone: :availabilityZone
     }
@@ -414,7 +414,7 @@ module NewRelic::Agent
 
     ENV_TO_OPTIONS = {
       :NEW_RELIC_UTILIZATION_LOGICAL_PROCESSORS => :'utilization.logical_processors',
-      :NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB =>  :'utilization.total_ram_mib',
+      :NEW_RELIC_UTILIZATION_TOTAL_RAM_MIB => :'utilization.total_ram_mib',
       :NEW_RELIC_UTILIZATION_BILLING_HOSTNAME => :'utilization.billing_hostname'
     }
 
@@ -432,9 +432,9 @@ module NewRelic::Agent
 
     AZURE_INPUTS = {
       input_azure_location: :location,
-      input_azure_name:     :name,
-      input_azure_id:       :vmId,
-      input_azure_size:     :vmSize
+      input_azure_name: :name,
+      input_azure_id: :vmId,
+      input_azure_size: :vmSize
     }
 
     def stub_azure_inputs test_case
@@ -443,7 +443,7 @@ module NewRelic::Agent
     end
 
     GCP_INPUTS = {
-      input_gcp_id:   :id,
+      input_gcp_id: :id,
       input_gcp_type: :machineType,
       input_gcp_name: :name,
       input_gcp_zone: :zone,
@@ -455,8 +455,8 @@ module NewRelic::Agent
     end
 
     PCF_INPUTS = {
-      input_pcf_guid:      'CF_INSTANCE_GUID',
-      input_pcf_ip:        'CF_INSTANCE_IP',
+      input_pcf_guid: 'CF_INSTANCE_GUID',
+      input_pcf_ip: 'CF_INSTANCE_IP',
       input_pcf_mem_limit: 'MEMORY_LIMIT'
     }
 

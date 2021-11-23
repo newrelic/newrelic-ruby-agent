@@ -152,7 +152,7 @@ module NewRelic
           in_transaction "test_txn" do |txn|
             NewRelic::Agent.disable_all_tracing do
               segment = Tracer.start_segment(
-                name:"Custom/segment/method",
+                name: "Custom/segment/method",
                 unscoped_metrics: "Custom/all"
               )
               advance_process_time 1
@@ -205,7 +205,7 @@ module NewRelic
 
         def test_segment_started_oustide_txn_does_not_record_metrics
           segment = Tracer.start_segment(
-            name:"Custom/segment/method",
+            name: "Custom/segment/method",
             unscoped_metrics: "Custom/all"
           )
           advance_process_time 1

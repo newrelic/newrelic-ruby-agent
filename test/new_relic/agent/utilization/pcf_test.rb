@@ -26,7 +26,7 @@ module NewRelic
             expected = {
               :cf_instance_guid => "fd326c0e-847e-47a1-65cc-45f6",
               :cf_instance_ip => "10.10.149.48",
-              :memory_limit   => "1024m"
+              :memory_limit => "1024m"
             }
 
             assert @vendor.detect

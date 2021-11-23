@@ -19,9 +19,9 @@ module HttpClientTestCases
 
   setup_and_teardown_agent(
       :"cross_application_tracer.enabled" => false,
-      :cross_process_id                   => "269975#22824",
-      :encoding_key                       => "gringletoes",
-      :trusted_account_ids                => [269975]
+      :cross_process_id => "269975#22824",
+      :encoding_key => "gringletoes",
+      :trusted_account_ids => [269975]
     )
 
   def after_setup
@@ -588,7 +588,7 @@ module HttpClientTestCases
   load_cross_agent_test('synthetics/synthetics').each do |test|
     define_method("test_synthetics_http_#{test['name']}") do
       config = {
-        :encoding_key        => test['settings']['agentEncodingKey'],
+        :encoding_key => test['settings']['agentEncodingKey'],
         :trusted_account_ids => test['settings']['trustedAccountIds'],
         :'cross_application_tracer.enabled' => true,
         :'distributed_tracing.enabled' => false
@@ -656,10 +656,10 @@ module HttpClientTestCases
       ])
     else
       assert_metrics_recorded(
-        "External/all"                            => counts,
-        "External/all#{txn_type}"                 => counts,
+        "External/all" => counts,
+        "External/all#{txn_type}" => counts,
         "External/#{host}/#{client_name}/#{meth}" => counts,
-        "External/#{host}/all"                    => counts
+        "External/#{host}/all" => counts
       )
     end
   end

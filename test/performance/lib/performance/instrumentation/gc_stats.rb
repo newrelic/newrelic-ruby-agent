@@ -21,7 +21,7 @@ module Performance
         heap_live_after = @stats_after[:heap_live_slots] || @stats_after[:heap_live_num] || @stats_after[:heap_live_slot]
 
         res = {
-          :gc_runs      => @stats_after[:count] - @stats_before[:count],
+          :gc_runs => @stats_after[:count] - @stats_before[:count],
           :live_objects => heap_live_after - heap_live_before
         }
         allocs_before = @stats_before[:total_allocated_objects] || @stats_before[:total_allocated_object]

@@ -28,10 +28,10 @@ module NewRelic
           @finished = false
 
           @traces = {
-            :agent      => BacktraceRoot.new,
+            :agent => BacktraceRoot.new,
             :background => BacktraceRoot.new,
-            :other      => BacktraceRoot.new,
-            :request    => BacktraceRoot.new
+            :other => BacktraceRoot.new,
+            :request => BacktraceRoot.new
           }
 
           @poll_count = 0
@@ -102,9 +102,9 @@ module NewRelic
           convert_N_trace_nodes_to_arrays(THREAD_PROFILER_NODES)
 
           {
-            "OTHER"      => @traces[:other ].as_array,
-            "REQUEST"    => @traces[:request ].as_array,
-            "AGENT"      => @traces[:agent ].as_array,
+            "OTHER" => @traces[:other ].as_array,
+            "REQUEST" => @traces[:request ].as_array,
+            "AGENT" => @traces[:agent ].as_array,
             "BACKGROUND" => @traces[:background].as_array
           }
         end

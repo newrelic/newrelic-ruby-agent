@@ -809,17 +809,17 @@ class NewRelicServiceTest < Minitest::Test
 
     expected_size_bytes = @service.marshaller.dump(payload).size
     expected_values = {
-      :call_count           => 1,
-      :total_call_time      => expected_size_bytes,
+      :call_count => 1,
+      :total_call_time => expected_size_bytes,
       :total_exclusive_time => 12
     }
 
     assert_metrics_recorded(
       'Supportability/Agent/Collector/foobar/Duration' => {:call_count => 1},
-      'Supportability/invoke_remote_serialize'         => {:call_count => 1},
-      'Supportability/invoke_remote_serialize/foobar'  => {:call_count => 1},
-      'Supportability/invoke_remote_size'              => expected_values,
-      'Supportability/invoke_remote_size/foobar'       => expected_values
+      'Supportability/invoke_remote_serialize' => {:call_count => 1},
+      'Supportability/invoke_remote_serialize/foobar' => {:call_count => 1},
+      'Supportability/invoke_remote_size' => expected_values,
+      'Supportability/invoke_remote_size/foobar' => expected_values
     )
   end
 
@@ -845,17 +845,17 @@ class NewRelicServiceTest < Minitest::Test
 
     expected_size_bytes = @service.marshaller.dump(payload).size
     expected_values = {
-      :call_count           => 1,
-      :total_call_time      => expected_size_bytes,
+      :call_count => 1,
+      :total_call_time => expected_size_bytes,
       :total_exclusive_time => 0
     }
 
     assert_metrics_recorded(
       'Supportability/Agent/Collector/foobar/Duration' => {:call_count => 1},
-      'Supportability/invoke_remote_serialize'         => {:call_count => 1},
-      'Supportability/invoke_remote_serialize/foobar'  => {:call_count => 1},
-      'Supportability/invoke_remote_size'              => expected_values,
-      'Supportability/invoke_remote_size/foobar'       => expected_values
+      'Supportability/invoke_remote_serialize' => {:call_count => 1},
+      'Supportability/invoke_remote_serialize/foobar' => {:call_count => 1},
+      'Supportability/invoke_remote_size' => expected_values,
+      'Supportability/invoke_remote_size/foobar' => expected_values
     )
   end
 
@@ -873,7 +873,7 @@ class NewRelicServiceTest < Minitest::Test
     expected_values = {:call_count => 1}
 
     assert_metrics_recorded(
-      'Supportability/serialization_failure'        => expected_values,
+      'Supportability/serialization_failure' => expected_values,
       'Supportability/serialization_failure/foobar' => expected_values
     )
 
@@ -996,7 +996,7 @@ class NewRelicServiceTest < Minitest::Test
 
   def preconnect_response_for_policies(host, policies)
     {
-      'redirect_host'     => host,
+      'redirect_host' => host,
       'security_policies' => policies
     }
   end

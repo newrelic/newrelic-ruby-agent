@@ -55,11 +55,11 @@ module NewRelic
       response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(
           NewRelic::Agent.instance, NewRelic::Agent.config)
       with_config_low_priority({
-                    :'transction_tracer.enabled' => true,
-                    :'error_collector.enabled' => true}) do
+        :'transction_tracer.enabled' => true,
+        :'error_collector.enabled' => true}) do
         response_handler.configure_agent(
          'agent_config' => {'transaction_tracer.enabled' => false},
-                                         'collect_errors' => false)
+         'collect_errors' => false)
         refute NewRelic::Agent.config[:'transaction_tracer.enabled']
         refute NewRelic::Agent.config[:'error_collector.enabled']
       end
@@ -187,8 +187,8 @@ module NewRelic
       stats_hash = {
         :count => 12,
         :total => 42,
-        :min   => 1,
-        :max   => 5,
+        :min => 1,
+        :max => 5,
         :sum_of_squares => 999
       }
       expected_stats = NewRelic::Agent::Stats.new()
@@ -207,7 +207,7 @@ module NewRelic
       dummy_engine = NewRelic::Agent.agent.stats_engine
       incomplete_stats_hash = {
         :count => 12,
-        :max   => 5,
+        :max => 5,
         :sum_of_squares => 999
       }
 

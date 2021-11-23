@@ -11,12 +11,12 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
   def setup
     @config = {
-      :application_id         => '5, 6', # collector can return app multiple ids
-      :beacon                 => 'beacon',
-      :browser_key            => 'browserKey',
-      :js_agent_loader        => 'loader',
-      :license_key            => "\0", # no-op obfuscation key
-      :'rum.enabled'          => true,
+      :application_id => '5, 6', # collector can return app multiple ids
+      :beacon => 'beacon',
+      :browser_key => 'browserKey',
+      :js_agent_loader => 'loader',
+      :license_key => "\0", # no-op obfuscation key
+      :'rum.enabled' => true,
       :disable_harvest_thread => true
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
@@ -163,14 +163,14 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
         data = instrumentor.data_for_js_agent(txn)
         expected = {
-          "beacon"          => "beacon",
-          "errorBeacon"     => "",
-          "licenseKey"      => "browserKey",
-          "applicationID"   => "5, 6",
+          "beacon" => "beacon",
+          "errorBeacon" => "",
+          "licenseKey" => "browserKey",
+          "applicationID" => "5, 6",
           "transactionName" => pack("most recent transaction"),
-          "queueTime"       => 0,
+          "queueTime" => 0,
           "applicationTime" => 10000,
-          "agent"           => ""
+          "agent" => ""
         }
 
         js = instrumentor.browser_timing_config(state)

@@ -18,7 +18,7 @@ module NewRelic::Agent
       def distributed_tracing_enabled
         {
           :'cross_application_tracer.enabled' => false,
-          :'distributed_tracing.enabled'      => true,
+          :'distributed_tracing.enabled' => true,
           :account_id => "190",
           :primary_application_id => "46954",
           :trusted_account_key => "trust_this!"

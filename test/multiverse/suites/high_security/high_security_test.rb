@@ -25,9 +25,9 @@ class HighSecurityTest < Minitest::Test
         "capture_params" => true,
 
         "transaction_tracer.capture_attributes" => true,
-        "error_collector.capture_attributes"    => true,
+        "error_collector.capture_attributes" => true,
         "browser_monitoring.capture_attributes" => true,
-        "analytics_events.capture_attributes"   => true,
+        "analytics_events.capture_attributes" => true,
 
         "attributes.enabled" => true,
         "attributes.include" => ["*", "request.parameters.*"],

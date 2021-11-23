@@ -94,7 +94,7 @@ module MarshallingTestCases
 
     expected_event = [
       {
-        "type"      => "CustomEventType",
+        "type" => "CustomEventType",
         "timestamp" => t0.to_i
       },
       {

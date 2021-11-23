@@ -135,16 +135,16 @@ module NewRelic
         # known operations coming in. Anything not matching the list is fine,
         # it just needs to get downcased directly for use.
         OPERATION_NAMES = {
-          'Find'    => 'find',
-          'Load'    => 'find',
-          'Count'   => 'find',
-          'Exists'  => 'find',
-          'Create'  => 'create',
+          'Find' => 'find',
+          'Load' => 'find',
+          'Count' => 'find',
+          'Exists' => 'find',
+          'Create' => 'create',
           'Columns' => 'columns',
           'Indexes' => 'indexes',
           'Destroy' => 'destroy',
-          'Update'  => 'update',
-          'Save'    => 'save'
+          'Update' => 'update',
+          'Save' => 'save'
         }.freeze
 
         def map_operation(raw_operation)
@@ -155,15 +155,15 @@ module NewRelic
         end
 
         PRODUCT_NAMES = {
-          "mysql"      => "MySQL",
-          "mysql2"     => "MySQL",
+          "mysql" => "MySQL",
+          "mysql2" => "MySQL",
 
           "postgresql" => "Postgres",
 
-          "sqlite3"    => "SQLite",
+          "sqlite3" => "SQLite",
 
           # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
-          "jdbcmysql"  => "MySQL",
+          "jdbcmysql" => "MySQL",
 
           # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
           "jdbcpostgresql" => "Postgres",
@@ -175,21 +175,21 @@ module NewRelic
           "jdbcsqlite3" => "SQLite",
 
           # https://rubygems.org/gems/activerecord-jdbcderby-adapter
-          "derby"      => "Derby",
-          "jdbcderby"  => "Derby",
+          "derby" => "Derby",
+          "jdbcderby" => "Derby",
 
           # https://rubygems.org/gems/activerecord-jdbc-adapter
-          "jdbc"       => "JDBC",
+          "jdbc" => "JDBC",
 
           # https://rubygems.org/gems/activerecord-jdbcmssql-adapter
-          "jdbcmssql"  => "MSSQL",
-          "mssql"      => "MSSQL",
+          "jdbcmssql" => "MSSQL",
+          "mssql" => "MSSQL",
 
           # https://rubygems.org/gems/activerecord-sqlserver-adapter
-          "sqlserver"  => "MSSQL",
+          "sqlserver" => "MSSQL",
 
           # https://rubygems.org/gems/activerecord-odbc-adapter
-          "odbc"       => "ODBC",
+          "odbc" => "ODBC",
 
           # https://rubygems.org/gems/activerecord-oracle_enhanced-adapter
           "oracle_enhanced" => "Oracle"
@@ -206,17 +206,17 @@ module NewRelic
           extend self
 
           PRODUCT_SYMBOLS = {
-            "mysql"      => :mysql,
-            "mysql2"     => :mysql,
-            "jdbcmysql"  => :mysql,
+            "mysql" => :mysql,
+            "mysql2" => :mysql,
+            "jdbcmysql" => :mysql,
 
-            "postgresql"     => :postgres,
+            "postgresql" => :postgres,
             "jdbcpostgresql" => :postgres,
-            "postgis"        => :postgres
+            "postgis" => :postgres
           }.freeze
 
           DATASTORE_DEFAULT_PORTS = {
-            :mysql    => "3306",
+            :mysql => "3306",
             :postgres => "5432"
           }.freeze
 

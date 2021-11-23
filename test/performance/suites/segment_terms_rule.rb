@@ -11,7 +11,7 @@ class SegmentTermsRuleTests < Performance::TestCase
     measure do
       NewRelic::Agent::RulesEngine::SegmentTermsRule.new({
         'prefix' => 'foo/bar/',
-        'terms'  => []
+        'terms' => []
       }).matches?('foo/bar')
     end
   end
@@ -20,7 +20,7 @@ class SegmentTermsRuleTests < Performance::TestCase
     measure do
       NewRelic::Agent::RulesEngine::SegmentTermsRule.new({
         'prefix' => 'foo/bar/',
-        'terms'  => []
+        'terms' => []
       }).apply('foo/bar/baz/qux')
     end
   end

@@ -44,11 +44,11 @@ namespace :newrelic do
       new_revision = rev
       deploy_options = {
         :environment => environment,
-        :revision    => new_revision,
-        :changelog   => changelog,
+        :revision => new_revision,
+        :changelog => changelog,
         :description => description,
-        :appname     => appname,
-        :user        => user,
+        :appname => appname,
+        :user => user,
         :license_key => license_key
       }
 

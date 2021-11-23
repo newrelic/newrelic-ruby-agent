@@ -53,7 +53,7 @@ class NewRelic::MetricSpec
 
   def to_json(*a)
     {'name' => name,
-    'scope' => scope}.to_json(*a)
+     'scope' => scope}.to_json(*a)
   end
 
   def <=>(o)

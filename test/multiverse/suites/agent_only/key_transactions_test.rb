@@ -13,7 +13,7 @@ class KeyTransactionsTest < Minitest::Test
   setup_and_teardown_agent do |collector|
     collector.stub('connect', {
       'web_transactions_apdex' => {
-        WEB_KEY_TXN   => 1,
+        WEB_KEY_TXN => 1,
         OTHER_KEY_TXN => 1
       },
       'apdex_t' => 10

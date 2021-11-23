@@ -20,16 +20,16 @@ module NewRelic
         }
 
         DIALECT_COMPONENTS = {
-          :fallback   => COMPONENTS_REGEX_MAP.keys,
-          :mysql      => [:single_quotes, :double_quotes, :numeric_literals, :boolean_literals,
+          :fallback => COMPONENTS_REGEX_MAP.keys,
+          :mysql => [:single_quotes, :double_quotes, :numeric_literals, :boolean_literals,
                           :hexadecimal_literals, :comments, :multi_line_comments],
-          :postgres   => [:single_quotes, :dollar_quotes, :uuids, :numeric_literals,
+          :postgres => [:single_quotes, :dollar_quotes, :uuids, :numeric_literals,
                           :boolean_literals, :comments, :multi_line_comments],
-          :sqlite     => [:single_quotes, :numeric_literals, :boolean_literals, :hexadecimal_literals,
+          :sqlite => [:single_quotes, :numeric_literals, :boolean_literals, :hexadecimal_literals,
                           :comments, :multi_line_comments],
-          :oracle     => [:single_quotes, :oracle_quoted_strings, :numeric_literals, :comments,
+          :oracle => [:single_quotes, :oracle_quoted_strings, :numeric_literals, :comments,
                           :multi_line_comments],
-          :cassandra  => [:single_quotes, :uuids, :numeric_literals, :boolean_literals,
+          :cassandra => [:single_quotes, :uuids, :numeric_literals, :boolean_literals,
                           :hexadecimal_literals, :comments, :multi_line_comments]
         }
 

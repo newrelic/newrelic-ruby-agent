@@ -59,20 +59,20 @@ module NewRelic
       super(DEFAULT_PORT)
       @id_counter = 0
       @mock = {
-        'preconnect'              => Response.new(200, {'return_value' => {'redirect_host' => 'localhost'}}),
-        'connect'                 => Response.new(200, Proc.new { {'return_value' => {"agent_run_id" => agent_run_id}} }),
-        'get_agent_commands'      => Response.new(200, {'return_value' => []}),
-        'agent_command_results'   => Response.new(200, {'return_value' => []}),
-        'metric_data'             => Response.new(200, {'return_value' => [[{'name' => 'Some/Metric/Spec'}, 1]]}),
-        'sql_trace_data'          => Response.new(200, {'return_value' => nil}),
+        'preconnect' => Response.new(200, {'return_value' => {'redirect_host' => 'localhost'}}),
+        'connect' => Response.new(200, Proc.new { {'return_value' => {"agent_run_id" => agent_run_id}} }),
+        'get_agent_commands' => Response.new(200, {'return_value' => []}),
+        'agent_command_results' => Response.new(200, {'return_value' => []}),
+        'metric_data' => Response.new(200, {'return_value' => [[{'name' => 'Some/Metric/Spec'}, 1]]}),
+        'sql_trace_data' => Response.new(200, {'return_value' => nil}),
         'transaction_sample_data' => Response.new(200, {'return_value' => nil}),
-        'error_data'              => Response.new(200, {'return_value' => nil}),
-        'profile_data'            => Response.new(200, {'return_value' => nil}),
-        'shutdown'                => Response.new(200, {'return_value' => nil}),
-        'analytic_event_data'     => Response.new(200, {'return_value' => nil}),
-        'custom_event_data'       => Response.new(200, {'return_value' => nil}),
-        'error_event_data'        => Response.new(200, {'return_value' => nil}),
-        'span_event_data'         => Response.new(200, {'return_value' => nil})
+        'error_data' => Response.new(200, {'return_value' => nil}),
+        'profile_data' => Response.new(200, {'return_value' => nil}),
+        'shutdown' => Response.new(200, {'return_value' => nil}),
+        'analytic_event_data' => Response.new(200, {'return_value' => nil}),
+        'custom_event_data' => Response.new(200, {'return_value' => nil}),
+        'error_event_data' => Response.new(200, {'return_value' => nil}),
+        'span_event_data' => Response.new(200, {'return_value' => nil})
       }
       reset
     end

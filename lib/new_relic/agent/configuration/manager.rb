@@ -289,7 +289,7 @@ module NewRelic
           pairs = remove_duplicates(pairs)
           pairs.map do |key, value|
             {
-              'label_type'  => truncate(key),
+              'label_type' => truncate(key),
               'label_value' => truncate(value.to_s, key)
             }
           end

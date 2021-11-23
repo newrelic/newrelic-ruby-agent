@@ -22,8 +22,8 @@ module Performance
     def exception=(e)
       if e.is_a?(Exception)
         @exception = {
-          'class'     => e.class.name,
-          'message'   => e.message,
+          'class' => e.class.name,
+          'message' => e.message,
           'backtrace' => e.backtrace
         }
       else
@@ -69,11 +69,11 @@ module Performance
 
     def to_h
       h = {
-        "suite"        => suite_name,
-        "name"         => @test_name,
+        "suite" => suite_name,
+        "name" => @test_name,
         "measurements" => measurements_hash,
-        "tags"         => @tags,
-        "iterations"   => @iterations
+        "tags" => @tags,
+        "iterations" => @iterations
       }
       h['exception'] = @exception if @exception
       h['artifacts'] = @artifacts if @artifacts && !@artifacts.empty?

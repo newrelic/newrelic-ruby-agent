@@ -50,20 +50,20 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     expected_values = {:call_count => 1}
     assert_metrics_recorded_exclusive(
-      'HttpDispatcher'                                        => expected_values,
-      'Controller/inner_txn'                                  => expected_values,
+      'HttpDispatcher' => expected_values,
+      'Controller/inner_txn' => expected_values,
 
-      'Nested/Controller/inner_txn'                           => expected_values,
+      'Nested/Controller/inner_txn' => expected_values,
       ['Nested/Controller/inner_txn', 'Controller/inner_txn'] => expected_values,
-      'Nested/Controller/outer_txn'                           => expected_values,
+      'Nested/Controller/outer_txn' => expected_values,
       ['Nested/Controller/outer_txn', 'Controller/inner_txn'] => expected_values,
 
       ['foo' , 'Controller/inner_txn'] => expected_values,
-      'foo'                                                   => expected_values,
-      'bar'                                                   => expected_values,
-      'Supportability/API/trace_execution_scoped'             => expected_values,
-      'OtherTransactionTotalTime'                             => expected_values,
-      'OtherTransactionTotalTime/Controller/inner_txn'        => expected_values,
+      'foo' => expected_values,
+      'bar' => expected_values,
+      'Supportability/API/trace_execution_scoped' => expected_values,
+      'OtherTransactionTotalTime' => expected_values,
+      'OtherTransactionTotalTime/Controller/inner_txn' => expected_values,
       'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => expected_values,
       'Supportability/API/recording_web_transaction?' => expected_values,
       'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => expected_values,
@@ -96,13 +96,13 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     expected_values = {:call_count => 1}
     assert_metrics_recorded_exclusive(
-      'outer'                                     => expected_values,
-      'foo'                                       => expected_values,
-      ['foo', 'outer']                            => expected_values,
-      'bar'                                       => expected_values,
+      'outer' => expected_values,
+      'foo' => expected_values,
+      ['foo', 'outer'] => expected_values,
+      'bar' => expected_values,
       'Supportability/API/trace_execution_scoped' => expected_values,
-      'OtherTransactionTotalTime'                 => expected_values,
-      'OtherTransactionTotalTime/outer'           => expected_values,
+      'OtherTransactionTotalTime' => expected_values,
+      'OtherTransactionTotalTime/outer' => expected_values,
       'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => expected_values,
       'Supportability/API/recording_web_transaction?' => expected_values,
       'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther' => expected_values,
@@ -143,36 +143,36 @@ class NewRelic::Agent::MethodTracer::TraceExecutionScopedTest < Minitest::Test
 
     assert_metrics_recorded_exclusive(
       'txn' => {
-        :call_count           =>  1,
+        :call_count => 1,
       },
       'parent' => {
-        :call_count           =>  1,
-        :total_call_time      => 20,
+        :call_count => 1,
+        :total_call_time => 20,
         :total_exclusive_time => 10,
       },
       ['parent', 'txn'] => {
-        :call_count           =>  1,
-        :total_call_time      => 20,
+        :call_count => 1,
+        :total_call_time => 20,
         :total_exclusive_time => 10,
       },
       'child' => {
-        :call_count           =>  1,
-        :total_call_time      => 10,
+        :call_count => 1,
+        :total_call_time => 10,
         :total_exclusive_time => 10,
       },
       ['child', 'txn'] => {
-        :call_count           =>  1,
-        :total_call_time      => 10,
+        :call_count => 1,
+        :total_call_time => 10,
         :total_exclusive_time => 10,
       },
       'Supportability/API/trace_execution_scoped' => {
         call_count: 2
       },
       'OtherTransactionTotalTime' => {
-        :call_count           => 1
+        :call_count => 1
       },
       'OtherTransactionTotalTime/txn' => {
-        :call_count           => 1
+        :call_count => 1
       },
       'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all' => {
         :call_count => 1

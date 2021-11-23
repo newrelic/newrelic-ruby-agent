@@ -388,10 +388,10 @@ module NewRelic
       def generate_remote_method_uri(method)
         params = {
           'protocol_version' => PROTOCOL_VERSION,
-          'license_key'      => license_key,
-          'run_id'           => @agent_id,
-          'method'           => method,
-          'marshal_format'   => 'json', # Other formats are explicitly
+          'license_key' => license_key,
+          'run_id' => @agent_id,
+          'method' => method,
+          'marshal_format' => 'json', # Other formats are explicitly
                                         # ruled out; see the initializer
         }
 
@@ -512,7 +512,7 @@ module NewRelic
       def send_request(opts)
         headers = {
           'Content-Encoding' => opts[:encoding],
-          'Host'             => opts[:collector].name
+          'Host' => opts[:collector].name
         }
         headers.merge!(@request_headers_map) if @request_headers_map
 

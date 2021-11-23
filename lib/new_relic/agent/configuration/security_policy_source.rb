@@ -52,150 +52,150 @@ module NewRelic
         SECURITY_SETTINGS_MAP = {
           "record_sql" => [
             {
-              option:         :'transaction_tracer.record_sql',
-              supported:      true,
-              enabled_fn:     method(:record_sql_enabled?),
+              option: :'transaction_tracer.record_sql',
+              supported: true,
+              enabled_fn: method(:record_sql_enabled?),
               disabled_value: 'off',
-              permitted_fn:   proc { |policies|
+              permitted_fn: proc { |policies|
                 change_setting(policies, :'transaction_tracer.record_sql', 'obfuscated')
               }
             },
             {
-              option:         :'slow_sql.record_sql',
-              supported:      true,
-              enabled_fn:     method(:record_sql_enabled?),
+              option: :'slow_sql.record_sql',
+              supported: true,
+              enabled_fn: method(:record_sql_enabled?),
               disabled_value: 'off',
-              permitted_fn:   proc { |policies|
+              permitted_fn: proc { |policies|
                 change_setting(policies, :'slow_sql.record_sql', 'obfuscated')
               }
             },
             {
-              option:         :'mongo.capture_queries',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'mongo.capture_queries',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   proc{ |policies|
+              permitted_fn: proc{ |policies|
                 change_setting(policies, :'mongo.obfuscate_queries', true)
               }
             },
             {
-              option:         :'transaction_tracer.record_redis_arguments',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'transaction_tracer.record_redis_arguments',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ],
           "attributes_include" => [
             {
-              option:         :'attributes.include',
-              supported:      true,
-              enabled_fn:     method(:not_empty?),
+              option: :'attributes.include',
+              supported: true,
+              enabled_fn: method(:not_empty?),
               disabled_value: [],
-              permitted_fn:   nil
+              permitted_fn: nil
             },
             {
-              option:         :'transaction_tracer.attributes.include',
-              supported:      true,
-              enabled_fn:     method(:not_empty?),
+              option: :'transaction_tracer.attributes.include',
+              supported: true,
+              enabled_fn: method(:not_empty?),
               disabled_value: [],
-              permitted_fn:   nil
+              permitted_fn: nil
             },
             {
-              option:         :'transaction_events.attributes.include',
-              supported:      true,
-              enabled_fn:     method(:not_empty?),
+              option: :'transaction_events.attributes.include',
+              supported: true,
+              enabled_fn: method(:not_empty?),
               disabled_value: [],
-              permitted_fn:   nil
+              permitted_fn: nil
             },
             {
-              option:         :'error_collector.attributes.include',
-              supported:      true,
-              enabled_fn:     method(:not_empty?),
+              option: :'error_collector.attributes.include',
+              supported: true,
+              enabled_fn: method(:not_empty?),
               disabled_value: [],
-              permitted_fn:   nil
+              permitted_fn: nil
             },
             {
-              option:         :'browser_monitoring.attributes.include',
-              supported:      true,
-              enabled_fn:     method(:not_empty?),
+              option: :'browser_monitoring.attributes.include',
+              supported: true,
+              enabled_fn: method(:not_empty?),
               disabled_value: [],
-              permitted_fn:   nil
+              permitted_fn: nil
             },
             {
-              option:         :'span_events.attributes.include',
-              supported:      true,
-              enabled_fn:     method(:not_empty?),
+              option: :'span_events.attributes.include',
+              supported: true,
+              enabled_fn: method(:not_empty?),
               disabled_value: [],
-              permitted_fn:   nil
+              permitted_fn: nil
             },
             {
-              option:         :'transaction_segments.attributes.include',
-              supported:      true,
-              enabled_fn:     method(:not_empty?),
+              option: :'transaction_segments.attributes.include',
+              supported: true,
+              enabled_fn: method(:not_empty?),
               disabled_value: [],
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ],
           "allow_raw_exception_messages" => [
             {
-              option:         :'strip_exception_messages.enabled',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'strip_exception_messages.enabled',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ],
           "custom_events" => [
             {
-              option:         :'custom_insights_events.enabled',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'custom_insights_events.enabled',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ],
           "custom_parameters" => [
             {
-              option:         :'custom_attributes.enabled',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'custom_attributes.enabled',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ],
           "custom_instrumentation_editor" => [
             {
-              option:         nil,
-              supported:      false,
-              enabled_fn:     nil,
+              option: nil,
+              supported: false,
+              enabled_fn: nil,
               disabled_value: nil,
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ],
           "message_parameters" => [
             {
-              option:         :'message_tracer.segment_parameters.enabled',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'message_tracer.segment_parameters.enabled',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ],
           "job_arguments" => [
             {
-              option:         :'resque.capture_params',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'resque.capture_params',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   nil
+              permitted_fn: nil
             },
             {
-              option:         :'sidekiq.capture_params',
-              supported:      true,
-              enabled_fn:     method(:enabled?),
+              option: :'sidekiq.capture_params',
+              supported: true,
+              enabled_fn: method(:enabled?),
               disabled_value: false,
-              permitted_fn:   nil
+              permitted_fn: nil
             }
           ]
         }

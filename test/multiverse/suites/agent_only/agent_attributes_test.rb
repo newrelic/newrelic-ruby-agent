@@ -167,7 +167,7 @@ class AgentAttributesTest < Minitest::Test
     config = {
       :'transaction_tracer.attributes.enabled' => false,
       :'transaction_events.attributes.enabled' => false,
-      :'error_collector.attributes.enabled'    => false,
+      :'error_collector.attributes.enabled' => false,
       :'browser_monitoring.attributes.enabled' => false
     }
 
@@ -307,7 +307,7 @@ class AgentAttributesTest < Minitest::Test
       :'transaction_tracer.transaction_threshold' => -10,
       :'transaction_tracer.attributes.enabled' => true,
       :'transaction_events.attributes.enabled' => true,
-      :'error_collector.attributes.enabled'    => true,
+      :'error_collector.attributes.enabled' => true,
       :'browser_monitoring.attributes.enabled' => true
     }
 

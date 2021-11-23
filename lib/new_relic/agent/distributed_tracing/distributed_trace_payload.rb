@@ -134,14 +134,14 @@ module NewRelic
         }
 
         result[DATA_KEY] = {
-          PARENT_TYPE_KEY       => parent_type,
+          PARENT_TYPE_KEY => parent_type,
           PARENT_ACCOUNT_ID_KEY => parent_account_id,
-          PARENT_APP_KEY        => parent_app_id,
-          TX_KEY                => transaction_id,
-          TRACE_ID_KEY          => trace_id,
-          SAMPLED_KEY           => sampled,
-          PRIORITY_KEY          => priority,
-          TIMESTAMP_KEY         => timestamp,
+          PARENT_APP_KEY => parent_app_id,
+          TX_KEY => transaction_id,
+          TRACE_ID_KEY => trace_id,
+          SAMPLED_KEY => sampled,
+          PRIORITY_KEY => priority,
+          TIMESTAMP_KEY => timestamp,
         }
 
         result[DATA_KEY][ID_KEY] = id if id

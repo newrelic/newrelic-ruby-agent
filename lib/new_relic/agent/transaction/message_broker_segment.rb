@@ -36,12 +36,12 @@ module NewRelic
         }
 
         TYPES = {
-          exchange:        EXCHANGE,
+          exchange: EXCHANGE,
           temporary_queue: QUEUE,
-          queue:           QUEUE,
+          queue: QUEUE,
           temporary_topic: TOPIC,
-          topic:           TOPIC,
-          unknown:         EXCHANGE
+          topic: TOPIC,
+          unknown: EXCHANGE
         }
 
         METRIC_PREFIX = 'MessageBroker/'.freeze

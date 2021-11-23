@@ -73,9 +73,9 @@ module NewRelic::Agent::Configuration
 
     def test_callable_value_for_config_should_return_computed_value
       source = {
-        :foo          => 'bar',
+        :foo => 'bar',
         :simple_value => Proc.new { '666' },
-        :reference    => Proc.new { self['foo'] }
+        :reference => Proc.new { self['foo'] }
       }
       @manager.add_config_for_testing(source)
 
@@ -86,9 +86,9 @@ module NewRelic::Agent::Configuration
 
     def test_manager_resolves_nested_procs_from_default_source
       source = {
-        :foo    => Proc.new { self[:bar] },
-        :bar    => Proc.new { self[:baz] },
-        :baz    => Proc.new { 'Russian Nesting Dolls!' }
+        :foo => Proc.new { self[:bar] },
+        :bar => Proc.new { self[:baz] },
+        :baz => Proc.new { 'Russian Nesting Dolls!' }
       }
       @manager.add_config_for_testing(source)
 
@@ -366,7 +366,7 @@ module NewRelic::Agent::Configuration
     def test_parse_labels_from_dictionary_allows_booleans
       @manager.add_config_for_testing(:labels => {
         "truthy" => true,
-        "falsy"  => false
+        "falsy" => false
       })
 
       expected = [

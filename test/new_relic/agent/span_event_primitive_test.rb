@@ -179,7 +179,7 @@ module NewRelic
             payload = {
               :name => "Controller/whatever",
               :type => :controller,
-              :start_timestamp =>  Process.clock_gettime(Process::CLOCK_REALTIME),
+              :start_timestamp => Process.clock_gettime(Process::CLOCK_REALTIME),
               :duration => 0.1,
               :attributes => attributes,
               :error => false,

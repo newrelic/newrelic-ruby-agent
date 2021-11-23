@@ -146,14 +146,14 @@ module NewRelic
         transaction_name = transaction.best_name || ::NewRelic::Agent::UNKNOWN_METRIC
 
         data = {
-          BEACON_KEY           => NewRelic::Agent.config[:beacon],
-          ERROR_BEACON_KEY     => NewRelic::Agent.config[:error_beacon],
-          LICENSE_KEY_KEY      => NewRelic::Agent.config[:browser_key],
-          APPLICATIONID_KEY    => NewRelic::Agent.config[:application_id],
+          BEACON_KEY => NewRelic::Agent.config[:beacon],
+          ERROR_BEACON_KEY => NewRelic::Agent.config[:error_beacon],
+          LICENSE_KEY_KEY => NewRelic::Agent.config[:browser_key],
+          APPLICATIONID_KEY => NewRelic::Agent.config[:application_id],
           TRANSACTION_NAME_KEY => obfuscator.obfuscate(transaction_name),
-          QUEUE_TIME_KEY       => queue_time_in_millis,
+          QUEUE_TIME_KEY => queue_time_in_millis,
           APPLICATION_TIME_KEY => app_time_in_millis,
-          AGENT_KEY            => NewRelic::Agent.config[:js_agent_file]
+          AGENT_KEY => NewRelic::Agent.config[:js_agent_file]
         }
 
         add_ssl_for_http(data)

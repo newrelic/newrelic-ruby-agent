@@ -20,13 +20,13 @@ module NewRelic
 
         def test_metrics_recorded_for_known_methods
           method_name_mapping = {
-            "service_upload.active_storage"             => "upload".freeze,
+            "service_upload.active_storage" => "upload".freeze,
             "service_streaming_download.active_storage" => "streaming_download".freeze,
-            "service_download.active_storage"           => "download".freeze,
-            "service_delete.active_storage"             => "delete".freeze,
-            "service_delete_prefixed.active_storage"    => "delete_prefixed".freeze,
-            "service_exist.active_storage"              => "exist".freeze,
-            "service_url.active_storage"                => "url".freeze
+            "service_download.active_storage" => "download".freeze,
+            "service_delete.active_storage" => "delete".freeze,
+            "service_delete_prefixed.active_storage" => "delete_prefixed".freeze,
+            "service_exist.active_storage" => "exist".freeze,
+            "service_url.active_storage" => "url".freeze
           }
 
           in_transaction 'test' do

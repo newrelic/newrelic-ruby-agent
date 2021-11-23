@@ -47,8 +47,8 @@ module NewRelic
       def create_event(type, priority, attributes)
         [
           {TYPE => type,
-            TIMESTAMP => Process.clock_gettime(Process::CLOCK_REALTIME).to_i,
-            PRIORITY => priority
+           TIMESTAMP => Process.clock_gettime(Process::CLOCK_REALTIME).to_i,
+           PRIORITY => priority
           },
           AttributeProcessing.flatten_and_coerce(attributes)
         ]

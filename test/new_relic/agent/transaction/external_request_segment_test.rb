@@ -735,10 +735,10 @@ module NewRelic::Agent
 
       def test_segment_adds_distributed_trace_header
         distributed_tracing_config = {
-          :'distributed_tracing.enabled'      => true,
+          :'distributed_tracing.enabled' => true,
           :'cross_application_tracer.enabled' => false,
-          :account_id                         => "190",
-          :primary_application_id             => "46954"
+          :account_id => "190",
+          :primary_application_id => "46954"
         }
 
         with_config(distributed_tracing_config) do
@@ -908,7 +908,7 @@ module NewRelic::Agent
 
       def cat_config
         {
-          :cross_process_id    => "269975#22824",
+          :cross_process_id => "269975#22824",
           :trusted_account_ids => [1, 269975],
           :'cross_application_tracer.enabled' => true,
           :'distributed_tracing.enabled' => false,
@@ -917,19 +917,19 @@ module NewRelic::Agent
 
       def distributed_tracing_config
         {
-          :'distributed_tracing.enabled'      => true,
+          :'distributed_tracing.enabled' => true,
           :'cross_application_tracer.enabled' => false,
-          :'span_events.enabled'              => true,
+          :'span_events.enabled' => true,
         }
       end
 
       def trace_context_config
         {
-          :'distributed_tracing.enabled'      => true,
+          :'distributed_tracing.enabled' => true,
           :'cross_application_tracer.enabled' => false,
-          :account_id                         => "190",
-          :primary_application_id             => "46954",
-          :trusted_account_key                => "trust_this!"
+          :account_id => "190",
+          :primary_application_id => "46954",
+          :trusted_account_key => "trust_this!"
         }
       end
 

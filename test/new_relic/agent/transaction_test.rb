@@ -144,11 +144,11 @@ module NewRelic::Agent
     end
 
     KEY_TRANSACTION_CONFIG = {
-        :web_transactions_apdex => {
-          'Controller/slow/txn' => 4,
-          'OtherTransaction/back/ground' => 8
-        },
-        :apdex => 1
+      :web_transactions_apdex => {
+        'Controller/slow/txn' => 4,
+        'OtherTransaction/back/ground' => 8
+      },
+      :apdex => 1
     }
 
     def test_update_apdex_records_correct_apdex_for_key_transaction
@@ -170,8 +170,8 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(
-          'ApdexAll'       => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
-          'Apdex'          => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'ApdexAll' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'Apdex' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
           'Apdex/slow/txn' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1}
         )
       end
@@ -197,8 +197,8 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(
-          'ApdexAll'        => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
-          'Apdex'           => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'ApdexAll' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'Apdex' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
           'Apdex/other/txn' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1}
         )
       end
@@ -223,7 +223,7 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(
-          'ApdexAll'   => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'ApdexAll' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
           'ApdexOther' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
           'ApdexOther/Transaction/back/ground' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1}
         )
@@ -257,8 +257,8 @@ module NewRelic::Agent
 
       expected = {:min_call_time => 2.5, :max_call_time => 2.5}
       assert_metrics_recorded(
-        'ApdexAll'       => expected,
-        'Apdex'          => expected,
+        'ApdexAll' => expected,
+        'Apdex' => expected,
         'Apdex/some/txn' => expected
       )
     end
@@ -297,10 +297,10 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(
-          'ApdexAll'       => {:apdex_s => 2, :apdex_t => 2, :apdex_f => 2},
-          'Apdex'          => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'ApdexAll' => {:apdex_s => 2, :apdex_t => 2, :apdex_f => 2},
+          'Apdex' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
           'Apdex/slow/txn' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
-          'ApdexOther'     => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'ApdexOther' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
           'ApdexOther/Transaction/back/ground' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1}
         )
       end
@@ -326,7 +326,7 @@ module NewRelic::Agent
       end
 
       assert_metrics_recorded(
-        'Apdex'          => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1},
+        'Apdex' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1},
         'Apdex/whatever' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1}
       )
     end
@@ -343,7 +343,7 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(
-          'Apdex'          => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1},
+          'Apdex' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1},
           'Apdex/whatever' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1}
         )
       end
@@ -373,8 +373,8 @@ module NewRelic::Agent
       rules = [
         {
           'match_expression' => '[0-9]+',
-          'replacement'      => '*',
-          'replace_all'      => true
+          'replacement' => '*',
+          'replace_all' => true
         }
       ]
 

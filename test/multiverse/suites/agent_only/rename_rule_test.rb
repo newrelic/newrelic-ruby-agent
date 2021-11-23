@@ -15,9 +15,9 @@ class RenameRuleTest < Minitest::Test
       {'prefix' => 'other/qux', 'terms' => ['Nothing', 'one', 'two']}
     ]
     collector.stub('connect', {
-      'agent_run_id'              => 666,
-      'transaction_name_rules'    => rules,
-      'metric_name_rules'         => rules,
+      'agent_run_id' => 666,
+      'transaction_name_rules' => rules,
+      'metric_name_rules' => rules,
       'transaction_segment_terms' => segment_terms_rules
     })
   end

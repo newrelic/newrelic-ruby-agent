@@ -38,7 +38,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
 
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => {
-        :call_count      => 1,
+        :call_count => 1,
         :total_call_time => (t1 - t0)
       }
     )
@@ -58,7 +58,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
     get_path('/queue/nested', t0)
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => {
-        :call_count      => 1,
+        :call_count => 1,
         :total_call_time => (t1 - t0)
       }
     )

@@ -19,7 +19,7 @@ end
 runner_options = {
   :agent_path => repo_path,
   :reporter_classes => ['HakoReporter'],
-  :isolate          => true,
+  :isolate => true,
   :tags => {
     :run_id => 'ben-perf-test'
   }

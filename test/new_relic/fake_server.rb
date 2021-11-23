@@ -18,7 +18,7 @@ module NewRelic
 
     # Default server options
     DEFAULT_OPTIONS = {
-      :Logger    => ::WEBrick::Log.new('/dev/null'),
+      :Logger => ::WEBrick::Log.new('/dev/null'),
       :AccessLog => [['/dev/null', '']]
     }
 
@@ -27,11 +27,11 @@ module NewRelic
     FAKE_SSL_KEY_PATH = File.join(CONFIG_PATH, "test.cert.key")
 
     SSL_OPTIONS = {
-      :SSLEnable       => true,
+      :SSLEnable => true,
       :SSLVerifyClient => OpenSSL::SSL::VERIFY_NONE,
-      :SSLPrivateKey   => OpenSSL::PKey::RSA.new(File.read(FAKE_SSL_KEY_PATH)),
-      :SSLCertificate  => OpenSSL::X509::Certificate.new(File.read(FAKE_SSL_CERT_PATH)),
-      :SSLCertName     => [["CN", "newrelic.com"]]
+      :SSLPrivateKey => OpenSSL::PKey::RSA.new(File.read(FAKE_SSL_KEY_PATH)),
+      :SSLCertificate => OpenSSL::X509::Certificate.new(File.read(FAKE_SSL_CERT_PATH)),
+      :SSLCertName => [["CN", "newrelic.com"]]
     }
 
     def initialize(port = DEFAULT_PORT)

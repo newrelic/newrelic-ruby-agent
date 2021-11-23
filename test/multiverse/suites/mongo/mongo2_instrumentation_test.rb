@@ -427,7 +427,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             node = find_last_transaction_node
 
             expected = {
-              :database   => @database_name,
+              :database => @database_name,
               :collection => @collection_name,
               'insert' => @collection_name,
               :operation => :insert,

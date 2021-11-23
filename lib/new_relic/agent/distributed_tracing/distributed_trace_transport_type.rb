@@ -21,7 +21,7 @@ module NewRelic
       ].freeze
 
       URL_SCHEMES = {
-        'http'  => NewRelic::HTTP,
+        'http' => NewRelic::HTTP,
         'https' => NewRelic::HTTPS,
       }.freeze
 

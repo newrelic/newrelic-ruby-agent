@@ -16,10 +16,10 @@ module NewRelic
         @config = {
           :'cross_application_tracer.enabled' => false,
           :'distributed_tracing.enabled' => true,
-          :encoding_key                  => "\0",
-          :account_id                    => "190",
-          :primary_application_id        => "46954",
-          :trusted_account_key           => "99999"
+          :encoding_key => "\0",
+          :account_id => "190",
+          :primary_application_id => "46954",
+          :trusted_account_key => "99999"
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config, true)
