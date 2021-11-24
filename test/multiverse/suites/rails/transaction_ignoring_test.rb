@@ -10,9 +10,11 @@ class TransactionIgnorerController < ApplicationController
     state = NewRelic::Agent::Tracer.state
     NewRelic::Agent.set_transaction_name(params[:txn_name])
     NewRelic::Agent.notice_error(params[:error_msg]) if params[:error_msg]
-    NewRelic::Agent.instance.sql_sampler.notice_sql("select * from test",
-      "Database/test/select",
-      nil, 1.5, state) if params[:slow_sql]
+    if params[:slow_sql]
+      NewRelic::Agent.instance.sql_sampler.notice_sql("select * from test",
+        "Database/test/select",
+        nil, 1.5, state)
+    end
     render body: 'some stuff'
   end
 end

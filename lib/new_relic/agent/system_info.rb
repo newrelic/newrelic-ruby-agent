@@ -182,10 +182,10 @@ module NewRelic
         # docker native driver with systemd
         when '/' then nil
         # in a cgroup, but we don't recognize its format
-        when /docker\/.*[^0-9a-f]/ then
+        when /docker\/.*[^0-9a-f]/
           ::NewRelic::Agent.logger.debug("Cgroup indicates docker but container_id has invalid characters: '#{cpu_cgroup}'")
           return
-        when /docker/ then
+        when /docker/
           ::NewRelic::Agent.logger.debug("Cgroup indicates docker but container_id unrecognized: '#{cpu_cgroup}'")
           ::NewRelic::Agent.increment_metric "Supportability/utilization/docker/error"
           return

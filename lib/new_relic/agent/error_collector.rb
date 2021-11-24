@@ -239,7 +239,7 @@ module NewRelic
         error_trace_aggregator.add_to_error_queue(noticed_error)
         transaction = state.current_transaction
         payload = transaction ? transaction.payload : nil
-        span_id ||= (transaction && transaction.current_segment) ? transaction.current_segment.guid : nil
+        span_id ||= transaction && transaction.current_segment ? transaction.current_segment.guid : nil
         error_event_aggregator.record(noticed_error, payload, span_id)
         exception
       rescue => e

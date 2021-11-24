@@ -372,7 +372,7 @@ end
 #   in_transaction('foobar', :category => :controller) { ... }
 #
 def in_transaction *args, &blk
-  opts = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
+  opts = args.last && args.last.is_a?(Hash) ? args.pop : {}
   category = (opts && opts.delete(:category)) || :other
 
   # At least one test passes `:transaction_name => nil`, so handle it gently

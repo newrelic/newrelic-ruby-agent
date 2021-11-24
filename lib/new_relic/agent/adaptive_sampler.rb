@@ -56,7 +56,7 @@ module NewRelic
         return unless @period_start + @period_duration <= now
 
         elapsed_periods = Integer((now - @period_start) / @period_duration)
-        @period_start = @period_start + elapsed_periods * @period_duration
+        @period_start += elapsed_periods * @period_duration
 
         @first_period = false
         @seen_last = elapsed_periods > 1 ? 0 : @seen

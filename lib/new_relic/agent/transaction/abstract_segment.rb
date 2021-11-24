@@ -156,7 +156,7 @@ module NewRelic
 
         def child_start segment
           @active_children += 1
-          @concurrent_children = @concurrent_children || @active_children > 1
+          @concurrent_children ||= @active_children > 1
 
           transaction.async = true if @concurrent_children
         end
