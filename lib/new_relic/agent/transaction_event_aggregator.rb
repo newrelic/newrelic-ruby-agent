@@ -17,7 +17,7 @@ module NewRelic
       buffer_class PrioritySampledBuffer
 
       def record priority: nil, event: nil, &blk
-        unless (event || priority && blk)
+        unless event || priority && blk
           raise ArgumentError, "Expected priority and block, or event"
         end
 

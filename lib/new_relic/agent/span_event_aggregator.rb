@@ -17,7 +17,7 @@ module NewRelic
         :'distributed_tracing.enabled'
 
       def record(priority: nil, event: nil, &blk)
-        unless (event || priority && blk)
+        unless event || priority && blk
           raise ArgumentError, "Expected priority and block, or event"
         end
 
