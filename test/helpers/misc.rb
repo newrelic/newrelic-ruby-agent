@@ -85,7 +85,7 @@ def symbolize_keys_in_object(object)
   case object
   when Hash
     object.inject({}) do |memo, (k, v)|
-       memo[k.to_sym] = symbolize_keys_in_object(v)
+      memo[k.to_sym] = symbolize_keys_in_object(v)
        memo
     end
   when Array
@@ -99,7 +99,7 @@ def stringify_keys_in_object(object)
   case object
   when Hash
     object.inject({}) do |memo, (k, v)|
-       memo[k.to_s] = stringify_keys_in_object(v)
+      memo[k.to_s] = stringify_keys_in_object(v)
        memo
     end
   when Array

@@ -90,7 +90,7 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
       response = http.request(request)
 
       if response.is_a? Net::HTTPSuccess
-        info "Recorded deployment to '#{@appname}' (#{@description || Time.now })"
+        info "Recorded deployment to '#{@appname}' (#{@description || Time.now})"
       else
         err_string = REXML::Document.new(response.body).elements['errors/error'].map(&:to_s).join("; ") rescue response.message
         raise NewRelic::Cli::Command::CommandFailure, "Deployment not recorded: #{err_string}"

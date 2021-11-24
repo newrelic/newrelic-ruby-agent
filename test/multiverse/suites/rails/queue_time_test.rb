@@ -65,7 +65,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
 
   def get_path(path, queue_start_time)
     value = "t=#{(queue_start_time * 1_000_000).to_i}"
-    get(path, headers:{REQUEST_START_HEADER => value})
+    get(path, headers: {REQUEST_START_HEADER => value})
   end
 
   def extract_queue_time_from_response

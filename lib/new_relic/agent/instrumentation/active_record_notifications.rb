@@ -67,9 +67,9 @@ module NewRelic
               connection_id: object_id,
               connection: self
             ) do
-                @lock.synchronize do
-                  yield
-                end
+              @lock.synchronize do
+                yield
+              end
             end
           rescue => e
             raise translate_exception_class(e, sql)

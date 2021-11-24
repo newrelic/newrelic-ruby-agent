@@ -143,9 +143,9 @@ module NewRelic
         }
       end
 
-      def self.num_physical_packages ; get_processor_info[:num_physical_packages] end
+      def self.num_physical_packages; get_processor_info[:num_physical_packages] end
 
-      def self.num_physical_cores ; get_processor_info[:num_physical_cores] end
+      def self.num_physical_cores; get_processor_info[:num_physical_cores] end
 
       def self.num_logical_processors; get_processor_info[:num_logical_processors] end
 

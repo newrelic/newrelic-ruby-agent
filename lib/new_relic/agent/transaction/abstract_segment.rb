@@ -94,7 +94,7 @@ module NewRelic
         end
 
         def time_range
-          @start_time.to_f .. @end_time.to_f
+          @start_time.to_f..@end_time.to_f
         end
 
         def children_time_ranges

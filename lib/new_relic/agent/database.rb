@@ -205,7 +205,7 @@ module NewRelic
               Database.obfuscate_sql(self)
             when :raw
               sql.to_s
-            end
+          end
         end
 
         # This takes a connection config hash from ActiveRecord or Sequel and

@@ -31,7 +31,7 @@ module NewRelic
       end
     end
 
-  private
+    private
 
     # Convert any kind of object to a short string.
     def flatten(object)

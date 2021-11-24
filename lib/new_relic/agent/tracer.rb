@@ -230,7 +230,7 @@ module NewRelic
         #
         # @api public
         def start_segment(name:,
-          unscoped_metrics:nil,
+          unscoped_metrics: nil,
           start_time: nil,
           parent: nil)
 

@@ -16,8 +16,8 @@ module NewRelic
       enabled_key :'analytics_events.enabled'
       buffer_class PrioritySampledBuffer
 
-      def record priority: nil, event:nil, &blk
-        unless(event || priority && blk)
+      def record priority: nil, event: nil, &blk
+        unless (event || priority && blk)
           raise ArgumentError, "Expected priority and block, or event"
         end
 

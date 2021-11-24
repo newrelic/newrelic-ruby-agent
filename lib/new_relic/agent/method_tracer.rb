@@ -309,7 +309,7 @@ module NewRelic
                   instance_exec(*args, &scoped_metric)
                 when String
                   scoped_metric
-                end
+              end
 
               unscoped_metrics_eval = unscoped_metrics.map do |metric|
                 metric.kind_of?(Proc) ? instance_exec(*args, &metric) : metric.to_s

@@ -103,8 +103,8 @@ module NewRelic
           in_transaction('test_txn') do |txn|
             external_segment = NewRelic::Agent::Tracer\
               .start_external_request_segment library: "net/http",
-                           uri: "http://docs.newrelic.com",
-                           procedure: "GET"
+                uri: "http://docs.newrelic.com",
+                procedure: "GET"
             payload = txn.distributed_tracer.create_distributed_trace_payload
           end
 
