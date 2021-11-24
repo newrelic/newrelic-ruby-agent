@@ -97,8 +97,9 @@ Layout/ClosingParenthesisIndentation:
 Layout/CommentIndentation:
   Enabled: true
 
+# Disabling for now
 Layout/ConditionPosition:
-  Enabled: true
+  Enabled: false
 
 Layout/DefEndAlignment:
   Enabled: true
@@ -121,16 +122,18 @@ Layout/EmptyComment:
 Layout/EmptyLineAfterGuardClause:
   Enabled: false
 
+# Disabling for now
 Layout/EmptyLineAfterMagicComment:
-  Enabled: true
+  Enabled: false
 
 Layout/EmptyLineAfterMultilineCondition:
   Enabled: false
 
+# Disabling for now
 Layout/EmptyLineBetweenDefs:
-  Enabled: true
-  AllowAdjacentOneLineDefs: false
-  NumberOfEmptyLines: 1
+  Enabled: false
+  # AllowAdjacentOneLineDefs: false
+  # NumberOfEmptyLines: 1
 
 Layout/EmptyLines:
   Enabled: true
@@ -220,8 +223,9 @@ Layout/HashAlignment:
 Layout/HeredocArgumentClosingParenthesis:
   Enabled: false
 
+# Disabling for now
 Layout/HeredocIndentation:
-  Enabled: true
+  Enabled: false
 
 Layout/IndentationConsistency:
   Enabled: true
@@ -360,9 +364,10 @@ Layout/SpaceBeforeFirstArg:
 Layout/SpaceBeforeSemicolon:
   Enabled: true
 
+# Disabling for now
 Layout/SpaceInLambdaLiteral:
-  Enabled: true
-  EnforcedStyle: require_no_space
+  Enabled: false
+  # EnforcedStyle: require_no_space
 
 Layout/SpaceInsideArrayLiteralBrackets:
   Enabled: true
@@ -387,8 +392,9 @@ Layout/SpaceInsideParens:
   Enabled: true
   EnforcedStyle: no_space
 
+# Disabling for now
 Layout/SpaceInsidePercentLiteralDelimiters:
-  Enabled: true
+  Enabled: false
 
 Layout/SpaceInsideRangeLiteral:
   Enabled: true
@@ -416,8 +422,9 @@ Lint/AmbiguousAssignment:
 Lint/AmbiguousBlockAssociation:
   Enabled: false
 
+# Disabling for now
 Lint/AmbiguousOperator:
-  Enabled: true
+  Enabled: false
 
 Lint/AmbiguousOperatorPrecedence:
   Enabled: false
@@ -425,27 +432,32 @@ Lint/AmbiguousOperatorPrecedence:
 Lint/AmbiguousRange:
   Enabled: false
 
+# Disabling for now
 Lint/AmbiguousRegexpLiteral:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Lint/AssignmentInCondition:
-  Enabled: true
-  AllowSafeAssignment: true
+  Enabled: false
+  # AllowSafeAssignment: true
 
 Lint/BigDecimalNew:
   Enabled: true
 
+# Disabling for now
 Lint/BinaryOperatorWithIdenticalOperands:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Lint/BooleanSymbol:
-  Enabled: true
+  Enabled: false
 
 Lint/CircularArgumentReference:
   Enabled: true
 
+# Disabling for now
 Lint/ConstantDefinitionInBlock:
-  Enabled: true
+  Enabled: false
 
 Lint/ConstantResolution:
   Enabled: false
@@ -453,8 +465,9 @@ Lint/ConstantResolution:
 Lint/Debugger:
   Enabled: true
 
+# Disabling for now
 Lint/DeprecatedClassMethods:
-  Enabled: true
+  Enabled: false
 
 Lint/DeprecatedConstants:
   Enabled: true
@@ -468,8 +481,9 @@ Lint/DisjunctiveAssignmentInConstructor:
 Lint/DuplicateBranch:
   Enabled: false
 
+# Disabling for now
 Lint/DuplicateCaseCondition:
-  Enabled: true
+  Enabled: false
 
 Lint/DuplicateElsifCondition:
   Enabled: true
@@ -477,8 +491,9 @@ Lint/DuplicateElsifCondition:
 Lint/DuplicateHashKey:
   Enabled: true
 
+# Disabling for now
 Lint/DuplicateMethods:
-  Enabled: true
+  Enabled: false
 
 Lint/DuplicateRegexpCharacterClassElement:
   Enabled: true
@@ -504,9 +519,10 @@ Lint/EmptyClass:
 Lint/EmptyConditionalBody:
   Enabled: false
 
+# Disabling for now
 Lint/EmptyEnsure:
-  Enabled: true
-  AutoCorrect: true
+  Enabled: false
+  # AutoCorrect: true
 
 Lint/EmptyExpression:
   Enabled: true
@@ -524,8 +540,9 @@ Lint/EmptyWhen:
   Enabled: true
   AllowComments: true
 
+# Disabling for now
 Lint/EnsureReturn:
-  Enabled: true
+  Enabled: false
 
 Lint/ErbNewArguments:
   Enabled: true
@@ -533,8 +550,9 @@ Lint/ErbNewArguments:
 Lint/FlipFlop:
   Enabled: true
 
+# Disabling for now
 Lint/FloatComparison:
-  Enabled: true
+  Enabled: false
 
 Lint/FloatOutOfRange:
   Enabled: true
@@ -554,15 +572,18 @@ Lint/IdentityComparison:
 Lint/ImplicitStringConcatenation:
   Enabled: true
 
+# Disabling for now
 Lint/IneffectiveAccessModifier:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Lint/InheritException:
-  Enabled: true
-  EnforcedStyle: runtime_error
+  Enabled: false
+  # EnforcedStyle: runtime_error
 
+# Disabling for now
 Lint/InterpolationCheck:
-  Enabled: true
+  Enabled: false
 
 Lint/LambdaWithoutLiteralBlock:
   Enabled: false
@@ -589,8 +610,9 @@ Lint/MixedRegexpCaptureTypes:
 Lint/MultipleComparison:
   Enabled: true
 
+# Disabling for now
 Lint/NestedMethodDefinition:
-  Enabled: true
+  Enabled: false
 
 Lint/NestedPercentLiteral:
   Enabled: true
@@ -601,11 +623,13 @@ Lint/NextWithoutAccumulator:
 Lint/NoReturnInBeginEndBlocks:
   Enabled: false
 
+# Disabling for now
 Lint/NonDeterministicRequireOrder:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Lint/NonLocalExitFromIterator:
-  Enabled: true
+  Enabled: false
 
 Lint/NumberConversion:
   Enabled: false
@@ -622,8 +646,9 @@ Lint/OrderedMagicComments:
 Lint/OutOfRangeRegexpRef:
   Enabled: true
 
+# Disabling for now
 Lint/ParenthesesAsGroupedExpression:
-  Enabled: true
+  Enabled: false
 
 Lint/PercentStringArray:
   Enabled: false
@@ -631,8 +656,9 @@ Lint/PercentStringArray:
 Lint/PercentSymbolArray:
   Enabled: true
 
+# Disabling for now
 Lint/RaiseException:
-  Enabled: true
+  Enabled: false
 
 Lint/RandOne:
   Enabled: true
@@ -646,17 +672,20 @@ Lint/RedundantCopEnableDirective:
 Lint/RedundantDirGlobSort:
   Enabled: false
 
+# Disabling for now
 Lint/RedundantRequireStatement:
-  Enabled: true
+  Enabled: false
 
 Lint/RedundantSafeNavigation:
   Enabled: false
 
+# Disabling for now
 Lint/RedundantSplatExpansion:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Lint/RedundantStringCoercion:
-  Enabled: true
+  Enabled: false
 
 Lint/RedundantWithIndex:
   Enabled: true
@@ -670,8 +699,9 @@ Lint/RegexpAsCondition:
 Lint/RequireParentheses:
   Enabled: true
 
+# Disabling for now
 Lint/RescueException:
-  Enabled: true
+  Enabled: false
 
 Lint/RescueType:
   Enabled: true
@@ -709,12 +739,14 @@ Lint/SelfAssignment:
 Lint/SendWithMixinArgument:
   Enabled: false
 
+# Disabling for now
 Lint/ShadowedArgument:
-  Enabled: true
-  IgnoreImplicitReferences: false
+  Enabled: false
+  # IgnoreImplicitReferences: false
 
+# Disabling for now
 Lint/ShadowedException:
-  Enabled: true
+  Enabled: false
 
 Lint/ShadowingOuterLocalVariable:
   Enabled: false
@@ -725,8 +757,9 @@ Lint/StructNewOverride:
 Lint/SuppressedException:
   Enabled: false
 
+# Disabling for now
 Lint/SymbolConversion:
-  Enabled: true
+  Enabled: false
 
 Lint/Syntax:
   Enabled: true
@@ -746,20 +779,23 @@ Lint/TrailingCommaInAttributeDeclaration:
 Lint/TripleQuotes:
   Enabled: true
 
+# Disabling for now
 Lint/UnderscorePrefixedVariableName:
-  Enabled: true
+  Enabled: false
 
 Lint/UnexpectedBlockArity:
   Enabled: false
 
+# Disabling for now
 Lint/UnifiedInteger:
-  Enabled: true
+  Enabled: false
 
 Lint/UnmodifiedReduceAccumulator:
   Enabled: false
 
+# Disabling for now
 Lint/UnreachableCode:
-  Enabled: true
+  Enabled: false
 
 Lint/UnreachableLoop:
   Enabled: false
@@ -779,7 +815,7 @@ Lint/UriRegexp:
 Lint/UselessAccessModifier:
   Enabled: false
 
-# Don't know
+# Disabling for now
 Lint/UselessAssignment:
   Enabled: false
 
@@ -792,12 +828,14 @@ Lint/UselessMethodDefinition:
 Lint/UselessSetterCall:
   Enabled: true
 
+# Disabling for now
 Lint/UselessTimes:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Lint/Void:
-  Enabled: true
-  CheckForMethodsWithNoSideEffects: false
+  Enabled: false
+  # CheckForMethodsWithNoSideEffects: false
 
 Lint/IncompatibleIoSelectWithFiberScheduler:
   Enabled: false
@@ -841,8 +879,9 @@ Naming/AccessorMethodName:
 Naming/AsciiIdentifiers:
   Enabled: false
 
+# Disabling for now
 Naming/BinaryOperatorParameterName:
-  Enabled: true
+  Enabled: false
 
 Naming/BlockParameterName:
   Enabled: true
@@ -886,8 +925,8 @@ Naming/RescuedExceptionsVariableName:
   Enabled: false
 
 Naming/VariableName:
-  Enabled: true
-  EnforcedStyle: snake_case
+  Enabled: false
+  # EnforcedStyle: snake_case
 
 Naming/VariableNumber:
   Enabled: false
@@ -904,11 +943,13 @@ Performance/BigDecimalWithNumericArgument:
 Performance/BindCall:
   Enabled: true
 
+# Disabling for now
 Performance/BlockGivenWithExplicitBlock:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Performance/Caller:
-  Enabled: true
+  Enabled: false
 
 Performance/CaseWhenSplat:
   Enabled: false
@@ -925,11 +966,13 @@ Performance/CollectionLiteralInLoop:
 Performance/CompareWithBlock:
   Enabled: true
 
+# Disabling for now
 Performance/ConstantRegexp:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Performance/Count:
-  Enabled: true
+  Enabled: false
 
 Performance/DeletePrefix:
   Enabled: false
@@ -937,12 +980,14 @@ Performance/DeletePrefix:
 Performance/DeleteSuffix:
   Enabled: false
 
+# Disabling for now
 Performance/Detect:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Performance/DoubleStartEndWith:
-  Enabled: true
-  IncludeActiveSupportAliases: false
+  Enabled: false
+  # IncludeActiveSupportAliases: false
 
 Performance/EndWith:
   Enabled: true
@@ -954,9 +999,10 @@ Performance/FlatMap:
   Enabled: true
   EnabledForFlattenWithoutParams: false
 
+# Disabling for now
 Performance/InefficientHashSearch:
-  Enabled: true
-  Safe: false
+  Enabled: false
+  # Safe: false
 
 Performance/IoReadlines:
   Enabled: false
@@ -980,12 +1026,14 @@ Performance/RedundantBlockCall:
 Performance/RedundantEqualityComparisonBlock:
   Enabled: false
 
+# Disabling for now
 Performance/RedundantMatch:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Performance/RedundantMerge:
-  Enabled: true
-  MaxKeyValuePairs: 2
+  Enabled: false
+  # MaxKeyValuePairs: 2
 
 Performance/RedundantSortBlock:
   Enabled: true
@@ -996,11 +1044,13 @@ Performance/RedundantSplitRegexpArgument:
 Performance/RedundantStringChars:
   Enabled: true
 
+# Disabling for now
 Performance/RegexpMatch:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Performance/ReverseEach:
-  Enabled: true
+  Enabled: false
 
 Performance/ReverseFirst:
   Enabled: true
@@ -1017,13 +1067,14 @@ Performance/SortReverse:
 Performance/Squeeze:
   Enabled: true
 
+# Disabling for now
 Performance/StartWith:
-  Enabled: true
+  Enabled: false
 
 Performance/StringInclude:
   Enabled: false
 
-# Don't know
+# Disabling for now
 Performance/StringReplacement:
   Enabled: false
 
@@ -1033,20 +1084,22 @@ Performance/Sum:
 Performance/TimesMap:
   Enabled: false
 
+# Disabling for now
 Performance/UnfreezeString:
-  Enabled: true
+  Enabled: false
 
 Performance/UriDefaultParser:
   Enabled: true
 
-# disabling: eval used for metaprogramming
+# Disabling for now
 Security/Eval:
   Enabled: false
 
+# Disabling for now
 Security/JSONLoad:
-  Enabled: true
-  AutoCorrect: false
-  SafeAutoCorrect: false
+  Enabled: false
+  # AutoCorrect: false
+  # SafeAutoCorrect: false
 
 Security/MarshalLoad:
   Enabled: false
@@ -1055,9 +1108,10 @@ Security/Open:
   Enabled: true
   Safe: false
 
+# Disabling for now
 Security/YAMLLoad:
-  Enabled: true
-  SafeAutoCorrect: false
+  Enabled: false
+  # SafeAutoCorrect: false
 
 Security/IoMethods:
   Enabled: false
@@ -1073,12 +1127,14 @@ Style/AccessModifierDeclarations:
 Style/AccessorGrouping:
   Enabled: false
 
+# Disabling for now
 Style/Alias:
-  Enabled: true
-  EnforcedStyle: prefer_alias_method
+  Enabled: false
+  # EnforcedStyle: prefer_alias_method
 
+# Disabling for now
 Style/AndOr:
-  Enabled: true
+  Enabled: false
 
 Style/ArgumentsForwarding:
   Enabled: true
@@ -1099,8 +1155,9 @@ Style/Attr:
 Style/AutoResourceCleanup:
   Enabled: false
 
+# Disabling for now
 Style/BarePercentLiterals:
-  Enabled: true
+  Enabled: false
   EnforcedStyle: bare_percent
 
 Style/BeginBlock:
@@ -1127,12 +1184,14 @@ Style/CharacterLiteral:
 Style/ClassAndModuleChildren:
   Enabled: false
 
+# Disabling for now
 Style/ClassCheck:
-  Enabled: true
-  EnforcedStyle: is_a?
+  Enabled: false
+  # EnforcedStyle: is_a?
 
+# Disabling for now
 Style/ClassEqualityComparison:
-  Enabled: true
+  Enabled: false
 
 Style/ClassMethods:
   Enabled: true
@@ -1149,8 +1208,9 @@ Style/CollectionCompact:
 Style/CollectionMethods:
   Enabled: false
 
+# Disabling for now
 Style/ColonMethodCall:
-  Enabled: true
+  Enabled: false
 
 Style/ColonMethodDefinition:
   Enabled: true
@@ -1158,10 +1218,11 @@ Style/ColonMethodDefinition:
 Style/CombinableLoops:
   Enabled: false
 
+# Disabling for now
 Style/CommandLiteral:
-  Enabled: true
-  EnforcedStyle: mixed
-  AllowInnerBackticks: false
+  Enabled: false
+  # EnforcedStyle: mixed
+  # AllowInnerBackticks: false
 
 Style/CommentAnnotation:
   Enabled: false
@@ -1169,11 +1230,12 @@ Style/CommentAnnotation:
 Style/CommentedKeyword:
   Enabled: false
 
+# Disabling for now
 Style/ConditionalAssignment:
-  Enabled: true
-  EnforcedStyle: assign_to_condition
-  SingleLineConditionsOnly: true
-  IncludeTernaryExpressions: true
+  Enabled: false
+  # EnforcedStyle: assign_to_condition
+  # SingleLineConditionsOnly: true
+  # IncludeTernaryExpressions: true
 
 Style/ConstantVisibility:
   Enabled: false
@@ -1187,8 +1249,9 @@ Style/DateTime:
 Style/DefWithParentheses:
   Enabled: true
 
+# Disabling for now
 Style/Dir:
-  Enabled: true
+  Enabled: false
 
 Style/DisableCopsWithinSourceCodeDirective:
   Enabled: false
@@ -1211,31 +1274,37 @@ Style/DoubleNegation:
 Style/EachForSimpleLoop:
   Enabled: true
 
+# Disabling for now
 Style/EachWithObject:
-  Enabled: true
+  Enabled: false
 
 Style/EmptyBlockParameter:
   Enabled: true
 
+# Disabling for now
 Style/EmptyCaseCondition:
-  Enabled: true
+  Enabled: false
 
 Style/EmptyElse:
   Enabled: true
   EnforcedStyle: both
 
+# Disabling for now
 Style/EmptyLambdaParameter:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Style/EmptyLiteral:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Style/EmptyMethod:
-  Enabled: true
-  EnforcedStyle: expanded
+  Enabled: false
+  # EnforcedStyle: expanded
 
+# Disabling for now
 Style/Encoding:
-  Enabled: true
+  Enabled: false
 
 Style/EndBlock:
   Enabled: true
@@ -1244,8 +1313,9 @@ Style/EndBlock:
 Style/EndlessMethod:
   Enabled: false
 
+# Disabling for now
 Style/EvalWithLocation:
-  Enabled: true
+  Enabled: false
 
 Style/EvenOdd:
   Enabled: false
@@ -1262,9 +1332,10 @@ Style/ExponentialNotation:
 Style/FloatDivision:
   Enabled: false
 
+# Disabling for now
 Style/For:
-  Enabled: true
-  EnforcedStyle: each
+  Enabled: false
+  # EnforcedStyle: each
 
 Style/FormatString:
   Enabled: false
@@ -1275,13 +1346,14 @@ Style/FormatStringToken:
 Style/FrozenStringLiteralComment:
   Enabled: false
 
-# Do we want this one? use $stderr instead of STDERR
-# Style/GlobalStdStream:
-#   Enabled: true
+# Disabling for now
+Style/GlobalStdStream:
+  Enabled: false
 
+# Disabling for now
 Style/GlobalVars:
-  Enabled: true
-  AllowedVariables: []
+  Enabled: false
+  # AllowedVariables: []
 
 Style/GuardClause:
   Enabled: false
@@ -1289,8 +1361,9 @@ Style/GuardClause:
 Style/HashAsLastArrayItem:
   Enabled: false
 
+# Disabling for now
 Style/HashConversion:
-  Enabled: true
+  Enabled: false
 
 Style/HashEachMethods:
   Enabled: false
@@ -1303,7 +1376,7 @@ Style/HashLikeCase:
 
 # Documentation: https://docs.rubocop.org/rubocop/cops_style.html#stylehashsyntax
 # I believe we want either hash_rockets or no_mixed_keys
-# don't know
+# Disabling for now
 Style/HashSyntax:
   Enabled: false
   # EnforcedStyle: ruby19_no_mixed_keys
@@ -1314,11 +1387,13 @@ Style/HashTransformKeys:
 Style/HashTransformValues:
   Enabled: false
 
+# Disabling for now
 Style/IdenticalConditionalBranches:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Style/IfInsideElse:
-  Enabled: true
+  Enabled: false
 
 Style/IfUnlessModifier:
   Enabled: false
@@ -1338,8 +1413,9 @@ Style/ImplicitRuntimeError:
 Style/InPatternThen:
   Enabled: false
 
+# Disabling for now
 Style/InfiniteLoop:
-  Enabled: true
+  Enabled: false
 
 Style/InlineComment:
   Enabled: false
@@ -1350,8 +1426,9 @@ Style/InverseMethods:
 Style/IpAddresses:
   Enabled: false
 
+# Disabling for now
 Style/KeywordParametersOrder:
-  Enabled: true
+  Enabled: false
 
 Style/Lambda:
   Enabled: false
@@ -1360,15 +1437,17 @@ Style/LambdaCall:
   Enabled: true
   EnforcedStyle: call
 
+# Disabling for now
 Style/LineEndConcatenation:
-  Enabled: true
-  SafeAutoCorrect: false
+  Enabled: false
+  # SafeAutoCorrect: false
 
 Style/MethodCallWithArgsParentheses:
   Enabled: false
 
+# Disabling for now
 Style/MethodCallWithoutArgsParentheses:
-  Enabled: true
+  Enabled: false
   IgnoredMethods: []
 
 Style/MethodCalledOnDoEndBlock:
@@ -1383,15 +1462,18 @@ Style/MinMax:
 Style/MissingElse:
   Enabled: false
 
+# Disabling for now
 Style/MissingRespondToMissing:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Style/MixinGrouping:
-  Enabled: true
-  EnforcedStyle: separated
+  Enabled: false
+  # EnforcedStyle: separated
 
+# Disabling for now
 Style/MixinUsage:
-  Enabled: true
+  Enabled: false
 
 Style/ModuleFunction:
   Enabled: false
@@ -1408,9 +1490,10 @@ Style/MultilineIfThen:
 Style/MultilineInPatternThen:
   Enabled: false
 
+# Disabling for now
 Style/MultilineMemoization:
-  Enabled: true
-  EnforcedStyle: keyword
+  Enabled: false
+  # EnforcedStyle: keyword
 
 Style/MultilineMethodSignature:
   Enabled: false
@@ -1436,32 +1519,34 @@ Style/NegatedIfElseCondition:
 Style/NegatedUnless:
   Enabled: false
 
+# Disabling for now
 Style/NegatedWhile:
-  Enabled: true
+  Enabled: false
 
 Style/NestedModifier:
   Enabled: true
 
+# Disabling for now
 Style/NestedParenthesizedCalls:
-  Enabled: true
-  AllowedMethods:
-    - be
-    - be_a
-    - be_an
-    - be_between
-    - be_falsey
-    - be_kind_of
-    - be_instance_of
-    - be_truthy
-    - be_within
-    - eq
-    - eql
-    - end_with
-    - include
-    - match
-    - raise_error
-    - respond_to
-    - start_with
+  Enabled: false
+  # AllowedMethods:
+  #   - be
+  #   - be_a
+  #   - be_an
+  #   - be_between
+  #   - be_falsey
+  #   - be_kind_of
+  #   - be_instance_of
+  #   - be_truthy
+  #   - be_within
+  #   - eq
+  #   - eql
+  #   - end_with
+  #   - include
+  #   - match
+  #   - raise_error
+  #   - respond_to
+  #   - start_with
 
 Style/NestedTernaryOperator:
   Enabled: true
@@ -1469,21 +1554,24 @@ Style/NestedTernaryOperator:
 Style/Next:
   Enabled: false
 
+# Disabling for now
 Style/NilComparison:
-  Enabled: true
-  EnforcedStyle: predicate
+  Enabled: false
+  # EnforcedStyle: predicate
 
+# Disabling for now
 Style/NilLambda:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Style/NonNilCheck:
-  Enabled: true
-  IncludeSemanticChanges: false
+  Enabled: false
+  # IncludeSemanticChanges: false
 
 Style/Not:
   Enabled: true
 
-# Don't know
+# Disabling for now
 Style/NumericLiteralPrefix:
   Enabled: false
   # EnforcedOctalStyle: zero_with_o
@@ -1506,8 +1594,9 @@ Style/OptionalArguments:
 Style/OptionalBooleanParameter:
   Enabled: false
 
+# Disabling for now
 Style/OrAssignment:
-  Enabled: true
+  Enabled: false
 
 Style/ParallelAssignment:
   Enabled: false
@@ -1536,8 +1625,9 @@ Style/PerlBackrefs:
 Style/PreferredHashMethods:
   Enabled: false
 
+# Disabling for now
 Style/Proc:
-  Enabled: true
+  Enabled: false
 
 Style/QuotedSymbols:
   Enabled: false
@@ -1551,12 +1641,13 @@ Style/RandomWithOffset:
 Style/RedundantArgument:
   Enabled: false
 
+# Disabling for now
 Style/RedundantAssignment:
-  Enabled: true
+  Enabled: false
 
-# Don't know
-# Style/RedundantBegin:
-#   Enabled: true
+# Disabling for now
+Style/RedundantBegin:
+  Enabled: false
 
 Style/RedundantCapitalW:
   Enabled: false
@@ -1576,31 +1667,37 @@ Style/RedundantFetchBlock:
 Style/RedundantFileExtensionInRequire:
   Enabled: true
 
+# Disabling for now
 Style/RedundantFreeze:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Style/RedundantInterpolation:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Style/RedundantParentheses:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Style/RedundantPercentQ:
-  Enabled: true
+  Enabled: false
 
 Style/RedundantRegexpCharacterClass:
   Enabled: true
 
+# Disabling for now
 Style/RedundantRegexpEscape:
-  Enabled: true
+  Enabled: false
 
-# Don't know
+# Disabling for now
 Style/RedundantReturn:
   Enabled: false
 #   AllowMultipleReturnValues: false
 
+# Disabling for now
 Style/RedundantSelf:
-  Enabled: true
+  Enabled: false
 
 Style/RedundantSelfAssignment:
   Enabled: false
@@ -1608,8 +1705,9 @@ Style/RedundantSelfAssignment:
 Style/RedundantSelfAssignmentBranch:
   Enabled: false
 
+# Disabling for now
 Style/RedundantSort:
-  Enabled: true
+  Enabled: false
 
 Style/RedundantSortBy:
   Enabled: true
@@ -1617,25 +1715,28 @@ Style/RedundantSortBy:
 Style/RegexpLiteral:
   Enabled: false
 
+# Disabling for now
 Style/RescueModifier:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Style/RescueStandardError:
-  Enabled: true
-  EnforcedStyle: implicit
+  Enabled: false
+  # EnforcedStyle: implicit
 
 Style/ReturnNil:
   Enabled: false
 
+# Can't use, not available in Ruby 2.2
 Style/SafeNavigation:
-  Enabled: true
-  ConvertCodeThatCanStartToReturnNil: false
-  AllowedMethods:
-    - present?
-    - blank?
-    - presence
-    - try
-    - try!
+  Enabled: false
+  # ConvertCodeThatCanStartToReturnNil: false
+  # AllowedMethods:
+  #   - present?
+  #   - blank?
+  #   - presence
+  #   - try
+  #   - try!
 
 Style/Sample:
   Enabled: true
@@ -1643,9 +1744,10 @@ Style/Sample:
 Style/SelfAssignment:
   Enabled: true
 
+# Disabling for now
 Style/Semicolon:
-  Enabled: true
-  AllowAsExpressionSeparator: false
+  Enabled: false
+  # AllowAsExpressionSeparator: false
 
 Style/Send:
   Enabled: false
@@ -1659,9 +1761,10 @@ Style/SingleArgumentDig:
 Style/SingleLineBlockParams:
   Enabled: false
 
+# Disabling for now
 Style/SingleLineMethods:
-  Enabled: true
-  AllowIfMethodIsEmpty: false
+  Enabled: false
+  # AllowIfMethodIsEmpty: false
 
 Style/SlicingWithRange:
   Enabled: true
@@ -1692,15 +1795,16 @@ Style/StringConcatenation:
 Style/StringHashKeys:
   Enabled: false
 
-# Don't know what we want here
+# Disabling for now
 Style/StringLiterals:
   Enabled: false
 #   EnforcedStyle: double_quotes
 #   ConsistentQuotesInMultiline: false
 
+# Disabling for now
 Style/StringLiteralsInInterpolation:
-  Enabled: true
-  EnforcedStyle: double_quotes
+  Enabled: false
+  # EnforcedStyle: double_quotes
 
 Style/StringMethods:
   Enabled: false
@@ -1717,8 +1821,9 @@ Style/SwapValues:
 Style/SymbolArray:
   Enabled: false
 
+# Disabling for now
 Style/SymbolLiteral:
-  Enabled: true
+  Enabled: false
 
 Style/SymbolProc:
   Enabled: false
@@ -1793,11 +1898,13 @@ Style/UnlessElse:
 Style/UnlessLogicalOperators:
   Enabled: false
 
+# Disabling for now
 Style/UnpackFirst:
-  Enabled: true
+  Enabled: false
 
+# Disabling for now
 Style/VariableInterpolation:
-  Enabled: true
+  Enabled: false
 
 Style/WhenThen:
   Enabled: true
@@ -1811,9 +1918,10 @@ Style/WhileUntilModifier:
 Style/WordArray:
   Enabled: false
 
+# Disabling for now
 Style/YodaCondition:
-  Enabled: true
-  EnforcedStyle: forbid_for_all_comparison_operators
+  Enabled: false
+  # EnforcedStyle: forbid_for_all_comparison_operators
 
 Style/ZeroLengthPredicate:
   Enabled: false
