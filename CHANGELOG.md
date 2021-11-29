@@ -10,7 +10,7 @@
 
     This setting has been marked as deprecated in the documentation since version 7.2.0 and is now flagged as deprecated within the code.
 
-  * **Remove Rails-2 specific instrumentation**
+  * **Remove Rails 2 instrumentation**
 
     Though any version of Rails 2 has not been supported by the Ruby Agent since v3.18.1.330, instrumentation for ActionController and ActionWebService specific to that version were still part of the agent. This instrumentation has been removed.
 
