@@ -32,18 +32,6 @@ common: &default_settings
 # Defines the maximum number of request events reported from a single harvest.
 # analytics_events.max_samples_stored: 1200
 
-# If true, enables analytics event sampling.
-# analytics_events.enabled: true
-
-# If true, enables analytics event sampling.
-# analytics_events.enabled: true
-
-# Defines the maximum number of request events reported from a single harvest.
-# analytics_events.max_samples_stored: 1200
-
-# Defines the maximum number of request events reported from a single harvest.
-# analytics_events.max_samples_stored: 1200
-
 # Prefix of attributes to exclude from all destinations. Allows * as wildcard at
 # end.
 # attributes_exclude: []
@@ -223,13 +211,7 @@ common: &default_settings
 # error_collector.attributes.include: []
 
 # If true, the agent collects TransactionError events.
-# error_collector.capture_events: false
-
-# If true, the agent collects TransactionError events.
 # error_collector.capture_events: true
-
-# If true, the agent captures traced errors and error count metrics.
-# error_collector.enabled: true
 
 # If true, the agent captures traced errors and error count metrics.
 # error_collector.enabled: true
