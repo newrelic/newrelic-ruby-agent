@@ -151,7 +151,4 @@ class LoggerInstrumentationTest < Minitest::Test
       "Supportability/API/record_metric" => {}
     })
   end
-
-
-
 end

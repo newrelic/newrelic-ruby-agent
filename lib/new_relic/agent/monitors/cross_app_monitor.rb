@@ -22,10 +22,12 @@ module NewRelic
         CONTENT_LENGTH_HEADER_KEY = 'HTTP_CONTENT_LENGTH'.freeze
 
         def on_finished_configuring(events)
-          Deprecator.deprecate('cross_application_tracer')
-          ::NewRelic::Agent.logger.warn(
-            "[DEPRECATED] Cross application tracing is enabled. Distributed tracing is replacing cross application tracing as the default means of tracing between services. To continue using cross application tracing, enable it with `cross_application_tracer.enabled: true` and `distributed_tracing.enabled: false`"
-          )
+          if CrossAppTracing.cross_app_enabled?
+            Deprecator.deprecate('cross_application_tracer')
+            ::NewRelic::Agent.logger.warn(
+              "[DEPRECATED] Cross application tracing is enabled. Distributed tracing is replacing cross application tracing as the default means of tracing between services. To continue using cross application tracing, enable it with `cross_application_tracer.enabled: true` and `distributed_tracing.enabled: false`"
+            )
+          end
 
           register_event_listeners(events)
         end

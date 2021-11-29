@@ -1,0 +1,22 @@
+instrumentation_methods :chain, :prepend
+
+# Tests latest Tilt version
+if RUBY_VERSION >= '3.0.0'
+  gemfile <<-RB
+    gem 'tilt'
+    gem 'webrick'
+    gem 'haml'
+  RB
+else
+  gemfile <<-RB
+    gem 'tilt'
+    gem 'haml'
+  RB
+end
+
+if RUBY_VERSION < '3.0.0'
+  gemfile <<-RB
+    gem 'tilt', '1.4.1'
+    gem 'haml'
+  RB
+end

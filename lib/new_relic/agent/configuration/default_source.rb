@@ -1007,6 +1007,14 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'Controls auto-instrumentation of Ruby standard library Logger at start up.  May be one of [auto|prepend|chain|disabled].'
         },
+        :'instrumentation.tilt' => {
+          :default => "auto",
+          :public => true,
+          :type => String,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of Tilt at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
         :disable_data_mapper => {
           :default => false,
           :public => true,
@@ -1305,6 +1313,7 @@ module NewRelic
           :default => 'ActionController::RoutingError,Sinatra::NotFound',
           :public => true,
           :type => String,
+          :deprecated => true, 
           :allowed_from_server => true,
           :dynamic_name => true,
           :description => 'Use `error_collector.ignore_classes` instead. Specify a comma-delimited list of error classes that the agent should ignore.'
@@ -1805,10 +1814,7 @@ module NewRelic
           :type         => Array,
           :allowed_from_server => true,
           :transform    => DefaultSource.method(:convert_to_regexp_list),
-          :description  => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore.' \
-            '*Note:* This will only ignore transaction events, not spans or traces from the same transation. See documentation on ' \
-            '(Ignoring Specific Transactions)[https://docs.newrelic.com/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring] ' \
-            'for more details.'
+          :description  => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore.' 
         },
         :'synthetics.traces_limit' => {
           :default      => 20,

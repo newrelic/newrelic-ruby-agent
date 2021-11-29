@@ -31,7 +31,13 @@ module NewRelic::Agent::Instrumentation
         if supports_datastore_instances?
           yield ::Dalli::Client, dalli_client_prepender(dalli_methods)
           yield ::Dalli::Client, dalli_get_multi_prepender(:get_multi)
-          yield ::Dalli::Server, dalli_server_prepender
+
+          if supports_binary_protocol?
+            yield ::Dalli::Protocol::Binary, dalli_server_prepender
+          else
+            yield ::Dalli::Server, dalli_server_prepender
+          end
+
           yield ::Dalli::Ring, dalli_ring_prepender
         else
           yield ::Dalli::Client, dalli_client_prepender(client_methods)
