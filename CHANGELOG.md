@@ -14,6 +14,10 @@
 
     Though any version of Rails 2 has not been supported by the Ruby Agent since v3.18.1.330, instrumentation for ActionController and ActionWebService specific to that version were still part of the agent. This instrumentation has been removed.
 
+  * **Remove duplicated settings from newrelic.yml**
+
+    Thank you @jakeonfire for bringing this to our attention and @kuroponzu for making the changes!
+
   * **Bugfix: Span Events recorded when using newrelic_ignore**
 
     Previously, the agent was incorrectly recording span events only on transactions that should be ignored. This fix will prevent any span events from being created for transactions using newrelic_ignore, or ignored through the `rules.ignore_url_regexes` configuration option.
@@ -25,6 +29,11 @@
   * **Bugfix: Scrub non-unicode characters from DecoratingLogger**
 
     To prevent `JSON::GeneratorErrors`, the DecoratingLogger replaces non-unicode characters with the replacement character: �. Thank you @jdelStrother for bringing this to our attention!
+    
+  * **Bugfix: Distributed tracing headers emitted errors when agent was not connected**
+
+    Previously, when the agent had not yet connected it would fail to create a trace context payload and emit an error, "TypeError: no implicit conversion of nil into String," to the agent logs. The correct behavior in this situation is to not create these headers due to the lack of required information. Now, the agent will not attempt to create trace context payloads until it has connected. Thank you @Izzette for bringing this to our attention!
+
 
   ## v8.1.0
 
