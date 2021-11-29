@@ -252,20 +252,25 @@ module HttpClientTestCases
   # X-NewRelic-ID with a value equal to the encoded cross_app_id.
 
   def test_adds_a_request_header_to_outgoing_requests_if_xp_enabled
+    NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
     with_config(:"cross_application_tracer.enabled" => true, :'distributed_tracing.enabled' => false) do
       in_transaction { get_response }
       assert_equal "VURQV1BZRkZdXUFT", server.requests.last["HTTP_X_NEWRELIC_ID"]
     end
+    NewRelic::Agent::Agent.any_instance.unstub(:connected?)
   end
 
   def test_adds_a_request_header_to_outgoing_requests_if_old_xp_config_is_present
+    NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
     with_config(:cross_application_tracing => true, :'distributed_tracing.enabled' => false) do
       in_transaction { get_response }
       assert_equal "VURQV1BZRkZdXUFT", server.requests.last["HTTP_X_NEWRELIC_ID"]
     end
+    NewRelic::Agent::Agent.any_instance.unstub(:connected?)
   end
 
   def test_adds_newrelic_transaction_header
+    NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
     with_config(:cross_application_tracing => true, :'distributed_tracing.enabled' => false) do
       guid = nil
       path_hash = nil
@@ -285,6 +290,7 @@ module HttpClientTestCases
       assert_equal(guid, decoded[2])
       assert_equal(path_hash, decoded[3])
     end
+    NewRelic::Agent::Agent.any_instance.unstub(:connected?)
   end
 
   def test_agent_doesnt_add_a_request_header_to_outgoing_requests_if_xp_disabled
@@ -543,6 +549,7 @@ module HttpClientTestCases
     # Test cases that don't involve outgoing calls are done elsewhere
     if test_case['outboundRequests']
       define_method("test_#{test_case['name']}") do
+        NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
         config = {
           :app_name => test_case['appName'],
           :'cross_application_tracer.enabled' => true,
@@ -577,6 +584,7 @@ module HttpClientTestCases
           test_case['expectedIntrinsicFields'],
           test_case['nonExpectedIntrinsicFields']
         )
+        NewRelic::Agent::Agent.any_instance.unstub(:connected?)
       end
     end
   end
