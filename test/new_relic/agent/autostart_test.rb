@@ -51,9 +51,9 @@ class AutostartTest < Minitest::Test
     end
   end
 
-  MyConst = true
+  MY_CONST = true
   def test_denylisted_constants_can_be_configured
-    with_config('autostart.denylisted_constants' => "IRB,::AutostartTest::MyConst") do
+    with_config('autostart.denylisted_constants' => "IRB,::AutostartTest::MY_CONST") do
       assert !::NewRelic::Agent::Autostart.agent_should_start?, "Agent shouldn't autostart when environment contains denylisted constant"
     end
   end

@@ -111,14 +111,14 @@ module NewRelic
 
       def to_s
         result = version.to_s # required
-        result << DELIMITER << parent_type_id.to_s # required 
-        result << DELIMITER << parent_account_id # required 
-        result << DELIMITER << parent_app_id # required 
+        result << DELIMITER << parent_type_id.to_s # required
+        result << DELIMITER << parent_account_id # required
+        result << DELIMITER << parent_app_id # required
         result << DELIMITER << (id || NewRelic::EMPTY_STR)
         result << DELIMITER << (transaction_id || NewRelic::EMPTY_STR)
         result << DELIMITER << (sampled ? TRUE_CHAR : FALSE_CHAR)
         result << DELIMITER << sprintf("%.6f", priority)
-        result << DELIMITER << timestamp.to_s # required 
+        result << DELIMITER << timestamp.to_s # required
         result
       end
     end

@@ -219,11 +219,7 @@ module NewRelic
           end
 
           def already_added_transaction_tracer?(target, with_method_name)
-            if NewRelic::Helper.instance_methods_include?(target, with_method_name)
-              true
-            else
-              false
-            end
+            NewRelic::Helper.instance_methods_include?(target, with_method_name)
           end
         end
 
