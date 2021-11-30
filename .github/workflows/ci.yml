@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-18.04
     strategy:
       matrix:
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.8, 2.7.4, 3.0.2, jruby-9.2.19.0]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.9, 2.7.5, 3.0.3, jruby-9.2.19.0]
     steps:
       - uses: actions/checkout@v2
 
@@ -29,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.8, 2.7.4, 3.0.2, jruby-9.2.19.0]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.9, 2.7.5, 3.0.3, jruby-9.2.19.0]
 
     steps:
       - uses: actions/checkout@v2
@@ -57,13 +57,13 @@ jobs:
               "2.5.9": {
                 "rails": "norails,rails61,rails60,rails52,rails51,rails42,rails32"
               },
-              "2.6.8": {
+              "2.6.9": {
                 "rails": "norails,rails61,rails60,rails52,rails51,rails42"
               },
-              "2.7.4": {
+              "2.7.5": {
                 "rails": "norails,rails61,rails60"
               },
-              "3.0.2": {
+              "3.0.3": {
                 "rails": "norails"
               },
               "jruby-9.2.19.0": {
@@ -124,7 +124,7 @@ jobs:
       fail-fast: false
       matrix:
         multiverse: ["agent;background;background_2;database", "httpclients;httpclients_2", "frameworks;rails;rest"]
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.8, 2.7.4, 3.0.2]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.9, 2.7.5, 3.0.3]
 
     steps:
       - uses: actions/checkout@v2
@@ -157,7 +157,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.5.9, 2.6.8, 2.7.4, 3.0.2]
+        ruby-version: [2.5.9, 2.6.9, 2.7.5, 3.0.3]
     steps:
       - uses: actions/checkout@v2
 
