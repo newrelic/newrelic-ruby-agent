@@ -128,7 +128,7 @@ module NewRelic
                 :rails
               when 3
                 :rails3
-              when 4..6
+              when 4..7
                 :rails_notifications
               else
                 ::NewRelic::Agent.logger.warn "Detected untested Rails version #{Rails::VERSION::STRING}"
@@ -1313,7 +1313,7 @@ module NewRelic
           :default => 'ActionController::RoutingError,Sinatra::NotFound',
           :public => true,
           :type => String,
-          :deprecated => true, 
+          :deprecated => true,
           :allowed_from_server => true,
           :dynamic_name => true,
           :description => 'Use `error_collector.ignore_classes` instead. Specify a comma-delimited list of error classes that the agent should ignore.'
@@ -1814,7 +1814,7 @@ module NewRelic
           :type         => Array,
           :allowed_from_server => true,
           :transform    => DefaultSource.method(:convert_to_regexp_list),
-          :description  => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore.' 
+          :description  => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore.'
         },
         :'synthetics.traces_limit' => {
           :default      => 20,
