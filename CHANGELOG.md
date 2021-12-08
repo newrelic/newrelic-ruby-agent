@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## 8.3.0
+
+  * **Updated the agent to support Ruby 3.1.0-preview1**
+
+    Most of the changes involved updating the multiverse suite to exclude runs for older versions of instrumented gems that are not compatible with Ruby 3.1. In addition, Infinite Tracing was updated to accommodate `YAML::unsafe_load` for Psych 4 support.
+
   ## v8.2.0
 
   * **New Instrumentation for Tilt gem**
@@ -21,7 +27,7 @@
   * **Bugfix: Span Events recorded when using newrelic_ignore**
 
     Previously, the agent was incorrectly recording span events only on transactions that should be ignored. This fix will prevent any span events from being created for transactions using newrelic_ignore, or ignored through the `rules.ignore_url_regexes` configuration option.
-  
+
   * **Bugfix: Print deprecation warning for Cross-Application Tracing if enabled**
 
     Prior to this change, the deprecation warning would log whenever the agent started up, regardless of configuration. Thank you @alpha-san for bringing this to our attention!
@@ -29,7 +35,7 @@
   * **Bugfix: Scrub non-unicode characters from DecoratingLogger**
 
     To prevent `JSON::GeneratorErrors`, the DecoratingLogger replaces non-unicode characters with the replacement character: �. Thank you @jdelStrother for bringing this to our attention!
-    
+
   * **Bugfix: Distributed tracing headers emitted errors when agent was not connected**
 
     Previously, when the agent had not yet connected it would fail to create a trace context payload and emit an error, "TypeError: no implicit conversion of nil into String," to the agent logs. The correct behavior in this situation is to not create these headers due to the lack of required information. Now, the agent will not attempt to create trace context payloads until it has connected. Thank you @Izzette for bringing this to our attention!
