@@ -61,10 +61,10 @@ jobs:
                 "rails": "norails,rails61,rails60,rails52,rails51,rails42"
               },
               "2.7.4": {
-                "rails": "norails,rails61,rails60,rails70a"
+                "rails": "norails,rails61,rails60,rails70rc1"
               },
               "3.0.2": {
-                "rails": "norails,rails61,rails60,rails70a"
+                "rails": "norails,rails61,rails60,rails70rc1"
               },
               "jruby-9.2.19.0": {
                 "rails": "norails,rails51,rails42"
