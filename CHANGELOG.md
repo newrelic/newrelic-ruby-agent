@@ -1,5 +1,11 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.3.0
+
+  * **Bugfix: Correctly encode ASCII-8BIT log messages**
+
+    The encoding update for the DecoratingLogger in v8.2.0 did not account for ASCII-8BIT encoded characters qualifying as `valid_encoding?`. Now, ASCII-8BIT characters will be encoded as UTF-8 and include replacement characters as needed. We're very grateful for @nikajukic's collaboration and submission of a test case to resolve this issue.
+
   ## v8.2.0
 
   * **New Instrumentation for Tilt gem**
@@ -17,7 +23,7 @@
   * **Bugfix: Span Events recorded when using newrelic_ignore**
 
     Previously, the agent was incorrectly recording span events only on transactions that should be ignored. This fix will prevent any span events from being created for transactions using newrelic_ignore, or ignored through the `rules.ignore_url_regexes` configuration option.
-  
+
   * **Bugfix: Print deprecation warning for Cross-Application Tracing if enabled**
 
     Prior to this change, the deprecation warning would log whenever the agent started up, regardless of configuration. Thank you @alpha-san for bringing this to our attention!
