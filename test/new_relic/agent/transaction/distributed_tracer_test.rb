@@ -119,6 +119,24 @@ module NewRelic::Agent
         end
       end
 
+      def tests_does_not_insert_distributed_tracing_headers_when_agent_not_connected
+        env = build_distributed_trace_header build_trace_context_header
+        assert env['HTTP_NEWRELIC']
+        assert env['HTTP_TRACEPARENT']
+
+        with_config exclude_newrelic_header_setting(false) do
+          NewRelic::Agent.instance.stubs(:connected?).returns(false)
+          request = {}
+          in_transaction do |txn|
+            txn.distributed_tracer.accept_incoming_request env
+            txn.distributed_tracer.insert_headers request
+            refute request['traceparent'], "expected traceparent header to be present in #{request.keys}"
+            refute request['tracestate'], "expected tracestate header to be present #{request.keys}"
+            refute request['newrelic'], "expected distributed trace header to NOT be present in #{request.keys}"
+          end
+        end
+      end
+
       def tests_outbound_distributed_trace_headers_omitted_when_exclude_is_true
         env = build_distributed_trace_header build_trace_context_header
         assert env['HTTP_NEWRELIC']
