@@ -1,10 +1,15 @@
 # New Relic Ruby Agent Release Notes #
 
-  ## 8.3.0
+  ## v8.3.0
 
   * **Updated the agent to support Ruby 3.1.0-preview1**
 
     Most of the changes involved updating the multiverse suite to exclude runs for older versions of instrumented gems that are not compatible with Ruby 3.1. In addition, Infinite Tracing was updated to accommodate `YAML::unsafe_load` for Psych 4 support.
+
+  * **Bugfix: Correctly encode ASCII-8BIT log messages**
+
+    The encoding update for the DecoratingLogger in v8.2.0 did not account for ASCII-8BIT encoded characters qualifying as `valid_encoding?`. Now, ASCII-8BIT characters will be encoded as UTF-8 and include replacement characters as needed. We're very grateful for @nikajukic's collaboration and submission of a test case to resolve this issue.
+
 
   ## v8.2.0
 
