@@ -2,9 +2,15 @@
 
   ## v8.3.0
 
+  * **Updated the agent to support Ruby 3.1.0-preview1**
+
+    Most of the changes involved updating the multiverse suite to exclude runs for older versions of instrumented gems that are not compatible with Ruby 3.1. In addition, Infinite Tracing was updated to accommodate `YAML::unsafe_load` for Psych 4 support.
+
+
   * **Bugfix: Update AdaptiveSampler#sampled? algorithm**
 
     One of the clauses in `AdaptiveSampler#sampled?` would always return false due to Integer division returning a result of zero. This method has been updated to use Float division instead, to exponentially back off the number of samples required. This may increase the number of traces collected for transactions. A huge thank you to @romul for bringing this to our attention and breaking down the problem!
+
 
   ## v8.2.0
 
