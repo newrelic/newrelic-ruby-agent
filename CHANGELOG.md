@@ -1,5 +1,16 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.3.0
+
+  * **Updated the agent to support Ruby 3.1.0-preview1**
+
+    Most of the changes involved updating the multiverse suite to exclude runs for older versions of instrumented gems that are not compatible with Ruby 3.1. In addition, Infinite Tracing was updated to accommodate `YAML::unsafe_load` for Psych 4 support.
+
+  * **Bugfix: Correctly encode ASCII-8BIT log messages**
+
+    The encoding update for the DecoratingLogger in v8.2.0 did not account for ASCII-8BIT encoded characters qualifying as `valid_encoding?`. Now, ASCII-8BIT characters will be encoded as UTF-8 and include replacement characters as needed. We're very grateful for @nikajukic's collaboration and submission of a test case to resolve this issue.
+
+
   ## v8.2.0
 
   * **New Instrumentation for Tilt gem**
@@ -10,14 +21,18 @@
 
     This setting has been marked as deprecated in the documentation since version 7.2.0 and is now flagged as deprecated within the code.
 
-  * **Remove Rails-2 specific instrumentation**
+  * **Remove Rails 2 instrumentation**
 
     Though any version of Rails 2 has not been supported by the Ruby Agent since v3.18.1.330, instrumentation for ActionController and ActionWebService specific to that version were still part of the agent. This instrumentation has been removed.
+
+  * **Remove duplicated settings from newrelic.yml**
+
+    Thank you @jakeonfire for bringing this to our attention and @kuroponzu for making the changes!
 
   * **Bugfix: Span Events recorded when using newrelic_ignore**
 
     Previously, the agent was incorrectly recording span events only on transactions that should be ignored. This fix will prevent any span events from being created for transactions using newrelic_ignore, or ignored through the `rules.ignore_url_regexes` configuration option.
-  
+
   * **Bugfix: Print deprecation warning for Cross-Application Tracing if enabled**
 
     Prior to this change, the deprecation warning would log whenever the agent started up, regardless of configuration. Thank you @alpha-san for bringing this to our attention!
@@ -25,6 +40,11 @@
   * **Bugfix: Scrub non-unicode characters from DecoratingLogger**
 
     To prevent `JSON::GeneratorErrors`, the DecoratingLogger replaces non-unicode characters with the replacement character: �. Thank you @jdelStrother for bringing this to our attention!
+
+  * **Bugfix: Distributed tracing headers emitted errors when agent was not connected**
+
+    Previously, when the agent had not yet connected it would fail to create a trace context payload and emit an error, "TypeError: no implicit conversion of nil into String," to the agent logs. The correct behavior in this situation is to not create these headers due to the lack of required information. Now, the agent will not attempt to create trace context payloads until it has connected. Thank you @Izzette for bringing this to our attention!
+
 
   ## v8.1.0
 
