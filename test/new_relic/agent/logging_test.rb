@@ -93,8 +93,17 @@ module NewRelic
           logger = DecoratingLogger.new @output
 
           logger.info input
-          assert_equal expectation,
-            last_message['message']
+          assert_equal expectation, last_message['message']
+        end
+
+        def test_to_replace_ascii_8bit_chars
+          message = 'message with an ASCII-8BIT character'
+          input = "#{message} #{"č".force_encoding(Encoding::ASCII_8BIT)}"
+          expectation = "#{message} #{DecoratingFormatter::REPLACEMENT_CHAR}#{DecoratingFormatter::REPLACEMENT_CHAR}"
+          logger = DecoratingLogger.new @output
+
+          logger.info input
+          assert_equal expectation, last_message['message']
         end
 
         if RUBY_VERSION >= '2.4.0'

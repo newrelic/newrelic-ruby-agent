@@ -25,6 +25,7 @@ module Performance
       when :mri_26 then !jruby? && RUBY_VERSION =~ /^2\.6\./
       when :mri_27 then !jruby? && RUBY_VERSION =~ /^2\.7\./
       when :mri_30 then !jruby? && RUBY_VERSION =~ /^3\.0\./
+      when :mri_31 then !jruby? && RUBY_VERSION =~ /^3\.1\./
       end
     end
 
