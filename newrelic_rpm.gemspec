@@ -8,9 +8,9 @@ require 'new_relic/latest_changes'
 Gem::Specification.new do |s|
   s.name = "newrelic_rpm"
   s.version = NewRelic::VERSION::STRING
-  s.required_ruby_version = '>= 2.0.0'
+  s.required_ruby_version = '>= 2.2.0'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = [ "Aaron Huntsman", "Tanna McClure", "Kayla Reopelle" ]
+  s.authors = [ "Tanna McClure", "Kayla Reopelle" ]
   s.date = Time.now.strftime('%Y-%m-%d')
   s.licenses    = ['Apache-2.0']
   s.description = <<-EOS
