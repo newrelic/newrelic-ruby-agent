@@ -40,7 +40,7 @@ module NewRelic
       end
 
       def exponential_backoff
-        @target ** (@target.to_f / @sampled_count) - @target ** 0.5
+        @target**(@target.to_f / @sampled_count) - @target**0.5
       end
 
       def stats
