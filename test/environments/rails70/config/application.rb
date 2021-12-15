@@ -15,5 +15,6 @@ module RpmTestApp
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults 7.0
     config.eager_load = false
+    config.filter_parameters += [:password]
   end
 end
