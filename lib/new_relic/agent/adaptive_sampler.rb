@@ -28,7 +28,8 @@ module NewRelic
           elsif @sampled_count < @target
             rand(@seen_last) < @target
           else
-            rand(@seen) < (@target**(@target / @sampled_count) - @target**0.5)
+            # you've met the target and need to exponentially back off
+            rand(@seen) < exponential_backoff
           end
 
           @sampled_count += 1 if sampled
@@ -36,6 +37,10 @@ module NewRelic
 
           sampled
         end
+      end
+
+      def exponential_backoff
+        @target ** (@target.to_f / @sampled_count) - @target ** 0.5
       end
 
       def stats

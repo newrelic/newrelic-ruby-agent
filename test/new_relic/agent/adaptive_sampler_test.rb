@@ -52,6 +52,14 @@ module NewRelic
           assert_equal 500, period
         end
       end
+
+      def test_exponential_backoff_can_be_nonzero_value
+        sampler = NewRelic::Agent.instance.adaptive_sampler
+        # 19 is the mathematical maximum for a nonzero value for the default @target = 10
+        sampler.instance_variable_set(:@sampled_count, 19)
+        result = sampler.exponential_backoff
+        assert result > 0, 'Exponential backoff value was not greater than zero'
+      end
     end
   end
 end
