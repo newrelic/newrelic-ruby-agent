@@ -21,12 +21,8 @@ def ruby2_compatible? sidekiq_version
 end
 
 # older connection pool gems do not work with Ruby 3.0
+# Sidekiq 4.2.10 does not support Ruby 3.0.3/3.1+ YAML parsing
 def ruby3_compatible? sidekiq_version
-  sidekiq_version.split(" ")[-1].to_i > 3
-end
-
-# Sidekiq 4.2.10 does not support Ruby 3.1 YAML parsing
-def ruby3_1_compatible? sidekiq_version
   sidekiq_version.split(" ")[-1].to_i > 4
 end
 
@@ -37,7 +33,6 @@ def jruby_compatible? sidekiq_version
 end
 
 SIDEKIQ_VERSIONS.each do |sidekiq_version, timers_version|
-  next if RUBY_VERSION >= "3.1.0" && !ruby3_1_compatible?(sidekiq_version)
   next if RUBY_VERSION < "3.0.0" && !ruby2_compatible?(sidekiq_version)
   next if RUBY_VERSION >= "3.0.0" && !ruby3_compatible?(sidekiq_version)
   next if RUBY_PLATFORM == "java" && !jruby_compatible?(sidekiq_version)
