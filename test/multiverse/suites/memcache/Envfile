@@ -11,6 +11,8 @@ if RUBY_VERSION >= '2.5.0'
 end
 
 %w(1.8.5 1.5.0).each do |version|
+  # v 1.5.0 uses `timeout`, which does not exist in Ruby 3.1
+  next if RUBY_VERSION >= '3.1.0' && version == '1.5.0'
   gemfile <<-RB
     gem 'memcache-client', '~> #{version}', :require => 'memcache'
   RB
