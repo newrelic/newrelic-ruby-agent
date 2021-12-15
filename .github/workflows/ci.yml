@@ -61,10 +61,10 @@ jobs:
                 "rails": "norails,rails61,rails60,rails52,rails51,rails42"
               },
               "2.7.4": {
-                "rails": "norails,rails61,rails60,rails70rc1"
+                "rails": "norails,rails61,rails60,rails70"
               },
               "3.0.2": {
-                "rails": "norails,rails61,rails60,rails70rc1"
+                "rails": "norails,rails61,rails60,rails70"
               },
               "3.1.0-preview1": {
                 "rails": "norails,rails61"
