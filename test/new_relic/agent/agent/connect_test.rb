@@ -154,6 +154,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   end
 
   def test_connect_memoizes_event_harvest_config
+    # Intermittently throws RuntimeError: Thread count changed in this test from 0 to 1 for Rails 5.2.6
     default_source = NewRelic::Agent::Configuration::DefaultSource.new
     expected_event_harvest_config_payload = {
       :harvest_limits => {
