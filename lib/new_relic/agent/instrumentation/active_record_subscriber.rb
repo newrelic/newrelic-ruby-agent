@@ -44,19 +44,26 @@ module NewRelic
         end
 
         def start(name, id, payload) #THREAD_LOCAL_ACCESS
+          NewRelic::Agent.logger.debug('ARTEST active_record_subscriber.rb - begin start')
           return if cached?(payload)
           return unless NewRelic::Agent.tl_is_execution_traced?
 
+          NewRelic::Agent.logger.debug('ARTEST active_record_subscriber.rb - after first returns in start')
+
           config = active_record_config(payload)
           segment = start_segment(config, payload)
-          push_segment(id, segment)
+          ret = push_segment(id, segment)
+          NewRelic::Agent.logger.debug('ARTEST active_record_subscriber.rb - end start')
+          ret
         rescue => e
           log_notification_error(e, name, 'start')
         end
 
         def finish(name, id, payload) #THREAD_LOCAL_ACCESS
+          NewRelic::Agent.logger.debug('ARTEST active_record_subscriber.rb - begin finish')
           return if cached?(payload)
           return unless state.is_execution_traced?
+          NewRelic::Agent.logger.debug('ARTEST active_record_subscriber.rb - after first returns in finish')
 
           if segment = pop_segment(id)
             if exception = exception_object(payload)
@@ -64,7 +71,7 @@ module NewRelic
             end
             segment.finish
           end
-
+          NewRelic::Agent.logger.debug('ARTEST active_record_subscriber.rb - end finish')
         rescue => e
           log_notification_error(e, name, 'finish')
         end
@@ -86,6 +93,7 @@ module NewRelic
         def active_record_config(payload)
           # handle if the notification payload provides the AR connection
           # available in Rails 6+ & our ActiveRecordNotifications#log extension
+          NewRelic::Agent.logger.debug "ARTEST - active_record_config payload: #{payload.to_s}"
           if payload[:connection]
             connection_config = payload[:connection].instance_variable_get(:@config)
             return connection_config if connection_config
@@ -106,6 +114,8 @@ module NewRelic
         end
 
         def start_segment(config, payload)
+          NewRelic::Agent.logger.debug('ARTEST active_record_subscriber.rb - begin start_segment')
+
           sql = Helper.correctly_encoded payload[:sql]
           product, operation, collection = ActiveRecordHelper.product_operation_collection_for(
             payload[:name],
@@ -131,6 +141,7 @@ module NewRelic
             database_name: database)
 
           segment._notice_sql sql, config, @explainer, payload[:binds], payload[:name]
+          NewRelic::Agent.logger.debug('ARTEST active_record_subscriber.rb - end start_segment')
           segment
         end
       end

@@ -31,6 +31,11 @@ module NewRelic
           ::ActiveRecord::ConnectionAdapters::AbstractAdapter.module_eval do
             include ::NewRelic::Agent::Instrumentation::ActiveRecord
           end
+        rescue => e 
+          NewRelic::Agent.logger.debug "ARTEST - insert_instrumentation rescue error: #{e.to_s}"
+        ensure
+          NewRelic::Agent.logger.debug "ARTEST - insert_instruemntation ensure ::ActiveRecord::Base.ancestors: #{::ActiveRecord::Base.ancestors}"
+          NewRelic::Agent.logger.debug "ARTEST - insert_instruemntation ensure ::ActiveRecord::Relation.ancestors: #{::ActiveRecord::Relation.ancestors}"
         end
 
         def self.included(instrumented_class)
@@ -88,6 +93,7 @@ module NewRelic
           end
         else 
           def log_with_newrelic_instrumentation(*args, **kwargs, &block)
+            NewRelic::Agent.logger.debug "ARTEST - logw_nr_instrumentation 1"
             state = NewRelic::Agent::Tracer.state
   
             if !state.is_execution_traced?
@@ -125,7 +131,10 @@ module NewRelic
               NewRelic::Agent::Tracer.capture_segment_error segment do
                 log_without_newrelic_instrumentation(*args, **kwargs, &block)
               end
+            rescue => e
+              NewRelic::Agent.logger.debug "ARTEST - logw_nr_instrumentation error: #{e.to_s}"
             ensure
+              NewRelic::Agent.logger.debug "ARTEST - logw_nr_instrumentation 3"
               segment.finish if segment
             end
           end
@@ -160,6 +169,7 @@ DependencyDetection.defer do
         ::NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation
       end
     else
+      ::NewRelic::Agent.logger.debug('ARTEST - in executes (active_record.rb)')
       ::NewRelic::Agent::Instrumentation::ActiveRecord.insert_instrumentation
     end
   end

@@ -107,18 +107,22 @@ DependencyDetection.defer do
           ::ActiveRecord::Base,
           ::ActiveRecord::Relation)
 
+      ::NewRelic::Agent.logger.debug('ARTEST - in executes (active_record_notifications.rb)')
       # Default to .prepending, unless the ActiveRecord version is <=4
       # **AND** the :prepend_active_record_instrumentation config is false
       if ::ActiveRecord::VERSION::MAJOR > 4 \
           || ::NewRelic::Agent.config[:prepend_active_record_instrumentation]
+          ::NewRelic::Agent.logger.debug('ARTEST - in executes if (active_record_notifications.rb)')
 
         ::ActiveRecord::Base.send(:prepend,
             ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions)
         ::ActiveRecord::Relation.send(:prepend,
             ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::RelationExtensions)
       else
+      ::NewRelic::Agent.logger.debug('ARTEST - in executes else (active_record_notifications.rb)')
         ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
       end
+      ::NewRelic::Agent.logger.debug('ARTEST - in executes - after (active_record_notifications.rb)')
     end
   end
 

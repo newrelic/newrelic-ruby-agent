@@ -26,11 +26,15 @@ module NewRelic
 
           else
             def save(*args, **kwargs, &blk)
+              ::NewRelic::Agent.logger.debug('ARTEST 5')
+
               ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
                 super
               end
             end
             def save!(*args, **kwargs, &blk)
+              ::NewRelic::Agent.logger.debug('ARTEST 5!')
+
               ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
                 super
               end
