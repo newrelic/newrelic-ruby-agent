@@ -123,6 +123,8 @@ DependencyDetection.defer do
         ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
       end
       ::NewRelic::Agent.logger.debug('ARTEST - in executes - after (active_record_notifications.rb)')
+      ::NewRelic::Agent.logger.debug "ARTEST - in executes - after (active_record_notifications.rb) ::ActiveRecord::Base.ancestors: #{::ActiveRecord::Base.ancestors}"
+      ::NewRelic::Agent.logger.debug "ARTEST - in executes - after (active_record_notifications.rb) ::ActiveRecord::Relation.ancestors: #{::ActiveRecord::Relation.ancestors}"
     end
   end
 
