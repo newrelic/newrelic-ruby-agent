@@ -22,6 +22,7 @@ if RUBY_VERSION >= "2.5.0"
     gem 'rack-test', '#{rack_test_version}'
     gem 'grape'
     gem 'webrick'
+    gem 'activesupport', '< 7.0'
   RB
 end
 
@@ -31,5 +32,6 @@ grape_versions.each do |version|
     gem 'rack-test', '#{rack_test_version}'
     gem 'grape', '#{version}'
     gem 'webrick'
+    gem 'activesupport', '< 7.0'
   RB
 end
