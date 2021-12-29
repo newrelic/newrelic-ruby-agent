@@ -62,7 +62,13 @@ module NewRelic
           NewRelic::Agent.logger.debug("ARTEST2 inside pop_segment, id: #{id}")
           NewRelic::Agent.logger.debug("ARTEST2 inside pop_segment, segment_stack.count: #{segment_stack.count}")
           NewRelic::Agent.logger.debug("ARTEST2 inside pop_segment, segment_stack.keys: #{segment_stack.keys}")
-          NewRelic::Agent.logger.debug("ARTEST2 inside pop_segment, segment_stack[id][0].name: #{segment_stack[id][0].name}")
+          if segment_stack[id] && segment_stack]id][0]
+            NewRelic::Agent.logger.debug("ARTEST2 inside pop_segment, segment_stack[id][0].name: #{segment_stack[id][0].name}")
+          else
+            NewRelic::Agent.logger.debug("ARTEST2 inside pop_segment, in else, segment_stack.inspect: #{segment_stack.inspect}")
+            NewRelic::Agent.logger.debug("ARTEST2 inside pop_segment, in else, segment_stack[id].inspect: #{segment_stack[id].inspect}")
+            NewRelic::Agent.logger.debug("ARTEST2 inside pop_segment, in else, segment_stack[id][0].inspect: #{segment_stack[id][0].inspect}") if segment_stack[id]
+          end
 
           segment = segment_stack[id].pop
           segment
