@@ -144,6 +144,13 @@ module NewRelic
           aggregator = ::NewRelic::Agent.agent.span_event_aggregator
           priority   = transaction.priority
 
+          unless self.name.include?('Redis')
+            NewRelic::Agent.logger.debug("ARTEST2 datastore/record_span_event self.name: #{self.name}")
+            NewRelic::Agent.logger.debug("ARTEST2 datastore/record_span_event self.inspect: #{self.inspect}")
+          else
+            NewRelic::Agent.logger.debug("ARTEST2 datastore/record_span_event Redis else self.name: #{self.name}")
+          end
+
           aggregator.record(priority: priority) do
             SpanEventPrimitive.for_datastore_segment(self)
           end

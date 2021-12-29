@@ -66,10 +66,16 @@ module NewRelic
           NewRelic::Agent.logger.debug('ARTEST active_record_subscriber.rb - after first returns in finish')
 
           if segment = pop_segment(id)
+            NewRelic::Agent.logger.debug('ARTEST2 active_record_subscriber.rb - in pop_segment if')
+            NewRelic::Agent.logger.debug("ARTEST2 segment.name: #{segment.name}")
             if exception = exception_object(payload)
               segment.notice_error(exception)
             end
             segment.finish
+            NewRelic::Agent.logger.debug('ARTEST2 after segment.finish')
+            NewRelic::Agent.logger.debug("ARTEST2 segment.inspect: #{segment.inspect}")
+          else
+            NewRelic::Agent.logger.debug("ARTEST2 pop_segment ELSE uh oh")
           end
           NewRelic::Agent.logger.debug('ARTEST active_record_subscriber.rb - end finish')
         rescue => e

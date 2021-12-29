@@ -59,6 +59,11 @@ module NewRelic
         end
 
         def pop_segment(id)
+          NewRelic::Agent.logger.debug("ARTEST2 inside pop_segment, id: #{id}")
+          NewRelic::Agent.logger.debug("ARTEST2 inside pop_segment, segment_stack.count: #{segment_stack.count}")
+          NewRelic::Agent.logger.debug("ARTEST2 inside pop_segment, segment_stack.keys: #{segment_stack.keys}")
+          NewRelic::Agent.logger.debug("ARTEST2 inside pop_segment, segment_stack[id][0].name: #{segment_stack[id][0].name}")
+
           segment = segment_stack[id].pop
           segment
         end
