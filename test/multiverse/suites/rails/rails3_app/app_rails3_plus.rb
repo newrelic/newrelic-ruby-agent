@@ -103,6 +103,14 @@ if !defined?(MyApp)
   end
 
   class ApplicationController < ActionController::Base
+    # exclude JSON from forgery protection
+    if Rails::VERSION::STRING.to_i >= 7
+      # forgery protection explicitly prevents application/javascript content types
+      # as originating from the same origin
+      # this allows view_instrumentation_test to pass
+      skip_before_action :verify_authenticity_token, only: :js_render
+    end
+
     # The :text option to render was deprecated in Rails 4.1 in favor of :body.
     # With the patch below we can write our tests using render :body but have
     # that converted to render :text for Rails versions that do not support
