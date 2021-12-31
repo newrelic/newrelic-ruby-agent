@@ -69,6 +69,9 @@ if !defined?(MyApp)
     config.eager_load = false
     config.filter_parameters += [:secret]
     config.secret_key_base = fake_guid(64)
+    if Rails::VERSION::STRING >= "7.0.0"
+      config.action_controller.default_protect_from_forgery = true
+    end
     if config.respond_to? :hosts
       config.hosts << "www.example.com"
     end
