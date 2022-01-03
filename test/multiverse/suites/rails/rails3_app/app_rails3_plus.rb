@@ -103,7 +103,6 @@ if !defined?(MyApp)
   end
 
   class ApplicationController < ActionController::Base
-    # exclude JSON from forgery protection
     if Rails::VERSION::STRING.to_i >= 7
       # forgery protection explicitly prevents application/javascript content types
       # as originating from the same origin
