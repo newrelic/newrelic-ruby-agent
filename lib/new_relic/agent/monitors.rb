@@ -21,7 +21,6 @@ module NewRelic
         @cross_app_monitor = NewRelic::Agent::DistributedTracing::CrossAppMonitor.new events
         @distributed_tracing_monitor = NewRelic::Agent::DistributedTracing::Monitor.new events
       end
-
     end
   end
 end

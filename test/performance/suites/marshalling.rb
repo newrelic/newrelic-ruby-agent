@@ -105,7 +105,7 @@ class Marshalling < Performance::TestCase
   end
 
   # Build an object graph that approximates a transaction trace in structure
-  def build_transaction_trace_payload(depth=6)
+  def build_transaction_trace_payload(depth = 6)
     root = []
     fanout = depth
     fanout.times do |i|
@@ -118,7 +118,7 @@ class Marshalling < Performance::TestCase
         },
         []
       ]
-      node[-1] = build_transaction_trace_payload(depth-1) if depth > 0
+      node[-1] = build_transaction_trace_payload(depth - 1) if depth > 0
       root << node
     end
     root
@@ -129,17 +129,17 @@ class Marshalling < Performance::TestCase
     events = []
     1000.times do
       event = {
-        'timestamp'        => Process.clock_gettime(Process::CLOCK_REALTIME),
-        'name'             => "Controller/foo/bar",
-        'type'             => "Transaction",
-        'duration'         => rand,
+        'timestamp' => Process.clock_gettime(Process::CLOCK_REALTIME),
+        'name' => "Controller/foo/bar",
+        'type' => "Transaction",
+        'duration' => rand,
         'databaseDuration' => rand,
-        'databaseCallCount'=> rand,
-        'gcCumulative'     => rand,
-        'host'             => 'lo-calhost',
-        'color'            => 'blue-green',
-        'shape'            => 'squarish',
-        'texture'          => 'sort of lumpy like a bag of frozen peas'
+        'databaseCallCount' => rand,
+        'gcCumulative' => rand,
+        'host' => 'lo-calhost',
+        'color' => 'blue-green',
+        'shape' => 'squarish',
+        'texture' => 'sort of lumpy like a bag of frozen peas'
       }
       events << [event, {}]
     end

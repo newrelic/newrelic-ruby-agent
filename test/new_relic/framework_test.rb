@@ -1,11 +1,10 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
-require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 
 # Test logic around detecting or configuring framework
 class FrameworkTest < Minitest::Test
-
   def setup
     # muck with this constant which forces the agent to load the
     # NewRelic::Control::Frameworks::Test control so we can test the logic used
@@ -22,7 +21,7 @@ class FrameworkTest < Minitest::Test
 
   def teardown
     # Put things back how we found them
-    ::NewRelic.send(:const_set, :TEST,  @old_newrelic_test_const)
+    ::NewRelic.send(:const_set, :TEST, @old_newrelic_test_const)
     NewRelic::Agent.reset_config
   end
 

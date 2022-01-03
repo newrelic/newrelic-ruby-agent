@@ -13,8 +13,8 @@ module NewRelic
       attr_accessor :metric_rules
 
       def initialize
-        @stats_lock   = Mutex.new
-        @stats_hash   = StatsHash.new
+        @stats_lock = Mutex.new
+        @stats_hash = StatsHash.new
         @metric_rules = RulesEngine.new
       end
 
@@ -60,12 +60,12 @@ module NewRelic
       #
       # @api private
       #
-      def tl_record_unscoped_metrics(metric_names, value=nil, aux=nil, &blk)
+      def tl_record_unscoped_metrics(metric_names, value = nil, aux = nil, &blk)
         state = NewRelic::Agent::Tracer.state
         record_unscoped_metrics(state, metric_names, value, aux, &blk)
       end
 
-      def record_unscoped_metrics(state, metric_names, value=nil, aux=nil, &blk)
+      def record_unscoped_metrics(state, metric_names, value = nil, aux = nil, &blk)
         txn = state.current_transaction
         if txn
           txn.metrics.record_unscoped(metric_names, value, aux, &blk)
@@ -96,12 +96,12 @@ module NewRelic
       #
       # @api private
       #
-      def tl_record_scoped_and_unscoped_metrics(scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)
+      def tl_record_scoped_and_unscoped_metrics(scoped_metric, summary_metrics = nil, value = nil, aux = nil, &blk)
         state = NewRelic::Agent::Tracer.state
         record_scoped_and_unscoped_metrics(state, scoped_metric, summary_metrics, value, aux, &blk)
       end
 
-      def record_scoped_and_unscoped_metrics(state, scoped_metric, summary_metrics=nil, value=nil, aux=nil, &blk)
+      def record_scoped_and_unscoped_metrics(state, scoped_metric, summary_metrics = nil, value = nil, aux = nil, &blk)
         txn = state.current_transaction
         if txn
           txn.metrics.record_scoped_and_unscoped(scoped_metric, value, aux, &blk)

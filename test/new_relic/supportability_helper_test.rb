@@ -2,10 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 
 class NewRelic::SupportabilityHelperTest < Minitest::Test
-
   def teardown
     NewRelic::Agent.shutdown
     super
@@ -18,7 +17,7 @@ class NewRelic::SupportabilityHelperTest < Minitest::Test
   end
 
   def test_valid_api_argument_class_falsey
-    log = with_array_logger do 
+    log = with_array_logger do
       NewRelic::Agent.manual_start
       refute valid_api_argument_class?("bogus", "headers", Hash)
     end

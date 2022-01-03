@@ -80,7 +80,7 @@ module NewRelic
     end
 
     def test_does_not_drop_samples_when_used_from_multiple_threads
-      with_config( aggregator.class.capacity_key => 100 * 100 ) do
+      with_config(aggregator.class.capacity_key => 100 * 100) do
         threads = []
         25.times do
           threads << Thread.new do
@@ -95,8 +95,8 @@ module NewRelic
 
     def test_lower_priority_events_discarded_in_favor_higher_priority_events
       with_config aggregator.class.capacity_key => 5 do
-        5.times { |i| generate_event "totally_not_sampled_#{i}", :priority => rand     }
-        5.times { |i| generate_event "sampled_#{i}",             :priority => rand + 1 }
+        5.times { |i| generate_event "totally_not_sampled_#{i}", :priority => rand }
+        5.times { |i| generate_event "sampled_#{i}", :priority => rand + 1 }
 
         _, events = aggregator.harvest!
 
@@ -108,8 +108,8 @@ module NewRelic
 
     def test_higher_priority_events_not_discarded_in_favor_of_lower_priority_events
       with_config aggregator.class.capacity_key => 5 do
-        5.times { |i| generate_event "sampled_#{i}",             :priority => rand + 1 }
-        5.times { |i| generate_event "totally_not_sampled_#{i}", :priority => rand     }
+        5.times { |i| generate_event "sampled_#{i}", :priority => rand + 1 }
+        5.times { |i| generate_event "totally_not_sampled_#{i}", :priority => rand }
 
         _, events = aggregator.harvest!
 

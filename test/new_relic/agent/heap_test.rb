@@ -137,7 +137,7 @@ module NewRelic
           {priority: 7}
         ]
 
-        heap = Heap.new(items) {|x| x[:priority] }
+        heap = Heap.new(items) { |x| x[:priority] }
 
         ordered_items = []
 
@@ -171,7 +171,7 @@ module NewRelic
       end
 
       def test_large_heap_odd_number_of_items
-       heap = Heap.new((0..101).to_a.shuffle)
+        heap = Heap.new((0..101).to_a.shuffle)
 
         output = []
         until heap.empty?

@@ -8,7 +8,7 @@ module NewRelic::Agent::Instrumentation
       include NewRelic::Agent::Instrumentation::HTTPrb
 
       def perform(request, options)
-        with_tracing(request) { super }        
+        with_tracing(request) { super }
       end
     end
   end

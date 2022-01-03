@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 module NewRelic
   module Agent
@@ -19,7 +19,7 @@ module NewRelic
         @agent.agent_command_router.stubs(:new_relic_service).returns(@agent.service)
         @agent.stubs(:start_worker_thread)
 
-        @config = { :license_key => "a" * 40 }
+        @config = {:license_key => "a" * 40}
         NewRelic::Agent.config.add_config_for_testing(@config)
       end
 
@@ -36,7 +36,7 @@ module NewRelic
         end
 
         assert(@agent.service.kind_of?(NewRelic::Agent::PipeService),
-               'Agent should use PipeService when directed to report to pipe channel')
+          'Agent should use PipeService when directed to report to pipe channel')
         NewRelic::Agent::PipeService.any_instance.expects(:shutdown).never
         assert_equal 123, @agent.service.channel_id
       end
@@ -63,7 +63,7 @@ module NewRelic
         pipe.expects(:after_fork_in_child)
         pipe.expects(:close)
         pipe.stubs(:parent_pid).returns(:digglewumpus)
-        dummy_channels = { 123 => pipe }
+        dummy_channels = {123 => pipe}
         NewRelic::Agent::PipeChannelManager.stubs(:channels).returns(dummy_channels)
 
         @agent.stubs(:connected?).returns(false)
@@ -168,13 +168,13 @@ module NewRelic
 
       def test_harvest_and_send_transaction_traces
         with_config(:'transaction_tracer.explain_threshold' => 2,
-                    :'transaction_tracer.explain_enabled' => true,
-                    :'transaction_tracer.record_sql' => 'raw') do
+          :'transaction_tracer.explain_enabled' => true,
+          :'transaction_tracer.record_sql' => 'raw') do
           trace = stub('transaction trace',
-                       :duration => 2.0, :threshold => 1.0,
-                       :transaction_name => nil,
-                       :force_persist => true,
-                       :truncate => 4000)
+            :duration => 2.0, :threshold => 1.0,
+            :transaction_name => nil,
+            :force_persist => true,
+            :truncate => 4000)
 
           @agent.transaction_sampler.stubs(:harvest!).returns([trace])
           @agent.send :harvest_and_send_transaction_traces
@@ -259,8 +259,8 @@ module NewRelic
         @agent.instance_eval {
           @transaction_sampler = transaction_sampler
         }
-        transaction_sampler.expects(:merge!).with([1,2,3])
-        @agent.merge_data_for_endpoint(:transaction_sample_data, [1,2,3])
+        transaction_sampler.expects(:merge!).with([1, 2, 3])
+        @agent.merge_data_for_endpoint(:transaction_sample_data, [1, 2, 3])
       end
 
       def test_merge_data_for_endpoint_abides_by_error_queue_limit
@@ -292,7 +292,7 @@ module NewRelic
       end
 
       def test_harvest_and_send_timeslice_data_merges_back_on_failure
-        timeslices = [1,2,3]
+        timeslices = [1, 2, 3]
 
         @agent.stats_engine.expects(:harvest!).returns(timeslices)
         @agent.service.stubs(:metric_data).raises('wat')
@@ -433,7 +433,7 @@ module NewRelic
           end
         end
 
-        until @agent.waited_on_connect? do
+        until @agent.waited_on_connect?
           # hold on there....
         end
 
@@ -455,7 +455,7 @@ module NewRelic
           end
         end
 
-        until @agent.waited_on_connect? do
+        until @agent.waited_on_connect?
           # hold on there....
         end
 
@@ -477,7 +477,7 @@ module NewRelic
           end
         end
 
-        until @agent.waited_on_connect? do
+        until @agent.waited_on_connect?
           # hold on there....
         end
 
@@ -499,7 +499,7 @@ module NewRelic
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)
 
         # :send_data_on_exit setting to avoid setting an at_exit
-        with_config( :monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque ) do
+        with_config(:monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque) do
           @agent.start
         end
 
@@ -509,7 +509,7 @@ module NewRelic
       def test_doesnt_defer_start_if_resque_dispatcher_and_channel_manager_started
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(true)
 
-        with_config( :monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque ) do
+        with_config(:monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque) do
           @agent.start
         end
 
@@ -521,7 +521,7 @@ module NewRelic
         NewRelic::Agent::PipeChannelManager.listener.stubs(:started?).returns(false)
 
         # :send_data_on_exit setting to avoid setting an at_exit
-        with_config( :monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque ) do
+        with_config(:monitor_mode => true, :send_data_on_exit => false, :dispatcher => :resque) do
           @agent.start
         end
 
@@ -529,15 +529,15 @@ module NewRelic
       end
 
       def test_defer_start_if_no_application_name_configured
-        logdev = with_array_logger( :error ) do
-          with_config( :app_name => false ) do
+        logdev = with_array_logger(:error) do
+          with_config(:app_name => false) do
             @agent.start
           end
         end
         logmsg = logdev.array.first.gsub(/\n/, '')
 
         assert !@agent.started?, "agent was started"
-        assert_match( /No application name configured/i, logmsg )
+        assert_match(/No application name configured/i, logmsg)
       end
 
       def test_harvest_from_container
@@ -583,7 +583,7 @@ module NewRelic
 
       def test_harvest_and_send_from_container_does_not_merge_on_serialization_failure
         container = mock('data container')
-        container.stubs(:harvest!).returns([1,2,3])
+        container.stubs(:harvest!).returns([1, 2, 3])
         @agent.service.stubs(:dummy_endpoint).raises(SerializationError)
         container.expects(:merge!).never
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
@@ -591,17 +591,17 @@ module NewRelic
 
       def test_harvest_and_send_from_container_does_not_merge_on_unrecoverable_failure
         container = mock('data container')
-        container.stubs(:harvest!).returns([1,2,3])
-        @agent.service.expects(:dummy_endpoint).with([1,2,3]).raises(UnrecoverableServerException)
+        container.stubs(:harvest!).returns([1, 2, 3])
+        @agent.service.expects(:dummy_endpoint).with([1, 2, 3]).raises(UnrecoverableServerException)
         container.expects(:merge!).never
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
       end
 
       def test_harvest_and_send_from_container_merges_on_other_failure
         container = mock('data container')
-        container.stubs(:harvest!).returns([1,2,3])
-        @agent.service.expects(:dummy_endpoint).with([1,2,3]).raises('other error')
-        container.expects(:merge!).with([1,2,3])
+        container.stubs(:harvest!).returns([1, 2, 3])
+        @agent.service.expects(:dummy_endpoint).with([1, 2, 3]).raises('other error')
+        container.expects(:merge!).with([1, 2, 3])
         @agent.send(:harvest_and_send_from_container, container, 'dummy_endpoint')
       end
 
@@ -690,7 +690,7 @@ module NewRelic
       end
 
       def test_log_ignore_url_regexes
-        with_config(:rules => { :ignore_url_regexes => ['foo', 'bar', 'baz'] }) do
+        with_config(:rules => {:ignore_url_regexes => ['foo', 'bar', 'baz']}) do
           expects_logging(:info, includes("/foo/, /bar/, /baz/"))
           @agent.log_ignore_url_regexes
         end
@@ -749,8 +749,8 @@ module NewRelic
             "HTTP/1.1 200",
             "Content-Encoding: gzip",
             "Content-Length: #{gzip.length}",
-            gzip.byteslice(0..-2),
-        ].join("\r\n")
+            gzip.byteslice(0..-2)
+          ].join("\r\n")
 
           server.accept.write headers.chomp
         end
@@ -785,7 +785,6 @@ module NewRelic
           assert_equal threads_before, Thread.list.length
         end
       end
-
     end
   end
 end

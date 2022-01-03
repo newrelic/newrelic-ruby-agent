@@ -37,4 +37,3 @@ class Minitest::Test
     Shipment.delete_all
   end
 end
-

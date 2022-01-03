@@ -2,12 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'pry'
 module NewRelic::Agent
-
   class TransactionTest < Minitest::Test
-
     def setup
       @stats_engine = NewRelic::Agent.instance.stats_engine
       @stats_engine.reset!
@@ -144,11 +142,11 @@ module NewRelic::Agent
     end
 
     KEY_TRANSACTION_CONFIG = {
-        :web_transactions_apdex => {
-          'Controller/slow/txn' => 4,
-          'OtherTransaction/back/ground' => 8
-        },
-        :apdex => 1
+      :web_transactions_apdex => {
+        'Controller/slow/txn' => 4,
+        'OtherTransaction/back/ground' => 8
+      },
+      :apdex => 1
     }
 
     def test_update_apdex_records_correct_apdex_for_key_transaction
@@ -170,9 +168,9 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(
-          'ApdexAll'       => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'Apdex'          => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'Apdex/slow/txn' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
+          'ApdexAll' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'Apdex' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'Apdex/slow/txn' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1}
         )
       end
     end
@@ -197,9 +195,9 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(
-          'ApdexAll'        => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'Apdex'           => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'Apdex/other/txn' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
+          'ApdexAll' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'Apdex' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'Apdex/other/txn' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1}
         )
       end
     end
@@ -223,9 +221,9 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(
-          'ApdexAll'   => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'ApdexOther' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'ApdexOther/Transaction/back/ground' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
+          'ApdexAll' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'ApdexOther' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'ApdexOther/Transaction/back/ground' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1}
         )
       end
     end
@@ -255,10 +253,10 @@ module NewRelic::Agent
         end
       end
 
-      expected = { :min_call_time => 2.5, :max_call_time => 2.5 }
+      expected = {:min_call_time => 2.5, :max_call_time => 2.5}
       assert_metrics_recorded(
-        'ApdexAll'       => expected,
-        'Apdex'          => expected,
+        'ApdexAll' => expected,
+        'Apdex' => expected,
         'Apdex/some/txn' => expected
       )
     end
@@ -297,11 +295,11 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(
-          'ApdexAll'       => { :apdex_s => 2, :apdex_t => 2, :apdex_f => 2 },
-          'Apdex'          => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'Apdex/slow/txn' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'ApdexOther'     => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 },
-          'ApdexOther/Transaction/back/ground' => { :apdex_s => 1, :apdex_t => 1, :apdex_f => 1 }
+          'ApdexAll' => {:apdex_s => 2, :apdex_t => 2, :apdex_f => 2},
+          'Apdex' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'Apdex/slow/txn' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'ApdexOther' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1},
+          'ApdexOther/Transaction/back/ground' => {:apdex_s => 1, :apdex_t => 1, :apdex_f => 1}
         )
       end
     end
@@ -326,8 +324,8 @@ module NewRelic::Agent
       end
 
       assert_metrics_recorded(
-        'Apdex'          => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 },
-        'Apdex/whatever' => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 }
+        'Apdex' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1},
+        'Apdex/whatever' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1}
       )
     end
 
@@ -343,8 +341,8 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(
-          'Apdex'          => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 },
-          'Apdex/whatever' => { :apdex_s => 1, :apdex_t => 0, :apdex_f => 1 }
+          'Apdex' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1},
+          'Apdex/whatever' => {:apdex_s => 1, :apdex_t => 0, :apdex_f => 1}
         )
       end
     end
@@ -373,8 +371,8 @@ module NewRelic::Agent
       rules = [
         {
           'match_expression' => '[0-9]+',
-          'replacement'      => '*',
-          'replace_all'      => true
+          'replacement' => '*',
+          'replace_all' => true
         }
       ]
 
@@ -547,7 +545,7 @@ module NewRelic::Agent
       nr_freeze_process_time
 
       txn_name = 'OtherTransaction/back/ground'
-      key_transactions = { txn_name => 1.0 }
+      key_transactions = {txn_name => 1.0}
 
       with_config(:apdex_t => 1.0, :web_transactions_apdex => key_transactions) do
         in_background_transaction(txn_name) { advance_process_time 0.5 }
@@ -568,11 +566,11 @@ module NewRelic::Agent
       end
 
       raw_synthetics_header = 'dummy data'
-      synthetics_payload    = [123, 456, 789, 111]
+      synthetics_payload = [123, 456, 789, 111]
 
       in_transaction do |txn|
         txn.raw_synthetics_header = raw_synthetics_header
-        txn.synthetics_payload    = synthetics_payload
+        txn.synthetics_payload = synthetics_payload
       end
 
       assert_includes keys, :guid
@@ -619,7 +617,7 @@ module NewRelic::Agent
 
     def test_is_not_synthetic_request_without_header
       in_transaction do |txn|
-        txn.synthetics_payload = [1,2,3,4,5]
+        txn.synthetics_payload = [1, 2, 3, 4, 5]
         refute txn.is_synthetics_request?
       end
     end
@@ -627,7 +625,7 @@ module NewRelic::Agent
     def test_is_synthetic_request
       in_transaction do |txn|
         txn.raw_synthetics_header = ""
-        txn.synthetics_payload = [1,2,3,4,5]
+        txn.synthetics_payload = [1, 2, 3, 4, 5]
         assert txn.is_synthetics_request?
       end
     end
@@ -636,7 +634,7 @@ module NewRelic::Agent
       in_transaction do
         state = Tracer.state
         txn = state.current_transaction
-        txn.synthetics_payload = [1,2,3,4,5]
+        txn.synthetics_payload = [1, 2, 3, 4, 5]
 
         assert_equal 1, txn.synthetics_version
         assert_equal 2, txn.synthetics_account_id
@@ -736,7 +734,7 @@ module NewRelic::Agent
       assert_equal 1, errors.count
 
       error = errors.first
-      assert_equal "/here",  error.request_uri
+      assert_equal "/here", error.request_uri
     end
 
     def test_notice_error_sets_expected_attribute
@@ -801,7 +799,7 @@ module NewRelic::Agent
 
     def test_records_gc_time
       gc_start = mock('gc start')
-      gc_end   = mock('gc end')
+      gc_end = mock('gc end')
       StatsEngine::GCProfiler.stubs(:take_snapshot).returns(gc_start, gc_end)
 
       txn = in_transaction do |transaction|
@@ -814,8 +812,8 @@ module NewRelic::Agent
     end
 
     def test_freeze_name_and_execute_if_not_ignored_executes_given_block_if_not_ignored
-      NewRelic::Agent.instance.transaction_rules.expects(:rename).
-                                                 returns('non-ignored-transaction')
+      NewRelic::Agent.instance.transaction_rules.expects(:rename)
+        .returns('non-ignored-transaction')
       in_transaction('non-ignored-transaction') do |txn|
         block_was_called = false
         txn.freeze_name_and_execute_if_not_ignored do
@@ -827,8 +825,8 @@ module NewRelic::Agent
     end
 
     def test_freeze_name_and_execute_if_not_ignored_ignores_given_block_if_transaction_ignored
-      NewRelic::Agent.instance.transaction_rules.expects(:rename).
-                                                 returns(nil)
+      NewRelic::Agent.instance.transaction_rules.expects(:rename)
+        .returns(nil)
       in_transaction('ignored-transaction') do |txn|
         block_was_called = false
         txn.freeze_name_and_execute_if_not_ignored do
@@ -888,7 +886,7 @@ module NewRelic::Agent
           bean = stub(:getCurrentThreadUserTime => java_utime)
           bean.stubs(:isCurrentThreadCpuTimeSupported).returns(true)
           ::Java::JavaLangManagement::ManagementFactory.stubs(:getThreadMXBean).returns(bean)
-          assert_equal java_utime/1e9, txn.send(:jruby_cpu_time)
+          assert_equal java_utime / 1e9, txn.send(:jruby_cpu_time)
         end
       end
     end
@@ -1029,7 +1027,7 @@ module NewRelic::Agent
     end
 
     def test_ignore_enduser_returns_true_if_enduser_is_ignored
-      in_transaction('Controller/test', :category => :sinatra) do  |txn|
+      in_transaction('Controller/test', :category => :sinatra) do |txn|
         txn.ignore_enduser!
         assert txn.ignore_enduser?
       end
@@ -1112,7 +1110,7 @@ module NewRelic::Agent
         txn.notice_error(e1)
       end
 
-      assert_metrics_recorded('Errors/all' => { :call_count => 2 })
+      assert_metrics_recorded('Errors/all' => {:call_count => 2})
     end
 
     def test_start_safe_from_exceptions
@@ -1128,7 +1126,7 @@ module NewRelic::Agent
     end
 
     def test_start_ignores_transactions_from_ignored_paths
-      with_config(:rules => { :ignore_url_regexes => ['ignored/path'] }) do
+      with_config(:rules => {:ignore_url_regexes => ['ignored/path']}) do
         req = mock('request')
         req.stubs(:path).returns('ignored/path')
 
@@ -1152,7 +1150,7 @@ module NewRelic::Agent
 
     def test_user_defined_rules_ignore_returns_true_for_matched_path
       rule = 'ignored'
-      with_config(:rules => { :ignore_url_regexes => [rule] }) do
+      with_config(:rules => {:ignore_url_regexes => [rule]}) do
         in_transaction do |txn|
           txn.stubs(:request_path).returns(rule + '/path')
           assert txn.user_defined_rules_ignore?, "Paths should be ignored based on user defined rules. Rule: '#{rule}', Path: '#{txn.request_path}'."
@@ -1161,7 +1159,7 @@ module NewRelic::Agent
     end
 
     def test_user_defined_rules_ignore_returns_false_if_cannot_parse_uri
-      with_config(:rules => { :ignore_url_regexes => ['notempty'] }) do
+      with_config(:rules => {:ignore_url_regexes => ['notempty']}) do
         in_transaction do |txn|
           txn.stubs(:uri).returns('http://foo bar.com')
           refute txn.user_defined_rules_ignore?
@@ -1190,7 +1188,7 @@ module NewRelic::Agent
       in_transaction('boo', :apdex_start_time => t0) do
         # nothing
       end
-      assert_metrics_recorded('WebFrontend/QueueTime' => { :call_count => 1, :total_call_time => 10.0 })
+      assert_metrics_recorded('WebFrontend/QueueTime' => {:call_count => 1, :total_call_time => 10.0})
       assert_metrics_not_recorded(
         [['WebFrontend/QueueTime', 'boo']]
       )
@@ -1322,7 +1320,6 @@ module NewRelic::Agent
       assert_equal 200, result[:synthetics_job_id]
       assert_equal 300, result[:synthetics_monitor_id]
     end
-
 
     def test_intrinsic_attributes_include_gc_time
       txn = in_transaction do |t|
@@ -1583,7 +1580,7 @@ module NewRelic::Agent
     end
 
     def test_has_correct_transaction_trace_threshold_when_explicitly_specified
-      config = { :'transaction_tracer.transaction_threshold' => 4.0 }
+      config = {:'transaction_tracer.transaction_threshold' => 4.0}
 
       in_transaction do |txn|
         with_config(config) do
@@ -1621,7 +1618,7 @@ module NewRelic::Agent
         # If the segment constructor fails to create a random guid, the
         # exception would be a RuntimeError
         assert_raises Errno::EMFILE, Errno::ENFILE do
-          while true do
+          while true
             file_descriptors << IO.sysopen(__FILE__)
             in_transaction do |txn|
               refute_nil txn.guid

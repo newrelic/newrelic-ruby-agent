@@ -11,15 +11,15 @@ class IgnoredController < ApplicationController
   newrelic_ignore_apdex :only => :action_to_ignore_apdex
 
   def action_to_ignore
-    render body:  "Ignore this"
+    render body: "Ignore this"
   end
 
   def action_to_ignore_apdex
-    render body:  "This too"
+    render body: "This too"
   end
-  
+
   def action_not_ignored
-    render body:  "Not this!"
+    render body: "Not this!"
   end
 end
 
@@ -37,13 +37,12 @@ class ChildController < ParentController
   add_transaction_tracer :bar
 end
 
-
 class IgnoredActionsTest < ActionDispatch::IntegrationTest
   include MultiverseHelpers
 
   setup_and_teardown_agent(:cross_process_id => "boo",
-                           :encoding_key => "\0",
-                           :trusted_account_ids => [1])
+    :encoding_key => "\0",
+    :trusted_account_ids => [1])
 
   def after_setup
     # Make sure we've got a blank slate for doing easier metric comparisons
@@ -90,7 +89,7 @@ class IgnoredActionsTest < ActionDispatch::IntegrationTest
   end
 
   def test_ignored_by_ignore_url_regexes_does_not_record_span_events
-    with_config(:rules => { :ignore_url_regexes => ['/ignored/action_not_ignored'] }) do
+    with_config(:rules => {:ignore_url_regexes => ['/ignored/action_not_ignored']}) do
       get '/ignored/action_not_ignored'
 
       last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]

@@ -2,15 +2,14 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 module NewRelic
   module Agent
     module SpanEventPrimitive
       class SpanEventPrimitiveTest < Minitest::Test
-
         def setup
-          @additional_config = { :'distributed_tracing.enabled' => true }
+          @additional_config = {:'distributed_tracing.enabled' => true}
           NewRelic::Agent.config.add_config_for_testing(@additional_config)
           NewRelic::Agent.config.notify_server_source_added
           nr_freeze_process_time
@@ -54,7 +53,7 @@ module NewRelic
             segment, _ = capture_segment_with_error
 
             eh = SpanEventPrimitive::error_attributes(segment)
-            refute  segment.noticed_error, "segment.noticed_error should be nil!"
+            refute segment.noticed_error, "segment.noticed_error should be nil!"
             refute eh, "expected nil when error present on segment and high_security is enabled"
           end
         end
@@ -102,10 +101,10 @@ module NewRelic
           payload = nil
           external_segment = nil
           in_transaction('test_txn') do |txn|
-            external_segment = NewRelic::Agent::Tracer.\
-                         start_external_request_segment library: "net/http",
-                                                        uri: "http://docs.newrelic.com",
-                                                        procedure: "GET"
+            external_segment = NewRelic::Agent::Tracer\
+              .start_external_request_segment library: "net/http",
+                uri: "http://docs.newrelic.com",
+                procedure: "GET"
             payload = txn.distributed_tracer.create_distributed_trace_payload
           end
 
@@ -122,7 +121,6 @@ module NewRelic
           assert last_span_event[2]["parent.transportType"], "Expected parent.transportType in agent attributes"
           assert last_span_event[2]["parent.transportDuration"], "Expected parent.transportDuration in agent attributes"
         end
-
 
         def test_empty_error_message_can_override_previous_error_message_attribute
           begin
@@ -180,7 +178,7 @@ module NewRelic
             payload = {
               :name => "Controller/whatever",
               :type => :controller,
-              :start_timestamp =>  Process.clock_gettime(Process::CLOCK_REALTIME),
+              :start_timestamp => Process.clock_gettime(Process::CLOCK_REALTIME),
               :duration => 0.1,
               :attributes => attributes,
               :error => false,
@@ -201,13 +199,13 @@ module NewRelic
             in_transaction('test_txn') do |t|
               t.stubs(:sampled?).returns(true)
               external_segment = Tracer.start_external_request_segment(library: 'Net::HTTP',
-                                                                            uri: "https://docs.newrelic.com",
-                                                                            procedure: "GET")
+                uri: "https://docs.newrelic.com",
+                procedure: "GET")
               external_segment.finish
             end
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           _, optional_attrs, _ = last_span_events.detect { |ev| ev[0]["name"] == external_segment.name }
 
           assert_empty optional_attrs

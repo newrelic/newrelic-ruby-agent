@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/transaction_time_aggregator'
 
 class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
@@ -29,7 +29,6 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
   end
 
   def test_transaction_split_across_harvest
-
     # First transaction lies entirely within the harvest:
     # 1-11s
     advance_process_time(1)
@@ -90,7 +89,6 @@ class NewRelic::Agent::TransctionTimeAggregatorTest < Minitest::Test
   end
 
   def test_metrics
-
     NewRelic::Agent::TransactionTimeAggregator.transaction_start
     advance_process_time(12)
     NewRelic::Agent::TransactionTimeAggregator.transaction_stop

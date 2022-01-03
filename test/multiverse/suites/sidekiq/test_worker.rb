@@ -33,7 +33,7 @@ class TestWorker
   end
 
   def self.reset(done_at)
-    @jobs_mutex.synchronize do 
+    @jobs_mutex.synchronize do
       @jobs = {}
       @done_at = done_at
     end

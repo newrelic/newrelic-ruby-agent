@@ -8,7 +8,7 @@ module Performance
   class ConsoleReporter
     include Reporting
 
-    def initialize(results, elapsed, options={})
+    def initialize(results, elapsed, options = {})
       @results = results
       @elapsed = elapsed
       @options = options
@@ -23,9 +23,9 @@ module Performance
     def format_measurements(result)
       measurements = result.measurements.merge(:iterations => result.iterations)
 
-      key_width        = measurements.keys.map(&:size).max
+      key_width = measurements.keys.map(&:size).max
       formatted_values = measurements.values.map { |v| sprintf("%g", v) }
-      value_width      = formatted_values.map(&:size).max
+      value_width = formatted_values.map(&:size).max
 
       rows = measurements.map do |key, value|
         if key == :iterations

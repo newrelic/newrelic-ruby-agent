@@ -9,7 +9,6 @@ module NewRelic::Agent
   # While an EventListener could be used elsewhere, it's strongly expected
   # your eventing needs should be met by the agent's instance.
   class EventListener
-
     attr_accessor :runaway_threshold
 
     def initialize

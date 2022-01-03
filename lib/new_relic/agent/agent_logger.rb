@@ -12,7 +12,7 @@ module NewRelic
     class AgentLogger
       include LogOnce
 
-      def initialize(root = "", override_logger=nil)
+      def initialize(root = "", override_logger = nil)
         @already_logged_lock = Mutex.new
         clear_already_logged
         create_log(root, override_logger)
@@ -50,8 +50,8 @@ module NewRelic
       # the log level that the backtrace is logged at. If you just want the
       # default behavior of backtraces logged at debug, use one of the methods
       # above and pass an Exception as one of the args.
-      def log_exception(level, e, backtrace_level=level)
-        @log.send(level, "%p: %s" % [ e.class, e.message ])
+      def log_exception(level, e, backtrace_level = level)
+        @log.send(level, "%p: %s" % [e.class, e.message])
         @log.send(backtrace_level) do
           backtrace = backtrace_from_exception(e)
           if backtrace
@@ -136,8 +136,8 @@ module NewRelic
       end
 
       def find_or_create_file_path(path_setting, root)
-        for abs_path in [ File.expand_path(path_setting),
-                          File.expand_path(File.join(root, path_setting)) ] do
+        for abs_path in [File.expand_path(path_setting),
+          File.expand_path(File.join(root, path_setting))] do
           if File.directory?(abs_path) || (Dir.mkdir(abs_path) rescue nil)
             return abs_path[%r{^(.*?)/?$}]
           end
@@ -151,10 +151,10 @@ module NewRelic
 
       LOG_LEVELS = {
         "debug" => ::Logger::DEBUG,
-        "info"  => ::Logger::INFO,
-        "warn"  => ::Logger::WARN,
+        "info" => ::Logger::INFO,
+        "warn" => ::Logger::WARN,
         "error" => ::Logger::ERROR,
-        "fatal" => ::Logger::FATAL,
+        "fatal" => ::Logger::FATAL
       }
 
       def self.log_level_for(level)
@@ -176,7 +176,6 @@ module NewRelic
       def self.format_fatal_error message
         "** [NewRelic] FATAL : #{message}\n"
       end
-
     end
 
     # In an effort to not lose messages during startup, we trap them in memory

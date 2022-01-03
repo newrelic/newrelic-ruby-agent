@@ -34,7 +34,7 @@ module NewRelic
     end
 
     def constantize(const_name)
-      const_name.to_s.sub(/\A::/,'').split('::').inject(Object) do |namespace, name|
+      const_name.to_s.sub(/\A::/, '').split('::').inject(Object) do |namespace, name|
         begin
           result = namespace.const_get(name)
 

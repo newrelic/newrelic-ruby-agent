@@ -87,7 +87,9 @@ module Performance
       end
 
       def before(*); end
+
       def after(*); end
+
       def results; {}; end
     end
   end

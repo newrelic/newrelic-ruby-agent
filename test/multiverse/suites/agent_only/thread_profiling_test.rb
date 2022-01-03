@@ -8,11 +8,10 @@
 require 'thread'
 
 class ThreadProfilingTest < Minitest::Test
-
   include MultiverseHelpers
 
   setup_and_teardown_agent(:'thread_profiler.enabled' => true) do |collector|
-    collector.stub('connect', {"agent_run_id" => 666 })
+    collector.stub('connect', {"agent_run_id" => 666})
     collector.stub('get_agent_commands', [])
     collector.stub('agent_command_results', [])
   end
@@ -30,25 +29,25 @@ class ThreadProfilingTest < Minitest::Test
     @threads = nil
   end
 
-  START_COMMAND = [[666,{
-      "name" => "start_profiler",
-      "arguments" => {
-        "profile_id" => -1,
-        "sample_period" => 0.01,
-        "duration" => 0.75,
-        "only_runnable_threads" => false,
-        "only_request_threads" => false,
-        "profile_agent_code" => true
-      }
-    }]]
+  START_COMMAND = [[666, {
+    "name" => "start_profiler",
+    "arguments" => {
+      "profile_id" => -1,
+      "sample_period" => 0.01,
+      "duration" => 0.75,
+      "only_runnable_threads" => false,
+      "only_request_threads" => false,
+      "profile_agent_code" => true
+    }
+  }]]
 
-  STOP_COMMAND = [[666,{
-      "name" => "stop_profiler",
-      "arguments" => {
-        "profile_id" => -1,
-        "report_data" => true
-      }
-    }]]
+  STOP_COMMAND = [[666, {
+    "name" => "stop_profiler",
+    "arguments" => {
+      "profile_id" => -1,
+      "report_data" => true
+    }
+  }]]
 
   # These are potentially fragile for being timing based
   # START_COMMAND with 0.01 sampling and 0.5 duration expects to get
@@ -133,5 +132,4 @@ class ThreadProfilingTest < Minitest::Test
     assert_kind_of Array, traces_for_type
     assert !profile_data.traces[type].empty?, "Zero #{type} traces seen"
   end
-
 end

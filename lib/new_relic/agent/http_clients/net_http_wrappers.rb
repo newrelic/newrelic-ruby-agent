@@ -10,7 +10,6 @@ module NewRelic
   module Agent
     module HTTPClients
       class NetHTTPResponse < AbstractResponse
-
         def [](key)
           @wrapped_response[key]
         end
@@ -63,14 +62,14 @@ module NewRelic
             ::NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(@request.path)
           else
             connection_address = @connection.address
-            if (connection_address =~ Resolv::IPv6::Regex)
+            if connection_address =~ Resolv::IPv6::Regex
               connection_address = "[#{connection_address}]"
             end
 
             scheme = @connection.use_ssl? ? 'https' : 'http'
             ::NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(
               "#{scheme}://#{connection_address}:#{@connection.port}#{@request.path}"
-              )
+            )
           end
         end
       end

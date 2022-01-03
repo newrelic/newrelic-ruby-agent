@@ -8,7 +8,6 @@ require 'new_relic/agent/transaction/trace_builder'
 
 module NewRelic
   module Agent
-
     # This class contains the logic for recording and storing transaction
     # traces (sometimes referred to as 'transaction samples').
     #

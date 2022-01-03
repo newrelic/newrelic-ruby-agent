@@ -7,7 +7,7 @@ require "newrelic_prepender/version"
 module NewRelic
   module Prepender
     def self.do_prepend *bases
-      bases.each {|b| b.__send__ :prepend, self}
+      bases.each { |b| b.__send__ :prepend, self }
     end
   end
 end
@@ -23,14 +23,14 @@ end
 require 'action_view'
 
 NewRelic::Prepender.do_prepend ::ActionView::Base,
-                               ::ActionView::Template,
-                               ::ActionView::Renderer
+  ::ActionView::Template,
+  ::ActionView::Renderer
 
 if ::Rails::VERSION::MAJOR.to_i == 5
   require 'action_cable/engine'
 
   NewRelic::Prepender.do_prepend ::ActionCable::Engine,
-                                 ::ActionCable::RemoteConnections
+    ::ActionCable::RemoteConnections
 
   require 'active_job'
 
@@ -40,4 +40,4 @@ end
 require 'active_record'
 
 NewRelic::Prepender.do_prepend ::ActiveRecord::Base,
-                               ::ActiveRecord::Relation
+  ::ActiveRecord::Relation

@@ -2,12 +2,11 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/configuration/environment_source'
 
 module NewRelic::Agent::Configuration
   class EnvironmentSourceTest < Minitest::Test
-
     def setup
       @original_env = {}
       @original_env.replace(ENV)
@@ -38,7 +37,7 @@ module NewRelic::Agent::Configuration
       assert_applied_symbol 'NEWRELIC_FRAMEWORK', 'framework'
     end
 
-    %w| NEWRELIC_ENABLE NEWRELIC_ENABLED NEW_RELIC_ENABLE NEW_RELIC_ENABLED |.each do |var|
+    %w[ NEWRELIC_ENABLE NEWRELIC_ENABLED NEW_RELIC_ENABLE NEW_RELIC_ENABLED ].each do |var|
       define_method("test_environment_booleans_truths_are_applied_to_#{var}") do
         ENV[var] = 'true'
         assert EnvironmentSource.new[:enabled]
@@ -60,7 +59,7 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    %w| NEWRELIC_DISABLE_HARVEST_THREAD NEW_RELIC_DISABLE_HARVEST_THREAD |.each do |var|
+    %w[ NEWRELIC_DISABLE_HARVEST_THREAD NEW_RELIC_DISABLE_HARVEST_THREAD ].each do |var|
       define_method("test_environment_booleans_truths_are_applied_to_#{var}") do
         ENV[var] = 'true'
         assert EnvironmentSource.new[:disable_harvest_thread]
@@ -97,7 +96,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_set_values_from_new_relic_environment_variables
-      keys = %w(NEW_RELIC_LICENSE_KEY NEWRELIC_CONFIG_PATH)
+      keys = %w[NEW_RELIC_LICENSE_KEY NEWRELIC_CONFIG_PATH]
       keys.each { |key| ENV[key] = 'skywizards' }
 
       expected_source = EnvironmentSource.new
@@ -158,7 +157,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_collect_new_relic_environment_variable_keys
-      keys = %w(NEW_RELIC_IS_RAD NEWRELIC_IS_MAGIC)
+      keys = %w[NEW_RELIC_IS_RAD NEWRELIC_IS_MAGIC]
       keys.each { |key| ENV[key] = 'true' }
 
       result = @environment_source.collect_new_relic_environment_variable_keys
@@ -196,6 +195,5 @@ module NewRelic::Agent::Configuration
       assert_equal true, EnvironmentSource.new[config_var.to_sym]
       ENV.delete(env_var)
     end
-
   end
 end

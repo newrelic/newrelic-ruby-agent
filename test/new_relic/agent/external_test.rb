@@ -2,13 +2,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/external'
 
 module NewRelic
   module Agent
     class ExternalTest < Minitest::Test
-
       TRANSACTION_GUID = 'BEC1BC64675138B9'
 
       def setup
@@ -134,7 +133,6 @@ module NewRelic
 
       def test_get_response_metadata
         with_config cat_config do
-
           inbound_rmd = @obfuscator.obfuscate ::JSON.dump({
             NewRelicID: '1#666',
             NewRelicTransaction: ['xyz', false, 'uvw', 'rst']
@@ -182,10 +180,9 @@ module NewRelic
           :'cross_application_tracer.enabled' => true,
           :'distributed_tracing.enabled' => false,
           :cross_process_id => "269975#22824",
-          :trusted_account_ids => [1,269975]
+          :trusted_account_ids => [1, 269975]
         }
       end
-
     end
   end
 end

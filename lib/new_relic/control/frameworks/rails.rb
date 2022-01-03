@@ -10,9 +10,8 @@ module NewRelic
       # Rails specific configuration, instrumentation, environment values,
       # etc.
       class Rails < NewRelic::Control::Frameworks::Ruby
-
         def env
-          @env ||= ( ENV['NEW_RELIC_ENV'] || RAILS_ENV.dup )
+          @env ||= (ENV['NEW_RELIC_ENV'] || RAILS_ENV.dup)
         end
 
         # Rails can return an empty string from this method, causing
@@ -43,7 +42,7 @@ module NewRelic
         # In versions of Rails prior to 2.0, the rails config was only available to
         # the init.rb, so it had to be passed on from there.  This is a best effort to
         # find a config and use that.
-        def init_config(options={})
+        def init_config(options = {})
           @config = options[:config]
           # Install the dependency detection,
           if rails_config && ::Rails.configuration.respond_to?(:after_initialize)
@@ -63,8 +62,8 @@ module NewRelic
           end
         rescue => e
           ::NewRelic::Agent.logger.error("Failure during init_config for Rails. Is Rails required in a non-Rails app? Set NEW_RELIC_FRAMEWORK=ruby to avoid this message.",
-                                         "The Ruby agent will continue running, but Rails-specific features may be missing.",
-                                         e)
+            "The Ruby agent will continue running, but Rails-specific features may be missing.",
+            e)
         end
 
         def install_agent_hooks(config)
@@ -103,7 +102,7 @@ module NewRelic
         protected
 
         def rails_vendor_root
-          File.join(root,'vendor','rails')
+          File.join(root, 'vendor', 'rails')
         end
 
         def install_shim

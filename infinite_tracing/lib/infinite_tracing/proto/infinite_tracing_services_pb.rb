@@ -11,14 +11,12 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 #
 
-
 module Com
   module Newrelic
     module Trace
       module V1
         module IngestService
           class Service
-
             include GRPC::GenericService
 
             self.marshal_class_method = :encode

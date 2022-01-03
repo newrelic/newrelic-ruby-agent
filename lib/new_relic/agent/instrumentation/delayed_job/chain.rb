@@ -14,21 +14,19 @@ module NewRelic::Agent::Instrumentation
           def initialize_with_new_relic(*args)
             initialize_with_tracing { initialize_without_new_relic(*args) }
           end
-    
+
           alias initialize_without_new_relic initialize
           alias initialize initialize_with_new_relic
-    
-    
+
           def install_newrelic_job_tracer
             Delayed::Job.class_eval do
               include NewRelic::Agent::Instrumentation::DelayedJobTracer
-    
+
               alias_method :invoke_job_without_new_relic, :invoke_job
-    
+
               def invoke_job(*args, &block)
                 invoke_job_with_tracing { invoke_job_without_new_relic(*args, &block) }
               end
-    
             end
           end
         end

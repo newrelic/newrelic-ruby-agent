@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/configuration/server_source'
 
 module NewRelic::Agent::Configuration
@@ -11,32 +11,32 @@ module NewRelic::Agent::Configuration
       NewRelic::Agent.instance.stats_engine.reset!
       @config = {
         'agent_config' => {
-          'slow_sql.enabled'                         => true,
+          'slow_sql.enabled' => true,
           'transaction_tracer.transaction_threshold' => 'apdex_f',
-          'transaction_tracer.record_sql'            => 'raw',
-          'error_collector.enabled'                  => true
+          'transaction_tracer.record_sql' => 'raw',
+          'error_collector.enabled' => true
         },
         'event_harvest_config' => {
           'report_period_ms' => 5000,
-          'harvest_limits'   => {
+          'harvest_limits' => {
             'analytic_event_data' => 833,
-            'custom_event_data'   => 833,
-            'error_event_data'    => 8,
+            'custom_event_data' => 833,
+            'error_event_data' => 8
           }
         },
         'span_event_harvest_config' => {
           'harvest_limit' => 89,
           'report_period_ms' => 80000
         },
-        'apdex_t'                    => 1.0,
-        'collect_errors'             => false,
-        'collect_traces'             => true,
-        'web_transactions_apdex'     => { 'Controller/some/txn'     => 1.5 },
-        'trusted_account_key'        => '555',
-        'account_id'                 => '190',
-        'primary_application_id'     => '1441',
-        'entity_guid'                => 'MXxBUE18QVBQTElDQV',
-        'sampling_target'            => 20,
+        'apdex_t' => 1.0,
+        'collect_errors' => false,
+        'collect_traces' => true,
+        'web_transactions_apdex' => {'Controller/some/txn' => 1.5},
+        'trusted_account_key' => '555',
+        'account_id' => '190',
+        'primary_application_id' => '1441',
+        'entity_guid' => 'MXxBUE18QVBQTElDQV',
+        'sampling_target' => 20,
         'sampling_target_period_in_seconds' => 120,
         'max_payload_size_in_bytes' => 500
       }
@@ -131,13 +131,13 @@ module NewRelic::Agent::Configuration
 
     def test_should_correctly_handle_missing_event_type_from_event_harvest_config
       modified_event_harvest_config = {
-          'report_period_ms' => 5000,
-          'harvest_limits'   => {
-            'analytic_event_data' => 833,
-            'custom_event_data'   => 833,
-            'error_event_data'    => 8,
-          }
+        'report_period_ms' => 5000,
+        'harvest_limits' => {
+          'analytic_event_data' => 833,
+          'custom_event_data' => 833,
+          'error_event_data' => 8
         }
+      }
 
       @config.delete('span_event_harvest_config')
       @source = ServerSource.new(@config)
@@ -157,13 +157,13 @@ module NewRelic::Agent::Configuration
         'collect_errors' => false,
         'collect_traces' => false,
         'collect_analytics_events' => false,
-        'collect_custom_events'    => false
+        'collect_custom_events' => false
       }
       existing_config = {
-        :'error_collector.enabled'        => true,
-        :'slow_sql.enabled'               => true,
-        :'transaction_tracer.enabled'     => true,
-        :'analytics_events.enabled'       => true,
+        :'error_collector.enabled' => true,
+        :'slow_sql.enabled' => true,
+        :'transaction_tracer.enabled' => true,
+        :'analytics_events.enabled' => true,
         :'custom_insights_events.enabled' => true
       }
       @source = ServerSource.new(rsp, existing_config)
@@ -179,13 +179,13 @@ module NewRelic::Agent::Configuration
         'collect_errors' => true,
         'collect_traces' => true,
         'collect_analytics_events' => true,
-        'collect_custom_events'    => true
+        'collect_custom_events' => true
       }
       existing_config = {
-        :'error_collector.enabled'        => true,
-        :'slow_sql.enabled'               => true,
-        :'transaction_tracer.enabled'     => true,
-        :'analytics_events.enabled'       => true,
+        :'error_collector.enabled' => true,
+        :'slow_sql.enabled' => true,
+        :'transaction_tracer.enabled' => true,
+        :'analytics_events.enabled' => true,
         :'custom_insights_events.enabled' => true
       }
       @source = ServerSource.new(rsp, existing_config)
@@ -203,10 +203,10 @@ module NewRelic::Agent::Configuration
         'collect_analytics_events' => true
       }
       existing_config = {
-        :'error_collector.enabled'    => false,
-        :'slow_sql.enabled'           => false,
+        :'error_collector.enabled' => false,
+        :'slow_sql.enabled' => false,
         :'transaction_tracer.enabled' => false,
-        :'analytics_events.enabled'   => false
+        :'analytics_events.enabled' => false
       }
       @source = ServerSource.new(rsp, existing_config)
       assert !@source[:'error_collector.enabled']
@@ -220,20 +220,20 @@ module NewRelic::Agent::Configuration
         'collect_errors' => true,
         'collect_traces' => true,
         'collect_analytics_events' => true,
-        'collect_custom_events'    => true,
+        'collect_custom_events' => true,
         'agent_config' => {
-          'transaction_tracer.enabled'     => true,
-          'slow_sql.enabled'               => true,
-          'error_collector.enabled'        => true,
-          'analytics_events.enabled'       => true,
+          'transaction_tracer.enabled' => true,
+          'slow_sql.enabled' => true,
+          'error_collector.enabled' => true,
+          'analytics_events.enabled' => true,
           'custom_insights_events.enabled' => true
         }
       }
       existing_config = {
-        :'error_collector.enabled'        => false,
-        :'slow_sql.enabled'               => false,
-        :'transaction_tracer.enabled'     => false,
-        :'analytics_events.enabled'       => false,
+        :'error_collector.enabled' => false,
+        :'slow_sql.enabled' => false,
+        :'transaction_tracer.enabled' => false,
+        :'analytics_events.enabled' => false,
         :'custom_insights_events.enabled' => false
       }
       @source = ServerSource.new(rsp, existing_config)
@@ -246,10 +246,10 @@ module NewRelic::Agent::Configuration
     def test_should_not_gate_when_gating_keys_absent
       rsp = {
         'agent_config' => {
-          'transaction_tracer.enabled'     => true,
-          'slow_sql.enabled'               => true,
-          'error_collector.enabled'        => true,
-          'analytics_events.enabled'       => true,
+          'transaction_tracer.enabled' => true,
+          'slow_sql.enabled' => true,
+          'error_collector.enabled' => true,
+          'analytics_events.enabled' => true,
           'custom_insights_events.enabled' => true
         }
       }

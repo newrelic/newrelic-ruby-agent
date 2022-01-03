@@ -7,9 +7,7 @@ require File.expand_path '../../data_container_tests', __FILE__
 
 module NewRelic::Agent
   class TransactionSamplerTest < Minitest::Test
-
     module MockGCStats
-
       def time
         return 0 if @@values.empty?
         raise "too many calls" if @@index >= @@values.size
@@ -23,7 +21,6 @@ module NewRelic::Agent
         @@values = array
         @@index = 0
       end
-
     end
 
     def setup
@@ -35,21 +32,20 @@ module NewRelic::Agent
       @sampler = TransactionSampler.new
       @old_sampler = agent.transaction_sampler
       agent.instance_variable_set(:@transaction_sampler, @sampler)
-      @test_config = { :'transaction_tracer.enabled' => true }
+      @test_config = {:'transaction_tracer.enabled' => true}
       NewRelic::Agent.config.add_config_for_testing(@test_config)
 
       attributes = Attributes.new(agent.attribute_filter)
       @txn = stub('txn',
-                  :best_name => '/path',
-                  :request_path => '/request_path',
-                  :guid => 'a guid',
-                  :ignore_trace? => false,
-                  :cat_trip_id => '',
-                  :cat_path_hash => '',
-                  :is_synthetics_request? => false,
-                  :filtered_params => {},
-                  :attributes => attributes
-                 )
+        :best_name => '/path',
+        :request_path => '/request_path',
+        :guid => 'a guid',
+        :ignore_trace? => false,
+        :cat_trip_id => '',
+        :cat_path_hash => '',
+        :is_synthetics_request? => false,
+        :filtered_params => {},
+        :attributes => attributes)
     end
 
     def teardown
@@ -199,10 +195,9 @@ module NewRelic::Agent
       GC.extend MockGCStats
       # These are effectively Garbage Collects, detected each time GC.time is
       # called by the transaction sampler.  One time value in seconds for each call.
-      MockGCStats.mock_values = [0,0,0,1,0,0,1,0,0,0,0,0,0,0,0]
+      MockGCStats.mock_values = [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
 
       with_config(:'transaction_tracer.transaction_threshold' => 0.0) do
-
         in_transaction 'a' do
           segment_b = Tracer.start_segment name: "b"
           segment_b.finish
@@ -257,7 +252,7 @@ module NewRelic::Agent
         slowest = @sampler.harvest![0]
         first_duration = slowest.duration
         assert((first_duration.round >= 2),
-               "expected sample duration = 2, but was: #{slowest.duration.inspect}")
+          "expected sample duration = 2, but was: #{slowest.duration.inspect}")
 
         # 1 second duration
         in_transaction do
@@ -395,7 +390,7 @@ module NewRelic::Agent
     end
 
     # TODO: this test seems to be destabilizing CI in a way that I don't grok.
-    #def sadly_do_not_test_harvest_during_transaction_safety
+    # def sadly_do_not_test_harvest_during_transaction_safety
     #  n = 3000
     #  harvester = Thread.new do
     #    n.times { @sampler.harvest! }
@@ -404,7 +399,7 @@ module NewRelic::Agent
     #  Dummy.new.run(n)
 
     #  harvester.join
-    #end
+    # end
 
     private
 

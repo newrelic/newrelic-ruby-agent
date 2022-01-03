@@ -15,21 +15,21 @@ module NewRelic
       TRUE_CHAR = '1'.freeze
       FALSE_CHAR = '0'.freeze
 
-      PARENT_TYPES = %w(App Browser Mobile).map(&:freeze).freeze
+      PARENT_TYPES = %w[App Browser Mobile].map(&:freeze).freeze
 
       class << self
         def create version: VERSION,
-                   parent_type: PARENT_TYPE,
-                   parent_account_id: nil,
-                   parent_app_id: nil,
-                   id: nil,
-                   transaction_id: nil,
-                   sampled: nil,
-                   priority: nil,
-                   timestamp: now_ms
+          parent_type: PARENT_TYPE,
+          parent_account_id: nil,
+          parent_app_id: nil,
+          id: nil,
+          transaction_id: nil,
+          sampled: nil,
+          priority: nil,
+          timestamp: now_ms
 
           new version, parent_type, parent_account_id, parent_app_id, id,
-              transaction_id, sampled, priority, timestamp
+            transaction_id, sampled, priority, timestamp
         end
 
         include NewRelic::Coerce
@@ -71,19 +71,19 @@ module NewRelic
       end
 
       attr_accessor :version,
-                    :parent_type_id,
-                    :parent_account_id,
-                    :parent_app_id,
-                    :id,
-                    :transaction_id,
-                    :sampled,
-                    :priority,
-                    :timestamp
+        :parent_type_id,
+        :parent_account_id,
+        :parent_app_id,
+        :id,
+        :transaction_id,
+        :sampled,
+        :priority,
+        :timestamp
 
       alias_method :sampled?, :sampled
 
       def initialize version, parent_type_id, parent_account_id, parent_app_id,
-                     id, transaction_id, sampled, priority, timestamp
+        id, transaction_id, sampled, priority, timestamp
         @version = version
         @parent_type_id = parent_type_id
         @parent_account_id = parent_account_id
@@ -111,14 +111,14 @@ module NewRelic
 
       def to_s
         result = version.to_s # required
-        result << DELIMITER << parent_type_id.to_s # required 
-        result << DELIMITER << parent_account_id # required 
-        result << DELIMITER << parent_app_id # required 
+        result << DELIMITER << parent_type_id.to_s # required
+        result << DELIMITER << parent_account_id # required
+        result << DELIMITER << parent_app_id # required
         result << DELIMITER << (id || NewRelic::EMPTY_STR)
         result << DELIMITER << (transaction_id || NewRelic::EMPTY_STR)
         result << DELIMITER << (sampled ? TRUE_CHAR : FALSE_CHAR)
         result << DELIMITER << sprintf("%.6f", priority)
-        result << DELIMITER << timestamp.to_s # required 
+        result << DELIMITER << timestamp.to_s # required
         result
       end
     end

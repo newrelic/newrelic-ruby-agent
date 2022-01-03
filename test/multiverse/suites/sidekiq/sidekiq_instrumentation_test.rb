@@ -20,10 +20,10 @@ require File.join(File.dirname(__FILE__), "test_worker")
 class SidekiqTest < Minitest::Test
   JOB_COUNT = 5
 
-  ROLLUP_METRIC            = 'OtherTransaction/SidekiqJob/all'
-  TRANSACTION_NAME         = 'OtherTransaction/SidekiqJob/TestWorker/perform'
+  ROLLUP_METRIC = 'OtherTransaction/SidekiqJob/all'
+  TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/TestWorker/perform'
   DELAYED_TRANSACTION_NAME = 'OtherTransaction/SidekiqJob/TestModel/do_work'
-  DELAYED_FAILED_TXN_NAME  = 'OtherTransaction/SidekiqJob/Sidekiq::Extensions::DelayedClass/perform'
+  DELAYED_FAILED_TXN_NAME = 'OtherTransaction/SidekiqJob/Sidekiq::Extensions::DelayedClass/perform'
 
   include MultiverseHelpers
 
@@ -184,8 +184,8 @@ class SidekiqTest < Minitest::Test
     assert_equal(1, metric_data.size, "expected exactly one metric_data post from agent")
 
     metric = metric_data.first.metrics.find { |m| m[0]['name'] == name }
-    assert(metric, "Could not find metric named #{name}. Did have metrics:\n"+
-                   metric_data.first.metrics.map{|m| m[0]['name']}.join("\t\n"))
+    assert(metric, "Could not find metric named #{name}. Did have metrics:\n" +
+                   metric_data.first.metrics.map { |m| m[0]['name'] }.join("\t\n"))
 
     call_count = metric[1][0]
     assert_equal(expected_call_count, call_count)
@@ -238,7 +238,7 @@ class SidekiqTest < Minitest::Test
     end
   end
 
-  def assert_error_for_each_job(txn_name=TRANSACTION_NAME)
+  def assert_error_for_each_job(txn_name = TRANSACTION_NAME)
     error_posts = $collector.calls_for("error_data")
     assert_equal 1, error_posts.length, "Wrong number of error posts!"
 

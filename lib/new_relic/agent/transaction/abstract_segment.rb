@@ -25,7 +25,7 @@ module NewRelic
         attr_writer :record_metrics, :record_scoped_metric, :record_on_finish
         attr_reader :noticed_error
 
-        def initialize name=nil, start_time=nil
+        def initialize name = nil, start_time = nil
           @name = name
           @transaction_name = nil
           @transaction = nil
@@ -94,7 +94,7 @@ module NewRelic
         end
 
         def time_range
-          @start_time.to_f .. @end_time.to_f
+          @start_time.to_f..@end_time.to_f
         end
 
         def children_time_ranges
@@ -131,7 +131,7 @@ module NewRelic
           @noticed_error = noticed_error
         end
 
-        def notice_error exception, options={}
+        def notice_error exception, options = {}
           if Agent.config[:high_security]
             NewRelic::Agent.logger.debug \
               "Segment: #{name} ignores notice_error for " \
@@ -156,7 +156,7 @@ module NewRelic
 
         def child_start segment
           @active_children += 1
-          @concurrent_children = @concurrent_children || @active_children > 1
+          @concurrent_children ||= @active_children > 1
 
           transaction.async = true if @concurrent_children
         end
@@ -180,7 +180,7 @@ module NewRelic
 
         def descendant_complete child, descendant
           RangeExtensions.merge_or_append descendant.time_range,
-                                            children_time_ranges
+            children_time_ranges
           # If this child's time was previously added to this segment's
           # aggregate children time, we need to re-record it using a time range
           # for proper exclusive time calculation
@@ -227,7 +227,7 @@ module NewRelic
 
         def record_child_time_as_range child
           RangeExtensions.merge_or_append child.time_range,
-                                          children_time_ranges
+            children_time_ranges
           child.range_recorded = true
         end
 

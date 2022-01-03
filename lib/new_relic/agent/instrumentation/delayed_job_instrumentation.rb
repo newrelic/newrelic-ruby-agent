@@ -14,11 +14,11 @@ module NewRelic
         module Naming
           module_function
 
-          CLASS_METHOD_DELIMITER     = '.'.freeze
-          INSTANCE_METHOD_DELIMITER  = '#'.freeze
+          CLASS_METHOD_DELIMITER = '.'.freeze
+          INSTANCE_METHOD_DELIMITER = '#'.freeze
           LEGACY_DJ_FORMAT_DELIMITER = ';'.freeze
-          LEGACY_DJ_FORMAT_PREFIX    = 'LOAD'.freeze
-          LEGACY_DJ_DEFAULT_CLASS    = '(unknown class)'.freeze
+          LEGACY_DJ_FORMAT_PREFIX = 'LOAD'.freeze
+          LEGACY_DJ_DEFAULT_CLASS = '(unknown class)'.freeze
 
           def name_from_payload(payload_object)
             if payload_object.is_a? ::Delayed::PerformableMethod

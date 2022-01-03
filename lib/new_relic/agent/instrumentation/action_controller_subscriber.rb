@@ -9,8 +9,7 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionControllerSubscriber < NotificationsSubscriber
-
-        def start(name, id, payload) #THREAD_LOCAL_ACCESS
+        def start(name, id, payload) # THREAD_LOCAL_ACCESS
           # @req is a historically stable but not guaranteed Rails header property
           request = payload[:headers].instance_variable_get(:@req)
 
@@ -29,7 +28,7 @@ module NewRelic
           log_notification_error(e, name, 'start')
         end
 
-        def finish(name, id, payload) #THREAD_LOCAL_ACCESS
+        def finish(name, id, payload) # THREAD_LOCAL_ACCESS
           finishable = pop_segment(id)
 
           if state.is_execution_traced? \
@@ -49,21 +48,21 @@ module NewRelic
 
         def start_transaction_or_segment(payload, request, controller_class)
           Tracer.start_transaction_or_segment(
-            name:      format_metric_name(payload[:action], controller_class),
-            category:  :controller,
-            options:   {
-              request:          request,
-              filtered_params:  NewRelic::Agent::ParameterFiltering.filter_using_rails(
+            name: format_metric_name(payload[:action], controller_class),
+            category: :controller,
+            options: {
+              request: request,
+              filtered_params: NewRelic::Agent::ParameterFiltering.filter_using_rails(
                 payload[:params],
                 Rails.application.config.filter_parameters
               ),
               apdex_start_time: queue_start(request),
-              ignore_apdex:     NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
+              ignore_apdex: NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
                 ControllerInstrumentation::NR_IGNORE_APDEX_KEY,
                 controller_class,
                 payload[:action]
               ),
-              ignore_enduser:   NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
+              ignore_enduser: NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
                 ControllerInstrumentation::NR_IGNORE_ENDUSER_KEY,
                 controller_class,
                 payload[:action]

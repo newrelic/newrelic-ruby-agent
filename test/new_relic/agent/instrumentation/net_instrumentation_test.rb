@@ -11,14 +11,14 @@ class NewRelic::Agent::Instrumentation::NetInstrumentationTest < Minitest::Test
   def setup
     NewRelic::Agent.manual_start(
       :"cross_application_tracer.enabled" => false,
-      :"transaction_tracer.enabled"       => true,
-      :cross_process_id                   => '269975#22824',
-      :encoding_key                       => 'gringletoes'
+      :"transaction_tracer.enabled" => true,
+      :cross_process_id => '269975#22824',
+      :encoding_key => 'gringletoes'
     )
 
     @response ||= nil
 
-    @socket = fixture_tcp_socket( @response )
+    @socket = fixture_tcp_socket(@response)
 
     NewRelic::Agent.instance.stats_engine.clear_stats
   end

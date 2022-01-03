@@ -15,12 +15,12 @@ module NewRelic
       def initialize(capacity)
         super
         @captured_lifetime = 0
-        @seen_lifetime     = 0
+        @seen_lifetime = 0
       end
 
       def heapify_items_array
         if @items.is_a?(Array)
-          @items = Heap.new(@items) { |x| priority_for(x) } 
+          @items = Heap.new(@items) { |x| priority_for(x) }
         end
       end
 
@@ -38,8 +38,6 @@ module NewRelic
             @items[0] = incoming
             @items.fix(0)
             incoming
-          else
-            nil
           end
         else
           @items << (event || blk.call)
@@ -53,10 +51,10 @@ module NewRelic
       def capacity=(new_capacity)
         @capacity = new_capacity
         old_items = @items.to_a
-        old_seen  = @seen
+        old_seen = @seen
         reset!
         old_items.each { |i| append(event: i) }
-        @seen     = old_seen
+        @seen = old_seen
       end
 
       def to_a
@@ -92,4 +90,3 @@ module NewRelic
     end
   end
 end
-

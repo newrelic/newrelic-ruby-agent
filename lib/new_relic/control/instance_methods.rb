@@ -8,7 +8,6 @@ require 'new_relic/agent/agent_logger'
 
 module NewRelic
   class Control
-
     # Contains methods that relate to the runtime usage of the control
     # object. Note that these are subject to override in the
     # NewRelic::Control::Framework classes that are actually instantiated
@@ -47,7 +46,7 @@ module NewRelic
       # Subclasses are not allowed to override, but must implement
       # init_config({}) which is called one or more times.
       #
-      def init_plugin(options={})
+      def init_plugin(options = {})
         env = determine_env(options)
 
         configure_agent(env, options)
@@ -87,10 +86,10 @@ module NewRelic
 
         if @started_in_env && @started_in_env != env
           Agent.logger.error("Attempted to start agent in #{env.inspect} environment, but agent was already running in #{@started_in_env.inspect}",
-                             "The agent will continue running in #{@started_in_env.inspect}. To alter this, ensure the desired environment is set before the agent starts.")
+            "The agent will continue running in #{@started_in_env.inspect}. To alter this, ensure the desired environment is set before the agent starts.")
         else
           Agent.logger.info("Starting the New Relic agent version #{NewRelic::VERSION::STRING} in #{env.inspect} environment.",
-                            "To prevent agent startup add a NEW_RELIC_AGENT_ENABLED=false environment variable or modify the #{env.inspect} section of your newrelic.yml.")
+            "To prevent agent startup add a NEW_RELIC_AGENT_ENABLED=false environment variable or modify the #{env.inspect} section of your newrelic.yml.")
         end
 
         env
@@ -164,7 +163,7 @@ module NewRelic
 
       protected
 
-      def initialize(local_env, config_file_override=nil)
+      def initialize(local_env, config_file_override = nil)
         @install_lock = Mutex.new
         @local_env = local_env
         @started_in_env = nil

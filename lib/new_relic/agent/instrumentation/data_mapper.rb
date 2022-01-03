@@ -100,7 +100,7 @@ module NewRelic
         clazz.class_eval do
           if method_defined?(method_name) || private_method_defined?(method_name)
             define_method("#{method_name}_with_newrelic",
-                          NewRelic::Agent::DataMapperTracing.method_body(clazz, method_name, operation_only))
+              NewRelic::Agent::DataMapperTracing.method_body(clazz, method_name, operation_only))
 
             alias_method "#{method_name}_without_newrelic", method_name
             alias_method method_name, "#{method_name}_with_newrelic"
@@ -114,7 +114,7 @@ module NewRelic
       PASSWORD_PARAM = '&password='.freeze
 
       def self.method_body(clazz, method_name, operation_only)
-        use_model_name   = NewRelic::Helper.instance_methods_include?(clazz, :model)
+        use_model_name = NewRelic::Helper.instance_methods_include?(clazz, :model)
         metric_operation = method_name.to_s.gsub(/[!?]/, "")
 
         Proc.new do |*args, &blk|
@@ -152,15 +152,15 @@ module NewRelic
               case strategy
               when :obfuscated
                 adapter_name = if self.respond_to?(:options)
-                    self.options[:adapter]
+                  self.options[:adapter]
+                else
+                  if self.repository.adapter.respond_to?(:options)
+                    self.repository.adapter.options[:adapter]
                   else
-                    if self.repository.adapter.respond_to?(:options)
-                      self.repository.adapter.options[:adapter]
-                    else
-                      # DataMapper < 0.10.0
-                      self.repository.adapter.uri.scheme
-                    end
+                    # DataMapper < 0.10.0
+                    self.repository.adapter.uri.scheme
                   end
+                end
                 statement = NewRelic::Agent::Database::Statement.new(e.query, :adapter => adapter_name)
                 obfuscated_sql = NewRelic::Agent::Database.obfuscate_sql(statement)
                 e.instance_variable_set(:@query, obfuscated_sql)
@@ -186,7 +186,7 @@ module NewRelic
         # We rely on the assumption that all possible entry points have been
         # hooked with tracers, ensuring that notice_sql attaches this SQL to
         # the proper call scope.
-        def log(msg) #THREAD_LOCAL_ACCESS
+        def log(msg) # THREAD_LOCAL_ACCESS
           state = NewRelic::Agent::Tracer.state
           return unless state.is_execution_traced?
 

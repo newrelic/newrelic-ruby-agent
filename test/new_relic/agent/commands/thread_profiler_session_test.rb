@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'base64'
 require 'thread'
 require 'timeout'
@@ -18,17 +18,17 @@ module ThreadProfilerSessionTestHelpers
     "duration" => 0.025,
     "only_runnable_threads" => false,
     "only_request_threads" => false,
-    "profile_agent_code" => false,
+    "profile_agent_code" => false
   }
 
   STOP = {
     "profile_id" => 42,
-    "report_data" => true,
+    "report_data" => true
   }
 
   STOP_AND_DISCARD = {
     "profile_id" => 42,
-    "report_data" => false,
+    "report_data" => false
   }
 
   def start_command
@@ -69,7 +69,6 @@ if !NewRelic::Agent::Threading::BacktraceService.is_supported?
       end
       assert_equal false, @profiler.running?
     end
-
   end
 
 else
@@ -212,9 +211,8 @@ else
       @profiler.handle_start_command(start_command)
       @profiler.handle_stop_command(stop_command)
       profile = @profiler.harvest
-      assert_equal 42,  profile.profile_id
+      assert_equal 42, profile.profile_id
       assert_equal 0.02, profile.requested_period
     end
-
   end
 end

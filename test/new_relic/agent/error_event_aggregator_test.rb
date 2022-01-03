@@ -2,9 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','common_aggregator_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'common_aggregator_tests'))
 require 'new_relic/agent/error_event_aggregator'
 require 'new_relic/agent/guid_generator'
 
@@ -34,7 +34,7 @@ module NewRelic
       def populate_container(sampler, n)
         n.times do
           error = NewRelic::NoticedError.new "Controller/blogs/index", RuntimeError.new("Big Controller")
-          payload = in_transaction{}.payload
+          payload = in_transaction {}.payload
 
           @error_event_aggregator.record error, payload, @span_id
         end
@@ -119,7 +119,7 @@ module NewRelic
         with_config aggregator.class.capacity_key => 5 do
           5.times { generate_event }
           aggregator.expects(:create_event).never
-          aggregator.record(ImpossibleError.new, { priority: -999.0 }, @span_id)
+          aggregator.record(ImpossibleError.new, {priority: -999.0}, @span_id)
         end
       end
 
@@ -148,7 +148,7 @@ module NewRelic
         noticed_error = NewRelic::NoticedError.new(txn_name, exception)
         noticed_error.request_uri = "http://site.com/blogs"
         noticed_error.request_port = 80
-        noticed_error.attributes  = options.delete(:attributes)
+        noticed_error.attributes = options.delete(:attributes)
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
         noticed_error.attributes_from_notice_error.merge!(options)
 

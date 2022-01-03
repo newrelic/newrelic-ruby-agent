@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class AgentAttributesTest < Minitest::Test
-
   include MultiverseHelpers
 
   setup_and_teardown_agent
@@ -167,7 +166,7 @@ class AgentAttributesTest < Minitest::Test
     config = {
       :'transaction_tracer.attributes.enabled' => false,
       :'transaction_events.attributes.enabled' => false,
-      :'error_collector.attributes.enabled'    => false,
+      :'error_collector.attributes.enabled' => false,
       :'browser_monitoring.attributes.enabled' => false
     }
 
@@ -289,14 +288,14 @@ class AgentAttributesTest < Minitest::Test
 
   def test_host_display_name_included_when_enabled_and_set
     config = {:'process_host.display_name' => 'Fancy Host Name',
-              :'transaction_events.attributes.include' => 'host.displayName',}
+              :'transaction_events.attributes.include' => 'host.displayName'}
     run_transaction(config)
 
     assert_event_has_agent_attribute('host.displayName', 'Fancy Host Name')
   end
 
   def test_host_display_name_excluded_when_enabled_but_not_set
-    config = {:'transaction_events.attributes.include' => 'host.displayName',}
+    config = {:'transaction_events.attributes.include' => 'host.displayName'}
     run_transaction(config)
 
     refute_event_has_attribute('host.displayName')
@@ -307,7 +306,7 @@ class AgentAttributesTest < Minitest::Test
       :'transaction_tracer.transaction_threshold' => -10,
       :'transaction_tracer.attributes.enabled' => true,
       :'transaction_events.attributes.enabled' => true,
-      :'error_collector.attributes.enabled'    => true,
+      :'error_collector.attributes.enabled' => true,
       :'browser_monitoring.attributes.enabled' => true
     }
 

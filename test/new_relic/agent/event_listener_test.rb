@@ -2,10 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 class EventListenerTest < Minitest::Test
-
   def setup
     @events = NewRelic::Agent::EventListener.new
 
@@ -18,7 +17,6 @@ class EventListenerTest < Minitest::Test
     end
   end
 
-
   #
   # Helpers
   #
@@ -30,7 +28,6 @@ class EventListenerTest < Minitest::Test
   def assert_was_not_called
     assert !@called, "Event was called"
   end
-
 
   #
   # Tests
@@ -66,5 +63,4 @@ class EventListenerTest < Minitest::Test
 
     assert_was_not_called
   end
-
 end

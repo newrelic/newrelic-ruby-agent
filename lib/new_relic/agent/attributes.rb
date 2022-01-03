@@ -7,7 +7,7 @@ require 'new_relic/agent/attribute_processing'
 module NewRelic
   module Agent
     class Attributes
-      KEY_LIMIT   = 255
+      KEY_LIMIT = 255
       VALUE_LIMIT = 255
       COUNT_LIMIT = 64
 
@@ -73,7 +73,7 @@ module NewRelic
 
       def intrinsic_attributes_for(destination)
         if destination == NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER ||
-           destination == NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+            destination == NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
           @intrinsic_attributes
         else
           NewRelic::EMPTY_HASH

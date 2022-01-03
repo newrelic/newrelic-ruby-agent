@@ -2,13 +2,13 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'/../test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '/../test_helper'))
 
 class NewRelic::ControlTest < Minitest::Test
   attr_reader :control
 
   def setup
-    @control =  NewRelic::Control.instance
+    @control = NewRelic::Control.instance
     raise 'oh geez, wrong class' unless NewRelic::Control.instance.is_a?(::NewRelic::Control::Frameworks::Test)
     NewRelic::Agent.config.reset_to_defaults
   end
@@ -24,7 +24,7 @@ class NewRelic::ControlTest < Minitest::Test
   def test_root
     assert File.directory?(NewRelic::Control.newrelic_root), NewRelic::Control.newrelic_root
     if defined?(Rails::VERSION)
-      assert File.directory?(File.join(NewRelic::Control.newrelic_root, "lib")), NewRelic::Control.newrelic_root +  "/lib"
+      assert File.directory?(File.join(NewRelic::Control.newrelic_root, "lib")), NewRelic::Control.newrelic_root + "/lib"
     end
   end
 
@@ -51,7 +51,7 @@ class NewRelic::ControlTest < Minitest::Test
   end
 
   def test_transaction_threshold__override
-    with_config(:transaction_tracer => { :transaction_threshold => 1}) do
+    with_config(:transaction_tracer => {:transaction_threshold => 1}) do
       assert_equal 1, NewRelic::Agent.config[:'transaction_tracer.transaction_threshold']
     end
   end
@@ -59,40 +59,40 @@ class NewRelic::ControlTest < Minitest::Test
   def test_transaction_tracer_disabled
     with_config(:'transaction_tracer.enabled' => false, :monitor_mode => true) do
       assert(!NewRelic::Agent.instance.transaction_sampler.enabled?,
-             'transaction tracer enabled when config calls for disabled')
+        'transaction tracer enabled when config calls for disabled')
     end
   end
 
   def test_sql_tracer_disabled
     with_config(:'slow_sql.enabled' => false, :monitor_mode => true) do
       assert(!NewRelic::Agent.instance.sql_sampler.enabled?,
-             'sql tracer enabled when config calls for disabled')
+        'sql tracer enabled when config calls for disabled')
     end
   end
 
   def test_sql_tracer_disabled_with_record_sql_false
-    with_config(:slow_sql => { :enabled => true, :record_sql => 'off' }) do
+    with_config(:slow_sql => {:enabled => true, :record_sql => 'off'}) do
       refute NewRelic::Agent.instance.sql_sampler.enabled?,
-             'sql tracer enabled when config calls for disabled'
+        'sql tracer enabled when config calls for disabled'
     end
   end
 
   def test_sql_tracer_disabled_when_tt_disabled
     with_config(:'transaction_tracer.enabled' => false,
-                :'slow_sql.enabled' => true, :monitor_mode => true) do
+      :'slow_sql.enabled' => true, :monitor_mode => true) do
       refute NewRelic::Agent.instance.sql_sampler.enabled?,
-             'sql enabled when transaction tracer disabled'
+        'sql enabled when transaction tracer disabled'
     end
   end
 
   def test_init_plugin_loads_samplers_enabled
     reset_agent
 
-    with_config(:disable_samplers       => false,
-                :disable_harvest_thread => true,
-                :agent_enabled          => true,
-                :monitor_mode           => true,
-                :license_key            => 'a'*40) do
+    with_config(:disable_samplers => false,
+      :disable_harvest_thread => true,
+      :agent_enabled          => true,
+      :monitor_mode           => true,
+      :license_key            => 'a' * 40) do
       NewRelic::Control.instance.init_plugin
       assert NewRelic::Agent.instance.harvest_samplers.any?
     end
@@ -101,11 +101,11 @@ class NewRelic::ControlTest < Minitest::Test
   def test_init_plugin_loads_samplers_disabled
     reset_agent
 
-    with_config(:disable_samplers       => true,
-                :disable_harvest_thread => true,
-                :agent_enabled          => true,
-                :monitor_mode           => true,
-                :license_key            => 'a'*40) do
+    with_config(:disable_samplers => true,
+      :disable_harvest_thread => true,
+      :agent_enabled          => true,
+      :monitor_mode           => true,
+      :license_key            => 'a' * 40) do
       NewRelic::Control.instance.init_plugin
       refute NewRelic::Agent.instance.harvest_samplers.any?
     end
@@ -116,11 +116,11 @@ class NewRelic::ControlTest < Minitest::Test
 
     NewRelic::Agent.instance.stubs(:defer_for_delayed_job?).returns(true)
 
-    with_config(:disable_samplers       => false,
-                :disable_harvest_thread => true,
-                :agent_enabled          => true,
-                :monitor_mode           => true,
-                :license_key            => 'a'*40) do
+    with_config(:disable_samplers => false,
+      :disable_harvest_thread => true,
+      :agent_enabled          => true,
+      :monitor_mode           => true,
+      :license_key            => 'a' * 40) do
       NewRelic::Control.instance.init_plugin
       refute NewRelic::Agent.instance.already_started?
       refute NewRelic::Agent.instance.harvest_samplers.any?
@@ -132,11 +132,11 @@ class NewRelic::ControlTest < Minitest::Test
 
     NewRelic::Agent.instance.stubs(:defer_for_delayed_job?).returns(true)
 
-    with_config(:disable_samplers       => false,
-                :disable_harvest_thread => true,
-                :agent_enabled          => true,
-                :monitor_mode           => true,
-                :license_key            => 'a'*40) do
+    with_config(:disable_samplers => false,
+      :disable_harvest_thread => true,
+      :agent_enabled          => true,
+      :monitor_mode           => true,
+      :license_key            => 'a' * 40) do
       NewRelic::Control.instance.init_plugin
       NewRelic::Agent.instance.stubs(:defer_for_delayed_job?).returns(false)
       NewRelic::Agent.after_fork

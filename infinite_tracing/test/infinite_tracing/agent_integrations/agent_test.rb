@@ -47,7 +47,6 @@ module NewRelic
               assert_equal total_spans, segments.size
             end
           end
-
         ensure
           Connection.instance.unstub(:retry_connection_period)
           NewRelic::Agent.agent.infinite_tracer.stop

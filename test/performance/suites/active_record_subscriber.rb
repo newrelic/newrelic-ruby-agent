@@ -17,13 +17,13 @@ unless defined?(ActiveSupport::Notifications::Event)
         attr_accessor :end
 
         def initialize(name, start, ending, transaction_id, payload)
-          @name           = name
-          @payload        = payload.dup
-          @time           = start
+          @name = name
+          @payload = payload.dup
+          @time = start
           @transaction_id = transaction_id
-          @end            = ending
-          @children       = []
-          @duration       = nil
+          @end = ending
+          @children = []
+          @duration = nil
         end
 
         # Returns the difference in milliseconds between when the execution of the
@@ -56,10 +56,9 @@ end
 
 class ActiveRecordSubscriberTest < Performance::TestCase
   def setup
-    @config = { :adapter => 'mysql', :host => 'server' }
+    @config = {:adapter => 'mysql', :host => 'server'}
     @connection = Object.new
     @connection.instance_variable_set(:@config, @config)
-
 
     @params = {
       :name => 'NewRelic::Agent::Instrumentation::ActiveRecordSubscriberTest::Order Load',
@@ -81,7 +80,6 @@ class ActiveRecordSubscriberTest < Performance::TestCase
     end
   end
 
-
   def test_subscriber_in_txn
     measure do
       in_transaction do
@@ -92,7 +90,7 @@ class ActiveRecordSubscriberTest < Performance::TestCase
 
   EVENT_NAME = 'sql.active_record'.freeze
 
-  def simulate_query(duration=nil)
+  def simulate_query(duration = nil)
     @subscriber.start(EVENT_NAME, :id, @params)
     advance_process_time(duration) if duration
     @subscriber.finish(EVENT_NAME, :id, @params)

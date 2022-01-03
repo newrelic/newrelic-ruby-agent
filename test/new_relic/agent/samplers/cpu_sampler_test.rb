@@ -3,11 +3,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/samplers/cpu_sampler'
 
 class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
-
   def setup
     @original_jruby_version = JRUBY_VERSION if defined?(JRuby)
   end
@@ -56,7 +55,7 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
 
     timeinfo1 = mock
     timeinfo1.stubs(:utime).returns(14.0) # +5s
-    timeinfo1.stubs(:stime).returns(7.0)  # +2s
+    timeinfo1.stubs(:stime).returns(7.0) # +2s
 
     elapsed = 10
 
@@ -69,12 +68,12 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
     s.poll
 
     assert_metrics_recorded({
-      'CPU/User Time'   => { :call_count => 1, :total_call_time => 4.0 },
-      'CPU/System Time' => { :call_count => 1, :total_call_time => 2.0 },
+      'CPU/User Time' => {:call_count => 1, :total_call_time => 4.0},
+      'CPU/System Time' => {:call_count => 1, :total_call_time => 2.0},
       # (4s user time)   / ((10s elapsed time) * 4 cpus) = 0.1
-      'CPU/User/Utilization'   => { :call_count => 1, :total_call_time => 0.1 },
+      'CPU/User/Utilization' => {:call_count => 1, :total_call_time => 0.1},
       # (2s system time) / ((10s elapsed time) * 4 cpus) = 0.05
-      'CPU/System/Utilization' => { :call_count => 1, :total_call_time => 0.05 }
+      'CPU/System/Utilization' => {:call_count => 1, :total_call_time => 0.05}
     })
   end
 
@@ -96,6 +95,6 @@ class NewRelic::Agent::Samplers::CpuSamplerTest < Minitest::Test
     assert_metrics_not_recorded([
       'CPU/User/Utilization',
       'CPU/System/Utilization'
-      ])
+    ])
   end
 end

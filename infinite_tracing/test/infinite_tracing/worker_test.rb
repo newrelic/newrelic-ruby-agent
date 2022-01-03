@@ -7,7 +7,6 @@ require File.expand_path('../../test_helper', __FILE__)
 
 module NewRelic::Agent::InfiniteTracing
   class ResponseHandlerTest < Minitest::Test
-
     def teardown
       reset_buffers_and_caches
     end
@@ -32,7 +31,7 @@ module NewRelic::Agent::InfiniteTracing
         raise "Oops!"
         NewRelic::Agent.record_metric("Supportability/InfiniteTracing/Error", 0.0)
       end
-      
+
       begin
         worker.join
       rescue => err

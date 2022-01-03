@@ -23,7 +23,7 @@ class ViewsController < ApplicationController
   end
 
   def text_render
-    render body:  "Yay"
+    render body: "Yay"
   end
 
   def json_render
@@ -62,7 +62,7 @@ class ViewsController < ApplicationController
   end
 
   def collection_render
-    render((1..3).map{|x| Foo.new })
+    render((1..3).map { |x| Foo.new })
   end
 
   # proc rendering isn't available in rails 3 but you can do nonsense like this
@@ -186,7 +186,7 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       assert find_node_with_name(sample, "View/foos/_foo.html.haml/Partial")
     end
 
-    [:js_render, :xml_render, :proc_render, :json_render ].each do |action|
+    [:js_render, :xml_render, :proc_render, :json_render].each do |action|
       define_method("test_should_not_instrument_rendering_of_#{action}") do
         get "/views/#{action}"
         sample = last_transaction_trace
@@ -206,26 +206,26 @@ class ViewInstrumentationTest < ActionDispatch::IntegrationTest
       get '/views/render_with_delays'
 
       expected_stats_partial = {
-        :call_count           => 3,
-        :total_call_time      => 3.0,
+        :call_count => 3,
+        :total_call_time => 3.0,
         :total_exclusive_time => 3.0
       }
 
       expected_stats_template = {
-        :call_count           => 1,
-        :total_call_time      => 4.0,
-        :total_exclusive_time => 1.0  # top-level template takes 1s itself
+        :call_count => 1,
+        :total_call_time => 4.0,
+        :total_exclusive_time => 1.0 # top-level template takes 1s itself
       }
 
       scope = 'Controller/views/render_with_delays'
       template_metric = 'View/views/index.html.erb/Rendering'
-      partial_metric  = 'View/views/_a_partial.html.erb/Partial'
+      partial_metric = 'View/views/_a_partial.html.erb/Partial'
 
       assert_metrics_recorded(
-         partial_metric           => expected_stats_partial,
-         template_metric          => expected_stats_template,
-         [partial_metric, scope]  => expected_stats_partial,
-         [template_metric, scope] => expected_stats_template
+        partial_metric => expected_stats_partial,
+        template_metric => expected_stats_template,
+        [partial_metric, scope] => expected_stats_partial,
+        [template_metric, scope] => expected_stats_template
       )
     end
   end

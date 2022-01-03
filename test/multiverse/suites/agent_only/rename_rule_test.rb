@@ -3,21 +3,20 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class RenameRuleTest < Minitest::Test
-
   include MultiverseHelpers
 
   setup_and_teardown_agent do |collector|
     rules = [
-      { 'match_expression' => 'RenameRuleTest', 'replacement' => 'Class' },
-      { 'match_expression' => 'Nothing',        'replacement' => 'Something' }
+      {'match_expression' => 'RenameRuleTest', 'replacement' => 'Class'},
+      {'match_expression' => 'Nothing', 'replacement' => 'Something'}
     ]
     segment_terms_rules = [
-      { 'prefix' => 'other/qux', 'terms' => ['Nothing', 'one', 'two'] }
+      {'prefix' => 'other/qux', 'terms' => ['Nothing', 'one', 'two']}
     ]
     collector.stub('connect', {
-      'agent_run_id'              => 666,
-      'transaction_name_rules'    => rules,
-      'metric_name_rules'         => rules,
+      'agent_run_id' => 666,
+      'transaction_name_rules' => rules,
+      'metric_name_rules' => rules,
       'transaction_segment_terms' => segment_terms_rules
     })
   end

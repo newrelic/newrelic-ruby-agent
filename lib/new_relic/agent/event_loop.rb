@@ -10,11 +10,11 @@ module NewRelic
       class Timer
         attr_reader :next_fire_time, :event, :interval, :last_fired_at
 
-        def initialize(interval, event, repeat=false)
-          @interval      = interval
-          @event         = event
-          @repeat        = repeat
-          @started_at    = Process.clock_gettime(Process::CLOCK_REALTIME)
+        def initialize(interval, event, repeat = false)
+          @interval = interval
+          @event = event
+          @repeat = repeat
+          @started_at = Process.clock_gettime(Process::CLOCK_REALTIME)
           @last_fired_at = nil
           reschedule
         end
@@ -45,7 +45,7 @@ module NewRelic
           @last_fired_at = Process.clock_gettime(Process::CLOCK_REALTIME)
         end
 
-        def due?(now=Process.clock_gettime(Process::CLOCK_REALTIME))
+        def due?(now = Process.clock_gettime(Process::CLOCK_REALTIME))
           now >= @next_fire_time
         end
 
@@ -57,10 +57,10 @@ module NewRelic
       def initialize
         @self_pipe_rd, @self_pipe_wr = IO.pipe
         @event_queue = Queue.new
-        @stopped     = false
-        @timers      = {}
+        @stopped = false
+        @timers = {}
 
-        @subscriptions = Hash.new { |h,k| h[k] = [] }
+        @subscriptions = Hash.new { |h, k| h[k] = [] }
         @subscriptions[:__add_timer] << Proc.new { |t| set_timer(t) }
         @subscriptions[:__add_event] << Proc.new { |e, blk| @subscriptions[e] << blk }
       end
@@ -100,7 +100,7 @@ module NewRelic
         end
       end
 
-      def run_once(nonblock=false)
+      def run_once(nonblock = false)
         wait_to_run(nonblock)
 
         prune_timers

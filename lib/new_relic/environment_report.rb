@@ -13,7 +13,6 @@ module NewRelic
   # Additional logic can be registered by using the EnvironmentReport.report_on
   # hook.
   class EnvironmentReport
-
     # This is the main interface for registering logic that should be included
     # in the Environment Report. For example:
     #
@@ -57,23 +56,23 @@ module NewRelic
         end
       end
     end
-    report_on('Plugin List'       ) { ::Rails.configuration.plugins.to_a }
-    report_on('Ruby version'      ) { RUBY_VERSION                       }
-    report_on('Ruby description'  ) { RUBY_DESCRIPTION                   }
-    report_on('Ruby platform'     ) { RUBY_PLATFORM                      }
-    report_on('Ruby patchlevel'   ) { RUBY_PATCHLEVEL.to_s               }
-    report_on('JRuby version'     ) { JRUBY_VERSION                      }
-    report_on('Java VM version'   ) { ENV_JAVA['java.vm.version']        }
+    report_on('Plugin List') { ::Rails.configuration.plugins.to_a }
+    report_on('Ruby version') { RUBY_VERSION }
+    report_on('Ruby description') { RUBY_DESCRIPTION }
+    report_on('Ruby platform') { RUBY_PLATFORM }
+    report_on('Ruby patchlevel') { RUBY_PATCHLEVEL.to_s }
+    report_on('JRuby version') { JRUBY_VERSION }
+    report_on('Java VM version') { ENV_JAVA['java.vm.version'] }
     report_on('Logical Processors') { ::NewRelic::Agent::SystemInfo.num_logical_processors }
-    report_on('Physical Cores'    ) { ::NewRelic::Agent::SystemInfo.num_physical_cores     }
-    report_on('Arch'              ) { ::NewRelic::Agent::SystemInfo.processor_arch         }
-    report_on('OS version'        ) { ::NewRelic::Agent::SystemInfo.os_version             }
-    report_on('OS'                ) { ::NewRelic::Agent::SystemInfo.ruby_os_identifier     }
-    report_on('Database adapter'  ) { ::NewRelic::Agent::DatabaseAdapter.value }
-    report_on('Framework'       ) { Agent.config[:framework].to_s  }
-    report_on('Dispatcher'      ) { Agent.config[:dispatcher].to_s }
-    report_on('Environment'     ) { NewRelic::Control.instance.env }
-    report_on('Rails version'   ) { ::Rails::VERSION::STRING       }
+    report_on('Physical Cores') { ::NewRelic::Agent::SystemInfo.num_physical_cores }
+    report_on('Arch') { ::NewRelic::Agent::SystemInfo.processor_arch }
+    report_on('OS version') { ::NewRelic::Agent::SystemInfo.os_version }
+    report_on('OS') { ::NewRelic::Agent::SystemInfo.ruby_os_identifier }
+    report_on('Database adapter') { ::NewRelic::Agent::DatabaseAdapter.value }
+    report_on('Framework') { Agent.config[:framework].to_s }
+    report_on('Dispatcher') { Agent.config[:dispatcher].to_s }
+    report_on('Environment') { NewRelic::Control.instance.env }
+    report_on('Rails version') { ::Rails::VERSION::STRING }
     report_on('Rails threadsafe') do
       ::Rails.configuration.action_controller.allow_concurrency
     end
@@ -87,7 +86,6 @@ module NewRelic
     report_on('OpenSSL version') { ::OpenSSL::OPENSSL_VERSION }
     # end reporting logic
     ####################################
-
 
     attr_reader :data
     # Generate the report based on the class level logic.

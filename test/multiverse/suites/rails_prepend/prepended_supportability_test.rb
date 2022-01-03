@@ -22,7 +22,7 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
   def test_action_contoller_prepended_metrics
     metrics = ["Supportability/PrependedModules/ActionController::Base"]
     metrics << "Supportability/PrependedModules/ActionController::API" if ::Rails::VERSION::MAJOR.to_i == 5
-    assert_metrics_recorded(metrics.reduce({}) {|h,m| h[m] = metric_values_for(1); h})
+    assert_metrics_recorded(metrics.reduce({}) { |h, m| h[m] = metric_values_for(1); h })
   end
 
   if ::Rails::VERSION::MAJOR.to_i == 5
@@ -34,12 +34,11 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
     end
 
     def test_active_job_prepended_metrics
-      assert_metrics_recorded({ "Supportability/PrependedModules/ActiveJob::Base" => metric_values_for(1) })
+      assert_metrics_recorded({"Supportability/PrependedModules/ActiveJob::Base" => metric_values_for(1)})
     end
   end
 
   def test_active_record_prepended_metrics
-
     # rails 5.0 prepends an anonymous module on to AR::Relation
     #
     val = 1
@@ -52,12 +51,11 @@ class PrependedSupportabilityMetricsTest < Minitest::Test
   end
 
   def metric_values_for val
-    { call_count: 1,
-      max_call_time: val,
-      min_call_time: val,
-      sum_of_squares: val**2.to_f,
-      total_call_time: val.to_f,
-      total_exclusive_time: val.to_f }
+    {call_count: 1,
+     max_call_time: val,
+     min_call_time: val,
+     sum_of_squares: val**2.to_f,
+     total_call_time: val.to_f,
+     total_exclusive_time: val.to_f}
   end
-
 end

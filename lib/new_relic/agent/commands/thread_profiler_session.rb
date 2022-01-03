@@ -9,9 +9,7 @@ require 'new_relic/agent/threading/thread_profile'
 module NewRelic
   module Agent
     module Commands
-
       class ThreadProfilerSession
-
         def initialize(backtrace_service)
           @backtrace_service = backtrace_service
           @started_at = nil
@@ -106,7 +104,6 @@ profile a Resque process, profiling again might select an appropriate agent.
           msg = "Profile already in progress. Ignoring agent command to start another."
           raise_command_error(msg)
         end
-
       end
     end
   end

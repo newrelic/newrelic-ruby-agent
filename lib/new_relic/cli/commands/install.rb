@@ -7,7 +7,6 @@ require 'new_relic/version'
 require 'erb'
 
 class NewRelic::Cli::Install < NewRelic::Cli::Command
-
   NO_LICENSE_KEY = "<PASTE LICENSE KEY HERE>"
 
   def self.command; "install"; end
@@ -21,7 +20,7 @@ class NewRelic::Cli::Install < NewRelic::Cli::Command
   # Will throw CommandFailed exception if there's any error.
   #
   attr_reader :dest_dir, :license_key, :generated_for_user, :quiet, :src_file, :app_name
-  def initialize command_line_args={}
+  def initialize command_line_args = {}
     @dest_dir = nil
     super command_line_args
     if @dest_dir.nil?
@@ -43,7 +42,7 @@ class NewRelic::Cli::Install < NewRelic::Cli::Command
     if File.exist?(dest_file) && !@force
       raise NewRelic::Cli::Command::CommandFailure, "newrelic.yml file already exists.  Use --force flag to overwrite."
     end
-    File.open(dest_file, 'w') { | out | out.puts(content) }
+    File.open(dest_file, 'w') { |out| out.puts(content) }
 
     puts <<-EOF unless quiet
 
@@ -60,11 +59,10 @@ you receive upon registration.
 
 Visit support.newrelic.com if you are experiencing installation issues.
     EOF
-
   end
 
   def content
-    @src_file ||= File.expand_path(File.join(File.dirname(__FILE__),"..","..","..","..","newrelic.yml"))
+    @src_file ||= File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "..", "newrelic.yml"))
     template = File.read(@src_file)
     ERB.new(template).result(binding)
   end
@@ -73,14 +71,12 @@ Visit support.newrelic.com if you are experiencing installation issues.
 
   def options
     OptionParser.new "Usage: #{$0} #{self.class.command} [ OPTIONS] 'application name'", 40 do |o|
-      o.on("-f", "--force", "Overwrite newrelic.yml if it exists") { | e | @force = true }
+      o.on("-f", "--force", "Overwrite newrelic.yml if it exists") { |e| @force = true }
       o.on("-l", "--license_key=NAME", String,
-             "Use the given license key") { | e | @license_key = e }
+        "Use the given license key") { |e| @license_key = e }
       o.on("-d", "--destdir=name", String,
-               "Write the newrelic.yml to the given directory, default is '.'") { | e | @dest_dir = e }
+        "Write the newrelic.yml to the given directory, default is '.'") { |e| @dest_dir = e }
       yield o if block_given?
     end
   end
-
-
 end

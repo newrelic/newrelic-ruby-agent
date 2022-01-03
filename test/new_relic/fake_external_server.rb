@@ -10,13 +10,12 @@ require 'json'
 
 module NewRelic
   class FakeExternalServer < FakeServer
-
     STATUS_MESSAGE = "<html><head><title>FakeExternalServer status</title></head>" +
       "<body>The FakeExternalServer is rockin'</body></html>"
 
     attr_reader :overridden_response_headers
 
-    def initialize( * )
+    def initialize(*)
       super
       @requests = []
     end

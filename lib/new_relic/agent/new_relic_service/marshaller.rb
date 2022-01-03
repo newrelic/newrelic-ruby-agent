@@ -6,7 +6,7 @@ module NewRelic
   module Agent
     class NewRelicService
       class Marshaller
-        def prepare(data, options={})
+        def prepare(data, options = {})
           encoder = options[:encoder] || default_encoder
           if data.respond_to?(:to_collector_array)
             data.to_collector_array(encoder)

@@ -10,17 +10,17 @@ module NewRelic
       class HighSecuritySource < DottedHash
         def initialize(local_settings)
           super({
-            :capture_params           => false,
-            :'resque.capture_params'  => false,
+            :capture_params => false,
+            :'resque.capture_params' => false,
             :'sidekiq.capture_params' => false,
-            :'attributes.include'     => [],
+            :'attributes.include' => [],
 
             :'transaction_tracer.record_sql' => record_sql_setting(local_settings, :'transaction_tracer.record_sql'),
-            :'slow_sql.record_sql'           => record_sql_setting(local_settings, :'slow_sql.record_sql'),
-            :'mongo.obfuscate_queries'       => true,
+            :'slow_sql.record_sql' => record_sql_setting(local_settings, :'slow_sql.record_sql'),
+            :'mongo.obfuscate_queries' => true,
             :'transaction_tracer.record_redis_arguments' => false,
 
-            :'custom_insights_events.enabled'   => false,
+            :'custom_insights_events.enabled' => false,
             :'strip_exception_messages.enabled' => true
           })
         end
@@ -32,7 +32,7 @@ module NewRelic
         SET_TO_OBFUSCATED = [RAW, OBFUSCATED]
 
         def record_sql_setting(local_settings, key)
-          original_value  = local_settings[key]
+          original_value = local_settings[key]
           result = if SET_TO_OBFUSCATED.include?(original_value)
             OBFUSCATED
           else

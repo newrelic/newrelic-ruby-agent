@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/transaction_metrics'
 
 class TransactionMetricsTest < Minitest::Test
@@ -13,8 +13,8 @@ class TransactionMetricsTest < Minitest::Test
   def test_record_scoped_and_unscoped_should_record_a_scoped_metric
     @metrics.record_scoped_and_unscoped('foo', 42, 12)
     assert_scoped_metrics(@metrics, ['foo'], {
-      :call_count           => 1,
-      :total_call_time      => 42,
+      :call_count => 1,
+      :total_call_time => 42,
       :total_exclusive_time => 12
     })
     assert_unscoped_metrics(@metrics, [])
@@ -23,8 +23,8 @@ class TransactionMetricsTest < Minitest::Test
   def test_record_scoped_and_unscoped_should_take_multiple_metrics
     @metrics.record_scoped_and_unscoped(['foo', 'bar'], 42, 12)
     assert_scoped_metrics(@metrics, ['foo', 'bar'], {
-      :call_count           => 1,
-      :total_call_time      => 42,
+      :call_count => 1,
+      :total_call_time => 42,
       :total_exclusive_time => 12
     })
     assert_unscoped_metrics(@metrics, [])
@@ -32,13 +32,13 @@ class TransactionMetricsTest < Minitest::Test
 
   def test_record_scoped_and_unscoped_should_take_a_block
     @metrics.record_scoped_and_unscoped('foo') do |stats|
-      stats.call_count           = 3
-      stats.total_call_time      = 2
+      stats.call_count = 3
+      stats.total_call_time = 2
       stats.total_exclusive_time = 1
     end
     assert_scoped_metrics(@metrics, ['foo'], {
-      :call_count           => 3,
-      :total_call_time      => 2,
+      :call_count => 3,
+      :total_call_time => 2,
       :total_exclusive_time => 1
     })
     assert_unscoped_metrics(@metrics, [])
@@ -47,8 +47,8 @@ class TransactionMetricsTest < Minitest::Test
   def test_record_unscoped_should_record_an_unscoped_metric
     @metrics.record_unscoped('foo', 42, 12)
     assert_unscoped_metrics(@metrics, ['foo'], {
-      :call_count           => 1,
-      :total_call_time      => 42,
+      :call_count => 1,
+      :total_call_time => 42,
       :total_exclusive_time => 12
     })
     assert_scoped_metrics(@metrics, [])
@@ -57,8 +57,8 @@ class TransactionMetricsTest < Minitest::Test
   def test_record_unscoped_should_take_multiple_metrics
     @metrics.record_unscoped(['foo', 'bar'], 42, 12)
     assert_unscoped_metrics(@metrics, ['foo', 'bar'], {
-      :call_count           => 1,
-      :total_call_time      => 42,
+      :call_count => 1,
+      :total_call_time => 42,
       :total_exclusive_time => 12
     })
     assert_scoped_metrics(@metrics, [])
@@ -66,13 +66,13 @@ class TransactionMetricsTest < Minitest::Test
 
   def test_record_unscoped_should_take_a_block
     @metrics.record_unscoped('foo') do |stats|
-      stats.call_count           = 3
-      stats.total_call_time      = 2
+      stats.call_count = 3
+      stats.total_call_time = 2
       stats.total_exclusive_time = 1
     end
     assert_unscoped_metrics(@metrics, ['foo'], {
-      :call_count           => 3,
-      :total_call_time      => 2,
+      :call_count => 3,
+      :total_call_time => 2,
       :total_exclusive_time => 1
     })
     assert_scoped_metrics(@metrics, [])
@@ -88,20 +88,20 @@ class TransactionMetricsTest < Minitest::Test
     refute @metrics.has_key?('foo')
   end
 
-  def assert_unscoped_metrics(txn_metrics, expected_metric_names, expected_attrs={})
+  def assert_unscoped_metrics(txn_metrics, expected_metric_names, expected_attrs = {})
     assert_scoped_or_unscoped_metrics(:unscoped, txn_metrics, expected_metric_names, expected_attrs)
   end
 
-  def assert_scoped_metrics(txn_metrics, expected_metric_names, expected_attrs={})
+  def assert_scoped_metrics(txn_metrics, expected_metric_names, expected_attrs = {})
     assert_scoped_or_unscoped_metrics(:scoped, txn_metrics, expected_metric_names, expected_attrs)
   end
 
   def assert_scoped_or_unscoped_metrics(type, txn_metrics, expected_metric_names, expected_attrs)
-    names     = []
+    names = []
     all_stats = []
 
     txn_metrics.send("each_#{type}") do |name, stats|
-      names     << name
+      names << name
       all_stats << stats
     end
 

@@ -6,9 +6,9 @@ DataMapper::Logger.new("/dev/null", :debug)
 DataMapper.setup(:default, 'sqlite::memory:')
 class Post
   include DataMapper::Resource
-  property :id,         Serial    # An auto-increment integer key
-  property :title,      String    # A varchar type string, for short strings
-  property :body,       Text      # A text block, for longer string data.
+  property :id, Serial # An auto-increment integer key
+  property :title, String # A varchar type string, for short strings
+  property :body, Text # A text block, for longer string data.
 end
 DataMapper.auto_migrate!
 DataMapper.finalize
@@ -238,7 +238,7 @@ class DataMapperTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      'Datastore/statement/DataMapper/Post/all' => { :call_count => 2 }
+      'Datastore/statement/DataMapper/Post/all' => {:call_count => 2}
     )
   end
 
@@ -326,7 +326,7 @@ class DataMapperTest < Minitest::Test
       'Datastore/DataMapper/all',
       'Datastore/DataMapper/allWeb',
       'Datastore/operation/DataMapper/select',
-      ['Datastore/operation/DataMapper/select', 'dm4evr'],
+      ['Datastore/operation/DataMapper/select', 'dm4evr']
     ])
   end
 
@@ -341,7 +341,7 @@ class DataMapperTest < Minitest::Test
       'Datastore/DataMapper/all',
       'Datastore/DataMapper/allOther',
       'Datastore/operation/DataMapper/execute',
-      ['Datastore/operation/DataMapper/execute', 'background'],
+      ['Datastore/operation/DataMapper/execute', 'background']
     ])
   end
 
@@ -441,5 +441,4 @@ class DataMapperTest < Minitest::Test
       "Datastore/statement/DataMapper/Post/#{operation}"
     ])
   end
-
 end

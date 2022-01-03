@@ -10,6 +10,6 @@ class LoadTest < Minitest::Test
     ::Resolv.expects(:getaddress).never
     ::IPSocket.expects(:getaddress).never
 
-    require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
+    require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
   end
 end

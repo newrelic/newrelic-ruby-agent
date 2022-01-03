@@ -7,7 +7,6 @@ require 'forwardable'
 module NewRelic
   module Agent
     module Configuration
-
       # Helper since default Procs are evaluated in the context of this module
       def self.value_of(key)
         Proc.new do
@@ -27,7 +26,7 @@ module NewRelic
       #     - if user set prepend to `false` then we use method_alias chaining
       #     - auto, when returned means, try to use prepend unless conflicting gems discovered
       #
-      def self.instrumentation_value_of(disable_key, prepend_key=nil)
+      def self.instrumentation_value_of(disable_key, prepend_key = nil)
         Proc.new do
           if NewRelic::Agent.config[disable_key]
             "disabled"
@@ -78,9 +77,9 @@ module NewRelic
         def self.config_search_paths
           Proc.new {
             paths = [
-              File.join("config","newrelic.yml"),
+              File.join("config", "newrelic.yml"),
               File.join("newrelic.yml"),
-              File.join("config","newrelic.yml.erb"),
+              File.join("config", "newrelic.yml.erb"),
               File.join("newrelic.yml.erb")
             ]
 
@@ -144,8 +143,8 @@ module NewRelic
         def self.agent_enabled
           Proc.new {
             NewRelic::Agent.config[:enabled] &&
-            (NewRelic::Agent.config[:test_mode] || NewRelic::Agent.config[:monitor_mode]) &&
-            NewRelic::Agent::Autostart.agent_should_start?
+              (NewRelic::Agent.config[:test_mode] || NewRelic::Agent.config[:monitor_mode]) &&
+              NewRelic::Agent::Autostart.agent_should_start?
           }
         end
 
@@ -154,7 +153,7 @@ module NewRelic
         def self.audit_log_path
           Proc.new {
             log_file_path = NewRelic::Agent.config[:log_file_path]
-            wants_stdout  = (log_file_path.upcase == 'STDOUT')
+            wants_stdout = (log_file_path.upcase == 'STDOUT')
             audit_log_dir = wants_stdout ? DEFAULT_LOG_DIR : log_file_path
 
             File.join(audit_log_dir, 'newrelic_audit.log')
@@ -177,7 +176,7 @@ module NewRelic
         # set. Once JS errors are GA, browser_monitoring.loader can stop
         # being dynamic.
         def self.browser_monitoring_loader
-          Proc.new { NewRelic::Agent.config[:js_errors_beta] ? "full" : "rum"}
+          Proc.new { NewRelic::Agent.config[:js_errors_beta] ? "full" : "rum" }
         end
 
         def self.transaction_tracer_transaction_threshold
@@ -780,8 +779,7 @@ module NewRelic
           :deprecated => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.delayed_job', 'If `true`, disables [Delayed::Job instrumentation](/docs/agents/ruby-agent/background-jobs/delayedjob).'
-          )
+          :description => deprecated_description(:'instrumentation.delayed_job', 'If `true`, disables [Delayed::Job instrumentation](/docs/agents/ruby-agent/background-jobs/delayedjob).')
         },
         :disable_sinatra => {
           :default => false,
@@ -789,7 +787,7 @@ module NewRelic
           :type => Boolean,
           :deprecated => true,
           :allowed_from_server => false,
-          :description => deprecated_description(:'instrumentation.sinatra', 'If `true` , disables [Sinatra instrumentation](/docs/agents/ruby-agent/frameworks/sinatra-support).' )
+          :description => deprecated_description(:'instrumentation.sinatra', 'If `true` , disables [Sinatra instrumentation](/docs/agents/ruby-agent/frameworks/sinatra-support).')
         },
         :disable_sinatra_auto_middleware => {
           :default => false,
@@ -840,8 +838,7 @@ module NewRelic
           :allowed_from_server => false,
           :deprecated => true,
           :description => deprecated_description(:'instrumentation.net_http',
-            'If `true`, uses `Module#prepend` rather than alias_method for Net::HTTP instrumentation.'
-          )
+            'If `true`, uses `Module#prepend` rather than alias_method for Net::HTTP instrumentation.')
         },
         :'instrumentation.net_http' => {
           :default => instrumentation_value_of(:disable_net_http, :prepend_net_instrumentation),
@@ -940,40 +937,40 @@ module NewRelic
           :description => "Controls auto-instrumentation of Sinatra at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.rack' => {
-          :default      => instrumentation_value_of(:disable_rack),
-          :public       => true,
-          :type         => String,
+          :default => instrumentation_value_of(:disable_rack),
+          :public => true,
+          :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => "Controls auto-instrumentation of Rack. When enabled, the agent hooks into the " \
+          :description => "Controls auto-instrumentation of Rack. When enabled, the agent hooks into the " \
                            "`to_app` method in Rack::Builder to find gems to instrument during " \
                            "application startup.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.rack_urlmap' => {
-          :default      => instrumentation_value_of(:disable_rack_urlmap),
-          :public       => true,
-          :type         => String,
+          :default => instrumentation_value_of(:disable_rack_urlmap),
+          :public => true,
+          :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'Controls auto-instrumentation of Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.puma_rack' => {
-          :default      => instrumentation_value_of(:disable_puma_rack),  # TODO: change to value_of(:'instrumentation.rack') when we remove :disable_puma_rack in 8.0)
-          :public       => true,
-          :type         => String,
+          :default => instrumentation_value_of(:disable_puma_rack), # TODO: change to value_of(:'instrumentation.rack') when we remove :disable_puma_rack in 8.0)
+          :public => true,
+          :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => "Controls auto-instrumentation of Puma::Rack. When enabled, the agent hooks into the " \
+          :description => "Controls auto-instrumentation of Puma::Rack. When enabled, the agent hooks into the " \
                            "`to_app` method in Puma::Rack::Builder to find gems to instrument during " \
                            "application startup.  May be one of [auto|prepend|chain|disabled]."
         },
         :'instrumentation.puma_rack_urlmap' => {
-          :default      => instrumentation_value_of(:disable_puma_rack_urlmap),  # TODO: change to value_of(:'instrumentation.rack_urlmap') when we remove :disable_puma_rack_urlmap in 8.0)
-          :public       => true,
-          :type         => String,
+          :default => instrumentation_value_of(:disable_puma_rack_urlmap), # TODO: change to value_of(:'instrumentation.rack_urlmap') when we remove :disable_puma_rack_urlmap in 8.0)
+          :public => true,
+          :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'Controls auto-instrumentation of Puma::Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of Puma::Rack::URLMap at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.memcached' => {
           :default => instrumentation_value_of(:disable_memcached),
@@ -981,7 +978,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'Controls auto-instrumentation of memcached gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of memcached gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.memcache_client' => {
           :default => instrumentation_value_of(:disable_memcache_client),
@@ -989,7 +986,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'Controls auto-instrumentation of memcache-client gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of memcache-client gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.memcache' => {
           :default => instrumentation_value_of(:disable_dalli),
@@ -997,7 +994,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'Controls auto-instrumentation of dalli gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of dalli gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.logger' => {
           :default => "auto",
@@ -1214,36 +1211,36 @@ module NewRelic
           :description => 'Use [`disable_sequel_instrumentation`](#disable_sequel_instrumentation) instead.'
         },
         :disable_mongo => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :dynamic_name => true,
-          :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.mongo', 'If `true`, the agent won\'t install [instrumentation for the Mongo gem](/docs/agents/ruby-agent/frameworks/mongo-instrumentation).')
+          :deprecated => true,
+          :description => deprecated_description(:'instrumentation.mongo', 'If `true`, the agent won\'t install [instrumentation for the Mongo gem](/docs/agents/ruby-agent/frameworks/mongo-instrumentation).')
         },
         :disable_redis => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
-          :deprecated   => true,
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :deprecated => true,
           :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.redis', 'If `true`, the agent won\'t install [instrumentation for Redis](/docs/agents/ruby-agent/frameworks/redis-instrumentation).')
+          :description => deprecated_description(:'instrumentation.redis', 'If `true`, the agent won\'t install [instrumentation for Redis](/docs/agents/ruby-agent/frameworks/redis-instrumentation).')
         },
         :disable_redis_instrumentation => {
-          :default      => false,
-          :public       => false,
-          :type         => Boolean,
-          :deprecated   => true,
+          :default => false,
+          :public => false,
+          :type => Boolean,
+          :deprecated => true,
           :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.redis', 'Disables installation of Redis instrumentation. Standard key to use is disable_redis.')
+          :description => deprecated_description(:'instrumentation.redis', 'Disables installation of Redis instrumentation. Standard key to use is disable_redis.')
         },
         :'message_tracer.segment_parameters.enabled' => {
-          :default      => true,
-          :public       => true,
-          :type         => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => true,
-          :description  => 'If `true`, the agent will collect metadata about messages and attach them as segment parameters.'
+          :description => 'If `true`, the agent will collect metadata about messages and attach them as segment parameters.'
         },
         :'slow_sql.enabled' => {
           :default => value_of(:'transaction_tracer.enabled'),
@@ -1313,7 +1310,7 @@ module NewRelic
           :default => 'ActionController::RoutingError,Sinatra::NotFound',
           :public => true,
           :type => String,
-          :deprecated => true, 
+          :deprecated => true,
           :allowed_from_server => true,
           :dynamic_name => true,
           :description => 'Use `error_collector.ignore_classes` instead. Specify a comma-delimited list of error classes that the agent should ignore.'
@@ -1595,71 +1592,71 @@ module NewRelic
           :description => 'Backports the faster ActiveRecord connection lookup introduced in Rails 6, which improves agent performance when instrumenting ActiveRecord. Note that this setting may not be compatible with other gems that patch ActiveRecord.'
         },
         :disable_vm_sampler => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If `true`, the agent won\'t [sample performance measurements from the Ruby VM](/docs/agents/ruby-agent/features/ruby-vm-measurements).'
+          :description => 'If `true`, the agent won\'t [sample performance measurements from the Ruby VM](/docs/agents/ruby-agent/features/ruby-vm-measurements).'
         },
         :disable_memory_sampler => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If `true`, the agent won\'t sample the memory usage of the host process.'
+          :description => 'If `true`, the agent won\'t sample the memory usage of the host process.'
         },
         :disable_cpu_sampler => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If `true`, the agent won\'t sample the CPU usage of the host process.'
+          :description => 'If `true`, the agent won\'t sample the CPU usage of the host process.'
         },
         :disable_delayed_job_sampler => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If `true`, the agent won\'t measure the depth of Delayed Job queues.'
+          :description => 'If `true`, the agent won\'t measure the depth of Delayed Job queues.'
         },
         :disable_active_record_notifications => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  => 'If `true`, disables instrumentation for ActiveRecord 4, 5, and 6.'
+          :description => 'If `true`, disables instrumentation for ActiveRecord 4, 5, and 6.'
         },
         :disable_bunny => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
-          :deprecated   => true,
-          :dynamic_name => true,
-          :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.bunny', 'If `true`, disables instrumentation for the bunny gem.')
-        },
-        :disable_curb => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :deprecated => true,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description  =>  deprecated_description(:'instrumentation.curb', 'If `true`, disables instrumentation for the curb gem.' )
+          :description => deprecated_description(:'instrumentation.bunny', 'If `true`, disables instrumentation for the bunny gem.')
+        },
+        :disable_curb => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :deprecated => true,
+          :dynamic_name => true,
+          :allowed_from_server => false,
+          :description => deprecated_description(:'instrumentation.curb', 'If `true`, disables instrumentation for the curb gem.')
         },
         :disable_excon => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :dynamic_name => true,
-          :deprecated   => true,
+          :deprecated => true,
           :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.excon', 'If `true`, disables instrumentation for the excon gem.')
+          :description => deprecated_description(:'instrumentation.excon', 'If `true`, disables instrumentation for the excon gem.')
         },
         :'instrumentation.excon' => {
           :default => instrumentation_value_of(:disable_excon),
@@ -1670,200 +1667,197 @@ module NewRelic
           :description => "Controls auto-instrumentation of Excon at start up.  May be one of [enabled|disabled]."
         },
         :disable_httpclient => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :dynamic_name => true,
-          :deprecated   => true,
+          :deprecated => true,
           :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.httpclient', 'If `true`, disables instrumentation for the httpclient gem.')
+          :description => deprecated_description(:'instrumentation.httpclient', 'If `true`, disables instrumentation for the httpclient gem.')
         },
         :disable_net_http => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.net_http',
-            'If `true`, disables instrumentation for Net::HTTP.'
-          )
+          :deprecated => true,
+          :description => deprecated_description(:'instrumentation.net_http',
+            'If `true`, disables instrumentation for Net::HTTP.')
         },
         :disable_rack => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.rack',  'If `true`, prevents the agent from hooking into the `to_app` method in Rack::Builder to find gems to instrument during application startup.')
+          :deprecated => true,
+          :description => deprecated_description(:'instrumentation.rack', 'If `true`, prevents the agent from hooking into the `to_app` method in Rack::Builder to find gems to instrument during application startup.')
         },
         :disable_rack_urlmap => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.rack_urlmap', 'If `true`, prevents the agent from hooking into Rack::URLMap to install middleware tracing.')
+          :deprecated => true,
+          :description => deprecated_description(:'instrumentation.rack_urlmap', 'If `true`, prevents the agent from hooking into Rack::URLMap to install middleware tracing.')
         },
         :disable_puma_rack => {
-          :default      => value_of(:disable_rack),
-          :public       => true,
-          :type         => Boolean,
+          :default => value_of(:disable_rack),
+          :public => true,
+          :type => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.puma_rack', 'If `true`, prevents the agent from hooking into the `to_app` method in Puma::Rack::Builder to find gems to instrument during application startup.')
+          :deprecated => true,
+          :description => deprecated_description(:'instrumentation.puma_rack', 'If `true`, prevents the agent from hooking into the `to_app` method in Puma::Rack::Builder to find gems to instrument during application startup.')
         },
         :disable_puma_rack_urlmap => {
-          :default      => value_of(:disable_rack_urlmap),
-          :public       => true,
-          :type         => Boolean,
+          :default => value_of(:disable_rack_urlmap),
+          :public => true,
+          :type => Boolean,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.puma_rack_urlmap', 'If `true`, prevents the agent from hooking into Puma::Rack::URLMap to install middleware tracing.')
+          :deprecated => true,
+          :description => deprecated_description(:'instrumentation.puma_rack_urlmap', 'If `true`, prevents the agent from hooking into Puma::Rack::URLMap to install middleware tracing.')
         },
         :disable_typhoeus => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :dynamic_name => true,
-          :deprecated   => true,
+          :deprecated => true,
           :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.typhoeus', 'If `true`, the agent won\'t install instrumentation for the typhoeus gem.' )
+          :description => deprecated_description(:'instrumentation.typhoeus', 'If `true`, the agent won\'t install instrumentation for the typhoeus gem.')
         },
         :disable_httprb => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :dynamic_name => true,
-          :deprecated   => true,
+          :deprecated => true,
           :allowed_from_server => false,
-          :description  => deprecated_description(:'instrumentation.httprb', 'If `true`, the agent won\'t install instrumentation for the http.rb gem.' )
+          :description => deprecated_description(:'instrumentation.httprb', 'If `true`, the agent won\'t install instrumentation for the http.rb gem.')
         },
         :disable_middleware_instrumentation => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
-          :description  => 'If `true`, the agent won\'t wrap third-party middlewares in instrumentation (regardless of whether they are installed via Rack::Builder or Rails).'
+          :description => 'If `true`, the agent won\'t wrap third-party middlewares in instrumentation (regardless of whether they are installed via Rack::Builder or Rails).'
         },
         :disable_rails_middleware => {
-          :default      => false,
-          :public       => false,
-          :type         => Boolean,
+          :default => false,
+          :public => false,
+          :type => Boolean,
           :allowed_from_server => false,
-          :description  => 'Internal name for controlling Rails 3+ middleware instrumentation'
+          :description => 'Internal name for controlling Rails 3+ middleware instrumentation'
         },
         :'heroku.use_dyno_names' => {
-          :default      => true,
-          :public       => true,
-          :type         => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
-          :description  => 'If `true`, the agent uses Heroku dyno names as the hostname.'
+          :description => 'If `true`, the agent uses Heroku dyno names as the hostname.'
         },
         :'heroku.dyno_name_prefixes_to_shorten' => {
-          :default      => ['scheduler', 'run'],
-          :public       => true,
-          :type         => Array,
+          :default => ['scheduler', 'run'],
+          :public => true,
+          :type => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
-          :description  => 'Ordinarily the agent reports dyno names with a trailing dot and process ID (for example, <b>worker.3</b>). You can remove this trailing data by specifying the prefixes you want to report without trailing data (for example, <b>worker</b>).'
+          :transform => DefaultSource.method(:convert_to_list),
+          :description => 'Ordinarily the agent reports dyno names with a trailing dot and process ID (for example, <b>worker.3</b>). You can remove this trailing data by specifying the prefixes you want to report without trailing data (for example, <b>worker</b>).'
         },
         :'process_host.display_name' => {
-          :default      => Proc.new{ NewRelic::Agent::Hostname.get },
-          :public       => true,
-          :type         => String,
+          :default => Proc.new { NewRelic::Agent::Hostname.get },
+          :public => true,
+          :type => String,
           :allowed_from_server => false,
-          :description  => 'Specify a custom host name for [display in the New Relic UI](/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name).'
+          :description => 'Specify a custom host name for [display in the New Relic UI](/docs/apm/new-relic-apm/maintenance/add-rename-remove-hosts#display_name).'
         },
         :labels => {
-          :default      => '',
-          :public       => true,
-          :type         => String,
+          :default => '',
+          :public => true,
+          :type => String,
           :allowed_from_server => false,
-          :description  => 'A dictionary of [label names](/docs/data-analysis/user-interface-functions/labels-categories-organize-your-apps-servers) and values that will be applied to the data sent from this agent. May also be expressed as a semicolon-delimited `;` string of colon-separated `:` pairs. For example, `<var>Server</var>:<var>One</var>;<var>Data Center</var>:<var>Primary</var>`.'
+          :description => 'A dictionary of [label names](/docs/data-analysis/user-interface-functions/labels-categories-organize-your-apps-servers) and values that will be applied to the data sent from this agent. May also be expressed as a semicolon-delimited `;` string of colon-separated `:` pairs. For example, `<var>Server</var>:<var>One</var>;<var>Data Center</var>:<var>Primary</var>`.'
         },
         :aggressive_keepalive => {
-          :default      => true,
-          :public       => false,
-          :type         => Boolean,
+          :default => true,
+          :public => false,
+          :type => Boolean,
           :allowed_from_server => true,
-          :description  => 'If true, attempt to keep the TCP connection to the collector alive between harvests.'
+          :description => 'If true, attempt to keep the TCP connection to the collector alive between harvests.'
         },
         :keep_alive_timeout => {
-          :default      => 60,
-          :public       => false,
-          :type         => Integer,
+          :default => 60,
+          :public => false,
+          :type => Integer,
           :allowed_from_server => true,
-          :description  => 'Timeout for keep alive on TCP connection to collector if supported by Ruby version. Only used in conjunction when aggressive_keepalive is enabled.'
+          :description => 'Timeout for keep alive on TCP connection to collector if supported by Ruby version. Only used in conjunction when aggressive_keepalive is enabled.'
         },
         :ca_bundle_path => {
-          :default      => nil,
-          :allow_nil    => true,
-          :public       => true,
-          :type         => String,
+          :default => nil,
+          :allow_nil => true,
+          :public => true,
+          :type => String,
           :allowed_from_server => false,
-          :description  => "Manual override for the path to your local CA bundle. This CA bundle will be used to validate the SSL certificate presented by New Relic\'s data collection service."
+          :description => "Manual override for the path to your local CA bundle. This CA bundle will be used to validate the SSL certificate presented by New Relic\'s data collection service."
         },
         :'rules.ignore_url_regexes' => {
-          :default      => [],
-          :public       => true,
-          :type         => Array,
+          :default => [],
+          :public => true,
+          :type => Array,
           :allowed_from_server => true,
-          :transform    => DefaultSource.method(:convert_to_regexp_list),
-          :description  => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore.' 
+          :transform => DefaultSource.method(:convert_to_regexp_list),
+          :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore.'
         },
         :'synthetics.traces_limit' => {
-          :default      => 20,
-          :public       => false,
-          :type         => Integer,
+          :default => 20,
+          :public => false,
+          :type => Integer,
           :allowed_from_server => true,
-          :description  => 'Maximum number of synthetics transaction traces to hold for a given harvest'
+          :description => 'Maximum number of synthetics transaction traces to hold for a given harvest'
         },
         :'synthetics.events_limit' => {
-          :default      => 200,
-          :public       => false,
-          :type         => Integer,
+          :default => 200,
+          :public => false,
+          :type => Integer,
           :allowed_from_server => true,
-          :description  => 'Maximum number of synthetics transaction events to hold for a given harvest'
+          :description => 'Maximum number of synthetics transaction events to hold for a given harvest'
         },
         :'custom_insights_events.enabled' => {
-          :default      => true,
-          :public       => true,
-          :type         => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => true,
-          :description  => 'If `true`, the agent captures [New Relic Insights custom events](/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events-new-relic-apm-agents).'
+          :description => 'If `true`, the agent captures [New Relic Insights custom events](/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events-new-relic-apm-agents).'
         },
         :'custom_insights_events.max_samples_stored' => {
-          :default      => 1000,
-          :public       => true,
-          :type         => Integer,
+          :default => 1000,
+          :public => true,
+          :type => Integer,
           :allowed_from_server => true,
-          :description  => 'Specify a maximum number of custom Insights events to buffer in memory at a time.',
+          :description => 'Specify a maximum number of custom Insights events to buffer in memory at a time.',
           :dynamic_name => true
         },
         :disable_grape_instrumentation => {
-          :default      => false,
-          :public       => false,
-          :type         => Boolean,
+          :default => false,
+          :public => false,
+          :type => Boolean,
           :allowed_from_server => false,
-          :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.grape',
-            'If `true`, the agent won\'t install Grape instrumentation.'
-          )
+          :deprecated => true,
+          :description => deprecated_description(:'instrumentation.grape',
+            'If `true`, the agent won\'t install Grape instrumentation.')
         },
         :disable_grape => {
-          :default      => false,
-          :public       => true,
-          :type         => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
-          :deprecated   => true,
-          :description  => deprecated_description(:'instrumentation.grape',
-            'If `true`, the agent won\'t install Grape instrumentation.'
-          )
+          :deprecated => true,
+          :description => deprecated_description(:'instrumentation.grape',
+            'If `true`, the agent won\'t install Grape instrumentation.')
         },
         :'instrumentation.grape' => {
           :default => instrumentation_value_of(:disable_grape_instrumentation),
@@ -1874,261 +1868,261 @@ module NewRelic
           :description => "Controls auto-instrumentation of Grape at start up.  May be one of [auto|prepend|chain|disabled]."
         },
         :'attributes.enabled' => {
-          :default     => true,
-          :public      => true,
-          :type        => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, enables capture of attributes for all destinations.'
         },
         :'transaction_tracer.attributes.enabled' => {
-          :default     => value_of(:'transaction_tracer.capture_attributes'),
-          :public      => true,
-          :type        => Boolean,
+          :default => value_of(:'transaction_tracer.capture_attributes'),
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, the agent captures attributes from transaction traces.'
         },
         :'transaction_events.attributes.enabled' => {
-          :default     => value_of(:'analytics_events.capture_attributes'),
-          :public      => true,
-          :type        => Boolean,
+          :default => value_of(:'analytics_events.capture_attributes'),
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, the agent captures attributes from transaction events.'
         },
         :'error_collector.attributes.enabled' => {
-          :default     => value_of(:'error_collector.capture_attributes'),
-          :public      => true,
-          :type        => Boolean,
+          :default => value_of(:'error_collector.capture_attributes'),
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, the agent captures attributes from error collection.'
         },
         :'browser_monitoring.attributes.enabled' => {
-          :default     => value_of(:'browser_monitoring.capture_attributes'),
-          :public      => true,
-          :type        => Boolean,
+          :default => value_of(:'browser_monitoring.capture_attributes'),
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, the agent captures attributes from browser monitoring.'
         },
         :'span_events.attributes.enabled' => {
-          :default     => true,
-          :public      => true,
-          :type        => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, the agent captures attributes on span events.'
         },
         :'transaction_segments.attributes.enabled' => {
-          :default     => true,
-          :public      => true,
-          :type        => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, the agent captures attributes on transaction segments.'
         },
         :'attributes.exclude' => {
-          :default     => [],
-          :public      => true,
-          :type        => Array,
+          :default => [],
+          :public => true,
+          :type => Array,
           :allowed_from_server => false,
-          :transform   => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from all destinations. Allows `*` as wildcard at end.'
         },
         :'transaction_tracer.attributes.exclude' => {
-          :default     => [],
-          :public      => true,
-          :type        => Array,
+          :default => [],
+          :public => true,
+          :type => Array,
           :allowed_from_server => false,
-          :transform   => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from transaction traces. Allows `*` as wildcard at end.'
         },
         :'transaction_events.attributes.exclude' => {
-          :default     => [],
-          :public      => true,
-          :type        => Array,
+          :default => [],
+          :public => true,
+          :type => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from transaction events. Allows `*` as wildcard at end.'
         },
         :'error_collector.attributes.exclude' => {
-          :default     => [],
-          :public      => true,
-          :type        => Array,
+          :default => [],
+          :public => true,
+          :type => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from error collection. Allows `*` as wildcard at end.'
         },
         :'browser_monitoring.attributes.exclude' => {
-          :default     => [],
-          :public      => true,
-          :type        => Array,
+          :default => [],
+          :public => true,
+          :type => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from browser monitoring. Allows `*` as wildcard at end.'
         },
         :'span_events.attributes.exclude' => {
-          :default     => [],
-          :public      => true,
-          :type        => Array,
+          :default => [],
+          :public => true,
+          :type => Array,
           :allowed_from_server => false,
-          :transform   => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from span events. Allows `*` as wildcard at end.'
         },
         :'transaction_segments.attributes.exclude' => {
-          :default     => [],
-          :public      => true,
-          :type        => Array,
+          :default => [],
+          :public => true,
+          :type => Array,
           :allowed_from_server => false,
-          :transform   => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to exclude from transaction segments. Allows `*` as wildcard at end.'
         },
         :'attributes.include' => {
-          :default     => [],
-          :public      => true,
-          :type        => Array,
+          :default => [],
+          :public => true,
+          :type => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in all destinations. Allows `*` as wildcard at end.'
         },
         :'transaction_tracer.attributes.include' => {
-          :default     => [],
-          :public      => true,
-          :type        => Array,
+          :default => [],
+          :public => true,
+          :type => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in transaction traces. Allows `*` as wildcard at end.'
         },
         :'transaction_events.attributes.include' => {
-          :default     => [],
-          :public      => true,
-          :type        => Array,
+          :default => [],
+          :public => true,
+          :type => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in transaction events. Allows `*` as wildcard at end.'
         },
         :'error_collector.attributes.include' => {
-          :default     => [],
-          :public      => true,
-          :type        => Array,
+          :default => [],
+          :public => true,
+          :type => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in error collection. Allows `*` as wildcard at end.'
         },
         :'browser_monitoring.attributes.include' => {
-          :default     => [],
-          :public      => true,
-          :type        => Array,
+          :default => [],
+          :public => true,
+          :type => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include in browser monitoring. Allows `*` as wildcard at end.'
         },
         :'span_events.attributes.include' => {
-          :default     => [],
-          :public      => true,
-          :type        => Array,
+          :default => [],
+          :public => true,
+          :type => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include on span events. Allows `*` as wildcard at end.'
         },
         :'transaction_segments.attributes.include' => {
-          :default     => [],
-          :public      => true,
-          :type        => Array,
+          :default => [],
+          :public => true,
+          :type => Array,
           :allowed_from_server => false,
-          :transform    => DefaultSource.method(:convert_to_list),
+          :transform => DefaultSource.method(:convert_to_list),
           :description => 'Prefix of attributes to include on transaction segments. Allows `*` as wildcard at end.'
         },
         :'custom_attributes.enabled' => {
-          :default     => true,
-          :public      => true,
-          :type        => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `false`, custom attributes will not be sent on Insights events.'
         },
         :'utilization.detect_aws' => {
-          :default     => true,
-          :public      => true,
-          :type        => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :dynamic_name => true,
           :description => 'If `true`, the agent automatically detects that it is running in an AWS environment.'
         },
         :'utilization.detect_azure' => {
-          :default      => true,
-          :public       => true,
-          :type         => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :dynamic_name => true,
-          :description  => 'If `true`, the agent automatically detects that it is running in an Azure environment.'
+          :description => 'If `true`, the agent automatically detects that it is running in an Azure environment.'
         },
         :'utilization.detect_gcp' => {
-          :default     => true,
-          :public      => true,
-          :type        => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :dynamic_name => true,
           :description => 'If `true`, the agent automatically detects that it is running in an Google Cloud Platform environment.'
         },
         :'utilization.detect_pcf' => {
-          :default     => true,
-          :public      => true,
-          :type        => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :dynamic_name => true,
           :description => 'If `true`, the agent automatically detects that it is running in a Pivotal Cloud Foundry environment.'
         },
         :'utilization.detect_docker' => {
-          :default     => true,
-          :public      => true,
-          :type        => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, the agent automatically detects that it is running in Docker.'
         },
         :'utilization.detect_kubernetes' => {
-          :default     => true,
-          :public      => true,
-          :type        => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, the agent automatically detects that it is running in Kubernetes.'
         },
         :'utilization.billing_hostname' => {
-          :default     => nil,
-          :allow_nil   => true,
-          :public      => false,
-          :type        => String,
+          :default => nil,
+          :allow_nil => true,
+          :public => false,
+          :type => String,
           :allowed_from_server => false,
           :description => 'The configured server name by a customer.'
         },
         :'utilization.logical_processors' => {
-          :default     => nil,
-          :allow_nil   => true,
-          :public      => false,
-          :type        => Integer,
+          :default => nil,
+          :allow_nil => true,
+          :public => false,
+          :type => Integer,
           :allowed_from_server => false,
           :description => 'The total number of hyper-threaded execution contexts available.'
         },
         :'utilization.total_ram_mib' => {
-          :default     => nil,
-          :allow_nil   => true,
-          :public      => false,
-          :type        => Integer,
+          :default => nil,
+          :allow_nil => true,
+          :public => false,
+          :type => Integer,
           :allowed_from_server => false,
           :description => 'This value represents the total amount of memory available to the host (not the process), in mebibytes (1024 squared or 1,048,576 bytes).'
         },
         :'datastore_tracer.instance_reporting.enabled' => {
-          :default     => true,
-          :public      => true,
-          :type        => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `false`, the agent will not report datastore instance metrics, nor add `host` or `port_path_or_id` parameters to transaction or slow SQL traces.'
         },
         :'datastore_tracer.database_name_reporting.enabled' => {
-          :default     => true,
-          :public      => true,
-          :type        => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `false`, the agent will not add `database_name` parameter to transaction or slow sql traces.'
         },
         :'clear_transaction_state_after_fork' => {
-          :default     => false,
-          :public      => true,
-          :type        => Boolean,
+          :default => false,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, the agent will clear `Tracer::State` in `Agent.drop_buffered_data`.'
         },
@@ -2149,9 +2143,9 @@ module NewRelic
           :description => 'The primary id associated with this application.'
         },
         :'distributed_tracing.enabled' => {
-          :default     => true,
-          :public      => true,
-          :type        => Boolean,
+          :default => true,
+          :public => true,
+          :type => Boolean,
           :allowed_from_server => true,
           :description => 'Distributed tracing lets you see the path that a request takes through your distributed system. Enabling distributed tracing changes the behavior of some New Relic features, so carefully consult the [transition guide](/docs/transition-guide-distributed-tracing) before you enable this feature.'
         },

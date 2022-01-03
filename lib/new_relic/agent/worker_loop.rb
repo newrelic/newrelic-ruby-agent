@@ -6,17 +6,15 @@ require 'thread'
 
 module NewRelic
   module Agent
-
     # A worker loop executes a set of registered tasks on a single thread.
     # A task is a proc or block with a specified call period in seconds.
     class WorkerLoop
-
       attr_accessor :period, :propagate_errors
       attr_reader :iterations
 
       # Optional argument :duration (in seconds) for how long the worker loop runs
       # or :limit (integer) for max number of iterations
-      def initialize(opts={})
+      def initialize(opts = {})
         @should_run = true
         @next_invocation_time = Process.clock_gettime(Process::CLOCK_REALTIME)
         @period = 60.0
@@ -42,9 +40,9 @@ module NewRelic
       # Run infinitely, calling the registered tasks at their specified
       # call periods.  The caller is responsible for creating the thread
       # that runs this worker loop.  This will run the task immediately.
-      def run(period=nil, &block)
+      def run(period = nil, &block)
         setup(period, block)
-        while keep_running? do
+        while keep_running?
           sleep_time = schedule_next_invocation
           sleep(sleep_time) if sleep_time > 0
           run_task if keep_running?

@@ -13,7 +13,7 @@ module NewRelic
     changes.
 EOS
 
-    def self.read(changelog=default_changelog)
+    def self.read(changelog = default_changelog)
       changes = extract_latest_changes(File.read(changelog))
       changes << FOOTER
 
@@ -24,7 +24,7 @@ EOS
     # precise version number included in the line in parens. For example:
     #
     # * This is a patch item (3.7.1.188)
-    def self.read_patch(patch_level, changelog=default_changelog)
+    def self.read_patch(patch_level, changelog = default_changelog)
       latest = extract_latest_changes(File.read(changelog))
       changes = ["## v#{patch_level}", ""]
 

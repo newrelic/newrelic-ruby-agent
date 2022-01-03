@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 class NewRelic::Agent::StatsEngine
   class GCProfilerTest < Minitest::Test
@@ -25,7 +25,7 @@ class NewRelic::Agent::StatsEngine
       ::GC.stubs(:collections)
 
       assert_equal(GCProfiler::RailsBenchProfiler,
-                   GCProfiler.init.class)
+        GCProfiler.init.class)
     end
 
     def test_init_profiler_for_ruby_19_and_greater
@@ -35,7 +35,7 @@ class NewRelic::Agent::StatsEngine
       ::GC::Profiler.stubs(:enabled?).returns(true)
 
       assert_equal(GCProfiler::CoreGCProfiler,
-                   GCProfiler.init.class)
+        GCProfiler.init.class)
     end
 
     def test_record_delta_returns_nil_when_snapshots_are_nil
@@ -50,7 +50,7 @@ class NewRelic::Agent::StatsEngine
         GCProfiler.init
 
         start_snapshot = GCProfiler::GCSnapshot.new(1.0, 1)
-        end_snapshot   = GCProfiler::GCSnapshot.new(2.5, 3)
+        end_snapshot = GCProfiler::GCSnapshot.new(2.5, 3)
 
         result = GCProfiler.record_delta(start_snapshot, end_snapshot)
         assert_equal(1.5, result)
@@ -59,12 +59,12 @@ class NewRelic::Agent::StatsEngine
       def test_record_delta_records_gc_time_and_call_count_in_metric
         GCProfiler.init
         start_snapshot = GCProfiler::GCSnapshot.new(1.0, 1)
-        end_snapshot   = GCProfiler::GCSnapshot.new(2.5, 3)
+        end_snapshot = GCProfiler::GCSnapshot.new(2.5, 3)
 
         GCProfiler.record_delta(start_snapshot, end_snapshot)
 
         assert_gc_metrics(GCProfiler::GC_OTHER,
-                          :call_count => 2, :total_call_time => 1.5)
+          :call_count => 2, :total_call_time => 1.5)
       end
 
       # This test is asserting that the implementation of GC::Profiler provided by
@@ -83,7 +83,7 @@ class NewRelic::Agent::StatsEngine
         count_after_clear = GC.count
 
         assert_operator count_before_allocations, :<=, count_after_allocations
-        assert_operator count_after_allocations,  :<=, count_after_clear
+        assert_operator count_after_allocations, :<=, count_after_clear
       ensure
         GC::Profiler.disable if defined?(::GC::Profiler)
       end
@@ -95,7 +95,7 @@ class NewRelic::Agent::StatsEngine
         snapshot = GCProfiler.take_snapshot
 
         assert_equal(5.0, snapshot.gc_time_s)
-        assert_equal(10,  snapshot.gc_call_count)
+        assert_equal(10, snapshot.gc_call_count)
       end
 
       def test_collect_gc_data
@@ -110,7 +110,7 @@ class NewRelic::Agent::StatsEngine
         end
 
         assert_gc_metrics(GCProfiler::GC_OTHER,
-                          :call_count => 2, :total_call_time => 3.0)
+          :call_count => 2, :total_call_time => 3.0)
         assert_metrics_not_recorded(GCProfiler::GC_WEB)
 
         tracer = NewRelic::Agent.instance.transaction_sampler
@@ -129,12 +129,12 @@ class NewRelic::Agent::StatsEngine
         end
 
         assert_gc_metrics(GCProfiler::GC_WEB,
-                          :call_count => 2, :total_call_time => 3.0)
+          :call_count => 2, :total_call_time => 3.0)
         assert_metrics_not_recorded(GCProfiler::GC_OTHER)
       end
     end
 
-    def assert_gc_metrics(name, expected_values={})
+    def assert_gc_metrics(name, expected_values = {})
       assert_metrics_recorded(
         [GCProfiler::GC_ROLLUP, ''] => expected_values,
         name => expected_values

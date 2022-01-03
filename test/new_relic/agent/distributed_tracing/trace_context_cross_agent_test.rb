@@ -10,7 +10,6 @@ module NewRelic
   module Agent
     module DistributedTracing
       class TraceContextCrossAgentTest < Minitest::Test
-
         def setup
           NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
           NewRelic::Agent::Agent.any_instance.stubs(:connected?).returns(true)
@@ -49,11 +48,11 @@ module NewRelic
 
               config = {
                 :'distributed_tracing.enabled' => true,
-                :account_id                    => test_case['account_id'],
-                :primary_application_id        => "2827902",
-                :'analytics_events.enabled'    => test_case.fetch('transaction_events_enabled', true),
-                :trusted_account_key           => test_case['trusted_account_key'],
-                :'span_events.enabled'         => test_case.fetch('span_events_enabled', true)
+                :account_id => test_case['account_id'],
+                :primary_application_id => "2827902",
+                :'analytics_events.enabled' => test_case.fetch('transaction_events_enabled', true),
+                :trusted_account_key => test_case['trusted_account_key'],
+                :'span_events.enabled' => test_case.fetch('span_events_enabled', true)
               }
 
               with_server_source(config) do
@@ -168,13 +167,13 @@ module NewRelic
           if test_case['web_transaction']
             {
               transaction_name: "Controller/DistributedTracing/#{test_case['test_name']}",
-              category:         :controller,
-              request:          stub(:path => '/')
+              category: :controller,
+              request: stub(:path => '/')
             }
           else
             {
               transaction_name: "OtherTransaction/Background/#{test_case['test_name']}",
-              category:         :task
+              category: :task
             }
           end
         end
@@ -203,11 +202,11 @@ module NewRelic
           merged
         end
 
-        ALLOWED_EVENT_TYPES = %w{ Transaction TransactionError Span }
+        ALLOWED_EVENT_TYPES = %w[ Transaction TransactionError Span ]
 
         def intrinsics_for_event(test_case, event_type)
           unless ALLOWED_EVENT_TYPES.include? event_type
-            raise %Q|Test fixture refers to unexpected event type "#{event_type}"|
+            raise %Q(Test fixture refers to unexpected event type "#{event_type}")
           end
 
           return {} unless (intrinsics = test_case['intrinsics'])
@@ -215,7 +214,7 @@ module NewRelic
           return {} unless target_events.include? event_type
 
           common_intrinsics = intrinsics['common'] || {}
-          event_intrinsics  = intrinsics[event_type] || {}
+          event_intrinsics = intrinsics[event_type] || {}
 
           merge_intrinsics [common_intrinsics, event_intrinsics]
         end
@@ -230,8 +229,8 @@ module NewRelic
 
           (test_case_attributes['exact'] || []).each do |k, v|
             assert_equal v,
-                         actual_attributes[k.to_s],
-                         %Q|Wrong "#{k}" #{event_type} attribute; expected #{v.inspect}, was #{actual_attributes[k.to_s].inspect}|
+              actual_attributes[k.to_s],
+              %Q(Wrong "#{k}" #{event_type} attribute; expected #{v.inspect}, was #{actual_attributes[k.to_s].inspect})
           end
 
           (test_case_attributes['notequal'] || []).each do |k, v|
@@ -239,17 +238,17 @@ module NewRelic
               v,
               actual_attributes[k.to_s],
               "#{event_type} #{k.to_s.inspect} attribute should not equal #{v.inspect}"
-              )
+            )
           end
 
           (test_case_attributes['expected'] || []).each do |key|
             assert actual_attributes.has_key?(key),
-                   %Q|Missing expected #{event_type} attribute "#{key}"|
+              %Q(Missing expected #{event_type} attribute "#{key}")
           end
 
           (test_case_attributes['unexpected'] || []).each do |key|
             refute actual_attributes.has_key?(key),
-                   %Q|Unexpected #{event_type} attribute "#{key}"|
+              %Q(Unexpected #{event_type} attribute "#{key}")
           end
 
           # TODO: check vendors in test_case_attributes
@@ -313,7 +312,7 @@ module NewRelic
 
         def object_to_hash object
           object.instance_variables.inject({}) do |hash, variable_name|
-            key = variable_name.to_s.sub(/^@/,'')
+            key = variable_name.to_s.sub(/^@/, '')
             hash[key] = object.instance_variable_get(variable_name)
             hash
           end
@@ -322,8 +321,8 @@ module NewRelic
         def trace_context_headers_to_hash carrier
           entry_key = NewRelic::Agent::Transaction::TraceContext::AccountHelpers.trace_state_entry_key
           header_data = TraceContext.parse \
-              carrier: carrier,
-              trace_state_entry_key: entry_key
+            carrier: carrier,
+            trace_state_entry_key: entry_key
 
           return {} unless header_data
 

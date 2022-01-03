@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..', '..', '..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/agent'
 require 'ostruct'
 
@@ -55,10 +55,10 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   end
 
   def test_increment_retry_period
-    assert_equal  15, next_retry_period
-    assert_equal  15, next_retry_period
-    assert_equal  30, next_retry_period
-    assert_equal  60, next_retry_period
+    assert_equal 15, next_retry_period
+    assert_equal 15, next_retry_period
+    assert_equal 30, next_retry_period
+    assert_equal 60, next_retry_period
     assert_equal 120, next_retry_period
     assert_equal 300, next_retry_period
     assert_equal 300, next_retry_period
@@ -143,7 +143,8 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   def test_connect_gets_config
     NewRelic::Agent.manual_start
     NewRelic::Agent.instance.service = default_service(
-      :connect => {'agent_run_id' => 23, 'config' => 'a lot'})
+      :connect => {'agent_run_id' => 23, 'config' => 'a lot'}
+    )
 
     response = NewRelic::Agent.agent.connect_to_server
 
@@ -171,7 +172,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
         'agent_run_id' => 23,
         'event_harvest_config' => {
           'report_period_ms' => 5000,
-          'harvest_limits' => { 'analytic_event_data'=>833, 'custom_event_data'=>83, 'error_event_data'=>8 }
+          'harvest_limits' => {'analytic_event_data' => 833, 'custom_event_data' => 83, 'error_event_data' => 8}
         }
       })\
       # every call to :connect should pass the same expected event_harvest_config payload
@@ -186,9 +187,10 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
     NewRelic::Agent.manual_start
     NewRelic::Agent.instance.service = default_service(
       :connect => {
-        'messages' => [{ 'message' => 'beep boop', 'level' => 'INFO' },
-                       { 'message' => 'ha cha cha', 'level' => 'WARN' }]
-      })
+        'messages' => [{'message' => 'beep boop', 'level' => 'INFO'},
+          {'message' => 'ha cha cha', 'level' => 'WARN'}]
+      }
+    )
 
     expects_logging(:info, 'beep boop')
     expects_logging(:warn, 'ha cha cha')
@@ -198,7 +200,7 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
   end
 
   def test_environment_for_connect
-    assert environment_for_connect.detect{ |(k, _)|
+    assert environment_for_connect.detect { |(k, _)|
       k == 'Gems'
     }, "expected connect_settings to include gems from environment"
   end

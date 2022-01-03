@@ -37,10 +37,10 @@ require File.join(agent_helper_path, 'exceptions.rb')
 
 Dir[File.expand_path('../support/*', __FILE__)].each { |f| require f }
 
-def timeout_cap duration=1.0
+def timeout_cap duration = 1.0
   Timeout::timeout(duration) { yield }
 rescue Timeout::Error => error
-  raise Timeout::Error, "Unexpected timeout occurred after #{duration} seconds. #{error.backtrace.reject{|r| r =~ /gems\/minitest/}.join("\n")}"
+  raise Timeout::Error, "Unexpected timeout occurred after #{duration} seconds. #{error.backtrace.reject { |r| r =~ /gems\/minitest/ }.join("\n")}"
 end
 
 def deferred_span segment
@@ -62,12 +62,12 @@ end
 
 TRACE_POINT_ENABLED = false
 
-def trace 
+def trace
   @trace ||= TracePoint.new(:call, :b_call) do |tp|
     next unless tp.defined_class.to_s =~ /InfiniteTracing/
     next unless [
-      :record_spans, 
-      :record_span, 
+      :record_spans,
+      :record_span,
       :emulate_streaming_with_ok_close_response,
       :handle_error,
       :handle_close,
@@ -78,7 +78,7 @@ def trace
       :rpc,
       :start_streaming,
       :notice_span,
-      :wait_for_notice,
+      :wait_for_notice
     ].include? tp.method_id
     p [tp.lineno, tp.defined_class, tp.method_id, tp.event]
   end
@@ -91,6 +91,3 @@ def with_detailed_trace
     yield
   end
 end
-
-
-

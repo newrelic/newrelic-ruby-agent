@@ -11,7 +11,7 @@ module ::Excon
         @stack = stack
       end
 
-      def request_call(datum) #THREAD_LOCAL_ACCESS
+      def request_call(datum) # THREAD_LOCAL_ACCESS
         begin
           # Only instrument this request if we haven't already done so, because
           # we can get request_call multiple times for requests marked as
@@ -45,7 +45,7 @@ module ::Excon
         @stack.error_call(datum)
       end
 
-      def finish_trace(datum) #THREAD_LOCAL_ACCESS
+      def finish_trace(datum) # THREAD_LOCAL_ACCESS
         segment = datum[:connection] && datum[:connection].instance_variable_get(TRACE_DATA_IVAR)
         if segment
           begin

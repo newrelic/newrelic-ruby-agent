@@ -9,8 +9,8 @@ module NewRelic
         attr_reader :id, :name, :arguments
 
         def initialize(raw_collector_command)
-          @id        = raw_collector_command[0]
-          @name      = raw_collector_command[1]["name"]
+          @id = raw_collector_command[0]
+          @name = raw_collector_command[1]["name"]
           @arguments = raw_collector_command[1]["arguments"]
         end
       end

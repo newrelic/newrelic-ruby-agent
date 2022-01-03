@@ -13,9 +13,8 @@ module NewRelic
       # NewRelic::Control::Frameworks::Rails class, where the two do
       # not differ
       class Rails3 < NewRelic::Control::Frameworks::Rails
-
         def env
-          @env ||= ( ENV['NEW_RELIC_ENV'] || ::Rails.env.to_s )
+          @env ||= (ENV['NEW_RELIC_ENV'] || ::Rails.env.to_s)
         end
 
         def rails_root
@@ -23,7 +22,7 @@ module NewRelic
         end
 
         def vendor_root
-          @vendor_root ||= File.join(root,'vendor','rails')
+          @vendor_root ||= File.join(root, 'vendor', 'rails')
         end
 
         def version

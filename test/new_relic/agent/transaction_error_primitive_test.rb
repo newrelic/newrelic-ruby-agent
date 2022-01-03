@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/attribute_filter'
 require 'new_relic/agent/attributes'
 require 'new_relic/agent/transaction_error_primitive'
@@ -15,7 +15,6 @@ module NewRelic
         nr_freeze_process_time
         @span_id = NewRelic::Agent::GuidGenerator.generate_guid
       end
-
 
       def test_event_includes_expected_intrinsics
         intrinsics, *_ = create_event
@@ -33,17 +32,17 @@ module NewRelic
 
       def test_event_includes_expected_errors
         intrinsics, *_ = create_event :error_options => {
-                                        :expected => true
-                                      }
+          :expected => true
+        }
 
         assert intrinsics['error.expected']
       end
 
       def test_event_includes_synthetics
         intrinsics, *_ = create_event :payload_options => {
-          :synthetics_resource_id=>3,
-          :synthetics_job_id=>4,
-          :synthetics_monitor_id=>5
+          :synthetics_resource_id => 3,
+          :synthetics_job_id => 4,
+          :synthetics_monitor_id => 5
         }
 
         assert_equal 3, intrinsics['nr.syntheticsResourceId']
@@ -69,7 +68,7 @@ module NewRelic
       end
 
       def test_includes_cat_attributes
-        intrinsics, *_ = create_event :payload_options => {:guid => "GUID", :referring_transaction_guid=>"REFERRING_GUID"}
+        intrinsics, *_ = create_event :payload_options => {:guid => "GUID", :referring_transaction_guid => "REFERRING_GUID"}
 
         assert_equal "GUID", intrinsics["nr.transactionGuid"]
         assert_equal "REFERRING_GUID", intrinsics["nr.referringTransactionGuid"]
@@ -120,7 +119,7 @@ module NewRelic
         noticed_error.request_uri = "http://site.com/blogs"
         noticed_error.request_port = 80
         noticed_error.expected = expected
-        noticed_error.attributes  = options.delete(:attributes)
+        noticed_error.attributes = options.delete(:attributes)
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
         noticed_error.attributes_from_notice_error.merge!(options)
 

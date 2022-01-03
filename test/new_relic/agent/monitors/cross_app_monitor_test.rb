@@ -6,27 +6,27 @@ require File.expand_path '../../../../test_helper', __FILE__
 
 module NewRelic::Agent
   class CrossAppMonitorTest < Minitest::Test
-    NEWRELIC_ID_HEADER        = DistributedTracing::CrossAppMonitor::NEWRELIC_ID_HEADER_KEY
-    NEWRELIC_TXN_HEADER       = DistributedTracing::CrossAppMonitor::NEWRELIC_TXN_HEADER_KEY
-    CONTENT_LENGTH_KEY        = "HTTP_CONTENT_LENGTH"
+    NEWRELIC_ID_HEADER = DistributedTracing::CrossAppMonitor::NEWRELIC_ID_HEADER_KEY
+    NEWRELIC_TXN_HEADER = DistributedTracing::CrossAppMonitor::NEWRELIC_TXN_HEADER_KEY
+    CONTENT_LENGTH_KEY = "HTTP_CONTENT_LENGTH"
 
-    AGENT_CROSS_APP_ID        = "qwerty"
-    REQUEST_CROSS_APP_ID      = "42#1234"
-    TRANSACTION_GUID          = '941B0E8001E444E8'
-    REF_TRANSACTION_GUID      = '830092CDE59421D4'
+    AGENT_CROSS_APP_ID = "qwerty"
+    REQUEST_CROSS_APP_ID = "42#1234"
+    TRANSACTION_GUID = '941B0E8001E444E8'
+    REF_TRANSACTION_GUID = '830092CDE59421D4'
 
-    TRANSACTION_NAME          = 'transaction'
-    QUEUE_TIME                = 1.0
-    APP_TIME                  = 2.0
+    TRANSACTION_NAME = 'transaction'
+    QUEUE_TIME = 1.0
+    APP_TIME = 2.0
 
-    ENCODING_KEY_NOOP         = "\0"
-    TRUSTED_ACCOUNT_IDS       = [42,13]
+    ENCODING_KEY_NOOP = "\0"
+    TRUSTED_ACCOUNT_IDS = [42, 13]
 
-    CROSS_APP_ID_POSITION     = 0
+    CROSS_APP_ID_POSITION = 0
     TRANSACTION_NAME_POSITION = 1
-    QUEUE_TIME_POSITION       = 2
-    APP_TIME_POSITION         = 3
-    CONTENT_LENGTH_POSITION   = 4
+    QUEUE_TIME_POSITION = 2
+    APP_TIME_POSITION = 3
+    CONTENT_LENGTH_POSITION = 4
 
     def setup
       NewRelic::Agent.reset_config
@@ -36,12 +36,12 @@ module NewRelic::Agent
 
       @monitor = DistributedTracing::CrossAppMonitor.new(@events)
       @config = {
-        :cross_process_id       => AGENT_CROSS_APP_ID,
-        :encoding_key           => ENCODING_KEY_NOOP,
-        :trusted_account_ids    => TRUSTED_ACCOUNT_IDS,
+        :cross_process_id => AGENT_CROSS_APP_ID,
+        :encoding_key => ENCODING_KEY_NOOP,
+        :trusted_account_ids => TRUSTED_ACCOUNT_IDS,
         :disable_harvest_thread => true,
         :'cross_application_tracer.enabled' => true,
-        :'distributed_tracing.enabled' => false,
+        :'distributed_tracing.enabled' => false
       }
 
       NewRelic::Agent.config.add_config_for_testing(@config)
@@ -52,7 +52,6 @@ module NewRelic::Agent
       NewRelic::Agent.config.remove_config(@config)
       @events.clear
     end
-
 
     #
     # Tests
@@ -92,7 +91,7 @@ module NewRelic::Agent
     end
 
     def test_doesnt_add_header_if_no_id_on_agent
-      with_config( :cross_process_id => '' ) do
+      with_config(:cross_process_id => '') do
         when_request_runs
         assert_nil response_app_data
       end
@@ -119,13 +118,13 @@ module NewRelic::Agent
 
     def test_old_cat_disabled_when_better_cat_enabled
       with_config(:"cross_application_tracer.enabled" => true,
-                  :"distributed_tracing.enabled"      => true) do
+        :"distributed_tracing.enabled" => true) do
         refute CrossAppTracing.cross_application_tracer_enabled?
       end
     end
 
     def test_doesnt_add_header_if_missing_encoding_key
-      with_config( :encoding_key => '' ) do
+      with_config(:encoding_key => '') do
         when_request_runs
         assert_nil response_app_data
       end
@@ -137,7 +136,7 @@ module NewRelic::Agent
     end
 
     def test_finds_content_length_from_headers
-      request = { 'HTTP_CONTENT_LENGTH' => 42 }
+      request = {'HTTP_CONTENT_LENGTH' => 42}
       assert_equal(42, @monitor.send(:content_length_from_request, request))
     end
 
@@ -169,7 +168,7 @@ module NewRelic::Agent
         'Supportability/API/record_metric',
         'Supportability/API/increment_metric',
         'Supportability/Deprecated/cross_application_tracer'
-        ])
+      ])
     end
 
     def test_setting_response_headers_freezes_transaction_name
@@ -220,7 +219,7 @@ module NewRelic::Agent
     # Helpers
     #
 
-    def when_request_runs(request=for_id(REQUEST_CROSS_APP_ID), name = 'transaction', duration = nil)
+    def when_request_runs(request = for_id(REQUEST_CROSS_APP_ID), name = 'transaction', duration = nil)
       nr_freeze_process_time if duration
 
       in_transaction(name) do |txn|
@@ -235,11 +234,11 @@ module NewRelic::Agent
 
     def for_id(id)
       encoded_id = id == "" ? "" : Base64.encode64(id)
-      encoded_txn_info = json_dump_and_encode([ REF_TRANSACTION_GUID, false ])
+      encoded_txn_info = json_dump_and_encode([REF_TRANSACTION_GUID, false])
 
       return {
         NEWRELIC_ID_HEADER => encoded_id,
-        NEWRELIC_TXN_HEADER => encoded_txn_info,
+        NEWRELIC_TXN_HEADER => encoded_txn_info
       }
     end
 
@@ -251,6 +250,5 @@ module NewRelic::Agent
       return nil unless response_app_data
       ::JSON.load(Base64.decode64(response_app_data))
     end
-
   end
 end

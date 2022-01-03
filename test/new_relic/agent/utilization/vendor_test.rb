@@ -44,9 +44,9 @@ module NewRelic
           assert @vendor.detect
 
           expected = {
-              :vm_type => "large",
-              :vm_id => "x123",
-              :vm_zone => "danger_zone"
+            :vm_type => "large",
+            :vm_id => "x123",
+            :vm_zone => "danger_zone"
           }
 
           assert_equal expected, @vendor.metadata

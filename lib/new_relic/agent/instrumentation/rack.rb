@@ -57,7 +57,7 @@ DependencyDetection.defer do
       prepend_instrument ::Rack::URLMap, NewRelic::Agent::Instrumentation::Rack::URLMap::Prepend
     else
       chain_instrument_target ::Rack::URLMap, NewRelic::Agent::Instrumentation::Rack::URLMap::Chain
-      ::NewRelic::Agent::Instrumentation::RackHelpers.instrument_url_map 
+      ::NewRelic::Agent::Instrumentation::RackHelpers.instrument_url_map
     end
   end
 end

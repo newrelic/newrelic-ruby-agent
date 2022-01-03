@@ -47,7 +47,6 @@ module NewRelic
     #
 
     module MethodTracer
-
       def self.included(klass)
         klass.extend(ClassMethods)
       end
@@ -68,7 +67,7 @@ module NewRelic
       #
       # @api public
       #
-      def trace_execution_scoped(metric_names, options=NewRelic::EMPTY_HASH) #THREAD_LOCAL_ACCESS
+      def trace_execution_scoped(metric_names, options = NewRelic::EMPTY_HASH) # THREAD_LOCAL_ACCESS
         NewRelic::Agent.record_api_supportability_metric :trace_execution_scoped unless options[:internal]
         NewRelic::Agent::MethodTracerHelpers.trace_execution_scoped(metric_names, options) do
           # Using an implicit block avoids object allocation for a &block param
@@ -84,7 +83,7 @@ module NewRelic
       #
       # @api public
       #
-      def trace_execution_unscoped(metric_names, options=NewRelic::EMPTY_HASH) #THREAD_LOCAL_ACCESS
+      def trace_execution_unscoped(metric_names, options = NewRelic::EMPTY_HASH) # THREAD_LOCAL_ACCESS
         NewRelic::Agent.record_api_supportability_metric :trace_execution_unscoped unless options[:internal]
         return yield unless NewRelic::Agent.tl_is_execution_traced?
         t0 = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -103,7 +102,7 @@ module NewRelic
         module AddMethodTracer
           ALLOWED_KEYS = [:metric, :push_scope, :code_header, :code_footer].freeze
 
-          DEFAULT_SETTINGS = {:push_scope => true, :metric => true, :code_header => "", :code_footer => "" }.freeze
+          DEFAULT_SETTINGS = {:push_scope => true, :metric => true, :code_header => "", :code_footer => ""}.freeze
 
           # Checks the provided options to make sure that they make
           # sense. Raises an error if the options are incorrect to
@@ -117,7 +116,7 @@ module NewRelic
             unrecognized_keys = options.keys - ALLOWED_KEYS
             if unrecognized_keys.any?
               raise "Unrecognized options when adding method tracer to #{method_name}: " +
-                    unrecognized_keys.join(', ')
+                unrecognized_keys.join(', ')
             end
 
             options = DEFAULT_SETTINGS.merge(options)
@@ -279,8 +278,8 @@ module NewRelic
 
           prepend(_nr_traced_method_module)
 
-          ::NewRelic::Agent.logger.debug("Traced method: class = #{_nr_derived_class_name},"+
-                                         "method = #{method_name}, "+
+          ::NewRelic::Agent.logger.debug("Traced method: class = #{_nr_derived_class_name}," +
+                                         "method = #{method_name}, " +
                                          "metric = '#{metric_name}'")
         end
 
@@ -298,8 +297,8 @@ module NewRelic
         end
 
         def _nr_define_traced_method(method_name, scoped_metric: nil, unscoped_metrics: [],
-                                     code_header: nil, code_footer: nil, record_metrics: true,
-                                     visibility: :public)
+          code_header: nil, code_footer: nil, record_metrics: true,
+          visibility: :public)
           _nr_traced_method_module.module_eval do
             define_method(method_name) do |*args, &block|
               return super(*args, &block) unless NewRelic::Agent.tl_is_execution_traced?
@@ -310,9 +309,7 @@ module NewRelic
                   instance_exec(*args, &scoped_metric)
                 when String
                   scoped_metric
-                else
-                  nil
-                end
+              end
 
               unscoped_metrics_eval = unscoped_metrics.map do |metric|
                 metric.kind_of?(Proc) ? instance_exec(*args, &metric) : metric.to_s

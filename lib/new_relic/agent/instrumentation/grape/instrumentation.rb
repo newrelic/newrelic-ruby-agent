@@ -7,7 +7,6 @@ require 'new_relic/agent/parameter_filtering'
 module NewRelic::Agent::Instrumentation
   module Grape
     module Instrumentation
-
       extend self
 
       # Since 1.2.0, the class `Grape::API` no longer refers to an API instance, rather, what used to be `Grape::API` is `Grape::API::Instance`
@@ -37,12 +36,12 @@ module NewRelic::Agent::Instrumentation
         end
       end
 
-      API_ENDPOINT   = 'api.endpoint'.freeze
-      API_VERSION    = 'api.version'.freeze
-      FORMAT_REGEX   = /\(\/?\.[\:\w]*\)/.freeze # either :format (< 0.12.0) or .ext (>= 0.12.0)
-      VERSION_REGEX  = /:version(\/|$)/.freeze
-      MIN_VERSION    = Gem::Version.new("0.2.0")
-      PIPE_STRING    = '|'.freeze
+      API_ENDPOINT = 'api.endpoint'.freeze
+      API_VERSION = 'api.version'.freeze
+      FORMAT_REGEX = /\(\/?\.[\:\w]*\)/.freeze # either :format (< 0.12.0) or .ext (>= 0.12.0)
+      VERSION_REGEX = /:version(\/|$)/.freeze
+      MIN_VERSION = Gem::Version.new("0.2.0")
+      PIPE_STRING = '|'.freeze
 
       def handle_transaction(endpoint, class_name, version)
         return unless endpoint && route = endpoint.route

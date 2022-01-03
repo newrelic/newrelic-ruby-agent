@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 require 'new_relic/agent/transaction'
 require 'new_relic/agent/transaction/abstract_segment'
@@ -43,7 +43,7 @@ module NewRelic
         end
 
         def test_segment_is_nameable
-          segment = BasicSegment.new  "Custom/basic/segment"
+          segment = BasicSegment.new "Custom/basic/segment"
           assert_equal "Custom/basic/segment", segment.name
         end
 
@@ -88,7 +88,7 @@ module NewRelic
             refute_metrics_recorded ["Custom/basic/segment", "Basic/all"]
           end
 
-          #local metrics will be merged into global store at the end of the transction
+          # local metrics will be merged into global store at the end of the transction
           assert_metrics_recorded ["Custom/basic/segment", "Basic/all"]
         end
 

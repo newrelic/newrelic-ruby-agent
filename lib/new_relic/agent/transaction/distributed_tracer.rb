@@ -26,7 +26,7 @@ module NewRelic
           end
         end
 
-        def accept_incoming_request request, transport_type=nil
+        def accept_incoming_request request, transport_type = nil
           accept_incoming_transport_type request, transport_type
           if trace_parent_header_present? request
             accept_trace_context_incoming_request request
@@ -119,10 +119,10 @@ module NewRelic
         def consume_message_synthetics_headers headers
           synthetics_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER]
           if synthetics_header and
-             incoming_payload = ::JSON.load(deobfuscate(synthetics_header)) and
-             SyntheticsMonitor.is_valid_payload?(incoming_payload) and
-             SyntheticsMonitor.is_supported_version?(incoming_payload) and
-             SyntheticsMonitor.is_trusted?(incoming_payload)
+              incoming_payload = ::JSON.load(deobfuscate(synthetics_header)) and
+              SyntheticsMonitor.is_valid_payload?(incoming_payload) and
+              SyntheticsMonitor.is_supported_version?(incoming_payload) and
+              SyntheticsMonitor.is_trusted?(incoming_payload)
 
             transaction.raw_synthetics_header = synthetics_header
             transaction.synthetics_payload = incoming_payload
@@ -158,8 +158,8 @@ module NewRelic
 
           return unless CrossAppTracing.trusted_valid_cross_app_id?(decoded_id)
           txn_header = headers[CrossAppTracing::NR_MESSAGE_BROKER_TXN_HEADER]
-          txn_info   = ::JSON.load(deobfuscate(txn_header))
-          payload    = CrossAppPayload.new(decoded_id, transaction, txn_info)
+          txn_info = ::JSON.load(deobfuscate(txn_header))
+          payload = CrossAppPayload.new(decoded_id, transaction, txn_info)
 
           @cross_app_payload = payload
         rescue => e
@@ -170,9 +170,7 @@ module NewRelic
         def deobfuscate message
           CrossAppTracing.obfuscator.deobfuscate message
         end
-
       end
     end
   end
 end
-

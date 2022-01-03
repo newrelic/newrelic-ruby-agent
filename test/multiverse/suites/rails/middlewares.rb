@@ -5,7 +5,7 @@
 # Middlewares (potentially) for use from both Rails 2 and Rails 3+ tests
 
 class ErrorMiddleware
-  def initialize(app, options={})
+  def initialize(app, options = {})
     @app = app
   end
 

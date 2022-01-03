@@ -17,13 +17,13 @@ module NewRelic
 
         UNKNOWN_NODE_NAME = '<unknown>'.freeze
 
-        def initialize(metric_name, relative_start, relative_end=nil, params=nil, parent=nil)
+        def initialize(metric_name, relative_start, relative_end = nil, params = nil, parent = nil)
           @entry_timestamp = relative_start
-          @metric_name     = metric_name || UNKNOWN_NODE_NAME
-          @exit_timestamp  = relative_end
-          @children        = nil
-          @params          = select_allowed_params(params)
-          @parent_node     = parent
+          @metric_name = metric_name || UNKNOWN_NODE_NAME
+          @exit_timestamp = relative_end
+          @children = nil
+          @params = select_allowed_params(params)
+          @parent_node = parent
         end
 
         def select_allowed_params params
@@ -44,23 +44,23 @@ module NewRelic
         end
 
         def to_array
-          params = @params ? @params : NewRelic::EMPTY_HASH
-          [ NewRelic::Helper.time_to_millis(@entry_timestamp),
+          params = @params || NewRelic::EMPTY_HASH
+          [NewRelic::Helper.time_to_millis(@entry_timestamp),
             NewRelic::Helper.time_to_millis(@exit_timestamp),
             NewRelic::Coerce.string(@metric_name),
-            params ] +
-            [ (@children ? @children.map{|s| s.to_array} : NewRelic::EMPTY_ARRAY) ]
+            params] +
+            [(@children ? @children.map { |s| s.to_array } : NewRelic::EMPTY_ARRAY)]
         end
 
         def path_string
-          "#{metric_name}[#{children.collect {|node| node.path_string }.join('')}]"
+          "#{metric_name}[#{children.collect { |node| node.path_string }.join('')}]"
         end
 
         def to_s_compact
           str = ""
           str << metric_name
           if children.any?
-            str << "{#{children.map { | cs | cs.to_s_compact }.join(",")}}"
+            str << "{#{children.map { |cs| cs.to_s_compact }.join(",")}}"
           end
           str
         end
@@ -68,9 +68,9 @@ module NewRelic
         def to_debug_str(depth)
           tab = "  " * depth
           s = tab.clone
-          s << ">> #{'%3i ms' % (@entry_timestamp*1000)} [#{self.class.name.split("::").last}] #{metric_name} \n"
+          s << ">> #{'%3i ms' % (@entry_timestamp * 1000)} [#{self.class.name.split("::").last}] #{metric_name} \n"
           unless params.empty?
-            params.each do |k,v|
+            params.each do |k, v|
               s << "#{tab}    -#{'%-16s' % k}: #{v.to_s[0..80]}\n"
             end
           end
@@ -80,7 +80,7 @@ module NewRelic
           s << tab + "<< "
           s << case @exit_timestamp
           when nil then ' n/a'
-          when Numeric then '%3i ms' % (@exit_timestamp*1000)
+          when Numeric then '%3i ms' % (@exit_timestamp * 1000)
           else @exit_timestamp.to_s
           end
           s << " #{metric_name}\n"
@@ -110,7 +110,7 @@ module NewRelic
 
         def count_nodes
           count = 1
-          children.each { | node | count  += node.count_nodes }
+          children.each { |node| count += node.count_nodes }
           count
         end
 

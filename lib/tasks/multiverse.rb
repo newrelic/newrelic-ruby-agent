@@ -42,10 +42,9 @@ namespace :test do
   end
 
   namespace :multiverse do
-
     def remove_local_multiverse_databases
-      list_databases_command = %{echo "show databases" | mysql -u root}
-      databases = `#{list_databases_command}`.chomp!.split("\n").select{|s| s =~ /multiverse/}
+      list_databases_command = %(echo "show databases" | mysql -u root)
+      databases = `#{list_databases_command}`.chomp!.split("\n").select { |s| s =~ /multiverse/ }
       databases.each do |database|
         puts "Dropping #{database}"
         `echo "drop database #{database}" | mysql -u root`
@@ -58,7 +57,7 @@ namespace :test do
     def remove_generated_gemfiles
       file_path = File.expand_path "test/multiverse/suites"
       Dir.glob(File.join file_path, "**", "Gemfile*").each do |fn|
-        puts "Removing #{fn.gsub(file_path,'.../suites')}"
+        puts "Removing #{fn.gsub(file_path, '.../suites')}"
         FileUtils.rm fn
       end
     end
@@ -66,7 +65,7 @@ namespace :test do
     def remove_generated_gemfile_lockfiles
       file_path = File.expand_path "test/environments"
       Dir.glob(File.join file_path, "**", "Gemfile.lock").each do |fn|
-        puts "Removing #{fn.gsub(file_path,'.../environments')}"
+        puts "Removing #{fn.gsub(file_path, '.../environments')}"
         FileUtils.rm fn
       end
     end
@@ -99,6 +98,5 @@ namespace :test do
     task :prime, [:suite] => [:env] do |_, args|
       Multiverse::Runner.prime(args.suite, Multiverse::Runner.parse_args(args))
     end
-
   end
 end

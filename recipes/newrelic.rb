@@ -7,4 +7,4 @@
 # the lib directory.  We have to make them available from
 # both locations
 
-require File.join(File.dirname(__FILE__),'..','lib','new_relic','recipes')
+require File.join(File.dirname(__FILE__), '..', 'lib', 'new_relic', 'recipes')

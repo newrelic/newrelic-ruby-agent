@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 module DependencyDetection
-
   module_function
 
   @items = []
@@ -33,7 +32,7 @@ module DependencyDetection
   end
 
   def dependency_by_name(name)
-    @items.find {|i| i.name == name }
+    @items.find { |i| i.name == name }
   end
 
   def installed?(name)
@@ -55,7 +54,6 @@ module DependencyDetection
     attr_writer :config_name
     attr_reader :dependencies
     attr_reader :prepend_conflicts
-
 
     def executed!
       @executed = true
@@ -95,19 +93,19 @@ module DependencyDetection
       yield
     end
 
-    def prepend_instrument target_class, instrumenting_module, supportability_name=nil
+    def prepend_instrument target_class, instrumenting_module, supportability_name = nil
       log_and_instrument("Prepend", instrumenting_module, supportability_name) do
         target_class.send :prepend, instrumenting_module
       end
     end
 
-    def chain_instrument instrumenting_module, supportability_name=nil
+    def chain_instrument instrumenting_module, supportability_name = nil
       log_and_instrument("MethodChaining", instrumenting_module, supportability_name) do
         instrumenting_module.instrument!
       end
     end
 
-    def chain_instrument_target target, instrumenting_module, supportability_name=nil
+    def chain_instrument_target target, instrumenting_module, supportability_name = nil
       NewRelic::Agent.logger.info "Installing deferred #{target} instrumentation"
       log_and_instrument("MethodChaining", instrumenting_module, supportability_name) do
         instrumenting_module.instrument! target
@@ -134,7 +132,7 @@ module DependencyDetection
         begin
           dep.call
         rescue => err
-          NewRelic::Agent.logger.error( "Error while detecting #{self.name}:", err )
+          NewRelic::Agent.logger.error("Error while detecting #{self.name}:", err)
           false
         end
       end
@@ -222,7 +220,7 @@ module DependencyDetection
         begin
           conflict.call
         rescue => err
-          NewRelic::Agent.logger.error( "Error while checking prepend conflicts #{self.name}:", err )
+          NewRelic::Agent.logger.error("Error while checking prepend conflicts #{self.name}:", err)
           false # assumes no conflicts exist since `prepend` is preferred method of instrumenting
         end
       end

@@ -70,7 +70,8 @@ module NewRelic::Agent::Instrumentation
         begin
           if txn_name = TransactionNamer.transaction_name_for_route(env, request)
             ::NewRelic::Agent::Transaction.set_default_transaction_name(
-              "#{self.class.name}/#{txn_name}", :sinatra)
+              "#{self.class.name}/#{txn_name}", :sinatra
+            )
           end
         rescue => e
           ::NewRelic::Agent.logger.debug("Failed during route_eval to set transaction name", e)
@@ -93,8 +94,8 @@ module NewRelic::Agent::Instrumentation
 
         name = TransactionNamer.initial_transaction_name(request)
         perform_action_with_newrelic_trace(:category => :sinatra,
-                                          :name => name,
-                                          :params => filtered_params) do
+          :name => name,
+          :params => filtered_params) do
           begin
             yield
           ensure

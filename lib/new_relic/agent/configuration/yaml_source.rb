@@ -17,7 +17,7 @@ module NewRelic
 
         def initialize(path, env)
           @path = path
-          config    = {}
+          config = {}
           @failures = []
 
           # These are needed in process_erb for populating the newrelic.yml via
@@ -34,7 +34,7 @@ module NewRelic
             ::NewRelic::Agent.logger.info("Reading configuration from #{path} (#{Dir.pwd})")
             raw_file = File.read(@file_path)
             erb_file = process_erb(raw_file)
-            config   = process_yaml(erb_file, env, config, @file_path)
+            config = process_yaml(erb_file, env, config, @file_path)
           rescue ScriptError, StandardError => e
             log_failure("Failed to read or parse configuration file at #{path}", e)
           end
@@ -63,8 +63,8 @@ module NewRelic
         end
 
         def warn_missing_config_file(path)
-          based_on        = 'unknown'
-          source          = ::NewRelic::Agent.config.source(:config_path)
+          based_on = 'unknown'
+          source = ::NewRelic::Agent.config.source(:config_path)
           candidate_paths = [path]
 
           case source
@@ -104,10 +104,10 @@ module NewRelic
         def process_yaml(file, env, config, path)
           if file
             confighash = if YAML.respond_to?(:unsafe_load)
-                           YAML.unsafe_load(file)
-                         else 
-                           YAML.load(file)
-                         end
+              YAML.unsafe_load(file)
+            else
+              YAML.load(file)
+            end
 
             unless confighash.key?(env)
               log_failure("Config file at #{path} doesn't include a '#{env}' section!")
@@ -151,7 +151,7 @@ module NewRelic
           messages.each { |message| @failures << message }
         end
 
-        def dot_flattened(nested_hash, names=[], result={})
+        def dot_flattened(nested_hash, names = [], result = {})
           nested_hash.each do |key, val|
             next if val == nil
             if val.respond_to?(:has_key?) && !CONFIG_WITH_HASH_VALUE.include?(key)

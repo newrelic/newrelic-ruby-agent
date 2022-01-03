@@ -10,7 +10,7 @@
 module NewRelic
   module Agent
     class InternalAgentError < StandardError
-      def initialize(msg=nil)
+      def initialize(msg = nil)
         super("Ruby agent internal error. Please contact support referencing this error.\n #{msg}")
       end
     end

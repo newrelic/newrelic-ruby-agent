@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/rack/agent_middleware'
 require 'new_relic/agent/tracer'
 
@@ -20,7 +20,7 @@ module NewRelic
       def setup
         NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
 
-        @app = lambda { |env| [200, {}, ['yeah!']]}
+        @app = lambda { |env| [200, {}, ['yeah!']] }
         @middleware = ExampleMiddleware.new(@app)
         @env = {}
       end

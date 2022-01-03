@@ -6,13 +6,12 @@ module NewRelic
   module Agent
     module Configuration
       module EventHarvestConfig
-
         extend self
 
         EVENT_HARVEST_CONFIG_KEY_MAPPING = {
           :analytic_event_data => :'analytics_events.max_samples_stored',
           :custom_event_data => :'custom_insights_events.max_samples_stored',
-          :error_event_data => :'error_collector.max_event_samples_stored',
+          :error_event_data => :'error_collector.max_event_samples_stored'
         }
 
         def from_config(config)
@@ -22,8 +21,7 @@ module NewRelic
             ).inject({}) do |connect_payload, (connect_payload_key, config_key)|
               connect_payload[connect_payload_key] = config[config_key]
               connect_payload
-            end
-          }
+            end}
         end
 
         def to_config_hash(connect_reply)

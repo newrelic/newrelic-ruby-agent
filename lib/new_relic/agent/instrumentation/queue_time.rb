@@ -9,10 +9,10 @@ module NewRelic
       # Record queue time metrics based on any of three headers
       # which can be set on the request.
       module QueueTime
-        REQUEST_START_HEADER    = 'HTTP_X_REQUEST_START'.freeze
-        QUEUE_START_HEADER      = 'HTTP_X_QUEUE_START'.freeze
+        REQUEST_START_HEADER = 'HTTP_X_REQUEST_START'.freeze
+        QUEUE_START_HEADER = 'HTTP_X_QUEUE_START'.freeze
         MIDDLEWARE_START_HEADER = 'HTTP_X_MIDDLEWARE_START'.freeze
-        ALL_QUEUE_METRIC        = 'WebFrontend/QueueTime'.freeze
+        ALL_QUEUE_METRIC = 'WebFrontend/QueueTime'.freeze
         # any timestamps before this are thrown out and the parser
         # will try again with a larger unit (2000/1/1 UTC)
         EARLIEST_ACCEPTABLE_TIME = Time.at(946684800).to_f
@@ -27,7 +27,7 @@ module NewRelic
 
         module_function
 
-        def parse_frontend_timestamp(headers, now=Process.clock_gettime(Process::CLOCK_REALTIME))
+        def parse_frontend_timestamp(headers, now = Process.clock_gettime(Process::CLOCK_REALTIME))
           earliest = nil
 
           CANDIDATE_HEADERS.each do |header|
@@ -52,7 +52,7 @@ module NewRelic
           when /^\s*([\d+\.]+)\s*$/ then $1
           # following regexp intentionally unanchored to handle
           # (ie ignore) leading server names
-          when /t=([\d+\.]+)/       then $1
+          when /t=([\d+\.]+)/ then $1
           end
         end
 

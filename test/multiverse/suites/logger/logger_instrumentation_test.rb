@@ -21,13 +21,12 @@ class LoggerInstrumentationTest < Minitest::Test
     NewRelic::Agent.instance.stats_engine.reset!
   end
 
-
   LEVELS = [
     ['debug', Logger::DEBUG],
     ['error', Logger::ERROR],
     ['fatal', Logger::FATAL],
-    ['info',  Logger::INFO],
-    ['warn',  Logger::WARN],
+    ['info', Logger::INFO],
+    ['warn', Logger::WARN]
   ]
 
   LEVELS.each do |(name, level)|
@@ -143,8 +142,8 @@ class LoggerInstrumentationTest < Minitest::Test
 
   def assert_logging_metrics(label, count = 1)
     assert_metrics_recorded_exclusive({
-      "Logging/lines"          => { :call_count => count },
-      "Logging/lines/#{label}" => { :call_count => count },
+      "Logging/lines" => {:call_count => count},
+      "Logging/lines/#{label}" => {:call_count => count},
       "Logging/size" => {},
       "Logging/size/#{label}" => {},
       "Supportability/API/increment_metric" => {},

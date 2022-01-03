@@ -18,8 +18,6 @@
 module NewRelic::Agent
   module InfiniteTracing
     class Connection
-
-
       # listens for server side configurations added to the agent.  When a new config is
       # added, we have a new agent run token and need to restart the client's RPC stream
       # with the new metadata information.
@@ -34,7 +32,6 @@ module NewRelic::Agent
       end
 
       class << self
-
         def instance
           @@instance ||= new
         end
@@ -65,8 +62,8 @@ module NewRelic::Agent
       # We attempt to connect and record spans with reconnection backoff in order to deal with
       # unavailable errors coming from the stub being created and record_span call
       def record_spans client, enumerator, exponential_backoff
-          @active_clients[client] = client
-          with_reconnection_backoff(exponential_backoff) { rpc.record_span enumerator, metadata: metadata }
+        @active_clients[client] = client
+        with_reconnection_backoff(exponential_backoff) { rpc.record_span enumerator, metadata: metadata }
       end
 
       # RPC calls will pass the calling client instance in.  We track this
@@ -84,7 +81,7 @@ module NewRelic::Agent
         wait_for_agent_connect
         @rpc ||= Channel.new.stub
       end
-      
+
       def wait_for_agent_connect
         @lock.synchronize do
           @agent_started.wait(@lock) if !@agent_connected
@@ -98,7 +95,6 @@ module NewRelic::Agent
         return @metadata if @metadata
 
         @lock.synchronize do
-
           @metadata = {
             "license_key" => license_key,
             "agent_run_token" => agent_id
@@ -152,7 +148,7 @@ module NewRelic::Agent
       end
 
       # Continues retrying the connection at backoff intervals until a successful connection is made
-      def with_reconnection_backoff exponential_backoff=true, &block
+      def with_reconnection_backoff exponential_backoff = true, &block
         @connection_attempts = 0
         begin
           yield
@@ -166,7 +162,7 @@ module NewRelic::Agent
         end
       end
 
-      def retry_connection_period exponential_backoff=true
+      def retry_connection_period exponential_backoff = true
         if exponential_backoff
           NewRelic::CONNECT_RETRY_PERIODS[@connection_attempts] || NewRelic::MAX_RETRY_PERIOD
         else
@@ -178,7 +174,6 @@ module NewRelic::Agent
       def note_connect_failure
         @connection_attempts += 1
       end
-
     end
   end
 end

@@ -2,10 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 class SamplerCollectionTest < Minitest::Test
-
   class DummySampler < NewRelic::Agent::Sampler
     named :dummy
     def poll; end
@@ -17,7 +16,7 @@ class SamplerCollectionTest < Minitest::Test
   end
 
   def setup
-    @events     = NewRelic::Agent::EventListener.new
+    @events = NewRelic::Agent::EventListener.new
     @collection = NewRelic::Agent::SamplerCollection.new(@events)
   end
 
