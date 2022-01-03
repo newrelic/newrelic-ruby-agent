@@ -2,9 +2,9 @@
 
   ## v8.3.0
 
-  * **Updated the agent to support Ruby 3.1.0-preview1**
+  * **Updated the agent to support Ruby 3.1.0**
 
-    Most of the changes involved updating the multiverse suite to exclude runs for older versions of instrumented gems that are not compatible with Ruby 3.1. In addition, Infinite Tracing was updated to accommodate `YAML::unsafe_load` for Psych 4 support.
+    Most of the changes involved updating the multiverse suite to exclude runs for older versions of instrumented gems that are not compatible with Ruby 3.1.0. In addition, Infinite Tracing testing was updated to accommodate `YAML::unsafe_load` for Psych 4 support.
 
   * **Bugfix: Update AdaptiveSampler#sampled? algorithm**
 
