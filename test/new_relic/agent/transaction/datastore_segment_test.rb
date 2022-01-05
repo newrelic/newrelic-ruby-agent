@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 require 'new_relic/agent/transaction/datastore_segment'
 
@@ -11,7 +11,7 @@ module NewRelic
     class Transaction
       class DatastoreSegmentTest < Minitest::Test
         def setup
-          @additional_config = { :'distributed_tracing.enabled' => true }
+          @additional_config = {:'distributed_tracing.enabled' => true}
           NewRelic::Agent.config.add_config_for_testing(@additional_config)
           NewRelic::Agent.config.notify_server_source_added
 
@@ -32,7 +32,6 @@ module NewRelic
           segment = DatastoreSegment.new "SQLite", "select"
           assert_equal "Datastore/operation/SQLite/select", segment.name
         end
-
 
         def test_segment_does_not_record_metrics_outside_of_txn
           segment = DatastoreSegment.new "SQLite", "insert", "Blog"
@@ -230,11 +229,11 @@ module NewRelic
         end
 
         def test_sampled_segment_records_span_event
-          trace_id      = nil
-          txn_guid      = nil
-          sampled       = nil
-          priority      = nil
-          timestamp     = nil
+          trace_id = nil
+          txn_guid = nil
+          sampled = nil
+          priority = nil
+          timestamp = nil
           sql_statement = "select * from table"
 
           in_web_transaction('wat') do |txn|
@@ -246,7 +245,7 @@ module NewRelic
               operation: "select",
               host: "rachel.foo",
               port_path_or_id: 1337807,
-              database_name: "calzone_zone",
+              database_name: "calzone_zone"
             )
 
             segment.notice_sql sql_statement
@@ -257,36 +256,36 @@ module NewRelic
 
             trace_id = txn.trace_id
             txn_guid = txn.guid
-            sampled  = txn.sampled?
+            sampled = txn.sampled?
             priority = txn.priority
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           assert_equal 2, last_span_events.size
           intrinsics, _, agent_attributes = last_span_events[0]
-          root_span_event   = last_span_events[1][0]
-          root_guid         = root_span_event['guid']
+          root_span_event = last_span_events[1][0]
+          root_guid = root_span_event['guid']
 
           datastore = 'Datastore/statement/SQLite/Blahg/select'
 
-          assert_equal 'Span',      intrinsics.fetch('type')
-          assert_equal trace_id,    intrinsics.fetch('traceId')
-          refute_nil                intrinsics.fetch('guid')
-          assert_equal root_guid,   intrinsics.fetch('parentId')
-          assert_equal txn_guid,    intrinsics.fetch('transactionId')
-          assert_equal sampled,     intrinsics.fetch('sampled')
-          assert_equal priority,    intrinsics.fetch('priority')
-          assert_equal timestamp,   intrinsics.fetch('timestamp')
-          assert_equal 1.0,         intrinsics.fetch('duration')
-          assert_equal datastore,   intrinsics.fetch('name')
+          assert_equal 'Span', intrinsics.fetch('type')
+          assert_equal trace_id, intrinsics.fetch('traceId')
+          refute_nil intrinsics.fetch('guid')
+          assert_equal root_guid, intrinsics.fetch('parentId')
+          assert_equal txn_guid, intrinsics.fetch('transactionId')
+          assert_equal sampled, intrinsics.fetch('sampled')
+          assert_equal priority, intrinsics.fetch('priority')
+          assert_equal timestamp, intrinsics.fetch('timestamp')
+          assert_equal 1.0, intrinsics.fetch('duration')
+          assert_equal datastore, intrinsics.fetch('name')
           assert_equal 'datastore', intrinsics.fetch('category')
-          assert_equal 'SQLite',    intrinsics.fetch('component')
-          assert_equal 'client',    intrinsics.fetch('span.kind')
+          assert_equal 'SQLite', intrinsics.fetch('component')
+          assert_equal 'client', intrinsics.fetch('span.kind')
 
-          assert_equal 'calzone_zone',       agent_attributes.fetch('db.instance')
+          assert_equal 'calzone_zone', agent_attributes.fetch('db.instance')
           assert_equal 'rachel.foo:1337807', agent_attributes.fetch('peer.address')
-          assert_equal 'rachel.foo',         agent_attributes.fetch('peer.hostname')
-          assert_equal sql_statement,        agent_attributes.fetch('db.statement')
+          assert_equal 'rachel.foo', agent_attributes.fetch('peer.hostname')
+          assert_equal sql_statement, agent_attributes.fetch('db.statement')
         end
 
         def test_sql_statement_not_added_to_span_event_if_disabled
@@ -301,7 +300,7 @@ module NewRelic
                 collection: "Blahg",
                 operation: "select",
                 port_path_or_id: 1337807,
-                database_name: "calzone_zone",
+                database_name: "calzone_zone"
               )
 
               segment.notice_sql sql
@@ -309,10 +308,9 @@ module NewRelic
               segment.finish
             end
 
-            last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+            last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
             assert_equal 2, last_span_events.size
             event = last_span_events[0][0]
-
 
             refute event.key("db.statement")
           end
@@ -330,7 +328,7 @@ module NewRelic
                 collection: "Blahg",
                 operation: "select",
                 port_path_or_id: 1337807,
-                database_name: "calzone_zone",
+                database_name: "calzone_zone"
               )
 
               segment.notice_sql sql
@@ -338,7 +336,7 @@ module NewRelic
               segment.finish
             end
 
-            last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+            last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
             assert_equal 2, last_span_events.size
             _, _, agent_attributes = last_span_events[0]
 
@@ -358,7 +356,7 @@ module NewRelic
               collection: "Blahg",
               operation: "select",
               port_path_or_id: 1337807,
-              database_name: "calzone_zone",
+              database_name: "calzone_zone"
             )
 
             segment.notice_nosql_statement nosql_statement
@@ -366,10 +364,9 @@ module NewRelic
             segment.finish
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           assert_equal 2, last_span_events.size
           _, _, agent_attributes = last_span_events[0]
-
 
           assert_equal nosql_statement, agent_attributes["db.statement"]
         end
@@ -391,10 +388,10 @@ module NewRelic
             end
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           _, _, agent_attributes = last_span_events[0]
 
-          assert_equal 2000,                             agent_attributes['db.statement'].bytesize
+          assert_equal 2000, agent_attributes['db.statement'].bytesize
           assert_equal "select * from #{'a' * 1983}...", agent_attributes['db.statement']
         end
 
@@ -402,20 +399,20 @@ module NewRelic
           in_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(true)
 
-              segment = NewRelic::Agent::Tracer.start_datastore_segment(
-                product: "Redis",
-                operation: "set"
-              )
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
+              product: "Redis",
+              operation: "set"
+            )
             statement = "set mykey #{'a' * 2500}"
 
             segment.notice_nosql_statement statement
             segment.finish
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           _, _, agent_attributes = last_span_events[0]
 
-          assert_equal 2000,                         agent_attributes['db.statement'].bytesize
+          assert_equal 2000, agent_attributes['db.statement'].bytesize
           assert_equal "set mykey #{'a' * 1987}...", agent_attributes['db.statement']
         end
 
@@ -434,7 +431,7 @@ module NewRelic
             segment.finish
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           _, _, agent_attributes = last_span_events[0]
 
           assert_equal 255, agent_attributes['peer.hostname'].bytesize
@@ -451,15 +448,15 @@ module NewRelic
           in_transaction('wat') do |txn|
             txn.stubs(:sampled?).returns(true)
 
-              segment = NewRelic::Agent::Tracer.start_datastore_segment(
-                product: "SQLite",
-                operation: "select"
-              )
+            segment = NewRelic::Agent::Tracer.start_datastore_segment(
+              product: "SQLite",
+              operation: "select"
+            )
 
             segment.finish
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           span_event = last_span_events[0][0]
 
           refute span_event.key?('db.instance')
@@ -775,7 +772,6 @@ module NewRelic
           t = Process.clock_gettime(Process::CLOCK_REALTIME)
 
           in_transaction do |txn|
-
             segment = Tracer.start_datastore_segment(
               product: "SQLite",
               operation: "insert",

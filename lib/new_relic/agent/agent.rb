@@ -37,7 +37,6 @@ require 'new_relic/agent/connect/response_handler'
 
 module NewRelic
   module Agent
-
     # The Agent is a singleton that is instantiated when the plugin is
     # activated.  It collects performance data from ruby applications
     # in realtime as the application runs, and periodically sends that
@@ -54,31 +53,31 @@ module NewRelic
 
         @service = NewRelicService.new
 
-        @events                    = EventListener.new
-        @stats_engine              = StatsEngine.new
-        @transaction_sampler       = TransactionSampler.new
-        @sql_sampler               = SqlSampler.new
-        @agent_command_router      = Commands::AgentCommandRouter.new @events
-        @monitors                  = Monitors.new @events
-        @error_collector           = ErrorCollector.new @events
-        @transaction_rules         = RulesEngine.new
-        @harvest_samplers          = SamplerCollection.new @events
-        @monotonic_gc_profiler     = VM::MonotonicGCProfiler.new
-        @javascript_instrumentor   = JavascriptInstrumentor.new @events
-        @adaptive_sampler          = AdaptiveSampler.new(Agent.config[:sampling_target],
-                                                         Agent.config[:sampling_target_period_in_seconds])
+        @events = EventListener.new
+        @stats_engine = StatsEngine.new
+        @transaction_sampler = TransactionSampler.new
+        @sql_sampler = SqlSampler.new
+        @agent_command_router = Commands::AgentCommandRouter.new @events
+        @monitors = Monitors.new @events
+        @error_collector = ErrorCollector.new @events
+        @transaction_rules = RulesEngine.new
+        @harvest_samplers = SamplerCollection.new @events
+        @monotonic_gc_profiler = VM::MonotonicGCProfiler.new
+        @javascript_instrumentor = JavascriptInstrumentor.new @events
+        @adaptive_sampler = AdaptiveSampler.new(Agent.config[:sampling_target],
+          Agent.config[:sampling_target_period_in_seconds])
 
-        @harvester       = Harvester.new @events
+        @harvester = Harvester.new @events
         @after_fork_lock = Mutex.new
 
         @transaction_event_recorder = TransactionEventRecorder.new @events
-        @custom_event_aggregator    = CustomEventAggregator.new @events
-        @span_event_aggregator      = SpanEventAggregator.new @events
+        @custom_event_aggregator = CustomEventAggregator.new @events
+        @span_event_aggregator = SpanEventAggregator.new @events
 
-        @connect_state      = :pending
-        @connect_attempts   = 0
-        @waited_on_connect  = nil
-        @connected_pid      = nil
+        @connect_state = :pending
+        @connect_attempts = 0
+        @waited_on_connect = nil
+        @connected_pid = nil
 
         @wait_on_connect_mutex = Mutex.new
         @wait_on_connect_condition = ConditionVariable.new
@@ -110,7 +109,6 @@ module NewRelic
       # Holds all the methods defined on NewRelic::Agent::Agent
       # instances
       module InstanceMethods
-
         # the statistics engine that holds all the timeslice data
         attr_reader :stats_engine
         # the transaction sampler that handles recording transactions
@@ -184,7 +182,7 @@ module NewRelic
         # * <tt>:keep_retrying => false</tt> if we try to initiate a new
         #   connection, this tells me to only try it once so this method returns
         #   quickly if there is some kind of latency with the server.
-        def after_fork(options={})
+        def after_fork(options = {})
           needs_restart = false
           @after_fork_lock.synchronize do
             needs_restart = @harvester.needs_restart?
@@ -284,7 +282,7 @@ module NewRelic
         # Sets a thread local variable as to whether we should or
         # should not record sql in the current thread. Returns the
         # previous value, if there is one
-        def set_record_sql(should_record) #THREAD_LOCAL_ACCESS
+        def set_record_sql(should_record) # THREAD_LOCAL_ACCESS
           state = Tracer.state
           prev = state.record_sql
           state.record_sql = should_record
@@ -295,13 +293,13 @@ module NewRelic
         # thread. This uses a stack which allows us to disable tracing
         # children of a transaction without affecting the tracing of
         # the whole transaction
-        def push_trace_execution_flag(should_trace=false) #THREAD_LOCAL_ACCESS
+        def push_trace_execution_flag(should_trace = false) # THREAD_LOCAL_ACCESS
           Tracer.state.push_traced(should_trace)
         end
 
         # Pop the current trace execution status.  Restore trace execution status
         # to what it was before we pushed the current flag.
-        def pop_trace_execution_flag #THREAD_LOCAL_ACCESS
+        def pop_trace_execution_flag # THREAD_LOCAL_ACCESS
           Tracer.state.pop_traced
         end
 
@@ -492,7 +490,7 @@ module NewRelic
           # after_fork call restarting the thread in deferred dispatchers.
           #
           # Treatment of @started and env report is important to get right.
-          def setup_and_start_agent(options={})
+          def setup_and_start_agent(options = {})
             @started = true
             @harvester.mark_started
 
@@ -755,7 +753,7 @@ module NewRelic
           # Don't connect if we're already connected, or if we tried to connect
           # and were rejected with prejudice because of a license issue, unless
           # we're forced to by force_reconnect.
-          def should_connect?(force=false)
+          def should_connect?(force = false)
             force || (!connected? && !disconnected?)
           end
 
@@ -788,7 +786,8 @@ module NewRelic
           def handle_license_error(error)
             ::NewRelic::Agent.logger.error( \
               error.message, \
-              "Visit NewRelic.com to obtain a valid license key, or to upgrade your account.")
+              "Visit NewRelic.com to obtain a valid license key, or to upgrade your account."
+            )
             disconnect
           end
 
@@ -881,20 +880,19 @@ module NewRelic
               raise WaitOnConnectTimeout, "Agent was unable to connect in #{timeout} seconds."
             end
           end
-
         end
         include Connect
 
         def container_for_endpoint(endpoint)
           case endpoint
-          when :metric_data             then @stats_engine
+          when :metric_data then @stats_engine
           when :transaction_sample_data then @transaction_sampler
-          when :error_data              then @error_collector.error_trace_aggregator
-          when :error_event_data        then @error_collector.error_event_aggregator
-          when :analytic_event_data     then transaction_event_aggregator
-          when :custom_event_data       then @custom_event_aggregator
-          when :span_event_data         then span_event_aggregator
-          when :sql_trace_data          then @sql_sampler
+          when :error_data then @error_collector.error_trace_aggregator
+          when :error_event_data then @error_collector.error_event_aggregator
+          when :analytic_event_data then transaction_event_aggregator
+          when :custom_event_data then @custom_event_aggregator
+          when :span_event_data then span_event_aggregator
+          when :sql_trace_data then @sql_sampler
           end
         end
 
@@ -931,7 +929,7 @@ module NewRelic
         #   This is useful primarily when re-establishing a new connection after
         #   forking off from a parent process.
         #
-        def connect(options={})
+        def connect(options = {})
           defaults = {
             :keep_retrying => Agent.config[:keep_retrying],
             :force_reconnect => Agent.config[:force_reconnect]
@@ -1067,7 +1065,7 @@ module NewRelic
 
         def harvest_and_send_analytic_event_data
           harvest_and_send_from_container(transaction_event_aggregator, :analytic_event_data)
-          harvest_and_send_from_container(synthetics_event_aggregator,  :analytic_event_data)
+          harvest_and_send_from_container(synthetics_event_aggregator, :analytic_event_data)
         end
 
         def harvest_and_send_custom_event_data

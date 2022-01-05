@@ -2,14 +2,13 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/transaction/request_attributes'
 
 module NewRelic
   module Agent
     class Transaction
       class RequestAttributesTest < Minitest::Test
-
         def test_tolerates_request_without_desired_methods
           request = stub 'request'
           attrs = RequestAttributes.new request

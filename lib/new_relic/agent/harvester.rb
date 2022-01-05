@@ -5,11 +5,10 @@
 module NewRelic
   module Agent
     class Harvester
-
       attr_accessor :starting_pid
 
       # Inject target for after_fork call to avoid spawning thread in tests
-      def initialize(events, after_forker=NewRelic::Agent)
+      def initialize(events, after_forker = NewRelic::Agent)
         # We intentionally don't set our pid as started at this point.
         # Startup routines must call mark_started when they consider us set!
         @starting_pid = nil
@@ -22,8 +21,8 @@ module NewRelic
 
       def on_transaction(*_)
         return unless restart_in_children_enabled? &&
-                        needs_restart? &&
-                        harvest_thread_enabled?
+          needs_restart? &&
+          harvest_thread_enabled?
 
         restart_harvest_thread
       end

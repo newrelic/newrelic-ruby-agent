@@ -52,7 +52,6 @@ if NewRelic::Agent::Instrumentation::RackHelpers.puma_rack_version_supported?
       end
     end
 
-
     def test_middlewares_are_visited_with_puma_rack
       @app.call @env
       assert @env['MiddlewareOne'], 'Expected MiddlewareOne to be present and true in env'

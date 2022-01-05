@@ -7,7 +7,7 @@ require "net/http"
 require "newrelic_rpm"
 require "http_client_test_cases"
 
-module NetHttpTestCases  
+module NetHttpTestCases
   include HttpClientTestCases
 
   #
@@ -27,7 +27,7 @@ module NetHttpTestCases
     get_response
   end
 
-  def get_response(url=nil, headers={})
+  def get_response(url = nil, headers = {})
     uri = default_uri
     uri = URI.parse(url) unless url.nil?
     path = uri.path.empty? ? '/' : uri.path
@@ -91,7 +91,7 @@ module NetHttpTestCases
 
   def response_instance(headers = {})
     response = Net::HTTPResponse.new(nil, nil, nil)
-    headers.each do |k,v|
+    headers.each do |k, v|
       response[k] = v
     end
     NewRelic::Agent::HTTPClients::NetHTTPResponse.new response
@@ -124,9 +124,10 @@ module NetHttpTestCases
     end
 
     assert_metrics_recorded(
-      'External/localhost/Net::HTTP/GET' => { :call_count => 1 })
+      'External/localhost/Net::HTTP/GET' => {:call_count => 1}
+    )
   end
-  
+
   def test_ipv6_host_get_request_records_metric
     http = Net::HTTP.new('::1', default_uri.port)
     in_transaction do
@@ -134,6 +135,7 @@ module NetHttpTestCases
     end
 
     assert_metrics_recorded(
-      'External/[::1]/Net::HTTP/GET' => { :call_count => 1 })
+      'External/[::1]/Net::HTTP/GET' => {:call_count => 1}
+    )
   end
 end

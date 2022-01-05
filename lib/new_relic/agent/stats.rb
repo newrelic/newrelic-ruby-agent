@@ -36,9 +36,9 @@ module NewRelic
       def merge!(other)
         @min_call_time = other.min_call_time if min_time_less?(other)
         @max_call_time = other.max_call_time if other.max_call_time > max_call_time
-        @total_call_time      += other.total_call_time
+        @total_call_time += other.total_call_time
         @total_exclusive_time += other.total_exclusive_time
-        @sum_of_squares       += other.sum_of_squares
+        @sum_of_squares += other.sum_of_squares
         @call_count += other.call_count
         self
       end
@@ -49,16 +49,16 @@ module NewRelic
 
       def to_json(*_)
         {
-          'call_count'           => call_count.to_i,
-          'min_call_time'        => min_call_time.to_f,
-          'max_call_time'        => max_call_time.to_f,
-          'total_call_time'      => total_call_time.to_f,
+          'call_count' => call_count.to_i,
+          'min_call_time' => min_call_time.to_f,
+          'max_call_time' => max_call_time.to_f,
+          'total_call_time' => total_call_time.to_f,
           'total_exclusive_time' => total_exclusive_time.to_f,
-          'sum_of_squares'       => sum_of_squares.to_f
+          'sum_of_squares' => sum_of_squares.to_f
         }.to_json(*_)
       end
 
-      def record(value=nil, aux=nil, &blk)
+      def record(value = nil, aux = nil, &blk)
         if blk
           yield self
         else
@@ -106,14 +106,14 @@ module NewRelic
 
       def ==(other)
         other.class == self.class &&
-        (
-          @min_call_time        == other.min_call_time &&
-          @max_call_time        == other.max_call_time &&
-          @total_call_time      == other.total_call_time &&
-          @total_exclusive_time == other.total_exclusive_time &&
-          @sum_of_squares       == other.sum_of_squares &&
-          @call_count           == other.call_count
-        )
+          (
+            @min_call_time == other.min_call_time &&
+            @max_call_time == other.max_call_time &&
+            @total_call_time == other.total_call_time &&
+            @total_exclusive_time == other.total_exclusive_time &&
+            @sum_of_squares == other.sum_of_squares &&
+            @call_count == other.call_count
+          )
       end
 
       # Apdex-related accessors

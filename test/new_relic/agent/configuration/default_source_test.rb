@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/configuration/default_source'
 
 module NewRelic::Agent::Configuration
@@ -157,7 +157,7 @@ module NewRelic::Agent::Configuration
     end
 
     def test_agent_attribute_settings_convert_comma_delimited_strings_into_an_arrays
-      types = %w(transaction_tracer. transaction_events. error_collector. browser_monitoring.)
+      types = %w[transaction_tracer. transaction_events. error_collector. browser_monitoring.]
       types << ''
 
       types.each do |type|
@@ -180,13 +180,13 @@ module NewRelic::Agent::Configuration
     end
 
     def test_agent_attributes_settings_with_yaml_array
-      types = %w(transaction_tracer. transaction_events. error_collector. browser_monitoring.)
+      types = %w[transaction_tracer. transaction_events. error_collector. browser_monitoring.]
       types << ''
 
       types.each do |type|
         key = "#{type}attributes.exclude".to_sym
 
-        with_config(key => ['foo','bar','baz']) do
+        with_config(key => ['foo', 'bar', 'baz']) do
           expected = ["foo", "bar", "baz"]
           result = NewRelic::Agent.config[key]
 

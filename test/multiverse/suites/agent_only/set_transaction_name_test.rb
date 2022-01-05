@@ -8,14 +8,14 @@ class SetTransactionNameTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent(:application_id => 'appId',
-                           :beacon => 'beacon',
-                           :browser_key => 'browserKey',
-                           :js_agent_loader => 'loader')
+    :beacon => 'beacon',
+    :browser_key => 'browserKey',
+    :js_agent_loader => 'loader')
 
   class TestTransactor
     include ::NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
-    def parent_txn(child_category=nil)
+    def parent_txn(child_category = nil)
       NewRelic::Agent.set_transaction_name('TestTransactor/parent')
       yield if block_given?
       child_txn(child_category)
@@ -45,7 +45,8 @@ class SetTransactionNameTest < Minitest::Test
       'Controller/TestTransactor/parent',
       'Nested/Controller/SetTransactionNameTest::TestTransactor/child_txn',
       ['Nested/Controller/SetTransactionNameTest::TestTransactor/child_txn', 'Controller/TestTransactor/parent'],
-      'Apdex/TestTransactor/parent'])
+      'Apdex/TestTransactor/parent'
+    ])
   end
 
   def test_apply_to_metric_names
@@ -59,7 +60,8 @@ class SetTransactionNameTest < Minitest::Test
         'Controller/TestTransactor/child'],
       ['Nested/Controller/SetTransactionNameTest::TestTransactor/parent_txn',
         'Controller/TestTransactor/child'],
-      'Apdex/TestTransactor/child'])
+      'Apdex/TestTransactor/child'
+    ])
   end
 
   def test_apply_to_metric_scopes
@@ -67,7 +69,7 @@ class SetTransactionNameTest < Minitest::Test
       trace_execution_scoped('Custom/something') {}
     end
     assert_metrics_recorded(['Custom/something',
-                             'Controller/TestTransactor/child'])
+      'Controller/TestTransactor/child'])
   end
 
   def test_apply_to_traced_transactions
@@ -88,7 +90,7 @@ class SetTransactionNameTest < Minitest::Test
     connect_response = {
       'agent_run_id' => 1,
       'transaction_name_rules' => [
-        { 'match_expression' => 'child', 'replacement' => 'kid' }
+        {'match_expression' => 'child', 'replacement' => 'kid'}
       ]
     }
 

@@ -45,7 +45,7 @@ module Multiverse
       opts
     end
 
-    def run(filter="", opts={})
+    def run(filter = "", opts = {})
       execute_suites(filter, opts) do |suite|
         suite.each_instrumentation_method do |method|
           suite.execute method
@@ -53,7 +53,7 @@ module Multiverse
       end
     end
 
-    def prime(filter="", opts={})
+    def prime(filter = "", opts = {})
       execute_suites(filter, opts) do |suite|
         suite.prime
       end
@@ -84,17 +84,17 @@ module Multiverse
     end
 
     GROUPS = {
-      "agent"         => ["agent_only", "bare", "config_file_loading", "deferred_instrumentation", "high_security", "no_json", "json", "marshalling", "yajl"],
-      "background"    => ["delayed_job", "sidekiq", "resque" ],
-      "background_2"  => ["rake"],
-      "database"      => ["datamapper", "mongo", "redis", "sequel"],
-      "rails"         => ["active_record", "rails", "rails_prepend", "activemerchant"],
-      "frameworks"    => ["sinatra", "padrino", "grape"],
-      "httpclients"   => ["curb", "excon", "httpclient"],
-      "httpclients_2"   => ["typhoeus", "net_http", "httprb"],
+      "agent" => ["agent_only", "bare", "config_file_loading", "deferred_instrumentation", "high_security", "no_json", "json", "marshalling", "yajl"],
+      "background" => ["delayed_job", "sidekiq", "resque"],
+      "background_2" => ["rake"],
+      "database" => ["datamapper", "mongo", "redis", "sequel"],
+      "rails" => ["active_record", "rails", "rails_prepend", "activemerchant"],
+      "frameworks" => ["sinatra", "padrino", "grape"],
+      "httpclients" => ["curb", "excon", "httpclient"],
+      "httpclients_2" => ["typhoeus", "net_http", "httprb"],
       "infinite_tracing" => ["infinite_tracing"],
 
-      "rest"          => []  # Specially handled below
+      "rest" => [] # Specially handled below
     }
 
     # Would like to reinstate but requires investigation, see RUBY-1749
@@ -111,14 +111,12 @@ module Multiverse
       GROUPS['frameworks'].delete 'grape'
     end
 
-
     def excluded?(suite)
       return true if suite == 'rake' and RUBY_VERSION >= '2.1' and RUBY_VERSION < '2.3'
       return true if suite == 'agent_only' and RUBY_PLATFORM == "java"
       return true if suite == 'active_record' and RUBY_VERSION >= '3.0.0'
       return true if ["grape"].include?(suite) and RUBY_VERSION >= '3.0'
     end
-
 
     def passes_filter?(dir, filter)
       return true if filter.nil?
@@ -145,7 +143,7 @@ module Multiverse
         # the "rest" group is one of the groups being passed in AND the directory is not in any other group
         # OR
         # the directory is one of the suites included in one of the non-rest groups passed in
-        (keys.include?("rest") && !GROUPS.values.flatten.include?(dir) ) || (combined_groups.any? && combined_groups.include?(dir))
+        (keys.include?("rest") && !GROUPS.values.flatten.include?(dir)) || (combined_groups.any? && combined_groups.include?(dir))
       else
         dir.include?(filter)
       end

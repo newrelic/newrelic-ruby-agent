@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 require 'ostruct'
 
 module NewRelic
@@ -23,9 +23,9 @@ module NewRelic
     end
 
     def test_shutdown
-      mock_agent  = mocked_agent
+      mock_agent = mocked_agent
       mock_engine = mock
-      mock_stats  = mock
+      mock_stats = mock
       mock_agent.expects(:shutdown)
       mock_agent.expects(:stats_engine).returns(mock_engine)
       mock_engine.expects(:tl_record_unscoped_metrics).with('Supportability/API/shutdown').yields(mock_stats)
@@ -43,9 +43,11 @@ module NewRelic
     def test_shutdown_removes_server_config
       NewRelic::Agent.manual_start(:monitor_mode => true, :license_key => "a" * 40)
       response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(
-          NewRelic::Agent.instance, NewRelic::Agent.config)
+        NewRelic::Agent.instance, NewRelic::Agent.config
+      )
       response_handler.configure_agent(
-        'agent_config' => { 'data_report_period' => 10 })
+        'agent_config' => {'data_report_period' => 10}
+      )
       assert_equal 10, NewRelic::Agent.config[:data_report_period]
       NewRelic::Agent.shutdown
       assert_equal 60, NewRelic::Agent.config[:data_report_period]
@@ -53,22 +55,25 @@ module NewRelic
 
     def test_configure_agent_applied_server_side_config
       response_handler = ::NewRelic::Agent::Connect::ResponseHandler.new(
-          NewRelic::Agent.instance, NewRelic::Agent.config)
+        NewRelic::Agent.instance, NewRelic::Agent.config
+      )
       with_config_low_priority({
-                    :'transction_tracer.enabled' => true,
-                    :'error_collector.enabled' => true }) do
+        :'transction_tracer.enabled' => true,
+        :'error_collector.enabled' => true
+      }) do
         response_handler.configure_agent(
-         'agent_config' => { 'transaction_tracer.enabled' => false },
-                                         'collect_errors' => false)
+          'agent_config' => {'transaction_tracer.enabled' => false},
+          'collect_errors' => false
+        )
         refute NewRelic::Agent.config[:'transaction_tracer.enabled']
         refute NewRelic::Agent.config[:'error_collector.enabled']
       end
     end
 
     def test_after_fork
-      mock_agent  = mocked_agent
+      mock_agent = mocked_agent
       mock_engine = mock
-      mock_stats  = mock
+      mock_stats = mock
       mock_agent.expects(:after_fork).with({})
       mock_agent.expects(:stats_engine).returns(mock_engine)
       mock_engine.expects(:tl_record_unscoped_metrics).yields(mock_stats)
@@ -187,8 +192,8 @@ module NewRelic
       stats_hash = {
         :count => 12,
         :total => 42,
-        :min   => 1,
-        :max   => 5,
+        :min => 1,
+        :max => 5,
         :sum_of_squares => 999
       }
       expected_stats = NewRelic::Agent::Stats.new()
@@ -207,7 +212,7 @@ module NewRelic
       dummy_engine = NewRelic::Agent.agent.stats_engine
       incomplete_stats_hash = {
         :count => 12,
-        :max   => 5,
+        :max => 5,
         :sum_of_squares => 999
       }
 
@@ -423,7 +428,6 @@ module NewRelic
       end
     end
 
-
     def test_disable_transaction_tracing_deprecated
       log = with_array_logger(:warn) do
         NewRelic::Agent.disable_transaction_tracing do
@@ -433,8 +437,8 @@ module NewRelic
         end
       end
 
-      assert log.array.any? { |msg| msg.include?('The method disable_transaction_tracing is deprecated.'         ) }
-      assert log.array.any? { |msg| msg.include?('Please use disable_all_tracing or ignore_transaction instead.' ) }
+      assert log.array.any? { |msg| msg.include?('The method disable_transaction_tracing is deprecated.') }
+      assert log.array.any? { |msg| msg.include?('Please use disable_all_tracing or ignore_transaction instead.') }
     end
 
     def test_eventing_helpers
@@ -480,10 +484,10 @@ module NewRelic
         visited << a = stack.pop
         if a.respond_to? :name
           b = if RUBY_VERSION < '2.0.0'
-                a.name.split('::').reduce(nil) { |c,n| (c || Kernel).const_get n }
-              else
-                Kernel.const_get a.name
-              end
+            a.name.split('::').reduce(nil) { |c, n| (c || Kernel).const_get n }
+          else
+            Kernel.const_get a.name
+          end
           assert_equal a, b
         end
 
@@ -522,13 +526,13 @@ module NewRelic
     def mocked_control
       server = NewRelic::Control::Server.new('localhost', 3000)
       control = OpenStruct.new(:license_key => 'abcdef',
-                               :server => server)
+        :server => server)
       control.instance_eval do
         def [](key)
           nil
         end
 
-        def fetch(k,d)
+        def fetch(k, d)
           nil
         end
       end

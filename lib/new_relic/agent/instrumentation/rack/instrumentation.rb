@@ -6,7 +6,6 @@ module NewRelic
   module Agent
     module Instrumentation
       module RackBuilder
-
         def self.track_deferred_detection builder_class
           class << builder_class
             attr_accessor :_nr_deferred_detection_ran
@@ -16,7 +15,7 @@ module NewRelic
 
         def deferred_dependency_check
           return if self.class._nr_deferred_detection_ran
-  
+
           NewRelic::Agent.logger.info "Doing deferred dependency-detection before Rack startup"
           DependencyDetection.detect!
           self.class._nr_deferred_detection_ran = true
@@ -28,7 +27,7 @@ module NewRelic
           if middleware_instrumentation_enabled?
             if ::NewRelic::Agent::Instrumentation::MiddlewareProxy.needs_wrapping?(app)
               ::NewRelic::Agent.logger.info("We weren't able to instrument all of your Rack middlewares.",
-                                            "To correct this, ensure you 'require \"newrelic_rpm\"' before setting up your middleware stack.")
+                "To correct this, ensure you 'require \"newrelic_rpm\"' before setting up your middleware stack.")
             end
           end
         end
@@ -41,7 +40,7 @@ module NewRelic
         # this point.
         def with_deferred_dependency_detection
           deferred_dependency_check
-          yield.tap{ |result| check_for_late_instrumentation(result) }
+          yield.tap { |result| check_for_late_instrumentation(result) }
         end
 
         def middleware_instrumentation_enabled?

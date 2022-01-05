@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 module NewRelic
   module Agent
@@ -133,7 +133,7 @@ module NewRelic
         assert_nil Tracer.current_transaction
 
         txn = Tracer.start_transaction(name: "Controller/Blogs/index",
-                                       category: :controller)
+          category: :controller)
 
         assert_equal txn, Tracer.current_transaction
 
@@ -146,7 +146,7 @@ module NewRelic
           refute_nil Tracer.current_transaction
 
           txn2 = Tracer.start_transaction(name: "Controller/Blogs/index",
-                                         category: :controller)
+            category: :controller)
 
           assert_equal txn2, txn1
           assert_equal txn2, Tracer.current_transaction
@@ -174,7 +174,7 @@ module NewRelic
             category: :middleware
           )
 
-          #todo: Implement current_segment on Tracer
+          # todo: Implement current_segment on Tracer
           assert_equal finishable, Tracer.current_transaction.current_segment
 
           finishable.finish
@@ -209,9 +209,9 @@ module NewRelic
 
         assert_metrics_recorded [
           ["Nested/Controller/Rack/Test::App/call", "Controller/blogs/index"],
-          ["Middleware/Rack/MyMiddleware/call",     "Controller/blogs/index"],
-          ["Nested/Controller/blogs/index",         "Controller/blogs/index"],
-          ["Custom/MyClass/my_meth",                "Controller/blogs/index"],
+          ["Middleware/Rack/MyMiddleware/call", "Controller/blogs/index"],
+          ["Nested/Controller/blogs/index", "Controller/blogs/index"],
+          ["Custom/MyClass/my_meth", "Controller/blogs/index"],
           "Controller/blogs/index",
           "Nested/Controller/Rack/Test::App/call",
           "Middleware/Rack/MyMiddleware/call",
@@ -242,12 +242,12 @@ module NewRelic
 
         assert_metrics_recorded [
           ["Nested/Controller/Rack/Test::App/call", "Controller/blogs/index"],
-          ["Middleware/Rack/MyMiddleware/call",     "Controller/blogs/index"],
-          ["Nested/Controller/blogs/index",         "Controller/blogs/index"],
+          ["Middleware/Rack/MyMiddleware/call", "Controller/blogs/index"],
+          ["Nested/Controller/blogs/index", "Controller/blogs/index"],
           "Controller/blogs/index",
           "Nested/Controller/Rack/Test::App/call",
           "Middleware/Rack/MyMiddleware/call",
-          "Nested/Controller/blogs/index",
+          "Nested/Controller/blogs/index"
         ]
       end
 
@@ -293,10 +293,10 @@ module NewRelic
 
         in_transaction 'test' do
           segment = Tracer.start_segment(
-           name: name,
-           unscoped_metrics: unscoped_metrics,
-           parent: parent,
-           start_time: start_time
+            name: name,
+            unscoped_metrics: unscoped_metrics,
+            parent: parent,
+            start_time: start_time
           )
 
           assert_equal segment, Tracer.current_segment
@@ -306,14 +306,14 @@ module NewRelic
       end
 
       def test_start_datastore_segment
-        product         = "MySQL"
-        operation       = "INSERT"
-        collection      = "blogs"
-        host            = "localhost"
+        product = "MySQL"
+        operation = "INSERT"
+        collection = "blogs"
+        host = "localhost"
         port_path_or_id = "3306"
-        database_name   = "blog_app"
-        start_time      = Process.clock_gettime(Process::CLOCK_REALTIME)
-        parent          = Transaction::Segment.new("parent")
+        database_name = "blog_app"
+        start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
+        parent = Transaction::Segment.new("parent")
 
         in_transaction 'test' do
           segment = Tracer.start_datastore_segment(
@@ -334,11 +334,11 @@ module NewRelic
       end
 
       def test_start_external_request_segment
-        library    = "Net::HTTP"
-        uri        = "https://docs.newrelic.com"
-        procedure  = "GET"
+        library = "Net::HTTP"
+        uri = "https://docs.newrelic.com"
+        procedure = "GET"
         start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
-        parent     = Transaction::Segment.new("parent")
+        parent = Transaction::Segment.new("parent")
 
         in_transaction 'test' do
           segment = Tracer.start_external_request_segment(

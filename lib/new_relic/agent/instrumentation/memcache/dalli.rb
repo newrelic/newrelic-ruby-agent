@@ -9,6 +9,7 @@ module NewRelic
       module Memcache
         module Dalli
           extend Helper
+
           module_function
 
           def instrument!
@@ -69,6 +70,7 @@ module NewRelic
         module DalliCAS
           extend Dalli
           extend Helper
+
           module_function
 
           def should_instrument?
@@ -84,4 +86,3 @@ module NewRelic
     end
   end
 end
-

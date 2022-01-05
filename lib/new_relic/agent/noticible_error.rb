@@ -5,7 +5,6 @@
 
 module NewRelic
   module Agent
-
     # This class is used for instrumentations that have exceptions or error classes
     # not derived from Ruby's usual Exception or StandardError or in situations
     # where we do not have such Exception object to work with.
@@ -17,6 +16,5 @@ module NewRelic
         @message = message
       end
     end
-
   end
 end

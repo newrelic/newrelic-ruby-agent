@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/datastores/mongo/event_formatter'
 
 module NewRelic
@@ -10,22 +10,21 @@ module NewRelic
     module Datastores
       module Mongo
         class EventFormatterTest < Minitest::Test
-
           DATABASE = 'multiverse'.freeze
 
           FIND_COMMAND = {
             "find" => "tribbles",
-            "filter" => { "_id" => { "$gt" => 1 }, "name" => "joe" },
-            "sort" => { "_id" => 1 },
+            "filter" => {"_id" => {"$gt" => 1}, "name" => "joe"},
+            "sort" => {"_id" => 1},
             "limit" => 2,
             "skip" => 2,
             "comment" => "test",
-            "hint" => { "_id" => 1 },
-            "max" => { "_id" => 6 },
+            "hint" => {"_id" => 1},
+            "max" => {"_id" => 6},
             "maxScan" => 5000,
             "maxTimeMS" => 6000,
-            "min" => { "_id" => 0 },
-            "readPreference" => { "mode" => "secondaryPreferred" },
+            "min" => {"_id" => 0},
+            "readPreference" => {"mode" => "secondaryPreferred"},
             "returnKey" => false,
             "showRecordId" => false,
             "snapshot" => false
@@ -34,7 +33,7 @@ module NewRelic
           INSERT_COMMAND = {
             "insert" => "tribbles",
             "ordered" => true,
-            "documents" => [{ :name => "test" }]
+            "documents" => [{:name => "test"}]
           }.freeze
 
           UPDATE_COMMAND = {
@@ -42,8 +41,8 @@ module NewRelic
             "ordered" => true,
             "updates" => [
               {
-                :q => { :_id => { "$gt" => 1 }},
-                :u => { "$inc" => { :x => 1 }},
+                :q => {:_id => {"$gt" => 1}},
+                :u => {"$inc" => {:x => 1}},
                 :multi => false,
                 :upsert => false
               }
@@ -53,14 +52,14 @@ module NewRelic
           DELETE_COMMAND = {
             "delete" => "tribbles",
             "ordered" => true,
-            "deletes" => [{ :q => { :_id => { "$gt" => 1 }}, :limit => 1 }]
+            "deletes" => [{:q => {:_id => {"$gt" => 1}}, :limit => 1}]
           }.freeze
 
           AGGREGATE_COMMAND = {
-            "aggregate"=>"tribbles",
-            "pipeline"=>[
-              {"$group"=> {"_id"=>"name", "max"=>{"$max"=>"$count"}}},
-              {"$match"=>{"max"=>{"$gte"=>1}}}
+            "aggregate" => "tribbles",
+            "pipeline" => [
+              {"$group" => {"_id" => "name", "max" => {"$max" => "$count"}}},
+              {"$match" => {"max" => {"$gte" => 1}}}
             ]
           }
 
@@ -82,17 +81,17 @@ module NewRelic
               :database => DATABASE,
               :collection => "tribbles",
               "find" => "tribbles",
-              "filter" => { "_id" => { "$gt" => "?" }, "name" => "?" },
-              "sort" => { "_id" => 1 },
+              "filter" => {"_id" => {"$gt" => "?"}, "name" => "?"},
+              "sort" => {"_id" => 1},
               "limit" => 2,
               "skip" => 2,
               "comment" => "test",
-              "hint" => { "_id" => 1 },
-              "max" => { "_id" => 6 },
+              "hint" => {"_id" => 1},
+              "max" => {"_id" => 6},
               "maxScan" => 5000,
               "maxTimeMS" => 6000,
-              "min" => { "_id" => 0 },
-              "readPreference" => { "mode" => "secondaryPreferred" },
+              "min" => {"_id" => 0},
+              "readPreference" => {"mode" => "secondaryPreferred"},
               "returnKey" => false,
               "showRecordId" => false,
               "snapshot" => false

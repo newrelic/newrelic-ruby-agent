@@ -16,7 +16,7 @@ module NewRelic
       class MonotonicGCProfiler
         def initialize
           @total_time_s = 0
-          @lock         = Mutex.new
+          @lock = Mutex.new
         end
 
         def total_time_s

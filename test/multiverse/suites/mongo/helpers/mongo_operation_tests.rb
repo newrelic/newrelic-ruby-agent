@@ -119,7 +119,7 @@ module MongoOperationTests
       in_transaction do
         @collection.group({:key => "name",
                            :initial => {:count => 0},
-                           :reduce => "function(k,v) { v.count += 1; }" })
+                           :reduce => "function(k,v) { v.count += 1; }"})
       end
     rescue Mongo::OperationFailure
       # We get occasional group failures, but should still record metrics
@@ -147,7 +147,7 @@ module MongoOperationTests
 
   def test_records_metrics_for_find_and_remove
     in_transaction do
-      @collection.find_and_modify(:query => @tribble, :remove =>true)
+      @collection.find_and_modify(:query => @tribble, :remove => true)
     end
 
     metrics = build_test_metrics(:findAndRemove)
@@ -171,7 +171,7 @@ module MongoOperationTests
     # some additional metrics to be recorded.
     client_is_1_10_or_later = NewRelic::Agent::Datastores::Mongo.is_version_1_10_or_later?
 
-    create_index_metrics   = metrics_with_attributes(build_test_metrics(:createIndex))
+    create_index_metrics = metrics_with_attributes(build_test_metrics(:createIndex))
     create_indexes_metrics = metrics_with_attributes(build_test_metrics(:createIndexes))
 
     if !client_is_1_10_or_later
@@ -179,9 +179,9 @@ module MongoOperationTests
     elsif client_is_1_10_or_later && !server_is_2_6_or_later?
       metrics = create_index_metrics.merge(create_indexes_metrics)
       metrics['Datastore/MongoDB/allWeb'][:call_count] += 1
-      metrics['Datastore/MongoDB/all'][:call_count]    += 1
+      metrics['Datastore/MongoDB/all'][:call_count] += 1
       metrics['Datastore/allWeb'][:call_count] += 1
-      metrics['Datastore/all'][:call_count]    += 1
+      metrics['Datastore/all'][:call_count] += 1
     elsif client_is_1_10_or_later && server_is_2_6_or_later?
       metrics = create_indexes_metrics
     end
@@ -239,7 +239,7 @@ module MongoOperationTests
   end
 
   def test_records_metrics_for_drop_index
-    name =  @collection.create_index([[unique_field_name, Mongo::ASCENDING]])
+    name = @collection.create_index([[unique_field_name, Mongo::ASCENDING]])
     NewRelic::Agent.drop_buffered_data
 
     in_transaction do
@@ -271,7 +271,7 @@ module MongoOperationTests
     NewRelic::Agent.drop_buffered_data
 
     in_transaction do
-      @database.command({ :reIndex => @collection_name })
+      @database.command({:reIndex => @collection_name})
     end
 
     metrics = build_test_metrics(:reIndex)
@@ -365,9 +365,9 @@ module MongoOperationTests
     node = find_last_transaction_node
 
     expected = {
-      :database   => @database_name,
+      :database => @database_name,
       :collection => @collection_name,
-      :operation  => :insert
+      :operation => :insert
     }
 
     result = node.params[:statement]

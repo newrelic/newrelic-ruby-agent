@@ -22,9 +22,9 @@ module NewRelic
     end
 
     def call(env)
-      req  = ::Rack::Request.new(env)
+      req = ::Rack::Request.new(env)
       path = req.path
-      rsp  = response_for_path(path)
+      rsp = response_for_path(path)
 
       case rsp
       when ::Rack::Response

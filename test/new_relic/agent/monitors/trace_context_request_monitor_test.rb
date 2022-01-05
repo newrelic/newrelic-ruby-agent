@@ -11,15 +11,15 @@ module NewRelic
 
       def setup
         mocha_setup
-        @events  = EventListener.new
+        @events = EventListener.new
         @monitor = DistributedTracing::Monitor.new(@events)
         @config = {
           :'cross_application_tracer.enabled' => false,
           :'distributed_tracing.enabled' => true,
-          :encoding_key                  => "\0",
-          :account_id                    => "190",
-          :primary_application_id        => "46954",
-          :trusted_account_key           => "99999"
+          :encoding_key => "\0",
+          :account_id => "190",
+          :primary_application_id => "46954",
+          :trusted_account_key => "99999"
         }
 
         NewRelic::Agent.config.add_config_for_testing(@config, true)
@@ -90,7 +90,7 @@ module NewRelic
       end
 
       def test_does_not_accept_malformed_trace_context
-        carrier ={
+        carrier = {
           'HTTP_TRACESTATE' => 'alsdkfja;lskdjfa',
           'HTTP_TRACEPARENT' => 'alkjhdsfasdf'
         }

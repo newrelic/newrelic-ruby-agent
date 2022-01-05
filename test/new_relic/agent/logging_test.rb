@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'stringio'
 require 'json'
 
@@ -10,7 +10,6 @@ module NewRelic
   module Agent
     module Logging
       class LoggingTest < Minitest::Test
-
         def setup
           @output = StringIO.new
         end
@@ -40,7 +39,6 @@ module NewRelic
 
           assert_includes message, 'timestamp'
           refute_nil message['timestamp']
-
         end
 
         def test_app_name
@@ -78,7 +76,7 @@ module NewRelic
           'carriage_return' => "message with a carriage return \r",
           'tab' => "message with a tab \t ",
           'unicode' => "message with a unicode snowman ☃ ",
-          'unicode_hex' => "message with a unicode snowman \u2603  ",
+          'unicode_hex' => "message with a unicode snowman \u2603  "
         }
         messages_to_escape.each do |name, message|
           define_method "test_escape_message_#{name}" do

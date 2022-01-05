@@ -19,10 +19,10 @@ module Multiverse
     include Color
     attr_accessor :directory, :opts
 
-    def initialize(directory, opts={})
-      self.directory  = File.expand_path directory
-      self.opts       = opts
-      ENV["VERBOSE"]  = '1' if opts[:verbose]
+    def initialize(directory, opts = {})
+      self.directory = File.expand_path directory
+      self.opts = opts
+      ENV["VERBOSE"] = '1' if opts[:verbose]
     end
 
     def self.encode_options(decoded_opts)
@@ -64,7 +64,7 @@ module Multiverse
 
     def clean_gemfiles(env_index)
       gemfiles = ["Gemfile.#{env_index}", "Gemfile.#{env_index}.lock"]
-      gemfiles.each {|f| File.delete(f) if File.exist?(f)}
+      gemfiles.each { |f| File.delete(f) if File.exist?(f) }
     end
 
     def envfile_path
@@ -84,7 +84,7 @@ module Multiverse
     end
 
     # load the environment for this suite after we've forked
-    def load_dependencies(gemfile_text, env_index, should_print=true)
+    def load_dependencies(gemfile_text, env_index, should_print = true)
       ENV["BUNDLE_GEMFILE"] = "Gemfile.#{env_index}"
       clean_gemfiles(env_index)
       begin
@@ -151,7 +151,7 @@ module Multiverse
       `cd #{dir} && #{bundle_cmd} config build.nokogiri --use-system-libraries`
     end
 
-    def bundle_install(dir, exact_version=nil)
+    def bundle_install(dir, exact_version = nil)
       puts "Bundling in #{dir}..."
       bundler_version = exact_version || explicit_bundler_version(dir)
       bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
@@ -170,9 +170,9 @@ module Multiverse
       $?
     end
 
-    def change_lock_version filepath, gemfile, new_version=Bundler::VERSION
+    def change_lock_version filepath, gemfile, new_version = Bundler::VERSION
       begin
-        lock_filename = "#{filepath}/#{gemfile}.lock".gsub(/\n|\r/,'')
+        lock_filename = "#{filepath}/#{gemfile}.lock".gsub(/\n|\r/, '')
       rescue => e
         puts "ERROR: #{e.inspect}"
         puts "ERROR: on lock_filename #{filepath.inspect} / #{gemfile.inspect}"
@@ -184,7 +184,7 @@ module Multiverse
       old_version = lock_contents.pop.strip
 
       lock_contents << "   #{new_version}"
-      File.open(lock_filename, 'w'){|f| f.puts lock_contents}
+      File.open(lock_filename, 'w') { |f| f.puts lock_contents }
 
       if verbose?
         puts "Changing the Bundler version lock in #{lock_filename}"
@@ -197,7 +197,7 @@ module Multiverse
     # things out more, this is more of an issue, so start locking it down.
     def exclusive_bundle
       bundler_out = nil
-      File.open(bundling_lock_file, File::RDWR|File::CREAT) do |f|
+      File.open(bundling_lock_file, File::RDWR | File::CREAT) do |f|
         puts "Waiting on '#{bundling_lock_file}' for our chance to bundle" if verbose?
         f.flock(File::LOCK_EX)
         puts "Let's get ready to BUNDLE!" if verbose?
@@ -254,7 +254,7 @@ module Multiverse
       pin_rack_version_if_needed(gemfile_text)
 
       gemfile = File.join(Dir.pwd, "Gemfile.#{env_index}")
-      File.open(gemfile,'w') do |f|
+      File.open(gemfile, 'w') do |f|
         f.puts 'source "https://rubygems.org"'
         f.print gemfile_text
         f.puts newrelic_gemfile_line unless gemfile_text =~ /^\s*gem .newrelic_rpm./
@@ -358,7 +358,6 @@ module Multiverse
 
     def execute_child_environment(env_index, instrumentation_method)
       with_unbundled_env do
-
         configure_instrumentation_method instrumentation_method
         optimize_jruby_startups
         ENV["MULTIVERSE_ENV"] = env_index.to_s
@@ -395,7 +394,7 @@ module Multiverse
     end
 
     def prime
-      ENV["VERBOSE"]= "1"
+      ENV["VERBOSE"] = "1"
       return unless check_environment_condition
 
       puts yellow("\nPriming #{directory.inspect}")
@@ -461,7 +460,7 @@ module Multiverse
       with_each_environment do |_, i|
         threads << Thread.new { execute_in_background(i, instrumentation_method) }
       end
-      threads.each {|t| t.join}
+      threads.each { |t| t.join }
     end
 
     def with_each_environment
@@ -502,7 +501,7 @@ module Multiverse
         OutputCollector.write(suite, env, yellow("Running #{suite.inspect} using #{instrumentation_method.upcase} for Envfile entry #{env}\n"))
 
         IO.popen(child_command_line(env, instrumentation_method)) do |io|
-          until io.eof do
+          until io.eof
             chars = io.read
             OutputCollector.write(suite, env, chars)
           end
@@ -534,7 +533,7 @@ module Multiverse
       options = []
       options << "-v" if verbose?
       options << "--seed=#{seed}" unless seed == ""
-      options << "--name=/#{names.map {|n| n + ".*"}.join("|")}/" unless names == []
+      options << "--name=/#{names.map { |n| n + ".*" }.join("|")}/" unless names == []
 
       original_options = options.dup
 
@@ -637,14 +636,14 @@ module Multiverse
       files = Dir[File.join(directory, '*.rb')]
 
       @before_file = files.find { |file| File.basename(file) == "before_suite.rb" }
-      @after_file  = files.find { |file| File.basename(file) == "after_suite.rb" }
+      @after_file = files.find { |file| File.basename(file) == "after_suite.rb" }
 
       files.delete(@before_file)
       files.delete(@after_file)
 
       # Important that we filter after removing before/after so they don't get
       # tromped for not matching our pattern!
-      files.select! {|file| file.include?(filter_file) } if filter_file
+      files.select! { |file| file.include?(filter_file) } if filter_file
 
       # Just put before_suite.rb at the head of the list.
       # Will explicitly load after_suite.rb after the test run
@@ -668,7 +667,7 @@ module Multiverse
     # similar reasons, we should change this hardcoded file name into
     # a configuration option.
     #
-    EXCLUDED_FILES = %w(test_worker.rb)
+    EXCLUDED_FILES = %w[test_worker.rb]
 
     def exclude?(file)
       EXCLUDED_FILES.include?(File.basename(file))

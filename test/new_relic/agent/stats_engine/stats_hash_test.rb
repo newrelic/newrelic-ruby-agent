@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 class NewRelic::Agent::StatsHashTest < Minitest::Test
   def setup
@@ -146,7 +146,6 @@ class NewRelic::Agent::StatsHashTest < Minitest::Test
     assert_equal(2, hash[specs[2]].call_count)
     assert_equal(1, hash[specs[3]].call_count)
   end
-
 
   def test_marshal_dump
     @hash.record(NewRelic::MetricSpec.new('foo'), 1)

@@ -38,5 +38,4 @@ class MonotonicGCProfilerTest < Minitest::Test
       profiler.total_time_s
     end
   end
-
 end

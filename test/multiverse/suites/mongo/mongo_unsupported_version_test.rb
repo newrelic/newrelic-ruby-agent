@@ -55,8 +55,8 @@ if !NewRelic::Agent::Datastores::Mongo.is_supported_version?
       def setup_collection
         Mongo::Logger.logger = mongo_logger
         client = Mongo::Client.new(
-          ["#{$mongo.host}:#{$mongo.port}"], 
-          database: @database_name, 
+          ["#{$mongo.host}:#{$mongo.port}"],
+          database: @database_name,
           connect: :direct
         )
         @collection = client[@collection_name]

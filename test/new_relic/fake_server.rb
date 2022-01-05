@@ -12,32 +12,31 @@ require 'json'
 
 module NewRelic
   class FakeServer
-
     # Use ephemeral ports by default
     DEFAULT_PORT = 0
 
     # Default server options
     DEFAULT_OPTIONS = {
-      :Logger    => ::WEBrick::Log.new('/dev/null'),
+      :Logger => ::WEBrick::Log.new('/dev/null'),
       :AccessLog => [['/dev/null', '']]
     }
 
-    CONFIG_PATH        = File.join(File.dirname(__FILE__), "..", "config")
+    CONFIG_PATH = File.join(File.dirname(__FILE__), "..", "config")
     FAKE_SSL_CERT_PATH = File.join(CONFIG_PATH, "test.cert.crt")
-    FAKE_SSL_KEY_PATH  = File.join(CONFIG_PATH, "test.cert.key")
+    FAKE_SSL_KEY_PATH = File.join(CONFIG_PATH, "test.cert.key")
 
     SSL_OPTIONS = {
-      :SSLEnable       => true,
+      :SSLEnable => true,
       :SSLVerifyClient => OpenSSL::SSL::VERIFY_NONE,
-      :SSLPrivateKey   => OpenSSL::PKey::RSA.new(File.read(FAKE_SSL_KEY_PATH)),
-      :SSLCertificate  => OpenSSL::X509::Certificate.new(File.read(FAKE_SSL_CERT_PATH)),
-      :SSLCertName     => [["CN", "newrelic.com"]]
+      :SSLPrivateKey => OpenSSL::PKey::RSA.new(File.read(FAKE_SSL_KEY_PATH)),
+      :SSLCertificate => OpenSSL::X509::Certificate.new(File.read(FAKE_SSL_CERT_PATH)),
+      :SSLCertName => [["CN", "newrelic.com"]]
     }
 
-    def initialize(port=DEFAULT_PORT)
-      @port    = port
-      @thread  = nil
-      @server  = nil
+    def initialize(port = DEFAULT_PORT)
+      @port = port
+      @thread = nil
+      @server = nil
       @use_ssl = false
     end
 
@@ -69,7 +68,7 @@ module NewRelic
       @server = WEBrick::HTTPServer.new(@started_options)
       @server.mount "/", ::Rack::Handler.get(:webrick), app
 
-      @thread = Thread.new(&self.method(:run_server)).tap{ |t| t.abort_on_exception = true }
+      @thread = Thread.new(&self.method(:run_server)).tap { |t| t.abort_on_exception = true }
     end
 
     def stop
@@ -115,7 +114,7 @@ module NewRelic
 
     def app
       inner_app = NewRelic::Rack::AgentHooks.new(self)
-      Proc.new{ |env| inner_app.call(env) }
+      Proc.new { |env| inner_app.call(env) }
     end
   end
 
@@ -130,7 +129,7 @@ module NewRelic
 
     def app
       inner_app = NewRelic::Rack::AgentHooks.new(self)
-      Proc.new{ |env| inner_app.call(env) }
+      Proc.new { |env| inner_app.call(env) }
     end
   end
 end

@@ -4,7 +4,6 @@
 
 module NewRelic
   module SupportabilityHelper
-
     API_SUPPORTABILITY_PREFIX = 'Supportability/API/'.freeze
 
     # pre-instantiate these strings as they may be used multiple times per
@@ -54,7 +53,7 @@ module NewRelic
       :trace_execution_scoped,
       :trace_execution_unscoped,
       :wrap
-    ].reduce({}) do |h,o|
+    ].reduce({}) do |h, o|
       h[o] = API_SUPPORTABILITY_PREFIX + o.to_s
       h
     end

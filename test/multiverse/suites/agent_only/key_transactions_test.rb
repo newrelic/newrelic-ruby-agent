@@ -3,17 +3,16 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class KeyTransactionsTest < Minitest::Test
-
   include MultiverseHelpers
 
-  WEB_KEY_TXN   = 'Controller/KeyTransactionsTest::TestWidget/key_txn'
+  WEB_KEY_TXN = 'Controller/KeyTransactionsTest::TestWidget/key_txn'
   OTHER_KEY_TXN = 'OtherTransaction/SidekiqJob/JobClass/key_txn'
-  OTHER_TXN     = 'OtherTransaction/SidekiqJob/JobClass/other_txn'
+  OTHER_TXN = 'OtherTransaction/SidekiqJob/JobClass/other_txn'
 
   setup_and_teardown_agent do |collector|
     collector.stub('connect', {
       'web_transactions_apdex' => {
-        WEB_KEY_TXN   => 1,
+        WEB_KEY_TXN => 1,
         OTHER_KEY_TXN => 1
       },
       'apdex_t' => 10
@@ -56,7 +55,7 @@ class KeyTransactionsTest < Minitest::Test
 
   SATISFYING = 0
   TOLERATING = 1
-  FAILING    = 2
+  FAILING = 2
 
   def test_applied_correct_apdex_t_to_key_txn
     TestWidget.new.key_txn
@@ -64,7 +63,7 @@ class KeyTransactionsTest < Minitest::Test
 
     stats = $collector.reported_stats_for_metric('Apdex')[0]
     assert_equal(1.0, stats[FAILING],
-                 "Expected stats (#{stats}) to be apdex failing")
+      "Expected stats (#{stats}) to be apdex failing")
   end
 
   def test_applied_correct_apdex_t_to_regular_txn
@@ -73,7 +72,7 @@ class KeyTransactionsTest < Minitest::Test
 
     stats = $collector.reported_stats_for_metric('Apdex')[0]
     assert_equal(1.0, stats[SATISFYING],
-                 "Expected stats (#{stats}) to be apdex satisfying")
+      "Expected stats (#{stats}) to be apdex satisfying")
   end
 
   def test_applied_correct_tt_theshold
@@ -93,7 +92,7 @@ class KeyTransactionsTest < Minitest::Test
 
     stats = $collector.reported_stats_for_metric('ApdexOther')[0]
     assert_equal(1.0, stats[FAILING],
-                 "Expected stats (#{stats}) to be apdex failing")
+      "Expected stats (#{stats}) to be apdex failing")
   end
 
   def test_no_apdex_for_regular_background_txn
@@ -113,5 +112,4 @@ class KeyTransactionsTest < Minitest::Test
     assert_equal 1, traces.size
     assert_equal(OTHER_KEY_TXN, traces[0].metric_name)
   end
-
 end

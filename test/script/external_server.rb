@@ -20,7 +20,7 @@ server.run
 
 puts JSON.dump({:message => "started"})
 
-while message = JSON.parse(gets) do
+while message = JSON.parse(gets)
   case message["command"]
   when "shutdown"
     server.stop

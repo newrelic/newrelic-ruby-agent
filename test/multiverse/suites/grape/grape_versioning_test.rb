@@ -46,7 +46,7 @@ unless ::Grape::VERSION == '0.1.5'
       assert_metrics_recorded('Controller/Grape/GrapeVersioning::ApiV3-v3/fish (GET)')
     end
 
-    #version from http accept header is not supported in older versions of grape
+    # version from http accept header is not supported in older versions of grape
     if Gem::Version.new(Grape::VERSION) >= Gem::Version.new('0.16.0')
       def test_version_from_accept_version_header_is_recorded_in_transaction_name
         @app_class = GrapeVersioning::ApiV4
@@ -113,6 +113,5 @@ unless ::Grape::VERSION == '0.1.5'
         assert_metrics_recorded("Controller/Grape/GrapeVersioning::DefaultAcceptVersionHeaderApi-v2|v3/fish (GET)")
       end
     end
-
   end
 end

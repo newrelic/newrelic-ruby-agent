@@ -12,12 +12,12 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     include MultiverseHelpers
 
     setup_and_teardown_agent(
-      :beacon                 => 'beacon',
-      :browser_key            => 'browserKey',
-      :js_agent_loader        => 'loader',
-      :application_id         => '5',
-      :'rum.enabled'          => true,
-      :license_key            => 'a' * 40
+      :beacon => 'beacon',
+      :browser_key => 'browserKey',
+      :js_agent_loader => 'loader',
+      :application_id => '5',
+      :'rum.enabled' => true,
+      :license_key => 'a' * 40
     )
 
     include Rack::Test::Methods
@@ -32,7 +32,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
     end
 
     def test_insert_js_does_not_fire_for_rack_cascade_404_responses
-      rsp = get '/', { 'body' => '<html><head></head><body></body></html>', 'override-response-code' => 404 }
+      rsp = get '/', {'body' => '<html><head></head><body></body></html>', 'override-response-code' => 404}
       refute(rsp.body.include?('script'), "\nExpected\n---\n#{rsp.body}\n---\nnot to include 'script'.")
     end
 

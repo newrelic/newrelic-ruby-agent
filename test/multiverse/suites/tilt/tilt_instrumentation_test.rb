@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 class TiltInstrumentationTest < Minitest::Test
-
   def setup
     @stats_engine = NewRelic::Agent.instance.stats_engine
   end
@@ -16,7 +15,7 @@ class TiltInstrumentationTest < Minitest::Test
     Tilt.new('test.haml').render
   end
 
-  def haml_render_metric(filename='test.haml')
+  def haml_render_metric(filename = 'test.haml')
     "View/Tilt::HamlTemplate/#{filename}/Rendering"
   end
 
@@ -26,7 +25,7 @@ class TiltInstrumentationTest < Minitest::Test
       haml_template
     end
 
-    expected = { call_count: 1 }
+    expected = {call_count: 1}
     assert_metrics_recorded(haml_render_metric => expected)
   end
 
@@ -35,7 +34,7 @@ class TiltInstrumentationTest < Minitest::Test
       Tilt.new('test.erb').render
     end
 
-    expected = { call_count: 1 }
+    expected = {call_count: 1}
     assert_metrics_recorded('View/Tilt::ERBTemplate/test.erb/Rendering' => expected)
   end
 
@@ -46,7 +45,7 @@ class TiltInstrumentationTest < Minitest::Test
       }
     end
 
-    expected = { call_count: 1 }
+    expected = {call_count: 1}
     assert_metrics_recorded(haml_render_metric('layout.haml') => expected)
     assert_metrics_recorded(haml_render_metric => expected)
   end
@@ -58,7 +57,7 @@ class TiltInstrumentationTest < Minitest::Test
       haml_template
     end
 
-    expected = { :call_count => 1 }
+    expected = {:call_count => 1}
     assert_metrics_recorded(
       [haml_render_metric, test_transaction] => expected
     )
@@ -97,11 +96,11 @@ class TiltInstrumentationTest < Minitest::Test
     end
 
     last_node = nil
-    last_transaction_trace.root_node.each_node{|s| last_node = s }
+    last_transaction_trace.root_node.each_node { |s| last_node = s }
     NewRelic::Agent.shutdown
 
     assert_equal(haml_render_metric,
-                 last_node.metric_name)
+      last_node.metric_name)
   end
 
   def test_creates_nested_partial_node_within_render_node
@@ -112,9 +111,9 @@ class TiltInstrumentationTest < Minitest::Test
     partial_node = template_node.children[0]
 
     assert_equal(haml_render_metric('layout.haml'),
-                 template_node.metric_name)
+      template_node.metric_name)
     assert_equal(haml_render_metric,
-                 partial_node.metric_name)
+      partial_node.metric_name)
   end
 
   ### File name parsing tests ###
@@ -148,7 +147,7 @@ class TiltInstrumentationTest < Minitest::Test
 
   def with_fake_sinatra(&blk)
     sinatra_dummy_module = Module.new
-    sinatra_dummy_class  = Class.new(Object)
+    sinatra_dummy_class = Class.new(Object)
     with_constant_defined(:'::Sinatra', sinatra_dummy_module) do
       with_constant_defined(:'::Sinatra::Base', sinatra_dummy_class) do
         yield

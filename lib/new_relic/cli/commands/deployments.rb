@@ -30,8 +30,8 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   def initialize command_line_args
     @control = NewRelic::Control.instance
     @environment = nil
-    @changelog   = nil
-    @user        = nil
+    @changelog = nil
+    @user = nil
     super(command_line_args)
     @description ||= @leftover && @leftover.join(" ")
     @user ||= ENV['USER']
@@ -66,12 +66,12 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
       @description = nil if @description && @description.strip.empty?
       create_params = {}
       {
-            :application_id => @appname,
-            :host => NewRelic::Agent::Hostname.get,
-            :description => @description,
-            :user => @user,
-            :revision => @revision,
-            :changelog => @changelog
+        :application_id => @appname,
+        :host => NewRelic::Agent::Hostname.get,
+        :description => @description,
+        :user => @user,
+        :revision => @revision,
+        :changelog => @changelog
       }.each do |k, v|
         create_params["deployment[#{k}]"] = v unless v.nil? || v == ''
       end
@@ -90,9 +90,9 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
       response = http.request(request)
 
       if response.is_a? Net::HTTPSuccess
-        info "Recorded deployment to '#{@appname}' (#{@description || Time.now })"
+        info "Recorded deployment to '#{@appname}' (#{@description || Time.now})"
       else
-        err_string = REXML::Document.new(response.body).elements['errors/error'].map(&:to_s).join("; ") rescue  response.message
+        err_string = REXML::Document.new(response.body).elements['errors/error'].map(&:to_s).join("; ") rescue response.message
         raise NewRelic::Cli::Command::CommandFailure, "Deployment not recorded: #{err_string}"
       end
     rescue SystemCallError, SocketError => e
@@ -111,26 +111,24 @@ class NewRelic::Cli::Deployments < NewRelic::Cli::Command
   private
 
   def options
-    OptionParser.new %Q{Usage: #{$0} #{self.class.command} [OPTIONS] ["description"] }, 40 do |o|
+    OptionParser.new %Q(Usage: #{$0} #{self.class.command} [OPTIONS] ["description"] ), 40 do |o|
       o.separator "OPTIONS:"
       o.on("-a", "--appname=NAME", String,
-             "Set the application name.",
-             "Default is app_name setting in newrelic.yml") { | e | @appname = e }
+        "Set the application name.",
+        "Default is app_name setting in newrelic.yml") { |e| @appname = e }
       o.on("-e", "--environment=name", String,
-               "Override the (RAILS|RUBY|RACK)_ENV setting",
-               "currently: #{control.env}") { | e | @environment = e }
+        "Override the (RAILS|RUBY|RACK)_ENV setting",
+        "currently: #{control.env}") { |e| @environment = e }
       o.on("-u", "--user=USER", String,
-             "Specify the user deploying, for information only",
-             "Default: #{@user || '<none>'}") { | u | @user = u }
+        "Specify the user deploying, for information only",
+        "Default: #{@user || '<none>'}") { |u| @user = u }
       o.on("-r", "--revision=REV", String,
-             "Specify the revision being deployed") { | r | @revision = r }
+        "Specify the revision being deployed") { |r| @revision = r }
       o.on("-l", "--license-key=KEY", String,
-             "Specify the license key of the account for the app being deployed") { | l | @license_key = l }
+        "Specify the license key of the account for the app being deployed") { |l| @license_key = l }
       o.on("-c", "--changes",
-             "Read in a change log from the standard input") { @changelog = STDIN.read }
+        "Read in a change log from the standard input") { @changelog = STDIN.read }
       yield o if block_given?
     end
   end
-
-
 end

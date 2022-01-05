@@ -15,7 +15,7 @@ if !defined?(MyApp)
   ENV['NEW_RELIC_DISPATCHER'] = 'test'
 
   class NamedMiddleware
-    def initialize(app, options={})
+    def initialize(app, options = {})
       @app = app
     end
 
@@ -30,7 +30,7 @@ if !defined?(MyApp)
     attr_reader :name
 
     def initialize
-      @app  = nil
+      @app = nil
       @name = 'InstanceMiddleware'
     end
 
@@ -86,9 +86,9 @@ if !defined?(MyApp)
 
   MyApp.routes.draw do
     get('/bad_route' => 'test#controller_error',
-        :constraints => lambda do |_|
-          raise ActionController::RoutingError.new('this is an uncaught routing error')
-        end)
+      :constraints => lambda do |_|
+        raise ActionController::RoutingError.new('this is an uncaught routing error')
+      end)
 
     mount SinatraTestApp, :at => '/sinatra_app' if defined?(Sinatra)
 

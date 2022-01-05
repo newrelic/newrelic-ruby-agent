@@ -31,8 +31,8 @@ module NewRelic
         private
 
         def get_attribute name
-          if @wrapped_response.respond_to?(name) 
-            @wrapped_response.send(name) 
+          if @wrapped_response.respond_to?(name)
+            @wrapped_response.send(name)
           else
             @wrapped_response[name]
           end
@@ -57,8 +57,8 @@ module NewRelic
 
           @method = @datum[:method].to_s.upcase
           @scheme = @datum[:scheme]
-          @port   = @datum[:port]
-          @path   = @datum[:path]
+          @port = @datum[:port]
+          @path = @datum[:path]
         end
 
         def type

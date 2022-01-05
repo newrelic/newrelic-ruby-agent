@@ -17,7 +17,7 @@ class HTTPTest < Minitest::Test
     defined?(::HTTP::VERSION) && HTTP::VERSION < '1.0.0'
   end
 
-  def get_response(url=nil, headers=nil)
+  def get_response(url = nil, headers = nil)
     HTTP.get(url || default_url, :headers => headers)
   end
 
@@ -42,7 +42,7 @@ class HTTPTest < Minitest::Test
   end
 
   # NOTE, some versions of HTTPrb gem implements body with
-  # String.new("").force_encoding(@encoding) which won't work 
+  # String.new("").force_encoding(@encoding) which won't work
   # with Ruby 2.7 and it's automatic freezing of string literals.
   def body(res)
     res.body.to_s
@@ -86,5 +86,4 @@ class HTTPTest < Minitest::Test
     HTTP::Connection.any_instance.stubs(:send_proxy_connect_request).raises(timeout_error_class.new)
     get_response
   end
-
 end

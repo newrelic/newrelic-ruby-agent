@@ -132,7 +132,7 @@ class PipeServiceTest < Minitest::Test
     end
   end
 
-  def generate_metric_data(metric_name, data=1.0)
+  def generate_metric_data(metric_name, data = 1.0)
     engine = NewRelic::Agent::StatsEngine.new
     engine.tl_record_unscoped_metrics(metric_name, data)
     engine.harvest!

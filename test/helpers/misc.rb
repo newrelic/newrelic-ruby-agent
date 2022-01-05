@@ -10,7 +10,7 @@ def default_service(stubbed_method_overrides = {})
     :agent_id= => nil,
     :agent_id => nil,
     :collector => stub_everything,
-    :request_timeout= =>  nil,
+    :request_timeout= => nil,
     :metric_data => nil,
     :error_data => nil,
     :transaction_sample_data => nil,
@@ -28,7 +28,7 @@ def default_service(stubbed_method_overrides = {})
   service
 end
 
-def fixture_tcp_socket( response )
+def fixture_tcp_socket(response)
   # Don't actually talk to Google.
   socket = stub("socket").tap do |s|
     s.stubs(:closed?).returns(false)
@@ -38,7 +38,7 @@ def fixture_tcp_socket( response )
     # Simulate a bunch of socket-ey stuff since Mocha doesn't really
     # provide any other way to do it
 
-    stubs(:sysread) do |size, buf=''|
+    stubs(:sysread) do |size, buf = ''|
       @data ||= response.to_s
       raise EOFError if @data.empty?
       buf.replace @data.slice!(0, size)
@@ -63,7 +63,7 @@ def fixture_tcp_socket( response )
   return socket
 end
 
-def dummy_mysql_explain_result(hash=nil)
+def dummy_mysql_explain_result(hash = nil)
   hash ||= {
     'Id' => '1',
     'Select Type' => 'SIMPLE',
@@ -84,12 +84,12 @@ end
 def symbolize_keys_in_object(object)
   case object
   when Hash
-   object.inject({}) do |memo, (k, v)|
+    object.inject({}) do |memo, (k, v)|
       memo[k.to_sym] = symbolize_keys_in_object(v)
       memo
     end
   when Array
-    object.map {|o| symbolize_keys_in_object(o)}
+    object.map { |o| symbolize_keys_in_object(o) }
   else
     object
   end
@@ -98,12 +98,12 @@ end
 def stringify_keys_in_object(object)
   case object
   when Hash
-   object.inject({}) do |memo, (k, v)|
+    object.inject({}) do |memo, (k, v)|
       memo[k.to_s] = stringify_keys_in_object(v)
       memo
     end
   when Array
-    object.map {|o| stringify_keys_in_object(o)}
+    object.map { |o| stringify_keys_in_object(o) }
   else
     object
   end
@@ -112,7 +112,7 @@ end
 def wait_until_not_nil(give_up_after = 3, &block)
   total_tries = give_up_after * 10
   current_tries = 0
-  while block.call.nil? and current_tries < total_tries do 
+  while block.call.nil? and current_tries < total_tries
     sleep 0.1
     current_tries += 1
   end

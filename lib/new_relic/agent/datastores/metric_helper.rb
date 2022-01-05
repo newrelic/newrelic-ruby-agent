@@ -6,9 +6,9 @@ module NewRelic
   module Agent
     module Datastores
       module MetricHelper
-        ROLLUP_METRIC        = "Datastore/all".freeze
-        WEB_ROLLUP_METRIC    = "Datastore/allWeb".freeze
-        OTHER_ROLLUP_METRIC  = "Datastore/allOther".freeze
+        ROLLUP_METRIC = "Datastore/all".freeze
+        WEB_ROLLUP_METRIC = "Datastore/allWeb".freeze
+        OTHER_ROLLUP_METRIC = "Datastore/allOther".freeze
         DEFAULT_PRODUCT_NAME = "ActiveRecord".freeze
         OTHER = "Other".freeze
 
@@ -48,7 +48,7 @@ module NewRelic
           end
         end
 
-        def self.scoped_metric_for product, operation, collection=nil
+        def self.scoped_metric_for product, operation, collection = nil
           if collection
             statement_metric_for product, collection, operation
           else
@@ -56,7 +56,7 @@ module NewRelic
           end
         end
 
-        def self.unscoped_metrics_for product, operation, collection=nil, host=nil, port_path_or_id=nil
+        def self.unscoped_metrics_for product, operation, collection = nil, host = nil, port_path_or_id = nil
           suffix = all_suffix
 
           metrics = [
@@ -74,17 +74,17 @@ module NewRelic
           metrics
         end
 
-        def self.product_operation_collection_for product, operation, collection=nil, generic_product = nil
+        def self.product_operation_collection_for product, operation, collection = nil, generic_product = nil
           if overrides = overridden_operation_and_collection
             if should_override?(overrides, product, generic_product)
-              operation  = overrides[0] || operation
+              operation = overrides[0] || operation
               collection = overrides[1] || collection
             end
           end
           [product, operation, collection]
         end
 
-        def self.metrics_for(product, operation, collection = nil, generic_product = nil, host=nil, port_path_or_id=nil)
+        def self.metrics_for(product, operation, collection = nil, generic_product = nil, host = nil, port_path_or_id = nil)
           product, operation, collection = product_operation_collection_for(product, operation, collection, generic_product)
 
           # Order of these metrics matters--the first metric in the list will
@@ -106,8 +106,8 @@ module NewRelic
 
         # Allow Transaction#with_database_metric_name to override our
         # collection and operation
-        def self.overridden_operation_and_collection #THREAD_LOCAL_ACCESS
-          txn   = Tracer.current_transaction
+        def self.overridden_operation_and_collection # THREAD_LOCAL_ACCESS
+          txn = Tracer.current_transaction
           txn ? txn.instrumentation_state[:datastore_override] : nil
         end
 

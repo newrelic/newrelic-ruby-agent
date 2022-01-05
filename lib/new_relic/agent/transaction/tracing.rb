@@ -6,7 +6,6 @@ module NewRelic
   module Agent
     class Transaction
       module Tracing
-
         attr_reader :current_segment
 
         def async?
@@ -48,8 +47,7 @@ module NewRelic
           segments.each { |s| s.finalize }
         end
 
-
-        WEB_TRANSACTION_TOTAL_TIME   = "WebTransactionTotalTime".freeze
+        WEB_TRANSACTION_TOTAL_TIME = "WebTransactionTotalTime".freeze
         OTHER_TRANSACTION_TOTAL_TIME = "OtherTransactionTotalTime".freeze
 
         def record_total_time_metrics

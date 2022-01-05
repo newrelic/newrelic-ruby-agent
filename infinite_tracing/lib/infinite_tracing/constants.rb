@@ -6,14 +6,14 @@
 module NewRelic::Agent
   module InfiniteTracing
     module Constants
-      SUPPORTABILITY_PREFIX   = "Supportability/InfiniteTracing/Span"
+      SUPPORTABILITY_PREFIX = "Supportability/InfiniteTracing/Span"
 
-      SPANS_SEEN_METRIC       = "#{SUPPORTABILITY_PREFIX}/Seen"
-      SPANS_SENT_METRIC       = "#{SUPPORTABILITY_PREFIX}/Sent"
-      QUEUE_DUMPED_METRIC     = "#{SUPPORTABILITY_PREFIX}/AgentQueueDumped"
-      RESPONSE_ERROR_METRIC   = "#{SUPPORTABILITY_PREFIX}/Response/Error"
+      SPANS_SEEN_METRIC = "#{SUPPORTABILITY_PREFIX}/Seen"
+      SPANS_SENT_METRIC = "#{SUPPORTABILITY_PREFIX}/Sent"
+      QUEUE_DUMPED_METRIC = "#{SUPPORTABILITY_PREFIX}/AgentQueueDumped"
+      RESPONSE_ERROR_METRIC = "#{SUPPORTABILITY_PREFIX}/Response/Error"
 
-      GRPC_ERROR_NAME_METRIC  = "#{SUPPORTABILITY_PREFIX}/gRPC/%s"
+      GRPC_ERROR_NAME_METRIC = "#{SUPPORTABILITY_PREFIX}/gRPC/%s"
       GRPC_OTHER_ERROR_METRIC = GRPC_ERROR_NAME_METRIC % "Other"
     end
   end

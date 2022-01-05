@@ -10,7 +10,7 @@ class CreateGroups < ActiveRecord::VERSION::STRING >= "5.0.0" ? ActiveRecord::Mi
 
     create_table :groups_users, :id => false do |t|
       t.integer :group_id, :integer
-      t.integer :user_id,  :integer
+      t.integer :user_id, :integer
     end
   end
 

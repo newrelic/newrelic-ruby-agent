@@ -12,7 +12,7 @@ DependencyDetection.defer do
   depends_on { defined?(::Logger) }
 
   executes do
-    ::NewRelic::Agent.logger.info  "Installing Logger instrumentation"
+    ::NewRelic::Agent.logger.info "Installing Logger instrumentation"
   end
 
   executes do

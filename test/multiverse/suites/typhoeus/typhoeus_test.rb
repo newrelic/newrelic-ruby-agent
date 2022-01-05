@@ -11,7 +11,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
   class TyphoeusTest < Minitest::Test
     include HttpClientTestCases
 
-    USE_SSL_VERIFYPEER_VERSION  = Gem::Version.new("0.5.0")
+    USE_SSL_VERIFYPEER_VERSION = Gem::Version.new("0.5.0")
 
     # Starting in version 0.6.4, Typhoeus supports passing URI instances instead
     # of String URLs. Make sure we don't break that.
@@ -21,9 +21,9 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
     def ssl_option
       if CURRENT_TYPHOEUS_VERSION >= USE_SSL_VERIFYPEER_VERSION
-        { :ssl_verifypeer => false }
+        {:ssl_verifypeer => false}
       else
-        { :disable_ssl_peer_verification => true }
+        {:disable_ssl_peer_verification => true}
       end
     end
 
@@ -41,7 +41,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
     # We use the Typhoeus::Request rather than right on Typhoeus to support
     # prior to convenience methods being added on the top-level module (0.5.x)
-    def get_response(url=nil, headers=nil)
+    def get_response(url = nil, headers = nil)
       options = {:headers => headers}.merge(ssl_option)
       Typhoeus::Request.get(url || default_url, options)
     end
@@ -49,7 +49,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
     def get_wrapped_response url
       NewRelic::Agent::HTTPClients::TyphoeusHTTPResponse.new get_response url
     end
-    
+
     def head_response
       Typhoeus::Request.head(default_url, ssl_option)
     end
@@ -71,7 +71,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
     end
 
     def response_instance(headers = {})
-      headers = headers.map do |k,v|
+      headers = headers.map do |k, v|
         "#{k}: #{v}"
       end.join("\r\n")
 
@@ -91,7 +91,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
       end
       assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
 
-      # Typhoeus doesn't raise errors, so transactions never see it, 
+      # Typhoeus doesn't raise errors, so transactions never see it,
       # which diverges from behavior of other HTTP client libraries
       refute_transaction_noticed_error txn, timeout_error_class.name
     end
@@ -136,7 +136,7 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
         ::NewRelic::Agent::CrossAppTracing.stubs(:cross_app_enabled?).raises("Booom")
         res = get_response
 
-        assert_match %r/<head>/i, body(res)
+        assert_match %r{<head>}i, body(res)
         assert_metrics_not_recorded(["External/all"])
       end
     end
@@ -181,21 +181,20 @@ if NewRelic::Agent::Instrumentation::Typhoeus.is_supported_version?
 
       assert_segment_noticed_error txn, /GET$/, timeout_error_class.name, /timeout|couldn't connect/i
 
-      get_segments = txn.segments.select{|s| s.name =~ /GET$/}
+      get_segments = txn.segments.select { |s| s.name =~ /GET$/ }
       assert_equal 5, get_segments.size
-      assert get_segments.all?{|s| s.noticed_error}, "Expected every GET to notice an error"
+      assert get_segments.all? { |s| s.noticed_error }, "Expected every GET to notice an error"
 
-      # Typhoeus doesn't raise errors, so transactions never see it, 
+      # Typhoeus doesn't raise errors, so transactions never see it,
       # which diverges from behavior of other HTTP client libraries
       refute_transaction_noticed_error txn, timeout_error_class.name
     end
-
 
     if CURRENT_TYPHOEUS_VERSION >= SUPPORTS_URI_OBJECT_VERSION
       def test_get_with_uri
         res = nil
         in_transaction { res = get_response(default_uri) }
-        assert_match %r/<head>/i, body(res)
+        assert_match %r{<head>}i, body(res)
         assert_externals_recorded_for("localhost", "GET")
       end
     end

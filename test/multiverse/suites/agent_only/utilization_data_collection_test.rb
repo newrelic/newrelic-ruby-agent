@@ -22,7 +22,7 @@ class UtilizationDataCollectionTest < Minitest::Test
           "availabilityZone" => "us-west-2c"
         },
         "docker" => {
-          "id"=>"47cbd16b77c50cbf71401"
+          "id" => "47cbd16b77c50cbf71401"
         }
       }
     }
@@ -49,7 +49,7 @@ class UtilizationDataCollectionTest < Minitest::Test
   end
 
   def test_omits_sending_vendor_data_on_connect_when_not_available
-     expected = {
+    expected = {
       "hostname" => "host",
       "ip_address" => ["127.0.0.1"],
       "metadata_version" => 5,
@@ -94,7 +94,7 @@ class UtilizationDataCollectionTest < Minitest::Test
       @dummy_port = p
 
       class << self
-        def start_with_patch(address, port=nil, p_addr=nil, p_port=nil, p_user=nil, p_pass=nil, &block)
+        def start_with_patch(address, port = nil, p_addr = nil, p_port = nil, p_user = nil, p_pass = nil, &block)
           if address == '169.254.169.254'
             address = 'localhost'
             port = @dummy_port
@@ -111,8 +111,8 @@ class UtilizationDataCollectionTest < Minitest::Test
   def unredirect_link_local_address
     Net::HTTP.class_eval do
       class << self
-         alias_method :start, :start_without_patch
-         undef_method :start_with_patch
+        alias_method :start, :start_without_patch
+        undef_method :start_with_patch
       end
     end
   end

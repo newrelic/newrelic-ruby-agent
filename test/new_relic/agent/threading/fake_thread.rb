@@ -5,7 +5,7 @@
 class FakeThread
   @@list = []
 
-  def initialize(locals={}, &block)
+  def initialize(locals = {}, &block)
     @locals = locals
     yield if block_given?
   end

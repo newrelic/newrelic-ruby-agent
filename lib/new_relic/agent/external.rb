@@ -18,7 +18,7 @@ module NewRelic
     module External
       extend self
 
-      NON_HTTP_CAT_ID_HEADER  = 'NewRelicID'.freeze
+      NON_HTTP_CAT_ID_HEADER = 'NewRelicID'.freeze
       NON_HTTP_CAT_TXN_HEADER = 'NewRelicTransaction'.freeze
       NON_HTTP_CAT_SYNTHETICS_HEADER = 'NewRelicSynthetics'.freeze
       NON_HTTP_CAT_CONTENT_LENGTH = -1
@@ -105,7 +105,6 @@ module NewRelic
       def obfuscator
         CrossAppTracing.obfuscator
       end
-
     end
   end
 end

@@ -27,7 +27,7 @@ module NewRelic
           ::NewRelic::Agent.logger.warn "Failed trying to watch for problematic yajl-ruby version.", err
         end
 
-        def dump(ruby, opts={})
+        def dump(ruby, opts = {})
           prepared = prepare(ruby, opts)
 
           if !opts[:skip_normalization] && Agent.config[:normalize_json_string_encodings]

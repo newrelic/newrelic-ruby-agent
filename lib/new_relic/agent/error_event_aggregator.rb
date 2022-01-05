@@ -16,7 +16,7 @@ module NewRelic
       named :ErrorEventAggregator
       capacity_key :'error_collector.max_event_samples_stored'
       enabled_keys :'error_collector.enabled',
-                   :'error_collector.capture_events'
+        :'error_collector.capture_events'
       buffer_class PrioritySampledBuffer
 
       def record noticed_error, transaction_payload = nil, span_id = nil

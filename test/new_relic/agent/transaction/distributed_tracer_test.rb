@@ -10,7 +10,6 @@ require 'new_relic/agent/transaction'
 module NewRelic::Agent
   module DistributedTracing
     class DistributedTracerTest < Minitest::Test
-
       def teardown
         reset_buffers_and_caches
       end
@@ -18,7 +17,7 @@ module NewRelic::Agent
       def distributed_tracing_enabled
         {
           :'cross_application_tracer.enabled' => false,
-          :'distributed_tracing.enabled'      => true,
+          :'distributed_tracing.enabled' => true,
           :account_id => "190",
           :primary_application_id => "46954",
           :trusted_account_key => "trust_this!"
@@ -29,13 +28,13 @@ module NewRelic::Agent
         distributed_tracing_enabled.merge :'exclude_newrelic_header' => value
       end
 
-      def build_trace_context_header env={}
+      def build_trace_context_header env = {}
         env['HTTP_TRACEPARENT'] = '00-12345678901234567890123456789012-1234567890123456-00'
         env['HTTP_TRACESTATE'] = ''
         return env
       end
 
-      def build_distributed_trace_header env={}
+      def build_distributed_trace_header env = {}
         begin
           NewRelic::Agent::DistributedTracePayload.stubs(:connected?).returns(true)
           with_config distributed_tracing_enabled do

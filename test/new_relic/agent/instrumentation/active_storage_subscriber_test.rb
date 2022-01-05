@@ -15,4 +15,3 @@ if supported_active_storage_available?
 else
   puts "Skipping tests in #{__FILE__} because ActiveStorage is unavailable"
 end
-

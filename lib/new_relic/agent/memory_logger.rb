@@ -44,7 +44,7 @@ module NewRelic
         messages << [:debug, msgs, blk]
       end
 
-      def log_exception(level, e, backtrace_level=level)
+      def log_exception(level, e, backtrace_level = level)
         messages << [:log_exception, [level, e, backtrace_level]]
       end
 

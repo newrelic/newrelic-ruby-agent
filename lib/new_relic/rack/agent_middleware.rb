@@ -13,10 +13,10 @@ module NewRelic
 
       attr_reader :transaction_options, :category, :target
 
-      def initialize(app, options={})
+      def initialize(app, options = {})
         @app = app
         @category = :middleware
-        @target   = self
+        @target = self
         @transaction_options = {
           :transaction_name => build_transaction_name
         }

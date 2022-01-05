@@ -48,7 +48,7 @@ module NewRelic
         content_type = env["CONTENT_TYPE"]
         multipart = content_type && content_type.start_with?("multipart")
 
-        params.inject({}) do |memo, (k,v)|
+        params.inject({}) do |memo, (k, v)|
           if multipart && v.is_a?(Hash) && v[:tempfile]
             memo[k] = "[FILE]"
           else

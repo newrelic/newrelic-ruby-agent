@@ -15,9 +15,9 @@ module NewRelic
 
             should_filter = case ignore_actions
             when Hash
-              only_actions   = Array(ignore_actions[:only])
+              only_actions = Array(ignore_actions[:only])
               except_actions = Array(ignore_actions[:except])
-              action_name    = action_name.to_sym
+              action_name = action_name.to_sym
 
               only_actions.include?(action_name) || (!except_actions.empty? && !except_actions.include?(action_name))
             else
@@ -38,4 +38,3 @@ module NewRelic
     end
   end
 end
-

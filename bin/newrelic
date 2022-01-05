@@ -2,7 +2,7 @@
 # executes one of the commands in the new_relic/commands directory
 # pass the name of the command as an argument
 
-$LOAD_PATH << File.expand_path(File.join(File.dirname(__FILE__), '..','lib'))
+$LOAD_PATH << File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib'))
 require 'new_relic/cli/command'
 begin
   NewRelic::Cli::Command.run

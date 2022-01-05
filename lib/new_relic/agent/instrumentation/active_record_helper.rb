@@ -19,7 +19,7 @@ module NewRelic
         def instrument_save_methods
           ::ActiveRecord::Base.class_eval do
             alias_method :save_without_newrelic, :save
-            
+
             def save(*args, &blk)
               ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
                 save_without_newrelic(*args, &blk)
@@ -45,7 +45,7 @@ module NewRelic
                 update_all_without_newrelic(*args, &blk)
               end
             end
-            
+
             alias_method :delete_all_without_newrelic, :delete_all
 
             if RUBY_VERSION < "2.7.0"
@@ -70,7 +70,6 @@ module NewRelic
               end
             end
 
-
             alias_method :calculate_without_newrelic, :calculate
 
             def calculate(*args, &blk)
@@ -78,7 +77,6 @@ module NewRelic
                 calculate_without_newrelic(*args, &blk)
               end
             end
-
 
             if method_defined?(:pluck)
               alias_method :pluck_without_newrelic, :pluck
@@ -94,12 +92,12 @@ module NewRelic
         end
 
         ACTIVE_RECORD = "ActiveRecord".freeze
-        OTHER         = "other".freeze
+        OTHER = "other".freeze
 
         def product_operation_collection_for name, sql, adapter_name
-          product   = map_product(adapter_name)
-          splits    = split_name(name)
-          model     = model_from_splits(splits)
+          product = map_product(adapter_name)
+          splits = split_name(name)
+          model = model_from_splits(splits)
           operation = operation_from_splits(splits, sql)
           NewRelic::Agent::Datastores::MetricHelper.product_operation_collection_for product, operation, model, ACTIVE_RECORD
         end
@@ -118,8 +116,6 @@ module NewRelic
         def model_from_splits(splits)
           if splits.length == 2
             splits.first
-          else
-            nil
           end
         end
 
@@ -135,16 +131,16 @@ module NewRelic
         # known operations coming in. Anything not matching the list is fine,
         # it just needs to get downcased directly for use.
         OPERATION_NAMES = {
-          'Find'    => 'find',
-          'Load'    => 'find',
-          'Count'   => 'find',
-          'Exists'  => 'find',
-          'Create'  => 'create',
+          'Find' => 'find',
+          'Load' => 'find',
+          'Count' => 'find',
+          'Exists' => 'find',
+          'Create' => 'create',
           'Columns' => 'columns',
           'Indexes' => 'indexes',
           'Destroy' => 'destroy',
-          'Update'  => 'update',
-          'Save'    => 'save'
+          'Update' => 'update',
+          'Save' => 'save'
         }.freeze
 
         def map_operation(raw_operation)
@@ -155,41 +151,41 @@ module NewRelic
         end
 
         PRODUCT_NAMES = {
-          "mysql"      => "MySQL",
-          "mysql2"     => "MySQL",
+          "mysql" => "MySQL",
+          "mysql2" => "MySQL",
 
           "postgresql" => "Postgres",
 
-          "sqlite3"    => "SQLite",
+          "sqlite3" => "SQLite",
 
           # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
-          "jdbcmysql"  => "MySQL",
+          "jdbcmysql" => "MySQL",
 
           # https://rubygems.org/gems/activerecord-jdbcpostgresql-adapter
           "jdbcpostgresql" => "Postgres",
-          
+
           # https://rubygems.org/gems/activerecord-postgis-adapter
-          "postgis"    => "Postgres",
+          "postgis" => "Postgres",
 
           # https://rubygems.org/gems/activerecord-jdbcsqlite3-adapter
-          "jdbcsqlite3"    => "SQLite",
+          "jdbcsqlite3" => "SQLite",
 
           # https://rubygems.org/gems/activerecord-jdbcderby-adapter
-          "derby"      => "Derby",
-          "jdbcderby"  => "Derby",
+          "derby" => "Derby",
+          "jdbcderby" => "Derby",
 
           # https://rubygems.org/gems/activerecord-jdbc-adapter
-          "jdbc"       => "JDBC",
+          "jdbc" => "JDBC",
 
           # https://rubygems.org/gems/activerecord-jdbcmssql-adapter
-          "jdbcmssql"  => "MSSQL",
-          "mssql"      => "MSSQL",
+          "jdbcmssql" => "MSSQL",
+          "mssql" => "MSSQL",
 
           # https://rubygems.org/gems/activerecord-sqlserver-adapter
-          "sqlserver"  => "MSSQL",
+          "sqlserver" => "MSSQL",
 
           # https://rubygems.org/gems/activerecord-odbc-adapter
-          "odbc"       => "ODBC",
+          "odbc" => "ODBC",
 
           # https://rubygems.org/gems/activerecord-oracle_enhanced-adapter
           "oracle_enhanced" => "Oracle"
@@ -199,24 +195,24 @@ module NewRelic
 
         def map_product(adapter_name)
           PRODUCT_NAMES.fetch(adapter_name,
-                              ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
+            ACTIVE_RECORD_DEFAULT_PRODUCT_NAME)
         end
 
         module InstanceIdentification
           extend self
 
           PRODUCT_SYMBOLS = {
-            "mysql"      => :mysql,
-            "mysql2"     => :mysql,
-            "jdbcmysql"  => :mysql,
+            "mysql" => :mysql,
+            "mysql2" => :mysql,
+            "jdbcmysql" => :mysql,
 
-            "postgresql"     => :postgres,
+            "postgresql" => :postgres,
             "jdbcpostgresql" => :postgres,
-            "postgis"        => :postgres
+            "postgis" => :postgres
           }.freeze
 
           DATASTORE_DEFAULT_PORTS = {
-            :mysql    => "3306",
+            :mysql => "3306",
             :postgres => "5432"
           }.freeze
 
@@ -228,10 +224,10 @@ module NewRelic
           def host(config)
             return UNKNOWN unless config
 
-            configured_value  = config[:host]
+            configured_value = config[:host]
             adapter = PRODUCT_SYMBOLS[config[:adapter]]
             if configured_value.nil? ||
-              postgres_unix_domain_socket_case?(configured_value, adapter)
+                postgres_unix_domain_socket_case?(configured_value, adapter)
 
               LOCALHOST
             elsif configured_value.empty?
@@ -239,7 +235,6 @@ module NewRelic
             else
               configured_value
             end
-
           rescue => e
             NewRelic::Agent.logger.debug "Failed to retrieve ActiveRecord host: #{e}"
             UNKNOWN
@@ -260,7 +255,6 @@ module NewRelic
             else
               UNKNOWN
             end
-
           rescue => e
             NewRelic::Agent.logger.debug "Failed to retrieve ActiveRecord port_path_or_id: #{e}"
             UNKNOWN

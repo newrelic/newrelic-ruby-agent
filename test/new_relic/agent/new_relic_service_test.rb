@@ -27,7 +27,7 @@ class NewRelicServiceTest < Minitest::Test
     reset_buffers_and_caches
   end
 
-  def create_http_handle(name='connection')
+  def create_http_handle(name = 'connection')
     HTTPHandle.new(name)
   end
 
@@ -64,7 +64,7 @@ class NewRelicServiceTest < Minitest::Test
     assert(block_ran)
 
     assert_equal([:start, :finish], handle1.calls)
-    assert_equal([],                handle2.calls)
+    assert_equal([], handle2.calls)
   end
 
   def test_multiple_http_handles_are_used_outside_session_block
@@ -198,7 +198,7 @@ class NewRelicServiceTest < Minitest::Test
 
     assert_equal([:request], conn0.calls)
     assert_equal([:request], conn1.calls)
-    assert_equal([],         conn2.calls)
+    assert_equal([], conn2.calls)
   end
 
   def test_no_default_cert_file_path
@@ -259,15 +259,15 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_preconnect_never_uses_redirect_host
     # Use locally configured collector for initial preconnect
-    initial_preconnect_log = with_array_logger(level=:debug) { @service.preconnect }
+    initial_preconnect_log = with_array_logger(level = :debug) { @service.preconnect }
     assert_log_contains initial_preconnect_log, 'Sending request to somewhere.example.com'
 
     # Connect has set the redirect host as the collector
-    initial_connect_log = with_array_logger(level=:debug) { @service.connect }
+    initial_connect_log = with_array_logger(level = :debug) { @service.connect }
     assert_log_contains initial_connect_log, 'Sending request to localhost'
 
     # If we need to reconnect, preconnect should use the locally configured collector again
-    reconnect_log = with_array_logger(level=:debug) { @service.preconnect }
+    reconnect_log = with_array_logger(level = :debug) { @service.preconnect }
     assert_log_contains reconnect_log, 'Sending request to somewhere.example.com'
   end
 
@@ -472,7 +472,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_profile_data
     @http_handle.respond_to(:profile_data, 'profile' => 123)
     response = @service.profile_data([])
-    assert_equal({ "profile" => 123 }, response)
+    assert_equal({"profile" => 123}, response)
   end
 
   def test_profile_data_does_not_normalize_encodings
@@ -483,10 +483,10 @@ class NewRelicServiceTest < Minitest::Test
 
   def test_get_agent_commands
     @service.agent_id = 666
-    @http_handle.respond_to(:get_agent_commands, [1,2,3])
+    @http_handle.respond_to(:get_agent_commands, [1, 2, 3])
 
     response = @service.get_agent_commands
-    assert_equal [1,2,3], response
+    assert_equal [1, 2, 3], response
   end
 
   def test_get_agent_commands_with_no_response
@@ -532,7 +532,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.sql_trace_data([])
   end
 
-  def self.check_status_code_handling( expected_exceptions )
+  def self.check_status_code_handling(expected_exceptions)
     expected_exceptions.each do |status_code, exception_type|
       method_name = "test_#{status_code}_raises_#{exception_type.name.split('::').last}"
       define_method method_name do
@@ -570,7 +570,7 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/HTTPError/400" => { :call_count => 1 }
+      "Supportability/Agent/Collector/HTTPError/400" => {:call_count => 1}
     )
   end
 
@@ -583,7 +583,7 @@ class NewRelicServiceTest < Minitest::Test
     @service.send(:invoke_remote, :foobar, payload)
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/foobar/Duration" => { :call_count => 1 }
+      "Supportability/Agent/Collector/foobar/Duration" => {:call_count => 1}
     )
   end
 
@@ -598,7 +598,7 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/metric_data/Attempts" => { :call_count => 1 }
+      "Supportability/Agent/Collector/metric_data/Attempts" => {:call_count => 1}
     )
   end
 
@@ -638,7 +638,7 @@ class NewRelicServiceTest < Minitest::Test
     @http_handle.respond_to(:wiggle, 'hello')
     with_config(:normalize_json_string_encodings => false) do
       NewRelic::Agent::EncodingNormalizer.expects(:normalize_object).never
-      @service.send(:invoke_remote, 'wiggle', [{ 'foo' => 'bar' }])
+      @service.send(:invoke_remote, 'wiggle', [{'foo' => 'bar'}])
     end
   end
 
@@ -705,7 +705,7 @@ class NewRelicServiceTest < Minitest::Test
   def test_compress_request_if_needed_compresses_large_payloads_gzip
     large_payload = 'a' * 65 * 1024
     body, encoding = @service.compress_request_if_needed(large_payload, :foobar)
-    zstream = Zlib::Inflate.new(16+Zlib::MAX_WBITS)
+    zstream = Zlib::Inflate.new(16 + Zlib::MAX_WBITS)
     assert_equal(large_payload, zstream.inflate(body))
     assert_equal('gzip', encoding)
   end
@@ -809,17 +809,17 @@ class NewRelicServiceTest < Minitest::Test
 
     expected_size_bytes = @service.marshaller.dump(payload).size
     expected_values = {
-      :call_count           => 1,
-      :total_call_time      => expected_size_bytes,
+      :call_count => 1,
+      :total_call_time => expected_size_bytes,
       :total_exclusive_time => 12
     }
 
     assert_metrics_recorded(
-      'Supportability/Agent/Collector/foobar/Duration' => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize'         => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize/foobar'  => { :call_count => 1},
-      'Supportability/invoke_remote_size'              => expected_values,
-      'Supportability/invoke_remote_size/foobar'       => expected_values
+      'Supportability/Agent/Collector/foobar/Duration' => {:call_count => 1},
+      'Supportability/invoke_remote_serialize' => {:call_count => 1},
+      'Supportability/invoke_remote_serialize/foobar' => {:call_count => 1},
+      'Supportability/invoke_remote_size' => expected_values,
+      'Supportability/invoke_remote_size/foobar' => expected_values
     )
   end
 
@@ -832,7 +832,7 @@ class NewRelicServiceTest < Minitest::Test
     end
 
     assert_metrics_recorded(
-      "Supportability/Agent/Collector/foobar/MaxPayloadSizeLimit" => { :call_count => 1 }
+      "Supportability/Agent/Collector/foobar/MaxPayloadSizeLimit" => {:call_count => 1}
     )
   end
 
@@ -845,17 +845,17 @@ class NewRelicServiceTest < Minitest::Test
 
     expected_size_bytes = @service.marshaller.dump(payload).size
     expected_values = {
-      :call_count           => 1,
-      :total_call_time      => expected_size_bytes,
+      :call_count => 1,
+      :total_call_time => expected_size_bytes,
       :total_exclusive_time => 0
     }
 
     assert_metrics_recorded(
-      'Supportability/Agent/Collector/foobar/Duration' => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize'         => { :call_count => 1 },
-      'Supportability/invoke_remote_serialize/foobar'  => { :call_count => 1},
-      'Supportability/invoke_remote_size'              => expected_values,
-      'Supportability/invoke_remote_size/foobar'       => expected_values
+      'Supportability/Agent/Collector/foobar/Duration' => {:call_count => 1},
+      'Supportability/invoke_remote_serialize' => {:call_count => 1},
+      'Supportability/invoke_remote_serialize/foobar' => {:call_count => 1},
+      'Supportability/invoke_remote_size' => expected_values,
+      'Supportability/invoke_remote_size/foobar' => expected_values
     )
   end
 
@@ -870,10 +870,10 @@ class NewRelicServiceTest < Minitest::Test
       @service.send(:invoke_remote, :foobar, payload)
     end
 
-    expected_values = { :call_count => 1 }
+    expected_values = {:call_count => 1}
 
     assert_metrics_recorded(
-      'Supportability/serialization_failure'        => expected_values,
+      'Supportability/serialization_failure' => expected_values,
       'Supportability/serialization_failure/foobar' => expected_values
     )
 
@@ -939,7 +939,7 @@ class NewRelicServiceTest < Minitest::Test
     refute_includes header_keys, 'x-nr-metadata'
   end
 
-  def build_stats_hash(items={})
+  def build_stats_hash(items = {})
     hash = NewRelic::Agent::StatsHash.new
     items.each do |key, value|
       hash.record(NewRelic::MetricSpec.new(key), value)
@@ -952,7 +952,7 @@ class NewRelicServiceTest < Minitest::Test
     string.force_encoding('ISO-8859-1').encode('UTF-8')
   end
 
-  def generate_random_byte_sequence(length=255, encoding=nil)
+  def generate_random_byte_sequence(length = 255, encoding = nil)
     bytes = []
     alphabet = (0..255).to_a
     meth = alphabet.respond_to?(:sample) ? :sample : :choice
@@ -986,17 +986,17 @@ class NewRelicServiceTest < Minitest::Test
   end
 
   def preconnect_response(host)
-    { 'redirect_host' => host }
+    {'redirect_host' => host}
   end
 
   DEFAULT_PRECONNECT_POLICIES = NewRelic::Agent::NewRelicService::SecurityPolicySettings::EXPECTED_SECURITY_POLICIES.inject({}) do |policies, name|
-    policies[name] = { 'enabled' => false, 'required' => true }
+    policies[name] = {'enabled' => false, 'required' => true}
     policies
   end
 
   def preconnect_response_for_policies(host, policies)
     {
-      'redirect_host'     => host,
+      'redirect_host' => host,
       'security_policies' => policies
     }
   end
@@ -1037,7 +1037,7 @@ class NewRelicServiceTest < Minitest::Test
     module HTTPResponseMock
       attr_accessor :code, :body, :message, :headers
 
-      def initialize(body, code=200, message='OK')
+      def initialize(body, code = 200, message = 'OK')
         @code = code
         @body = body
         @message = message
@@ -1053,7 +1053,7 @@ class NewRelicServiceTest < Minitest::Test
     attr_reader :calls, :last_request
 
     def initialize(name)
-      @name    = name
+      @name = name
       @started = false
       reset
     end
@@ -1084,7 +1084,7 @@ class NewRelicServiceTest < Minitest::Test
       8080
     end
 
-    def create_response_mock(payload, opts={})
+    def create_response_mock(payload, opts = {})
       opts = {
         :code => 200,
         :format => :json
@@ -1096,10 +1096,10 @@ class NewRelicServiceTest < Minitest::Test
       klass.new(JSON.dump('return_value' => payload), opts[:code], {})
     end
 
-    def respond_to(method, payload, opts={})
+    def respond_to(method, payload, opts = {})
       case payload
       when Exception then rsp = payload
-      else                rsp = create_response_mock(payload, opts)
+      else rsp = create_response_mock(payload, opts)
       end
 
       @route_table[method.to_s] = rsp
@@ -1135,7 +1135,7 @@ class NewRelicServiceTest < Minitest::Test
       body = if content_encoding == 'deflate'
         Zlib::Inflate.inflate(@last_request.body)
       elsif content_encoding == 'gzip'
-        zstream = Zlib::Inflate.new(16+Zlib::MAX_WBITS)
+        zstream = Zlib::Inflate.new(16 + Zlib::MAX_WBITS)
         zstream.inflate(@last_request.body)
       else
         @last_request.body

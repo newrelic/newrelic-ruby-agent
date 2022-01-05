@@ -5,14 +5,14 @@
 # this struct uniquely defines a metric, optionally inside
 # the call scope of another metric
 class NewRelic::MetricSpec
-  attr_reader   :name, :scope
+  attr_reader :name, :scope
 
   # the maximum length of a metric name or metric scope
   MAX_LENGTH = 255
   LENGTH_RANGE = (0...MAX_LENGTH)
   EMPTY_SCOPE = ''.freeze
 
-  def initialize(metric_name='', metric_scope=nil)
+  def initialize(metric_name = '', metric_scope = nil)
     if metric_name.to_s.length > MAX_LENGTH
       @name = metric_name.to_s[LENGTH_RANGE]
     else
@@ -53,7 +53,7 @@ class NewRelic::MetricSpec
 
   def to_json(*a)
     {'name' => name,
-    'scope' => scope}.to_json(*a)
+     'scope' => scope}.to_json(*a)
   end
 
   def <=>(o)

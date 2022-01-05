@@ -3,8 +3,8 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 # frozen_string_literal: true
 
-# The SuspendedStreamingBuffer class discards pushed segments and records 
-# the seen metric.  This buffer is installed when the gRPC server returns 
+# The SuspendedStreamingBuffer class discards pushed segments and records
+# the seen metric.  This buffer is installed when the gRPC server returns
 # UNIMPLEMENTED (status 12) code as a signal to not reconnect to the server.
 module NewRelic::Agent
   module InfiniteTracing
@@ -30,7 +30,7 @@ module NewRelic::Agent
         # NOOP
       end
       alias :flush_queue :close_queue
-      
+
       def enumerator
         @empty_buffer
       end

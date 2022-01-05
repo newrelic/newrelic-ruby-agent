@@ -4,9 +4,8 @@
 
 module NewRelic
   class Control
-
     # Structs holding info for the remote server and proxy server
-    class Server < Struct.new :name, :port #:nodoc:
+    class Server < Struct.new :name, :port # :nodoc:
       def to_s; "#{name}:#{port}"; end
     end
 
@@ -22,7 +21,7 @@ module NewRelic
         @api_server ||= NewRelic::Control::Server.new(Agent.config[:api_host], Agent.config[:api_port])
       end
 
-      def server_from_host(hostname=nil)
+      def server_from_host(hostname = nil)
         NewRelic::Control::Server.new(hostname || Agent.config[:host], Agent.config[:port])
       end
     end

@@ -5,7 +5,6 @@
 require File.expand_path '../../../../test_helper', __FILE__
 
 class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
-
   def setup
     NewRelic::Agent.drop_buffered_data
   end
@@ -14,7 +13,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     middleware_class = Class.new
 
     generator = NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(middleware_class)
-    wrapped_instance  = generator.new
+    wrapped_instance = generator.new
 
     assert_kind_of(NewRelic::Agent::Instrumentation::MiddlewareProxy, wrapped_instance)
     assert_kind_of(middleware_class, wrapped_instance.target)
@@ -95,8 +94,8 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
 
   def test_does_not_wrap_sinatra_apps
     sinatra_dummy_module = Module.new
-    sinatra_dummy_class  = Class.new(Object)
-    app_class            = Class.new(sinatra_dummy_class)
+    sinatra_dummy_class = Class.new(Object)
+    app_class = Class.new(sinatra_dummy_class)
 
     with_constant_defined(:'::Sinatra', sinatra_dummy_module) do
       with_constant_defined(:'::Sinatra::Base', sinatra_dummy_class) do
@@ -139,11 +138,11 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
 
   def test_call_should_proxy_to_target_when_in_transaction
     call_was_called = false
-    call_received   = nil
+    call_received = nil
 
     app = lambda do |env|
       call_was_called = true
-      call_received   = env
+      call_received = env
       :super_duper
     end
 
@@ -162,11 +161,11 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
 
   def test_call_should_proxy_to_target_when_not_in_transaction
     call_was_called = false
-    call_received   = nil
+    call_received = nil
 
     app = lambda do |env|
       call_was_called = true
-      call_received   = env
+      call_received = env
       :super_duper
     end
 
@@ -224,7 +223,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_should_emit_events_once
-    app = Proc.new { |env| [200, {}, ["nothing"]]}
+    app = Proc.new { |env| [200, {}, ["nothing"]] }
     middleware = Proc.new { |env| app.call(env) }
     wrapped_middleware = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(middleware, true)
 
@@ -240,7 +239,7 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
   end
 
   def test_before_call_should_receive_rack_env_hash
-    app = Proc.new { |env| [200, {}, ["nothing"]]}
+    app = Proc.new { |env| [200, {}, ["nothing"]] }
     wrapped_app = NewRelic::Agent::Instrumentation::MiddlewareProxy.wrap(app, true)
 
     original_env = {}
@@ -271,4 +270,3 @@ class NewRelic::Agent::Instrumentation::MiddlewareProxyTest < Minitest::Test
     assert_same result, result_from_after_call
   end
 end
-

@@ -26,9 +26,9 @@ module NewRelic
           @vendor.stubs(:request_metadata).returns(stubbed_response)
 
           expected = {
-            :vmId     => "c84ffaa7-1b0a-4aa6-9f5c-0912655d9870",
-            :name     => "rubytest",
-            :vmSize   => "Standard_DS1_v2",
+            :vmId => "c84ffaa7-1b0a-4aa6-9f5c-0912655d9870",
+            :name => "rubytest",
+            :vmSize => "Standard_DS1_v2",
             :location => "eastus"
           }
 
@@ -46,7 +46,6 @@ module NewRelic
           assert_metrics_recorded "Supportability/utilization/azure/error" => {:call_count => 1}
         end
 
-
         def test_fails_when_response_is_missing_required_value
           fixture = File.read File.join(azure_fixture_path, "missing_value.json")
 
@@ -56,7 +55,6 @@ module NewRelic
           refute @vendor.detect
           assert_metrics_recorded "Supportability/utilization/azure/error" => {:call_count => 1}
         end
-
 
         def test_fails_based_on_response_code
           fixture = File.read File.join(azure_fixture_path, "valid.json")
@@ -97,7 +95,7 @@ module NewRelic
               assert_equal expected, {azure: @vendor.metadata}
 
               if test_case[:expected_metrics]
-                test_case[:expected_metrics].each do |metric,v|
+                test_case[:expected_metrics].each do |metric, v|
                   if v[:call_count] == 0
                     if uri_obj[:timeout]
                       refute detection, '@vendor.detect should have returned false'
@@ -113,7 +111,6 @@ module NewRelic
               end
             end
           end
-
         end
       end
     end

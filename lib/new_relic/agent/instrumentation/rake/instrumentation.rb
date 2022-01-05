@@ -99,14 +99,14 @@ module NewRelic
 
         def record_attributes(args, task)
           command_line = task.application.top_level_tasks.join(" ")
-          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes({ :command => command_line },
-                                                                        :'job.rake',
-                                                                        NewRelic::Agent::AttributeFilter::DST_NONE)
+          NewRelic::Agent::Transaction.merge_untrusted_agent_attributes({:command => command_line},
+            :'job.rake',
+            NewRelic::Agent::AttributeFilter::DST_NONE)
           named_args = name_the_args(args, task.arg_names)
           unless named_args.empty?
             NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(named_args,
-                                                                          :'job.rake.args',
-                                                                          NewRelic::Agent::AttributeFilter::DST_NONE)
+              :'job.rake.args',
+              NewRelic::Agent::AttributeFilter::DST_NONE)
           end
         rescue => e
           NewRelic::Agent.logger.error("Error during Rake task attribute recording.", e)

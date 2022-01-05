@@ -41,7 +41,7 @@ class NewRelic::Control::Frameworks::Test < parent_class
     ActionController::Routing::RouteSet.class_eval do
       return if defined? draw_without_test_route
       def draw_with_test_route
-        draw_without_test_route do | map |
+        draw_without_test_route do |map|
           map.connect ':controller/:action/:id'
           yield map
         end

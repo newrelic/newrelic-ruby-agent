@@ -4,7 +4,6 @@
 require 'new_relic/agent/instrumentation/action_controller_subscriber'
 require 'new_relic/agent/prepend_supportability'
 
-
 DependencyDetection.defer do
   @name = :action_controller_notifications
 

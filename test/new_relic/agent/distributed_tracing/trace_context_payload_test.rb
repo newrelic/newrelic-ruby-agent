@@ -34,7 +34,6 @@ module NewRelic
       end
 
       def test_to_s_does_not_convert_to_scientific_notation
-
         payload = TraceContextPayload.create \
           parent_account_id: "12345",
           parent_app_id: "6789",

@@ -5,7 +5,6 @@
 require 'transaction_ignoring_test_cases'
 
 class TransactionIgnoringTest < Minitest::Test
-
   include MultiverseHelpers
   include TransactionIgnoringTestCases
 
@@ -23,8 +22,8 @@ class TransactionIgnoringTest < Minitest::Test
     TestWidget.new.run_transaction(txn_name) do
       state = NewRelic::Agent::Tracer.state
       NewRelic::Agent.instance.sql_sampler.notice_sql("select * from test",
-                                   "Database/test/select",
-                                   nil, 1.5, state)
+        "Database/test/select",
+        nil, 1.5, state)
     end
   end
 
@@ -38,5 +37,4 @@ class TransactionIgnoringTest < Minitest::Test
 
     add_transaction_tracer :run_transaction
   end
-
 end

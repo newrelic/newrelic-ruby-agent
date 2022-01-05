@@ -6,12 +6,12 @@ require './app'
 
 class ParameterCaptureController < ApplicationController
   def transaction
-    render body:  'hi!'
+    render body: 'hi!'
   end
 
   def create
     raise 'problem' if params[:raise]
-    render body:  'created'
+    render body: 'created'
   end
 
   def sql
@@ -64,7 +64,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
   def test_referrer_on_traced_errors_never_contains_query_string_without_capture_params
     with_config(:capture_params => false) do
       get '/parameter_capture/error?other=1234&secret=4567',
-        headers: { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
+        headers: {'HTTP_REFERER' => '/foo/bar?other=123&secret=456'}
       attributes = agent_attributes_for_single_error_posted
       assert_equal('/foo/bar', attributes["request.headers.referer"])
     end
@@ -73,7 +73,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
   def test_referrer_on_traced_errors_never_contains_query_string_even_with_capture_params
     with_config(:capture_params => true) do
       get '/parameter_capture/error?other=1234&secret=4567',
-        headers: { 'HTTP_REFERER' => '/foo/bar?other=123&secret=456' }
+        headers: {'HTTP_REFERER' => '/foo/bar?other=123&secret=456'}
       attributes = agent_attributes_for_single_error_posted
       assert_equal('/foo/bar', attributes["request.headers.referer"])
     end
@@ -121,7 +121,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
       captured_params = agent_attributes_for_single_error_posted
       assert_equal('[FILTERED]', captured_params['request.parameters.secret'])
-      assert_equal('1234',       captured_params['request.parameters.other'])
+      assert_equal('1234', captured_params['request.parameters.other'])
     end
   end
 
@@ -132,7 +132,7 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
     captured_params = last_transaction_trace_request_params
     assert_equal('[FILTERED]', captured_params['request.parameters.secret'])
-    assert_equal('1234',       captured_params['request.parameters.other'])
+    assert_equal('1234', captured_params['request.parameters.other'])
   end
 
   def test_no_traced_error_params_captured_when_bails_before_rails
@@ -210,15 +210,14 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
 
   def test_parameters_attached_to_transaction_events_if_enabled
     with_config(:'attributes.include' => 'request.parameters.*',
-                :'attributes.exclude' => ['request.*', 'response.*']) do
+      :'attributes.exclude' => ['request.*', 'response.*']) do
       get '/parameter_capture/transaction?param1=value1&param2=value2'
     end
 
     actual = agent_attributes_for_single_event_posted_without_ignored_attributes
 
     expected = {"request.parameters.param1" => "value1",
-      "request.parameters.param2" => "value2"
-    }
+                "request.parameters.param2" => "value2"}
 
     assert_equal expected, actual
   end
@@ -286,12 +285,12 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
   end
 
   def test_parameter_filtering_should_not_mutate_argument
-    input = { "foo" => "bar", "secret" => "baz" }
-    env   = { "action_dispatch.parameter_filter" => ["secret"] }
+    input = {"foo" => "bar", "secret" => "baz"}
+    env = {"action_dispatch.parameter_filter" => ["secret"]}
     filtered = NewRelic::Agent::ParameterFiltering.apply_filters(env, input)
 
-    assert_equal({ "foo" => "bar", "secret" => "[FILTERED]" }, filtered)
-    assert_equal({ "foo" => "bar", "secret" => "baz" }, input)
+    assert_equal({"foo" => "bar", "secret" => "[FILTERED]"}, filtered)
+    assert_equal({"foo" => "bar", "secret" => "baz"}, input)
   end
 
   if defined?(Sinatra)
@@ -339,5 +338,4 @@ class ParameterCaptureTest < ActionDispatch::IntegrationTest
       end
     end
   end
-
 end

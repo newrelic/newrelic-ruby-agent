@@ -17,7 +17,7 @@ GEM_NAME = 'newrelic_rpm'
 class GemWorkspace
   attr_reader :path
 
-  def initialize(path=nil)
+  def initialize(path = nil)
     @path = File.expand_path(path || Dir.mktmpdir)
     FileUtils.mkdir_p(gems_dir)
     FileUtils.mkdir_p(extracted_gems_dir)

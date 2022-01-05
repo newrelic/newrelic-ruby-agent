@@ -28,7 +28,7 @@ module MiniTest
 end
 
 class ArrayLogDevice
-  def initialize array=[]
+  def initialize array = []
     @array = array
   end
   attr_reader :array
@@ -40,7 +40,7 @@ class ArrayLogDevice
   def close; end
 end
 
-def fake_guid length=16
+def fake_guid length = 16
   NewRelic::Agent::GuidGenerator.generate_guid length
 end
 
@@ -51,7 +51,7 @@ def assert_match matcher, obj, msg = nil
   assert matcher =~ obj, msg
 end
 
-def assert_between floor, ceiling, value, message="expected #{floor} <= #{value} <= #{ceiling}"
+def assert_between floor, ceiling, value, message = "expected #{floor} <= #{value} <= #{ceiling}"
   assert((floor <= value && value <= ceiling), message)
 end
 
@@ -70,7 +70,7 @@ end
 def assert_has_traced_error error_class
   errors = harvest_error_traces!
   assert \
-    errors.find {|e| e.exception_class_name == error_class.name} != nil, \
+    errors.find { |e| e.exception_class_name == error_class.name } != nil, \
     "Didn't find error of class #{error_class}"
 end
 
@@ -109,21 +109,21 @@ unless defined? assert_block
 end
 
 unless defined? assert_includes
-  def assert_includes collection, member, msg=nil
+  def assert_includes collection, member, msg = nil
     msg = "Expected #{collection.inspect} to include #{member.inspect}"
-    assert_block( msg ) { collection.include?(member) }
+    assert_block(msg) { collection.include?(member) }
   end
 end
 
 unless defined? assert_not_includes
-  def assert_not_includes collection, member, msg=nil
+  def assert_not_includes collection, member, msg = nil
     msg = "Expected #{collection.inspect} not to include #{member.inspect}"
     assert !collection.include?(member), msg
   end
 end
 
 unless defined? assert_empty
-  def assert_empty collection, msg=nil
+  def assert_empty collection, msg = nil
     assert collection.empty?, msg
   end
 end
@@ -160,7 +160,7 @@ end
 def assert_audit_log_contains_object audit_log_contents, o, format = :json
   case o
   when Hash
-    o.each do |k,v|
+    o.each do |k, v|
       assert_audit_log_contains_object(audit_log_contents, v, format)
       assert_audit_log_contains_object(audit_log_contents, k, format)
     end
@@ -176,14 +176,14 @@ def assert_audit_log_contains_object audit_log_contents, o, format = :json
 end
 
 def compare_metrics expected, actual
-  actual.delete_if {|a| a.include?('GC/Transaction/') }
+  actual.delete_if { |a| a.include?('GC/Transaction/') }
   assert_equal(expected.to_a.sort, actual.to_a.sort, "extra: #{(actual - expected).to_a.inspect}; missing: #{(expected - actual).to_a.inspect}")
 end
 
 def metric_spec_from_specish specish
   spec = case specish
   when String then NewRelic::MetricSpec.new(specish)
-  when Array  then NewRelic::MetricSpec.new(*specish)
+  when Array then NewRelic::MetricSpec.new(*specish)
   end
   spec
 end
@@ -193,17 +193,17 @@ def _normalize_metric_expectations expectations
   when Array
     hash = {}
     # Just assert that the metric is present, nothing about the attributes
-    expectations.each { |k| hash[k] = { } }
+    expectations.each { |k| hash[k] = {} }
     hash
   when String
-    { expectations => {} }
+    {expectations => {}}
   else
     expectations
   end
 end
 
 def dump_stats stats
-  str =  "  Call count:           #{stats.call_count}\n"
+  str = "  Call count:           #{stats.call_count}\n"
   str << "  Total call time:      #{stats.total_call_time}\n"
   str << "  Total exclusive time: #{stats.total_exclusive_time}\n"
   str << "  Min call time:        #{stats.min_call_time}\n"
@@ -259,7 +259,7 @@ end
 # the :ignore_filter option. This will allow you to specify a Regex that
 # allowlists broad swathes of metric territory (e.g. 'Supportability/').
 #
-def assert_metrics_recorded_exclusive expected, options={}
+def assert_metrics_recorded_exclusive expected, options = {}
   expected = _normalize_metric_expectations(expected)
   assert_metrics_recorded(expected)
 
@@ -272,7 +272,7 @@ def assert_metrics_recorded_exclusive expected, options={}
     recorded_metrics.reject! { |m| m.name.match(options[:ignore_filter]) }
   end
 
-  expected_metrics   = expected.keys.map { |s| metric_spec_from_specish(s) }
+  expected_metrics = expected.keys.map { |s| metric_spec_from_specish(s) }
 
   unexpected_metrics = recorded_metrics - expected_metrics
   unexpected_metrics.reject! { |m| m.name =~ /GC\/Transaction/ }
@@ -320,7 +320,7 @@ def assert_no_metrics_match regex
   assert_equal(
     [],
     matching_metrics,
-    "Found unexpected metrics:\n" +  matching_metrics.map { |m| "  '#{m}'"}.join("\n") + "\n\n"
+    "Found unexpected metrics:\n" + matching_metrics.map { |m| "  '#{m}'" }.join("\n") + "\n\n"
   )
 end
 
@@ -333,12 +333,12 @@ def format_metric_spec_list specs
   "[\n  #{spec_strings.join(",\n  ")}\n]"
 end
 
-def assert_truthy expected, msg=nil
+def assert_truthy expected, msg = nil
   msg ||= "Expected #{expected.inspect} to be truthy"
   assert !!expected, msg
 end
 
-def assert_falsy expected, msg=nil
+def assert_falsy expected, msg = nil
   msg ||= "Expected #{expected.inspect} to be falsy"
   assert !expected, msg
 end
@@ -372,7 +372,7 @@ end
 #   in_transaction('foobar', :category => :controller) { ... }
 #
 def in_transaction *args, &blk
-  opts     = (args.last && args.last.is_a?(Hash)) ? args.pop : {}
+  opts = args.last && args.last.is_a?(Hash) ? args.pop : {}
   category = (opts && opts.delete(:category)) || :other
 
   # At least one test passes `:transaction_name => nil`, so handle it gently
@@ -442,13 +442,13 @@ end
 
 # Convenience wrapper around in_transaction that sets the category so that it
 # looks like we are in a web transaction
-def in_web_transaction name='dummy'
+def in_web_transaction name = 'dummy'
   in_transaction(name, :category => :controller, :request => stub(:path => '/')) do |txn|
     yield txn
   end
 end
 
-def in_background_transaction name='silly'
+def in_background_transaction name = 'silly'
   in_transaction(name, :category => :task) do |txn|
     yield txn
   end
@@ -483,7 +483,7 @@ def last_sql_trace
   NewRelic::Agent.agent.sql_sampler.sql_traces.values.last
 end
 
-def find_last_transaction_node transaction_sample=nil
+def find_last_transaction_node transaction_sample = nil
   if transaction_sample
     root_node = transaction_sample.root_node
   else
@@ -491,7 +491,7 @@ def find_last_transaction_node transaction_sample=nil
   end
 
   last_node = nil
-  root_node.each_node {|s| last_node = s }
+  root_node.each_node { |s| last_node = s }
 
   return last_node
 end
@@ -531,7 +531,7 @@ def find_all_nodes_with_name_matching transaction_sample, regexes
   matching_nodes
 end
 
-def with_config config_hash, at_start=true
+def with_config config_hash, at_start = true
   config = NewRelic::Agent::Configuration::DottedHash.new(config_hash, true)
   NewRelic::Agent.config.add_config_for_testing(config, at_start)
   NewRelic::Agent.instance.refresh_attribute_filter
@@ -543,7 +543,7 @@ def with_config config_hash, at_start=true
   end
 end
 
-def with_server_source config_hash, at_start=true
+def with_server_source config_hash, at_start = true
   with_config config_hash, at_start do
     NewRelic::Agent.config.notify_server_source_added
     yield
@@ -582,7 +582,7 @@ unless Time.respond_to?(:__original_now)
   end
 end
 
-def nr_freeze_time now=Time.now
+def nr_freeze_time now = Time.now
   Time.__frozen_now = now
 end
 
@@ -607,11 +607,11 @@ unless Process.respond_to?(:__original_clock_gettime)
   end
 end
 
-def advance_process_time(seconds, clock_id=Process::CLOCK_REALTIME)
+def advance_process_time(seconds, clock_id = Process::CLOCK_REALTIME)
   Process.__frozen_clock_gettime = Process.clock_gettime(clock_id) + seconds
 end
 
-def nr_freeze_process_time(now=Process.clock_gettime(Process::CLOCK_REALTIME))
+def nr_freeze_process_time(now = Process.clock_gettime(Process::CLOCK_REALTIME))
   Process.__frozen_clock_gettime = now
 end
 
@@ -619,7 +619,7 @@ def nr_unfreeze_process_time
   Process.__frozen_clock_gettime = nil
 end
 
-def with_constant_defined constant_symbol, implementation=Module.new
+def with_constant_defined constant_symbol, implementation = Module.new
   const_path = constant_path(constant_symbol.to_s)
 
   if const_path
@@ -639,7 +639,7 @@ def with_constant_defined constant_symbol, implementation=Module.new
   end
 end
 
-def constant_path name, opts={}
+def constant_path name, opts = {}
   allow_partial = opts[:allow_partial]
   path = [Object]
   parts = name.gsub(/^::/, '').split('::')
@@ -673,7 +673,7 @@ def with_debug_logging
   orig_logger = NewRelic::Agent.logger
   $stderr.puts '', '---', ''
   NewRelic::Agent.logger =
-    NewRelic::Agent::AgentLogger.new('', Logger.new($stderr) )
+    NewRelic::Agent::AgentLogger.new('', Logger.new($stderr))
 
   with_config(:log_level => 'debug') do
     yield
@@ -682,11 +682,11 @@ ensure
   NewRelic::Agent.logger = orig_logger
 end
 
-def create_agent_command args={}
-  NewRelic::Agent::Commands::AgentCommand.new([-1, { "name" => "command_name", "arguments" => args}])
+def create_agent_command args = {}
+  NewRelic::Agent::Commands::AgentCommand.new([-1, {"name" => "command_name", "arguments" => args}])
 end
 
-def wait_for_backtrace_service_poll opts={}
+def wait_for_backtrace_service_poll opts = {}
   defaults = {
     :timeout => 10.0,
     :service => NewRelic::Agent.agent.agent_command_router.backtrace_service,
@@ -703,18 +703,18 @@ def wait_for_backtrace_service_poll opts={}
     sleep(0.01)
     if Process.clock_gettime(Process::CLOCK_REALTIME) > deadline
       raise "Timed out waiting #{opts[:timeout]} s for backtrace service poll\n" +
-            "Worker loop ran for #{opts[:service].worker_loop.iterations} iterations\n\n" +
-            Thread.list.map { |t|
-              "#{t.to_s}: newrelic_label: #{t[:newrelic_label].inspect}\n\n" +
-              (t.backtrace || []).join("\n\t")
-            }.join("\n\n")
+        "Worker loop ran for #{opts[:service].worker_loop.iterations} iterations\n\n" +
+        Thread.list.map { |t|
+          "#{t.to_s}: newrelic_label: #{t[:newrelic_label].inspect}\n\n" +
+            (t.backtrace || []).join("\n\t")
+        }.join("\n\n")
     end
   end
 end
 
-def with_array_logger level=:info
+def with_array_logger level = :info
   orig_logger = NewRelic::Agent.logger
-  config = { :log_level => level }
+  config = {:log_level => level}
   logdev = ArrayLogDevice.new
   override_logger = Logger.new(logdev)
 
@@ -749,7 +749,7 @@ class EnvUpdater
 
   # Will attempt the given block up to MAX_RETRIES before
   # surfacing the exception down the chain.
-  def with_retry retry_limit=MAX_RETRIES
+  def with_retry retry_limit = MAX_RETRIES
     retries ||= 0
     sleep(retries)
     yield
@@ -761,7 +761,7 @@ class EnvUpdater
   def safe_update env
     with_retry do
       @mutex.synchronize do
-        env.each{ |key, val| ENV[key] = val.to_s }
+        env.each { |key, val| ENV[key] = val.to_s }
       end
     end
   end
@@ -770,7 +770,7 @@ class EnvUpdater
   def safe_restore old_env
     with_retry do
       @mutex.synchronize do
-        old_env.each{ |key, val| val ? ENV[key] = val : ENV.delete(key) }
+        old_env.each { |key, val| val ? ENV[key] = val : ENV.delete(key) }
       end
     end
   end
@@ -792,7 +792,7 @@ class EnvUpdater
   # runs given block, then restores ENV to original state before returning.
   def self.inject env, &block
     old_env = {}
-    env.each{ |key, val| old_env[key] = ENV[key] }
+    env.each { |key, val| old_env[key] = ENV[key] }
     begin
       safe_update(env)
       yield
@@ -868,7 +868,7 @@ end
 def each_cross_agent_test options
   options = {:dir => nil, :pattern => "*"}.update(options)
   path = File.join [cross_agent_tests_dir, options[:dir], options[:pattern]].compact
-  Dir.glob(path).each { |file| yield file}
+  Dir.glob(path).each { |file| yield file }
 end
 
 def assert_event_attributes event, test_name, expected_attributes, non_expected_attributes
@@ -904,7 +904,7 @@ def attributes_for sample, type
 end
 
 def uncache_trusted_account_key
-   NewRelic::Agent::Transaction::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
+  NewRelic::Agent::Transaction::TraceContext::AccountHelpers.instance_variable_set :@trace_state_entry_key, nil
 end
 
 def reset_buffers_and_caches
@@ -930,7 +930,7 @@ end
 # http status code associated with it.
 # a "status_code" may be passed in the headers to alter the HTTP Status Code
 # that is wrapped in the response.
-def mock_http_response headers, wrap_it=true
+def mock_http_response headers, wrap_it = true
   status_code = (headers.delete("status_code") || 200).to_i
   net_http_resp = Net::HTTPResponse.new(1.0, status_code, message_for_status_code(status_code))
   headers.each do |key, value|
@@ -952,7 +952,7 @@ end
 # selects the last segment with a noticed_error and checks
 # the expectations against it.
 def assert_segment_noticed_error txn, segment_name, error_classes, error_message
-  error_segment = txn.segments.reverse.detect{|s| s.noticed_error}
+  error_segment = txn.segments.reverse.detect { |s| s.noticed_error }
   assert error_segment, "Expected at least one segment with a noticed_error"
 
   assert_match_or_equal segment_name, error_segment.name
@@ -969,7 +969,7 @@ def assert_transaction_noticed_error txn, error_classes
 end
 
 def refute_transaction_noticed_error txn, error_class
-  error_segment = txn.segments.reverse.detect{|s| s.noticed_error}
+  error_segment = txn.segments.reverse.detect { |s| s.noticed_error }
   assert error_segment, "Expected at least one segment with a noticed_error"
   assert_empty txn.exceptions, "Expected transaction to NOT notice any segment errors"
 end
@@ -997,11 +997,11 @@ def assert_implements instance, method, *args
   end
 end
 
-def defer_testing_to_min_supported_rails test_file, min_rails_version, supports_jruby=true
+def defer_testing_to_min_supported_rails test_file, min_rails_version, supports_jruby = true
   if defined?(::Rails) &&
-    defined?(::Rails::VERSION::STRING) &&
-    (::Rails::VERSION::STRING.to_f >= min_rails_version) &&
-    (supports_jruby || !NewRelic::LanguageSupport.jruby?)
+      defined?(::Rails::VERSION::STRING) &&
+      (::Rails::VERSION::STRING.to_f >= min_rails_version) &&
+      (supports_jruby || !NewRelic::LanguageSupport.jruby?)
 
     yield
   else

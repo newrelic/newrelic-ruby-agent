@@ -84,7 +84,7 @@ module NewRelic
         end
       end
 
-      check_discards 400, 403, 404, 405, 407, 411, 413, 414, 415, 417, 431, 406  # 406 is unexpected
+      check_discards 400, 403, 404, 405, 407, 411, 413, 414, 415, 417, 431, 406 # 406 is unexpected
 
       check_merges 408, 429, 500, 503
 
