@@ -19,8 +19,8 @@ module NewRelic
 
       def log_configuration
         NewRelic::Agent.logger.debug("JS agent loader requested: #{NewRelic::Agent.config[:'browser_monitoring.loader']}",
-                                     "JS agent loader debug: #{NewRelic::Agent.config[:'browser_monitoring.debug']}",
-                                     "JS agent loader version: #{NewRelic::Agent.config[:'browser_monitoring.loader_version']}")
+          "JS agent loader debug: #{NewRelic::Agent.config[:'browser_monitoring.debug']}",
+          "JS agent loader version: #{NewRelic::Agent.config[:'browser_monitoring.loader_version']}")
 
         if !NewRelic::Agent.config[:'rum.enabled']
           NewRelic::Agent.logger.debug("Real User Monitoring is disabled for this agent. Edit your configuration to change this.")
@@ -38,19 +38,19 @@ module NewRelic
       def js_enabled_and_ready?
         if !enabled?
           ::NewRelic::Agent.logger.log_once(:debug, :js_agent_disabled,
-                                            "JS agent instrumentation is disabled.")
+            "JS agent instrumentation is disabled.")
           false
         elsif missing_config?(:js_agent_loader)
           ::NewRelic::Agent.logger.log_once(:debug, :missing_js_agent_loader,
-                                            "Missing :js_agent_loader. Skipping browser instrumentation.")
+            "Missing :js_agent_loader. Skipping browser instrumentation.")
           false
         elsif missing_config?(:beacon)
           ::NewRelic::Agent.logger.log_once(:debug, :missing_beacon,
-                                            "Beacon configuration not received (yet?). Skipping browser instrumentation.")
+            "Beacon configuration not received (yet?). Skipping browser instrumentation.")
           false
         elsif missing_config?(:browser_key)
           ::NewRelic::Agent.logger.log_once(:debug, :missing_browser_key,
-                                            "Browser key is not set. Skipping browser instrumentation.")
+            "Browser key is not set. Skipping browser instrumentation.")
           false
         else
           true
@@ -83,7 +83,7 @@ module NewRelic
         value.nil? || value.empty?
       end
 
-      def browser_timing_header(nonce=nil) #THREAD_LOCAL_ACCESS
+      def browser_timing_header(nonce = nil) # THREAD_LOCAL_ACCESS
         return '' unless js_enabled_and_ready? # fast exit
 
         state = NewRelic::Agent::Tracer.state
@@ -99,11 +99,11 @@ module NewRelic
         ''
       end
 
-      def browser_timing_loader(nonce=nil)
+      def browser_timing_loader(nonce = nil)
         html_safe_if_needed("\n<script type=\"text/javascript\"#{create_nonce(nonce)}>#{Agent.config[:js_agent_loader]}</script>")
       end
 
-      def browser_timing_config(state, nonce=nil)
+      def browser_timing_config(state, nonce = nil)
         txn = state.current_transaction
         return '' if txn.nil?
 
@@ -116,44 +116,44 @@ module NewRelic
         ''
       end
 
-      def create_nonce(nonce=nil)
+      def create_nonce(nonce = nil)
         return '' unless nonce
         " nonce=\"#{nonce.to_s}\""
       end
 
-      BEACON_KEY           = "beacon".freeze
-      ERROR_BEACON_KEY     = "errorBeacon".freeze
-      LICENSE_KEY_KEY      = "licenseKey".freeze
-      APPLICATIONID_KEY    = "applicationID".freeze
+      BEACON_KEY = "beacon".freeze
+      ERROR_BEACON_KEY = "errorBeacon".freeze
+      LICENSE_KEY_KEY = "licenseKey".freeze
+      APPLICATIONID_KEY = "applicationID".freeze
       TRANSACTION_NAME_KEY = "transactionName".freeze
-      QUEUE_TIME_KEY       = "queueTime".freeze
+      QUEUE_TIME_KEY = "queueTime".freeze
       APPLICATION_TIME_KEY = "applicationTime".freeze
-      AGENT_KEY            = "agent".freeze
-      SSL_FOR_HTTP_KEY     = "sslForHttp".freeze
-      ATTS_KEY             = "atts".freeze
-      ATTS_USER_SUBKEY     = "u".freeze
-      ATTS_AGENT_SUBKEY    = "a".freeze
+      AGENT_KEY = "agent".freeze
+      SSL_FOR_HTTP_KEY = "sslForHttp".freeze
+      ATTS_KEY = "atts".freeze
+      ATTS_USER_SUBKEY = "u".freeze
+      ATTS_AGENT_SUBKEY = "a".freeze
 
       # NOTE: Internal prototyping may override this, so leave name stable!
       def data_for_js_agent(transaction)
         queue_time_in_seconds = [transaction.queue_time, 0.0].max
         start_time_in_seconds = [transaction.start_time, 0.0].max
-        app_time_in_seconds   = Process.clock_gettime(Process::CLOCK_REALTIME) - start_time_in_seconds
+        app_time_in_seconds = Process.clock_gettime(Process::CLOCK_REALTIME) - start_time_in_seconds
 
         queue_time_in_millis = (1000.0 * queue_time_in_seconds).round
-        app_time_in_millis   = (1000.0 * app_time_in_seconds).round
+        app_time_in_millis = (1000.0 * app_time_in_seconds).round
 
         transaction_name = transaction.best_name || ::NewRelic::Agent::UNKNOWN_METRIC
 
         data = {
-          BEACON_KEY           => NewRelic::Agent.config[:beacon],
-          ERROR_BEACON_KEY     => NewRelic::Agent.config[:error_beacon],
-          LICENSE_KEY_KEY      => NewRelic::Agent.config[:browser_key],
-          APPLICATIONID_KEY    => NewRelic::Agent.config[:application_id],
+          BEACON_KEY => NewRelic::Agent.config[:beacon],
+          ERROR_BEACON_KEY => NewRelic::Agent.config[:error_beacon],
+          LICENSE_KEY_KEY => NewRelic::Agent.config[:browser_key],
+          APPLICATIONID_KEY => NewRelic::Agent.config[:application_id],
           TRANSACTION_NAME_KEY => obfuscator.obfuscate(transaction_name),
-          QUEUE_TIME_KEY       => queue_time_in_millis,
+          QUEUE_TIME_KEY => queue_time_in_millis,
           APPLICATION_TIME_KEY => app_time_in_millis,
-          AGENT_KEY            => NewRelic::Agent.config[:js_agent_file]
+          AGENT_KEY => NewRelic::Agent.config[:js_agent_file]
         }
 
         add_ssl_for_http(data)

@@ -19,15 +19,15 @@ module NewRelic
 
         attr_accessor :thread_profiler_session, :backtrace_service
 
-        def initialize(event_listener=nil)
-          @handlers    = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
+        def initialize(event_listener = nil)
+          @handlers = Hash.new { |*| Proc.new { |cmd| self.unrecognized_agent_command(cmd) } }
 
           @backtrace_service = Threading::BacktraceService.new(event_listener)
 
           @thread_profiler_session = ThreadProfilerSession.new(@backtrace_service)
 
           @handlers['start_profiler'] = Proc.new { |cmd| thread_profiler_session.handle_start_command(cmd) }
-          @handlers['stop_profiler']  = Proc.new { |cmd| thread_profiler_session.handle_stop_command(cmd) }
+          @handlers['stop_profiler'] = Proc.new { |cmd| thread_profiler_session.handle_stop_command(cmd) }
 
           if event_listener
             event_listener.subscribe(:before_shutdown, &method(:on_before_shutdown))
@@ -63,6 +63,7 @@ module NewRelic
         # Same with reset! - we don't support asynchronous cancellation of a
         # running thread profile currently.
         def merge!(*args); end
+
         def reset!; end
 
         def harvest_from_thread_profiler_session
@@ -86,7 +87,7 @@ module NewRelic
         def get_agent_commands
           commands = new_relic_service.get_agent_commands
           NewRelic::Agent.logger.debug "Received get_agent_commands = #{commands.inspect}"
-          commands.map {|collector_command| AgentCommand.new(collector_command)}
+          commands.map { |collector_command| AgentCommand.new(collector_command) }
         end
 
         def invoke_commands(agent_commands)
@@ -120,7 +121,7 @@ module NewRelic
         end
 
         def error(err)
-          { ERROR_KEY => err.message }
+          {ERROR_KEY => err.message}
         end
 
         def call_handler_for(agent_command)

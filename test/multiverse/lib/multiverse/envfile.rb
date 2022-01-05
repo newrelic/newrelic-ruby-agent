@@ -61,7 +61,7 @@ module Multiverse
     end
 
     def execute_mode(mode)
-      valid_modes = %w| fork spawn |
+      valid_modes = %w[ fork spawn ]
       unless valid_modes.member? mode
         raise ArgumentError, "#{mode.inspect} is not a valid execute mode.  Valid modes: #{valid_modes.inspect}"
       end
@@ -80,10 +80,9 @@ module Multiverse
     def permutations
       @instrumentation_permutations.size
     end
-    
+
     def size
       @gemfiles.size * permutations
     end
-
   end
 end

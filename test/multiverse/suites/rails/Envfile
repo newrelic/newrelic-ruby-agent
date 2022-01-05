@@ -7,7 +7,7 @@ if RUBY_VERSION >= '2.7.0'
     gem 'minitest', '5.2.3'
     #{ruby3_gem_webrick}
   RB
-  
+
   gemfile <<-RB
     gem 'rails', '~> 7.0.0'
     gem 'haml', '~>5.0.0'

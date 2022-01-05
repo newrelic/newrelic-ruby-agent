@@ -11,27 +11,25 @@ require 'new_relic/agent/threading/backtrace_node'
 module NewRelic
   module Agent
     module Threading
-
       class ThreadProfile
-
         attr_reader :profile_id, :traces, :sample_period,
           :duration, :poll_count, :backtrace_count, :failure_count,
           :created_at, :command_arguments, :profile_agent_code
         attr_accessor :finished_at
 
-        def initialize(command_arguments={})
-          @command_arguments  = command_arguments
-          @profile_id         = command_arguments.fetch('profile_id', -1)
-          @duration           = command_arguments.fetch('duration', 120)
-          @sample_period      = command_arguments.fetch('sample_period', 0.1)
+        def initialize(command_arguments = {})
+          @command_arguments = command_arguments
+          @profile_id = command_arguments.fetch('profile_id', -1)
+          @duration = command_arguments.fetch('duration', 120)
+          @sample_period = command_arguments.fetch('sample_period', 0.1)
           @profile_agent_code = command_arguments.fetch('profile_agent_code', false)
           @finished = false
 
           @traces = {
-            :agent      => BacktraceRoot.new,
+            :agent => BacktraceRoot.new,
             :background => BacktraceRoot.new,
-            :other      => BacktraceRoot.new,
-            :request    => BacktraceRoot.new
+            :other => BacktraceRoot.new,
+            :request => BacktraceRoot.new
           }
 
           @poll_count = 0
@@ -69,17 +67,17 @@ module NewRelic
           end
         end
 
-        def convert_N_trace_nodes_to_arrays(count_to_keep) #THREAD_LOCAL_ACCESS
+        def convert_N_trace_nodes_to_arrays(count_to_keep) # THREAD_LOCAL_ACCESS
           all_nodes = @traces.values.map { |n| n.flattened }.flatten
 
-          NewRelic::Agent.instance.stats_engine.
-            tl_record_supportability_metric_count("ThreadProfiler/NodeCount", all_nodes.size)
+          NewRelic::Agent.instance.stats_engine
+            .tl_record_supportability_metric_count("ThreadProfiler/NodeCount", all_nodes.size)
 
           all_nodes.sort! do |a, b|
             # we primarily prefer higher runnable_count
             comparison = b.runnable_count <=> a.runnable_count
             # we secondarily prefer lower depth
-            comparison = a.depth          <=> b.depth if comparison == 0
+            comparison = a.depth <=> b.depth if comparison == 0
             # it is thus impossible for any child to preceed their parent
             comparison
           end
@@ -102,9 +100,9 @@ module NewRelic
           convert_N_trace_nodes_to_arrays(THREAD_PROFILER_NODES)
 
           {
-            "OTHER"      => @traces[:other     ].as_array,
-            "REQUEST"    => @traces[:request   ].as_array,
-            "AGENT"      => @traces[:agent     ].as_array,
+            "OTHER" => @traces[:other].as_array,
+            "REQUEST" => @traces[:request].as_array,
+            "AGENT" => @traces[:agent].as_array,
             "BACKGROUND" => @traces[:background].as_array
           }
         end
@@ -128,7 +126,6 @@ module NewRelic
             "@profile_id: #{profile_id} "\
             "@command_arguments=#{@command_arguments.inspect}>"
         end
-
       end
     end
   end

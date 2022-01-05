@@ -13,7 +13,6 @@ class Minitest::Test
 end
 
 module MultiverseHelpers
-
   #
   # Agent startup/shutdown
   #
@@ -86,13 +85,13 @@ module MultiverseHelpers
     NewRelic::Control.reset
   end
 
-  def run_agent(options={}, &block)
+  def run_agent(options = {}, &block)
     setup_agent(options)
     yield if block_given?
     teardown_agent
   end
 
-  def trigger_agent_reconnect(opts={})
+  def trigger_agent_reconnect(opts = {})
     # Clean-up if others don't (or we're first test after auto-loading of agent)
     if NewRelic::Agent.instance.started?
       NewRelic::Agent.shutdown
@@ -103,7 +102,7 @@ module MultiverseHelpers
     NewRelic::Agent.instance.instance_variable_set(:@connect_state, :pending)
 
     # Almost always want a test to force a new connect when setting up
-    defaults = { :sync_startup => true, :force_reconnect => true }
+    defaults = {:sync_startup => true, :force_reconnect => true}
 
     NewRelic::Agent.manual_start(defaults.merge(opts))
   end

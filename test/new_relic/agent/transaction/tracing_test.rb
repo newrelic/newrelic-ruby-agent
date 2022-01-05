@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 require 'new_relic/agent/transaction'
 
@@ -47,7 +47,7 @@ module NewRelic
             advance_process_time 1.0
             segment.finish
 
-            #clean up traced method stack
+            # clean up traced method stack
             txn.unstub(:segment_complete)
             txn.segment_complete(segment)
           end
@@ -129,9 +129,9 @@ module NewRelic
 
         def test_start_datastore_segment_does_not_record_metrics_outside_of_txn
           segment = Tracer.start_datastore_segment(
-              product: "SQLite",
-              operation: "insert",
-              collection: "Blog"
+            product: "SQLite",
+            operation: "insert",
+            collection: "Blog"
           )
           segment.start
           advance_process_time 1
@@ -152,7 +152,7 @@ module NewRelic
           in_transaction "test_txn" do |txn|
             NewRelic::Agent.disable_all_tracing do
               segment = Tracer.start_segment(
-                name:"Custom/segment/method",
+                name: "Custom/segment/method",
                 unscoped_metrics: "Custom/all"
               )
               advance_process_time 1
@@ -162,7 +162,6 @@ module NewRelic
           assert_nil segment.transaction, "Did not expect segment to associated with a transaction"
           refute_metrics_recorded ["Custom/segment/method", "Custom/all"]
         end
-
 
         def test_current_segment_in_transaction
           in_transaction "test_txn" do |txn|
@@ -206,7 +205,7 @@ module NewRelic
 
         def test_segment_started_oustide_txn_does_not_record_metrics
           segment = Tracer.start_segment(
-            name:"Custom/segment/method",
+            name: "Custom/segment/method",
             unscoped_metrics: "Custom/all"
           )
           advance_process_time 1
@@ -400,7 +399,6 @@ module NewRelic
             :'transaction_tracer.limit_segments' => 100
           }
           with_config(config) do
-
             in_transaction 'test_txn' do
               110.times do |i|
                 segment = NewRelic::Agent::Tracer.start_segment name: "segment_#{i}"
@@ -430,7 +428,7 @@ module NewRelic
           with_config(:'transaction_tracer.limit_segments' => 3) do
             in_transaction do |txn|
               expects_logging(:debug, includes("Segment limit"))
-              8.times {|i| NewRelic::Agent::Tracer.start_segment name: "segment_#{i}" }
+              8.times { |i| NewRelic::Agent::Tracer.start_segment name: "segment_#{i}" }
             end
           end
         end
@@ -447,7 +445,6 @@ module NewRelic
           t = Process.clock_gettime(Process::CLOCK_REALTIME)
 
           in_transaction do |txn|
-
             segment = NewRelic::Agent::Tracer.start_segment(
               name: "segment_a",
               start_time: t
@@ -539,7 +536,6 @@ module NewRelic
             assert_equal segment_a, segment_c.parent
           end
         end
-
 
         # The following three tests will build the following trace.
         # Segments b and c are disjoint, but segments e and f overlap.
@@ -698,7 +694,6 @@ module NewRelic
             advance_process_time 2
             segment_b.finish
 
-
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
             advance_process_time 1
 
@@ -835,7 +830,6 @@ module NewRelic
             advance_process_time 2
             segment_b.finish
 
-
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
             advance_process_time 1
 
@@ -881,7 +875,6 @@ module NewRelic
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
             advance_process_time 2
             segment_b.finish
-
 
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
             advance_process_time 1
@@ -944,7 +937,6 @@ module NewRelic
             segment_b = NewRelic::Agent::Tracer.start_segment name: "metric b"
             advance_process_time 2
             segment_b.finish
-
 
             segment_c = NewRelic::Agent::Tracer.start_segment name: "metric c"
             advance_process_time 1
@@ -1014,7 +1006,6 @@ module NewRelic
             advance_process_time 2
             segment_c.finish
 
-
             segment_d = NewRelic::Agent::Tracer.start_segment name: "metric d"
             advance_process_time 1
 
@@ -1063,4 +1054,3 @@ module NewRelic
     end
   end
 end
-

@@ -53,8 +53,8 @@ class NewRelic::Control::InstanceMethodsTest < Minitest::Test
   def test_configure_agent_invalid_yaml_value_logs_to_stdout
     config_path = File.expand_path(File.join(
       File.dirname(__FILE__),
-      '..','..', 'config','newrelic.yml')
-    )
+      '..', '..', 'config', 'newrelic.yml'
+    ))
     @test.configure_agent('invalid', {:config_path => config_path})
     assert NewRelic::Agent.config.instance_variable_get(:@yaml_source).failed?
     expected_err = "** [NewRelic] FATAL : Unexpected value (cultured groats) for 'enabled' in #{config_path}\n"

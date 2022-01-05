@@ -18,7 +18,6 @@ require 'new_relic/control'
 # We need it to add dev mode routes after initialization finished.
 
 begin
-
   current_config = if defined?(config)
     config
   elsif defined?(Rails.configuration)
@@ -26,7 +25,6 @@ begin
   end
 
   NewRelic::Control.instance.init_plugin :config => current_config
-
 rescue => e
   ::NewRelic::Agent.logger.error "Error initializing New Relic plugin. Agent is disabled.", e
 end

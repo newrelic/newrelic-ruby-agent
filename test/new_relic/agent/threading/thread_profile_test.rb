@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 require 'new_relic/agent/threading/backtrace_service'
 require 'new_relic/agent/threading/thread_profile'
@@ -48,26 +48,26 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
       def test_prune_keeps_highest_counts
         @profile.aggregate(@single_trace, :request, Thread.current)
-        @profile.aggregate(@single_trace, :other  , Thread.current)
-        @profile.aggregate(@single_trace, :other  , Thread.current)
+        @profile.aggregate(@single_trace, :other, Thread.current)
+        @profile.aggregate(@single_trace, :other, Thread.current)
 
         @profile.convert_N_trace_nodes_to_arrays(1)
 
         assert_equal 0, count_backtrace_nodes(@profile.traces[:request])
-        assert_equal 1, count_backtrace_nodes(@profile.traces[:other  ])
+        assert_equal 1, count_backtrace_nodes(@profile.traces[:other])
       end
 
       def test_prune_keeps_highest_count_then_depths
         @profile.aggregate(@single_trace, :request, Thread.current)
-        @profile.aggregate(@single_trace, :other  , Thread.current)
+        @profile.aggregate(@single_trace, :other, Thread.current)
 
         @profile.convert_N_trace_nodes_to_arrays(2)
 
         assert_equal 1, count_backtrace_nodes(@profile.traces[:request])
-        assert_equal 1, count_backtrace_nodes(@profile.traces[:other  ])
+        assert_equal 1, count_backtrace_nodes(@profile.traces[:other])
       end
 
-      def build_well_known_trace(args={})
+      def build_well_known_trace(args = {})
         @profile = ThreadProfile.new(args)
 
         thread = stub
@@ -239,6 +239,5 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         count
       end
     end
-
   end
 end

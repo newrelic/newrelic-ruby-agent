@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require "new_relic/agent/javascript_instrumentor"
 require "base64"
 
@@ -11,12 +11,12 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
   def setup
     @config = {
-      :application_id         => '5, 6', # collector can return app multiple ids
-      :beacon                 => 'beacon',
-      :browser_key            => 'browserKey',
-      :js_agent_loader        => 'loader',
-      :license_key            => "\0",  # no-op obfuscation key
-      :'rum.enabled'          => true,
+      :application_id => '5, 6', # collector can return app multiple ids
+      :beacon => 'beacon',
+      :browser_key => 'browserKey',
+      :js_agent_loader => 'loader',
+      :license_key => "\0", # no-op obfuscation key
+      :'rum.enabled' => true,
       :disable_harvest_thread => true
     }
     NewRelic::Agent.config.add_config_for_testing(@config)
@@ -163,14 +163,14 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
 
         data = instrumentor.data_for_js_agent(txn)
         expected = {
-          "beacon"          => "beacon",
-          "errorBeacon"     => "",
-          "licenseKey"      => "browserKey",
-          "applicationID"   => "5, 6",
+          "beacon" => "beacon",
+          "errorBeacon" => "",
+          "licenseKey" => "browserKey",
+          "applicationID" => "5, 6",
           "transactionName" => pack("most recent transaction"),
-          "queueTime"       => 0,
+          "queueTime" => 0,
           "applicationTime" => 10000,
-          "agent"           => ""
+          "agent" => ""
         }
 
         js = instrumentor.browser_timing_config(state)
@@ -246,7 +246,6 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
     end
   end
 
-
   def test_data_for_js_agent_gets_custom_attributes_with_old_config
     with_config(CAPTURE_ATTRIBUTES => true) do
       in_transaction do
@@ -300,15 +299,15 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   END_OF_FOOTER = '}</script>'
 
   def assert_has_js_agent_loader(header)
-    assert_match(%Q[\n<script type="text/javascript">loader</script>],
-                 header,
-                 "expected new JS agent loader 'loader' but saw '#{header}'")
+    assert_match(%Q(\n<script type="text/javascript">loader</script>),
+      header,
+      "expected new JS agent loader 'loader' but saw '#{header}'")
   end
 
   def assert_has_js_agent_loader_with_nonce(header)
-    assert_match(%Q[\n<script type="text/javascript" nonce="NONCE_TEST">loader</script>],
-                 header,
-                 "expected new JS agent loader 'loader' but saw '#{header}'")
+    assert_match(%Q(\n<script type="text/javascript" nonce="NONCE_TEST">loader</script>),
+      header,
+      "expected new JS agent loader 'loader' but saw '#{header}'")
   end
 
   def assert_has_text(snippet, footer)
@@ -341,12 +340,11 @@ class NewRelic::Agent::JavascriptInstrumentorTest < Minitest::Test
   def formatted_for_matching(value)
     case value
     when String
-      %Q["#{value}"]
+      %Q("#{value}")
     when NilClass
       "null"
     else
       value
     end
   end
-
 end

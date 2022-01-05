@@ -2,22 +2,23 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/cli/command'
 require 'new_relic/cli/commands/deployments'
 
 NewRelic::Cli::Deployments.class_eval do
   attr_accessor :messages, :exit_status, :errors, :revision, :license_key
   def err(message); @errors = "#{@errors ||= nil}#{message}"; end
-  def info(message); @messages = "#{@messages ||=nil}#{message}"; end
-  def just_exit(status=0); @exit_status ||= status; end
+
+  def info(message); @messages = "#{@messages ||= nil}#{message}"; end
+
+  def just_exit(status = 0); @exit_status ||= status; end
 end
 
 class NewRelic::Cli::DeploymentsTest < Minitest::Test
-
   def setup
-    @config = { :license_key => 'a' * 40,
-                :config_path => 'test/config/newrelic.yml' }
+    @config = {:license_key => 'a' * 40,
+               :config_path => 'test/config/newrelic.yml'}
     NewRelic::Agent.config.add_config_for_testing(@config)
   end
 
@@ -29,7 +30,6 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
     puts @deployment.exit_status
     NewRelic::Agent.config.remove_config(@config)
   end
-
 
   def test_help
     begin
@@ -51,9 +51,9 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
   def test_interactive
     mock_the_connection
     @deployment = NewRelic::Cli::Deployments.new(:appname => 'APP',
-                                  :revision => 3838,
-                                  :user => 'Bill',
-                                  :description => "Some lengthy description")
+      :revision => 3838,
+      :user => 'Bill',
+      :description => "Some lengthy description")
     assert_nil @deployment.exit_status
     assert_nil @deployment.errors
     assert_equal '3838', @deployment.revision
@@ -71,8 +71,8 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
     @deployment.run
 
     # This should pass because it's a bogus deployment
-    #assert_equal 1, @deployment.exit_status
-    #assert_match /Unable to upload/, @deployment.errors
+    # assert_equal 1, @deployment.exit_status
+    # assert_match /Unable to upload/, @deployment.errors
 
     @deployment = nil
   end
@@ -100,10 +100,10 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
   def test_with_specified_license_key
     mock_the_connection
     @deployment = NewRelic::Cli::Deployments.new(:appname => 'APP',
-                                                     :revision => 3838,
-                                                     :user => 'Bill',
-                                                     :description => "Some lengthy description",
-                                                     :license_key => 'b' * 40)
+      :revision => 3838,
+      :user => 'Bill',
+      :description => "Some lengthy description",
+      :license_key => 'b' * 40)
     assert_nil @deployment.exit_status
     assert_nil @deployment.errors
     assert_equal 'b' * 40, @deployment.license_key
@@ -114,9 +114,9 @@ class NewRelic::Cli::DeploymentsTest < Minitest::Test
   def test_with_unspecified_license_key
     mock_the_connection
     @deployment = NewRelic::Cli::Deployments.new(:appname => 'APP',
-                                                     :revision => 3838,
-                                                     :user => 'Bill',
-                                                     :description => "Some lengthy description")
+      :revision => 3838,
+      :user => 'Bill',
+      :description => "Some lengthy description")
     assert_nil @deployment.exit_status
     assert_nil @deployment.errors
     assert_equal 'a' * 40, @deployment.license_key

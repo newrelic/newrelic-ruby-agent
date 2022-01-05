@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/transaction_metrics'
 require 'new_relic/agent/payload_metric_mapping'
 
@@ -15,8 +15,8 @@ module NewRelic
 
       def test_maps_datastore_all
         @metrics.record_unscoped 'Datastore/all' do |stats|
-         stats.total_call_time = 42
-         stats.call_count = 3
+          stats.total_call_time = 42
+          stats.call_count = 3
         end
 
         result = {}
@@ -46,8 +46,8 @@ module NewRelic
 
       def test_maps_external_all_web
         @metrics.record_unscoped 'External/allWeb' do |stats|
-         stats.total_call_time = 42
-         stats.call_count = 3
+          stats.total_call_time = 42
+          stats.call_count = 3
         end
 
         result = {}
@@ -59,8 +59,8 @@ module NewRelic
 
       def test_maps_external_all_other
         @metrics.record_unscoped 'External/allOther' do |stats|
-         stats.total_call_time = 42
-         stats.call_count = 3
+          stats.total_call_time = 42
+          stats.call_count = 3
         end
 
         result = {}

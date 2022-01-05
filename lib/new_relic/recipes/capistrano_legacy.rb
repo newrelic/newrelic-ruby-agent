@@ -3,38 +3,36 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 make_notify_task = Proc.new do
-
   namespace :newrelic do
-
     # on all deployments, notify New Relic
     desc "Record a deployment in New Relic (newrelic.com)"
-    task :notice_deployment, :roles => :app, :except => {:no_release => true } do
+    task :notice_deployment, :roles => :app, :except => {:no_release => true} do
       rails_env = fetch(:newrelic_rails_env, fetch(:rails_env, "production"))
 
       require 'new_relic/cli/command'
 
       begin
         # allow overrides to be defined for revision, description, changelog, appname, and user
-        rev         = fetch(:newrelic_revision)    if exists?(:newrelic_revision)
-        description = fetch(:newrelic_desc)        if exists?(:newrelic_desc)
-        changelog   = fetch(:newrelic_changelog)   if exists?(:newrelic_changelog)
-        appname     = fetch(:newrelic_appname)     if exists?(:newrelic_appname)
-        user        = fetch(:newrelic_user)        if exists?(:newrelic_user)
+        rev = fetch(:newrelic_revision) if exists?(:newrelic_revision)
+        description = fetch(:newrelic_desc) if exists?(:newrelic_desc)
+        changelog = fetch(:newrelic_changelog) if exists?(:newrelic_changelog)
+        appname = fetch(:newrelic_appname) if exists?(:newrelic_appname)
+        user = fetch(:newrelic_user) if exists?(:newrelic_user)
         license_key = fetch(:newrelic_license_key) if exists?(:newrelic_license_key)
 
         unless scm == :none
           changelog = lookup_changelog(changelog)
-          rev       = lookup_rev(rev)
+          rev = lookup_rev(rev)
         end
 
         new_revision = rev
         deploy_options = {
           :environment => rails_env,
-          :revision    => new_revision,
-          :changelog   => changelog,
+          :revision => new_revision,
+          :changelog => changelog,
           :description => description,
-          :appname     => appname,
-          :user        => user,
+          :appname => appname,
+          :user => user,
           :license_key => license_key
         }
 
@@ -42,7 +40,6 @@ make_notify_task = Proc.new do
         deployment = NewRelic::Cli::Deployments.new deploy_options
         deployment.run
         logger.info "Uploaded deployment information to New Relic"
-
       rescue NewRelic::Cli::Command::CommandFailure => e
         logger.info e.message
       rescue Capistrano::CommandError

@@ -40,7 +40,7 @@ end
 
 # check that pass works properly
 set(:pass_condition) { |_| condition { pass { halt 418, "I'm a teapot." } } }
-get('/pass', :pass_condition => true) { }
+get('/pass', :pass_condition => true) {}
 
 get '/pass' do
   "I'm not a teapot."
@@ -48,7 +48,7 @@ end
 
 error(NewRelic::TestHelpers::Exceptions::TestError) { halt 200, 'nothing happened' }
 set(:error_condition) { |_| condition { raise NewRelic::TestHelpers::Exceptions::TestError } }
-get('/error', :error_condition => true) { }
+get('/error', :error_condition => true) {}
 
 set(:precondition_check) do |_|
   condition do

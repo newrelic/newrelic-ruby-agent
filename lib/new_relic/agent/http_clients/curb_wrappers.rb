@@ -8,7 +8,6 @@ require_relative 'abstract'
 module NewRelic
   module Agent
     module HTTPClients
-
       class CurbRequest
         CURB = 'Curb'
         LHOST = 'host'
@@ -34,7 +33,7 @@ module NewRelic
           @curlobj._nr_http_verb
         end
 
-        def []( key )
+        def [](key)
           @curlobj.headers[key]
         end
 
@@ -48,7 +47,6 @@ module NewRelic
       end
 
       class CurbResponse < AbstractResponse
-
         def initialize wrapped_response
           super wrapped_response
           @headers = {}
@@ -75,8 +73,6 @@ module NewRelic
           get_status_code_using :response_code
         end
       end
-
     end
-
   end
 end

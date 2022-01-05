@@ -14,7 +14,7 @@ module NewRelic::Agent::Instrumentation
               Grape::Instrumentation.capture_transaction env, self
             end
           end
-    
+
           alias_method :call_without_new_relic, :call
           alias_method :call, :call_with_new_relic
         end
@@ -22,4 +22,3 @@ module NewRelic::Agent::Instrumentation
     end
   end
 end
-

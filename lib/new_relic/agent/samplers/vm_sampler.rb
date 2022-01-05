@@ -9,14 +9,14 @@ module NewRelic
   module Agent
     module Samplers
       class VMSampler < Sampler
-        GC_RUNS_METRIC                = 'RubyVM/GC/runs'.freeze
-        HEAP_LIVE_METRIC              = 'RubyVM/GC/heap_live'.freeze
-        HEAP_FREE_METRIC              = 'RubyVM/GC/heap_free'.freeze
-        THREAD_COUNT_METRIC           = 'RubyVM/Threads/all'.freeze
-        OBJECT_ALLOCATIONS_METRIC     = 'RubyVM/GC/total_allocated_object'.freeze
-        MAJOR_GC_METRIC               = 'RubyVM/GC/major_gc_count'.freeze
-        MINOR_GC_METRIC               = 'RubyVM/GC/minor_gc_count'.freeze
-        METHOD_INVALIDATIONS_METRIC   = 'RubyVM/CacheInvalidations/method'.freeze
+        GC_RUNS_METRIC = 'RubyVM/GC/runs'.freeze
+        HEAP_LIVE_METRIC = 'RubyVM/GC/heap_live'.freeze
+        HEAP_FREE_METRIC = 'RubyVM/GC/heap_free'.freeze
+        THREAD_COUNT_METRIC = 'RubyVM/Threads/all'.freeze
+        OBJECT_ALLOCATIONS_METRIC = 'RubyVM/GC/total_allocated_object'.freeze
+        MAJOR_GC_METRIC = 'RubyVM/GC/major_gc_count'.freeze
+        MINOR_GC_METRIC = 'RubyVM/GC/minor_gc_count'.freeze
+        METHOD_INVALIDATIONS_METRIC = 'RubyVM/CacheInvalidations/method'.freeze
         CONSTANT_INVALIDATIONS_METRIC = 'RubyVM/CacheInvalidations/constant'.freeze
 
         attr_reader :transaction_count
@@ -49,7 +49,7 @@ module NewRelic
           end
         end
 
-        def record_gc_runs_metric(snapshot, txn_count) #THREAD_LOCAL_ACCESS
+        def record_gc_runs_metric(snapshot, txn_count) # THREAD_LOCAL_ACCESS
           if snapshot.gc_total_time || snapshot.gc_runs
             if snapshot.gc_total_time
               gc_time = snapshot.gc_total_time - @last_snapshot.gc_total_time.to_f
@@ -59,30 +59,30 @@ module NewRelic
             end
             wall_clock_time = snapshot.taken_at - @last_snapshot.taken_at
             NewRelic::Agent.agent.stats_engine.tl_record_unscoped_metrics(GC_RUNS_METRIC) do |stats|
-              stats.call_count           += txn_count
-              stats.total_call_time      += gc_runs if gc_runs
+              stats.call_count += txn_count
+              stats.total_call_time += gc_runs if gc_runs
               stats.total_exclusive_time += gc_time if gc_time
-              stats.max_call_time         = (gc_time.nil? ? 0 : 1)
-              stats.sum_of_squares       += wall_clock_time
+              stats.max_call_time = (gc_time.nil? ? 0 : 1)
+              stats.sum_of_squares += wall_clock_time
             end
           end
         end
 
-        def record_delta(snapshot, key, metric, txn_count) #THREAD_LOCAL_ACCESS
+        def record_delta(snapshot, key, metric, txn_count) # THREAD_LOCAL_ACCESS
           value = snapshot.send(key)
           if value
             delta = value - @last_snapshot.send(key)
             NewRelic::Agent.agent.stats_engine.tl_record_unscoped_metrics(metric) do |stats|
-              stats.call_count      += txn_count
+              stats.call_count += txn_count
               stats.total_call_time += delta
             end
           end
         end
 
-        def record_gauge_metric(metric_name, value) #THREAD_LOCAL_ACCESS
+        def record_gauge_metric(metric_name, value) # THREAD_LOCAL_ACCESS
           NewRelic::Agent.agent.stats_engine.tl_record_unscoped_metrics(metric_name) do |stats|
-            stats.call_count      = value
-            stats.sum_of_squares  = 1
+            stats.call_count = value
+            stats.sum_of_squares = 1
           end
         end
 

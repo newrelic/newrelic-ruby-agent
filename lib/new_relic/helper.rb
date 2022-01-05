@@ -19,9 +19,9 @@ module NewRelic
     end
 
     def instance_method_visibility(klass, method_name)
-      if klass.private_instance_methods.map{|s|s.to_sym}.include? method_name.to_sym
+      if klass.private_instance_methods.map { |s| s.to_sym }.include? method_name.to_sym
         :private
-      elsif klass.protected_instance_methods.map{|s|s.to_sym}.include? method_name.to_sym
+      elsif klass.protected_instance_methods.map { |s| s.to_sym }.include? method_name.to_sym
         :protected
       else
         :public
@@ -31,9 +31,9 @@ module NewRelic
     def instance_methods_include?(klass, method_name)
       method_name_sym = method_name.to_sym
       (
-        klass.instance_methods.map{ |s| s.to_sym }.include?(method_name_sym)          ||
-        klass.protected_instance_methods.map{ |s|s.to_sym }.include?(method_name_sym) ||
-        klass.private_instance_methods.map{ |s|s.to_sym }.include?(method_name_sym)
+        klass.instance_methods.map { |s| s.to_sym }.include?(method_name_sym) ||
+        klass.protected_instance_methods.map { |s| s.to_sym }.include?(method_name_sym) ||
+        klass.private_instance_methods.map { |s| s.to_sym }.include?(method_name_sym)
       )
     end
 

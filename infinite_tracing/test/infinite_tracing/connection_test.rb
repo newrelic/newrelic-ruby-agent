@@ -8,7 +8,6 @@ require File.expand_path('../../test_helper', __FILE__)
 module NewRelic
   module Agent
     module InfiniteTracing
-
       class ConnectionTest < Minitest::Test
         include FakeTraceObserverHelpers
 
@@ -159,10 +158,10 @@ module NewRelic
 
         def test_handling_ok_and_close_server_response
           timeout_cap 5 do
-            with_detailed_trace do 
+            with_detailed_trace do
               total_spans = 5
               expects_logging(:debug, all_of(includes("closed the stream"), includes("OK response.")), anything)
-            
+
               spans, segments = emulate_streaming_with_ok_close_response(total_spans) do |client, segments, server|
                 server.wait_for_notice
               end
@@ -201,7 +200,7 @@ module NewRelic
           with_serial_lock do
             timeout_cap do
               with_config localhost_config do
-                NewRelic::Agent.agent.service.instance_variable_set(:@request_headers_map, {"NR-UtilizationMetadata"=>"test_metadata"})
+                NewRelic::Agent.agent.service.instance_variable_set(:@request_headers_map, {"NR-UtilizationMetadata" => "test_metadata"})
 
                 connection = Connection.instance # instantiate before simulation
                 simulate_connect_to_collector fiddlesticks_config, 0.01 do |simulator|
@@ -218,10 +217,10 @@ module NewRelic
         # Testing the backoff similarly to connect_test.rb
         def test_increment_retry_period
           unstub_reconnection
-          assert_equal  15, next_retry_period
-          assert_equal  15, next_retry_period
-          assert_equal  30, next_retry_period
-          assert_equal  60, next_retry_period
+          assert_equal 15, next_retry_period
+          assert_equal 15, next_retry_period
+          assert_equal 30, next_retry_period
+          assert_equal 60, next_retry_period
           assert_equal 120, next_retry_period
           assert_equal 300, next_retry_period
           assert_equal 300, next_retry_period
@@ -235,7 +234,6 @@ module NewRelic
           Connection.instance.send(:note_connect_failure)
           result
         end
-
       end
     end
   end

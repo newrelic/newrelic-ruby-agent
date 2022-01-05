@@ -5,7 +5,6 @@
 require 'new_relic/agent/logging'
 
 class LoggingTest < Performance::TestCase
-
   EXAMPLE_MESSAGE = 'This is an example message'.freeze
 
   def test_decorating_logger

@@ -21,24 +21,24 @@ module NewRelic
           end
         end
 
-        SUPPORTABILITY_PREFIX             = "Supportability/TraceContext"
-        CREATE_PREFIX                     = "#{SUPPORTABILITY_PREFIX}/Create"
-        ACCEPT_PREFIX                     = "#{SUPPORTABILITY_PREFIX}/Accept"
-        TRACESTATE_PREFIX                 = "#{SUPPORTABILITY_PREFIX}/TraceState"
+        SUPPORTABILITY_PREFIX = "Supportability/TraceContext"
+        CREATE_PREFIX = "#{SUPPORTABILITY_PREFIX}/Create"
+        ACCEPT_PREFIX = "#{SUPPORTABILITY_PREFIX}/Accept"
+        TRACESTATE_PREFIX = "#{SUPPORTABILITY_PREFIX}/TraceState"
 
-        CREATE_SUCCESS_METRIC             = "#{CREATE_PREFIX}/Success"
-        CREATE_EXCEPTION_METRIC           = "#{CREATE_PREFIX}/Exception"
+        CREATE_SUCCESS_METRIC = "#{CREATE_PREFIX}/Success"
+        CREATE_EXCEPTION_METRIC = "#{CREATE_PREFIX}/Exception"
 
-        ACCEPT_SUCCESS_METRIC             = "#{ACCEPT_PREFIX}/Success"
-        ACCEPT_EXCEPTION_METRIC           = "#{ACCEPT_PREFIX}/Exception"
-        IGNORE_MULTIPLE_ACCEPT_METRIC     = "#{ACCEPT_PREFIX}/Ignored/Multiple"
+        ACCEPT_SUCCESS_METRIC = "#{ACCEPT_PREFIX}/Success"
+        ACCEPT_EXCEPTION_METRIC = "#{ACCEPT_PREFIX}/Exception"
+        IGNORE_MULTIPLE_ACCEPT_METRIC = "#{ACCEPT_PREFIX}/Ignored/Multiple"
         IGNORE_ACCEPT_AFTER_CREATE_METRIC = "#{ACCEPT_PREFIX}/Ignored/CreateBeforeAccept"
 
-        NO_NR_ENTRY_TRACESTATE_METRIC     = "#{TRACESTATE_PREFIX}/NoNrEntry"
+        NO_NR_ENTRY_TRACESTATE_METRIC = "#{TRACESTATE_PREFIX}/NoNrEntry"
         INVALID_TRACESTATE_PAYLOAD_METRIC = "#{TRACESTATE_PREFIX}/InvalidNrEntry"
 
         attr_accessor :trace_context_header_data
-        attr_reader   :trace_state_payload
+        attr_reader :trace_state_payload
 
         def trace_parent_header_present? request
           request[NewRelic::HTTP_TRACEPARENT_KEY]
@@ -48,7 +48,7 @@ module NewRelic
           header_data = NewRelic::Agent::DistributedTracing::TraceContext.parse(
             format: NewRelic::FORMAT_RACK,
             carrier: request,
-            trace_state_entry_key: AccountHelpers.trace_state_entry_key,
+            trace_state_entry_key: AccountHelpers.trace_state_entry_key
           )
           return if header_data.nil?
 
@@ -56,7 +56,7 @@ module NewRelic
         end
         private :accept_trace_context_incoming_request
 
-        def insert_trace_context_header header, format=NewRelic::FORMAT_NON_RACK
+        def insert_trace_context_header header, format = NewRelic::FORMAT_NON_RACK
           return unless Agent.config[:'distributed_tracing.enabled']
 
           NewRelic::Agent::DistributedTracing::TraceContext.insert \
@@ -97,7 +97,6 @@ module NewRelic
             NewRelic::Agent.logger.warn "Not configured to create WC3 trace context payload"
             return
           end
-
 
           span_guid = Agent.config[:'span_events.enabled'] ? transaction.current_segment.guid : nil
           transaction_guid = Agent.config[:'analytics_events.enabled'] ? transaction.guid : nil
@@ -161,7 +160,6 @@ module NewRelic
         def trace_context_inserted?
           @trace_context_inserted ||= false
         end
-
       end
     end
   end

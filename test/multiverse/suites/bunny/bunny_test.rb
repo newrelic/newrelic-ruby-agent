@@ -45,7 +45,7 @@ class BunnyTest < Minitest::Test
   end
 
   def test_cat_headers_not_read_for_pop_by_default
-    cross_process_id     = "321#123"
+    cross_process_id = "321#123"
 
     with_queue do |queue|
       with_config :"cross_application_tracer.enabled" => true, :cross_process_id => cross_process_id, :encoding_key => "abc" do
@@ -104,7 +104,7 @@ class BunnyTest < Minitest::Test
 
   def test_segment_parameters_recorded_for_produce
     with_config(:'distributed_tracing.enabled' => false) do
-      x       = @chan.fanout "activity.events"
+      x = @chan.fanout "activity.events"
       headers = {foo: "bar"}
       in_transaction "test_txn" do
         x.publish "howdy", {
@@ -114,9 +114,9 @@ class BunnyTest < Minitest::Test
           correlation_id: "abc"
         }
       end
-  
+
       node = find_node_with_name_matching last_transaction_trace, /^MessageBroker\//
-  
+
       assert_equal :fanout, node.params[:exchange_type]
       assert_equal "red", node.params[:routing_key]
       assert_equal headers, node.params[:headers]
@@ -166,9 +166,9 @@ class BunnyTest < Minitest::Test
 
     with_queue do |queue|
       in_transaction "test_txn" do
-        #our instrumentation should error here, but not interfere with bunny
+        # our instrumentation should error here, but not interfere with bunny
         queue.publish("test_msg")
-         #this segment should be fine
+        # this segment should be fine
         segment = NewRelic::Agent::Tracer.start_segment name: "Custom/blah/method"
         segment.finish if segment
       end
@@ -219,15 +219,14 @@ class BunnyTest < Minitest::Test
 
         refute_nil tt, "Did not expect tt to be nil. Something terrible has occurred."
 
-        expected_destinations =   NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
-                                  NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
-                                  NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
+        expected_destinations = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER |
+          NewRelic::Agent::AttributeFilter::DST_TRANSACTION_EVENTS |
+          NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
-        assert_equal({ :"message.routingKey" => "some.key",
+        assert_equal({:"message.routingKey" => "some.key",
                        :"message.queueName" => queue.name,
-                       :"message.exchangeType" => :direct,
-                     },
-                     tt.attributes.agent_attributes_for(expected_destinations))
+                       :"message.exchangeType" => :direct},
+          tt.attributes.agent_attributes_for(expected_destinations))
 
         # metrics
         assert_metrics_recorded ["OtherTransaction/Message/RabbitMQ/Exchange/Named/myDirectExchange"]
@@ -237,7 +236,6 @@ class BunnyTest < Minitest::Test
 
   def test_metrics_recorded_for_purge_with_server_named_queue
     with_queue do |queue|
-
       in_transaction "test_txn" do
         queue.publish "test"
         queue.purge
@@ -298,7 +296,6 @@ class BunnyTest < Minitest::Test
     refute_transaction_noticed_error txn, "Timeout::Error"
   end
 
-
   def test_error_starting_message_broker_segment_does_not_interfere_with_transaction
     with_queue do |queue|
       NewRelic::Agent::Tracer.stubs(:start_message_broker_segment).raises(StandardError.new("Boo"))
@@ -307,7 +304,7 @@ class BunnyTest < Minitest::Test
         # This should error
         queue.publish "test_msg"
 
-        #this segment should be fine
+        # this segment should be fine
         segment = NewRelic::Agent::Tracer.start_segment name: "Custom/blah/method"
         segment.finish
       end
@@ -353,7 +350,7 @@ class BunnyTest < Minitest::Test
     end
   end
 
-  def with_queue temp=true, exclusive=true, &block
+  def with_queue temp = true, exclusive = true, &block
     queue_name = temp ? "" : random_string
     queue = @chan.queue(queue_name, exclusive: exclusive)
 

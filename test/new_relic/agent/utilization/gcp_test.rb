@@ -95,7 +95,7 @@ module NewRelic
               assert_equal expected, {gcp: @vendor.metadata}
 
               if test_case[:expected_metrics]
-                test_case[:expected_metrics].each do |metric,v|
+                test_case[:expected_metrics].each do |metric, v|
                   if v[:call_count] == 0
                     if uri_obj[:timeout]
                       refute detection, '@vendor.detect should have returned false'
@@ -111,7 +111,6 @@ module NewRelic
               end
             end
           end
-
         end
       end
     end

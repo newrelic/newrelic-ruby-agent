@@ -9,17 +9,17 @@ require 'new_relic/agent/database/obfuscator'
 module NewRelic
   # columns for a mysql explain plan
   MYSQL_EXPLAIN_COLUMNS = [
-                           "Id",
-                           "Select Type",
-                           "Table",
-                           "Type",
-                           "Possible Keys",
-                           "Key",
-                           "Key Length",
-                           "Ref",
-                           "Rows",
-                           "Extra"
-                          ].freeze
+    "Id",
+    "Select Type",
+    "Table",
+    "Type",
+    "Possible Keys",
+    "Key",
+    "Key Length",
+    "Ref",
+    "Rows",
+    "Extra"
+  ].freeze
 
   module Agent
     module Database
@@ -57,7 +57,7 @@ module NewRelic
         Obfuscator.instance.set_sql_obfuscator(type, &block)
       end
 
-      def record_sql_method(config_section=:transaction_tracer)
+      def record_sql_method(config_section = :transaction_tracer)
         key = record_sql_method_key(config_section)
 
         case Agent.config[key].to_s
@@ -87,11 +87,11 @@ module NewRelic
 
       RECORD_FOR = [:raw, :obfuscated].freeze
 
-      def should_record_sql?(config_section=:transaction_tracer)
+      def should_record_sql?(config_section = :transaction_tracer)
         RECORD_FOR.include?(record_sql_method(config_section))
       end
 
-      def should_collect_explain_plans?(config_section=:transaction_tracer)
+      def should_collect_explain_plans?(config_section = :transaction_tracer)
         should_record_sql?(config_section) &&
           Agent.config["#{config_section}.explain_enabled".to_sym]
       end
@@ -185,7 +185,7 @@ module NewRelic
 
         DEFAULT_QUERY_NAME = "SQL".freeze
 
-        def initialize(sql, config={}, explainer=nil, binds=nil, name=DEFAULT_QUERY_NAME, host=nil, port_path_or_id=nil, database_name=nil)
+        def initialize(sql, config = {}, explainer = nil, binds = nil, name = DEFAULT_QUERY_NAME, host = nil, port_path_or_id = nil, database_name = nil)
           @sql = Database.capture_query(sql)
           @config = config
           @explainer = explainer
@@ -205,9 +205,7 @@ module NewRelic
               Database.obfuscate_sql(self)
             when :raw
               sql.to_s
-            else
-              nil
-            end
+          end
         end
 
         # This takes a connection config hash from ActiveRecord or Sequel and
@@ -220,8 +218,6 @@ module NewRelic
           elsif @config[:uri] && @config[:uri].to_s =~ /^jdbc:([^:]+):/
             # This case is for Sequel with the jdbc-mysql, jdbc-postgres, or jdbc-sqlite3 gems.
             symbolized_adapter($1)
-          else
-            nil
           end
         end
 
@@ -247,11 +243,11 @@ module NewRelic
 
         private
 
-        POSTGIS_PREFIX  = 'postgis'.freeze
+        POSTGIS_PREFIX = 'postgis'.freeze
         POSTGRES_PREFIX = 'postgres'.freeze
-        MYSQL_PREFIX    = 'mysql'.freeze
-        MYSQL2_PREFIX   = 'mysql2'.freeze
-        SQLITE_PREFIX   = 'sqlite'.freeze
+        MYSQL_PREFIX = 'mysql'.freeze
+        MYSQL2_PREFIX = 'mysql2'.freeze
+        SQLITE_PREFIX = 'sqlite'.freeze
 
         def symbolized_adapter(adapter)
           if adapter.start_with?(POSTGRES_PREFIX) || adapter == POSTGIS_PREFIX

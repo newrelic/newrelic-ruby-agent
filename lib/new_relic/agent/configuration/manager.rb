@@ -31,10 +31,10 @@ module NewRelic
 
         def initialize
           reset_to_defaults
-          @callbacks = Hash.new {|hash,key| hash[key] = [] }
+          @callbacks = Hash.new { |hash, key| hash[key] = [] }
         end
 
-        def add_config_for_testing(source, level=0)
+        def add_config_for_testing(source, level = 0)
           raise 'Invalid config type for testing' unless [Hash, DottedHash].include?(source.class)
           invoke_callbacks(:add, source)
           @configs_for_testing << [source.freeze, level]
@@ -45,12 +45,12 @@ module NewRelic
         def remove_config_type(sym)
           source = case sym
           when :security_policy then @security_policy_source
-          when :high_security   then @high_security_source
-          when :environment     then @environment_source
-          when :server          then @server_source
-          when :manual          then @manual_source
-          when :yaml            then @yaml_source
-          when :default         then @default_source
+          when :high_security then @high_security_source
+          when :environment then @environment_source
+          when :server then @server_source
+          when :manual then @manual_source
+          when :yaml then @yaml_source
+          when :default then @default_source
           end
 
           remove_config(source)
@@ -59,14 +59,14 @@ module NewRelic
         def remove_config(source)
           case source
           when SecurityPolicySource then @security_policy_source = nil
-          when HighSecuritySource   then @high_security_source   = nil
-          when EnvironmentSource    then @environment_source     = nil
-          when ServerSource         then @server_source          = nil
-          when ManualSource         then @manual_source          = nil
-          when YamlSource           then @yaml_source            = nil
-          when DefaultSource        then @default_source         = nil
+          when HighSecuritySource then @high_security_source = nil
+          when EnvironmentSource then @environment_source = nil
+          when ServerSource then @server_source = nil
+          when ManualSource then @manual_source = nil
+          when YamlSource then @yaml_source = nil
+          when DefaultSource then @default_source = nil
           else
-            @configs_for_testing.delete_if {|src,lvl| src == source}
+            @configs_for_testing.delete_if { |src, lvl| src == source }
           end
 
           reset_cache
@@ -82,12 +82,12 @@ module NewRelic
 
           case source
           when SecurityPolicySource then @security_policy_source = source
-          when HighSecuritySource   then @high_security_source   = source
-          when EnvironmentSource    then @environment_source     = source
-          when ServerSource         then @server_source          = source
-          when ManualSource         then @manual_source          = source
-          when YamlSource           then @yaml_source            = source
-          when DefaultSource        then @default_source         = source
+          when HighSecuritySource then @high_security_source = source
+          when EnvironmentSource then @environment_source = source
+          when ServerSource then @server_source = source
+          when ManualSource then @manual_source = source
+          when YamlSource then @yaml_source = source
+          when DefaultSource then @default_source = source
           else
             NewRelic::Agent.logger.warn("Invalid config format; config will be ignored: #{source}")
           end
@@ -191,9 +191,9 @@ module NewRelic
         end
 
         def flattened
-          config_stack.reverse.inject({}) do |flat,layer|
+          config_stack.reverse.inject({}) do |flat, layer|
             thawed_layer = layer.to_hash.dup
-            thawed_layer.each do |k,v|
+            thawed_layer.each do |k, v|
               begin
                 thawed_layer[k] = instance_eval(&v) if v.respond_to?(:call)
               rescue => e
@@ -207,9 +207,9 @@ module NewRelic
         end
 
         def apply_mask(hash)
-          MASK_DEFAULTS. \
-            select {|_, proc| proc.call}. \
-            each {|key, _| hash.delete(key) }
+          MASK_DEFAULTS \
+            .select { |_, proc| proc.call } \
+            .each { |key, _| hash.delete(key) }
           hash
         end
 
@@ -228,9 +228,9 @@ module NewRelic
         end
 
         MALFORMED_LABELS_WARNING = "Skipping malformed labels configuration"
-        PARSING_LABELS_FAILURE   = "Failure during parsing labels. Ignoring and carrying on with connect."
+        PARSING_LABELS_FAILURE = "Failure during parsing labels. Ignoring and carrying on with connect."
 
-        MAX_LABEL_COUNT  = 64
+        MAX_LABEL_COUNT = 64
         MAX_LABEL_LENGTH = 255
 
         def parsed_labels
@@ -252,7 +252,7 @@ module NewRelic
         end
 
         def break_label_string_into_pairs(labels)
-          stripped_labels = labels.strip.sub(/^;*/,'').sub(/;*$/,'')
+          stripped_labels = labels.strip.sub(/^;*/, '').sub(/;*$/, '')
           stripped_labels.split(';').map do |pair|
             pair.split(':').map(&:strip)
           end
@@ -268,10 +268,10 @@ module NewRelic
 
         def valid_label_item?(item)
           case item
-          when String  then !item.empty?
+          when String then !item.empty?
           when Numeric then true
-          when true    then true
-          when false   then true
+          when true then true
+          when false then true
           else false
           end
         end
@@ -281,7 +281,7 @@ module NewRelic
           pairs = Array(pairs)
 
           unless valid_label_pairs?(pairs)
-            NewRelic::Agent.logger.warn("#{MALFORMED_LABELS_WARNING}: #{labels||pairs}")
+            NewRelic::Agent.logger.warn("#{MALFORMED_LABELS_WARNING}: #{labels || pairs}")
             return []
           end
 
@@ -289,13 +289,13 @@ module NewRelic
           pairs = remove_duplicates(pairs)
           pairs.map do |key, value|
             {
-              'label_type'  => truncate(key),
+              'label_type' => truncate(key),
               'label_value' => truncate(value.to_s, key)
             }
           end
         end
 
-        def truncate(text, key=nil)
+        def truncate(text, key = nil)
           if text.length > MAX_LABEL_LENGTH
             if key
               msg = "The value for the label '#{key}' is longer than the allowed #{MAX_LABEL_LENGTH} and will be truncated. Value = '#{text}'"
@@ -303,7 +303,7 @@ module NewRelic
               msg = "Label name longer than the allowed #{MAX_LABEL_LENGTH} will be truncated. Name = '#{text}'"
             end
             NewRelic::Agent.logger.warn(msg)
-            text[0..MAX_LABEL_LENGTH-1]
+            text[0..MAX_LABEL_LENGTH - 1]
           else
             text
           end
@@ -331,20 +331,20 @@ module NewRelic
         # Generally only useful during initial construction and tests
         def reset_to_defaults
           @security_policy_source = nil
-          @high_security_source   = nil
-          @environment_source     = EnvironmentSource.new
-          @server_source          = nil
-          @manual_source          = nil
-          @yaml_source            = nil
-          @default_source         = DefaultSource.new
+          @high_security_source = nil
+          @environment_source = EnvironmentSource.new
+          @server_source = nil
+          @manual_source = nil
+          @yaml_source = nil
+          @default_source = DefaultSource.new
 
-          @configs_for_testing    = []
+          @configs_for_testing = []
 
           reset_cache
         end
 
         def reset_cache
-          @cache = Hash.new { |hash,key| hash[key] = self.fetch(key) }
+          @cache = Hash.new { |hash, key| hash[key] = self.fetch(key) }
         end
 
         def log_config(direction, source)
@@ -359,13 +359,13 @@ module NewRelic
 
         def delete_all_configs_for_testing
           @security_policy_source = nil
-          @high_security_source   = nil
-          @environment_source     = nil
-          @server_source          = nil
-          @manual_source          = nil
-          @yaml_source            = nil
-          @default_source         = nil
-          @configs_for_testing    = []
+          @high_security_source = nil
+          @environment_source = nil
+          @server_source = nil
+          @manual_source = nil
+          @yaml_source = nil
+          @default_source = nil
+          @configs_for_testing = []
         end
 
         def num_configs_for_testing
@@ -380,12 +380,12 @@ module NewRelic
 
         def config_stack
           stack = [@security_policy_source,
-                   @high_security_source,
-                   @environment_source,
-                   @server_source,
-                   @manual_source,
-                   @yaml_source,
-                   @default_source]
+            @high_security_source,
+            @environment_source,
+            @server_source,
+            @manual_source,
+            @yaml_source,
+            @default_source]
 
           stack.compact!
 

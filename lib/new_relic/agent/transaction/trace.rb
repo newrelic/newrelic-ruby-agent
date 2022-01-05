@@ -12,7 +12,7 @@ module NewRelic
 
         attr_reader :start_time, :root_node
         attr_accessor :transaction_name, :guid, :attributes,
-                      :node_count, :finished, :threshold, :profile
+          :node_count, :finished, :threshold, :profile
 
         ROOT = "ROOT".freeze
 
@@ -31,7 +31,7 @@ module NewRelic
           node_count = 0
           each_node do |node|
             next if node == root_node
-            node_count +=1
+            node_count += 1
           end
           node_count
         end
@@ -103,20 +103,20 @@ module NewRelic
           @root_node.each_node_with_nest_tracking(&block)
         end
 
-        AGENT_ATTRIBUTES_KEY     = 'agentAttributes'.freeze
-        USER_ATTRIBUTES_KEY      = 'userAttributes'.freeze
+        AGENT_ATTRIBUTES_KEY = 'agentAttributes'.freeze
+        USER_ATTRIBUTES_KEY = 'userAttributes'.freeze
         INTRINSIC_ATTRIBUTES_KEY = 'intrinsics'.freeze
 
         def attributes_for_tracer_destination
           destination = NewRelic::Agent::AttributeFilter::DST_TRANSACTION_TRACER
 
-          agent_attributes     = self.attributes.agent_attributes_for(destination)
-          custom_attributes    = self.attributes.custom_attributes_for(destination)
+          agent_attributes = self.attributes.agent_attributes_for(destination)
+          custom_attributes = self.attributes.custom_attributes_for(destination)
           intrinsic_attributes = self.attributes.intrinsic_attributes_for(destination)
 
           {
-            AGENT_ATTRIBUTES_KEY     => agent_attributes,
-            USER_ATTRIBUTES_KEY      => custom_attributes,
+            AGENT_ATTRIBUTES_KEY => agent_attributes,
+            USER_ATTRIBUTES_KEY => custom_attributes,
             INTRINSIC_ATTRIBUTES_KEY => intrinsic_attributes
           }
         end

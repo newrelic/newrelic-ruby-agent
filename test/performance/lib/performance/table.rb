@@ -7,17 +7,17 @@ module Performance
     class Formatter
       attr_reader :name
 
-      def initialize(name, format_string=nil, &blk)
+      def initialize(name, format_string = nil, &blk)
         @name = name
         @format_string = format_string
-        @format_proc   = blk
+        @format_proc = blk
       end
 
       def measure(value)
         format(value).size
       end
 
-      def format(value, width=nil)
+      def format(value, width = nil)
         formatted = if @format_string
           sprintf(@format_string, value)
         elsif @format_proc
@@ -33,7 +33,7 @@ module Performance
       def justify(value, formatted, width)
         case value
         when Numeric then formatted.rjust(width)
-        else              formatted.ljust(width)
+        else formatted.ljust(width)
         end
       end
     end
@@ -45,7 +45,7 @@ module Performance
         @formatters = []
       end
 
-      def column(name, format_string=nil, &blk)
+      def column(name, format_string = nil, &blk)
         @formatters << Formatter.new(name, format_string, &blk)
       end
     end
@@ -79,10 +79,10 @@ module Performance
     def render
       widths = column_widths
 
-      blanks    = widths.map { |w| "-" * w }
-      top       = '+-' + blanks.join('-+-') + '-+'
+      blanks = widths.map { |w| "-" * w }
+      top = '+-' + blanks.join('-+-') + '-+'
       separator = '|-' + blanks.join('-+-') + '-|'
-      bottom    = '+-' + blanks.join('-+-') + '-+'
+      bottom = '+-' + blanks.join('-+-') + '-+'
 
       text_rows = []
 

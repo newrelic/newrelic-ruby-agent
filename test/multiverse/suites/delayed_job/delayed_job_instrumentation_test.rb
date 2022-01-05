@@ -43,7 +43,7 @@ if defined?(Delayed::Backend::ActiveRecord) && Delayed::Worker.respond_to?(:dela
       # to install our instrumentation.  Delayed::Workers are not initialized when running
       # tests inline so we have to manually instantiate one to install our instrumentation.
       # We also need to take care to only install the instrumentation once.
-      unless Delayed::Job.instance_methods.any? { |m|  m == :invoke_job_without_new_relic || m == "invoke_job_without_new_relic" }
+      unless Delayed::Job.instance_methods.any? { |m| m == :invoke_job_without_new_relic || m == "invoke_job_without_new_relic" }
         Delayed::Worker.new
       end
     end

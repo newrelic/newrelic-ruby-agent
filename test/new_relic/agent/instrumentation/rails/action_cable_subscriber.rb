@@ -6,7 +6,6 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionCableSubscriberTest < Minitest::Test
-
         def setup
           nr_freeze_process_time
           @subscriber = ActionCableSubscriber.new
@@ -30,9 +29,9 @@ module NewRelic
           @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
 
           assert_equal('Controller/ActionCable/TestChannel/test_action',
-                       last_transaction_trace.transaction_name)
+            last_transaction_trace.transaction_name)
           assert_equal('Controller/ActionCable/TestChannel/test_action',
-                       last_transaction_trace.root_node.children[0].metric_name)
+            last_transaction_trace.root_node.children[0].metric_name)
         end
 
         def test_records_apdex_metrics
@@ -40,7 +39,7 @@ module NewRelic
           advance_process_time(1.5)
           @subscriber.finish('perform_action.action_cable', :id, payload_for_perform_action)
 
-          expected_values = { :apdex_f => 0, :apdex_t => 1, :apdex_s => 0 }
+          expected_values = {:apdex_f => 0, :apdex_t => 1, :apdex_s => 0}
           assert_metrics_recorded(
             'Apdex/ActionCable/TestChannel/test_action' => expected_values,
             'Apdex' => expected_values
@@ -104,7 +103,7 @@ module NewRelic
         end
 
         def payload_for_perform_action action = 'test_action'
-          {:channel_class => "TestChannel", :action => action.to_sym, :data => {"action"=>"#{action}"}}
+          {:channel_class => "TestChannel", :action => action.to_sym, :data => {"action" => "#{action}"}}
         end
 
         def payload_for_transmit data = {}, via = nil
@@ -114,4 +113,3 @@ module NewRelic
     end
   end
 end
-

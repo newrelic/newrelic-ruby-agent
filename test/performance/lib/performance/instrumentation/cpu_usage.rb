@@ -17,7 +17,7 @@ module Performance
 
       def results
         {
-          :cpu_time_user   => @times_after.utime - @times_before.utime,
+          :cpu_time_user => @times_after.utime - @times_before.utime,
           :cpu_time_system => @times_after.stime - @times_before.stime
         }
       end

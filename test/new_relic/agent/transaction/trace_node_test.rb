@@ -42,7 +42,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
     parent.children << child
     parent.end_trace(4)
     expected_array = [1000, 4000, 'Custom/test/parent', {:test => 'value'},
-                      [[2000, 3000, 'Custom/test/child', {}, []]]]
+      [[2000, 3000, 'Custom/test/child', {}, []]]]
     assert_equal(expected_array, parent.to_array)
   end
 
@@ -59,7 +59,6 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
     fake_node = mock('node')
     fake_node.expects(:path_string).returns('Custom/other/metric[]')
-
 
     s.children << fake_node
     assert_equal("Custom/test/metric[Custom/other/metric[]]", s.path_string)
@@ -265,7 +264,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
 
   def test_explain_sql_raising_an_error
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
-    config = { :adapter => 'mysql' }
+    config = {:adapter => 'mysql'}
     statement = NewRelic::Agent::Database::Statement.new('SELECT')
     statement.config = config
     statement.explainer = NewRelic::Agent::Instrumentation::ActiveRecord::EXPLAINER
@@ -277,7 +276,7 @@ class NewRelic::Agent::Transaction::TraceNodeTest < Minitest::Test
   def test_explain_sql_can_handle_missing_config
     # If TT node came over from Resque child, might not be a Statement
     s = NewRelic::Agent::Transaction::TraceNode.new('Custom/test/metric', Process.clock_gettime(Process::CLOCK_REALTIME))
-    s.params = { :sql => "SELECT * FROM galaxy" }
+    s.params = {:sql => "SELECT * FROM galaxy"}
     s.explain_sql
   end
 

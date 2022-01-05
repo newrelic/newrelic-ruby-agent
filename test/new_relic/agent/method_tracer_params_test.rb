@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
   METRIC = "metric"
@@ -35,18 +35,23 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     def no_args
       {foo: {bar: "foobar"}}
     end
+
     def last_arg_expects_a_hash foo, bar = {}
       {foo => bar}
     end
+
     def last_arg_is_a_keyword foo, bar:
       {foo => bar}
     end
+
     def all_args_are_keywords(foo: '', bar: '')
       {foo => bar}
     end
+
     def wildcard_args *args
-      { args[0] => args[1] }
+      {args[0] => args[1]}
     end
+
     def args_and_kwargs *args, **kwargs
       {args[0] => kwargs}
     end
@@ -120,21 +125,18 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
     call_expecting_warning_after_ruby_26 traced_class
   end
 
-  [ ["untraced_methods", UntracedMethods],
+  [["untraced_methods", UntracedMethods],
     ["traced_methods", TracedMethods],
     ["traced_metric_methods", TracedMetricMethods],
-    ["traced_metric_methods_unscoped", TracedMetricMethodsUnscoped],
-  ].each do |traced_class_name, traced_class|
-
+    ["traced_metric_methods_unscoped", TracedMetricMethodsUnscoped]].each do |traced_class_name, traced_class|
     # We're doing it all in one big super test because order of invocation matters!
     # When many small test scenarios, if the tests for deprecation warnings emitted
     # by the compiler are not invoked first, then we miss our chance to capture
     # that output and assert/refute reliably.
     # This very large run ensures order of calls always happen in predictable order.
     define_method "test_expected_results_#{traced_class_name}" do
-
       expected = {foo: {bar: "foobar"}}
-      expected369 = {1=>3, 2=>6, 3=>9}
+      expected369 = {1 => 3, 2 => 6, 3 => 9}
       instance = traced_class.new
 
       # Test deprecation warnings first!
@@ -164,9 +166,8 @@ class NewRelic::Agent::MethodTracerParamsTest < Minitest::Test
       assert_equal expected369, instance.modifies_hash
 
       # This is what changes in 3.0!
-      version_specific_expected = RUBY_VERSION >= "3.0.0" ? { foo: {} } : expected
+      version_specific_expected = RUBY_VERSION >= "3.0.0" ? {foo: {}} : expected
       silence_expected_warnings { assert_equal version_specific_expected, instance.args_and_kwargs(:foo, {bar: "foobar"}) }
     end
   end
-
 end

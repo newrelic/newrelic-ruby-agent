@@ -2,13 +2,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__), '..', '..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/attributes'
 require 'new_relic/agent/attribute_filter'
 
 class AttributesTest < Minitest::Test
-
-  Attributes      = NewRelic::Agent::Attributes
+  Attributes = NewRelic::Agent::Attributes
   AttributeFilter = NewRelic::Agent::AttributeFilter
 
   def setup
@@ -52,10 +51,10 @@ class AttributesTest < Minitest::Test
   end
 
   def test_merge_custom_attributes
-      attributes = create_attributes
-      params = {:foo => {:bar => "baz"}}
-      attributes.merge_custom_attributes(params)
-      assert_equal({"foo.bar" => "baz"}, attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
+    attributes = create_attributes
+    params = {:foo => {:bar => "baz"}}
+    attributes.merge_custom_attributes(params)
+    assert_equal({"foo.bar" => "baz"}, attributes.custom_attributes_for(AttributeFilter::DST_TRANSACTION_TRACER))
   end
 
   def test_adds_agent_attribute
@@ -231,7 +230,7 @@ class AttributesTest < Minitest::Test
     with_config(:'attributes.include' => "request.parameters.*") do
       attributes = create_attributes
       params = {
-        "a"*256 => "too long",
+        "a" * 256 => "too long",
         "foo" => "bar"
       }
       attributes.merge_untrusted_agent_attributes(params, 'request.parameters', AttributeFilter::DST_NONE)
@@ -242,7 +241,7 @@ class AttributesTest < Minitest::Test
   def test_merge_untrusted_agent_attributes_disallowed_in_high_security
     with_config(:high_security => true, :'attributes.include' => "request.parameters.*") do
       attributes = create_attributes
-      params = { "sneaky" => "code" }
+      params = {"sneaky" => "code"}
 
       attributes.merge_untrusted_agent_attributes('request.parameters', params, AttributeFilter::DST_NONE)
       assert_empty agent_attributes(attributes)

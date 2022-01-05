@@ -4,7 +4,7 @@
 
 module Performance
   class JSONReporter
-    def initialize(results, elapsed, options={})
+    def initialize(results, elapsed, options = {})
       @results = results
     end
 

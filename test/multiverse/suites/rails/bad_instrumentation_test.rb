@@ -12,7 +12,7 @@ class BadInstrumentationController < ApplicationController
   # https://newrelic.atlassian.net/browse/RUBY-1158
   def failwhale
     NewRelic::Agent::Tracer.start_segment name: "Controller/BadInstrumentationController/failwhale"
-    render body:  'everything went great'
+    render body: 'everything went great'
   end
 end
 

@@ -5,7 +5,7 @@
 module NewRelic
   module Agent
     class SyntheticsMonitor < InboundRequestMonitor
-      SYNTHETICS_HEADER_KEY  = 'HTTP_X_NEWRELIC_SYNTHETICS'.freeze
+      SYNTHETICS_HEADER_KEY = 'HTTP_X_NEWRELIC_SYNTHETICS'.freeze
 
       SUPPORTED_VERSION = 1
       EXPECTED_PAYLOAD_LENGTH = 5
@@ -14,7 +14,7 @@ module NewRelic
         events.subscribe(:before_call, &method(:on_before_call))
       end
 
-      def on_before_call(request) #THREAD_LOCAL_ACCESS
+      def on_before_call(request) # THREAD_LOCAL_ACCESS
         encoded_header = request[SYNTHETICS_HEADER_KEY]
         return unless encoded_header
 
@@ -27,11 +27,10 @@ module NewRelic
 
         txn = Tracer.current_transaction
         txn.raw_synthetics_header = encoded_header
-        txn.synthetics_payload    = incoming_payload
+        txn.synthetics_payload = incoming_payload
       end
 
       class << self
-
         def is_supported_version?(incoming_payload)
           incoming_payload.first == SUPPORTED_VERSION
         end
@@ -46,11 +45,9 @@ module NewRelic
         end
 
         def reject_messaging_synthetics_header headers
-          headers.reject {|k,_| k == CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER}
+          headers.reject { |k, _| k == CrossAppTracing::NR_MESSAGE_BROKER_SYNTHETICS_HEADER }
         end
-
       end
-
     end
   end
 end

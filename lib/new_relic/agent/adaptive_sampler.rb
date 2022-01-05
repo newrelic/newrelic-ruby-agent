@@ -5,7 +5,6 @@
 module NewRelic
   module Agent
     class AdaptiveSampler
-
       def initialize target_samples = 10, period_duration = 60
         @target = target_samples
         @seen = 0
@@ -41,7 +40,7 @@ module NewRelic
       end
 
       def exponential_backoff
-        @target ** (@target.to_f / @sampled_count) - @target ** 0.5
+        @target**(@target.to_f / @sampled_count) - @target**0.5
       end
 
       def stats
@@ -62,7 +61,7 @@ module NewRelic
         return unless @period_start + @period_duration <= now
 
         elapsed_periods = Integer((now - @period_start) / @period_duration)
-        @period_start = @period_start + elapsed_periods * @period_duration
+        @period_start += elapsed_periods * @period_duration
 
         @first_period = false
         @seen_last = elapsed_periods > 1 ? 0 : @seen

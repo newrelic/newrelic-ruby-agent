@@ -23,7 +23,6 @@ require 'new_relic/agent'
 require 'new_relic/delayed_job_injection'
 
 module NewRelic
-
   # The Control is a singleton responsible for the startup and
   # initialization sequence.  The initializer uses a LocalEnvironment to
   # detect the framework and instantiates the framework specific

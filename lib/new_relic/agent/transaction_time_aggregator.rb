@@ -14,7 +14,7 @@ module NewRelic
     module TransactionTimeAggregator
       TransactionStats = Struct.new :transaction_started_at, :elapsed_transaction_time
 
-      @lock                     = Mutex.new
+      @lock = Mutex.new
       @harvest_cycle_started_at = Process.clock_gettime(Process::CLOCK_REALTIME)
 
       @stats = Hash.new do |h, k|
@@ -50,7 +50,7 @@ module NewRelic
           end
 
           active_threads = @stats.size
-          elapsed_harvest_time      = (timestamp - @harvest_cycle_started_at) * active_threads
+          elapsed_harvest_time = (timestamp - @harvest_cycle_started_at) * active_threads
           @harvest_cycle_started_at = timestamp
 
           # Clear out the stats for all threads, _except_ the live ones
@@ -75,9 +75,9 @@ module NewRelic
       end
 
       module_function :reset!,
-                      :transaction_start,
-                      :transaction_stop,
-                      :harvest!
+        :transaction_start,
+        :transaction_stop,
+        :harvest!
 
       class << self
         private
@@ -146,7 +146,7 @@ module NewRelic
         def log_missing_elapsed_transaction_time
           transaction_name = Tracer.current_transaction &&
             Tracer.current_transaction.best_name ||
-              "unknown"
+            "unknown"
           NewRelic::Agent.logger.warn("Unable to calculate elapsed transaction time for #{transaction_name}")
         end
       end

@@ -47,11 +47,11 @@ class MongoServer
 
   def ping
     return unless self.client
-    self.client['admin'].command( { 'ping' => 1 } )
+    self.client['admin'].command({'ping' => 1})
   end
 
   def pingable?
-    ping == { "ok" => 1.0 }
+    ping == {"ok" => 1.0}
   end
 
   def make_directories
@@ -115,7 +115,7 @@ class MongoServer
   def startup_command
     pid_file = "--pidfilepath #{pid_path}"
     log_file = "--logpath #{log_path} "
-    fork     = "--fork"
+    fork = "--fork"
 
     dbpath = "--dbpath #{db_path}"
     port_flag = "--port #{self.port}"
@@ -202,7 +202,7 @@ class MongoServer
 
     retry_on_exception(:exception => Errno::EEXIST, :tries => 10) do
       self.port = next_available_port
-      File.new(port_lock_path, File::CREAT|File::EXCL)
+      File.new(port_lock_path, File::CREAT | File::EXCL)
     end
   end
 

@@ -7,7 +7,6 @@ module NewRelic
   module Agent
     class Transaction
       class Segment
-
         def segment_complete
           record_span_event
         end

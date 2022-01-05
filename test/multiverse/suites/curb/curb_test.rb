@@ -9,13 +9,11 @@ require 'http_client_test_cases'
 require 'new_relic/agent/http_clients/curb_wrappers'
 
 class CurbTest < Minitest::Test
-
   #
   # Tests
   #
 
   include HttpClientTestCases
-
 
   def test_shouldnt_clobber_existing_header_callback
     headers = []
@@ -92,7 +90,6 @@ class CurbTest < Minitest::Test
     assert_equal(200, status_code)
   end
 
-
   def test_doesnt_propagate_errors_in_instrumentation
     NewRelic::Agent::CrossAppTracing.stubs(:cross_app_enabled?).raises("Booom")
 
@@ -101,18 +98,17 @@ class CurbTest < Minitest::Test
     assert_kind_of Curl::Easy, res
   end
 
-
   def test_works_with_parallel_fetches
     results = []
     other_url = "http://localhost:#{$fake_server.port}/"
 
     in_transaction("test") do
-      Curl::Multi.get [default_url,other_url] do |easy|
+      Curl::Multi.get [default_url, other_url] do |easy|
         results << easy.body_str
       end
 
       results.each do |res|
-        assert_match %r/<head>/i, res
+        assert_match %r{<head>}i, res
       end
     end
 
@@ -161,7 +157,7 @@ class CurbTest < Minitest::Test
     get_response "http://localhost:666/evil"
   end
 
-  def get_response url=nil, headers=nil
+  def get_response url = nil, headers = nil
     if @get_response_proc
       @get_response_proc.call(url)
     else
@@ -200,7 +196,7 @@ class CurbTest < Minitest::Test
     NewRelic::Agent::HTTPClients::CurbRequest.new(Curl::Easy.new("http://localhost"))
   end
 
-  def response_instance headers={}
+  def response_instance headers = {}
     res = NewRelic::Agent::HTTPClients::CurbResponse.new(Curl::Easy.new("http://localhost"))
     headers.each do |hdr, val|
       res.append_header_data "#{hdr}: #{val}"
@@ -208,5 +204,4 @@ class CurbTest < Minitest::Test
 
     return res
   end
-
 end

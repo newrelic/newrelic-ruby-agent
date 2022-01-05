@@ -10,7 +10,6 @@ module NewRelic
     module Instrumentation
       module ActiveRecordHelper
         class InstanceIdentificationTest < Minitest::Test
-
           def test_for_constructs_id_with_configured_host_and_port
             config = {
               :host => "jonan.local",
@@ -47,7 +46,7 @@ module NewRelic
           end
 
           def test_for_constructs_id_with_configured_host_without_port
-            config = { :host => "jonan.gummy_planet" }
+            config = {:host => "jonan.gummy_planet"}
 
             host = InstanceIdentification.host(config)
             ppid = InstanceIdentification.port_path_or_id(config)
@@ -57,7 +56,7 @@ module NewRelic
           end
 
           def test_for_constructs_id_with_port_without_host
-            config = { :port => 1337 }
+            config = {:port => 1337}
 
             host = InstanceIdentification.host(config)
             ppid = InstanceIdentification.port_path_or_id(config)
@@ -108,8 +107,8 @@ module NewRelic
           end
 
           def test_supports_supported_adapters
-            %w(mysql mysql2 postgresql).each do |adapter|
-              assert InstanceIdentification.supported_adapter?({:adapter => adapter })
+            %w[mysql mysql2 postgresql].each do |adapter|
+              assert InstanceIdentification.supported_adapter?({:adapter => adapter})
             end
           end
 
@@ -124,7 +123,7 @@ module NewRelic
 
               in_transaction do
                 config = convert_test_case_to_config test
-                product, operation, collection = ActiveRecordHelper.product_operation_collection_for "Blog Find", nil , config[:adapter]
+                product, operation, collection = ActiveRecordHelper.product_operation_collection_for "Blog Find", nil, config[:adapter]
                 host = ActiveRecordHelper::InstanceIdentification.host(config)
                 port_path_or_id = ActiveRecordHelper::InstanceIdentification.port_path_or_id(config)
 
@@ -150,7 +149,7 @@ module NewRelic
           }
 
           def convert_test_case_to_config test_case
-            config = test_case.inject({}) do |memo, (k,v)|
+            config = test_case.inject({}) do |memo, (k, v)|
               if config_key = CONFIG_NAMES[k]
                 memo[config_key] = v
               end

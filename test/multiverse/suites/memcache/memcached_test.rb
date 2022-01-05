@@ -104,7 +104,7 @@ if defined?(Memcached)
       end
 
       in_web_transaction("Controller/#{self.class}/action") do
-        @cache.cas(key) {|val| val += 2}
+        @cache.cas(key) { |val| val += 2 }
       end
 
       assert_memcache_metrics_recorded expected_metrics
@@ -179,7 +179,7 @@ if defined?(Memcached)
       end
 
       in_background_transaction("OtherTransaction/Background/#{self.class}/bg_task") do
-        @cache.cas(key) {|val| val += 2}
+        @cache.cas(key) { |val| val += 2 }
       end
 
       assert_memcache_metrics_recorded expected_metrics

@@ -6,7 +6,6 @@
 module NewRelic::Agent
   module InfiniteTracing
     class RecordSpanHandler
-
       HURDLE_INCREMENT = 3
 
       def initialize server, record_spans, id

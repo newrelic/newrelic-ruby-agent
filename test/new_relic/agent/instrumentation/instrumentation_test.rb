@@ -5,8 +5,7 @@
 require File.expand_path '../../../../test_helper', __FILE__
 
 class NewRelic::Agent::Instrumentation::InstrumentationTest < Minitest::Test
-
-  Dir.glob('lib/new_relic/agent/instrumentation/**/*.rb') do |filename| 
+  Dir.glob('lib/new_relic/agent/instrumentation/**/*.rb') do |filename|
     sub_folder = File.dirname(filename).split("/")[-1]
     base_name = File.basename(filename).split(".")[0]
 

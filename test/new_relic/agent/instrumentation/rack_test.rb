@@ -16,7 +16,6 @@ class MinimalRackApp
 end
 
 class NewRelic::Agent::Instrumentation::RackTest < Minitest::Test
-
   def generate_minimal_rack_app mock_response
     generator = NewRelic::Agent::Instrumentation::MiddlewareProxy.for_class(MinimalRackApp)
     generator.new(mock_response)

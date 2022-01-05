@@ -4,7 +4,6 @@
 
 module NewRelic::Agent::Instrumentation
   module Rack
-    
     module URLMap
       module Prepend
         def initialize(map = {})

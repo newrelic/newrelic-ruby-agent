@@ -92,7 +92,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
 
   # Let base class override this without moving where we start the agent
   def setup_collector_mocks
-    $collector.stub('connect', {"agent_run_id" => 666 }, 200)
+    $collector.stub('connect', {"agent_run_id" => 666}, 200)
   end
 
   def last_error
@@ -144,31 +144,31 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def test_should_capture_error_raised_in_controller
     get '/error/controller_error'
     assert_error_reported_once('this is an uncaught controller error',
-                               'Controller/error/controller_error')
+      'Controller/error/controller_error')
   end
 
   def test_should_capture_error_raised_in_model
     get '/error/model_error'
     assert_error_reported_once('this is an uncaught model error',
-                               'Controller/error/model_error')
+      'Controller/error/model_error')
   end
 
   def test_should_capture_noticed_error_in_controller
     get '/error/noticed_error'
     assert_error_reported_once('this error should be noticed',
-                               'Controller/error/noticed_error')
+      'Controller/error/noticed_error')
   end
 
   def test_should_capture_frozen_errors
     get '/error/frozen_error'
     assert_error_reported_once("frozen errors make a refreshing treat on a hot summer day",
-                               "Controller/error/frozen_error")
+      "Controller/error/frozen_error")
   end
 
   def test_should_capture_string_noticed_errors
     get '/error/string_noticed_error'
     assert_error_reported_once("trilobites died out millions of years ago",
-                               "Controller/error/string_noticed_error")
+      "Controller/error/string_noticed_error")
   end
 
   # Important choice of controllor_error, since this goes through both the
@@ -179,8 +179,8 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     end
 
     assert_errors_reported('this is an uncaught controller error',
-                           NewRelic::Agent::ErrorCollector::MAX_ERROR_QUEUE_LENGTH,
-                           40, nil, 40)
+      NewRelic::Agent::ErrorCollector::MAX_ERROR_QUEUE_LENGTH,
+      40, nil, 40)
   end
 
   def test_should_capture_manually_noticed_error
@@ -205,20 +205,20 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   def test_should_not_notice_errors_from_ignored_action
     get '/error/ignored_action'
     assert(errors.empty?,
-           'Noticed an error that should have been ignored')
+      'Noticed an error that should have been ignored')
   end
 
   def test_should_not_notice_ignored_error_classes
     get '/error/ignored_error'
     assert(errors.empty?,
-           'Noticed an error that should have been ignored')
+      'Noticed an error that should have been ignored')
   end
 
   def test_should_not_fail_apdex_for_ignored_error_class_noticed
     get '/error/ignored_error'
     assert_metrics_recorded({
-      'Apdex'                     => { :apdex_f => 0 },
-      'Apdex/error/ignored_error' => { :apdex_f => 0 }
+      'Apdex' => {:apdex_f => 0},
+      'Apdex/error/ignored_error' => {:apdex_f => 0}
     })
   end
 
@@ -232,7 +232,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     end
 
     assert(errors.empty?,
-           'Noticed an error that should have been ignored')
+      'Noticed an error that should have been ignored')
   end
 
   def test_should_not_notice_ignored_status_codes
@@ -292,17 +292,16 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
     get '/error/noticed_error_with_expected_error'
 
     assert_equal(1, errors.size,
-                 'Error with :expected should have been recorded')
+      'Error with :expected should have been recorded')
 
     assert_metrics_not_recorded([
       'Errors/all',
       'Errors/Controller/error/noticed_error_with_expected_error'
     ])
 
-    assert_metrics_recorded("Apdex" => { :apdex_s => 1 })
+    assert_metrics_recorded("Apdex" => {:apdex_s => 1})
     assert_metrics_recorded(["ErrorsExpected/all"])
   end
-
 
   protected
 
@@ -311,16 +310,16 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
   end
 
   def errors_with_message(message)
-    errors.select{|error| error.message == message}
+    errors.select { |error| error.message == message }
   end
 
-  def assert_errors_reported(message, queued_count, total_count=queued_count, txn_name=nil, apdex_f=1)
-    expected = { :call_count => total_count }
+  def assert_errors_reported(message, queued_count, total_count = queued_count, txn_name = nil, apdex_f = 1)
+    expected = {:call_count => total_count}
     assert_metrics_recorded("Errors/all" => expected)
     assert_metrics_recorded("Errors/#{txn_name}" => expected) if txn_name
 
     unless apdex_f.nil?
-      assert_metrics_recorded("Apdex" => { :apdex_f => apdex_f })
+      assert_metrics_recorded("Apdex" => {:apdex_f => apdex_f})
     end
 
     assert_equal(queued_count,
@@ -328,7 +327,7 @@ class ErrorsWithoutSSCTest < ActionDispatch::IntegrationTest
       "Wrong number of errors with message #{message.inspect} found")
   end
 
-  def assert_error_reported_once(message, txn_name=nil, apdex_f=1)
+  def assert_error_reported_once(message, txn_name = nil, apdex_f = 1)
     assert_errors_reported(message, 1, 1, txn_name, apdex_f)
   end
 end
@@ -339,7 +338,7 @@ class ErrorsWithSSCTest < ErrorsWithoutSSCTest
       "agent_run_id" => 1,
       "agent_config" => {
         "error_collector.ignore_errors" => 'NewRelic::TestHelpers::Exceptions::IgnoredError,NewRelic::TestHelpers::Exceptions::ServerIgnoredError',
-        "error_collector.enabled" => true,
+        "error_collector.enabled" => true
       },
       "collect_errors" => true
     }, 200)
@@ -353,7 +352,6 @@ class ErrorsWithSSCTest < ErrorsWithoutSSCTest
     get '/error/server_ignored_error'
 
     assert(errors.empty?,
-           'Noticed an error that should have been ignored' + errors.join(', '))
+      'Noticed an error that should have been ignored' + errors.join(', '))
   end
-
 end

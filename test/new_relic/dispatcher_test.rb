@@ -2,11 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 
 # Test logic around detecting or configuring dispatcher
 class DispatcherTest < Minitest::Test
-
   def setup
     NewRelic::Agent.shutdown
     NewRelic::Agent.reset_config
@@ -51,10 +50,9 @@ class DispatcherTest < Minitest::Test
   end
 
   def test_detects_dispatcher_based_on_arguments_to_manual_start
-    NewRelic::Agent.manual_start(:dispatcher   => :resque)
+    NewRelic::Agent.manual_start(:dispatcher => :resque)
     assert_equal :resque, NewRelic::Agent.config[:dispatcher]
     assert_dispatcher_reported_to_environment_report :resque
     NewRelic::Agent.shutdown
   end
-
 end

@@ -10,15 +10,16 @@ require 'new_relic/rack/agent_hooks'
 class CrossApplicationTracingTest < Minitest::Test
   include MultiverseHelpers
   setup_and_teardown_agent(:'cross_application_tracer.enabled' => true,
-                           :'distributed_tracing.enabled' => false,
-                           :cross_process_id => "boo",
-                           :encoding_key => "\0",
-                           :trusted_account_ids => [1]) \
+    :'distributed_tracing.enabled' => false,
+    :cross_process_id => "boo",
+    :encoding_key => "\0",
+    :trusted_account_ids => [1]) \
   do |collector|
     collector.stub('connect', {
       'agent_run_id' => 666,
       'transaction_name_rules' => [{"match_expression" => "ignored_transaction",
-                                    "ignore"           => true}]})
+                                    "ignore" => true}]
+    })
   end
 
   include Rack::Test::Methods
@@ -61,7 +62,7 @@ class CrossApplicationTracingTest < Minitest::Test
     if !test_case["outboundRequests"]
       if test_case['inboundPayload']
         request_headers = {
-          'HTTP_X_NEWRELIC_ID'          => Base64.encode64('1#234'),
+          'HTTP_X_NEWRELIC_ID' => Base64.encode64('1#234'),
           'HTTP_X_NEWRELIC_TRANSACTION' => json_dump_and_encode(test_case['inboundPayload'])
         }
       else
@@ -70,8 +71,8 @@ class CrossApplicationTracingTest < Minitest::Test
 
       define_method("test_#{test_case['name']}") do
         txn_name_parts = test_case['transactionName'].split('/')
-        txn_category   = txn_name_parts[0..1].join('/')
-        txn_name       = txn_name_parts[2..-1].join('/')
+        txn_category = txn_name_parts[0..1].join('/')
+        txn_name = txn_name_parts[2..-1].join('/')
 
         request_params = {
           'transaction_name' => txn_name,
@@ -80,8 +81,8 @@ class CrossApplicationTracingTest < Minitest::Test
         }
 
         with_config('app_name' => test_case['appName'],
-                    :'cross_application_tracer.enabled' => true,
-                    :'distributed_tracing.enabled'      => false) do
+          :'cross_application_tracer.enabled' => true,
+          :'distributed_tracing.enabled'      => false) do
           get '/', request_params, request_headers
         end
 

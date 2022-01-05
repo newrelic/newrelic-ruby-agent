@@ -7,17 +7,16 @@ require 'new_relic/agent/utilization/gcp'
 require 'new_relic/agent/utilization/azure'
 require 'new_relic/agent/utilization/pcf'
 
-
 module NewRelic
   module Agent
     class UtilizationData
       METADATA_VERSION = 5
 
       VENDORS = {
-        Utilization::AWS   => :'utilization.detect_aws',
-        Utilization::GCP   => :'utilization.detect_gcp',
+        Utilization::AWS => :'utilization.detect_aws',
+        Utilization::GCP => :'utilization.detect_gcp',
         Utilization::Azure => :'utilization.detect_azure',
-        Utilization::PCF   => :'utilization.detect_pcf'
+        Utilization::PCF => :'utilization.detect_pcf'
       }
 
       def hostname

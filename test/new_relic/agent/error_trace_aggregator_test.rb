@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
 
 module NewRelic
   module Agent
@@ -17,7 +17,7 @@ module NewRelic
         @error_trace_aggregator.reset!
       end
 
-     # Helpers for DataContainerTests
+      # Helpers for DataContainerTests
 
       def create_container
         ErrorTraceAggregator.new ErrorCollector::MAX_ERROR_QUEUE_LENGTH
@@ -34,8 +34,8 @@ module NewRelic
 
       def test_simple
         notice_error(StandardError.new("message"),
-                                      :uri => '/myurl/',
-                                      :metric => 'path')
+          :uri => '/myurl/',
+          :metric => 'path')
 
         errors = error_trace_aggregator.harvest!
 
@@ -66,7 +66,7 @@ module NewRelic
         errors = error_trace_aggregator.harvest!
 
         assert_equal 4, errors.length
-        assert_equal_unordered(%w(first second path last), errors.map { |e| e.path })
+        assert_equal_unordered(%w[first second path last], errors.map { |e| e.path })
 
         notice_error(StandardError.new("message"), :metric => 'first')
         notice_error(StandardError.new("message"), :metric => 'last')
@@ -83,20 +83,18 @@ module NewRelic
         undef inspect
       end
 
-
       def test_supported_param_types
         types = [[1, '1'],
-        [1.1, '1.1'],
-        ['hi', 'hi'],
-        [:hi, 'hi'],
-        [StandardError.new("test"), "#<StandardError>"],
-        [TestClass.new, "#<NewRelic::Agent::ErrorTraceAggregatorTest::TestClass>"]
-        ]
+          [1.1, '1.1'],
+          ['hi', 'hi'],
+          [:hi, 'hi'],
+          [StandardError.new("test"), "#<StandardError>"],
+          [TestClass.new, "#<NewRelic::Agent::ErrorTraceAggregatorTest::TestClass>"]]
 
         types.each do |test|
           notice_error(StandardError.new("message"),
-                                        :metric => 'path',
-                                        :custom_params => {:x => test[0]})
+            :metric => 'path',
+            :custom_params => {:x => test[0]})
           error = error_trace_aggregator.harvest![0].to_collector_array
           actual = error.last["userAttributes"]["x"]
           assert_equal test[1], actual
@@ -133,17 +131,17 @@ module NewRelic
         max_q_length = ErrorCollector::MAX_ERROR_QUEUE_LENGTH
 
         silence_stream(::STDOUT) do
-         (max_q_length + 5).times do |n|
+          (max_q_length + 5).times do |n|
             notice_error(StandardError.new("exception #{n}"),
-                                          :metric => "path",
-                                          :custom_params => {:x => n})
+              :metric => "path",
+              :custom_params => {:x => n})
           end
         end
 
         errors = error_trace_aggregator.harvest!
         assert errors.length == max_q_length
         errors.each_index do |i|
-          error  = errors.shift
+          error = errors.shift
           actual = error.to_collector_array.last["userAttributes"]["x"]
           assert_equal i.to_s, actual
         end
@@ -189,7 +187,7 @@ module NewRelic
           'Logging/size',
           'Logging/size/INFO',
           'Supportability/API/increment_metric',
-          'Supportability/API/record_metric',
+          'Supportability/API/record_metric'
         ])
       end
 
@@ -221,7 +219,7 @@ module NewRelic
         errors = error_trace_aggregator.harvest!
         trace = errors.first.stack_trace
 
-        assert trace.any? {|line| line.include?(__FILE__)}
+        assert trace.any? { |line| line.include?(__FILE__) }
       end
 
       def test_notice_agent_error_allows_an_error_past_queue_limit
@@ -291,7 +289,7 @@ module NewRelic
         path = options.delete(:metric)
         noticed_error = NewRelic::NoticedError.new(path, exception)
         noticed_error.request_uri = options.delete(:uri)
-        noticed_error.attributes  = options.delete(:attributes)
+        noticed_error.attributes = options.delete(:attributes)
         noticed_error.attributes_from_notice_error = options.delete(:custom_params) || {}
         noticed_error.attributes_from_notice_error.merge!(options)
         noticed_error

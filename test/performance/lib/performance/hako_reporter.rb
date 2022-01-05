@@ -4,7 +4,7 @@
 
 module Performance
   class HakoReporter
-    def initialize(results, elapsed, options={})
+    def initialize(results, elapsed, options = {})
       @results = results
       @token = ENV['HAKO_TOKEN'] || options[:hako_token]
     end

@@ -9,7 +9,6 @@ require 'fake_server'
 # and confirm that high security changes the actual agent behavior, not just
 # the settings in question.
 class HighSecurityTest < Minitest::Test
-
   include MultiverseHelpers
 
   setup_and_teardown_agent do |collector|
@@ -25,9 +24,9 @@ class HighSecurityTest < Minitest::Test
         "capture_params" => true,
 
         "transaction_tracer.capture_attributes" => true,
-        "error_collector.capture_attributes"    => true,
+        "error_collector.capture_attributes" => true,
         "browser_monitoring.capture_attributes" => true,
-        "analytics_events.capture_attributes"   => true,
+        "analytics_events.capture_attributes" => true,
 
         "attributes.enabled" => true,
         "attributes.include" => ["*", "request.parameters.*"],
@@ -42,7 +41,7 @@ class HighSecurityTest < Minitest::Test
         "error_collector.attributes.include" => ["*", "request.parameters.*"],
 
         "browser_monitoring.attributes.enabled" => true,
-        "browser_monitoring.attributes.include" => ["*", "request.parameters.*"],
+        "browser_monitoring.attributes.include" => ["*", "request.parameters.*"]
       }
     }, 200)
   end
@@ -69,7 +68,7 @@ class HighSecurityTest < Minitest::Test
   end
 
   def test_doesnt_capture_params_to_transaction_traces
-    in_transaction(:filtered_params => { "loose" => "params" }) do
+    in_transaction(:filtered_params => {"loose" => "params"}) do
     end
 
     run_harvest
@@ -81,7 +80,7 @@ class HighSecurityTest < Minitest::Test
 
   def test_doesnt_capture_params_to_errors
     assert_raises(RuntimeError) do
-      in_transaction(:filtered_params => { "loose" => "params" }) do
+      in_transaction(:filtered_params => {"loose" => "params"}) do
         raise "O_o"
       end
     end
@@ -94,7 +93,7 @@ class HighSecurityTest < Minitest::Test
   end
 
   def test_doesnt_capture_params_to_events
-    in_transaction(:filtered_params => { "loose" => "params" }) do
+    in_transaction(:filtered_params => {"loose" => "params"}) do
     end
 
     run_harvest
@@ -105,7 +104,7 @@ class HighSecurityTest < Minitest::Test
   end
 
   def test_doesnt_capture_params_to_browser
-    in_transaction(:filtered_params => { "loose" => "params" }) do
+    in_transaction(:filtered_params => {"loose" => "params"}) do
       capture_js_data
     end
 
@@ -171,7 +170,7 @@ class HighSecurityTest < Minitest::Test
 
     run_harvest
 
-    expected = { "http.statusCode" => 200 }
+    expected = {"http.statusCode" => 200}
     assert_equal expected, single_transaction_trace_posted.agent_attributes
   end
 
@@ -185,7 +184,7 @@ class HighSecurityTest < Minitest::Test
 
     run_harvest
 
-    expected = {"http.statusCode" => 500 }
+    expected = {"http.statusCode" => 500}
     assert_equal expected, single_error_posted.agent_attributes
   end
 

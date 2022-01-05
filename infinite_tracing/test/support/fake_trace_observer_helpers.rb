@@ -12,13 +12,12 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       class EventListener
         def still_subscribed event
           return [] if @events[event].nil?
-          @events[event].select{|e| e.inspect =~ /infinite_tracing/}
+          @events[event].select { |e| e.inspect =~ /infinite_tracing/ }
         end
       end
 
       module InfiniteTracing
         module FakeTraceObserverHelpers
-
           FAKE_SERVER_PORT = 10_000
 
           def setup
@@ -117,21 +116,21 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             # one Thread in a "run" state solves the issues altogether.
             def wait_for_agent_infinite_tracer_thread_to_close
               timeout_cap(3.0) do
-                while Thread.list.select{|t| t.status == "run"}.size > 1
+                while Thread.list.select { |t| t.status == "run" }.size > 1
                   sleep(0.01)
                 end
                 sleep(0.01)
               end
             end
 
-            def flush count=0
+            def flush count = 0
               wait_for_agent_infinite_tracer_thread_to_close
               @lock.synchronize do
                 @flushed = true
               end
             end
 
-            def restart tracer_class=nil
+            def restart tracer_class = nil
               @tracer_class = tracer_class unless tracer_class.nil?
               flush
               stop
@@ -139,7 +138,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             end
           end
 
-          def restart_fake_trace_observer_server context, tracer_class=nil
+          def restart_fake_trace_observer_server context, tracer_class = nil
             context.restart tracer_class
           end
 
@@ -165,21 +164,21 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           def fiddlesticks_config
             {
               'agent_run_id' => 'fiddlesticks',
-              'agent_config' => { 'transaction_tracer.record_sql' => 'raw' }
+              'agent_config' => {'transaction_tracer.record_sql' => 'raw'}
             }
           end
 
           def reconnect_config
             {
               'agent_run_id' => 'shazbat',
-              'agent_config' => { 'transaction_tracer.record_sql' => 'raw' }
+              'agent_config' => {'transaction_tracer.record_sql' => 'raw'}
             }
           end
 
           # simulates applying a server-side config to the agent instance.
           # the sleep 0.01 allows us to choose whether to join and wait
           # or set it up and continue with test scenario's flow.
-          def simulate_connect_to_collector config, delay=0.01
+          def simulate_connect_to_collector config, delay = 0.01
             thread = Thread.new do
               sleep delay
               NewRelic::Agent.instance.stubs(:connected?).returns(true)
@@ -238,23 +237,23 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             server.stop unless server.nil?
           end
 
-          def emulate_streaming_segments count, max_buffer_size=100_000, &block
+          def emulate_streaming_segments count, max_buffer_size = 100_000, &block
             emulate_streaming_with_tracer InfiniteTracer, count, max_buffer_size, &block
           end
 
-          def emulate_streaming_to_unimplemented count, max_buffer_size=100_000, &block
+          def emulate_streaming_to_unimplemented count, max_buffer_size = 100_000, &block
             emulate_streaming_with_tracer UnimplementedInfiniteTracer, count, max_buffer_size, &block
           end
 
-          def emulate_streaming_to_failed_precondition count, max_buffer_size=100_000, &block
+          def emulate_streaming_to_failed_precondition count, max_buffer_size = 100_000, &block
             emulate_streaming_with_tracer FailedPreconditionInfiniteTracer, count, max_buffer_size, &block
           end
 
-          def emulate_streaming_with_initial_error count, max_buffer_size=100_000, &block
+          def emulate_streaming_with_initial_error count, max_buffer_size = 100_000, &block
             emulate_streaming_with_tracer ErroringInfiniteTracer, count, max_buffer_size, &block
           end
 
-          def emulate_streaming_with_ok_close_response count, max_buffer_size=100_000, &block
+          def emulate_streaming_with_ok_close_response count, max_buffer_size = 100_000, &block
             emulate_streaming_with_tracer OkCloseInfiniteTracer, count, max_buffer_size, &block
           end
 
@@ -295,7 +294,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
               end
             end
           end
-
         end
       end
     end

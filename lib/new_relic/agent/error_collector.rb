@@ -24,10 +24,10 @@ module NewRelic
 
         @error_filter = NewRelic::Agent::ErrorFilter.new
 
-        %w(
+        %w[
           ignore_errors ignore_classes ignore_messages ignore_status_codes
           expected_classes expected_messages expected_status_codes
-        ).each do |w|
+        ].each do |w|
           Agent.config.register_callback(:"error_collector.#{w}") do |value|
             @error_filter.load_from_config(w, value)
           end
@@ -165,10 +165,10 @@ module NewRelic
       end
 
       # Increments a statistic that tracks total error rate
-      def increment_error_count!(state, exception, options={})
+      def increment_error_count!(state, exception, options = {})
         txn = state.current_transaction
 
-        metric_names  = aggregated_metric_names(txn)
+        metric_names = aggregated_metric_names(txn)
         blamed_metric = blamed_metric_name(txn, options)
         metric_names << blamed_metric if blamed_metric
 
@@ -187,9 +187,9 @@ module NewRelic
 
       def skip_notice_error?(exception, status_code = nil)
         disabled? ||
-        exception.nil? ||
-        exception_tagged_with?(EXCEPTION_TAG_IVAR, exception) ||
-        error_is_ignored?(exception, status_code)
+          exception.nil? ||
+          exception_tagged_with?(EXCEPTION_TAG_IVAR, exception) ||
+          error_is_ignored?(exception, status_code)
       end
 
       # calls a method on an object, if it responds to it - used for
@@ -202,14 +202,14 @@ module NewRelic
       # extracts a stack trace from the exception for debugging purposes
       def extract_stack_trace(exception)
         actual_exception = if defined?(Rails::VERSION::MAJOR) && Rails::VERSION::MAJOR < 5
-                             sense_method(exception, :original_exception) || exception
-                           else
-                             exception
-                           end
+          sense_method(exception, :original_exception) || exception
+        else
+          exception
+        end
         sense_method(actual_exception, :backtrace) || '<no stack trace>'
       end
 
-      def notice_segment_error(segment, exception, options={})
+      def notice_segment_error(segment, exception, options = {})
         return if skip_notice_error?(exception)
 
         segment.set_noticed_error create_noticed_error(exception, options)
@@ -220,7 +220,7 @@ module NewRelic
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
-      def notice_error(exception, options={}, span_id=nil)
+      def notice_error(exception, options = {}, span_id = nil)
         state = ::NewRelic::Agent::Tracer.state
         transaction = state.current_transaction
         status_code = transaction ? transaction.http_response_code : nil
@@ -239,7 +239,7 @@ module NewRelic
         error_trace_aggregator.add_to_error_queue(noticed_error)
         transaction = state.current_transaction
         payload = transaction ? transaction.payload : nil
-        span_id ||= (transaction && transaction.current_segment) ? transaction.current_segment.guid : nil
+        span_id ||= transaction && transaction.current_segment ? transaction.current_segment.guid : nil
         error_event_aggregator.record(noticed_error, payload, span_id)
         exception
       rescue => e
@@ -247,7 +247,7 @@ module NewRelic
         nil
       end
 
-      def truncate_trace(trace, keep_frames=nil)
+      def truncate_trace(trace, keep_frames = nil)
         keep_frames ||= Agent.config[:'error_collector.max_backtrace_frames']
         return trace if !keep_frames || trace.length < keep_frames || trace.length == 0
 
@@ -267,9 +267,9 @@ module NewRelic
         noticed_error = NewRelic::NoticedError.new(error_metric, exception)
         noticed_error.request_uri = options.delete(:uri) || NewRelic::EMPTY_STR
         noticed_error.request_port = options.delete(:port)
-        noticed_error.attributes  = options.delete(:attributes)
+        noticed_error.attributes = options.delete(:attributes)
 
-        noticed_error.file_name   = sense_method(exception, :file_name)
+        noticed_error.file_name = sense_method(exception, :file_name)
         noticed_error.line_number = sense_method(exception, :line_number)
         noticed_error.stack_trace = truncate_trace(extract_stack_trace(exception))
 

@@ -9,7 +9,6 @@ module NewRelic
     module DistributedTracing
       class TraceContext
         class TraceContextHeaderDataTest < Minitest::Test
-
           def test_tracestate_built_from_array
             other_entries = ['one', 'two']
             header_data = HeaderData.new 'traceparent', 'tracestate_entry', other_entries, 0, ''
@@ -50,7 +49,7 @@ module NewRelic
 
           def test_trace_state_trims_large_entries_if_total_size_is_greater_than_512_bytes
             trace_state_array = [
-              "#{random_text(2)}=#{random_text(130)}", # 133 bytes
+              "#{random_text(2)}=#{random_text(130)}" # 133 bytes
             ]
             # also add 500 more bytes
             trace_state_array += (0...50).map { "#{random_text(2)}=#{random_text(6)}" }

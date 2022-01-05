@@ -59,20 +59,20 @@ module NewRelic
       super(DEFAULT_PORT)
       @id_counter = 0
       @mock = {
-        'preconnect'              => Response.new(200, {'return_value' => {'redirect_host' => 'localhost'}}),
-        'connect'                 => Response.new(200, Proc.new { {'return_value' => {"agent_run_id" => agent_run_id}} }),
-        'get_agent_commands'      => Response.new(200, {'return_value' => []}),
-        'agent_command_results'   => Response.new(200, {'return_value' => []}),
-        'metric_data'             => Response.new(200, {'return_value' => [[{'name' => 'Some/Metric/Spec'}, 1]]}),
-        'sql_trace_data'          => Response.new(200, {'return_value' => nil}),
+        'preconnect' => Response.new(200, {'return_value' => {'redirect_host' => 'localhost'}}),
+        'connect' => Response.new(200, Proc.new { {'return_value' => {"agent_run_id" => agent_run_id}} }),
+        'get_agent_commands' => Response.new(200, {'return_value' => []}),
+        'agent_command_results' => Response.new(200, {'return_value' => []}),
+        'metric_data' => Response.new(200, {'return_value' => [[{'name' => 'Some/Metric/Spec'}, 1]]}),
+        'sql_trace_data' => Response.new(200, {'return_value' => nil}),
         'transaction_sample_data' => Response.new(200, {'return_value' => nil}),
-        'error_data'              => Response.new(200, {'return_value' => nil}),
-        'profile_data'            => Response.new(200, {'return_value' => nil}),
-        'shutdown'                => Response.new(200, {'return_value' => nil}),
-        'analytic_event_data'     => Response.new(200, {'return_value' => nil}),
-        'custom_event_data'       => Response.new(200, {'return_value' => nil}),
-        'error_event_data'        => Response.new(200, {'return_value' => nil}),
-        'span_event_data'         => Response.new(200, {'return_value' => nil})
+        'error_data' => Response.new(200, {'return_value' => nil}),
+        'profile_data' => Response.new(200, {'return_value' => nil}),
+        'shutdown' => Response.new(200, {'return_value' => nil}),
+        'analytic_event_data' => Response.new(200, {'return_value' => nil}),
+        'custom_event_data' => Response.new(200, {'return_value' => nil}),
+        'error_event_data' => Response.new(200, {'return_value' => nil}),
+        'span_event_data' => Response.new(200, {'return_value' => nil})
       }
       reset
     end
@@ -91,19 +91,19 @@ module NewRelic
       Response.new(200, {'return_value' => nil})
     end
 
-    def stub(method, return_value, status=200)
+    def stub(method, return_value, status = 200)
       self.mock[method] ||= default_response
       self.mock[method].override(status, {'return_value' => return_value})
     end
 
-    def stub_exception(method, exception, status=200)
+    def stub_exception(method, exception, status = 200)
       self.mock[method] ||= default_response
       self.mock[method].override(status, {'exception' => exception})
     end
 
-    def stub_wait(method, wait_time, status=200)
+    def stub_wait(method, wait_time, status = 200)
       self.mock[method] ||= default_response
-      self.mock[method].override(status, Proc.new { sleep(wait_time); {'return_value' => ""}})
+      self.mock[method].override(status, Proc.new { sleep(wait_time); {'return_value' => ""} })
     end
 
     def method_from_request(req)
@@ -118,9 +118,9 @@ module NewRelic
     def call(env)
       @last_socket = Thread.current[:WEBrickSocket]
 
-      req    = ::Rack::Request.new(env)
-      res    = ::Rack::Response.new
-      uri    = URI.parse(req.url)
+      req = ::Rack::Request.new(env)
+      res = ::Rack::Response.new
+      uri = URI.parse(req.url)
       method = method_from_request(req)
 
       if @mock.keys.include? method
@@ -150,11 +150,11 @@ module NewRelic
 
       query_params = req.GET
 
-      @agent_data << AgentPost.create(:action       => method,
-                                      :body         => body,
-                                      :run_id       => run_id,
-                                      :format       => :json,
-                                      :query_params => query_params)
+      @agent_data << AgentPost.create(:action => method,
+        :body         => body,
+        :run_id       => run_id,
+        :format       => :json,
+        :query_params => query_params)
 
       res.finish
     end
@@ -167,26 +167,26 @@ module NewRelic
       @agent_data.select { |d| d.action == method.to_s }
     end
 
-    def reported_stats_for_metric(name, scope=nil)
+    def reported_stats_for_metric(name, scope = nil)
       calls_for('metric_data').map do |post|
         post.body[3].find do |metric_record|
           metric_record[0]['name'] == name &&
             (!scope || metric_record[0]['scope'] == scope)
         end
-      end.compact.map{|m| m[1]}
+      end.compact.map { |m| m[1] }
     end
 
     class AgentPost
       attr_accessor :action, :body, :run_id, :format, :query_params
-      def initialize(opts={})
-        @action       = opts[:action]
-        @body         = opts[:body]
-        @run_id       = opts[:run_id]
-        @format       = opts[:format]
+      def initialize(opts = {})
+        @action = opts[:action]
+        @body = opts[:body]
+        @run_id = opts[:run_id]
+        @format = opts[:format]
         @query_params = opts[:query_params]
       end
 
-      def self.create(opts={})
+      def self.create(opts = {})
         case opts[:action]
         when 'connect'
           ConnectPost.new(opts)
@@ -227,9 +227,8 @@ module NewRelic
       end
     end
 
-
     class MetricDataPost < AgentPost
-      def initialize(opts={})
+      def initialize(opts = {})
         super
       end
 
@@ -238,12 +237,12 @@ module NewRelic
       end
 
       def metric_names
-        metrics.map {|m| m[0]["name"] }
+        metrics.map { |m| m[0]["name"] }
       end
     end
 
     class ConnectPost < AgentPost
-      def initialize(opts={})
+      def initialize(opts = {})
         super
         @body = @body[0]
       end
@@ -255,7 +254,7 @@ module NewRelic
 
     class ProfileDataPost < AgentPost
       attr_accessor :poll_count, :traces
-      def initialize(opts={})
+      def initialize(opts = {})
         super
         @poll_count = @body[1][0][3]
         @body[1][0][4] = unblob(@body[1][0][4]) if @format == :json
@@ -264,7 +263,7 @@ module NewRelic
     end
 
     class SqlTraceDataPost < AgentPost
-      def initialize(opts={})
+      def initialize(opts = {})
         super
         @body[0][0][9] = unblob(@body[0][0][9]) if @format == :json
       end
@@ -331,7 +330,7 @@ module NewRelic
         end
       end
 
-      def initialize(opts={})
+      def initialize(opts = {})
         super
         @body[1][0][4] = unblob(@body[1][0][4]) if @format == :json
       end
@@ -348,7 +347,7 @@ module NewRelic
     class ReservoirSampledContainerPost < AgentPost
       attr_reader :reservoir_metadata, :events
 
-      def initialize opts={}
+      def initialize opts = {}
         super
         @reservoir_metadata = body[1]
         @events = body[2]
@@ -356,30 +355,31 @@ module NewRelic
     end
 
     class AnalyticEventDataPost < ReservoirSampledContainerPost; end
+
     class CustomEventDataPost < ReservoirSampledContainerPost; end
+
     class ErrorEventDataPost < ReservoirSampledContainerPost; end
+
     class SpanEventDataPost < ReservoirSampledContainerPost; end
 
     class ErrorDataPost < AgentPost
-
       attr_reader :errors
 
-      def initialize(opts={})
+      def initialize(opts = {})
         super
         @errors = @body[1].map { |e| SubmittedError.new(e) }
       end
     end
 
     class SubmittedError
-
       attr_reader :timestamp, :path, :message, :exception_class_name, :params
 
       def initialize(error_info)
-        @timestamp            = error_info[0]
-        @path                 = error_info[1]
-        @message              = error_info[2]
+        @timestamp = error_info[0]
+        @path = error_info[1]
+        @message = error_info[2]
         @exception_class_name = error_info[3]
-        @params               = error_info[4]
+        @params = error_info[4]
       end
 
       def agent_attributes

@@ -9,7 +9,6 @@ require 'new_relic/agent/http_clients/uri_util'
 module NewRelic
   module Agent
     class Transaction
-
       #
       # This class represents an external segment in a transaction trace.
       #
@@ -219,10 +218,9 @@ module NewRelic
         end
 
         def add_unscoped_metrics
-          @unscoped_metrics = [ EXTERNAL_ALL,
+          @unscoped_metrics = [EXTERNAL_ALL,
             "External/#{host}/all",
-            suffixed_rollup_metric
-          ]
+            suffixed_rollup_metric]
 
           if cross_app_request?
             @unscoped_metrics << "ExternalApp/#{host}/#{cross_process_id}/all"
@@ -254,7 +252,7 @@ module NewRelic
           return if transaction.ignore?
 
           aggregator = ::NewRelic::Agent.agent.span_event_aggregator
-          priority   = transaction.priority
+          priority = transaction.priority
           aggregator.record(priority: priority) do
             SpanEventPrimitive.for_external_request_segment(self)
           end

@@ -9,16 +9,16 @@ module NewRelic
   module Agent
     class Transaction
       class MessageBrokerSegment < Segment
-        CONSUME  = 'Consume'.freeze
+        CONSUME = 'Consume'.freeze
         EXCHANGE = 'Exchange'.freeze
-        NAMED    = 'Named/'.freeze
-        PRODUCE  = 'Produce'.freeze
-        QUEUE    = 'Queue'.freeze
-        PURGE    = 'Purge'.freeze
-        SLASH    = '/'.freeze
-        TEMP     = 'Temp'.freeze
-        TOPIC    = 'Topic'.freeze
-        UNKNOWN  = 'Unknown'.freeze
+        NAMED = 'Named/'.freeze
+        PRODUCE = 'Produce'.freeze
+        QUEUE = 'Queue'.freeze
+        PURGE = 'Purge'.freeze
+        SLASH = '/'.freeze
+        TEMP = 'Temp'.freeze
+        TOPIC = 'Topic'.freeze
+        UNKNOWN = 'Unknown'.freeze
 
         DESTINATION_TYPES = [
           :exchange,
@@ -36,29 +36,29 @@ module NewRelic
         }
 
         TYPES = {
-          exchange:        EXCHANGE,
+          exchange: EXCHANGE,
           temporary_queue: QUEUE,
-          queue:           QUEUE,
+          queue: QUEUE,
           temporary_topic: TOPIC,
-          topic:           TOPIC,
-          unknown:         EXCHANGE
+          topic: TOPIC,
+          unknown: EXCHANGE
         }
 
         METRIC_PREFIX = 'MessageBroker/'.freeze
 
         attr_reader :action,
-                    :destination_name,
-                    :destination_type,
-                    :library,
-                    :headers
+          :destination_name,
+          :destination_type,
+          :library,
+          :headers
 
         def initialize(action:,
-                       library:,
-                       destination_type:,
-                       destination_name:,
-                       headers: nil,
-                       parameters: nil,
-                       start_time: nil)
+          library:,
+          destination_type:,
+          destination_name:,
+          headers: nil,
+          parameters: nil,
+          start_time: nil)
 
           @action = action
           @library = library

@@ -9,7 +9,6 @@ module NewRelic
   module Agent
     module InfiniteTracing
       class TransformerTest < Minitest::Test
-
         def test_transforms_single_span_event
           span_event = Transformer.transform span_event_fixture :single
           assert_kind_of Hash, span_event
@@ -44,9 +43,7 @@ module NewRelic
             assert_kind_of String, key
             assert_kind_of AttributeValue, value
           end
-
         end
-
       end
     end
   end

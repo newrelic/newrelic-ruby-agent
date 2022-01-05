@@ -10,7 +10,7 @@ module NewRelic
     module HTTPClients
       class HTTPResponse < AbstractResponse
         def [](key)
-          _, value = @wrapped_response.headers.find{ |k, _| key.downcase == k.downcase }
+          _, value = @wrapped_response.headers.find { |k, _| key.downcase == k.downcase }
           value unless value.nil?
         end
 
@@ -21,8 +21,8 @@ module NewRelic
 
       class HTTPRequest < AbstractRequest
         HTTP_RB = 'http.rb'
-        HOST    = 'host'
-        COLON   = ':'
+        HOST = 'host'
+        COLON = ':'
 
         def initialize wrapped_request
           @wrapped_request = wrapped_request

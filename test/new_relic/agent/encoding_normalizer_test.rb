@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','test_helper'))
-require 'new_relic/agent/encoding_normalizer.rb'
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require 'new_relic/agent/encoding_normalizer'
 
 class EncodingNormalizerTest < Minitest::Test
   EncodingNormalizer = NewRelic::Agent::EncodingNormalizer
@@ -19,7 +19,7 @@ class EncodingNormalizerTest < Minitest::Test
   end
 
   def test_normalize_object_converts_rationals_to_floats
-    result = EncodingNormalizer.normalize_object({:key => Rational(3,2)})
+    result = EncodingNormalizer.normalize_object({:key => Rational(3, 2)})
     assert_equal({'key' => 1.5}, result)
   end
 

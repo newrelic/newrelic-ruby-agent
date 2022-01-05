@@ -19,8 +19,8 @@ class CustomAnalyticsEventsTest < Minitest::Test
     events = last_posted_events
     events.first[0].delete('priority')
 
-    expected_event = [{'type' => 'DummyType', 'timestamp' => t0.to_i },
-                      {'foo' => 'bar', 'baz' => 'qux'}]
+    expected_event = [{'type' => 'DummyType', 'timestamp' => t0.to_i},
+      {'foo' => 'bar', 'baz' => 'qux'}]
     assert_equal(expected_event, events.first)
   end
 
@@ -35,10 +35,10 @@ class CustomAnalyticsEventsTest < Minitest::Test
   end
 
   def test_record_doesnt_record_if_invalid_event_type
-    bad_event_type  = 'bad$news'
+    bad_event_type = 'bad$news'
     good_event_type = 'good news'
 
-    NewRelic::Agent.record_custom_event(bad_event_type,  :foo => :bar)
+    NewRelic::Agent.record_custom_event(bad_event_type, :foo => :bar)
     NewRelic::Agent.record_custom_event(good_event_type, :foo => :bar)
 
     NewRelic::Agent.agent.send(:harvest_and_send_custom_event_data)
@@ -50,7 +50,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
 
   def test_events_are_not_recorded_when_disabled_by_feature_gate
     connect_response = {
-      'agent_run_id'          => 1,
+      'agent_run_id' => 1,
       'collect_custom_events' => false
     }
 
@@ -72,7 +72,7 @@ class CustomAnalyticsEventsTest < Minitest::Test
     NewRelic::Agent.agent.send(:harvest_and_send_custom_event_data)
     post = last_custom_event_post
 
-    assert_equal({"reservoir_size"=>1000, "events_seen"=>10}, post.reservoir_metadata)
+    assert_equal({"reservoir_size" => 1000, "events_seen" => 10}, post.reservoir_metadata)
   end
 
   def last_custom_event_post

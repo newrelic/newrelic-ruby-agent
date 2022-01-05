@@ -5,7 +5,6 @@
 
 module NewRelic
   module Coerce
-
     module_function
 
     # We really don't want to send bad values to the collector, and it doesn't
@@ -15,14 +14,14 @@ module NewRelic
     # to provide documentation of expected types on to_collector_array methods,
     # and to log failures if totally invalid data gets into outgoing data
 
-    def int(value, context=nil)
+    def int(value, context = nil)
       Integer(value)
     rescue => error
       log_failure(value, Integer, context, error)
       0
     end
 
-    def int_or_nil(value, context=nil)
+    def int_or_nil(value, context = nil)
       return nil if value.nil?
       Integer(value)
     rescue => error
@@ -30,7 +29,7 @@ module NewRelic
       nil
     end
 
-    def float(value, context=nil)
+    def float(value, context = nil)
       result = Float(value)
       raise "Value #{result.inspect} is not finite." unless result.finite?
       result
@@ -39,7 +38,7 @@ module NewRelic
       0.0
     end
 
-    def string(value, context=nil)
+    def string(value, context = nil)
       return value if value.nil?
       String(value)
     rescue => error
@@ -54,8 +53,6 @@ module NewRelic
       when Float
         if val.finite?
           val
-        else
-          nil
         end
       when Symbol
         val.to_s
@@ -76,7 +73,7 @@ module NewRelic
       value.to_i
     end
 
-    def float! value, precision=NewRelic::PRIORITY_PRECISION
+    def float! value, precision = NewRelic::PRIORITY_PRECISION
       return nil unless value_or_nil(value)
       value.to_f.round(precision)
     end

@@ -12,7 +12,6 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'new_relic/version'
 
 Gem::Specification.new do |s|
-
   def self.copy_files filelist
     subfolder = File.expand_path File.dirname(__FILE__)
 
@@ -25,7 +24,7 @@ Gem::Specification.new do |s|
 
   shared_files = [
     "../LICENSE",
-    "../CONTRIBUTING.md",
+    "../CONTRIBUTING.md"
   ]
 
   self.copy_files shared_files
@@ -34,8 +33,7 @@ Gem::Specification.new do |s|
   s.version = NewRelic::VERSION::STRING
   s.required_ruby_version = '>= 2.5.0'
   s.required_rubygems_version = Gem::Requirement.new("> 1.3.1") if s.respond_to? :required_rubygems_version=
-  s.authors = [ "Tanna McClure", "Kayla Reopelle" ]
-  s.date = Time.now.strftime('%Y-%m-%d')
+  s.authors = ["Tanna McClure", "Kayla Reopelle"]
   s.licenses = ['Apache-2.0']
   s.description = <<-EOS
 The New Relic Ruby agent requires the gem newrelic_rpm, and it includes distributed
@@ -50,7 +48,7 @@ Inc (http://www.newrelic.com).  New Relic provides you with deep
 information about the performance of your web application as it runs
 in production. The New Relic Ruby Agent is dual-purposed as a either a
 Gem or plugin, hosted on https://github.com/newrelic/newrelic-ruby-agent/
-EOS
+  EOS
 
   s.email = "support@newrelic.com"
   s.executables = []
@@ -60,11 +58,11 @@ EOS
   ]
 
   s.metadata = {
-    'bug_tracker_uri'   => 'https://github.com/newrelic/newrelic-ruby-agent/issues',
-    'changelog_uri'     => 'https://github.com/newrelic/newrelic-ruby-agent/blob/main/infinite_tracing/CHANGELOG.md',
+    'bug_tracker_uri' => 'https://github.com/newrelic/newrelic-ruby-agent/issues',
+    'changelog_uri' => 'https://github.com/newrelic/newrelic-ruby-agent/blob/main/infinite_tracing/CHANGELOG.md',
     'documentation_uri' => 'https://docs.newrelic.com/docs/agents/ruby-agent',
-    'source_code_uri'   => 'https://github.com/newrelic/newrelic-ruby-agent',
-    "homepage_uri"      => "https://newrelic.com/products/edge-infinite-tracing",
+    'source_code_uri' => 'https://github.com/newrelic/newrelic-ruby-agent',
+    "homepage_uri" => "https://newrelic.com/products/edge-infinite-tracing"
   }
 
   file_list = `git ls-files . -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/(?!agent_helper.rb)}) }
@@ -79,8 +77,8 @@ EOS
   s.add_dependency 'grpc', '~> 1.34'
 
   s.add_development_dependency 'rake', '12.3.3'
-  s.add_development_dependency 'rb-inotify', '0.9.10'   # locked to support < Ruby 2.3 (and listen 3.0.8)
-  s.add_development_dependency 'listen', '3.0.8'        # locked to support < Ruby 2.3
+  s.add_development_dependency 'rb-inotify', '0.9.10' # locked to support < Ruby 2.3 (and listen 3.0.8)
+  s.add_development_dependency 'listen', '3.0.8' # locked to support < Ruby 2.3
   s.add_development_dependency 'minitest', '~> 5.14.0'
   s.add_development_dependency 'mocha', '~> 1.9.0'
   s.add_development_dependency 'pry-nav', '~> 0.3.0'

@@ -4,7 +4,6 @@
 
 require_relative 'instrumentation'
 
-
 module NewRelic::Agent::Instrumentation
   module NetHTTP
     module Chain
@@ -14,8 +13,8 @@ module NewRelic::Agent::Instrumentation
 
           def request_with_newrelic_trace(request, *args, &block)
             request_with_tracing(request) { request_without_newrelic_trace(request, *args, &block) }
-          end  
-    
+          end
+
           alias request_without_newrelic_trace request
           alias request request_with_newrelic_trace
         end

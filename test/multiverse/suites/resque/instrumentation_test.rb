@@ -26,7 +26,7 @@ class ResqueTest < Minitest::Test
       @count
     end
 
-    def self.perform(name, sleep_duration=0)
+    def self.perform(name, sleep_duration = 0)
       sleep sleep_duration
       @count += 1
     end

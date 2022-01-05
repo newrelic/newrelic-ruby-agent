@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
 require 'new_relic/agent/event_aggregator'
 
 module NewRelic
@@ -17,7 +17,7 @@ module NewRelic
         attr_reader :buffer
 
         def record item
-          event = { 'name' => "Event#{item}", 'priority' => rand }
+          event = {'name' => "Event#{item}", 'priority' => rand}
           @buffer.append(event: [event])
           notify_if_full
         end
@@ -26,7 +26,7 @@ module NewRelic
       class FnTestAggregator < EventAggregator
         named :RubeGoldbergTestAggregator
         capacity_key :cap_key
-        enabled_fn ->(){ Agent.config[:enabled_key] && enabled_for_test }
+        enabled_fn ->() { Agent.config[:enabled_key] && enabled_for_test }
 
         class << self
           attr_accessor :enabled_for_test
@@ -93,7 +93,7 @@ module NewRelic
       def test_notifies_full
         expects_logging :debug, includes("TestAggregator capacity of 5 reached")
         with_config :cap_key => 5 do
-          5.times { |i| @aggregator.record i}
+          5.times { |i| @aggregator.record i }
         end
       end
 
@@ -101,11 +101,11 @@ module NewRelic
         with_config :cap_key => 5 do
           msg = "TestAggregator capacity of 5 reached"
           # this will trigger a message to be logged
-          5.times { |i| @aggregator.record i}
+          5.times { |i| @aggregator.record i }
 
           # we expect subsequent records not to trigger logging
           expects_logging :debug, Not(includes(msg))
-          3.times {@aggregator.record 'no logs'}
+          3.times { @aggregator.record 'no logs' }
         end
       end
 
@@ -114,14 +114,14 @@ module NewRelic
 
         expects_logging :debug, includes(msg)
         with_config :cap_key => 5 do
-          5.times { |i| @aggregator.record i}
+          5.times { |i| @aggregator.record i }
         end
 
         @aggregator.harvest!
 
         expects_logging :debug, includes(msg)
         with_config :cap_key => 5 do
-          5.times { |i| @aggregator.record i}
+          5.times { |i| @aggregator.record i }
         end
       end
 
@@ -130,14 +130,14 @@ module NewRelic
 
         expects_logging :debug, includes(msg)
         with_config :cap_key => 5 do
-          5.times { |i| @aggregator.record i}
+          5.times { |i| @aggregator.record i }
         end
 
         @aggregator.reset!
 
         expects_logging :debug, includes(msg)
         with_config :cap_key => 5 do
-          5.times { |i| @aggregator.record i}
+          5.times { |i| @aggregator.record i }
         end
       end
 
@@ -165,7 +165,7 @@ module NewRelic
         with_config :cap_key => 5 do
           buffer = @aggregator.buffer
 
-          4.times { |i| @aggregator.record i  }
+          4.times { |i| @aggregator.record i }
           last_harvest = @aggregator.harvest!
 
           assert_equal 4, buffer.seen_lifetime
@@ -188,7 +188,7 @@ module NewRelic
         with_config :cap_key => 5 do
           buffer = @aggregator.buffer
 
-          4.times { |i| @aggregator.record i  }
+          4.times { |i| @aggregator.record i }
           last_harvest = @aggregator.harvest!
 
           assert_equal 4, buffer.seen_lifetime

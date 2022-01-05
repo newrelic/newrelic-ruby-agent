@@ -18,14 +18,14 @@ module Performance
 
       def results
         heap_live_before = @stats_before[:heap_live_slots] || @stats_before[:heap_live_num] || @stats_before[:heap_live_slot]
-        heap_live_after  = @stats_after[:heap_live_slots]  || @stats_after[:heap_live_num]  || @stats_after[:heap_live_slot]
+        heap_live_after = @stats_after[:heap_live_slots] || @stats_after[:heap_live_num] || @stats_after[:heap_live_slot]
 
         res = {
-          :gc_runs      => @stats_after[:count] - @stats_before[:count],
-          :live_objects => heap_live_after      - heap_live_before
+          :gc_runs => @stats_after[:count] - @stats_before[:count],
+          :live_objects => heap_live_after - heap_live_before
         }
         allocs_before = @stats_before[:total_allocated_objects] || @stats_before[:total_allocated_object]
-        allocs_after  = @stats_after[:total_allocated_objects]  || @stats_after[:total_allocated_object]
+        allocs_after = @stats_after[:total_allocated_objects] || @stats_after[:total_allocated_object]
         res[:allocations] = allocs_after - allocs_before
         retained_before = @stats_before[:old_objects] || @stats_before[:old_object]
         retained_after = @stats_after[:old_objects] || @stats_after[:old_object]
@@ -51,7 +51,7 @@ module Performance
       def results
         {
           :allocations => @allocations_after - @allocations_before,
-          :live_objects => @live_objects_after - @live_objects_before,
+          :live_objects => @live_objects_after - @live_objects_before
         }
       end
     end

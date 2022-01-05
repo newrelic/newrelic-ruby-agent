@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'test_helper'))
 
 require 'set'
 module NewRelic
@@ -39,7 +39,7 @@ module NewRelic
             end
 
             def test_check_for_illegal_keys_negative
-              test_keys = Hash[*ALLOWED_KEYS.map {|x| [x, true]}.flatten]
+              test_keys = Hash[*ALLOWED_KEYS.map { |x| [x, true] }.flatten]
               _nr_validate_method_tracer_options(:rainbow_dash, test_keys)
             end
 

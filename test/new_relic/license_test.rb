@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 
 # look through the source code to enforce some simple rules that help us keep
 # our license data up to date.
@@ -17,7 +17,7 @@ class LicenseTest < Minitest::Test
     'BSD' => /\bBSD\b/i,
     'MIT' => /\bMIT\b/i,
     'Apache' => /\bapache\b/i,
-    'rights reserved' => /rights reserved/i,
+    'rights reserved' => /rights reserved/i
   }
 
   # Known occurrences of the above license terms
@@ -103,7 +103,7 @@ class LicenseTest < Minitest::Test
       end
 
       assert_match(/This file is distributed under .+ license terms\./, first_four_lines[0], "#{filename} does not contain the proper license header.")
-      assert_match(%r"See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.", first_four_lines[1])
+      assert_match(%r{See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.}, first_four_lines[1])
     end
   end
 

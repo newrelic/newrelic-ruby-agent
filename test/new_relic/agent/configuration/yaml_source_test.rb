@@ -2,21 +2,21 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/configuration/yaml_source'
 
 module NewRelic::Agent::Configuration
   class YamlSourceTest < Minitest::Test
     def setup
       @test_yml_path = File.expand_path(File.join(File.dirname(__FILE__),
-                                                 '..','..','..',
-                                                 'config','newrelic.yml'))
+        '..', '..', '..',
+        'config', 'newrelic.yml'))
       @source = YamlSource.new(@test_yml_path, 'test')
     end
 
     def test_should_load_hash_for_specified_configs
-      ignore_messages = {"RuntimeError"=>["test error3"]}
-      expected_messages = {"StandardError"=>["test error1", "test error2"]}
+      ignore_messages = {"RuntimeError" => ["test error3"]}
+      expected_messages = {"StandardError" => ["test error1", "test error2"]}
       assert_equal ignore_messages, @source[:'error_collector.ignore_messages']
       assert_equal expected_messages, @source[:'error_collector.expected_messages']
     end
@@ -124,7 +124,7 @@ module NewRelic::Agent::Configuration
     [1, 'no', 'off', 0, 'false', [], {}, 1.0, Time.now].each do |value|
       method_name = "test_booleanify_values_fails_with_value_#{value}"
       define_method(method_name) do
-        config = { 'key' => value }
+        config = {'key' => value}
         source = YamlSource.new(@test_yml_path, 'test')
         source.send :booleanify_values, config, 'key'
 
@@ -137,7 +137,7 @@ module NewRelic::Agent::Configuration
     [true, 'true', 'yes', 'on', 'YES', 'ON', 'TRUE'].each do |value|
       method_name = "test_booleanify_values_does_not_fail_with_value_#{value}_#{value.class.name}"
       define_method(method_name) do
-        config = { 'key' => value }
+        config = {'key' => value}
         source = YamlSource.new(@test_yml_path, 'test')
         refute source.failed?
         source.send :booleanify_values, config, 'key'

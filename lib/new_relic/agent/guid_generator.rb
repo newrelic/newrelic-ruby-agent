@@ -5,8 +5,7 @@
 module NewRelic
   module Agent
     module GuidGenerator
-
-      HEX_DIGITS = (0..15).map{|i| i.to_s(16)}
+      HEX_DIGITS = (0..15).map { |i| i.to_s(16) }
 
       module_function
 
@@ -22,7 +21,6 @@ module NewRelic
         end
         guid
       end
-
     end
   end
 end

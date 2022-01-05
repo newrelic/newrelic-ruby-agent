@@ -6,7 +6,6 @@
 if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
   module NewRelic::Agent::InfiniteTracing
-
     class BaseInfiniteTracer < Com::Newrelic::Trace::V1::IngestService::Service
       attr_reader :spans
       attr_reader :seen
@@ -41,7 +40,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           @noticed.wait(@lock) if !@noticed
         end
       end
-
     end
 
     class InfiniteTracer < BaseInfiniteTracer
@@ -54,7 +52,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
     class OkCloseInfiniteTracer < BaseInfiniteTracer
       def record_span(record_spans)
-        record_spans.each{ |span| notice_span span }
+        record_spans.each { |span| notice_span span }
         [record_status]
       end
     end
@@ -104,7 +102,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
     class FakeTraceObserverServer
       attr_reader :trace_observer, :worker
 
-      def initialize(port_no, tracer_class=InfiniteTracer)
+      def initialize(port_no, tracer_class = InfiniteTracer)
         @port_no = port_no
         @tracer_class = tracer_class
         start
@@ -119,7 +117,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           pool_size: 10,
           max_waiting_requests: 10,
           server_args: {
-            'grpc.so_reuseport' => 0, # eliminates chance of cross-talks
+            'grpc.so_reuseport' => 0 # eliminates chance of cross-talks
           }
         }
       end
@@ -135,12 +133,12 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
       # A simple debug helper that returns list of server context statuses.
       # When there are intermittent errors happening, usually, instead of seeing
       # everything in :stopped state, we'll see one or more server contexts in
-      # :running state.  
+      # :running state.
       #
       # This is our hint to research into what's not being shutdown properly!
       def running_contexts
         contexts = FakeTraceObserverHelpers::RUNNING_SERVER_CONTEXTS
-        contexts.map{|k,v| v}.inspect
+        contexts.map { |k, v| v }.inspect
       end
 
       def add_http2_port

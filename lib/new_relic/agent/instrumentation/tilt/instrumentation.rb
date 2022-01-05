@@ -6,7 +6,6 @@ module NewRelic
   module Agent
     module Instrumentation
       module Tilt
-
         def metric_name(klass, file)
           "View/#{klass}/#{file}/Rendering"
         end

@@ -2,13 +2,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/range_extensions'
 
 module NewRelic
   module Agent
     class RangeExtensionsTest < Minitest::Test
-
       def test_intersects_truthy_when_overlapping
         assert RangeExtensions.intersects? (1..3), (3..5)
       end

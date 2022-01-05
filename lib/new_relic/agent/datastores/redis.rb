@@ -10,7 +10,7 @@ module NewRelic
 
         MAXIMUM_COMMAND_LENGTH = 1000
         MAXIMUM_ARGUMENT_LENGTH = 64
-        CHUNK_SIZE   = (MAXIMUM_ARGUMENT_LENGTH - 5) / 2
+        CHUNK_SIZE = (MAXIMUM_ARGUMENT_LENGTH - 5) / 2
         PREFIX_RANGE = (0...CHUNK_SIZE)
         SUFFIX_RANGE = (-CHUNK_SIZE..-1)
 
@@ -32,8 +32,6 @@ module NewRelic
             trim_result(result) if result.length >= MAXIMUM_COMMAND_LENGTH
             result.strip!
             result
-          else
-            nil
           end
         end
 
@@ -117,7 +115,7 @@ module NewRelic
         end
 
         def self.trim_result(result)
-          result.slice!((MAXIMUM_COMMAND_LENGTH-ELLIPSES.length)..-1)
+          result.slice!((MAXIMUM_COMMAND_LENGTH - ELLIPSES.length)..-1)
           result.strip!
           result << ELLIPSES
         end

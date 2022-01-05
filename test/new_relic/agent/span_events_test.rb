@@ -32,10 +32,10 @@ module NewRelic
         payload = nil
         external_segment = nil
         transaction = in_transaction('test_txn') do |txn|
-          external_segment = NewRelic::Agent::Tracer.\
-                       start_external_request_segment library: "net/http",
-                                                      uri: "http://docs.newrelic.com",
-                                                      procedure: "GET"
+          external_segment = NewRelic::Agent::Tracer\
+            .start_external_request_segment library: "net/http",
+              uri: "http://docs.newrelic.com",
+              procedure: "GET"
           payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
@@ -49,10 +49,10 @@ module NewRelic
         payload = nil
         external_segment = nil
         in_transaction('test_txn') do |txn|
-          external_segment = NewRelic::Agent::Tracer.\
-                       start_external_request_segment library: "net/http",
-                                                      uri: "http://docs.newrelic.com",
-                                                      procedure: "GET"
+          external_segment = NewRelic::Agent::Tracer\
+            .start_external_request_segment library: "net/http",
+              uri: "http://docs.newrelic.com",
+              procedure: "GET"
           payload = txn.distributed_tracer.create_distributed_trace_payload
         end
 
@@ -61,7 +61,7 @@ module NewRelic
         end
 
         last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
-        txn2_entry_span = last_span_events.detect{ |ev| ev[0]["name"] == "test_txn2" }
+        txn2_entry_span = last_span_events.detect { |ev| ev[0]["name"] == "test_txn2" }
 
         assert_equal external_segment.guid, txn2_entry_span[0]["parentId"]
       end
@@ -79,12 +79,12 @@ module NewRelic
           segment_a.finish
         end
 
-        last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+        last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
 
         txn_segment_event, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "test_txn" }
 
         assert_equal txn.guid, txn_segment_event["transactionId"]
-        assert_nil   txn_segment_event["parentId"]
+        assert_nil txn_segment_event["parentId"]
 
         segment_event_a, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "segment_a" }
 
@@ -104,7 +104,7 @@ module NewRelic
           segment_a.finish
         end
 
-        last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+        last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
 
         txn_segment_event, _, _ = last_span_events.detect { |ev| ev[0]["name"] == "test_txn" }
 

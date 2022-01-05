@@ -17,7 +17,7 @@ module NewRelic::Agent
             :account_id => "190",
             :primary_application_id => "46954",
             :trusted_account_key => "999999",
-            :disable_harvest_thread => true,
+            :disable_harvest_thread => true
           }
           NewRelic::Agent.agent.stubs(:connected?).returns(true)
           Agent.config.add_config_for_testing(@config)
@@ -354,7 +354,7 @@ module NewRelic::Agent
           now_ms = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
 
           disabled_analytics_events = @config.merge({
-             :'analytics_events.enabled' => false
+            :'analytics_events.enabled' => false
           })
 
           with_config disabled_analytics_events do
@@ -382,7 +382,7 @@ module NewRelic::Agent
           now_ms = Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond)
 
           disabled_span_events = @config.merge({
-             :'span_events.enabled' => false
+            :'span_events.enabled' => false
           })
 
           with_config disabled_span_events do
@@ -436,10 +436,10 @@ module NewRelic::Agent
         end
 
         def make_trace_context_header_data trace_parent: "00-a8e67265afe2773a3c611b94306ee5c2-fb1010463ea28a38-01",
-                                    trace_state_payload: nil,
-                                    trace_state: ["other=asdf"],
-                                    trace_state_vendors: ''
-            NewRelic::Agent::DistributedTracing::TraceContext::HeaderData.new trace_parent, trace_state_payload, trace_state, 10, trace_state_vendors
+          trace_state_payload: nil,
+          trace_state: ["other=asdf"],
+          trace_state_vendors: ''
+          NewRelic::Agent::DistributedTracing::TraceContext::HeaderData.new trace_parent, trace_state_payload, trace_state, 10, trace_state_vendors
         end
       end
     end

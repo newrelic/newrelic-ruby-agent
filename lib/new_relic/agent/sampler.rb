@@ -12,9 +12,8 @@
 module NewRelic
   module Agent
     class Sampler
-
       # Exception denotes a sampler is not available and it will not be registered.
-      class Unsupported < StandardError;  end
+      class Unsupported < StandardError; end
 
       attr_reader :id
       @sampler_classes = []
@@ -52,7 +51,7 @@ module NewRelic
       # The ID passed in here is unused by our code, but is preserved in case
       # we have clients who are defining their own subclasses of this class, and
       # expecting to be able to call super with an ID.
-      def initialize(id=nil)
+      def initialize(id = nil)
         @id = id || self.class.shorthand_name
       end
 

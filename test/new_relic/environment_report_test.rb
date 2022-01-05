@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 
 require 'new_relic/environment_report'
 
@@ -17,7 +17,7 @@ class EnvironmentReportTest < Minitest::Test
   end
 
   def test_converts_to_array
-    ::NewRelic::EnvironmentReport.report_on("something"){"awesome"}
+    ::NewRelic::EnvironmentReport.report_on("something") { "awesome" }
     data = Array(::NewRelic::EnvironmentReport.new)
     expected = ["something", "awesome"]
     assert data.include?(expected), "expected to find #{expected} in #{data.inspect}"
@@ -41,7 +41,7 @@ class EnvironmentReportTest < Minitest::Test
     ::NewRelic::EnvironmentReport.report_on("What time is it?") do
       nil
     end
-    assert ! NewRelic::EnvironmentReport.new.data.has_key?("What time is it?")
+    assert !NewRelic::EnvironmentReport.new.data.has_key?("What time is it?")
   end
 
   def test_can_set_an_environment_value_directly
@@ -51,7 +51,7 @@ class EnvironmentReportTest < Minitest::Test
 
   def test_it_knows_what_gems_are_in_the_environment
     assert(@report['Gems'].size > 5, "Expected at least 5 gems in #{@report['Gems'].inspect}")
-    rake = @report['Gems'].detect{|s| s.include? 'rake'}
+    rake = @report['Gems'].detect { |s| s.include? 'rake' }
     assert_match(/^rake\([\d\.]+\)$/, rake)
   end
 
@@ -66,9 +66,9 @@ class EnvironmentReportTest < Minitest::Test
   def test_gathers_system_info
     NewRelic::Agent::SystemInfo.stubs({
       :num_logical_processors => 8,
-      :processor_arch         => 'x86_64',
-      :os_version             => 'WiggleOS 1.1.1',
-      :ruby_os_identifier     => 'wiggleos'
+      :processor_arch => 'x86_64',
+      :os_version => 'WiggleOS 1.1.1',
+      :ruby_os_identifier => 'wiggleos'
     })
     report = ::NewRelic::EnvironmentReport.new
     assert_equal(8, report['Logical Processors'])
@@ -99,7 +99,7 @@ class EnvironmentReportTest < Minitest::Test
       'Rails Env',
       'Rails version',
       'Rails threadsafe',
-      'OpenSSL version',
+      'OpenSSL version'
     ].each do |key|
       assert NewRelic::EnvironmentReport.registered_reporters.has_key?(key), "Expected logic for #{key.inspect} in EnvironmentReport."
     end

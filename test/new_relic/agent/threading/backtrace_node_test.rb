@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/threading/backtrace_node'
 
 module NewRelic::Agent::Threading
@@ -18,7 +18,7 @@ module NewRelic::Agent::Threading
       ]
     end
 
-    def assert_backtrace_trees_equal(a, b, original_a=a, original_b=b)
+    def assert_backtrace_trees_equal(a, b, original_a = a, original_b = b)
       message = "Thread profiles did not match.\n\n"
       message << "Expected tree:\n#{original_a.dump_string}\n\n"
       message << "Actual tree:\n#{original_b.dump_string}\n"
@@ -29,7 +29,7 @@ module NewRelic::Agent::Threading
       end
     end
 
-    def create_node(frame, parent=nil, runnable_count=0)
+    def create_node(frame, parent = nil, runnable_count = 0)
       node = BacktraceNode.new(frame)
       parent.add_child_unless_present(node) if parent
       node.runnable_count = runnable_count
@@ -37,8 +37,8 @@ module NewRelic::Agent::Threading
     end
 
     def convert_nodes_to_array(nodes)
-      nodes.each {|n| n.mark_for_array_conversion }
-      nodes.each {|n| n.complete_array_conversion }
+      nodes.each { |n| n.mark_for_array_conversion }
+      nodes.each { |n| n.complete_array_conversion }
     end
 
     def test_single_node_converts_to_array
@@ -47,10 +47,11 @@ module NewRelic::Agent::Threading
       convert_nodes_to_array([node])
 
       assert_equal([
-                   ["irb.rb", "catch", 69],
-                   0, 0,
-                   []],
-                   node.as_array)
+        ["irb.rb", "catch", 69],
+        0, 0,
+        []
+      ],
+        node.as_array)
     end
 
     def test_multiple_nodes_converts_to_array
@@ -61,15 +62,16 @@ module NewRelic::Agent::Threading
       convert_nodes_to_array([node, child_node])
 
       assert_equal([
-                   ["irb.rb", "catch", 69],
-                   0, 0,
-                   [
-                     [
-                       ['bacon.rb', 'yum', 42],
-                       0,0,
-                       []
-      ]
-      ]],
+        ["irb.rb", "catch", 69],
+        0, 0,
+        [
+          [
+            ['bacon.rb', 'yum', 42],
+            0, 0,
+            []
+          ]
+        ]
+      ],
         node.as_array)
     end
 
@@ -79,10 +81,11 @@ module NewRelic::Agent::Threading
       convert_nodes_to_array([node])
 
       assert_equal([
-                   ["transaction_sample_buffer.rb", "visit_node", -1],
-                   0, 0,
-                   []],
-                   node.as_array)
+        ["transaction_sample_buffer.rb", "visit_node", -1],
+        0, 0,
+        []
+      ],
+        node.as_array)
     end
 
     def test_gracefully_handle_bad_values_in_to_array
@@ -92,10 +95,11 @@ module NewRelic::Agent::Threading
       convert_nodes_to_array([node])
 
       assert_equal([
-                   ["irb.rb", "catch", 0],
-                   10, 0,
-                   []],
-                   node.as_array)
+        ["irb.rb", "catch", 0],
+        10, 0,
+        []
+      ],
+        node.as_array)
     end
 
     def test_add_child_twice

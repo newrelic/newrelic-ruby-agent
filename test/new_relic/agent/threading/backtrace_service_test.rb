@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 require 'new_relic/agent/threading/backtrace_service'
 require 'new_relic/agent/threading/threaded_test_case'
@@ -102,7 +102,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_harvest_passes_on_original_args_to_new_thread_profiles
         fake_worker_loop(@service)
 
-        args = { 'profile_id' => 42, 'duration' => 99, 'sample_period' => 0.1 }
+        args = {'profile_id' => 42, 'duration' => 99, 'sample_period' => 0.1}
         @service.subscribe('foo', args)
         @service.harvest('foo')
         profile = @service.harvest('foo')
@@ -159,9 +159,9 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         thread = fake_thread(:agent, ["trace"])
 
-        AgentThread.stubs(:scrub_backtrace).
-                    with(thread, any_parameters).
-                    returns(scrubbed_backtrace)
+        AgentThread.stubs(:scrub_backtrace)
+          .with(thread, any_parameters)
+          .returns(scrubbed_backtrace)
 
         profile = @service.subscribe(BacktraceService::ALL_TRANSACTIONS)
         profile.expects(:aggregate).with(scrubbed_backtrace, :agent, thread)
@@ -182,8 +182,8 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         # First poll doesn't record skew since we don't have a last poll time
         assert_metrics_recorded({
-          'Supportability/ThreadProfiler/PollingTime' => { :call_count => 2 },
-          'Supportability/ThreadProfiler/Skew'        => { :call_count => 1 }
+          'Supportability/ThreadProfiler/PollingTime' => {:call_count => 2},
+          'Supportability/ThreadProfiler/Skew' => {:call_count => 1}
         })
       end
 
@@ -417,9 +417,9 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
 
         @service.poll
 
-        expected = { :call_count => 1, :total_call_time => 5 }
+        expected = {:call_count => 1, :total_call_time => 5}
         assert_metrics_recorded(
-          { 'Supportability/ThreadProfiler/PollingTime' => expected }
+          {'Supportability/ThreadProfiler/PollingTime' => expected}
         )
       end
 
@@ -503,12 +503,12 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         end
       end
 
-      def fake_transaction_finished(name, start_timestamp, duration, thread, bucket=:request)
+      def fake_transaction_finished(name, start_timestamp, duration, thread, bucket = :request)
         payload = {
-          :name            => name,
-          :bucket          => bucket,
+          :name => name,
+          :bucket => bucket,
           :start_timestamp => start_timestamp,
-          :duration        => duration
+          :duration => duration
         }
         payload[:thread] = thread if thread
         @event_listener.notify(:transaction_finished, payload)
@@ -523,7 +523,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         dummy_loop
       end
 
-      def fake_thread(bucket, backtrace=[])
+      def fake_thread(bucket, backtrace = [])
         thread = FakeThread.new(:backtrace => backtrace)
         mark_bucket_for_thread(thread, bucket)
 
@@ -551,7 +551,7 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
       def test_adding_subscriptions_is_thread_safe
         @service.worker_loop.propagate_errors = true
 
-        @service.subscribe('foo', { 'sample_period' => 0.01 })
+        @service.subscribe('foo', {'sample_period' => 0.01})
 
         wait_for_backtrace_service_poll(:service => @service)
 
@@ -565,7 +565,6 @@ if NewRelic::Agent::Threading::BacktraceService.is_supported?
         @service.worker_thread.join
       end
     end
-
   end
 else
   module NewRelic::Agent::Threading
@@ -597,7 +596,6 @@ else
 
         assert_false service.running?
       end
-
     end
   end
 end

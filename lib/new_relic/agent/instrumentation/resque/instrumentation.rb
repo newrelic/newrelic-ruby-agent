@@ -12,12 +12,13 @@ module NewRelic::Agent::Instrumentation
         perform_action_with_newrelic_trace(
           :name => 'perform',
           :class_name => self.payload_class,
-          :category => 'OtherTransaction/ResqueJob') do
-
+          :category => 'OtherTransaction/ResqueJob'
+        ) do
           NewRelic::Agent::Transaction.merge_untrusted_agent_attributes(
             args,
             :'job.resque.args',
-            NewRelic::Agent::AttributeFilter::DST_NONE)
+            NewRelic::Agent::AttributeFilter::DST_NONE
+          )
 
           yield
         end
@@ -30,6 +31,5 @@ module NewRelic::Agent::Instrumentation
         end
       end
     end
-
   end
 end

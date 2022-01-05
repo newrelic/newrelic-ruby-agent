@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/datastores/mongo/obfuscator'
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'test_helper'))
 
 module NewRelic
   module Agent
@@ -12,15 +12,15 @@ module NewRelic
         class ObfuscatorTest < Minitest::Test
           def test_obfuscator_removes_values_from_statement
             selector = {
-              'name'     => 'soterios johnson',
+              'name' => 'soterios johnson',
               :operation => :find,
-              :_id       => "BSON::ObjectId('?')"
+              :_id => "BSON::ObjectId('?')"
             }
 
             expected = {
-              'name'     => '?',
+              'name' => '?',
               :operation => :find,
-              :_id       => '?'
+              :_id => '?'
             }
 
             obfuscated = Obfuscator.obfuscate_statement(selector)
@@ -28,16 +28,16 @@ module NewRelic
           end
 
           def test_obfuscate_selector_values_skips_allowed_keys
-            selector   = {
-              :benign    => 'bland data',
+            selector = {
+              :benign => 'bland data',
               :operation => :find,
-              :_id       => "BSON::ObjectId('?')"
+              :_id => "BSON::ObjectId('?')"
             }
 
-            expected   = {
-              :benign    => 'bland data',
+            expected = {
+              :benign => 'bland data',
               :operation => :find,
-              :_id       => '?'
+              :_id => '?'
             }
 
             obfuscated = Obfuscator.obfuscate_statement(selector, [:benign, :operation])
@@ -47,21 +47,21 @@ module NewRelic
           def test_obfuscate_nested_hashes
             selector = {
               "group" => {
-                "ns"      => "tribbles",
+                "ns" => "tribbles",
                 "$reduce" => stub("BSON::Code"),
-                "cond"    => {},
-                "initial" => { :count => 0 },
-                "key"     => { "name" => 1 }
+                "cond" => {},
+                "initial" => {:count => 0},
+                "key" => {"name" => 1}
               }
             }
 
             expected = {
               "group" => {
-                "ns"      => "?",
+                "ns" => "?",
                 "$reduce" => "?",
-                "cond"    => {},
-                "initial" => { :count => "?" },
-                "key"     => { "name" => "?" }
+                "cond" => {},
+                "initial" => {:count => "?"},
+                "key" => {"name" => "?"}
               }
             }
 
@@ -70,8 +70,8 @@ module NewRelic
           end
 
           def test_obfuscates_array_statement
-            statement = [{"$group"=>{:_id=>"$says", :total=>{"$sum"=>1}}}]
-            expected = [{"$group"=>{:_id=>"?", :total=>{"$sum"=>"?"}}}]
+            statement = [{"$group" => {:_id => "$says", :total => {"$sum" => 1}}}]
+            expected = [{"$group" => {:_id => "?", :total => {"$sum" => "?"}}}]
 
             obfuscated = Obfuscator.obfuscate_statement(statement)
             assert_equal expected, obfuscated
@@ -80,18 +80,17 @@ module NewRelic
           def test_obfuscate_nested_arrays
             selector = {
               "aggregate" => "mongeese",
-              "pipeline"  => [{"$group"=>{:_id=>"$says", :total=>{"$sum"=>1}}}]
+              "pipeline" => [{"$group" => {:_id => "$says", :total => {"$sum" => 1}}}]
             }
 
             expected = {
               "aggregate" => "?",
-              "pipeline"  => [{"$group"=>{:_id=>"?", :total=>{"$sum"=>"?"}}}]
+              "pipeline" => [{"$group" => {:_id => "?", :total => {"$sum" => "?"}}}]
             }
 
             obfuscated = Obfuscator.obfuscate_statement(selector)
             assert_equal expected, obfuscated
           end
-
         end
       end
     end

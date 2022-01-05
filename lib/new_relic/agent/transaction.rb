@@ -24,33 +24,33 @@ module NewRelic
       include Tracing
 
       # for nested transactions
-      NESTED_TRANSACTION_PREFIX    = "Nested/"
-      CONTROLLER_PREFIX            = "Controller/"
-      MIDDLEWARE_PREFIX            = "Middleware/Rack/"
-      OTHER_TRANSACTION_PREFIX     = "OtherTransaction/"
-      TASK_PREFIX                  = "#{OTHER_TRANSACTION_PREFIX}Background/"
-      RAKE_PREFIX                  = "#{OTHER_TRANSACTION_PREFIX}Rake/"
-      MESSAGE_PREFIX               = "#{OTHER_TRANSACTION_PREFIX}Message/"
-      RACK_PREFIX                  = "#{CONTROLLER_PREFIX}Rack/"
-      SINATRA_PREFIX               = "#{CONTROLLER_PREFIX}Sinatra/"
-      GRAPE_PREFIX                 = "#{CONTROLLER_PREFIX}Grape/"
-      ACTION_CABLE_PREFIX          = "#{CONTROLLER_PREFIX}ActionCable/"
+      NESTED_TRANSACTION_PREFIX = "Nested/"
+      CONTROLLER_PREFIX = "Controller/"
+      MIDDLEWARE_PREFIX = "Middleware/Rack/"
+      OTHER_TRANSACTION_PREFIX = "OtherTransaction/"
+      TASK_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Background/"
+      RAKE_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Rake/"
+      MESSAGE_PREFIX = "#{OTHER_TRANSACTION_PREFIX}Message/"
+      RACK_PREFIX = "#{CONTROLLER_PREFIX}Rack/"
+      SINATRA_PREFIX = "#{CONTROLLER_PREFIX}Sinatra/"
+      GRAPE_PREFIX = "#{CONTROLLER_PREFIX}Grape/"
+      ACTION_CABLE_PREFIX = "#{CONTROLLER_PREFIX}ActionCable/"
 
-      WEB_TRANSACTION_CATEGORIES   = [:web, :controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
-      TRANSACTION_NAMING_SOURCES   = [:child, :api].freeze
+      WEB_TRANSACTION_CATEGORIES = [:web, :controller, :uri, :rack, :sinatra, :grape, :middleware, :action_cable].freeze
+      TRANSACTION_NAMING_SOURCES = [:child, :api].freeze
 
-      MIDDLEWARE_SUMMARY_METRICS   = ["Middleware/all"].freeze
-      WEB_SUMMARY_METRIC           = "HttpDispatcher"
-      OTHER_SUMMARY_METRIC         = "#{OTHER_TRANSACTION_PREFIX}all"
-      QUEUE_TIME_METRIC            = "WebFrontend/QueueTime"
+      MIDDLEWARE_SUMMARY_METRICS = ["Middleware/all"].freeze
+      WEB_SUMMARY_METRIC = "HttpDispatcher"
+      OTHER_SUMMARY_METRIC = "#{OTHER_TRANSACTION_PREFIX}all"
+      QUEUE_TIME_METRIC = "WebFrontend/QueueTime"
 
-      APDEX_S                       = "S"
-      APDEX_T                       = "T"
-      APDEX_F                       = "F"
-      APDEX_ALL_METRIC              = "ApdexAll"
-      APDEX_METRIC                  = "Apdex"
-      APDEX_OTHER_METRIC            = "ApdexOther"
-      APDEX_TXN_METRIC_PREFIX       = "Apdex/"
+      APDEX_S = "S"
+      APDEX_T = "T"
+      APDEX_F = "F"
+      APDEX_ALL_METRIC = "ApdexAll"
+      APDEX_METRIC = "Apdex"
+      APDEX_OTHER_METRIC = "ApdexOther"
+      APDEX_TXN_METRIC_PREFIX = "Apdex/"
       APDEX_OTHER_TXN_METRIC_PREFIX = "ApdexOther/Transaction/"
 
       JRUBY_CPU_TIME_ERROR = "Error calculating JRuby CPU Time"
@@ -67,27 +67,27 @@ module NewRelic
       attr_accessor :apdex_start
 
       attr_accessor :exceptions,
-                    :filtered_params,
-                    :jruby_cpu_start,
-                    :process_cpu_start,
-                    :http_response_code,
-                    :response_content_length,
-                    :response_content_type,
-                    :parent_span_id
+        :filtered_params,
+        :jruby_cpu_start,
+        :process_cpu_start,
+        :http_response_code,
+        :response_content_length,
+        :response_content_type,
+        :parent_span_id
 
       attr_reader :guid,
-                  :metrics,
-                  :gc_start_snapshot,
-                  :category,
-                  :attributes,
-                  :payload,
-                  :nesting_max_depth,
-                  :segments,
-                  :end_time,
-                  :duration
+        :metrics,
+        :gc_start_snapshot,
+        :category,
+        :attributes,
+        :payload,
+        :nesting_max_depth,
+        :segments,
+        :end_time,
+        :duration
 
       attr_writer :sampled,
-                  :priority
+        :priority
 
       # Populated with the trace sample once this transaction is completed.
       attr_reader :transaction_trace
@@ -100,13 +100,13 @@ module NewRelic
         Tracer.current_transaction
       end
 
-      def self.set_default_transaction_name(partial_name, category = nil) #THREAD_LOCAL_ACCESS
-        txn  = tl_current
+      def self.set_default_transaction_name(partial_name, category = nil) # THREAD_LOCAL_ACCESS
+        txn = tl_current
         name = name_from_partial(partial_name, category || txn.category)
         txn.set_default_transaction_name(name, category)
       end
 
-      def self.set_overriding_transaction_name(partial_name, category = nil) #THREAD_LOCAL_ACCESS
+      def self.set_overriding_transaction_name(partial_name, category = nil) # THREAD_LOCAL_ACCESS
         txn = tl_current
         return unless txn
 
@@ -143,7 +143,7 @@ module NewRelic
       end
 
       # See NewRelic::Agent.notice_error for options and commentary
-      def self.notice_error(e, options={})
+      def self.notice_error(e, options = {})
         if txn = Tracer.current_transaction
           txn.notice_error(e, options)
         elsif NewRelic::Agent.instance
@@ -156,7 +156,7 @@ module NewRelic
       #
       # @api public
       #
-      def self.recording_web_transaction? #THREAD_LOCAL_ACCESS
+      def self.recording_web_transaction? # THREAD_LOCAL_ACCESS
         NewRelic::Agent.record_api_supportability_metric(:recording_web_transaction?)
 
         txn = tl_current
@@ -220,8 +220,8 @@ module NewRelic
         @segments = []
 
         self.default_name = options[:transaction_name]
-        @overridden_name    = nil
-        @frozen_name      = nil
+        @overridden_name = nil
+        @frozen_name = nil
 
         @category = category
         @start_time = Process.clock_gettime(Process::CLOCK_REALTIME)
@@ -352,9 +352,9 @@ module NewRelic
 
       def best_name
         @frozen_name ||
-        @overridden_name ||
-        @default_name ||
-        NewRelic::Agent::UNKNOWN_METRIC
+          @overridden_name ||
+          @default_name ||
+          NewRelic::Agent::UNKNOWN_METRIC
       end
 
       # For common interface with Trace
@@ -546,8 +546,8 @@ module NewRelic
 
       def assign_agent_attributes
         default_destinations = AttributeFilter::DST_TRANSACTION_TRACER |
-                               AttributeFilter::DST_TRANSACTION_EVENTS |
-                               AttributeFilter::DST_ERROR_COLLECTOR
+          AttributeFilter::DST_TRANSACTION_EVENTS |
+          AttributeFilter::DST_ERROR_COLLECTOR
 
         if http_response_code
           add_agent_attribute(:'http.statusCode', http_response_code, default_destinations)
@@ -622,14 +622,14 @@ module NewRelic
 
       def generate_payload
         @payload = {
-          :name                 => @frozen_name,
-          :bucket               => recording_web_transaction? ? :request : :background,
-          :start_timestamp      => start_time,
-          :duration             => duration,
-          :metrics              => @metrics,
-          :attributes           => @attributes,
-          :error                => false,
-          :priority             => priority
+          :name => @frozen_name,
+          :bucket => recording_web_transaction? ? :request : :background,
+          :start_timestamp => start_time,
+          :duration => duration,
+          :metrics => @metrics,
+          :attributes => @attributes,
+          :error => false,
+          :priority => priority
         }
 
         distributed_tracer.append_payload(@payload)
@@ -683,7 +683,6 @@ module NewRelic
         when :apdex_s then APDEX_S
         when :apdex_t then APDEX_T
         when :apdex_f then APDEX_F
-        else nil
         end
         payload[:apdex_perf_zone] = bucket_str if bucket_str
       end
@@ -692,8 +691,8 @@ module NewRelic
         return unless is_synthetics_request?
 
         payload[:synthetics_resource_id] = synthetics_resource_id
-        payload[:synthetics_job_id]      = synthetics_job_id
-        payload[:synthetics_monitor_id]  = synthetics_monitor_id
+        payload[:synthetics_job_id] = synthetics_job_id
+        payload[:synthetics_monitor_id] = synthetics_monitor_id
       end
 
       def merge_metrics
@@ -703,9 +702,9 @@ module NewRelic
       def record_exceptions
         error_recorded = false
         @exceptions.each do |exception, options|
-          options[:uri]      ||= request_path if request_path
-          options[:port]       = request_port if request_port
-          options[:metric]     = best_name
+          options[:uri] ||= request_path if request_path
+          options[:port] = request_port if request_port
+          options[:metric] = best_name
           options[:attributes] = @attributes
 
           span_id = options.delete :span_id
@@ -715,8 +714,7 @@ module NewRelic
       end
 
       # Do not call this.  Invoke the class method instead.
-      def notice_error(error, options={}) # :nodoc:
-
+      def notice_error(error, options = {}) # :nodoc:
         # Only the last error is kept
         if @current_segment
           @current_segment.notice_error error, expected: options[:expected]
@@ -771,8 +769,8 @@ module NewRelic
             record_apdex_metrics(APDEX_METRIC, APDEX_TXN_METRIC_PREFIX, apdex_t)
           else
             record_apdex_metrics(APDEX_OTHER_METRIC,
-                                 APDEX_OTHER_TXN_METRIC_PREFIX,
-                                 transaction_specific_apdex_t)
+              APDEX_OTHER_TXN_METRIC_PREFIX,
+              transaction_specific_apdex_t)
           end
         end
       end
@@ -780,9 +778,9 @@ module NewRelic
       def record_apdex_metrics(rollup_metric, transaction_prefix, current_apdex_t)
         return unless current_apdex_t
 
-        total_duration      = end_time - apdex_start
+        total_duration = end_time - apdex_start
         apdex_bucket_global = apdex_bucket(total_duration, current_apdex_t)
-        apdex_bucket_txn    = apdex_bucket(duration, current_apdex_t)
+        apdex_bucket_txn = apdex_bucket(duration, current_apdex_t)
 
         @metrics.record_unscoped(rollup_metric, apdex_bucket_global, current_apdex_t)
         @metrics.record_unscoped(APDEX_ALL_METRIC, apdex_bucket_global, current_apdex_t)
@@ -800,7 +798,7 @@ module NewRelic
       end
 
       def threshold
-         source_class = Agent.config.source(:'transaction_tracer.transaction_threshold').class
+        source_class = Agent.config.source(:'transaction_tracer.transaction_threshold').class
         if source_class == Configuration::DefaultSource
           apdex_t * 4
         else
@@ -808,7 +806,7 @@ module NewRelic
         end
       end
 
-      def with_database_metric_name(model, method, product=nil)
+      def with_database_metric_name(model, method, product = nil)
         previous = self.instrumentation_state[:datastore_override]
         model_name = case model
                      when Class
@@ -817,7 +815,7 @@ module NewRelic
                        model
                      else
                        model.to_s
-                     end
+        end
         self.instrumentation_state[:datastore_override] = [method, model_name, product]
         yield
       ensure
@@ -895,9 +893,9 @@ module NewRelic
         threadMBean = Java::JavaLangManagement::ManagementFactory.getThreadMXBean()
 
         return nil unless threadMBean.isCurrentThreadCpuTimeSupported
-        java_utime = threadMBean.getCurrentThreadUserTime()  # ns
+        java_utime = threadMBean.getCurrentThreadUserTime() # ns
 
-        -1 == java_utime ? 0.0 : java_utime/1e9
+        -1 == java_utime ? 0.0 : java_utime / 1e9
       rescue => e
         ::NewRelic::Agent.logger.log_once(:warn, :jruby_cpu_time, JRUBY_CPU_TIME_ERROR, e)
         ::NewRelic::Agent.logger.debug(JRUBY_CPU_TIME_ERROR, e)

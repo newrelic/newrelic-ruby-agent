@@ -20,10 +20,10 @@ module NewRelic
         end
 
         attr_reader :worker_loop, :buffer, :effective_polling_period,
-                    :overhead_percent_threshold
+          :overhead_percent_threshold
         attr_accessor :worker_thread, :profile_agent_code
 
-        def initialize(event_listener=nil)
+        def initialize(event_listener = nil)
           @profiles = {}
           @buffer = {}
           @last_poll = nil
@@ -52,7 +52,7 @@ module NewRelic
           @running
         end
 
-        def subscribe(transaction_name, command_arguments={})
+        def subscribe(transaction_name, command_arguments = {})
           if self.class.is_resque?
             NewRelic::Agent.logger.info("Backtracing threads on Resque is not supported, so not subscribing transaction '#{transaction_name}'")
             return
@@ -113,11 +113,11 @@ module NewRelic
         end
 
         def on_transaction_finished(payload)
-          name     = payload[:name]
-          start    = payload[:start_timestamp]
+          name = payload[:name]
+          start = payload[:start_timestamp]
           duration = payload[:duration]
-          thread   = payload[:thread] || Thread.current
-          bucket   = payload[:bucket]
+          thread = payload[:thread] || Thread.current
+          bucket = payload[:bucket]
           @lock.synchronize do
             backtraces = @buffer.delete(thread)
             if backtraces && @profiles.has_key?(name)
@@ -197,7 +197,7 @@ module NewRelic
         # This method is expected to be called with @lock held
         def watching_for_transaction?
           @profiles.size > 1 ||
-          (@profiles.size == 1 && @profiles[ALL_TRANSACTIONS].nil?)
+            (@profiles.size == 1 && @profiles[ALL_TRANSACTIONS].nil?)
         end
 
         def allowed_bucket?(bucket)
