@@ -19,12 +19,12 @@ running.
 
 The full list of data handling software used by the tests is as follows:
 
-* [memcached](https://memcached.org/)  
-* [MongoDB](https://www.mongodb.com/)  
-* [MySQL](https://www.mysql.com/)  
-* [PostgreSQL](https://www.postgresql.org/)  
-* [RabbitMQ](https://www.rabbitmq.com/)  
-* [Redis](https://redis.io/)  
+* [memcached](https://memcached.org)
+* [MongoDB](https://www.mongodb.com)
+* [MySQL](https://www.mysql.com)
+* [PostgreSQL](https://www.postgresql.org)
+* [RabbitMQ](https://www.rabbitmq.com)
+* [Redis](https://redis.io)
 
 If you are using [Homebrew](https://brew.sh/), then you may make use of this
 project's [Brewfile](../../../Brewfile) file to automatically install all of
