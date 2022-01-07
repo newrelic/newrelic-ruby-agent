@@ -76,6 +76,8 @@ class LicenseTest < Minitest::Test
       path =~ %r{/test/multiverse/suites/.*/Gemfile\.\d+(\.lock)?$} ||
       # skip multiverse auto-generated db/schema
       path =~ %r{/test/multiverse/suites/.*/db/schema.rb$} ||
+      # skip multiverse error log output
+      path =~ %r{/test/multiverse/lib/multiverse/errors.txt$} ||
       # skip the artifacts directory
       path =~ %r{/artifacts/} ||
       # skip the changelog

@@ -112,6 +112,21 @@ class MongoServer
     end
   end
 
+  def smallfiles_switch
+    ' --smallfiles' if mongod_version < Gem::Version.new(4.2)
+  end
+
+  def mongod_version
+    @mongod_version ||= begin
+                          version = Regexp.last_match(1) if `#{mongod_path} --version` =~ /^db version v([0-9.]+)/
+                          Gem::Version.new(version || 0)
+                        end
+  end
+
+  def mongod_path
+    @mongod_path ||= ENV['MONGOD_PATH'] || 'mongod'
+  end
+
   def startup_command
     pid_file = "--pidfilepath #{pid_path}"
     log_file = "--logpath #{log_path} "
@@ -119,12 +134,11 @@ class MongoServer
 
     dbpath = "--dbpath #{db_path}"
     port_flag = "--port #{self.port}"
-    small_mongo = "--oplogSize 128 --smallfiles"
+    small_mongo = "--oplogSize 128#{smallfiles_switch}"
     repl_set = "--replSet multiverse"
 
     base = "#{port_flag} #{fork} #{pid_file} #{log_file} #{small_mongo} #{dbpath}"
 
-    mongod_path = ENV['MONGOD_PATH'] || 'mongod'
     if self.type == :single
       "#{mongod_path} #{base}"
     elsif self.type == :replica
