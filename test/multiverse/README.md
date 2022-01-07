@@ -17,21 +17,24 @@ storage, caching, and messaging. To test every suite, all related software
 will need to be installed and all server processes will need to be up and
 running.
 
-The full list of software used by the tests is as follows:
+The full list of data handling software used by the tests is as follows:
 
-* [memcached](https://memcached.org/)
-* [MongoDB](https://www.mongodb.com/)
-* [MySQL](https://www.mysql.com/)
-* [PostgreSQL](https://www.postgresql.org/)
-* [RabbitMQ](https://www.rabbitmq.com/)
-* [Redis](https://redis.io/)
+* [memcached](https://memcached.org/)  
+* [MongoDB](https://www.mongodb.com/)  
+* [MySQL](https://www.mysql.com/)  
+* [PostgreSQL](https://www.postgresql.org/)  
+* [RabbitMQ](https://www.rabbitmq.com/)  
+* [Redis](https://redis.io/)  
 
-If you are using [Homebrew](https://brew.sh/), then you my make use of this
+If you are using [Homebrew](https://brew.sh/), then you may make use of this
 project's [Brewfile](../../../Brewfile) file to automatically install all of
-these data stores as well as [pkg-config](https://freedesktop.org/wiki/Software/pkg-config/),
-which helps with Rubygems C extension compilation.
+those applications as well as these additional dependency packages:
 
-To use the project [Brewfile](../../../Brewfile) file run the following from
+* [pkg-config](https://freedesktop.org/wiki/Software/pkg-config/)  
+* [OpenSSL](https://www.openssl.org/)  
+* [ImageMagick](https://imagemagick.org/)  
+
+To use the project [Brewfile](../../../Brewfile) file, run the following from
 the root of the project git clone where the file resides:
 
 ```shell
