@@ -16,39 +16,39 @@ module NewRelic
       extend self
 
       # Strings for static keys of the event structure
-      ELLIPSIS             = '...'
-      TYPE_KEY             = 'type'
-      TRACE_ID_KEY         = 'traceId'
-      GUID_KEY             = 'guid'
-      PARENT_ID_KEY        = 'parentId'
-      GRANDPARENT_ID_KEY   = 'grandparentId'
-      TRANSACTION_ID_KEY   = 'transactionId'
-      SAMPLED_KEY          = 'sampled'
-      PRIORITY_KEY         = 'priority'
-      TIMESTAMP_KEY        = 'timestamp'
-      DURATION_KEY         = 'duration'
-      NAME_KEY             = 'name'
-      CATEGORY_KEY         = 'category'
-      HTTP_URL_KEY         = 'http.url'
-      HTTP_METHOD_KEY      = 'http.method'
+      ELLIPSIS = '...'
+      TYPE_KEY = 'type'
+      TRACE_ID_KEY = 'traceId'
+      GUID_KEY = 'guid'
+      PARENT_ID_KEY = 'parentId'
+      GRANDPARENT_ID_KEY = 'grandparentId'
+      TRANSACTION_ID_KEY = 'transactionId'
+      SAMPLED_KEY = 'sampled'
+      PRIORITY_KEY = 'priority'
+      TIMESTAMP_KEY = 'timestamp'
+      DURATION_KEY = 'duration'
+      NAME_KEY = 'name'
+      CATEGORY_KEY = 'category'
+      HTTP_URL_KEY = 'http.url'
+      HTTP_METHOD_KEY = 'http.method'
       HTTP_STATUS_CODE_KEY = 'http.statusCode'
-      COMPONENT_KEY        = 'component'
-      DB_INSTANCE_KEY      = 'db.instance'
-      DB_STATEMENT_KEY     = 'db.statement'
-      PEER_ADDRESS_KEY     = 'peer.address'
-      PEER_HOSTNAME_KEY    = 'peer.hostname'
-      SPAN_KIND_KEY        = 'span.kind'
-      ENTRY_POINT_KEY      = 'nr.entryPoint'
-      TRUSTED_PARENT_KEY   = "trustedParentId"
-      TRACING_VENDORS_KEY  = "tracingVendors"
+      COMPONENT_KEY = 'component'
+      DB_INSTANCE_KEY = 'db.instance'
+      DB_STATEMENT_KEY = 'db.statement'
+      PEER_ADDRESS_KEY = 'peer.address'
+      PEER_HOSTNAME_KEY = 'peer.hostname'
+      SPAN_KIND_KEY = 'span.kind'
+      ENTRY_POINT_KEY = 'nr.entryPoint'
+      TRUSTED_PARENT_KEY = "trustedParentId"
+      TRACING_VENDORS_KEY = "tracingVendors"
       TRANSACTION_NAME_KEY = 'transaction.name'
 
       # Strings for static values of the event structure
-      EVENT_TYPE         = 'Span'
-      GENERIC_CATEGORY   = 'generic'
-      HTTP_CATEGORY      = 'http'
+      EVENT_TYPE = 'Span'
+      GENERIC_CATEGORY = 'generic'
+      HTTP_CATEGORY = 'http'
       DATASTORE_CATEGORY = 'datastore'
-      CLIENT             = 'client'
+      CLIENT = 'client'
 
       # Builds a Hash of error attributes as well as the Span ID when
       # an error is present.  Otherwise, returns nil when no error present.
@@ -68,11 +68,11 @@ module NewRelic
       def for_external_request_segment segment
         intrinsics = intrinsics_for(segment)
 
-        intrinsics[COMPONENT_KEY]   = segment.library
+        intrinsics[COMPONENT_KEY] = segment.library
         intrinsics[HTTP_METHOD_KEY] = segment.procedure
         intrinsics[HTTP_STATUS_CODE_KEY] = segment.http_status_code if segment.http_status_code
-        intrinsics[CATEGORY_KEY]    = HTTP_CATEGORY
-        intrinsics[SPAN_KIND_KEY]   = CLIENT
+        intrinsics[CATEGORY_KEY] = HTTP_CATEGORY
+        intrinsics[SPAN_KIND_KEY] = CLIENT
 
         agent_attributes = error_attributes(segment) || {}
 
@@ -115,14 +115,14 @@ module NewRelic
 
       def intrinsics_for segment
         intrinsics = {
-          TYPE_KEY           => EVENT_TYPE,
-          TRACE_ID_KEY       => segment.transaction.trace_id,
-          GUID_KEY           => segment.guid,
+          TYPE_KEY => EVENT_TYPE,
+          TRACE_ID_KEY => segment.transaction.trace_id,
+          GUID_KEY => segment.guid,
           TRANSACTION_ID_KEY => segment.transaction.guid,
-          PRIORITY_KEY       => segment.transaction.priority,
-          TIMESTAMP_KEY      => milliseconds_since_epoch(segment),
-          DURATION_KEY       => segment.duration,
-          NAME_KEY           => segment.name
+          PRIORITY_KEY => segment.transaction.priority,
+          TIMESTAMP_KEY => milliseconds_since_epoch(segment),
+          DURATION_KEY => segment.duration,
+          NAME_KEY => segment.name
         }
 
         # with infinite-tracing, transactions may or may not be sampled!
@@ -191,7 +191,7 @@ module NewRelic
         Integer(segment.start_time.to_f * 1000.0)
       end
 
-      def truncate value, max_size=255
+      def truncate value, max_size = 255
         value = value.to_s
         if value.bytesize > max_size
           value.byteslice(0, max_size - 2).chop! << ELLIPSIS

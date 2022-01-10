@@ -10,7 +10,7 @@ task :test => ['test:newrelic']
 
 namespace :test do
   desc "Run all tests"
-  task :all => %w{newrelic multiverse}
+  task :all => %w[newrelic multiverse]
 
   begin
     require 'test_bisect'
@@ -27,14 +27,14 @@ namespace :test do
     require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'performance', 'lib', 'performance'))
     options = {}
     options[:suite] = args[:suite] if args[:suite]
-    options[:name]  = args[:name]  if args[:name]
+    options[:name] = args[:name] if args[:name]
     Performance::Runner.new(options).run_and_report
   end
 
   desc "Run agent within existing mini environments"
   task :env, [:env1, :env2, :env3, :env4, :env5, :env6] => [] do |t, args|
     require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'environments', 'lib', 'environments', 'runner'))
-    Environments::Runner.new(args.map{|_,v| v}).run_and_report
+    Environments::Runner.new(args.map { |_, v| v }).run_and_report
   end
 
   Rake::TestTask.new(:intentional_fail) do |t|
@@ -51,11 +51,10 @@ namespace :test do
 
   # Note unit testing task is defined in lib/tasks/tests.rake to facilitate
   # running them in a rails application environment.
-
 end
 
 desc 'Record build number and stage'
-task :record_build, [ :build_number, :stage ] do |t, args|
+task :record_build, [:build_number, :stage] do |t, args|
   build_string = args.build_number
   build_string << ".#{args.stage}" unless args.stage.nil? || args.stage.empty?
 
@@ -111,7 +110,7 @@ end
 
 namespace :cross_agent_tests do
   cross_agent_tests_upstream_path = File.expand_path(File.join(File.dirname(__FILE__), '..', 'cross_agent_tests'))
-  cross_agent_tests_local_path    = File.expand_path(File.join(File.dirname(__FILE__), 'test', 'fixtures', 'cross_agent_tests'))
+  cross_agent_tests_local_path = File.expand_path(File.join(File.dirname(__FILE__), 'test', 'fixtures', 'cross_agent_tests'))
 
   # Note: before you pull, make sure your local repo is on the correct, synced branch!
   desc 'Pull latest changes from cross_agent_tests repo'
@@ -137,4 +136,3 @@ task :console do
   ARGV.clear
   Pry.start
 end
-

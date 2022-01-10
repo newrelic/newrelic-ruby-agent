@@ -9,7 +9,7 @@ module NewRelic::Agent
   module DistributedTracing
     class MonitorTest < Minitest::Test
       def setup
-        @events  = EventListener.new
+        @events = EventListener.new
         @monitor = DistributedTracing::Monitor.new(@events)
       end
 
@@ -27,22 +27,22 @@ module NewRelic::Agent
       def distributed_tracing_enabled
         {
           :'cross_application_tracer.enabled' => false,
-          :'distributed_tracing.enabled'      => true,
-        }      
+          :'distributed_tracing.enabled' => true
+        }
       end
 
       def cat_and_distributed_tracing_enabled
         {
           :'cross_application_tracer.enabled' => true,
-          :'distributed_tracing.enabled'      => true,
-        }      
+          :'distributed_tracing.enabled' => true
+        }
       end
 
       def distributed_tracing_disabled
         {
           :'cross_application_tracer.enabled' => false,
-          :'distributed_tracing.enabled'      => false,
-        }      
+          :'distributed_tracing.enabled' => false
+        }
       end
 
       def test_invokes_accept_incoming_request
@@ -71,7 +71,6 @@ module NewRelic::Agent
           end
         end
       end
-
     end
   end
 end

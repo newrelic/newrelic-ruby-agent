@@ -4,11 +4,9 @@
 
 module NewRelic
   module Agent
-
     # Handles loading of ignored and expected errors from the agent configuration, and
     # determining at runtime whether an exception is ignored or expected.
     class ErrorFilter
-
       def initialize
         reset
       end
@@ -20,10 +18,10 @@ module NewRelic
       end
 
       def load_all
-        %i(
+        %i[
           ignore_errors ignore_classes ignore_messages ignore_status_codes
           expected_classes expected_messages expected_status_codes
-        ).each { |setting| load_from_config(setting) }
+        ].each { |setting| load_from_config(setting) }
       end
 
       def load_from_config(setting, value = nil)
@@ -127,7 +125,7 @@ module NewRelic
             ::NewRelic::Agent.logger.debug("Ignoring errors of type '#{error}'")
           end
         when :ignore_messages
-          errors.each do |error,messages|
+          errors.each do |error, messages|
             ::NewRelic::Agent.logger.debug("Ignoring errors of type '#{error}' with messages: #{messages.join(',')}")
           end
         when :ignore_status_codes
@@ -137,7 +135,7 @@ module NewRelic
             ::NewRelic::Agent.logger.debug("Expecting errors of type '#{error}'")
           end
         when :expected_messages
-          errors.each do |error,messages|
+          errors.each do |error, messages|
             ::NewRelic::Agent.logger.debug("Expecting errors of type '#{error}' with messages: #{messages.join(',')}")
           end
         when :expected_status_codes
@@ -153,7 +151,7 @@ module NewRelic
             [codes]
           else
             codes
-          end
+        end
         result = []
         code_list.each do |code|
           result << code && next if code.is_a?(Integer)

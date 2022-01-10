@@ -33,7 +33,7 @@ module NewRelic
         end
 
         def test_streams_across_reconnects
-          with_serial_lock do 
+          with_serial_lock do
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
             total_spans = 5
             spans, segments = emulate_streaming_segments total_spans do |client, segments|
@@ -45,8 +45,8 @@ module NewRelic
             assert_equal total_spans, segments.size
             assert_equal total_spans, spans.size
 
-            span_ids = spans.map{|s| s["trace_id"]}.sort
-            segment_ids = segments.map{|s| s.transaction.trace_id}.sort
+            span_ids = spans.map { |s| s["trace_id"] }.sort
+            segment_ids = segments.map { |s| s.transaction.trace_id }.sort
 
             assert_equal segment_ids, span_ids
 
@@ -59,7 +59,7 @@ module NewRelic
         end
 
         def test_handles_server_disconnects
-          with_serial_lock do 
+          with_serial_lock do
             unstub_reconnection
             Connection.any_instance.stubs(:retry_connection_period).returns(0)
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
@@ -76,8 +76,8 @@ module NewRelic
             assert_equal total_spans, segments.size
             assert_equal total_spans, spans.size
 
-            span_ids = spans.map{|s| s["trace_id"]}.sort
-            segment_ids = segments.map{|s| s.transaction.trace_id}.sort
+            span_ids = spans.map { |s| s["trace_id"] }.sort
+            segment_ids = segments.map { |s| s.transaction.trace_id }.sort
 
             assert_equal segment_ids, span_ids
 
@@ -90,7 +90,7 @@ module NewRelic
         end
 
         def test_handles_server_error_responses
-          with_serial_lock do 
+          with_serial_lock do
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
             connection = Connection.instance
             connection.stubs(:retry_connection_period).returns(0)
@@ -108,7 +108,7 @@ module NewRelic
         end
 
         def test_handles_suspended_state
-          with_serial_lock do 
+          with_serial_lock do
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
             connection = Connection.instance
             connection.stubs(:retry_connection_period).returns(0)
@@ -132,7 +132,7 @@ module NewRelic
         end
 
         def test_stores_spans_when_not_connected
-          with_serial_lock do 
+          with_serial_lock do
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
             client = Client.new
 
@@ -145,7 +145,6 @@ module NewRelic
             assert_equal 5, client.buffer.queue.length
           end
         end
-
       end
     end
   end

@@ -6,20 +6,28 @@ gemfile <<-RB
 RB
 instrumentation_methods :chain, :prepend
 
-HTTPCLIENT_VERSIONS = %w(2.8.3
+if RUBY_VERSION >= '3.1.0'
+  # versions below 2.8.3 use `timeout`, which does not exist in Ruby 3.1
+  gemfile <<-RB
+    gem 'httpclient', '~> 2.8.3'
+    gem 'rack'
+    gem 'json', :platforms => [:rbx, :mri_18]
+    #{ruby3_gem_webrick}
+  RB
+else
+  HTTPCLIENT_VERSIONS = %w(2.8.3
                          2.6.0
                          2.5.3
                          2.4.0
                          2.3.4
                          2.2.0)
 
-HTTPCLIENT_VERSIONS.each do |httpclient_version|
-  gemfile <<-RB
-    gem 'httpclient', '~> #{httpclient_version}'
-    gem 'rack'
-    gem 'json', :platforms => [:rbx, :mri_18]
-    #{ruby3_gem_webrick}
-  RB
+  HTTPCLIENT_VERSIONS.each do |httpclient_version|
+    gemfile <<-RB
+      gem 'httpclient', '~> #{httpclient_version}'
+      gem 'rack'
+      gem 'json', :platforms => [:rbx, :mri_18]
+      #{ruby3_gem_webrick}
+    RB
+  end
 end
-
-# vim: ft=ruby

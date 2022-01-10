@@ -11,12 +11,10 @@ module NewRelic
   module Agent
     class Transaction
       class DatastoreSegment < Segment
-
         UNKNOWN = 'unknown'.freeze
 
         attr_reader :product, :operation, :collection, :sql_statement, :nosql_statement, :host, :port_path_or_id
         attr_accessor :database_name, :record_sql
-
 
         def initialize product, operation, collection = nil, host = nil, port_path_or_id = nil, database_name = nil, start_time = nil
           @product = product
@@ -63,7 +61,7 @@ module NewRelic
         end
 
         # @api private
-        def _notice_sql sql, config=nil, explainer=nil, binds=nil, name=nil
+        def _notice_sql sql, config = nil, explainer = nil, binds = nil, name = nil
           return unless record_sql?
           @sql_statement = Database::Statement.new sql, config, explainer, binds, name, host, port_path_or_id, database_name
         end
@@ -120,8 +118,8 @@ module NewRelic
         NEWLINE = "\n".freeze
 
         def add_backtrace_parameter
-           return unless duration >= Agent.config[:'transaction_tracer.stack_trace_threshold']
-           params[:backtrace] = caller.join(NEWLINE)
+          return unless duration >= Agent.config[:'transaction_tracer.stack_trace_threshold']
+          params[:backtrace] = caller.join(NEWLINE)
         end
 
         def notice_sql_statement
@@ -140,9 +138,9 @@ module NewRelic
         def record_span_event
           # don't record a span event if the transaction is ignored
           return if transaction.ignore?
-          
+
           aggregator = ::NewRelic::Agent.agent.span_event_aggregator
-          priority   = transaction.priority
+          priority = transaction.priority
 
           aggregator.record(priority: priority) do
             SpanEventPrimitive.for_datastore_segment(self)

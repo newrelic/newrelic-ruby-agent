@@ -9,7 +9,7 @@ module NewRelic
     module ClassMethods
       # Access the Control singleton, lazy initialized.  Default will instantiate a new
       # instance or pass false to defer
-      def instance(create=true)
+      def instance(create = true)
         @instance ||= create && new_instance
       end
 
@@ -35,7 +35,7 @@ module NewRelic
 
       # nb this does not 'load test' the framework, it loads the 'test framework'
       def load_test_framework
-        config = File.expand_path(File.join('..','..','..','..', "test","config","newrelic.yml"), __FILE__)
+        config = File.expand_path(File.join('..', '..', '..', '..', "test", "config", "newrelic.yml"), __FILE__)
         require "config/test_control"
         NewRelic::Control::Frameworks::Test.new(local_env, config)
       end

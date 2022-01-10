@@ -7,9 +7,9 @@
 #
 # Restarting the client will cause a new connection to the gRPC server.
 # When the client is restarted, a new streaming buffer is started and contents of old
-# buffer are transferred to the new buffer.  
+# buffer are transferred to the new buffer.
 #
-# Suspending the client will prevent the client from attempting to reconnect to the 
+# Suspending the client will prevent the client from attempting to reconnect to the
 # gRPC server, but will still continue to record the span events `seen` metric.
 module NewRelic::Agent
   module InfiniteTracing
@@ -52,7 +52,7 @@ module NewRelic::Agent
       # Turns camelcase base class name into upper snake case version of the name.
       def formatted_class_name class_name
         class_name = class_name.split(":")[-1]
-        formatted_class_name = (class_name.gsub!(/(.)([A-Z])/,'\1_\2') || class_name).upcase
+        formatted_class_name = (class_name.gsub!(/(.)([A-Z])/, '\1_\2') || class_name).upcase
       end
 
       # Literal codes are all mapped to unique class names, so we can deduce the
@@ -91,7 +91,7 @@ module NewRelic::Agent
 
       # This method is called when the server closes the record status stream without
       # raising an error.  The Channel/Connection is not closed or reset in this case.
-      # We simply start streaming again, which will reuse the channel/connection to the 
+      # We simply start streaming again, which will reuse the channel/connection to the
       # server and re-establish the gRPC bi-directional stream.  Useful for the server
       # to initiate a load-balancing scheme.
       def handle_close
@@ -100,7 +100,7 @@ module NewRelic::Agent
         start_streaming
       end
 
-      # Places the client into suspended state whereby client will no longer attempt to 
+      # Places the client into suspended state whereby client will no longer attempt to
       # reconnect to the gRPC server nor will it attempt to send span events henceforth.
       # The Suspended Streaming Buffer will be installed in this state.
       def suspend
@@ -141,7 +141,7 @@ module NewRelic::Agent
         end
       end
 
-      def start_streaming exponential_backoff=true
+      def start_streaming exponential_backoff = true
         return if suspended?
         Connection.instance.wait_for_agent_connect
         @lock.synchronize { @response_handler = record_spans exponential_backoff }

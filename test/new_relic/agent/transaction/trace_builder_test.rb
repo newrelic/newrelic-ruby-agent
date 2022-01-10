@@ -25,7 +25,7 @@ module NewRelic
             segment_b = Tracer.start_segment name: "segment_b"
             advance_process_time 2
             segment_b.finish
-            segment_c = Tracer.start_segment name:  "segment_c"
+            segment_c = Tracer.start_segment name: "segment_c"
             advance_process_time 3
             segment_c.finish
             segment_a.finish
@@ -81,7 +81,6 @@ module NewRelic
           assert_equal "test_txn", txn_segment.metric_name
           assert_equal 0.0, txn_segment.entry_timestamp
           assert_equal 2.0, txn_segment.exit_timestamp
-
 
           segment_a = txn_segment.children[0]
           assert_equal "segment_a", segment_a.metric_name

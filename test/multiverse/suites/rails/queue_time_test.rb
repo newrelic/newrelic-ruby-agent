@@ -9,13 +9,13 @@ require './app'
 class QueueController < ApplicationController
   def queued
     respond_to do |format|
-      format.html { render body:  "<html><head></head><body>Queued</body></html>" }
+      format.html { render body: "<html><head></head><body>Queued</body></html>" }
     end
   end
 
   def nested
     nested_transaction
-    render body:  'whatever'
+    render body: 'whatever'
   end
 
   def nested_transaction; end
@@ -24,7 +24,6 @@ class QueueController < ApplicationController
 end
 
 class QueueTimeTest < ActionDispatch::IntegrationTest
-
   REQUEST_START_HEADER = 'HTTP_X_REQUEST_START'
 
   include MultiverseHelpers
@@ -38,7 +37,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
 
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => {
-        :call_count      => 1,
+        :call_count => 1,
         :total_call_time => (t1 - t0)
       }
     )
@@ -58,7 +57,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
     get_path('/queue/nested', t0)
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => {
-        :call_count      => 1,
+        :call_count => 1,
         :total_call_time => (t1 - t0)
       }
     )
@@ -66,7 +65,7 @@ class QueueTimeTest < ActionDispatch::IntegrationTest
 
   def get_path(path, queue_start_time)
     value = "t=#{(queue_start_time * 1_000_000).to_i}"
-    get(path, headers:{ REQUEST_START_HEADER => value})
+    get(path, headers: {REQUEST_START_HEADER => value})
   end
 
   def extract_queue_time_from_response

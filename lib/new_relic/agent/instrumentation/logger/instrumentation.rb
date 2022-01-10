@@ -31,7 +31,6 @@ module NewRelic
           @size_metrics[severity] ||= "Logging/size/#{severity}".freeze
         end
 
-
         def format_message_with_tracing(severity, datetime, progname, msg)
           formatted_message = yield
           return formatted_message if skip_instrumenting?

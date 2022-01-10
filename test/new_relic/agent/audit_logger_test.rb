@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/audit_logger'
 require 'new_relic/agent/null_logger'
 
@@ -122,9 +122,9 @@ class AuditLoggerTest < Minitest::Test
 
   def test_prepares_data_with_identity_encoder
     setup_fake_logger
-    data = { 'foo' => 'bar' }
+    data = {'foo' => 'bar'}
     identity_encoder = NewRelic::Agent::NewRelicService::Encoders::Identity
-    @marshaller.expects(:prepare).with(data, { :encoder => identity_encoder })
+    @marshaller.expects(:prepare).with(data, {:encoder => identity_encoder})
     @logger.log_request(@uri, data, @marshaller)
   end
 
@@ -137,7 +137,7 @@ class AuditLoggerTest < Minitest::Test
   end
 
   def test_allows_through_endpoints
-    fake_metrics = { 'metric' => 'yup' }
+    fake_metrics = {'metric' => 'yup'}
     with_config(:'audit_log.endpoints' => ['metric_data']) do
       setup_fake_logger
       @logger.log_request('host/metric_data', fake_metrics, @marshaller)
@@ -146,7 +146,7 @@ class AuditLoggerTest < Minitest::Test
   end
 
   def test_filters_endpoints
-    fake_txn = { 'txn' => 'nope' }
+    fake_txn = {'txn' => 'nope'}
     with_config(:'audit_log.endpoints' => ['metric_data']) do
       setup_fake_logger
       @logger.log_request('host/transaction_sample_data', fake_txn, @marshaller)

@@ -35,7 +35,7 @@ module NewRelic
       attr_accessor :request_timeout
       attr_reader :collector, :marshaller, :agent_id
 
-      def initialize(license_key=nil, collector=control.server)
+      def initialize(license_key = nil, collector = control.server)
         @license_key = license_key
         @collector = collector
         @configured_collector = collector
@@ -69,7 +69,7 @@ module NewRelic
         @agent_id = id
       end
 
-      def connect(settings={})
+      def connect(settings = {})
         @request_headers_map = nil
         security_policies = nil
         if response = preconnect
@@ -128,7 +128,7 @@ module NewRelic
 
       def metric_data(stats_hash)
         timeslice_start = stats_hash.started_at
-        timeslice_end  = stats_hash.harvested_at || Process.clock_gettime(Process::CLOCK_REALTIME)
+        timeslice_end = stats_hash.harvested_at || Process.clock_gettime(Process::CLOCK_REALTIME)
         metric_data_array = build_metric_data_array(stats_hash)
         result = invoke_remote(
           :metric_data,
@@ -289,7 +289,7 @@ module NewRelic
         # Jruby 1.6.8 requires a gem for full ssl support and will throw
         # an error when use_ssl=(true) is called and jruby-openssl isn't
         # installed
-        conn.use_ssl     = true
+        conn.use_ssl = true
         conn.verify_mode = OpenSSL::SSL::VERIFY_PEER
         set_cert_store(conn)
       rescue StandardError, LoadError
@@ -299,7 +299,7 @@ module NewRelic
 
       def set_cert_store(conn)
         if NewRelic::Agent.config[:ca_bundle_path]
-          conn.cert_store  = ssl_cert_store
+          conn.cert_store = ssl_cert_store
         else
           ::NewRelic::Agent.logger.debug("Using default security certificates")
         end
@@ -388,15 +388,15 @@ module NewRelic
       def generate_remote_method_uri(method)
         params = {
           'protocol_version' => PROTOCOL_VERSION,
-          'license_key'      => license_key,
-          'run_id'           => @agent_id,
-          'method'           => method,
-          'marshal_format'   => 'json', # Other formats are explicitly
-                                        # ruled out; see the initializer
+          'license_key' => license_key,
+          'run_id' => @agent_id,
+          'method' => method,
+          'marshal_format' => 'json' # Other formats are explicitly
+          # ruled out; see the initializer
         }
 
         uri = "/agent_listener/invoke_raw_method?"
-        uri << params.map do |k,v|
+        uri << params.map do |k, v|
           next unless v
           "#{k}=#{v}"
         end.compact.join('&')
@@ -437,11 +437,11 @@ module NewRelic
 
         @audit_logger.log_request(full_uri, payload, @marshaller)
         request_send_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-        response = send_request(:data      => data,
-                                :uri       => uri,
-                                :encoding  => encoding,
-                                :collector => @collector,
-                                :endpoint  => method)
+        response = send_request(:data => data,
+          :uri       => uri,
+          :encoding  => encoding,
+          :collector => @collector,
+          :endpoint  => method)
         response_check_ts = Process.clock_gettime(Process::CLOCK_MONOTONIC)
         @marshaller.load(decompress_response(response))
       ensure
@@ -512,7 +512,7 @@ module NewRelic
       def send_request(opts)
         headers = {
           'Content-Encoding' => opts[:encoding],
-          'Host'             => opts[:collector].name
+          'Host' => opts[:collector].name
         }
         headers.merge!(@request_headers_map) if @request_headers_map
 
@@ -526,10 +526,10 @@ module NewRelic
         request.content_type = "application/octet-stream"
         request.body = opts[:data]
 
-        response     = nil
-        attempts     = 0
+        response = nil
+        attempts = 0
         max_attempts = 2
-        endpoint     = opts[:endpoint]
+        endpoint = opts[:endpoint]
 
         begin
           attempts += 1

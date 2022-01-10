@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..', 'test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
 
 class NewRelic::Agent::StatsEngineTest < Minitest::Test
   def setup
@@ -45,8 +45,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     end
 
     expected = {
-      :call_count           => 1,
-      :total_call_time      => 20,
+      :call_count => 1,
+      :total_call_time => 20,
       :total_exclusive_time => 10
     }
     assert_metrics_recorded(
@@ -58,8 +58,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   def test_record_unscoped_metrics_records_to_global_metrics_if_no_txn
     @engine.tl_record_unscoped_metrics(['a', 'b'], 20, 10)
     expected = {
-      :call_count           => 1,
-      :total_call_time      => 20,
+      :call_count => 1,
+      :total_call_time => 20,
       :total_exclusive_time => 10
     }
     assert_metrics_recorded(
@@ -72,8 +72,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     @engine.tl_record_unscoped_metrics('a', 20)
     assert_metrics_recorded(
       'a' => {
-        :call_count           => 1,
-        :total_call_time      => 20,
+        :call_count => 1,
+        :total_call_time => 20,
         :total_exclusive_time => 20
       }
     )
@@ -87,7 +87,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
       end
     end
 
-    expected = { :total_call_time => 42, :call_count => 99 }
+    expected = {:total_call_time => 42, :call_count => 99}
     assert_metrics_recorded('a' => expected)
   end
 
@@ -97,7 +97,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
       stat.call_count = 99
     end
 
-    expected = { :total_call_time => 42, :call_count => 99 }
+    expected = {:total_call_time => 42, :call_count => 99}
     assert_metrics_recorded('a' => expected)
   end
 
@@ -117,8 +117,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     threads.each { |t| t.join }
 
     assert_metrics_recorded(
-      'm1' => { :call_count => nthreads * iterations },
-      'm2' => { :call_count => nthreads * iterations }
+      'm1' => {:call_count => nthreads * iterations},
+      'm2' => {:call_count => nthreads * iterations}
     )
   end
 
@@ -129,12 +129,12 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     end
 
     expected = {
-      :call_count           => 1,
-      :total_call_time      => 20,
+      :call_count => 1,
+      :total_call_time => 20,
       :total_exclusive_time => 10
     }
     assert_metrics_recorded(
-      'a'          => expected,
+      'a' => expected,
       ['a', 'txn'] => expected
     )
   end
@@ -147,11 +147,11 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
       end
     end
 
-    expected = { :total_call_time => 42, :call_count => 99 }
+    expected = {:total_call_time => 42, :call_count => 99}
     assert_metrics_recorded(
-      'a'          => expected,
+      'a' => expected,
       ['a', 'txn'] => expected,
-      'b'          => expected
+      'b' => expected
     )
   end
 
@@ -162,15 +162,15 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     end
 
     expected = {
-      :call_count           => 1,
-      :total_call_time      => 20,
+      :call_count => 1,
+      :total_call_time => 20,
       :total_exclusive_time => 10
     }
     assert_metrics_recorded(
-      'a'          => expected,
+      'a' => expected,
       ['a', 'txn'] => expected,
-      'b'          => expected,
-      'c'          => expected
+      'b' => expected,
+      'c' => expected
     )
     assert_metrics_not_recorded([
       ['b', 'txn'],
@@ -195,14 +195,14 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     end
     threads.each { |t| t.join }
 
-    expected = { :call_count => nthreads * iterations }
+    expected = {:call_count => nthreads * iterations}
     assert_metrics_recorded(
-      'm1'          => expected,
-      'm2'          => expected,
+      'm1' => expected,
+      'm2' => expected,
       ['m1', 'txn'] => expected,
       ['m2', 'txn'] => expected,
-      'm3'          => expected,
-      'm4'          => expected
+      'm3' => expected,
+      'm4' => expected
     )
   end
 
@@ -210,8 +210,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     @engine.tl_record_scoped_and_unscoped_metrics('a', ['b'], 20, 10)
 
     expected = {
-      :call_count           => 1,
-      :total_call_time      => 20,
+      :call_count => 1,
+      :total_call_time => 20,
       :total_exclusive_time => 10
     }
 
@@ -238,7 +238,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     harvested = @engine.harvest!.to_h
 
     # after harvest, all the metrics should be reset
-    refute_metrics_recorded %w(a c)
+    refute_metrics_recorded %w[a c]
 
     spec_a = NewRelic::MetricSpec.new('a')
 
@@ -250,8 +250,8 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   def test_harvest_applies_metric_rename_rules
     rule = NewRelic::Agent::RulesEngine::ReplacementRule.new(
       'match_expression' => '[0-9]+',
-      'replacement'      => '*',
-      'replace_all'      => true
+      'replacement' => '*',
+      'replace_all' => true
     )
     rules_engine = NewRelic::Agent::RulesEngine.new([rule])
 
@@ -272,7 +272,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
   def test_apply_rules_to_metric_data_respects_ignore_rules
     rule = NewRelic::Agent::RulesEngine::ReplacementRule.new(
       'match_expression' => 'bar',
-      'ignore'           => 'true'
+      'ignore' => 'true'
     )
     rules_engine = NewRelic::Agent::RulesEngine.new([rule])
 
@@ -283,7 +283,7 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
 
     renamed = @engine.apply_rules_to_metric_data(rules_engine, stats_hash)
 
-    assert_equal(1    , renamed.size)
+    assert_equal(1, renamed.size)
     assert_equal('foo', renamed.to_h.keys.first.name)
   end
 
@@ -332,12 +332,12 @@ class NewRelic::Agent::StatsEngineTest < Minitest::Test
     in_transaction('scopey') do
       @engine.tl_record_unscoped_metrics('foo', 42)
     end
-    assert_metrics_recorded('foo' => { :call_count => 1, :total_call_time => 42 })
+    assert_metrics_recorded('foo' => {:call_count => 1, :total_call_time => 42})
     assert_metrics_not_recorded([['foo', 'scopey']])
   end
 
   def test_record_supportability_metric_count_records_counts_only
-    @engine.tl_record_supportability_metric_count('foo/bar',  1)
+    @engine.tl_record_supportability_metric_count('foo/bar', 1)
     @engine.tl_record_supportability_metric_count('foo/bar', 42)
     assert_metrics_recorded(['Supportability/foo/bar'] => {
       :call_count => 42,

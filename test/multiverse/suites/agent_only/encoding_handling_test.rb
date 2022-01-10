@@ -9,7 +9,7 @@ class EncodingHandlingTest < Minitest::Test
 
   def test_handles_mis_encoded_database_queries
     with_config(:'transaction_tracer.transaction_threshold' => 0.0,
-                :'transaction_tracer.record_sql' => :raw) do
+      :'transaction_tracer.record_sql' => :raw) do
       in_transaction do
         segment = NewRelic::Agent::Tracer.start_datastore_segment
         segment.notice_sql(bad_string)
@@ -22,7 +22,7 @@ class EncodingHandlingTest < Minitest::Test
   def test_handles_mis_encoded_request_params
     with_config(:'capture_params' => true,
       :'transaction_tracer.transaction_threshold' => 0.0) do
-      options = { :filtered_params => { bad_string => bad_string }}
+      options = {:filtered_params => {bad_string => bad_string}}
       in_transaction(options) do
         # nothin
       end

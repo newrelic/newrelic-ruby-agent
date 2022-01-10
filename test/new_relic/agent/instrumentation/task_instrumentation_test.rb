@@ -9,10 +9,10 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
 
   def run_task_inner(n)
     return if n == 0
-    run_task_inner(n-1)
+    run_task_inner(n - 1)
   end
 
-  def run_task_outer(n=0)
+  def run_task_outer(n = 0)
     run_task_inner(n)
     run_task_inner(n)
   end
@@ -54,7 +54,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
       'ApdexAll',
       'Apdex',
       'DurationByCaller/Unknown/Unknown/Unknown/Unknown/all',
-      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb',
+      'DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb'
     ])
   end
 
@@ -74,7 +74,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
         [
           'Nested/Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_1',
           'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0'
-        ],
+        ]
       ],
       :filter => /^(Sub)?Controller/
     )
@@ -108,7 +108,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
         [
           'Nested/Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_3',
           'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0'
-        ],
+        ]
       ],
       :filter => /^(Nested\/)?Controller/
     )
@@ -117,8 +117,8 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
   def test_should_handle_nested_task_invocations
     run_task_outer(3)
     assert_metrics_recorded({
-      'Nested/Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/outer_task' => { :call_count => 1 },
-      'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0'  => { :call_count => 1 }
+      'Nested/Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/outer_task' => {:call_count => 1},
+      'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0' => {:call_count => 1}
     })
   end
 
@@ -128,8 +128,8 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     end
 
     assert_metrics_recorded({
-      'Nested/Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/outer_task'   => { :call_count => 1 },
-      'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0' => { :call_count => 1 }
+      'Nested/Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/outer_task' => {:call_count => 1},
+      'Controller/NewRelic::Agent::Instrumentation::TaskInstrumentationTest/inner_task_0' => {:call_count => 1}
     })
     assert_metrics_not_recorded(['Controller'])
 
@@ -147,7 +147,7 @@ class NewRelic::Agent::Instrumentation::TaskInstrumentationTest < Minitest::Test
     account = 'Redrocks'
     with_config(:capture_params => true) do
       perform_action_with_newrelic_trace(:name => 'hello', :force => true,
-        :params => { :account => account }) do
+        :params => {:account => account}) do
         self.class.inspect
       end
     end

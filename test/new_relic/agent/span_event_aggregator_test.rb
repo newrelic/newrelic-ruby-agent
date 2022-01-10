@@ -10,9 +10,8 @@ require 'new_relic/agent/span_event_aggregator'
 module NewRelic
   module Agent
     class SpanEventAggregatorTest < Minitest::Test
-
       def setup
-        @additional_config = { :'distributed_tracing.enabled' => true }
+        @additional_config = {:'distributed_tracing.enabled' => true}
         NewRelic::Agent.config.add_config_for_testing(@additional_config)
 
         nr_freeze_process_time
@@ -41,19 +40,19 @@ module NewRelic
 
       # Helpers for CommonAggregatorTests
 
-      def generate_event(name='operation_name', options = {})
+      def generate_event(name = 'operation_name', options = {})
         guid = fake_guid(16)
 
         event = [
           {
-          'name' => name,
-          'priority' => options[:priority] || rand,
-          'sampled' => false,
-          'guid'    => guid,
-          'traceId' => guid,
-          'timestamp' => Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond),
-          'duration' => rand,
-          'category' => 'custom'
+            'name' => name,
+            'priority' => options[:priority] || rand,
+            'sampled' => false,
+            'guid' => guid,
+            'traceId' => guid,
+            'timestamp' => Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond),
+            'duration' => rand,
+            'category' => 'custom'
           },
           {},
           {}
@@ -87,9 +86,9 @@ module NewRelic
 
         assert_equal 5, last_events.size
 
-        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSeen' => { call_count: 12 }})
-        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSent' => { call_count:  5 }})
-        assert_metrics_recorded({'Supportability/SpanEvent/Discarded'       => { call_count:  7 }})
+        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSeen' => {call_count: 12}})
+        assert_metrics_recorded({'Supportability/SpanEvent/TotalEventsSent' => {call_count: 5}})
+        assert_metrics_recorded({'Supportability/SpanEvent/Discarded' => {call_count: 7}})
       end
     end
   end

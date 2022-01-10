@@ -2,16 +2,17 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 class TestExceptionA < StandardError; end
+
 class TestExceptionB < StandardError; end
+
 class TestExceptionC < StandardError; end
 
 module NewRelic::Agent
   class ErrorFilter
     class ErrorFilterTest < Minitest::Test
-
       def setup
         @error_filter = NewRelic::Agent::ErrorFilter.new
       end

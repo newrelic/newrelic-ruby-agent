@@ -5,7 +5,6 @@
 require 'capistrano/framework'
 
 namespace :newrelic do
-
   # notifies New Relic of a deployment
   desc "Record a deployment in New Relic (newrelic.com)"
   task :notice_deployment do
@@ -23,15 +22,15 @@ namespace :newrelic do
   def send_deployment_notification_to_newrelic
     environment = fetch(:newrelic_rails_env, fetch(:rack_env, fetch(:rails_env, fetch(:stage, "production"))))
 
-    require 'new_relic/cli/command.rb'
+    require 'new_relic/cli/command'
 
     begin
       # allow overrides to be defined for revision, description, changelog, appname, and user
-      rev         = fetch(:newrelic_revision)
+      rev = fetch(:newrelic_revision)
       description = fetch(:newrelic_desc)
-      changelog   = fetch(:newrelic_changelog)
-      appname     = fetch(:newrelic_appname)
-      user        = fetch(:newrelic_user)
+      changelog = fetch(:newrelic_changelog)
+      appname = fetch(:newrelic_appname)
+      user = fetch(:newrelic_user)
       license_key = fetch(:newrelic_license_key)
 
       has_scm_from_plugin = respond_to?(:scm_plugin_installed?) && scm_plugin_installed?
@@ -39,17 +38,17 @@ namespace :newrelic do
 
       if has_scm_from_plugin || has_scm_from_config
         changelog ||= lookup_changelog
-        rev       ||= fetch(:current_revision)
+        rev ||= fetch(:current_revision)
       end
 
       new_revision = rev
       deploy_options = {
         :environment => environment,
-        :revision    => new_revision,
-        :changelog   => changelog,
+        :revision => new_revision,
+        :changelog => changelog,
         :description => description,
-        :appname     => appname,
-        :user        => user,
+        :appname => appname,
+        :user => user,
         :license_key => license_key
       }
 
@@ -57,7 +56,6 @@ namespace :newrelic do
       deployment = NewRelic::Cli::Deployments.new deploy_options
       deployment.run
       info "Uploaded deployment information to New Relic"
-
     rescue NewRelic::Cli::Command::CommandFailure => e
       info e.message
     rescue => e
@@ -74,7 +72,7 @@ namespace :newrelic do
 
     if Rake::Task.task_defined?("git:check")
       log_command = "git --no-pager log --no-color --pretty=format:'  * %an: %s' " +
-                    "--abbrev-commit --no-merges #{previous_revision}..#{current_revision}"
+        "--abbrev-commit --no-merges #{previous_revision}..#{current_revision}"
       `#{log_command}`
     end
   end

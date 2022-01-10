@@ -2,10 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 class APISupportabilityMetricsTest < Minitest::Test
-
   class FakeController
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
     include NewRelic::Agent::MethodTracer
@@ -191,18 +190,17 @@ class APISupportabilityMetricsTest < Minitest::Test
   end
 
   def test_trace_execution_scoped_records_supportability_metric
-    FakeController.trace_execution_scoped('test'){}
+    FakeController.trace_execution_scoped('test') {}
     assert_api_supportability_metric_recorded(:trace_execution_scoped)
   end
 
   def test_trace_execution_unscoped_records_supportability_metric
-    FakeController.trace_execution_unscoped('test'){}
+    FakeController.trace_execution_unscoped('test') {}
     assert_api_supportability_metric_recorded(:trace_execution_unscoped)
   end
 end
 
 class ExternalAPISupportabilityMetricsTest < Minitest::Test
-
   def setup
     NewRelic::Agent.manual_start
     NewRelic::Agent.drop_buffered_data
@@ -243,5 +241,4 @@ class ExternalAPISupportabilityMetricsTest < Minitest::Test
     @segment.process_response_metadata ''
     assert_api_supportability_metric_recorded(:process_response_metadata)
   end
-
 end

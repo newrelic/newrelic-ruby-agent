@@ -11,13 +11,13 @@ module NewRelic
         ACTIVE_RECORD = 'ActiveRecord'.freeze
 
         module BaseExtensions
-
           if RUBY_VERSION < "2.7.0"
             def save(*args, &blk)
               ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
                 super
               end
             end
+
             def save!(*args, &blk)
               ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
                 super
@@ -30,11 +30,12 @@ module NewRelic
                 super
               end
             end
+
             def save!(*args, **kwargs, &blk)
               ::NewRelic::Agent.with_database_metric_name(self.class.name, nil, ACTIVE_RECORD) do
                 super
               end
-            end  
+            end
 
           end
         end
@@ -58,7 +59,6 @@ module NewRelic
               end
             end
           end
-
         end
 
         module RelationExtensions

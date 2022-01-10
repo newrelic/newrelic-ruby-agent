@@ -20,17 +20,16 @@ module NewRelic
             end
           end
 
-          def process_action(*args) #THREAD_LOCAL_ACCESS
+          def process_action(*args) # THREAD_LOCAL_ACCESS
             munged_params = NewRelic::Agent::ParameterFiltering.filter_rails_request_parameters(request.filtered_parameters)
             perform_action_with_newrelic_trace(:category => :controller,
-                                               :name => self.action_name,
-                                               :path => newrelic_metric_path,
-                                               :params => munged_params,
-                                               :class_name => self.class.name)  do
+              :name => self.action_name,
+              :path => newrelic_metric_path,
+              :params => munged_params,
+              :class_name => self.class.name) do
               super
             end
           end
-
         end
 
         module ActionView
@@ -47,6 +46,7 @@ module NewRelic
                 identifier
               end
             end
+
             def render_type(file_path)
               file = File.basename(file_path)
               if file.starts_with?('_')

@@ -18,16 +18,16 @@ class TraceContext < Performance::TestCase
   end
 
   CONFIG = {
-      :'distributed_tracing.enabled' => true,
-      :account_id => "190",
-      :primary_application_id => "46954",
-      :disable_harvest_thread => true
+    :'distributed_tracing.enabled' => true,
+    :account_id => "190",
+    :primary_application_id => "46954",
+    :disable_harvest_thread => true
   }
 
   def test_parse
     carrier = {
-        'traceparent' =>'00-da8bc8cc6d062849b0efcf3c169afb5a-7d3efb1b173fecfa-01',
-        'tracestate' => '33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035'
+      'traceparent' => '00-da8bc8cc6d062849b0efcf3c169afb5a-7d3efb1b173fecfa-01',
+      'tracestate' => '33@nr=0-0-33-2827902-7d3efb1b173fecfa-e8b91a159289ff74-1-1.234567-1518469636035'
     }
 
     measure do

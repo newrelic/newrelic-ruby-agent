@@ -5,7 +5,7 @@
 class CreateUsersAndAliases < ActiveRecord::VERSION::STRING >= "5.0.0" ? ActiveRecord::Migration[5.0] : ActiveRecord::Migration
   def self.up
     create_table :users do |t|
-      t.string  :name, null: false
+      t.string :name, null: false
     end
     add_index :users, :name, unique: true
 

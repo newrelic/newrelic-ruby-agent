@@ -16,23 +16,23 @@ module NewRelic
     module TransactionErrorPrimitive
       extend self
 
-      SAMPLE_TYPE                    = 'TransactionError'.freeze
-      TYPE_KEY                       = 'type'.freeze
-      ERROR_CLASS_KEY                = 'error.class'.freeze
-      ERROR_MESSAGE_KEY              = 'error.message'.freeze
-      ERROR_EXPECTED_KEY             = 'error.expected'.freeze
-      TIMESTAMP_KEY                  = 'timestamp'.freeze
-      PORT_KEY                       = 'port'.freeze
-      NAME_KEY                       = 'transactionName'.freeze
-      DURATION_KEY                   = 'duration'.freeze
-      SAMPLED_KEY                    = 'sampled'.freeze
-      GUID_KEY                       = 'nr.transactionGuid'.freeze
+      SAMPLE_TYPE = 'TransactionError'.freeze
+      TYPE_KEY = 'type'.freeze
+      ERROR_CLASS_KEY = 'error.class'.freeze
+      ERROR_MESSAGE_KEY = 'error.message'.freeze
+      ERROR_EXPECTED_KEY = 'error.expected'.freeze
+      TIMESTAMP_KEY = 'timestamp'.freeze
+      PORT_KEY = 'port'.freeze
+      NAME_KEY = 'transactionName'.freeze
+      DURATION_KEY = 'duration'.freeze
+      SAMPLED_KEY = 'sampled'.freeze
+      GUID_KEY = 'nr.transactionGuid'.freeze
       REFERRING_TRANSACTION_GUID_KEY = 'nr.referringTransactionGuid'.freeze
-      SYNTHETICS_RESOURCE_ID_KEY     = "nr.syntheticsResourceId".freeze
-      SYNTHETICS_JOB_ID_KEY          = "nr.syntheticsJobId".freeze
-      SYNTHETICS_MONITOR_ID_KEY      = "nr.syntheticsMonitorId".freeze
-      PRIORITY_KEY                   = "priority".freeze
-      SPAN_ID_KEY                    = "spanId".freeze
+      SYNTHETICS_RESOURCE_ID_KEY = "nr.syntheticsResourceId".freeze
+      SYNTHETICS_JOB_ID_KEY = "nr.syntheticsJobId".freeze
+      SYNTHETICS_MONITOR_ID_KEY = "nr.syntheticsMonitorId".freeze
+      PRIORITY_KEY = "priority".freeze
+      SPAN_ID_KEY = "spanId".freeze
 
       def create noticed_error, payload, span_id
         [

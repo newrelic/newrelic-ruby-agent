@@ -24,7 +24,7 @@ module Environments
       overall_status = 0
       failures = []
 
-      puts yellow("Tests to run:\n\t#{tests_to_run.map{|s|s.gsub(env_root + "/", "")}.join("\n\t")}")
+      puts yellow("Tests to run:\n\t#{tests_to_run.map { |s| s.gsub(env_root + "/", "") }.join("\n\t")}")
       env_file = ENV["file"]
       tests_to_run.each do |dir|
         Bundler.with_unbundled_env do
@@ -60,7 +60,7 @@ module Environments
     end
 
     def potential_directories
-      original_dirs = Dir["#{env_root}/*"].reject { |d| File.basename(d) == "lib"}
+      original_dirs = Dir["#{env_root}/*"].reject { |d| File.basename(d) == "lib" }
 
       return original_dirs if envs.empty?
       dirs = []
@@ -107,7 +107,7 @@ module Environments
       cmd = "cd #{dir} && bundle exec rake"
       cmd << " file=#{ENV['file']}" if ENV["file"]
       IO.popen(cmd) do |io|
-        until io.eof do
+        until io.eof
           print io.read(1)
         end
       end

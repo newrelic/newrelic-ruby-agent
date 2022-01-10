@@ -2,10 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 
 class DependencyDetectionTest < Minitest::Test
-
   def setup
     @original_items = DependencyDetection.items
     DependencyDetection.items = []
@@ -20,7 +19,7 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.defer do
       depends_on { true }
-      executes   { executed = true }
+      executes { executed = true }
     end
     DependencyDetection.detect!
 
@@ -32,7 +31,7 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.defer do
       named :testing
-      executes   { key = config_key }
+      executes { key = config_key }
     end
     DependencyDetection.detect!
 
@@ -45,7 +44,7 @@ class DependencyDetectionTest < Minitest::Test
     DependencyDetection.defer do
       named :testing
       configure_with :alternate
-      executes   { key = config_key }
+      executes { key = config_key }
     end
     DependencyDetection.detect!
 
@@ -58,7 +57,7 @@ class DependencyDetectionTest < Minitest::Test
     DependencyDetection.defer do
       depends_on { true }
       depends_on { false }
-      executes   { executed = true }
+      executes { executed = true }
     end
     DependencyDetection.detect!
 
@@ -71,8 +70,8 @@ class DependencyDetectionTest < Minitest::Test
     # Requires that depends_on would let failures pass through, which it does
     DependencyDetection.defer do
       depends_on { false }
-      depends_on { raise "OH NOES"}
-      executes   { executed = true }
+      depends_on { raise "OH NOES" }
+      executes { executed = true }
     end
     DependencyDetection.detect!
 
@@ -328,9 +327,8 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.detect!
 
-    assert_falsy( DependencyDetection.items.first.executed )
+    assert_falsy(DependencyDetection.items.first.executed)
   end
-
 
   def test_exception_during_execution_doesnt_propagate
     ran_second_block = false
@@ -343,8 +341,8 @@ class DependencyDetectionTest < Minitest::Test
 
     DependencyDetection.detect!
 
-    assert_truthy( DependencyDetection.items.first.executed )
-    assert_falsy( ran_second_block )
+    assert_truthy(DependencyDetection.items.first.executed)
+    assert_falsy(ran_second_block)
   end
 
   def test_defer_should_be_idempotent_when_given_same_name

@@ -12,18 +12,18 @@ module Performance
     def initialize(test_case, test_name)
       @test_case = test_case
       @test_name = test_name
-      @measurements   = {}
-      @tags           = {}
+      @measurements = {}
+      @tags = {}
       @timer = Timer.new
       @iterations = 0
-      @artifacts  = []
+      @artifacts = []
     end
 
     def exception=(e)
       if e.is_a?(Exception)
         @exception = {
-          'class'     => e.class.name,
-          'message'   => e.message,
+          'class' => e.class.name,
+          'message' => e.message,
           'backtrace' => e.backtrace
         }
       else
@@ -69,15 +69,15 @@ module Performance
 
     def to_h
       h = {
-        "suite"        => suite_name,
-        "name"         => @test_name,
+        "suite" => suite_name,
+        "name" => @test_name,
         "measurements" => measurements_hash,
-        "tags"         => @tags,
-        "iterations"   => @iterations
+        "tags" => @tags,
+        "iterations" => @iterations
       }
       h['exception'] = @exception if @exception
       h['artifacts'] = @artifacts if @artifacts && !@artifacts.empty?
-      h['started_at']  = format_timestamp(@timer.start_timestamp) if @timer.start_timestamp
+      h['started_at'] = format_timestamp(@timer.start_timestamp) if @timer.start_timestamp
       h['finished_at'] = format_timestamp(@timer.stop_timestamp) if @timer.stop_timestamp
       h
     end

@@ -9,7 +9,7 @@ module NewRelic
     class Transaction
       class RequestAttributes
         attr_reader :request_path, :referer, :accept, :content_length, :content_type,
-                    :host, :port, :user_agent, :request_method
+          :host, :port, :user_agent, :request_method
 
         HTTP_ACCEPT_HEADER_KEY = "HTTP_ACCEPT".freeze
 
@@ -26,9 +26,9 @@ module NewRelic
         end
 
         def assign_agent_attributes txn
-         default_destinations = AttributeFilter::DST_TRANSACTION_TRACER|
-                                AttributeFilter::DST_TRANSACTION_EVENTS|
-                                AttributeFilter::DST_ERROR_COLLECTOR
+          default_destinations = AttributeFilter::DST_TRANSACTION_TRACER |
+            AttributeFilter::DST_TRANSACTION_EVENTS |
+            AttributeFilter::DST_ERROR_COLLECTOR
 
           if referer
             txn.add_agent_attribute :'request.headers.referer', referer, AttributeFilter::DST_ERROR_COLLECTOR
@@ -36,9 +36,9 @@ module NewRelic
 
           if request_path
             txn.add_agent_attribute :'request.uri',
-                                    request_path,
-                                    AttributeFilter::DST_TRANSACTION_TRACER |
-                                    AttributeFilter::DST_ERROR_COLLECTOR
+              request_path,
+              AttributeFilter::DST_TRANSACTION_TRACER |
+                AttributeFilter::DST_ERROR_COLLECTOR
           end
 
           if accept

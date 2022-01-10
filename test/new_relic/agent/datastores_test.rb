@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/datastores'
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 class NewRelic::Agent::DatastoresTest < Minitest::Test
   class MyFirstDatabase
@@ -21,8 +21,8 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
     private :internal
 
-    NewRelic::Agent::Datastores.trace self, :find,     "MyFirstDatabase"
-    NewRelic::Agent::Datastores.trace self, :save,     "MyFirstDatabase", "create"
+    NewRelic::Agent::Datastores.trace self, :find, "MyFirstDatabase"
+    NewRelic::Agent::Datastores.trace self, :save, "MyFirstDatabase", "create"
     NewRelic::Agent::Datastores.trace self, :internal, "MyFirstDatabase"
 
     def boom
@@ -111,11 +111,12 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
     end
 
     refute_metrics_recorded([
-                            "Datastore/operation/MyFirstDatabase/",
-                            "Datastore/MyFirstDatabase/allOther",
-                            "Datastore/MyFirstDatabase/all",
-                            "Datastore/allOther",
-                            "Datastore/all"])
+      "Datastore/operation/MyFirstDatabase/",
+      "Datastore/MyFirstDatabase/allOther",
+      "Datastore/MyFirstDatabase/all",
+      "Datastore/allOther",
+      "Datastore/all"
+    ])
   end
 
   def test_wrap_calls_notice
@@ -136,8 +137,8 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
   end
 
   def test_notice_sql
-    query   = "SELECT * FROM SomeThings"
-    metric  = "Datastore/statement/MyFirstDatabase/SomeThing/find"
+    query = "SELECT * FROM SomeThings"
+    metric = "Datastore/statement/MyFirstDatabase/SomeThing/find"
     elapsed = 1.0
 
     in_transaction do |txn|
@@ -158,7 +159,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
   end
 
   def test_notice_statement
-    query   = "key"
+    query = "key"
     elapsed = 1.0
 
     in_transaction do |txn|
@@ -179,7 +180,7 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
   end
 
   def test_dont_notice_statement_based_on_record_sql_setting
-    query   = "key"
+    query = "key"
     elapsed = 1.0
 
     agent = NewRelic::Agent.instance
@@ -205,22 +206,24 @@ class NewRelic::Agent::DatastoresTest < Minitest::Test
 
   def assert_statement_metrics(operation, collection, type)
     assert_metrics_recorded([
-                            "Datastore/statement/MyFirstDatabase/#{collection}/#{operation}",
-                            ["Datastore/statement/MyFirstDatabase/#{collection}/#{operation}", "txn"],
-                            "Datastore/operation/MyFirstDatabase/#{operation}",
-                            "Datastore/MyFirstDatabase/all#{type}",
-                            "Datastore/MyFirstDatabase/all",
-                            "Datastore/all#{type}",
-                            "Datastore/all"])
+      "Datastore/statement/MyFirstDatabase/#{collection}/#{operation}",
+      ["Datastore/statement/MyFirstDatabase/#{collection}/#{operation}", "txn"],
+      "Datastore/operation/MyFirstDatabase/#{operation}",
+      "Datastore/MyFirstDatabase/all#{type}",
+      "Datastore/MyFirstDatabase/all",
+      "Datastore/all#{type}",
+      "Datastore/all"
+    ])
   end
 
   def assert_metrics(operation, type)
     assert_metrics_recorded([
-                            "Datastore/operation/MyFirstDatabase/#{operation}",
-                            ["Datastore/operation/MyFirstDatabase/#{operation}", "txn"],
-                            "Datastore/MyFirstDatabase/all#{type}",
-                            "Datastore/MyFirstDatabase/all",
-                            "Datastore/all#{type}",
-                            "Datastore/all"])
+      "Datastore/operation/MyFirstDatabase/#{operation}",
+      ["Datastore/operation/MyFirstDatabase/#{operation}", "txn"],
+      "Datastore/MyFirstDatabase/all#{type}",
+      "Datastore/MyFirstDatabase/all",
+      "Datastore/all#{type}",
+      "Datastore/all"
+    ])
   end
 end

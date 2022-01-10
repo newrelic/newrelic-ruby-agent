@@ -5,7 +5,6 @@
 require 'new_relic/agent/instrumentation/active_record_subscriber'
 require 'new_relic/agent/instrumentation/active_record_prepend'
 
-
 # Provides a way to send :connection through ActiveSupport notifications to avoid
 # looping through connection handlers to locate a connection by connection_id
 # This is not needed in Rails 6+: https://github.com/rails/rails/pull/34602
@@ -20,12 +19,13 @@ module NewRelic
           def log(sql, name = "SQL", binds = [], statement_name = nil)
             @instrumenter.instrument(
               SQL_ACTIVE_RECORD,
-              :sql            => sql,
-              :name           => name,
-              :connection_id  => object_id,
-              :connection     => self,
+              :sql => sql,
+              :name => name,
+              :connection_id => object_id,
+              :connection => self,
               :statement_name => statement_name,
-              :binds          => binds) { yield }
+              :binds => binds
+            ) { yield }
           rescue => e
             # The translate_exception_class method got introduced in 4.1
             if ::ActiveRecord::VERSION::MINOR == 0
@@ -41,13 +41,14 @@ module NewRelic
           def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil)
             @instrumenter.instrument(
               SQL_ACTIVE_RECORD,
-              sql:               sql,
-              name:              name,
-              binds:             binds,
+              sql: sql,
+              name: name,
+              binds: binds,
               type_casted_binds: type_casted_binds,
-              statement_name:    statement_name,
-              connection_id:     object_id,
-              connection:        self) { yield }
+              statement_name: statement_name,
+              connection_id: object_id,
+              connection: self
+            ) { yield }
           rescue => e
             raise translate_exception_class(e, sql)
           end
@@ -58,17 +59,18 @@ module NewRelic
           def log(sql, name = "SQL", binds = [], type_casted_binds = [], statement_name = nil) # :doc:
             @instrumenter.instrument(
               SQL_ACTIVE_RECORD,
-              sql:               sql,
-              name:              name,
-              binds:             binds,
+              sql: sql,
+              name: name,
+              binds: binds,
               type_casted_binds: type_casted_binds,
-              statement_name:    statement_name,
-              connection_id:     object_id,
-              connection:        self) do
-                @lock.synchronize do
-                  yield
-                end
+              statement_name: statement_name,
+              connection_id: object_id,
+              connection: self
+            ) do
+              @lock.synchronize do
+                yield
               end
+            end
           rescue => e
             raise translate_exception_class(e, sql)
           end
@@ -104,8 +106,9 @@ DependencyDetection.defer do
   executes do
     ActiveSupport.on_load(:active_record) do
       ::NewRelic::Agent::PrependSupportability.record_metrics_for(
-          ::ActiveRecord::Base,
-          ::ActiveRecord::Relation)
+        ::ActiveRecord::Base,
+        ::ActiveRecord::Relation
+      )
 
       # Default to .prepending, unless the ActiveRecord version is <=4
       # **AND** the :prepend_active_record_instrumentation config is false
@@ -113,9 +116,9 @@ DependencyDetection.defer do
           || ::NewRelic::Agent.config[:prepend_active_record_instrumentation]
 
         ::ActiveRecord::Base.send(:prepend,
-            ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions)
+          ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::BaseExtensions)
         ::ActiveRecord::Relation.send(:prepend,
-            ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::RelationExtensions)
+          ::NewRelic::Agent::Instrumentation::ActiveRecordPrepend::RelationExtensions)
       else
         ::NewRelic::Agent::Instrumentation::ActiveRecordHelper.instrument_additional_methods
       end

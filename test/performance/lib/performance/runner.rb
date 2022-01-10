@@ -9,17 +9,17 @@ module Performance
     attr_reader :instrumentors
 
     DEFAULTS = {
-      :instrumentors    => [],
-      :inline           => false,
-      :iterations       => nil,
+      :instrumentors => [],
+      :inline => false,
+      :iterations => nil,
       :reporter_classes => ['ConsoleReporter'],
-      :brief            => false,
-      :tags             => {},
-      :dir              => File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'suites')),
-      :agent_path       => ENV['AGENT_PATH'] || File.join(File.dirname(__FILE__), '..', '..', '..', '..')
+      :brief => false,
+      :tags => {},
+      :dir => File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'suites')),
+      :agent_path => ENV['AGENT_PATH'] || File.join(File.dirname(__FILE__), '..', '..', '..', '..')
     }
 
-    def initialize(options={})
+    def initialize(options = {})
       @options = DEFAULTS.merge(options)
       create_instrumentors(options[:instrumentors] || [])
       load_test_files(@options[:dir])
@@ -81,8 +81,8 @@ module Performance
         result.tags.merge!(
           :newrelic_rpm_version => @newrelic_rpm_version,
           :newrelic_rpm_git_sha => @newrelic_rpm_git_sha,
-          :ruby_version         => RUBY_DESCRIPTION,
-          :host                 => @hostname
+          :ruby_version => RUBY_DESCRIPTION,
+          :host => @hostname
         )
         result.tags.merge!(@options[:tags])
       end
@@ -91,7 +91,7 @@ module Performance
     def create_test_case(cls)
       test_case = cls.new
       test_case.target_iterations = @options[:iterations] if @options[:iterations]
-      test_case.target_duration   = @options[:duration]   if @options[:duration]
+      test_case.target_duration = @options[:duration] if @options[:duration]
       add_progress_callbacks(test_case) if @options[:progress]
       add_instrumentor_callbacks(test_case)
       add_metadata_callbacks(test_case)
@@ -143,7 +143,7 @@ module Performance
       cmd = "#{runner_script} -T #{test_identifier} -j -q -I"
       cmd << " -A #{@options[:agent_path]}"
       cmd << " -N #{@options[:iterations]}" if @options[:iterations]
-      cmd << " -d #{@options[:duration]}"   if @options[:duration]
+      cmd << " -d #{@options[:duration]}" if @options[:duration]
       output = nil
       IO.popen(cmd) do |io|
         output = io.read

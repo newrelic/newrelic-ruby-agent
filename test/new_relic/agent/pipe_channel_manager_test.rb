@@ -11,7 +11,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
   include TransactionSampleTestHelper
 
   def setup
-    @test_config = { :monitor_mode => true }
+    @test_config = {:monitor_mode => true}
     NewRelic::Agent.agent.drop_buffered_data
     NewRelic::Agent.config.add_config_for_testing(@test_config)
     NewRelic::Agent.config.notify_server_source_added
@@ -57,7 +57,7 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         service.metric_data(new_engine.harvest!)
       end
 
-      assert_metrics_recorded(metric => { :total_call_time => 3.0 })
+      assert_metrics_recorded(metric => {:total_call_time => 3.0})
     end
 
     def test_listener_merges_transaction_traces

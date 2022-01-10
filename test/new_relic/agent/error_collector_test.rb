@@ -2,8 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
 require 'new_relic/agent/internal_agent_error'
 
 module NewRelic::Agent
@@ -34,7 +34,7 @@ module NewRelic::Agent
       # Tests
 
       def test_empty
-        @error_collector.notice_error(nil, :metric=> 'path')
+        @error_collector.notice_error(nil, :metric => 'path')
         traces = harvest_error_traces
         events = harvest_error_events
 
@@ -129,12 +129,12 @@ module NewRelic::Agent
       def test_increments_count_on_errors
         @error_collector.notice_error(StandardError.new("Boo"))
         assert_metrics_recorded(
-          'Errors/all' => { :call_count => 1}
+          'Errors/all' => {:call_count => 1}
         )
 
         @error_collector.notice_error(StandardError.new("Boo"))
         assert_metrics_recorded(
-          'Errors/all' => { :call_count => 2}
+          'Errors/all' => {:call_count => 2}
         )
       end
 
@@ -144,8 +144,8 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(['Errors/all',
-                                 'Errors/allWeb',
-                                 'Errors/Controller/class/method'])
+          'Errors/allWeb',
+          'Errors/Controller/class/method'])
       end
 
       def test_increment_error_count_record_summary_and_other_txn_metric
@@ -154,8 +154,8 @@ module NewRelic::Agent
         end
 
         assert_metrics_recorded(['Errors/all',
-                                 'Errors/allOther',
-                                 'Errors/OtherTransaction/AnotherFramework/Job/perform'])
+          'Errors/allOther',
+          'Errors/OtherTransaction/AnotherFramework/Job/perform'])
       end
 
       def test_increment_error_count_summary_outside_transaction
@@ -167,8 +167,8 @@ module NewRelic::Agent
 
       def test_doesnt_increment_error_count_on_transaction_if_nameless
         @error_collector.increment_error_count!(NewRelic::Agent::Tracer.state,
-                                                StandardError.new('Boo'),
-                                                :metric => '(unknown)')
+          StandardError.new('Boo'),
+          :metric => '(unknown)')
 
         assert_metrics_not_recorded(['Errors/(unknown)'])
       end
@@ -176,7 +176,7 @@ module NewRelic::Agent
       def test_blamed_metric_from_options_outside_txn
         @error_collector.notice_error(StandardError.new('wut'), :metric => 'boo')
         assert_metrics_recorded(
-          'Errors/boo' => { :call_count => 1}
+          'Errors/boo' => {:call_count => 1}
         )
       end
 
@@ -186,9 +186,9 @@ module NewRelic::Agent
         end
         assert_metrics_recorded_exclusive(
           {
-            'Errors/all'      => { :call_count => 1 },
-            'Errors/boo'      => { :call_count => 1 },
-            'Errors/allOther' => { :call_count => 1 }
+            'Errors/all' => {:call_count => 1},
+            'Errors/boo' => {:call_count => 1},
+            'Errors/allOther' => {:call_count => 1}
           },
           :filter => /^Errors\//
         )
@@ -199,7 +199,7 @@ module NewRelic::Agent
           @error_collector.notice_error(StandardError.new('wut'))
         end
         assert_metrics_recorded(
-          'Errors/Controller/foo/bar' => { :call_count => 1 }
+          'Errors/Controller/foo/bar' => {:call_count => 1}
         )
       end
 
@@ -217,7 +217,7 @@ module NewRelic::Agent
 
         errors = @error_collector.error_trace_aggregator.harvest!
 
-        assert_metrics_recorded('Errors/all' => { :call_count => 1 })
+        assert_metrics_recorded('Errors/all' => {:call_count => 1})
         assert_equal 1, errors.length
       end
 
@@ -254,7 +254,7 @@ module NewRelic::Agent
       def test_sense_method
         object = Object.new
         object.extend(Winner)
-        assert_nil   @error_collector.sense_method(object, 'blab')
+        assert_nil @error_collector.sense_method(object, 'blab')
         assert_equal 'yay', @error_collector.sense_method(object, 'winner')
       end
 
@@ -352,7 +352,7 @@ module NewRelic::Agent
       def test_ignored_and_expected_error_is_ignored
         error = AnError.new
         with_config(:'error_collector.ignore_classes' => ['AnError'],
-                    :'error_collector.expected_classes' => ['AnError']) do
+          :'error_collector.expected_classes' => ['AnError']) do
           @error_collector.notice_error(AnError.new)
 
           events = harvest_error_events
@@ -495,8 +495,8 @@ module NewRelic::Agent
           recorded_error_attributes = SpanEventPrimitive.error_attributes segment
 
           expected_error_attributes = {
-            "error.message" => "Oops!", 
-            "error.class"   => "StandardError"
+            "error.message" => "Oops!",
+            "error.class" => "StandardError"
           }
           assert_equal expected_error_attributes, segment.noticed_error.attributes_from_notice_error
           assert_equal expected_error_attributes, recorded_error_attributes
@@ -518,9 +518,9 @@ module NewRelic::Agent
           recorded_error_attributes = SpanEventPrimitive.error_attributes segment
 
           expected_error_attributes = {
-            "error.message"   => "Oops!", 
-            "error.class"     => "StandardError",
-            "error.expected"  => true
+            "error.message" => "Oops!",
+            "error.class" => "StandardError",
+            "error.expected" => true
           }
           assert_equal expected_error_attributes, segment.noticed_error.attributes_from_notice_error
           assert_equal expected_error_attributes, recorded_error_attributes
@@ -542,9 +542,9 @@ module NewRelic::Agent
           recorded_error_attributes = SpanEventPrimitive.error_attributes segment
 
           expected_error_attributes = {
-            "error.message"   => "Oops!", 
-            "error.class"     => "StandardError",
-            "error.expected"  => true
+            "error.message" => "Oops!",
+            "error.class" => "StandardError",
+            "error.expected" => true
           }
           assert_equal expected_error_attributes, segment.noticed_error.attributes_from_notice_error
           assert_equal expected_error_attributes, recorded_error_attributes
@@ -586,7 +586,7 @@ module NewRelic::Agent
         assert_equal 0, traces.length
         assert_equal 0, events.length
       end
-      
+
       def wrapped_filter_proc
         Proc.new do |e|
           if e.is_a? IOError

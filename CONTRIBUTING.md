@@ -66,7 +66,8 @@ issues](../../issues?q=is%3Aissue+is%3Aclosed).
 ### Pull Requests
 
 We can only accept PRs for version v6.12.0 or greater due to open source
-licensing restrictions.
+licensing restrictions. Please set the merge branch to `dev` unless the issue
+states otherwise.
 
 ### Code of Conduct
 
@@ -84,17 +85,28 @@ release from this repo, use the appropriate tag. New Relic usually pushes beta
 versions of a release to a working branch before tagging them for General
 Availability.
 
+The `main` branch houses the code from the latest release. The `dev` branch
+includes unreleased work. Please create all new branches off of `dev`.
+
 ## Development Environment Setup
 
 1. Fork and clone the repo locally
     - Fork the repository inside GitHub
     - `git clone git@github.com:<gh username>/newrelic-ruby-agent.git`
 1. Pick a Ruby version
-    - Use rbenv or rvm to install any version of Ruby between 2.2 up to 3.0.1
+    - Use rbenv or rvm to install any version of Ruby between 2.2 up to 3.1
 1. Install development dependencies
     - `bundle install`
 1. Check that your env is setup correctly
     - `bundle exec rake`
+
+**Optional:** Install [lefthook](https://github.com/evilmartians/lefthook) to
+integrate our team's git hooks, such as [rubocop](https://github.com/rubocop/rubocop)
+linting into your workflow.
+
+**Note:** These setup instructions will not allow you to run the entire test
+suite. Some of our suites require services such as MySQL, Postgres, Redis, and
+others to run.
 
 ## Testing
 

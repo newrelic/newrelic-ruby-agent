@@ -13,94 +13,94 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
   end
 
   def test_records_metrics_for_simple_template
-    params = { :identifier => '/root/app/views/model/index.html.erb' }
+    params = {:identifier => '/root/app/views/model/index.html.erb'}
     nr_freeze_process_time
     in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
-                        :virtual_path => 'model/index')
+        :virtual_path => 'model/index')
       advance_process_time 2.0
       @subscriber.finish('!render_template.action_view', :id,
-                         :virtual_path => 'model/index')
+        :virtual_path => 'model/index')
       @subscriber.finish('render_template.action_view', :id, params)
     end
-    expected = { :call_count => 1, :total_call_time => 2.0 }
+    expected = {:call_count => 1, :total_call_time => 2.0}
     assert_metrics_recorded('View/model/index.html.erb/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_file
-    params = { :identifier => '/root/something.txt' }
+    params = {:identifier => '/root/something.txt'}
     nr_freeze_process_time
     in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
-                        :virtual_path => nil)
+        :virtual_path => nil)
       advance_process_time 2.0
       @subscriber.finish('!render_template.action_view', :id,
-                         :virtual_path => nil)
+        :virtual_path => nil)
       @subscriber.finish('render_template.action_view', :id, params)
     end
-    expected = { :call_count => 1, :total_call_time => 2.0 }
+    expected = {:call_count => 1, :total_call_time => 2.0}
     assert_metrics_recorded('View/file/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_inline
-    params = { :identifier => 'inline template' }
+    params = {:identifier => 'inline template'}
     nr_freeze_process_time
     in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
-                        :virtual_path => nil)
+        :virtual_path => nil)
       advance_process_time 2.0
       @subscriber.finish('!render_template.action_view', :id,
-                         :virtual_path => nil)
+        :virtual_path => nil)
       @subscriber.finish('render_template.action_view', :id, params)
     end
-    expected = { :call_count => 1, :total_call_time => 2.0 }
+    expected = {:call_count => 1, :total_call_time => 2.0}
     assert_metrics_recorded('View/inline template/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_text
-    params = { :identifier => 'text template' }
+    params = {:identifier => 'text template'}
     nr_freeze_process_time
     in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
       advance_process_time 2.0
       @subscriber.finish('render_template.action_view', :id, params)
     end
-    expected = { :call_count => 1, :total_call_time => 2.0 }
+    expected = {:call_count => 1, :total_call_time => 2.0}
     assert_metrics_recorded('View/text template/Rendering' => expected)
   end
 
   def test_records_metrics_for_simple_partial
-    params = { :identifier => '/root/app/views/model/_form.html.erb' }
+    params = {:identifier => '/root/app/views/model/_form.html.erb'}
     nr_freeze_process_time
     in_transaction do
       @subscriber.start('render_partial.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
-                        :virtual_path => 'model/_form')
+        :virtual_path => 'model/_form')
       advance_process_time 2.0
       @subscriber.finish('!render_template.action_view', :id,
-                         :virtual_path => 'model/_form')
+        :virtual_path => 'model/_form')
       @subscriber.finish('render_partial.action_view', :id, params)
     end
-    expected = { :call_count => 1, :total_call_time => 2.0 }
+    expected = {:call_count => 1, :total_call_time => 2.0}
     assert_metrics_recorded('View/model/_form.html.erb/Partial' => expected)
   end
 
   def test_records_metrics_for_simple_collection
-    params = { :identifier => '/root/app/views/model/_user.html.erb' }
+    params = {:identifier => '/root/app/views/model/_user.html.erb'}
     nr_freeze_process_time
     in_transaction do
       @subscriber.start('render_collection.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
-                        :virtual_path => 'model/_user')
+        :virtual_path => 'model/_user')
       advance_process_time 2.0
       @subscriber.finish('!render_template.action_view', :id,
-                         :virtual_path => 'model/_user')
+        :virtual_path => 'model/_user')
       @subscriber.finish('render_collection.action_view', :id, params)
     end
-    expected = { :call_count => 1, :total_call_time => 2.0 }
+    expected = {:call_count => 1, :total_call_time => 2.0}
     assert_metrics_recorded('View/model/_user.html.erb/Partial' => expected)
   end
 
@@ -108,28 +108,28 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
     nr_freeze_process_time
     in_transaction do
       @subscriber.start('!render_template.action_view', :id,
-                        :virtual_path => 'layouts/application')
+        :virtual_path => 'layouts/application')
       advance_process_time 2.0
       @subscriber.finish('!render_template.action_view', :id,
-                         :virtual_path => 'layouts/application')
+        :virtual_path => 'layouts/application')
     end
-    expected = { :call_count => 1, :total_call_time => 2.0 }
+    expected = {:call_count => 1, :total_call_time => 2.0}
     assert_metrics_recorded('View/layouts/application/Rendering' => expected)
   end
 
   def test_records_scoped_metric
-    params = { :identifier => '/root/app/views/model/index.html.erb' }
+    params = {:identifier => '/root/app/views/model/index.html.erb'}
 
     in_transaction('test_txn') do
       @subscriber.start('render_template.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
-                        :virtual_path => 'model/index')
+        :virtual_path => 'model/index')
       @subscriber.finish('!render_template.action_view', :id,
-                         :virtual_path => 'model/index')
+        :virtual_path => 'model/index')
       @subscriber.finish('render_template.action_view', :id, params)
     end
 
-    expected = { :call_count => 1 }
+    expected = {:call_count => 1}
     assert_metrics_recorded(
       ['View/model/index.html.erb/Rendering', 'test_txn'] => expected
     )
@@ -138,9 +138,9 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
   def test_records_span_level_error
     exception_class = StandardError
     exception_msg = "Natural 1"
-    exception = exception_class.new(msg=exception_msg)
+    exception = exception_class.new(msg = exception_msg)
     # :exception_object was added in Rails 5 and above
-    params = { :exception_object => exception, :exception => [exception_class.name, exception_msg] }
+    params = {:exception_object => exception, :exception => [exception_class.name, exception_msg]}
 
     txn = nil
 
@@ -156,7 +156,7 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
   end
 
   def test_records_nothing_if_tracing_disabled
-    params = { :identifier => '/root/app/views/model/_user.html.erb' }
+    params = {:identifier => '/root/app/views/model/_user.html.erb'}
 
     NewRelic::Agent.disable_all_tracing do
       @subscriber.start('render_collection.action_view', :id, params)
@@ -167,93 +167,92 @@ class NewRelic::Agent::Instrumentation::ActionViewSubscriberTest < Minitest::Tes
   end
 
   def test_creates_txn_node_for_simple_render
-    params = { :identifier => '/root/app/views/model/index.html.erb' }
+    params = {:identifier => '/root/app/views/model/index.html.erb'}
 
     in_transaction do
       @subscriber.start('render_template.action_view', :id, params)
       @subscriber.start('!render_template.action_view', :id,
-                        :virtual_path => 'model/index')
+        :virtual_path => 'model/index')
       @subscriber.finish('!render_template.action_view', :id,
-                         :virtual_path => 'model/index')
+        :virtual_path => 'model/index')
       @subscriber.finish('render_template.action_view', :id, params)
     end
 
     last_node = nil
-    last_transaction_trace.root_node.each_node{|s| last_node = s }
+    last_transaction_trace.root_node.each_node { |s| last_node = s }
     NewRelic::Agent.shutdown
 
     assert_equal('View/model/index.html.erb/Rendering',
-                 last_node.metric_name)
+      last_node.metric_name)
   end
 
   def test_creates_nested_partial_node_within_render_node
     in_transaction do
       @subscriber.start('render_template.action_view', :id,
-                        :identifier => 'model/index.html.erb')
+        :identifier => 'model/index.html.erb')
       @subscriber.start('!render_template.action_view', :id,
-                        :virtual_path => 'model/index')
+        :virtual_path => 'model/index')
       @subscriber.start('render_partial.action_view', :id,
-                        :identifier => '/root/app/views/model/_list.html.erb')
+        :identifier => '/root/app/views/model/_list.html.erb')
       @subscriber.start('!render_template.action_view', :id,
-                        :virtual_path => 'model/_list')
+        :virtual_path => 'model/_list')
       @subscriber.finish('!render_template.action_view', :id,
-                         :virtual_path => 'model/_list')
+        :virtual_path => 'model/_list')
       @subscriber.finish('render_partial.action_view', :id,
-                         :identifier => '/root/app/views/model/_list.html.erb')
+        :identifier => '/root/app/views/model/_list.html.erb')
       @subscriber.finish('!render_template.action_view', :id,
-                           :virtual_path => 'model/index')
+        :virtual_path => 'model/index')
       @subscriber.finish('render_template.action_view', :id,
-                         :identifier => 'model/index.html.erb')
+        :identifier => 'model/index.html.erb')
     end
 
     template_node = last_transaction_trace.root_node.children[0].children[0]
     partial_node = template_node.children[0]
 
     assert_equal('View/model/index.html.erb/Rendering',
-                 template_node.metric_name)
+      template_node.metric_name)
     assert_equal('View/model/_list.html.erb/Partial',
-                 partial_node.metric_name)
+      partial_node.metric_name)
   end
 
   def test_creates_nodes_for_each_in_a_collection_event
     in_transaction do
       @subscriber.start('render_collection.action_view', :id,
-                        :identifier => '/root/app/views/model/_list.html.erb',
-                        :count => 3)
+        :identifier => '/root/app/views/model/_list.html.erb',
+        :count => 3)
       @subscriber.start('!render_template.action_view', :id,
-                        :virtual_path => 'model/_list')
+        :virtual_path => 'model/_list')
       @subscriber.finish('!render_template.action_view', :id,
-                        :virtual_path => 'model/_list')
+        :virtual_path => 'model/_list')
       @subscriber.start('!render_template.action_view', :id,
-                        :virtual_path => 'model/_list')
+        :virtual_path => 'model/_list')
       @subscriber.finish('!render_template.action_view', :id,
-                        :virtual_path => 'model/_list')
+        :virtual_path => 'model/_list')
       @subscriber.start('!render_template.action_view', :id,
-                        :virtual_path => 'model/_list')
+        :virtual_path => 'model/_list')
       @subscriber.finish('!render_template.action_view', :id,
-                        :virtual_path => 'model/_list')
+        :virtual_path => 'model/_list')
       @subscriber.finish('render_collection.action_view', :id,
-                         :identifier => '/root/app/views/model/_list.html.erb',
-                         :count => 3)
+        :identifier => '/root/app/views/model/_list.html.erb',
+        :count => 3)
     end
 
     partial_nodes = last_transaction_trace.root_node.children[0].children
 
     assert_equal 3, partial_nodes.size
     assert_equal('View/model/_list.html.erb/Partial',
-                 partial_nodes[0].metric_name)
+      partial_nodes[0].metric_name)
   end
 
   def test_metric_path_identifies_file_render_event
-    assert_equal('file', @subscriber.metric_path('baz', nil) )
+    assert_equal('file', @subscriber.metric_path('baz', nil))
   end
 
   def test_metric_path_cannot_identify_empty_collection_render_event
-    assert_equal('(unknown)', @subscriber.metric_path('render_collection.action_view', nil) )
+    assert_equal('(unknown)', @subscriber.metric_path('render_collection.action_view', nil))
   end
 
   def test_metric_path_index_html_erb
     assert_equal('model/index.html.erb', @subscriber.metric_path('render_template.action_view', 'model/index.html.erb'))
   end
-
 end

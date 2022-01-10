@@ -21,8 +21,9 @@ def ruby2_compatible? sidekiq_version
 end
 
 # older connection pool gems do not work with Ruby 3.0
+# Sidekiq 4.2.10 does not support Ruby 3.0.3/3.1+ YAML parsing
 def ruby3_compatible? sidekiq_version
-  sidekiq_version.split(" ")[-1].to_i > 3
+  sidekiq_version.split(" ")[-1].to_i > 4
 end
 
 # skip Sidekiq 3.5.3 on JRuby due to an error in Sidekiq's shutdown:

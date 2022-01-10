@@ -2,13 +2,12 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/transaction_event_recorder'
 
 module NewRelic
   module Agent
     class TransactionEventRecorderTest < Minitest::Test
-
       def setup
         events = NewRelic::Agent.instance.events
         @recorder = TransactionEventRecorder.new events
@@ -48,7 +47,7 @@ module NewRelic
 
       def test_normal_events_discarded_in_favor_sampled_events
         with_config :'analytics_events.max_samples_stored' => 5 do
-          5.times { generate_request}
+          5.times { generate_request }
           5.times { |i| generate_request "sampled_#{i}", :priority => rand + 1 }
 
           _, events = harvest_transaction_events!
@@ -60,9 +59,9 @@ module NewRelic
       end
 
       def test_sampled_events_not_discarded_in_favor_of_normal_events
-         with_config :'analytics_events.max_samples_stored' => 5 do
+        with_config :'analytics_events.max_samples_stored' => 5 do
           5.times { |i| generate_request "sampled_#{i}", :priority => rand + 1 }
-          5.times { generate_request}
+          5.times { generate_request }
 
           _, events = harvest_transaction_events!
 
@@ -72,7 +71,7 @@ module NewRelic
         end
       end
 
-      def generate_request name='whatever', options={}
+      def generate_request name = 'whatever', options = {}
         payload = {
           :name => "Controller/#{name}",
           :type => :controller,

@@ -3,22 +3,21 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require 'newrelic_rpm' unless defined?( NewRelic )
-require 'new_relic/agent' unless defined?( NewRelic::Agent )
+require 'newrelic_rpm' unless defined?(NewRelic)
+require 'new_relic/agent' unless defined?(NewRelic::Agent)
 require 'new_relic/agent/event_aggregator'
 require 'new_relic/agent/priority_sampled_buffer'
 
 module NewRelic
   module Agent
     class TransactionEventAggregator < EventAggregator
-
       named :TransactionEventAggregator
       capacity_key :'analytics_events.max_samples_stored'
       enabled_key :'analytics_events.enabled'
       buffer_class PrioritySampledBuffer
 
-      def record priority: nil, event:nil, &blk
-        unless(event || priority && blk)
+      def record priority: nil, event: nil, &blk
+        unless event || priority && blk
           raise ArgumentError, "Expected priority and block, or event"
         end
 
@@ -37,7 +36,7 @@ module NewRelic
         record_sampling_rate metadata
       end
 
-      def record_sampling_rate(metadata) #THREAD_LOCAL_ACCESS
+      def record_sampling_rate(metadata) # THREAD_LOCAL_ACCESS
         NewRelic::Agent.logger.debug("Sampled %d / %d (%.1f %%) requests this cycle, %d / %d (%.1f %%) since startup" % [
           metadata[:captured],
           metadata[:seen],

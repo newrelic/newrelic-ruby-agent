@@ -47,7 +47,7 @@ class ConfigFileLoadingTest < Minitest::Test
     FakeFS.deactivate!
   end
 
-  def setup_config(path, manual_config_options = {}, config_file_content=nil)
+  def setup_config(path, manual_config_options = {}, config_file_content = nil)
     teardown_agent
 
     FileUtils.mkdir_p(File.dirname(path))
@@ -70,7 +70,7 @@ bazbangbarn:
     setup_agent(manual_config_options)
   end
 
-  def assert_config_read_from(path, manual_config_options={})
+  def assert_config_read_from(path, manual_config_options = {})
     setup_config(path, manual_config_options)
     assert NewRelic::Agent.config[:foo] == "success!!", "Failed to read yaml config from #{path.inspect[0..100]}\n\n#{NewRelic::Agent.config.inspect[0..100]}"
   end
@@ -165,7 +165,7 @@ test:
   foo: "success!!"
 boom:
   # <%= this is not ruby %>
-        YAML
+    YAML
 
     path = File.join(@cwd, 'config', 'newrelic.yml')
     setup_config(path, {}, config_contents)
@@ -195,7 +195,7 @@ boom:
 
     # pass an env key to NewRelic::Agent.manual_start which should cause it to
     # load that section of newrelic.yml
-    setup_config(path, {:env => 'bazbangbarn'} )
+    setup_config(path, {:env => 'bazbangbarn'})
     assert_equal 'bazbangbarn', NewRelic::Agent.config[:i_am], "Agent.config did not load bazbangbarn config as requested"
   end
 

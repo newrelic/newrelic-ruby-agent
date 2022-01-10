@@ -2,9 +2,9 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','data_container_tests'))
-require File.expand_path(File.join(File.dirname(__FILE__),'..','common_aggregator_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'common_aggregator_tests'))
 
 require 'new_relic/agent/custom_event_aggregator'
 
@@ -24,7 +24,7 @@ module NewRelic::Agent
 
     def populate_container(container, n)
       n.times do |i|
-        container.record(:atype, { :number => i })
+        container.record(:atype, {:number => i})
       end
     end
 
@@ -36,7 +36,7 @@ module NewRelic::Agent
       generate_request(name, options)
     end
 
-    def generate_request(name='Controller/whatever', options={})
+    def generate_request(name = 'Controller/whatever', options = {})
       payload = options.merge(:name => name)
 
       @aggregator.record :custom, payload
@@ -115,8 +115,8 @@ module NewRelic::Agent
 
       event[0].delete('priority')
 
-      assert_equal({ 'type' => 'type_a', 'timestamp' => t0.to_i }, event[0])
-      assert_equal({ 'foo'  => 'bar'   , 'baz'       => 'qux'   }, event[1])
+      assert_equal({'type' => 'type_a', 'timestamp' => t0.to_i}, event[0])
+      assert_equal({'foo' => 'bar', 'baz' => 'qux'}, event[1])
     end
 
     def test_records_supportability_metrics_after_harvest
@@ -135,7 +135,7 @@ module NewRelic::Agent
       with_config aggregator.class.capacity_key => 5 do
         5.times { generate_event }
         aggregator.expects(:create_event).never
-        aggregator.record('ImpossibleEvent', { priority: -999.0 })
+        aggregator.record('ImpossibleEvent', {priority: -999.0})
       end
     end
   end

@@ -5,6 +5,7 @@
 require 'grape'
 
 class GrapeTestApiError < StandardError; end
+
 class GrapeTestApi < Grape::API
   # namespace, group, resource, and resources all do the same thing.
   # They are aliases for namespace.
@@ -54,7 +55,7 @@ class GrapeTestApi < Grape::API
 
   resource :grape_ape_fail_rescue do
     rescue_from :all do |e|
-      error_response({ message: "rescued from #{e.class.name}" })
+      error_response({message: "rescued from #{e.class.name}"})
     end
 
     post do

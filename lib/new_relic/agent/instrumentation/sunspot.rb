@@ -16,7 +16,7 @@ DependencyDetection.defer do
   executes do
     ::Sunspot.module_eval do
       class << self
-        %w(index index!).each do |method|
+        %w[index index!].each do |method|
           add_method_tracer method, 'SolrClient/Sunspot/index'
         end
         add_method_tracer :commit, 'SolrClient/Sunspot/commit'

@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'test_helper'))
 require 'new_relic/agent/attributes'
 
 class FooError < StandardError; end
@@ -17,7 +17,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     @time = Process.clock_gettime(Process::CLOCK_REALTIME)
 
     @attributes = NewRelic::Agent::Attributes.new(NewRelic::Agent.instance.attribute_filter)
-    @attributes_from_notice_error = { :user => 'params' }
+    @attributes_from_notice_error = {:user => 'params'}
   end
 
   def test_to_collector_array
@@ -25,8 +25,8 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
 
     error = create_error(e)
     error.attributes.add_agent_attribute(:'request.uri',
-                                         "http://com.google",
-                                         NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
+      "http://com.google",
+      NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR)
     error.attributes_from_notice_error = @attributes_from_notice_error
 
     expected = [
@@ -35,10 +35,10 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       'test exception',
       'NewRelic::TestHelpers::Exceptions::TestError',
       {
-        'userAttributes'  => { 'user' => 'params' },
+        'userAttributes' => {'user' => 'params'},
         'agentAttributes' => {:'request.uri' => 'http://com.google'},
-        'intrinsics'      => {},
-       :'error.expected' => false
+        'intrinsics' => {},
+        :'error.expected' => false
       }
     ]
     assert_equal expected, error.to_collector_array
@@ -54,11 +54,11 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
     actual = extract_attributes(error)
     expected = {
       'userAttributes' => {
-        'user'   => 'params',
+        'user' => 'params',
         'custom' => 'attribute'
       },
       'agentAttributes' => {},
-      'intrinsics'      => {},
+      'intrinsics' => {},
       :'error.expected' => false
     }
 
@@ -92,9 +92,9 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       "BOOM",
       "Error",
       {
-        'userAttributes'  => {},
+        'userAttributes' => {},
         'agentAttributes' => {},
-        'intrinsics'      => {},
+        'intrinsics' => {},
         :'error.expected' => false
       }
     ]
@@ -110,16 +110,16 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       "Error",
       {
         :'error.expected' => false,
-        'userAttributes'  => {},
+        'userAttributes' => {},
         'agentAttributes' => {},
-        'intrinsics'      => {}
+        'intrinsics' => {}
       }
     ]
     assert_equal expected, error.to_collector_array
   end
 
   def test_handles_non_string_exception_messages
-    e = Exception.new({ :non => :string })
+    e = Exception.new({:non => :string})
     error = NewRelic::NoticedError.new(@path, e, @time)
     assert_equal(String, error.message.class)
   end
@@ -134,8 +134,8 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
   end
 
   def test_long_message
-    #yes, times 500. it's a 5000 byte string. Assuming strings are
-    #still 1 byte / char.
+    # yes, times 500. it's a 5000 byte string. Assuming strings are
+    # still 1 byte / char.
     err = create_error(StandardError.new("1234567890" * 500))
     assert_equal 4096, err.message.length
     assert_equal ('1234567890' * 500)[0..4095], err.message
@@ -205,7 +205,7 @@ class NewRelic::Agent::NoticedErrorTest < Minitest::Test
       error.attributes = attributes
 
       serialized_attributes = extract_attributes(error)
-      assert_equal({ :intrinsic => "attribute" }, serialized_attributes["intrinsics"])
+      assert_equal({:intrinsic => "attribute"}, serialized_attributes["intrinsics"])
     end
   end
 

@@ -74,7 +74,7 @@ class SinatraMetricExplosionTest < Minitest::Test
       'CPU/User Time',
       "Middleware/all",
       "WebFrontend/QueueTime",
-      "WebFrontend/WebServer/all",
+      "WebFrontend/WebServer/all"
     ]
 
     name_beginnings_to_ignore = [
@@ -84,8 +84,8 @@ class SinatraMetricExplosionTest < Minitest::Test
       "Nested/Controller",
       "Middleware"
     ]
-    metric_names.delete_if do|metric|
-      name_beginnings_to_ignore.any? {|name| metric.start_with?(name)}
+    metric_names.delete_if do |metric|
+      name_beginnings_to_ignore.any? { |name| metric.start_with?(name) }
     end
 
     assert_equal 17, metric_names.size, "Explosion detected in: #{metric_names.inspect}"

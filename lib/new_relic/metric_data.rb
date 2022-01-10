@@ -18,7 +18,7 @@ module NewRelic
     end
 
     def eql?(o)
-     (metric_spec.eql? o.metric_spec) && (stats.eql? o.stats)
+      (metric_spec.eql? o.metric_spec) && (stats.eql? o.stats)
     end
 
     def original_spec
@@ -37,7 +37,7 @@ module NewRelic
     end
 
     def to_json(*a)
-       %Q[{"metric_spec":#{metric_spec.to_json},"stats":{"total_exclusive_time":#{stats.total_exclusive_time},"min_call_time":#{stats.min_call_time},"call_count":#{stats.call_count},"sum_of_squares":#{stats.sum_of_squares},"total_call_time":#{stats.total_call_time},"max_call_time":#{stats.max_call_time}}}]
+      %Q({"metric_spec":#{metric_spec.to_json},"stats":{"total_exclusive_time":#{stats.total_exclusive_time},"min_call_time":#{stats.min_call_time},"call_count":#{stats.call_count},"sum_of_squares":#{stats.sum_of_squares},"total_call_time":#{stats.total_call_time},"max_call_time":#{stats.max_call_time}}})
     end
 
     def to_s
@@ -50,9 +50,9 @@ module NewRelic
 
     include NewRelic::Coerce
 
-    def to_collector_array(encoder=nil)
-      stat_key = { 'name' => metric_spec.name, 'scope' => metric_spec.scope }
-      [ stat_key,
+    def to_collector_array(encoder = nil)
+      stat_key = {'name' => metric_spec.name, 'scope' => metric_spec.scope}
+      [stat_key,
         [
           int(stats.call_count, stat_key),
           float(stats.total_call_time, stat_key),
@@ -60,8 +60,7 @@ module NewRelic
           float(stats.min_call_time, stat_key),
           float(stats.max_call_time, stat_key),
           float(stats.sum_of_squares, stat_key)
-        ]
-      ]
+        ]]
     end
   end
 end

@@ -43,7 +43,7 @@ class DeferredSinatraTestApp < Sinatra::Base
 
   # check that pass works properly
   condition { pass { halt 418, "I'm a teapot." } }
-  get('/pass') { }
+  get('/pass') {}
 
   get '/pass' do
     "I'm not a teapot."
@@ -51,7 +51,7 @@ class DeferredSinatraTestApp < Sinatra::Base
 
   error(NewRelic::TestHelpers::Exceptions::TestError) { halt 200, 'nothing happened' }
   condition { raise NewRelic::TestHelpers::Exceptions::TestError }
-  get('/error') { }
+  get('/error') {}
 
   condition do
     raise "Boo" if $precondition_already_checked
@@ -90,21 +90,18 @@ class DeferredSinatraTest < Minitest::Test
   include SinatraTestCases
 
   def app
-    Rack::Builder.new( DeferredSinatraTestApp ).to_app
+    Rack::Builder.new(DeferredSinatraTestApp).to_app
   end
-
 
   def test_ignores_route_metrics
     # Can't use 'newrelic_ignore' if newrelic was loaded before sinatra, as the
     # instrumentation doesn't load until Rack is building the app to run it.
   end
 
-
   # (RUBY-1169)
   def test_only_tries_deferred_detection_once
-    Rack::Builder.new( DeferredSinatraTestApp ).to_app
-    ::DependencyDetection.expects( :detect! ).never
-    Rack::Builder.new( DeferredSinatraTestApp ).to_app
+    Rack::Builder.new(DeferredSinatraTestApp).to_app
+    ::DependencyDetection.expects(:detect!).never
+    Rack::Builder.new(DeferredSinatraTestApp).to_app
   end
-
 end

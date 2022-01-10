@@ -15,7 +15,7 @@ module NewRelic
       class MiddlewareProxy
         include MiddlewareTracing
 
-        ANONYMOUS_CLASS   = "AnonymousClass".freeze
+        ANONYMOUS_CLASS = "AnonymousClass".freeze
         OBJECT_CLASS_NAME = "Object".freeze
 
         # This class is used to wrap classes that are passed to
@@ -50,7 +50,7 @@ module NewRelic
           )
         end
 
-        def self.wrap(target, is_app=false)
+        def self.wrap(target, is_app = false)
           if needs_wrapping?(target)
             self.new(target, is_app)
           else
@@ -60,13 +60,13 @@ module NewRelic
 
         attr_reader :target, :category, :transaction_options
 
-        def initialize(target, is_app=false)
-          @target            = target
-          @is_app            = is_app
-          @category          = determine_category
+        def initialize(target, is_app = false)
+          @target = target
+          @is_app = is_app
+          @category = determine_category
           @target_class_name = determine_class_name
-          @transaction_name  = "#{determine_prefix}#{@target_class_name}/call"
-          @transaction_options  = {
+          @transaction_name = "#{determine_prefix}#{@target_class_name}/call"
+          @transaction_options = {
             :transaction_name => @transaction_name
           }
         end
@@ -93,7 +93,7 @@ module NewRelic
 
           name = clazz.name
           name = clazz.superclass.name if name.nil? || name == ""
-          name = ANONYMOUS_CLASS       if name.nil? || name == OBJECT_CLASS_NAME
+          name = ANONYMOUS_CLASS if name.nil? || name == OBJECT_CLASS_NAME
           name
         end
 
@@ -104,7 +104,6 @@ module NewRelic
             @target.class
           end
         end
-
       end
     end
   end

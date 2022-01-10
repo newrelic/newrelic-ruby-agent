@@ -9,7 +9,6 @@ module NewRelic
   module Agent
     module InfiniteTracing
       class SuspendedStreamingBufferTest < Minitest::Test
-
         def setup
           @threads = {}
           NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
@@ -36,11 +35,10 @@ module NewRelic
             "Supportability/InfiniteTracing/Span/Sent"
           ])
           assert_metrics_recorded({
-            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans}
           })
           assert_watched_threads_finished buffer
         end
-
 
         def test_can_close_an_empty_buffer
           total_spans = 10
@@ -78,7 +76,7 @@ module NewRelic
             "Supportability/InfiniteTracing/Span/Sent"
           ])
           assert_metrics_recorded({
-            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+            "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans}
           })
           assert_watched_threads_finished buffer
         end
@@ -99,9 +97,9 @@ module NewRelic
           @threads[name] = Thread.new(&block)
         end
 
-        def prepare_to_consume_spans buffer, sleep_delay=0
+        def prepare_to_consume_spans buffer, sleep_delay = 0
           spans = []
-          consumer = watch_thread(:consumer) { buffer.enumerator.each{ |span| spans << span } }
+          consumer = watch_thread(:consumer) { buffer.enumerator.each { |span| spans << span } }
 
           return spans, consumer
         end
@@ -109,10 +107,10 @@ module NewRelic
         # pops all the serializable spans off the buffer and returns them.
         def consume_spans buffer
           buffer.enumerator.map(&:itself)
-        end          
+        end
 
         # starts a watched thread that will generate segments asynchronously.
-        def prepare_to_stream_segments count, max_buffer_size=100_000
+        def prepare_to_stream_segments count, max_buffer_size = 100_000
           buffer = SuspendedStreamingBuffer.new max_buffer_size
           segments = []
 
@@ -132,10 +130,10 @@ module NewRelic
         # Opens a streaming buffer,enqueues count segments to the buffer
         # closes the queue when done as we assume no more will be
         # generated and don't want to block indefinitely.
-        # 
+        #
         # Returns the buffer with segments on the queue as well
         # as the segments that were generated separately.
-        def stream_segments count, max_buffer_size=100_000
+        def stream_segments count, max_buffer_size = 100_000
           buffer = SuspendedStreamingBuffer.new max_buffer_size
           segments = []
 
@@ -147,13 +145,12 @@ module NewRelic
             end
           end
 
-          # if we don't close, we block the pop 
+          # if we don't close, we block the pop
           # in the enumerator indefinitely
           buffer.close_queue
 
           return buffer, segments
         end
-
       end
     end
   end

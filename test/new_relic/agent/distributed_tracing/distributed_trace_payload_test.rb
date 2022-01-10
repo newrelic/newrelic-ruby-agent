@@ -6,11 +6,9 @@ require File.expand_path '../../../../test_helper', __FILE__
 
 module NewRelic::Agent
   class DistributedTracePayloadTest < Minitest::Test
-
     def setup
       nr_freeze_process_time(Process.clock_gettime(Process::CLOCK_REALTIME, :millisecond))
       NewRelic::Agent::Harvester.any_instance.stubs(:harvest_thread_enabled?).returns(false)
-
 
       @config = {
         :'distributed_tracing.enabled' => true,
@@ -161,8 +159,8 @@ module NewRelic::Agent
 
       raw_payload = JSON.parse(payload.text)
 
-      assert_equal_unordered %w(v d), raw_payload.keys
-      assert_equal_unordered %w(ty ac ap tk id tx tr pr sa ti), raw_payload["d"].keys
+      assert_equal_unordered %w[v d], raw_payload.keys
+      assert_equal_unordered %w[ty ac ap tk id tx tr pr sa ti], raw_payload["d"].keys
     end
 
     def test_to_json_and_from_json_are_inverse_operations

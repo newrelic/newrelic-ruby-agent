@@ -7,8 +7,8 @@ class TransactionTracingPerfTests < Performance::TestCase
 
   BOO = "boo"
   HOO = "hoo"
-  OH  = "oh"
-  NO  = "no"
+  OH = "oh"
+  NO = "no"
 
   def klass(instrument)
     Class.new do
@@ -34,7 +34,6 @@ class TransactionTracingPerfTests < Performance::TestCase
           method_1
         end
       end
-
 
       def failure
         raise FAILURE_MESSAGE
@@ -73,14 +72,13 @@ class TransactionTracingPerfTests < Performance::TestCase
         add_transaction_tracer :transaction_with_attributes
         add_transaction_tracer :failure
       end
-
     end
   end
 
   def setup
     @dummy = klass(true).new
     NewRelic::Agent.manual_start(
-      :monitor_mode   => false
+      :monitor_mode => false
     )
   end
 

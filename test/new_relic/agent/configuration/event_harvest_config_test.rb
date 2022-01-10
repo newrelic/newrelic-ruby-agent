@@ -2,12 +2,11 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 require 'new_relic/agent/configuration/event_harvest_config'
 
 module NewRelic::Agent::Configuration
   class EventHarvestConfigTest < Minitest::Test
-
     def test_from_config
       config = NewRelic::Agent::Configuration::Manager.new
       config.add_config_for_testing(:'analytics_events.max_samples_stored' => 1000)
@@ -31,10 +30,10 @@ module NewRelic::Agent::Configuration
       connect_reply = {
         'event_harvest_config' => {
           'report_period_ms' => 5000,
-          'harvest_limits'   => {
+          'harvest_limits' => {
             'analytic_event_data' => 833,
-            'custom_event_data'   => 83,
-            'error_event_data'    => 8
+            'custom_event_data' => 83,
+            'error_event_data' => 8
           }
         },
         'span_event_harvest_config' => {
@@ -62,10 +61,10 @@ module NewRelic::Agent::Configuration
       connect_reply = {
         'event_harvest_config' => {
           'report_period_ms' => 5000,
-          'harvest_limits'   => {
+          'harvest_limits' => {
             'analytic_event_data' => 833,
-            'custom_event_data'   => 83,
-            'error_event_data'    => 8
+            'custom_event_data' => 83,
+            'error_event_data' => 8
           }
         }
       }
@@ -81,6 +80,5 @@ module NewRelic::Agent::Configuration
       }
       assert_equal expected, EventHarvestConfig.to_config_hash(connect_reply)
     end
-
   end
 end

@@ -12,20 +12,20 @@ require 'sequel'
 if !defined?(DB)
 
   def create_tables(db)
-    db.create_table( :authors ) do
+    db.create_table(:authors) do
       primary_key :id
       string :name
       string :login
     end
 
-    db.create_table( :posts ) do
+    db.create_table(:posts) do
       primary_key :id
       string :title
       string :content
       time :created_at
     end
 
-    db.create_table( :users ) do
+    db.create_table(:users) do
       primary_key :uid
       string :login
       string :firstname
@@ -34,7 +34,7 @@ if !defined?(DB)
   end
 
   # Use an in-memory SQLite database
-  if (RUBY_ENGINE == 'jruby')
+  if RUBY_ENGINE == 'jruby'
     DB = Sequel.connect('jdbc:sqlite::memory:')
   else
     DB = Sequel.sqlite
@@ -43,7 +43,9 @@ if !defined?(DB)
   create_tables(DB)
 
   class Author < Sequel::Model; end
+
   class Post < Sequel::Model; end
+
   class User < Sequel::Model; end
 
   # Version 4.0 of Sequel moved update_except off to a plugin

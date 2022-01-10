@@ -2,11 +2,10 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/rack/agent_hooks'
 
 class AgentHooksTest < Minitest::Test
-
   def setup
     @app = stub_everything
     @hooks = NewRelic::Rack::AgentHooks.new(@app)
@@ -40,5 +39,4 @@ class AgentHooksTest < Minitest::Test
     NewRelic::Agent.instance.events.expects(:notify).times(4)
     nested.call(@env)
   end
-
 end

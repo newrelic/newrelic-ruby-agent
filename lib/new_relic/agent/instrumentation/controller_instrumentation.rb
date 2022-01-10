@@ -22,7 +22,6 @@ module NewRelic
       # @api public
       #
       module ControllerInstrumentation
-
         def self.included(clazz) # :nodoc:
           clazz.extend(ClassMethods)
         end
@@ -30,7 +29,9 @@ module NewRelic
         # This module is for importing stubs when the agent is disabled
         module ClassMethodsShim # :nodoc:
           def newrelic_ignore(*args); end
+
           def newrelic_ignore_apdex(*args); end
+
           def newrelic_ignore_enduser(*args); end
         end
 
@@ -38,14 +39,16 @@ module NewRelic
           def self.included(clazz)
             clazz.extend(ClassMethodsShim)
           end
+
           def new_relic_trace_controller_action(*args); yield; end
+
           def perform_action_with_newrelic_trace(*args); yield; end
         end
 
-        NR_DO_NOT_TRACE_KEY   = :'@do_not_trace'
-        NR_IGNORE_APDEX_KEY   = :'@ignore_apdex'
+        NR_DO_NOT_TRACE_KEY = :'@do_not_trace'
+        NR_IGNORE_APDEX_KEY = :'@ignore_apdex'
         NR_IGNORE_ENDUSER_KEY = :'@ignore_enduser'
-        NR_DEFAULT_OPTIONS    = {}.freeze
+        NR_DEFAULT_OPTIONS = {}.freeze
 
         # @api public
         module ClassMethods
@@ -54,31 +57,32 @@ module NewRelic
           #
           # @api public
           #
-          def newrelic_ignore(specifiers={})
+          def newrelic_ignore(specifiers = {})
             NewRelic::Agent.record_api_supportability_metric(:newrelic_ignore)
             newrelic_ignore_aspect(NR_DO_NOT_TRACE_KEY, specifiers)
           end
+
           # Have NewRelic omit apdex measurements on the given actions.  Typically used for
           # actions that are not user facing or that skew your overall apdex measurement.
           # Accepts :except and :only options, as with #newrelic_ignore.
           #
           # @api public
           #
-          def newrelic_ignore_apdex(specifiers={})
+          def newrelic_ignore_apdex(specifiers = {})
             NewRelic::Agent.record_api_supportability_metric(:newrelic_ignore_apdex)
             newrelic_ignore_aspect(NR_IGNORE_APDEX_KEY, specifiers)
           end
 
           # @api public
-          def newrelic_ignore_enduser(specifiers={})
+          def newrelic_ignore_enduser(specifiers = {})
             NewRelic::Agent.record_api_supportability_metric(:newrelic_ignore_enduser)
             newrelic_ignore_aspect(NR_IGNORE_ENDUSER_KEY, specifiers)
           end
 
-          def newrelic_ignore_aspect(property, specifiers={}) # :nodoc:
+          def newrelic_ignore_aspect(property, specifiers = {}) # :nodoc:
             if specifiers.empty?
               self.newrelic_write_attr property, true
-            elsif ! (Hash === specifiers)
+            elsif !(Hash === specifiers)
               ::NewRelic::Agent.logger.error "newrelic_#{property} takes an optional hash with :only and :except lists of actions (illegal argument type '#{specifiers.class}')"
             else
               # symbolize the incoming values
@@ -158,7 +162,7 @@ module NewRelic
           #
           # @api public
           #
-          def add_transaction_tracer(method, options={})
+          def add_transaction_tracer(method, options = {})
             NewRelic::Agent.record_api_supportability_metric(:add_transaction_tracer)
 
             # The metric path:
@@ -202,54 +206,50 @@ module NewRelic
               elsif key == :params
                 value.to_s
               else
-                %Q["#{value.to_s}"]
+                %Q("#{value.to_s}")
               end
 
-              %Q[:#{key} => #{value}]
+              %Q(:#{key} => #{value})
             end
           end
 
           def build_method_names(traced_method, punctuation)
-            [ "#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}",
-              "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}" ]
+            ["#{traced_method.to_s}_with_newrelic_transaction_trace#{punctuation}",
+              "#{traced_method.to_s}_without_newrelic_transaction_trace#{punctuation}"]
           end
 
           def already_added_transaction_tracer?(target, with_method_name)
-            if NewRelic::Helper.instance_methods_include?(target, with_method_name)
-              true
-            else
-              false
-            end
+            NewRelic::Helper.instance_methods_include?(target, with_method_name)
           end
         end
 
         # @!parse extend ClassMethods
 
         class TransactionNamer
-          def self.name_for(txn, traced_obj, category, options={})
+          def self.name_for(txn, traced_obj, category, options = {})
             "#{prefix_for_category(txn, category)}#{path_name(traced_obj, options)}"
           end
 
           def self.prefix_for_category(txn, category = nil)
             category ||= (txn && txn.category)
             case category
-            when :controller    then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
-            when :web           then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
-            when :task          then ::NewRelic::Agent::Transaction::TASK_PREFIX
-            when :background    then ::NewRelic::Agent::Transaction::TASK_PREFIX
-            when :rack          then ::NewRelic::Agent::Transaction::RACK_PREFIX
-            when :uri           then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
-            when :sinatra       then ::NewRelic::Agent::Transaction::SINATRA_PREFIX
-            when :middleware    then ::NewRelic::Agent::Transaction::MIDDLEWARE_PREFIX
-            when :grape         then ::NewRelic::Agent::Transaction::GRAPE_PREFIX
-            when :rake          then ::NewRelic::Agent::Transaction::RAKE_PREFIX
-            when :action_cable  then ::NewRelic::Agent::Transaction::ACTION_CABLE_PREFIX
-            when :message       then ::NewRelic::Agent::Transaction::MESSAGE_PREFIX
+            when :controller then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
+            when :web then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
+            when :task then ::NewRelic::Agent::Transaction::TASK_PREFIX
+            when :background then ::NewRelic::Agent::Transaction::TASK_PREFIX
+            when :rack then ::NewRelic::Agent::Transaction::RACK_PREFIX
+            when :uri then ::NewRelic::Agent::Transaction::CONTROLLER_PREFIX
+            when :sinatra then ::NewRelic::Agent::Transaction::SINATRA_PREFIX
+            when :middleware then ::NewRelic::Agent::Transaction::MIDDLEWARE_PREFIX
+            when :grape then ::NewRelic::Agent::Transaction::GRAPE_PREFIX
+            when :rake then ::NewRelic::Agent::Transaction::RAKE_PREFIX
+            when :action_cable then ::NewRelic::Agent::Transaction::ACTION_CABLE_PREFIX
+            when :message then ::NewRelic::Agent::Transaction::MESSAGE_PREFIX
             else "#{category.to_s}/" # for internal use only
             end
           end
 
-          def self.path_name(traced_obj, options={})
+          def self.path_name(traced_obj, options = {})
             return options[:path] if options[:path]
 
             class_name = class_name(traced_obj, options)
@@ -266,9 +266,9 @@ module NewRelic
             end
           end
 
-          def self.class_name(traced_obj, options={})
+          def self.class_name(traced_obj, options = {})
             return options[:class_name] if options[:class_name]
-            if (traced_obj.is_a?(Class) || traced_obj.is_a?(Module))
+            if traced_obj.is_a?(Class) || traced_obj.is_a?(Module)
               traced_obj.name
             else
               traced_obj.class.name
@@ -345,7 +345,7 @@ module NewRelic
         #
         # @api public
         #
-        def perform_action_with_newrelic_trace(*args, &block) #THREAD_LOCAL_ACCESS
+        def perform_action_with_newrelic_trace(*args, &block) # THREAD_LOCAL_ACCESS
           NewRelic::Agent.record_api_supportability_metric(:perform_action_with_newrelic_trace)
           state = NewRelic::Agent::Tracer.state
           request = newrelic_request(args)
@@ -363,8 +363,8 @@ module NewRelic
           # the *args method signature to ensure backwards compatibility.
 
           trace_options = args.last.is_a?(Hash) ? args.last : NR_DEFAULT_OPTIONS
-          category      = trace_options[:category] || :controller
-          txn_options   = create_transaction_options(trace_options, category, state, queue_start_time)
+          category = trace_options[:category] || :controller
+          txn_options = create_transaction_options(trace_options, category, state, queue_start_time)
 
           begin
             finishable = Tracer.start_transaction_or_segment(
@@ -379,7 +379,6 @@ module NewRelic
               NewRelic::Agent.notice_error(e)
               raise
             end
-
           ensure
             finishable.finish if finishable
           end
@@ -434,7 +433,7 @@ module NewRelic
 
         def create_transaction_options(trace_options, category, state, queue_start_time)
           txn_options = {}
-          txn_options[:request]   = trace_options[:request]
+          txn_options[:request] = trace_options[:request]
           txn_options[:request] ||= request if respond_to?(:request) rescue nil
           # params should have been filtered before calling perform_action_with_newrelic_trace
           txn_options[:filtered_params] = trace_options[:params]
@@ -457,7 +456,8 @@ module NewRelic
           NewRelic::Agent::Instrumentation::IgnoreActions.is_filtered?(
             key,
             self.class,
-            name)
+            name
+          )
         end
 
         def detect_queue_start_time(request)

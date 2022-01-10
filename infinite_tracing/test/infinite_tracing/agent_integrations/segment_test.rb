@@ -12,10 +12,10 @@ module NewRelic
         include FakeTraceObserverHelpers
 
         def test_sampled_segment_records_span_event
-          trace_id  = nil
-          txn_guid  = nil
-          sampled   = nil
-          priority  = nil
+          trace_id = nil
+          txn_guid = nil
+          sampled = nil
+          priority = nil
           timestamp = nil
 
           span_events = generate_and_stream_segments do
@@ -32,7 +32,7 @@ module NewRelic
 
               trace_id = txn.trace_id
               txn_guid = txn.guid
-              sampled  = txn.sampled?
+              sampled = txn.sampled?
               priority = txn.priority
             end
           end
@@ -40,19 +40,19 @@ module NewRelic
           assert_equal 2, span_events.size
 
           custom_span_event = span_events[0]
-          root_span_event   = span_events[1]
-          root_guid         = root_span_event['intrinsics']['guid'].string_value
+          root_span_event = span_events[1]
+          root_guid = root_span_event['intrinsics']['guid'].string_value
 
-          assert_equal 'Span',    custom_span_event['intrinsics']['type'].string_value
-          assert_equal trace_id,  custom_span_event['intrinsics']['traceId'].string_value
-          refute                  custom_span_event['intrinsics']['guid'].string_value.empty?
+          assert_equal 'Span', custom_span_event['intrinsics']['type'].string_value
+          assert_equal trace_id, custom_span_event['intrinsics']['traceId'].string_value
+          refute custom_span_event['intrinsics']['guid'].string_value.empty?
           assert_equal root_guid, custom_span_event['intrinsics']['parentId'].string_value
-          assert_equal txn_guid,  custom_span_event['intrinsics']['transactionId'].string_value
-          assert_equal sampled,   custom_span_event['intrinsics']['sampled'].bool_value
-          assert_equal priority,  custom_span_event['intrinsics']['priority'].double_value
+          assert_equal txn_guid, custom_span_event['intrinsics']['transactionId'].string_value
+          assert_equal sampled, custom_span_event['intrinsics']['sampled'].bool_value
+          assert_equal priority, custom_span_event['intrinsics']['priority'].double_value
           assert_equal timestamp, custom_span_event['intrinsics']['timestamp'].int_value
-          assert_equal 1.0,       custom_span_event['intrinsics']['duration'].double_value
-          assert_equal 'Ummm',    custom_span_event['intrinsics']['name'].string_value
+          assert_equal 1.0, custom_span_event['intrinsics']['duration'].double_value
+          assert_equal 'Ummm', custom_span_event['intrinsics']['name'].string_value
           assert_equal 'generic', custom_span_event['intrinsics']['category'].string_value
         end
 

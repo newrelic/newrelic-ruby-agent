@@ -5,7 +5,7 @@
 def with_verbose_logging
   orig_logger = NewRelic::Agent.logger
   $stderr.puts '', '---', ''
-  new_logger = NewRelic::Agent::AgentLogger.new('', Logger.new($stderr) )
+  new_logger = NewRelic::Agent::AgentLogger.new('', Logger.new($stderr))
   NewRelic::Agent.logger = new_logger
 
   with_config(:log_level => 'debug') do

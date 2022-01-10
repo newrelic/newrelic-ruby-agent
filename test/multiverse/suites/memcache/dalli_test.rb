@@ -11,10 +11,10 @@ if defined?(Dalli)
 
     MULTI_OPERATIONS = [:get_multi, :get_multi_cas]
     DALLI_SERVER_PROTOCOL = if ::NewRelic::Agent::Instrumentation::Memcache::Dalli.supports_binary_protocol?
-                              ::Dalli::Protocol::Binary
-                            else
-                              ::Dalli::Server
-                            end
+      ::Dalli::Protocol::Binary
+    else
+      ::Dalli::Server
+    end
 
     def setup
       @cache = Dalli::Client.new("127.0.0.1:11211", :socket_timeout => 2.0)
@@ -115,7 +115,6 @@ if defined?(Dalli)
     DependencyDetection.detect!
 
     class DalliCasClientTest < DalliTest
-
       def after_setup
         super
         @cas_key = set_key_for_testcase(1)
@@ -179,7 +178,6 @@ if defined?(Dalli)
         assert_memcache_metrics_recorded expected_metrics
         assert_nil @cache.get(@cas_key)
       end
-
     end
   end
 end

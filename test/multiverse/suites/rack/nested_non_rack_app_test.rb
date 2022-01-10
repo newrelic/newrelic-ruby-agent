@@ -66,7 +66,7 @@ if NewRelic::Agent::Instrumentation::RackHelpers.rack_version_supported?
           'Logging/lines/WARN',
           'Logging/size',
           'Logging/size/INFO',
-          'Logging/size/WARN',
+          'Logging/size/WARN'
         ],
         :ignore_filter => /^Supportability/
       )

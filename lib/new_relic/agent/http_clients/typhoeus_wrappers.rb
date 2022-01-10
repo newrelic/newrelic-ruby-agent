@@ -9,7 +9,6 @@ module NewRelic
   module Agent
     module HTTPClients
       class TyphoeusHTTPResponse < AbstractResponse
-
         def [](key)
           unless headers.nil?
             result = headers[key]
@@ -22,7 +21,7 @@ module NewRelic
 
         def to_hash
           hash = {}
-          headers.each do |(k,v)|
+          headers.each do |(k, v)|
             hash[k] = v
           end
           hash
@@ -41,7 +40,7 @@ module NewRelic
           @uri = case request.url
             when ::URI then request.url
             else NewRelic::Agent::HTTPClients::URIUtil.parse_and_normalize_url(request.url)
-            end
+          end
         end
 
         TYPHOEUS = "Typhoeus".freeze

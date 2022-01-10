@@ -12,7 +12,7 @@ module NewRelic::Agent::Instrumentation
           def perform_with_newrelic_trace(request, options)
             with_tracing(request) { perform_without_newrelic_trace(request, options) }
           end
-       
+
           alias perform_without_newrelic_trace perform
           alias perform perform_with_newrelic_trace
         end

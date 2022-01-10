@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..', '..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 class NewRelic::Agent::SystemInfoTest < Minitest::Test
   def setup
@@ -15,11 +15,11 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     if File.basename(file) =~ /^((\d+|X)pack_(\d+|X)core_(\d+|X)logical).txt$/
       test_name = "test_#{$1}"
 
-      num_physical_packages  = $2.to_i
-      num_physical_cores     = $3.to_i
+      num_physical_packages = $2.to_i
+      num_physical_cores = $3.to_i
       num_logical_processors = $4.to_i
-      num_physical_packages  = nil if num_physical_packages  < 1
-      num_physical_cores     = nil if num_physical_cores     < 1
+      num_physical_packages = nil if num_physical_packages < 1
+      num_physical_cores = nil if num_physical_cores < 1
       num_logical_processors = nil if num_logical_processors < 1
 
       define_method(test_name) do
@@ -38,7 +38,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
         else
           assert_equal num_physical_cores, info[:num_physical_cores]
         end
-        
+
         if num_logical_processors.nil?
           assert_nil info[:num_logical_processors]
         else
@@ -58,7 +58,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     end
   end
 
-  container_id_test_dir   = File.join(cross_agent_tests_dir, 'docker_container_id')
+  container_id_test_dir = File.join(cross_agent_tests_dir, 'docker_container_id')
   container_id_test_cases = load_cross_agent_test(File.join('docker_container_id', 'cases'))
 
   container_id_test_cases.each do |test_case|
@@ -84,7 +84,6 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
       end
     end
   end
-
 
   each_cross_agent_test :dir => 'proc_meminfo', :pattern => '*.txt' do |file|
     if File.basename(file) =~ /^meminfo_(\d+)MB.txt$/
@@ -159,7 +158,7 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
   def test_invalid_length_ascii_boot_id
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
-    test_boot_id = VALID_UUID*2
+    test_boot_id = VALID_UUID * 2
     NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(test_boot_id)
     assert_equal test_boot_id, NewRelic::Agent::SystemInfo.boot_id
     assert_metrics_recorded "Supportability/utilization/boot_id/error"
@@ -167,9 +166,9 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
 
   def test_truncated_invalid_length_ascii_boot_id
     NewRelic::Agent::SystemInfo.stubs(:ruby_os_identifier).returns("linux")
-    test_boot_id = VALID_UUID*8
+    test_boot_id = VALID_UUID * 8
     NewRelic::Agent::SystemInfo.expects(:proc_try_read).with('/proc/sys/kernel/random/boot_id').returns(test_boot_id)
-    assert_equal test_boot_id[0,128], NewRelic::Agent::SystemInfo.boot_id
+    assert_equal test_boot_id[0, 128], NewRelic::Agent::SystemInfo.boot_id
     assert_metrics_recorded "Supportability/utilization/boot_id/error"
   end
 
@@ -200,4 +199,3 @@ class NewRelic::Agent::SystemInfoTest < Minitest::Test
     assert_metrics_not_recorded "Supportability/utilization/boot_id/error"
   end
 end
-

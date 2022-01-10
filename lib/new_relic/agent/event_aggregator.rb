@@ -25,7 +25,7 @@ module NewRelic
             @enabled_keys ||= []
           else
             @enabled_keys = Array(keys)
-            @enabled_fn = ->(){ @enabled_keys.all? { |k| Agent.config[k] } }
+            @enabled_fn = ->() { @enabled_keys.all? { |k| Agent.config[k] } }
           end
         end
 

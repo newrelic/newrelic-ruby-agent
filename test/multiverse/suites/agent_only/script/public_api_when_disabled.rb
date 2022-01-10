@@ -53,5 +53,5 @@ NewRelic::Agent.add_custom_attributes(:custom => "attributes")
 
 NewRelic::Agent.drop_buffered_data
 
-NewRelic::Agent.after_fork(options={})
-NewRelic::Agent.shutdown(options={})
+NewRelic::Agent.after_fork(options = {})
+NewRelic::Agent.shutdown(options = {})

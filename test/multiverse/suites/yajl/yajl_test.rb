@@ -8,7 +8,6 @@ require File.join(File.dirname(__FILE__), '..', '..', '..', 'new_relic', 'marsha
 require 'yajl/json_gem'
 
 class YajlTest < Minitest::Test
-
   include MultiverseHelpers
   include MarshallingTestCases
 

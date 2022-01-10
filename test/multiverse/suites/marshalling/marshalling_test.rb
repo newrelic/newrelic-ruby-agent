@@ -7,10 +7,8 @@ require File.join(File.dirname(__FILE__), '..', '..', '..', 'new_relic', 'marsha
 # These tests are intended to exercise the basic marshalling functionality of
 # the agent in it's different permutations (Ruby and JSON)
 class MarshallingTest < Minitest::Test
-
   include MultiverseHelpers
   include MarshallingTestCases
 
   setup_and_teardown_agent
-
 end

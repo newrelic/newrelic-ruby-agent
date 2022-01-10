@@ -33,12 +33,12 @@ class SyntheticsTest < Minitest::Test
   end
 
   def generate_synthetics_header(test)
-    synthetics_key     = test['settings']['syntheticsEncodingKey']
+    synthetics_key = test['settings']['syntheticsEncodingKey']
     synthetics_payload = test['inputHeaderPayload']
 
     return nil if synthetics_payload.empty?
 
-    encoded_synthetics_payload   = ::JSON.dump(synthetics_payload)
+    encoded_synthetics_payload = ::JSON.dump(synthetics_payload)
     obfuscated_synthetics_header = ::NewRelic::Agent::Obfuscator.new(synthetics_key).obfuscate(encoded_synthetics_payload)
 
     assert_equal(test['inputObfuscatedHeader']['X-NewRelic-Synthetics'], obfuscated_synthetics_header)
@@ -48,7 +48,7 @@ class SyntheticsTest < Minitest::Test
   def request_headers_for_test(test)
     header_value = generate_synthetics_header(test)
     if header_value
-      { 'HTTP_X_NEWRELIC_SYNTHETICS' => header_value }
+      {'HTTP_X_NEWRELIC_SYNTHETICS' => header_value}
     else
       {}
     end
@@ -56,15 +56,15 @@ class SyntheticsTest < Minitest::Test
 
   def request_params_for_test(test)
     if test['settings']
-      { 'guid' => test['settings']['transactionGuid'] }
+      {'guid' => test['settings']['transactionGuid']}
     else
       {}
     end
   end
 
   def validate_transaction_event(event, test)
-    event_spec               = test['outputTransactionEvent']
-    expected_event_attrs     = event_spec['expectedAttributes']
+    event_spec = test['outputTransactionEvent']
+    expected_event_attrs = event_spec['expectedAttributes']
     non_expected_event_attrs = event_spec['nonExpectedAttributes']
 
     expected_event_attrs.each do |key, value|
@@ -79,12 +79,12 @@ class SyntheticsTest < Minitest::Test
   end
 
   def validate_transaction_trace(trace, test)
-    trace_spec           = test['outputTransactionTrace']
+    trace_spec = test['outputTransactionTrace']
     expected_resource_id = trace_spec['header']['field_9']
-    expected_attrs       = trace_spec['expectedIntrinsics']
-    non_expected_attrs   = trace_spec['nonExpectedIntrinsics']
+    expected_attrs = trace_spec['expectedIntrinsics']
+    non_expected_attrs = trace_spec['nonExpectedIntrinsics']
 
-    trace_attrs          = trace.intrinsic_attributes
+    trace_attrs = trace.intrinsic_attributes
 
     assert_equal(expected_resource_id, trace.synthetics_resource_id)
 
@@ -107,7 +107,7 @@ class SyntheticsTest < Minitest::Test
   load_cross_agent_test('synthetics/synthetics').each do |test|
     define_method("test_synthetics_#{test['name']}") do
       config = {
-        :encoding_key        => test['settings']['agentEncodingKey'],
+        :encoding_key => test['settings']['agentEncodingKey'],
         :trusted_account_ids => test['settings']['trustedAccountIds'],
         :'transaction_tracer.transaction_threshold' => 0.0
       }

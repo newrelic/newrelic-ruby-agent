@@ -2,16 +2,14 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 
 module NewRelic::Agent
   class CollectorHostname < Minitest::Test
-
     test_cases = load_cross_agent_test("collector_hostname")
 
     test_cases.each do |test_case|
       define_method("test_#{test_case['name']}".tr(" ", "_")) do
-
         # The configuration manager checks the following places to
         # determine the collector host:
         #
@@ -26,7 +24,7 @@ module NewRelic::Agent
         explicit_config[:host] = test_case['override_host'] if test_case['override_host']
         explicit_config = ::NewRelic::Agent::Configuration::DottedHash.new(explicit_config, true)
 
-        implicit_config = { license_key: test_case['key'] }
+        implicit_config = {license_key: test_case['key']}
         implicit_config = ::NewRelic::Agent::Configuration::DottedHash.new(implicit_config, true)
 
         default_config = ::NewRelic::Agent::Configuration::DefaultSource.new
@@ -44,8 +42,6 @@ module NewRelic::Agent
           end
         end
       end
-
     end
-
   end
 end

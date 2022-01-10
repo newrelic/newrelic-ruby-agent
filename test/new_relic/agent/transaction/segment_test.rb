@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'test_helper'))
 
 require 'new_relic/agent/transaction/segment'
 
@@ -11,7 +11,7 @@ module NewRelic
     class Transaction
       class SegmentTest < Minitest::Test
         def setup
-          @additional_config = { :'distributed_tracing.enabled' => true }
+          @additional_config = {:'distributed_tracing.enabled' => true}
           NewRelic::Agent.config.add_config_for_testing(@additional_config)
           NewRelic::Agent.config.notify_server_source_added
           nr_freeze_process_time
@@ -77,7 +77,7 @@ module NewRelic
             agent_attributes = attributes_for(segment, :agent)
 
             # No error attributes
-            assert_equal({"parent.transportType"=>"Unknown"}, agent_attributes)
+            assert_equal({"parent.transportType" => "Unknown"}, agent_attributes)
           end
         end
 
@@ -92,19 +92,19 @@ module NewRelic
         end
 
         def test_assigns_unscoped_metrics
-          segment = Segment.new  "Custom/simple/segment", "Segment/all"
+          segment = Segment.new "Custom/simple/segment", "Segment/all"
           assert_equal "Custom/simple/segment", segment.name
           assert_equal "Segment/all", segment.unscoped_metrics
         end
 
         def test_assigns_unscoped_metrics_as_array
-          segment = Segment.new  "Custom/simple/segment", ["Segment/all", "Other/all"]
+          segment = Segment.new "Custom/simple/segment", ["Segment/all", "Other/all"]
           assert_equal "Custom/simple/segment", segment.name
           assert_equal ["Segment/all", "Other/all"], segment.unscoped_metrics
         end
 
         def test_segment_does_not_record_metrics_outside_of_txn
-          segment = Segment.new  "Custom/simple/segment", "Segment/all"
+          segment = Segment.new "Custom/simple/segment", "Segment/all"
           segment.start
           advance_process_time 1.0
           segment.finish
@@ -114,7 +114,7 @@ module NewRelic
 
         def test_segment_records_metrics
           in_transaction "test" do |txn|
-            segment = Segment.new  "Custom/simple/segment", "Segment/all"
+            segment = Segment.new "Custom/simple/segment", "Segment/all"
             txn.add_segment segment
             segment.start
             advance_process_time 1.0
@@ -130,13 +130,13 @@ module NewRelic
             "OtherTransactionTotalTime/test",
             "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
             "Supportability/API/recording_web_transaction?",
-            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther"
           ]
         end
 
         def test_segment_records_metrics_when_given_as_array
           in_transaction do |txn|
-            segment = Segment.new  "Custom/simple/segment", ["Segment/all", "Other/all"]
+            segment = Segment.new "Custom/simple/segment", ["Segment/all", "Other/all"]
             txn.add_segment segment
             segment.start
             advance_process_time 1.0
@@ -148,7 +148,7 @@ module NewRelic
 
         def test_segment_can_disable_scoped_metric_recording
           in_transaction('test') do |txn|
-            segment = Segment.new  "Custom/simple/segment", "Segment/all"
+            segment = Segment.new "Custom/simple/segment", "Segment/all"
             segment.record_scoped_metric = false
             txn.add_segment segment
             segment.start
@@ -171,13 +171,13 @@ module NewRelic
             'Logging/size',
             'Logging/size/INFO',
             'Supportability/API/increment_metric',
-            'Supportability/API/record_metric',
+            'Supportability/API/record_metric'
           ]
         end
 
         def test_segment_can_disable_scoped_metric_recording_with_unscoped_as_frozen_array
           in_transaction('test') do |txn|
-            segment = Segment.new  "Custom/simple/segment", ["Segment/all", "Segment/allOther"].freeze
+            segment = Segment.new "Custom/simple/segment", ["Segment/all", "Segment/allOther"].freeze
             segment.record_scoped_metric = false
             txn.add_segment segment
             segment.start
@@ -194,7 +194,7 @@ module NewRelic
             "OtherTransactionTotalTime/test",
             "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
             "Supportability/API/recording_web_transaction?",
-            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther",
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther"
           ]
         end
 
@@ -216,7 +216,7 @@ module NewRelic
         def test_ignored_transaction_does_not_record_span_events
           in_transaction('wat') do |txn|
             txn.stubs(:ignore?).returns(true)
-            
+
             segment = Segment.new 'Ummm'
             txn.add_segment segment
             segment.start
@@ -229,10 +229,10 @@ module NewRelic
         end
 
         def test_sampled_segment_records_span_event
-          trace_id  = nil
-          txn_guid  = nil
-          sampled   = nil
-          priority  = nil
+          trace_id = nil
+          txn_guid = nil
+          sampled = nil
+          priority = nil
           timestamp = nil
 
           in_transaction('wat') do |txn|
@@ -248,26 +248,26 @@ module NewRelic
 
             trace_id = txn.trace_id
             txn_guid = txn.guid
-            sampled  = txn.sampled?
+            sampled = txn.sampled?
             priority = txn.priority
           end
 
-          last_span_events  = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
+          last_span_events = NewRelic::Agent.agent.span_event_aggregator.harvest![1]
           assert_equal 2, last_span_events.size
           custom_span_event = last_span_events[0][0]
-          root_span_event   = last_span_events[1][0]
-          root_guid         = root_span_event['guid']
+          root_span_event = last_span_events[1][0]
+          root_guid = root_span_event['guid']
 
-          assert_equal 'Span',    custom_span_event.fetch('type')
-          assert_equal trace_id,  custom_span_event.fetch('traceId')
-          refute_nil              custom_span_event.fetch('guid')
+          assert_equal 'Span', custom_span_event.fetch('type')
+          assert_equal trace_id, custom_span_event.fetch('traceId')
+          refute_nil custom_span_event.fetch('guid')
           assert_equal root_guid, custom_span_event.fetch('parentId')
-          assert_equal txn_guid,  custom_span_event.fetch('transactionId')
-          assert_equal sampled,   custom_span_event.fetch('sampled')
-          assert_equal priority,  custom_span_event.fetch('priority')
+          assert_equal txn_guid, custom_span_event.fetch('transactionId')
+          assert_equal sampled, custom_span_event.fetch('sampled')
+          assert_equal priority, custom_span_event.fetch('priority')
           assert_equal timestamp, custom_span_event.fetch('timestamp')
-          assert_equal 1.0,       custom_span_event.fetch('duration')
-          assert_equal 'Ummm',    custom_span_event.fetch('name')
+          assert_equal 1.0, custom_span_event.fetch('duration')
+          assert_equal 'Ummm', custom_span_event.fetch('name')
           assert_equal 'generic', custom_span_event.fetch('category')
         end
 
@@ -288,7 +288,7 @@ module NewRelic
             # If the segment constructor fails to create a random guid, the
             # exception would be a RuntimeError
             assert_raises(Errno::EMFILE, Errno::ENFILE) do
-              while true do
+              while true
                 file_descriptors << IO.sysopen(__FILE__)
                 Segment.new "Test #{file_descriptors[-1]}"
               end
@@ -332,7 +332,6 @@ module NewRelic
           assert_equal "Use This!", actual[:'request.headers.userAgent']
           assert_equal "GET", actual[:'request.method']
         end
-
 
         def test_transaction_response_attributes_included_in_agent_attributes
           txn = in_transaction do |t|
@@ -380,7 +379,6 @@ module NewRelic
             return segment_with_error, parent_segment, exception
           end
         end
-
       end
     end
   end

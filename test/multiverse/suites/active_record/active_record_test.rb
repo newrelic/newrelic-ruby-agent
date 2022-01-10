@@ -5,7 +5,6 @@
 require File.expand_path(File.join(__FILE__, "..", "app", "models", "models"))
 
 class ActiveRecordInstrumentationTest < Minitest::Test
-
   include MultiverseHelpers
   setup_and_teardown_agent
 
@@ -30,7 +29,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       if defined?(::ActiveRecord::VERSION::MINOR)
         Gem::Version.new(::ActiveRecord::VERSION::STRING)
       else
-        Gem::Version.new("2.1.0")  # Can't tell between 2.1 and 2.2. Meh.
+        Gem::Version.new("2.1.0") # Can't tell between 2.1 and 2.2. Meh.
       end
     end
   end
@@ -141,9 +140,9 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       if major_version >= 4
         scope :jeffs, lambda { where(:name => 'Jeff') }
       elsif major_version == 3 && minor_version >= 1
-        scope :jeffs, :conditions => { :name => 'Jeff' }
+        scope :jeffs, :conditions => {:name => 'Jeff'}
       else
-        named_scope :jeffs, :conditions => { :name => 'Jeff' }
+        named_scope :jeffs, :conditions => {:name => 'Jeff'}
       end
     end
 
@@ -163,7 +162,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       Order.exists?(["name=?", "jeff"])
     end
 
-    if active_record_major_version == 3 && [0,1].include?(active_record_minor_version)
+    if active_record_major_version == 3 && [0, 1].include?(active_record_minor_version)
       # Bugginess in Rails 3.0 and 3.1 doesn't let us get ActiveRecord/find
       assert_generic_rollup_metrics('select')
     else
@@ -346,7 +345,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       u.destroy
     end
 
-    assert_activerecord_metrics(User,  'delete')
+    assert_activerecord_metrics(User, 'delete')
     assert_activerecord_metrics(Alias, 'delete')
   end
 
@@ -410,7 +409,6 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     assert_metrics_recorded(["Datastore/operation/Memcached/get"])
     refute_metrics_match(/Memcached.*Order/)
   end
-
 
   def test_metrics_for_destroy
     in_web_transaction do
@@ -483,7 +481,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     assert_metrics_recorded_exclusive([
       "Supportability/API/disable_all_tracing",
       "Supportability/API/drop_buffered_data"
-      ])
+    ])
   end
 
   def test_records_transaction_trace_nodes
@@ -520,7 +518,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       if supports_explain_plans?
         refute_nil explanations, "No explains in node: #{sql_node}"
         assert_equal(2, explanations.size,
-                     "No explains in node: #{sql_node}")
+          "No explains in node: #{sql_node}")
       end
     end
   end
@@ -593,7 +591,8 @@ class ActiveRecordInstrumentationTest < Minitest::Test
       {
         "Datastore/statement/#{current_product}/Eel/squirm" => {:call_count => 1},
         "Datastore/operation/#{current_product}/squirm" => {:call_count => 1}
-      })
+      }
+    )
   end
 
   ## helpers
@@ -627,7 +626,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     end
   end
 
-  def assert_activerecord_metrics(model, operation, stats={})
+  def assert_activerecord_metrics(model, operation, stats = {})
     operation = operation_for(operation) if ['create', 'delete'].include?(operation)
 
     assert_metrics_recorded({

@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-require File.expand_path(File.join(File.dirname(__FILE__),'..','..','test_helper'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require 'new_relic/agent/instrumentation/controller_instrumentation'
 
 class TransactionInterrobangTest < Minitest::Test
@@ -28,6 +28,6 @@ class TransactionInterrobangTest < Minitest::Test
   def test_alias_method_ending_in_exclamation_mark
     assert_respond_to self, :mutate!
     assert_respond_to self, :mutate_with_newrelic_transaction_trace!
-    assert_equal "oh yeah!",mutate!
+    assert_equal "oh yeah!", mutate!
   end
 end

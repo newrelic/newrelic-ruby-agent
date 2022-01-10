@@ -37,7 +37,7 @@ module SinatraTestCases
       'GET /precondition'
     end
 
-    #get '/ignored'
+    # get '/ignored'
     def ignored_segment
       'GET /ignored'
     end
@@ -64,7 +64,7 @@ module SinatraTestCases
       'GET precondition'
     end
 
-    #get '/ignored'
+    # get '/ignored'
     def ignored_segment
       'GET ignored'
     end
@@ -103,14 +103,14 @@ module SinatraTestCases
   end
 
   def test_queue_time_headers_are_passed_to_agent
-    get '/user/login', {}, { 'HTTP_X_REQUEST_START' => 't=1360973845' }
+    get '/user/login', {}, {'HTTP_X_REQUEST_START' => 't=1360973845'}
     assert_metrics_recorded(["WebFrontend/QueueTime"])
   end
 
   def test_shown_errors_get_caught
-     get '/raise'
-     errors = harvest_error_traces!
-     assert_equal 1, errors.size
+    get '/raise'
+    errors = harvest_error_traces!
+    assert_equal 1, errors.size
   end
 
   def test_does_not_break_pass
@@ -224,15 +224,15 @@ module SinatraTestCases
 
   if Gem::Version.new(Sinatra::VERSION).segments[0] < 2
     def trigger_error_on_params
-      Sinatra::Request.any_instance.
-      stubs(:params).returns({}).
-      then.raises(StandardError.new "Rack::Request#params error")
+      Sinatra::Request.any_instance
+        .stubs(:params).returns({})
+        .then.raises(StandardError.new "Rack::Request#params error")
     end
   else
     def trigger_error_on_params
-      Sinatra::Request.any_instance.
-      stubs(:params).
-      raises(Sinatra::BadRequest.new)
+      Sinatra::Request.any_instance
+        .stubs(:params)
+        .raises(Sinatra::BadRequest.new)
     end
   end
 

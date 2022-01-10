@@ -16,7 +16,6 @@ require 'json'
 module NewRelic
   module Agent
     class InboundRequestMonitor
-
       attr_reader :obfuscator
 
       def initialize(events)

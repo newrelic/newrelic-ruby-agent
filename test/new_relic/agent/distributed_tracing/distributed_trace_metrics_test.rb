@@ -6,7 +6,6 @@ require File.expand_path '../../../../test_helper', __FILE__
 
 module NewRelic::Agent
   class DistributedTraceMetricsTest < Minitest::Test
-
     def setup
       nr_freeze_process_time
       @config = {
@@ -70,7 +69,7 @@ module NewRelic::Agent
 
       assert_metrics_recorded([
         "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
-        "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb",
+        "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb"
       ])
     end
 
@@ -85,13 +84,13 @@ module NewRelic::Agent
         "DurationByCaller/Browser/212311/51424/HTTP/all",
         "DurationByCaller/Browser/212311/51424/HTTP/allWeb",
         "TransportDuration/Browser/212311/51424/HTTP/all",
-        "TransportDuration/Browser/212311/51424/HTTP/allWeb",
+        "TransportDuration/Browser/212311/51424/HTTP/allWeb"
       ])
       refute_metrics_recorded([
         "ErrorsByCaller/Browser/212311/51424/HTTP/all",
         "ErrorsByCaller/Browser/212311/51424/HTTP/allWeb",
         "ErrorsByCaller/Browser/212311/51424/Unknown/all",
-        "ErrorsByCaller/Browser/212311/51424/Unknown/allWeb",
+        "ErrorsByCaller/Browser/212311/51424/Unknown/allWeb"
       ])
     end
 
@@ -106,13 +105,13 @@ module NewRelic::Agent
         "DurationByCaller/Browser/212311/51424/Unknown/all",
         "DurationByCaller/Browser/212311/51424/Unknown/allWeb",
         "TransportDuration/Browser/212311/51424/Unknown/all",
-        "TransportDuration/Browser/212311/51424/Unknown/allWeb",
+        "TransportDuration/Browser/212311/51424/Unknown/allWeb"
       ])
       refute_metrics_recorded([
         "ErrorsByCaller/Browser/212311/51424/HTTP/all",
         "ErrorsByCaller/Browser/212311/51424/HTTP/allWeb",
         "ErrorsByCaller/Browser/212311/51424/Unknown/all",
-        "ErrorsByCaller/Browser/212311/51424/Unknown/allWeb",
+        "ErrorsByCaller/Browser/212311/51424/Unknown/allWeb"
       ])
     end
 
@@ -134,9 +133,8 @@ module NewRelic::Agent
         "TransportDuration/Browser/212311/51424/HTTP/all",
         "TransportDuration/Browser/212311/51424/HTTP/allWeb",
         "ErrorsByCaller/Browser/212311/51424/HTTP/all",
-        "ErrorsByCaller/Browser/212311/51424/HTTP/allWeb",
+        "ErrorsByCaller/Browser/212311/51424/HTTP/allWeb"
       ])
     end
-
   end
 end

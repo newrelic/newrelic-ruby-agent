@@ -19,7 +19,7 @@ class CustomQueueTimeTest < Minitest::Test
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 
     def run_transaction(request, simulated_queue_time)
-      opts = { :name => 'run_transaction', :class_name => 'DummyApp', :request => request }
+      opts = {:name => 'run_transaction', :class_name => 'DummyApp', :request => request}
 
       advance_process_time(simulated_queue_time)
 
@@ -31,7 +31,7 @@ class CustomQueueTimeTest < Minitest::Test
 
   def setup
     nr_freeze_process_time
-    @headers = { 'HTTP_X_REQUEST_START' => "t=#{Process.clock_gettime(Process::CLOCK_REALTIME)}" }
+    @headers = {'HTTP_X_REQUEST_START' => "t=#{Process.clock_gettime(Process::CLOCK_REALTIME)}"}
   end
 
   def test_pulls_request_headers_from_passed_in_rack_request
@@ -40,7 +40,7 @@ class CustomQueueTimeTest < Minitest::Test
 
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => {
-        :call_count      => 1,
+        :call_count => 1,
         :total_call_time => 10
       }
     )
@@ -52,7 +52,7 @@ class CustomQueueTimeTest < Minitest::Test
 
     assert_metrics_recorded(
       'WebFrontend/QueueTime' => {
-        :call_count      => 1,
+        :call_count => 1,
         :total_call_time => 10
       }
     )

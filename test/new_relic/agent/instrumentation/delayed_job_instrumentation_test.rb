@@ -7,7 +7,6 @@ require 'new_relic/agent/instrumentation/delayed_job_instrumentation'
 
 module NewRelic::Agent::Instrumentation
   class DelayedJobInstrumentationTest < Minitest::Test
-
     class DummyPayload
       include NewRelic::Agent::Instrumentation::DelayedJob::Naming
       attr_accessor :object

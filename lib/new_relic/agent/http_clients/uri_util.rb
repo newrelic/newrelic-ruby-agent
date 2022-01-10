@@ -14,7 +14,6 @@ module NewRelic
   module Agent
     module HTTPClients
       module URIUtil
-
         def self.obfuscated_uri(url)
           parse_and_normalize_url(url).tap do |obfuscated|
             obfuscated.user = nil

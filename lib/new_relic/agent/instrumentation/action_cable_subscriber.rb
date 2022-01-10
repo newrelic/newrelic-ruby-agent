@@ -7,10 +7,9 @@ module NewRelic
   module Agent
     module Instrumentation
       class ActionCableSubscriber < NotificationsSubscriber
-
         PERFORM_ACTION = 'perform_action.action_cable'.freeze
 
-        def start(name, id, payload) #THREAD_LOCAL_ACCESS
+        def start(name, id, payload) # THREAD_LOCAL_ACCESS
           return unless state.is_execution_traced?
 
           finishable = if name == PERFORM_ACTION
@@ -26,7 +25,7 @@ module NewRelic
           log_notification_error e, name, 'start'
         end
 
-        def finish(name, id, payload) #THREAD_LOCAL_ACCESS
+        def finish(name, id, payload) # THREAD_LOCAL_ACCESS
           return unless state.is_execution_traced?
 
           if exception = exception_object(payload)

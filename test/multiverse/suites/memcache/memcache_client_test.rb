@@ -14,8 +14,8 @@ if defined?(MemCache)
 
     if MemCache::VERSION <= "1.5.0"
       undef_method :test_append_in_web, :test_prepend_in_web, :test_replace_in_web,
-                   :test_append_in_background, :test_prepend_in_background,
-                   :test_replace_in_background
+        :test_append_in_background, :test_prepend_in_background,
+        :test_replace_in_background
     end
 
     if MemCache::VERSION <= "1.7.0"
@@ -32,6 +32,5 @@ if defined?(MemCache)
     def simulated_error_class
       MemCache::MemCacheError
     end
-
   end
 end

@@ -44,6 +44,7 @@ DependencyDetection.defer do
           }
         end
       end
+
       class Client
         def call(_worker_class, job, *_)
           job[NewRelic::NEWRELIC_KEY] ||= distributed_tracing_headers if ::NewRelic::Agent.config[:'distributed_tracing.enabled']
@@ -61,10 +62,10 @@ DependencyDetection.defer do
     class Sidekiq::Extensions::DelayedClass
       def newrelic_trace_args(msg, queue)
         (target, method_name, _args) = if YAML.respond_to?(:unsafe_load)
-                                         YAML.unsafe_load(msg['args'][0])
-                                       else 
-                                         YAML.load(msg['args'][0])
-                                       end
+          YAML.unsafe_load(msg['args'][0])
+        else
+          YAML.load(msg['args'][0])
+        end
 
         {
           :name => method_name,

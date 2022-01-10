@@ -39,7 +39,8 @@ class RedisTest < Performance::TestCase
     with_config(:'transaction_tracer.record_redis_arguments' => true) do
       pipeline = [
         ["first", "a" * 100, "b" * 100, "c" * 100],
-        ["second", "a" * 100, "b" * 100, "c" * 100]]
+        ["second", "a" * 100, "b" * 100, "c" * 100]
+      ]
 
       measure do
         NewRelic::Agent::Datastores::Redis.format_pipeline_commands(pipeline)

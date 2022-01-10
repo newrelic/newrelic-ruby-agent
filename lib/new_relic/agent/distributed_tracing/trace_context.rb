@@ -11,24 +11,24 @@ module NewRelic
       class TraceContext
         VERSION = 0x0
 
-        COMMA             = ','
-        EQUALS            = '='
-        INVALID_TRACE_ID  = ('0' * 32)
+        COMMA = ','
+        EQUALS = '='
+        INVALID_TRACE_ID = ('0' * 32)
         INVALID_PARENT_ID = ('0' * 16)
-        INVALID_VERSION   = 'ff'
+        INVALID_VERSION = 'ff'
 
-        TRACE_ID_KEY          = 'trace_id'
-        TRACE_FLAGS_KEY       = 'trace_flags'
-        PARENT_ID_KEY         = 'parent_id'
-        VERSION_KEY           = 'version'
-        UNDEFINED_FIELDS_KEY  = 'undefined_fields'
+        TRACE_ID_KEY = 'trace_id'
+        TRACE_FLAGS_KEY = 'trace_flags'
+        PARENT_ID_KEY = 'parent_id'
+        VERSION_KEY = 'version'
+        UNDEFINED_FIELDS_KEY = 'undefined_fields'
 
-        TP_VERSION          = "(?<#{VERSION_KEY}>[a-f\\d]{2})"
-        TP_TRACE_ID         = "(?<#{TRACE_ID_KEY}>[a-f\\d]{32})"
-        TP_PARENT_ID        = "(?<#{PARENT_ID_KEY}>[a-f\\d]{16})"
-        TP_TRACE_FLAGS      = "(?<#{TRACE_FLAGS_KEY}>\\d{2})"
+        TP_VERSION = "(?<#{VERSION_KEY}>[a-f\\d]{2})"
+        TP_TRACE_ID = "(?<#{TRACE_ID_KEY}>[a-f\\d]{32})"
+        TP_PARENT_ID = "(?<#{PARENT_ID_KEY}>[a-f\\d]{16})"
+        TP_TRACE_FLAGS = "(?<#{TRACE_FLAGS_KEY}>\\d{2})"
         TP_UNDEFINED_FIELDS = "(?<#{UNDEFINED_FIELDS_KEY}>-[a-zA-Z\\d-]*)"
-        TRACE_PARENT_REGEX  = /\A#{TP_VERSION}-#{TP_TRACE_ID}-#{TP_PARENT_ID}-#{TP_TRACE_FLAGS}#{TP_UNDEFINED_FIELDS}?\z/
+        TRACE_PARENT_REGEX = /\A#{TP_VERSION}-#{TP_TRACE_ID}-#{TP_PARENT_ID}-#{TP_TRACE_FLAGS}#{TP_UNDEFINED_FIELDS}?\z/
 
         TRACE_PARENT_FORMAT_STRING = "%02x-%s-%s-%02x"
 
@@ -36,16 +36,16 @@ module NewRelic
         MAX_TRACE_STATE_ENTRY_SIZE = 128 # bytes
 
         SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION = "Supportability/TraceContext/TraceParent/Parse/Exception"
-        SUPPORTABILITY_TRACE_STATE_PARSE_EXCEPTION  = "Supportability/TraceContext/TraceState/Parse/Exception"
+        SUPPORTABILITY_TRACE_STATE_PARSE_EXCEPTION = "Supportability/TraceContext/TraceState/Parse/Exception"
         SUPPORTABILITY_TRACE_STATE_INVALID_NR_ENTRY = "Supportability/TraceContext/TraceState/InvalidNrEntry"
 
         class << self
           def insert format: NewRelic::FORMAT_NON_RACK,
-                     carrier: nil,
-                     parent_id: nil,
-                     trace_id: nil,
-                     trace_flags: nil,
-                     trace_state: nil
+            carrier: nil,
+            parent_id: nil,
+            trace_id: nil,
+            trace_flags: nil,
+            trace_state: nil
 
             trace_parent_header = trace_parent_header_for_format format
             carrier[trace_parent_header] = format_trace_parent \
@@ -58,8 +58,8 @@ module NewRelic
           end
 
           def parse format: NewRelic::FORMAT_NON_RACK,
-                    carrier: nil,
-                    trace_state_entry_key: nil
+            carrier: nil,
+            trace_state_entry_key: nil
             trace_parent = extract_traceparent(format, carrier)
             unless trace_parent_valid? trace_parent
               NewRelic::Agent.increment_metric SUPPORTABILITY_TRACE_PARENT_PARSE_EXCEPTION
@@ -84,13 +84,13 @@ module NewRelic
           private
 
           def format_trace_parent trace_id: nil,
-                                  parent_id: nil,
-                                  trace_flags: nil
+            parent_id: nil,
+            trace_flags: nil
             sprintf TRACE_PARENT_FORMAT_STRING,
-                    VERSION,
-                    trace_id,
-                    parent_id,
-                    trace_flags
+              VERSION,
+              trace_id,
+              parent_id,
+              trace_flags
           end
 
           def extract_traceparent format, carrier
@@ -158,9 +158,9 @@ module NewRelic
             trace_state_vendors.chomp! COMMA
 
             HeaderData.create trace_state_payload: payload ? decode_payload(payload) : nil,
-                        trace_state_entries: trace_state,
-                        trace_state_size: trace_state_size,
-                        trace_state_vendors: trace_state_vendors
+              trace_state_entries: trace_state,
+              trace_state_size: trace_state_size,
+              trace_state_vendors: trace_state_vendors
           end
 
           def decode_payload payload
@@ -176,15 +176,15 @@ module NewRelic
         class HeaderData
           class << self
             def create trace_parent: nil,
-                       trace_state_payload: nil,
-                       trace_state_entries: nil,
-                       trace_state_size: 0,
-                       trace_state_vendors: nil
+              trace_state_payload: nil,
+              trace_state_entries: nil,
+              trace_state_size: 0,
+              trace_state_vendors: nil
               new trace_parent, \
-                  trace_state_payload, \
-                  trace_state_entries, \
-                  trace_state_size, \
-                  trace_state_vendors
+                trace_state_payload, \
+                trace_state_entries, \
+                trace_state_size, \
+                trace_state_vendors
             end
           end
 
@@ -237,9 +237,7 @@ module NewRelic
 
             joined_trace_state
           end
-
         end
-
       end
     end
   end

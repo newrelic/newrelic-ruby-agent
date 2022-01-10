@@ -36,7 +36,7 @@ module NewRelic
     def initialize
       # Extend self with any any submodules of LocalEnvironment.  These can override
       # the discover methods to discover new framworks and dispatchers.
-      NewRelic::LocalEnvironment.constants.each do | const |
+      NewRelic::LocalEnvironment.constants.each do |const|
         mod = NewRelic::LocalEnvironment.const_get const
         self.extend mod if mod.instance_of? Module
       end
@@ -77,13 +77,13 @@ module NewRelic
         unicorn
       ]
       while dispatchers.any? && @discovered_dispatcher.nil?
-        send 'check_for_'+(dispatchers.shift)
+        send 'check_for_' + (dispatchers.shift)
       end
     end
 
     def check_for_torquebox
       return unless defined?(::JRuby) &&
-         ( org.torquebox::TorqueBox rescue nil)
+        (org.torquebox::TorqueBox rescue nil)
       @discovered_dispatcher = :torquebox
     end
 
@@ -147,9 +147,9 @@ module NewRelic
     end
 
     def check_for_resque
-      has_queue              = ENV['QUEUE'] || ENV['QUEUES']
-      resque_rake            = executable == 'rake' && ARGV.include?('resque:work')
-      resque_pool_rake       = executable == 'rake' && ARGV.include?('resque:pool')
+      has_queue = ENV['QUEUE'] || ENV['QUEUES']
+      resque_rake = executable == 'rake' && ARGV.include?('resque:work')
+      resque_pool_rake = executable == 'rake' && ARGV.include?('resque:pool')
       resque_pool_executable = executable == 'resque-pool' && defined?(::Resque::Pool)
 
       using_resque = defined?(::Resque) &&
@@ -192,6 +192,7 @@ module NewRelic
     end
 
     public
+
     # outputs a human-readable description
     def to_s
       s = "LocalEnvironment["
@@ -202,6 +203,5 @@ module NewRelic
     def executable
       File.basename($0)
     end
-
   end
 end

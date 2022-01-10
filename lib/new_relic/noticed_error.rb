@@ -12,11 +12,11 @@ class NewRelic::NoticedError
   extend NewRelic::CollectionHelper
 
   attr_accessor :path, :timestamp, :message, :exception_class_name,
-                :request_uri, :request_port, :file_name, :line_number,
-                :stack_trace, :attributes_from_notice_error, :attributes,
-                :expected
+    :request_uri, :request_port, :file_name, :line_number,
+    :stack_trace, :attributes_from_notice_error, :attributes,
+    :expected
 
-  attr_reader   :exception_id, :is_internal
+  attr_reader :exception_id, :is_internal
 
   STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE = "Message removed by New Relic 'strip_exception_messages' setting"
   UNKNOWN_ERROR_CLASS_NAME = 'Error'
@@ -28,9 +28,9 @@ class NewRelic::NoticedError
 
   DESTINATION = NewRelic::Agent::AttributeFilter::DST_ERROR_COLLECTOR
 
-  ERROR_PREFIX_KEY   = 'error'
-  ERROR_MESSAGE_KEY  = "#{ERROR_PREFIX_KEY}.message"
-  ERROR_CLASS_KEY    = "#{ERROR_PREFIX_KEY}.class"
+  ERROR_PREFIX_KEY = 'error'
+  ERROR_MESSAGE_KEY = "#{ERROR_PREFIX_KEY}.message"
+  ERROR_CLASS_KEY = "#{ERROR_PREFIX_KEY}.class"
   ERROR_EXPECTED_KEY = "#{ERROR_PREFIX_KEY}.expected"
 
   def initialize(path, exception, timestamp = Process.clock_gettime(Process::CLOCK_REALTIME), expected = false)
@@ -51,7 +51,7 @@ class NewRelic::NoticedError
 
     # replace error message if enabled
     if NewRelic::Agent.config[:'strip_exception_messages.enabled'] &&
-       !self.class.passes_message_allowlist(exception.class)
+        !self.class.passes_message_allowlist(exception.class)
       @message = STRIPPED_EXCEPTION_REPLACEMENT_MESSAGE
     end
 
@@ -77,12 +77,12 @@ class NewRelic::NoticedError
 
   include NewRelic::Coerce
 
-  def to_collector_array(encoder=nil)
-    [ NewRelic::Helper.time_to_millis(timestamp),
+  def to_collector_array(encoder = nil)
+    [NewRelic::Helper.time_to_millis(timestamp),
       string(path),
       string(message),
       string(exception_class_name),
-      processed_attributes ]
+      processed_attributes]
   end
 
   # Note that we process attributes lazily and store the result. This is because
@@ -101,9 +101,9 @@ class NewRelic::NoticedError
 
   def base_parameters
     params = {}
-    params[:file_name]        = file_name   if file_name
-    params[:line_number]      = line_number if line_number
-    params[:stack_trace]      = stack_trace if stack_trace
+    params[:file_name] = file_name if file_name
+    params[:line_number] = line_number if line_number
+    params[:stack_trace] = stack_trace if stack_trace
     params[ERROR_EXPECTED_KEY.to_sym] = expected
     params
   end
@@ -200,5 +200,4 @@ class NewRelic::NoticedError
       @message = exception.to_s
     end
   end
-
 end

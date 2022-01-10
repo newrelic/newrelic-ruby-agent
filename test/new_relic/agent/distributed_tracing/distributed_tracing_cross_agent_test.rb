@@ -18,7 +18,7 @@ module NewRelic::Agent
         NewRelic::Agent.drop_buffered_data
       end
 
-      # This method, when returning a non-empty array, will cause the tests defined in the 
+      # This method, when returning a non-empty array, will cause the tests defined in the
       # JSON file to be skipped if they're not listed here.  Useful for focusing on specific
       # failing tests.
       def self.focus_tests
@@ -33,10 +33,10 @@ module NewRelic::Agent
             NewRelic::Agent.instance.adaptive_sampler.stubs(:sampled?).returns(test_case["force_sampled_true"])
 
             config = {
-              :account_id                    => test_case['account_id'],
-              :primary_application_id        => "2827902",
-              :trusted_account_key           => test_case['trusted_account_key'],
-              :'span_events.enabled'         => test_case['span_events_enabled'],
+              :account_id => test_case['account_id'],
+              :primary_application_id => "2827902",
+              :trusted_account_key => test_case['trusted_account_key'],
+              :'span_events.enabled' => test_case['span_events_enabled'],
               :'distributed_tracing.enabled' => true
             }
 
@@ -48,7 +48,7 @@ module NewRelic::Agent
         else
           define_method("test_#{test_case['test_name']}") do
             skip("marked pending by exclusion from #only_tests")
-          end          
+          end
         end
       end
 
@@ -77,7 +77,7 @@ module NewRelic::Agent
 
         inbound_payloads = payloads_for(test_case)
         inbound_payloads.each do |payload|
-          carrier = { "HTTP_NEWRELIC" => payload }
+          carrier = {"HTTP_NEWRELIC" => payload}
           DistributedTracing.accept_distributed_trace_headers carrier, test_case['transport_type']
         end
       end
@@ -105,13 +105,13 @@ module NewRelic::Agent
         if test_case['web_transaction']
           {
             transaction_name: "Controller/DistributedTracing/#{test_case['test_name']}",
-            category:         :controller,
-            request:          stub(:path => '/')
+            category: :controller,
+            request: stub(:path => '/')
           }
         else
           {
             transaction_name: "OtherTransaction/Background/#{test_case['test_name']}",
-            category:         :task
+            category: :task
           }
         end
       end
@@ -144,11 +144,11 @@ module NewRelic::Agent
         merged
       end
 
-      ALLOWED_EVENT_TYPES = %w{ Transaction TransactionError Span }
+      ALLOWED_EVENT_TYPES = %w[ Transaction TransactionError Span ]
 
       def intrinsics_for_event(test_case, event_type)
         unless ALLOWED_EVENT_TYPES.include? event_type
-          raise %Q|Test fixture refers to unexpected event type "#{event_type}"|
+          raise %Q(Test fixture refers to unexpected event type "#{event_type}")
         end
 
         return {} unless (intrinsics = test_case['intrinsics'])
@@ -156,24 +156,24 @@ module NewRelic::Agent
         return {} unless target_events.include? event_type
 
         common_intrinsics = intrinsics['common'] || {}
-        event_intrinsics  = intrinsics[event_type.to_sym] || {}
+        event_intrinsics = intrinsics[event_type.to_sym] || {}
 
         merge_intrinsics [common_intrinsics, event_intrinsics]
       end
 
       def verify_attributes(test_case_attributes, actual_attributes, event_type)
         (test_case_attributes['exact'] || []).each do |k, v|
-          msg = %Q|Wrong "#{k}" #{event_type} attribute; expected #{v.inspect}, was #{actual_attributes[k.to_s].inspect}|
+          msg = %Q(Wrong "#{k}" #{event_type} attribute; expected #{v.inspect}, was #{actual_attributes[k.to_s].inspect})
           assert_equal v, actual_attributes[k.to_s], msg
         end
 
         (test_case_attributes['expected'] || []).each do |key|
-          msg = %Q|Missing expected #{event_type} attribute "#{key}"|
+          msg = %Q(Missing expected #{event_type} attribute "#{key}")
           assert actual_attributes.has_key?(key), msg
         end
 
         (test_case_attributes['unexpected'] || []).each do |key|
-          msg = %Q|Unexpected #{event_type} attribute "#{key}"|
+          msg = %Q(Unexpected #{event_type} attribute "#{key}")
           refute actual_attributes.has_key?(key), msg
         end
       end
@@ -215,7 +215,9 @@ module NewRelic::Agent
         test_case_payloads.zip(actual_payloads).each do |test_case_data, actual|
           actual = stringify_keys_in_object(
             NewRelic::Agent::Configuration::DottedHash.new(
-              JSON.parse(actual.text)))
+              JSON.parse(actual.text)
+            )
+          )
           verify_attributes test_case_data, actual, 'Payload'
         end
       end
