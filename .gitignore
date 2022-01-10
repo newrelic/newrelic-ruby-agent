@@ -37,3 +37,4 @@ yarn.lock
 errors.txt
 .history/
 vendor/
+Brewfile.lock.json

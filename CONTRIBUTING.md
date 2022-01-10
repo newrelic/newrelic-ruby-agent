@@ -31,7 +31,7 @@ incorrect.
 
 If you are planning on contributing a new feature or an otherwise complex
 contribution, we kindly ask you to start a conversation with the maintainer team
-by opening up an Github issue first.
+by opening up a GitHub issue first.
 
 
 ### General Guidelines
@@ -94,7 +94,7 @@ includes unreleased work. Please create all new branches off of `dev`.
     - Fork the repository inside GitHub
     - `git clone git@github.com:<gh username>/newrelic-ruby-agent.git`
 1. Pick a Ruby version
-    - Use rbenv or rvm to install any version of Ruby between 2.2 up to 3.1
+    - Use rbenv, rvm, chruby, asdf, etc. to install any version of Ruby between 2.2 up to the latest stable version
 1. Install development dependencies
     - `bundle install`
 1. Check that your env is setup correctly
