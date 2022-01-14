@@ -18,10 +18,26 @@ class Minitest::Test
     end
 
     NewRelic::Agent.logger.info("*** #{self.class}##{test_method_name} **")
+    setup_thread_tracking
 
-    @__thread_count = ruby_threads.count
-    @__threads = ruby_threads.map { |rt| Hometown.for(rt).backtrace[0] }
     super
+  end
+
+  def setup_thread_tracking
+    set_threads = Proc.new do
+      @__thread_count = ruby_threads.count
+      @__threads = ruby_threads.map{|rt| Hometown.for(rt).backtrace[0]}
+    end
+
+    # Rails 7 changes when active record loads and the threads get created. 
+    # In order to keep the thread count consistent we need to wrap it in Rails.application.executor.wrap on rails 7+
+    if defined?(Rails) && Gem::Version.new(::Rails::VERSION::STRING) >= Gem::Version.new('7.0.0')
+      Rails.application.executor.wrap do
+        set_threads.call
+      end
+    else
+      set_threads.call
+    end
   end
 
   def after_teardown
