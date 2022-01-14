@@ -115,23 +115,19 @@ RUBY
     end
   end
 
-  # Older rubies have a lot of warnings that we don't care much about. Track it
-  # going forward from Ruby 2.1.
-  if RUBY_VERSION >= "2.1"
-    def test_no_warnings
-      with_environment('NEW_RELIC_TRANSACTION_TRACER_TRANSACTION_THRESHOLD' => '-10',
-        'NEW_RELIC_PORT' => $collector.port.to_s) do
-        output = `bundle exec ruby -w script/warnings.rb 2>&1`
-        expected_noise = [GIT_NOISE, NET_HTTP_NOISE]
+  def test_no_warnings
+    with_environment('NEW_RELIC_TRANSACTION_TRACER_TRANSACTION_THRESHOLD' => '-10',
+      'NEW_RELIC_PORT' => $collector.port.to_s) do
+      output = `bundle exec ruby -w script/warnings.rb 2>&1`
+      expected_noise = [GIT_NOISE, NET_HTTP_NOISE]
 
-        expected_noise << JRUBY_9000_NOISE if jruby_9000
-        expected_noise << BUNDLER_NOISE if bundler_rubygem_conflicts?
+      expected_noise << JRUBY_9000_NOISE if jruby_9000
+      expected_noise << BUNDLER_NOISE if bundler_rubygem_conflicts?
 
-        expected_noise.flatten.each { |noise| output.gsub!(noise, "") }
-        output.strip!
+      expected_noise.flatten.each { |noise| output.gsub!(noise, "") }
+      output.strip!
 
-        assert_equal NewRelic::VERSION::STRING, output
-      end
+      assert_equal NewRelic::VERSION::STRING, output
     end
   end
 
@@ -151,4 +147,8 @@ RUBY
     Gem::Version.new(Gem::VERSION) == Gem::Version.new("2.6.6") and
       Gem::Version.new(Bundler::VERSION) == Gem::Version.new("1.12.5")
   end
+
+  # manual_start / agent disabled
+  # start it within a sinatra app
+  # defined?(newrelic_ignore)
 end
