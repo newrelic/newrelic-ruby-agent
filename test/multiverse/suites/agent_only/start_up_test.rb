@@ -147,8 +147,4 @@ RUBY
     Gem::Version.new(Gem::VERSION) == Gem::Version.new("2.6.6") and
       Gem::Version.new(Bundler::VERSION) == Gem::Version.new("1.12.5")
   end
-
-  # manual_start / agent disabled
-  # start it within a sinatra app
-  # defined?(newrelic_ignore)
 end
