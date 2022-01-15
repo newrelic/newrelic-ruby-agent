@@ -26,10 +26,10 @@ class Minitest::Test
   def setup_thread_tracking
     set_threads = Proc.new do
       @__thread_count = ruby_threads.count
-      @__threads = ruby_threads.map{|rt| Hometown.for(rt).backtrace[0]}
+      @__threads = ruby_threads.map { |rt| Hometown.for(rt).backtrace[0] }
     end
 
-    # Rails 7 changes when active record loads and the threads get created. 
+    # Rails 7 changes when active record loads and the threads get created.
     # In order to keep the thread count consistent we need to wrap it in Rails.application.executor.wrap on rails 7+
     if defined?(Rails) && Gem::Version.new(::Rails::VERSION::STRING) >= Gem::Version.new('7.0.0')
       Rails.application.executor.wrap do

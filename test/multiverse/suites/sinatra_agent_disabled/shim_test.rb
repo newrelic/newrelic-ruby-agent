@@ -11,7 +11,6 @@ class MiddlewareApp < Sinatra::Base
 end
 
 class SinatraAgentDisabledTestCase < Minitest::Test
-
   def teardown
     NewRelic::Agent.instance.shutdown
     NewRelic::Agent.drop_buffered_data
