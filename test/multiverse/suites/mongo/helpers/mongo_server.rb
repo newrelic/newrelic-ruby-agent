@@ -5,6 +5,7 @@
 require 'fileutils'
 require 'timeout'
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'file_searching'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', '..', 'helpers', 'docker'))
 
 class MongoServer
   extend NewRelic::TestHelpers::FileSearching
@@ -118,9 +119,13 @@ class MongoServer
 
   def mongod_version
     @mongod_version ||= begin
-                          version = Regexp.last_match(1) if `#{mongod_path} --version` =~ /^db version v([0-9.]+)/
-                          Gem::Version.new(version || 0)
-                        end
+      version = if docker?
+        '5.0.4'
+      else
+        Regexp.last_match(1) if `#{mongod_path} --version` =~ /^db version v([0-9.]+)/
+      end
+      Gem::Version.new(version || 0)
+    end
   end
 
   def mongod_path

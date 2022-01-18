@@ -6,6 +6,11 @@ require 'mongo'
 require 'newrelic_rpm'
 require 'new_relic/agent/datastores/mongo'
 require 'helpers/mongo_metric_builder'
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'docker'))
+
+def mongo_host
+  docker? ? 'mongodb' : NewRelic::Agent::Hostname.get
+end
 
 if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
     NewRelic::Agent::Datastores::Mongo.is_monitoring_enabled?
@@ -331,7 +336,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               "Datastore/statement/MongoDB/#{@collection_name}/getMore" => {:call_count => 2},
               "Datastore/operation/MongoDB/find" => {:call_count => 1},
               "Datastore/operation/MongoDB/getMore" => {:call_count => 2},
-              "Datastore/instance/MongoDB/#{NewRelic::Agent::Hostname.get}/27017" => {:call_count => 3},
+              "Datastore/instance/MongoDB/#{mongo_host}/27017" => {:call_count => 3},
               "Datastore/MongoDB/allWeb" => {:call_count => 3},
               "Datastore/MongoDB/all" => {:call_count => 3},
               "Datastore/allWeb" => {:call_count => 3},
@@ -383,7 +388,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
             trace = last_transaction_trace
             node = find_node_with_name_matching trace, /^Datastore\//
 
-            assert_equal NewRelic::Agent::Hostname.get, node[:host]
+            assert_equal mongo_host, node[:host]
             assert_equal '27017', node[:port_path_or_id]
             assert_equal @database_name, node[:database_name]
           end

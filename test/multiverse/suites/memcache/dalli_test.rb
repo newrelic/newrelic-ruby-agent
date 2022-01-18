@@ -17,7 +17,7 @@ if defined?(Dalli)
     end
 
     def setup
-      @cache = Dalli::Client.new("127.0.0.1:11211", :socket_timeout => 2.0)
+      @cache = Dalli::Client.new("#{memcached_host}:11211", :socket_timeout => 2.0)
     end
 
     def simulate_error
@@ -82,7 +82,8 @@ if defined?(Dalli)
     end
 
     def instance_metric
-      "Datastore/instance/Memcached/#{NewRelic::Agent::Hostname.get}/11211"
+      host = docker? ? 'memcached' : NewRelic::Agent::Hostname.get
+      "Datastore/instance/Memcached/#{host}/11211"
     end
 
     def expected_web_metrics(command)

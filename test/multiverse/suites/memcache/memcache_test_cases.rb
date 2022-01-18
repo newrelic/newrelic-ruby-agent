@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "helpers", "docker"))
+
 module MemcacheTestCases
   def after_setup
     @keys = []
@@ -58,7 +60,7 @@ module MemcacheTestCases
         txn = web_txn
         simulate_error
       end
-    rescue StandardError => e
+    rescue StandardError
       # NOP -- allowing span and transaction to notice error
     end
     assert_segment_noticed_error txn, /Memcached\/set$/, simulated_error_class.name, /No server available/i
@@ -71,7 +73,7 @@ module MemcacheTestCases
       begin
         txn = web_txn
         simulate_error
-      rescue StandardError => e
+      rescue StandardError
         # NOP -- allowing ONLY span to notice error
       end
     end
@@ -339,5 +341,9 @@ module MemcacheTestCases
       segment = find_node_with_name trace, 'Datastore/operation/Memcached/get'
       assert_equal "get \"#{key}\"", segment[:statement]
     end
+  end
+
+  def memcached_host
+    docker? ? 'memcached' : 'localhost'
   end
 end

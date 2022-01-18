@@ -151,6 +151,10 @@ functionality (e.g. a performance optimization) and new tests are not required.
 In general, including tests with your pull request dramatically increases the
 chances it will be accepted.
 
+### Leveraging Docker for Testing
+
+See [test/TESTING_WITH_DOCKER.md](test/TESTING_WITH_DOCKER.md).
+
 ### Functional Testing
 
 For cases where the unit test environment is not sufficient for testing a
