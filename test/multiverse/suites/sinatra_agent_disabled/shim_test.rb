@@ -32,18 +32,5 @@ class SinatraAgentDisabledTestCase < Minitest::Test
     assert_shims_defined
   end
 
-  # Only one of these tests are enabled because the shims are installed before
-  # the tests are run. New code needs to be added to simulate a startup
-  # environment where the shims would not be present to exercise all config
-  # options could require shim installation.
 
-  # def test_shims_exist_when_enabled_false
-  #   # NewRelic::Agent.manual_start(:enabled => false)
-  #   assert_shims_defined
-  # end
-
-  # def test_shims_exist_when_monitor_mode_false
-  #   # NewRelic::Agent.manual_start(:monitor_mode => false)
-  #   assert_shims_defined
-  # end
 end
