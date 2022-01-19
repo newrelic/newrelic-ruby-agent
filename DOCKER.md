@@ -1,12 +1,8 @@
-# Testing With Docker
+# Using Docker with the New Relic Ruby Agent
 
-These instructions will guide you through the process of setting up Docker
-to perform tests while developing on the New Relic Agent. Doing so can provide
-you with a consistent experience shared with other developers that helps to
-avoid developer computer specific issues.
-
-*NOTE:* Currently, fewer than 100% of the functional tests pass when ran under
-Docker. We are working to address the related compatibility issues.
+These instructions will guide you through the process of setting up Docker for
+use with developing the New Relic Ruby Agent. The use of Docker containers can
+provide for a consistent experience free from machine specific issues.
 
 
 ## Install Docker
@@ -32,12 +28,12 @@ For alternatives to using macOS with Homebrew, see Docker's
 Use git to clone the [newrelic/newrelic-ruby-agent](https://github.com/newrelic/newrelic-ruby-agent)
 project.
 
-The [Dockerfile](../Dockerfile) and [docker-compose.yml](../docker-compose.yml)
-files are located in the root of the project, and this `TESTING_WITH_DOCKER.md`
-document is located within the `test` subdirectory of the project.
+The [Dockerfile](Dockerfile) and [docker-compose.yml](docker-compose.yml)
+files are located in the root of the project, where this `DOCKER.md`
+document resides.
 
 
-## Using just the Dockerfile (unit tests only)
+## Using just the Dockerfile (unit tests and standalone dev only)
 
 The project `Dockerfile` can be used by itself to run the project unit tests.
 Docker Compose and the project `docker-compose.yml` file will be needed to
@@ -60,7 +56,7 @@ $ docker run -it newrelic/newrelic-ruby-agent-tester
 * `run -it` tells Docker to run interactively (`i`) and with a pseudo TTY (`t`)
 
 
-## Using Docker Compose (required for functional tests)
+## Using Docker Compose (for functional tests and dev involving services)
 
 Docker Compose launches multiple containers simultaneously to support the
 running of the functional tests that require a variety of data handling
@@ -84,25 +80,28 @@ $ docker-compose exec app bundle exec rake test:multiverse
 ```
 
 For multiverse related arguments or to specify only a subset of tests to be ran,
-see the [test/multiverse/README.md](multiverse/README.md) doc for instructions.
+see the [test/multiverse/README.md](test/multiverse/README.md) doc for instructions.
+
+In lieu of running the functional tests, an interactive Bash shell can be
+launched against the running Ruby app container for development and/or
+debugging. While the `docker-compose up` shell session is still running,
+bring up an additional local shell session and run the following:
+
+```shell
+$ docker-compose exec app bash
+```
+
+You will be dropped at a Bash prompt as the "relic" user, with "ruby" and
+"bundle" in your PATH.
 
 
-## Debugging
+## Output
 
 When using Docker Compose, one shell session will produce STDOUT output that
 pertains to all of the services (MySQL, MongoDB, etc.) and the other shell
 session will produce STDOUT output related to the Ruby based functional tests.
 Both streams of output may provide information about any errors or warnings
 that take place.
-
-In lieu of running the functional tests, an interactive Bash shell can be
-launched against the running Ruby app container for Ruby and/or Linux
-debugging. While the `docker-compose up` shell session is still running,
-bring up an additional shell session and run the following:
-
-```shell
-$ docker-compose exec app bash
-```
 
 
 ## Cleanup
@@ -128,4 +127,4 @@ containers and these instructions can provide consistency and a lowered barrier
 of entry when it comes to providing contributions to the agent project itself.
 
 For questions, feature requests, proposals to support Podman, PRs to improve
-behavior or documentation, etc., please see [CONTRIBUTING.md](../CONTRIBUTING.md).
+behavior or documentation, etc., please see [CONTRIBUTING.md](CONTRIBUTING.md).

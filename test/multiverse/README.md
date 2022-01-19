@@ -10,15 +10,15 @@ libraries are incompatible with each other.  Effective testing requires us to
 specify different environments for different tests; Multiverse aims to make this
 painless.
 
-## Testing with Docker
+## Testing and developing with Docker
 
 This project includes optional content for leveraging Docker to perform all
 unit and functional tests within containers.
 
-See [test/TESTING_WITH_DOCKER.md](../TESTING_WITH_DOCKER.md) for instructions
+See [DOCKER.md](../../DOCKER.md) for instructions
 on getting started. Once the containers have been started via
 `docker-compose up`, the `docker-compose exec app rake` command can be used
-to replace any `rake` command found on this page.
+to replace any `rake` command found in this multiverse specific document.
 
 ## Local development setup
 

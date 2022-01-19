@@ -151,10 +151,6 @@ functionality (e.g. a performance optimization) and new tests are not required.
 In general, including tests with your pull request dramatically increases the
 chances it will be accepted.
 
-### Leveraging Docker for Testing
-
-See [test/TESTING_WITH_DOCKER.md](test/TESTING_WITH_DOCKER.md).
-
 ### Functional Testing
 
 For cases where the unit test environment is not sufficient for testing a
@@ -167,6 +163,10 @@ These tests can be run by invoking:
 
 More details are available in
 [test/multiverse/README.md](https://github.com/newrelic/newrelic-ruby-agent/blob/main/test/multiverse/README.md).
+
+### Leveraging Docker for Development and/or Testing
+
+See [DOCKER.md](DOCKER.md).
 
 ## Contributor License Agreement
 
