@@ -14,6 +14,8 @@ RUN apt-get update \
       gcc \
       git \
       imagemagick \
+      iproute2 \
+      iputils-ping \
       libc6 \
       libc6-dev \
       libcurl4-openssl-dev \
@@ -33,6 +35,7 @@ RUN apt-get update \
       libyaml-dev \
       lsof \
       make \
+      net-tools \
       openssl \
       ncurses-dev \
       openssl \
