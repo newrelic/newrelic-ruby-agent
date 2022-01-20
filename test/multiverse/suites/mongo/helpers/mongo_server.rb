@@ -118,9 +118,9 @@ class MongoServer
 
   def mongod_version
     @mongod_version ||= begin
-                          version = Regexp.last_match(1) if `#{mongod_path} --version` =~ /^db version v([0-9.]+)/
-                          Gem::Version.new(version || 0)
-                        end
+      version = Regexp.last_match(1) if `#{mongod_path} --version` =~ /^db version v([0-9.]+)/
+      Gem::Version.new(version || 0)
+    end
   end
 
   def mongod_path
