@@ -388,7 +388,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def either_hostname
-      [NewRelic::Agent::Hostname, 'redis']
+      [NewRelic::Agent::Hostname.get, 'redis']
     end
   end
 end
