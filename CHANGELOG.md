@@ -10,6 +10,10 @@
 
   This method is called by many basic operations within the agent including transactions, datastore segments, and external request segments. Thank you, @jdelstrother for contributing this performance improvement!
 
+  * **Documentation: Development environment prep instructions**
+
+  The multiverse collection of test suites requires a variety of data handling software (MySQL, Redis, memcached, etc.) to be available on the machine running the tests. The project documentation has been updated to outline the relevant software packages, and a `Brewfile` file has been added to automate software installation with Homebrew.
+
   * **Bugfix: Add ControllerInstrumentation::Shims to Sinatra framework**
 
     When the agent is disabled by setting the config settings `enabled`, `agent_enabled`, and/or `monitor_mode` to false, the agent loads shims for public controller instrumentation methods. These shims were missing for the Sinatra framework, causing applications to crash if the agent was disabled. Thank you, @NC-piercej for bringing this to our attention!
