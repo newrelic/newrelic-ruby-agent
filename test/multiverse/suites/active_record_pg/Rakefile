@@ -1,0 +1,9 @@
+require File.expand_path('config/database')
+
+desc "Setup for ActiveRecord"
+task :environment do
+  if defined?(DatabaseTasks)
+    ActiveRecord::Base.configurations = DatabaseTasks.database_configuration
+    ActiveRecord::Base.establish_connection DatabaseTasks.env.to_sym
+  end
+end

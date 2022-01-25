@@ -1,0 +1,99 @@
+
+boilerplate_gems = <<-BOILERPLATE
+  gem 'rack'
+BOILERPLATE
+
+if RUBY_VERSION >= '2.7.0'
+  gemfile <<-RB
+    gem 'activerecord', '~> 6.1'
+    gem 'minitest', '~> 5.2.3'
+    gem 'pg'
+    gem 'webrick'
+    #{boilerplate_gems}
+  RB
+end
+
+if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM == 'java' 
+
+  gemfile <<-RB
+    gem 'activerecord', '5.2.2'
+    gem 'minitest', '~> 5.2.3'
+    gem 'activerecord-jdbcmysql-adapter', '~>52.0'
+    #{boilerplate_gems}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 5.1.6'
+    gem 'minitest', '~> 5.2.3'
+    gem 'activerecord-jdbcmysql-adapter', '~>51.0'
+    #{boilerplate_gems}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 5.0.0'
+    gem 'minitest', '~> 5.2.3'
+    gem 'activerecord-jdbcmysql-adapter', '~>50.0'
+    #{boilerplate_gems}
+  RB
+end
+
+if RUBY_VERSION >= '2.2.2' && RUBY_VERSION < '3.0.0' && RUBY_PLATFORM != 'java'
+
+  gemfile <<-RB
+    gem 'activerecord', '5.2.2'
+    gem 'minitest', '~> 5.2.3'
+    gem 'pg'
+    #{boilerplate_gems}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 5.1.6'
+    gem 'minitest', '~> 5.2.3'
+    gem 'pg'
+    #{boilerplate_gems}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 5.0.0'
+    gem 'minitest', '~> 5.2.3'
+    gem 'pg'
+    #{boilerplate_gems}
+  RB
+end
+
+if RUBY_VERSION < '2.4.0'
+  gemfile <<-RB
+    gem 'activerecord', '~> 4.2.0'
+    gem 'minitest', '~> 5.2.3'
+    gem 'pg'
+    #{boilerplate_gems}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 4.1.6'
+    gem 'minitest', '~> 5.2.3'
+    gem 'pg'
+    #{boilerplate_gems}
+  RB
+
+  gemfile <<-RB
+    gem 'activerecord', '~> 4.0.11'
+    gem 'pg'
+    #{boilerplate_gems}
+  RB
+end
+
+# AR 3.x does not have official support for Ruby 2.2, and there are several
+# known issues, including https://github.com/rails/rails/issues/18991, so
+# skip 3.x versions on 2.2.
+#
+# Only 3.2.22 fixes the above mentioned issue, so it's the only one 
+# surviving in our coverage of Rails 3.x series here.
+#
+if RUBY_VERSION < '2.3'
+  gemfile <<-RB
+    gem 'rack'
+    gem 'activerecord', '~> 3.2.22'
+    #{sqlite3_gem_and_version}
+  RB
+end
