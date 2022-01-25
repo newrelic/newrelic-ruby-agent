@@ -90,7 +90,7 @@ end
 # Only 3.2.22 fixes the above mentioned issue, so it's the only one 
 # surviving in our coverage of Rails 3.x series here.
 #
-if RUBY_VERSION <= '2.2.0'
+if RUBY_VERSION < '2.3'
   gemfile <<-RB
     gem 'rack'
     gem 'activerecord', '~> 3.2.22'
