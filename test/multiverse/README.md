@@ -10,6 +10,70 @@ libraries are incompatible with each other.  Effective testing requires us to
 specify different environments for different tests; Multiverse aims to make this
 painless.
 
+## Local development setup
+
+The multiverse suites cover a wide range of data handling software, for
+storage, caching, and messaging. To test every suite, all related software
+will need to be installed and all server processes will need to be up and
+running.
+
+The full list of data handling software used by the tests is as follows:
+
+* [memcached](https://memcached.org)
+* [MongoDB](https://www.mongodb.com)
+* [MySQL](https://www.mysql.com)
+* [PostgreSQL](https://www.postgresql.org)
+* [RabbitMQ](https://www.rabbitmq.com)
+* [Redis](https://redis.io)
+
+If you are using [Homebrew](https://brew.sh/), then you may make use of this
+project's [Brewfile](../../../Brewfile) file to automatically install all of
+those applications as well as these additional dependency packages:
+
+* [pkg-config](https://freedesktop.org/wiki/Software/pkg-config/)  
+* [OpenSSL](https://www.openssl.org/)  
+* [ImageMagick](https://imagemagick.org/)  
+
+To use the project [Brewfile](../../../Brewfile) file, run the following from
+the root of the project git clone where the file resides:
+
+```shell
+brew bundle
+```
+
+The [Brewfile](../../../Brewfile) file will cause all of the following
+Homebrew services to be installed:
+
+* `memcached`
+* `mongodb-community`
+* `mysql`
+* `postgresql`
+* `rabbitmq`
+* `redis`
+
+To start or stop a service, run the following from anywhere:
+
+```shell
+brew services start <SERVICE_NAME>
+brew services stop <SERVICE_NAME>
+
+# for example:
+brew services start redis
+brew services stop redis
+```
+
+Or to start or stop ALL Homebrew installed services at once, use `--all`:
+
+```shell
+brew services --all start
+brew services --all stop
+```
+
+Once all of the services are up and running, all multiverse suites can be
+tested. If fewer than all of the services are running, then skip to the
+[Running Specific Tests and Environments](#running-specific-tests-and-environments)
+section to only run a subset of the available test suites.
+
 
 ## Getting started
 
@@ -107,3 +171,45 @@ For example:
 You can run tests of multiverse itself with
 
     rake test:multiverse:self
+
+
+## Troubleshooting
+
+### mysql2 gem bundling errors
+
+On macOS, you may encounter the following error from any of the test suites
+that involve the `mysql2` Rubygem.
+
+```shell
+ERROR:  Error installing mysql2:
+    ERROR: Failed to build gem native extension.
+```
+
+If you encounter this, try pointing Bundler to your OpenSSL installation's `opt`
+directory. If you installed OpenSSL via Homebrew, this location will be
+`<HOMEBREW_PREFIX>/opt/openssl`. To obtain your Homebrew installation's prefix
+path, run `brew --prefix`.
+
+For example, if `brew --prefix` returns `/usr/local`, then the OpenSSL `opt`
+path will be `/usr/local/opt/openssl`.
+
+Once you know the `opt` path for OpenSSL, inform Bundler of this with the
+following command:
+
+```shell
+bundle config --local build.mysql2 --with-opt-dir=<THE_OPT_PATH>
+
+# for example:
+bundle config --local build.mysql2 --with-opt-dir=/usr/local/opt/openssl
+```
+
+This will create or update the `.bundle/config` file in the root of the
+git repo for the project. Once the `.bundle` directory exists, it will need to
+be copied to every multiverse suite directory that is failing due to the
+error.
+
+For example, if the `active_record` test suite is failing:
+
+```shell
+cp -r .bundle test/multiverse/suites/active_record/
+```

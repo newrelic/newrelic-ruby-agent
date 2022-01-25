@@ -13,7 +13,7 @@ DependencyDetection.defer do
   end
 
   executes do
-    ::NewRelic::Agent.logger.info 'Installing ActiveStorage 5 instrumentation'
+    ::NewRelic::Agent.logger.info 'Installing ActiveStorage instrumentation'
   end
 
   executes do

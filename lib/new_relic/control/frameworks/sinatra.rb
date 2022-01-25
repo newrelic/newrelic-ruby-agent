@@ -8,6 +8,12 @@ module NewRelic
     module Frameworks
       # Contains basic control logic for Sinatra
       class Sinatra < NewRelic::Control::Frameworks::Ruby
+        protected
+
+        def install_shim
+          super
+          ::Sinatra::Base.class_eval { include NewRelic::Agent::Instrumentation::ControllerInstrumentation::Shim }
+        end
       end
     end
   end

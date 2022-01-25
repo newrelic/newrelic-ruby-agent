@@ -8,7 +8,6 @@ Guard*
 pkg/
 *.gem
 !rails
-Manifest*
 .idea/
 tmp/
 TAGS
@@ -37,3 +36,4 @@ yarn.lock
 errors.txt
 .history/
 vendor/
+Brewfile.lock.json

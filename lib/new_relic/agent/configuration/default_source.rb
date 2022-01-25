@@ -123,11 +123,9 @@ module NewRelic
             when defined?(::NewRelic::TEST) then :test
             when defined?(::Rails::VERSION)
               case Rails::VERSION::MAJOR
-              when 0..2
-                :rails
               when 3
                 :rails3
-              when 4..6
+              when 4..7
                 :rails_notifications
               else
                 ::NewRelic::Agent.logger.warn "Detected untested Rails version #{Rails::VERSION::STRING}"

@@ -58,12 +58,12 @@ class LicenseTest < Minitest::Test
     (
       # skip directories
       !File.file?(path) ||
-      # skip binary files
-      %w[ .sqlite3 .log .png .ico .gif .pdf .gem ].include?(File.extname(path)) ||
+      # skip binary files and js files
+      %w[ .sqlite3 .log .png .ico .gif .pdf .gem .js ].include?(File.extname(path)) ||
       # skip this file
       File.expand_path(__FILE__) == path ||
-      # skip rpm_test_app and other stuff that ends up in tmp
-      path.include?(gem_root + '/tmp/') ||
+      # skip tmp directories overall
+      path.include?('/tmp/') ||
       # skip vendor/bundle
       path.include?(gem_root + '/vendor/bundle') ||
       # skip the auto-generated build.rb file
@@ -76,6 +76,8 @@ class LicenseTest < Minitest::Test
       path =~ %r{/test/multiverse/suites/.*/Gemfile\.\d+(\.lock)?$} ||
       # skip multiverse auto-generated db/schema
       path =~ %r{/test/multiverse/suites/.*/db/schema.rb$} ||
+      # skip multiverse error log output
+      path =~ %r{/test/multiverse/lib/multiverse/errors.txt$} ||
       # skip the artifacts directory
       path =~ %r{/artifacts/} ||
       # skip the changelog
