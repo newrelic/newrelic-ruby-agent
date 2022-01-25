@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-ruby:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.9, 2.7.5, 3.0.3, 3.1.0, jruby-9.2.19.0]
@@ -25,7 +25,7 @@ jobs:
 
   unit-tests:
     needs: build-ruby
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -89,7 +89,7 @@ jobs:
 
   multiverse:
     needs: build-ruby
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     services:
       redis:
         image: redis
@@ -156,7 +156,7 @@ jobs:
 
   infinite_tracing:
     needs: build-ruby
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -182,7 +182,7 @@ jobs:
 
   jruby_multiverse:
     needs: build-ruby
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     services:
       redis:
         image: redis
