@@ -4,7 +4,7 @@ default: &default
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   host: localhost
   username: 
-  password: 
+  password: ENV["POSTGRES_PASSWORD"]
   database: pg_artest
 
 development:
