@@ -161,6 +161,8 @@ jobs:
         env:
           DB_PORT: 3306
           MYSQL_PASSWORD: root
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USERNAME: postgres
 
       - name: Annotate errors
         if: ${{ failure() }}
