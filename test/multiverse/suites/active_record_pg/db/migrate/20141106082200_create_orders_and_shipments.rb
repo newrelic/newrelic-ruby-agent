@@ -14,6 +14,7 @@ class CreateOrdersAndShipments < ActiveRecord::VERSION::STRING >= "5.0.0" ? Acti
     create_table :order_shipments, :force => true, :id => false do |t|
       t.integer :order_id
       t.integer :shipment_id
+    end
   end
 
   def self.down
