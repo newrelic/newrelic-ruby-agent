@@ -59,7 +59,7 @@ class LicenseTest < Minitest::Test
       # skip directories
       !File.file?(path) ||
       # skip binary files and js files
-      %w| .sqlite3 .log .png .ico .gif .pdf .gem .js |.include?(File.extname(path)) ||
+      %w[ .sqlite3 .log .png .ico .gif .pdf .gem .js ].include?(File.extname(path)) ||
       # skip this file
       File.expand_path(__FILE__) == path ||
       # skip tmp directories overall

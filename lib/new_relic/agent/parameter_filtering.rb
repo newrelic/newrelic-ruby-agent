@@ -12,20 +12,16 @@ module NewRelic
       if defined?(Rails) && Gem::Version.new(::Rails::VERSION::STRING) >= Gem::Version.new('5.0.0')
         Rails.application.config.to_prepare do
           RAILS_FILTER_CLASS = if defined?(ActiveSupport::ParameterFilter)
-             ActiveSupport::ParameterFilter
+            ActiveSupport::ParameterFilter
           elsif defined?(ActionDispatch::Http::ParameterFilter)
             ActionDispatch::Http::ParameterFilter
-          else
-            nil
           end
         end
       else
         RAILS_FILTER_CLASS = if defined?(ActiveSupport::ParameterFilter)
-           ActiveSupport::ParameterFilter
+          ActiveSupport::ParameterFilter
         elsif defined?(ActionDispatch::Http::ParameterFilter)
           ActionDispatch::Http::ParameterFilter
-        else
-          nil
         end
       end
 

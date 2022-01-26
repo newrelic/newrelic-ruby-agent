@@ -31,10 +31,10 @@ namespace :test do
     Performance::Runner.new(options).run_and_report
   end
 
-  desc "Run agent within existing mini environments"
-  task :env, [:env1, :env2, :env3, :env4, :env5, :env6] => [] do |t, args|
+  desc "Run agent within existing mini environment(s): env[name1,name2,name3,etc.]"
+  task :env do |t, args|
     require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'environments', 'lib', 'environments', 'runner'))
-    Environments::Runner.new(args.map { |_, v| v }).run_and_report
+    Environments::Runner.new(args.to_a).run_and_report
   end
 
   desc "Run all mini environment tests known to work with the current Ruby version"
