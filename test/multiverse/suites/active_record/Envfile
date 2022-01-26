@@ -91,9 +91,11 @@ end
 # surviving in our coverage of Rails 3.x series here.
 #
 if RUBY_VERSION < '2.3'
+  mysql_vsn = '0.3.20'
+  
   gemfile <<-RB
     gem 'rack'
     gem 'activerecord', '~> 3.2.22'
-    #{sqlite3_gem_and_version}
+    gem '#{mysql_gem}', '#{mysql_vsn}'
   RB
 end

@@ -83,17 +83,3 @@ if RUBY_VERSION < '2.4.0'
   RB
 end
 
-# AR 3.x does not have official support for Ruby 2.2, and there are several
-# known issues, including https://github.com/rails/rails/issues/18991, so
-# skip 3.x versions on 2.2.
-#
-# Only 3.2.22 fixes the above mentioned issue, so it's the only one 
-# surviving in our coverage of Rails 3.x series here.
-#
-if RUBY_VERSION < '2.3'
-  gemfile <<-RB
-    gem 'rack'
-    gem 'activerecord', '~> 3.2.22'
-    #{sqlite3_gem_and_version}
-  RB
-end
