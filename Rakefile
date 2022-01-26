@@ -10,7 +10,7 @@ task :test => ['test:newrelic']
 
 namespace :test do
   desc "Run all tests"
-  task :all => %w[newrelic multiverse]
+  task :all => %w[newrelic multiverse all_compatible_envs]
 
   begin
     require 'test_bisect'
@@ -35,6 +35,13 @@ namespace :test do
   task :env, [:env1, :env2, :env3, :env4, :env5, :env6] => [] do |t, args|
     require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'environments', 'lib', 'environments', 'runner'))
     Environments::Runner.new(args.map { |_, v| v }).run_and_report
+  end
+
+  desc "Run all mini environment tests known to work with the current Ruby version"
+  task :all_compatible_envs do |t, args|
+    require File.expand_path(File.join(File.dirname(__FILE__), 'test', 'helpers', 'ruby_rails_mappings'))
+    rails_versions = rails_versions_for_ruby_version(RUBY_VERSION)
+    Rake::Task['test:env'].invoke(*rails_versions)
   end
 
   Rake::TestTask.new(:intentional_fail) do |t|

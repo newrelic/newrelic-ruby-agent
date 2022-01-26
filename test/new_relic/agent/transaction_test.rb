@@ -1617,7 +1617,9 @@ module NewRelic::Agent
         # descriptors
         # If the segment constructor fails to create a random guid, the
         # exception would be a RuntimeError
-        assert_raises Errno::EMFILE, Errno::ENFILE do
+        # When this test file is accessed by Docker Compose via a volume,
+        # then Errno::EIO is raised instead
+        assert_raises Errno::EIO, Errno::EMFILE, Errno::ENFILE do
           while true
             file_descriptors << IO.sysopen(__FILE__)
             in_transaction do |txn|

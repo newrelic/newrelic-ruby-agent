@@ -73,16 +73,14 @@ $ docker-compose up
 ```
 
 In a separate shell session (probably in a separate terminal split, tab, or
-window), execute the "multiverse" functional tests:
+window), execute the 'test:all' rake task to test all standard, environment,
+and multiverse tests:
 
 ```shell
-$ docker-compose exec app bundle exec rake test:multiverse
+$ docker-compose exec app bundle exec rake test:all
 ```
 
-For multiverse related arguments or to specify only a subset of tests to be ran,
-see the [test/multiverse/README.md](test/multiverse/README.md) doc for instructions.
-
-In lieu of running the functional tests, an interactive Bash shell can be
+In lieu of running the tests, an interactive Bash shell can be
 launched against the running Ruby app container for development and/or
 debugging. While the `docker-compose up` shell session is still running,
 bring up an additional local shell session and run the following:
