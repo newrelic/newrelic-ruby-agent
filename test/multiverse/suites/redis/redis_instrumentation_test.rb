@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'redis'
+require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', '..', 'helpers', 'docker'))
 
 if NewRelic::Agent::Datastores::Redis.is_supported_version?
   class NewRelic::Agent::Instrumentation::RedisInstrumentationTest < Minitest::Test
@@ -11,7 +12,8 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def after_setup
       super
-      @redis = Redis.new(:timeout => 25) # Default is 5 secs; a flushall takes longer on a busy box (i.e. CI)
+      # Default timeout is 5 secs; a flushall takes longer on a busy box (i.e. CI)
+      @redis = Redis.new(:host => redis_host, :timeout => 25)
 
       # Creating a new client doesn't actually establish a connection, so make
       # sure we do that by issuing a dummy get command, and then drop metrics
@@ -25,7 +27,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def test_records_metrics_for_connect
-      redis = Redis.new
+      redis = Redis.new(:host => redis_host)
 
       in_transaction "test_txn" do
         redis.get("foo")
@@ -43,7 +45,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
         "Datastore/Redis/all" => {:call_count => 2},
         "Datastore/allOther" => {:call_count => 2},
         "Datastore/all" => {:call_count => 2},
-        "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 2},
+        "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 2},
         "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
         "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther" => {:call_count => 1}
       }
@@ -53,7 +55,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
 
     def test_records_connect_tt_node_within_call_that_triggered_it
       in_transaction do
-        redis = Redis.new
+        redis = Redis.new(:host => redis_host)
         redis.get("foo")
       end
 
@@ -77,7 +79,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
         "Datastore/Redis/all" => {:call_count => 1},
         "Datastore/allOther" => {:call_count => 1},
         "Datastore/all" => {:call_count => 1},
-        "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1}
+        "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1}
       }
       assert_metrics_recorded(expected)
     end
@@ -93,7 +95,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
         "Datastore/Redis/all" => {:call_count => 1},
         "Datastore/allWeb" => {:call_count => 1},
         "Datastore/all" => {:call_count => 1},
-        "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1}
+        "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1}
       }
       assert_metrics_recorded(expected)
     end
@@ -109,7 +111,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
         "Datastore/Redis/all" => {:call_count => 1},
         "Datastore/allOther" => {:call_count => 1},
         "Datastore/all" => {:call_count => 1},
-        "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1}
+        "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1}
       }
       assert_metrics_recorded(expected)
     end
@@ -147,7 +149,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
         "Datastore/Redis/all" => {:call_count => 1},
         "Datastore/allWeb" => {:call_count => 1},
         "Datastore/all" => {:call_count => 1},
-        "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1}
+        "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1}
       }
       assert_metrics_recorded(expected)
     end
@@ -170,7 +172,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
         "Datastore/Redis/all" => {:call_count => 1},
         "Datastore/allOther" => {:call_count => 1},
         "Datastore/all" => {:call_count => 1},
-        "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1},
+        "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1},
         "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
         "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther" => {:call_count => 1}
       }
@@ -209,7 +211,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
         "Datastore/Redis/all" => {:call_count => 1},
         "Datastore/allOther" => {:call_count => 1},
         "Datastore/all" => {:call_count => 1},
-        "Datastore/instance/Redis/#{NewRelic::Agent::Hostname.get}/6379" => {:call_count => 1},
+        "Datastore/instance/Redis/#{redis_host}/6379" => {:call_count => 1},
         "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
         "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther" => {:call_count => 1}
       }
@@ -254,13 +256,13 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       tt = last_transaction_trace
 
       get_node = tt.root_node.children[0].children[0]
-      assert_equal(NewRelic::Agent::Hostname.get, get_node[:host])
+      assert_includes(either_hostname, get_node[:host])
       assert_equal('6379', get_node[:port_path_or_id])
       assert_equal('0', get_node[:database_name])
     end
 
     def test_records_hostname_on_tt_node_for_get_with_unix_domain_socket
-      redis = Redis.new
+      redis = Redis.new(:host => redis_host)
       redis.send(client).stubs(:path).returns('/tmp/redis.sock')
 
       in_transaction do
@@ -270,7 +272,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       tt = last_transaction_trace
 
       node = tt.root_node.children[0].children[0]
-      assert_equal(NewRelic::Agent::Hostname.get, node[:host])
+      assert_includes(either_hostname, node[:host])
       assert_equal('/tmp/redis.sock', node[:port_path_or_id])
     end
 
@@ -284,13 +286,13 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       tt = last_transaction_trace
 
       node = tt.root_node.children[0].children[0]
-      assert_equal(NewRelic::Agent::Hostname.get, node[:host])
+      assert_includes(either_hostname, node[:host])
       assert_equal('6379', node[:port_path_or_id])
       assert_equal('0', node[:database_name])
     end
 
     def test_records_hostname_on_tt_node_for_multi_with_unix_domain_socket
-      redis = Redis.new
+      redis = Redis.new(:host => redis_host)
       redis.send(client).stubs(:path).returns('/tmp/redis.sock')
 
       in_transaction do
@@ -302,12 +304,12 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       tt = last_transaction_trace
 
       node = tt.root_node.children[0].children[0]
-      assert_equal(NewRelic::Agent::Hostname.get, node[:host])
+      assert_includes(either_hostname, node[:host])
       assert_equal('/tmp/redis.sock', node[:port_path_or_id])
     end
 
     def test_records_unknown_unknown_metric_when_error_gathering_instance_data
-      redis = Redis.new
+      redis = Redis.new(:host => redis_host)
       redis.send(client).stubs(:path).raises StandardError.new
       in_transaction do
         redis.get("foo")
@@ -321,7 +323,7 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
     end
 
     def simulate_read_error
-      redis = Redis.new
+      redis = Redis.new(:host => redis_host)
       redis.send(client).stubs("establish_connection").raises(simulated_error_class, "Error connecting to Redis")
       redis.get "foo"
     ensure
@@ -379,6 +381,14 @@ if NewRelic::Agent::Datastores::Redis.is_supported_version?
       else
         :_client
       end
+    end
+
+    def redis_host
+      docker? ? 'redis' : NewRelic::Agent::Hostname.get
+    end
+
+    def either_hostname
+      [NewRelic::Agent::Hostname.get, 'redis']
     end
   end
 end
