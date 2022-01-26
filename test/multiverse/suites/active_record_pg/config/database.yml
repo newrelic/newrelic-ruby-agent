@@ -1,16 +1,3 @@
-# mysql: &mysql
-#   adapter: <%=
-#     if defined?(JRuby)
-#       'jdbcmysql'
-#     else
-#       'mysql2'
-#     end %>
-#   socket: <%= (`uname -s` =~ /Linux/ ) ? "" :"/tmp/mysql.sock" %>
-#   username: root
-#   password: <%= ENV["MYSQL_PASSWORD"] %>
-#   host: localhost
-#   database: <%= db = "#{ENV['DATABASE_NAME']}"; db.empty? ? "rails_blog" : db %>
-
 default: &default
   adapter: postgresql
   encoding: unicode
@@ -28,26 +15,3 @@ test:
 
 production:
   <<: *default
-
-
-
-
-
-# ####################
-# default: &default
-#   adapter: postgresql
-#   encoding: unicode
-#   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-#   host: localhost
-#   username: pg-demo
-#   password: pg-demo
-#   database: pg_demo_test
-
-# development:
-#   <<: *default
-
-# test:
-#   <<: *default
-
-# production:
-#   <<: *default
