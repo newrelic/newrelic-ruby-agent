@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/datastores'
+require 'pg'
 
 class User < ActiveRecord::Base
   has_many :aliases, :dependent => :destroy
