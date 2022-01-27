@@ -2,7 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
-class CreateGroups < ActiveRecord::VERSION::STRING >= "6.0.0" ? ActiveRecord::Migration[6.0] : ActiveRecord::Migration
+class CreateUsersAndAliases < ActiveRecord::VERSION::STRING >= "5.0.0" ? ActiveRecord::Migration["#{ActiveRecord::VERSION::STRING[0]}.0"] : ActiveRecord::Migration
   def self.up
     create_table :groups do |t|
       t.string :name
