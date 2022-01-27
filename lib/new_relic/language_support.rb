@@ -22,7 +22,8 @@ module NewRelic
     end
 
     def object_space_usable?
-      if defined?(::JRuby) && JRuby.respond_to?(:runtime)
+      if jruby?
+        require 'jruby'
         JRuby.runtime.is_object_space_enabled
       else
         defined?(::ObjectSpace)

@@ -6,10 +6,11 @@ mysql: &mysql
       'mysql2'
     end %>
   socket: <%= (`uname -s` =~ /Linux/ ) ? "" :"/tmp/mysql.sock" %>
-  username: root
+  username: <%= ENV.fetch("MYSQL_USERNAME", "root") %>
   password: <%= ENV["MYSQL_PASSWORD"] %>
-  host: localhost
-  database: <%= db = "#{ENV['DATABASE_NAME']}"; db.empty? ? "rails_blog" : db %>
+  host: <%= ENV.fetch("MYSQL_HOST", "localhost") %>
+  port: <%= ENV["MYSQL_PORT"] %>
+  database: <%= ENV.fetch("DATABASE_NAME", "rails_blog") %>
 
 development:
   <<: *mysql

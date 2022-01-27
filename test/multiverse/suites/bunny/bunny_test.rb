@@ -3,12 +3,13 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "helpers", "misc"))
+require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "helpers", "docker"))
 
 class BunnyTest < Minitest::Test
   include MultiverseHelpers
 
   setup_and_teardown_agent do
-    @conn = Bunny.new
+    @conn = connection
     @conn.start
     @chan = @conn.create_channel
   end
@@ -361,5 +362,13 @@ class BunnyTest < Minitest::Test
 
   def random_string
     Time.now.to_s
+  end
+
+  private
+
+  def connection
+    return Bunny.new unless docker?
+
+    Bunny.new("amqp://rabbitmq:5672")
   end
 end
