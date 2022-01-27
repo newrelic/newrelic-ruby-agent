@@ -285,7 +285,7 @@ module Multiverse
     end
 
     def jruby_openssl_line
-      "gem 'jruby-openssl', '~> 0.9.10', :require => false, :platforms => [:jruby]"
+      "gem 'jruby-openssl', '~> 0.11.0', :require => false, :platforms => [:jruby]"
     end
 
     def minitest_line
