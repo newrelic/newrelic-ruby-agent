@@ -4,6 +4,7 @@
 
 require 'new_relic/agent/datastores'
 require 'pg'
+require 'activerecord-jdbc-adapter' if defined? JRUBY_VERSION
 
 class User < ActiveRecord::Base
   has_many :aliases, :dependent => :destroy

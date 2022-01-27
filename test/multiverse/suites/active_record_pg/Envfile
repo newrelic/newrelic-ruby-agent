@@ -18,21 +18,21 @@ if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM == 'java'
   gemfile <<-RB
     gem 'activerecord', '5.2.2'
     gem 'minitest', '~> 5.2.3'
-    gem 'activerecord-jdbcmysql-adapter', '~>52.0'
+    gem 'activerecord-jdbcpostgresql-adapter', '~>52.0', :platform => :jruby
     #{boilerplate_gems}
   RB
 
   gemfile <<-RB
     gem 'activerecord', '~> 5.1.6'
     gem 'minitest', '~> 5.2.3'
-    gem 'activerecord-jdbcmysql-adapter', '~>51.0'
+    gem 'activerecord-jdbcpostgresql-adapter', '~>51.0'
     #{boilerplate_gems}
   RB
 
   gemfile <<-RB
     gem 'activerecord', '~> 5.0.0'
     gem 'minitest', '~> 5.2.3'
-    gem 'activerecord-jdbcmysql-adapter', '~>50.0'
+    gem 'acactiverecord-jdbcpostgresql-adapter', '~>50.0'
     #{boilerplate_gems}
   RB
 end
