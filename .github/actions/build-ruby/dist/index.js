@@ -182,6 +182,9 @@ async function downgradeMySQL() {
   await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient20_5.7.37-1ubuntu18.04_amd64.deb`])
   await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient-dev_5.7.37-1ubuntu18.04_amd64.deb`])
 
+  // The downgrade on Ubuntu 20.04 seems to leave the service in a masked state
+  await exec.exec('sudo', ['systemctl', 'unmask', 'mysql.service'])
+
   core.endGroup()
 }
 
