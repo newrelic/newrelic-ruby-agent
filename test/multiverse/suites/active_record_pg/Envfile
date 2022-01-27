@@ -65,21 +65,28 @@ if RUBY_VERSION < '2.4.0'
   gemfile <<-RB
     gem 'activerecord', '~> 4.2.0'
     gem 'minitest', '~> 5.2.3'
-    gem 'pg'
+    gem 'pg', '~> 0.21'
     #{boilerplate_gems}
   RB
 
   gemfile <<-RB
     gem 'activerecord', '~> 4.1.6'
     gem 'minitest', '~> 5.2.3'
-    gem 'pg'
+    gem 'pg', '~> 0.21'
     #{boilerplate_gems}
   RB
 
   gemfile <<-RB
     gem 'activerecord', '~> 4.0.11'
-    gem 'pg'
+    gem 'pg', '~> 0.21'
     #{boilerplate_gems}
   RB
 end
 
+if RUBY_VERSION < '2.3'
+  gemfile <<-RB
+    gem 'rack'
+    gem 'activerecord', '~> 3.2.22'
+    gem 'pg', '~> 0.21'
+  RB
+end
