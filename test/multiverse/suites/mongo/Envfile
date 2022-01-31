@@ -1,5 +1,7 @@
+require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "helpers", "docker"))
+
 # Versions <= 1.7.1 are not supported and never will be.
-# We have tests to assert unsupported versions of MongoDB, 
+# We have tests to assert unsupported versions of MongoDB,
 # hence the reason they appear in this list
 # newer versions of mongo support 2.3+
 if RUBY_VERSION >= '2.3.0'
@@ -18,7 +20,7 @@ if RUBY_VERSION >= '2.3.0'
     ['1.8.6', 2.6],
     '1.7.1'
   ]
-else 
+else
   mongo_versions = [
     '2.9.0',
     '2.7.0',
@@ -36,7 +38,7 @@ end
 bson_ext_needed_before_version = Gem::Version::new("1.10.0")
 
 def installed_mongo_server_version
-  @mongo_server_version ||= `mongo --version`.scan(/version\sv([\d\.]+)/).join.to_f
+  @mongo_server_version ||= docker? ? 5.0 : `mongo --version`.scan(/version\sv([\d\.]+)/).join.to_f
 end
 
 mongo_versions.each do |mongo_version|
@@ -82,9 +84,15 @@ class PreExistingMongo
   end
 end
 
-$mongo = PreExistingMongo.new("127.0.0.1", 27017)
+def mongo_host
+  docker? ? 'mongodb' : '127.0.0.1'
+end
+
+$mongo = PreExistingMongo.new(mongo_host, 27017)
 
 def mongo_running?
+  return true if docker?
+
   Timeout::timeout(1) do
     begin
       TCPSocket.new($mongo.host, $mongo.port).close

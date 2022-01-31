@@ -287,7 +287,9 @@ module NewRelic
             # descriptors
             # If the segment constructor fails to create a random guid, the
             # exception would be a RuntimeError
-            assert_raises(Errno::EMFILE, Errno::ENFILE) do
+            # When Docker Compose is used with this test file accessible via
+            # a volume, the error is Errno::EIO instead
+            assert_raises(Errno::EIO, Errno::EMFILE, Errno::ENFILE) do
               while true
                 file_descriptors << IO.sysopen(__FILE__)
                 Segment.new "Test #{file_descriptors[-1]}"

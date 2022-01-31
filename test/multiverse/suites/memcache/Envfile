@@ -1,3 +1,5 @@
+require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "helpers", "docker"))
+
 %w(2.7.6 2.7.8 2.7.11).each do |version|
   gemfile <<-RB
     gem 'dalli', '~> #{version}'
@@ -35,5 +37,5 @@ def memcache_running?
 end
 
 before_suite do
-  system('memcached -d -l localhost') unless memcache_running?
+  system('memcached -d -l localhost') unless memcache_running? || docker?
 end

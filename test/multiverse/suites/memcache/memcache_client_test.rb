@@ -9,7 +9,7 @@ if defined?(MemCache)
     include MemcacheTestCases
 
     def setup
-      @cache = MemCache.new("localhost:11211")
+      @cache = MemCache.new("#{memcached_host}:11211")
     end
 
     if MemCache::VERSION <= "1.5.0"
