@@ -1,11 +1,16 @@
 default: &default
-  adapter: postgresql
+  adapter: <%=
+    if defined?(JRuby)
+      'jdbcpostgresql'
+    else
+      'postgresql'
+    end %>
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   host: localhost
   username: <%= ENV.fetch("POSTGRES_USERNAME", "") %>
   password: <%= ENV.fetch("POSTGRES_PASSWORD", "") %>
-  database: pg_artest
+  database: <%= ENV.fetch("DATABASE_NAME", "rails_blog") %>
 
 development:
   <<: *default

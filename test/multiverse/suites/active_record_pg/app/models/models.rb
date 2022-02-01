@@ -3,7 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/datastores'
-require 'pg'
+require 'pg' unless defined? JRUBY_VERSION
 require 'activerecord-jdbc-adapter' if defined? JRUBY_VERSION
 
 class User < ActiveRecord::Base
