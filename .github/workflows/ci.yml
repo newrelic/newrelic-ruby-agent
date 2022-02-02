@@ -102,7 +102,7 @@ jobs:
           --health-retries=5
           --entrypoint sh mysql:8.0.27 -c "exec docker-entrypoint.sh mysqld --default-authentication-plugin=mysql_native_password"
 
-        environment:
+        env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_USER: root
           MYSQL_DATABASE: app
