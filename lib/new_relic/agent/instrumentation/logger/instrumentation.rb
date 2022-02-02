@@ -10,6 +10,17 @@ module NewRelic
           defined?(@skip_instrumenting) && @skip_instrumenting
         end
 
+        # We support setting this on loggers which might not have
+        # instrumentation installed yet. This lets us disable in AgentLogger
+        # and AuditLogger without them having to know the inner details.
+        def self.mark_skip_instrumenting(logger)
+          logger.instance_variable_set(:@skip_instrumenting, true)
+        end
+
+        def self.clear_skip_instrumenting(logger)
+          logger.instance_variable_set(:@skip_instrumenting, false)
+        end
+
         def mark_skip_instrumenting
           @skip_instrumenting = true
         end
