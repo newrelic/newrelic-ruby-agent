@@ -1632,5 +1632,45 @@ module NewRelic::Agent
         file_descriptors.map { |fd| IO::new(fd).close }
       end
     end
+
+    def test_batches_logs_during_transaction
+      with_config(LogEventAggregator::enabled_keys.first => true) do
+        NewRelic::Agent.config.notify_server_source_added
+        in_transaction do
+          NewRelic::Agent.agent.log_event_aggregator.record("A message", "FATAL")
+          assert_equal 1, Transaction.tl_current.logs.size
+        end
+      end
+    end
+
+    def test_ignores_logs_when_transaction_ignored
+      with_config(LogEventAggregator::enabled_keys.first => true) do
+        NewRelic::Agent.config.notify_server_source_added
+        in_transaction do |txn|
+          txn.ignore!
+
+          NewRelic::Agent.agent.log_event_aggregator.reset!
+          NewRelic::Agent.agent.log_event_aggregator.record("A message", "FATAL")
+          assert_equal 1, Transaction.tl_current.logs.size
+        end
+      end
+
+      _, items = NewRelic::Agent.agent.log_event_aggregator.harvest!
+      assert_empty items
+    end
+
+    def test_limits_batched_logs_during_transaction
+      limit = 10
+      with_config(LogEventAggregator::enabled_keys.first => true,
+                  LogEventAggregator::capacity_key => limit) do
+        NewRelic::Agent.config.notify_server_source_added
+        in_transaction do
+          100.times do
+            NewRelic::Agent.agent.log_event_aggregator.record("A message", "FATAL")
+          end
+          assert_equal limit, Transaction.tl_current.logs.size
+        end
+      end
+    end
   end
 end

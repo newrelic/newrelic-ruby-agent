@@ -203,6 +203,20 @@ class AuditLoggerTest < Minitest::Test
     end
   end
 
+  def test_doesnt_write_log_event_aggregator
+    with_config(:'log_file_path' => 'stdout') do
+      NewRelic::Agent.agent.log_event_aggregator.reset!
+
+      logger = NewRelic::Agent::AuditLogger.new
+      logger.log_request(@uri, @dummy_data, @marshaller)
+
+      _, logs = NewRelic::Agent.agent.log_event_aggregator.harvest!
+      audits = logs.select {|log| log.last["message"].include?("REQUEST")}
+
+      assert_empty audits
+    end
+  end
+
   def capturing_stdout
     orig = $stdout.dup
     output = ""

@@ -25,6 +25,7 @@ require 'new_relic/agent/monitors'
 require 'new_relic/agent/transaction_event_recorder'
 require 'new_relic/agent/custom_event_aggregator'
 require 'new_relic/agent/span_event_aggregator'
+require 'new_relic/agent/log_event_aggregator'
 require 'new_relic/agent/sampler_collection'
 require 'new_relic/agent/javascript_instrumentor'
 require 'new_relic/agent/vm/monotonic_gc_profiler'
@@ -73,6 +74,7 @@ module NewRelic
         @transaction_event_recorder = TransactionEventRecorder.new @events
         @custom_event_aggregator = CustomEventAggregator.new @events
         @span_event_aggregator = SpanEventAggregator.new @events
+        @log_event_aggregator = LogEventAggregator.new @events
 
         @connect_state = :pending
         @connect_attempts = 0
@@ -146,6 +148,7 @@ module NewRelic
         attr_reader :monotonic_gc_profiler
         attr_reader :custom_event_aggregator
         attr_reader :span_event_aggregator
+        attr_reader :log_event_aggregator
         attr_reader :transaction_event_recorder
         attr_reader :attribute_filter
         attr_reader :adaptive_sampler
@@ -559,6 +562,7 @@ module NewRelic
           @transaction_event_recorder.drop_buffered_data
           @custom_event_aggregator.reset!
           @span_event_aggregator.reset!
+          @log_event_aggregator.reset!
           @sql_sampler.reset!
 
           if Agent.config[:clear_transaction_state_after_fork]
