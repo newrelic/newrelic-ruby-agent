@@ -37,3 +37,4 @@ errors.txt
 .history/
 vendor/
 Brewfile.lock.json
+.tags

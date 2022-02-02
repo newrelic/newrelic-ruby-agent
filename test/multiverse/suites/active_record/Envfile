@@ -60,7 +60,7 @@ if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM != 'java'
 end
 
 if RUBY_VERSION < '2.4.0'
-  mysql_vsn = '0.3.20' unless RUBY_PLATFORM == 'java'
+  mysql_vsn = '0.3.21' unless RUBY_PLATFORM == 'java'
 
   gemfile <<-RB
     gem 'activerecord', '~> 4.2.0'

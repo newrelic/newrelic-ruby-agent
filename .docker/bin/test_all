@@ -1,0 +1,10 @@
+#!/usr/bin/bash
+
+# test_all - Run 'bundle install' and 'bundle install rake test:all'
+#            against all installed rubies
+
+for v in $(find $HOME/.rubies/*/bin -name bundle); do
+  cd /app
+  $v install
+  $v exec rake test:all
+done

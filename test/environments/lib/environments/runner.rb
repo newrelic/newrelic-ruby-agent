@@ -5,6 +5,7 @@
 require File.expand_path '../../../../multiverse/lib/multiverse/bundler_patch', __FILE__
 require File.expand_path '../../../../multiverse/lib/multiverse/color', __FILE__
 require File.expand_path '../../../../multiverse/lib/multiverse/shell_utils', __FILE__
+require File.expand_path '../../../../helpers/docker', __FILE__
 
 module Environments
   class Runner
@@ -94,7 +95,7 @@ module Environments
       bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
       bundle_config dir, bundle_cmd
 
-      command = "cd #{dir} && #{bundle_cmd} install"
+      command = "cd #{dir} && #{bundler_environment_variables}#{bundle_cmd} install"
       result = Multiverse::ShellUtils.try_command_n_times(command, 3)
 
       result = red(result) unless $?.success?

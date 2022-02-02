@@ -10,22 +10,9 @@ on:
     - cron:  '0 9 * * *'
 
 jobs:
-  build-ruby:
-    runs-on: ubuntu-18.04
-    strategy:
-      matrix:
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.9, 2.7.5, 3.0.3, 3.1.0, jruby-9.2.19.0]
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Build Ruby ${{ matrix.ruby-version }}
-        uses: ./.github/actions/build-ruby
-        with:
-          ruby-version: ${{ matrix.ruby-version }}
-
   unit-tests:
-    needs: build-ruby
-    runs-on: ubuntu-18.04
+    container:
+      image: fallwith/ruby-agent-test-environment
     strategy:
       fail-fast: false
       matrix:
@@ -34,8 +21,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build Ruby ${{ matrix.ruby-version }}
-        uses: ./.github/actions/build-ruby
+      - name: Set Up Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@v1.97.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -69,13 +56,10 @@ jobs:
               "3.1.0": {
                 "rails": "norails,rails61,rails70"
               },
-              "jruby-9.2.19.0": {
+              "jruby-9.3.3.0": {
                 "rails": "norails,rails51,rails42"
               }
             }
-
-      - name: Start mysql
-        run: sudo systemctl start mysql
 
       - name: Run Unit Tests
         uses: nick-invision/retry@v1.0.0
@@ -85,11 +69,14 @@ jobs:
           command:  bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
         env:
           DB_PORT: 3306
+          DATABASE_NAME: app
+          MYSQL_USERNAME: root
           MYSQL_PASSWORD: root
+          MYSQL_HOST: mysql
 
   multiverse:
-    needs: build-ruby
-    runs-on: ubuntu-18.04
+    container:
+      image: fallwith/ruby-agent-test-environment
     services:
       redis:
         image: redis
@@ -104,6 +91,15 @@ jobs:
         image: mongo
         ports:
           - 27017:27017
+      mysql:
+        image: mysql:8.0.27
+        command: --default-authentication-plugin=mysql_native_password
+        environment:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: root
+          MYSQL_DATABASE: app
+        ports:
+          - "33061:3306"
       rabbitmq:
         image: rabbitmq:latest
         ports:
@@ -132,13 +128,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build Ruby ${{ matrix.ruby-version }}
-        uses: ./.github/actions/build-ruby
+      - name: Set Up Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@v1.97.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
-
-      - name: Start mysql
-        run: sudo systemctl start mysql
 
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0
@@ -148,15 +141,18 @@ jobs:
           command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
         env:
           DB_PORT: 3306
+          DATABASE_NAME: app
+          MYSQL_USERNAME: root
           MYSQL_PASSWORD: root
+          MYSQL_HOST: mysql
 
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
 
   infinite_tracing:
-    needs: build-ruby
-    runs-on: ubuntu-18.04
+    container:
+      image: fallwith/ruby-agent-test-environment
     strategy:
       fail-fast: false
       matrix:
@@ -164,12 +160,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build Ruby ${{ matrix.ruby-version }}
-        uses: ./.github/actions/build-ruby
+      - name: Set Up Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@v1.97.0
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-      - name: Run Multiverse Tests
+      - name: Run Multiverse Tests With Infinite Tracing
         uses: nick-invision/retry@v1.0.0
         with:
           timeout_minutes: 40
@@ -181,8 +177,8 @@ jobs:
         uses: ./.github/actions/annotate
 
   jruby_multiverse:
-    needs: build-ruby
-    runs-on: ubuntu-18.04
+    container:
+      image: fallwith/ruby-agent-test-environment
     services:
       redis:
         image: redis
@@ -224,15 +220,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build Ruby jruby-9.2.19.0
-        uses: ./.github/actions/build-ruby
+      - name: Set Up Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@v1.97.0
         with:
-          ruby-version: jruby-9.2.19.0
+          ruby-version: ${{ matrix.ruby-version }}
 
-      - name: Start mysql
-        run: sudo systemctl start mysql
-
-      - name: Run Multiverse Tests
+      - name: Run Multiverse Tests With JRuby
         uses: nick-invision/retry@v1.0.0
         with:
           timeout_minutes: 60
@@ -240,7 +233,10 @@ jobs:
           command:  bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
           DB_PORT: 3306
+          DATABASE_NAME: app
+          MYSQL_USERNAME: root
           MYSQL_PASSWORD: root
+          MYSQL_HOST: mysql
 
       - name: Annotate errors
         if: ${{ failure() }}

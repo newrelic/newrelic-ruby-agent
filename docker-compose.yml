@@ -55,7 +55,7 @@ services:
       - "6379:6379"
   app:
     build: .
-    image: newrelic/newrelic-ruby-agent-tester
+    image: newrelic/ruby-agent-test-environment
     tty: true
     stdin_open: true
     environment:
@@ -65,7 +65,7 @@ services:
       MYSQL_HOST: mysql
     command: ["irb"]
     volumes:
-      - ".:/usr/src/app"
+      - ".:/app"
     ports:
       - "3000:3000"
     depends_on:

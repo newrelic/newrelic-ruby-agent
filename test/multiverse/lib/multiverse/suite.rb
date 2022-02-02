@@ -13,6 +13,7 @@ require 'digest'
 
 require File.expand_path '../../multiverse', __FILE__
 require File.expand_path '../shell_utils', __FILE__
+require File.expand_path '../../../../helpers/docker', __FILE__
 
 module Multiverse
   class Suite
@@ -157,7 +158,7 @@ module Multiverse
       bundle_cmd = "bundle #{explicit_bundler_version(dir)}".strip
       bundle_config dir, bundle_cmd
       bundle_show_env bundle_cmd
-      full_bundle_cmd = "#{bundle_cmd} install"
+      full_bundle_cmd = "#{bundler_environment_variables}#{bundle_cmd} install"
       result = ShellUtils.try_command_n_times full_bundle_cmd, 3
       unless $?.success?
         puts "Failed local bundle, trying again without the version lock..."

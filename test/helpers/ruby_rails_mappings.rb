@@ -4,16 +4,21 @@
 
 require 'yaml'
 
-CI_FILE = File.expand_path('../../../.github/workflows/ci.yml', __FILE__)
+CI_FILE = [File.expand_path('../../../.github/workflows/ci.yml', __FILE__),
+           File.join(__dir__, 'ci.yml')].detect do |path|
+  File.exist?(path)
+end
 
 def ruby_rails_versions_hash
   @versions_hash ||= begin
     ci = YAML.load_file(CI_FILE)
-    map_yaml = ci['jobs']['unit-tests']['steps'].detect { |hash| hash.dig('with', 'map') }['with']['map']
+    map_yaml = ci['jobs']['unit-tests']['steps'].detect do |hash|
+      hash.key?('with') && hash['with'].key?('map')
+    end['with']['map']
     versions = YAML.load(map_yaml)
   end
 end
 
 def rails_versions_for_ruby_version(ruby_version)
-  (ruby_rails_versions_hash.dig(ruby_version, 'rails') || '').split(',')
+  (((ruby_rails_versions_hash[ruby_version] || {})['rails']) || '').split(',')
 end
