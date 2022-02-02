@@ -11,8 +11,9 @@ on:
 
 jobs:
   unit-tests:
+    runs-on: ubuntu-20.04
     container:
-      image: fallwith/ruby-agent-test-environment
+      image: docker.io/fallwith/ruby-agent-test-environment
     strategy:
       fail-fast: false
       matrix:
@@ -75,8 +76,9 @@ jobs:
           MYSQL_HOST: mysql
 
   multiverse:
+    runs-on: ubuntu-20.04
     container:
-      image: fallwith/ruby-agent-test-environment
+      image: docker.io/fallwith/ruby-agent-test-environment
     services:
       redis:
         image: redis
@@ -93,7 +95,13 @@ jobs:
           - 27017:27017
       mysql:
         image: mysql:8.0.27
-        command: --default-authentication-plugin=mysql_native_password
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          --entrypoint sh mysql:8.0.27 -c "exec docker-entrypoint.sh mysqld --default-authentication-plugin=mysql_native_password"
+
         environment:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_USER: root
@@ -151,8 +159,9 @@ jobs:
         uses: ./.github/actions/annotate
 
   infinite_tracing:
+    runs-on: ubuntu-20.04
     container:
-      image: fallwith/ruby-agent-test-environment
+      image: docker.io/fallwith/ruby-agent-test-environment
     strategy:
       fail-fast: false
       matrix:
@@ -177,8 +186,9 @@ jobs:
         uses: ./.github/actions/annotate
 
   jruby_multiverse:
+    runs-on: ubuntu-20.04
     container:
-      image: fallwith/ruby-agent-test-environment
+      image: docker.io/fallwith/ruby-agent-test-environment
     services:
       redis:
         image: redis
