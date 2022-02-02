@@ -22,4 +22,14 @@ class LoggingTest < Performance::TestCase
       logger.info EXAMPLE_MESSAGE
     end
   end
+
+  def test_logger_instrumentation_in_transaction
+    io = StringIO.new
+    logger = ::Logger.new io
+    measure do
+      in_transaction do
+        logger.info EXAMPLE_MESSAGE
+      end
+    end
+  end
 end
