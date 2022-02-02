@@ -3,7 +3,7 @@ default: &default
     if defined?(JRuby)
       'jdbcpostgresql'
     else
-      'postgres'
+      'postgresql'
     end %>
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
