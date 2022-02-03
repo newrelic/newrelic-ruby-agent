@@ -70,7 +70,7 @@ jobs:
                 "rails": "norails,rails61,rails70"
               },
               "jruby-9.2.19.0": {
-                "rails": "norails,rails51,rails42"
+                "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
               }
             }
 
