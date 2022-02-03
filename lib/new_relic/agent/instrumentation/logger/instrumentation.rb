@@ -29,19 +29,6 @@ module NewRelic
           @skip_instrumenting = false
         end
 
-        LINES = "Logging/lines".freeze
-        SIZE = "Logging/size".freeze
-
-        def line_metric_name_by_severity(severity)
-          @line_metrics ||= {}
-          @line_metrics[severity] ||= "Logging/lines/#{severity}".freeze
-        end
-
-        def size_metric_name_by_severity(severity)
-          @size_metrics ||= {}
-          @size_metrics[severity] ||= "Logging/size/#{severity}".freeze
-        end
-
         def format_message_with_tracing(severity, datetime, progname, msg)
           formatted_message = yield
           return formatted_message if skip_instrumenting?
@@ -51,12 +38,9 @@ module NewRelic
             # methods within NewRelic::Agent, or we'll stack overflow!!
             mark_skip_instrumenting
 
-            NewRelic::Agent.increment_metric(LINES)
-            NewRelic::Agent.increment_metric(line_metric_name_by_severity(severity))
-
-            size = formatted_message.nil? ? 0 : formatted_message.bytesize
-            NewRelic::Agent.record_metric(SIZE, size)
-            NewRelic::Agent.record_metric(size_metric_name_by_severity(severity), size)
+            unless ::NewRelic::Agent.agent.nil?
+              ::NewRelic::Agent.agent.log_event_aggregator.record(formatted_message, severity)
+            end
 
             return formatted_message
           ensure

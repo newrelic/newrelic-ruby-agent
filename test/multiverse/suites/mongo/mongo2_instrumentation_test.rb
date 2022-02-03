@@ -343,15 +343,10 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               "Datastore/all" => {:call_count => 3},
               "Supportability/API/drop_buffered_data" => {:call_count => 1},
               "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all" => {:call_count => 1},
-              "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb" => {:call_count => 1},
-              "Logging/lines" => {},
-              "Logging/lines/DEBUG" => {},
-              "Logging/size" => {},
-              "Logging/size/DEBUG" => {},
-              "Supportability/API/increment_metric" => {},
-              "Supportability/API/record_metric" => {}
+              "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb" => {:call_count => 1}
             }
-            assert_metrics_recorded_exclusive expected
+            assert_metrics_recorded_exclusive(expected,
+                                              :ignore_filter => /^(Logging)/)
           end
 
           def test_batched_queries_have_node_per_query
