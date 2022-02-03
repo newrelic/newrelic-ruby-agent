@@ -153,6 +153,35 @@ module MarshallingTestCases
     assert_equal event.size, 3
   end
 
+  def test_sends_log_events
+    t0 = nr_freeze_process_time
+    message = "A deadly message"
+    severity = "FATAL"
+
+    with_around_hook do
+      NewRelic::Agent.agent.log_event_aggregator.record(message, severity)
+    end
+
+    transmit_data
+
+    result = $collector.calls_for('log_event_data')
+
+    assert_equal 1, result.length
+
+    common = result.first.common["attributes"]
+    refute_nil common["plugin.type"]
+    refute_nil common["entity.name"]
+    refute_nil common["entity.type"]
+    refute_nil common["hostname"]
+
+    logs = result.first.logs
+    refute_empty logs
+
+    log = logs.find { |l| l["message"] == message && l["level"] == severity }
+    refute_nil log
+    assert_equal t0, log["timestamp"]
+  end
+
   class Transactioner
     include NewRelic::Agent::Instrumentation::ControllerInstrumentation
 

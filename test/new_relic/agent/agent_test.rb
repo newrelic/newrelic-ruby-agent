@@ -201,6 +201,16 @@ module NewRelic
         @agent.send :harvest_and_send_errors
       end
 
+      def test_harvest_and_send_logs_merges_back_on_failure
+        logs = [{:meta => true}, [mock('l1'), mock('l2')]]
+
+        @agent.log_event_aggregator.expects(:harvest!).returns(logs)
+        @agent.service.stubs(:log_event_data).raises('wat')
+        @agent.log_event_aggregator.expects(:merge!).with(logs)
+
+        @agent.send :harvest_and_send_log_event_data
+      end
+
       # This test asserts nothing about correctness of logging data from multiple
       # threads, since the get_stats + record_data_point combo is not designed
       # to be thread-safe, but it does ensure that writes to the stats hash
@@ -247,11 +257,13 @@ module NewRelic
         @agent.transaction_sampler.expects(:merge!).never
         @agent.transaction_event_aggregator.expects(:merge!).never
         @agent.sql_sampler.expects(:merge!).never
+        @agent.log_event_aggregator.expects(:merge!).never
         @agent.merge_data_for_endpoint(:metric_data, [])
         @agent.merge_data_for_endpoint(:transaction_sample_data, [])
         @agent.merge_data_for_endpoint(:error_data, [])
         @agent.merge_data_for_endpoint(:sql_trace_data, [])
         @agent.merge_data_for_endpoint(:analytic_event_data, [])
+        @agent.merge_data_for_endpoint(:log_event_data, [])
       end
 
       def test_merge_data_traces
