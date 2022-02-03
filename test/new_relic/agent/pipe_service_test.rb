@@ -105,6 +105,14 @@ class PipeServiceTest < Minitest::Test
       assert_equal [payload_with_newline], received_data[:transaction_sample_data]
     end
 
+    def test_log_event_data
+      payload = [{}, [[{"priority" => 1},{"message" => "yo"}]]]
+      received_data = data_from_forked_process do
+        @service.log_event_data(payload)
+      end
+      assert_equal payload, received_data[:log_event_data]
+    end
+
     def test_multiple_writes_to_pipe
       pid = Process.fork do
         metric_data0 = generate_metric_data('Custom/something')

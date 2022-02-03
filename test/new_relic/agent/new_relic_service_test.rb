@@ -473,6 +473,12 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal 'some span events', response
   end
 
+  def test_log_event_data
+    @http_handle.respond_to(:log_event_data, 'some log events')
+    response = @service.log_event_data([{}, []])
+    assert_equal 'some log events', response
+  end
+
   # Although thread profiling is only available in some circumstances, the
   # service communication doesn't care about that at all
   def test_profile_data
