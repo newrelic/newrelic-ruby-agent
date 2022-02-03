@@ -8,8 +8,9 @@ require_relative '../lib/ruby_rails_mappings.rb'
 
 # RubyInstall - via ruby-build, install all rubies involved with the continuous integration process
 class RubyInstaller
-  OPENSSL_1DOT0_DIR = File.join(ENV['HOME'], 'openssl1.0')
-  MYSQL5DOT5_DIR = File.join(ENV['HOME'], 'mysql5.5')
+  BLOCK_PATH = '/usr/local/antonius-block'
+  OPENSSL_1DOT0_DIR = File.join(BLOCK_PATH, 'openssl1.0')
+  MYSQL5DOT5_DIR = File.join(BLOCK_PATH, 'mysql5.5')
   BUNDLER_MIN_VERSION = Gem::Version.new('1.17.3')
   RUBY_INSTALL_ROOT = File.join(ENV['HOME'], '.rubies')
 
@@ -80,8 +81,10 @@ class RubyInstaller
   end
 
   def gem_update_system(ruby_version)
+    return if ruby_version =~ /jruby/
+
     # no autoupdating RubyGems until v2.3
-    if ruby_version =~ /jruby/ || Gem::Version.new(ruby_version) >= Gem::Version.new('2.3.0')
+    if Gem::Version.new(ruby_version) >= Gem::Version.new('2.3.0')
       ruby_cmd('gem update --system', ruby_version)
     else
       ruby_cmd("gem install rubygems-update -v '<3' --no-document", ruby_version)
