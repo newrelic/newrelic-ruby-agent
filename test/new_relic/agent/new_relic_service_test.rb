@@ -461,10 +461,16 @@ class NewRelicServiceTest < Minitest::Test
     assert_equal 'some analytic events', response
   end
 
-  def error_event_data
+  def test_error_event_data
     @http_handle.respond_to(:error_event_data, 'some error events')
     response = @service.error_event_data([{}, []])
     assert_equal 'some error events', response
+  end
+
+  def test_span_event_data
+    @http_handle.respond_to(:span_event_data, 'some span events')
+    response = @service.span_event_data([{}, []])
+    assert_equal 'some span events', response
   end
 
   # Although thread profiling is only available in some circumstances, the
