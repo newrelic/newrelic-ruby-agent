@@ -1,0 +1,31 @@
+{
+  "name": "newrelic-bundler",
+  "version": "0.0.1",
+  "description": "Bundler tasks for New Relic Ruby agent testing",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint *.js",
+    "package": "ncc build index.js -o dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/newrelic/newrelic-ruby-agent.git"
+  },
+  "keywords": [
+    "NewRelic",
+    "GitHub",
+    "Actions",
+    "Ruby",
+    "Bundler"
+  ],
+  "bugs": {
+    "url": "https://github.com/newrelic/newrelic-ruby-agent/issues"
+  },
+  "author": "New Relic",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@actions/core": "^1.6.0",
+    "@actions/io": "^1.1.1",
+    "@vercel/ncc": "^0.33.1"
+  }
+}

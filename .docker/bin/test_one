@@ -1,21 +1,12 @@
 #!/usr/bin/bash
 
-# test_one - Run 'bundle install' and 'bundle install rake test:all'
+# test_one - Test one Ruby. Run 'bundle install' and 'bundle rake test:all'
 #            against the given Ruby version
 #
 #            usage: test_one <RUBY VERSION>
 #            example: test_one 3.1.0
 
 version="$1"
-if [ "$version" == "" ]; then
-  echo "Usage: set_ruby <RUBY VERSION>"
-  exit
-elif ! [[ $version = jruby* ]]; then
-  version="ruby-$version"
-fi
-export PATH="$HOME/.rubies/$version/bin:$PATH"
-
 cd /app
-bundle=$HOME/.rubies/$version/bin/bundle
-$bundle install
-$bundle exec rake test:all
+ruby_run $version bundle install
+ruby_run $version bundle exec rake test:all

@@ -1,0 +1,6 @@
+name: 'Bundler'
+description: 'Bundler tasks for New Relic Ruby agent testing'
+author: New Relic
+runs:
+  using: 'node16'
+  main: 'dist/index.js'

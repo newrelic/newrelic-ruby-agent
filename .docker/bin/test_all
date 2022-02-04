@@ -1,7 +1,9 @@
 #!/usr/bin/bash
 
-# test_all - Run 'bundle install' and 'bundle install rake test:all'
+# test_all - Test all Rubies. Run 'bundle install' and 'bundle rake test:all'
 #            against all installed rubies
+#
+#            usage: test_all
 
 for v in $(find $HOME/.rubies/*/bin -name bundle); do
   cd /app

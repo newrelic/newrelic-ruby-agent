@@ -22,8 +22,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set Up Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@v1.97.0
+      - name: Bundle RubyGems ${{ matrix.ruby-version }}
+        uses: ./.github/actions/bundler
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -67,7 +67,8 @@ jobs:
         with:
           timeout_minutes: 20
           max_attempts: 2
-          command:  bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
+          command:  ruby_run ${{ matrix.ruby-version }} bundle exec rake test:env[${{ env.rails }}]
+            # TODO: TESTOPTS=--verbose
         env:
           DB_PORT: 3306
           DATABASE_NAME: app
@@ -136,8 +137,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set Up Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@v1.97.0
+      - name: Bundle RubyGems ${{ matrix.ruby-version }}
+        uses: ./.github/actions/bundler
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -146,7 +147,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
+          command: ruby_run ${{ matrix.ruby-version }} bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
         env:
           DB_PORT: 3306
           DATABASE_NAME: app
@@ -169,8 +170,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set Up Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@v1.97.0
+      - name: Bundle RubyGems ${{ matrix.ruby-version }}
+        uses: ./.github/actions/bundler
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -179,7 +180,7 @@ jobs:
         with:
           timeout_minutes: 40
           max_attempts: 6
-          command:  bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+          command: ruby_run ${{ matrix.ruby-version }} bundle exec rake test:multiverse[group=infinite_tracing,verbose]
 
       - name: Annotate errors
         if: ${{ failure() }}
@@ -230,8 +231,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set Up Ruby ${{ matrix.ruby-version }}
-        uses: ruby/setup-ruby@v1.97.0
+      - name: Bundle RubyGems ${{ matrix.ruby-version }}
+        uses: ./.github/actions/bundler
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
@@ -240,7 +241,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command:  bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+          command: ruby_run ${{ matrix.ruby-version }} bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
           DB_PORT: 3306
           DATABASE_NAME: app

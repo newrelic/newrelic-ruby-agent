@@ -153,7 +153,8 @@ alias setruby=set_ruby \
 #       example: ruby_installer.rb 3.1.0
 RUN $HOME/.docker/bin/ruby_installer.rb
 
-RUN mv $HOME/.docker/bin/test* /usr/local/bin && rm -rf $HOME/.docker
+RUN rm $HOME/.docker/bin/ruby_installer.rb \
+    && mv $HOME/.docker/bin/* /usr/local/bin && rm -rf $HOME/.docker
 
 # Leave the work dir set to the volume mount that Docker Compose will use
 WORKDIR /app

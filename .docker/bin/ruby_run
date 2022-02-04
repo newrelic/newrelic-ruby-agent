@@ -1,0 +1,16 @@
+#!/usr/bin/bash
+
+# ruby_run - front-end to path to the desired Ruby
+#
+#            usage: ruby_run <RUBY VERSION> <COMMAND>
+#            example: ruby_run 3.1.0 bundle exec rake -T
+
+version="$1"
+shift
+if [ "$version" == "" ]; then
+  echo "Usage: ruby_run <RUBY VERSION> <COMMAND>"
+  exit
+elif ! [[ $version = jruby* ]]; then
+  version="ruby-$version"
+fi
+"$HOME/.rubies/$version/bin/$@"
