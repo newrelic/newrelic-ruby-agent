@@ -57297,7 +57297,7 @@ async function run() {
 async function bundleInstall(rubyVersion) {
   core.startGroup('Bundle install')
 
-  const filePath = `${process.env.HOME}/.rubies/ruby-${rubyVersion}/.bundle-cache`
+  const filePath = `/root/.rubies/ruby-${rubyVersion}/.bundle-cache`
   const workspacePath = process.env.GITHUB_WORKSPACE
   const keyHash = fileHash(`${process.env.GITHUB_WORKSPACE}/newrelic_rpm.gemspec`)
   const key = `v2-bundle-cache-${rubyVersion}-${keyHash}`

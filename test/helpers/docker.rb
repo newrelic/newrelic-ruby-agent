@@ -2,6 +2,8 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
+BLOCK_PATH = '/usr/local/antonius-block'
+
 def docker?
   File.exist?('/.dockerenv')
 end
@@ -30,13 +32,13 @@ def bundler_build_curb
 end
 
 def docker_curl_dir
-  File.join(ENV['HOME'], 'curl7_openssl1.0')
+  File.join(BLOCK_PATH, 'curl7_openssl1.0')
 end
 
 def docker_mysql_dir
-  File.join(ENV['HOME'], 'mysql5.5')
+  File.join(BLOCK_PATH, 'mysql5.5')
 end
 
 def docker_openssl_dir
-  File.join(ENV['HOME'], 'openssl1.0')
+  File.join(BLOCK_PATH, 'openssl1.0')
 end

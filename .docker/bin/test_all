@@ -5,7 +5,7 @@
 #
 #            usage: test_all
 
-for v in $(find $HOME/.rubies/*/bin -name bundle); do
+for v in $(find /root/.rubies/*/bin -name bundle); do
   cd /app
   $v install
   $v exec rake test:all
