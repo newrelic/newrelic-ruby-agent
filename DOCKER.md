@@ -4,7 +4,6 @@ These instructions will guide you through the process of setting up Docker for
 use with developing the New Relic Ruby Agent. The use of Docker containers can
 provide for a consistent experience free from machine specific issues.
 
-
 ## Install Docker
 
 You will need to have [Docker Desktop](https://www.docker.com/) installed and
@@ -14,7 +13,7 @@ If you are using on macOS and using [Homebrew](https://brew.sh/), Docker can be
 installed as a cask via:
 
 ```shell
-$ brew cask install docker
+$ brew install --cask docker
 ```
 
 and then launched via the `/Applications/Docker.app` launcher that is installed.
@@ -33,36 +32,13 @@ files are located in the root of the project, where this `DOCKER.md`
 document resides.
 
 
-## Using just the Dockerfile (unit tests and standalone dev only)
-
-The project `Dockerfile` can be used by itself to run the project unit tests.
-Docker Compose and the project `docker-compose.yml` file will be needed to
-run functional tests which involve communicating with data systems such as
-PostgreSQL and Redis.
-
-To only run the unit tests using `Dockerfile` by itself, first change
-directories to the root of the project, then build an image, and
-finally run a container from the image:
-
-```shell
-$ cd /path/to/project/git/clone
-$ docker build -t newrelic/newrelic-ruby-agent-tester .
-$ docker run -it newrelic/newrelic-ruby-agent-tester
-```
-
-* `build -t <TAG>` applies a tag to the image during building
-* `.` indicates "here" and tells Docker that the `Dockerfile` file can be found
-  in the current directory
-* `run -it` tells Docker to run interactively (`i`) and with a pseudo TTY (`t`)
-
-
-## Using Docker Compose (for functional tests and dev involving services)
+## Run Docker Compose
 
 Docker Compose launches multiple containers simultaneously to support the
 running of the functional tests that require a variety of data handling
-server applications such as PosgreSQL, Redis, memcached, etc. Each one of
+server applications such as PostgreSQL, Redis, memcached, etc. Each one of
 these server applications uses its own container and then there's a Ruby
-container (referred to as the "app" container) that runs the Minitest tests
+container (referred to as the "app" container) that runs the minitest tests
 while connecting to the other containers.
 
 In one shell session, change to the root of the project and then bring up all
@@ -73,11 +49,15 @@ $ docker-compose up
 ```
 
 In a separate shell session (probably in a separate terminal split, tab, or
-window), execute the 'test:all' rake task to test all standard, environment,
-and multiverse tests:
+window), execute the 'test_all' or 'test_one' helper scripts to test standard,
+environment, and multiverse tests against all Rubies or a single Ruby.
 
 ```shell
-$ docker-compose exec app bundle exec rake test:all
+$ docker-compose exec app test_one 3.1.0
+
+# or
+
+$ docker-compose exec app test_all
 ```
 
 In lieu of running the tests, an interactive Bash shell can be
@@ -89,8 +69,13 @@ bring up an additional local shell session and run the following:
 $ docker-compose exec app bash
 ```
 
-You will be dropped at a Bash prompt as the "relic" user, with "ruby" and
-"bundle" in your PATH.
+You will be dropped at a Bash prompt as the root user, with multiple
+Rubies installed at `/root/.rubies`. Make use of the `ruby_run` helper
+script to run Ruby commands for a specific Ruby version:
+
+```shell
+docker bash> ruby_run 3.1.0 bundle exec ls
+```
 
 
 ## Output
@@ -104,18 +89,17 @@ that take place.
 
 ## Cleanup
 
-If the project `Dockerfile` is being used without Docker Compose, then use
-`docker ps` to show information about containers and `docker images`
-for information about images. The `docker stop`, `docker kill`, `docker rm`
-and `docker rmi` commands can be used with the appropriate container and image
-ids. Run `docker --help` or read through the hosted [CLI documentation](https://docs.docker.com/engine/reference/commandline/docker/).
+Invoking `ctrl-c` in the shell session that is running the `docker-compose up`
+command should suffice to prompt Docker Compose to shut down all running
+containers. Otherwise, `docker-compose down` can be ran.
 
-When Docker Compose is used, invoking `ctrl-c` in the shell session that is
-running the `docker-compose up` command should suffice to prompt Docker Compose
-to shut down all running containers. Otherwise, `docker-compose down` can be
-ran after the `docker-compose up` process has been stopped. All relevant
-containers and images can then be optionally discarded using the `docker` CLI
-commands described in the previous paragraph.
+Use `docker ps -a` to show a list of all containers. Pass a container id to
+`docker rm` (ex: `docker rm 5c15ee2f1c4f`) to remove it.
+
+Use `docker images` to show a list of all images. Typically, you'll want to
+keep these images if you plan on running Docker with them again in the future.
+If you are done with them, you can pass an image id to `docker rmi` to remove
+an image (ex: `docker rmi 4253856b2570`).
 
 
 ## Questions, Feature Requests, Contributions, etc.

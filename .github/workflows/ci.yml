@@ -67,8 +67,7 @@ jobs:
         with:
           timeout_minutes: 20
           max_attempts: 2
-          command:  ruby_run ${{ matrix.ruby-version }} bundle exec rake test:env[${{ env.rails }}]
-            # TODO: TESTOPTS=--verbose
+          command:  TESTOPTS=--verbose ruby_run ${{ matrix.ruby-version }} bundle exec rake test:env[${{ env.rails }}]
         env:
           DB_PORT: 3306
           DATABASE_NAME: app

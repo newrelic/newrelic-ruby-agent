@@ -35,6 +35,8 @@ async function bundleInstall(rubyVersion) {
     }
   }
 
+  await exec.exec('ruby_run', [rubyVersion, 'bundle', 'config', '--local', '--path', filePath])
+
   if (cachedKey) {
     await io.cp(`${filePath}/Gemfile.lock`, `${workspacePath}/Gemfile.lock`)
   }
