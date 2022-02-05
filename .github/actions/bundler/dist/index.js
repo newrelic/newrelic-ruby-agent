@@ -57297,7 +57297,11 @@ async function run() {
 async function bundleInstall(rubyVersion) {
   core.startGroup('Bundle install')
 
-  const filePath = `/root/.rubies/ruby-${rubyVersion}/.bundle-cache`
+  let prefixedVersion = `ruby-${rubyVersion}`
+  if (rubyVersion.startsWith('jruby')) {
+    prefixedVersion = rubyVersion
+  }
+  const filePath = `/root/.rubies/${prefixedVersion}/.bundle-cache`
   const workspacePath = process.env.GITHUB_WORKSPACE
   const keyHash = fileHash(`${process.env.GITHUB_WORKSPACE}/newrelic_rpm.gemspec`)
   const key = `v2-bundle-cache-${rubyVersion}-${keyHash}`
@@ -57314,7 +57318,7 @@ async function bundleInstall(rubyVersion) {
     }
   }
 
-  await exec.exec('ruby_run', [rubyVersion, 'bundle', 'config', '--local', '--path', filePath])
+  await exec.exec('ruby_run', [rubyVersion, 'bundle', 'config', '--local', 'path', filePath])
 
   if (cachedKey) {
     await io.cp(`${filePath}/Gemfile.lock`, `${workspacePath}/Gemfile.lock`)
