@@ -63,7 +63,7 @@ jobs:
             }
 
       - name: Run Unit Tests
-        uses: nick-invision/retry@v1.0.0
+        uses: nick-invision/retry@v2.6.0
         with:
           timeout_minutes: 20
           max_attempts: 2
@@ -142,7 +142,7 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
 
       - name: Run Multiverse Tests
-        uses: nick-invision/retry@v1.0.0
+        uses: nick-invision/retry@v2.6.0
         with:
           timeout_minutes: 60
           max_attempts: 2
@@ -175,7 +175,7 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
 
       - name: Run Multiverse Tests With Infinite Tracing
-        uses: nick-invision/retry@v1.0.0
+        uses: nick-invision/retry@v2.6.0
         with:
           timeout_minutes: 40
           max_attempts: 6
@@ -236,7 +236,7 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
 
       - name: Run Multiverse Tests With JRuby
-        uses: nick-invision/retry@v1.0.0
+        uses: nick-invision/retry@v2.6.0
         with:
           timeout_minutes: 60
           max_attempts: 2
