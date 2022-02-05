@@ -1,6 +1,11 @@
 name: 'Bundler'
 description: 'Bundler tasks for New Relic Ruby agent testing'
 author: New Relic
+inputs:
+  ruby-version:
+    description: 'Ruby version'
+    required: true
+    default: '3.1.0'
 runs:
   using: 'node16'
   main: 'dist/index.js'

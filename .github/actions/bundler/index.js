@@ -58,6 +58,8 @@ async function bundleInstall(rubyVersion) {
     }
   }
 
+  core.addPath(`/root/.rubies/${prefixedVersion}/bin`)
+
   core.endGroup()
 }
 
