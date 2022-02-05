@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.9, 2.7.5, 3.0.3, 3.1.0, jruby-9.2.19.0]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.9, 2.7.5, 3.0.3, 3.1.0, jruby-9.3.3.0]
 
     steps:
       - uses: actions/checkout@v2
@@ -100,14 +100,13 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+          -e MYSQL_ROOT_PASSWORD=root
+          -e MYSQL_USER=root
+          -e MYSQL_PASSWORD=root
+          -e MYSQL_DATABASE=app
           --entrypoint sh mysql:8.0.27 -c "exec docker-entrypoint.sh mysqld --default-authentication-plugin=mysql_native_password"
-
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_USER: root
-          MYSQL_DATABASE: app
         ports:
-          - "33061:3306"
+          - "3306:3306"
       rabbitmq:
         image: rabbitmq:latest
         ports:
