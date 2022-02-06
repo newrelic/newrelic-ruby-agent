@@ -14,6 +14,16 @@ jobs:
     runs-on: ubuntu-20.04
     container:
       image: docker.io/fallwith/ruby-agent-test-environment
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_USER: root
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_PASSWORD:
+        ports:
+          - "3306:3306"
     strategy:
       fail-fast: false
       matrix:
@@ -68,12 +78,6 @@ jobs:
           timeout_minutes: 20
           max_attempts: 2
           command: bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
-        env:
-          DB_PORT: 3306
-          DATABASE_NAME: app
-          MYSQL_USERNAME: root
-          MYSQL_PASSWORD: root
-          MYSQL_HOST: mysql
 
   multiverse:
     runs-on: ubuntu-20.04
@@ -94,17 +98,12 @@ jobs:
         ports:
           - 27017:27017
       mysql:
-        image: mysql:8.0.27
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-          -e MYSQL_ROOT_PASSWORD=root
-          -e MYSQL_USER=root
-          -e MYSQL_PASSWORD=root
-          -e MYSQL_DATABASE=app
-          --entrypoint sh mysql:8.0.27 -c "exec docker-entrypoint.sh mysqld --default-authentication-plugin=mysql_native_password"
+        image: mysql:5.7
+        env:
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_USER: root
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_PASSWORD:
         ports:
           - "3306:3306"
       rabbitmq:
@@ -146,12 +145,6 @@ jobs:
           timeout_minutes: 60
           max_attempts: 2
           command: ruby_run ${{ matrix.ruby-version }} bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
-        env:
-          DB_PORT: 3306
-          DATABASE_NAME: app
-          MYSQL_USERNAME: root
-          MYSQL_PASSWORD: root
-          MYSQL_HOST: mysql
 
       - name: Annotate errors
         if: ${{ failure() }}
@@ -202,6 +195,15 @@ jobs:
         image: mongo
         ports:
           - 27017:27017
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_USER: root
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_PASSWORD:
+        ports:
+          - "3306:3306"
       rabbitmq:
         image: rabbitmq:latest
         ports:
@@ -232,20 +234,14 @@ jobs:
       - name: Bundle RubyGems ${{ matrix.ruby-version }}
         uses: ./.github/actions/bundler
         with:
-          ruby-version: ${{ matrix.ruby-version }}
+          ruby-version: jruby-9.3.3.0
 
       - name: Run Multiverse Tests With JRuby
         uses: nick-invision/retry@v2.6.0
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command: ruby_run ${{ matrix.ruby-version }} bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
-        env:
-          DB_PORT: 3306
-          DATABASE_NAME: app
-          MYSQL_USERNAME: root
-          MYSQL_PASSWORD: root
-          MYSQL_HOST: mysql
+          command: ruby_run jruby-9.3.3.0 bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
 
       - name: Annotate errors
         if: ${{ failure() }}
