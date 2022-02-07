@@ -27,7 +27,7 @@ if RUBY_VERSION >= '2.7.0'
   RB
 end
 
-if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM == 'java'
+if RUBY_VERSION >= '2.5.0' && RUBY_PLATFORM == 'java'
 
   gemfile <<-RB
     gem 'activerecord', '~> 6.0.0'
