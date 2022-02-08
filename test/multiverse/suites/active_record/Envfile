@@ -1,6 +1,6 @@
 if RUBY_PLATFORM == 'java'
   mysql_gem = 'activerecord-jdbcmysql-adapter'
-  mysql_vsn = '~>1.3.0'
+  mysql_vsn = '~> 1.3.0'
 else
   mysql_gem = 'mysql2'
 end
@@ -9,8 +9,8 @@ boilerplate_gems = <<-BOILERPLATE
   gem 'rack'
 BOILERPLATE
 
-if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM == 'java' 
-  mysql_vsn = '~>0.4.4'
+if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM == 'java'
+  mysql_vsn = '~> 0.4.4'
 
   gemfile <<-RB
     gem 'activerecord', '5.2.2'
@@ -35,7 +35,7 @@ if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM == 'java'
 end
 
 if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM != 'java'
-  mysql_vsn = '~>0.4.4'
+  mysql_vsn = '~> 0.4.4'
 
   gemfile <<-RB
     gem 'activerecord', '5.2.2'
@@ -60,7 +60,7 @@ if RUBY_VERSION >= '2.2.2' && RUBY_PLATFORM != 'java'
 end
 
 if RUBY_VERSION < '2.4.0'
-  mysql_vsn = '0.3.20' unless RUBY_PLATFORM == 'java'
+  mysql_vsn = '0.3.21' unless RUBY_PLATFORM == 'java'
 
   gemfile <<-RB
     gem 'activerecord', '~> 4.2.0'
@@ -87,12 +87,12 @@ end
 # known issues, including https://github.com/rails/rails/issues/18991, so
 # skip 3.x versions on 2.2.
 #
-# Only 3.2.22 fixes the above mentioned issue, so it's the only one 
+# Only 3.2.22 fixes the above mentioned issue, so it's the only one
 # surviving in our coverage of Rails 3.x series here.
 #
 if RUBY_VERSION < '2.3'
-  mysql_vsn = '0.3.20'
-  
+  mysql_vsn = '0.3.21' unless RUBY_PLATFORM == 'java'
+
   gemfile <<-RB
     gem 'rack'
     gem 'activerecord', '~> 3.2.22'
