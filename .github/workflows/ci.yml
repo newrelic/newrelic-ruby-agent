@@ -93,9 +93,6 @@ jobs:
     services:
       postgres:
         image: postgres:latest
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USERNAME: postgres
         ports:
           - 5432:5432
         options: >-
@@ -161,8 +158,6 @@ jobs:
         env:
           DB_PORT: 3306
           MYSQL_PASSWORD: root
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USERNAME: postgres
 
       - name: Annotate errors
         if: ${{ failure() }}
@@ -200,9 +195,6 @@ jobs:
     services:
       postgres:
         image: postgres:latest
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_USERNAME: postgres
         ports:
           - 5432:5432
       redis:
