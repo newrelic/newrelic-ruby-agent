@@ -5,7 +5,7 @@ on:
     types: [opened]
 
 jobs:
-  job1_check_contributor_handle:
+  Check_contributor_handle:
     runs-on: ubuntu-latest
     steps:
       - name: View issue information
@@ -17,6 +17,7 @@ jobs:
 #        run: echo "$GITHUB_CONTEXT"
 #        env:
 #          GITHUB_CONTEXT: ${{ toJson(github) }}
+
 # Start checking user name
       - name: Label community issue
         uses: actions/github-script@v5
