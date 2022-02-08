@@ -13,4 +13,5 @@ if [ "$version" == "" ]; then
 elif ! [[ $version = jruby* ]]; then
   version="ruby-$version"
 fi
-"/root/.rubies/$version/bin/$@"
+export PATH=/root/.rubies/$version/bin:$PATH
+"$@"

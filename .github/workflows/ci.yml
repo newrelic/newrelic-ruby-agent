@@ -18,10 +18,8 @@ jobs:
       mysql:
         image: mysql:5.7
         env:
-          MYSQL_HOST: 127.0.0.1
-          MYSQL_USER: root
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
-          MYSQL_PASSWORD:
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
         ports:
           - "3306:3306"
     strategy:
@@ -78,6 +76,8 @@ jobs:
           timeout_minutes: 20
           max_attempts: 2
           command: bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
+        env:
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
 
   multiverse:
     runs-on: ubuntu-20.04
@@ -100,10 +100,8 @@ jobs:
       mysql:
         image: mysql:5.7
         env:
-          MYSQL_HOST: 127.0.0.1
-          MYSQL_USER: root
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
-          MYSQL_PASSWORD:
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
         ports:
           - "3306:3306"
       rabbitmq:
@@ -145,6 +143,8 @@ jobs:
           timeout_minutes: 60
           max_attempts: 2
           command: ruby_run ${{ matrix.ruby-version }} bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
+        env:
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
 
       - name: Annotate errors
         if: ${{ failure() }}
@@ -172,6 +172,8 @@ jobs:
           timeout_minutes: 40
           max_attempts: 6
           command: ruby_run ${{ matrix.ruby-version }} bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+        env:
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
 
       - name: Annotate errors
         if: ${{ failure() }}
@@ -198,10 +200,8 @@ jobs:
       mysql:
         image: mysql:5.7
         env:
-          MYSQL_HOST: 127.0.0.1
-          MYSQL_USER: root
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
-          MYSQL_PASSWORD:
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
         ports:
           - "3306:3306"
       rabbitmq:
@@ -242,6 +242,8 @@ jobs:
           timeout_minutes: 60
           max_attempts: 2
           command: ruby_run jruby-9.3.3.0 bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+        env:
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
 
       - name: Annotate errors
         if: ${{ failure() }}

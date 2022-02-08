@@ -10,7 +10,6 @@ require_relative '../lib/ruby_rails_mappings.rb'
 class RubyInstaller
   BLOCK_PATH = '/usr/local/antonius-block'
   OPENSSL_1DOT0_DIR = File.join(BLOCK_PATH, 'openssl1.0')
-  MYSQL5DOT5_DIR = File.join(BLOCK_PATH, 'mysql5.5')
   BUNDLER_MIN_VERSION = Gem::Version.new('1.17.3')
   RUBY_INSTALL_ROOT = File.join(ENV['HOME'], '.rubies')
 
@@ -28,13 +27,6 @@ class RubyInstaller
   end
 
   private
-
-  def apply_old_ruby_hacks(ruby_version)
-    return unless openssl1dot0_ruby?(ruby_version)
-
-    link_mysql_libs(ruby_version)
-    wire_ruby_for_ld_library_path(ruby_version)
-  end
 
   def bundler_version_hash
     @bundler_version_hash ||= begin
@@ -100,7 +92,6 @@ class RubyInstaller
       puts "Installing bundler version #{bundler_version} for Ruby version #{version}..."
       ruby_cmd("gem install bundler:#{bundler_version}", version)
     end
-    apply_old_ruby_hacks(version)
     File.unlink('.ruby-version') if File.exist?('.ruby-version')
   end
 
@@ -110,12 +101,6 @@ class RubyInstaller
 
   def installed_versions
     @installed_versions ||= Dir.glob("#{RUBY_INSTALL_ROOT}/*").map { |p| File.basename(p).sub(/^ruby-/, '') }
-  end
-
-  def link_mysql_libs(ruby_version)
-    return unless Dir.exist?(MYSQL5DOT5_DIR)
-
-    run_cmd("ln -sf #{MYSQL5DOT5_DIR}/lib/* #{installation_path(ruby_version)}/lib")
   end
 
   def missing_versions
@@ -154,23 +139,6 @@ class RubyInstaller
       map_yaml = ci['jobs']['unit-tests']['steps'].detect { |hash| hash.dig('with', 'map') }['with']['map']
       versions = YAML.load(map_yaml)
     end
-  end
-
-  # For old OpenSSL 1.0 rubies...
-  # LD_LIBRARY_PATH needs to be set before handing things off to Ruby (can't be set via ENV in Ruby)
-  def wire_ruby_for_ld_library_path(ruby_version)
-    return unless Dir.exist?(OPENSSL_1DOT0_DIR)
-
-    bin_dir = "#{installation_path(ruby_version)}/bin"
-    `mv '#{bin_dir}/ruby' '#{bin_dir}/ruby_real'`
-    wrapper_text = <<~WRAPPER
-      #!/bin/sh
-
-      export LD_LIBRARY_PATH=#{OPENSSL_1DOT0_DIR}/lib
-      #{bin_dir}/ruby_real "$@"
-    WRAPPER
-    File.open("#{bin_dir}/ruby", 'w') { |f| f.puts wrapper_text }
-    `chmod 755 '#{bin_dir}/ruby'`
   end
 end
 
