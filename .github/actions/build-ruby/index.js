@@ -171,9 +171,9 @@ async function downgradeMySQL() {
   await Promise.all([promise1, promise2, promise3, promise4])
 
   // executes serially
-  await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/multiarch-support_2.27-3ubuntu1.2_amd64.deb`])
-  await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient18_5.5.62-0+deb8u1_amd64.deb`])
-  await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient-dev_5.5.62-0+deb8u1_amd64.deb`])
+  await exec.exec('sudo', ['dpkg', '-i', '--force-all', `${pkgDir}/multiarch-support_2.27-3ubuntu1.2_amd64.deb`])
+  await exec.exec('sudo', ['dpkg', '-i', '--force-all', `${pkgDir}/libmysqlclient18_5.5.62-0+deb8u1_amd64.deb`])
+  await exec.exec('sudo', ['dpkg', '-i', '--force-all', `${pkgDir}/libmysqlclient-dev_5.5.62-0+deb8u1_amd64.deb`])
 
   core.endGroup()
 }
