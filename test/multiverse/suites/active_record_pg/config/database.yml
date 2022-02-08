@@ -8,8 +8,8 @@ default: &default
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   host: localhost
-  username: <%= ENV.fetch("POSTGRES_USERNAME", "postgres") %>
-  password: <%= ENV.fetch("POSTGRES_PASSWORD", "password") %>
+  username: <%= ENV.fetch("POSTGRES_USERNAME", "") %>
+  password: <%= ENV.fetch("POSTGRES_PASSWORD", "") %>
   database: <%= ENV.fetch("DATABASE_NAME", "rails_blog") %>
 
 development:

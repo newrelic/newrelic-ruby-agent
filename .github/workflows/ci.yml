@@ -93,6 +93,9 @@ jobs:
     services:
       postgres:
         image: postgres:latest
+        env:
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: password
         ports:
           - 5432:5432
         options: >-
