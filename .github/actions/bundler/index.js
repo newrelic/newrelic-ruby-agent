@@ -10,7 +10,7 @@ export async function run() {
   const rubyVersion = core.getInput('ruby-version')
   try {
     await bundleInstall(rubyVersion)
-    await installEnvironmentBundlers
+    await installEnvironmentBundlers(rubyVersion)
   } catch (error) {
     core.setFailed(error.message)
   }
@@ -65,9 +65,9 @@ async function bundleInstall(rubyVersion) {
 }
 
 // TODO: the various test/environments/*/.bundler-version files' contents could differ from v1.17.3
-async function installEnvironmentBundlers() {
+async function installEnvironmentBundlers(rubyVersion) {
   core.startGroup('Install environment Bundlers')
-  await exec.exec('gem', ['install', 'bundler:1.17.3', '--no-document'])
+  await exec.exec('ruby_run', [rubyVersion, 'gem', 'install', 'bundler:1.17.3', '--no-document'])
   core.endGroup()
 }
 

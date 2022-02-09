@@ -55,7 +55,7 @@ services:
       - "6379:6379"
   app:
     build: .
-    image: newrelic/ruby-agent-test-environment
+    image: fallwith/ruby-agent-test-environment
     tty: true
     stdin_open: true
     environment:

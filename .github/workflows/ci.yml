@@ -142,7 +142,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command: ruby_run ${{ matrix.ruby-version }} bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
+          command: bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
 
@@ -171,7 +171,7 @@ jobs:
         with:
           timeout_minutes: 40
           max_attempts: 6
-          command: ruby_run ${{ matrix.ruby-version }} bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+          command: bundle exec rake test:multiverse[group=infinite_tracing,verbose]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
 
@@ -241,7 +241,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command: ruby_run jruby-9.3.3.0 bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+          command: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
 
