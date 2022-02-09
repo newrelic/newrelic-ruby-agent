@@ -70,7 +70,7 @@ jobs:
                 "rails": "norails,rails61,rails70"
               },
               "jruby-9.2.19.0": {
-                "rails": "norails,rails51,rails42"
+                "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
               }
             }
 
@@ -91,6 +91,18 @@ jobs:
     needs: build-ruby
     runs-on: ubuntu-18.04
     services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
       redis:
         image: redis
         ports:
@@ -149,6 +161,8 @@ jobs:
         env:
           DB_PORT: 3306
           MYSQL_PASSWORD: root
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: password
 
       - name: Annotate errors
         if: ${{ failure() }}
@@ -184,6 +198,10 @@ jobs:
     needs: build-ruby
     runs-on: ubuntu-18.04
     services:
+      postgres:
+        image: postgres:latest
+        ports:
+          - 5432:5432
       redis:
         image: redis
         ports:
