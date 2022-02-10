@@ -75,7 +75,7 @@ jobs:
         with:
           timeout_minutes: 20
           max_attempts: 2
-          command: bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
+          command: bundle _1.17.3_ exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
         env:
           DB_PASSWORD: root
           MYSQL_PASSWORD: root
@@ -158,7 +158,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command: bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
+          command: bundle _1.17.3_ exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
         env:
           DB_PASSWORD: root
           MYSQL_PASSWORD: root
@@ -193,7 +193,7 @@ jobs:
         with:
           timeout_minutes: 40
           max_attempts: 6
-          command: bundle exec rake test:multiverse[group=infinite_tracing,verbose]
+          command: bundle _1.17.3_ exec rake test:multiverse[group=infinite_tracing,verbose]
         env:
           DB_PASSWORD: root
           MYSQL_PASSWORD: root
@@ -271,7 +271,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 2
-          command: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
+          command: bundle _1.17.3_ exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
           DB_PASSWORD: root
           MYSQL_PASSWORD: root

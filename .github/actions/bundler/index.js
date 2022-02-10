@@ -9,14 +9,15 @@ const io = require('@actions/io')
 export async function run() {
   const rubyVersion = core.getInput('ruby-version')
   try {
-    await bundleInstall(rubyVersion)
     await installEnvironmentBundlers(rubyVersion)
+    await bundleInstall(rubyVersion)
   } catch (error) {
     core.setFailed(error.message)
   }
 }
 
 async function bundleInstall(rubyVersion) {
+  const bundlerVersion = '_1.17.3_'
   core.startGroup('Bundle install')
 
   let prefixedVersion = `ruby-${rubyVersion}`
@@ -40,14 +41,14 @@ async function bundleInstall(rubyVersion) {
     }
   }
 
-  await exec.exec('ruby_run', [rubyVersion, 'bundle', 'config', '--local', 'path', filePath])
+  await exec.exec('ruby_run', [rubyVersion, 'bundle', bundlerVersion, 'config', '--local', 'path', filePath])
 
   if (cachedKey) {
     await io.cp(`${filePath}/Gemfile.lock`, `${workspacePath}/Gemfile.lock`)
   }
 
   // run 'bundle install' whether the cache hit or missed, to always list the bundle's contents
-  await exec.exec('ruby_run', [rubyVersion, 'bundle', 'install', '--jobs', '4'])
+  await exec.exec('ruby_run', [rubyVersion, 'bundle', bundlerVersion, 'install', '--jobs', '4'])
 
   if (cachedKey == null) {
     await io.cp(`${workspacePath}/Gemfile.lock`, `${filePath}/Gemfile.lock`)
