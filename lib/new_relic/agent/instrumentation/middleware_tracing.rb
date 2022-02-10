@@ -106,7 +106,7 @@ module NewRelic
 
             result
           rescue Exception => e
-            # NewRelic::Agent.notice_error(e)
+            NewRelic::Agent.notice_error(e)
             raise e
           ensure
             finishable.finish if finishable
