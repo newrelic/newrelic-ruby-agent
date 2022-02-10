@@ -27,7 +27,7 @@ class StartUpTest < Minitest::Test
 
   def test_should_not_print_to_stdout_when_logging_available
     ruby = 'require "newrelic_rpm"; NewRelic::Agent.manual_start; NewRelic::Agent.shutdown'
-    cmd = "bundle _1.17.3_ exec ruby -e '#{ruby}'"
+    cmd = "bundle exec ruby -e '#{ruby}'"
 
     _sin, sout, serr = Open3.popen3(cmd)
     output = sout.read + serr.read
@@ -47,19 +47,19 @@ class StartUpTest < Minitest::Test
   end
 
   def test_instrumentation_loads_clean_even_without_dependencies
-    assert_runs_without_errors("bundle _1.17.3_ exec ruby script/loading.rb")
+    assert_runs_without_errors("bundle exec ruby script/loading.rb")
   end
 
   def test_manual_start_with_symbol_for_environment
-    assert_runs_without_errors("bundle _1.17.3_ exec ruby script/symbol_env.rb")
+    assert_runs_without_errors("bundle exec ruby script/symbol_env.rb")
   end
 
   def test_can_call_public_api_methods_when_agent_disabled
-    assert_runs_without_errors("bundle _1.17.3_ exec ruby script/public_api_when_disabled.rb")
+    assert_runs_without_errors("bundle exec ruby script/public_api_when_disabled.rb")
   end
 
   def test_manual_start_logs_about_mismatched_environment
-    output = `bundle _1.17.3_ exec ruby script/env_change.rb`
+    output = `bundle exec ruby script/env_change.rb`
 
     assert_match(/ERROR.*Attempted to start agent.*production.*development/, output, output)
   end
@@ -79,7 +79,7 @@ NewRelic::Agent.manual_start(security_policies_token: "ffff-ffff-ffff-ffff",
                              high_security: true,
                              log_file_path: "STDOUT")
 RUBY
-    cmd = "bundle _1.17.3_ exec ruby -e '#{ruby}'"
+    cmd = "bundle exec ruby -e '#{ruby}'"
 
     _, sout, serr = Open3.popen3(cmd)
     output = sout.read + serr.read
@@ -118,7 +118,7 @@ RUBY
   def test_no_warnings
     with_environment('NEW_RELIC_TRANSACTION_TRACER_TRANSACTION_THRESHOLD' => '-10',
       'NEW_RELIC_PORT' => $collector.port.to_s) do
-      output = `bundle _1.17.3_ exec ruby -w script/warnings.rb 2>&1`
+      output = `bundle exec ruby -w script/warnings.rb 2>&1`
       expected_noise = [GIT_NOISE, NET_HTTP_NOISE]
 
       expected_noise << JRUBY_9000_NOISE if jruby_9000

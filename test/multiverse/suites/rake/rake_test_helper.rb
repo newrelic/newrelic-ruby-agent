@@ -19,7 +19,7 @@ module RakeTestHelper
   end
 
   def run_rake(commands = "", allow_failure = false)
-    full_command = "bundle _1.17.3_ exec rake #{commands} 2>&1"
+    full_command = "bundle exec rake #{commands} 2>&1"
     @output = `#{full_command}`
 
     if !allow_failure
