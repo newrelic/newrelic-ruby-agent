@@ -6,6 +6,9 @@
 
     Fixed the ParameterFiltering constant definitions so that they are not redefined on multiple reloads of the module. Thank you to @TonyArra for bringing this issue to our attention.
 
+  * **Update unit tests for Rails 7.0.2**
+
+    Ensure that the 7.0.2 release of Rails is fully compatible with all relevant tests.
 
 
   ## v8.4.0
