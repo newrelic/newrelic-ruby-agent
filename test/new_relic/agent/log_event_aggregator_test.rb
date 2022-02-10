@@ -50,9 +50,8 @@ module NewRelic::Agent
       end
 
       metadata, results = @aggregator.harvest!
-      assert_equal(n, metadata[:seen])
-      assert_equal(max_samples, metadata[:capacity])
-      assert_equal(max_samples, metadata[:captured])
+      assert_equal(n, metadata[:events_seen])
+      assert_equal(max_samples, metadata[:reservoir_size])
       assert_equal(max_samples, results.size)
     end
 
@@ -66,9 +65,8 @@ module NewRelic::Agent
       end
 
       metadata, results = @aggregator.harvest!
-      assert_equal(n, metadata[:seen])
-      assert_equal(max_samples, metadata[:capacity])
-      assert_equal(max_samples, metadata[:captured])
+      assert_equal(n, metadata[:events_seen])
+      assert_equal(max_samples, metadata[:reservoir_size])
       assert_equal(max_samples, results.size)
     end
 
@@ -87,9 +85,8 @@ module NewRelic::Agent
 
         metadata, results = @aggregator.harvest!
 
-        assert_equal(2, metadata[:seen])
-        assert_equal(1, metadata[:capacity])
-        assert_equal(1, metadata[:captured])
+        assert_equal(2, metadata[:events_seen])
+        assert_equal(1, metadata[:reservoir_size])
         assert_equal(1, results.size)
         assert_equal("Buggy", results.first.last["message"], "Favor sampled")
       end
@@ -109,9 +106,8 @@ module NewRelic::Agent
 
         metadata, results = @aggregator.harvest!
 
-        assert_equal(2, metadata[:seen])
-        assert_equal(1, metadata[:capacity])
-        assert_equal(1, metadata[:captured])
+        assert_equal(2, metadata[:events_seen])
+        assert_equal(1, metadata[:reservoir_size])
         assert_equal(1, results.size)
         assert_equal("Buggy", results.first.last["message"], "Favor errored")
       end
@@ -125,9 +121,8 @@ module NewRelic::Agent
 
         metadata, results = @aggregator.harvest!
 
-        assert_equal(2, metadata[:seen])
-        assert_equal(1, metadata[:capacity])
-        assert_equal(1, metadata[:captured])
+        assert_equal(2, metadata[:events_seen])
+        assert_equal(1, metadata[:reservoir_size])
         assert_equal(1, results.size)
         assert_equal("Deadly", results.first.last["message"], "Favor errored")
       end
@@ -143,8 +138,8 @@ module NewRelic::Agent
       new_max_samples = orig_max_samples - 10
       with_config(CAPACITY_KEY => new_max_samples) do
         metadata, results = @aggregator.harvest!
-        assert_equal(new_max_samples, metadata[:capacity])
-        assert_equal(orig_max_samples, metadata[:seen])
+        assert_equal(new_max_samples, metadata[:reservoir_size])
+        assert_equal(orig_max_samples, metadata[:events_seen])
         assert_equal(new_max_samples, results.size)
       end
     end
@@ -193,16 +188,17 @@ module NewRelic::Agent
 
 
     def test_basic_conversion_to_melt_format
+      LinkingMetadata.stubs(:append_service_linking_metadata).returns({
+        "entity.name": "Hola"
+      })
+
       log_data = [
         {
-          seen: 0,
-          captured: 0,
-          linking: {
-            "entity.name": "Hola"
-          }
+          events_seen: 0,
+          reservoir_size: 0
         },
         [
-          [{ "priority": 1}, { "message": "This is a mess" }]
+          [{ "priority": 1 }, { "message": "This is a mess" }]
         ]
       ]
 

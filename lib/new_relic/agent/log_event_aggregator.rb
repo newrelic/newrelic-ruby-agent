@@ -9,10 +9,6 @@ module NewRelic
   module Agent
     class LogEventAggregator < EventAggregator
 
-      # Common keys
-      PLUGIN_TYPE_KEY = "plugin.type".freeze
-      PLUGIN_TYPE = "nr-ruby_agent".freeze
-
       # Per-message keys
       LEVEL_KEY = "level".freeze
       MESSAGE_KEY = "message".freeze
@@ -92,14 +88,17 @@ module NewRelic
       end
 
       # Because our transmission format (MELT) is different than historical
-      # agent payloads, extract the munging here to keep the service focus
+      # agent payloads, extract the munging here to keep the service focused
+      # on the general harvest + transmit instead of the format.
       #
       # We have to keep the aggregated payloads in a separate shape, though, to
       # work with the priority sampling buffers
       def self.payload_to_melt_format(data)
-        metadata, items = data
+        common_attributes = LinkingMetadata.append_service_linking_metadata({})
+
+        _, items = data
         payload = [{
-          common: { attributes: metadata[:linking] },
+          common: { attributes: common_attributes },
           logs: items.map(&:last)
         }]
 
@@ -121,12 +120,6 @@ module NewRelic
 
       private
 
-      # Slightly awkward, but we want the base harvest but without
-      # this method altering the metadata we gather...
-      def reservoir_metadata metadata
-        metadata
-      end
-
       def register_capacity_callback
         NewRelic::Agent.config.register_callback(self.class.capacity_key) do |max_samples|
           NewRelic::Agent.logger.debug "#{self.class.named} max_samples set to #{max_samples}"
@@ -137,10 +130,6 @@ module NewRelic
       end
 
       def after_harvest metadata
-        linking = { PLUGIN_TYPE_KEY => PLUGIN_TYPE }
-        LinkingMetadata.append_service_linking_metadata(linking)
-        metadata[:linking] = linking
-
         dropped_count = metadata[:seen] - metadata[:captured]
         note_dropped_events(metadata[:seen], dropped_count)
         record_supportability_metrics(metadata[:seen], metadata[:captured], dropped_count)

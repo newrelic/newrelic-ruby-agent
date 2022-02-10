@@ -169,7 +169,6 @@ module MarshallingTestCases
     assert_equal 1, result.length
 
     common = result.first.common["attributes"]
-    refute_nil common["plugin.type"]
     refute_nil common["entity.name"]
     refute_nil common["entity.type"]
     refute_nil common["hostname"]
