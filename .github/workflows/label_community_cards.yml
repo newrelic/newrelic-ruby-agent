@@ -7,8 +7,6 @@ on:
 jobs:
   Check_contributor_handle:
     runs-on: ubuntu-latest
-    env:
-      admins: "['angelatan2', 'elucus', 'fallwith', 'kaylareopelle', 'tannalynn']"
     steps:
       - name: View issue information
         run: |
@@ -25,5 +23,5 @@ jobs:
              labels: ['community']
            })
         if: |
-          !contains(fromJson(${{ env.admins }}), github.event.issue.user.login) &&
-          !contains(fromJson(${{ env.admins }}), github.event.pull_request.user.login)
+          github.event.issue.user.login != 'fallwith' && github.event.issue.user.login != 'kaylareopelle' && github.event.issue.user.login != 'tannalynn' && github.event.issue.user.login != 'angelatan2' && github.event.issue.user.login != 'elucus' &&
+          github.event.pull_request.user.login != 'fallwith' && github.event.pull_request.user.login != 'kaylareopelle' && github.event.pull_request.user.login != 'tannalynn' && github.event.pull_request.user.login != 'angelatan2' && github.event.pull_request.user.login != 'elucus'
