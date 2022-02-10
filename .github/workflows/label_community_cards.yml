@@ -8,19 +8,12 @@ jobs:
   Check_contributor_handle:
     runs-on: ubuntu-latest
     env:
-      admins: ['angelatan2', 'elucus', 'fallwith', 'kaylareopelle', 'tannalynn']
+      admins: "['angelatan2', 'elucus', 'fallwith', 'kaylareopelle', 'tannalynn']"
     steps:
       - name: View issue information
         run: |
           echo "Issue title: ${{ github.event.issue.title }}"
           echo "Issue body: ${{ github.event.issue.body }}"
-# You also can print the whole github context to the logs to view more details.
-#      - name: View the github context
-#        run: echo "$GITHUB_CONTEXT"
-#        env:
-#          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-# Start checking user name
       - name: Label community issue
         uses: actions/github-script@v5
         with:
@@ -32,5 +25,5 @@ jobs:
              labels: ['community']
            })
         if: |
-          !contains(${{ env.admins }}, github.event.issue.user.login) &&
-          !contains(${{ env.admins }}, github.event.pull_request.user.login)
+          !contains(fromJson(${{ env.admins }}), github.event.issue.user.login) &&
+          !contains(fromJson(${{ env.admins }}), github.event.pull_request.user.login)
