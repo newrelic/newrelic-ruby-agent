@@ -27,7 +27,7 @@ async function bundleInstall(rubyVersion) {
   const filePath = `/root/.rubies/${prefixedVersion}/.bundle-cache`
   const workspacePath = process.env.GITHUB_WORKSPACE
   const keyHash = fileHash(`${process.env.GITHUB_WORKSPACE}/newrelic_rpm.gemspec`)
-  const key = `v2-bundle-cache-${rubyVersion}-${keyHash}`
+  const key = `v3-bundle-cache-${rubyVersion}-${keyHash}`
   core.info(`restore using ${key}`)
 
   let cachedKey = null
