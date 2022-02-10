@@ -18,10 +18,10 @@ jobs:
       mysql:
         image: mysql:5.7
         env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_ROOT_PASSWORD: root
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
         ports:
-          - "3306:3306"
+          - 3306
     strategy:
       fail-fast: false
       matrix:
@@ -66,7 +66,7 @@ jobs:
                 "rails": "norails,rails61,rails70"
               },
               "jruby-9.3.3.0": {
-                "rails": "norails,rails51,rails42"
+                "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
               }
             }
 
@@ -77,13 +77,29 @@ jobs:
           max_attempts: 2
           command: bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
         env:
+          DB_PASSWORD: root
+          MYSQL_PASSWORD: root
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_HOST: 127.0.0.1
 
   multiverse:
     runs-on: ubuntu-20.04
     container:
       image: docker.io/fallwith/ruby-agent-test-environment
     services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
       redis:
         image: redis
         ports:
@@ -100,10 +116,10 @@ jobs:
       mysql:
         image: mysql:5.7
         env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_ROOT_PASSWORD: root
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
         ports:
-          - "3306:3306"
+          - 3306
       rabbitmq:
         image: rabbitmq:latest
         ports:
@@ -144,7 +160,13 @@ jobs:
           max_attempts: 2
           command: bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
         env:
+          DB_PASSWORD: root
+          MYSQL_PASSWORD: root
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_HOST: 127.0.0.1
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: password
 
       - name: Annotate errors
         if: ${{ failure() }}
@@ -173,7 +195,11 @@ jobs:
           max_attempts: 6
           command: bundle exec rake test:multiverse[group=infinite_tracing,verbose]
         env:
+          DB_PASSWORD: root
+          MYSQL_PASSWORD: root
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_HOST: 127.0.0.1
 
       - name: Annotate errors
         if: ${{ failure() }}
@@ -184,6 +210,10 @@ jobs:
     container:
       image: docker.io/fallwith/ruby-agent-test-environment
     services:
+      postgres:
+        image: postgres:latest
+        ports:
+          - 5432:5432
       redis:
         image: redis
         ports:
@@ -200,10 +230,10 @@ jobs:
       mysql:
         image: mysql:5.7
         env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_ROOT_PASSWORD: root
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
         ports:
-          - "3306:3306"
+          - 3306
       rabbitmq:
         image: rabbitmq:latest
         ports:
@@ -243,7 +273,11 @@ jobs:
           max_attempts: 2
           command: bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
+          DB_PASSWORD: root
+          MYSQL_PASSWORD: root
           DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_HOST: 127.0.0.1
 
       - name: Annotate errors
         if: ${{ failure() }}

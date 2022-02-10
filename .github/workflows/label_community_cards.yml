@@ -1,0 +1,32 @@
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened]
+
+jobs:
+  Check_contributor_handle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: View issue information
+        run: |
+          echo "Issue title: ${{ github.event.issue.title }}"
+          echo "Issue body: ${{ github.event.issue.body }}"
+# You also can print the whole github context to the logs to view more details.
+#      - name: View the github context
+#        run: echo "$GITHUB_CONTEXT"
+#        env:
+#          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+# Start checking user name
+      - name: Label community issue
+        uses: actions/github-script@v5
+        with:
+         script: |
+           github.rest.issues.addLabels({
+             issue_number: context.issue.number,
+             owner: context.repo.owner,
+             repo: context.repo.repo,
+             labels: ['community']
+           })
+        if: github.event.issue.user.login != 'fallwith' && github.event.issue.user.login != 'kaylareopelle' && github.event.issue.user.login != 'tannalynn' && github.event.issue.user.login != 'angelatan2' && github.event.issue.user.login != 'elucus'

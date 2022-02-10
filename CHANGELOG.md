@@ -1,5 +1,13 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.5.0
+
+  * **Eliminated warnings for redefined constants in ParamaterFiltering**
+
+    Fixed the ParameterFiltering constant definitions so that they are not redefined on multiple reloads of the module. Thank you to @TonyArra for bringing this issue to our attention.
+
+
+
   ## v8.4.0
 
   * **Provide basic support for Rails 7.0**
