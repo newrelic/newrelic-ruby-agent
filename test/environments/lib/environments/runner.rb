@@ -105,7 +105,7 @@ module Environments
 
     def run(dir)
       puts "Starting tests..."
-      cmd = "cd #{dir} && bundle exec rake"
+      cmd = "cd #{dir} && bundle _1.17.3_ exec rake"
       cmd << " file=#{ENV['file']}" if ENV["file"]
       IO.popen(cmd) do |io|
         until io.eof
