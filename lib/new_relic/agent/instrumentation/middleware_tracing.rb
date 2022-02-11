@@ -45,7 +45,7 @@ module NewRelic
           opts[:apdex_start_time] = QueueTime.parse_frontend_timestamp(env)
           # this case is for the rare occasion that an app is using Puma::Rack
           # without having ::Rack as a dependency
-          opts[:request] = ::Rack::Request.new(env) if defined? ::Rack
+          opts[:request] = ::Rack::Request.new(env.dup) if defined? ::Rack
           opts
         end
 
