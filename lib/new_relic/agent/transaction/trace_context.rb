@@ -99,7 +99,7 @@ module NewRelic
           end
 
           span_guid = Agent.config[:'span_events.enabled'] ? transaction.current_segment.guid : nil
-          transaction_guid = Agent.config[:'analytics_events.enabled'] ? transaction.guid : nil
+          transaction_guid = Agent.config[:'transaction_events.enabled'] ? transaction.guid : nil
 
           TraceContextPayload.create \
             parent_account_id: Agent.config[:account_id],
