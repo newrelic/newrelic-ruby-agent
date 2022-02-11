@@ -130,6 +130,9 @@ async function setupRubyEnvironment(rubyVersion) {
 
   // many multiverse suite tests end up in resource contention when run in parallel
   core.exportVariable('SERIALIZE', 1)
+
+  // Leverage YJIT when available (Ruby 3.1+)
+  core.exportVariable('RUBY_YJIT_ENABLE', 1)
 }
 
 // Sets up any options at the bundler level so that when gems that
