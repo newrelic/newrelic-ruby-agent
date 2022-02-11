@@ -21,7 +21,7 @@ const io = __nccwpck_require__(7436)
 
 async function main() {
   try {
-    await exec.exec('sudo' [`${process.env.GITHUB_WORKSPACE}/test/script/install_mysql55`])
+    await exec.exec('sudo', [`${process.env.GITHUB_WORKSPACE}/test/script/install_mysql55`])
     const mysql55Path = '/usr/local/mysql1138'
     await exec.exec(`ls -l ${mysql55Path}`)
   }
