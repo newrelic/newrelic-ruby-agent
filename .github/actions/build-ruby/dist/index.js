@@ -182,11 +182,7 @@ async function installMySQL55(rubyVersion) {
   }
 
   if (cachedKey == null) {
-    await exec.exec('wget', ['https://gist.githubusercontent.com/fallwith/0e0df8a4d7286d714e2de1d0e347463d/raw/6549a86ec1fce08ffb41498fa7b7ac8d1c684ed7/install.sh'])
-    await exec.exec('chmod', ['+x', 'install.sh'])
-    await io.mv('install.sh', '/usr/local/bin/install_mysql55')
-    await exec.exec(`sudo install_mysql55`)
-
+    await exec.exec('sudo', [`${process.env.GITHUB_WORKSPACE}/test/script/install_mysql55`])
     try {
       await cache.saveCache([filePath], key)
     }
