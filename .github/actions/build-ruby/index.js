@@ -71,6 +71,12 @@ function usesOldOpenSsl(rubyVersion) {
   return rubyVersion.match(/^2\.[0123]/);
 }
 
+// all Rubies (v2.3..v2.5) testing Rails <= 4.x will use mysql2 0.3.x,
+// which will need an older MySQL
+function usesMySQL55(rubyVersion) {
+  return rubyVersion.match(/^2\.[012345]/)
+}
+
 // ruby-build is used to compile Ruby and it's various executables
 // rbenv's ruby-build doesn't fully support EOL rubies (< 2.4 at time of this writing).
 // setup-ruby also doesn't correctly build the older rubies with openssl support.
@@ -129,15 +135,11 @@ async function setupRubyEnvironment(rubyVersion) {
 // Sets up any options at the bundler level so that when gems that
 // need specific settings are installed, their specific flags are relayed.
 async function configureBundleOptions(rubyVersion) {
-  if (!usesOldOpenSsl(rubyVersion)) { return }
+  if (!usesMySQL55(rubyVersion)) { return }
 
-  const openSslPath = rubyOpenSslPath(rubyVersion);
-
-  // https://stackoverflow.com/questions/30834421/error-when-trying-to-install-app-with-mysql2-gem
   await exec.exec('bundle', [
     'config', '--global', 'build.mysql2',
-      `"--with-ldflags=-L${openSslPath}/lib"`,
-      `"--with-cppflags=-I${openSslPath}/include"`
+    '--with-mysql-config=/usr/local/mysql55/bin/mysql_config'
   ]);
 }
 
@@ -153,37 +155,36 @@ function prependEnv(envName, envValue, divider=' ') {
 // The older Rubies also need older MySQL that was built against the older OpenSSL libraries.
 // Otherwise mysql adapter will segfault in Ruby because it attempts to dynamically link
 // to the 1.1 series while Ruby links against the 1.0 series.
-async function downgradeMySQL() {
-  core.startGroup(`Downgrade MySQL`)
+async function installMySQL55(rubyVersion) {
+  if (!usesMySQL55(rubyVersion)) { return }
 
-  const pkgDir = `${process.env.HOME}/packages`
-  const pkgOption = `--directory-prefix=${pkgDir}/`
-  const mirrorUrl = 'https://security.debian.org/debian-security/pool/updates/main/m/mysql-5.5/'
-  const ubuntuUrl = 'http://archive.ubuntu.com/ubuntu/pool/main'
+  core.startGroup(`Install MySQL 5.5 for Older Rubies`)
 
-  // executes the following all in parallel
-  const promise1 = exec.exec('sudo', ['apt-get', 'remove', 'mysql-client'])
-  const promise2 = exec.exec('wget', [pkgOption, `${mirrorUrl}/libmysqlclient18_5.5.62-0%2Bdeb8u1_amd64.deb`])
-  const promise3 = exec.exec('wget', [pkgOption, `${mirrorUrl}/libmysqlclient-dev_5.5.62-0%2Bdeb8u1_amd64.deb`])
-  const promise4 = exec.exec('wget', [pkgOption, `${ubuntuUrl}/g/glibc/multiarch-support_2.27-3ubuntu1.2_amd64.deb`])
+  const filePath = '/usr/local/mysql55'
+  const key = 'v2-mysql55-cache'
 
-  // wait for the parallel processes to finish
-  await Promise.all([promise1, promise2, promise3, promise4])
+  let cachedKey = null
+  try {
+    cachedKey = await cache.restoreCache([filePath], key, [key])
+  } catch(error) {
+    if (error.name === cache.ValidationError.name) {
+      throw error;
+    } else {
+      core.info(`[warning] There was an error restoring the MySQL 5.5 cache ${error.message}`)
+    }
+  }
 
-  // executes serially
-  await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/multiarch-support_2.27-3ubuntu1.2_amd64.deb`])
-  await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient18_5.5.62-0+deb8u1_amd64.deb`])
-  await exec.exec('sudo', ['dpkg', '-i', `${pkgDir}/libmysqlclient-dev_5.5.62-0+deb8u1_amd64.deb`])
+  if (cachedKey == null) {
+    await exec.exec('sudo', [`${process.env.GITHUB_WORKSPACE}/test/script/install_mysql55`])
+    try {
+      await cache.saveCache([filePath], key)
+    }
+    catch (error) {
+      console.log('Failed to save cache' + error.toString())
+    }
+  }
 
   core.endGroup()
-}
-
-// mySQL (and others) must be downgraded for EOL rubies for native extension
-// gems to install correctly and against the right openSSL libraries.
-async function downgradeSystemPackages(rubyVersion) {
-  if (!usesOldOpenSsl(rubyVersion)) { return }
-
-  await downgradeMySQL();
 }
 
 // any settings needed in all Ruby environments from EOL'd rubies to current
@@ -372,7 +373,6 @@ async function saveRubyToCache(rubyVersion) {
 
 // Ensures working, properly configured environment for running test suites.
 async function postBuildSetup(rubyVersion) {
-  await downgradeSystemPackages(rubyVersion)
   await setupRubyEnvironmentAfterBuild(rubyVersion)
   await configureBundleOptions(rubyVersion)
   await showVersions()
@@ -386,6 +386,7 @@ async function setupEnvironment(rubyVersion, dependencyList) {
   await installDependencies('workflow', dependencyList)
   await setupRubyEnvironment(rubyVersion)
   await addRubyToPath(rubyVersion)
+  await installMySQL55(rubyVersion)
 }
 
 async function setupRuby(rubyVersion){
