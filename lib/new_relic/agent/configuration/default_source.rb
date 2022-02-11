@@ -2195,7 +2195,7 @@ module NewRelic
           :description => 'The period during which a target number of transactions should be marked as sampled.'
         },
         :'span_events.enabled' => {
-          :default => true,
+          :default => value_of(:'transaction_events.enabled'),
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
