@@ -165,8 +165,8 @@ module NewRelic
               # we need to evaluate and apply transformations for the value to deal with procs as values
               # this is usually done by the fetch method when accessing config, however the callbacks bypass that
               evaluated_cache = evaluate_and_apply_transformations(key, @cache[key])
-              evaluated_source =evaluate_and_apply_transformations(key, source[key])
-            rescue 
+              evaluated_source = evaluate_and_apply_transformations(key, source[key])
+            rescue
               next
             end
 

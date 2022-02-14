@@ -656,7 +656,7 @@ module NewRelic
           :allowed_from_server => true,
           :description => deprecated_description(:'event_report_period.transaction_event_data', 'Number of seconds betwixt connections to the New Relic transaction event collection services.')
         },
-        :'event_report_period.transaction_event_data' => { 
+        :'event_report_period.transaction_event_data' => {
           :default => value_of(:'event_report_period.analytic_event_data'),
           :public => false,
           :type => Integer,
@@ -1560,7 +1560,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :deprecated => true,
-          :allowed_from_server => true, 
+          :allowed_from_server => true,
           :description => deprecated_description(:'transaction_events.enabled', 'If `true`, enables analytics event sampling.')
         },
         :'analytics_events.max_samples_stored' => {
