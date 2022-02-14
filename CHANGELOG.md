@@ -2,6 +2,14 @@
 
   ## v8.5.0
 
+  * **Added updated configuration options for transaction events and deprecate previous configs**
+    This release deprecates and replaces the following configuration options
+    | Deprecated      | Replacement |
+    | ----------- | ----------- |
+    | event_report_period.analytic_event_data | event_report_period.transaction_event_data |
+    | analytics_events.enabled | transaction_events.enabled        |
+    | analytics_events.max_samples_stored | transaction_events.max_samples_stored |
+
   * **Bugfix: Rails 5 + Puma errors in rack "can't add a new key into hash during iteration"**
   
     When using rails 5 with puma, the agent would intermittently cause rack to raise a `RuntimeError: can't add a new key into hash during iteration`. We have identified the source of the error in our instrumentation and corrected the behavior so it no longer interferes with rack. Thanks to @sasharevzin for bringing attention to this error and providing a reproduction of the issue for us to investigate.
