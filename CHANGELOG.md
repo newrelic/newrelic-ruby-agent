@@ -3,7 +3,7 @@
   ## v8.5.0
 
   * **Added updated configuration options for transaction events and deprecate previous configs**
-    This release deprecates and replaces the following configuration options
+    This release deprecates and replaces the following configuration options:
     | Deprecated      | Replacement |
     | ----------- | ----------- |
     | event_report_period.analytic_event_data | event_report_period.transaction_event_data |
