@@ -26,11 +26,11 @@ common: &default_settings
 # All of the following configuration options are optional. Review them, and
 # uncomment or edit them if they appear relevant to your application needs.
 
-# If true, enables analytics event sampling.
-# analytics_events.enabled: true
+# If true, enables transaction event sampling.
+# transaction_events.enabled: true
 
 # Defines the maximum number of request events reported from a single harvest.
-# analytics_events.max_samples_stored: 1200
+# transaction_events.max_samples_stored: 1200
 
 # Prefix of attributes to exclude from all destinations. Allows * as wildcard at
 # end.

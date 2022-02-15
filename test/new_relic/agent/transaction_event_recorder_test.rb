@@ -46,7 +46,7 @@ module NewRelic
       end
 
       def test_normal_events_discarded_in_favor_sampled_events
-        with_config :'analytics_events.max_samples_stored' => 5 do
+        with_config :'transaction_events.max_samples_stored' => 5 do
           5.times { generate_request }
           5.times { |i| generate_request "sampled_#{i}", :priority => rand + 1 }
 
@@ -59,7 +59,7 @@ module NewRelic
       end
 
       def test_sampled_events_not_discarded_in_favor_of_normal_events
-        with_config :'analytics_events.max_samples_stored' => 5 do
+        with_config :'transaction_events.max_samples_stored' => 5 do
           5.times { |i| generate_request "sampled_#{i}", :priority => rand + 1 }
           5.times { generate_request }
 
