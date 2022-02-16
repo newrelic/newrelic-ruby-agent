@@ -21,5 +21,7 @@ DependencyDetection.defer do
     else
       chain_instrument NewRelic::Agent::Instrumentation::Logger
     end
+
+    ::NewRelic::Agent.increment_metric("Supportability/Logging/enabled/Ruby/Logger")
   end
 end

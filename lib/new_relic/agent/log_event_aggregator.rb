@@ -16,19 +16,33 @@ module NewRelic
 
       # Metric keys
       LINES = "Logging/lines".freeze
+      DROPPED_METRIC = "Logging/Forwarding/Dropped".freeze
+      SEEN_METRIC = "Supportability/Logging/Forwarding/Seen".freeze
+      SENT_METRIC = "Supportability/Logging/Forwarding/Sent".freeze
+      METRICS_SUPPORTABILITY_FORMAT = "Supportability/Logging/Metrics/Ruby/%s".freeze
+      FORWARDING_SUPPORTABILITY_FORMAT = "Supportability/Logging/Forwarding/Ruby/%s".freeze
+      DECORATING_SUPPORTABILITY_FORMAT = "Supportability/Logging/LocalDecorating/Ruby/%s".freeze
 
       named :LogEventAggregator
+      buffer_class PrioritySampledBuffer
+
       # TODO use the right value when the collector starts reporting it
       capacity_key :'custom_insights_events.max_samples_stored'
       #capacity_key :'log_sending.max_samples_stored'
       enabled_key :'application_logging.forwarding.enabled'
-      buffer_class PrioritySampledBuffer
+
+      # Config keys
+      OVERALL_ENABLED_KEY = :'application_logging.enabled'
+      METRICS_ENABLED_KEY = :'application_logging.metrics.enabled'
+      FORWARDING_ENABLED_KEY = enabled_keys.first
+      DECORATING_ENABLED_KEY = :'application_logging.local_decorating.enabled'
 
       def initialize(events)
         super(events)
         @counter_lock = Mutex.new
         @seen = 0
         @seen_by_severity = Hash.new(0)
+        register_for_done_configuring(events)
       end
 
       def capacity
@@ -91,6 +105,9 @@ module NewRelic
       # agent payloads, extract the munging here to keep the service focused
       # on the general harvest + transmit instead of the format.
       #
+      # Payload shape matches the publicly documented MELT format.
+      # https://docs.newrelic.com/docs/logs/log-api/introduction-log-api
+      #
       # We have to keep the aggregated payloads in a separate shape, though, to
       # work with the priority sampling buffers
       def self.payload_to_melt_format(data)
@@ -120,13 +137,20 @@ module NewRelic
 
       private
 
-      def register_capacity_callback
-        NewRelic::Agent.config.register_callback(self.class.capacity_key) do |max_samples|
-          NewRelic::Agent.logger.debug "#{self.class.named} max_samples set to #{max_samples}"
-          @lock.synchronize do
-            @buffer.capacity = max_samples
-          end
-        end
+      # We record once-per-connect metrics for enabled/disabled state at the
+      # point we consider the configuration stable (i.e. once we've gotten SSC)
+      def register_for_done_configuring(events)
+        events.subscribe(:server_source_configuration_added) {
+          record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
+          record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
+          record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)
+        }
+      end
+
+      def record_configuration_metric(format, key)
+          state = NewRelic::Agent.config[key]
+          label = state ? "enabled" : "disabled"
+          NewRelic::Agent.increment_metric(format % label)
       end
 
       def after_harvest metadata
@@ -165,9 +189,9 @@ module NewRelic
       def record_supportability_metrics total_count, captured_count, dropped_count
         return unless total_count > 0
 
-        NewRelic::Agent.increment_metric("Supportability/Logging/Customer/Seen", total_count)
-        NewRelic::Agent.increment_metric("Supportability/Logging/Customer/Sent", captured_count)
-        NewRelic::Agent.increment_metric("Supportability/Logging/Customer/Dropped", dropped_count)
+        NewRelic::Agent.increment_metric(DROPPED_METRIC, dropped_count)
+        NewRelic::Agent.increment_metric(SEEN_METRIC, total_count)
+        NewRelic::Agent.increment_metric(SENT_METRIC, captured_count)
       end
     end
   end

@@ -166,7 +166,7 @@ module NewRelic
             "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
             "Supportability/API/recording_web_transaction?",
             "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther",
-          ]
+          ], :ignore_filter => %r{^(Supportability/Logging|Supportability/API)}
         end
 
         def test_segment_can_disable_scoped_metric_recording_with_unscoped_as_frozen_array

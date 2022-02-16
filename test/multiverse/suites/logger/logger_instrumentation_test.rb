@@ -155,9 +155,9 @@ class LoggerInstrumentationTest < Minitest::Test
     assert_metrics_recorded_exclusive({
       "Logging/lines" => {:call_count => count},
       "Logging/lines/#{level}" => {:call_count => count},
-      "Supportability/Logging/Customer/Seen" => {},
-      "Supportability/Logging/Customer/Sent" => {},
-      "Supportability/Logging/Customer/Dropped" => {},
+      "Logging/Forwarding/Dropped" => {},
+      "Supportability/Logging/Forwarding/Seen" => {},
+      "Supportability/Logging/Forwarding/Sent" => {},
     },
     :ignore_filter => %r{^Supportability/API/})
   end

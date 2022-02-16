@@ -14,11 +14,13 @@ module NewRelic::Agent
       @aggregator = NewRelic::Agent.agent.log_event_aggregator
       @aggregator.reset!
 
-      @enabled_config = { ENABLED_KEY => true }
+      @enabled_config = { LogEventAggregator::FORWARDING_ENABLED_KEY => true }
       NewRelic::Agent.config.add_config_for_testing(@enabled_config)
 
       # Callbacks for enabled only happen on SSC addition
       NewRelic::Agent.config.notify_server_source_added
+
+      NewRelic::Agent.instance.stats_engine.reset!
     end
 
     def teardown
@@ -26,7 +28,6 @@ module NewRelic::Agent
     end
 
     CAPACITY_KEY = LogEventAggregator.capacity_key
-    ENABLED_KEY = LogEventAggregator.enabled_keys.first
 
     # Helpers for DataContainerTests
 
@@ -41,6 +42,40 @@ module NewRelic::Agent
     end
 
     include NewRelic::DataContainerTests
+
+    def test_records_enabled_metrics_on_startup
+      with_config(
+        LogEventAggregator::METRICS_ENABLED_KEY => true,
+        LogEventAggregator::FORWARDING_ENABLED_KEY => true,
+        LogEventAggregator::DECORATING_ENABLED_KEY => true) do
+
+        NewRelic::Agent.config.notify_server_source_added
+
+        assert_metrics_recorded_exclusive({
+          "Supportability/Logging/Metrics/Ruby/enabled" => { :call_count => 1 },
+          "Supportability/Logging/Forwarding/Ruby/enabled" => { :call_count => 1 },
+          "Supportability/Logging/LocalDecorating/Ruby/enabled" => { :call_count => 1 },
+        },
+        :ignore_filter => %r{^Supportability/API/})
+      end
+    end
+
+    def test_records_disabled_metrics_on_startup
+      with_config(
+        LogEventAggregator::METRICS_ENABLED_KEY => false,
+        LogEventAggregator::FORWARDING_ENABLED_KEY => false,
+        LogEventAggregator::DECORATING_ENABLED_KEY => false) do
+
+        NewRelic::Agent.config.notify_server_source_added
+
+        assert_metrics_recorded_exclusive({
+          "Supportability/Logging/Metrics/Ruby/disabled" => { :call_count => 1 },
+          "Supportability/Logging/Forwarding/Ruby/disabled" => { :call_count => 1 },
+          "Supportability/Logging/LocalDecorating/Ruby/disabled" => { :call_count => 1 },
+        },
+        :ignore_filter => %r{^Supportability/API/})
+      end
+    end
 
     def test_record_by_default_limit
       max_samples = NewRelic::Agent.config[CAPACITY_KEY]
@@ -169,18 +204,15 @@ module NewRelic::Agent
 
     def test_records_metrics_on_harvest
       with_config CAPACITY_KEY => 5 do
-        engine = NewRelic::Agent.instance.stats_engine
-        engine.reset!
-
         9.times { @aggregator.record("Are you counting this?", "DEBUG") }
         @aggregator.harvest!
 
         assert_metrics_recorded_exclusive({
           "Logging/lines" => { :call_count => 9 },
           "Logging/lines/DEBUG" => { :call_count => 9 },
-          "Supportability/Logging/Customer/Seen" => { :call_count => 9 },
-          "Supportability/Logging/Customer/Sent" => { :call_count => 5 },
-          "Supportability/Logging/Customer/Dropped" => { :call_count => 4 },
+          "Logging/Forwarding/Dropped" => { :call_count => 4 },
+          "Supportability/Logging/Forwarding/Seen" => { :call_count => 9 },
+          "Supportability/Logging/Forwarding/Sent" => { :call_count => 5 },
         },
         :ignore_filter => %r{^Supportability/API/})
       end
