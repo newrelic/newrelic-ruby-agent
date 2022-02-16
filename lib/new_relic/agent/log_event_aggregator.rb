@@ -21,7 +21,7 @@ module NewRelic
       # TODO use the right value when the collector starts reporting it
       capacity_key :'custom_insights_events.max_samples_stored'
       #capacity_key :'log_sending.max_samples_stored'
-      enabled_key :'log_sending.enabled'
+      enabled_key :'application_logging.forwarding.enabled'
       buffer_class PrioritySampledBuffer
 
       def initialize(events)
