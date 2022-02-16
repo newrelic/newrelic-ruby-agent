@@ -8,40 +8,15 @@ require 'new_relic/agent/log_priority'
 
 module NewRelic::Agent
   class LogPriorityTest < Minitest::Test
-    def test_severities_only
-      assert_equal 0, LogPriority.priority_for("DEBUG")
-      assert_equal 1, LogPriority.priority_for("INFO")
-      assert_equal 2, LogPriority.priority_for("WARN")
-      assert_equal 3, LogPriority.priority_for("ERROR")
-      assert_equal 4, LogPriority.priority_for("FATAL")
-      assert_equal 5, LogPriority.priority_for("UNKNOWN")
-
-      assert_equal 0, LogPriority.priority_for("BUNK")
-      assert_equal 0, LogPriority.priority_for(nil)
-    end
-
-    def test_severity_in_transaction
+    def test_uses_transaction_if_its_there
       txn = in_transaction do |txn|
-        txn.sampled = false
-        assert_equal 11, LogPriority.priority_for("INFO", txn)
+        assert_equal txn.priority, LogPriority.priority_for(txn)
       end
     end
 
-    def test_severity_in_error_transaction
-      txn = in_transaction do |txn|
-        txn.sampled = false
-        txn.notice_error("Boo")
-      end
-
-      assert_equal 21, LogPriority.priority_for("INFO", txn)
-    end
-
-    def test_severity_in_sampled_transaction
-      txn = in_transaction do |txn|
-        txn.sampled = true
-      end
-
-      assert_equal 111, LogPriority.priority_for("INFO", txn)
+    def test_random_value_if_no_transction
+      LogPriority.stubs(:rand).returns(0.1)
+      assert_equal 0.1, LogPriority.priority_for(nil)
     end
   end
 end

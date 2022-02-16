@@ -10,21 +10,10 @@ module NewRelic
     module LogPriority
       extend self
 
-      SEVERITIES = Logger::Severity.constants.inject({}) do |memo, sev|
-        memo[sev.to_s] = Logger::Severity.const_get(sev)
-        memo
-      end
+      def priority_for(txn)
+        return txn.priority if txn
 
-      TRANSACTION_BONUS = 10
-      TRANSACTION_ERROR_BONUS = 10
-      TRANSACTION_SAMPLE_BONUS = 100
-
-      def priority_for(severity, txn = nil)
-        priority = SEVERITIES[severity.to_s] || 0
-        priority += TRANSACTION_BONUS if txn
-        priority += TRANSACTION_ERROR_BONUS if txn && txn.payload && txn.payload[:error]
-        priority += TRANSACTION_SAMPLE_BONUS if txn && txn.sampled?
-        priority
+        rand.round(NewRelic::PRIORITY_PRECISION)
       end
     end
   end

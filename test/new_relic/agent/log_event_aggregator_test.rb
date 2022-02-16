@@ -127,15 +127,16 @@ module NewRelic::Agent
       end
     end
 
-    def test_record_in_transaction_prioritizes_error_transactions
+    def test_record_in_transaction_prioritizes
       # There can be only one
       with_config(CAPACITY_KEY => 1) do
         in_transaction do |txn|
+          txn.priority = 0.5
           @aggregator.record("Deadly", "FATAL")
         end
 
         in_transaction do |txn|
-          txn.notice_error("Oops")
+          txn.priority = 0.9
           @aggregator.record("Buggy", "DEBUG")
         end
 
@@ -144,14 +145,17 @@ module NewRelic::Agent
         assert_equal(2, metadata[:events_seen])
         assert_equal(1, metadata[:reservoir_size])
         assert_equal(1, results.size)
-        assert_equal("Buggy", results.first.last["message"], "Favor errored")
+        assert_equal("Buggy", results.first.last["message"])
       end
     end
 
-    def test_record_in_transaction_prioritizes_severity_when_all_else_fails
+    def test_record_without_transaction_randomizes
       # There can be only one
       with_config(CAPACITY_KEY => 1) do
+        LogPriority.stubs(:rand).returns(0.9)
         @aggregator.record("Buggy", "DEBUG")
+
+        LogPriority.stubs(:rand).returns(0.1)
         @aggregator.record("Deadly", "FATAL")
 
         metadata, results = @aggregator.harvest!
@@ -159,7 +163,7 @@ module NewRelic::Agent
         assert_equal(2, metadata[:events_seen])
         assert_equal(1, metadata[:reservoir_size])
         assert_equal(1, results.size)
-        assert_equal("Deadly", results.first.last["message"], "Favor errored")
+        assert_equal("Buggy", results.first.last["message"])
       end
     end
 
@@ -189,17 +193,12 @@ module NewRelic::Agent
       assert_equal(1, events.size)
       event = events.first
 
-      assert_equal([
-        {
-          'priority' => 1,
-        },
-        {
+      assert_equal({
           'level' => "INFO",
           'message' => message,
           'timestamp' => t0,
-        }
-      ],
-      event)
+        },
+        event.last)
     end
 
     def test_records_metrics_on_harvest

@@ -13,6 +13,7 @@ module NewRelic
       LEVEL_KEY = "level".freeze
       MESSAGE_KEY = "message".freeze
       TIMESTAMP_KEY = "timestamp".freeze
+      PRIORITY_KEY = "priority".freeze
 
       # Metric keys
       LINES = "Logging/lines".freeze
@@ -57,9 +58,9 @@ module NewRelic
 
         return unless enabled?
 
-        priority = LogPriority.priority_for(severity)
-
         txn = NewRelic::Agent::Transaction.tl_current
+        priority = LogPriority.priority_for(txn)
+
         if txn
           return txn.add_log_event(create_event(priority, formatted_message, severity))
         else
@@ -74,9 +75,10 @@ module NewRelic
       end
 
       def record_batch txn, logs
-        # Capture our finalized priority
+        # Ensure we have the same shared priority
+        priority = LogPriority.priority_for(txn)
         logs.each do |log|
-          log.first["priority"] = LogPriority.priority_for(log.last["level"], txn)
+          log.first[PRIORITY_KEY] = priority
         end
 
         @lock.synchronize do
