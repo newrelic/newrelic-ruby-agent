@@ -90,7 +90,7 @@ module NewRelic
         event = LinkingMetadata.append_trace_linking_metadata({
           LEVEL_KEY => severity,
           MESSAGE_KEY => formatted_message,
-          TIMESTAMP_KEY => Process.clock_gettime(Process::CLOCK_REALTIME)
+          TIMESTAMP_KEY => Process.clock_gettime(Process::CLOCK_REALTIME) * 1000
         })
 
         [

@@ -180,7 +180,7 @@ module NewRelic::Agent
     end
 
     def test_record_adds_timestamp
-      t0 = Process.clock_gettime(Process::CLOCK_REALTIME)
+      t0 = Process.clock_gettime(Process::CLOCK_REALTIME) * 1000
       message = "Time keeps slippin' away"
       @aggregator.record(message, "INFO")
 

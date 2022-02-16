@@ -66,7 +66,7 @@ module MarshallingTestCases
     event[0].delete("priority")
 
     assert_equal "Transaction", event[0]["type"]
-    assert_equal t0.to_f, event[0]["timestamp"]
+    assert_equal t0, event[0]["timestamp"]
     assert_equal "TestTransaction/do_it", event[0]["name"]
     assert_equal 0.0, event[0]["duration"]
     assert_equal false, event[0]["error"]
@@ -154,7 +154,9 @@ module MarshallingTestCases
   end
 
   def test_sends_log_events
-    t0 = nr_freeze_process_time
+    # Standard with other agents on millis, not seconds
+    t0 = nr_freeze_process_time.to_f * 1000
+
     message = "A deadly message"
     severity = "FATAL"
 
