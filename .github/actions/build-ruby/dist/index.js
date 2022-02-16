@@ -20,7 +20,7 @@ const cache = __nccwpck_require__(7799)
 const io = __nccwpck_require__(7436)
 
 let aptUpdated = false; // only `sudo apt-get update` once!
-let bundlerVersion = '1.17.3';
+const bundlerVersion = '1.17.3';
 
 
 // removes trailing newlines and linefeeds from the given text string

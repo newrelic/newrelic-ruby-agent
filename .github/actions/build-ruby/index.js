@@ -13,7 +13,7 @@ const cache = require('@actions/cache')
 const io = require('@actions/io')
 
 let aptUpdated = false; // only `sudo apt-get update` once!
-let bundlerVersion = '1.17.3';
+const bundlerVersion = '1.17.3';
 
 
 // removes trailing newlines and linefeeds from the given text string

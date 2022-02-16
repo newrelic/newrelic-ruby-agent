@@ -1,6 +1,6 @@
 if RUBY_VERSION >= '2.7.0'
   gemfile <<-RB
-    gem 'rails', '~> 7.0.0'
+    gem 'rails', '~> 7.0.2'
     gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'minitest', '5.2.3'
