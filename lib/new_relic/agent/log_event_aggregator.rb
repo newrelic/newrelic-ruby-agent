@@ -43,6 +43,7 @@ module NewRelic
         @counter_lock = Mutex.new
         @seen = 0
         @seen_by_severity = Hash.new(0)
+        @high_security = NewRelic::Agent.config[:high_security]
         register_for_done_configuring(events)
       end
 
@@ -57,6 +58,7 @@ module NewRelic
         end
 
         return unless enabled?
+        return if @high_security
 
         txn = NewRelic::Agent::Transaction.tl_current
         priority = LogPriority.priority_for(txn)
@@ -142,11 +144,13 @@ module NewRelic
       # We record once-per-connect metrics for enabled/disabled state at the
       # point we consider the configuration stable (i.e. once we've gotten SSC)
       def register_for_done_configuring(events)
-        events.subscribe(:server_source_configuration_added) {
+        events.subscribe(:server_source_configuration_added) do
+          @high_security = NewRelic::Agent.config[:high_security]
+
           record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)
-        }
+        end
       end
 
       def record_configuration_metric(format, key)

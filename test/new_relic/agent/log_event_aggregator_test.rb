@@ -217,6 +217,29 @@ module NewRelic::Agent
       end
     end
 
+    def test_high_security_mode
+      with_config CAPACITY_KEY => 5, :high_security => true do
+
+        # We refresh the high security setting on this notification
+        NewRelic::Agent.config.notify_server_source_added
+
+        9.times { @aggregator.record("Are you counting this?", "DEBUG") }
+        _, items = @aggregator.harvest!
+
+        # Never aggregate logs
+        assert_empty items
+
+        # We are fine to count them, though....
+        assert_metrics_recorded_exclusive({
+          "Logging/lines" => { :call_count => 9 },
+          "Logging/lines/DEBUG" => { :call_count => 9 },
+          "Supportability/Logging/Metrics/Ruby/disabled" => { :call_count => 1 },
+          "Supportability/Logging/Forwarding/Ruby/enabled" => { :call_count => 1 },
+          "Supportability/Logging/LocalDecorating/Ruby/disabled" => { :call_count => 1 }
+        },
+        :ignore_filter => %r{^Supportability/API/})
+      end
+    end
 
     def test_basic_conversion_to_melt_format
       LinkingMetadata.stubs(:append_service_linking_metadata).returns({
