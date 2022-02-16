@@ -940,8 +940,9 @@ Performance/ArraySemiInfiniteRangeSlice:
 Performance/BigDecimalWithNumericArgument:
   Enabled: true
 
+# Disabled for support of older ruby versions
 Performance/BindCall:
-  Enabled: true
+  Enabled: false
 
 # Disabling for now
 Performance/BlockGivenWithExplicitBlock:
@@ -1136,9 +1137,9 @@ Style/Alias:
 Style/AndOr:
   Enabled: false
 
+# Disabled for support of older ruby versions
 Style/ArgumentsForwarding:
-  Enabled: true
-  AllowOnlyRestArgument: true
+  Enabled: false
 
 Style/ArrayCoercion:
   Enabled: false
@@ -1766,8 +1767,9 @@ Style/SingleLineMethods:
   Enabled: false
   # AllowIfMethodIsEmpty: false
 
+# Disabled for support of older ruby versions
 Style/SlicingWithRange:
-  Enabled: true
+  Enabled: false
 
 Style/SoleNestedConditional:
   Enabled: false
