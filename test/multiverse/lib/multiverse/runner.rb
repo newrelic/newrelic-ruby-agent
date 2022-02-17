@@ -147,7 +147,7 @@ module Multiverse
         # the directory is one of the suites included in one of the non-rest groups passed in
         (keys.include?("rest") && !GROUPS.values.flatten.include?(dir)) || (combined_groups.any? && combined_groups.include?(dir))
       else
-        dir.include?(filter)
+        dir.eql?(filter)
       end
     end
   end
