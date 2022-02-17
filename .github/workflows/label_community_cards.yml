@@ -8,10 +8,6 @@ jobs:
   Check_contributor_handle:
     runs-on: ubuntu-latest
     steps:
-      - name: View issue information
-        run: |
-          echo "Issue title: ${{ github.event.issue.title }}"
-          echo "Issue body: ${{ github.event.issue.body }}"
       - name: Label community issue
         uses: actions/github-script@v5
         with:
