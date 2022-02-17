@@ -4,6 +4,20 @@ These instructions will guide you through the process of setting up Docker for
 use with developing the New Relic Ruby Agent. The use of Docker containers can
 provide for a consistent experience free from machine specific issues.
 
+## Quick Start
+
+```shell
+# unit tests (Ruby only)
+$ docker build -t rpm .
+$ docker run --rm rpm
+
+# or
+
+# functional tests (MySQL, PostgreSQL, Redis, etc.)
+$ docker-compose up
+$ docker-compose exec app bundle exec rake test:all
+```
+
 
 ## Install Docker
 
@@ -14,7 +28,7 @@ If you are using on macOS and using [Homebrew](https://brew.sh/), Docker can be
 installed as a cask via:
 
 ```shell
-$ brew cask install docker
+$ brew install --cask docker
 ```
 
 and then launched via the `/Applications/Docker.app` launcher that is installed.
@@ -40,27 +54,35 @@ Docker Compose and the project `docker-compose.yml` file will be needed to
 run functional tests which involve communicating with data systems such as
 PostgreSQL and Redis.
 
-To only run the unit tests using `Dockerfile` by itself, first change
+To run the unit tests using `Dockerfile` by itself, first change
 directories to the root of the project, then build an image, and
 finally run a container from the image:
 
 ```shell
 $ cd /path/to/project/git/clone
-$ docker build -t newrelic/newrelic-ruby-agent-tester .
-$ docker run -it newrelic/newrelic-ruby-agent-tester
+$ docker build -t rpm .
+$ docker run --rm rpm
 ```
 
-* `build -t <TAG>` applies a tag to the image during building
+The `Dockerfile` specifies a default Ruby version to test with. To override this
+version, pass the `ruby_version` build arg like so when building the image:
+
+```shell
+docker build --build-arg ruby_version=2.7 .
+```
+
+**Legend:**
+* `build -t <TAG>` applies a tag to the image during building.
 * `.` indicates "here" and tells Docker that the `Dockerfile` file can be found
   in the current directory
-* `run -it` tells Docker to run interactively (`i`) and with a pseudo TTY (`t`)
+* `run --rm` tells Docker to remove the container after the tests complete.
 
 
-## Using Docker Compose (for functional tests and dev involving services)
+## Using Docker Compose (for functional tests and developing with services)
 
 Docker Compose launches multiple containers simultaneously to support the
 running of the functional tests that require a variety of data handling
-server applications such as PosgreSQL, Redis, memcached, etc. Each one of
+server applications such as PostgreSQL, Redis, memcached, etc. Each one of
 these server applications uses its own container and then there's a Ruby
 container (referred to as the "app" container) that runs the Minitest tests
 while connecting to the other containers.
@@ -70,6 +92,15 @@ containers with Docker Compose:
 
 ```shell
 $ docker-compose up
+```
+
+By default, `docker-compose` will use the default Ruby version specified in the
+`Dockerfile` file. To override this version with a custom desired version, set
+the `RUBY_VERSION` environment variable before calling `docker-compose`,
+like so:
+
+```shell
+RUBY_VERSION=3.0 docker-compose up
 ```
 
 In a separate shell session (probably in a separate terminal split, tab, or
@@ -117,6 +148,13 @@ ran after the `docker-compose up` process has been stopped. All relevant
 containers and images can then be optionally discarded using the `docker` CLI
 commands described in the previous paragraph.
 
+Use `docker ps -a` to show a list of all containers. Pass a container id to
+`docker rm` (ex: `docker rm 5c15ee2f1c4f`) to remove it.
+
+Use `docker images` to show a list of all images. Typically, you'll want to
+keep these images if you plan on running Docker with them again in the future.
+If you are done with them, you can pass an image id to `docker rmi` to remove
+an image (ex: `docker rmi 4253856b2570`).
 
 ## Questions, Feature Requests, Contributions, etc.
 

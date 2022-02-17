@@ -1,61 +1,60 @@
 version: "3.9"
 services:
   mysql:
-    image: mysql:8.0.27
-    command: --default-authentication-plugin=mysql_native_password
+    image: mysql:5.7
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: mysql_root_password
-      MYSQL_USER: root
       MYSQL_DATABASE: app
-    ports:
-      - "33061:3306"
+    expose:
+      - "3306"
     volumes:
       - mysql:/var/lib/mysql
-    logging:
-      driver: none
   rabbitmq:
     image: rabbitmq:3.9.12
     restart: always
     environment:
       RABBITMQ_NODENAME: rabbit
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-      - "25672:25672"
-      - "4369:4369"
+    expose:
+      - "5672"
+      - "15672"
+      - "25672"
+      - "4369"
   memcached:
     image: memcached:1.6.12
     restart: always
-    ports:
-      - "11211:11211"
+    expose:
+      - "11211"
   mongodb:
     image: mongo:5.0.4
     restart: always
     volumes:
       - /data/db
-    ports:
-      - "27017:27017"
+    expose:
+      - "27017"
   postgres:
-    image: postgres:14.1
+    image: postgres:14.2
     restart: always
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: postgres_password
     volumes:
-      - ./backups:/home/backups
-    ports:
-      - "5432:5432"
+      - postgres:/var/lib/postgresql/data
+    expose:
+      - "5432"
   redis:
     image: redis:6.2.6
     restart: always
     volumes:
       - /var/lib/redis
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
   app:
-    build: .
-    image: newrelic/newrelic-ruby-agent-tester
+    build:
+      context: .
+      args:
+        - ruby_version=${RUBY_VERSION}
+    image: rpm
     tty: true
     stdin_open: true
     environment:
@@ -63,19 +62,12 @@ services:
       MYSQL_PASSWORD: mysql_root_password
       DATABASE_NAME: app
       MYSQL_HOST: mysql
+      POSTGRES_USERNAME: admin
+      POSTGRES_PASSWORD: postgres_password
     command: ["irb"]
     volumes:
       - ".:/usr/src/app"
-    ports:
-      - "3000:3000"
     depends_on:
-      - mysql
-      - memcached
-      - mongodb
-      - postgres
-      - rabbitmq
-      - redis
-    links:
       - mysql
       - memcached
       - mongodb
@@ -88,4 +80,6 @@ volumes:
   mongodb:
     driver: local
   mysql:
+    driver: local
+  postgres:
     driver: local
