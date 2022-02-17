@@ -59,9 +59,13 @@ module NewRelic
           end
         end
 
+        def token_prehook
+        end
+
         private
 
         def request_metadata
+          token_prehook
           Timeout.timeout 1 do
             response = nil
             Net::HTTP.start endpoint.host, endpoint.port do |http|
