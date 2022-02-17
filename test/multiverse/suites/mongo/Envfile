@@ -4,27 +4,28 @@ require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "he
 # We have tests to assert unsupported versions of MongoDB,
 # hence the reason they appear in this list
 # newer versions of mongo support 2.3+
-if RUBY_VERSION >= '2.3.0'
-  mongo_versions = [ '2.17.0' ]
-  unless RUBY_PLATFORM.eql?('java')
-    mongo_versions += [
-      '2.15.1',
-      '2.14.0',
-      '2.12.0',
-      '2.9.0',
-      '2.7.0',
-      '2.5.0',
-      '2.4.0',
-      '2.1.0',
-      '2.0.0',
-      '1.10.0',
-      ['1.9.2', 2.6],
-      ['1.8.6', 2.6],
-      '1.7.1'
-    ]
-  end
+mongo_versions = []
+if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.5.0')
+  mongo_versions += [ '2.17.0' ]
+end
+if RUBY_VERSION >= '2.3.0' && !RUBY_PLATFORM.eql?('java')
+  mongo_versions += [
+    '2.15.1',
+    '2.14.0',
+    '2.12.0',
+    '2.9.0',
+    '2.7.0',
+    '2.5.0',
+    '2.4.0',
+    '2.1.0',
+    '2.0.0',
+    '1.10.0',
+    ['1.9.2', 2.6],
+    ['1.8.6', 2.6],
+    '1.7.1'
+  ]
 else
-  mongo_versions = [
+  mongo_versions += [
     '2.9.0',
     '2.7.0',
     '2.5.0',
