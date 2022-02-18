@@ -17,6 +17,10 @@ module NewRelic
           key_transforms :to_sym
         end
 
+        class LambdaVendor < Vendor
+          headers "river" => -> { "phoenix".upcase }
+        end
+
         def setup
           @vendor = ExampleVendor.new
         end
@@ -36,6 +40,10 @@ module NewRelic
         def test_has_headers
           expected = {"meta" => "yes"}
           assert_equal expected, @vendor.headers
+        end
+
+        def test_headers_with_lambda_values
+          assert_equal "PHOENIX", LambdaVendor.new.headers["river"]
         end
 
         def test_assigns_expected_keys

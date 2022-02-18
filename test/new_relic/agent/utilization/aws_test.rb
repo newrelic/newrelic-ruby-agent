@@ -65,6 +65,13 @@ module NewRelic
           refute_metrics_recorded "Supportability/utilization/aws/error"
         end
 
+        def test_that_the_headers_lambda_is_processed_properly
+          phony_imds_token = 'And with a token bird I made'
+          mock_response = mock(code: '200', body: phony_imds_token)
+          Net::HTTP.any_instance.stubs(:send_request).returns(mock_response)
+          assert_equal @vendor.headers, "X-aws-ec2-metadata-token" => phony_imds_token
+        end
+
         # ---
 
         def aws_fixture_path
