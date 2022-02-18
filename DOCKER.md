@@ -8,8 +8,8 @@ provide for a consistent experience free from machine specific issues.
 
 ```shell
 # unit tests (Ruby only)
-$ docker build -t rpm .
-$ docker run --rm rpm
+$ docker build -t newrelic_rpm .
+$ docker run --rm newrelic_rpm
 
 # or
 
@@ -60,8 +60,8 @@ finally run a container from the image:
 
 ```shell
 $ cd /path/to/project/git/clone
-$ docker build -t rpm .
-$ docker run --rm rpm
+$ docker build -t newrelic_rpm .
+$ docker run --rm newrelic_rpm
 ```
 
 The `Dockerfile` specifies a default Ruby version to test with. To override this
@@ -76,6 +76,7 @@ docker build --build-arg ruby_version=2.7 .
 * `.` indicates "here" and tells Docker that the `Dockerfile` file can be found
   in the current directory
 * `run --rm` tells Docker to remove the container after the tests complete.
+* `--build-arg ruby_version=<RUBY VERSION>` specifies that a given Ruby version should be used (use MAJOR.MINOR or optionally MAJOR.MINOR.PATCH)
 
 
 ## Using Docker Compose (for functional tests and developing with services)

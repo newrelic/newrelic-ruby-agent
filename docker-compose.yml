@@ -54,7 +54,7 @@ services:
       context: .
       args:
         - ruby_version=${RUBY_VERSION}
-    image: rpm
+    image: newrelic_rpm
     tty: true
     stdin_open: true
     environment:
