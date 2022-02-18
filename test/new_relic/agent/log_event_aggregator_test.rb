@@ -243,7 +243,8 @@ module NewRelic::Agent
 
     def test_basic_conversion_to_melt_format
       LinkingMetadata.stubs(:append_service_linking_metadata).returns({
-        "entity.name": "Hola"
+        "entity.guid" => "GUID",
+        "entity.name" => "Hola",
       })
 
       log_data = [
@@ -258,7 +259,7 @@ module NewRelic::Agent
 
       payload, size = LogEventAggregator.payload_to_melt_format(log_data)
       expected = [{
-        common: { attributes: { "entity.name": "Hola" } },
+        common: { attributes: { "entity.guid" => "GUID" } },
         logs: [{"message": "This is a mess"}]
       }]
 

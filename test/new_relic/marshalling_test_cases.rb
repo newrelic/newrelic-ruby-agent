@@ -171,9 +171,11 @@ module MarshallingTestCases
     assert_equal 1, result.length
 
     common = result.first.common["attributes"]
-    refute_nil common["entity.name"]
-    refute_nil common["entity.type"]
     refute_nil common["hostname"]
+
+    # Excluding these explicitly vs classic logs-in-context to save space
+    assert_nil common["entity.name"]
+    assert_nil common["entity.type"]
 
     logs = result.first.logs
     refute_empty logs

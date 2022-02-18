@@ -26,8 +26,8 @@ class LogEventsTest < Minitest::Test
     assert_equal span_id, last_log["span.id"]
 
     common = last_logs_common
-    assert_equal "test", common["attributes"]["entity.name"]
-    assert_equal "SERVICE", common["attributes"]["entity.type"]
+    assert_equal nil, common["attributes"]["entity.name"]
+    assert_equal nil, common["attributes"]["entity.type"]
     assert_equal NewRelic::Agent::Hostname.get, common["attributes"]["hostname"]
   end
 
@@ -44,8 +44,8 @@ class LogEventsTest < Minitest::Test
     assert_equal nil, last_log["span.id"]
 
     common = last_logs_common
-    assert_equal "test", common["attributes"]["entity.name"]
-    assert_equal "SERVICE", common["attributes"]["entity.type"]
+    assert_equal nil, common["attributes"]["entity.name"]
+    assert_equal nil, common["attributes"]["entity.type"]
     assert_equal NewRelic::Agent::Hostname.get, common["attributes"]["hostname"]
   end
 

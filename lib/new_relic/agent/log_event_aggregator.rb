@@ -117,6 +117,11 @@ module NewRelic
       def self.payload_to_melt_format(data)
         common_attributes = LinkingMetadata.append_service_linking_metadata({})
 
+        # To save on unnecessary data transmission, trim the name and type
+        # that were sent by classic logs-in-context
+        common_attributes.delete(ENTITY_NAME_KEY)
+        common_attributes.delete(ENTITY_TYPE_KEY)
+
         _, items = data
         payload = [{
           common: { attributes: common_attributes },
