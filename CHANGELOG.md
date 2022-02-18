@@ -2,6 +2,10 @@
 
   ## v8.5.0
 
+  * **AWS: Support IMDSv2 by using a token with metadata API calls**
+
+    When querying AWS for instance metadata, use IMDSv2 which involves the acquisition and usage of a token with metadata API endpoint calls
+
   * **Added updated configuration options for transaction events and deprecate previous configs**
     This release deprecates and replaces the following configuration options
     | Deprecated      | Replacement |
