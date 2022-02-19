@@ -30,6 +30,8 @@ module NewRelic
           end
 
           def processed_headers
+            return unless @headers
+
             @headers.each_with_object({}) { |(k,v), n| n[k] = v.class.eql?(Proc) ? v.call : v }
           end
         end

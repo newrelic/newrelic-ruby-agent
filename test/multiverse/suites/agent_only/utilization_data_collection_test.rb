@@ -39,7 +39,8 @@ class UtilizationDataCollectionTest < Minitest::Test
     fixture = File.read File.join(aws_fixture_path, "valid.json")
 
     with_fake_metadata_service do |service|
-      service.set_response_for_path('/2016-09-02/dynamic/instance-identity/document', fixture)
+      NewRelic::Agent::Utilization::AWS.stubs(:imds_token).returns('J.R.R.')
+      service.set_response_for_path('/latest/dynamic/instance-identity/document', fixture)
 
       # this will trigger the agent to connect and send utilization data
       setup_agent

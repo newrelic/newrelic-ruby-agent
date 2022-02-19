@@ -17,12 +17,13 @@ module NewRelic
             uri = URI.parse("#{IMDS_BASE_URL}/api/token")
             http = Net::HTTP.new(uri.hostname)
             response = http.send_request('PUT',
-                                        uri.path,
-                                        '',
-                                        { 'X-aws-ec2-metadata-token-ttl-seconds' => IMDS_TOKEN_TTL_SECS })
+              uri.path,
+              '',
+              {'X-aws-ec2-metadata-token-ttl-seconds' => IMDS_TOKEN_TTL_SECS})
             unless response.code == Vendor::SUCCESS
-              raise 'Failed to obtain an AWS token for use with IMDS - encountered ' \
-                    "#{response.class} with HTTP response code #{response.code}"
+              NewRelic::Agent.logger.error 'Failed to obtain an AWS token for use with IMDS - encountered ' \
+                                           "#{response.class} with HTTP response code #{response.code}"
+              return
             end
 
             response.body
