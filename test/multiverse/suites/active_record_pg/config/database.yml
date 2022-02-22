@@ -7,7 +7,7 @@ default: &default
     end %>
   encoding: unicode
   pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-  host: localhost
+  host: <%= File.exist?('/.dockerenv') ? 'postgres' : 'localhost' %>
   username: <%= ENV.fetch("POSTGRES_USERNAME", "") %>
   password: <%= ENV.fetch("POSTGRES_PASSWORD", "") %>
   database: <%= ENV.fetch("DATABASE_NAME", "rails_blog") %>
