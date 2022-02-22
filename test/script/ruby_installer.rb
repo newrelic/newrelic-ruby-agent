@@ -4,7 +4,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'yaml'
-require_relative '../helpers/ruby_rails_mappings.rb'
+require_relative '../helpers/ruby_rails_mappings'
 
 # RubyInstall - via rbenv, install all rubies involved with the continuous integration process
 class RubyInstaller
@@ -46,7 +46,7 @@ class RubyInstaller
 
   def restore_ruby_version_file
     if @original_ruby_version
-      File.write(RUBY_VERSION_FILE, @original_ruby_version) 
+      File.write(RUBY_VERSION_FILE, @original_ruby_version)
     else
       File.unlink(RUBY_VERSION_FILE)
     end

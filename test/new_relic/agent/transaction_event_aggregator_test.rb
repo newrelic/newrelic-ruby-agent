@@ -66,7 +66,7 @@ module NewRelic
       def test_block_is_not_executed_unless_buffer_admits_event
         event = nil
 
-        with_config :'analytics_events.max_samples_stored' => 5 do
+        with_config :'transaction_events.max_samples_stored' => 5 do
           5.times { generate_request }
 
           payload = generate_payload
