@@ -14,7 +14,7 @@
   
     When using rails 5 with puma, the agent would intermittently cause rack to raise a `RuntimeError: can't add a new key into hash during iteration`. We have identified the source of the error in our instrumentation and corrected the behavior so it no longer interferes with rack. Thanks to @sasharevzin for bringing attention to this error and providing a reproduction of the issue for us to investigate.
 
-  * **Eliminated warnings for redefined constants in ParamaterFiltering**
+  * **Eliminated warnings for redefined constants in ParameterFiltering**
 
     Fixed the ParameterFiltering constant definitions so that they are not redefined on multiple reloads of the module. Thank you to @TonyArra for bringing this issue to our attention.
 
