@@ -32,6 +32,11 @@ module NewRelic
         end
 
         def format_message_with_tracing(severity, datetime, progname, msg)
+          ### DEBUG
+          if severity == 'ERROR'
+            puts "\n\n\n\n\n\n\n\n\nDEBUG BACKTRACE:\n#{caller.join("\n")}\n\n\n\n\n\n\n\n\n\n\n\n\n\n"
+          end
+
           formatted_message = yield
           return formatted_message if skip_instrumenting?
 
