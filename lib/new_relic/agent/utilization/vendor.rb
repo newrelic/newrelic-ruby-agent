@@ -18,7 +18,7 @@ module NewRelic
           end
 
           def headers headers = nil
-            @headers = headers
+            headers ? @headers = headers.freeze : processed_headers
           end
 
           def keys keys = nil
@@ -29,20 +29,10 @@ module NewRelic
             key_transforms ? @key_transforms = Array(key_transforms).freeze : @key_transforms
           end
 
-          def process_headers
+          def processed_headers
             return unless @headers
 
-            processed = @headers.each_with_object({}) do |(key, value), hash|
-              if value.class.eql?(Proc)
-                processed_value = value.call
-                return [nil, false] unless process_value
-
-                hash[key] = processed_value
-              end
-
-              hash[key] = value
-            end
-            [processed, true]
+            @headers.each_with_object({}) { |(k, v), n| n[k] = v.class.eql?(Proc) ? v.call || :error : v }
           end
         end
 
@@ -78,8 +68,8 @@ module NewRelic
         private
 
         def request_metadata
-          processed_headers, success = process_headers
-          raise unless success
+          processed_headers = headers
+          raise if headers.values.include?(:error)
 
           Timeout.timeout 1 do
             response = nil
