@@ -11,11 +11,15 @@ module NewRelic
         IMDS_BASE_URL = 'http://169.254.169.254/latest'.freeze
         IMDS_KEYS = %w[instanceId instanceType availabilityZone].freeze
         IMDS_TOKEN_TTL_SECS = '60'.freeze
+        TOKEN_OPEN_TIMEOUT_SECS = 1.freeze
+        TOKEN_READ_TIMEOUT_SECS = 1.freeze
 
         class << self
           def imds_token
             uri = URI.parse("#{IMDS_BASE_URL}/api/token")
             http = Net::HTTP.new(uri.hostname)
+            http.open_timeout = TOKEN_OPEN_TIMEOUT_SECS
+            http.read_timeout = TOKEN_READ_TIMEOUT_SECS
             response = http.send_request('PUT',
               uri.path,
               '',
@@ -27,6 +31,8 @@ module NewRelic
             end
 
             response.body
+          rescue Net::OpenTimeout
+            NewRelic::Agent.logger.debug 'Timed out waiting for AWS IMDS'
           end
         end
 
