@@ -18,7 +18,7 @@ module NewRelic
           end
 
           def headers headers = nil
-            headers ? @headers = headers.freeze : @headers
+            headers ? @headers = headers.freeze : processed_headers
           end
 
           def keys keys = nil
@@ -27,6 +27,16 @@ module NewRelic
 
           def key_transforms key_transforms = nil
             key_transforms ? @key_transforms = Array(key_transforms).freeze : @key_transforms
+          end
+
+          def processed_headers
+            return unless @headers
+
+            @headers.each_with_object({}) do |(key, value), processed_hash|
+              # Header lambdas are expected to return string values. If nil comes back, replace it with :error
+              # to signify that the call failed.
+              processed_hash[key] = value.class.eql?(Proc) ? value.call || :error : value
+            end
           end
         end
 
@@ -62,10 +72,13 @@ module NewRelic
         private
 
         def request_metadata
+          processed_headers = headers
+          raise if processed_headers.values.include?(:error)
+
           Timeout.timeout 1 do
             response = nil
             Net::HTTP.start endpoint.host, endpoint.port do |http|
-              req = Net::HTTP::Get.new endpoint, headers
+              req = Net::HTTP::Get.new endpoint, processed_headers
               response = http.request req
             end
             response

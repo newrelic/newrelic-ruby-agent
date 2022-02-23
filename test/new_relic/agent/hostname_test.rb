@@ -44,15 +44,13 @@ module NewRelic
       end
 
       def test_shortens_to_prefix_if_using_dyno_names_and_matches
-        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true,
-                                     :'heroku.dyno_name_prefixes_to_shorten' => ['Imladris']) do
+        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true, :'heroku.dyno_name_prefixes_to_shorten' => ['Imladris']) do
           assert_equal 'Imladris.*', NewRelic::Agent::Hostname.get
         end
       end
 
       def test_does_not_shorten_if_not_using_dyno_names
-        with_dyno_name('Imladris', :'heroku.use_dyno_names' => false,
-                                   :'heroku.dyno_name_prefixes_to_shorten' => ['Rivendell']) do
+        with_dyno_name('Imladris', :'heroku.use_dyno_names' => false, :'heroku.dyno_name_prefixes_to_shorten' => ['Rivendell']) do
           Socket.stubs(:gethostname).returns('Rivendell.1')
           assert_equal 'Rivendell.1', NewRelic::Agent::Hostname.get
         end
@@ -67,29 +65,25 @@ module NewRelic
       end
 
       def test_shortens_to_prefixes_from_string
-        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true,
-                                     :'heroku.dyno_name_prefixes_to_shorten' => 'Imladris') do
+        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true, :'heroku.dyno_name_prefixes_to_shorten' => 'Imladris') do
           assert_equal 'Imladris.*', NewRelic::Agent::Hostname.get
         end
       end
 
       def test_shortens_to_prefixes_from_string_allows_csv
-        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true,
-                                     :'heroku.dyno_name_prefixes_to_shorten' => 'Rivendell,Imladris') do
+        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true, :'heroku.dyno_name_prefixes_to_shorten' => 'Rivendell,Imladris') do
           assert_equal 'Imladris.*', NewRelic::Agent::Hostname.get
         end
       end
 
       def test_shortens_to_prefixes_with_empty_string
-        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true,
-                                     :'heroku.dyno_name_prefixes_to_shorten' => '') do
+        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true, :'heroku.dyno_name_prefixes_to_shorten' => '') do
           assert_equal 'Imladris.1', NewRelic::Agent::Hostname.get
         end
       end
 
       def test_shortens_to_prefixes_with_unsupported_object
-        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true,
-                                     :'heroku.dyno_name_prefixes_to_shorten' => Object.new) do
+        with_dyno_name('Imladris.1', :'heroku.use_dyno_names' => true, :'heroku.dyno_name_prefixes_to_shorten' => Object.new) do
           expects_logging(:error, includes('heroku.dyno_name_prefixes_to_shorten'), instance_of(ArgumentError))
           assert_equal 'Imladris.1', NewRelic::Agent::Hostname.get
         end

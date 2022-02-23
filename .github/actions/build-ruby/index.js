@@ -13,6 +13,7 @@ const cache = require('@actions/cache')
 const io = require('@actions/io')
 
 let aptUpdated = false; // only `sudo apt-get update` once!
+const bundlerVersion = '1.17.3';
 
 
 // removes trailing newlines and linefeeds from the given text string
@@ -323,26 +324,12 @@ async function gemInstall(name, version = undefined, binPath = undefined) {
   await exec.exec('gem', options)
 }
 
-// install Bundler 1.17.3 (or thereabouts)
-// Ruby 2.6 is first major Ruby to ship with bundle, but it also ships
-// with incompatible 1.17.2 version that must be upgraded to 1.17.3
-// for some test environments/suites to function correctly.
+// make sure that the desired Bundler version is available (in addition to any
+// other Bundler version that is already installed)
 async function installBundler(rubyVersion) {
   core.startGroup(`Install bundler`)
-
   const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
-
-  if (!fs.existsSync(`${rubyBinPath}/bundle`)) {
-    await gemInstall('bundler', '~> 1.17.3', rubyBinPath)
-  }
-  else {
-    await execute('bundle --version').then(res => { bundleVersionStr = res; });
-    if (bundleVersionStr.match(/1\.17\.2/)) {
-     core.info(`found bundle ${bundleVersionStr}.  Upgrading to 1.17.3`)
-     await gemInstall('bundler', '~> 1.17.3', rubyBinPath)
-    }
-  }
-
+  await gemInstall('bundler', bundlerVersion, rubyBinPath)
   core.endGroup()
 }
 
@@ -351,7 +338,7 @@ function rubyCachePaths(rubyVersion) {
 }
 
 function rubyCacheKey(rubyVersion) {
-  return `v10-ruby-cache-${rubyVersion}`
+  return `v11-ruby-cache-${rubyVersion}`
 }
 
 // will attempt to restore the previously built Ruby environment if one exists.
