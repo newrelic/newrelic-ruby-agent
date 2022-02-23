@@ -32,7 +32,11 @@ module NewRelic
           def processed_headers
             return unless @headers
 
-            @headers.each_with_object({}) { |(k, v), n| n[k] = v.class.eql?(Proc) ? v.call || :error : v }
+            @headers.each_with_object({}) do |(key, value), processed_hash|
+              # Header lambdas are expected to return string values. If nil comes back, replace it with :error
+              # to signify that the call failed.
+              processed_hash[key] = value.class.eql?(Proc) ? value.call || :error : value
+            end
           end
         end
 
