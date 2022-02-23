@@ -6,6 +6,10 @@
 
     When querying AWS for instance metadata, include a token in the request headers. If an AWS user configures instances to require a token, the agent will now work. For instances that do not require the inclusion of a token, the agent will continue to work in that context as well.
 
+  * **JRuby 9.3.3.0 test updates (and tests only - older agent versions are compatible)**
+
+    Update unit tests to test the agent and all supported frameworks against JRuby version 9.3.3.0
+
   * **Added updated configuration options for transaction events and deprecate previous configs**
     This release deprecates and replaces the following configuration options
     | Deprecated      | Replacement |
@@ -15,7 +19,7 @@
     | analytics_events.max_samples_stored | transaction_events.max_samples_stored |
 
   * **Bugfix: Rails 5 + Puma errors in rack "can't add a new key into hash during iteration"**
-  
+
     When using rails 5 with puma, the agent would intermittently cause rack to raise a `RuntimeError: can't add a new key into hash during iteration`. We have identified the source of the error in our instrumentation and corrected the behavior so it no longer interferes with rack. Thanks to @sasharevzin for bringing attention to this error and providing a reproduction of the issue for us to investigate.
 
   * **Eliminated warnings for redefined constants in ParameterFiltering**

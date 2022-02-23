@@ -28,16 +28,9 @@ def ruby3_compatible? sidekiq_version
   sidekiq_version.split(" ")[-1].to_i > 4
 end
 
-# skip Sidekiq 3.5.3 on JRuby due to an error in Sidekiq's shutdown:
-# https://github.com/mperham/sidekiq/issues/2703
-def jruby_compatible? sidekiq_version
-  sidekiq_version != "~> 3.5.3"
-end
-
 SIDEKIQ_VERSIONS.each do |sidekiq_version, timers_version|
   next if RUBY_VERSION < "3.0.0" && !ruby2_compatible?(sidekiq_version)
-  next if RUBY_VERSION >= "3.0.0" && !ruby3_compatible?(sidekiq_version)
-  next if RUBY_PLATFORM == "java" && !jruby_compatible?(sidekiq_version)
+  next if (RUBY_VERSION >= "3.0.0" || RUBY_PLATFORM == "java") && !ruby3_compatible?(sidekiq_version)
 
   # use specified version when declared
   gem_timers = timers_version ? "gem 'timers', '#{timers_version}'" : ""

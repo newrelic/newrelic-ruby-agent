@@ -1,41 +1,48 @@
 require File.expand_path(File.join(File.dirname(__FILE__), "..", "..", "..", "helpers", "docker"))
 
-# Versions <= 1.7.1 are not supported and never will be.
-# We have tests to assert unsupported versions of MongoDB,
-# hence the reason they appear in this list
-# newer versions of mongo support 2.3+
-if RUBY_VERSION >= '2.3.0'
-  mongo_versions = [
-    '2.15.1',
-    '2.14.0',
-    '2.12.0',
-    '2.9.0',
-    '2.7.0',
-    '2.5.0',
-    '2.4.0',
-    '2.1.0',
-    '2.0.0',
-    '1.10.0',
-    ['1.9.2', 2.6],
-    ['1.8.6', 2.6],
-    '1.7.1'
-  ]
-else
-  mongo_versions = [
-    '2.9.0',
-    '2.7.0',
-    '2.5.0',
-    '2.4.0',
-    '2.1.0',
-    '2.0.0',
-    '1.10.0',
-    ['1.9.2', 2.6],
-    ['1.8.6', 2.6],
-    '1.7.1'
-  ]
+# Mongo gem versions <= 1.7.1 are not supported and never will be.
+# We have tests to assert unsupported versions of MongoDB, hence the reason they
+# appear in these lists
+
+# Mongo versions to test with Ruby 2.6+
+MONGO_VERSIONS_RUBY26 = ['2.17.0']
+
+# Mongo versions to test with Ruby 2.5+
+MONGO_VERSIONS_RUBY25 = ['2.15.1',
+                         '2.14.0',
+                         '2.12.0']
+
+# Mongo versions to test with all CRubies
+MONGO_VERSIONS_ALL_RUBIES = ['2.9.0',
+                             '2.7.0',
+                             '2.5.0',
+                             '2.4.0',
+                             '2.1.0',
+                             '2.0.0',
+                             '1.10.0',
+                             ['1.9.2', 2.6],
+                             ['1.8.6', 2.6],
+                             '1.7.1']
+
+# Include bson_ext for older Mongo gem versions <= 1.10.0
+BSON_EXT_NEEDED_BEFORE_VERSION = Gem::Version::new("1.10.0")
+
+# * JRuby uses Mongo gem versions for v2.6.0+ Ruby only
+# * Newer CRubies use newer Mongo gem versions and older ones
+# * Older CRubies use older Mongo gem versions
+def mongo_versions
+  versions = []
+  versions += MONGO_VERSIONS_RUBY26 if ruby_gte?('2.6.0')
+  return versions if RUBY_PLATFORM.eql?('java')
+
+  versions += MONGO_VERSIONS_RUBY25 if ruby_gte?('2.5.0')
+  versions += MONGO_VERSIONS_ALL_RUBIES
+  versions
 end
 
-bson_ext_needed_before_version = Gem::Version::new("1.10.0")
+def ruby_gte?(version)
+  Gem::Version.new(RUBY_VERSION) >= Gem::Version.new(version)
+end
 
 def installed_mongo_server_version
   @mongo_server_version ||= docker? ? 5.0 : `mongo --version`.scan(/version\sv([\d\.]+)/).join.to_f
@@ -50,7 +57,8 @@ mongo_versions.each do |mongo_version|
     mongo_version = mongo_version[0]
   end
 
-  if Gem::Version.new(mongo_version) < bson_ext_needed_before_version
+
+  if Gem::Version.new(mongo_version) < BSON_EXT_NEEDED_BEFORE_VERSION
     gemfile <<-RB
       gem 'mongo', '~>#{mongo_version}'
       gem 'bson', '< 4.8'
@@ -58,12 +66,12 @@ mongo_versions.each do |mongo_version|
     RB
   elsif Gem::Version.new(mongo_version) >= Gem::Version.new("2.12.0")
     gemfile <<-RB
-      gem 'mongo', '~>#{mongo_version}'
+      gem 'mongo', '~> #{mongo_version}'
       gem 'bson', '~> 4.8'
     RB
   else
     gemfile <<-RB
-      gem 'mongo', '~>#{mongo_version}'
+      gem 'mongo', '~> #{mongo_version}'
       gem 'bson', '< 4.8'
     RB
   end

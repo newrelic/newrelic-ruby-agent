@@ -5,7 +5,7 @@ instrumentation_methods :chain, :prepend
 if RUBY_VERSION < '2.7.0'
   # NOTE: this config (padrino = 0.14.0) will break if you have a local bundler version other than 1.17.3.
   # The github CI handles the bundler version correctly, so tests should pass on github CI.
-  gemfile <<-RB
+  gemfile <<-RB unless RUBY_PLATFORM.eql?('java')
     gem 'activesupport', '~> 3'
     gem 'padrino', '~> 0.14.0'
     gem 'rack-test', '#{rack_test_version}', :require => 'rack/test'

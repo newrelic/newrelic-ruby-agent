@@ -1,23 +1,25 @@
 if RUBY_VERSION >= '2.7.0'
   gemfile <<-RB
     gem 'rails', '~> 7.0.2'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'minitest', '5.2.3'
+    gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
   RB
 end
 
 if RUBY_VERSION >= '2.5.0'
   gemfile <<-RB
     gem 'rails', '~> 6.1.0'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'minitest', '5.2.3'
+    gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
   RB
 
   gemfile <<-RB
     gem 'rails', '~> 6.0.0'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'minitest', '5.2.3'
   RB
@@ -26,21 +28,22 @@ end
 if RUBY_VERSION >= '2.2.2' && RUBY_VERSION < '3.0.0'
   gemfile <<-RB
     gem 'rails', '~> 5.2.0'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'minitest', '5.2.3'
+    gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
   RB
 
   gemfile <<-RB
     gem 'rails', '~> 5.1.0'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'minitest', '5.2.3'
   RB
 
   gemfile <<-RB
     gem 'rails', '~> 5.0.0'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'minitest', '5.2.3'
   RB
@@ -49,7 +52,7 @@ end
 if RUBY_VERSION < '2.4.0'
   gemfile <<-RB
     gem 'rails', '~> 4.2.0'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'minitest', '5.2.3'
     gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
@@ -61,7 +64,7 @@ if RUBY_VERSION < '2.4.0'
     gem 'rails', '~> 4.1.0'
     # Multiverse has an incompatibility with Minitest 5.3.0, so lock here for
     # now
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'minitest', '5.2.3'
     gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
@@ -70,7 +73,7 @@ if RUBY_VERSION < '2.4.0'
 
   gemfile <<-RB
     gem 'rails', '~> 4.0.0'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'newrelic_prepender', path: File.expand_path('../newrelic_prepender', __FILE__)
     gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
     gem 'thor', '< 0.20.1' if RUBY_PLATFORM == 'java' # unpredictable thor errors
