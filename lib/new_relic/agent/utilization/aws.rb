@@ -25,14 +25,15 @@ module NewRelic
               '',
               {'X-aws-ec2-metadata-token-ttl-seconds' => IMDS_TOKEN_TTL_SECS})
             unless response.code == Vendor::SUCCESS
-              NewRelic::Agent.logger.error 'Failed to obtain an AWS token for use with IMDS - encountered ' \
-                                           "#{response.class} with HTTP response code #{response.code}"
+              NewRelic::Agent.logger.debug 'Failed to obtain an AWS token for use with IMDS - encountered ' \
+                                           "#{response.class} with HTTP response code #{response.code} - " \
+                                           'assuming non AWS'
               return
             end
 
             response.body
           rescue Net::OpenTimeout
-            NewRelic::Agent.logger.debug 'Timed out waiting for AWS IMDS'
+            NewRelic::Agent.logger.debug 'Timed out waiting for AWS IMDS - assuming non AWS'
           end
         end
 
