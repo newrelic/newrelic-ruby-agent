@@ -22,7 +22,7 @@ module NewRelic
       # we get back empty string.  So, solution here is to check for non-zero
       # exit status and retry the command without the -f flag.
       def self.get_fqdn
-        fqdn = %x(hostname -f).chomp!
+        fqdn = %x(hostname -f 2>/dev/null).chomp!
         fqdn = %x(hostname).chomp! unless $?.exitstatus.zero?
         fqdn
       rescue => e
