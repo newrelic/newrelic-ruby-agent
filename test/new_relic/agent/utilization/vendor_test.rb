@@ -11,7 +11,7 @@ module NewRelic
       class VendorTest < Minitest::Test
         class ExampleVendor < Vendor
           vendor_name "example"
-          endpoint "http://http://169.254.169.254/metadata"
+          endpoint "http://169.254.169.254/metadata"
           headers "meta" => "yes"
           keys ["vm_type", "vm_id", "vm_zone"]
           key_transforms :to_sym
@@ -34,7 +34,7 @@ module NewRelic
         end
 
         def test_has_endpoint
-          assert_equal URI("http://http://169.254.169.254/metadata"), @vendor.endpoint
+          assert_equal URI("http://169.254.169.254/metadata"), @vendor.endpoint
         end
 
         def test_has_headers
