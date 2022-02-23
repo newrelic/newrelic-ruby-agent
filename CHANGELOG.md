@@ -2,6 +2,10 @@
 
   ## v8.5.0
 
+  * **AWS: Support IMDSv2 by using a token with metadata API calls**
+
+    When querying AWS for instance metadata, include a token in the request headers. If an AWS user configures instances to require a token, the agent will now work. For instances that do not require the inclusion of a token, the agent will continue to work in that context as well.
+
   * **Added updated configuration options for transaction events and deprecate previous configs**
     This release deprecates and replaces the following configuration options
     | Deprecated      | Replacement |

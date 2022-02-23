@@ -11,10 +11,14 @@ module NewRelic
       class VendorTest < Minitest::Test
         class ExampleVendor < Vendor
           vendor_name "example"
-          endpoint "http://http://169.254.169.254/metadata"
+          endpoint "http://169.254.169.254/metadata"
           headers "meta" => "yes"
           keys ["vm_type", "vm_id", "vm_zone"]
           key_transforms :to_sym
+        end
+
+        class LambdaVendor < Vendor
+          headers "river" => -> { "phoenix".upcase }
         end
 
         def setup
@@ -30,12 +34,16 @@ module NewRelic
         end
 
         def test_has_endpoint
-          assert_equal URI("http://http://169.254.169.254/metadata"), @vendor.endpoint
+          assert_equal URI("http://169.254.169.254/metadata"), @vendor.endpoint
         end
 
         def test_has_headers
           expected = {"meta" => "yes"}
           assert_equal expected, @vendor.headers
+        end
+
+        def test_headers_with_lambda_values
+          assert_equal "PHOENIX", LambdaVendor.new.headers["river"]
         end
 
         def test_assigns_expected_keys
