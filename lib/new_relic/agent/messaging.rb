@@ -316,8 +316,7 @@ module NewRelic
           queue_name: queue_name,
           exchange_type: exchange_type,
           headers: message_properties[:headers],
-          correlation_id: message_properties[:correlation_id],
-                                                &block
+          correlation_id: message_properties[:correlation_id], &block
       end
 
       private
