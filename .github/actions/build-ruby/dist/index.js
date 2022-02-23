@@ -336,7 +336,12 @@ async function gemInstall(name, version = undefined, binPath = undefined) {
 async function installBundler(rubyVersion) {
   core.startGroup(`Install bundler`)
   const rubyBinPath = `${rubyPath(rubyVersion)}/bin`
-  await gemInstall('bundler', bundlerVersion, rubyBinPath)
+  await execute('bundle --version').then(res => { bundleVersionStr = res; });
+  if (bundleVersionStr.match(bundlerVersion) {
+    core.info(`Bundler ${bundleVersionStr} already installed.`)
+  } else {
+    await gemInstall('bundler', bundlerVersion, rubyBinPath, true)
+  }
   core.endGroup()
 }
 
