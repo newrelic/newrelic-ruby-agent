@@ -295,6 +295,7 @@ module NewRelic::Agent
 
     def stub_aws_info response_code: '200', response_body: default_aws_response
       stubbed_response = stub(code: response_code, body: response_body)
+      Utilization::AWS.stubs(:imds_token).returns('Alan Lee')
       Utilization::AWS.any_instance.stubs(:request_metadata).returns(stubbed_response)
     end
 

@@ -10,7 +10,19 @@ on:
     - cron:  '0 9 * * *'
 
 jobs:
+  run-rubocop:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+      - run: bundle
+      - run: rubocop
+
   build-ruby:
+    needs: run-rubocop
     runs-on: ubuntu-20.04
     strategy:
       matrix:

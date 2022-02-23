@@ -273,8 +273,8 @@ module NewRelic
           scoped_metric, unscoped_metrics = _nr_scoped_unscoped_metrics(metric_name, method_name, push_scope: options[:push_scope])
 
           _nr_define_traced_method(method_name, scoped_metric: scoped_metric, unscoped_metrics: unscoped_metrics,
-                                   code_header: options[:code_header], code_footer: options[:code_footer],
-                                   record_metrics: options[:metric], visibility: visibility)
+            code_header: options[:code_header], code_footer: options[:code_footer],
+            record_metrics: options[:metric], visibility: visibility)
 
           prepend(_nr_traced_method_module)
 

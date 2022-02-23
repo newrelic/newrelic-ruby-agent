@@ -2,6 +2,10 @@
 
   ## v8.5.0
 
+  * **AWS: Support IMDSv2 by using a token with metadata API calls**
+
+    When querying AWS for instance metadata, include a token in the request headers. If an AWS user configures instances to require a token, the agent will now work. For instances that do not require the inclusion of a token, the agent will continue to work in that context as well.
+
   * **JRuby 9.3.3.0 test updates (and tests only - older agent versions are compatible)**
 
     Update unit tests to test the agent and all supported frameworks against JRuby version 9.3.3.0

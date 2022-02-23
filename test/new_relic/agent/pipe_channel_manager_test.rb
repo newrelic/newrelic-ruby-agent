@@ -80,8 +80,8 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
     def test_listener_merges_error_traces
       sampler = NewRelic::Agent.agent.error_collector
       sampler.notice_error(Exception.new("message"), :uri => '/myurl/',
-                           :metric => 'path', :referer => 'test_referer',
-                           :request_params => {:x => 'y'})
+        :metric => 'path', :referer => 'test_referer',
+        :request_params => {:x => 'y'})
       NewRelic::Agent.agent.merge_data_for_endpoint(:error_data, sampler.error_trace_aggregator.harvest!)
 
       errors = NewRelic::Agent.agent.error_collector.error_trace_aggregator.instance_variable_get :@errors
@@ -93,8 +93,8 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         NewRelic::Agent.after_fork
         new_sampler = NewRelic::Agent::ErrorCollector.new NewRelic::Agent.instance.events
         new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
-                                 :metric => 'path', :referer => 'test_referer',
-                                 :request_params => {:x => 'y'})
+          :metric => 'path', :referer => 'test_referer',
+          :request_params => {:x => 'y'})
         service = NewRelic::Agent::PipeService.new(668)
         service.error_data(new_sampler.error_trace_aggregator.harvest!)
       end
@@ -132,8 +132,8 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
 
       sampler = NewRelic::Agent.agent.error_collector
       sampler.notice_error(Exception.new("message"), :uri => '/myurl/',
-                           :metric => 'path', :referer => 'test_referer',
-                           :request_params => {:x => 'y'})
+        :metric => 'path', :referer => 'test_referer',
+        :request_params => {:x => 'y'})
 
       start_listener_with_pipe(668)
 
@@ -141,8 +141,8 @@ class NewRelic::Agent::PipeChannelManagerTest < Minitest::Test
         NewRelic::Agent.after_fork
         new_sampler = NewRelic::Agent::ErrorCollector.new NewRelic::Agent.instance.events
         new_sampler.notice_error(Exception.new("new message"), :uri => '/myurl/',
-                                 :metric => 'path', :referer => 'test_referer',
-                                 :request_params => {:x => 'y'})
+          :metric => 'path', :referer => 'test_referer',
+          :request_params => {:x => 'y'})
         service = NewRelic::Agent::PipeService.new(668)
         service.error_event_data(new_sampler.error_event_aggregator.harvest!)
       end
