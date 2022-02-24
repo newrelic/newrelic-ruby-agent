@@ -112,6 +112,10 @@ parser = OptionParser.new do |opts|
     options[:tags] ||= {}
     options[:tags][key] = value
   end
+
+  opts.on("-M", "--markdown", "Format the tabular output in Markdown") do
+    options[:markdown] = true
+  end
 end
 parser.parse!
 

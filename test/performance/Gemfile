@@ -1,9 +1,10 @@
 source 'https://rubygems.org'
 
 gem 'newrelic_rpm', :path => '../../..'
-gem 'rack'
-gem 'mocha'
 
-gem 'stackprof'
+gem 'mocha'
 gem 'pry'
 gem 'pry-nav'
+gem 'rack'
+gem 'redis'
+gem 'stackprof'
