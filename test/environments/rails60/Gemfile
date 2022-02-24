@@ -12,6 +12,8 @@ gem 'sprockets', '3.7.2'
 
 platforms :jruby do
   gem "jruby-openssl"
+  gem "activerecord-jdbcmysql-adapter", "~> 60.0"
+  gem "activerecord-jdbcsqlite3-adapter", "~> 60.0"
 end
 
 platforms :ruby, :rbx do

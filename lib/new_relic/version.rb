@@ -5,20 +5,10 @@
 
 module NewRelic
   module VERSION # :nodoc:
-    def self.build_version_string(*parts)
-      parts.compact.join('.')
-    end
-
     MAJOR = 8
-    MINOR = 4
+    MINOR = 5
     TINY = 0
 
-    begin
-      require File.join(File.dirname(__FILE__), 'build')
-    rescue LoadError
-      BUILD = nil
-    end
-
-    STRING = build_version_string(MAJOR, MINOR, TINY, BUILD)
+    STRING = "#{MAJOR}.#{MINOR}.#{TINY}"
   end
 end

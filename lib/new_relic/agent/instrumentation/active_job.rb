@@ -65,8 +65,7 @@ module NewRelic
 
         def self.run_in_transaction(job, block)
           ::NewRelic::Agent::Tracer.in_transaction(name: transaction_name_for_job(job),
-            category: :other,
-                                                   &block)
+            category: :other, &block)
         end
 
         def self.transaction_category

@@ -10,6 +10,16 @@ libraries are incompatible with each other.  Effective testing requires us to
 specify different environments for different tests; Multiverse aims to make this
 painless.
 
+## Testing and developing with Docker
+
+This project includes optional content for leveraging Docker to perform all
+unit and functional tests within containers.
+
+See [DOCKER.md](../../DOCKER.md) for instructions
+on getting started. Once the containers have been started via
+`docker-compose up`, the `docker-compose exec app rake` command can be used
+to replace any `rake` command found in this multiverse specific document.
+
 ## Local development setup
 
 The multiverse suites cover a wide range of data handling software, for
@@ -85,16 +95,18 @@ The first time you run this command on a new Ruby installation, it will take qui
 
 ## Running Specific Tests and Environments
 
-Multiverse tests live in the test/multiverse directory and are organized into 'suites'. Generally speaking, a suite is a group of tests that share a common 3rd-party dependency (or set of dependencies). You can run a specific suite by providing a parameter (which gets loosely matched against suite names)
+Multiverse tests live in the test/multiverse directory and are organized into 'suites'. Generally speaking, a suite is a group of tests that share a common 3rd-party dependency (or set of dependencies). You can run one or more specific suites by providing a comma delimited list of suite names as parameters to the rake task:
 
     rake test:multiverse[agent_only]
+    # or
+    rake test:multiverse[rails,net_http]
 
-You can pass additional parameters to the test:multiverse rake task to control how tests are run:
+You can pass these additional parameters to the test:multiverse rake task to control how tests are run:
 
-- name= only tests with names matching string will be executed
-- env= only the Nth environment will be executed (may be specified multiple times)
-- file= only tests in specified file will be executed
-- debug environments for each suite will be executed in serial rather than parallel (the default), and the pry gem will be automatically included, so that you can use it to help debug tests.
+- `name=` only tests with names matching string will be executed
+- `env=` only the Nth environment will be executed (may be specified multiple times)
+- `file=` only tests in specified file will be executed
+- `debug` environments for each suite will be executed in serial rather than parallel (the default), and the pry gem will be automatically included, so that you can use it to help debug tests.
 
 ```
 rake test:multiverse[agent_only,name=test_resets_event_report_period_on_reconnect,env=0,debug]
@@ -102,7 +114,7 @@ rake test:multiverse[agent_only,name=test_resets_event_report_period_on_reconnec
 
 
 ### Cleanup
-Occasionally, it may be necessary to clean up your environment when migration scripts change or Gemfile lock files get out of sync.  Similar to Rails' rake assets:clobber, multiverse has a clobber task that will drop all multiverse databases in MySQL and remove all Gemfile.* and Gemfile.*.lock files housed under test/multiverse/suites/**
+Occasionally, it may be necessary to clean up your environment when migration scripts change or Gemfile lock files get out of sync.  Similar to Rails' `rake assets:clobber`, multiverse has a clobber task that will drop all multiverse databases in MySQL and remove all Gemfile.* and Gemfile.*.lock files housed under test/multiverse/suites/**
 
     rake test:multiverse:clobber
 

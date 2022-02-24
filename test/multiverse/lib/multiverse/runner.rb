@@ -88,7 +88,7 @@ module Multiverse
       "background" => ["delayed_job", "sidekiq", "resque"],
       "background_2" => ["rake"],
       "database" => ["datamapper", "mongo", "redis", "sequel"],
-      "rails" => ["active_record", "rails", "rails_prepend", "activemerchant"],
+      "rails" => ["active_record", "active_record_pg", "rails", "rails_prepend", "activemerchant"],
       "frameworks" => ["sinatra", "padrino", "grape"],
       "httpclients" => ["curb", "excon", "httpclient"],
       "httpclients_2" => ["typhoeus", "net_http", "httprb"],
@@ -107,6 +107,8 @@ module Multiverse
     end
 
     if RUBY_VERSION >= '3.0'
+      # this suite uses mysql2 which has issues on ruby 3.0+
+      # a new suite, active_record_pg, has been added to run active record tests on ruby 3.0+
       GROUPS['rails'].delete 'active_record'
       GROUPS['frameworks'].delete 'grape'
     end
@@ -145,7 +147,7 @@ module Multiverse
         # the directory is one of the suites included in one of the non-rest groups passed in
         (keys.include?("rest") && !GROUPS.values.flatten.include?(dir)) || (combined_groups.any? && combined_groups.include?(dir))
       else
-        dir.include?(filter)
+        dir.eql?(filter)
       end
     end
   end

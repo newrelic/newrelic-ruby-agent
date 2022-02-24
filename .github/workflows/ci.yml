@@ -10,11 +10,23 @@ on:
     - cron:  '0 9 * * *'
 
 jobs:
+  run-rubocop:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+      - run: bundle
+      - run: rubocop
+
   build-ruby:
-    runs-on: ubuntu-18.04
+    needs: run-rubocop
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.9, 2.7.5, 3.0.3, 3.1.0, jruby-9.2.19.0]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.9, 2.7.5, 3.0.3, 3.1.0, jruby-9.3.3.0]
     steps:
       - uses: actions/checkout@v2
 
@@ -25,11 +37,19 @@ jobs:
 
   unit-tests:
     needs: build-ruby
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        ports:
+          - "3306:3306"
     strategy:
       fail-fast: false
       matrix:
-        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.9, 2.7.5, 3.0.3, 3.1.0, jruby-9.2.19.0]
+        ruby-version: [2.2.10, 2.3.8, 2.4.10, 2.5.9, 2.6.9, 2.7.5, 3.0.3, 3.1.0, jruby-9.3.3.0]
 
     steps:
       - uses: actions/checkout@v2
@@ -69,13 +89,10 @@ jobs:
               "3.1.0": {
                 "rails": "norails,rails61,rails70"
               },
-              "jruby-9.2.19.0": {
-                "rails": "norails,rails51,rails42"
+              "jruby-9.3.3.0": {
+                "rails": "norails,rails61,rails60,rails52,rails51,rails50,rails42"
               }
             }
-
-      - name: Start mysql
-        run: sudo systemctl start mysql
 
       - name: Run Unit Tests
         uses: nick-invision/retry@v1.0.0
@@ -84,13 +101,31 @@ jobs:
           max_attempts: 2
           command:  bundle exec rake test:env[${{ env.rails }}] TESTOPTS="--verbose"
         env:
-          DB_PORT: 3306
-          MYSQL_PASSWORD: root
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
 
   multiverse:
     needs: build-ruby
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: root
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        ports:
+          - 3306
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
       redis:
         image: redis
         ports:
@@ -137,8 +172,8 @@ jobs:
         with:
           ruby-version: ${{ matrix.ruby-version }}
 
-      - name: Start mysql
-        run: sudo systemctl start mysql
+      - name: Test MySQL
+        run: mysql --host 127.0.0.1 --port ${{ job.services.mysql.ports[3306] }} -uroot -proot -e "SHOW GRANTS FOR 'root'@'localhost'"
 
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0
@@ -147,8 +182,13 @@ jobs:
           max_attempts: 2
           command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
         env:
-          DB_PORT: 3306
+          DB_PASSWORD: root
           MYSQL_PASSWORD: root
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_PORT: ${{ job.services.mysql.ports[3306] }}
+          MYSQL_HOST: 127.0.0.1
+          POSTGRES_USERNAME: postgres
+          POSTGRES_PASSWORD: password
 
       - name: Annotate errors
         if: ${{ failure() }}
@@ -156,7 +196,7 @@ jobs:
 
   infinite_tracing:
     needs: build-ruby
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
@@ -184,6 +224,17 @@ jobs:
     needs: build-ruby
     runs-on: ubuntu-18.04
     services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        ports:
+          - "3306:3306"
+      postgres:
+        image: postgres:latest
+        ports:
+          - 5432:5432
       redis:
         image: redis
         ports:
@@ -224,13 +275,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build Ruby jruby-9.2.19.0
+      - name: Build Ruby jruby-9.3.3.0
         uses: ./.github/actions/build-ruby
         with:
-          ruby-version: jruby-9.2.19.0
-
-      - name: Start mysql
-        run: sudo systemctl start mysql
+          ruby-version: jruby-9.3.3.0
 
       - name: Run Multiverse Tests
         uses: nick-invision/retry@v1.0.0
@@ -239,9 +287,9 @@ jobs:
           max_attempts: 2
           command:  bundle exec rake test:multiverse[group=${{ matrix.multiverse }},verbose]
         env:
-          DB_PORT: 3306
-          MYSQL_PASSWORD: root
+          DB_PORT: ${{ job.services.mysql.ports[3306] }}
 
       - name: Annotate errors
         if: ${{ failure() }}
         uses: ./.github/actions/annotate
+

@@ -9,7 +9,7 @@ if defined?(Memcached)
     include MemcacheTestCases
 
     def setup
-      @cache = Memcached.new('localhost', :support_cas => true)
+      @cache = Memcached.new(memcached_host, :support_cas => true)
     end
 
     def simulate_error

@@ -652,8 +652,17 @@ module NewRelic
           :public => false,
           :type => Integer,
           :dynamic_name => true,
+          :deprecated => true,
           :allowed_from_server => true,
-          :description => 'Number of seconds betwixt connections to the New Relic analytic event collection services.'
+          :description => deprecated_description(:'event_report_period.transaction_event_data', 'Number of seconds betwixt connections to the New Relic transaction event collection services.')
+        },
+        :'event_report_period.transaction_event_data' => {
+          :default => value_of(:'event_report_period.analytic_event_data'),
+          :public => false,
+          :type => Integer,
+          :dynamic_name => true,
+          :allowed_from_server => true,
+          :description => 'Number of seconds betwixt connections to the New Relic transaction event collection services.'
         },
         :'event_report_period.custom_event_data' => {
           :default => 60,
@@ -1550,15 +1559,31 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
+          :deprecated => true,
           :allowed_from_server => true,
-          :description => 'If `true`, enables analytics event sampling.'
+          :description => deprecated_description(:'transaction_events.enabled', 'If `true`, enables analytics event sampling.')
         },
         :'analytics_events.max_samples_stored' => {
           :default => 1200,
           :public => true,
           :type => Integer,
+          :deprecated => true,
           :allowed_from_server => true,
-          :description => 'Defines the maximum number of request events reported from a single harvest.'
+          :description => deprecated_description(:'transaction_events.max_samples_stored', 'Defines the maximum number of request events reported from a single harvest.')
+        },
+        :'transaction_events.enabled' => {
+          :default => value_of(:'analytics_events.enabled'),
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => true,
+          :description => 'If `true`, enables transaction event sampling.'
+        },
+        :'transaction_events.max_samples_stored' => {
+          :default => value_of(:'analytics_events.max_samples_stored'),
+          :public => true,
+          :type => Integer,
+          :allowed_from_server => true,
+          :description => 'Defines the maximum number of transaction events reported from a single harvest.'
         },
         :'analytics_events.capture_attributes' => {
           :default => true,

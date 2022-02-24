@@ -2,15 +2,16 @@ if RUBY_VERSION >= '2.7.0'
   # Runs the latest published version of Rails
   gemfile <<-RB
     gem 'rails'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 2.0'
     gem 'minitest', '5.2.3'
+    gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
     #{ruby3_gem_webrick}
   RB
 
   gemfile <<-RB
-    gem 'rails', '~> 7.0.1'
-    gem 'haml', '~>5.0.0'
+    gem 'rails', '~> 7.0.2'
+    gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '2.0.0'
     #{ruby3_gem_webrick}
   RB
@@ -19,9 +20,10 @@ end
 if RUBY_VERSION >= '2.5.0'
   gemfile <<-RB
     gem 'rails', '~> 6.1.0'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 2.0'
     gem 'minitest', '5.2.3'
+    gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
     #{ruby3_gem_webrick}
   RB
 end
@@ -29,30 +31,32 @@ end
 if RUBY_VERSION >= '2.5.0' && RUBY_VERSION < '3.0.0'
   gemfile <<-RB
     gem 'rails', '~> 6.0.0'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 2.0'
     gem 'minitest', '5.2.3'
+    gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
   RB
 end
 
 if RUBY_VERSION >= '2.2.2' && RUBY_VERSION < '3.0.0'
   gemfile <<-RB
     gem 'rails', '~> 5.2.0'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
     gem 'minitest', '5.2.3'
+    gem 'erubis', '~> 2.7.0' if RUBY_PLATFORM.eql?('java')
   RB
 
   gemfile <<-RB
     gem 'rails', '~> 5.1.0'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
     gem 'minitest', '5.2.3'
   RB
 
   gemfile <<-RB
     gem 'rails', '~> 5.0.0'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
     gem 'minitest', '5.2.3'
   RB
@@ -61,7 +65,7 @@ end
 if RUBY_VERSION < '2.4.0'
   gemfile <<-RB
     gem 'rails', '~> 4.2.0'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
     gem 'minitest', '5.2.3'
     gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
@@ -71,7 +75,7 @@ if RUBY_VERSION < '2.4.0'
     gem 'rails', '~> 4.1.0'
     # Multiverse has an incompatibility with Minitest 5.3.0, so lock here for
     # now
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
     gem 'minitest', '5.2.3'
     gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
@@ -79,7 +83,7 @@ if RUBY_VERSION < '2.4.0'
 
   gemfile <<-RB
     gem 'rails', '~> 4.0.0'
-    gem 'haml', '~> 5.0.0'
+    gem 'haml', '~> 5.1.2'
     gem 'haml-rails', '~> 1.0.0'
     gem 'nokogiri', '< 1.7' if RUBY_VERSION < '2.1.0' # nokogiri 1.7.0 only supports >= 2.1.0
   RB
