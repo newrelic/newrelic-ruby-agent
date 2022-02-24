@@ -8,7 +8,7 @@
 
   * **Muffle anticipated stderr warnings for "hostname" calls**
 
-    When using the `hostname` binary to obtain hostname information, redirect STDERR to /dev/null. Thanks very much to @frenkel for raising this issue on behalf of OpenBSD users everywhere and for providing a solution with [PR #965](https://github.com/newrelic/newrelic-ruby-agent/pull/965)
+    When using the `hostname` binary to obtain hostname information, redirect STDERR to /dev/null. Thanks very much to @frenkel for raising this issue on behalf of OpenBSD users everywhere and for providing a solution with [PR #965](https://github.com/newrelic/newrelic-ruby-agent/pull/965).
 
   * **Added updated configuration options for transaction events and deprecated previous configs**
     This release deprecates and replaces the following configuration options:
@@ -18,13 +18,18 @@
     | analytics_events.enabled | transaction_events.enabled        |
     | analytics_events.max_samples_stored | transaction_events.max_samples_stored |
 
-  * **Bugfix: Rails 5 + Puma errors in rack "can't add a new key into hash during iteration"**
-
-    When using rails 5 with puma, the agent would intermittently cause rack to raise a `RuntimeError: can't add a new key into hash during iteration`. We have identified the source of the error in our instrumentation and corrected the behavior so it no longer interferes with rack. Thanks to @sasharevzin for bringing attention to this error and providing a reproduction of the issue for us to investigate.
-
   * **Eliminated warnings for redefined constants in ParameterFiltering**
 
     Fixed the ParameterFiltering constant definitions so that they are not redefined on multiple reloads of the module. Thank you to @TonyArra for bringing this issue to our attention.
+
+  * **Docker for development**
+
+    Docker and Docker Compose may now be used for local development and testing with the provided `Dockerfile` and `docker-compose.yml` files in the project root. See [DOCKER.md](DOCKER.md) for usage instructions.
+
+
+  * **Bugfix: Rails 5 + Puma errors in rack "can't add a new key into hash during iteration"**
+
+    When using rails 5 with puma, the agent would intermittently cause rack to raise a `RuntimeError: can't add a new key into hash during iteration`. We have identified the source of the error in our instrumentation and corrected the behavior so it no longer interferes with rack. Thanks to @sasharevzin for bringing attention to this error and providing a reproduction of the issue for us to investigate.
 
   * **CI: target JRuby 9.3.3.0**
 
@@ -37,10 +42,6 @@
   * **CI: Ubuntu 20.04 LTS**
 
     To stay current and secure, our CI automation is now backed by version 20.04 of Ubuntu's long term support offering (previously 18.04).
-
-  * **Docker for development**
-
-    Docker and Docker Compose may now be used for local development and testing with the provided `Dockerfile` and `docker-compose.yml` files in the project root. See [DOCKER.md](DOCKER.md) for usage instructions.
 
 
   ## v8.4.0
