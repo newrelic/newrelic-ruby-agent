@@ -1017,7 +1017,7 @@ module NewRelic
           :type => String,
           :dynamic_name => true,
           :allowed_from_server => false,
-          :description => 'Controls auto-instrumentation of Tilt at start up.  May be one of [auto|prepend|chain|disabled].'
+          :description => 'Controls auto-instrumentation of the Tilt template rendering library at start up. May be one of [auto|prepend|chain|disabled].'
         },
         :disable_data_mapper => {
           :default => false,
@@ -1390,7 +1390,7 @@ module NewRelic
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
-          :description => 'Defines the maximum number of [TransactionError events](/docs/insights/new-relic-insights/decorating-events/error-event-default-attributes-insights) sent to Insights per harvest cycle.'
+          :description => 'Defines the maximum number of [TransactionError events](/docs/insights/new-relic-insights/decorating-events/error-event-default-attributes-insights) reported per harvest cycle.'
         },
         :'rum.enabled' => {
           :default => true,
@@ -1508,7 +1508,7 @@ module NewRelic
           :deprecated => true,
           :description => deprecated_description(
             :'distributed_tracing-enabled',
-            'If `true`, enables [cross-application tracing](/docs/agents/ruby-agent/features/cross-application-tracing-ruby/)'
+            'If `true`, enables [cross-application tracing](/docs/agents/ruby-agent/features/cross-application-tracing-ruby/) when `distributed_tracing.enabled` is set to `false`.'
           )
         },
         :cross_application_tracing => {
@@ -1833,7 +1833,7 @@ module NewRelic
           :type => Array,
           :allowed_from_server => true,
           :transform => DefaultSource.method(:convert_to_regexp_list),
-          :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore.'
+          :description => 'Define transactions you want the agent to ignore, by specifying a list of patterns matching the URI you want to ignore. See documentation on (ignoring specific transactions)[https://docs.newrelic.com/docs/agents/ruby-agent/api-guides/ignoring-specific-transactions/#config-ignoring] for more details.'
         },
         :'synthetics.traces_limit' => {
           :default => 20,
@@ -1854,14 +1854,14 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => true,
-          :description => 'If `true`, the agent captures [New Relic Insights custom events](/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events-new-relic-apm-agents).'
+          :description => 'If `true`, the agent captures [custom events](/docs/insights/new-relic-insights/adding-querying-data/inserting-custom-events-new-relic-apm-agents).'
         },
         :'custom_insights_events.max_samples_stored' => {
           :default => 1000,
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
-          :description => 'Specify a maximum number of custom Insights events to buffer in memory at a time.',
+          :description => 'Defines the maximum number of span events reported from a single harvest. Any Integer between 1 and 10000 is valid.',
           :dynamic_name => true
         },
         :disable_grape_instrumentation => {
@@ -2056,7 +2056,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `false`, custom attributes will not be sent on Insights events.'
+          :description => 'If `false`, custom attributes will not be sent on events.'
         },
         :'utilization.detect_aws' => {
           :default => true,
