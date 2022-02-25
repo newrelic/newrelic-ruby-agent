@@ -1,5 +1,12 @@
 # New Relic Ruby Agent Release Notes #
 
+  ## v8.6.0
+
+  * **Documentation: remove confusing duplicate RUM entry from newrelic.yml**
+
+    The `browser_monitoring.auto_instrument` configuration option to enable web page load timing (RUM) was confusingly listed twice in the newrelic.yml config file. This option is enabled by default. The newrelic.yml file has been updated to list the option only once. Many thanks to @robotfelix for bringing this to our attention with [Issue #955](https://github.com/newrelic/newrelic-ruby-agent/issues/955)
+
+
   ## v8.5.0
 
   * **AWS: Support IMDSv2 by using a token with metadata API calls**
