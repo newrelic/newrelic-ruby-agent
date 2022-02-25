@@ -24,7 +24,7 @@ namespace :newrelic do
       config_hash = build_config_hash
       sections = flatten_config_hash(config_hash)
 
-      puts build_erb(format).result(binding)
+      puts build_erb(format).result(binding).split("\n").map(&:rstrip).join("\n").gsub('.  ', '. ')
       sections # silences unused warning to return this
     end
 
