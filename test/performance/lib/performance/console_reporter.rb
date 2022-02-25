@@ -16,7 +16,7 @@ module Performance
 
     def report
       report_summary
-      report_successful_results(successes) unless successes.empty?
+      report_successful_results(successes)
       report_failed_results
     end
 

@@ -50,8 +50,9 @@ module Performance
       end
     end
 
-    def initialize(rows, &blk)
+    def initialize(rows, options, &blk)
       @rows = rows
+      @options = options
 
       builder = Builder.new
       builder.instance_eval(&blk)
@@ -76,13 +77,25 @@ module Performance
       "| " + parts.join(" | ") + " |"
     end
 
+    def left_corner
+      @options[:markdown] ? '--' : '+-'
+    end
+
+    def right_corner
+      @options[:markdown] ? '--' : '-+'
+    end
+
+    def delimiter
+      @options[:markdown] ? '-|-' : '-+-'
+    end
+
     def render
       widths = column_widths
 
       blanks = widths.map { |w| "-" * w }
-      top = '+-' + blanks.join('-+-') + '-+'
-      separator = '|-' + blanks.join('-+-') + '-|'
-      bottom = '+-' + blanks.join('-+-') + '-+'
+      top = left_corner + blanks.join(delimiter) + right_corner
+      separator = '|-' + blanks.join(delimiter) + '-|'
+      bottom = left_corner + blanks.join(delimiter) + right_corner
 
       text_rows = []
 
@@ -97,9 +110,14 @@ module Performance
         text_rows << render_row(parts)
       end
 
-      puts top + "\n"
-      puts text_rows.join("\n" + separator + "\n")
-      puts bottom + "\n"
+      if @options[:markdown]
+        text_rows.insert(1, separator)
+        puts text_rows.join("\n")
+      else
+        puts top + "\n"
+        puts text_rows.join("\n" + separator + "\n")
+        puts bottom + "\n"
+      end
     end
   end
 end
