@@ -265,5 +265,17 @@ module NewRelic::Agent
       assert_equal 1, size
       assert_equal expected, payload
     end
+
+    def test_does_not_record_if_message_is_nil
+      @aggregator.record(nil, "DEBUG")
+      _, events = @aggregator.harvest!
+      assert_empty events
+    end
+
+    def test_does_not_record_if_message_empty_string
+      @aggregator.record('', "DEBUG")
+      _, events = @aggregator.harvest!
+      assert_empty events
+    end
   end
 end
