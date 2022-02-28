@@ -1879,6 +1879,13 @@ module NewRelic
           :description  => 'Defines the maximum number of log records to buffer in memory at a time.',
           :dynamic_name => true
         },
+        :'application_logging.metrics.enabled' => {
+          :default      => true,
+          :public       => true,
+          :type         => Boolean,
+          :allowed_from_server => false,
+          :description  => 'If `true`, the agent captures metrics related to logging for this application.'
+        },
         :disable_grape_instrumentation => {
           :default => false,
           :public => false,
