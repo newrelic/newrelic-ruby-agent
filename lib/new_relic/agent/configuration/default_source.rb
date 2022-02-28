@@ -1865,18 +1865,18 @@ module NewRelic
           :dynamic_name => true
         },
         :'application_logging.forwarding.enabled' => {
-          :default => true,
-          :public => true,
-          :type => Boolean,
-          :allowed_from_server => true,
-          :description => 'If `true`, the agent captures log records emitted by your application.'
+          :default      => false,
+          :public       => true,
+          :type         => Boolean,
+          :allowed_from_server => false,
+          :description  => 'If `true`, the agent captures log records emitted by this application.'
         },
         :'application_logging.forwarding.max_samples_stored' => {
-          :default => 2000,
-          :public => true,
-          :type => Integer,
-          :allowed_from_server => true,
-          :description => 'Specify a maximum number of log records to buffer in memory at a time.',
+          :default      => 10000,
+          :public       => true,
+          :type         => Integer,
+          :allowed_from_server => false,
+          :description  => 'Defines the maximum number of log records to buffer in memory at a time.',
           :dynamic_name => true
         },
         :disable_grape_instrumentation => {
