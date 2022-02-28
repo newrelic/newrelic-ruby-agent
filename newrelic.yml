@@ -26,6 +26,15 @@ common: &default_settings
 # All of the following configuration options are optional. Review them, and
 # uncomment or edit them if they appear relevant to your application needs.
 
+# If `true`, the agent captures log records emitted by this application.
+# application_logging.forwarding.enabled: false
+
+# Defines the maximum number of log records to buffer in memory at a time.
+# application_logging.forwarding.max_samples_stored: 10000
+
+# If `true`, the agent captures metrics related to logging for this application.
+# application_logging.metrics.enabled: true
+
 # If true, enables transaction event sampling.
 # transaction_events.enabled: true
 
