@@ -1662,7 +1662,7 @@ module NewRelic::Agent
     def test_limits_batched_logs_during_transaction
       limit = 10
       with_config(LogEventAggregator::enabled_keys.first => true,
-                  LogEventAggregator::capacity_key => limit) do
+        LogEventAggregator::capacity_key => limit) do
         NewRelic::Agent.config.notify_server_source_added
         in_transaction do
           100.times do

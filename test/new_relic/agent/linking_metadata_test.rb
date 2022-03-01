@@ -28,7 +28,7 @@ module NewRelic::Agent
 
       def test_service_metadata_without_guid
         apply_config({
-          :app_name => ["Test app", "Another name"],
+          :app_name => ["Test app", "Another name"]
         })
 
         result = Hash.new
@@ -37,7 +37,7 @@ module NewRelic::Agent
         expected = {
           "entity.name" => "Test app",
           "entity.type" => "SERVICE",
-          "hostname" => "localhost",
+          "hostname" => "localhost"
         }
         assert_equal(expected, result)
       end
@@ -55,7 +55,7 @@ module NewRelic::Agent
           "entity.guid" => "GUID",
           "entity.name" => "Test app",
           "entity.type" => "SERVICE",
-          "hostname" => "localhost",
+          "hostname" => "localhost"
         }
         assert_equal(expected, result)
       end
@@ -81,7 +81,7 @@ module NewRelic::Agent
 
         expected = {
           "trace.id" => "trace_id",
-          "span.id" => "span_id",
+          "span.id" => "span_id"
         }
         assert_equal(expected, result)
       end

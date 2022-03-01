@@ -211,7 +211,7 @@ class AuditLoggerTest < Minitest::Test
       logger.log_request(@uri, @dummy_data, @marshaller)
 
       _, logs = NewRelic::Agent.agent.log_event_aggregator.harvest!
-      audits = logs.select {|log| log.last["message"].include?("REQUEST")}
+      audits = logs.select { |log| log.last["message"].include?("REQUEST") }
 
       assert_empty audits
     end

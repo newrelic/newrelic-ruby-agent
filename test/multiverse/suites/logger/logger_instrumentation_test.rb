@@ -157,8 +157,8 @@ class LoggerInstrumentationTest < Minitest::Test
       "Logging/lines/#{level}" => {:call_count => count},
       "Logging/Forwarding/Dropped" => {},
       "Supportability/Logging/Forwarding/Seen" => {},
-      "Supportability/Logging/Forwarding/Sent" => {},
+      "Supportability/Logging/Forwarding/Sent" => {}
     },
-    :ignore_filter => %r{^Supportability/API/})
+      :ignore_filter => %r{^Supportability/API/})
   end
 end

@@ -14,7 +14,7 @@ module NewRelic::Agent
       @aggregator = NewRelic::Agent.agent.log_event_aggregator
       @aggregator.reset!
 
-      @enabled_config = { LogEventAggregator::FORWARDING_ENABLED_KEY => true }
+      @enabled_config = {LogEventAggregator::FORWARDING_ENABLED_KEY => true}
       NewRelic::Agent.config.add_config_for_testing(@enabled_config)
 
       # Callbacks for enabled only happen on SSC addition
@@ -47,16 +47,16 @@ module NewRelic::Agent
       with_config(
         LogEventAggregator::METRICS_ENABLED_KEY => true,
         LogEventAggregator::FORWARDING_ENABLED_KEY => true,
-        LogEventAggregator::DECORATING_ENABLED_KEY => true) do
-
+        LogEventAggregator::DECORATING_ENABLED_KEY => true
+      ) do
         NewRelic::Agent.config.notify_server_source_added
 
         assert_metrics_recorded_exclusive({
-          "Supportability/Logging/Metrics/Ruby/enabled" => { :call_count => 1 },
-          "Supportability/Logging/Forwarding/Ruby/enabled" => { :call_count => 1 },
-          "Supportability/Logging/LocalDecorating/Ruby/enabled" => { :call_count => 1 },
+          "Supportability/Logging/Metrics/Ruby/enabled" => {:call_count => 1},
+          "Supportability/Logging/Forwarding/Ruby/enabled" => {:call_count => 1},
+          "Supportability/Logging/LocalDecorating/Ruby/enabled" => {:call_count => 1}
         },
-        :ignore_filter => %r{^Supportability/API/})
+          :ignore_filter => %r{^Supportability/API/})
       end
     end
 
@@ -64,16 +64,16 @@ module NewRelic::Agent
       with_config(
         LogEventAggregator::METRICS_ENABLED_KEY => false,
         LogEventAggregator::FORWARDING_ENABLED_KEY => false,
-        LogEventAggregator::DECORATING_ENABLED_KEY => false) do
-
+        LogEventAggregator::DECORATING_ENABLED_KEY => false
+      ) do
         NewRelic::Agent.config.notify_server_source_added
 
         assert_metrics_recorded_exclusive({
-          "Supportability/Logging/Metrics/Ruby/disabled" => { :call_count => 1 },
-          "Supportability/Logging/Forwarding/Ruby/disabled" => { :call_count => 1 },
-          "Supportability/Logging/LocalDecorating/Ruby/disabled" => { :call_count => 1 },
+          "Supportability/Logging/Metrics/Ruby/disabled" => {:call_count => 1},
+          "Supportability/Logging/Forwarding/Ruby/disabled" => {:call_count => 1},
+          "Supportability/Logging/LocalDecorating/Ruby/disabled" => {:call_count => 1}
         },
-        :ignore_filter => %r{^Supportability/API/})
+          :ignore_filter => %r{^Supportability/API/})
       end
     end
 
@@ -194,10 +194,10 @@ module NewRelic::Agent
       event = events.first
 
       assert_equal({
-          'level' => "INFO",
-          'message' => message,
-          'timestamp' => t0,
-        },
+        'level' => "INFO",
+        'message' => message,
+        'timestamp' => t0
+      },
         event.last)
     end
 
@@ -207,19 +207,18 @@ module NewRelic::Agent
         @aggregator.harvest!
 
         assert_metrics_recorded_exclusive({
-          "Logging/lines" => { :call_count => 9 },
-          "Logging/lines/DEBUG" => { :call_count => 9 },
-          "Logging/Forwarding/Dropped" => { :call_count => 4 },
-          "Supportability/Logging/Forwarding/Seen" => { :call_count => 9 },
-          "Supportability/Logging/Forwarding/Sent" => { :call_count => 5 },
+          "Logging/lines" => {:call_count => 9},
+          "Logging/lines/DEBUG" => {:call_count => 9},
+          "Logging/Forwarding/Dropped" => {:call_count => 4},
+          "Supportability/Logging/Forwarding/Seen" => {:call_count => 9},
+          "Supportability/Logging/Forwarding/Sent" => {:call_count => 5}
         },
-        :ignore_filter => %r{^Supportability/API/})
+          :ignore_filter => %r{^Supportability/API/})
       end
     end
 
     def test_high_security_mode
       with_config CAPACITY_KEY => 5, :high_security => true do
-
         # We refresh the high security setting on this notification
         NewRelic::Agent.config.notify_server_source_added
 
@@ -231,20 +230,20 @@ module NewRelic::Agent
 
         # We are fine to count them, though....
         assert_metrics_recorded_exclusive({
-          "Logging/lines" => { :call_count => 9 },
-          "Logging/lines/DEBUG" => { :call_count => 9 },
-          "Supportability/Logging/Metrics/Ruby/disabled" => { :call_count => 1 },
-          "Supportability/Logging/Forwarding/Ruby/enabled" => { :call_count => 1 },
-          "Supportability/Logging/LocalDecorating/Ruby/disabled" => { :call_count => 1 }
+          "Logging/lines" => {:call_count => 9},
+          "Logging/lines/DEBUG" => {:call_count => 9},
+          "Supportability/Logging/Metrics/Ruby/disabled" => {:call_count => 1},
+          "Supportability/Logging/Forwarding/Ruby/enabled" => {:call_count => 1},
+          "Supportability/Logging/LocalDecorating/Ruby/disabled" => {:call_count => 1}
         },
-        :ignore_filter => %r{^Supportability/API/})
+          :ignore_filter => %r{^Supportability/API/})
       end
     end
 
     def test_basic_conversion_to_melt_format
       LinkingMetadata.stubs(:append_service_linking_metadata).returns({
         "entity.guid" => "GUID",
-        "entity.name" => "Hola",
+        "entity.name" => "Hola"
       })
 
       log_data = [
@@ -253,13 +252,13 @@ module NewRelic::Agent
           reservoir_size: 0
         },
         [
-          [{ "priority": 1 }, { "message": "This is a mess" }]
+          [{"priority": 1}, {"message": "This is a mess"}]
         ]
       ]
 
       payload, size = LogEventAggregator.payload_to_melt_format(log_data)
       expected = [{
-        common: { attributes: { "entity.guid" => "GUID" } },
+        common: {attributes: {"entity.guid" => "GUID"}},
         logs: [{"message": "This is a mess"}]
       }]
 

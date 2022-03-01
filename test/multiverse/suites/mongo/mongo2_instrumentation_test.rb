@@ -346,7 +346,7 @@ if NewRelic::Agent::Datastores::Mongo.is_supported_version? &&
               "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allWeb" => {:call_count => 1}
             }
             assert_metrics_recorded_exclusive(expected,
-                                              :ignore_filter => /^(Logging)/)
+              :ignore_filter => /^(Logging)/)
           end
 
           def test_batched_queries_have_node_per_query

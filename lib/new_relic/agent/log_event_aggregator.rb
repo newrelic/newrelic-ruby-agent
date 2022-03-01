@@ -8,7 +8,6 @@ require 'new_relic/agent/log_priority'
 module NewRelic
   module Agent
     class LogEventAggregator < EventAggregator
-
       # Per-message keys
       LEVEL_KEY = "level".freeze
       MESSAGE_KEY = "message".freeze
@@ -29,7 +28,7 @@ module NewRelic
 
       # TODO use the right value when the collector starts reporting it
       capacity_key :'custom_insights_events.max_samples_stored'
-      #capacity_key :'log_sending.max_samples_stored'
+      # capacity_key :'log_sending.max_samples_stored'
       enabled_key :'application_logging.forwarding.enabled'
 
       # Config keys
@@ -124,7 +123,7 @@ module NewRelic
 
         _, items = data
         payload = [{
-          common: { attributes: common_attributes },
+          common: {attributes: common_attributes},
           logs: items.map(&:last)
         }]
 
@@ -159,9 +158,9 @@ module NewRelic
       end
 
       def record_configuration_metric(format, key)
-          state = NewRelic::Agent.config[key]
-          label = state ? "enabled" : "disabled"
-          NewRelic::Agent.increment_metric(format % label)
+        state = NewRelic::Agent.config[key]
+        label = state ? "enabled" : "disabled"
+        NewRelic::Agent.increment_metric(format % label)
       end
 
       def after_harvest metadata
