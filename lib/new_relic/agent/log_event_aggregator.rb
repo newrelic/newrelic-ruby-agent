@@ -173,7 +173,7 @@ module NewRelic
       # these until harvest before recording them
       def record_customer_metrics
         @counter_lock.synchronize do
-          return unless NewRelic::Agent.config[METRICS_ENABLED_KEY]
+          return unless NewRelic::Agent.config[:'application_logging.metrics.enabled']
           return unless @seen > 0
 
           NewRelic::Agent.increment_metric(LINES, @seen)
