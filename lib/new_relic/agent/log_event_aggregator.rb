@@ -58,7 +58,7 @@ module NewRelic
 
         return unless enabled?
         return if @high_security
-        return if (formatted_message.nil? || formatted_message.empty?)
+        return if formatted_message.nil? || formatted_message.empty?
 
         txn = NewRelic::Agent::Transaction.tl_current
         priority = LogPriority.priority_for(txn)
