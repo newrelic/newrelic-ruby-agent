@@ -256,7 +256,7 @@ module NewRelic::Agent
         assert_metrics_recorded_exclusive({
           "Logging/lines" => {:call_count => 9},
           "Logging/lines/DEBUG" => {:call_count => 9},
-          "Supportability/Logging/Metrics/Ruby/enabled" => {:call_count => 1}, # TODO: Clarify value for high security mode with Jason Clark
+          "Supportability/Logging/Metrics/Ruby/enabled" => {:call_count => 1},
           "Supportability/Logging/Forwarding/Ruby/enabled" => {:call_count => 1},
           "Supportability/Logging/LocalDecorating/Ruby/disabled" => {:call_count => 1}
         },
