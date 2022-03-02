@@ -84,8 +84,8 @@ module NewRelic::Agent
       end
 
       assert_metrics_recorded({
-        "Logging/lines" => { :call_count => 2 },
-        "Logging/lines/DEBUG" => { :call_count => 2 },
+        "Logging/lines" => {:call_count => 2},
+        "Logging/lines/DEBUG" => {:call_count => 2}
       })
     end
 
@@ -97,7 +97,7 @@ module NewRelic::Agent
 
       assert_metrics_not_recorded([
         "Logging/lines",
-        "Logging/lines/DEBUG",
+        "Logging/lines/DEBUG"
       ])
     end
 
@@ -254,11 +254,11 @@ module NewRelic::Agent
 
         # We are fine to count them, though....
         assert_metrics_recorded_exclusive({
-          "Logging/lines" => { :call_count => 9 },
-          "Logging/lines/DEBUG" => { :call_count => 9 },
-          "Supportability/Logging/Metrics/Ruby/enabled" => { :call_count => 1 }, # TODO: Clarify value for high security mode with Jason Clark
-          "Supportability/Logging/Forwarding/Ruby/enabled" => { :call_count => 1 },
-          "Supportability/Logging/LocalDecorating/Ruby/disabled" => { :call_count => 1 }
+          "Logging/lines" => {:call_count => 9},
+          "Logging/lines/DEBUG" => {:call_count => 9},
+          "Supportability/Logging/Metrics/Ruby/enabled" => {:call_count => 1}, # TODO: Clarify value for high security mode with Jason Clark
+          "Supportability/Logging/Forwarding/Ruby/enabled" => {:call_count => 1},
+          "Supportability/Logging/LocalDecorating/Ruby/disabled" => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})
       end
