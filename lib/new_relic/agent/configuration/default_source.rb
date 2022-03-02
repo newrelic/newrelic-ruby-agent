@@ -354,21 +354,21 @@ module NewRelic
           :public => false,
           :type => String,
           :allowed_from_server => true,
-          :description => 'The [Entity GUID](/attribute-dictionary/span/entityguid) for the entity running this agent.'
+          :description => 'The [Entity GUID](/attribute-dictionary/span/entityguid) for the entity running your agent.'
         },
         :monitor_mode => {
           :default => value_of(:enabled),
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'When `true`, the agent transmits data about your app to the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector).'
+          :description => 'When `true`, the agent transmits data about your application to the New Relic [collector](/docs/using-new-relic/welcome-new-relic/get-started/glossary/#collector).'
         },
         :test_mode => {
           :default => false,
           :public => false,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'Used in tests for agent to start up but not connect to collector. Formerly used `developer_mode` in test config for this purpose.'
+          :description => 'Used in tests for the agent to start up, but not connect to the collector. Formerly used `developer_mode` in test config for this purpose.'
         },
         :log_level => {
           :default => 'info',
@@ -1803,7 +1803,7 @@ module NewRelic
           :public => true,
           :type => String,
           :allowed_from_server => false,
-          :description => 'A dictionary of [label names](/docs/data-analysis/user-interface-functions/labels-categories-organize-your-apps-servers) and values that will be applied to the data sent from this agent. May also be expressed as a semicolon-delimited `;` string of colon-separated `:` pairs. For example, `<var>Server</var>:<var>One</var>;<var>Data Center</var>:<var>Primary</var>`.'
+          :description => 'A dictionary of [label names](/docs/data-analysis/user-interface-functions/labels-categories-organize-your-apps-servers) and values that will be applied to the data sent from your agent. May also be expressed as a semicolon-delimited `;` string of colon-separated `:` pairs. For example, `<var>Server</var>:<var>One</var>;<var>Data Center</var>:<var>Primary</var>`.'
         },
         :aggressive_keepalive => {
           :default => true,
@@ -1869,7 +1869,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, the agent captures log records emitted by this application.'
+          :description => 'If `true`, the agent captures log records emitted by your application.'
         },
         :'application_logging.forwarding.max_samples_stored' => {
           :default => 10000,
@@ -1884,7 +1884,7 @@ module NewRelic
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
-          :description => 'If `true`, the agent captures metrics related to logging for this application.'
+          :description => 'If `true`, the agent captures metrics related to logging for your application.'
         },
         :disable_grape_instrumentation => {
           :default => false,
@@ -2177,7 +2177,7 @@ module NewRelic
           :public => false,
           :type => String,
           :allowed_from_server => true,
-          :description => 'The account id associated with this application.'
+          :description => 'The account id associated with your application.'
         },
         :primary_application_id => {
           :default => nil,
@@ -2185,7 +2185,7 @@ module NewRelic
           :public => false,
           :type => String,
           :allowed_from_server => true,
-          :description => 'The primary id associated with this application.'
+          :description => 'The primary id associated with your application.'
         },
         :'distributed_tracing.enabled' => {
           :default => true,
