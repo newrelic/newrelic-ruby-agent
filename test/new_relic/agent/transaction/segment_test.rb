@@ -165,14 +165,8 @@ module NewRelic
             "OtherTransactionTotalTime/test",
             "DurationByCaller/Unknown/Unknown/Unknown/Unknown/all",
             "Supportability/API/recording_web_transaction?",
-            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther",
-            'Logging/lines',
-            'Logging/lines/INFO',
-            'Logging/size',
-            'Logging/size/INFO',
-            'Supportability/API/increment_metric',
-            'Supportability/API/record_metric'
-          ]
+            "DurationByCaller/Unknown/Unknown/Unknown/Unknown/allOther"
+          ], :ignore_filter => %r{^(Supportability/Logging|Supportability/API)}
         end
 
         def test_segment_can_disable_scoped_metric_recording_with_unscoped_as_frozen_array

@@ -77,6 +77,7 @@ module NewRelic
 
       attr_reader :guid,
         :metrics,
+        :logs,
         :gc_start_snapshot,
         :category,
         :attributes,
@@ -236,6 +237,7 @@ module NewRelic
 
         @exceptions = {}
         @metrics = TransactionMetrics.new
+        @logs = PrioritySampledBuffer.new(NewRelic::Agent.instance.log_event_aggregator.capacity)
         @guid = NewRelic::Agent::GuidGenerator.generate_guid
 
         @ignore_this_transaction = false
@@ -533,6 +535,7 @@ module NewRelic
 
         record_exceptions
         record_transaction_event
+        record_log_events
         merge_metrics
         send_transaction_finished_event
       end
@@ -732,6 +735,10 @@ module NewRelic
         agent.transaction_event_recorder.record payload
       end
 
+      def record_log_events
+        agent.log_event_aggregator.record_batch self, @logs.to_a
+      end
+
       def queue_time
         @apdex_start ? @start_time - @apdex_start : 0
       end
@@ -824,6 +831,10 @@ module NewRelic
 
       def add_custom_attributes(p)
         attributes.merge_custom_attributes(p)
+      end
+
+      def add_log_event(event)
+        logs.append(event: event)
       end
 
       def recording_web_transaction?

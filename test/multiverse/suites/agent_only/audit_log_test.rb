@@ -26,6 +26,7 @@ class AuditLogTest < Minitest::Test
     run_agent do
       perform_actions
       assert_equal('', audit_log_contents)
+      assert_empty($collector.calls_for(:log_event_data))
     end
   end
 
@@ -33,6 +34,7 @@ class AuditLogTest < Minitest::Test
     run_agent(:'audit_log.enabled' => false) do
       perform_actions
       assert_equal('', audit_log_contents)
+      assert_empty($collector.calls_for(:log_event_data))
     end
   end
 
@@ -42,6 +44,7 @@ class AuditLogTest < Minitest::Test
       $collector.agent_data.each do |req|
         assert_audit_log_contains_object(audit_log_contents, req.body)
       end
+      assert_empty($collector.calls_for(:log_event_data))
     end
   end
 
@@ -53,5 +56,8 @@ class AuditLogTest < Minitest::Test
       nil, 1.5, state)
     NewRelic::Agent.instance.sql_sampler.on_finishing_transaction(state, 'txn')
     NewRelic::Agent.instance.send(:harvest_and_send_slowest_sql)
+
+    # We also trigger log event data sending because we shouldn't see any
+    NewRelic::Agent.instance.send(:harvest_and_send_log_event_data)
   end
 end

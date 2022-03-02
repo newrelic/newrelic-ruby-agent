@@ -220,4 +220,12 @@ class HighSecurityTest < Minitest::Test
       refute_nil intrinsic_attributes['path_hash']
     end
   end
+
+  def test_blocks_log_capture
+    Logger.new(StringIO.new()).fatal("Ooops")
+
+    run_harvest
+
+    assert_empty $collector.calls_for("log_event_data")
+  end
 end
