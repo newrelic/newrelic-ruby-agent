@@ -56,7 +56,7 @@ module NewRelic
           @seen_by_severity[severity] += 1
         end
 
-        return unless enabled?
+        return unless NewRelic::Agent.config[:'application_logging.forwarding.enabled']
         return if @high_security
 
         txn = NewRelic::Agent::Transaction.tl_current

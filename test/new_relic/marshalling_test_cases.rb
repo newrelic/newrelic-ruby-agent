@@ -156,18 +156,18 @@ module MarshallingTestCases
   def test_sends_log_events
     # Standard with other agents on millis, not seconds
     t0 = nr_freeze_process_time.to_f * 1000
-
     message = "A deadly message"
     severity = "FATAL"
 
-    with_around_hook do
-      NewRelic::Agent.agent.log_event_aggregator.record(message, severity)
+    with_config(:'application_logging.forwarding.enabled' => true) do
+      with_around_hook do
+        NewRelic::Agent.agent.log_event_aggregator.record(message, severity)
+      end
     end
 
     transmit_data
 
     result = $collector.calls_for('log_event_data')
-
     assert_equal 1, result.length
 
     common = result.first.common["attributes"]
@@ -181,6 +181,7 @@ module MarshallingTestCases
     refute_empty logs
 
     log = logs.find { |l| l["message"] == message && l["level"] == severity }
+
     refute_nil log
     assert_equal t0, log["timestamp"]
   end
