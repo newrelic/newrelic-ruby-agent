@@ -172,8 +172,8 @@ module NewRelic
       # To avoid paying the cost of metric recording on every line, we hold
       # these until harvest before recording them
       def record_customer_metrics
+        return unless NewRelic::Agent.config[:'application_logging.metrics.enabled']
         @counter_lock.synchronize do
-          return unless NewRelic::Agent.config[:'application_logging.metrics.enabled']
           return unless @seen > 0
 
           NewRelic::Agent.increment_metric(LINES, @seen)
