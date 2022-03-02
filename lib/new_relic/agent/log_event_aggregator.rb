@@ -22,7 +22,7 @@ module NewRelic
       METRICS_SUPPORTABILITY_FORMAT = "Supportability/Logging/Metrics/Ruby/%s".freeze
       FORWARDING_SUPPORTABILITY_FORMAT = "Supportability/Logging/Forwarding/Ruby/%s".freeze
       DECORATING_SUPPORTABILITY_FORMAT = "Supportability/Logging/LocalDecorating/Ruby/%s".freeze
-      MAX_BYTES = 32768 # 32 * 1024 = 1 kibibyte
+      MAX_BYTES = 32768 # 32 * 1024 bytes (32 kibibytes)
 
       named :LogEventAggregator
       buffer_class PrioritySampledBuffer
@@ -91,7 +91,7 @@ module NewRelic
       end
 
       def create_event priority, formatted_message, severity
-        formatted_message = truncate_message(formatted_message) if formatted_message.bytesize > MAX_BYTES
+        formatted_message = truncate_message(formatted_message)
 
         event = LinkingMetadata.append_trace_linking_metadata({
           LEVEL_KEY => severity,
@@ -208,7 +208,7 @@ module NewRelic
       end
 
       def truncate_message(message)
-        return if message.bytesize <= MAX_BYTES
+        return message if message.bytesize <= MAX_BYTES
         message.byteslice(0...MAX_BYTES)
       end
     end
