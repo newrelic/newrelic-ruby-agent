@@ -120,6 +120,10 @@ module NewRelic
         end
 
         def operation_from_splits(splits, sql)
+          if sql =~ /select/i && defined?($sql_select_count) && $sql_select_count
+            puts "== PG SELECT TEST - #{$sql_select_count += 1}: #{sql}"
+          end
+
           if splits.length == 2
             map_operation(splits[1])
           else

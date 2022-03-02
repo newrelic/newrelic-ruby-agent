@@ -39,6 +39,9 @@ class ActiveRecordInstrumentationTest < Minitest::Test
   end
 
   def test_metrics_for_calculation_methods
+    puts "== PG SELECT TEST - BEGIN"
+    $sql_select_count = 0
+
     in_web_transaction do
       Order.count
       Order.average(:id)
@@ -52,6 +55,10 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     else
       assert_activerecord_metrics(Order, 'select', :call_count => 5)
     end
+  ensure
+    $sql_select_count = nil
+    puts "== PG SELECT TEST - END"
+    puts
   end
 
   def test_metrics_for_pluck
