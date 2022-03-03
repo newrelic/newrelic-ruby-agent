@@ -266,6 +266,28 @@ module NewRelic::Agent
       assert_equal expected, payload
     end
 
+    def test_create_event_truncates_message_when_exceeding_max_bytes
+      right_size_message = String.new("a" * LogEventAggregator::MAX_BYTES)
+      message = right_size_message + 'b'
+      event = @aggregator.create_event(1, message, 'INFO')
+
+      assert_equal(right_size_message, event[1]["message"])
+    end
+
+    def test_create_event_doesnt_truncate_message_when_at_max_bytes
+      message = String.new("a" * LogEventAggregator::MAX_BYTES)
+      event = @aggregator.create_event(1, message, 'INFO')
+
+      assert_equal(message, event[1]["message"])
+    end
+
+    def test_create_event_doesnt_truncate_message_when_below_max_bytes
+      message = String.new("a" * (LogEventAggregator::MAX_BYTES - 1))
+      event = @aggregator.create_event(1, message, 'INFO')
+
+      assert_equal(message, event[1]["message"])
+    end
+
     def test_does_not_record_if_message_is_nil
       @aggregator.record(nil, "DEBUG")
       _, events = @aggregator.harvest!
