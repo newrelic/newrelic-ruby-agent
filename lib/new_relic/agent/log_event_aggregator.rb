@@ -19,6 +19,7 @@ module NewRelic
       DROPPED_METRIC = "Logging/Forwarding/Dropped".freeze
       SEEN_METRIC = "Supportability/Logging/Forwarding/Seen".freeze
       SENT_METRIC = "Supportability/Logging/Forwarding/Sent".freeze
+      OVERALL_SUPPORTABILITY_FORMAT = "Supportability/Logging/Ruby/Logger/%s".freeze
       METRICS_SUPPORTABILITY_FORMAT = "Supportability/Logging/Metrics/Ruby/%s".freeze
       FORWARDING_SUPPORTABILITY_FORMAT = "Supportability/Logging/Forwarding/Ruby/%s".freeze
       DECORATING_SUPPORTABILITY_FORMAT = "Supportability/Logging/LocalDecorating/Ruby/%s".freeze
@@ -30,12 +31,12 @@ module NewRelic
       # TODO: use the right value when the collector starts reporting it
       # capacity_key :'application_logging.forwarding.max_samples_stored'
       capacity_key :'custom_insights_events.max_samples_stored'
-      enabled_key :'application_logging.forwarding.enabled'
+      enabled_key :'application_logging.enabled'
 
       # Config keys
       OVERALL_ENABLED_KEY = :'application_logging.enabled'
       METRICS_ENABLED_KEY = :'application_logging.metrics.enabled'
-      FORWARDING_ENABLED_KEY = enabled_keys.first
+      FORWARDING_ENABLED_KEY = :'application_logging.forwarding.enabled'
       DECORATING_ENABLED_KEY = :'application_logging.local_decorating.enabled'
 
       def initialize(events)
@@ -57,6 +58,9 @@ module NewRelic
           @seen_by_severity[severity] += 1
         end
 
+        # TODO: Understand why `enabled?` is returning true in this context
+        # with test case test_does_not_record_if_overall_disabled_and_forwarding_enabled
+        return unless NewRelic::Agent.config[OVERALL_ENABLED_KEY]
         return unless NewRelic::Agent.config[:'application_logging.forwarding.enabled']
         return if @high_security
         return if formatted_message.nil? || formatted_message.empty?
@@ -155,6 +159,7 @@ module NewRelic
         events.subscribe(:server_source_configuration_added) do
           @high_security = NewRelic::Agent.config[:high_security]
 
+          record_configuration_metric(OVERALL_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
           record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)
@@ -163,7 +168,11 @@ module NewRelic
 
       def record_configuration_metric(format, key)
         state = NewRelic::Agent.config[key]
-        label = state ? "enabled" : "disabled"
+        label = if !NewRelic::Agent.config[OVERALL_ENABLED_KEY]
+          "disabled"
+        else
+          state ? "enabled" : "disabled"
+        end
         NewRelic::Agent.increment_metric(format % label)
       end
 
@@ -176,7 +185,9 @@ module NewRelic
       # To avoid paying the cost of metric recording on every line, we hold
       # these until harvest before recording them
       def record_customer_metrics
+        return unless NewRelic::Agent.config[OVERALL_ENABLED_KEY]
         return unless NewRelic::Agent.config[:'application_logging.metrics.enabled']
+
         @counter_lock.synchronize do
           return unless @seen > 0
 

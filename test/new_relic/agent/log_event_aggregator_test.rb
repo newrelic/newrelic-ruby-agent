@@ -45,6 +45,7 @@ module NewRelic::Agent
 
     def test_records_enabled_metrics_on_startup
       with_config(
+        LogEventAggregator::OVERALL_ENABLED_KEY => true,
         LogEventAggregator::METRICS_ENABLED_KEY => true,
         LogEventAggregator::FORWARDING_ENABLED_KEY => true,
         LogEventAggregator::DECORATING_ENABLED_KEY => true
@@ -52,6 +53,7 @@ module NewRelic::Agent
         NewRelic::Agent.config.notify_server_source_added
 
         assert_metrics_recorded_exclusive({
+          "Supportability/Logging/Ruby/Logger/enabled" => {:call_count => 1},
           "Supportability/Logging/Metrics/Ruby/enabled" => {:call_count => 1},
           "Supportability/Logging/Forwarding/Ruby/enabled" => {:call_count => 1},
           "Supportability/Logging/LocalDecorating/Ruby/enabled" => {:call_count => 1}
@@ -62,6 +64,7 @@ module NewRelic::Agent
 
     def test_records_disabled_metrics_on_startup
       with_config(
+        LogEventAggregator::OVERALL_ENABLED_KEY => false,
         LogEventAggregator::METRICS_ENABLED_KEY => false,
         LogEventAggregator::FORWARDING_ENABLED_KEY => false,
         LogEventAggregator::DECORATING_ENABLED_KEY => false
@@ -69,6 +72,7 @@ module NewRelic::Agent
         NewRelic::Agent.config.notify_server_source_added
 
         assert_metrics_recorded_exclusive({
+          "Supportability/Logging/Ruby/Logger/disabled" => {:call_count => 1},
           "Supportability/Logging/Metrics/Ruby/disabled" => {:call_count => 1},
           "Supportability/Logging/Forwarding/Ruby/disabled" => {:call_count => 1},
           "Supportability/Logging/LocalDecorating/Ruby/disabled" => {:call_count => 1}
@@ -89,6 +93,21 @@ module NewRelic::Agent
       })
     end
 
+    def test_doesnt_record_customer_metrics_when_overall_disabled_and_metrics_enabled
+      with_config(
+        LogEventAggregator::OVERALL_ENABLED_KEY => false,
+        LogEventAggregator::METRICS_ENABLED_KEY => true
+      ) do
+        2.times { @aggregator.record("Are you counting this?", "DEBUG") }
+        @aggregator.harvest!
+      end
+
+      assert_metrics_not_recorded([
+        "Logging/lines",
+        "Logging/lines/DEBUG"
+      ])
+    end
+
     def test_doesnt_record_customer_metrics_when_disabled
       with_config LogEventAggregator::METRICS_ENABLED_KEY => false do
         2.times { @aggregator.record("Are you counting this?", "DEBUG") }
@@ -99,6 +118,17 @@ module NewRelic::Agent
         "Logging/lines",
         "Logging/lines/DEBUG"
       ])
+    end
+
+    def test_does_not_record_if_overall_disabled_and_forwarding_enabled
+      with_config(
+        :'application_logging.enabled' => false,
+        :'application_logging.forwarding.enabled' => true
+      ) do
+        @aggregator.record('Hello world!', "DEBUG")
+        _, events = @aggregator.harvest!
+        assert_empty events
+      end
     end
 
     def test_record_by_default_limit
@@ -256,8 +286,55 @@ module NewRelic::Agent
         assert_metrics_recorded_exclusive({
           "Logging/lines" => {:call_count => 9},
           "Logging/lines/DEBUG" => {:call_count => 9},
+          "Supportability/Logging/Ruby/Logger/enabled" => {:call_count => 1},
           "Supportability/Logging/Metrics/Ruby/enabled" => {:call_count => 1},
           "Supportability/Logging/Forwarding/Ruby/enabled" => {:call_count => 1},
+          "Supportability/Logging/LocalDecorating/Ruby/disabled" => {:call_count => 1}
+        },
+          :ignore_filter => %r{^Supportability/API/})
+      end
+    end
+
+    def test_overall_disabled
+      with_config(
+        LogEventAggregator::OVERALL_ENABLED_KEY => false
+      ) do
+        9.times { @aggregator.record("Are you counting this?", "DEBUG") }
+        _, items = @aggregator.harvest!
+
+        # Never aggregate logs
+        assert_empty items
+
+        # All settings should report as disabled regardless of config option
+        assert_metrics_recorded_exclusive({
+          "Supportability/Logging/Ruby/Logger/disabled" => {:call_count => 1},
+          "Supportability/Logging/Metrics/Ruby/disabled" => {:call_count => 1},
+          "Supportability/Logging/Forwarding/Ruby/disabled" => {:call_count => 1},
+          "Supportability/Logging/LocalDecorating/Ruby/disabled" => {:call_count => 1}
+        },
+          :ignore_filter => %r{^Supportability/API/})
+      end
+    end
+
+    def test_overall_disabled_in_high_security_mode
+      with_config(
+        CAPACITY_KEY => 5,
+        :high_security => true,
+        LogEventAggregator::OVERALL_ENABLED_KEY => false
+      ) do
+        # We refresh the high security setting on this notification
+        NewRelic::Agent.config.notify_server_source_added
+
+        9.times { @aggregator.record("Are you counting this?", "DEBUG") }
+        _, items = @aggregator.harvest!
+
+        # Never aggregate logs
+        assert_empty items
+
+        assert_metrics_recorded_exclusive({
+          "Supportability/Logging/Ruby/Logger/disabled" => {:call_count => 1},
+          "Supportability/Logging/Metrics/Ruby/disabled" => {:call_count => 1},
+          "Supportability/Logging/Forwarding/Ruby/disabled" => {:call_count => 1},
           "Supportability/Logging/LocalDecorating/Ruby/disabled" => {:call_count => 1}
         },
           :ignore_filter => %r{^Supportability/API/})

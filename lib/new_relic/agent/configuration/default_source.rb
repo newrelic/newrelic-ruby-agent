@@ -1864,6 +1864,13 @@ module NewRelic
           :description => 'Defines the maximum number of span events reported from a single harvest. Any Integer between 1 and 10000 is valid.',
           :dynamic_name => true
         },
+        :'application_logging.enabled' => {
+          :default => true,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, enables log decoration and the collection of log events and metrics.'
+        },
         :'application_logging.forwarding.enabled' => {
           :default => false,
           :public => true,
