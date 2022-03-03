@@ -830,8 +830,8 @@ class NewRelicServiceTest < Minitest::Test
       'Supportability/Agent/Collector/foobar/Duration' => {:call_count => 1},
       'Supportability/invoke_remote_serialize' => {:call_count => 1},
       'Supportability/invoke_remote_serialize/foobar' => {:call_count => 1},
-      'Supportability/invoke_remote_size' => expected_values,
-      'Supportability/invoke_remote_size/foobar' => expected_values
+      'Supportability/Ruby/Collector/Output/Bytes' => expected_values,
+      'Supportability/Ruby/Collector/foobar/Output/Bytes' => expected_values
     )
   end
 
@@ -866,8 +866,8 @@ class NewRelicServiceTest < Minitest::Test
       'Supportability/Agent/Collector/foobar/Duration' => {:call_count => 1},
       'Supportability/invoke_remote_serialize' => {:call_count => 1},
       'Supportability/invoke_remote_serialize/foobar' => {:call_count => 1},
-      'Supportability/invoke_remote_size' => expected_values,
-      'Supportability/invoke_remote_size/foobar' => expected_values
+      'Supportability/Ruby/Collector/Output/Bytes' => expected_values,
+      'Supportability/Ruby/Collector/foobar/Output/Bytes' => expected_values
     )
   end
 
@@ -892,8 +892,8 @@ class NewRelicServiceTest < Minitest::Test
     assert_metrics_not_recorded([
       'Supportability/invoke_remote_serialize',
       'Supportability/invoke_remote_serialize/foobar',
-      'Supportability/invoke_remote_size',
-      'Supportability/invoke_remote_size/foobar'
+      'Supportability/Ruby/Collector/Output/Bytes',
+      'Supportability/Ruby/Collector/foobar/Output/Bytes'
     ])
   end
 
