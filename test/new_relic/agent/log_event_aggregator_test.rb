@@ -286,6 +286,17 @@ module NewRelic::Agent
       event = @aggregator.create_event(1, message, 'INFO')
 
       assert_equal(message, event[1]["message"])
+
+    def test_does_not_record_if_message_is_nil
+      @aggregator.record(nil, "DEBUG")
+      _, events = @aggregator.harvest!
+      assert_empty events
+    end
+
+    def test_does_not_record_if_message_empty_string
+      @aggregator.record('', "DEBUG")
+      _, events = @aggregator.harvest!
+      assert_empty events
     end
   end
 end
