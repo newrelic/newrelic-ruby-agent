@@ -20,7 +20,7 @@ class LogEventsTest < Minitest::Test
 
       NewRelic::Agent.agent.send(:harvest_and_send_log_event_data)
     end
-    
+
     last_log = last_log_event
     assert_equal "Deadly", last_log["message"]
     assert_equal "FATAL", last_log["level"]
