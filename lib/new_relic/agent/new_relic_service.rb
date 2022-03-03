@@ -461,7 +461,7 @@ module NewRelic
       def handle_serialization_error(method, e)
         NewRelic::Agent.increment_metric("Supportability/serialization_failure")
         NewRelic::Agent.increment_metric("Supportability/serialization_failure/#{method}")
-        msg = "Failed to serialize #{method} data using #{@marshaller.class.to_s}: #{e.inspect}"
+        msg = "Failed to serialize #{method} data using #{@marshaller.class}: #{e.inspect}"
         error = SerializationError.new(msg)
         error.set_backtrace(e.backtrace)
         raise error
@@ -471,11 +471,11 @@ module NewRelic
         serialize_time = serialize_finish_ts && (serialize_finish_ts - start_ts)
         request_duration = response_check_ts && (response_check_ts - request_send_ts)
         if request_duration
-          NewRelic::Agent.record_metric("Supportability/Agent/Collector/#{method.to_s}/Duration", request_duration)
+          NewRelic::Agent.record_metric("Supportability/Agent/Collector/#{method}/Duration", request_duration)
         end
         if serialize_time
           NewRelic::Agent.record_metric("Supportability/invoke_remote_serialize", serialize_time)
-          NewRelic::Agent.record_metric("Supportability/invoke_remote_serialize/#{method.to_s}", serialize_time)
+          NewRelic::Agent.record_metric("Supportability/invoke_remote_serialize/#{method}", serialize_time)
         end
       end
 
@@ -490,7 +490,7 @@ module NewRelic
       def record_size_supportability_metrics(method, size_bytes, item_count)
         metrics = [
           "Supportability/Ruby/Collector/Output/Bytes",
-          "Supportability/Ruby/Collector/#{method.to_s}/Output/Bytes"
+          "Supportability/Ruby/Collector/#{method}/Output/Bytes"
         ]
         # we may not have an item count, in which case, just record 0 for the exclusive time
         item_count ||= 0
