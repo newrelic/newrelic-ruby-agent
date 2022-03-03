@@ -489,8 +489,8 @@ module NewRelic
       # of items as arguments.
       def record_size_supportability_metrics(method, size_bytes, item_count)
         metrics = [
-          "Supportability/invoke_remote_size",
-          "Supportability/invoke_remote_size/#{method.to_s}"
+          "Supportability/Ruby/Collector/Output/Bytes",
+          "Supportability/Ruby/Collector/#{method.to_s}/Output/Bytes"
         ]
         # we may not have an item count, in which case, just record 0 for the exclusive time
         item_count ||= 0
