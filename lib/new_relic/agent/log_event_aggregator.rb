@@ -27,9 +27,9 @@ module NewRelic
       named :LogEventAggregator
       buffer_class PrioritySampledBuffer
 
-      # TODO use the right value when the collector starts reporting it
+      # TODO: use the right value when the collector starts reporting it
+      # capacity_key :'application_logging.forwarding.max_samples_stored'
       capacity_key :'custom_insights_events.max_samples_stored'
-      # capacity_key :'log_sending.max_samples_stored'
       enabled_key :'application_logging.forwarding.enabled'
 
       # Config keys
@@ -57,7 +57,7 @@ module NewRelic
           @seen_by_severity[severity] += 1
         end
 
-        return unless enabled?
+        return unless NewRelic::Agent.config[:'application_logging.forwarding.enabled']
         return if @high_security
         return if formatted_message.nil? || formatted_message.empty?
 
@@ -176,6 +176,7 @@ module NewRelic
       # To avoid paying the cost of metric recording on every line, we hold
       # these until harvest before recording them
       def record_customer_metrics
+        return unless NewRelic::Agent.config[:'application_logging.metrics.enabled']
         @counter_lock.synchronize do
           return unless @seen > 0
 

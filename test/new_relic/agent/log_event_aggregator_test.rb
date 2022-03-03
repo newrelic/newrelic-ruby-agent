@@ -77,6 +77,30 @@ module NewRelic::Agent
       end
     end
 
+    def test_records_customer_metrics_when_enabled
+      with_config LogEventAggregator::METRICS_ENABLED_KEY => true do
+        2.times { @aggregator.record("Are you counting this?", "DEBUG") }
+        @aggregator.harvest!
+      end
+
+      assert_metrics_recorded({
+        "Logging/lines" => {:call_count => 2},
+        "Logging/lines/DEBUG" => {:call_count => 2}
+      })
+    end
+
+    def test_doesnt_record_customer_metrics_when_disabled
+      with_config LogEventAggregator::METRICS_ENABLED_KEY => false do
+        2.times { @aggregator.record("Are you counting this?", "DEBUG") }
+        @aggregator.harvest!
+      end
+
+      assert_metrics_not_recorded([
+        "Logging/lines",
+        "Logging/lines/DEBUG"
+      ])
+    end
+
     def test_record_by_default_limit
       max_samples = NewRelic::Agent.config[CAPACITY_KEY]
       n = max_samples + 1
@@ -232,7 +256,7 @@ module NewRelic::Agent
         assert_metrics_recorded_exclusive({
           "Logging/lines" => {:call_count => 9},
           "Logging/lines/DEBUG" => {:call_count => 9},
-          "Supportability/Logging/Metrics/Ruby/disabled" => {:call_count => 1},
+          "Supportability/Logging/Metrics/Ruby/enabled" => {:call_count => 1},
           "Supportability/Logging/Forwarding/Ruby/enabled" => {:call_count => 1},
           "Supportability/Logging/LocalDecorating/Ruby/disabled" => {:call_count => 1}
         },

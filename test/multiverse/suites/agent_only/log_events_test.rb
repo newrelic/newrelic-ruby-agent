@@ -10,14 +10,16 @@ class LogEventsTest < Minitest::Test
   def test_log_event_data_sent_in_transaction
     trace_id = nil
     span_id = nil
-    in_transaction do |txn|
-      NewRelic::Agent.agent.log_event_aggregator.reset!
-      NewRelic::Agent.agent.log_event_aggregator.record("Deadly", "FATAL")
-      trace_id = NewRelic::Agent::Tracer.current_trace_id
-      span_id = NewRelic::Agent::Tracer.current_span_id
-    end
+    with_config(:'application_logging.forwarding.enabled' => true) do
+      in_transaction do |txn|
+        NewRelic::Agent.agent.log_event_aggregator.reset!
+        NewRelic::Agent.agent.log_event_aggregator.record("Deadly", "FATAL")
+        trace_id = NewRelic::Agent::Tracer.current_trace_id
+        span_id = NewRelic::Agent::Tracer.current_span_id
+      end
 
-    NewRelic::Agent.agent.send(:harvest_and_send_log_event_data)
+      NewRelic::Agent.agent.send(:harvest_and_send_log_event_data)
+    end
 
     last_log = last_log_event
     assert_equal "Deadly", last_log["message"]
@@ -33,9 +35,10 @@ class LogEventsTest < Minitest::Test
 
   def test_log_event_data_sent_no_transaction
     NewRelic::Agent.agent.log_event_aggregator.reset!
-    NewRelic::Agent.agent.log_event_aggregator.record("Deadly", "FATAL")
-
-    NewRelic::Agent.agent.send(:harvest_and_send_log_event_data)
+    with_config(:'application_logging.forwarding.enabled' => true) do
+      NewRelic::Agent.agent.log_event_aggregator.record("Deadly", "FATAL")
+      NewRelic::Agent.agent.send(:harvest_and_send_log_event_data)
+    end
 
     last_log = last_log_event
     assert_equal "Deadly", last_log["message"]
