@@ -21,7 +21,7 @@ module NewRelic::Agent::Configuration
           :custom_event_data => 1000,
           :error_event_data => 1000,
           :span_event_data => 2000,
-          :log_event_data => 2000,
+          :log_event_data => 2000
         }
       }
 
@@ -36,7 +36,7 @@ module NewRelic::Agent::Configuration
             'analytic_event_data' => 833,
             'custom_event_data' => 83,
             'error_event_data' => 8,
-            'log_event_data' => 833,
+            'log_event_data' => 833
           }
         },
         'span_event_harvest_config' => {
@@ -57,7 +57,7 @@ module NewRelic::Agent::Configuration
         :'event_report_period.span_event_data' => 80000,
         :event_report_period => 5,
         :'application_logging.forwarding.max_samples_stored' => 833,
-        :'event_report_period.log_event_data' => 5,
+        :'event_report_period.log_event_data' => 5
       }
       assert_equal expected, EventHarvestConfig.to_config_hash(connect_reply)
     end
@@ -84,7 +84,7 @@ module NewRelic::Agent::Configuration
         :'event_report_period.error_event_data' => 5,
         :event_report_period => 5,
         :'application_logging.forwarding.max_samples_stored' => 833,
-        :'event_report_period.log_event_data' => 5,
+        :'event_report_period.log_event_data' => 5
       }
       assert_equal expected, EventHarvestConfig.to_config_hash(connect_reply)
     end
