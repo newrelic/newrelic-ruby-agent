@@ -112,7 +112,7 @@ jobs:
         with:
           timeout_minutes: 60
           max_attempts: 1
-          command:  bundle exec rake test:multiverse[group="${{ matrix.multiverse }}",verbose]
+          command:  bundle exec rake test:multiverse[active_record_pg,verbose]
         env:
           DB_PASSWORD: root
           MYSQL_PASSWORD: root
