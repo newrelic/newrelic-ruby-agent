@@ -635,8 +635,7 @@ module NewRelic
             @event_loop.on(interval_for SPAN_EVENT_DATA) do
               transmit_span_event_data
             end
-            @event_loop.on(interval_for CUSTOM_EVENT_DATA) do
-              # TODO: Change to log_event_data when present in collector response
+            @event_loop.on(interval_for LOG_EVENT_DATA) do
               transmit_log_event_data
             end
             @event_loop.on(:reset_log_once_keys) do

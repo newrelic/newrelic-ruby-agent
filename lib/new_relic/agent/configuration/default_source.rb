@@ -680,6 +680,14 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Number of seconds betwixt connections to the New Relic error event collection services.'
         },
+        :'event_report_period.log_event_data' => {
+          :default => 60,
+          :public => false,
+          :type => Integer,
+          :dynamic_name => true,
+          :allowed_from_server => true,
+          :description => 'Number of seconds betwixt connections to the New Relic log event collection services.'
+        },
         :'event_report_period.span_event_data' => {
           :default => 60,
           :public => false,
