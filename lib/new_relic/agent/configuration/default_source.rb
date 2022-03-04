@@ -1871,7 +1871,7 @@ module NewRelic
           :dynamic_name => true
         },
         :'application_logging.enabled' => {
-          :default => false,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
