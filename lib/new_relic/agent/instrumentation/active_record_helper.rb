@@ -120,6 +120,8 @@ module NewRelic
         end
 
         def operation_from_splits(splits, sql)
+          return if wait_for_query_cache?(sql, caller)
+
           if sql =~ /select/i && defined?($sql_select_count) && $sql_select_count
             puts "== PG SELECT TEST - #{$sql_select_count += 1}: #{sql}"
           end
@@ -129,6 +131,15 @@ module NewRelic
           else
             NewRelic::Agent::Database.parse_operation_from_query(sql) || OTHER
           end
+        end
+
+        def wait_for_query_cache?(sql, callstack)
+          @query_cache_loaded ||= false
+          return false if @query_cache_loaded
+          return false unless sql.match?(/SELECT /i)
+
+          @query_cache_loaded = true unless callstack.detect { |c| c.match?('query_cache.rb') }
+          !@query_cache_loaded
         end
 
         # These are used primarily to optimize and avoid allocation on well
