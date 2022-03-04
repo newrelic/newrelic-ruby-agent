@@ -38,6 +38,12 @@ module NewRelic
         end
       end
 
+      def self.instrumentation_boolean_value_of(key)
+        Proc.new do
+          NewRelic::Agent.config[key] ? 'auto' : 'disabled'
+        end
+      end
+
       # Marks the config option as deprecated in the documentation once generated.
       # Does not appear in logs.
       def self.deprecated_description new_setting, description
@@ -1004,7 +1010,7 @@ module NewRelic
           :description => 'Controls auto-instrumentation of dalli gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.logger' => {
-          :default => "auto",
+          :default => instrumentation_boolean_value_of(:'application_logging.enabled'),
           :public => true,
           :type => String,
           :dynamic_name => true,
@@ -1865,7 +1871,7 @@ module NewRelic
           :dynamic_name => true
         },
         :'application_logging.enabled' => {
-          :default => true,
+          :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
@@ -1890,7 +1896,7 @@ module NewRelic
           :default => true,
           :public => true,
           :type => Boolean,
-          :allowed_from_server => false,
+          :allowed_from_server => true,
           :description => 'If `true`, the agent captures metrics related to logging for your application.'
         },
         :disable_grape_instrumentation => {

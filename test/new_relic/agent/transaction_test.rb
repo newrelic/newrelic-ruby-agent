@@ -1649,7 +1649,7 @@ module NewRelic::Agent
       with_config(
         LogEventAggregator::enabled_keys.first => true,
         LogEventAggregator::FORWARDING_ENABLED_KEY => true
-        ) do
+      ) do
         NewRelic::Agent.config.notify_server_source_added
         in_transaction do |txn|
           txn.ignore!

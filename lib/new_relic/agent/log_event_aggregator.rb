@@ -45,6 +45,7 @@ module NewRelic
         @seen = 0
         @seen_by_severity = Hash.new(0)
         @high_security = NewRelic::Agent.config[:high_security]
+        @instrumentation_logger_enabled = instrumentation_logger_enabled?
         register_for_done_configuring(events)
       end
 
@@ -53,14 +54,15 @@ module NewRelic
       end
 
       def record(formatted_message, severity)
-        @counter_lock.synchronize do
-          @seen += 1
-          @seen_by_severity[severity] += 1
+        return unless enabled?
+
+        if NewRelic::Agent.config[METRICS_ENABLED_KEY]
+          @counter_lock.synchronize do
+            @seen += 1
+            @seen_by_severity[severity] += 1
+          end
         end
 
-        # TODO: Understand why `enabled?` is returning true in this context
-        # with test case test_does_not_record_if_overall_disabled_and_forwarding_enabled
-        return unless NewRelic::Agent.config[OVERALL_ENABLED_KEY]
         return unless NewRelic::Agent.config[:'application_logging.forwarding.enabled']
         return if @high_security
         return if formatted_message.nil? || formatted_message.empty?
@@ -151,6 +153,10 @@ module NewRelic
         super
       end
 
+      def enabled?
+        @enabled && @instrumentation_logger_enabled
+      end
+
       private
 
       # We record once-per-connect metrics for enabled/disabled state at the
@@ -168,7 +174,7 @@ module NewRelic
 
       def record_configuration_metric(format, key)
         state = NewRelic::Agent.config[key]
-        label = if !NewRelic::Agent.config[OVERALL_ENABLED_KEY]
+        label = if !enabled?
           "disabled"
         else
           state ? "enabled" : "disabled"
@@ -185,7 +191,7 @@ module NewRelic
       # To avoid paying the cost of metric recording on every line, we hold
       # these until harvest before recording them
       def record_customer_metrics
-        return unless NewRelic::Agent.config[OVERALL_ENABLED_KEY]
+        return unless enabled?
         return unless NewRelic::Agent.config[:'application_logging.metrics.enabled']
 
         @counter_lock.synchronize do
@@ -223,6 +229,10 @@ module NewRelic
       def truncate_message(message)
         return message if message.bytesize <= MAX_BYTES
         message.byteslice(0...MAX_BYTES)
+      end
+
+      def instrumentation_logger_enabled?
+        NewRelic::Agent.config[:'instrumentation.logger'] != 'disabled'
       end
     end
   end

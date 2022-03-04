@@ -14,7 +14,11 @@ module NewRelic::Agent
       @aggregator = NewRelic::Agent.agent.log_event_aggregator
       @aggregator.reset!
 
-      @enabled_config = {LogEventAggregator::FORWARDING_ENABLED_KEY => true}
+      @enabled_config = {
+        :'instrumentation.logger' => 'auto',
+        LogEventAggregator::OVERALL_ENABLED_KEY => true,
+        LogEventAggregator::FORWARDING_ENABLED_KEY => true
+      }
       NewRelic::Agent.config.add_config_for_testing(@enabled_config)
 
       # Callbacks for enabled only happen on SSC addition
@@ -98,6 +102,8 @@ module NewRelic::Agent
         LogEventAggregator::OVERALL_ENABLED_KEY => false,
         LogEventAggregator::METRICS_ENABLED_KEY => true
       ) do
+        NewRelic::Agent.config.notify_server_source_added
+
         2.times { @aggregator.record("Are you counting this?", "DEBUG") }
         @aggregator.harvest!
       end
@@ -125,9 +131,17 @@ module NewRelic::Agent
         :'application_logging.enabled' => false,
         :'application_logging.forwarding.enabled' => true
       ) do
+        NewRelic::Agent.config.notify_server_source_added
+
         @aggregator.record('Hello world!', "DEBUG")
         _, events = @aggregator.harvest!
+
         assert_empty events
+
+        assert_metrics_recorded({
+          "Supportability/Logging/Ruby/Logger/disabled" => {:call_count => 1},
+          "Supportability/Logging/Forwarding/Ruby/disabled" => {:call_count => 1}
+        })
       end
     end
 
@@ -296,14 +310,15 @@ module NewRelic::Agent
     end
 
     def test_overall_disabled
-      with_config(
-        LogEventAggregator::OVERALL_ENABLED_KEY => false
-      ) do
-        9.times { @aggregator.record("Are you counting this?", "DEBUG") }
-        _, items = @aggregator.harvest!
+      with_config(LogEventAggregator::OVERALL_ENABLED_KEY => false) do
+        # Refresh the value of @enabled on the LogEventAggregator
+        NewRelic::Agent.config.notify_server_source_added
 
-        # Never aggregate logs
-        assert_empty items
+        @aggregator.record('', "DEBUG")
+        _, events = @aggregator.harvest!
+
+        # Record no events
+        assert_empty events
 
         # All settings should report as disabled regardless of config option
         assert_metrics_recorded_exclusive({
