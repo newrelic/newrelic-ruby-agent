@@ -23,6 +23,28 @@ class LoggingTest < Performance::TestCase
     end
   end
 
+  def test_local_log_decoration
+    io = StringIO.new
+    logger = ::Logger.new io
+    measure do
+      with_config(:'application_logging.local_decorating.enabled' => true) do
+        logger.info EXAMPLE_MESSAGE
+      end
+    end
+  end
+
+  def test_local_log_decoration_in_transaction
+    io = StringIO.new
+    logger = ::Logger.new io
+    measure do
+      with_config(:'application_logging.local_decorating.enabled' => true) do
+        in_transaction do
+          logger.info EXAMPLE_MESSAGE
+        end
+      end
+    end
+  end
+
   def test_logger_instrumentation_in_transaction
     io = StringIO.new
     logger = ::Logger.new io

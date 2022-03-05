@@ -60,6 +60,7 @@ module NewRelic
     require 'new_relic/agent/distributed_tracing'
     require 'new_relic/agent/attribute_processing'
     require 'new_relic/agent/linking_metadata'
+    require 'new_relic/agent/local_log_decorator'
 
     require 'new_relic/agent/instrumentation/controller_instrumentation'
 

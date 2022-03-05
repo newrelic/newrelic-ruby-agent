@@ -61,9 +61,9 @@ module NewRelic
           end
         end
 
+        return if formatted_message.nil? || formatted_message.empty?
         return unless NewRelic::Agent.config[:'application_logging.forwarding.enabled']
         return if @high_security
-        return if formatted_message.nil? || formatted_message.empty?
 
         txn = NewRelic::Agent::Transaction.tl_current
         priority = LogPriority.priority_for(txn)
