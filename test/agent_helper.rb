@@ -218,13 +218,27 @@ end
 def assert_stats_has_values stats, expected_spec, expected_attrs
   expected_attrs.each do |attr, expected_value|
     actual_value = stats.send(attr)
+
+    msg = "Expected #{attr} for #{expected_spec} to be #{'~' unless attr == :call_count}#{expected_value}, " \
+          "got #{actual_value}.\nActual stats:\n#{dump_stats(stats)}"
+
     if attr == :call_count
-      assert_equal(expected_value, actual_value,
-        "Expected #{attr} for #{expected_spec} to be #{expected_value}, got #{actual_value}.\nActual stats:\n#{dump_stats(stats)}")
+      assert_stats_has_values_with_call_count(expected_value, actual_value, msg)
     else
-      assert_in_delta(expected_value, actual_value, 0.0001,
-        "Expected #{attr} for #{expected_spec} to be ~#{expected_value}, got #{actual_value}.\nActual stats:\n#{dump_stats(stats)}")
+      assert_in_delta(expected_value, actual_value, 0.0001, msg)
     end
+  end
+end
+
+def assert_stats_has_values_with_call_count(expected_value, actual_value, msg)
+  # >, <, >=, <= comparisons
+  if expected_value.to_s =~ /([<>]=?)\s*(\d+)/
+    operator = Regexp.last_match(1).to_sym
+    count = Regexp.last_match(2).to_i
+    assert_operator(count, operator, actual_value, msg)
+  # == comparison
+  else
+    assert_equal(expected_value, actual_value, msg)
   end
 end
 
