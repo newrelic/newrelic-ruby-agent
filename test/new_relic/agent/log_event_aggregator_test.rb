@@ -145,32 +145,36 @@ module NewRelic::Agent
       end
     end
 
-    def test_record_by_default_limit
-      max_samples = NewRelic::Agent.config[CAPACITY_KEY]
-      n = max_samples + 1
-      n.times do |i|
-        @aggregator.record("Take it to the limit", "FATAL")
-      end
+    def test_record_applies_limits
+      max_samples = 100
+      with_config(CAPACITY_KEY => max_samples) do
+        n = max_samples + 1
+        n.times do |i|
+          @aggregator.record("Take it to the limit", "FATAL")
+        end
 
-      metadata, results = @aggregator.harvest!
-      assert_equal(n, metadata[:events_seen])
-      assert_equal(max_samples, metadata[:reservoir_size])
-      assert_equal(max_samples, results.size)
+        metadata, results = @aggregator.harvest!
+        assert_equal(n, metadata[:events_seen])
+        assert_equal(max_samples, metadata[:reservoir_size])
+        assert_equal(max_samples, results.size)
+      end
     end
 
     def test_record_in_transaction
-      max_samples = NewRelic::Agent.config[CAPACITY_KEY]
-      n = max_samples + 1
-      n.times do |i|
-        in_transaction do
-          @aggregator.record("Take it to the limit", "FATAL")
+      max_samples = 100
+      with_config(CAPACITY_KEY => max_samples) do
+        n = max_samples + 1
+        n.times do |i|
+          in_transaction do
+            @aggregator.record("Take it to the limit", "FATAL")
+          end
         end
-      end
 
-      metadata, results = @aggregator.harvest!
-      assert_equal(n, metadata[:events_seen])
-      assert_equal(max_samples, metadata[:reservoir_size])
-      assert_equal(max_samples, results.size)
+        metadata, results = @aggregator.harvest!
+        assert_equal(n, metadata[:events_seen])
+        assert_equal(max_samples, metadata[:reservoir_size])
+        assert_equal(max_samples, results.size)
+      end
     end
 
     def test_record_in_transaction_prioritizes_sampling
@@ -236,18 +240,19 @@ module NewRelic::Agent
     end
 
     def test_lowering_limit_truncates_buffer
-      orig_max_samples = NewRelic::Agent.config[CAPACITY_KEY]
-
-      orig_max_samples.times do |i|
-        @aggregator.record("Truncation happens", "WARN")
+      original_count = 100
+      with_config(CAPACITY_KEY => original_count) do
+        original_count.times do |i|
+          @aggregator.record("Truncation happens", "WARN")
+        end
       end
 
-      new_max_samples = orig_max_samples - 10
-      with_config(CAPACITY_KEY => new_max_samples) do
+      smaller_count = original_count - 10
+      with_config(CAPACITY_KEY => smaller_count) do
         metadata, results = @aggregator.harvest!
-        assert_equal(new_max_samples, metadata[:reservoir_size])
-        assert_equal(orig_max_samples, metadata[:events_seen])
-        assert_equal(new_max_samples, results.size)
+        assert_equal(smaller_count, metadata[:reservoir_size])
+        assert_equal(original_count, metadata[:events_seen])
+        assert_equal(smaller_count, results.size)
       end
     end
 

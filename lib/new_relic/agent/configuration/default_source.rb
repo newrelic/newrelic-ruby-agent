@@ -686,6 +686,14 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'Number of seconds betwixt connections to the New Relic error event collection services.'
         },
+        :'event_report_period.log_event_data' => {
+          :default => 60,
+          :public => false,
+          :type => Integer,
+          :dynamic_name => true,
+          :allowed_from_server => true,
+          :description => 'Number of seconds betwixt connections to the New Relic log event collection services.'
+        },
         :'event_report_period.span_event_data' => {
           :default => 60,
           :public => false,
@@ -1888,7 +1896,7 @@ module NewRelic
           :default => 10000,
           :public => true,
           :type => Integer,
-          :allowed_from_server => false,
+          :allowed_from_server => true,
           :description => 'Defines the maximum number of log records to buffer in memory at a time.',
           :dynamic_name => true
         },

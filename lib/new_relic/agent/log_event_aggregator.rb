@@ -28,10 +28,8 @@ module NewRelic
       named :LogEventAggregator
       buffer_class PrioritySampledBuffer
 
-      # TODO: use the right value when the collector starts reporting it
-      # capacity_key :'application_logging.forwarding.max_samples_stored'
-      capacity_key :'custom_insights_events.max_samples_stored'
-      enabled_key :'application_logging.enabled'
+      capacity_key :'application_logging.forwarding.max_samples_stored'
+      enabled_key :'application_logging.forwarding.enabled'
 
       # Config keys
       OVERALL_ENABLED_KEY = :'application_logging.enabled'
