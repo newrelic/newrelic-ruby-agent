@@ -50,7 +50,7 @@ class ActiveRecordInstrumentationTest < Minitest::Test
     if active_record_major_version >= 7
       assert_activerecord_metrics(Order, 'find')
     else
-      assert_activerecord_metrics(Order, 'select', :call_count => 5)
+      assert_activerecord_metrics(Order, 'select', call_count: '>= 5')
     end
   end
 
