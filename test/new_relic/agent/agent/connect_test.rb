@@ -162,7 +162,8 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
         :analytic_event_data => default_source[:'analytics_events.max_samples_stored'],
         :custom_event_data => default_source[:'custom_insights_events.max_samples_stored'],
         :error_event_data => default_source[:'error_collector.max_event_samples_stored'],
-        :span_event_data => default_source[:'span_events.max_samples_stored']
+        :span_event_data => default_source[:'span_events.max_samples_stored'],
+        :log_event_data => default_source[:'application_logging.forwarding.max_samples_stored']
       }
     }
 
@@ -172,7 +173,12 @@ class NewRelic::Agent::Agent::ConnectTest < Minitest::Test
         'agent_run_id' => 23,
         'event_harvest_config' => {
           'report_period_ms' => 5000,
-          'harvest_limits' => {'analytic_event_data' => 833, 'custom_event_data' => 83, 'error_event_data' => 8}
+          'harvest_limits' => {
+            'analytic_event_data' => 833,
+            'custom_event_data' => 83,
+            'error_event_data' => 8,
+            'log_event_data' => 833
+          }
         }
       })\
       # every call to :connect should pass the same expected event_harvest_config payload

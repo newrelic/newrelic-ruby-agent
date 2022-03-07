@@ -21,7 +21,8 @@ module NewRelic::Agent::Configuration
           'harvest_limits' => {
             'analytic_event_data' => 833,
             'custom_event_data' => 833,
-            'error_event_data' => 8
+            'error_event_data' => 8,
+            'log_event_data' => 833
           }
         },
         'span_event_harvest_config' => {
@@ -112,6 +113,11 @@ module NewRelic::Agent::Configuration
     def test_should_set_error_events_max_samples
       assert_equal 8, @source[:'error_collector.max_event_samples_stored']
       assert_metrics_recorded({"Supportability/EventHarvest/ErrorEventData/HarvestLimit" => {total_call_time: 8}})
+    end
+
+    def test_should_set_log_events_max_samples
+      assert_equal 833, @source[:'application_logging.forwarding.max_samples_stored']
+      assert_metrics_recorded({"Supportability/EventHarvest/LogEventData/HarvestLimit" => {total_call_time: 833}})
     end
 
     def test_should_set_span_events_max_samples

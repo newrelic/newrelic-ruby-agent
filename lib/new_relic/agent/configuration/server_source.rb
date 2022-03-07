@@ -79,6 +79,7 @@ module NewRelic
           :'transaction_events.max_samples_stored' => 'Supportability/EventHarvest/AnalyticEventData/HarvestLimit',
           :'custom_insights_events.max_samples_stored' => 'Supportability/EventHarvest/CustomEventData/HarvestLimit',
           :'error_collector.max_event_samples_stored' => 'Supportability/EventHarvest/ErrorEventData/HarvestLimit',
+          :'application_logging.forwarding.max_samples_stored' => 'Supportability/EventHarvest/LogEventData/HarvestLimit',
           :'span_events.max_samples_stored' => 'Supportability/SpanEvent/Limit',
           :event_report_period => 'Supportability/EventHarvest/ReportPeriod',
           :'event_report_period.span_event_data' => 'Supportability/SpanEvent/ReportPeriod'
