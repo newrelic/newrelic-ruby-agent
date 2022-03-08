@@ -172,7 +172,7 @@ module NewRelic
 
       def record_configuration_metric(format, key)
         state = NewRelic::Agent.config[key]
-        label = unless enabled?
+        label = if !enabled?
           "disabled"
         else
           state ? "enabled" : "disabled"
