@@ -29,7 +29,7 @@ module NewRelic
       buffer_class PrioritySampledBuffer
 
       capacity_key :'application_logging.forwarding.max_samples_stored'
-      enabled_key :'application_logging.forwarding.enabled'
+      enabled_key :'application_logging.enabled'
 
       # Config keys
       OVERALL_ENABLED_KEY = :'application_logging.enabled'
@@ -43,7 +43,7 @@ module NewRelic
         @seen = 0
         @seen_by_severity = Hash.new(0)
         @high_security = NewRelic::Agent.config[:high_security]
-        @instrumentation_logger_enabled = instrumentation_logger_enabled?
+        @instrumentation_logger_enabled = NewRelic::Agent::Instrumentation::Logger.enabled?
         register_for_done_configuring(events)
       end
 
@@ -172,7 +172,7 @@ module NewRelic
 
       def record_configuration_metric(format, key)
         state = NewRelic::Agent.config[key]
-        label = if !enabled?
+        label = unless enabled?
           "disabled"
         else
           state ? "enabled" : "disabled"
@@ -227,10 +227,6 @@ module NewRelic
       def truncate_message(message)
         return message if message.bytesize <= MAX_BYTES
         message.byteslice(0...MAX_BYTES)
-      end
-
-      def instrumentation_logger_enabled?
-        NewRelic::Agent.config[:'instrumentation.logger'] != 'disabled'
       end
     end
   end

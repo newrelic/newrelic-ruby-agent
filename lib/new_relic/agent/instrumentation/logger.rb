@@ -9,7 +9,10 @@ require_relative 'logger/prepend'
 DependencyDetection.defer do
   named :logger
 
-  depends_on { defined?(::Logger) }
+  depends_on do
+    defined?(::Logger) &&
+      NewRelic::Agent.config[:'application_logging.enabled']
+  end
 
   executes do
     ::NewRelic::Agent.logger.info "Installing Logger instrumentation"
@@ -22,6 +25,6 @@ DependencyDetection.defer do
       chain_instrument NewRelic::Agent::Instrumentation::Logger
     end
 
-    ::NewRelic::Agent.increment_metric("Supportability/Logging/enabled/Ruby/Logger")
+    ::NewRelic::Agent.increment_metric("Supportability/Logging/Ruby/Logger/enabled")
   end
 end
