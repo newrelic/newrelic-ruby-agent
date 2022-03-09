@@ -235,7 +235,7 @@ def assert_stats_has_values_with_call_count(expected_value, actual_value, msg)
   if expected_value.to_s =~ /([<>]=?)\s*(\d+)/
     operator = Regexp.last_match(1).to_sym
     count = Regexp.last_match(2).to_i
-    assert_operator(count, operator, actual_value, msg)
+    assert_operator(actual_value, operator, count, msg)
   # == comparison
   else
     assert_equal(expected_value, actual_value, msg)
