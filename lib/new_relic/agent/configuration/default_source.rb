@@ -1907,6 +1907,13 @@ module NewRelic
           :allowed_from_server => true,
           :description => 'If `true`, the agent captures metrics related to logging for your application.'
         },
+        :'application_logging.local_decorating.enabled' => {
+          :default => false,
+          :public => true,
+          :type => Boolean,
+          :allowed_from_server => false,
+          :description => 'If `true`, the agent decorates logs with metadata to link to entities, hosts, traces, and spans.'
+        },
         :disable_grape_instrumentation => {
           :default => false,
           :public => false,

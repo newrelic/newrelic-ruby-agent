@@ -44,9 +44,10 @@ module NewRelic
 
             unless ::NewRelic::Agent.agent.nil?
               ::NewRelic::Agent.agent.log_event_aggregator.record(formatted_message, severity)
+              formatted_message = LocalLogDecorator.decorate(formatted_message)
             end
 
-            return formatted_message
+            formatted_message
           ensure
             clear_skip_instrumenting
           end

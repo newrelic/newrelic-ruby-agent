@@ -92,6 +92,20 @@ class LoggerInstrumentationTest < Minitest::Test
       assert_match(/#{name.upcase}.*progname.*A message/, @written.string)
       assert_logging_instrumentation(name.upcase)
     end
+
+    define_method("test_decorates_message_when_enabled_#{name}") do
+      with_config(:'application_logging.local_decorating.enabled' => true) do
+        @logger.log(level) { "A message" }
+        assert_includes @written.string, 'NR-LINKING'
+      end
+    end
+
+    define_method("test_does_not_decorate_message_when_disabled_#{name}") do
+      with_config(:'application_logging.local_decorating.enabled' => false) do
+        @logger.log(level) { "A message" }
+        refute_includes @written.string, 'NR-LINKING'
+      end
+    end
   end
 
   def test_still_skips_levels
