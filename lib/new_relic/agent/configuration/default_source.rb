@@ -38,7 +38,7 @@ module NewRelic
         end
       end
 
-      def self.instrumentation_boolean_value_of(key)
+      def self.instrumentation_value_from_boolean(key)
         Proc.new do
           NewRelic::Agent.config[key] ? 'auto' : 'disabled'
         end
@@ -1018,7 +1018,7 @@ module NewRelic
           :description => 'Controls auto-instrumentation of dalli gem for Memcache at start up.  May be one of [auto|prepend|chain|disabled].'
         },
         :'instrumentation.logger' => {
-          :default => instrumentation_boolean_value_of(:'application_logging.enabled'),
+          :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
           :public => true,
           :type => String,
           :dynamic_name => true,

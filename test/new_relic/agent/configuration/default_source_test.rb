@@ -253,16 +253,7 @@ module NewRelic::Agent::Configuration
       end
     end
 
-    def get_config_value_class(value)
-      type = value.class
-
-      if type == TrueClass || type == FalseClass
-        Boolean
-      else
-        type
-      end
-    end
-
+    # Tests self.instrumentation_value_from_boolean
     def test_instrumentation_logger_matches_application_logging_enabled
       with_config(:'application_logging.enabled' => true) do
         assert_equal 'auto', NewRelic::Agent.config['instrumentation.logger']
@@ -272,6 +263,16 @@ module NewRelic::Agent::Configuration
     def test_instrumentation_logger_matches_application_logging_disabled
       with_config(:'application_logging.enabled' => false) do
         assert_equal 'disabled', NewRelic::Agent.config['instrumentation.logger']
+      end
+    end
+
+    def get_config_value_class(value)
+      type = value.class
+
+      if type == TrueClass || type == FalseClass
+        Boolean
+      else
+        type
       end
     end
   end
