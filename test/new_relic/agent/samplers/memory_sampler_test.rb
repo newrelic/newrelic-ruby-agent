@@ -55,6 +55,34 @@ class NewRelic::Agent::Samplers::MemorySamplerTest < Minitest::Test
     assert !NewRelic::Agent::Samplers::MemorySampler.supported_on_this_platform? || defined? JRuby
   end
 
+  # leverage the 'uname' binary when running on JRuby
+  def test_platform_uses_uname_for_jruby
+    stubbed = 'MCP'
+    NewRelic::Helper.stubs('run_command').with('uname -s').returns(stubbed)
+    NewRelic::Agent::Samplers::MemorySampler.stub_const(:RUBY_PLATFORM, 'java') do
+      platform = NewRelic::Agent::Samplers::MemorySampler.platform
+      assert_equal platform, stubbed.downcase
+    end
+  end
+
+  # if using 'uname' fails, use 'unknown' for the platform
+  def test_platform_uses_unknown_if_uname_fails
+    NewRelic::Helper.stubs('run_command').with('uname -s').raises(NewRelic::CommandRunFailedError)
+    NewRelic::Agent::Samplers::MemorySampler.stub_const(:RUBY_PLATFORM, 'java') do
+      platform = NewRelic::Agent::Samplers::MemorySampler.platform
+      assert_equal platform, 'unknown'
+    end
+  end
+
+  # use RUBY_PLATFORM for the platform for CRuby
+  def test_platform_uses_ruby_platform
+    stubbed = 'ENCOM OS-12'
+    NewRelic::Agent::Samplers::MemorySampler.stub_const(:RUBY_PLATFORM, stubbed) do
+      platform = NewRelic::Agent::Samplers::MemorySampler.platform
+      assert_equal platform, stubbed.downcase
+    end
+  end
+
   def stub_sampler_get_memory
     if defined? JRuby
       NewRelic::Agent::Samplers::MemorySampler::JavaHeapSampler.any_instance.stubs(:get_memory).returns 333

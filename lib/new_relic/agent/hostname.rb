@@ -2,6 +2,7 @@
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 require 'socket'
+require 'new_relic/helper'
 
 module NewRelic
   module Agent
@@ -17,17 +18,27 @@ module NewRelic
         end
       end
 
-      # calling hostname with -f on some OS's (NetBSD, FreeBSD, Solaris)
-      # produces invalid option error, but doesn't raise exception.  Instead,
-      # we get back empty string.  So, solution here is to check for non-zero
-      # exit status and retry the command without the -f flag.
+      # Pass '-f' to the external executable 'hostname' to request the fully
+      # qualified domain name (fqdn). For implementations of 'hostname' that
+      # do not support '-f' (such as the one OpenBSD ships with), fall back
+      # to calling 'hostname' without the '-f'. If both ways of calling
+      # 'hostname' fail, or in a context where 'hostname' is not even
+      # available (within an AWS Lambda function, for example), call the
+      # 'get' method which uses Socket instead of an external executable.
       def self.get_fqdn
-        fqdn = %x(hostname -f 2>/dev/null).chomp!
-        fqdn = %x(hostname).chomp! unless $?.exitstatus.zero?
-        fqdn
-      rescue => e
-        NewRelic::Agent.logger.debug "Unable to determine fqdn #{e}"
-        nil
+        begin
+          NewRelic::Helper.run_command('hostname -f')
+        rescue NewRelic::CommandRunFailedError
+          NewRelic::Helper.run_command('hostname')
+        end
+      rescue NewRelic::CommandExecutableNotFoundError, NewRelic::CommandRunFailedError => e
+        message = if e.class == NewRelic::CommandExecutableNotFoundError
+          "'hostname' executable not found"
+        else
+          "'hostname' command failed - #{e.message}"
+        end
+        NewRelic::Agent.logger.debug message
+        get
       end
 
       def self.heroku_dyno_name_prefix(dyno_name)

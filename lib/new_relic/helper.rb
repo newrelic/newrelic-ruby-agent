@@ -3,8 +3,12 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/language_support'
+require 'open3'
 
 module NewRelic
+  class CommandExecutableNotFoundError < StandardError; end
+  class CommandRunFailedError < StandardError; end
+
   # A singleton for shared generic helper methods
   module Helper
     extend self
@@ -39,6 +43,25 @@ module NewRelic
 
     def time_to_millis(time)
       (time.to_f * 1000).round
+    end
+
+    def run_command(command)
+      executable = command.split(' ').first
+      raise NewRelic::CommandExecutableNotFoundError.new(executable) unless executable_in_path?(executable)
+
+      output, status = Open3.capture2e(command)
+      raise NewRelic::CommandRunFailedError.new(output) unless status.success?
+
+      output.chomp
+    end
+
+    def executable_in_path?(executable)
+      return false unless ENV['PATH']
+
+      !ENV['PATH'].split(File::PATH_SEPARATOR).detect do |bin_path|
+        executable_path = File.join(bin_path, executable)
+        File.exist?(executable_path) && File.file?(executable_path) && File.executable?(executable_path)
+      end.nil?
     end
   end
 end
