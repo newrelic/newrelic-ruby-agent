@@ -29,6 +29,10 @@ module NewRelic
           @skip_instrumenting = false
         end
 
+        def self.enabled?
+          NewRelic::Agent.config[:'instrumentation.logger'] != 'disabled'
+        end
+
         def format_message_with_tracing(severity, datetime, progname, msg)
           formatted_message = yield
           return formatted_message if skip_instrumenting?

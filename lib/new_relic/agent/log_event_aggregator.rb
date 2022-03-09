@@ -19,6 +19,7 @@ module NewRelic
       DROPPED_METRIC = "Logging/Forwarding/Dropped".freeze
       SEEN_METRIC = "Supportability/Logging/Forwarding/Seen".freeze
       SENT_METRIC = "Supportability/Logging/Forwarding/Sent".freeze
+      OVERALL_SUPPORTABILITY_FORMAT = "Supportability/Logging/Ruby/Logger/%s".freeze
       METRICS_SUPPORTABILITY_FORMAT = "Supportability/Logging/Metrics/Ruby/%s".freeze
       FORWARDING_SUPPORTABILITY_FORMAT = "Supportability/Logging/Forwarding/Ruby/%s".freeze
       DECORATING_SUPPORTABILITY_FORMAT = "Supportability/Logging/LocalDecorating/Ruby/%s".freeze
@@ -28,12 +29,12 @@ module NewRelic
       buffer_class PrioritySampledBuffer
 
       capacity_key :'application_logging.forwarding.max_samples_stored'
-      enabled_key :'application_logging.forwarding.enabled'
+      enabled_key :'application_logging.enabled'
 
       # Config keys
       OVERALL_ENABLED_KEY = :'application_logging.enabled'
       METRICS_ENABLED_KEY = :'application_logging.metrics.enabled'
-      FORWARDING_ENABLED_KEY = enabled_keys.first
+      FORWARDING_ENABLED_KEY = :'application_logging.forwarding.enabled'
       DECORATING_ENABLED_KEY = :'application_logging.local_decorating.enabled'
 
       def initialize(events)
@@ -42,6 +43,7 @@ module NewRelic
         @seen = 0
         @seen_by_severity = Hash.new(0)
         @high_security = NewRelic::Agent.config[:high_security]
+        @instrumentation_logger_enabled = NewRelic::Agent::Instrumentation::Logger.enabled?
         register_for_done_configuring(events)
       end
 
@@ -50,9 +52,13 @@ module NewRelic
       end
 
       def record(formatted_message, severity)
-        @counter_lock.synchronize do
-          @seen += 1
-          @seen_by_severity[severity] += 1
+        return unless enabled?
+
+        if NewRelic::Agent.config[METRICS_ENABLED_KEY]
+          @counter_lock.synchronize do
+            @seen += 1
+            @seen_by_severity[severity] += 1
+          end
         end
 
         return unless NewRelic::Agent.config[:'application_logging.forwarding.enabled']
@@ -145,6 +151,10 @@ module NewRelic
         super
       end
 
+      def enabled?
+        @enabled && @instrumentation_logger_enabled
+      end
+
       private
 
       # We record once-per-connect metrics for enabled/disabled state at the
@@ -153,6 +163,7 @@ module NewRelic
         events.subscribe(:server_source_configuration_added) do
           @high_security = NewRelic::Agent.config[:high_security]
 
+          record_configuration_metric(OVERALL_SUPPORTABILITY_FORMAT, OVERALL_ENABLED_KEY)
           record_configuration_metric(METRICS_SUPPORTABILITY_FORMAT, METRICS_ENABLED_KEY)
           record_configuration_metric(FORWARDING_SUPPORTABILITY_FORMAT, FORWARDING_ENABLED_KEY)
           record_configuration_metric(DECORATING_SUPPORTABILITY_FORMAT, DECORATING_ENABLED_KEY)
@@ -161,7 +172,11 @@ module NewRelic
 
       def record_configuration_metric(format, key)
         state = NewRelic::Agent.config[key]
-        label = state ? "enabled" : "disabled"
+        label = if !enabled?
+          "disabled"
+        else
+          state ? "enabled" : "disabled"
+        end
         NewRelic::Agent.increment_metric(format % label)
       end
 
@@ -174,7 +189,9 @@ module NewRelic
       # To avoid paying the cost of metric recording on every line, we hold
       # these until harvest before recording them
       def record_customer_metrics
+        return unless enabled?
         return unless NewRelic::Agent.config[:'application_logging.metrics.enabled']
+
         @counter_lock.synchronize do
           return unless @seen > 0
 

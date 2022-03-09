@@ -138,6 +138,18 @@ class LoggerInstrumentationTest < Minitest::Test
     refute_any_logging_instrumentation()
   end
 
+  def test_enabled_returns_false_when_disabled
+    with_config(:'instrumentation.logger' => 'disabled') do
+      refute NewRelic::Agent::Instrumentation::Logger.enabled?
+    end
+  end
+
+  def test_enabled_returns_true_when_enabled
+    with_config(:'instrumentation.logger' => 'auto') do
+      assert NewRelic::Agent::Instrumentation::Logger.enabled?
+    end
+  end
+
   def refute_any_logging_instrumentation
     _, logs = NewRelic::Agent.agent.log_event_aggregator.harvest!
     assert_empty logs

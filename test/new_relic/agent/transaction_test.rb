@@ -3,7 +3,6 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
-require 'pry'
 module NewRelic::Agent
   class TransactionTest < Minitest::Test
     def setup
@@ -1634,7 +1633,10 @@ module NewRelic::Agent
     end
 
     def test_batches_logs_during_transaction
-      with_config(LogEventAggregator::enabled_keys.first => true) do
+      with_config(
+        LogEventAggregator::enabled_keys.first => true,
+        LogEventAggregator::FORWARDING_ENABLED_KEY => true
+      ) do
         NewRelic::Agent.config.notify_server_source_added
         in_transaction do
           NewRelic::Agent.agent.log_event_aggregator.record("A message", "FATAL")
@@ -1644,7 +1646,10 @@ module NewRelic::Agent
     end
 
     def test_ignores_logs_when_transaction_ignored
-      with_config(LogEventAggregator::enabled_keys.first => true) do
+      with_config(
+        LogEventAggregator::enabled_keys.first => true,
+        LogEventAggregator::FORWARDING_ENABLED_KEY => true
+      ) do
         NewRelic::Agent.config.notify_server_source_added
         in_transaction do |txn|
           txn.ignore!
@@ -1661,8 +1666,11 @@ module NewRelic::Agent
 
     def test_limits_batched_logs_during_transaction
       limit = 10
-      with_config(LogEventAggregator::enabled_keys.first => true,
-        LogEventAggregator::capacity_key => limit) do
+      with_config(
+        LogEventAggregator::enabled_keys.first => true,
+        LogEventAggregator::FORWARDING_ENABLED_KEY => true,
+        LogEventAggregator::capacity_key => limit
+      ) do
         NewRelic::Agent.config.notify_server_source_added
         in_transaction do
           100.times do
