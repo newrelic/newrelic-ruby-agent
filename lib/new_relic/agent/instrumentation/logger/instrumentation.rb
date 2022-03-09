@@ -47,7 +47,7 @@ module NewRelic
               formatted_message = LocalLogDecorator.decorate(formatted_message)
             end
 
-            return formatted_message
+            formatted_message
           ensure
             clear_skip_instrumenting
           end
