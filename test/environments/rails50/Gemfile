@@ -5,6 +5,7 @@ gem 'rake', '~> 12.3.3'
 gem 'rails', '~> 5.0.0'
 
 gem 'minitest', '5.2.3'
+gem 'minitest-stub-const', '~> 0.6'
 gem 'mocha', '~> 1.1.0', :require => false
 gem 'rack', '< 2.1.0'
 gem 'rack-test'
