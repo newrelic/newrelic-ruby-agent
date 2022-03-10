@@ -2,9 +2,13 @@
 
   ## v8.6.0
 
+  * **Improve the usage of the 'hostname' executable and other executables**
+
+    In all places where a call to an executable binary is made (currently this is done only for the 'hostname' and 'uname' binaries), leverage a new helper method when making the call. This new helper will a) not attempt to execute the binary if it cannot be found, and b) prevent STDERR/STDOUT content from appearing anywhere except New Relic's own logs if the New Relic logger is set to the 'debug' level. When calling 'hostname', fall back to `Socket.gethostname` if the 'hostname' binary cannot be found. When calling 'uname', fall back on using a value of 'unknown' if the 'uname' command fails. Many thanks to @metaskills and @brcarp for letting us know that Ruby AWS Lambda functions can't invoke 'hostname' and for providing ideas and feedback with [Issue #697](https://github.com/newrelic/newrelic-ruby-agent/issues/697).
+
   * **Documentation: remove confusing duplicate RUM entry from newrelic.yml**
 
-    The `browser_monitoring.auto_instrument` configuration option to enable web page load timing (RUM) was confusingly listed twice in the newrelic.yml config file. This option is enabled by default. The newrelic.yml file has been updated to list the option only once. Many thanks to @robotfelix for bringing this to our attention with [Issue #955](https://github.com/newrelic/newrelic-ruby-agent/issues/955)
+    The `browser_monitoring.auto_instrument` configuration option to enable web page load timing (RUM) was confusingly listed twice in the newrelic.yml config file. This option is enabled by default. The newrelic.yml file has been updated to list the option only once. Many thanks to @robotfelix for bringing this to our attention with [Issue #955](https://github.com/newrelic/newrelic-ruby-agent/issues/955).
 
 
   ## v8.5.0

@@ -3,6 +3,7 @@
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
 
 require 'new_relic/agent/sampler'
+require 'new_relic/helper'
 
 module NewRelic
   module Agent
@@ -46,7 +47,11 @@ module NewRelic
 
         def self.platform
           if RUBY_PLATFORM =~ /java/
-            %x(uname -s).downcase
+            begin
+              NewRelic::Helper.run_command('uname -s').downcase
+            rescue NewRelic::CommandRunFailedError, NewRelic::CommandExecutableNotFoundError
+              'unknown'
+            end
           else
             RUBY_PLATFORM.downcase
           end
