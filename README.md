@@ -71,7 +71,7 @@ For complete documentation on installing the New Relic Ruby agent, see the follo
 * [GAE Flexible Environment](https://docs.newrelic.com/docs/agents/ruby-agent/installation/install-new-relic-ruby-agent-gae-flexible-environment)
 * [Pure Rack Apps](http://docs.newrelic.com/docs/ruby/rack-middlewares)
 * [Ruby agent and Heroku](https://docs.newrelic.com/docs/agents/ruby-agent/installation/ruby-agent-heroku)
-* [Background Jobs](https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs)
+* [Background Jobs](https://docs.newrelic.com/docs/agents/ruby-agent/background-jobs/monitor-ruby-background-processes)
 * [Uninstall the Ruby agent](https://docs.newrelic.com/docs/agents/ruby-agent/installation/uninstall-ruby-agent)
 
 ### Recording Deploys
