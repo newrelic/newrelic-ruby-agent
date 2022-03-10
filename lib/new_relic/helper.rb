@@ -47,21 +47,38 @@ module NewRelic
 
     def run_command(command)
       executable = command.split(' ').first
-      raise NewRelic::CommandExecutableNotFoundError.new(executable) unless executable_in_path?(executable)
+      unless executable_in_path?(executable)
+        raise NewRelic::CommandExecutableNotFoundError.new("Executable not found: '#{executable}'")
+      end
 
-      output, status = Open3.capture2e(command)
-      raise NewRelic::CommandRunFailedError.new(output) unless status.success?
+      exception = nil
+      begin
+        output, status = Open3.capture2e(command)
+      rescue => exception
+      end
+
+      if exception || !status.success?
+        message = exception ? "#{exception.class} - #{exception.message}" : output
+        raise NewRelic::CommandRunFailedError.new("Failed to run command '#{command}': #{message}")
+      end
 
       output.chomp
     end
 
+    # TODO: Open3 defers the actual excecution of a binary to Process.spawn,
+    #       which will raise an Errno::ENOENT exception for a file that
+    #       cannot be found. We might want to take the time to evaluate
+    #       relying on that Process.spawn behavior instead of checking for
+    #       existence ourselves. We'd need to see what it does, how efficient
+    #       it is, if it differs in functionality between Ruby versions and
+    #       operating systems, etc.
     def executable_in_path?(executable)
       return false unless ENV['PATH']
 
-      !ENV['PATH'].split(File::PATH_SEPARATOR).detect do |bin_path|
+      ENV['PATH'].split(File::PATH_SEPARATOR).any? do |bin_path|
         executable_path = File.join(bin_path, executable)
         File.exist?(executable_path) && File.file?(executable_path) && File.executable?(executable_path)
-      end.nil?
+      end
     end
   end
 end

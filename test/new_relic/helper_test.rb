@@ -56,11 +56,20 @@ class HelperTest < Minitest::Test
     assert_equal result, stubbed
   end
 
-  def test_run_command_sad
+  def test_run_command_sad_unsucessful
     NewRelic::Helper.stubs('executable_in_path?').returns(true)
     Open3.stubs('capture2e').returns([nil, OpenStruct.new(success?: false)])
     assert_raises(NewRelic::CommandRunFailedError) do
       NewRelic::Helper.run_command('find / -name tetris')
+    end
+  end
+
+  def test_run_command_sad_exception
+    exception = StandardError.new("I'm going to have to put you on the game grid.")
+    NewRelic::Helper.stubs('executable_in_path?').returns(true)
+    Open3.stubs('capture2e').raises(exception)
+    assert_raises(NewRelic::CommandRunFailedError, "#{exception.class} - #{exception.message}") do
+      NewRelic::Helper.run_command('executable that existed at detection time but is not there now')
     end
   end
 end

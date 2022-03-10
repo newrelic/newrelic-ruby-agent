@@ -32,12 +32,7 @@ module NewRelic
           NewRelic::Helper.run_command('hostname')
         end
       rescue NewRelic::CommandExecutableNotFoundError, NewRelic::CommandRunFailedError => e
-        message = if e.class == NewRelic::CommandExecutableNotFoundError
-          "'hostname' executable not found"
-        else
-          "'hostname' command failed - #{e.message}"
-        end
-        NewRelic::Agent.logger.debug message
+        NewRelic::Agent.logger.debug("#{e.class} - #{e.message}")
         get
       end
 
