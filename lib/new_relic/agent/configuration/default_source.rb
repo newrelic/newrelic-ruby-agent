@@ -1914,6 +1914,13 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, the agent decorates logs with metadata to link to entities, hosts, traces, and spans.'
         },
+        :'instrumentation.active_support.logger' => {
+          :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
+          :public => true,
+          :type => String,
+          :allowed_from_server => false,
+          :description => 'Controls auto-instrumentation of ActiveSupport::Logger at start up.  May be one of [auto|prepend|chain|disabled].'
+        },
         :disable_grape_instrumentation => {
           :default => false,
           :public => false,
