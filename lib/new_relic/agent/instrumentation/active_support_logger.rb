@@ -7,7 +7,7 @@ require_relative 'active_support_logger/chain'
 require_relative 'active_support_logger/prepend'
 
 DependencyDetection.defer do
-  named :'active_support.logger'
+  named :active_support_logger
 
   depends_on { defined?(::ActiveSupport::Logger) }
 

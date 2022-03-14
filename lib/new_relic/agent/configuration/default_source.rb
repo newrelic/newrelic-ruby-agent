@@ -1914,8 +1914,9 @@ module NewRelic
           :allowed_from_server => false,
           :description => 'If `true`, the agent decorates logs with metadata to link to entities, hosts, traces, and spans.'
         },
-        :'instrumentation.active_support.logger' => {
+        :'instrumentation.active_support_logger' => {
           :default => instrumentation_value_from_boolean(:'application_logging.enabled'),
+          :dynamic_name => true,
           :public => true,
           :type => String,
           :allowed_from_server => false,
