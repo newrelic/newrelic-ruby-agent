@@ -4,6 +4,7 @@
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'test_helper'))
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'data_container_tests'))
+require File.expand_path(File.join(File.dirname(__FILE__), '..', 'common_aggregator_tests'))
 
 require 'new_relic/agent/log_event_aggregator'
 
@@ -32,6 +33,29 @@ module NewRelic::Agent
     end
 
     CAPACITY_KEY = LogEventAggregator.capacity_key
+
+    # Helpers for CommonAggregatorTests
+
+    def generate_event(name = 'A log message', options = {})
+      in_transaction do |txn|
+        txn.priority = options[:priority] if options[:priority]
+        @aggregator.record(name, "DEBUG")
+      end
+    end
+
+    def last_events
+      @aggregator.harvest![1]
+    end
+
+    def aggregator
+      @aggregator
+    end
+
+    def name_for(event)
+      event[1]["message"]
+    end
+
+    include NewRelic::CommonAggregatorTests
 
     # Helpers for DataContainerTests
 

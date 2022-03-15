@@ -132,12 +132,17 @@ module NewRelic
     def test_sample_counts_are_correct_after_merge
       with_config aggregator.class.capacity_key => 5 do
         buffer = aggregator.instance_variable_get :@buffer
+        # The *_at_start variables are intended to avoid a test order issue
+        # These attributes are not reset to 0 at the beginning of each test because
+        # the buffer does not have an attr_writer for these values, nor should it
+        seen_lifetime_at_start = buffer.seen_lifetime
+        captured_lifetime_at_start = buffer.captured_lifetime
 
         4.times { generate_event }
         last_harvest = aggregator.harvest!
 
-        assert_equal 4, buffer.seen_lifetime
-        assert_equal 4, buffer.captured_lifetime
+        assert_equal 4, buffer.seen_lifetime - seen_lifetime_at_start
+        assert_equal 4, buffer.captured_lifetime - captured_lifetime_at_start
         assert_equal 4, last_harvest[0][:events_seen]
 
         4.times { generate_event }
@@ -147,8 +152,8 @@ module NewRelic
 
         assert_equal 5, samples.size
         assert_equal 8, reservoir_stats[:events_seen]
-        assert_equal 8, buffer.seen_lifetime
-        assert_equal 5, buffer.captured_lifetime
+        assert_equal 8, buffer.seen_lifetime - seen_lifetime_at_start
+        assert_equal 5, buffer.captured_lifetime - captured_lifetime_at_start
       end
     end
 
