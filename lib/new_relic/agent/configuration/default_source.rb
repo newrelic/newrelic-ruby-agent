@@ -1916,7 +1916,7 @@ module NewRelic
         },
         :disable_grape_instrumentation => {
           :default => false,
-          :public :=> false,
+          :public => false,
           :type => Boolean,
           :allowed_from_server => false,
           :deprecated => true,
