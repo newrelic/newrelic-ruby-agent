@@ -13,9 +13,7 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info 'Installing ActiveSupport::Logger instrumentation'
-  end
 
-  executes do
     if use_prepend?
       # the only method currently instrumented is a class method
       prepend_instrument ::ActiveSupport::Logger.singleton_class, NewRelic::Agent::Instrumentation::ActiveSupportLogger::Prepend
