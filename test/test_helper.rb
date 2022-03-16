@@ -15,6 +15,7 @@ require 'rubygems'
 require 'rake'
 
 require 'minitest/autorun'
+require 'minitest/pride'
 require 'minitest/stub_const'
 require 'mocha/setup'
 
