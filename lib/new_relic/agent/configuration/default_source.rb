@@ -1886,14 +1886,14 @@ module NewRelic
           :description => 'If `true`, enables log decoration and the collection of log events and metrics.'
         },
         :'application_logging.forwarding.enabled' => {
-          :default => false,
+          :default => true,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
           :description => 'If `true`, the agent captures log records emitted by your application.'
         },
         :'application_logging.forwarding.max_samples_stored' => {
-          :default => 10000,
+          :default => 1000,
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
@@ -1908,7 +1908,7 @@ module NewRelic
           :description => 'If `true`, the agent captures metrics related to logging for your application.'
         },
         :'application_logging.local_decorating.enabled' => {
-          :default => true,
+          :default => false,
           :public => true,
           :type => Boolean,
           :allowed_from_server => false,
