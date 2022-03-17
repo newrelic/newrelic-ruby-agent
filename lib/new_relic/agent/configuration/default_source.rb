@@ -1893,7 +1893,7 @@ module NewRelic
           :description => 'If `true`, the agent captures log records emitted by your application.'
         },
         :'application_logging.forwarding.max_samples_stored' => {
-          :default => 1000,
+          :default => 400,
           :public => true,
           :type => Integer,
           :allowed_from_server => true,
