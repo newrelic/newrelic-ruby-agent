@@ -15,7 +15,7 @@ require 'rubygems'
 require 'rake'
 
 require 'minitest/autorun'
-require 'minitest/pride'
+require 'minitest/pride' unless ENV['CI']
 require 'minitest/stub_const'
 require 'mocha/setup'
 
