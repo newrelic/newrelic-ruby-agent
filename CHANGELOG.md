@@ -10,6 +10,9 @@
 
     The `browser_monitoring.auto_instrument` configuration option to enable web page load timing (RUM) was confusingly listed twice in the newrelic.yml config file. This option is enabled by default. The newrelic.yml file has been updated to list the option only once. Many thanks to @robotfelix for bringing this to our attention with [Issue #955](https://github.com/newrelic/newrelic-ruby-agent/issues/955).
 
+  * **Bugfix: fix unit test failures when New Relic environment variables are present**
+
+    Previously, unit tests would fail with unexpected invocation errors when `NEW_RELIC_LICENSE_KEY` and `NEW_RELIC_HOST` environment variables were present. Now, tests will discard these environment variables before running.
 
   ## v8.5.0
 
