@@ -49,3 +49,8 @@ end
 # This is the public method recommended for plugin developers to share our
 # agent helpers. Use it so we don't accidentally break it.
 NewRelic::Agent.require_test_helper
+
+# If these are set, many tests fail. We delete them from this process.
+# This is an example of a test fail: unexpected invocation: #<Mock:0x28438>.sync=(true) (MiniTest::Assertion)
+ENV.delete('NEW_RELIC_LICENSE_KEY')
+ENV.delete('NEW_RELIC_HOST')
