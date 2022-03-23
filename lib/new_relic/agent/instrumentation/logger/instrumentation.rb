@@ -49,7 +49,7 @@ module NewRelic
                 dev = @logdev.instance_variable_get(:@dev)
                 logdev_file = dev.path if dev
               end
-              debug_info = "thread_id=#{Thread.current.object_id}~log_device_id=#{logdev_id}~file=#{logdev_file}"
+              debug_info = "logger_id=#{object_id}~thread_id=#{Thread.current.object_id}~log_device_id=#{logdev_id}~file=#{logdev_file}"
               ::NewRelic::Agent.agent.log_event_aggregator.record(formatted_message, severity, debug_info)
               formatted_message = LocalLogDecorator.decorate(formatted_message)
             end
