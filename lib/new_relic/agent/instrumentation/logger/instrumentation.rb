@@ -43,7 +43,14 @@ module NewRelic
             mark_skip_instrumenting
 
             unless ::NewRelic::Agent.agent.nil?
-              ::NewRelic::Agent.agent.log_event_aggregator.record(formatted_message, severity)
+              logdev_id, logdev_file = nil, nil
+              if @logdev
+                logdev_id = @logdev.object_id
+                dev = @logdev.instance_variable_get(:@dev)
+                logdev_file = dev.path if dev
+              end
+              debug_info = "thread_id=#{Thread.current.object_id}~log_device_id=#{logdev_id}~file=#{logdev_file}"
+              ::NewRelic::Agent.agent.log_event_aggregator.record(formatted_message, severity, debug_info)
               formatted_message = LocalLogDecorator.decorate(formatted_message)
             end
 

@@ -51,7 +51,7 @@ module NewRelic
         @buffer.capacity
       end
 
-      def record(formatted_message, severity)
+      def record(formatted_message, severity, debug_info)
         return unless enabled?
 
         if NewRelic::Agent.config[METRICS_ENABLED_KEY]
@@ -69,7 +69,7 @@ module NewRelic
         priority = LogPriority.priority_for(txn)
 
         if txn
-          return txn.add_log_event(create_event(priority, formatted_message, severity))
+          return txn.add_log_event(create_event(priority, formatted_message, severity, debug_info))
         else
           return @lock.synchronize do
             @buffer.append(priority: priority) do
@@ -95,13 +95,14 @@ module NewRelic
         end
       end
 
-      def create_event priority, formatted_message, severity
+      def create_event priority, formatted_message, severity, debug_info=nil
         formatted_message = truncate_message(formatted_message)
 
         event = LinkingMetadata.append_trace_linking_metadata({
           LEVEL_KEY => severity,
           MESSAGE_KEY => formatted_message,
-          TIMESTAMP_KEY => Process.clock_gettime(Process::CLOCK_REALTIME) * 1000
+          TIMESTAMP_KEY => Process.clock_gettime(Process::CLOCK_REALTIME) * 1000,
+          'debug.info' => debug_info
         })
 
         [
