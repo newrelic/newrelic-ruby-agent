@@ -8,7 +8,7 @@ You can also extend the agent's performance monitoring to
 [collect and analyze business data](https://docs.newrelic.com/docs/agents/ruby-agent/getting-started/introduction-new-relic-ruby#business-data)
 to help you improve the customer experience and make data-driven business decisions.
 
-The New Relic Ruby Agent is dual-purposed as a either a Gem or a Rails plugin,
+The New Relic Ruby agent is dual-purposed as either a Gem or a Rails plugin,
 hosted on [github](https://github.com/newrelic/newrelic-ruby-agent).
 
 [![Gem Version](https://badge.fury.io/rb/newrelic_rpm.svg)](https://badge.fury.io/rb/newrelic_rpm)
@@ -23,13 +23,13 @@ Environments" section below.
 
 ## Installing and Using
 
-The latest released gem for the Ruby Agent can be found at [Rubygems.org](https://rubygems.org/gems/newrelic_rpm)
+The latest released gem for the Ruby agent can be found at [Rubygems.org](https://rubygems.org/gems/newrelic_rpm)
 
 ### Quick Start
 
 #### With Bundler
 
-For using with Bundler, add the Ruby Agent to your project's Gemfile.
+For using with Bundler, add the Ruby agent to your project's Gemfile.
 
 ```ruby
 gem 'newrelic_rpm'
@@ -76,8 +76,8 @@ For complete documentation on installing the New Relic Ruby agent, see the follo
 
 ### Recording Deploys
 
-The Ruby Agent supports recording deployments in New Relic via a command line
-tool or Capistrano recipes. For more information on these features see
+The Ruby agent supports recording deployments in New Relic via a command line
+tool or Capistrano recipes. For more information on these features, see
 [our deployment documentation](http://docs.newrelic.com/docs/ruby/recording-deployments-with-the-ruby-agent)
 for more information.
 
@@ -101,16 +101,16 @@ If the issue has been confirmed as a bug or is a Feature request, please file a 
 
 ## Privacy
 
-At New Relic we take your privacy and the security of your information seriously, and are committed to protecting your information. We must emphasize the importance of not sharing personal data in public forums, and ask all users to scrub logs and diagnostic information for sensitive information, whether personal, proprietary, or otherwise.
+At New Relic, we take your privacy and the security of your information seriously, and are committed to protecting your information. We must emphasize the importance of not sharing personal data in public forums, and ask all users to scrub logs and diagnostic information for sensitive information, whether personal, proprietary, or otherwise.
 
-We define “Personal Data” as any information relating to an identified or identifiable individual, including, for example, your name, phone number, post code or zip code, Device ID, IP address and email address.
+We define “Personal Data” as any information relating to an identified or identifiable individual, including, for example, your name, phone number, post code or zip code, Device ID, IP address, and email address.
 
 Please review [New Relic’s General Data Privacy Notice](https://newrelic.com/termsandconditions/privacy) for more information.
 
 ## Contributing
 
-We encourage contributions to improve the New Relic Ruby agent! Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
-If you have any questions, or to execute our corporate CLA, required if your contribution is on behalf of a company,  please drop us an email at opensource@newrelic.com.
+We encourage contributions to improve the New Relic Ruby agent! Keep in mind when you submit your pull request, you'll need to sign the Contributor License Agreement (CLA) via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
+If you have any questions, or to execute our corporate CLA (required if your contribution is on behalf of a company) please drop us an email at opensource@newrelic.com.
 
 **A note about vulnerabilities**
 
@@ -132,6 +132,6 @@ The New Relic Ruby agent also uses source code from third-party libraries. Full 
 
 Thank you, and may your application scale to infinity plus one.
 
-Lew Cirne, Founder
+New Relic Ruby agent team
 
 New Relic, Inc.
