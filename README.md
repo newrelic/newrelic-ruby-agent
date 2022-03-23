@@ -101,7 +101,7 @@ If the issue has been confirmed as a bug or is a Feature request, please file a 
 
 ## Privacy
 
-At New Relic, we take your privacy and the security of your information seriously, and are committed to protecting your information. We must emphasize the importance of not sharing personal data in public forums, and ask all users to scrub logs and diagnostic information for sensitive information, whether personal, proprietary, or otherwise.
+At New Relic we take your privacy and the security of your information seriously, and are committed to protecting your information. We must emphasize the importance of not sharing personal data in public forums, and ask all users to scrub logs and diagnostic information for sensitive information, whether personal, proprietary, or otherwise.
 
 We define “Personal Data” as any information relating to an identified or identifiable individual, including, for example, your name, phone number, post code or zip code, Device ID, IP address, and email address.
 
@@ -110,7 +110,7 @@ Please review [New Relic’s General Data Privacy Notice](https://newrelic.com/t
 ## Contributing
 
 We encourage contributions to improve the New Relic Ruby agent! Keep in mind when you submit your pull request, you'll need to sign the Contributor License Agreement (CLA) via the click-through using CLA-Assistant. You only have to sign the CLA one time per project.
-If you have any questions, or to execute our corporate CLA (required if your contribution is on behalf of a company) please drop us an email at opensource@newrelic.com.
+If you have any questions, or to execute our corporate CLA (required if your contribution is on behalf of a company), please drop us an email at opensource@newrelic.com.
 
 **A note about vulnerabilities**
 
@@ -130,7 +130,7 @@ The New Relic Ruby agent also uses source code from third-party libraries. Full 
 
 ## Thank You
 
-Thank you, and may your application scale to infinity plus one.
+Thank you,
 
 New Relic Ruby agent team
 
