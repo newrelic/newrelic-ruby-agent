@@ -47,7 +47,9 @@ module NewRelic
               if @logdev
                 logdev_id = @logdev.object_id
                 dev = @logdev.instance_variable_get(:@dev)
-                logdev_file = dev.path if dev
+                if dev
+                  logdev_file = dev.respond_to?(:path) ? dev.path : dev.inspect
+                end
               end
               debug_info = "logger_id=#{object_id}~thread_id=#{Thread.current.object_id}~log_device_id=#{logdev_id}~file=#{logdev_file}"
               ::NewRelic::Agent.agent.log_event_aggregator.record(formatted_message, severity, debug_info)
