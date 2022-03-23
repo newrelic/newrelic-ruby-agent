@@ -13,7 +13,7 @@ module NewRelic
       def decorate(message)
         return message unless decorating_enabled?
         metadata = NewRelic::Agent.linking_metadata
-        formatted_metadata = " NR-LINKING|#{metadata["entity.guid"]}|#{metadata["hostname"]}|#{metadata["trace.id"]}|#{metadata["span.id"]}|"
+        formatted_metadata = " NR-LINKING|#{metadata["entity.guid"]}|#{metadata["hostname"]}|#{metadata["trace.id"]}|#{metadata["span.id"]}|#{metadata["entity.name"]}|"
         message.partition("\n").insert(1, formatted_metadata).join
       end
 

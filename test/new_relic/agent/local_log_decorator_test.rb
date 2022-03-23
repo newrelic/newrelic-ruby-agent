@@ -9,7 +9,7 @@ module NewRelic::Agent
   module LocalLogDecorator
     class LocalLogDecoratorTest < Minitest::Test
       MESSAGE = 'message'.freeze
-      METADATA_STRING = 'NR-LINKING|GUID|localhost|trace_id|span_id|'
+      METADATA_STRING = 'NR-LINKING|GUID|localhost|trace_id|span_id|test|'
 
       def setup
         @enabled_config = {
