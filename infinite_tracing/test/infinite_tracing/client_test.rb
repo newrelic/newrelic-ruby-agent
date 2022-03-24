@@ -38,7 +38,9 @@ module NewRelic
             total_spans = 5
             spans, segments = emulate_streaming_segments total_spans do |client, segments|
               if segments.size == 3
-                client.restart
+                client.restart # ???
+              else
+                simulate_server_response # if segments.size == 5
               end
             end
 
@@ -67,19 +69,16 @@ module NewRelic
             total_spans = 5
             leftover_spans = 2
 
-            mock_response = mock()
-            mock_response.stubs(:messages_seen).returns(1)
-
-            spans, segments = emulate_streaming_segments total_spans do |client, segments, server|
+            spans, segments = emulate_streaming_segments total_spans do |client, segments|
               puts "#{Thread.current.object_id} in emulate &block"
               if segments.size == total_spans - leftover_spans
                 if segments.size == 3
                   # we do this here instead of server_proc because we are testing that if the server restarts while the CLIENT is currently running (since we are not testing the server, just client behavior)
-                  @server_response_enum << GRPC::Ok.new
+                  simulate_server_response GRPC::Ok.new
                 end
               end
               # we need to do this so the client streaming helpers know when the mock server has done its thing
-              @server_response_enum << mock_response if segments.size == 5
+              simulate_server_response if segments.size == 5
             end
 
             assert_equal total_spans, segments.size
@@ -98,47 +97,62 @@ module NewRelic
           end
         end
 
-        # def test_handles_server_error_responses
-        #   with_serial_lock do
-        #     NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
-        #     connection = Connection.instance
-        #     connection.stubs(:retry_connection_period).returns(0)
+        def test_handles_server_error_responses
+          with_serial_lock do
+            NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
+            connection = Connection.instance
+            connection.stubs(:retry_connection_period).returns(0)
 
-        #     num_spans = 2
-        #     emulate_streaming_with_initial_error num_spans
+            total_spans = 2
+            first = true
 
-        #     assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
-        #     assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
-        #     assert_metrics_recorded({
-        #       "Supportability/InfiniteTracing/Span/Seen" => {:call_count => num_spans},
-        #       "Supportability/InfiniteTracing/Span/gRPC/PERMISSION_DENIED" => {:call_count => 1}
-        #     })
-        #   end
-        # end
+            emulate_streaming_with_initial_error total_spans do |client, segments|
+              if first
+                puts "in emu proc - add error"
+                # raise error only first time
+                first = false
+                simulate_server_response_shutdown GRPC::PermissionDenied.new(details = "denied")
+              else
+                puts "in emu proc - add regular response"
+                simulate_server_response
+              end
+            end
 
-        # def test_handles_suspended_state
-        #   with_serial_lock do
-        #     NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
-        #     connection = Connection.instance
-        #     connection.stubs(:retry_connection_period).returns(0)
+            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
+            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+            assert_metrics_recorded({
+              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+              "Supportability/InfiniteTracing/Span/gRPC/PERMISSION_DENIED" => {:call_count => 1}
+            })
+          end
+        end
 
-        #     total_spans = 5
-        #     emulate_streaming_segments total_spans do |client, segments|
-        #       if segments.size == 3
-        #         client.handle_error GRPC::Unimplemented.new "suspend me!"
-        #       end
-        #     end
+        # still intermittent?
+        def test_handles_suspended_state
+          with_serial_lock do
+            NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
+            connection = Connection.instance
+            connection.stubs(:retry_connection_period).returns(0)
 
-        #     assert_metrics_recorded "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED"
-        #     assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
-        #     assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
-        #     assert_metrics_recorded({
-        #       "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
-        #       "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 3},
-        #       "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED" => {:call_count => 1}
-        #     })
-        #   end
-        # end
+            total_spans = 5
+            spans, segments = emulate_streaming_segments total_spans do |client, segments|
+              if segments.size == 3
+                simulate_server_response_shutdown GRPC::Unimplemented.new("i dont exist")
+              else
+                simulate_server_response
+              end
+            end
+
+            assert_metrics_recorded "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED"
+            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
+            assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
+            assert_metrics_recorded({
+              "Supportability/InfiniteTracing/Span/Seen" => {:call_count => total_spans},
+              "Supportability/InfiniteTracing/Span/Sent" => {:call_count => 3},
+              "Supportability/InfiniteTracing/Span/gRPC/UNIMPLEMENTED" => {:call_count => 1}
+            })
+          end
+        end
 
         # def test_stores_spans_when_not_connected
         #   with_serial_lock do

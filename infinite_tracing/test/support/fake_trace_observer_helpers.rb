@@ -116,12 +116,12 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             # rather than fewer.  On the other hand, simply sleeping when there's more than
             # one Thread in a "run" state solves the issues altogether.
             def wait_for_agent_infinite_tracer_thread_to_close
-              timeout_cap(3.0) do
-                while Thread.list.select { |t| t.status == "run" }.size > 1
-                  sleep(0.01)
-                end
-                sleep(0.01)
-              end
+              # timeout_cap(3.0) do
+              #   while Thread.list.select { |t| t.status == "run" }.size > 1
+              #     sleep(0.01)
+              #   end
+              #   sleep(0.01)
+              # end
             end
 
             def flush count = 0
@@ -227,23 +227,31 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
                     block.call(client, segments) if block_given?
 
                     # waits for the grpc mock server to handle any values it needs to
+                    puts "#{Thread.current.object_id}  before waiting emu"
                     sleep 0.01 if !@server_response_enum.empty?
-
+                    puts "#{Thread.current.object_id}  after waiting emu"
                   end
                 end
                 # waits for the mock grpc server to finish
+                puts "#{Thread.current.object_id}  before waiting emu2"
                 sleep 0.1 if !@server_response_enum.empty?
+                puts "#{Thread.current.object_id}  after waiting emu2"
 
                 # ensures all segments consumed then returns the
                 # spans the server saw along with the segments sent
                 client.flush
+                puts "#{Thread.current.object_id}  after client flush "
+
                 # server.flush count
                 # return server.spans, segments
                 return segments
               end
             end
           ensure
+            puts "#{Thread.current.object_id}  before client stop "
             client.stop unless client.nil?
+            puts "#{Thread.current.object_id}  after client stop "
+
             # server.stop unless server.nil?
           end
 
@@ -265,12 +273,34 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
               return enum_for(:enumerator) unless block_given?
               loop do
                 if return_value = @buffer.pop(false)
+                  # grpc raises any errors it gets rather than yielding them
+                  # this mimics that behavior
+                  if return_value.is_a?(GRPC::BadStatus) # && !return_value.is_a?(GRPC::Ok)
+                    raise return_value
+                  end
                   yield return_value
                 end
               end
             end
           end
 
+          # def shutdown_grpc_mock
+          #   # allows the test to finish what its doing on other threads before shutting down the mock server thread
+          #   sleep 0.1 if !@server_response_enum.empty?
+          #   @mock_thread.kill
+          # end
+
+          # when the server responds with an error that should stop the server
+          def simulate_server_response_shutdown(response = GRPC::Ok.new)
+            @server_response_enum << response
+            # allow the test to handle the response before shutting down
+            sleep 0.1 if !@server_response_enum.empty?
+            @mock_thread.kill
+          end
+
+          def simulate_server_response(response = mock_response)
+            @server_response_enum << response
+          end
 
           ## &block = code we want to execute on "SERVER" thread
           def create_grpc_mock(&block)
@@ -283,26 +313,21 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             # stubs out the record_span to keep track of what the agent passes to grpc (and bypass using grpc in the tests)
             tmp = mock_rpc.expects(:record_span).at_least_once.with do |enum, metadata|
               @mock_thread = Thread.new do
+                puts "mock: class #{enum.class}"
                 enum.each do |span|
+                  break if span.nil?
                   puts "#{Thread.current.object_id} in mock server   #{span.trace_id}"
-                  seen_spans << span
+                  seen_spans << span unless span.nil?
                   block.call(seen_spans) if block_given?
-                  #
-                  sleep 0.1 if !@server_response_enum.empty?
+
+                  # tells our mock server to wait -do we need this?
+                  # puts "#{Thread.current.object_id}  before waiting grpc mock"
+                  # sleep 0.1 if !@server_response_enum.empty?
+                  # puts "#{Thread.current.object_id}  after waiting grpc mock"
                 end
               end
             end.returns(@server_response_enum.enumerator)
 
-
-            # this turned into the new class enumerator
-            # @serverarr.each_with_index do |return_value, index|
-            #   tmp = tmp.then if index > 0
-            #   tmp = tmp.returns(return_value)
-
-            # end
-            ##
-
-            # insert our mock grpc into the agent
             NewRelic::Agent::InfiniteTracing::Channel.any_instance.stubs('stub').returns(mock_rpc)
             return seen_spans
           end
@@ -311,7 +336,11 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             @mock_thread.join
           end
 
-
+          def mock_response
+            @mock_response ||= mock().tap do |mock_response|
+              mock_response.stubs(:messages_seen).returns(1)
+            end
+          end
 
           def emulate_streaming_segments count, server_proc = nil, max_buffer_size = 100_000, &block
             spans = create_grpc_mock &server_proc
@@ -328,8 +357,11 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             emulate_streaming_with_tracer FailedPreconditionInfiniteTracer, count, max_buffer_size, &block
           end
 
-          def emulate_streaming_with_initial_error count, max_buffer_size = 100_000, &block
-            emulate_streaming_with_tracer ErroringInfiniteTracer, count, max_buffer_size, &block
+          def emulate_streaming_with_initial_error count, server_proc = nil, max_buffer_size = 100_000, &block
+            spans = create_grpc_mock &server_proc
+            segments = emulate_streaming_with_tracer nil, count, max_buffer_size, &block
+            join_grpc_mock
+            return spans, segments
           end
 
           def emulate_streaming_with_ok_close_response count, max_buffer_size = 100_000, &block
