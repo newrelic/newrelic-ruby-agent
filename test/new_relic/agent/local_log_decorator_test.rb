@@ -84,6 +84,13 @@ module NewRelic::Agent
           assert_includes decorated_message, "My%20App%20%7C%20Production"
         end
       end
+
+      def test_safe_without_entity_name
+        with_config(app_name: nil) do
+          decorated_message = LocalLogDecorator.decorate(MESSAGE)
+          assert_includes decorated_message, '||'
+        end
+      end
     end
   end
 end

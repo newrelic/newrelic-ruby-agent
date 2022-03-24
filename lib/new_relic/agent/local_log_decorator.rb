@@ -26,8 +26,9 @@ module NewRelic
           NewRelic::Agent.config[:'application_logging.local_decorating.enabled']
       end
 
-      def escape_entity_name(entity_name = nil)
-        URI::Parser.new.escape(entity_name)
+      def escape_entity_name(entity_name)
+        return unless entity_name
+        URI::DEFAULT_PARSER.escape(entity_name)
       end
     end
   end
