@@ -1,7 +1,6 @@
 # encoding: utf-8
 # This file is distributed under New Relic's license terms.
 # See https://github.com/newrelic/newrelic-ruby-agent/blob/main/LICENSE for complete details.
-# frozen_string_literal: true
 
 module NewRelic
   module Agent
@@ -12,8 +11,10 @@ module NewRelic
 
       def decorate(message)
         return message unless decorating_enabled?
+
         metadata = NewRelic::Agent.linking_metadata
-        formatted_metadata = " NR-LINKING|#{metadata["entity.guid"]}|#{metadata["hostname"]}|#{metadata["trace.id"]}|#{metadata["span.id"]}|#{metadata["entity.name"]}|"
+        formatted_metadata = " NR-LINKING|#{metadata[ENTITY_GUID_KEY]}|#{metadata[HOSTNAME_KEY]}|#{metadata[TRACE_ID_KEY]}|#{metadata[SPAN_ID_KEY]}|#{escape_entity_name(metadata[ENTITY_NAME_KEY])}|"
+
         message.partition("\n").insert(1, formatted_metadata).join
       end
 
@@ -23,6 +24,10 @@ module NewRelic
         NewRelic::Agent.config[:'application_logging.enabled'] &&
           NewRelic::Agent::Instrumentation::Logger.enabled? &&
           NewRelic::Agent.config[:'application_logging.local_decorating.enabled']
+      end
+
+      def escape_entity_name(entity_name = nil)
+        URI::Parser.new.escape(entity_name)
       end
     end
   end
