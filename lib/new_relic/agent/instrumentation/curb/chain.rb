@@ -51,7 +51,7 @@ module NewRelic::Agent::Instrumentation
 
           # Record the HTTP verb for future #perform calls
           def method_with_newrelic verb
-            method_with_tracing { method_without_newrelic(verb) }
+            method_with_tracing(verb) { method_without_newrelic(verb) }
           end
 
           alias_method :method_without_newrelic, :method

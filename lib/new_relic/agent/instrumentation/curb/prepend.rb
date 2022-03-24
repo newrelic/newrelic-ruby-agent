@@ -34,7 +34,7 @@ module NewRelic
             end
 
             def method verb
-              method_with_tracing { super }
+              method_with_tracing(verb) { super }
             end
 
             def header_str
