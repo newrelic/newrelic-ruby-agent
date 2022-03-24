@@ -16,9 +16,7 @@ DependencyDetection.defer do
 
   executes do
     ::NewRelic::Agent.logger.info "Installing Logger instrumentation"
-  end
 
-  executes do
     if use_prepend?
       prepend_instrument ::Logger, NewRelic::Agent::Instrumentation::Logger::Prepend
     else
