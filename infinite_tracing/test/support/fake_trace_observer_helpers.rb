@@ -48,6 +48,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           end
 
           def teardown
+            @mock_thread = nil
             reset_buffers_and_caches
             assert_only_one_subscription_notifier
             reset_infinite_tracer
@@ -199,14 +200,14 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           def emulate_streaming_with_tracer tracer_class, count, max_buffer_size, &block
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
-            NewRelic::Agent::InfiniteTracing::Client.any_instance.stubs(:handle_close).returns(nil) unless tracer_class == OkCloseInfiniteTracer
+            # NewRelic::Agent::InfiniteTracing::Client.any_instance.stubs(:handle_close).returns(nil) unless tracer_class == OkCloseInfiniteTracer
             client = nil
-            server = nil
+            # server = nil
 
             with_config fake_server_config do
               simulate_connect_to_collector fake_server_config do |simulator|
                 # starts server and simulated agent connection
-                server = ServerContext.new FAKE_SERVER_PORT, tracer_class
+                # server = ServerContext.new FAKE_SERVER_PORT, tracer_class
                 simulator.join
 
                 # starts client and streams count segments
@@ -216,29 +217,107 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
                 segments = []
                 count.times do |index|
                   with_segment do |segment|
+                    puts "#{Thread.current.object_id} adding segment"
                     segments << segment
                     client << deferred_span(segment)
 
                     # If you want opportunity to do something after each segment
                     # is pushed, invoke this method with a block and do it.
-                    block.call(client, segments, server) if block_given?
+                    # block.call(client, segments, server) if block_given?
+                    block.call(client, segments) if block_given?
+
+                    # waits for the grpc mock server to handle any values it needs to
+                    sleep 0.01 if !@server_response_enum.empty?
+
                   end
                 end
+                # waits for the mock grpc server to finish
+                sleep 0.1 if !@server_response_enum.empty?
 
                 # ensures all segments consumed then returns the
                 # spans the server saw along with the segments sent
                 client.flush
-                server.flush count
-                return server.spans, segments
+                # server.flush count
+                # return server.spans, segments
+                return segments
               end
             end
           ensure
             client.stop unless client.nil?
-            server.stop unless server.nil?
+            # server.stop unless server.nil?
           end
 
-          def emulate_streaming_segments count, max_buffer_size = 100_000, &block
-            emulate_streaming_with_tracer InfiniteTracer, count, max_buffer_size, &block
+          # class to handle the responses to the client from the server
+          class ServerResponseSimulator
+            def initialize
+              @buffer = Queue.new
+            end
+
+            def << value
+              @buffer << value
+            end
+
+            def empty?
+              @buffer.empty?
+            end
+
+            def enumerator
+              return enum_for(:enumerator) unless block_given?
+              loop do
+                if return_value = @buffer.pop(false)
+                  yield return_value
+                end
+              end
+            end
+          end
+
+
+          ## &block = code we want to execute on "SERVER" thread
+          def create_grpc_mock(&block)
+            seen_spans = [] # array of how many spans our mock sees
+            @mock_thread = nil # keep track of the thread for our mock server
+
+            @server_response_enum = ServerResponseSimulator.new
+
+            mock_rpc = mock()
+            # stubs out the record_span to keep track of what the agent passes to grpc (and bypass using grpc in the tests)
+            tmp = mock_rpc.expects(:record_span).at_least_once.with do |enum, metadata|
+              @mock_thread = Thread.new do
+                enum.each do |span|
+                  puts "#{Thread.current.object_id} in mock server   #{span.trace_id}"
+                  seen_spans << span
+                  block.call(seen_spans) if block_given?
+                  #
+                  sleep 0.1 if !@server_response_enum.empty?
+                end
+              end
+            end.returns(@server_response_enum.enumerator)
+
+
+            # this turned into the new class enumerator
+            # @serverarr.each_with_index do |return_value, index|
+            #   tmp = tmp.then if index > 0
+            #   tmp = tmp.returns(return_value)
+
+            # end
+            ##
+
+            # insert our mock grpc into the agent
+            NewRelic::Agent::InfiniteTracing::Channel.any_instance.stubs('stub').returns(mock_rpc)
+            return seen_spans
+          end
+
+          def join_grpc_mock
+            @mock_thread.join
+          end
+
+
+
+          def emulate_streaming_segments count, server_proc = nil, max_buffer_size = 100_000, &block
+            spans = create_grpc_mock &server_proc
+            segments = emulate_streaming_with_tracer nil, count, max_buffer_size, &block
+            join_grpc_mock
+            return spans, segments
           end
 
           def emulate_streaming_to_unimplemented count, max_buffer_size = 100_000, &block
@@ -261,7 +340,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
           # A block that generates segments is expected and yielded to by this methd
           # The spans collected by the server are returned for further inspection
           def generate_and_stream_segments
-            NewRelic::Agent::InfiniteTracing::Client.any_instance.stubs(:handle_close).returns(nil)
+            # NewRelic::Agent::InfiniteTracing::Client.any_instance.stubs(:handle_close).returns(nil)
             unstub_reconnection
             server_context = nil
             with_config fake_server_config do
