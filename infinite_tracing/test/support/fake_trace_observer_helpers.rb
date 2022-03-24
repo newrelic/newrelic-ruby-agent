@@ -217,7 +217,7 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
                 segments = []
                 count.times do |index|
                   with_segment do |segment|
-                    puts "#{Thread.current.object_id} adding segment"
+                    # puts "#{Thread.current.object_id} adding segment"
                     segments << segment
                     client << deferred_span(segment)
 
@@ -227,20 +227,20 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
                     block.call(client, segments) if block_given?
 
                     # waits for the grpc mock server to handle any values it needs to
-                    puts "#{Thread.current.object_id}  before waiting emu"
+                    # puts "#{Thread.current.object_id}  before waiting emu"
                     sleep 0.01 if !@server_response_enum.empty?
-                    puts "#{Thread.current.object_id}  after waiting emu"
+                    # puts "#{Thread.current.object_id}  after waiting emu"
                   end
                 end
                 # waits for the mock grpc server to finish
-                puts "#{Thread.current.object_id}  before waiting emu2"
+                # puts "#{Thread.current.object_id}  before waiting emu2"
                 sleep 0.1 if !@server_response_enum.empty?
-                puts "#{Thread.current.object_id}  after waiting emu2"
+                # puts "#{Thread.current.object_id}  after waiting emu2"
 
                 # ensures all segments consumed then returns the
                 # spans the server saw along with the segments sent
                 client.flush
-                puts "#{Thread.current.object_id}  after client flush "
+                # puts "#{Thread.current.object_id}  after client flush "
 
                 # server.flush count
                 # return server.spans, segments
@@ -248,9 +248,9 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
               end
             end
           ensure
-            puts "#{Thread.current.object_id}  before client stop "
+            # puts "#{Thread.current.object_id}  before client stop "
             client.stop unless client.nil?
-            puts "#{Thread.current.object_id}  after client stop "
+            # puts "#{Thread.current.object_id}  after client stop "
 
             # server.stop unless server.nil?
           end
@@ -273,9 +273,8 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
               return enum_for(:enumerator) unless block_given?
               loop do
                 if return_value = @buffer.pop(false)
-                  # grpc raises any errors it gets rather than yielding them
-                  # this mimics that behavior
-                  if return_value.is_a?(GRPC::BadStatus) # && !return_value.is_a?(GRPC::Ok)
+                  # grpc raises any errors it gets rather than yielding them, this mimics that behavior
+                  if return_value.is_a?(GRPC::BadStatus) && !return_value.is_a?(GRPC::Ok)
                     raise return_value
                   end
                   yield return_value
@@ -300,10 +299,11 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           def simulate_server_response(response = mock_response)
             @server_response_enum << response
+
           end
 
           ## &block = code we want to execute on "SERVER" thread
-          def create_grpc_mock(&block)
+          def create_grpc_mock(simulate_broken_server: false, &block)
             seen_spans = [] # array of how many spans our mock sees
             @mock_thread = nil # keep track of the thread for our mock server
 
@@ -313,17 +313,12 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             # stubs out the record_span to keep track of what the agent passes to grpc (and bypass using grpc in the tests)
             tmp = mock_rpc.expects(:record_span).at_least_once.with do |enum, metadata|
               @mock_thread = Thread.new do
-                puts "mock: class #{enum.class}"
+                # puts "mock: class #{enum.class}"
                 enum.each do |span|
                   break if span.nil?
-                  puts "#{Thread.current.object_id} in mock server   #{span.trace_id}"
-                  seen_spans << span unless span.nil?
-                  block.call(seen_spans) if block_given?
-
-                  # tells our mock server to wait -do we need this?
-                  # puts "#{Thread.current.object_id}  before waiting grpc mock"
-                  # sleep 0.1 if !@server_response_enum.empty?
-                  # puts "#{Thread.current.object_id}  after waiting grpc mock"
+                  # puts "#{Thread.current.object_id} in mock server   #{span.trace_id}"
+                  seen_spans << span unless span.nil? || simulate_broken_server
+                  # block.call(seen_spans) if block_given? # do we even need this???
                 end
               end
             end.returns(@server_response_enum.enumerator)
@@ -342,30 +337,58 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
             end
           end
 
-          def emulate_streaming_segments count, server_proc = nil, max_buffer_size = 100_000, &block
-            spans = create_grpc_mock &server_proc
+          def emulate_streaming_segments count, max_buffer_size = 100_000, &block
+            spans = create_grpc_mock
             segments = emulate_streaming_with_tracer nil, count, max_buffer_size, &block
             join_grpc_mock
             return spans, segments
           end
 
           def emulate_streaming_to_unimplemented count, max_buffer_size = 100_000, &block
-            emulate_streaming_with_tracer UnimplementedInfiniteTracer, count, max_buffer_size, &block
+            spans = create_grpc_mock(simulate_broken_server: true)
+            active_client = nil
+            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, segments|
+              simulate_server_response_shutdown GRPC::Unimplemented.new
+              active_client = client
+            end
+            join_grpc_mock
+            return spans, segments, active_client
           end
 
           def emulate_streaming_to_failed_precondition count, max_buffer_size = 100_000, &block
-            emulate_streaming_with_tracer FailedPreconditionInfiniteTracer, count, max_buffer_size, &block
+            spans = create_grpc_mock(simulate_broken_server: true)
+            active_client = nil
+            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, segments|
+              simulate_server_response_shutdown GRPC::FailedPrecondition.new
+              active_client ||= client
+            end
+            join_grpc_mock
+            return spans, segments, active_client
           end
 
-          def emulate_streaming_with_initial_error count, server_proc = nil, max_buffer_size = 100_000, &block
-            spans = create_grpc_mock &server_proc
-            segments = emulate_streaming_with_tracer nil, count, max_buffer_size, &block
+          def emulate_streaming_with_initial_error count, max_buffer_size = 100_000, &block
+            spans = create_grpc_mock
+            first = true
+            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, segments|
+              if first
+                # raise error only first time
+                simulate_server_response_shutdown GRPC::PermissionDenied.new(details = "denied")
+                first = false
+              else
+                simulate_server_response
+              end
+            end
             join_grpc_mock
             return spans, segments
           end
 
           def emulate_streaming_with_ok_close_response count, max_buffer_size = 100_000, &block
-            emulate_streaming_with_tracer OkCloseInfiniteTracer, count, max_buffer_size, &block
+            spans = create_grpc_mock
+            segments = emulate_streaming_with_tracer nil, count, max_buffer_size do |client, segments|
+              simulate_server_response GRPC::Ok.new
+            end
+            join_grpc_mock
+            return spans, segments
           end
 
           # This helper is used to setup and teardown streaming to the fake trace observer

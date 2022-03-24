@@ -38,7 +38,7 @@ module NewRelic
             total_spans = 5
             spans, segments = emulate_streaming_segments total_spans do |client, segments|
               if segments.size == 3
-                client.restart # ???
+                client.restart # idk what to replace with???
               else
                 simulate_server_response # if segments.size == 5
               end
@@ -70,15 +70,13 @@ module NewRelic
             leftover_spans = 2
 
             spans, segments = emulate_streaming_segments total_spans do |client, segments|
-              puts "#{Thread.current.object_id} in emulate &block"
               if segments.size == total_spans - leftover_spans
-                if segments.size == 3
-                  # we do this here instead of server_proc because we are testing that if the server restarts while the CLIENT is currently running (since we are not testing the server, just client behavior)
-                  simulate_server_response GRPC::Ok.new
-                end
+                # we do this here instead of server_proc because we are testing that if the server restarts while the CLIENT is currently running (since we are not testing the server, just client behavior)
+                simulate_server_response GRPC::Ok.new
+              else
+                # we need to do this so the client streaming helpers know when the mock server has done its thing
+                simulate_server_response
               end
-              # we need to do this so the client streaming helpers know when the mock server has done its thing
-              simulate_server_response if segments.size == 5
             end
 
             assert_equal total_spans, segments.size
@@ -106,17 +104,7 @@ module NewRelic
             total_spans = 2
             first = true
 
-            emulate_streaming_with_initial_error total_spans do |client, segments|
-              if first
-                puts "in emu proc - add error"
-                # raise error only first time
-                first = false
-                simulate_server_response_shutdown GRPC::PermissionDenied.new(details = "denied")
-              else
-                puts "in emu proc - add regular response"
-                simulate_server_response
-              end
-            end
+            emulate_streaming_with_initial_error total_spans
 
             assert_metrics_recorded "Supportability/InfiniteTracing/Span/Sent"
             assert_metrics_recorded "Supportability/InfiniteTracing/Span/Response/Error"
@@ -127,7 +115,6 @@ module NewRelic
           end
         end
 
-        # still intermittent?
         def test_handles_suspended_state
           with_serial_lock do
             NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
@@ -154,20 +141,20 @@ module NewRelic
           end
         end
 
-        # def test_stores_spans_when_not_connected
-        #   with_serial_lock do
-        #     NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
-        #     client = Client.new
+        def test_stores_spans_when_not_connected
+          with_serial_lock do
+            NewRelic::Agent::Transaction::Segment.any_instance.stubs('record_span_event')
+            client = Client.new
 
-        #     5.times do
-        #       with_segment do |segment|
-        #         client << deferred_span(segment)
-        #       end
-        #     end
+            5.times do
+              with_segment do |segment|
+                client << deferred_span(segment)
+              end
+            end
 
-        #     assert_equal 5, client.buffer.queue.length
-        #   end
-        # end
+            assert_equal 5, client.buffer.queue.length
+          end
+        end
       end
     end
   end

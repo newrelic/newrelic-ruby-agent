@@ -55,9 +55,7 @@ CLIENT_MUTEX = Mutex.new
 
 # Prevent parallel runs against the client in this test suite
 def with_serial_lock
-  timeout_cap(15) do
-    CLIENT_MUTEX.synchronize { yield }
-  end
+  CLIENT_MUTEX.synchronize { yield }
 end
 
 TRACE_POINT_ENABLED = false
