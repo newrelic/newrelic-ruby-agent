@@ -81,6 +81,8 @@ tool or Capistrano recipes. For more information on these features, see
 [our deployment documentation](http://docs.newrelic.com/docs/ruby/recording-deployments-with-the-ruby-agent)
 for more information.
 
+*There is a known issue that prevents newly generated New Relic API keys from recoding deploys. See the latest on [this issue](https://github.com/newrelic/newrelic-ruby-agent/issues/715).
+
 ## Support
 
 Should you need assistance with New Relic products, you are in good hands with several support diagnostic tools and support channels.
@@ -133,5 +135,3 @@ The New Relic Ruby agent also uses source code from third-party libraries. Full 
 Thank you,
 
 New Relic Ruby agent team
-
-New Relic, Inc.
