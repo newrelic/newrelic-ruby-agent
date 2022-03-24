@@ -299,7 +299,6 @@ if NewRelic::Agent::InfiniteTracing::Config.should_load?
 
           def simulate_server_response(response = mock_response)
             @server_response_enum << response
-
           end
 
           ## &block = code we want to execute on "SERVER" thread
