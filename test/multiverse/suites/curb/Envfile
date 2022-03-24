@@ -20,7 +20,7 @@ end
 # https://github.com/taf2/curb#version-compatibility-chart
 def curb_gem_version
   if curl_version.between? 7.58, Float::INFINITY
-    '~> 0.9.8'
+    '~> 1.0.0'
   elsif curl_version.between? 7.56, 7.60
     '0.9.7'
   elsif curl_version.between? 7.51, 7.59

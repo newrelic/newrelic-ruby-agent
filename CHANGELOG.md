@@ -2,6 +2,10 @@
 
   ## v8.6.0
 
+  * **Bugfix: Curb - satify method_with_tracing's verb argument requirement**
+
+    When Curb instrumentation is used (either via prepend or chain), be sure to always pass the verb argument over to `method_with_tracing` which requires it. Thank you to @knarewski for bringing this issue to our attention, for providing a means of reproducing an error, and for providing a fix. That fix has been replicated by the agent team with permission. See [Issue 1033](https://github.com/newrelic/newrelic-ruby-agent/issues/1033) for more details.
+
   * **Improve the usage of the 'hostname' executable and other executables**
 
     In all places where a call to an executable binary is made (currently this is done only for the 'hostname' and 'uname' binaries), leverage a new helper method when making the call. This new helper will a) not attempt to execute the binary if it cannot be found, and b) prevent STDERR/STDOUT content from appearing anywhere except New Relic's own logs if the New Relic logger is set to the 'debug' level. When calling 'hostname', fall back to `Socket.gethostname` if the 'hostname' binary cannot be found. When calling 'uname', fall back on using a value of 'unknown' if the 'uname' command fails. Many thanks to @metaskills and @brcarp for letting us know that Ruby AWS Lambda functions can't invoke 'hostname' and for providing ideas and feedback with [Issue #697](https://github.com/newrelic/newrelic-ruby-agent/issues/697).
@@ -13,6 +17,7 @@
   * **Bugfix: fix unit test failures when New Relic environment variables are present**
 
     Previously, unit tests would fail with unexpected invocation errors when `NEW_RELIC_LICENSE_KEY` and `NEW_RELIC_HOST` environment variables were present. Now, tests will discard these environment variables before running.
+
 
   ## v8.5.0
 
