@@ -175,10 +175,6 @@
 
    END OF TERMS AND CONDITIONS
 
-   Versions 6.12.0 and above for this project are licensed under 
-   Apache 2.0.  For prior versions of this project, please see the 
-   LICENSE file in the root directory of that version for more information.
-
    APPENDIX: How to apply the Apache License to your work.
 
       To apply the Apache License to your work, attach the following
@@ -203,6 +199,4 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-
-
 

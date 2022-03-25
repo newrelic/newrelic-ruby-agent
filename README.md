@@ -127,8 +127,9 @@ the [New Relic Ruby agent](https://opensource.newrelic.com/projects/newrelic/new
 
 ## License
 
-The New Relic Ruby agent is licensed under the [Apache 2.0](http://apache.org/licenses/LICENSE-2.0.txt) License.
-The New Relic Ruby agent also uses source code from third-party libraries. Full details on which libraries are used and the terms under which they are licensed can be found in the [THIRD_PARTY_NOTICES.md](https://github.com/newrelic/newrelic-ruby-agent/blob/main/THIRD_PARTY_NOTICES.md).
+As of version 6.12 (released July 16, 2020), the New Relic Ruby agent is licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE) for a copy of the license. For older agent versions, check the LICENSE file included with the source code.
+
+The New Relic Ruby agent may use source code from third-party libraries. When used, these libraries will be outlined in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Thank You
 
