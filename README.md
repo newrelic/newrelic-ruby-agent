@@ -76,12 +76,12 @@ For complete documentation on installing the New Relic Ruby agent, see the follo
 
 ### Recording Deploys
 
-The Ruby agent supports recording deployments in New Relic via a command line
+The Ruby agent supports* recording deployments in New Relic via a command line
 tool or Capistrano recipes. For more information on these features, see
 [our deployment documentation](http://docs.newrelic.com/docs/ruby/recording-deployments-with-the-ruby-agent)
 for more information.
 
-*There is a known issue that prevents newly generated New Relic API keys from recoding deploys. See the latest on [this issue](https://github.com/newrelic/newrelic-ruby-agent/issues/715).
+*There is a [known issue](https://github.com/newrelic/newrelic-ruby-agent/issues/715) that prevents newly generated New Relic API keys from recording deploys.
 
 ## Support
 
