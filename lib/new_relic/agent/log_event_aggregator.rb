@@ -44,6 +44,7 @@ module NewRelic
         @seen_by_severity = Hash.new(0)
         @high_security = NewRelic::Agent.config[:high_security]
         @instrumentation_logger_enabled = NewRelic::Agent::Instrumentation::Logger.enabled?
+        @loggers = {}
         register_for_done_configuring(events)
       end
 
@@ -155,6 +156,16 @@ module NewRelic
         @enabled && @instrumentation_logger_enabled
       end
 
+      def register_logger(logger)
+        return if @loggers.key?(logger)
+
+        logdev = logger.instance_variable_get(:@logdev)
+        dev = logdev.instance_variable_get(:@dev) if logdev
+        @loggers[logger] = dev
+
+        mark_standard_streams_for_skipping
+      end
+
       private
 
       # We record once-per-connect metrics for enabled/disabled state at the
@@ -227,6 +238,23 @@ module NewRelic
       def truncate_message(message)
         return message if message.bytesize <= MAX_BYTES
         message.byteslice(0...MAX_BYTES)
+      end
+
+      # don't forward logs from a logger writing to a standard streams unless
+      # it happens to be the only logger in use
+      def mark_standard_streams_for_skipping
+        return unless @loggers.keys.size > 1
+
+        to_prune = []
+        @loggers.each do |logger, dev|
+          if dev === $stdout || dev === $stderr
+            logger.mark_skip_instrumenting
+            to_prune << logger
+          else
+            logger.clear_skip_instrumenting
+          end
+        end
+        to_prune.each { |logger| @loggers.delete(logger) }
       end
     end
   end
