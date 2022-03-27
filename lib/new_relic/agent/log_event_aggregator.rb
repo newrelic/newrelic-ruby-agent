@@ -245,7 +245,7 @@ module NewRelic
         return unless @loggers.keys.size > 1
 
         @loggers.each do |logger, dev|
-          logger.mark_skip_instrumenting if dev.respond_to?(:tty?) && dev.tty?
+          logger.mark_skip_instrumenting if dev.class == IO
         end
       end
     end
