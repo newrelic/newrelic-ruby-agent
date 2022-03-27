@@ -13,7 +13,9 @@ module NewRelic
         return message unless decorating_enabled?
 
         metadata = NewRelic::Agent.linking_metadata
-        formatted_metadata = " NR-LINKING|#{metadata[ENTITY_GUID_KEY]}|#{metadata[HOSTNAME_KEY]}|#{metadata[TRACE_ID_KEY]}|#{metadata[SPAN_ID_KEY]}|#{escape_entity_name(metadata[ENTITY_NAME_KEY])}|"
+        formatted_metadata = " NR-LINKING|#{metadata[ENTITY_GUID_KEY]}|#{metadata[HOSTNAME_KEY]}|" \
+                             "#{metadata[TRACE_ID_KEY]}|#{metadata[SPAN_ID_KEY]}|" \
+                             "#{escape_entity_name(metadata[ENTITY_NAME_KEY])}|"
 
         message.partition("\n").insert(1, formatted_metadata).join
       end
