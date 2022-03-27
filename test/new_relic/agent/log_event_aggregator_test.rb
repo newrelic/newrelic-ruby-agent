@@ -122,7 +122,7 @@ module NewRelic::Agent
       assert_metrics_not_recorded([
         "Logging/lines",
         "Logging/lines/DEBUG"
-        ])
+      ])
     end
 
     def test_logs_with_nil_severity_use_unknown
