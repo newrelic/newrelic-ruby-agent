@@ -104,7 +104,7 @@ module NewRelic::Agent
       ) do
         NewRelic::Agent.config.notify_server_source_added
 
-        2.times { @aggregator.record("Are you counting this?", "DEBUG") }
+        @aggregator.record("Are you counting this?", "DEBUG")
         @aggregator.harvest!
       end
 
@@ -116,13 +116,32 @@ module NewRelic::Agent
 
     def test_doesnt_record_customer_metrics_when_disabled
       with_config LogEventAggregator::METRICS_ENABLED_KEY => false do
-        2.times { @aggregator.record("Are you counting this?", "DEBUG") }
-        @aggregator.harvest!
+        @aggregator.record("Are you counting this?", "DEBUG")
       end
 
       assert_metrics_not_recorded([
         "Logging/lines",
         "Logging/lines/DEBUG"
+        ])
+    end
+
+    def test_logs_with_nil_severity_use_unknown
+      @aggregator.record('Chocolate chips are great', nil)
+      _, events = @aggregator.harvest!
+
+      assert_equal 'UNKNOWN', events[0][1]["level"]
+      assert_metrics_recorded([
+        "Logging/lines/UNKNOWN"
+      ])
+    end
+
+    def test_logs_with_empty_severity_use_unknown
+      @aggregator.record('Chocolate chips are great', '')
+      _, events = @aggregator.harvest!
+
+      assert_equal 'UNKNOWN', events[0][1]["level"]
+      assert_metrics_recorded([
+        "Logging/lines/UNKNOWN"
       ])
     end
 

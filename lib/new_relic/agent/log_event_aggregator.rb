@@ -54,6 +54,8 @@ module NewRelic
       def record(formatted_message, severity)
         return unless enabled?
 
+        severity = "UNKNOWN" if severity.nil? || severity.empty?
+
         if NewRelic::Agent.config[METRICS_ENABLED_KEY]
           @counter_lock.synchronize do
             @seen += 1
